@@ -1,0 +1,21 @@
+syntax = "proto3";
+package fx.other;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/functionx/fx-core/x/other/types";
+
+service Query {
+    rpc GasPrice (GasPriceRequest) returns (GasPriceResponse) {
+        option (google.api.http).get = "/other/v1/gas_price";
+    }
+}
+
+message GasPriceRequest {
+}
+
+message GasPriceResponse {
+    repeated cosmos.base.v1beta1.Coin gas_prices = 1 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.moretags) = "yaml:\"gas_prices\""];
+}

@@ -1,0 +1,292 @@
+syntax = "proto3";
+package fx.gravity.crosschain.v1;
+
+//import "crosschain/v1/genesis.proto";
+import "crosschain/v1/crosschain.proto";
+import "crosschain/v1/tx.proto";
+import "google/api/annotations.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/functionx/fx-core/x/crosschain/types";
+
+// Query defines the gRPC querier service
+service Query {
+    // Deployments queries deployments
+    rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/params";
+    }
+    rpc CurrentOracleSet (QueryCurrentOracleSetRequest) returns (QueryCurrentOracleSetResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/oracle_set/current";
+    }
+    rpc OracleSetRequest (QueryOracleSetRequestRequest) returns (QueryOracleSetRequestResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/oracle_set/request";
+    }
+    rpc OracleSetConfirm (QueryOracleSetConfirmRequest) returns (QueryOracleSetConfirmResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/oracle_set/confirm";
+    }
+    rpc OracleSetConfirmsByNonce (QueryOracleSetConfirmsByNonceRequest) returns (QueryOracleSetConfirmsByNonceResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/oracle_set/confirms";
+    }
+    rpc LastOracleSetRequests (QueryLastOracleSetRequestsRequest) returns (QueryLastOracleSetRequestsResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/oracle_set/requests";
+    }
+    rpc LastPendingOracleSetRequestByAddr (QueryLastPendingOracleSetRequestByAddrRequest) returns (QueryLastPendingOracleSetRequestByAddrResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/oracle_set/last";
+    }
+    rpc LastPendingBatchRequestByAddr (QueryLastPendingBatchRequestByAddrRequest) returns (QueryLastPendingBatchRequestByAddrResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/batch/last";
+    }
+    rpc LastEventNonceByAddr (QueryLastEventNonceByAddrRequest) returns (QueryLastEventNonceByAddrResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/oracle/event_nonce";
+    }
+
+    rpc LastEventBlockHeightByAddr (QueryLastEventBlockHeightByAddrRequest) returns (QueryLastEventBlockHeightByAddrResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/oracle/event/block_height";
+    }
+
+    rpc BatchFees (QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/batch_fees";
+    }
+    rpc LastObservedBlockHeight (QueryLastObservedBlockHeightRequest) returns (QueryLastObservedBlockHeightResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/block_height";
+    }
+
+    rpc OutgoingTxBatches (QueryOutgoingTxBatchesRequest) returns (QueryOutgoingTxBatchesResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/batch/outgoing_tx";
+    }
+    rpc BatchRequestByNonce (QueryBatchRequestByNonceRequest) returns (QueryBatchRequestByNonceResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/batch/request";
+    }
+
+    rpc BatchConfirm (QueryBatchConfirmRequest) returns (QueryBatchConfirmResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/batch/confirm";
+    }
+
+    rpc BatchConfirms (QueryBatchConfirmsRequest) returns (QueryBatchConfirmsResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/batch/confirms";
+    }
+    rpc TokenToDenom (QueryTokenToDenomRequest) returns (QueryTokenToDenomResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/bridge_denom";
+    }
+    rpc DenomToToken (QueryDenomToTokenRequest) returns (QueryDenomToTokenResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/bridge_token";
+    }
+
+    rpc GetOracleByAddr (QueryOracleByAddrRequest) returns (QueryOracleResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/query_oracle_by_addr";
+    }
+    rpc GetOracleByExternalAddr (QueryOracleByExternalAddrRequest) returns (QueryOracleResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/query_oracle_by_external_addr";
+    }
+    rpc GetOracleByOrchestrator (QueryOracleByOrchestratorRequest) returns (QueryOracleResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/query_oracle_by_orchestrator";
+    }
+
+    rpc GetPendingSendToExternal (QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/query_pending_send_to_external";
+    }
+
+    rpc GetIbcSequenceHeightByChannel (QueryIbcSequenceHeightRequest) returns (QueryIbcSequenceHeightResponse) {
+        option (google.api.http).get = "/crosschain/v1beta/query_ibc_sequence_height";
+    }
+
+    // Validators queries all oracle that match the given status.
+    rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
+        option (google.api.http).get = "/crosschain/v1beta1/oracles";
+    }
+}
+
+message QueryParamsRequest {
+    string chain_name = 1;
+}
+message QueryParamsResponse {
+    Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryCurrentOracleSetRequest {
+    string chain_name = 1;
+}
+message QueryCurrentOracleSetResponse {
+    OracleSet oracle_set = 1;
+}
+
+message QueryOracleSetRequestRequest {
+    uint64 nonce = 1;
+    string chain_name = 2;
+}
+message QueryOracleSetRequestResponse {
+    OracleSet oracle_set = 1;
+}
+
+message QueryOracleSetConfirmRequest {
+    uint64 nonce = 1;
+    string orchestrator_address = 2;
+    string chain_name = 3;
+}
+message QueryOracleSetConfirmResponse {
+    MsgOracleSetConfirm confirm = 1;
+}
+
+message QueryOracleSetConfirmsByNonceRequest {
+    uint64 nonce = 1;
+    string chain_name = 2;
+}
+message QueryOracleSetConfirmsByNonceResponse {
+    repeated MsgOracleSetConfirm confirms = 1;
+}
+
+message QueryLastOracleSetRequestsRequest {
+    string chain_name = 1;
+}
+message QueryLastOracleSetRequestsResponse {
+    repeated OracleSet oracle_sets = 1;
+}
+
+message QueryLastPendingOracleSetRequestByAddrRequest {
+    string orchestrator_address = 1;
+    string chain_name = 2;
+}
+message QueryLastPendingOracleSetRequestByAddrResponse {
+    repeated OracleSet oracle_sets = 1;
+}
+
+message QueryBatchFeeRequest {
+    string chain_name = 1;
+}
+message QueryBatchFeeResponse {
+    repeated BatchFees batch_fees = 1;
+}
+
+message QueryLastPendingBatchRequestByAddrRequest {
+    string orchestrator_address = 1;
+    string chain_name = 2;
+}
+message QueryLastPendingBatchRequestByAddrResponse {
+    OutgoingTxBatch batch = 1;
+}
+
+message QueryOutgoingTxBatchesRequest {
+    string chain_name = 1;
+}
+message QueryOutgoingTxBatchesResponse {
+    repeated OutgoingTxBatch batches = 1;
+}
+
+message QueryBatchRequestByNonceRequest {
+    uint64 nonce = 1;
+    string token_contract = 2;
+    string chain_name = 3;
+}
+message QueryBatchRequestByNonceResponse {
+    OutgoingTxBatch batch = 1;
+}
+
+message QueryBatchConfirmRequest {
+    uint64 nonce = 1;
+    string token_contract = 2;
+    string orchestrator_address = 3;
+    string chain_name = 4;
+}
+
+message QueryBatchConfirmResponse {
+    MsgConfirmBatch confirm = 1;
+}
+
+message QueryBatchConfirmsRequest {
+    uint64 nonce = 1;
+    string token_contract = 2;
+    string chain_name = 3;
+}
+message QueryBatchConfirmsResponse {
+    repeated MsgConfirmBatch confirms = 1;
+}
+
+message QueryLastEventNonceByAddrRequest {
+    string orchestrator_address = 1;
+    string chain_name = 2;
+}
+message QueryLastEventNonceByAddrResponse {
+    uint64 event_nonce = 1;
+}
+
+message QueryTokenToDenomRequest {
+    string token = 1;
+    string chain_name = 2;
+}
+message QueryTokenToDenomResponse {
+    string denom = 1;
+    string channel_ibc = 2;
+}
+
+message QueryDenomToTokenRequest {
+    string denom = 1;
+    string chain_name = 2;
+}
+message QueryDenomToTokenResponse {
+    string token = 1;
+    string channel_ibc = 2;
+}
+
+message QueryOracleByAddrRequest {
+    string oracle_address = 1;
+    string chain_name = 2;
+}
+message QueryOracleResponse {
+    Oracle oracle = 1;
+}
+
+message QueryOracleByExternalAddrRequest {
+    string external_address = 1;
+    string chain_name = 2;
+}
+
+message QueryOracleByOrchestratorRequest {
+    string orchestrator_address = 1;
+    string chain_name = 2;
+}
+
+message QueryPendingSendToExternalRequest {
+    string sender_address = 1;
+    string chain_name = 2;
+}
+message QueryPendingSendToExternalResponse {
+    repeated OutgoingTransferTx transfers_in_batches = 1;
+    repeated OutgoingTransferTx unbatched_transfers = 2;
+}
+
+message QueryIbcSequenceHeightRequest {
+    string source_port = 1;
+    string source_channel = 2;
+    uint64 sequence = 3;
+    string chain_name = 4;
+}
+
+message QueryIbcSequenceHeightResponse {
+    bool found = 1;
+    uint64 block_height = 2;
+}
+
+message QueryLastObservedBlockHeightRequest {
+    string chain_name = 1;
+}
+
+message QueryLastObservedBlockHeightResponse {
+    uint64 external_block_height = 1;
+    uint64 block_height = 2;
+}
+
+message QueryLastEventBlockHeightByAddrRequest {
+    string orchestrator_address = 1;
+    string chain_name = 2;
+}
+message QueryLastEventBlockHeightByAddrResponse {
+    uint64 block_height = 1;
+}
+
+message QueryOraclesRequest {
+    string chain_name = 1;
+}
+message QueryOraclesResponse {
+    // oracles contains all the queried oracles.
+    repeated Oracle oracles = 1 [(gogoproto.nullable) = false];
+}

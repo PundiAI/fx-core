@@ -1,0 +1,1787 @@
+{
+  "genesis_time": "2021-07-12T07:42:23.292429Z",
+  "chain_id": "fxcore",
+  "initial_height": "1",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "1048576",
+      "max_gas": "-1",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age_num_blocks": "1000000",
+      "max_age_duration": "172800000000000",
+      "max_bytes": "100000"
+    },
+    "validator": {
+      "pub_key_types": [
+        "ed25519"
+      ]
+    },
+    "version": {}
+  },
+  "app_hash": "",
+  "app_state": {
+    "auth": {
+      "params": {
+        "max_memo_characters": "256",
+        "tx_sig_limit": "7",
+        "tx_size_cost_per_byte": "10",
+        "sig_verify_cost_ed25519": "590",
+        "sig_verify_cost_secp256k1": "1000"
+      },
+      "accounts": [
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx17xq5a5gmhlkl9qfaag5y4jasedvn2mrpc3c6zd",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx158te0s9r5kj3deljjfzksjd9pu9alasvs4h9z7",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx16w2m5n76ss2w6kut2e5d8elpf5tjtu6vsahw04",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1w2gpfn4uvuej9hcpjy50y97u54y7zvu2clzcam",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx10kw6m3487ymjdfhgd2rtw5p5yu45vzzuchkf33",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1nuu2gz3wtv5w47dy5em3m8u7x3peee5r3nycrc",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1zh47klxey0zt5agpema7shs9a54ddln22s8dr3",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1pc0q8a9nh6usp5lutkaxuqp4yxdn8gks80w2rv",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1lyyr88fecr92u6qzxuu23094x8jnzxxn320dnc",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1qxgmdq4f7pnux9pzrtneyj9g3g82rj9x5vcalj",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1s3ye9y8hgg26wqkysvkdavcngg4syfdzejgqt2",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx195rkv4ha9w4r6akrkx0rl8x5zaydz59t4glyhf",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1m4x7dhm7dpya00v3e9zcyzrszwn8288dpwjeml",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1k0mrtk940fc2mxw0ra8j3j0jwalm52v4ausxs6",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx17kmws230gtqyqwwz8ycc97w3z8qup9j7pts4ug",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1mkrhqc3nrufvcfgjnwx2rqk2nv33m06k7j447j",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1zveaphkqvna7fczxzv8j98ggfmgk5zh2ex5rws",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1urvm93md3etactamuuw9xrmhsxrw83za3fcjwy",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx102spfmlhpms7g3uuna8dwl694s6k45tkclp03x",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "fx1sp07ejamfdq0zpsg2lr0yrjz8ve7mpchd3jl3y",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        }
+      ]
+    },
+    "bank": {
+      "params": {
+        "send_enabled": [],
+        "default_send_enabled": true
+      },
+      "balances": [
+        {
+          "address": "fx1qxgmdq4f7pnux9pzrtneyj9g3g82rj9x5vcalj",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1pc0q8a9nh6usp5lutkaxuqp4yxdn8gks80w2rv",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1zveaphkqvna7fczxzv8j98ggfmgk5zh2ex5rws",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1zh47klxey0zt5agpema7shs9a54ddln22s8dr3",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx195rkv4ha9w4r6akrkx0rl8x5zaydz59t4glyhf",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1w2gpfn4uvuej9hcpjy50y97u54y7zvu2clzcam",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx102spfmlhpms7g3uuna8dwl694s6k45tkclp03x",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx10kw6m3487ymjdfhgd2rtw5p5yu45vzzuchkf33",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1sp07ejamfdq0zpsg2lr0yrjz8ve7mpchd3jl3y",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1s3ye9y8hgg26wqkysvkdavcngg4syfdzejgqt2",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1nuu2gz3wtv5w47dy5em3m8u7x3peee5r3nycrc",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx158te0s9r5kj3deljjfzksjd9pu9alasvs4h9z7",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1k0mrtk940fc2mxw0ra8j3j0jwalm52v4ausxs6",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx16w2m5n76ss2w6kut2e5d8elpf5tjtu6vsahw04",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1m4x7dhm7dpya00v3e9zcyzrszwn8288dpwjeml",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1mkrhqc3nrufvcfgjnwx2rqk2nv33m06k7j447j",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1urvm93md3etactamuuw9xrmhsxrw83za3fcjwy",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx17xq5a5gmhlkl9qfaag5y4jasedvn2mrpc3c6zd",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx17kmws230gtqyqwwz8ycc97w3z8qup9j7pts4ug",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "fx1lyyr88fecr92u6qzxuu23094x8jnzxxn320dnc",
+          "coins": [
+            {
+              "denom": "FX",
+              "amount": "200000000000000000000"
+            }
+          ]
+        }
+      ],
+      "supply": [
+        {
+          "denom": "FX",
+          "amount": "378604525462891000000000000"
+        }
+      ],
+      "denom_metadata": [
+        {
+          "description": "Function X",
+          "denom_units": [
+            {
+              "denom": "fx",
+              "exponent": 0,
+              "aliases": []
+            },
+            {
+              "denom": "FX",
+              "exponent": 18,
+              "aliases": []
+            }
+          ],
+          "base": "fx",
+          "display": "FX"
+        }
+      ]
+    },
+    "capability": {
+      "index": "1",
+      "owners": []
+    },
+    "crisis": {
+      "constant_fee": {
+        "denom": "FX",
+        "amount": "13333000000000000000000"
+      }
+    },
+    "distribution": {
+      "params": {
+        "community_tax": "0.400000000000000000",
+        "base_proposer_reward": "0.010000000000000000",
+        "bonus_proposer_reward": "0.040000000000000000",
+        "withdraw_addr_enabled": true
+      },
+      "fee_pool": {
+        "community_pool": []
+      },
+      "delegator_withdraw_infos": [],
+      "previous_proposer": "",
+      "outstanding_rewards": [],
+      "validator_accumulated_commissions": [],
+      "validator_historical_rewards": [],
+      "validator_current_rewards": [],
+      "delegator_starting_infos": [],
+      "validator_slash_events": []
+    },
+    "evidence": {
+      "evidence": []
+    },
+    "genutil": {
+      "gen_txs": [
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Amsterdam",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx102spfmlhpms7g3uuna8dwl694s6k45tkclp03x",
+                "validator_address": "fxvaloper102spfmlhpms7g3uuna8dwl694s6k45tkswus0x",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "3ju92nP7l7sluhJCXvZUhChYWz6AmRSZKQ+Uq73pOQQ="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "A02meInDAw0RD2ZDvpT7Fz2RwFhyv7X4vhVahuYTpMYX"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "7Mr2oPcUDjBWOrmmDJWFvA3k8T1BZcFLUNDtgNI+rGpH1PB2hllXn6oKWhrTVr8HL8SfPbMPIhwDwbEp1GMxBw=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Bucharest",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1s3ye9y8hgg26wqkysvkdavcngg4syfdzejgqt2",
+                "validator_address": "fxvaloper1s3ye9y8hgg26wqkysvkdavcngg4syfdz3r4l42",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "qzXG8pcDjx/1QAC/MMryQ0SxQtKd4S1H7/gBodx6K9g="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "AxOA/4K78GEzTT/dY7jJcBZtKohYH5IVVqtgYRfCveGH"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "2rXfidw2hv/IjH+WHo/pEpq4/UGwAWF77NPUNqz5zmFhYGMrvEOPsdcfpGSaS4C0ZM6eF2BrKBzp4Y7e/IPEig=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "ChiangMai",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1m4x7dhm7dpya00v3e9zcyzrszwn8288dpwjeml",
+                "validator_address": "fxvaloper1m4x7dhm7dpya00v3e9zcyzrszwn8288dfl0x9l",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "HnbFJl76LiaCkuNqYrH3rQHbGmUcL/V3v+DXzzBVI7g="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "Azc5hMIs7Qn4BXN3Y3+1L3rUR2PBhLAL634AnKshTMpK"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "vEFiRiwjWdozqB/uvGMSgYJolfNobdJ15vM4pbzryNMgA80hGIikKVAduUFjDGWVjQKXdgv1RIprghvP9m2MAQ=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Cyprus",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx17kmws230gtqyqwwz8ycc97w3z8qup9j7pts4ug",
+                "validator_address": "fxvaloper17kmws230gtqyqwwz8ycc97w3z8qup9j7f6d2zg",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "bm8jTMGFjnlXXqllXAzXB6bPffmCgzEOW+F/SnxXUc4="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "Agdri+FSpJzvDcGtyUiG9ErFA/wjnPhezrrBoDvUnro9"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "ABkTa+NFyDpbj3lvKV3xqOesOIOir7mM68AZwr4kSFF8OLFh1IroZjZ+CsFWRVhRfF0HxKYjK6oggPe0f4i3Kw=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Delhi",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1mkrhqc3nrufvcfgjnwx2rqk2nv33m06k7j447j",
+                "validator_address": "fxvaloper1mkrhqc3nrufvcfgjnwx2rqk2nv33m06kkrg2qj",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "FUG9Q6Fo7O7vzldV3qfJAcHL6rMrWwT8qnMlyfM0EeY="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "AkdyWTTh+68RbeXAvysX0L66P5WbWB8AzAfmP2iLznVl"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "Y+JwawJiUkulp2FV/VqmuCtvt6R34rG5TTV5BB8hX1x3BYZ9t2HD33FqoTQNH5Fc5BCjZzMq2f7oxyHjy+rAZQ=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Dubai",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1sp07ejamfdq0zpsg2lr0yrjz8ve7mpchd3jl3y",
+                "validator_address": "fxvaloper1sp07ejamfdq0zpsg2lr0yrjz8ve7mpch9q0q0y",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "Gq/UFHvaIlfieCpyMN4glfNpM4V0ls0dBzEvfXXwrTU="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "As10ODZBBBcnVYSJODaXRaxkFsRXSD3+d7YRgxbcdeji"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "lqREG1Kw8ysVSm4irY98rWN+VWpf1zQiGVVzbWyucAQOm/i1JFSE+LKiF7inEYlRbeJeSn7uxGiLk3cnWsyB8Q=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Innsbruck",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx195rkv4ha9w4r6akrkx0rl8x5zaydz59t4glyhf",
+                "validator_address": "fxvaloper195rkv4ha9w4r6akrkx0rl8x5zaydz59taezmff",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "Va1kerwn+PPS+ujhbQkDRJuyswTrFUlUXgK5kXaJ6J8="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "AjMQGe2VNjpY8/BqUa+z18bIVFoagehRweEr0LrAvd32"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "0MY+kgT+FXYZaAaOrpZw+rl6zWDovfg0XteHCwerJRJGsQjPcVr2mET2e7kONiE7+OCEDSrLRB5n+y38sCoSdA=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Istanbul",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1urvm93md3etactamuuw9xrmhsxrw83za3fcjwy",
+                "validator_address": "fxvaloper1urvm93md3etactamuuw9xrmhsxrw83zaec9dsy",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "bQvs55/1nLaix0IizgX3gSTkZc8crd9y6i8yEGcSIDs="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "ArREbYLeLd12HINwAaQhwzafaplwhKKr++AI4jF/1PMS"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "WJlW+NI5rUDHiNOSzi7y9Pfn6mrFJjfILErKuwTiw8ZrNJj9lxBsZJEZh+O0pB8UWVMce6DiNn8IOFcKPW/NVw=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Jakarta",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx16w2m5n76ss2w6kut2e5d8elpf5tjtu6vsahw04",
+                "validator_address": "fxvaloper16w2m5n76ss2w6kut2e5d8elpf5tjtu6vcv2334",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "aufDFX9ZUkoI79leB5J/lJwiJi5LDAzaVQOQEv3/YSQ="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "AyArvDG0GfUJ43f2YlryLH+tf0C4DIU0vWydarUJ3RwD"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "QspUpIU7Zlb+gXaXKDRzpp+qiMabMkUVN8+JA7tbAz1XuBCFMQxQdtR7gsHgWHHrtGmIokFxcgum8lJZZ0b3OA=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "London",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1lyyr88fecr92u6qzxuu23094x8jnzxxn320dnc",
+                "validator_address": "fxvaloper1lyyr88fecr92u6qzxuu23094x8jnzxxnemjjdc",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "Wb7z6Xpk911h3Ga+Hl/XbGHLJmNWp/LCkCdMiDcpxng="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "AwbxuMfPYz/GGgV9uL8+4/QuMTWty0+Bsr3VZLGVC2d7"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "2kqHNowoYlydZqeVLvNlxu7MboynaEXUAmzS5a/v/uhSFlTRBo0mMBeiCl36kgRKECgZXsDEtdwP+lTXXuiIOQ=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Madrid",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx158te0s9r5kj3deljjfzksjd9pu9alasvs4h9z7",
+                "validator_address": "fxvaloper158te0s9r5kj3deljjfzksjd9pu9alasvcy26u7",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "Qia1DSRTzaHcfQSkq99UVXb9Z+vzMLuASgipv21MuKk="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "A9zBmOjPziBPrwZdgh4LiEXepJJ9ab+dryjnW0CiSIDr"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "wdZC16qTAoKRRD9kPcw1Q4GDLjoUd2yQ1A/TB+stjMQptIxUqhJ5YQNhjHUJzKqUCRvA3wDSeSg+WWBscgf48g=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Miami",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1zveaphkqvna7fczxzv8j98ggfmgk5zh2ex5rws",
+                "validator_address": "fxvaloper1zveaphkqvna7fczxzv8j98ggfmgk5zh23hfuss",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "s6pR9Kn0cztqMFM8zDVGMZqaXZsNojcwZltYzjJNCpo="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "A1DRiF45W+71AVE0NtH/xwTRObnX+HOVL1tG0xh7acR+"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "E6vBhyfSpmMomciPxO3Gn3WXTr7uuenHhC71lIbUuF4SUp3FQopti8sdJXKCn93ckkowWCDCBhHjEUHiLohs2Q=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Montreal",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1qxgmdq4f7pnux9pzrtneyj9g3g82rj9x5vcalj",
+                "validator_address": "fxvaloper1qxgmdq4f7pnux9pzrtneyj9g3g82rj9xua9zpj",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "H1WFUkYE0KaopMLGiYpIm7wjXTtAluJNam/zRaDv9UM="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "ApPtyHQ8z1xxeTLpL+Q413ont07/+tyNhBlsGfB7zd/3"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "7xswDW1ezIbzodvqkxOtDiu7mkevnyQ3X6cy3PJLYuU1K/s2YaZ21bFP+z4lz9GpxPnc2LNecHpbCtouTREgmw=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "NewYork",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1k0mrtk940fc2mxw0ra8j3j0jwalm52v4ausxs6",
+                "validator_address": "fxvaloper1k0mrtk940fc2mxw0ra8j3j0jwalm52v44ddew6",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "9DjMEy5bVIjoaj5kNHAwX75P/+nabPx9hl4q9IPhf4U="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "AzVOAMmmsFNujPgWjVnbBidu6Aj5gUsRezUQIQULKMw2"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "pxoCJtLtTrcjarQilGbF6mXmC2QVUSihOCeFlv7/5bk6dmLr1G5/ddLLO0VyrKAiu7vUOE83Cv7ih9IJx6WWXA=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Seoul",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx10kw6m3487ymjdfhgd2rtw5p5yu45vzzuchkf33",
+                "validator_address": "fxvaloper10kw6m3487ymjdfhgd2rtw5p5yu45vzzusxtk03",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "uZqyIQPSMFFc0SRDQ8vXVoUKSNIt64u2ioCJSId5F0w="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "A8NuZhsGD5/GBH9DiR6t3ev/l/CIYnx5mSDE7CeWnZmX"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "CxEZr1j5EVbG+fW3RDVj5ylYig0B4wyicONCqTYFC7hvBWuYODKzy4e1I8oMurkmmI1MbQHhHPnwMsH27W956A=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Shenzhen",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1zh47klxey0zt5agpema7shs9a54ddln22s8dr3",
+                "validator_address": "fxvaloper1zh47klxey0zt5agpema7shs9a54ddln2zp6ja3",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "UdLk6THzh+/7mkydea7cBgyZUFvD1BRxf/s53FB91Oc="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "A4XQ2sIoTRQJEBPSRwq0dI7skHY6k1BQNwnpFcAatMK1"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "U1dxhLuZQcMmPvBMfJEOdhHF6CTeEakBZPtnrTYWYEwrpd0rPiJ/FM7wLo/uEDUSI77CJjJMYQP0fG+qL69d4Q=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Singapore",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1w2gpfn4uvuej9hcpjy50y97u54y7zvu2clzcam",
+                "validator_address": "fxvaloper1w2gpfn4uvuej9hcpjy50y97u54y7zvu2swl8rm",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "Darlht9fehDQCB+rL2R71h3cClc14Hvtf6e80hW03nM="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "A27t0WtlcOumlUyGt9WHAsCHbUoffbc+D/qky/dFOsw4"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "JVa3RUZuMEIaEMVvn6qhbCCRYD749Kghe831A+LMw5ct8m2lv1ywBR8RQ+tbyzwJ4sVwymG8IWBep9YEcahMSA=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "SoPaulo",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx17xq5a5gmhlkl9qfaag5y4jasedvn2mrpc3c6zd",
+                "validator_address": "fxvaloper17xq5a5gmhlkl9qfaag5y4jasedvn2mrpsq99ud",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "kraqYN5h/JlZ+DxgUutURepjcckS1//WQXdWiNzoRmo="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "A643mXLUZLNofsfsMid7x0WSBc0KEsYeq0AC1lfvt66p"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "lwyx0vjv2xYKpzREa/JkTMVNc59vsDlv+CUwWWltxqhxqzePX/kGGQt8d0AwFFKX4pol67GESo0H+bQyisN1oA=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Taipei",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1pc0q8a9nh6usp5lutkaxuqp4yxdn8gks80w2rv",
+                "validator_address": "fxvaloper1pc0q8a9nh6usp5lutkaxuqp4yxdn8gks07n4av",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "FtImackzoWDLCfgnpDzx3JkqwFhZeQKpYzYsj3EavZU="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "A4A7PbFeLER2vA1q4mtqtQknCCbtKIwMXTLcysJ/kenj"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "rDhEuXEb7y1B0rDo2fCrgKTLtWu2G/JCel3j5DQoSrNDqIdrOkV1fN6IPIV5oIWOiMs71Lliw6hITWkvigx9Rw=="
+          ]
+        },
+        {
+          "body": {
+            "messages": [
+              {
+                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+                "description": {
+                  "moniker": "Tokyo",
+                  "identity": "",
+                  "website": "functionx.io",
+                  "security_contact": "contact@functionx.io",
+                  "details": "Details A Function X foundation self-hosted validator."
+                },
+                "commission": {
+                  "rate": "0.010000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "10000000000000000",
+                "delegator_address": "fx1nuu2gz3wtv5w47dy5em3m8u7x3peee5r3nycrc",
+                "validator_address": "fxvaloper1nuu2gz3wtv5w47dy5em3m8u7x3peee5reze8ac",
+                "pubkey": {
+                  "@type": "/cosmos.crypto.ed25519.PubKey",
+                  "key": "xOOcNGEARWobbfLgQQ/HCBnCVYnohQpuz6vlqDE/EuU="
+                },
+                "value": {
+                  "denom": "FX",
+                  "amount": "100000000000000000000"
+                }
+              }
+            ],
+            "memo": "",
+            "timeout_height": "0",
+            "extension_options": [],
+            "non_critical_extension_options": []
+          },
+          "auth_info": {
+            "signer_infos": [
+              {
+                "public_key": {
+                  "@type": "/cosmos.crypto.secp256k1.PubKey",
+                  "key": "A1lVcabtd2VPePjgYrC7aNFFWJhSziStLPIbQvVBTHBO"
+                },
+                "mode_info": {
+                  "single": {
+                    "mode": "SIGN_MODE_LEGACY_AMINO_JSON"
+                  }
+                },
+                "sequence": "0"
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas_limit": "200000",
+              "payer": "",
+              "granter": ""
+            }
+          },
+          "signatures": [
+            "J/thdI14afPDziTQNTfeLD81dKfAftM6KlbKqvKbeypFGBHJaQI5KQysIWbp4wxK20uIUnhMWa4D24Mw9479Yg=="
+          ]
+        }
+      ]
+    },
+    "gov": {
+      "starting_proposal_id": "1",
+      "deposits": [],
+      "votes": [],
+      "proposals": [],
+      "deposit_params": {
+        "min_deposit": [
+          {
+            "denom": "FX",
+            "amount": "10000000000000000000000"
+          }
+        ],
+        "max_deposit_period": "1209600s"
+      },
+      "voting_params": {
+        "voting_period": "1209600s"
+      },
+      "tally_params": {
+        "quorum": "0.400000000000000000",
+        "threshold": "0.500000000000000000",
+        "veto_threshold": "0.334000000000000000"
+      }
+    },
+    "gravity": {
+      "params": {
+        "gravity_id": "fx-bridge-eth",
+        "contract_source_hash": "",
+        "bridge_eth_address": "",
+        "bridge_chain_id": "1",
+        "signed_valsets_window": "20000",
+        "signed_batches_window": "20000",
+        "signed_claims_window": "20000",
+        "target_batch_timeout": "43200000",
+        "average_block_time": "5000",
+        "average_eth_block_time": "15000",
+        "slash_fraction_valset": "0.001000000000000000",
+        "slash_fraction_batch": "0.001000000000000000",
+        "slash_fraction_claim": "0.001000000000000000",
+        "slash_fraction_conflicting_claim": "0.001000000000000000",
+        "unbond_slashing_valsets_window": "20000",
+        "ibc_transfer_timeout_height": "20000",
+        "valset_update_power_change_percent": "0.100000000000000000"
+      },
+      "last_observed_nonce": "0",
+      "valsets": [],
+      "valset_confirms": [],
+      "batches": [],
+      "batch_confirms": [],
+      "attestations": [],
+      "delegate_keys": [],
+      "erc20_to_denoms": [],
+      "unbatched_transfers": [],
+      "module_coins": [
+        {
+          "denom": "FX",
+          "amount": "378600525462891000000000000"
+        }
+      ]
+    },
+    "ibc": {
+      "client_genesis": {
+        "clients": [],
+        "clients_consensus": [],
+        "clients_metadata": [],
+        "params": {
+          "allowed_clients": [
+            "07-tendermint"
+          ]
+        },
+        "create_localhost": false,
+        "next_client_sequence": "0"
+      },
+      "connection_genesis": {
+        "connections": [],
+        "client_connection_paths": [],
+        "next_connection_sequence": "0"
+      },
+      "channel_genesis": {
+        "channels": [],
+        "acknowledgements": [],
+        "commitments": [],
+        "receipts": [],
+        "send_sequences": [],
+        "recv_sequences": [],
+        "ack_sequences": [],
+        "next_channel_sequence": "0"
+      }
+    },
+    "mint": {
+      "minter": {
+        "inflation": "0.350000000000000000",
+        "annual_provisions": "0.000000000000000000"
+      },
+      "params": {
+        "mint_denom": "FX",
+        "inflation_rate_change": "0.300000000000000000",
+        "inflation_max": "0.416762000000000000",
+        "inflation_min": "0.170000000000000000",
+        "goal_bonded": "0.510000000000000000",
+        "blocks_per_year": "6311520"
+      }
+    },
+    "other": null,
+    "params": null,
+    "slashing": {
+      "params": {
+        "signed_blocks_window": "20000",
+        "min_signed_per_window": "0.050000000000000000",
+        "downtime_jail_duration": "600s",
+        "slash_fraction_double_sign": "0.050000000000000000",
+        "slash_fraction_downtime": "0.001000000000000000"
+      },
+      "signing_infos": [],
+      "missed_blocks": []
+    },
+    "staking": {
+      "params": {
+        "unbonding_time": "1814400s",
+        "max_validators": 20,
+        "max_entries": 7,
+        "historical_entries": 20000,
+        "bond_denom": "FX"
+      },
+      "last_total_power": "0",
+      "last_validator_powers": [],
+      "validators": [],
+      "delegations": [],
+      "unbonding_delegations": [],
+      "redelegations": [],
+      "exported": false
+    },
+    "transfer": {
+      "port_id": "transfer",
+      "denom_traces": [],
+      "params": {
+        "send_enabled": true,
+        "receive_enabled": true
+      }
+    },
+    "upgrade": {},
+    "vesting": {}
+  }
+}
