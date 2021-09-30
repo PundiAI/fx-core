@@ -108,6 +108,9 @@ go.sum: go.mod
 	@echo "--> Download go modules to local cache"
 	@go mod download
 
+docker: build-linux
+	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:testnet .
+
 draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
 	@goviz -i github.com/functionx/fx-core/cmd/fxcored -d 2 | dot -Tpng -o dependency-graph.png
