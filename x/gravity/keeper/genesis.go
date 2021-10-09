@@ -11,7 +11,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) {
 	k.SetParams(ctx, *data.Params)
 	// reset valsets in state
 	for _, vs := range data.Valsets {
-		k.StoreValsetUnsafe(ctx, vs)
+		k.StoreValset(ctx, vs)
 	}
 
 	// reset valset confirmations in state

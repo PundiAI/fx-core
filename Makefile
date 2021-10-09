@@ -115,6 +115,9 @@ draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
 	@goviz -i github.com/functionx/fx-core/cmd/fxcored -d 2 | dot -Tpng -o dependency-graph.png
 
+docker: build-linux
+	@docker build --no-cache -f ./cmd/fxcored/Dockerfile  -t functionx/fx-core:testnet .
+
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################

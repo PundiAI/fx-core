@@ -60,17 +60,25 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 	// This conditional stops the attestation from accidentally being applied twice.
 	if !att.Observed {
 		// Sum the current powers of all validators who have voted and see if it passes the current threshold
-		totalPower := k.StakingKeeper.GetLastTotalPower(ctx)
-		requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewInt(100))
+		validators := k.StakingKeeper.GetBondedValidatorsByPower(ctx)
+		var totalPower uint64
+		var valPowers = map[string]uint64{}
+		for _, validator := range validators {
+			val := validator.GetOperator()
+			_, found := k.GetEthAddressByValidator(ctx, val)
+			if !found && ctx.BlockHeight() > 1380300 {
+				continue
+			}
+			power := uint64(k.StakingKeeper.GetLastValidatorPower(ctx, val))
+			totalPower += power
+			valPowers[val.String()] = power
+		}
+
+		requiredPower := types.AttestationVotesPowerThreshold.Mul(sdk.NewIntFromUint64(totalPower)).Quo(sdk.NewInt(100))
 		attestationPower := sdk.NewInt(0)
 		for _, validator := range att.Votes {
-			val, err := sdk.ValAddressFromBech32(validator)
-			if err != nil {
-				panic(err)
-			}
-			validatorPower := k.StakingKeeper.GetLastValidatorPower(ctx, val)
 			// Add it to the attestation power's sum
-			attestationPower = attestationPower.Add(sdk.NewInt(validatorPower))
+			attestationPower = attestationPower.Add(sdk.NewIntFromUint64(valPowers[validator]))
 			// If the power of all the validators that have voted on the attestation is higher or equal to the threshold,
 			// process the attestation, set Observed to true, and break
 			if attestationPower.GTE(requiredPower) {

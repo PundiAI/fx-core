@@ -76,11 +76,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // SetValsetRequest returns a new instance of the Gravity BridgeValidatorSet
 // i.e. {"nonce": 1, "memebers": [{"eth_addr": "foo", "power": 11223}]}
-func (k Keeper) SetValsetRequest(ctx sdk.Context) *types.Valset {
-	valset := k.GetCurrentValset(ctx)
+func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) {
 	// if valset member is empty, not store valset.
 	if len(valset.Members) <= 0 {
-		return valset
+		return
 	}
 	k.StoreValset(ctx, valset)
 
@@ -94,8 +93,6 @@ func (k Keeper) SetValsetRequest(ctx sdk.Context) *types.Valset {
 			sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(valset.Nonce)),
 		),
 	)
-
-	return valset
 }
 
 // StoreValset is for storing a valiator set at a given height
@@ -109,13 +106,6 @@ func (k Keeper) StoreValset(ctx sdk.Context, valset *types.Valset) {
 func (k Keeper) SetLatestValsetNonce(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LatestValsetNonce, types.UInt64Bytes(nonce))
-}
-
-// StoreValsetUnsafe is for storing a valiator set at a given height
-func (k Keeper) StoreValsetUnsafe(ctx sdk.Context, valset *types.Valset) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetValsetKey(valset.Nonce), k.cdc.MustMarshalBinaryBare(valset))
-	k.SetLatestValsetNonce(ctx, valset.Nonce)
 }
 
 // HasValsetRequest returns true if a valset defined by a nonce exists

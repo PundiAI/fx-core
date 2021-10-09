@@ -29,27 +29,27 @@ func createValsets(ctx sdk.Context, k keeper.Keeper) {
 	//      This will make sure the unbonding validator has to provide an attestation to a new Valset
 	//	    that excludes him before he completely Unbonds.  Otherwise he will be slashed
 	// 3. If power change between validators of CurrentValset and latest valset request is > 10%
-	if needUpdateValset(ctx, k) {
-		k.SetValsetRequest(ctx)
+	if currentValset, is := needUpdateValset(ctx, k); is {
+		k.SetValsetRequest(ctx, currentValset)
 	}
 }
 
-func needUpdateValset(ctx sdk.Context, k keeper.Keeper) bool {
+func needUpdateValset(ctx sdk.Context, k keeper.Keeper) (*types.Valset, bool) {
+	currentValset := k.GetCurrentValset(ctx)
 	latestValset := k.GetLatestValset(ctx)
 	if latestValset == nil {
-		return true
+		return currentValset, true
 	}
 	if k.GetLastUnBondingBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
 		ctx.Logger().Info("Gravity", "valset change, has validator UnBonding", ctx.BlockHeight())
-		return true
+		return currentValset, true
 	}
-	currentValset := k.GetCurrentValset(ctx)
 	params := k.GetParams(ctx)
 	if powerDiff, isChange := valSetPowerIsChanger(latestValset.Members, currentValset.Members, params.ValsetUpdatePowerChangePercent); isChange {
 		ctx.Logger().Info("Gravity", "valset power change", "", "change threshold", params.ValsetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
-		return true
+		return currentValset, true
 	}
-	return false
+	return currentValset, false
 }
 
 func valSetPowerIsChanger(latestValset []*types.BridgeValidator, currentValset []*types.BridgeValidator, powerChangeThreshold sdk.Dec) (float64, bool) {
@@ -173,6 +173,10 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 		// SLASH BONDED VALIDTORS who didn't attest valset request
 		currentBondedSet := k.StakingKeeper.GetBondedValidatorsByPower(ctx)
 		for _, val := range currentBondedSet {
+			ethAddress, foundEthAddress := k.GetEthAddressByValidator(ctx, val.GetOperator())
+			if !foundEthAddress && ctx.BlockHeight() > 1380300 {
+				continue
+			}
 			consAddr, _ := val.GetConsAddr()
 			valSigningInfo, exist := k.SlashingKeeper.GetValidatorSigningInfo(ctx, consAddr)
 
@@ -181,8 +185,6 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 				// Check if validator has confirmed valset or not
 				found := false
 				for _, conf := range confirms {
-					// problem site for delegate key rotation, see issue #344
-					ethAddress, foundEthAddress := k.GetEthAddressByValidator(ctx, val.GetOperator())
 					if foundEthAddress && conf.EthAddress == ethAddress {
 						found = true
 						break
@@ -215,7 +217,12 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 				if err != nil {
 					panic(err)
 				}
-				validator, _ := k.StakingKeeper.GetValidator(ctx, sdk.ValAddress(addr))
+				_, foundValidator := k.GetEthAddressByValidator(ctx, addr)
+				if !foundValidator && ctx.BlockHeight() > 1380300 {
+					continue
+				}
+
+				validator, _ := k.StakingKeeper.GetValidator(ctx, addr)
 				valConsAddr, _ := validator.GetConsAddr()
 				valSigningInfo, exist := k.SlashingKeeper.GetValidatorSigningInfo(ctx, valConsAddr)
 
@@ -268,6 +275,10 @@ func BatchSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 		currentBondedSet := k.StakingKeeper.GetBondedValidatorsByPower(ctx)
 		confirms := k.GetBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract)
 		for _, val := range currentBondedSet {
+			_, foundValidator := k.GetEthAddressByValidator(ctx, val.GetOperator())
+			if !foundValidator && ctx.BlockHeight() > 1380300 {
+				continue
+			}
 			// Don't slash validators who joined after batch is created
 			consAddr, _ := val.GetConsAddr()
 			valSigningInfo, exist := k.SlashingKeeper.GetValidatorSigningInfo(ctx, consAddr)
