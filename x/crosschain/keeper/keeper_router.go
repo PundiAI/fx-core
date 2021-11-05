@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/functionx/fx-core/x/crosschain/types"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
 // RouterKeeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
@@ -46,7 +48,7 @@ type ProposalMsgServer interface {
 
 var _ Router = (*router)(nil)
 
-// Router implements a cross chain msgServer Handler router.
+// Router implements a cross chain EthereumMsgServer Handler router.
 //
 type Router interface {
 	AddRoute(r string, moduleHandler *ModuleHandler) (rtr Router)

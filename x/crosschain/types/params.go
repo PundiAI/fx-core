@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -14,7 +15,8 @@ const (
 
 var (
 	// AttestationVotesPowerThreshold threshold of votes power to succeed
-	AttestationVotesPowerThreshold                = sdk.NewInt(66)
+	AttestationVotesPowerThreshold = sdk.NewInt(66)
+	// AttestationProposalOracleChangePowerThreshold
 	AttestationProposalOracleChangePowerThreshold = sdk.NewInt(30)
 
 	// ParamsStoreKeyGravityID stores the gravity id
@@ -124,7 +126,7 @@ func validateGravityID(i interface{}) error {
 	if len(v) == 0 {
 		return fmt.Errorf("gravityId cannpt be empty")
 	}
-	if _, err := strToFixByteArray(v); err != nil {
+	if _, err := StrToFixByteArray(v); err != nil {
 		return err
 	}
 	return nil
@@ -241,7 +243,7 @@ func validateSlashFraction(i interface{}) error {
 	return nil
 }
 
-func strToFixByteArray(s string) ([32]byte, error) {
+func StrToFixByteArray(s string) ([32]byte, error) {
 	var out [32]byte
 	if len([]byte(s)) > 32 {
 		return out, fmt.Errorf("string too long")

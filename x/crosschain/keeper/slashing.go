@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
@@ -18,21 +20,20 @@ func (k Keeper) SlashOracle(ctx sdk.Context, oracleAddress string, params types.
 	if oracle.Jailed {
 		return
 	}
-	if oracle.DepositAmount.IsLT(params.DepositThreshold) {
-		return
-	}
 	slashAmount := oracle.DepositAmount.Amount.ToDec().Mul(params.SlashFraction).TruncateInt()
-	if !slashAmount.IsPositive() {
-		return
+	tokensToBurn := sdk.MinInt(slashAmount, oracle.DepositAmount.Amount)
+	tokensToBurn = sdk.MaxInt(tokensToBurn, sdk.ZeroInt())
+	slashCoin := sdk.NewCoin(oracle.DepositAmount.Denom, tokensToBurn)
+	if slashCoin.IsPositive() {
+		oracle.DepositAmount = oracle.DepositAmount.Sub(slashCoin)
+		if err = k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(slashCoin)); err != nil {
+			panic(err)
+		}
 	}
 
-	slashCoin := sdk.NewCoin(oracle.DepositAmount.Denom, slashAmount)
-	oracle.DepositAmount = oracle.DepositAmount.Sub(slashCoin)
 	oracle.Jailed = true
 	oracle.JailedHeight = ctx.BlockHeight()
 	k.SetOracle(ctx, oracle)
 	k.SetLastOracleSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
-	if err = k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(slashCoin)); err != nil {
-		panic(err)
-	}
+
 }

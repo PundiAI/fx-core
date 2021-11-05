@@ -4,25 +4,29 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
-var _ types.MsgServer = msgServer{}
+const depositMultiple = 10
 
-type msgServer struct {
+var _ types.MsgServer = EthereumMsgServer{}
+
+type EthereumMsgServer struct {
 	Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(keeper Keeper) ProposalMsgServer {
-	return &msgServer{Keeper: keeper}
+	return &EthereumMsgServer{Keeper: keeper}
 }
 
-func (s msgServer) SetOrchestratorAddress(c context.Context, msg *types.MsgSetOrchestratorAddress) (*types.MsgSetOrchestratorAddressResponse, error) {
+func (s EthereumMsgServer) SetOrchestratorAddress(c context.Context, msg *types.MsgSetOrchestratorAddress) (*types.MsgSetOrchestratorAddressResponse, error) {
 	var err error
 	var oracleAddress, orchestratorAddr sdk.AccAddress
 	if oracleAddress, err = sdk.AccAddressFromBech32(msg.Oracle); err != nil {
@@ -55,7 +59,7 @@ func (s msgServer) SetOrchestratorAddress(c context.Context, msg *types.MsgSetOr
 	if msg.Deposit.IsLT(depositThreshold) {
 		return nil, types.ErrDepositAmountBelowMinimum
 	}
-	if msg.Deposit.Amount.GT(depositThreshold.Amount.Mul(sdk.NewInt(2))) {
+	if msg.Deposit.Amount.GT(depositThreshold.Amount.Mul(sdk.NewInt(depositMultiple))) {
 		return nil, types.ErrDepositAmountBelowMaximum
 	}
 
@@ -94,7 +98,7 @@ func (s msgServer) SetOrchestratorAddress(c context.Context, msg *types.MsgSetOr
 	return &types.MsgSetOrchestratorAddressResponse{}, nil
 }
 
-func (s msgServer) AddOracleDeposit(c context.Context, msg *types.MsgAddOracleDeposit) (*types.MsgAddOracleDepositResponse, error) {
+func (s EthereumMsgServer) AddOracleDeposit(c context.Context, msg *types.MsgAddOracleDeposit) (*types.MsgAddOracleDepositResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.Oracle)
 	if err != nil {
 		return nil, err
@@ -118,7 +122,7 @@ func (s msgServer) AddOracleDeposit(c context.Context, msg *types.MsgAddOracleDe
 	if deposit.Amount.Sub(depositThreshold.Amount).IsNegative() {
 		return nil, types.ErrDepositAmountBelowMinimum
 	}
-	if deposit.Amount.GT(depositThreshold.Amount.Mul(sdk.NewInt(2))) {
+	if deposit.Amount.GT(depositThreshold.Amount.Mul(sdk.NewInt(depositMultiple))) {
 		return nil, types.ErrDepositAmountBelowMaximum
 	}
 
@@ -150,7 +154,7 @@ func (s msgServer) AddOracleDeposit(c context.Context, msg *types.MsgAddOracleDe
 }
 
 // SendToExternal handles MsgSendToExternal
-func (s msgServer) SendToExternal(c context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
+func (s EthereumMsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
@@ -172,7 +176,7 @@ func (s msgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 	return &types.MsgSendToExternalResponse{}, nil
 }
 
-func (s msgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelSendToExternal) (*types.MsgCancelSendToExternalResponse, error) {
+func (s EthereumMsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelSendToExternal) (*types.MsgCancelSendToExternalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
@@ -195,7 +199,7 @@ func (s msgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelS
 }
 
 // RequestBatch handles MsgRequestBatch
-func (s msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
+func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	bridgeToken := s.GetDenomByBridgeToken(ctx, msg.Denom)
@@ -231,7 +235,7 @@ func (s msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 }
 
 // ConfirmBatch handles MsgConfirmBatch
-func (s msgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
+func (s EthereumMsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// fetch the outgoing batch given the nonce
@@ -270,7 +274,7 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 }
 
 // OracleSetConfirm handles MsgOracleSetConfirm
-func (s msgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
+func (s EthereumMsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleSet := s.GetOracleSet(ctx, msg.Nonce)
 	if oracleSet == nil {
@@ -305,7 +309,7 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetCo
 // SendToExternalClaim handles MsgSendToExternalClaim
 // executed aka 'observed' and had its slashing window expire) that will never be cleaned up in the end block. This
 // should not be a security risk as 'old' events can never execute but it does store spam in the chain.
-func (s msgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
+func (s EthereumMsgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := checkOrchestratorIsOracle(ctx, s.Keeper, msg.Orchestrator); err != nil {
 		return nil, err
@@ -322,7 +326,7 @@ func (s msgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToEx
 // SendToFxClaim handles MsgSendToFxClaim
 // executed aka 'observed' and had it's slashing window expire) that will never be cleaned up in the endblocker. This
 // should not be a security risk as 'old' events can never execute but it does store spam in the chain.
-func (s msgServer) SendToFxClaim(c context.Context, msg *types.MsgSendToFxClaim) (*types.MsgSendToFxClaimResponse, error) {
+func (s EthereumMsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendToFxClaim) (*types.MsgSendToFxClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	if err := checkOrchestratorIsOracle(ctx, s.Keeper, msg.Orchestrator); err != nil {
@@ -337,7 +341,7 @@ func (s msgServer) SendToFxClaim(c context.Context, msg *types.MsgSendToFxClaim)
 	return &types.MsgSendToFxClaimResponse{}, s.claimHandlerCommon(ctx, any, msg, msg.Type())
 }
 
-func (s msgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
+func (s EthereumMsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := checkOrchestratorIsOracle(ctx, s.Keeper, msg.Orchestrator); err != nil {
 		return nil, err
@@ -352,7 +356,7 @@ func (s msgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeToken
 }
 
 // OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
-func (s msgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
+func (s EthereumMsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	if err := checkOrchestratorIsOracle(ctx, s.Keeper, msg.Orchestrator); err != nil {
@@ -395,7 +399,7 @@ func checkOrchestratorIsOracle(ctx sdk.Context, keep Keeper, orchestrator string
 
 // claimHandlerCommon is an internal function that provides common code for processing claims once they are
 // translated from the message to the Ethereum claim interface
-func (s msgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectypes.Any, msg types.ExternalClaim, msgType string) error {
+func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectypes.Any, msg types.ExternalClaim, msgType string) error {
 	// Add the claim to the store
 	_, err := s.Attest(ctx, msg, msgAny)
 	if err != nil {
@@ -415,7 +419,7 @@ func (s msgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectypes.Any, m
 	return nil
 }
 
-func (s msgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
+func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "signature decoding")

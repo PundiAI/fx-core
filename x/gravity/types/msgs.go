@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/hex"
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -85,6 +86,12 @@ func (m *MsgValsetConfirm) ValidateBasic() (err error) {
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.EthAddress); err != nil {
 		return sdkerrors.Wrap(err, "ethereum address")
+	}
+	if len(m.Signature) == 0 {
+		return sdkerrors.Wrap(ErrInvalid, "signature is empty")
+	}
+	if _, err = hex.DecodeString(m.Signature); err != nil {
+		return sdkerrors.Wrapf(ErrInvalid, "could not hex decode signature: %s", m.Signature)
 	}
 	return nil
 }
@@ -231,6 +238,9 @@ func (m MsgConfirmBatch) ValidateBasic() error {
 	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
 		return sdkerrors.Wrap(err, "token contract")
 	}
+	if len(m.Signature) == 0 {
+		return sdkerrors.Wrap(ErrInvalid, "signature is empty")
+	}
 	_, err := hex.DecodeString(m.Signature)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Could not decode hex string %s", m.Signature)
@@ -313,8 +323,17 @@ func (m *MsgDepositClaim) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Orchestrator)
 	}
+	if m.Amount.IsNil() || m.Amount.IsNegative() {
+		return sdkerrors.Wrap(ErrInvalid, "amount cannot be negative")
+	}
+	if _, err := hex.DecodeString(m.TargetIbc); len(m.TargetIbc) > 0 && err != nil {
+		return sdkerrors.Wrapf(ErrInvalid, "could not decode hex targetIbc string: %s", m.TargetIbc)
+	}
 	if m.EventNonce == 0 {
-		return fmt.Errorf("nonce == 0")
+		return sdkerrors.Wrap(ErrInvalid, "event nonce == 0")
+	}
+	if m.BlockHeight == 0 {
+		return sdkerrors.Wrap(ErrInvalid, "block height == 0")
 	}
 	return nil
 }
@@ -368,6 +387,9 @@ func (m *MsgWithdrawClaim) ValidateBasic() error {
 	}
 	if m.BatchNonce == 0 {
 		return fmt.Errorf("batch_nonce == 0")
+	}
+	if m.BlockHeight == 0 {
+		return sdkerrors.Wrap(ErrInvalid, "block height == 0")
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
 		return sdkerrors.Wrap(err, "erc20 token")
@@ -471,6 +493,15 @@ func (m *MsgFxOriginatedTokenClaim) ValidateBasic() error {
 	if m.EventNonce == 0 {
 		return fmt.Errorf("nonce == 0")
 	}
+	if len(m.Name) == 0 {
+		return sdkerrors.Wrap(ErrInvalid, "token name is empty")
+	}
+	if len(m.Symbol) == 0 {
+		return sdkerrors.Wrap(ErrInvalid, "token symbol is empty")
+	}
+	if m.BlockHeight == 0 {
+		return sdkerrors.Wrap(ErrInvalid, "block height == 0")
+	}
 	return nil
 }
 
@@ -517,8 +548,22 @@ func (e *MsgValsetUpdatedClaim) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(e.Orchestrator); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, e.Orchestrator)
 	}
+	if len(e.Members) == 0 {
+		return sdkerrors.Wrap(ErrInvalid, "members len == 0")
+	}
+	for _, member := range e.Members {
+		if err := ValidateEthAddress(member.EthAddress); err != nil {
+			return sdkerrors.Wrap(ErrInvalid, err.Error())
+		}
+		if member.Power == 0 {
+			return sdkerrors.Wrap(ErrInvalid, "member power == 0")
+		}
+	}
 	if e.EventNonce == 0 {
 		return fmt.Errorf("nonce == 0")
+	}
+	if e.BlockHeight == 0 {
+		return sdkerrors.Wrap(ErrInvalid, "block height == 0")
 	}
 	return nil
 }

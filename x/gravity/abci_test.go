@@ -2,11 +2,13 @@ package gravity
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/x/gravity/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/functionx/fx-core/x/gravity/types"
 )
 
 func TestValSetPowerIsChanger(t *testing.T) {

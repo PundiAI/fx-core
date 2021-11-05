@@ -2,16 +2,18 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/functionx/fx-core/app"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
-	"os"
-	"path/filepath"
+
+	"github.com/functionx/fx-core/app"
 )
 
 func UpdateValidatorKeyCmd() *cobra.Command {

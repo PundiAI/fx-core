@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
-	"path/filepath"
 )
 
 func ConfigCmd() *cobra.Command {

@@ -1,17 +1,13 @@
 package fxcore
 
 import (
-	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	"io"
 	"os"
 	"path/filepath"
 
+	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
-	"github.com/functionx/fx-core/x/crosschain"
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer"
-	ibctransferkeeper "github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -19,6 +15,12 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
+
+	"github.com/functionx/fx-core/x/crosschain"
+	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/x/ibc/applications/transfer"
+	ibctransferkeeper "github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
+	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -96,8 +98,15 @@ import (
 	"github.com/functionx/fx-core/x/bsc"
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 
+	"github.com/functionx/fx-core/x/polygon"
+	polygontypes "github.com/functionx/fx-core/x/polygon/types"
+
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 	"github.com/functionx/fx-core/x/other"
+
+	"github.com/functionx/fx-core/x/tron"
+	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/x/tron/types"
 )
 
 const Name = "fxcore"
@@ -143,6 +152,8 @@ var (
 		other.AppModuleBasic{},
 		crosschain.AppModuleBasic{},
 		bsc.AppModuleBasic{},
+		polygon.AppModuleBasic{},
+		tron.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -156,6 +167,8 @@ var (
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		gravitytypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
 		bsctypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
+		polygontypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
+		trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -214,6 +227,8 @@ type App struct {
 	GravityKeeper    gravitykeeper.Keeper
 	CrosschainKeeper crosschainkeeper.RouterKeeper
 	BscKeeper        crosschainkeeper.Keeper
+	PolygonKeeper    crosschainkeeper.Keeper
+	TronKeeper       crosschainkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -241,6 +256,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		// this line is used by starport scaffolding # stargate/myApp/storeKey
 		gravitytypes.StoreKey,
 		bsctypes.StoreKey,
+		polygontypes.StoreKey,
+		trontypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -332,11 +349,28 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// ### init bsc cross chain module
 	myApp.BscKeeper = crosschainkeeper.NewKeeper(appCodec, bsctypes.ModuleName, keys[bsctypes.StoreKey], myApp.GetSubspace(bsctypes.ModuleName),
 		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
+
+	myApp.PolygonKeeper = crosschainkeeper.NewKeeper(appCodec, polygontypes.ModuleName, keys[polygontypes.StoreKey], myApp.GetSubspace(polygontypes.ModuleName),
+		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
+
+	myApp.TronKeeper = crosschainkeeper.NewKeeper(appCodec, trontypes.ModuleName, keys[trontypes.StoreKey], myApp.GetSubspace(trontypes.ModuleName),
+		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
+
 	crosschainRouter := crosschainkeeper.NewRouter()
-	crosschainRouter.AddRoute(bsctypes.ModuleName, &crosschainkeeper.ModuleHandler{
-		QueryServer: myApp.BscKeeper,
-		MsgServer:   crosschainkeeper.NewMsgServerImpl(myApp.BscKeeper),
-	})
+	//// add cross-chain router
+	crosschainRouter.
+		AddRoute(bsctypes.ModuleName, &crosschainkeeper.ModuleHandler{
+			QueryServer: myApp.BscKeeper,
+			MsgServer:   crosschainkeeper.NewMsgServerImpl(myApp.BscKeeper),
+		}).
+		AddRoute(polygontypes.ModuleName, &crosschainkeeper.ModuleHandler{
+			QueryServer: myApp.PolygonKeeper,
+			MsgServer:   crosschainkeeper.NewMsgServerImpl(myApp.PolygonKeeper),
+		}).
+		AddRoute(trontypes.ModuleName, &crosschainkeeper.ModuleHandler{
+			QueryServer: myApp.TronKeeper,
+			MsgServer:   tronkeeper.NewMsgServerImpl(myApp.TronKeeper),
+		})
 
 	myApp.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
@@ -357,6 +391,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	ibcTransferRouter := ibctransfertypes.NewRouter()
 	ibcTransferRouter.AddRoute(gravitytypes.ModuleName, gravity.NewAppModule(myApp.GravityKeeper, myApp.BankKeeper))
 	ibcTransferRouter.AddRoute(bsctypes.ModuleName, bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper))
+	ibcTransferRouter.AddRoute(polygontypes.ModuleName, polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper))
+	ibcTransferRouter.AddRoute(trontypes.ModuleName, tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper))
 	myApp.TransferKeeper.SetRouter(ibcTransferRouter)
 	transferModule := transfer.NewAppModule(myApp.TransferKeeper)
 	// Create static IBC router, add transfer route, then set and seal it
@@ -409,6 +445,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		other.NewAppModule(appCodec),
 		crosschain.NewAppModuleByRouter(myApp.CrosschainKeeper),
 		bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper),
+		polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper),
+		tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -431,6 +469,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		stakingtypes.ModuleName,
 		gravitytypes.ModuleName,
 		bsctypes.ModuleName,
+		polygontypes.ModuleName,
+		trontypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -476,7 +516,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	)
 	myApp.SetEndBlocker(myApp.EndBlocker)
 
-	rootmulti.AddIgnoreCommitKey(1079000, bsctypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(app.CrossChainSupportBscBlock(), bsctypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(app.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(app.CrossChainSupportTronBlock(), trontypes.StoreKey)
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
@@ -626,6 +668,8 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 	paramsKeeper.Subspace(gravitytypes.ModuleName)
 	paramsKeeper.Subspace(bsctypes.ModuleName)
+	paramsKeeper.Subspace(polygontypes.ModuleName)
+	paramsKeeper.Subspace(trontypes.ModuleName)
 
 	return paramsKeeper
 }

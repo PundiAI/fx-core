@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"encoding/hex"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCovertIbcData(t *testing.T) {

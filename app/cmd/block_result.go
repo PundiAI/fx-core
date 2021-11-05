@@ -3,12 +3,13 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-	"os"
-	"strconv"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func QueryBlockResultsCmd() *cobra.Command {

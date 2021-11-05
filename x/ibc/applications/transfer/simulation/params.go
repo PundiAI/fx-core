@@ -2,8 +2,9 @@ package simulation
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"math/rand"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	gogotypes "github.com/gogo/protobuf/types"
 

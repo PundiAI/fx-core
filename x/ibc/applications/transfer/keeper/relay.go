@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"strings"
+
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/armon/go-metrics"
 
@@ -112,6 +114,7 @@ func (k Keeper) SendTransfer(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver, router, fee.Amount.String(),
 	)
 
+	// If the router address is specified, the number of token + fee is deducted
 	if router != "" {
 		token = token.Add(sdk.NewCoin(token.Denom, fee.Amount))
 	}
@@ -255,7 +258,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 		token := sdk.NewCoin(denom, amount)
 		ibcCoin = token
-
+		// The money sent to the address increases the IBC cross-chain increases the handling fee
 		token = token.Add(sdk.NewCoin(token.Denom, feeAmount))
 		// unescrow tokens
 		escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
@@ -268,11 +271,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 
 		defer func() {
-			//telemetry.SetGaugeWithLabels(
-			//	[]string{"ibc", types.ModuleName, "packet", "receive"},
-			//	data.Amount,
-			//	[]metrics.Label{telemetry.NewLabel("denom", unprefixedDenom)},
-			//)
 
 			telemetry.IncrCounterWithLabels(
 				[]string{"ibc", types.ModuleName, "receive"},
@@ -313,7 +311,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 		voucher := sdk.NewCoin(voucherDenom, amount)
 		ibcCoin = voucher
-
+		// ibc Increase handling charges across chains
 		voucher = voucher.Add(sdk.NewCoin(voucher.Denom, feeAmount))
 		// mint new tokens if the source of the transfer is the same chain
 		if err := k.bankKeeper.MintCoins(
@@ -333,23 +331,21 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return nil
 	}
 	if route, exists := k.Router.GetRoute(data.Router); exists {
-		//fee, ok := sdk.NewIntFromString(data.Fee)
-		//if !ok {
-		//	return sdkerrors.Wrap(types.ErrInvalidAmount, fmt.Sprintf("input fee:%v", data.Fee))
-		//}
+		// ignore route error
 		_, sendAddrBytes, err := bech32.DecodeAndConvert(data.Sender)
 		if err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("input sender:%v", data.Sender))
+			ctx.Logger().Info("IBCTransfer", "route err! invalid data sender address:%v", data.Sender, "sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence())
+			return nil
 		}
-		return route.TransferAfter(ctx, sdk.AccAddress(sendAddrBytes).String(), data.Receiver, ibcCoin, sdk.NewCoin(ibcCoin.Denom, feeAmount))
+		ctx.Logger().Info("IBCTransfer", "transfer route sourceChannel", packet.GetSourceChannel(),
+			"destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "sender", sdk.AccAddress(sendAddrBytes).String(),
+			"receive", data.Receiver, "amount", ibcCoin, "fee", sdk.NewCoin(ibcCoin.Denom, feeAmount))
+		if err = route.TransferAfter(ctx, sdk.AccAddress(sendAddrBytes).String(), data.Receiver, ibcCoin, sdk.NewCoin(ibcCoin.Denom, feeAmount)); err != nil {
+			ctx.Logger().Error("IBCTransfer", "transfer after route err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
+		}
+		return nil
 	}
 	defer func() {
-		//telemetry.SetGaugeWithLabels(
-		//	[]string{"ibc", types.ModuleName, "packet", "receive"},
-		//	float32(data.Amount),
-		//	[]metrics.Label{telemetry.NewLabel("denom", data.Denom)},
-		//)
-
 		telemetry.IncrCounterWithLabels(
 			[]string{"ibc", types.ModuleName, "receive"},
 			1,
@@ -397,7 +393,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	if !ok {
 		return sdkerrors.Wrap(types.ErrInvalidAmount, fmt.Sprintf("input amount:%vs", data.Amount))
 	}
-	// if ibc router not empty, refund amount  + fee
+	// If the IBC router is not empty, the feeAmount refund is added.
 	if data.Router != "" {
 		feeAmount, ok := sdk.NewIntFromString(data.Fee)
 		if !ok {

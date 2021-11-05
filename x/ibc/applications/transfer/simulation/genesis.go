@@ -3,9 +3,10 @@ package simulation
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"math/rand"
 	"strings"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"

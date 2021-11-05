@@ -3,9 +3,11 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
@@ -65,6 +67,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 	totalPower := k.GetLastTotalPower(ctx)
 	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewInt(100))
 	attestationPower := sdk.NewInt(0)
+
 	for _, oracleStr := range att.Votes {
 		oracleAddr, err := sdk.AccAddressFromBech32(oracleStr)
 		if err != nil {

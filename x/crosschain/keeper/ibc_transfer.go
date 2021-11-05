@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"encoding/hex"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+
 	"github.com/functionx/fx-core/x/crosschain/types"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
-	"strings"
 )
 
 func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiveAddr sdk.AccAddress, coin sdk.Coin) (string, string, uint64, bool) {
@@ -23,23 +25,27 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 		return "", "", 0, false
 	}
 	wrapSdkContext := sdk.WrapSDKContext(ctx)
+
 	_, clientState, err := k.ibcChannelKeeper.GetChannelClientState(ctx, sourcePort, sourceChannel)
 	if err != nil {
 		logger.Error("get channel client state error!!!", "sourcePort", sourcePort, "sourceChannel", sourceChannel)
 		return "", "", 0, false
 	}
+
 	params := k.GetParams(ctx)
 	clientStateHeight := clientState.GetLatestHeight()
 	ibcTimeoutHeight := ibcclienttypes.Height{
 		RevisionNumber: clientStateHeight.GetRevisionNumber(),
 		RevisionHeight: clientStateHeight.GetRevisionHeight() + params.IbcTransferTimeoutHeight,
 	}
+
 	nextSequenceSend, found := k.ibcChannelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
 		logger.Error("ibc channel next sequence send not found!!!", "source port:", sourcePort, "source channel:", sourceChannel)
 		return "", "", 0, false
 	}
 	logger.Info("gravity start ibc transfer", "sender:", receiveAddr, "receive:", ibcReceiveAddress, "coin:", coin, "timeout:", params.IbcTransferTimeoutHeight, "nextSequenceSend:", nextSequenceSend)
+
 	ibcTransferMsg := ibctransfertypes.NewMsgTransfer(sourcePort, sourceChannel, coin, receiveAddr, ibcReceiveAddress, ibcTimeoutHeight, 0, "", sdk.NewCoin(coin.Denom, sdk.ZeroInt()))
 	if _, err = k.ibcTransferKeeper.Transfer(wrapSdkContext, ibcTransferMsg); err != nil {
 		logger.Error("gravity ibc transfer fail. ", "sender:", receiveAddr, "receive:", ibcReceiveAddress, "coin:", coin, "err:", err)

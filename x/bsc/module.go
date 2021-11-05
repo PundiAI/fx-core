@@ -2,10 +2,11 @@ package bsc
 
 import (
 	"encoding/json"
+	"math/rand"
+
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"
-	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,11 +15,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	"github.com/functionx/fx-core/x/crosschain/keeper"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/functionx/fx-core/x/crosschain/keeper"
 )
 
 // type check to ensure the interface is properly implemented

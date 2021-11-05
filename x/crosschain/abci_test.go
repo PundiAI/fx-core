@@ -3,15 +3,17 @@ package crosschain_test
 import (
 	"encoding/hex"
 	"fmt"
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"
 	ibcTransferTypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"testing"
 )
 
 func TestABCIEndBlockDepositClaim(t *testing.T) {
@@ -68,6 +70,7 @@ func TestABCIEndBlockDepositClaim(t *testing.T) {
 	}
 	_, err = h(ctx, sendToFxClaim)
 	require.NoError(t, err)
+
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	app.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
@@ -96,6 +99,7 @@ func TestOracleUpdate(t *testing.T) {
 	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
 	keeper := app.BscKeeper
 	var err error
+
 	for i := 0; i < 10; i++ {
 		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
 			Oracle:          oracleAddressList[i].String(),
@@ -159,7 +163,9 @@ func TestOracleUpdate(t *testing.T) {
 	app.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	attestation := keeper.GetAttestation(ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
+
 	require.NotNil(t, attestation)
+
 	require.True(t, attestation.Observed)
 	//t.Logf("attestation votes:%s", attestation.Votes)
 
@@ -176,11 +182,13 @@ func TestOracleUpdate(t *testing.T) {
 		ChainName:   chainName,
 	})
 	require.ErrorIs(t, types.ErrInvalid, err)
+
 	expectTotalPower := minDepositAmount.Mul(sdk.NewInt(10)).Quo(sdk.PowerReduction)
 	actualTotalPower := keeper.GetLastTotalPower(ctx)
 	require.True(t, expectTotalPower.Equal(actualTotalPower))
 
 	expectMaxChangePower := types.AttestationProposalOracleChangePowerThreshold.Mul(expectTotalPower).Quo(sdk.NewInt(100))
+
 	expectDeletePower := minDepositAmount.Mul(sdk.NewInt(3)).Quo(sdk.PowerReduction)
 	require.EqualValues(t, fmt.Sprintf("max change power!maxChangePower:%s,deletePower:%s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrInvalid), err.Error())
 
@@ -204,6 +212,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
 	keeper := app.BscKeeper
 	var err error
+
 	for i := 0; i < 20; i++ {
 		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
 			Oracle:          oracleAddressList[i].String(),
@@ -236,6 +245,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 			ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
 			ChainName:     chainName,
 		}
+
 		for i := 0; i < 13; i++ {
 			firstBridgeTokenClaim.Orchestrator = orchestratorAddressList[i].String()
 			_, err = h(ctx, firstBridgeTokenClaim)
@@ -259,7 +269,9 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 		app.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 		attestation := keeper.GetAttestation(ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
+
 		require.NotNil(t, attestation)
+
 		require.True(t, attestation.Observed)
 		//t.Logf("attestation votes:%s", attestation.Votes)
 	}
@@ -405,6 +417,7 @@ func TestOracleDelete(t *testing.T) {
 	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
 	keeper := app.BscKeeper
 	var err error
+
 	for i := 0; i < 10; i++ {
 		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
 			Oracle:          oracleAddressList[i].String(),
@@ -421,9 +434,18 @@ func TestOracleDelete(t *testing.T) {
 	require.NotNil(t, allOracles)
 	require.EqualValues(t, 10, len(allOracles))
 
+	/**
+
+
+
+
+
+	 */
+
 	oracle := oracleAddressList[0]
 	orchestrator := orchestratorAddressList[0]
 	externalAddress := crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex()
+
 	oracleAddr, found := keeper.GetOracleAddressByOrchestratorKey(ctx, orchestrator)
 	require.True(t, found)
 	require.EqualValues(t, oracle.String(), oracleAddr.String())
@@ -441,6 +463,7 @@ func TestOracleDelete(t *testing.T) {
 
 	require.EqualValues(t, depositToken, oracleData.DepositAmount.Denom)
 	require.True(t, minDepositAmount.Equal(oracleData.DepositAmount.Amount))
+
 	proposalHandler := crosschain.NewCrossChainProposalHandler(app.CrosschainKeeper)
 
 	var newOracleAddressList []string
@@ -481,6 +504,7 @@ func TestOracleSetSlash(t *testing.T) {
 	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
 	keeper := app.BscKeeper
 	var err error
+
 	for i := 0; i < 10; i++ {
 		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
 			Oracle:          oracleAddressList[i].String(),
@@ -527,4 +551,68 @@ func TestOracleSetSlash(t *testing.T) {
 	oracle, found = keeper.GetOracle(ctx, oracleAddressList[9])
 	require.True(t, found)
 	require.True(t, oracle.Jailed)
+}
+
+func TestSlashFactoryGreat1(t *testing.T) {
+	GenerateAccountNum = 10
+	//fxcore.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
+	// get test env
+	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keeper := app.BscKeeper
+	minDepositAmount, _ := sdk.NewIntFromString("11111111111111111111111")
+	var err error
+
+	for i := 0; i < 10; i++ {
+		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
+			Oracle:          oracleAddressList[i].String(),
+			Orchestrator:    orchestratorAddressList[i].String(),
+			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
+			Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+			ChainName:       chainName,
+		})
+		require.NoError(t, err)
+	}
+	params := keeper.GetParams(ctx)
+	params.SlashFraction, _ = sdk.NewDecFromStr("1.1")
+
+	expectSlashAfterDepositAmount := sdk.MaxInt(
+		// remainAmount = max (0, (depositAmount - slashAmount))
+		minDepositAmount.Sub(
+			sdk.MinInt(minDepositAmount, minDepositAmount.ToDec().Mul(params.SlashFraction).TruncateInt()),
+		),
+		sdk.ZeroInt())
+	require.NotPanics(t, func() {
+		keeper.SetParams(ctx, params)
+	})
+
+	require.NotPanics(t, func() {
+		for i := 0; i < 10; i++ {
+			oracle, found := keeper.GetOracle(ctx, oracleAddressList[i])
+			require.True(t, found)
+			require.False(t, oracle.Jailed)
+			require.True(t, oracle.DepositAmount.IsEqual(sdk.Coin{Denom: depositToken, Amount: minDepositAmount}))
+
+			keeper.SlashOracle(ctx, oracleAddressList[i].String(), params)
+
+			oracle, found = keeper.GetOracle(ctx, oracleAddressList[i])
+			require.True(t, found)
+			require.True(t, oracle.Jailed)
+			require.True(t, oracle.DepositAmount.IsEqual(sdk.Coin{Denom: depositToken, Amount: expectSlashAfterDepositAmount}))
+		}
+
+		// repeat slash test.
+		for i := 0; i < 10; i++ {
+			oracle, found := keeper.GetOracle(ctx, oracleAddressList[i])
+			require.True(t, found)
+			require.True(t, oracle.Jailed)
+			require.True(t, oracle.DepositAmount.IsEqual(sdk.Coin{Denom: depositToken, Amount: expectSlashAfterDepositAmount}))
+
+			keeper.SlashOracle(ctx, oracleAddressList[i].String(), params)
+
+			oracle, found = keeper.GetOracle(ctx, oracleAddressList[i])
+			require.True(t, found)
+			require.True(t, oracle.Jailed)
+			require.True(t, oracle.DepositAmount.IsEqual(sdk.Coin{Denom: depositToken, Amount: expectSlashAfterDepositAmount}))
+		}
+	})
 }

@@ -140,6 +140,7 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 	store.Set(key, k.cdc.MustMarshalBinaryBare(batch))
 
 	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
+
 	if store.Has(blockKey) {
 		return sdkerrors.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] has batch request", batch.Block))
 	}

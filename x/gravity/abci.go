@@ -2,10 +2,13 @@ package gravity
 
 import (
 	"fmt"
+	"sort"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/gravity/keeper"
 	"github.com/functionx/fx-core/x/gravity/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"sort"
 )
 
 // EndBlocker is called at the end of every block
@@ -15,7 +18,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	attestationTally(ctx, k)
 	cleanupTimedOutBatches(ctx, k)
 	createValsets(ctx, k)
-	if ctx.BlockHeight() > 373100 {
+	if ctx.BlockHeight() > app.GravityPruneValsetsAndAttestationBlock() {
 		pruneValsets(ctx, k, params)
 		pruneAttestations(ctx, k)
 	}
@@ -62,7 +65,7 @@ func valSetPowerIsChanger(latestValset []*types.BridgeValidator, currentValset [
 	return powerDiff, powerDiffDec.GTE(powerChangeThreshold)
 }
 
-
+// pruneValsets
 func pruneValsets(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 	// Validator set pruning
 	// prune all validator sets with a nonce less than the
@@ -174,7 +177,7 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 		currentBondedSet := k.StakingKeeper.GetBondedValidatorsByPower(ctx)
 		for _, val := range currentBondedSet {
 			ethAddress, foundEthAddress := k.GetEthAddressByValidator(ctx, val.GetOperator())
-			if !foundEthAddress && ctx.BlockHeight() > 1380300 {
+			if !foundEthAddress && ctx.BlockHeight() > app.GravityValsetSlashBlock() {
 				continue
 			}
 			consAddr, _ := val.GetConsAddr()
@@ -217,8 +220,8 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 				if err != nil {
 					panic(err)
 				}
-				_, foundValidator := k.GetEthAddressByValidator(ctx, addr)
-				if !foundValidator && ctx.BlockHeight() > 1380300 {
+				ethAddress, foundValidator := k.GetEthAddressByValidator(ctx, addr)
+				if !foundValidator && ctx.BlockHeight() > app.GravityValsetSlashBlock() {
 					continue
 				}
 
@@ -231,9 +234,7 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 					// Check if validator has confirmed valset or not
 					found := false
 					for _, conf := range confirms {
-						confVal, _ := sdk.AccAddressFromBech32(conf.Orchestrator)
-						orchestratorValAddr, foundValidator := k.GetOrchestratorValidator(ctx, confVal)
-						if foundValidator && orchestratorValAddr.Equals(validator.GetOperator()) {
+						if foundValidator && conf.EthAddress == ethAddress {
 							found = true
 							break
 						}
@@ -275,8 +276,8 @@ func BatchSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 		currentBondedSet := k.StakingKeeper.GetBondedValidatorsByPower(ctx)
 		confirms := k.GetBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract)
 		for _, val := range currentBondedSet {
-			_, foundValidator := k.GetEthAddressByValidator(ctx, val.GetOperator())
-			if !foundValidator && ctx.BlockHeight() > 1380300 {
+			ethAddress, foundValidator := k.GetEthAddressByValidator(ctx, val.GetOperator())
+			if !foundValidator && ctx.BlockHeight() > app.GravityValsetSlashBlock() {
 				continue
 			}
 			// Don't slash validators who joined after batch is created
@@ -288,9 +289,7 @@ func BatchSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 
 			found := false
 			for _, conf := range confirms {
-				confVal, _ := sdk.AccAddressFromBech32(conf.Orchestrator)
-				orchestratorValAddr, foundValidator := k.GetOrchestratorValidator(ctx, confVal)
-				if foundValidator && orchestratorValAddr.Equals(val.GetOperator()) {
+				if foundValidator && conf.EthSigner == ethAddress {
 					found = true
 					break
 				}

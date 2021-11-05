@@ -4,17 +4,19 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/functionx/fx-core/app/fxcore"
-	"github.com/functionx/fx-core/x/crosschain"
-	"github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"math"
 	"math/big"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/x/crosschain"
+	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
 var (
@@ -92,6 +94,7 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 	require.ErrorIs(t, types.ErrInvalid, err)
 	require.EqualValues(t, fmt.Sprintf("oracle existed orchestrator address: %s", types.ErrInvalid.Error()), err.Error())
 
+	// 6. Set the same orchestrator address for different Oracle databases
 	duplicateSetOrchestratorMsg := &types.MsgSetOrchestratorAddress{
 		Oracle:          oracleAddressList[1].String(),
 		Orchestrator:    orchestratorAddressList[0].String(),
@@ -103,6 +106,7 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 	require.ErrorIs(t, types.ErrInvalid, err)
 	require.EqualValues(t, fmt.Sprintf("orchestrator address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
 
+	// 7. Set the same external address for different Oracle databases
 	duplicateSetExternalAddressMsg := &types.MsgSetOrchestratorAddress{
 		Oracle:          oracleAddressList[1].String(),
 		Orchestrator:    orchestratorAddressList[1].String(),
@@ -114,11 +118,12 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 	require.ErrorIs(t, types.ErrInvalid, err)
 	require.EqualValues(t, fmt.Sprintf("external address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
 
+	// 8. Margin is not allowed to be submitted more than ten times the threshold
 	depositAmountBelowMaximumMsg := &types.MsgSetOrchestratorAddress{
 		Oracle:          oracleAddressList[1].String(),
 		Orchestrator:    orchestratorAddressList[1].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[1].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount.Mul(sdk.NewInt(2).Add(sdk.NewInt(1)))},
+		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount.Mul(sdk.NewInt(10).Add(sdk.NewInt(1)))},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, depositAmountBelowMaximumMsg)
@@ -144,9 +149,11 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 	keep := app.BscKeeper
 	var err error
 
+	// Query the status before the configuration
 	totalDepositBefore := keep.GetTotalDeposit(ctx)
 	require.EqualValues(t, sdk.NewCoin(depositToken, sdk.ZeroInt()), totalDepositBefore)
 
+	// 1. First sets up a valid validator
 	normalMsg := &types.MsgSetOrchestratorAddress{
 		Oracle:          oracleAddressList[0].String(),
 		Orchestrator:    orchestratorAddressList[0].String(),
@@ -157,6 +164,7 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 	_, err = h(ctx, normalMsg)
 	require.NoError(t, err)
 
+	// Query the totalDeposit after the address is set
 	totalDepositAfter := keep.GetTotalDeposit(ctx)
 	require.True(t, normalMsg.Deposit.IsEqual(totalDepositAfter))
 
@@ -198,14 +206,13 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 
 	depositAmountBelowMaximumMsg := &types.MsgAddOracleDeposit{
 		Oracle:    oracleAddressList[0].String(),
-		Amount:    sdk.Coin{Denom: depositToken, Amount: minDepositAmount.Add(sdk.NewInt(1))},
+		Amount:    sdk.Coin{Denom: depositToken, Amount: minDepositAmount.Mul(sdk.NewInt(9)).Add(sdk.NewInt(1))},
 		ChainName: chainName,
 	}
 	_, err = h(ctx, depositAmountBelowMaximumMsg)
 	require.ErrorIs(t, types.ErrDepositAmountBelowMaximum, err)
 	require.EqualValues(t, types.ErrDepositAmountBelowMaximum.Error(), err.Error())
 
-	// 3. add deposit
 	normalAddDepositMsg := &types.MsgAddOracleDeposit{
 		Oracle:    oracleAddressList[0].String(),
 		Amount:    sdk.NewCoin(depositToken, minDepositAmount),
@@ -273,7 +280,7 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 		errReason string
 	}{
 		{
-			name: "error oracleSet nonce",
+			name: "Error oracleSet nonce",
 			msg: &types.MsgOracleSetConfirm{
 				Nonce:               0,
 				OrchestratorAddress: orchestratorAddressList[0].String(),
@@ -343,7 +350,6 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 }
 
 func TestClaimWithOracleJailed(t *testing.T) {
-	// get test env
 	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
 	keeper := app.BscKeeper
 	var err error
@@ -364,6 +370,7 @@ func TestClaimWithOracleJailed(t *testing.T) {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	latestOracleSetNonce := keeper.GetLatestOracleSetNonce(ctx)
 	require.EqualValues(t, 1, latestOracleSetNonce)
+
 	nonce1OracleSet := keeper.GetOracleSet(ctx, latestOracleSetNonce)
 	require.EqualValues(t, uint64(1), nonce1OracleSet.Nonce)
 	require.EqualValues(t, uint64(2), nonce1OracleSet.Height)
@@ -383,6 +390,7 @@ func TestClaimWithOracleJailed(t *testing.T) {
 
 	external1Signature, err := types.NewEthereumSignature(checkpoint, ethKeys[0])
 	require.NoError(t, err)
+
 	normalOracleSetConfirmMsg := &types.MsgOracleSetConfirm{
 		Nonce:               latestOracleSetNonce,
 		OrchestratorAddress: orchestratorAddressList[0].String(),
@@ -411,6 +419,7 @@ func TestClaimTest(t *testing.T) {
 
 	oracleLastEventNonce := app.BscKeeper.GetLastEventNonceByOracle(ctx, oracleAddressList[0])
 	require.EqualValues(t, 0, oracleLastEventNonce)
+
 	errMsgDatas := []struct {
 		name      string
 		msg       *types.MsgBridgeTokenClaim
@@ -538,6 +547,7 @@ func createTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, oracleAddres
 	require.NoError(t, err)
 
 	crosschianHandler := crosschain.NewHandler(app.CrosschainKeeper)
+
 	proxyHandler := func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		require.NoError(t, msg.ValidateBasic(), fmt.Sprintf("msg %s/%s validate basic error", msg.Route(), msg.Type()))
 		return crosschianHandler(ctx, msg)

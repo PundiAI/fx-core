@@ -5,12 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 func ReEncodeAddrCommand() *cobra.Command {

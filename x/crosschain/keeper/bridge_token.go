@@ -3,9 +3,11 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/functionx/fx-core/x/crosschain/types"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
@@ -45,7 +47,7 @@ func (k Keeper) addBridgeToken(ctx sdk.Context, token, _, channelIBC string) (st
 	if err != nil {
 		return "", sdkerrors.Wrapf(err, "decode channel ibc err")
 	}
-	// TODO validate ibc channelIBC
+
 	decodeChannelIBCStr := string(decodeChannelIBC)
 	denom := fmt.Sprintf("%s%s", k.moduleName, token)
 	if len(decodeChannelIBCStr) > 0 {

@@ -305,7 +305,7 @@ func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContractAddr strin
 }
 
 // GetAllBatchFees creates a fee entry for every batch type currently in the store
-// this can be used by relayers to determine what batch types are desireable to request
+// this can be used by relayers to determine what batch types are desirable to request
 func (k Keeper) GetAllBatchFees(ctx sdk.Context) (batchFees []*types.BatchFees) {
 	batchFeesMap := k.createBatchFees(ctx)
 	// create array of batchFees
@@ -355,13 +355,12 @@ func (k Keeper) createBatchFees(ctx sdk.Context) map[string]*types.BatchFees {
 			}
 			continue
 		}
-
 		fullTxBatchSize := OutgoingTxBatchSize - batchFeesMap[tokenContractAddr].TotalTxs
 		batchFeesMap[tokenContractAddr].TotalTxs = batchFeesMap[tokenContractAddr].TotalTxs + uint64(len(ids.Ids))
 		if fullTxBatchSize <= 0 {
 			continue
 		}
-
+		// Fee for filling 100 transactions
 		fullTxBatchHandleSize := math.MinInt(int(fullTxBatchSize), len(ids.Ids))
 		fullTxBatchFee := feeAmount.Mul(feeAmount, big.NewInt(int64(fullTxBatchHandleSize)))
 		batchFeesMap[tokenContractAddr].TotalFees = batchFeesMap[tokenContractAddr].TotalFees.Add(sdk.NewIntFromBigInt(fullTxBatchFee))

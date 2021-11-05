@@ -14,7 +14,7 @@ if [ ! -d "${GOPATH}/src/github.com/cosmos/cosmos-sdk" ]; then
   exit 1
 fi
 
-#(cd ${GOPATH}/src/github.com/cosmos/cosmos-sdk && git stash && git checkout v0.42.1)
+(cd ${GOPATH}/src/github.com/cosmos/cosmos-sdk && git stash && git checkout v0.42.1)
 
 proto_dirs=$(find ./proto -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do
