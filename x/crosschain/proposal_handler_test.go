@@ -3,16 +3,18 @@ package crosschain_test
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/require"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"math/big"
-	"testing"
 )
 
 func TestUpdateOracleProposal(t *testing.T) {
@@ -100,6 +102,7 @@ func createProposalTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, orac
 	require.NoError(t, err)
 
 	crosschianHandler := crosschain.NewHandler(app.CrosschainKeeper)
+	// To add a proxy handler, execute msg validateBasic
 	proxyHandler := func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		require.NoError(t, msg.ValidateBasic(), fmt.Sprintf("msg %s/%s validate basic error", msg.Route(), msg.Type()))
 		return crosschianHandler(ctx, msg)

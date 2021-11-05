@@ -2,10 +2,13 @@ package crosschain
 
 import (
 	"fmt"
+	"sort"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/crosschain/keeper"
 	"github.com/functionx/fx-core/x/crosschain/types"
-	"sort"
 )
 
 // EndBlocker is called at the end of every block
@@ -32,19 +35,26 @@ func createOracleSets(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 
 func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper, oracleSetUpdatePowerChangePercent sdk.Dec) (*types.OracleSet, bool) {
 	currentOracleSet := k.GetCurrentOracleSet(ctx)
+	// 1. get latest OracleSet
 	latestOracleSet := k.GetLatestOracleSet(ctx)
 	if latestOracleSet == nil {
 		return currentOracleSet, true
 	}
+	// 2. Oracle slash
 	if k.GetLastOracleSlashBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
-		ctx.Logger().Info("CrossChain", "oracle set change, has new proposal blockHeight", ctx.BlockHeight())
+		ctx.Logger().Info("CrossChain", "oracle set change, has oracle slash in block", ctx.BlockHeight())
 		return currentOracleSet, true
 	}
+	// 3. Power diff
 	powerDiff := types.BridgeValidators(currentOracleSet.Members).PowerDiff(latestOracleSet.Members)
 	powerDiffStr := fmt.Sprintf("%.8f", powerDiff)
 	powerDiffDec, err := sdk.NewDecFromStr(powerDiffStr)
 	if err != nil {
 		panic(fmt.Errorf("covert power diff to dec err!!!powerDiff: %v, err: %v", powerDiffStr, err))
+	}
+
+	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) && ctx.BlockHeight() >= app.CrossChainSupportTronBlock() {
+		oracleSetUpdatePowerChangePercent = sdk.OneDec()
 	}
 	if powerDiffDec.GTE(oracleSetUpdatePowerChangePercent) {
 		ctx.Logger().Info("CrossChain", "oracleSet power change, change threshold", oracleSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
@@ -70,6 +80,7 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 	maxHeight := uint64(ctx.BlockHeight()) - params.SignedWindow
 	unSlashedOracleSets := k.GetUnSlashedOracleSets(ctx, maxHeight)
 	logger := k.Logger(ctx)
+	// Find all verifiers that meet the penalty to change the signature consensus
 	for _, oracleSet := range unSlashedOracleSets {
 		confirms := k.GetOracleSetConfirms(ctx, oracleSet.Nonce)
 		confirmOracleMap := make(map[string]bool, len(confirms))
@@ -187,6 +198,7 @@ func cleanupTimedOutBatches(ctx sdk.Context, k keeper.Keeper) {
 	}
 }
 
+// pruneOracleSets
 func pruneOracleSets(ctx sdk.Context, k keeper.Keeper, signedOracleSetsWindow uint64) {
 	// Validator set pruning
 	// prune all validator sets with a nonce less than the

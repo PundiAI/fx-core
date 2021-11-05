@@ -14,7 +14,7 @@ package types
 // truncate the first several bytes where the call name is encoded to finally get the equal of the
 
 const (
-	// OutgoingBatchTxCheckpointABIJSON checks the ETH ABI for compatability of the OutgoingBatchTx message
+	// OutgoingBatchTxCheckpointABIJSON checks the ETH ABI for compatibility of the OutgoingBatchTx message
 	OutgoingBatchTxCheckpointABIJSON = `[{
 		"name":"submitBatch",
 		"stateMutability":"nonpayable",
@@ -35,7 +35,7 @@ const (
 		]
 	}]`
 
-	// OracleSetCheckpointABIJSON checks the ETH ABI for compatability of the OracleSet update message
+	// OracleSetCheckpointABIJSON checks the ETH ABI for compatibility of the OracleSet update message
 	OracleSetCheckpointABIJSON = `[{
 		"name": "checkpoint",
 		"stateMutability": "pure",

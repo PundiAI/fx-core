@@ -1,12 +1,14 @@
 package keeper_test
 
 import (
-	"github.com/functionx/fx-core/app/fxcore"
-	"github.com/functionx/fx-core/x/gravity/types"
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
+
+	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/x/gravity/types"
 )
 
 func TestSetOrchestratorValidator(t *testing.T) {

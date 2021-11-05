@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/functionx/fx-core/app"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -66,7 +68,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 		for _, validator := range validators {
 			val := validator.GetOperator()
 			_, found := k.GetEthAddressByValidator(ctx, val)
-			if !found && ctx.BlockHeight() > 1380300 {
+			if !found && ctx.BlockHeight() > app.GravityValsetSlashBlock() {
 				continue
 			}
 			power := uint64(k.StakingKeeper.GetLastValidatorPower(ctx, val))
@@ -271,7 +273,7 @@ func (k Keeper) setLastObservedEventNonce(ctx sdk.Context, nonce uint64) {
 	store.Set(types.LastObservedEventNonceKey, types.UInt64Bytes(nonce))
 }
 
-// GetLastEventNonceByValidator returns the latest event nonce for a given validator
+// GetLastEventNonceByOracle returns the latest event nonce for a given validator
 func (k Keeper) GetLastEventNonceByValidator(ctx sdk.Context, validator sdk.ValAddress) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bytes := store.Get(types.GetLastEventNonceByValidatorKey(validator))
@@ -290,7 +292,7 @@ func (k Keeper) GetLastEventNonceByValidator(ctx sdk.Context, validator sdk.ValA
 		// the slashing window. Since we delete attestations after the slashing window that's
 		// just the lowest observed event in the store. If no claims have been submitted in for
 		// params.SignedClaimsWindow we may have no attestations in our nonce. At which point
-		// the last observed which is a persistant and never cleaned counter will suffice.
+		// the last observed which is a persistent and never cleaned counter will suffice.
 		lowestObserved := k.GetLastObservedEventNonce(ctx)
 		attMap := k.GetAttestationMapping(ctx)
 		// no new claims in params.SignedClaimsWindow, we can return the current value

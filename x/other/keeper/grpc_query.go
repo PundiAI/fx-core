@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"context"
-	"github.com/functionx/fx-core/x/other/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/functionx/fx-core/x/other/types"
 )
 
 type Querier struct {

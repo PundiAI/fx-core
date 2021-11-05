@@ -2,16 +2,18 @@ package keeper
 
 import (
 	"fmt"
+	"math"
+	"sort"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcchannelkeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/functionx/fx-core/x/crosschain/types"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
-	"github.com/tendermint/tendermint/libs/log"
-	"math"
-	"sort"
 )
 
 // Keeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
@@ -138,6 +140,7 @@ func (k Keeper) DelOracle(ctx sdk.Context, oracle sdk.AccAddress) {
 	store.Delete(key)
 }
 
+// GetAllOracles
 func (k Keeper) GetAllOracles(ctx sdk.Context) (oracles types.Oracles) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.OraclesKey)
@@ -692,4 +695,16 @@ func (k Keeper) getLastEventBlockHeightByOracle(ctx sdk.Context, oracle sdk.AccA
 	}
 	data := store.Get(key)
 	return sdk.BigEndianToUint64(data)
+}
+
+func (k Keeper) GetModuleName() string {
+	return k.moduleName
+}
+
+func (k Keeper) GetParamSpace() paramtypes.Subspace {
+	return k.paramSpace
+}
+
+func (k Keeper) GetBankKeeper() types.BankKeeper {
+	return k.bankKeeper
 }

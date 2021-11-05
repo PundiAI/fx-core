@@ -175,7 +175,7 @@ func (m OracleSet) GetCheckpoint(gravityIDStr string) []byte {
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
 	// will panic if gravityId is too long to fit in 32 bytes
-	gravityID, err := strToFixByteArray(gravityIDStr)
+	gravityID, err := StrToFixByteArray(gravityIDStr)
 	if err != nil {
 		panic(err)
 	}

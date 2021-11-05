@@ -2,8 +2,9 @@ package cli
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"strings"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/spf13/cobra"
 
@@ -122,10 +123,10 @@ to the counterparty channel. Any timeout set to 0 is disabled.`),
 		},
 	}
 
-	cmd.Flags().String(flagPacketTimeoutHeight, types.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
-	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, types.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds. Default is 10 minutes. The timeout is disabled when set to 0.")
-	cmd.Flags().String(flagIbcRouter, "", "Ibc router.")
-	cmd.Flags().String(flagIbcFee, "", "")
+	cmd.Flags().String(flagPacketTimeoutHeight, "0-0", "Packet timeout block height. Example: 0-20000, The timeout is disabled when set to 0-0.")
+	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, types.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds. Default is 24 hours. The timeout is disabled when set to 0.")
+	cmd.Flags().String(flagIbcRouter, "", "Ibc transfer after router module, Default is nothing")
+	cmd.Flags().String(flagIbcFee, "", "Ibc transfer after crosschain chain fee, Default is nothing")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	flags.AddTxFlagsToCmd(cmd)
 

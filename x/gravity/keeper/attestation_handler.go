@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/x/gravity/types"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strings"
+
+	"github.com/functionx/fx-core/x/gravity/types"
 )
 
 // AttestationHandler processes `observed` Attestations
@@ -47,15 +49,12 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 			sdk.NewAttribute(types.AttributeKeyAttestationHandlerTargetIbc, claim.TargetIbc),
 		)
 
-
-
 		sourcePort, sourceChannel, nextChannelSendSequence, isOk := a.handleIbcTransfer(ctx, claim, receiveAddr, coin)
 		if isOk {
 			event = event.
 				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSendSequence, fmt.Sprintf("%d", nextChannelSendSequence))).
 				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSourcePort, sourcePort)).
 				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSourceChannel, sourceChannel))
-
 			a.keeper.SetIbcSequenceHeight(ctx, sourcePort, sourceChannel, nextChannelSendSequence, uint64(ctx.BlockHeight()))
 		}
 		// broadcast event

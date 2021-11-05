@@ -1,9 +1,10 @@
 package transfer
 
 import (
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
 
 // NewHandler returns sdk.Handler for IBC token transfer module messages

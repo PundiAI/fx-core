@@ -10,6 +10,7 @@ import (
 
 var _ MsgValidateBasic = &EthereumMsgValidateBasic{}
 
+// EthereumMsgValidateBasic
 type EthereumMsgValidateBasic struct{}
 
 func (b EthereumMsgValidateBasic) MsgSetOrchestratorAddressValidate(m MsgSetOrchestratorAddress) (err error) {
@@ -134,6 +135,9 @@ func (b EthereumMsgValidateBasic) MsgSendToFxClaimValidate(m MsgSendToFxClaim) (
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Receiver); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Receiver)
+	}
+	if m.Amount.IsNil() || m.Amount.IsNegative() {
+		return sdkerrors.Wrap(ErrInvalid, "amount cannot be negative")
 	}
 	if _, err = hex.DecodeString(m.TargetIbc); len(m.TargetIbc) > 0 && err != nil {
 		return sdkerrors.Wrapf(ErrInvalid, "could not decode hex targetIbc string: %s", m.TargetIbc)

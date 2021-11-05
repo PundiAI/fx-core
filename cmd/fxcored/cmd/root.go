@@ -25,15 +25,16 @@ import (
 	vestingcli "github.com/cosmos/cosmos-sdk/x/auth/vesting/client/cli"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	"github.com/functionx/fx-core/app"
-	appCmd "github.com/functionx/fx-core/app/cmd"
-	"github.com/functionx/fx-core/app/fxcore"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
+
+	"github.com/functionx/fx-core/app"
+	appCmd "github.com/functionx/fx-core/app/cmd"
+	"github.com/functionx/fx-core/app/fxcore"
 	// this line is u by starport scaffolding # stargate/root/import
 )
 
@@ -63,7 +64,7 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	rootCmd.PersistentFlags().StringSlice(app.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery) (default "")`)
+	rootCmd.PersistentFlags().StringSlice(app.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery)`)
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxcore.ChainID,
@@ -106,14 +107,13 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	server.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addModuleInitFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
-	keysCmd := keys.Commands(fxcore.DefaultNodeHome)
-
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
 		queryCommand(),
 		txCommand(),
-		keysCmd,
+		keys.Commands(fxcore.DefaultNodeHome),
 		appCmd.ConfigCmd(),
+		appCmd.Network(),
 	)
 
 	for _, command := range rootCmd.Commands() {

@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	appCmd "github.com/functionx/fx-core/app/cmd"
-	"github.com/functionx/fx-core/app/fxcore"
 	"os"
 	"path/filepath"
+
+	appCmd "github.com/functionx/fx-core/app/cmd"
+	"github.com/functionx/fx-core/app/fxcore"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

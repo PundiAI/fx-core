@@ -2,15 +2,17 @@ package crosschain
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/gogo/protobuf/proto"
+
 	"github.com/functionx/fx-core/x/crosschain/keeper"
 	"github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/gogo/protobuf/proto"
 )
 
 // NewHandler returns a handler for "Gravity" type messages.
@@ -34,7 +36,6 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 		ignoreCommitKeyNameMapByHeight := rootmulti.GetIgnoreCommitKeyNameMapByHeight(ctx.BlockHeight())
 		if _, ok := ignoreCommitKeyNameMapByHeight[chainName]; ok {
 			panic(sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("module not enable")))
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("module not enable"))
 		}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		var res proto.Message

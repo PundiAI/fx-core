@@ -2,13 +2,15 @@ package keeper_test
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/functionx/fx-core/app/fxcore"
-	"github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"math/big"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
 func defaultModuleParams(oracles []string) types.Params {
@@ -114,6 +116,7 @@ func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
 			ExpectOracleSetSize: 1,
 		},
 	}
+
 	for i := 1; i <= 3; i++ {
 		keeper.StoreOracleSet(ctx, &types.OracleSet{
 			Nonce: uint64(i),
@@ -161,8 +164,7 @@ func TestLastPendingBatchRequestByAddr(t *testing.T) {
 		OracleAddress       sdk.AccAddress
 		OrchestratorAddress sdk.AccAddress
 		StartHeight         int64
-
-		ExpectStartHeight uint64
+		ExpectStartHeight   uint64
 	}{
 		{
 			Name:                "oracle start height with 1, expect oracle set block 3",
@@ -187,6 +189,7 @@ func TestLastPendingBatchRequestByAddr(t *testing.T) {
 		},
 	}
 	var i uint64 = 1
+
 	for i = 1; i <= 3; i++ {
 		ctx = ctx.WithBlockHeight(int64(i))
 		err := keeper.StoreBatch(ctx, &types.OutgoingTxBatch{

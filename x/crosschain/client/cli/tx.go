@@ -5,11 +5,12 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
+
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -19,8 +20,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/functionx/fx-core/x/crosschain/types"
 	"github.com/spf13/cobra"
+
+	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
 const (
@@ -132,6 +134,23 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 				return err
 			}
 
+			slashFractionStr, err := cmd.Flags().GetString(flagInitParamsSlashFraction)
+			if err != nil {
+				return err
+			}
+			slashFraction, err := sdk.NewDecFromStr(slashFractionStr)
+			if err != nil {
+				return err
+			}
+
+			oracleChanagePercentStr, err := cmd.Flags().GetString(flagInitParamsOracleChangePercent)
+			if err != nil {
+				return err
+			}
+			oracleChanagePercent, err := sdk.NewDecFromStr(oracleChanagePercentStr)
+			if err != nil {
+				return err
+			}
 			proposal := &types.InitCrossChainParamsProposal{
 				Title:       title,
 				Description: description,
@@ -141,9 +160,9 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 					ExternalBatchTimeout:              externalBatchTimeout,
 					AverageBlockTime:                  averageBlockTime,
 					AverageExternalBlockTime:          averageExternalBlockTime,
-					SlashFraction:                     sdk.NewDec(1).Quo(sdk.NewDec(1000)),
-					OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
-					IbcTransferTimeoutHeight:          10000,
+					SlashFraction:                     slashFraction,
+					OracleSetUpdatePowerChangePercent: oracleChanagePercent,
+					IbcTransferTimeoutHeight:          20000,
 					Oracles:                           oracles,
 					DepositThreshold:                  depositThresholdCoin,
 				},
@@ -164,14 +183,14 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 	cmd.Flags().String(flagProposalTitle, "", "proposal title")
 	cmd.Flags().String(flagProposalDescription, "", "proposal desc")
 	cmd.Flags().String(flagInitParamsGravityId, "", "signature checkpoint id, prevent replay attacks")
-	cmd.Flags().Uint64(flagInitParamsSignedWindows, 20000, "not sign slash window")
-	cmd.Flags().Uint64(flagInitParamsBatchTimeout, 43200000, "batch to external timeout ms(43200000=12h)")
-	cmd.Flags().Uint64(flagInitParamsAverageExternalBlockTime, 3000, "external chain average block time ms")
-	cmd.Flags().Uint64(flagInitParamsAverageBlockTime, 5000, "F(x) chain average block time ms")
-	cmd.Flags().String(flagInitParamsSlashFraction, "0.001", "not sign slash fraction")
-	cmd.Flags().String(flagInitParamsOracleChangePercent, "0.1", "oracle power change percent(0.1=10%)")
-	cmd.Flags().String(flagInitParamsDepositThreshold, "100000000000000000000FX", "oracle deposit threshold")
-	cmd.Flags().StringSlice(flagInitParamsOracles, nil, "oracles, split ,")
+	cmd.Flags().Uint64(flagInitParamsSignedWindows, 20000, "consensus signature penalizes waiting blocks")
+	cmd.Flags().Uint64(flagInitParamsBatchTimeout, 43200000, "batch Withdrawal timeout (ms)(43200000=12h)")
+	cmd.Flags().Uint64(flagInitParamsAverageExternalBlockTime, 3000, "average block output time of the other chain (ms)")
+	cmd.Flags().Uint64(flagInitParamsAverageBlockTime, 5000, "average block output time of f(x)Chain (ms)")
+	cmd.Flags().String(flagInitParamsSlashFraction, "0.001", "Penalty ratio for not participating in consensus signature")
+	cmd.Flags().String(flagInitParamsOracleChangePercent, "0.1", "consensus Oracle Power change threshold percentage(0.1=10%)")
+	cmd.Flags().String(flagInitParamsDepositThreshold, "100000000000000000000FX", "consensus Oracle minimum Collateral token")
+	cmd.Flags().StringSlice(flagInitParamsOracles, nil, "list of Oracles that have permission to participate in consensus, using comma split")
 	return cmd
 }
 
@@ -231,7 +250,7 @@ func CmdUpdateChainOraclesProposal() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().String(flagProposalTitle, "", "proposal title")
 	cmd.Flags().String(flagProposalDescription, "", "proposal desc")
-	cmd.Flags().StringSlice(flagInitParamsOracles, nil, "oracles, split ,")
+	cmd.Flags().StringSlice(flagInitParamsOracles, nil, "list of Oracles that have permission to participate in consensus, using comma split")
 	return cmd
 }
 
@@ -251,10 +270,6 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 				return err
 			}
 			externalAddress := args[2]
-			if !gethcommon.IsHexAddress(externalAddress) {
-				return fmt.Errorf("invalid external address:%v", externalAddress)
-			}
-			externalAddress = gethcommon.HexToAddress(externalAddress).Hex()
 			deposit, err := sdk.ParseCoinNormalized(args[3])
 			if err != nil {
 				return err
@@ -317,10 +332,13 @@ func CmdSendToExternal() *cobra.Command {
 				return err
 			}
 			externalDestAddr := args[1]
-			if !gethcommon.IsHexAddress(externalDestAddr) {
-				return sdkerrors.Wrap(fmt.Errorf("invalid dest address"), args[1])
+			if strings.HasPrefix(externalDestAddr, "0x") {
+				if !gethcommon.IsHexAddress(externalDestAddr) {
+					return fmt.Errorf("target address is invalid!address: [%s]", externalDestAddr)
+				}
+				externalDestAddr = gethcommon.HexToAddress(externalDestAddr).Hex()
 			}
-			externalDestAddr = gethcommon.HexToAddress(externalDestAddr).Hex()
+
 			amount, err := sdk.ParseCoinNormalized(args[2])
 			if err != nil {
 				return sdkerrors.Wrap(err, "amount")
@@ -394,10 +412,12 @@ func CmdRequestBatch() *cobra.Command {
 				return fmt.Errorf("miniumu fee is valid, %v\n", args[2])
 			}
 			feeReceive := args[3]
-			if !gethcommon.IsHexAddress(feeReceive) {
-				return fmt.Errorf("invalid feeReceive address: %v", feeReceive)
+			if strings.HasPrefix(feeReceive, "0x") {
+				if !gethcommon.IsHexAddress(feeReceive) {
+					return fmt.Errorf("invalid feeReceive address: %v", feeReceive)
+				}
+				feeReceive = gethcommon.HexToAddress(feeReceive).Hex()
 			}
-			feeReceive = gethcommon.HexToAddress(feeReceive).Hex()
 			denom := args[1]
 			queryClient := types.NewQueryClient(clientCtx)
 			token, err := queryClient.DenomToToken(cmd.Context(), &types.QueryDenomToTokenRequest{
@@ -440,10 +460,12 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			}
 			fromAddress := clientCtx.GetFromAddress()
 			tokenContract := args[1]
-			if !gethcommon.IsHexAddress(tokenContract) {
-				return fmt.Errorf("invalid contract address:%v", tokenContract)
+			if strings.HasPrefix(tokenContract, "0x") {
+				if !gethcommon.IsHexAddress(tokenContract) {
+					return fmt.Errorf("invalid contract address:%v", tokenContract)
+				}
+				tokenContract = gethcommon.HexToAddress(tokenContract).Hex()
 			}
-			tokenContract = gethcommon.HexToAddress(tokenContract).Hex()
 
 			nonce, err := strconv.ParseUint(args[2], 10, 64)
 			if err != nil {

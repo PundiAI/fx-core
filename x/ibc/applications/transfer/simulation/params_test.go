@@ -1,9 +1,10 @@
 package simulation_test
 
 import (
-	simulation2 "github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
 	"math/rand"
 	"testing"
+
+	simulation2 "github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
 
 	"github.com/stretchr/testify/require"
 )

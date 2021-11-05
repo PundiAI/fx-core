@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -198,7 +199,7 @@ func GetFeeSecondIndexKey(fee ERC20Token) []byte {
 	return res
 }
 
-// GetLastEventNonceByValidatorKey indexes lateset event nonce by validator
+// GetLastEventNonceByOracleKey indexes lateset event nonce by validator
 func GetLastEventNonceByValidatorKey(validator sdk.ValAddress) []byte {
 	return append(LastEventNonceByValidatorKey, validator.Bytes()...)
 }

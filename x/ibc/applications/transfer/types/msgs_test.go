@@ -2,14 +2,12 @@ package types
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/app/fxcore"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+	"github.com/stretchr/testify/require"
 )
 
 // define constants used for testing
@@ -38,7 +36,7 @@ var (
 
 	timeoutHeight = clienttypes.NewHeight(0, 10)
 	defaultRouter = ""
-	defaultFee    = sdk.Coin{Denom: fxcore.MintDenom, Amount: sdk.ZeroInt()}
+	defaultFee    = sdk.Coin{Denom: "FX", Amount: sdk.ZeroInt()}
 )
 
 // TestMsgTransferRoute tests Route for MsgTransfer

@@ -2,10 +2,11 @@ package types
 
 import (
 	"fmt"
+	"regexp"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
-	"regexp"
 )
 
 // cross chain message types

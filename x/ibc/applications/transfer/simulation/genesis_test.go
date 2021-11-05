@@ -2,10 +2,11 @@ package simulation_test
 
 import (
 	"encoding/json"
-	simulation2 "github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"math/rand"
 	"testing"
+
+	simulation2 "github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/stretchr/testify/require"
 

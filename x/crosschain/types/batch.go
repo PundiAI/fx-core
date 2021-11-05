@@ -34,7 +34,7 @@ func (m OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
 	// will panic if gravityId is too long to fit in 32 bytes
-	gravityID, err := strToFixByteArray(gravityIDString)
+	gravityID, err := StrToFixByteArray(gravityIDString)
 	if err != nil {
 		return nil, sdkerrors.Wrap(ErrInvalid, "gravity id")
 	}

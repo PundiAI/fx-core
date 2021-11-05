@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/server"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 )

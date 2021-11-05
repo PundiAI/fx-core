@@ -2,14 +2,17 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
-var _ ProposalMsgServer = msgServer{}
+var _ ProposalMsgServer = EthereumMsgServer{}
 
-func (s msgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p *types.InitCrossChainParamsProposal) error {
+func (s EthereumMsgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p *types.InitCrossChainParamsProposal) error {
 	// check duplicate init params.
 	var gravityId string
 	s.paramSpace.GetIfExists(ctx, types.ParamsStoreKeyGravityID, &gravityId)
@@ -21,6 +24,16 @@ func (s msgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p *types.
 	// init chain params
 	s.SetParams(ctx, *p.Params)
 
+	// FIP: slash fraction cannot greater than one 100%  2021-10-26.
+	if ctx.BlockHeight() >= app.CrossChainSupportTronBlock() {
+		if p.Params.SlashFraction.GT(sdk.OneDec()) {
+			return sdkerrors.Wrapf(types.ErrInvalid, "slash fraction too large: %s", p.Params.SlashFraction)
+		}
+		if p.Params.OracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
+			return sdkerrors.Wrapf(types.ErrInvalid, "oracle set update power change percent too large: %s", p.Params.OracleSetUpdatePowerChangePercent)
+		}
+	}
+
 	// save chain oracle
 	s.SetChainOracles(ctx, &types.ChainOracle{Oracles: p.Params.Oracles})
 
@@ -31,7 +44,7 @@ func (s msgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p *types.
 	return nil
 }
 
-func (s msgServer) HandleUpdateChainOraclesProposal(ctx sdk.Context, p *types.UpdateChainOraclesProposal) error {
+func (s EthereumMsgServer) HandleUpdateChainOraclesProposal(ctx sdk.Context, p *types.UpdateChainOraclesProposal) error {
 	logger := s.Logger(ctx)
 
 	logger.Info("handle update cross chain update oracles proposal", "proposal", p.String())
@@ -48,8 +61,10 @@ func (s msgServer) HandleUpdateChainOraclesProposal(ctx sdk.Context, p *types.Up
 
 	var deleteOracleList []types.Oracle
 	var totalDepositAmount, totalDeleteDepositAmount = sdk.ZeroInt(), sdk.ZeroInt()
+
 	allOracles := s.GetAllOracles(ctx)
 	for _, oldOracle := range allOracles {
+
 		if !oldOracle.Jailed {
 			totalDepositAmount = totalDepositAmount.Add(oldOracle.DepositAmount.Amount)
 		}
@@ -57,6 +72,7 @@ func (s msgServer) HandleUpdateChainOraclesProposal(ctx sdk.Context, p *types.Up
 			continue
 		}
 		deleteOracleList = append(deleteOracleList, oldOracle)
+
 		if !oldOracle.Jailed {
 			totalDeleteDepositAmount = totalDeleteDepositAmount.Add(oldOracle.DepositAmount.Amount)
 		}
@@ -64,6 +80,8 @@ func (s msgServer) HandleUpdateChainOraclesProposal(ctx sdk.Context, p *types.Up
 
 	maxPowerChangeThreshold := types.AttestationProposalOracleChangePowerThreshold.Mul(totalDepositAmount).Quo(sdk.PowerReduction).Quo(sdk.NewInt(100))
 	deleteOraclePower := totalDeleteDepositAmount.Quo(sdk.PowerReduction)
+	//maxPowerChangeThreshold := sdk.NewDecFromInt(totalDepositAmount.Quo(sdk.PowerReduction)).Mul(sdk.NewDecFromInt(types.AttestationProposalOracleChangePowerThreshold)).Quo(sdk.NewDec(100))
+	//deleteOraclePower := sdk.NewDecFromInt(totalDeleteDepositAmount.Quo(sdk.PowerReduction))
 	logger.Info("UpdateChainOraclesProposal", "maxChangePower", maxPowerChangeThreshold.String(), "deleteOraclePower", deleteOraclePower.String())
 	if deleteOraclePower.GT(sdk.ZeroInt()) && deleteOraclePower.GTE(maxPowerChangeThreshold) {
 		return sdkerrors.Wrapf(types.ErrInvalid, "max change power!maxChangePower:%v,deletePower:%v",

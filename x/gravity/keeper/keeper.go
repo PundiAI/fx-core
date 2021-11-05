@@ -2,11 +2,13 @@ package keeper
 
 import (
 	"fmt"
-	ibcchannelkeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/keeper"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
 	"math"
 	"sort"
 	"strconv"
+
+	ibcchannelkeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/keeper"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -76,10 +78,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // SetValsetRequest returns a new instance of the Gravity BridgeValidatorSet
 // i.e. {"nonce": 1, "memebers": [{"eth_addr": "foo", "power": 11223}]}
-func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) {
+func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) *types.Valset {
 	// if valset member is empty, not store valset.
 	if len(valset.Members) <= 0 {
-		return
+		return valset
 	}
 	k.StoreValset(ctx, valset)
 
@@ -93,6 +95,8 @@ func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) {
 			sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(valset.Nonce)),
 		),
 	)
+
+	return valset
 }
 
 // StoreValset is for storing a valiator set at a given height
@@ -191,13 +195,13 @@ func (k Keeper) GetLastSlashedValsetNonce(ctx sdk.Context) uint64 {
 	return types.UInt64FromBytes(bytes)
 }
 
-// SetLastUnBondingBlockHeight sets the last unbonding block height
+// SetLastProposalBlockHeight sets the last unbonding block height
 func (k Keeper) SetLastUnBondingBlockHeight(ctx sdk.Context, unbondingBlockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LastUnBondingBlockHeight, types.UInt64Bytes(unbondingBlockHeight))
 }
 
-// GetLastUnBondingBlockHeight returns the last unbonding block height
+// GetLastProposalBlockHeight returns the last unbonding block height
 func (k Keeper) GetLastUnBondingBlockHeight(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bytes := store.Get(types.LastUnBondingBlockHeight)
@@ -357,13 +361,13 @@ func (k Keeper) GetBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce ui
 //    ADDRESS DELEGATION   //
 /////////////////////////////
 
-// SetOrchestratorValidator sets the Orchestrator key for a given validator
+// SetOrchestratorOracle sets the Orchestrator key for a given validator
 func (k Keeper) SetOrchestratorValidator(ctx sdk.Context, val sdk.ValAddress, orch sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetOrchestratorAddressKey(orch), val.Bytes())
 }
 
-// GetOrchestratorValidator returns the validator key associated with an orchestrator key
+// GetOrchestratorOracle returns the validator key associated with an orchestrator key
 func (k Keeper) GetOrchestratorValidator(ctx sdk.Context, orch sdk.AccAddress) (valAddr sdk.ValAddress, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	valAddr = store.Get(types.GetOrchestratorAddressKey(orch))
@@ -401,13 +405,13 @@ func (k Keeper) GetValidatorByEthAddress(ctx sdk.Context, ethAddr string) string
 // DelEthAddressForValidator delete the ethereum address for a give validator
 func (k Keeper) DelEthAddressForValidator(ctk sdk.Context, validator sdk.ValAddress) {
 	store := ctk.KVStore(k.storeKey)
-
+	// Delete the ETH address of the verifier
 	ethAddrByValidatorKey := types.GetEthAddressByValidatorKey(validator)
 	if !store.Has(ethAddrByValidatorKey) {
 		return
 	}
 	store.Delete(ethAddrByValidatorKey)
-
+	// Delete the verifier address corresponding to the ETH address
 	ethAddress := store.Get(ethAddrByValidatorKey)
 	validatorByEthAddrKey := types.GetValidatorByEthAddressKey(string(ethAddress))
 	if store.Has(validatorByEthAddrKey) {

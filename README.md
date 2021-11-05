@@ -28,6 +28,7 @@ Available Commands:
   init                Initialize private validator, p2p, genesis, and application configuration files
   keys                Manage your application's keys
   migrate             Migrate genesis to a specified target version
+  network             Show fxcored network and upgrade info
   query               Querying subcommands
   start               Run the full node
   status              Query remote node for status
@@ -40,8 +41,8 @@ Available Commands:
 
 Flags:
   -h, --help                 help for fxcored
-      --home string          directory for config and data (default "/Users/pundix055/.fxcore")
-      --log_filter strings   The logging filter can discard custom log type (ABCIQuery) (default "")
+      --home string          directory for config and data (default "/root/.fxcore")
+      --log_filter strings   The logging filter can discard custom log type (ABCIQuery)
       --log_format string    The logging format (json|plain) (default "plain")
       --log_level string     The logging level (trace|debug|info|warn|error|fatal|panic) (default "info")
       --trace                print out full stack trace on errors
@@ -56,17 +57,17 @@ Local node startup
 ```
 fxcored init --chain-id=fxcore --denom=FX local
 fxcored keys add fx1
-fxcored add-genesis-account fx1 100000000000000000000000000FX
-fxcored gentx fx1 1000000000000000000000000FX --chain-id=fxcore \
-    --moniker="fx1-validator" \
+fxcored add-genesis-account fx1 4000000000000000000000FX
+fxcored gentx fx1 1000000000000000000000FX --chain-id=fxcore \
+    --moniker="fx-validator" \
     --commission-max-change-rate=0.01 \
-    --commission-max-rate=1.0 \
-    --commission-rate=0.07 \
-    --details="..." \
-    --security-contact="..." \
-    --website="..."
+    --commission-max-rate=0.2 \
+    --commission-rate=0.01 \
+    --details="Details A Function X foundation self-hosted validator." \
+    --security-contact="contact@functionx.io" \
+    --website="functionx.io"
 fxcored collect-gentxs
-fxcored start -rpc.laddr tcp://0.0.0.0:26657
+fxcored start
 ```
 
 ## Learn more

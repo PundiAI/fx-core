@@ -2,11 +2,12 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	abcitype "github.com/tendermint/tendermint/abci/types"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"

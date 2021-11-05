@@ -3,16 +3,18 @@ package types_test
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/require"
+
 	_ "github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
 )
 
 const (
@@ -667,6 +669,21 @@ func TestMsgBridgeTokenClaim(t *testing.T) {
 			},
 			expectPass: true,
 		},
+		{
+			testName: "success-0x0000000000000000000000000000000000000000",
+			msg: &types.MsgBridgeTokenClaim{
+				ChainName:     chainName,
+				Orchestrator:  normalFxAddress,
+				TokenContract: "0x0000000000000000000000000000000000000000",
+				ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
+				Name:          "BNB",
+				Symbol:        "BNB",
+				EventNonce:    1,
+				BlockHeight:   1,
+				Decimals:      0,
+			},
+			expectPass: true,
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -776,6 +793,34 @@ func TestMsgSendToFxClaim(t *testing.T) {
 			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, sdkerrors.ErrInvalidAddress),
 		},
 		{
+			testName: "err amount - amount is nil",
+			msg: &types.MsgSendToFxClaim{
+				ChainName:     chainName,
+				Orchestrator:  normalFxAddress,
+				Sender:        normalExternalAddress,
+				TokenContract: normalExternalAddress,
+				Receiver:      normalFxAddress,
+				Amount:        sdk.Int{},
+			},
+			expectPass: false,
+			err:        types.ErrInvalid,
+			errReason:  fmt.Sprintf("%s: %s", "amount cannot be negative", types.ErrInvalid),
+		},
+		{
+			testName: "err amount - amount is negative",
+			msg: &types.MsgSendToFxClaim{
+				ChainName:     chainName,
+				Orchestrator:  normalFxAddress,
+				Sender:        normalExternalAddress,
+				TokenContract: normalExternalAddress,
+				Receiver:      normalFxAddress,
+				Amount:        sdk.ZeroInt().Sub(sdk.NewInt(10000)),
+			},
+			expectPass: false,
+			err:        types.ErrInvalid,
+			errReason:  fmt.Sprintf("%s: %s", "amount cannot be negative", types.ErrInvalid),
+		},
+		{
 			testName: "err channelIBC: not hex.decode channelIBC",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:     chainName,
@@ -783,6 +828,7 @@ func TestMsgSendToFxClaim(t *testing.T) {
 				Sender:        normalExternalAddress,
 				TokenContract: normalExternalAddress,
 				Receiver:      normalFxAddress,
+				Amount:        sdk.ZeroInt(),
 				TargetIbc:     "kkkkk",
 			},
 			expectPass: false,
@@ -797,6 +843,7 @@ func TestMsgSendToFxClaim(t *testing.T) {
 				Sender:        normalExternalAddress,
 				TokenContract: normalExternalAddress,
 				Receiver:      normalFxAddress,
+				Amount:        sdk.ZeroInt(),
 				TargetIbc:     "",
 				EventNonce:    0,
 			},
@@ -812,6 +859,7 @@ func TestMsgSendToFxClaim(t *testing.T) {
 				Sender:        normalExternalAddress,
 				TokenContract: normalExternalAddress,
 				Receiver:      normalFxAddress,
+				Amount:        sdk.ZeroInt(),
 				EventNonce:    1,
 				BlockHeight:   0,
 			},
@@ -827,6 +875,7 @@ func TestMsgSendToFxClaim(t *testing.T) {
 				Sender:        normalExternalAddress,
 				TokenContract: normalExternalAddress,
 				Receiver:      normalFxAddress,
+				Amount:        sdk.ZeroInt(),
 				TargetIbc:     hex.EncodeToString([]byte("bc/transfer/channel-0")),
 				EventNonce:    1,
 				BlockHeight:   1,

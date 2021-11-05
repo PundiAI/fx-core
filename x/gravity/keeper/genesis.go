@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/x/gravity/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/functionx/fx-core/x/gravity/types"
 )
 
 // InitGenesis starts a chain from a genesis state
@@ -56,7 +58,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) {
 		}
 		// reconstruct the latest event nonce for every validator
 		// if somehow this genesis state is saved when all attestations
-		// have been cleaned up GetLastEventNonceByValidator handles that case
+		// have been cleaned up GetLastEventNonceByOracle handles that case
 		//
 		// if we where to save and load the last event nonce for every validator
 		// then we would need to carry that state forever across all chain restarts

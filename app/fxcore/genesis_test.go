@@ -2,8 +2,9 @@ package fxcore
 
 import (
 	"encoding/json"
-	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
 	"testing"
+
+	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
 )
 
 func TestNewDefaultGenesisByDenom(t *testing.T) {

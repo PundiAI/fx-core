@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -21,17 +22,17 @@ const (
 
 var (
 	OracleTotalDepositKey = []byte{0x11}
-	// LastTotalPowerKey total active power key
+	// LastTotalPowerKey
 	LastTotalPowerKey = []byte{0x39}
 
-	// OraclesKey Oracle key prefix
+	// OraclesKey
 	OraclesKey = []byte{0x12}
 
-	// OracleAddressByExternalKey key external -> value oracle
+	// OracleAddressByExternalKey key external address -> value oracle address
 	// OracleAddressByExternalKey indexes the external keys for an oracle address
 	OracleAddressByExternalKey = []byte{0x13}
 
-	// OracleAddressByOrchestratorKey key orchestrator -> value oracle
+	// OracleAddressByOrchestratorKey key orchestrator address -> value oracle address
 	// OracleAddressByOrchestratorKey indexes the external keys for an oracle address
 	OracleAddressByOrchestratorKey = []byte{0x14}
 
