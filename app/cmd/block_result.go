@@ -16,16 +16,26 @@ func QueryBlockResultsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "block-results <height>",
 		Short: "Query for a transaction by hash in a committed block",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			height, err := strconv.ParseInt(args[0], 10, 64)
-			if err != nil {
-				return err
+			var height int64
+			if len(args) > 0 {
+				height, err = strconv.ParseInt(args[0], 10, 64)
+				if err != nil {
+					return err
+				}
+			} else {
+				status, err := clientCtx.Client.Status(context.Background())
+				if err != nil {
+					return err
+				}
+				height = status.SyncInfo.LatestBlockHeight
 			}
+
 			blockResults, err := clientCtx.Client.BlockResults(context.Background(), &height)
 			if err != nil {
 				return err
