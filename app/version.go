@@ -10,8 +10,8 @@ const (
 // testnet constant
 const (
 	testnetCrossChainSupportBscBlock     = 1079000
-	testnetCrossChainSupportTronBlock    = 1800000
-	testnetCrossChainSupportPolygonBlock = 1800000
+	testnetCrossChainSupportTronBlock    = 1788888
+	testnetCrossChainSupportPolygonBlock = 1788888
 
 	testnetGravityPruneValsetAndAttestationBlock = 373100
 	testnetGravityValsetSlashBlock               = 1380300
