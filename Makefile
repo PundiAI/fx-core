@@ -94,11 +94,6 @@ ifeq (,$(findstring nostrip,$(FX_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
 endif
 
-#$(info $$BUILD_FLAGS is [$(BUILD_FLAGS)])
-
-# The below include contains the tools target.
-include develop/devtools.mk
-
 ###############################################################################
 ###                              Documentation                              ###
 ###############################################################################
@@ -130,7 +125,7 @@ build-linux-devnet:
 build-linux-testnet:
 	@TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-testnet
 
-build-linux-mainnet:
+build-linux:
 	@TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-mainnet
 
 install-devnet:
@@ -152,7 +147,7 @@ docker-devnet: build-linux-devnet
 docker-testnet: build-linux-testnet
 	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:testnet .
 
-docker-mainnet: build-linux-mainnet
+docker: build-linux
 	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:mainnet .
 
 go.sum: go.mod
@@ -181,14 +176,6 @@ format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' | xargs goimports -w -local github.com/functionx/fx-core
 
 ###############################################################################
-###                                Protobuf                                 ###
-###############################################################################
-
-proto-gen:
-	@echo "Generating Protobuf files"
-	@./develop/protocgen.sh
-
-###############################################################################
 ###                           Tests & Simulation                            ###
 ###############################################################################
 
@@ -206,6 +193,17 @@ test-cover:
 
 benchmark:
 	@go test -mod=readonly -bench=. ./...
+
+###############################################################################
+###                                Protobuf                                 ###
+###############################################################################
+
+# The below include contains the tools target.
+include develop/devtools.mk
+
+proto-gen:
+	@echo "Generating Protobuf files"
+	@./develop/protocgen.sh
 
 ###############################################################################
 ###                                 Other                                  ###
