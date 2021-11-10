@@ -19,8 +19,9 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		expPass    bool
 	}{
 		{"valid packet", NewFungibleTokenPacketData(denom, amount, addr1.String(), addr2, "", ""), true},
+		{"zero amount", NewFungibleTokenPacketData(denom, "0", addr1.String(), addr2, "", ""), true},
 		{"invalid denom", NewFungibleTokenPacketData("", amount, addr1.String(), addr2, "", ""), false},
-		{"invalid amount", NewFungibleTokenPacketData(denom, "0", addr1.String(), addr2, "", ""), false},
+		{"invalid amount", NewFungibleTokenPacketData(denom, "-1", addr1.String(), addr2, "", ""), false},
 		{"missing sender address", NewFungibleTokenPacketData(denom, amount, emptyAddr.String(), addr2, "", ""), false},
 		{"missing recipient address", NewFungibleTokenPacketData(denom, amount, addr1.String(), emptyAddr.String(), "", ""), false},
 	}

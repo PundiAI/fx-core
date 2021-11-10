@@ -28,7 +28,7 @@ var (
 	addr2     = sdk.AccAddress("testaddr2").String()
 	emptyAddr sdk.AccAddress
 
-	coin             = sdk.NewCoin("atom", sdk.NewInt(100))
+	coin             = sdk.NewCoin("demo", sdk.NewInt(100))
 	ibcCoin          = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdk.NewInt(100))
 	invalidIBCCoin   = sdk.NewCoin("notibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdk.NewInt(100))
 	invalidDenomCoin = sdk.Coin{Denom: "0atom", Amount: sdk.NewInt(100)}
@@ -36,7 +36,7 @@ var (
 
 	timeoutHeight = clienttypes.NewHeight(0, 10)
 	defaultRouter = ""
-	defaultFee    = sdk.Coin{Denom: "FX", Amount: sdk.ZeroInt()}
+	defaultFee    = sdk.Coin{Denom: "demo", Amount: sdk.ZeroInt()}
 )
 
 // TestMsgTransferRoute tests Route for MsgTransfer
@@ -55,7 +55,7 @@ func TestMsgTransferType(t *testing.T) {
 
 func TestMsgTransferGetSignBytes(t *testing.T) {
 	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee)
-	expected := fmt.Sprintf(`{"type":"cosmos-sdk/MsgTransfer","value":{"receiver":"%s","sender":"%s","source_channel":"testchannel","source_port":"testportid","timeout_height":{"revision_height":"10"},"token":{"amount":"100","denom":"atom"}}}`, addr2, addr1)
+	expected := fmt.Sprintf(`{"type":"cosmos-sdk/MsgTransfer","value":{"fee":{"amount":"0","denom":"demo"},"receiver":"%s","sender":"%s","source_channel":"testchannel","source_port":"testportid","timeout_height":{"revision_height":"10"},"token":{"amount":"100","denom":"demo"}}}`, addr2, addr1)
 	require.NotPanics(t, func() {
 		res := msg.GetSignBytes()
 		require.Equal(t, expected, string(res))

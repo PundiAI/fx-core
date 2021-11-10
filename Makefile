@@ -145,10 +145,10 @@ docker-devnet: build-linux-devnet
 	@docker tag functionx/fx-core:latest functionx/fx-core:dev
 
 docker-testnet: build-linux-testnet
-	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:testnet .
+	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:testnet-1.0 .
 
 docker: build-linux
-	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:mainnet .
+	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:mainnet-1.0 .
 
 go.sum: go.mod
 	@echo "--> Ensure dependencies have not been modified"
