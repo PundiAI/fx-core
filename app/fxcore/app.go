@@ -178,6 +178,11 @@ var (
 )
 
 func init() {
+	fxHome := os.ExpandEnv("$FXHOME")
+	if len(fxHome) > 0 {
+		DefaultNodeHome = fxHome
+		return
+	}
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
