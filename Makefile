@@ -98,26 +98,35 @@ endif
 ###                              Documentation                              ###
 ###############################################################################
 
-build:
-	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/fxcored ./cmd/fxcored
+all: install lint test
 
-build-devnet:
+go.sum: go.mod
+	@echo "--> Ensure dependencies have not been modified"
+	@go mod verify
+	@go mod tidy
+	@echo "--> Download go modules to local cache"
+	@go mod download
+
+build: go.mod
+	@echo "--> build mainnet <--"
+	@FX_BUILD_OPTIONS=mainnet go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/fxcored ./cmd/fxcored
+
+build-devnet: go.mod
 	@echo "--> build devnet <--"
-	@FX_BUILD_OPTIONS=devnet make build
+	@FX_BUILD_OPTIONS=devnet go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/fxcored ./cmd/fxcored
 
-build-testnet:
+build-testnet: go.mod
 	@echo "--> build testnet <--"
 	@echo "replace cosmos-sdk to github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20211015120647-6c0e91f2e952"
 	@go mod edit --replace=github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20211015120647-6c0e91f2e952
 	@go mod tidy -v
-	@FX_BUILD_OPTIONS=testnet make build
+	@FX_BUILD_OPTIONS=testnet go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/fxcored ./cmd/fxcored
 	@echo "recover cosmos-sdk to github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20210927070625-89306d0caf62"
 	@go mod edit --replace=github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20210927070625-89306d0caf62
 	@go mod tidy -v
 
-build-mainnet:
-	@echo "--> build mainnet <--"
-	@FX_BUILD_OPTIONS=mainnet make build
+build-linux:
+	@TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build
 
 build-linux-devnet:
 	@TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-devnet
@@ -125,8 +134,9 @@ build-linux-devnet:
 build-linux-testnet:
 	@TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-testnet
 
-build-linux:
-	@TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-mainnet
+install:
+	@$(MAKE) build
+	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 install-devnet:
 	@$(MAKE) build-devnet
@@ -136,26 +146,17 @@ install-testnet:
 	@$(MAKE) build-testnet
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
-install:
-	@$(MAKE) build-mainnet
-	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
+docker: build-linux
+	@docker build --no-cache -f Dockerfile -t functionx/fx-core:mainnet-1.0 .
 
 docker-devnet: build-linux-devnet
-	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:latest .
-	@docker tag functionx/fx-core:latest functionx/fx-core:dev
+	@docker build --no-cache -f Dockerfile -t functionx/fx-core:latest .
 
 docker-testnet: build-linux-testnet
-	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:testnet-1.0 .
+	@docker build --no-cache -f Dockerfile -t functionx/fx-core:testnet-1.0 .
 
-docker: build-linux
-	@docker build --no-cache -f ./cmd/fxcored/Dockerfile -t functionx/fx-core:mainnet-1.0 .
-
-go.sum: go.mod
-	@echo "--> Ensure dependencies have not been modified"
-	@go mod verify
-	@go mod tidy
-	@echo "--> Download go modules to local cache"
-	@go mod download
+run-local: install
+	@./develop/run_fxcore.sh init
 
 draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
