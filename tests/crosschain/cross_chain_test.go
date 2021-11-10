@@ -23,7 +23,7 @@ import (
 )
 
 func TestOrchestratorChain(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	client := NewClient(t)
