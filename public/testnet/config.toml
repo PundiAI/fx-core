@@ -15,7 +15,7 @@
 proxy_app = "tcp://127.0.0.1:26658"
 
 # A custom human readable name for this node
-moniker = "moniker"
+moniker = "your-moniker"
 
 # If this node is many blocks behind the tip of the chain, FastSync
 # allows them to catchup quickly by downloading blocks in parallel
@@ -181,10 +181,10 @@ laddr = "tcp://0.0.0.0:26656"
 external_address = ""
 
 # Comma separated list of seed nodes to connect to
-seeds = "275f616954e149076b4eb1f726c44e9722ae00b6@testnet-falcons-normal-node-1.functionx.io:26656"
+seeds = "275f616954e149076b4eb1f726c44e9722ae00b6@fxcore-testnet-seed-node-1.functionx.io:26656"
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "c871d11439f226281bec0f1ae7a81984de2df30c@testnet-falcons-normal-node-2.functionx.io:26656,43b849debb6e2b5ffed246b76da0a7a93d14bb84@testnet-falcons-normal-node-3.functionx.io:26656,eef28254833827b4ff0e43d78d6a0ff81a41bbd0@testnet-falcons-normal-node-4.functionx.io:26656,cb9e91758f5ee581607b7099531845416cf1ab16@testnet-falcons-normal-node-5.functionx.io:26656"
+persistent_peers = "c871d11439f226281bec0f1ae7a81984de2df30c@fxcore-testnet-node-1.functionx.io:26656,43b849debb6e2b5ffed246b76da0a7a93d14bb84@fxcore-testnet-node-2.functionx.io:26656,eef28254833827b4ff0e43d78d6a0ff81a41bbd0@fxcore-testnet-node-3.functionx.io:26656,cb9e91758f5ee581607b7099531845416cf1ab16@fxcore-testnet-node-4.functionx.io:26656"
 
 # UPNP port forwarding
 upnp = false
