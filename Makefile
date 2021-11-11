@@ -126,13 +126,13 @@ build-testnet: go.mod
 	@go mod tidy -v
 
 build-linux:
-	@TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build
+	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build
 
 build-linux-devnet:
-	@TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-devnet
+	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-devnet
 
 build-linux-testnet:
-	@TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-testnet
+	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-testnet
 
 install:
 	@$(MAKE) build
