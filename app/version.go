@@ -20,8 +20,8 @@ const (
 // mainnet constant
 const (
 	mainnetCrossChainSupportBscBlock     = 1354000
-	mainnetCrossChainSupportTronBlock    = 2031000
-	mainnetCrossChainSupportPolygonBlock = 2031000
+	mainnetCrossChainSupportTronBlock    = 2062000
+	mainnetCrossChainSupportPolygonBlock = 2062000
 
 	//
 	mainnetGravityPruneValsetAndAttestationBlock = 610000
