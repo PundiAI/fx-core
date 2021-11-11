@@ -107,20 +107,23 @@ go.sum: go.mod
 	@echo "--> Download go modules to local cache"
 	@go mod download
 
+go-build: go.mod
+	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/fxcored ./cmd/fxcored
+
 build: go.mod
 	@echo "--> build mainnet <--"
-	@FX_BUILD_OPTIONS=mainnet go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/fxcored ./cmd/fxcored
+	@FX_BUILD_OPTIONS=mainnet make go-build
 
 build-devnet: go.mod
 	@echo "--> build devnet <--"
-	@FX_BUILD_OPTIONS=devnet go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/fxcored ./cmd/fxcored
+	@FX_BUILD_OPTIONS=devnet make go-build
 
 build-testnet: go.mod
 	@echo "--> build testnet <--"
 	@echo "replace cosmos-sdk to github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20211015120647-6c0e91f2e952"
 	@go mod edit --replace=github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20211015120647-6c0e91f2e952
 	@go mod tidy -v
-	@FX_BUILD_OPTIONS=testnet go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/fxcored ./cmd/fxcored
+	@FX_BUILD_OPTIONS=testnet make go-build
 	@echo "recover cosmos-sdk to github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20210927070625-89306d0caf62"
 	@go mod edit --replace=github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20210927070625-89306d0caf62
 	@go mod tidy -v
