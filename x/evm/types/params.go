@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"github.com/functionx/fx-core/app/fxcore"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/params"
@@ -9,13 +10,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/functionx/fx-core/types"
 )
 
 var _ paramtypes.ParamSet = &Params{}
 
 const (
-	DefaultEVMDenom = types.AttoPhoton
+	DefaultEVMDenom = fxcore.MintDenom
 )
 
 // Parameter keys
