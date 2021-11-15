@@ -1,0 +1,104 @@
+version: "3"
+
+services:
+
+#  node_exporter:
+#    image: prom/node-exporter:latest
+#    container_name: node_exporter
+#    command:
+#      - '--path.rootfs=/host'
+#    pid: host
+#    restart: unless-stopped
+#    ports:
+#      - 9100:9100
+#    volumes:
+#      - '/:/host:ro,rslave'
+#    networks:
+#      - fx-net
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.config.file=/etc/prometheus/web-config.yml'
+      - '--web.enable-lifecycle'
+      - '--log.level=debug'
+    ports:
+      - 9999:9090
+    restart: always
+    networks:
+      - fx-net
+
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:latest
+    volumes:
+      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./prometheus/web-config.yml:/etc/alertmanager/web-config.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - '--storage.path=/alertmanager'
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--web.config.file=/etc/alertmanager/web-config.yml'
+      - '--log.level=debug'
+    ports:
+      - 9093:9093
+    restart: always
+    networks:
+      - fx-net
+
+  alertmanager-bot:
+    container_name: alertmanager-bot
+    image: metalmatze/alertmanager-bot:0.4.3
+    command:
+      - '--alertmanager.url=http://fx:fxcore@alertmanager:9093/'
+      - '--store=bolt'
+      - '--bolt.path=/data/bot.db'
+      - '--template.paths=/templates/default.tmpl'
+      - '--listen.addr=0.0.0.0:9091'
+      - '--log.level=debug'
+    environment:
+      TELEGRAM_ADMIN: "1234567890"
+      TELEGRAM_TOKEN: "0000000000:LSDIFJOFLDSHJFSDFJSDF_JDSFDSHFD"
+    ports:
+      - 9091:9091
+    volumes:
+      - ./templates/default.tmpl:/templates/default.tmpl
+      - alertmanagerbot_data:/data
+    restart: always
+    networks:
+      - fx-net
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    user: "472"
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - grafana/config.monitoring
+    restart: always
+    networks:
+      - fx-net
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  alertmanager_data:
+  alertmanagerbot_data:
+
+networks:
+  fx-net:
+    driver: bridge
