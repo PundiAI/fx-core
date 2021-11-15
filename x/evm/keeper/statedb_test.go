@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	types2 "github.com/tendermint/tendermint/types"
 	"math/big"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -577,6 +578,13 @@ func (suite *KeeperTestSuite) TestAddLog() {
 	msg4, _ = tx4.GetMsgs()[0].(*types.MsgEthereumTx)
 	txHash4 := msg4.AsTransaction().Hash()
 
+	protoHeader := suite.ctx.BlockHeader()
+	blockHeader, err := types2.HeaderFromProto(&protoHeader)
+	if err != nil {
+		panic(err)
+	}
+	expectBlockHash := common.BytesToHash(blockHeader.Hash())
+
 	testCases := []struct {
 		name        string
 		hash        common.Hash
@@ -658,6 +666,16 @@ func (suite *KeeperTestSuite) TestAddLog() {
 			suite.app.EvmKeeper.AddLog(tc.log)
 			logs := suite.app.EvmKeeper.GetTxLogsTransient(tc.hash)
 			suite.Require().Equal(1, len(logs))
+
+			protoHeader := suite.ctx.BlockHeader()
+			blockHeader, err := types2.HeaderFromProto(&protoHeader)
+			if err != nil {
+				panic(err)
+			}
+			expectBlockHash = common.BytesToHash(blockHeader.Hash())
+			tc.expLog.BlockHash = expectBlockHash
+			// ---- end .
+
 			suite.Require().Equal(tc.expLog, logs[0])
 		})
 	}
