@@ -2,6 +2,7 @@ package fxcore
 
 import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	serverty "github.com/functionx/fx-core/server"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"io"
@@ -88,8 +89,6 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	serverty "github.com/functionx/fx-core/server"
-
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/functionx/fx-core/app"
@@ -335,19 +334,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	)
 	myApp.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, keys[upgradetypes.StoreKey], appCodec, homePath)
 
-	tracer := cast.ToString(appOpts.Get(serverty.EVMTracer))
-
-	// Create Ethermint keepers
-	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
-		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
-	)
-
-	myApp.EvmKeeper = evmkeeper.NewKeeper(
-		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
-		myApp.AccountKeeper, myApp.BankKeeper, myApp.StakingKeeper, myApp.FeeMarketKeeper,
-		tracer, true, // debug EVM based on Baseapp options
-	)
-
 	// Create IBC Keeper
 	myApp.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibchost.StoreKey], myApp.GetSubspace(ibchost.ModuleName), stakingKeeper, scopedIBCKeeper,
@@ -410,6 +396,19 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		})
 
 	myApp.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
+
+	tracer := cast.ToString(appOpts.Get(serverty.EVMTracer))
+
+	// Create Ethermint keepers
+	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
+		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
+	)
+
+	myApp.EvmKeeper = evmkeeper.NewKeeper(
+		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
+		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeper,
+		tracer, true, // debug EVM based on Baseapp options
+	)
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
@@ -511,7 +510,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		polygontypes.ModuleName,
 		trontypes.ModuleName,
-		evmtypes.ModuleName, feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
+		feemarkettypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -535,6 +535,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/myApp/initGenesis
+		evmtypes.ModuleName,
+		feemarkettypes.ModuleName,
 	)
 
 	myApp.mm.RegisterInvariants(&myApp.CrisisKeeper)

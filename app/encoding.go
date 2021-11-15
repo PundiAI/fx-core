@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-
+	cryptocodec "github.com/functionx/fx-core/crypto/codec"
 	enccodec "github.com/functionx/fx-core/types"
 )
 
@@ -34,6 +34,7 @@ func MakeEncodingConfig() EncodingConfig {
 	}
 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	enccodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	cryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }

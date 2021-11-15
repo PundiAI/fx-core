@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"math/big"
 	"strconv"
@@ -67,9 +68,24 @@ func setup(withGenesis bool, invCheckPeriod uint) (*App, AppGenesisState) {
 	encCdc := MakeEncodingConfig()
 	app := New(appLog, db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
 	if withGenesis {
-		return app, NewDefAppGenesisByDenom(MintDenom, encCdc.Marshaler)
+		return app, DefaultTestGenesis(app.AppCodec())
 	}
 	return app, AppGenesisState{}
+}
+
+func DefaultTestGenesis(cdc codec.JSONMarshaler) AppGenesisState {
+	genesisState := NewDefAppGenesisByDenom(MintDenom, cdc)
+	var bankGenesis banktypes.GenesisState
+	cdc.MustUnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenesis)
+	if !bankGenesis.Supply.IsZero() {
+		gravityModuleInitAmount, ok := sdk.NewIntFromString(GravityModuleInitAmount)
+		if !ok {
+			panic("parse gravity module init amount not ok!str:" + GravityModuleInitAmount)
+		}
+		bankGenesis.Supply = sdk.NewCoins(sdk.NewCoin(MintDenom, gravityModuleInitAmount))
+	}
+	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(&bankGenesis)
+	return genesisState
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
@@ -95,6 +111,7 @@ func Setup(isCheckTx bool, feemarketGenesis *feemarkettypes.GenesisState) *App {
 		// Initialize the chain
 		app.InitChain(
 			abci.RequestInitChain{
+				ChainId:         "ethermint_9000-1",
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
