@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	fxserver "github.com/functionx/fx-core/server"
 	"io"
 	"os"
 	"path/filepath"
@@ -49,7 +50,6 @@ func NewRootCmd() *cobra.Command {
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
-		WithOutput(os.Stdout).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(fxcore.DefaultNodeHome)
@@ -70,7 +70,6 @@ func NewRootCmd() *cobra.Command {
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxcore.ChainID,
 		flags.FlagKeyringBackend: keyring.BackendTest,
-		flags.FlagGasPrices:      "4000000000000" + fxcore.MintDenom,
 	})
 	for _, command := range rootCmd.Commands() {
 		if command.Use == "" {
@@ -84,15 +83,13 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	authclient.Codec = encodingConfig.Marshaler
 
 	debugCmd := debug.Cmd()
-	debugCmd.AddCommand(
-		appCmd.HexToString(),
-		appCmd.ReEncodeAddrCommand(),
-		appCmd.HexToFxAddrCommand(),
-		appCmd.ModuleAddressCmd(),
-		appCmd.CovertTxDataToHash(),
-		appCmd.ParseTx(),
-		appCmd.HexExternalAddress(),
-	)
+	debugCmd.AddCommand(appCmd.HexToString())
+	debugCmd.AddCommand(appCmd.ReEncodeAddrCommand())
+	debugCmd.AddCommand(appCmd.HexToFxAddrCommand())
+	debugCmd.AddCommand(appCmd.ModuleAddressCmd())
+	debugCmd.AddCommand(appCmd.CovertTxDataToHash())
+	debugCmd.AddCommand(appCmd.ParseTx())
+	debugCmd.AddCommand(appCmd.HexExternalAddress())
 
 	rootCmd.AddCommand(
 		InitCmd(),
@@ -105,22 +102,22 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		TestnetCmd(),
 		debugCmd,
 		// this line is used by starport scaffolding # stargate/root/commands
-		appCmd.Network(),
-		appCmd.ConfigCmd(),
 	)
 
 	appCreator := appCreator{encodingConfig}
-	server.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
+	fxserver.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addModuleInitFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
-	rpcStatusCmd := rpc.StatusCommand()
-	rpcStatusCmd.SetOut(os.Stdout)
 	rootCmd.AddCommand(
-		keys.Commands(fxcore.DefaultNodeHome),
-		rpcStatusCmd,
+		rpc.StatusCommand(),
 		queryCommand(),
 		txCommand(),
+		keys.Commands(fxcore.DefaultNodeHome),
+		appCmd.ConfigCmd(),
+		appCmd.Network(),
 	)
+
+	rootCmd = fxserver.AddTxFlags(rootCmd)
 
 	for _, command := range rootCmd.Commands() {
 		// tendermint add update validator key command
@@ -131,7 +128,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	}
 }
 
-func addStartFlags(startCmd *cobra.Command) {
+func addModuleInitFlags(startCmd *cobra.Command) {
 }
 
 func queryCommand() *cobra.Command {
@@ -294,9 +291,7 @@ func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
 	set := func(s *pflag.FlagSet, key, val string) {
 		if f := s.Lookup(key); f != nil {
 			f.DefValue = val
-			if err := f.Value.Set(val); err != nil {
-				panic(err)
-			}
+			f.Value.Set(val)
 		}
 	}
 	for key, val := range defaults {

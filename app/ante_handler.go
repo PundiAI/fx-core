@@ -1,11 +1,17 @@
 package app
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	"github.com/palantir/stacktrace"
+	tmlog "github.com/tendermint/tendermint/libs/log"
+	"runtime/debug"
 )
 
 // NewAnteHandler returns an AnteHandler that checks and increments sequence
@@ -34,6 +40,85 @@ func NewAnteHandler(
 	)
 }
 
+func NewAnteHandlerWithEVM(
+	ak evmtypes.AccountKeeper,
+	bankKeeper evmtypes.BankKeeper,
+	evmKeeper EVMKeeper,
+	feeMarketKeeper evmtypes.FeeMarketKeeper,
+	sigGasConsumer ante.SignatureVerificationGasConsumer,
+	signModeHandler authsigning.SignModeHandler,
+) sdk.AnteHandler {
+	return func(
+		ctx sdk.Context, tx sdk.Tx, sim bool,
+	) (newCtx sdk.Context, err error) {
+		var anteHandler sdk.AnteHandler
+
+		defer Recover(ctx.Logger(), &err)
+
+		txWithExtensions, ok := tx.(ante.HasExtensionOptionsTx)
+		if ok {
+			opts := txWithExtensions.GetExtensionOptions()
+			if len(opts) > 0 {
+				switch typeURL := opts[0].GetTypeUrl(); typeURL {
+				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
+					// handle as *evmtypes.MsgEthereumTx
+
+					anteHandler = sdk.ChainAnteDecorators(
+						NewEthSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+						ante.NewMempoolFeeDecorator(),
+						ante.TxTimeoutHeightDecorator{},
+						ante.NewValidateMemoDecorator(ak),
+						NewEthValidateBasicDecorator(evmKeeper),
+						NewEthSigVerificationDecorator(evmKeeper),
+						NewEthAccountVerificationDecorator(ak, bankKeeper, evmKeeper),
+						NewEthNonceVerificationDecorator(ak),
+						NewEthGasConsumeDecorator(evmKeeper),
+						NewCanTransferDecorator(evmKeeper, feeMarketKeeper),
+						NewEthIncrementSenderSequenceDecorator(ak), // innermost AnteDecorator.
+					)
+
+				default:
+					return ctx, stacktrace.Propagate(
+						sdkerrors.Wrap(sdkerrors.ErrUnknownExtensionOptions, typeURL),
+						"rejecting tx with unsupported extension option",
+					)
+				}
+
+				return anteHandler(ctx, tx, sim)
+			}
+		}
+
+		// handle as totally normal Cosmos SDK tx
+
+		switch tx.(type) {
+		case sdk.Tx:
+			anteHandler = sdk.ChainAnteDecorators(
+				ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+				NewRejectExtensionOptionsDecorator(),
+				ante.NewMempoolFeeDecorator(),
+				ante.NewValidateBasicDecorator(),
+				ante.TxTimeoutHeightDecorator{},
+				ante.NewValidateMemoDecorator(ak),
+				ante.NewConsumeGasForTxSizeDecorator(ak),
+				ante.NewRejectFeeGranterDecorator(),
+				ante.NewSetPubKeyDecorator(ak), // SetPubKeyDecorator must be called before all signature verification decorators
+				ante.NewValidateSigCountDecorator(ak),
+				ante.NewDeductFeeDecorator(ak, bankKeeper),
+				ante.NewSigGasConsumeDecorator(ak, sigGasConsumer),
+				ante.NewSigVerificationDecorator(ak, signModeHandler),
+				ante.NewIncrementSequenceDecorator(ak),
+			)
+		default:
+			return ctx, stacktrace.Propagate(
+				sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid transaction type: %T", tx),
+				"transaction is not an SDK tx",
+			)
+		}
+
+		return anteHandler(ctx, tx, sim)
+	}
+}
+
 // RejectExtensionOptionsDecorator is an AnteDecorator that rejects all extension
 // options which can optionally be included in protobuf transactions. Users that
 // need extension options should create a custom AnteHandler chain that handles
@@ -58,4 +143,23 @@ func (r RejectExtensionOptionsDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, 
 		}
 	}
 	return next(ctx, tx, simulate)
+}
+
+func Recover(logger tmlog.Logger, err *error) {
+	if r := recover(); r != nil {
+		*err = sdkerrors.Wrapf(sdkerrors.ErrPanic, "%v", r)
+
+		if e, ok := r.(error); ok {
+			logger.Error(
+				"ante handler panicked",
+				"error", e,
+				"stack trace", string(debug.Stack()),
+			)
+		} else {
+			logger.Error(
+				"ante handler panicked",
+				"recover", fmt.Sprintf("%v", r),
+			)
+		}
+	}
 }

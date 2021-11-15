@@ -3,15 +3,11 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-
-	tmcli "github.com/tendermint/tendermint/libs/cli"
-
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
-
-	"github.com/functionx/fx-core/app"
 )
 
 func Network() *cobra.Command {
@@ -21,15 +17,17 @@ func Network() *cobra.Command {
 		Short:   "Show fxcored network and upgrade info",
 		Example: "fxcored network",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 			outputBytes, err := json.Marshal(map[string]interface{}{
-				"ChainId":                                fxcore.ChainID,
-				"Network":                                app.Network(),
-				"GravityPruneValsetsAndAttestationBlock": fmt.Sprintf("%d", app.GravityPruneValsetsAndAttestationBlock()),
-				"GravityValsetSlashBlock":                fmt.Sprintf("%d", app.GravityValsetSlashBlock()),
-				"CrossChainSupportBscBlock":              fmt.Sprintf("%d", app.CrossChainSupportBscBlock()),
-				"CrossChainSupportTronBlock":             fmt.Sprintf("%d", app.CrossChainSupportTronBlock()),
-				"CrossChainSupportPolygonBlock":          fmt.Sprintf("%d", app.CrossChainSupportPolygonBlock()),
+				"Network":                                types.Network(),
+				"GravityPruneValsetsAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetsAndAttestationBlock()),
+				"GravityValsetSlashBlock":                fmt.Sprintf("%d", types.GravityValsetSlashBlock()),
+				"CrossChainSupportBscBlock":              fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
+				"CrossChainSupportTronBlock":             fmt.Sprintf("%d", types.CrossChainSupportTronBlock()),
+				"CrossChainSupportPolygonBlock":          fmt.Sprintf("%d", types.CrossChainSupportPolygonBlock()),
 			})
 			if err != nil {
 				return err
@@ -37,6 +35,6 @@ func Network() *cobra.Command {
 			return PrintOutput(clientCtx, outputBytes)
 		},
 	}
-	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

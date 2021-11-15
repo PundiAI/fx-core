@@ -3,7 +3,6 @@ package keeper
 import (
 	"bytes"
 	"fmt"
-	types2 "github.com/tendermint/tendermint/types"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -766,12 +765,7 @@ func (k *Keeper) AddLog(log *ethtypes.Log) {
 
 	ctx := k.Ctx()
 
-	protoHeader := ctx.BlockHeader()
-	blockHeader, err := types2.HeaderFromProto(&protoHeader)
-	if err != nil {
-		panic(err)
-	}
-	log.BlockHash = common.BytesToHash(blockHeader.Hash())
+	log.BlockHash = common.BytesToHash(ctx.HeaderHash())
 	log.TxIndex = uint(k.GetTxIndexTransient())
 	log.TxHash = k.GetTxHashTransient()
 

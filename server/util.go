@@ -20,7 +20,7 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 )
 
-// add server commands
+// AddCommands add server commands
 func AddCommands(rootCmd *cobra.Command, defaultNodeHome string, appCreator types.AppCreator, appExport types.AppExporter, addStartFlags types.ModuleInitFlags) {
 	tendermintCmd := &cobra.Command{
 		Use:   "tendermint",

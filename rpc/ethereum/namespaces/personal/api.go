@@ -126,7 +126,7 @@ func (api *PrivateAccountAPI) NewAccount(password string) (common.Address, error
 	// create the mnemonic and save the account
 	hdPath := api.hdPathIter()
 
-	info, _, err := api.clientCtx.Keyring.NewMnemonic(name, keyring.English, hdPath.String(), hd.EthSecp256k1)
+	info, _, err := api.clientCtx.Keyring.NewMnemonic(name, keyring.English, hdPath.String(), password, hd.EthSecp256k1)
 	if err != nil {
 		return common.Address{}, err
 	}

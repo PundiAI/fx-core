@@ -2,6 +2,8 @@ package keeper_test
 
 import (
 	"fmt"
+	fxcoretypes "github.com/functionx/fx-core/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 	"math"
 	"math/big"
 
@@ -13,7 +15,6 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/functionx/fx-core/tests"
 	"github.com/functionx/fx-core/x/evm/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -33,6 +34,7 @@ func (suite *KeeperTestSuite) TestGetHashFn() {
 			"case 1.1: context hash cached",
 			uint64(suite.ctx.BlockHeight()),
 			func() {
+				suite.ctx = suite.ctx.WithHeaderHash(tmhash.Sum([]byte("header")))
 				suite.app.EvmKeeper.WithContext(suite.ctx)
 			},
 			common.BytesToHash(tmhash.Sum([]byte("header"))),
@@ -429,7 +431,7 @@ func (suite *KeeperTestSuite) TestRefundGas() {
 			refund := suite.app.EvmKeeper.GasToRefund(gasUsed, tc.refundQuotient)
 			suite.Require().Equal(tc.expGasRefund, refund)
 
-			err = suite.app.EvmKeeper.RefundGas(m, refund, "aphoton")
+			err = suite.app.EvmKeeper.RefundGas(m, refund, "FX")
 			if tc.noError {
 				suite.Require().NoError(err)
 			} else {
@@ -509,5 +511,5 @@ func (suite *KeeperTestSuite) TestEVMConfig() {
 	suite.Require().Equal(types.DefaultParams(), cfg.Params)
 	suite.Require().Equal((*big.Int)(nil), cfg.BaseFee)
 	suite.Require().Equal(suite.address, cfg.CoinBase)
-	suite.Require().Equal(types.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(9000)), cfg.ChainConfig)
+	suite.Require().Equal(types.DefaultParams().ChainConfig.EthereumConfig(fxcoretypes.EIP155ChainID()), cfg.ChainConfig)
 }

@@ -29,4 +29,4 @@ if [[ "$1" == "init" ]]; then
   fxcored collect-gentxs
 fi
 
-fxcored start --minimum-gas-prices '4000000000000FX' --log_filter='ABCIQuery'
+fxcored start --log_filter='ABCIQuery' --keyring-backend=file

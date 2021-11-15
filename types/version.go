@@ -1,4 +1,6 @@
-package app
+package types
+
+import "math/big"
 
 // network constant
 const (
@@ -97,4 +99,13 @@ func CrossChainSupportPolygonBlock() int64 {
 		return testnetCrossChainSupportPolygonBlock
 	}
 	return mainnetCrossChainSupportPolygonBlock
+}
+
+func EIP155ChainID() *big.Int {
+	if networkDevnet == network {
+		return big.NewInt(221)
+	} else if networkTestnet == network {
+		return big.NewInt(555)
+	}
+	return big.NewInt(1)
 }

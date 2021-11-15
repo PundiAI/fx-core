@@ -3,6 +3,7 @@ package fxcore
 import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	serverty "github.com/functionx/fx-core/server"
+	ethermint "github.com/functionx/fx-core/types"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"io"
@@ -310,7 +311,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	// add keepers
 	myApp.AccountKeeper = authkeeper.NewAccountKeeper(
-		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
+		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), ethermint.ProtoAccount, maccPerms,
 	)
 	myApp.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], myApp.AccountKeeper, myApp.GetSubspace(banktypes.ModuleName), myApp.ModuleAccountAddrs(),
@@ -407,7 +408,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.EvmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
 		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeper,
-		tracer, true, // debug EVM based on Baseapp options
+		tracer, bApp.Trace(), // debug EVM based on Baseapp options
 	)
 
 	// register the proposal types
@@ -552,16 +553,16 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.SetInitChainer(myApp.InitChainer)
 	myApp.SetBeginBlocker(myApp.BeginBlocker)
 	myApp.SetAnteHandler(
-		app.NewAnteHandler(
-			myApp.AccountKeeper, myApp.BankKeeper, ante.DefaultSigVerificationGasConsumer,
-			encodingConfig.TxConfig.SignModeHandler(),
+		app.NewAnteHandlerWithEVM(
+			myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
+			ante.DefaultSigVerificationGasConsumer, encodingConfig.TxConfig.SignModeHandler(),
 		),
 	)
 	myApp.SetEndBlocker(myApp.EndBlocker)
 
-	rootmulti.AddIgnoreCommitKey(app.CrossChainSupportBscBlock(), bsctypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(app.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(app.CrossChainSupportTronBlock(), trontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(ethermint.CrossChainSupportBscBlock(), bsctypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(ethermint.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(ethermint.CrossChainSupportTronBlock(), trontypes.StoreKey)
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
