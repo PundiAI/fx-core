@@ -187,7 +187,7 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 		externalPrivKey:       externalPrivateKey,
 		externalAddress:       externalAddress,
 		mutex:                 &sync.Mutex{},
-		gasFee:                sdk.NewCoin("FX", sdk.NewInt(6000000000000)),
+		gasFee:                sdk.NewCoin("FX", sdk.NewInt(4000000000000)),
 		chainName:             chainName,
 	}
 	for _, opt := range opts {
@@ -286,7 +286,7 @@ func buildTxBodyAndTxAuthInfo(c *Client, msgList *[]sdk.Msg, accountNumber, acco
 
 	// adjustment gasLimit 1.3 .
 	var gasLimit uint64 = simulateResponse.GasInfo.GasUsed * 13 / 10
-	gasPrice, _ := sdk.NewIntFromString("6000000000000")
+	gasPrice, _ := sdk.NewIntFromString("4000000000000")
 	gasFeeAmount := gasPrice.Mul(sdk.NewInt(int64(gasLimit)))
 	authInfo.Fee = &tx.Fee{
 		Amount:   sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, gasFeeAmount)),

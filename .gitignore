@@ -5,3 +5,5 @@ build
 .DS_Store
 go.sum
 github.com
+docker-compose.yml
+testnet
