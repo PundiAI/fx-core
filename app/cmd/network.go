@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/functionx/fx-core/app/fxcore"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -23,6 +24,7 @@ func Network() *cobra.Command {
 				return err
 			}
 			outputBytes, err := json.Marshal(map[string]interface{}{
+				"ChainId":                                fxcore.ChainID,
 				"Network":                                app.Network(),
 				"GravityPruneValsetsAndAttestationBlock": fmt.Sprintf("%d", app.GravityPruneValsetsAndAttestationBlock()),
 				"GravityValsetSlashBlock":                fmt.Sprintf("%d", app.GravityValsetSlashBlock()),
