@@ -119,7 +119,7 @@ func AppConfig(denom string) (string, interface{}) {
 		TLS:     *DefaultTLSConfig(),
 	}
 
-	customAppTemplate := DefaultConfigTemplate + DefaultConfigTemplate
+	customAppTemplate := config.DefaultConfigTemplate + DefaultConfigTemplate
 
 	return customAppTemplate, customAppConfig
 }

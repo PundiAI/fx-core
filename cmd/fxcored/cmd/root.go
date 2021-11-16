@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	fxserver "github.com/functionx/fx-core/server"
+	"github.com/functionx/fx-core/server/config"
 	"io"
 	"os"
 	"path/filepath"
@@ -61,7 +62,13 @@ func NewRootCmd() *cobra.Command {
 			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
-			return app.InterceptConfigsPreRunHandler(cmd)
+
+			if err := app.AddCmdLogWrapFilterLogType(cmd); err != nil {
+				return err
+			}
+
+			customAppTemplate, customAppConfig := config.AppConfig(fxcore.MintDenom)
+			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig)
 		},
 	}
 
