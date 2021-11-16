@@ -109,8 +109,8 @@ import (
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 )
 
+var ChainID = "fxcore"
 const Name = "fxcore"
-const ChainID = "fxcore"
 const MintDenom = "FX"
 const AddressPrefix = "fx"
 

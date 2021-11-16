@@ -9,12 +9,12 @@ const (
 
 // testnet constant
 const (
-	testnetCrossChainSupportBscBlock     = 1079000
-	testnetCrossChainSupportTronBlock    = 1788888
-	testnetCrossChainSupportPolygonBlock = 1788888
+	testnetCrossChainSupportBscBlock     = 1
+	testnetCrossChainSupportTronBlock    = 1
+	testnetCrossChainSupportPolygonBlock = 1
 
-	testnetGravityPruneValsetAndAttestationBlock = 373100
-	testnetGravityValsetSlashBlock               = 1380300
+	testnetGravityPruneValsetAndAttestationBlock = 1
+	testnetGravityValsetSlashBlock               = 1
 )
 
 // mainnet constant

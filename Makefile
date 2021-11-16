@@ -71,14 +71,17 @@ endif
 
 ifeq (devnet,$(findstring devnet,$(FX_BUILD_OPTIONS)))
   ldflags += -X github.com/functionx/fx-core/app.network=devnet
+  ldflags += -X github.com/functionx/fx-core/app/fxcore.ChainID=boonlay
 endif
 
 ifeq (testnet,$(findstring testnet,$(FX_BUILD_OPTIONS)))
   ldflags += -X github.com/functionx/fx-core/app.network=testnet
+  ldflags += -X github.com/functionx/fx-core/app/fxcore.ChainID=dhobyghaut
 endif
 
 ifeq (mainnet,$(findstring mainnet,$(FX_BUILD_OPTIONS)))
   ldflags += -X github.com/functionx/fx-core/app.network=mainnet
+  ldflags += -X github.com/functionx/fx-core/app/fxcore.ChainID=fxcore
 endif
 
 ifeq (,$(findstring nostrip,$(FX_BUILD_OPTIONS)))
