@@ -34,7 +34,7 @@ func NewPrivKeyFromMnemonic(mnemonic string) *secp256k1.PrivKey {
 	privKey := algo.Generate()(derivedPriv)
 	accPriKey, ok := privKey.(*secp256k1.PrivKey)
 	if !ok {
-		panic("not secp256k1.PrivKey")
+		panic("invalide secp256k1.PrivKey")
 	}
 	return accPriKey
 }

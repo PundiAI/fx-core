@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"math/big"
 	"net"
 	"os"
 	"path/filepath"
@@ -29,7 +28,6 @@ import (
 	"github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/fxcore"
 )
 
@@ -52,7 +50,7 @@ necessary files (private validator, genesis, config, etc.).
 Note, strict routability for addresses is turned off in the config file.
 
 Example:
-	app testnet -v 4 -o ./testnet --starting-ip 172.20.0.2
+	fxcored testnet -v 4 -o ./testnet --starting-ip 172.20.0.2
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -66,7 +64,6 @@ Example:
 			startingIPAddress := serverCtx.Viper.GetString(flagStartingIP)
 
 			_ = os.RemoveAll(outputDir)
-			_, _ = os.OpenFile(filepath.Join(outputDir, "go.mod"), os.O_CREATE, os.ModePerm)
 			err = InitTestnet(
 				clientCtx,
 				serverCtx,
@@ -99,7 +96,7 @@ Example:
 	cmd.Flags().String(flagNodeDaemonHome, fxcore.ChainID, "Home directory of the node's daemon configuration")
 	cmd.Flags().String(flagStartingIP, "172.20.0.2", "Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")
 	cmd.Flags().String(flags.FlagChainID, fxcore.ChainID, "genesis file chain-id, if left blank will be randomly created")
-	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("6000000000000%s", fxcore.MintDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum")
+	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("4000000000000%s", fxcore.MintDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum")
 	cmd.Flags().String(flags.FlagKeyringBackend, keyring.BackendTest, "Select keyring's backend (os|file|test)")
 	cmd.Flags().String(flags.FlagKeyAlgorithm, string(hd.Secp256k1Type), "Key signing algorithm to generate keys for")
 	cmd.Flags().String(FlagDenom, fxcore.MintDenom, "set the default coin denomination")
@@ -171,31 +168,10 @@ func InitTestnet(
 		if err != nil {
 			return err
 		}
-
-		var mnemonic string
-		var valAddr sdk.AccAddress
-		if i == 0 {
-
-			mnemonic = "dune antenna hood magic kit blouse film video another pioneer dilemma hobby message rug sail gas culture upgrade twin flag joke people general aunt"
-			info, err := kb.NewAccount(nodeDirName, mnemonic, "", sdk.FullFundraiserPath, algo)
-			if err != nil {
-				return err
-			}
-			valAddr = info.GetAddress()
-			mnemonic2 := "define antique alien small abstract gravity soul hollow raw frost inform prize immune tired miss tackle plug nature lawn someone farm tilt casino present"
-			info2, err := kb.NewAccount(nodeDirName+"a", mnemonic2, "", sdk.FullFundraiserPath, algo)
-			if err != nil {
-				return err
-			}
-			genBalances = append(genBalances, banktypes.Balance{Address: info2.GetAddress().String(), Coins: sdk.Coins{sdk.NewCoin(denom, sdk.TokensFromConsensusPower(3000))}})
-			genAccounts = append(genAccounts, authtypes.NewBaseAccount(info2.GetAddress(), info2.GetPubKey(), 0, 0))
-		} else {
-			valAddr, mnemonic, err = server.GenerateSaveCoinKey(kb, nodeDirName, true, algo)
-			if err != nil {
-				return err
-			}
+		valAddr, mnemonic, err := server.GenerateSaveCoinKey(kb, nodeDirName, true, algo)
+		if err != nil {
+			return err
 		}
-
 		valKeyData, err := json.Marshal(map[string]string{"mnemonic": mnemonic})
 		if err != nil {
 			return err
@@ -204,14 +180,19 @@ func InitTestnet(
 			return err
 		}
 
-		coins := sdk.Coins{sdk.NewCoin(denom, sdk.TokensFromConsensusPower(5000))}
+		amount := sdk.TokensFromConsensusPower(int64(40 / valNum))
+		if i == 0 && 40%valNum != 0 {
+			amount = sdk.TokensFromConsensusPower(int64(40/valNum + 40%valNum))
+		}
+
+		coins := sdk.Coins{sdk.NewCoin(denom, amount)}
 		genBalances = append(genBalances, banktypes.Balance{Address: valAddr.String(), Coins: coins.Sort()})
 		genAccounts = append(genAccounts, authtypes.NewBaseAccount(valAddr, nil, 0, 0))
 
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
 			sdk.ValAddress(valAddr),
 			valPubKeys[i],
-			sdk.NewCoin(denom, sdk.TokensFromConsensusPower(100)),
+			sdk.NewCoin(denom, sdk.TokensFromConsensusPower(1)),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
 			stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
 			sdk.OneInt(),
@@ -250,10 +231,6 @@ func InitTestnet(
 
 		srvconfig.WriteConfigFile(filepath.Join(nodeDir, "config/app.toml"), appToml)
 	}
-
-	privKey := app.NewPrivKeyFromMnemonic("language hazard giraffe bonus lock over bleak absorb senior depth guard entire end creek monster type whip purchase explain merge acid depth air reveal")
-	genBalances = append(genBalances, banktypes.Balance{Address: sdk.AccAddress(privKey.PubKey().Address()).String(), Coins: sdk.Coins{sdk.NewCoin(denom, sdk.NewIntFromBigInt(big.NewInt(1).Exp(big.NewInt(10), big.NewInt(28), nil)))}})
-	genAccounts = append(genAccounts, authtypes.NewBaseAccount(sdk.AccAddress(privKey.PubKey().Address()), nil, 0, 0))
 
 	appGenState := fxcore.NewDefAppGenesisByDenom(denom, clientCtx.JSONMarshaler)
 	// set the accounts in the genesis state
