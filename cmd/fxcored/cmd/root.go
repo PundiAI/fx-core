@@ -69,6 +69,7 @@ func NewRootCmd() *cobra.Command {
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxcore.ChainID,
 		flags.FlagKeyringBackend: keyring.BackendTest,
+		flags.FlagGasPrices:      "4000000000000" + fxcore.MintDenom,
 	})
 	for _, command := range rootCmd.Commands() {
 		if command.Use == "" {
@@ -82,13 +83,15 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	authclient.Codec = encodingConfig.Marshaler
 
 	debugCmd := debug.Cmd()
-	debugCmd.AddCommand(appCmd.HexToString())
-	debugCmd.AddCommand(appCmd.ReEncodeAddrCommand())
-	debugCmd.AddCommand(appCmd.HexToFxAddrCommand())
-	debugCmd.AddCommand(appCmd.ModuleAddressCmd())
-	debugCmd.AddCommand(appCmd.CovertTxDataToHash())
-	debugCmd.AddCommand(appCmd.ParseTx())
-	debugCmd.AddCommand(appCmd.HexExternalAddress())
+	debugCmd.AddCommand(
+		appCmd.HexToString(),
+		appCmd.ReEncodeAddrCommand(),
+		appCmd.HexToFxAddrCommand(),
+		appCmd.ModuleAddressCmd(),
+		appCmd.CovertTxDataToHash(),
+		appCmd.ParseTx(),
+		appCmd.HexExternalAddress(),
+	)
 
 	rootCmd.AddCommand(
 		InitCmd(),
@@ -101,19 +104,19 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		TestnetCmd(),
 		debugCmd,
 		// this line is used by starport scaffolding # stargate/root/commands
+		appCmd.Network(),
+		appCmd.ConfigCmd(),
 	)
 
 	appCreator := appCreator{encodingConfig}
-	server.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addModuleInitFlags)
+	server.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
+		keys.Commands(fxcore.DefaultNodeHome),
 		rpc.StatusCommand(),
 		queryCommand(),
 		txCommand(),
-		keys.Commands(fxcore.DefaultNodeHome),
-		appCmd.ConfigCmd(),
-		appCmd.Network(),
 	)
 
 	for _, command := range rootCmd.Commands() {
@@ -125,7 +128,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	}
 }
 
-func addModuleInitFlags(startCmd *cobra.Command) {
+func addStartFlags(startCmd *cobra.Command) {
 }
 
 func queryCommand() *cobra.Command {
