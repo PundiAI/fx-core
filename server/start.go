@@ -459,6 +459,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		httpSrvDone chan struct{}
 	)
 	if config.JSONRPC.Enable {
+		time.Sleep(ctx.Config.Consensus.TimeoutCommit * time.Second)
 		genDoc, err := genDocProvider()
 		if err != nil {
 			return err
