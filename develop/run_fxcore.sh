@@ -3,6 +3,10 @@
 set -e
 
 if [[ "$1" == "init" ]]; then
+  read -p "Are you sure you want to delete all the data and start over? [y/N] " input
+  if [[ "$input" != "y" && "$input" != "Y" ]]; then
+    exit 1
+  fi
   rm -r ~/.fxcore
 
   # Initialize private validator, p2p, genesis, and application configuration files
