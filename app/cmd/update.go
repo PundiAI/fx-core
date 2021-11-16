@@ -52,9 +52,7 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 
 			secret := args[0]
 			pvKeyFile := serverCtx.Config.PrivValidatorKeyFile()
-			if err := os.Remove(pvKeyFile); err != nil {
-				return err
-			}
+			_ = os.Remove(pvKeyFile)
 			if err := tmos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {
 				return err
 			}
@@ -101,6 +99,7 @@ func UpdateNodeKeyCmd() *cobra.Command {
 				secret = args[0]
 			}
 			nodeKeyFile := serverCtx.Config.NodeKeyFile()
+			_ = os.Remove(nodeKeyFile)
 			if err := tmos.EnsureDir(filepath.Dir(nodeKeyFile), 0777); err != nil {
 				return err
 			}
