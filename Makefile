@@ -156,10 +156,10 @@ docker: build-linux
 	@docker build --no-cache -f Dockerfile -t functionx/fx-core:mainnet-1.0 .
 
 docker-devnet: build-linux-devnet
-	@docker build --no-cache -f Dockerfile -t functionx/fx-core:latest .
+	@docker build --no-cache -f Dockerfile -t functionx/fx-core:boonlay .
 
 docker-testnet: build-linux-testnet
-	@docker build --no-cache -f Dockerfile -t functionx/fx-core:testnet-1.0 .
+	@docker build --no-cache -f Dockerfile -t functionx/fx-core:dhobyghaut-1.0 .
 
 run-local: install
 	@./develop/run_fxcore.sh init
