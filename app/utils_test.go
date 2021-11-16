@@ -69,7 +69,7 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 
-	suite.anteHandler = app.NewAnteHandlerV2(
+	suite.anteHandler = app.NewAnteHandlerWithEVM(
 		suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.EvmKeeper,
 		suite.app.FeeMarketKeeper, ante.DefaultSigVerificationGasConsumer,
 		encodingConfig.TxConfig.SignModeHandler(),

@@ -501,6 +501,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibchost.ModuleName,
+		evmtypes.ModuleName,
 	)
 
 	myApp.mm.SetOrderEndBlockers(

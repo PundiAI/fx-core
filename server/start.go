@@ -461,7 +461,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	if config.JSONRPC.Enable {
 		latestHeight, err := clientCtx.Client.Block(context.Background(), nil)
 		if err != nil || latestHeight == nil || latestHeight.Block == nil || latestHeight.Block.Height < 1 {
-			time.Sleep(ctx.Config.Consensus.TimeoutCommit * time.Second)
+			time.Sleep(ctx.Config.Consensus.TimeoutCommit)
 		}
 		genDoc, err := genDocProvider()
 		if err != nil {
