@@ -42,3 +42,7 @@ scrape_configs:
         labels:
           name: val-01
           chain_id: fxcore
+#      - targets: [ "192.168.98.100:26660"]
+#        labels:
+#          name: val-02
+#          chain_id: fxcore
