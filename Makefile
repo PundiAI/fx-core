@@ -123,13 +123,7 @@ build-devnet: go.mod
 
 build-testnet: go.mod
 	@echo "--> build testnet <--"
-	@echo "replace cosmos-sdk to github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20211015120647-6c0e91f2e952"
-	@go mod edit --replace=github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20211015120647-6c0e91f2e952
-	@go mod tidy -v
 	@FX_BUILD_OPTIONS=testnet make go-build
-	@echo "recover cosmos-sdk to github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20210927070625-89306d0caf62"
-	@go mod edit --replace=github.com/cosmos/cosmos-sdk=github.com/functionx/cosmos-sdk@v0.42.5-0.20210927070625-89306d0caf62
-	@go mod tidy -v
 
 build-linux:
 	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build
