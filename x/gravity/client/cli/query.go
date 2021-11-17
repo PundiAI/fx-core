@@ -210,18 +210,14 @@ func CmdGetValsetRequest() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "valset-request [nonce]",
 		Short:   "Get requested valset with a particular nonce",
-		Example: fmt.Sprintf("1. fxcored q gravity valset-request 1\n2. fxcored q gravity valset-request --latest"),
+		Example: fmt.Sprintf("fxcored q gravity valset-request 1"),
 		Args:    cobra.RangeArgs(0, 1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
 			var nonce uint64
-			isLatest, err := cmd.Flags().GetBool(flagValsetLatest)
-			if err != nil {
-				return err
-			}
-			if isLatest {
+			if len(args) <= 0 {
 				queryAbciResp, err := clientCtx.QueryABCI(abcitype.RequestQuery{
 					Path: fmt.Sprintf("store/%s/key", types.ModuleName),
 					Data: types.LatestValsetNonce,
@@ -230,9 +226,6 @@ func CmdGetValsetRequest() *cobra.Command {
 					return err
 				}
 				nonce = types.UInt64FromBytes(queryAbciResp.Value)
-				if err = clientCtx.PrintString(fmt.Sprintf("latest valset nonce:[%d]\n", nonce)); err != nil {
-					return err
-				}
 			} else {
 				if len(args) < 1 {
 					return fmt.Errorf("require particular nonce")
@@ -252,7 +245,6 @@ func CmdGetValsetRequest() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
-	cmd.Flags().Bool(flagValsetLatest, false, "true: query latest valset, false: query particular nonce")
 	return cmd
 }
 
