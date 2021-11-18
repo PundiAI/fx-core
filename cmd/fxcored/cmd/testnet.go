@@ -50,7 +50,7 @@ necessary files (private validator, genesis, config, etc.).
 Note, strict routability for addresses is turned off in the config file.
 
 Example:
-	fxcored testnet -v 4 -o ./testnet --starting-ip 172.20.0.2
+	fxcored testnet -validators 4 -output-dir ./testnet --starting-ip 172.20.0.2
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -88,8 +88,8 @@ Example:
 		},
 	}
 
-	cmd.Flags().IntP(flagValidatorNum, "v", 4, "Number of validators to initialize the testnet with")
-	cmd.Flags().StringP(flagOutputDir, "o", "./testnet", "Directory to store initialization data for the testnet")
+	cmd.Flags().Int(flagValidatorNum, 4, "Number of validators to initialize the testnet with")
+	cmd.Flags().String(flagOutputDir, "./testnet", "Directory to store initialization data for the testnet")
 	cmd.Flags().String(flagNodeNamePrefix, "node", "Prefix the directory name for each node with (node results in node0, node1, ...)")
 	cmd.Flags().String(flagNodeDaemonHome, fxcore.Name, "Home directory of the node's daemon configuration")
 	cmd.Flags().String(flagStartingIP, "172.20.0.2", "Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")

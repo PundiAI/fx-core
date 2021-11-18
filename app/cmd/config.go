@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/cosmos/cosmos-sdk/client"
+	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -69,5 +70,8 @@ func ConfigCmd() *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
+	cmd.SetErr(cmd.ErrOrStderr())
+	cmd.SetOut(cmd.OutOrStdout())
 	return cmd
 }

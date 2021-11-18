@@ -113,9 +113,11 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	server.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
+	rpcStatusCmd := rpc.StatusCommand()
+	rpcStatusCmd.SetOut(os.Stdout)
 	rootCmd.AddCommand(
 		keys.Commands(fxcore.DefaultNodeHome),
-		rpc.StatusCommand(),
+		rpcStatusCmd,
 		queryCommand(),
 		txCommand(),
 	)
