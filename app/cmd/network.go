@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/functionx/fx-core/app/fxcore"
+	tmcli "github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
 	"github.com/functionx/fx-core/app"
@@ -35,6 +35,6 @@ func Network() *cobra.Command {
 			return PrintOutput(clientCtx, outputBytes)
 		},
 	}
-	flags.AddQueryFlagsToCmd(cmd)
+	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
 	return cmd
 }
