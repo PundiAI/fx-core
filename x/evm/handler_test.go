@@ -74,7 +74,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	consAddress := sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = fxcore.Setup(checkTx, nil)
+	suite.app = fxcore.Setup(checkTx)
 
 	coins := sdk.NewCoins(sdk.NewCoin(types.DefaultEVMDenom, sdk.NewInt(100000000000000)))
 	genesisState := fxcore.DefaultTestGenesis(suite.app.AppCodec())

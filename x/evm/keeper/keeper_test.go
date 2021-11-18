@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = app.Setup(checkTx, nil)
+	suite.app = app.Setup(checkTx)
 
 	if suite.mintFeeCollector {
 		// mint some coin to fee collector
