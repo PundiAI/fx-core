@@ -36,7 +36,7 @@ const (
 	defaultFxMnemonic = "dune antenna hood magic kit blouse film video another pioneer dilemma hobby message rug sail gas culture upgrade twin flag joke people general aunt"
 	hdPath            = "m/44'/118'/0'/0/0"
 
-	pundixTokenContract        = "0x30dA8589BFa1E509A319489E014d384b87815D89"
+	//pundixTokenContract        = "0x30dA8589BFa1E509A319489E014d384b87815D89"
 	purseTokenContract         = "0x3f6795b8ABE0775a88973469909adE1405f7ac09"
 	purseTokenSymbol           = "PRUSE"
 	purseTokenChannelIBC       = "transfer/channel-0"

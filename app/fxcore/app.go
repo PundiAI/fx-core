@@ -110,6 +110,7 @@ import (
 )
 
 var ChainID = "fxcore"
+
 const Name = "fxcore"
 const MintDenom = "FX"
 const AddressPrefix = "fx"

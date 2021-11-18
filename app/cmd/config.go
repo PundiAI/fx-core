@@ -3,9 +3,10 @@ package cmd
 import (
 	"encoding/json"
 	"errors"
+	"path/filepath"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
-	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"

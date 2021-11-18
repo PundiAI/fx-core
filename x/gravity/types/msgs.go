@@ -187,7 +187,7 @@ func (m MsgRequestBatch) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrEmpty, fmt.Sprintf("denom is empty:%s", m.Denom))
 	}
 	if !m.MinimumFee.IsPositive() {
-		return sdkerrors.Wrap(ErrEmpty, fmt.Sprintf("minimum fee is lg zero"))
+		return sdkerrors.Wrap(ErrEmpty, "minimum fee is lg zero")
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.FeeReceive); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("err feeReceive address:%s", m.FeeReceive))

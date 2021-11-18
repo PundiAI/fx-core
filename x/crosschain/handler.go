@@ -31,11 +31,11 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 			chainName = msg.GetChainName()
 			msgServer = k.Router().GetRoute(msg.GetChainName()).MsgServer
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("not cross chain msg"))
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "not cross chain msg")
 		}
 		ignoreCommitKeyNameMapByHeight := rootmulti.GetIgnoreCommitKeyNameMapByHeight(ctx.BlockHeight())
 		if _, ok := ignoreCommitKeyNameMapByHeight[chainName]; ok {
-			panic(sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("module not enable")))
+			panic(sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "module not enable"))
 		}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		var res proto.Message
@@ -84,7 +84,7 @@ func NewCrossChainProposalHandler(k keeper.RouterKeeper) govtypes.Handler {
 				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", c.ChainName))
 			}
 			if _, ok := ignoreCommitKeyNameMapByHeight[c.ChainName]; ok {
-				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("module not enable"))
+				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "module not enable")
 			}
 			return k.Router().GetRoute(c.ChainName).MsgServer.HandleInitCrossChainParamsProposal(ctx, c)
 		case *types.UpdateChainOraclesProposal:
@@ -92,7 +92,7 @@ func NewCrossChainProposalHandler(k keeper.RouterKeeper) govtypes.Handler {
 				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", c.ChainName))
 			}
 			if _, ok := ignoreCommitKeyNameMapByHeight[c.ChainName]; ok {
-				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("module not enable"))
+				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "module not enable")
 			}
 			return k.Router().GetRoute(c.ChainName).MsgServer.HandleUpdateChainOraclesProposal(ctx, c)
 		default:

@@ -135,6 +135,7 @@ func TestLastSlashedValsetNonce(t *testing.T) {
 	}
 
 	for _, testCase := range testCaseDatas {
+		t.Log(testCase.name)
 		keeper.SetLastSlashedValsetNonce(ctx, testCase.setValue)
 		require.EqualValues(t, testCase.expectValue, keeper.GetLastSlashedValsetNonce(ctx))
 	}
@@ -163,6 +164,7 @@ func TestLastUnBondingBlockHeight(t *testing.T) {
 	}
 
 	for _, testCase := range testCaseDatas {
+		t.Log(testCase.name)
 		keeper.SetLastUnBondingBlockHeight(ctx, testCase.setValue)
 		require.EqualValues(t, testCase.expectValue, keeper.GetLastUnBondingBlockHeight(ctx))
 	}

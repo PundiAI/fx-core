@@ -379,7 +379,7 @@ func (k Keeper) SetLastSlashedOracleSetNonce(ctx sdk.Context, nonce uint64) {
 func (k Keeper) GetLastSlashedOracleSetNonce(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.LastSlashedOracleSetNonce)
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		return 0
 	}
 	return types.UInt64FromBytes(data)
@@ -395,7 +395,7 @@ func (k Keeper) SetLastProposalBlockHeight(ctx sdk.Context, blockHeight uint64) 
 func (k Keeper) GetLastProposalBlockHeight(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.LastProposalBlockHeight)
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		return 0
 	}
 	return types.UInt64FromBytes(data)
@@ -411,7 +411,7 @@ func (k Keeper) SetLastOracleSlashBlockHeight(ctx sdk.Context, blockHeight uint6
 func (k Keeper) GetLastOracleSlashBlockHeight(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.LastOracleSlashBlockHeight)
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		return 0
 	}
 	return types.UInt64FromBytes(data)

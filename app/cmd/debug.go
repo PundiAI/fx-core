@@ -5,8 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"strings"
+
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -42,10 +43,7 @@ func HexToFxAddrCommand() *cobra.Command {
 		Short: "Hex to fx address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			hexStr := args[0]
-			if strings.HasPrefix(hexStr, "0x") {
-				hexStr = hexStr[2:]
-			}
+			hexStr := strings.TrimPrefix(args[0], "0x")
 			decodeString, err := hex.DecodeString(hexStr)
 			if err != nil {
 				return err
@@ -70,10 +68,7 @@ func HexToString() *cobra.Command {
 		Short: "Hex to string tools",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			hexStr := args[0]
-			if strings.HasPrefix(hexStr, "0x") {
-				hexStr = hexStr[2:]
-			}
+			hexStr := strings.TrimPrefix(args[0], "0x")
 			decodeString, err := hex.DecodeString(hexStr)
 			if err != nil {
 				return err
@@ -104,7 +99,7 @@ func ParseTx() *cobra.Command {
 		Example: "fxcored debug parse-tx CucHC===...",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 			txBytes, err := base64.StdEncoding.DecodeString(args[0])
 			if err != nil {
 				return err

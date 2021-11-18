@@ -56,41 +56,39 @@ func signPendingValsetRequest(c *Client) {
 	defer func() {
 		c.t.Logf("sign pending valset request defer ....\n")
 		if err := recover(); err != nil {
-
+			c.t.Fatal(err)
 		}
 	}()
 	gravityId := queryGravityId(c)
 	requestParams := &gravitytypes.QueryLastPendingValsetRequestByAddrRequest{Address: c.FxAddress().String()}
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			queryResponse, err := c.gravityQueryClient.LastPendingValsetRequestByAddr(c.ctx, requestParams)
+	for range ticker.C {
+		queryResponse, err := c.gravityQueryClient.LastPendingValsetRequestByAddr(c.ctx, requestParams)
+		if err != nil {
+			c.t.Logf("query last pending valset request is err!params:%+v, errors:%v\n", requestParams, err)
+			continue
+		}
+		valsets := queryResponse.Valsets
+		if len(valsets) <= 0 {
+			continue
+		}
+		for _, valset := range valsets {
+			checkpoint := valset.GetCheckpoint(gravityId)
+			c.t.Logf("need confirm valset: nonce:%v EthAddress:%v\n", valset.Nonce, c.ethAddress.Hex())
+			signature, err := gravitytypes.NewEthereumSignature(checkpoint, c.ethPrivKey)
 			if err != nil {
-				c.t.Logf("query last pending valset request is err!params:%+v, errors:%v\n", requestParams, err)
+				c.t.Log(err)
 				continue
 			}
-			valsets := queryResponse.Valsets
-			if len(valsets) <= 0 {
-				continue
-			}
-			for _, valset := range valsets {
-				checkpoint := valset.GetCheckpoint(gravityId)
-				c.t.Logf("need confirm valset: nonce:%v EthAddress:%v\n", valset.Nonce, c.ethAddress.Hex())
-				signature, err := gravitytypes.NewEthereumSignature(checkpoint, c.ethPrivKey)
-				if err != nil {
-					c.t.Fatal(signature)
-				}
-				c.BroadcastTx(&[]sdk.Msg{
-					&gravitytypes.MsgValsetConfirm{
-						Nonce:        valset.Nonce,
-						Orchestrator: c.FxAddress().String(),
-						EthAddress:   c.ethAddress.Hex(),
-						Signature:    hex.EncodeToString(signature),
-					},
-				})
-			}
+			c.BroadcastTx(&[]sdk.Msg{
+				&gravitytypes.MsgValsetConfirm{
+					Nonce:        valset.Nonce,
+					Orchestrator: c.FxAddress().String(),
+					EthAddress:   c.ethAddress.Hex(),
+					Signature:    hex.EncodeToString(signature),
+				},
+			})
 		}
 	}
 }
