@@ -30,7 +30,7 @@ datasources:
   # <string> basic auth username, if used
   basicAuthUser: fx
   # <string> basic auth password, if used
-  basicAuthPassword: $2y$10$pxrTMPnBJj.OzWTaT7lDOOCd9PNPKls0mTtKLAAKETnmEpQcWdWoG
+  basicAuthPassword: fxcore
   # <bool> enable/disable with credentials headers
   withCredentials:
   # <bool> mark as default datasource. Max one per org
