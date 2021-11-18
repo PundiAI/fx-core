@@ -5,11 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +20,7 @@ func ReEncodeAddrCommand() *cobra.Command {
 		Short:   "Address bech32 decode",
 		Example: "fxcored debug re-encode-addr fx1hajqu45kq3d0ewt7wtevhzlxgjfweja5gn7ppl px",
 		Args:    cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			_, bytes, err := bech32.DecodeAndConvert(args[0])
 			if err != nil {
 				return err
@@ -29,7 +29,7 @@ func ReEncodeAddrCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Println(address)
+			cmd.Println(address)
 			return nil
 		},
 	}
@@ -41,7 +41,7 @@ func HexToFxAddrCommand() *cobra.Command {
 		Use:   "hex-to-addr [hex] [prefix]",
 		Short: "Hex to fx address",
 		Args:  cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			hexStr := args[0]
 			if strings.HasPrefix(hexStr, "0x") {
 				hexStr = hexStr[2:]
@@ -57,7 +57,7 @@ func HexToFxAddrCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Println(address)
+			cmd.Println(address)
 			return nil
 		},
 	}
@@ -78,7 +78,7 @@ func HexToString() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Println(string(decodeString))
+			cmd.Println(string(decodeString))
 			return nil
 		},
 	}
@@ -91,7 +91,7 @@ func ModuleAddressCmd() *cobra.Command {
 		Short: "Get module address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println(types.NewModuleAddress(args[0]).String())
+			cmd.Println(types.NewModuleAddress(args[0]).String())
 			return nil
 		},
 	}
@@ -134,7 +134,7 @@ func CovertTxDataToHash() *cobra.Command {
 				return err
 			}
 			hashBytes := sha256.Sum256(txBytes)
-			fmt.Println(fmt.Sprintf("%X\n", hashBytes))
+			cmd.Println(fmt.Sprintf("%X\n", hashBytes))
 			return nil
 		},
 	}

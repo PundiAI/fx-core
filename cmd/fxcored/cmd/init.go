@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"os"
 	"path/filepath"
 
@@ -122,12 +123,17 @@ func InitCmd() *cobra.Command {
 			toPrint := appCmd.NewPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
-			return toPrint.Display()
+
+			out, err := json.MarshalIndent(toPrint, "", " ")
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintBytes(sdk.MustSortJSON(out))
 		},
 	}
 
 	cmd.Flags().String(cli.HomeFlag, fxcore.DefaultNodeHome, "node's home directory")
-	cmd.Flags().BoolP(FlagOverwrite, "o", false, "overwrite the genesis.json file")
+	cmd.Flags().Bool(FlagOverwrite, false, "overwrite the genesis.json file")
 	cmd.Flags().Bool(FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().String(FlagDenom, fxcore.MintDenom, "set the default coin denomination")

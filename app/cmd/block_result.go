@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -132,7 +131,6 @@ func PrintOutput(ctx client.Context, out []byte) error {
 	if ctx.OutputFormat == "text" {
 		// handle text format by decoding and re-encoding JSON as YAML
 		var j interface{}
-
 		err := json.Unmarshal(out, &j)
 		if err != nil {
 			return err
@@ -142,25 +140,8 @@ func PrintOutput(ctx client.Context, out []byte) error {
 		if err != nil {
 			return err
 		}
+		return ctx.PrintBytes(out)
+	} else {
+		return ctx.PrintBytes(out)
 	}
-
-	writer := ctx.Output
-	if writer == nil {
-		writer = os.Stdout
-	}
-
-	_, err := writer.Write(out)
-	if err != nil {
-		return err
-	}
-
-	if ctx.OutputFormat != "text" {
-		// append new-line for formats besides YAML
-		_, err = writer.Write([]byte("\n"))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

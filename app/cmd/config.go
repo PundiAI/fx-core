@@ -3,7 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -23,13 +23,13 @@ func ConfigCmd() *cobra.Command {
 			if args[0] != "app.toml" && args[0] != "config.toml" {
 				return errors.New("invalid config file(support: app.toml,config.toml)")
 			}
+			clientCtx := client.GetClientContextFromCmd(cmd)
 			if len(args) == 2 {
 				data, err := json.MarshalIndent(serverCtx.Viper.Get(args[1]), "", "\t")
 				if err != nil {
 					return err
 				}
-				fmt.Println(string(data))
-				return nil
+				return PrintOutput(clientCtx, data)
 			}
 			if len(args) == 3 {
 				serverCtx.Viper.Set(args[1], args[2])
@@ -47,8 +47,7 @@ func ConfigCmd() *cobra.Command {
 					if err != nil {
 						return err
 					}
-					fmt.Println(string(data))
-					return nil
+					return PrintOutput(clientCtx, data)
 				}
 				configPath = filepath.Join(configPath, "app.toml")
 				config.WriteConfigFile(configPath, &appConfig)
@@ -62,14 +61,11 @@ func ConfigCmd() *cobra.Command {
 					if err != nil {
 						return err
 					}
-					fmt.Println(string(data))
-					return nil
+					return PrintOutput(clientCtx, data)
 				}
 				configPath := filepath.Join(configPath, "config.toml")
 				tmcfg.WriteConfigFile(configPath, &tmConfig)
 			}
-
-			fmt.Printf("update configuration file: %s\n", configPath)
 			return nil
 		},
 	}

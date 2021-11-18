@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"encoding/hex"
-	"fmt"
+	"github.com/tendermint/tendermint/libs/json"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -27,8 +27,14 @@ func QueryStoreCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("block height: %d, data: %s\n", height, hex.EncodeToString(data))
-			return nil
+			bts, err := json.Marshal(map[string]interface{}{
+				"BlockHeight": height,
+				"Data":        hex.EncodeToString(data),
+			})
+			if err != nil {
+				return err
+			}
+			return PrintOutput(clientCtx, bts)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
