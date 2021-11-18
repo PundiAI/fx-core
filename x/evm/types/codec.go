@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	proto "github.com/gogo/protobuf/proto"
 )
 
@@ -34,7 +35,13 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&LegacyTx{},
 	)
 
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
+		&InitEvmParamsProposal{},
+	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+
+	//cdc.RegisterConcrete(&InitCrossChainParamsProposal{}, fmt.Sprintf("%s/%s", ModuleName, "InitCrossChainParamsProposal"), nil)
 }
 
 // PackClientState constructs a new Any packed with the given tx data value. It returns

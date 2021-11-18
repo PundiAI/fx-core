@@ -88,3 +88,7 @@ func (k Keeper) SetBaseFee(ctx sdk.Context, baseFee *big.Int) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.KeyPrefixBaseFee, baseFee.Bytes())
 }
+
+func (k Keeper) HasInit(ctx sdk.Context) bool {
+	return k.paramSpace.Has(ctx, types.ParamStoreKeyNoBaseFee)
+}

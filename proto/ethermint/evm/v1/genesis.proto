@@ -3,6 +3,8 @@ package ethermint.evm.v1;
 
 import "gogoproto/gogo.proto";
 import "ethermint/evm/v1/evm.proto";
+import "ethermint/feemarket/v1/feemarket.proto";
+
 
 option go_package = "github.com/functionx/fx-core/x/evm/types";
 
@@ -25,4 +27,22 @@ message GenesisAccount {
   // storage defines the set of state key values for the account.
   repeated State storage = 3
       [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "Storage" ];
+}
+
+
+message InitEvmParamsProposal {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  // the title of the update proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+
+  // evm module params
+  ethermint.evm.v1.Params evmParams = 3;
+
+  // feeMarket module params.
+  ethermint.feemarket.v1.Params feemarketParams = 4;
 }

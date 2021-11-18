@@ -24,6 +24,10 @@ service Query {
   rpc BlockGas(QueryBlockGasRequest) returns (QueryBlockGasResponse) {
     option (google.api.http).get = "/feemarket/evm/v1/block_gas";
   }
+
+  rpc ModuleEnable(QueryModuleEnableRequest) returns (QueryModuleEnableResponse) {
+    option (google.api.http).get = "/feemarket/evm/v1/module_enable";
+  }
 }
 
 // QueryParamsRequest defines the request type for querying x/evm parameters.
@@ -51,3 +55,9 @@ message QueryBlockGasRequest {}
 
 // QueryBlockGasResponse returns block gas used for a given height.
 message QueryBlockGasResponse { int64 gas = 1; }
+
+// QueryModuleEnableRequest defines the request type for querying the module is enable.
+message QueryModuleEnableRequest {}
+
+// QueryModuleEnableResponse returns module is enable.
+message QueryModuleEnableResponse { bool enable = 1; }

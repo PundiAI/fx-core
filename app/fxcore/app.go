@@ -418,7 +418,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(myApp.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(myApp.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientUpdateProposalHandler(myApp.IBCKeeper.ClientKeeper)).
-		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper))
+		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)).
+		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(*myApp.EvmKeeper))
 
 	myApp.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], myApp.GetSubspace(govtypes.ModuleName), myApp.AccountKeeper, myApp.BankKeeper,
@@ -537,8 +538,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/myApp/initGenesis
-		evmtypes.ModuleName,
-		feemarkettypes.ModuleName,
 	)
 
 	myApp.mm.RegisterInvariants(&myApp.CrisisKeeper)
@@ -564,6 +563,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	rootmulti.AddIgnoreCommitKey(ethermint.CrossChainSupportBscBlock(), bsctypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(ethermint.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(ethermint.CrossChainSupportTronBlock(), trontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(ethermint.EvmSupportBlock(), evmtypes.StoreKey)
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {

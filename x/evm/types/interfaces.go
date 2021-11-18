@@ -46,6 +46,9 @@ type StakingKeeper interface {
 type FeeMarketKeeper interface {
 	GetBaseFee(ctx sdk.Context) *big.Int
 	GetParams(ctx sdk.Context) feemarkettypes.Params
+	SetParams(ctx sdk.Context, params feemarkettypes.Params)
+	SetBaseFee(ctx sdk.Context, baseFee *big.Int)
+	SetBlockGasUsed(ctx sdk.Context, gas uint64)
 }
 
 // Event Hooks

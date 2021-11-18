@@ -39,6 +39,7 @@ const (
 
 	devnetGravityPruneValsetAndAttestationBlock = 1
 	devnetGravityValsetSlashBlock               = 1
+	devnetSupportEvmBlock                       = 1
 )
 
 var (
@@ -108,4 +109,13 @@ func EIP155ChainID() *big.Int {
 		return big.NewInt(555)
 	}
 	return big.NewInt(1)
+}
+
+func EvmSupportBlock() int64 {
+	if networkDevnet == network {
+		return devnetSupportEvmBlock
+	} else if networkTestnet == network {
+		return devnetSupportEvmBlock
+	}
+	return devnetSupportEvmBlock
 }

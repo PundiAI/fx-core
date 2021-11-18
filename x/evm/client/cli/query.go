@@ -23,6 +23,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(
 		GetStorageCmd(),
 		GetCodeCmd(),
+		GetModuleEnableCmd(),
 	)
 	return cmd
 }
@@ -92,6 +93,32 @@ func GetCodeCmd() *cobra.Command {
 			}
 
 			res, err := queryClient.Code(rpctypes.ContextWithHeight(clientCtx.Height), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetModuleEnableCmd queries evm module is enable
+func GetModuleEnableCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "enable",
+		Short: "Query evm module is enable",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.ModuleEnable(rpctypes.ContextWithHeight(clientCtx.Height), &types.QueryModuleEnableRequest{})
 			if err != nil {
 				return err
 			}

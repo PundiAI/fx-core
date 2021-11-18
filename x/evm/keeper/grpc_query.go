@@ -558,3 +558,9 @@ func (k *Keeper) traceTx(
 
 	return &result, nil
 }
+
+func (k Keeper) ModuleEnable(c context.Context, _ *types.QueryModuleEnableRequest) (*types.QueryModuleEnableResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	k.WithContext(ctx)
+	return &types.QueryModuleEnableResponse{Enable: k.HasInit(ctx)}, nil
+}

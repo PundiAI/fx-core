@@ -71,6 +71,10 @@ service Query {
   rpc TraceBlock(QueryTraceBlockRequest) returns (QueryTraceBlockResponse) {
     option (google.api.http).get = "/ethermint/evm/v1/trace_block";
   }
+
+  rpc ModuleEnable(QueryModuleEnableRequest) returns (QueryModuleEnableResponse) {
+    option (google.api.http).get = "/ethermint/evm/v1/module_enable";
+  }
 }
 
 // QueryAccountRequest is the request type for the Query/Account RPC method.
@@ -270,3 +274,8 @@ message QueryTraceBlockResponse {
   bytes data = 1;
 }
 
+// QueryModuleEnableRequest defines the request type for querying the module is enable.
+message QueryModuleEnableRequest {}
+
+// QueryModuleEnableResponse returns module is enable.
+message QueryModuleEnableResponse { bool enable = 1; }

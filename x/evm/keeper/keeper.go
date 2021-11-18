@@ -385,3 +385,7 @@ func (k *Keeper) PostTxProcessing(txHash common.Hash, logs []*ethtypes.Log) erro
 func (k Keeper) Tracer(msg core.Message, ethCfg *params.ChainConfig) vm.Tracer {
 	return types.NewTracer(k.tracer, msg, ethCfg, k.Ctx().BlockHeight(), k.debug)
 }
+
+func (k Keeper) HasInit(ctx sdk.Context) bool {
+	return k.paramSpace.Has(ctx, types.ParamStoreKeyEVMDenom)
+}

@@ -27,7 +27,8 @@ func Network() *cobra.Command {
 				"GravityValsetSlashBlock":                fmt.Sprintf("%d", types.GravityValsetSlashBlock()),
 				"CrossChainSupportBscBlock":              fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
 				"CrossChainSupportTronBlock":             fmt.Sprintf("%d", types.CrossChainSupportTronBlock()),
-				"CrossChainSupportPolygonBlock":          fmt.Sprintf("%d", types.CrossChainSupportPolygonBlock()),
+				"EIP155ChainID":                          fmt.Sprintf("%d", types.EIP155ChainID()),
+				"EvmSupportBlock":                        fmt.Sprintf("%d", types.EvmSupportBlock()),
 			})
 			if err != nil {
 				return err

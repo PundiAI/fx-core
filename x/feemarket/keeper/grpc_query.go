@@ -44,3 +44,8 @@ func (k Keeper) BlockGas(c context.Context, _ *types.QueryBlockGasRequest) (*typ
 		Gas: int64(gas),
 	}, nil
 }
+
+func (k Keeper) ModuleEnable(c context.Context, request *types.QueryModuleEnableRequest) (*types.QueryModuleEnableResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	return &types.QueryModuleEnableResponse{Enable: k.HasInit(ctx)}, nil
+}

@@ -63,12 +63,12 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			if err := app.AddCmdLogWrapFilterLogType(cmd); err != nil {
+			customAppTemplate, customAppConfig := config.AppConfig(fxcore.MintDenom)
+			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
 				return err
 			}
-
-			customAppTemplate, customAppConfig := config.AppConfig(fxcore.MintDenom)
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig)
+			// add log filter
+			return app.AddCmdLogWrapFilterLogType(cmd)
 		},
 	}
 

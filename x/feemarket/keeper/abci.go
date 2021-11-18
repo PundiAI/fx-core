@@ -13,6 +13,9 @@ import (
 // KVStore. The EVM end block logic doesn't update the validator set, thus it returns
 // an empty slice.
 func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) {
+	if !k.HasInit(ctx) {
+		return
+	}
 	baseFee := k.CalculateBaseFee(ctx)
 
 	// return immediately if base fee is nil

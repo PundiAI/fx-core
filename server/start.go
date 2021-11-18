@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"github.com/spf13/viper"
 	"io"
 	"net/http"
@@ -400,82 +401,48 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 	var (
 		grpcSrv *grpc.Server
-		//grpcWebSrv *http.Server
 	)
 	if config.GRPC.Enable {
 		grpcSrv, err = servergrpc.StartGRPCServer(clientCtx, app, config.GRPC.Address)
 		if err != nil {
 			return err
 		}
-		//if config.GRPCWeb.Enable {
-		//	grpcWebSrv, err = servergrpc.StartGRPCWeb(grpcSrv, config.Config)
-		//	if err != nil {
-		//		ctx.Logger.Error("failed to start grpc-web http server: ", err)
-		//		return err
-		//	}
-		//}
 	}
 
-	//var rosettaSrv crgserver.Server
-	//if config.Rosetta.Enable {
-	//	offlineMode := config.Rosetta.Offline
-	//	if !config.GRPC.Enable { // If GRPC is not enabled rosetta cannot work in online mode, so it works in offline mode.
-	//		offlineMode = true
-	//	}
-	//
-	//	conf := &rosetta.Config{
-	//		Blockchain:    config.Rosetta.Blockchain,
-	//		Network:       config.Rosetta.Network,
-	//		TendermintRPC: ctx.Config.RPC.ListenAddress,
-	//		GRPCEndpoint:  config.GRPC.Address,
-	//		Addr:          config.Rosetta.Address,
-	//		Retries:       config.Rosetta.Retries,
-	//		Offline:       offlineMode,
-	//	}
-	//	conf.WithCodec(clientCtx.InterfaceRegistry, clientCtx.Codec.(*codec.ProtoCodec))
-	//
-	//	rosettaSrv, err = rosetta.ServerFromConfig(conf)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	errCh := make(chan error)
-	//	go func() {
-	//		if err := rosettaSrv.Start(); err != nil {
-	//			errCh <- err
-	//		}
-	//	}()
-	//
-	//	select {
-	//	case err := <-errCh:
-	//		return err
-	//	case <-time.After(ServerStartTime): // assume server started successfully
-	//	}
-	//}
-	//
-	//ethlog.Root().SetHandler(log.NewHandler(logger))
-
 	var (
-		httpSrv     *http.Server
-		httpSrvDone chan struct{}
+		httpSrv                       *http.Server
+		httpSrvDone                   chan struct{}
+		jsonRpcContext, jsonRpcCancel = context.WithCancel(context.Background())
 	)
 	if config.JSONRPC.Enable {
-		latestHeight, err := clientCtx.Client.Block(context.Background(), nil)
-		if err != nil || latestHeight == nil || latestHeight.Block == nil || latestHeight.Block.Height < 1 {
-			time.Sleep(ctx.Config.Consensus.TimeoutCommit)
-		}
-		genDoc, err := genDocProvider()
-		if err != nil {
-			return err
-		}
-
-		clientCtx := clientCtx.WithChainID(genDoc.ChainID)
-
-		tmEndpoint := "/websocket"
-		tmRPCAddr := cfg.RPC.ListenAddress
-		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, config)
-		if err != nil {
-			return err
-		}
+		go func() {
+			evmQueryClient := evmtypes.NewQueryClient(clientCtx)
+			web3Logger := ctx.Logger.With("Web3JsonRpc")
+			for {
+				moduleEnableResp, err := evmQueryClient.ModuleEnable(jsonRpcContext, &evmtypes.QueryModuleEnableRequest{})
+				if err != nil {
+					web3Logger.Info(fmt.Sprintf("Query emv module enable err!err:%v", err))
+					time.Sleep(30 * time.Second)
+					continue
+				}
+				if !moduleEnableResp.Enable {
+					web3Logger.Info("Evm Module not enable sleep 30s")
+					time.Sleep(30 * time.Second)
+					continue
+				}
+				genDoc, err := genDocProvider()
+				if err != nil {
+					panic(fmt.Sprintf("load genesis err!!err:%v", err))
+				}
+				startJsonRpcClientCtx := clientCtx.WithChainID(genDoc.ChainID)
+				tmRPCAddr := cfg.RPC.ListenAddress
+				httpSrv, httpSrvDone, err = StartJSONRPC(ctx, startJsonRpcClientCtx, tmRPCAddr, "/websocket", config)
+				if err != nil {
+					panic(fmt.Sprintf("start json rpc server !!tmRpcAddr:%v, err:%v", tmRPCAddr, err))
+				}
+				break
+			}
+		}()
 	}
 
 	defer func() {
@@ -497,6 +464,8 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 			//	grpcWebSrv.Close()
 			//}
 		}
+		// cancel start jsonRpc task.
+		jsonRpcCancel()
 
 		if httpSrv != nil {
 			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)

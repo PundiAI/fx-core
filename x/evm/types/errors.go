@@ -32,6 +32,7 @@ const (
 	codeErrInvalidGasCap
 	codeErrInvalidBaseFee
 	codeErrGasOverflow
+	codeErrInvalid
 )
 
 var ErrPostTxProcessing = errors.New("failed to execute post processing")
@@ -93,6 +94,7 @@ var (
 
 	// ErrGasOverflow returns an error if gas computation overlow/underflow
 	ErrGasOverflow = sdkerrors.Register(ModuleName, codeErrGasOverflow, "gas computation overflow/underflow")
+	ErrInvalid     = sdkerrors.Register(ModuleName, codeErrInvalid, "invalid")
 )
 
 // NewExecErrorWithReason unpacks the revert return bytes and returns a wrapped error

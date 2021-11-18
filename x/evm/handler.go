@@ -1,8 +1,12 @@
 package evm
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	types2 "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/x/evm/keeper"
 
 	"github.com/functionx/fx-core/x/evm/types"
 )
@@ -21,6 +25,20 @@ func NewHandler(server types.MsgServer) sdk.Handler {
 		default:
 			err := sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, err
+		}
+	}
+}
+
+func NewEvmProposalHandler(k keeper.Keeper) govtypes.Handler {
+	return func(ctx sdk.Context, content govtypes.Content) error {
+		switch c := content.(type) {
+		case *types.InitEvmParamsProposal:
+			if ctx.BlockHeight() < types2.EvmSupportBlock() {
+				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("evm module not enable"))
+			}
+			return k.HandleInitEvmParamsProposal(ctx, c)
+		default:
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized evm proposal content type: %T", c)
 		}
 	}
 }
