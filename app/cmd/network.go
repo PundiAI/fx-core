@@ -19,10 +19,7 @@ func Network() *cobra.Command {
 		Short:   "Show fxcored network and upgrade info",
 		Example: "fxcored network",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
+			clientCtx := client.GetClientContextFromCmd(cmd)
 			outputBytes, err := json.Marshal(map[string]interface{}{
 				"ChainId":                                fxcore.ChainID,
 				"Network":                                app.Network(),

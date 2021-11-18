@@ -61,16 +61,16 @@ func CollectGenTxsCmd(genBalIterator types.GenesisBalancesIterator, defaultNodeH
 			toPrint := NewPrintInfo(config.Moniker, genDoc.ChainID, nodeID, genTxsDir, json.RawMessage(""))
 			initCfg := types.NewInitConfig(genDoc.ChainID, genTxsDir, nodeID, valPubKey)
 
-			appMessage, err := GenAppStateFromConfig(cdc,
-				clientCtx.TxConfig,
-				config, initCfg, *genDoc, genBalIterator)
+			toPrint.AppMessage, err = GenAppStateFromConfig(cdc, clientCtx.TxConfig, config, initCfg, *genDoc, genBalIterator)
 			if err != nil {
 				return errors.Wrap(err, "failed to get genesis app state from config")
 			}
 
-			toPrint.AppMessage = appMessage
-
-			return toPrint.Display()
+			out, err := json.MarshalIndent(toPrint, "", " ")
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintBytes(sdk.MustSortJSON(out))
 		},
 	}
 
@@ -151,9 +151,6 @@ func CollectTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker, g
 		},
 	)
 
-	// addresses and IPs (and port) validator server info
-	//var addressesIPs []string
-
 	for _, fo := range fos {
 		if fo.IsDir() {
 			continue
@@ -175,18 +172,10 @@ func CollectTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker, g
 
 		appGenTxs = append(appGenTxs, genTx)
 
-		// the memo flag is used to store
-		// the ip and node-id, for example this may be:
-		// "528fd3df22b31f4969b05652bfe8f0fe921321d5@192.168.2.37:26656"
-
 		_, ok := genTx.(sdk.TxWithMemo)
 		if !ok {
 			return appGenTxs, persistentPeers, fmt.Errorf("expected TxWithMemo, got %T", genTx)
 		}
-		//nodeAddrIP := memoTx.GetMemo()
-		//if len(nodeAddrIP) == 0 {
-		//	return appGenTxs, persistentPeers, fmt.Errorf("failed to find node's address and IP in %s", fo.Name())
-		//}
 
 		// genesis transactions must be single-message
 		msgs := genTx.GetMsgs()
@@ -194,7 +183,7 @@ func CollectTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker, g
 			return appGenTxs, persistentPeers, errors.New("each genesis transaction must provide a single genesis message")
 		}
 
-		// TODO abstract out staking message validation back to staking
+		// abstract out staking message validation back to staking
 		msg := msgs[0].(*stakingtypes.MsgCreateValidator)
 
 		// validate delegator and validator addresses and funds against the accounts in the state
@@ -229,15 +218,7 @@ func CollectTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker, g
 				delBal.GetAddress().String(), delBal.GetCoins().AmountOf(msg.Value.Denom), msg.Value.Amount,
 			)
 		}
-
-		// exclude itself from persistent peers
-		//if msg.Description.Moniker != moniker {
-		//	addressesIPs = append(addressesIPs, nodeAddrIP)
-		//}
 	}
-
-	//sort.Strings(addressesIPs)
-	//persistentPeers = strings.Join(addressesIPs, ",")
 
 	return appGenTxs, persistentPeers, nil
 }
@@ -258,15 +239,4 @@ func NewPrintInfo(moniker, chainID, nodeID, genTxsDir string, appMessage json.Ra
 		GenTxsDir:  genTxsDir,
 		AppMessage: appMessage,
 	}
-}
-
-func (info PrintInfo) Display() error {
-	out, err := json.MarshalIndent(info, "", " ")
-	if err != nil {
-		return err
-	}
-
-	_, err = fmt.Fprintf(os.Stderr, "%s\n", string(sdk.MustSortJSON(out)))
-
-	return err
 }

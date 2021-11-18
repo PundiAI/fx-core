@@ -84,9 +84,7 @@ Example:
 			if err = generateFxChainDockerComposeYml(valNum, chainID, startingIPAddress); err != nil {
 				return err
 			}
-			fmt.Println("Please run: docker-compose up -d")
-
-			return nil
+			return clientCtx.PrintString("Please run: docker-compose up -d")
 		},
 	}
 
@@ -313,8 +311,7 @@ func InitTestnet(
 		}
 	}
 
-	fmt.Printf("Successfully initialized %d node directories\n", valNum)
-	return nil
+	return clientCtx.PrintString(fmt.Sprintf("Successfully initialized %d node directories\n", valNum))
 }
 
 func getIP(i int, startingIPAddr string) (ip string, err error) {

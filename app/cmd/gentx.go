@@ -147,7 +147,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			createValCfg.Amount = amount
 
 			// create a 'create-validator' message
-			txBldr, msg, err := BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, true)
+			txBldr, msg, err := BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory)
 			if err != nil {
 				return errors.Wrap(err, "failed to build create-validator message")
 			}
@@ -238,18 +238,17 @@ func writeSignedGenTx(clientCtx client.Context, outputDocument string, tx sdk.Tx
 	}
 	defer outputFile.Close()
 
-	json, err := clientCtx.TxConfig.TxJSONEncoder()(tx)
+	bts, err := clientCtx.TxConfig.TxJSONEncoder()(tx)
 	if err != nil {
 		return err
 	}
-
-	_, err = fmt.Fprintf(outputFile, "%s\n", json)
+	_, err = fmt.Fprintf(outputFile, "%s\n", bts)
 
 	return err
 }
 
 // BuildCreateValidatorMsg makes a new MsgCreateValidator.
-func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValidatorConfig, txBldr tx.Factory, generateOnly bool) (tx.Factory, sdk.Msg, error) {
+func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValidatorConfig, txBldr tx.Factory) (tx.Factory, sdk.Msg, error) {
 	amounstStr := config.Amount
 	amount, err := sdk.ParseCoinNormalized(amounstStr)
 
@@ -297,15 +296,6 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValida
 	if err != nil {
 		return txBldr, msg, err
 	}
-	//if generateOnly {
-	//	ip := config.IP
-	//	nodeID := config.NodeID
-	//
-	//	if nodeID != "" && ip != "" {
-	//		txBldr = txBldr.WithMemo(fmt.Sprintf("%s@%s:26656", nodeID, ip))
-	//	}
-	//}
-
 	return txBldr, msg, nil
 }
 
