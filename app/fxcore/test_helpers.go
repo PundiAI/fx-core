@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"math/big"
 	"strconv"
 	"testing"
@@ -72,9 +73,19 @@ func setup(withGenesis bool, invCheckPeriod uint) (*App, AppGenesisState) {
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
-func Setup(isCheckTx bool) *App {
+func Setup(isCheckTx bool, feemarketGenesis *feemarkettypes.GenesisState) *App {
 	app, genesisState := setup(!isCheckTx, 5)
 	if !isCheckTx {
+
+		// Verify feeMarket genesis
+		if feemarketGenesis != nil {
+			if err := feemarketGenesis.Validate(); err != nil {
+				panic(err)
+			}
+
+			genesisState[feemarkettypes.ModuleName] = app.AppCodec().MustMarshalJSON(feemarketGenesis)
+		}
+
 		// init chain must be called to stop deliverState from being nil
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 		if err != nil {

@@ -40,11 +40,11 @@ const (
 	defaultFxMnemonic = "dune antenna hood magic kit blouse film video another pioneer dilemma hobby message rug sail gas culture upgrade twin flag joke people general aunt"
 	hdPath            = "m/44'/118'/0'/0/0"
 
-	tusdTokenContract               = "TUpMhErZL2fhh4sVNULAbNKLokS4GjC1F4"
-	fxTusdTokenDenom                = chainName + tusdTokenContract
-	tusdTokenSymbol                 = "TUSD"
-	tusdTokenName                   = "TrueUSD"
-	purseTokenChannelIBC            = "transfer/channel-0"
+	tusdTokenContract = "TUpMhErZL2fhh4sVNULAbNKLokS4GjC1F4"
+	fxTusdTokenDenom  = chainName + tusdTokenContract
+	tusdTokenSymbol   = "TUSD"
+	tusdTokenName     = "TrueUSD"
+	//purseTokenChannelIBC            = "transfer/channel-0"
 	defaultExternalWalletPrivateKey = "b3f8605873861602b62617993fda26c00c057776934931a9d8cfa5d2e78fdc4a"
 	chainName                       = trontypes.ModuleName
 	gravityId                       = "fx-" + chainName + "-local"

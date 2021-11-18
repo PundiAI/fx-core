@@ -15,10 +15,6 @@ import (
 	"github.com/functionx/fx-core/x/gravity/types"
 )
 
-const (
-	flagValsetLatest = "latest"
-)
-
 func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -210,7 +206,7 @@ func CmdGetValsetRequest() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "valset-request [nonce]",
 		Short:   "Get requested valset with a particular nonce",
-		Example: fmt.Sprintf("fxcored q gravity valset-request 1"),
+		Example: "fxcored q gravity valset-request 1",
 		Args:    cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)

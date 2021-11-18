@@ -78,7 +78,9 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // GetTxCmd implements AppModuleBasic interface
@@ -343,7 +345,7 @@ func (am AppModule) OnRecvPacket(
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%s", data.Amount)),
+			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
 			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", err != nil)),
 		),
 	)
@@ -379,7 +381,7 @@ func (am AppModule) OnAcknowledgementPacket(
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
 			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%s", data.Amount)),
+			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
 			sdk.NewAttribute(types.AttributeKeyAck, fmt.Sprintf("%v", ack)),
 		),
 	)
@@ -426,7 +428,7 @@ func (am AppModule) OnTimeoutPacket(
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
 			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyRefundAmount, fmt.Sprintf("%s", data.Amount)),
+			sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),
 		),
 	)
 

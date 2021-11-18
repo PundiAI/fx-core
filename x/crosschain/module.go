@@ -15,7 +15,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/functionx/fx-core/x/crosschain/client/cli"
@@ -87,8 +86,8 @@ func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper     keeper.RouterKeeper
-	bankKeeper bankkeeper.Keeper
+	keeper keeper.RouterKeeper
+	//bankKeeper bankkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule Object

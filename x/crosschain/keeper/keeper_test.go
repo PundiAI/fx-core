@@ -188,9 +188,7 @@ func TestLastPendingBatchRequestByAddr(t *testing.T) {
 			ExpectStartHeight:   3,
 		},
 	}
-	var i uint64 = 1
-
-	for i = 1; i <= 3; i++ {
+	for i := uint64(1); i <= 3; i++ {
 		ctx = ctx.WithBlockHeight(int64(i))
 		err := keeper.StoreBatch(ctx, &types.OutgoingTxBatch{
 			Block:      i,

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/hex"
+
 	"github.com/tendermint/tendermint/libs/json"
 
 	"github.com/cosmos/cosmos-sdk/client"

@@ -756,7 +756,10 @@ func CmdCovertBridgeToken() *cobra.Command {
 				TokenContract: tokenContract,
 				ChannelIbc:    channelIbc,
 				CoinName:      coinName,
-			}, "", "    ")
+			}, "", "  ")
+			if err != nil {
+				return err
+			}
 			return clientCtx.PrintBytes(indent)
 		},
 	}

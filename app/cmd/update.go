@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/input"
 	"os"
 	"path/filepath"
+
+	"github.com/cosmos/cosmos-sdk/client/input"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"

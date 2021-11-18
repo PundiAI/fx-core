@@ -6,6 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+
+	enccodec "github.com/functionx/fx-core/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -31,6 +33,7 @@ func MakeEncodingConfig() EncodingConfig {
 		Amino:             amino,
 	}
 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	enccodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }

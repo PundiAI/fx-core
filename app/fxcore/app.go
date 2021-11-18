@@ -1,6 +1,9 @@
 package fxcore
 
 import (
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"io"
 	"os"
 	"path/filepath"
@@ -30,7 +33,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -86,6 +88,7 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	serverty "github.com/functionx/fx-core/server"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -107,9 +110,15 @@ import (
 	"github.com/functionx/fx-core/x/tron"
 	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
+
+	"github.com/functionx/fx-core/x/evm"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	"github.com/functionx/fx-core/x/feemarket"
+	feemarketkeeper "github.com/functionx/fx-core/x/feemarket/keeper"
 )
 
 var ChainID = "fxcore"
+
 const Name = "fxcore"
 const MintDenom = "FX"
 const AddressPrefix = "fx"
@@ -154,6 +163,8 @@ var (
 		bsc.AppModuleBasic{},
 		polygon.AppModuleBasic{},
 		tron.AppModuleBasic{},
+		evm.AppModuleBasic{},
+		feemarket.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -169,6 +180,8 @@ var (
 		bsctypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		polygontypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
 		trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+		// used for secure addition and subtraction of balance using module account
+		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -235,6 +248,10 @@ type App struct {
 	PolygonKeeper    crosschainkeeper.Keeper
 	TronKeeper       crosschainkeeper.Keeper
 
+	// Ethermint keepers
+	EvmKeeper       *evmkeeper.Keeper
+	FeeMarketKeeper feemarketkeeper.Keeper
+
 	// the module manager
 	mm *module.Manager
 }
@@ -263,8 +280,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.StoreKey,
 		polygontypes.StoreKey,
 		trontypes.StoreKey,
+		// ethermint keys
+		evmtypes.StoreKey, feemarkettypes.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	myApp := &App{
@@ -315,6 +334,19 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		myApp.GetSubspace(crisistypes.ModuleName), invCheckPeriod, myApp.BankKeeper, authtypes.FeeCollectorName,
 	)
 	myApp.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, keys[upgradetypes.StoreKey], appCodec, homePath)
+
+	tracer := cast.ToString(appOpts.Get(serverty.EVMTracer))
+
+	// Create Ethermint keepers
+	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
+		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
+	)
+
+	myApp.EvmKeeper = evmkeeper.NewKeeper(
+		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
+		myApp.AccountKeeper, myApp.BankKeeper, myApp.StakingKeeper, myApp.FeeMarketKeeper,
+		tracer, true, // debug EVM based on Baseapp options
+	)
 
 	// Create IBC Keeper
 	myApp.IBCKeeper = ibckeeper.NewKeeper(
@@ -452,6 +484,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper),
 		polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper),
 		tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper),
+		// Ethermint app modules
+		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
+		feemarket.NewAppModule(myApp.FeeMarketKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -476,6 +511,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		polygontypes.ModuleName,
 		trontypes.ModuleName,
+		evmtypes.ModuleName, feemarkettypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -676,5 +712,8 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(polygontypes.ModuleName)
 	paramsKeeper.Subspace(trontypes.ModuleName)
 
+	// ethermint subspaces
+	paramsKeeper.Subspace(evmtypes.ModuleName)
+	paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	return paramsKeeper
 }

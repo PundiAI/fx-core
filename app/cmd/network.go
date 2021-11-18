@@ -3,8 +3,10 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/functionx/fx-core/app/fxcore"
+
 	tmcli "github.com/tendermint/tendermint/libs/cli"
+
+	"github.com/functionx/fx-core/app/fxcore"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"

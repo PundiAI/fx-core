@@ -22,7 +22,7 @@ import (
 // ft gravity set-orchestrator-address fxvaloper16wvwsmpp4y4ttgzknyr6kqla877jud6u8yzl8y fx16wvwsmpp4y4ttgzknyr6kqla877jud6u04lqey 0x6f1D09Fed11115d65E1071CD2109eDb300D80A27 --from fx2
 
 func TestOrchestratorChain(t *testing.T) {
-	if testing.Short() {
+	if !testing.Short() {
 		t.SkipNow()
 	}
 	client := NewClient(t)
