@@ -1,6 +1,7 @@
 package evm_test
 
 import (
+	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	"math/big"
 	"testing"
 	"time"
@@ -73,14 +74,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	consAddress := sdk.ConsAddress(priv.PubKey().Address())
 
-	if suite.dynamicTxFee {
-		feemarketGenesis := feemarkettypes.DefaultGenesisState()
-		feemarketGenesis.Params.EnableHeight = 1
-		feemarketGenesis.Params.NoBaseFee = false
-		suite.app = fxcore.Setup(checkTx, feemarketGenesis)
-	} else {
-		suite.app = fxcore.Setup(checkTx, nil)
-	}
+	suite.app = fxcore.Setup(checkTx, nil)
 
 	coins := sdk.NewCoins(sdk.NewCoin(types.DefaultEVMDenom, sdk.NewInt(100000000000000)))
 	genesisState := fxcore.DefaultTestGenesis(suite.app.AppCodec())
@@ -141,6 +135,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	})
 	suite.app.EvmKeeper.WithContext(suite.ctx)
 
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.dynamicTxFee))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 
@@ -528,4 +523,25 @@ func (suite *EvmTestSuite) TestErrorWhenDeployContract() {
 	suite.Require().Equal("invalid opcode: opcode 0xa6 not defined", res.VmError, "correct evm error")
 
 	// TODO: snapshot checking
+}
+
+func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee bool) error {
+	defaultEvmParams := types.DefaultParams()
+	defaultFeeMarketParams := feemarkettypes.DefaultParams()
+
+	if dynamicTxFee {
+		defaultFeeMarketParams.EnableHeight = 1
+		defaultFeeMarketParams.NoBaseFee = false
+	}
+
+	if err := keeper.HandleInitEvmParamsProposal(ctx, &types.InitEvmParamsProposal{
+		Title:           "Init evm title",
+		Description:     "Init emv module description",
+		EvmParams:       &defaultEvmParams,
+		FeemarketParams: &defaultFeeMarketParams,
+	}); err != nil {
+		return err
+	}
+	keeper.WithChainID(ctx)
+	return nil
 }

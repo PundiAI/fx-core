@@ -421,7 +421,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 			for {
 				moduleEnableResp, err := evmQueryClient.ModuleEnable(jsonRpcContext, &evmtypes.QueryModuleEnableRequest{})
 				if err != nil {
-					web3Logger.Info(fmt.Sprintf("Query emv module enable err!err:%v", err))
+					web3Logger.Info(fmt.Sprintf("Query evm module enable err!err:%v", err))
 					time.Sleep(30 * time.Second)
 					continue
 				}
@@ -432,10 +432,12 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 				}
 				genDoc, err := genDocProvider()
 				if err != nil {
+					web3Logger.Error("load genesis err!!!err", err)
 					panic(fmt.Sprintf("load genesis err!!err:%v", err))
 				}
 				startJsonRpcClientCtx := clientCtx.WithChainID(genDoc.ChainID)
 				tmRPCAddr := cfg.RPC.ListenAddress
+				web3Logger.Info("Evm module enable!start json rpc server", "chainId", genDoc.ChainID, "rpcAddr", tmRPCAddr)
 				httpSrv, httpSrvDone, err = StartJSONRPC(ctx, startJsonRpcClientCtx, tmRPCAddr, "/websocket", config)
 				if err != nil {
 					panic(fmt.Sprintf("start json rpc server !!tmRpcAddr:%v, err:%v", tmRPCAddr, err))

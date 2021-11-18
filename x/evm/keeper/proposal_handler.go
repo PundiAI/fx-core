@@ -20,8 +20,12 @@ func (k Keeper) HandleInitEvmParamsProposal(ctx sdk.Context, p *types.InitEvmPar
 	// init feeMarket module params
 	k.feeMarketKeeper.SetParams(ctx, *p.FeemarketParams)
 
+	baseFee := sdk.ZeroInt()
+	if !p.FeemarketParams.NoBaseFee {
+		baseFee = sdk.NewInt(p.FeemarketParams.InitialBaseFee)
+	}
 	// set feeMarket baseFee
-	k.feeMarketKeeper.SetBaseFee(ctx, sdk.ZeroInt().BigInt())
+	k.feeMarketKeeper.SetBaseFee(ctx, baseFee.BigInt())
 	// set feeMarket blockGasUsed
 	k.feeMarketKeeper.SetBlockGasUsed(ctx, 0)
 

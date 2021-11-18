@@ -3,6 +3,7 @@ package keeper_test
 import (
 	_ "embed"
 	"encoding/json"
+	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	"math/big"
 	"testing"
 	"time"
@@ -79,16 +80,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	if suite.dynamicTxFee {
-		// setup feemarketGenesis params
-		feemarketGenesis := feemarkettypes.DefaultGenesisState()
-		feemarketGenesis.Params.EnableHeight = 1
-		feemarketGenesis.Params.NoBaseFee = false
-		feemarketGenesis.BaseFee = sdk.NewInt(feemarketGenesis.Params.InitialBaseFee)
-		suite.app = app.Setup(checkTx, feemarketGenesis)
-	} else {
-		suite.app = app.Setup(checkTx, nil)
-	}
+	suite.app = app.Setup(checkTx, nil)
 
 	if suite.mintFeeCollector {
 		// mint some coin to fee collector
@@ -146,6 +138,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	})
 	suite.app.EvmKeeper.WithContext(suite.ctx)
 
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.dynamicTxFee))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -367,4 +360,25 @@ func (suite *KeeperTestSuite) DeployTestMessageCall(t require.TestingT) common.A
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
+}
+
+func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee bool) error {
+	defaultEvmParams := types.DefaultParams()
+	defaultFeeMarketParams := feemarkettypes.DefaultParams()
+
+	if dynamicTxFee {
+		defaultFeeMarketParams.EnableHeight = 1
+		defaultFeeMarketParams.NoBaseFee = false
+	}
+
+	if err := keeper.HandleInitEvmParamsProposal(ctx, &types.InitEvmParamsProposal{
+		Title:           "Init evm title",
+		Description:     "Init emv module description",
+		EvmParams:       &defaultEvmParams,
+		FeemarketParams: &defaultFeeMarketParams,
+	}); err != nil {
+		return err
+	}
+	keeper.WithChainID(ctx)
+	return nil
 }
