@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"github.com/functionx/fx-core/crypto/hd"
 	fxserver "github.com/functionx/fx-core/server"
 	"github.com/functionx/fx-core/server/config"
 	"io"
@@ -53,7 +54,8 @@ func NewRootCmd() *cobra.Command {
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
-		WithHomeDir(fxcore.DefaultNodeHome)
+		WithHomeDir(fxcore.DefaultNodeHome).
+		WithKeyringOptions(hd.EthSecp256k1Option())
 
 	rootCmd := &cobra.Command{
 		Use:   fxcore.Name + "d",

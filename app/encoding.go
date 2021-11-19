@@ -34,6 +34,7 @@ func MakeEncodingConfig() EncodingConfig {
 	}
 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	enccodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	cryptocodec.RegisterCrypto(amino)
 	cryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig

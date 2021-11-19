@@ -119,7 +119,7 @@ func NewRawTxCmd() *cobra.Command {
 
 func CmdInitEvmParamsProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "init-evm-params [evm-denom] [initial proposal deposit]",
+		Use:     "init-evm-params [initial proposal deposit]",
 		Short:   "init chian params",
 		Example: "fxcored tx evm init-evm-params 10000000000000000000000FX --title=\"Init evm module params\" --desc=\"about init evm params description\" --evm-params-evm-denom=\"FX\"",
 		Args:    cobra.ExactArgs(1),

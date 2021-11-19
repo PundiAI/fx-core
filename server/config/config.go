@@ -47,7 +47,7 @@ var evmTracers = []string{DefaultEVMTracer, "markdown", "struct", "access_list"}
 // Config defines the server's top level configuration. It includes the default app config
 // from the SDK as well as the EVM configuration to enable the JSON-RPC APIs.
 type Config struct {
-	config.Config
+	config.Config `mapstructure:",squash"`
 
 	EVM     EVMConfig     `mapstructure:"evm"`
 	JSONRPC JSONRPCConfig `mapstructure:"json-rpc"`
