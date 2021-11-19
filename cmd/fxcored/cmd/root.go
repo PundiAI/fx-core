@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/functionx/fx-core/crypto/hd"
-	fxserver "github.com/functionx/fx-core/server"
 	"github.com/functionx/fx-core/server/config"
 	"io"
 	"os"
