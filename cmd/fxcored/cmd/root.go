@@ -4,6 +4,7 @@ import (
 	"errors"
 	sdkclient "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/functionx/fx-core/crypto/hd"
+	fxserver "github.com/functionx/fx-core/server"
 	"github.com/functionx/fx-core/server/config"
 	"io"
 	"os"
@@ -12,9 +13,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -96,6 +95,7 @@ func NewRootCmd() *cobra.Command {
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxcore.ChainID,
 		flags.FlagKeyringBackend: keyring.BackendTest,
+		flags.FlagGasPrices:      "4000000000000" + fxcore.MintDenom,
 	})
 	for _, command := range rootCmd.Commands() {
 		if command.Use == "" {
@@ -108,15 +108,6 @@ func NewRootCmd() *cobra.Command {
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	authclient.Codec = encodingConfig.Marshaler
 
-	debugCmd := debug.Cmd()
-	debugCmd.AddCommand(appCmd.HexToString())
-	debugCmd.AddCommand(appCmd.ReEncodeAddrCommand())
-	debugCmd.AddCommand(appCmd.HexToFxAddrCommand())
-	debugCmd.AddCommand(appCmd.ModuleAddressCmd())
-	debugCmd.AddCommand(appCmd.CovertTxDataToHash())
-	debugCmd.AddCommand(appCmd.ParseTx())
-	debugCmd.AddCommand(appCmd.HexExternalAddress())
-
 	rootCmd.AddCommand(
 		InitCmd(),
 		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, fxcore.DefaultNodeHome),
@@ -126,22 +117,24 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		appCmd.AddGenesisAccountCmd(fxcore.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		TestnetCmd(),
-		debugCmd,
+		appCmd.Debug(),
 		appCmd.ClientCmd(),
 		// this line is used by starport scaffolding # stargate/root/commands
+		appCmd.Network(),
+		appCmd.ConfigCmd(),
 	)
 
 	appCreator := appCreator{encodingConfig}
-	fxserver.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addModuleInitFlags)
+	fxserver.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
+	rpcStatusCmd := rpc.StatusCommand()
+	rpcStatusCmd.SetOut(os.Stdout)
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		appCmd.KeyCommands(fxcore.DefaultNodeHome),
+		rpcStatusCmd,
 		queryCommand(),
 		txCommand(),
-		keys.Commands(fxcore.DefaultNodeHome),
-		appCmd.ConfigCmd(),
-		appCmd.Network(),
 	)
 
 	rootCmd = fxserver.AddTxFlags(rootCmd)
@@ -155,7 +148,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	}
 }
 
-func addModuleInitFlags(startCmd *cobra.Command) {
+func addStartFlags(startCmd *cobra.Command) {
 }
 
 func queryCommand() *cobra.Command {
@@ -318,7 +311,9 @@ func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
 	set := func(s *pflag.FlagSet, key, val string) {
 		if f := s.Lookup(key); f != nil {
 			f.DefValue = val
-			f.Value.Set(val)
+			if err := f.Value.Set(val); err != nil {
+				panic(err)
+			}
 		}
 	}
 	for key, val := range defaults {

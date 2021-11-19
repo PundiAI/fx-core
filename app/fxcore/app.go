@@ -39,7 +39,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -555,7 +554,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.SetAnteHandler(
 		app.NewAnteHandlerWithEVM(
 			myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
-			ante.DefaultSigVerificationGasConsumer, encodingConfig.TxConfig.SignModeHandler(),
+			app.DefaultSigVerificationGasConsumer, encodingConfig.TxConfig.SignModeHandler(),
 		),
 	)
 	myApp.SetEndBlocker(myApp.EndBlocker)

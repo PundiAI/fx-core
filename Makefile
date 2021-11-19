@@ -146,14 +146,14 @@ install-testnet:
 	@$(MAKE) build-testnet
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
-docker: build-linux
+docker:
 	@docker build --no-cache -f Dockerfile -t functionx/fx-core:mainnet-1.0 .
 
-docker-devnet: build-linux-devnet
-	@docker build --no-cache -f Dockerfile -t functionx/fx-core:boonlay .
+docker-devnet:
+	@docker build --no-cache --build-arg NETWORK=devnet -f Dockerfile -t functionx/fx-core:latest .
 
-docker-testnet: build-linux-testnet
-	@docker build --no-cache -f Dockerfile -t functionx/fx-core:dhobyghaut-1.0 .
+docker-testnet:
+	@docker build --no-cache --build-arg NETWORK=testnet -f Dockerfile -t functionx/fx-core:testnet-1.0 .
 
 run-local: install
 	@./develop/run_fxcore.sh init

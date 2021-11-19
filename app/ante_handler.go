@@ -4,14 +4,20 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	txsigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"github.com/palantir/stacktrace"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"runtime/debug"
+)
+
+const (
+	secp256k1VerifyCost uint64 = 21000
 )
 
 // NewAnteHandler returns an AnteHandler that checks and increments sequence
@@ -162,4 +168,22 @@ func Recover(logger tmlog.Logger, err *error) {
 			)
 		}
 	}
+}
+
+var _ ante.SignatureVerificationGasConsumer = DefaultSigVerificationGasConsumer
+
+// DefaultSigVerificationGasConsumer is the default implementation of SignatureVerificationGasConsumer. It consumes gas
+// for signature verification based upon the public key type. The cost is fetched from the given params and is matched
+// by the concrete type.
+func DefaultSigVerificationGasConsumer(
+	meter sdk.GasMeter, sig txsigning.SignatureV2, params types.Params,
+) error {
+	// support for ethereum ECDSA secp256k1 keys
+	_, ok := sig.PubKey.(*ethsecp256k1.PubKey)
+	if ok {
+		meter.ConsumeGas(secp256k1VerifyCost, "ante verify: eth_secp256k1")
+		return nil
+	}
+
+	return ante.DefaultSigVerificationGasConsumer(meter, sig, params)
 }
