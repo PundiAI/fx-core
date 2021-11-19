@@ -3,7 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	types2 "github.com/functionx/fx-core/types"
+	fxtype "github.com/functionx/fx-core/types"
 	"strconv"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -67,7 +67,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 		for _, validator := range validators {
 			val := validator.GetOperator()
 			_, found := k.GetEthAddressByValidator(ctx, val)
-			if !found && ctx.BlockHeight() > types2.GravityValsetSlashBlock() {
+			if !found && ctx.BlockHeight() > fxtype.GravityValsetSlashBlock() {
 				continue
 			}
 			power := uint64(k.StakingKeeper.GetLastValidatorPower(ctx, val))

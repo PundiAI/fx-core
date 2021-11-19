@@ -9,9 +9,7 @@ import (
 func MakeEncodingConfig() app.EncodingConfig {
 	encodingConfig := app.MakeEncodingConfig()
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	//codec.RegisterCrypto(encodingConfig.Amino)
 	crosschaintypes.InitMsgValidatorBasicRouter()
-	//types.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }

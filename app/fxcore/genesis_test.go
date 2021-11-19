@@ -23,7 +23,6 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log("gen-app-state", string(data))
 	//data := []byte{}
 	if err := json.Unmarshal(data, &genAppState); err != nil && len(data) > 0 {
 		t.Fatal(err)

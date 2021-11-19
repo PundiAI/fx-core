@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	types2 "github.com/functionx/fx-core/types"
+	fxtype "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/evm/keeper"
 
 	"github.com/functionx/fx-core/x/evm/types"
@@ -33,7 +33,7 @@ func NewEvmProposalHandler(k keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
 		case *types.InitEvmParamsProposal:
-			if ctx.BlockHeight() < types2.EvmSupportBlock() {
+			if ctx.BlockHeight() < fxtype.EvmSupportBlock() {
 				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("evm module not enable"))
 			}
 			return k.HandleInitEvmParamsProposal(ctx, c)

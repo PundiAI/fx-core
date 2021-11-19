@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/functionx/fx-core/app/fxcore"
 	fxserver "github.com/functionx/fx-core/server/config"
+	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"path/filepath"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
@@ -41,7 +43,9 @@ fxcored config app.toml minimum-gas-prices 4000000000000FX  // 3. update app.tom
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+
 			serverCtx := server.GetServerContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			operatorConfig, err := newConfig(args[0], serverCtx)
 			if err != nil {
@@ -50,32 +54,29 @@ fxcored config app.toml minimum-gas-prices 4000000000000FX  // 3. update app.tom
 
 			// is len(args) == 1, get config file content
 			if len(args) == 1 {
-				return operatorConfig.output()
+				return operatorConfig.output(clientCtx)
 			}
 
 			// 2. is len(args) == 2, get config key value
 			if len(args) == 2 {
-				return output(serverCtx.Viper.Get(args[1]))
+				return output(clientCtx, clientCtx.Viper.Get(args[1]))
 			}
 
-			// 3. is len(args) == 3, update config key to newValue
-			fmt.Printf("before:%v\n", serverCtx.Viper.Get(args[1]))
 			serverCtx.Viper.Set(args[1], args[2])
-			fmt.Printf("after:%v\n", serverCtx.Viper.Get(args[1]))
 			configPath := filepath.Join(serverCtx.Viper.GetString(flags.FlagHome), "config")
-			if err := operatorConfig.save(serverCtx, configPath); err != nil {
+			if err = operatorConfig.save(serverCtx, configPath); err != nil {
 				return err
 			}
-			fmt.Printf("update configuration file: %s succeed\n", args[0])
 			return nil
 		},
 	}
+	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
 	return cmd
 }
 
 type cmdConfig interface {
-	output() error
-	save(serverCtx *server.Context, configPath string) error
+	output(clientCtx client.Context) error
+	save(clientCtx *server.Context, configPath string) error
 }
 
 var (
@@ -87,12 +88,12 @@ type appTomlConfig struct {
 	config *fxserver.Config
 }
 
-func (a appTomlConfig) output() error {
-	return output(a.config)
+func (a appTomlConfig) output(clientCtx client.Context) error {
+	return output(clientCtx, a.config)
 }
 
-func (a appTomlConfig) save(serverCtx *server.Context, configPath string) error {
-	if err := serverCtx.Viper.Unmarshal(a.config); err != nil {
+func (a appTomlConfig) save(clientCtx *server.Context, configPath string) error {
+	if err := clientCtx.Viper.Unmarshal(a.config); err != nil {
 		return err
 	}
 	configPath = filepath.Join(configPath, appFileName)
@@ -104,12 +105,12 @@ type configTomlConfig struct {
 	config *tmcfg.Config
 }
 
-func (c configTomlConfig) output() error {
-	return output(c.config)
+func (c configTomlConfig) output(clientCtx client.Context) error {
+	return output(clientCtx, c.config)
 }
 
-func (c configTomlConfig) save(serverCtx *server.Context, configPath string) error {
-	if err := serverCtx.Viper.Unmarshal(c.config); err != nil {
+func (c configTomlConfig) save(clientCtx *server.Context, configPath string) error {
+	if err := clientCtx.Viper.Unmarshal(c.config); err != nil {
 		return err
 	}
 	configPath = filepath.Join(configPath, configFileName)
@@ -117,17 +118,17 @@ func (c configTomlConfig) save(serverCtx *server.Context, configPath string) err
 	return nil
 }
 
-func newConfig(configName string, serverCtx *server.Context) (cmdConfig, error) {
+func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) {
 	switch configName {
 	case appFileName:
 		var configData = fxserver.Config{}
-		if err := serverCtx.Viper.Unmarshal(&configData); err != nil {
+		if err := clientCtx.Viper.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
 		return &appTomlConfig{config: &configData}, nil
 	case configFileName:
 		var configData = tmcfg.Config{}
-		if err := serverCtx.Viper.Unmarshal(&configData); err != nil {
+		if err := clientCtx.Viper.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
 		return &configTomlConfig{config: &configData}, nil
@@ -136,11 +137,10 @@ func newConfig(configName string, serverCtx *server.Context) (cmdConfig, error) 
 	}
 }
 
-func output(content interface{}) error {
+func output(clientCtx client.Context, content interface{}) error {
 	data, err := json.MarshalIndent(content, "", "  ")
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(data))
-	return nil
+	return PrintOutput(clientCtx, data)
 }

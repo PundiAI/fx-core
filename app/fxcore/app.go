@@ -3,7 +3,7 @@ package fxcore
 import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	serverty "github.com/functionx/fx-core/server"
-	ethermint "github.com/functionx/fx-core/types"
+	fxtype "github.com/functionx/fx-core/types"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"io"
@@ -311,7 +311,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	// add keepers
 	myApp.AccountKeeper = authkeeper.NewAccountKeeper(
-		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), ethermint.ProtoAccount, maccPerms,
+		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), fxtype.ProtoAccount, maccPerms,
 	)
 	myApp.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], myApp.AccountKeeper, myApp.GetSubspace(banktypes.ModuleName), myApp.ModuleAccountAddrs(),
@@ -560,10 +560,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	)
 	myApp.SetEndBlocker(myApp.EndBlocker)
 
-	rootmulti.AddIgnoreCommitKey(ethermint.CrossChainSupportBscBlock(), bsctypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(ethermint.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(ethermint.CrossChainSupportTronBlock(), trontypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(ethermint.EvmSupportBlock(), evmtypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportBscBlock(), bsctypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportTronBlock(), trontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), evmtypes.StoreKey)
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {

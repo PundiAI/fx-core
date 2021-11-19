@@ -15,6 +15,8 @@ if [[ "$1" == "init" ]]; then
   # fxcored config config.toml rpc.pprof_laddr ""
   # open prometheus
   fxcored config config.toml instrumentation.prometheus true
+  # default client.toml keyring-backend is os
+  fxcored client config keyring-backend test
 
   fxcored keys add fx1
   fxcored add-genesis-account fx1 4000000000000000000000FX
@@ -29,4 +31,4 @@ if [[ "$1" == "init" ]]; then
   fxcored collect-gentxs
 fi
 
-fxcored start --log_filter='ABCIQuery' --keyring-backend=file
+fxcored start --log_filter='ABCIQuery'
