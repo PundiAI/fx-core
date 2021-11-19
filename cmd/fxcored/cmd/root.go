@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	sdkclient "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/functionx/fx-core/crypto/hd"
 	fxserver "github.com/functionx/fx-core/server"
 	"github.com/functionx/fx-core/server/config"
@@ -41,6 +42,8 @@ import (
 	// this line is u by starport scaffolding # stargate/root/import
 )
 
+const EnvPrefix = "FX"
+
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
 func NewRootCmd() *cobra.Command {
@@ -55,12 +58,27 @@ func NewRootCmd() *cobra.Command {
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(fxcore.DefaultNodeHome).
-		WithKeyringOptions(hd.EthSecp256k1Option())
+		WithKeyringOptions(hd.EthSecp256k1Option()).
+		WithViper(EnvPrefix)
 
 	rootCmd := &cobra.Command{
 		Use:   fxcore.Name + "d",
 		Short: "FunctionX Core Chain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			// set the default command outputs
+			cmd.SetOut(cmd.OutOrStdout())
+			cmd.SetErr(cmd.ErrOrStderr())
+
+			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			initClientCtx, err = sdkclient.ReadFromClientConfig(initClientCtx)
+			if err != nil {
+				return err
+			}
+
 			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
@@ -110,6 +128,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		tmcli.NewCompletionCmd(rootCmd, true),
 		TestnetCmd(),
 		debugCmd,
+		appCmd.ClientCmd(),
 		// this line is used by starport scaffolding # stargate/root/commands
 	)
 
