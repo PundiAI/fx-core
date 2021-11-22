@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/functionx/fx-core/app/fxcore"
-	fxserver "github.com/functionx/fx-core/server/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"path/filepath"
 	"strings"
@@ -37,11 +35,6 @@ fxcored config app.toml minimum-gas-prices  // 2. show app.toml minimul-gas-pric
 fxcored config app.toml minimum-gas-prices 4000000000000FX  // 3. update app.toml minimul-gas-prices value to 4000000000000FX
 `,
 		Args: cobra.RangeArgs(1, 3),
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			customAppTemplate, _ := fxserver.AppConfig(fxcore.MintDenom)
-			config.SetConfigTemplate(customAppTemplate)
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			serverCtx := server.GetServerContextFromCmd(cmd)
@@ -85,7 +78,7 @@ var (
 )
 
 type appTomlConfig struct {
-	config *fxserver.Config
+	config *config.Config
 }
 
 func (a appTomlConfig) output(clientCtx client.Context) error {
@@ -121,7 +114,7 @@ func (c configTomlConfig) save(clientCtx *server.Context, configPath string) err
 func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) {
 	switch configName {
 	case appFileName:
-		var configData = fxserver.Config{}
+		var configData = config.Config{}
 		if err := clientCtx.Viper.Unmarshal(&configData); err != nil {
 			return nil, err
 		}

@@ -54,11 +54,12 @@ func NewRootCmd() *cobra.Command {
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
+		WithOutput(os.Stdout).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(fxcore.DefaultNodeHome).
-		WithKeyringOptions(hd.EthSecp256k1Option()).
-		WithViper(EnvPrefix)
+		WithViper(EnvPrefix).
+		WithKeyringOptions(hd.EthSecp256k1Option())
 
 	rootCmd := &cobra.Command{
 		Use:   fxcore.Name + "d",
