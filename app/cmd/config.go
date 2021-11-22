@@ -21,50 +21,57 @@ const (
 	appFileName    = "app.toml"
 )
 
-var (
-	supportConfigs = []string{configFileName, appFileName}
-)
-
-func ConfigCmd() *cobra.Command {
+func AppTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   fmt.Sprintf("config <%s> [key] [value]", strings.Join(supportConfigs, "/")),
-		Short: "Update or query an application configuration file",
-		Long: `
-fxcored config app.toml   // 1. show app.toml content
-fxcored config app.toml minimum-gas-prices  // 2. show app.toml minimul-gas-prices value
-fxcored config app.toml minimum-gas-prices 4000000000000FX  // 3. update app.toml minimul-gas-prices value to 4000000000000FX
-`,
-		Args: cobra.RangeArgs(1, 3),
+		Use:   "app.toml [key] [value]",
+		Short: "Create or query an `.fxcore/config/apptoml` file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			operatorConfig, err := newConfig(args[0], serverCtx)
-			if err != nil {
-				return err
-			}
-
-			// is len(args) == 1, get config file content
-			if len(args) == 1 {
-				return operatorConfig.output(clientCtx)
-			}
-
-			// 2. is len(args) == 2, get config key value
-			if len(args) == 2 {
-				return output(clientCtx, clientCtx.Viper.Get(args[1]))
-			}
-
-			serverCtx.Viper.Set(args[1], args[2])
-			configPath := filepath.Join(serverCtx.Viper.GetString(flags.FlagHome), "config")
-			if err = operatorConfig.save(serverCtx, configPath); err != nil {
-				return err
-			}
-			return nil
+			return runConfigCmd(cmd, append([]string{appFileName}, args...))
 		},
+		Args: cobra.RangeArgs(0, 2),
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
 	return cmd
+}
+
+func ConfigTomlCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "config.toml [key] [value]",
+		Short: "Create or query an `.fxcore/config/config.toml` file",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runConfigCmd(cmd, append([]string{configFileName}, args...))
+		},
+		Args: cobra.RangeArgs(0, 2),
+	}
+	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
+	return cmd
+}
+
+func runConfigCmd(cmd *cobra.Command, args []string) error {
+	serverCtx := server.GetServerContextFromCmd(cmd)
+	clientCtx := client.GetClientContextFromCmd(cmd)
+
+	operatorConfig, err := newConfig(args[0], serverCtx)
+	if err != nil {
+		return err
+	}
+
+	// is len(args) == 1, get config file content
+	if len(args) == 1 {
+		return operatorConfig.output(clientCtx)
+	}
+
+	// 2. is len(args) == 2, get config key value
+	if len(args) == 2 {
+		return output(clientCtx, clientCtx.Viper.Get(args[1]))
+	}
+
+	serverCtx.Viper.Set(args[1], args[2])
+	configPath := filepath.Join(serverCtx.Viper.GetString(flags.FlagHome), "config")
+	if err = operatorConfig.save(serverCtx, configPath); err != nil {
+		return err
+	}
+	return nil
 }
 
 type cmdConfig interface {
@@ -126,7 +133,7 @@ func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) 
 		}
 		return &configTomlConfig{config: &configData}, nil
 	default:
-		return nil, errors.New(fmt.Sprintf("invalid config file:%s, (support: %v)", configName, strings.Join(supportConfigs, "/")))
+		return nil, errors.New(fmt.Sprintf("invalid config file:%s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/")))
 	}
 }
 

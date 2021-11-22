@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"errors"
-	sdkclient "github.com/cosmos/cosmos-sdk/client/config"
+	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 	"io"
 	"os"
 	"path/filepath"
@@ -70,7 +70,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			initClientCtx, err = sdkclient.ReadFromClientConfig(initClientCtx)
+			initClientCtx, err = sdkCfg.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
 			}
@@ -105,6 +105,9 @@ func NewRootCmd() *cobra.Command {
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	authclient.Codec = encodingConfig.Marshaler
 
+	sdkCfgCmd := sdkCfg.Cmd()
+	sdkCfgCmd.AddCommand(appCmd.AppTomlCmd(), appCmd.ConfigTomlCmd())
+
 	rootCmd.AddCommand(
 		InitCmd(),
 		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, fxcore.DefaultNodeHome),
@@ -115,10 +118,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		tmcli.NewCompletionCmd(rootCmd, true),
 		TestnetCmd(),
 		appCmd.Debug(),
-		appCmd.ClientCmd(),
 		// this line is used by starport scaffolding # stargate/root/commands
 		appCmd.Network(),
-		appCmd.ConfigCmd(),
+		sdkCfgCmd,
 	)
 
 	appCreator := appCreator{encodingConfig}
