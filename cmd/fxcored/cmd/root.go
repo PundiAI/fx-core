@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	sdkclient "github.com/cosmos/cosmos-sdk/client/config"
 	"io"
 	"os"
 	"path/filepath"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
@@ -38,6 +38,8 @@ import (
 	// this line is u by starport scaffolding # stargate/root/import
 )
 
+const EnvPrefix = "FX"
+
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
 func NewRootCmd() *cobra.Command {
@@ -52,16 +54,36 @@ func NewRootCmd() *cobra.Command {
 		WithOutput(os.Stdout).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
-		WithHomeDir(fxcore.DefaultNodeHome)
+		WithHomeDir(fxcore.DefaultNodeHome).
+		WithViper(EnvPrefix)
 
 	rootCmd := &cobra.Command{
 		Use:   fxcore.Name + "d",
 		Short: "FunctionX Core Chain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			// set the default command outputs
+			cmd.SetOut(cmd.OutOrStdout())
+			cmd.SetErr(cmd.ErrOrStderr())
+
+			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			initClientCtx, err = sdkclient.ReadFromClientConfig(initClientCtx)
+			if err != nil {
+				return err
+			}
+
 			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
-			return app.InterceptConfigsPreRunHandler(cmd)
+
+			if err := server.InterceptConfigsPreRunHandler(cmd, "", nil); err != nil {
+				return err
+			}
+			// add log filter
+			return app.AddCmdLogWrapFilterLogType(cmd)
 		},
 	}
 
@@ -83,17 +105,6 @@ func NewRootCmd() *cobra.Command {
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	authclient.Codec = encodingConfig.Marshaler
 
-	debugCmd := debug.Cmd()
-	debugCmd.AddCommand(
-		appCmd.HexToString(),
-		appCmd.ReEncodeAddrCommand(),
-		appCmd.HexToFxAddrCommand(),
-		appCmd.ModuleAddressCmd(),
-		appCmd.CovertTxDataToHash(),
-		appCmd.ParseTx(),
-		appCmd.HexExternalAddress(),
-	)
-
 	rootCmd.AddCommand(
 		InitCmd(),
 		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, fxcore.DefaultNodeHome),
@@ -103,7 +114,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		appCmd.AddGenesisAccountCmd(fxcore.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		TestnetCmd(),
-		debugCmd,
+		appCmd.Debug(),
+		appCmd.ClientCmd(),
 		// this line is used by starport scaffolding # stargate/root/commands
 		appCmd.Network(),
 		appCmd.ConfigCmd(),

@@ -9,14 +9,7 @@ const (
 	FlagLogFilter = "log_filter"
 )
 
-func InterceptConfigsPreRunHandler(cmd *cobra.Command) error {
-	if err := server.InterceptConfigsPreRunHandler(cmd); err != nil {
-		return err
-	}
-	return addCmdLogWrapFilterLogType(cmd)
-}
-
-func addCmdLogWrapFilterLogType(cmd *cobra.Command) error {
+func AddCmdLogWrapFilterLogType(cmd *cobra.Command) error {
 	filterLogTypes, err := cmd.Flags().GetStringSlice(FlagLogFilter)
 	if err != nil {
 		return err

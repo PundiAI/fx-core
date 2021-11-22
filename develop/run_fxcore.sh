@@ -16,6 +16,14 @@ if [[ "$1" == "init" ]]; then
   # open prometheus
   fxcored config config.toml instrumentation.prometheus true
 
+  # update fxcore client config
+  fxcored client config chain-id fxcore
+  fxcored client config keyring-backend test
+  fxcored client config output json
+  fxcored client config node "tcp://127.0.0.1:26657"
+  fxcored client config broadcast-mode "block"
+
+
   fxcored keys add fx1
   fxcored add-genesis-account fx1 4000000000000000000000FX
   fxcored gentx fx1 1000000000000000000000FX --chain-id=fxcore \
