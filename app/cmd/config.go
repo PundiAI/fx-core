@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -133,7 +132,7 @@ func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) 
 		}
 		return &configTomlConfig{config: &configData}, nil
 	default:
-		return nil, errors.New(fmt.Sprintf("invalid config file:%s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/")))
+		return nil, fmt.Errorf("invalid config file:%s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/"))
 	}
 }
 
