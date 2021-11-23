@@ -19,12 +19,11 @@ if [[ "$1" == "init" ]]; then
   fxcored client config keyring-backend test
 
   # update fxcore client config
-  fxcored client config chain-id fxcore
-  fxcored client config keyring-backend test
-  fxcored client config output json
-  fxcored client config node "tcp://127.0.0.1:26657"
-  fxcored client config broadcast-mode "block"
-
+  fxcored config chain-id fxcore
+  fxcored config keyring-backend test
+  fxcored config output json
+  fxcored config node "tcp://127.0.0.1:26657"
+  fxcored config broadcast-mode "block"
 
   fxcored keys add fx1
   fxcored add-genesis-account fx1 4000000000000000000000FX
