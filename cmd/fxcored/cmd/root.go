@@ -2,20 +2,16 @@ package cmd
 
 import (
 	"errors"
-	fxserver "github.com/functionx/fx-core/server"
-
-	"github.com/functionx/fx-core/crypto/hd"
-	"github.com/functionx/fx-core/server/config"
+	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
-	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -59,8 +55,7 @@ func NewRootCmd() *cobra.Command {
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(fxcore.DefaultNodeHome).
-		WithViper(EnvPrefix).
-		WithKeyringOptions(hd.EthSecp256k1Option())
+		WithViper(EnvPrefix)
 
 	rootCmd := &cobra.Command{
 		Use:   fxcore.Name + "d",
@@ -84,8 +79,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := config.AppConfig(fxcore.MintDenom)
-			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
+			if err := server.InterceptConfigsPreRunHandler(cmd, "", nil); err != nil {
 				return err
 			}
 			// add log filter
@@ -130,13 +124,13 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	)
 
 	appCreator := appCreator{encodingConfig}
-	fxserver.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
+	server.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rpcStatusCmd := rpc.StatusCommand()
 	rpcStatusCmd.SetOut(os.Stdout)
 	rootCmd.AddCommand(
-		appCmd.KeyCommands(fxcore.DefaultNodeHome),
+		keys.Commands(fxcore.DefaultNodeHome),
 		rpcStatusCmd,
 		queryCommand(),
 		txCommand(),
@@ -171,7 +165,6 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
 		appCmd.QueryStoreCmd(),
-		appCmd.QueryValidatorByConsAddr(),
 		appCmd.QueryBlockResultsCmd(),
 	)
 

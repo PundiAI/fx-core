@@ -2,15 +2,13 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/functionx/fx-core/app/fxcore"
-	fxconfig "github.com/functionx/fx-core/server/config"
-	"path/filepath"
-	"strings"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
+	"path/filepath"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -27,11 +25,6 @@ func AppTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app.toml [key] [value]",
 		Short: "Create or query an `.fxcore/config/apptoml` file",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			customAppTemplate, _ := fxconfig.AppConfig(fxcore.MintDenom)
-			config.SetConfigTemplate(customAppTemplate)
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runConfigCmd(cmd, append([]string{appFileName}, args...))
 		},
@@ -70,7 +63,7 @@ func runConfigCmd(cmd *cobra.Command, args []string) error {
 
 	// 2. is len(args) == 2, get config key value
 	if len(args) == 2 {
-		return output(clientCtx, serverCtx.Viper.Get(args[1]))
+		return output(clientCtx, clientCtx.Viper.Get(args[1]))
 	}
 
 	serverCtx.Viper.Set(args[1], args[2])
@@ -92,7 +85,7 @@ var (
 )
 
 type appTomlConfig struct {
-	config *fxconfig.Config
+	config *config.Config
 }
 
 func (a appTomlConfig) output(clientCtx client.Context) error {
@@ -128,7 +121,7 @@ func (c configTomlConfig) save(clientCtx *server.Context, configPath string) err
 func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) {
 	switch configName {
 	case appFileName:
-		var configData = fxconfig.Config{}
+		var configData = config.Config{}
 		if err := clientCtx.Viper.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
@@ -140,7 +133,7 @@ func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) 
 		}
 		return &configTomlConfig{config: &configData}, nil
 	default:
-		return nil, fmt.Errorf("invalid config file:%s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/"))
+		return nil, errors.New(fmt.Sprintf("invalid config file:%s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/")))
 	}
 }
 

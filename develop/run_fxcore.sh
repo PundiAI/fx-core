@@ -26,6 +26,14 @@ if [[ "$1" == "init" ]]; then
   fxcored config node "tcp://127.0.0.1:26657"
   fxcored config broadcast-mode "block"
 
+  # update fxcore client config
+  fxcored client config chain-id fxcore
+  fxcored client config keyring-backend test
+  fxcored client config output json
+  fxcored client config node "tcp://127.0.0.1:26657"
+  fxcored client config broadcast-mode "block"
+
+
   fxcored keys add fx1
   perl -pi -e 's|378604525462891000000000000|778600525462891000000000000|g' ~/.fxcore/config/genesis.json
   perl -pi -e 's|"amount": "10000000000000000000000"|"amount": "100000000000000000000"|g' ~/.fxcore/config/genesis.json
