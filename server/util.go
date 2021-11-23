@@ -1,15 +1,8 @@
 package server
 
 import (
-	"net/http"
-	"os"
-	"os/signal"
-	"strconv"
-	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/spf13/cobra"
 
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
@@ -72,46 +65,4 @@ func ConnectTmWS(tmRPCAddr, tmEndpoint string, logger tmlog.Logger) *rpcclient.W
 	}
 
 	return tmWsClient
-}
-
-func MountGRPCWebServices(
-	router *mux.Router,
-	grpcWeb *grpcweb.WrappedGrpcServer,
-	grpcResources []string,
-	logger tmlog.Logger,
-) {
-	for _, res := range grpcResources {
-
-		logger.Info("[GRPC Web] HTTP POST mounted", "resource", res)
-
-		s := router.Methods("POST").Subrouter()
-		s.HandleFunc(res, func(resp http.ResponseWriter, req *http.Request) {
-			if grpcWeb.IsGrpcWebSocketRequest(req) {
-				grpcWeb.HandleGrpcWebsocketRequest(resp, req)
-				return
-			}
-
-			if grpcWeb.IsGrpcWebRequest(req) {
-				grpcWeb.HandleGrpcWebRequest(resp, req)
-				return
-			}
-		})
-	}
-}
-
-// ErrorCode contains the exit code for server exit.
-type ErrorCode struct {
-	Code int
-}
-
-func (e ErrorCode) Error() string {
-	return strconv.Itoa(e.Code)
-}
-
-// WaitForQuitSignals waits for SIGINT and SIGTERM and returns.
-func WaitForQuitSignals() ErrorCode {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	sig := <-sigs
-	return ErrorCode{Code: int(sig.(syscall.Signal)) + 128}
 }

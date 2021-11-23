@@ -180,7 +180,7 @@ func (api *API) SetGasPrice(gasPrice hexutil.Big) bool {
 	c := sdk.NewDecCoin(unit, sdk.NewIntFromBigInt(gasPrice.ToInt()))
 
 	appConf.SetMinGasPrices(sdk.DecCoins{c})
-	sdkconfig.WriteConfigFile(api.ctx.Viper.ConfigFileUsed(), &appConf.Config)
+	sdkconfig.WriteConfigFile(api.ctx.Viper.ConfigFileUsed(), appConf)
 	api.logger.Info("Your configuration file was modified. Please RESTART your node.", "gas-price", c.String())
 	return true
 }

@@ -138,8 +138,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		txCommand(),
 	)
 
-	rootCmd = fxserver.AddTxFlags(rootCmd)
-
 	for _, command := range rootCmd.Commands() {
 		// tendermint add update validator key command
 		if command.Use == "tendermint" {

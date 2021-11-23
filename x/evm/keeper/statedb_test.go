@@ -658,7 +658,6 @@ func (suite *KeeperTestSuite) TestAddLog() {
 			suite.app.EvmKeeper.AddLog(tc.log)
 			logs := suite.app.EvmKeeper.GetTxLogsTransient(tc.hash)
 			suite.Require().Equal(1, len(logs))
-
 			suite.Require().Equal(tc.expLog, logs[0])
 		})
 	}

@@ -40,8 +40,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&InitEvmParamsProposal{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
-
-	//cdc.RegisterConcrete(&InitCrossChainParamsProposal{}, fmt.Sprintf("%s/%s", ModuleName, "InitCrossChainParamsProposal"), nil)
 }
 
 // PackClientState constructs a new Any packed with the given tx data value. It returns

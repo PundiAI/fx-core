@@ -74,13 +74,13 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_BuildTx() {
 	err := msg.ValidateBasic()
 	suite.Require().NoError(err)
 
-	tx, err := msg.BuildTx(suite.clientCtx.TxConfig.NewTxBuilder(), "aphoton")
+	tx, err := msg.BuildTx(suite.clientCtx.TxConfig.NewTxBuilder(), "FX")
 	suite.Require().NoError(err)
 
 	suite.Require().Empty(tx.GetMemo())
 	suite.Require().Empty(tx.GetTimeoutHeight())
 	suite.Require().Equal(uint64(100000), tx.GetGas())
-	suite.Require().Equal(sdk.NewCoins(sdk.NewCoin("aphoton", sdk.NewInt(100000))), tx.GetFee())
+	suite.Require().Equal(sdk.NewCoins(sdk.NewCoin("FX", sdk.NewInt(100000))), tx.GetFee())
 }
 
 func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
@@ -362,7 +362,7 @@ func encodeDecodeBinary(tx *ethtypes.Transaction) (*types.MsgEthereumTx, error) 
 	if err != nil {
 		return nil, fmt.Errorf("rlp encoding failed: %v", err)
 	}
-	var parsedTx = &types.MsgEthereumTx{}
+	parsedTx := &types.MsgEthereumTx{}
 	if err := parsedTx.UnmarshalBinary(data); err != nil {
 		return nil, fmt.Errorf("rlp decoding failed: %v", err)
 	}
