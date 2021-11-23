@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	sdkclient "github.com/cosmos/cosmos-sdk/client/config"
+	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/functionx/fx-core/crypto/hd"
 	fxserver "github.com/functionx/fx-core/server"
 	"github.com/functionx/fx-core/server/config"
@@ -131,7 +132,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	rpcStatusCmd := rpc.StatusCommand()
 	rpcStatusCmd.SetOut(os.Stdout)
 	rootCmd.AddCommand(
-		appCmd.KeyCommands(fxcore.DefaultNodeHome),
+		keys.Commands(fxcore.DefaultNodeHome),
 		rpcStatusCmd,
 		queryCommand(),
 		txCommand(),
