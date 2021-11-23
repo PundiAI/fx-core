@@ -91,15 +91,7 @@ The pass backend requires GnuPG: https://gnupg.org/
 	// support adding Ethereum supported keys
 	addCmd := keys.AddKeyCommand()
 
-	// update the default signing algorithm value to "eth_secp256k1"
-	algoFlag := addCmd.Flag("algo")
-	algoFlag.DefValue = string(etherminthd.EthSecp256k1Type)
-	err := algoFlag.Value.Set(string(etherminthd.EthSecp256k1Type))
-	if err != nil {
-		panic(err)
-	}
-
-	addCmd.RunE = runAddCmd
+	addCmd.RunE = runAddCmdPrepare
 
 	cmd.AddCommand(
 		keys.MnemonicKeyCommand(),
@@ -124,28 +116,14 @@ The pass backend requires GnuPG: https://gnupg.org/
 	return cmd
 }
 
-func runAddCmd(cmd *cobra.Command, args []string) error {
-	buf := bufio.NewReader(cmd.InOrStdin())
-	clientCtx := client.GetClientContextFromCmd(cmd)
-
-	var (
-		kr  keyring.Keyring
-		err error
-	)
-
-	dryRun, _ := cmd.Flags().GetBool(flags.FlagDryRun)
-	if dryRun {
-		kr, err = keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientCtx.KeyringDir, buf, etherminthd.EthSecp256k1Option())
-	} else {
-		backend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
-		kr, err = keyring.New(sdk.KeyringServiceName(), backend, clientCtx.KeyringDir, buf, etherminthd.EthSecp256k1Option())
-	}
-
+func runAddCmdPrepare(cmd *cobra.Command, args []string) error {
+	clientCtx, err := client.GetClientQueryContext(cmd)
 	if err != nil {
 		return err
 	}
 
-	return RunAddCmd(clientCtx.WithKeyring(kr), cmd, args, buf)
+	buf := bufio.NewReader(cmd.InOrStdin())
+	return runAddCmd(clientCtx, cmd, args, buf)
 }
 
 // UnsafeExportEthKeyCommand exports a key with the given name as a private key in hex format.
@@ -276,7 +254,7 @@ input
 output
 	- armor encrypted private key (saved to file)
 */
-func RunAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *bufio.Reader) error {
+func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *bufio.Reader) error {
 	var err error
 
 	name := args[0]

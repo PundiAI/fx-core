@@ -15,8 +15,6 @@ if [[ "$1" == "init" ]]; then
   # fxcored config config.toml rpc.pprof_laddr ""
   # open prometheus
   fxcored config config.toml instrumentation.prometheus true
-  # default client.toml keyring-backend is os
-  fxcored client config keyring-backend test
 
   # update fxcore client config
   fxcored config chain-id fxcore

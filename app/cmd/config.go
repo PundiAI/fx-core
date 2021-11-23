@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	fxconfig "github.com/functionx/fx-core/server/config"
 	"path/filepath"
 	"strings"
 
@@ -85,7 +86,7 @@ var (
 )
 
 type appTomlConfig struct {
-	config *config.Config
+	config *fxconfig.Config
 }
 
 func (a appTomlConfig) output(clientCtx client.Context) error {
@@ -121,7 +122,7 @@ func (c configTomlConfig) save(clientCtx *server.Context, configPath string) err
 func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) {
 	switch configName {
 	case appFileName:
-		var configData = config.Config{}
+		var configData = fxconfig.Config{}
 		if err := clientCtx.Viper.Unmarshal(&configData); err != nil {
 			return nil, err
 		}

@@ -385,7 +385,3 @@ func (k Keeper) Tracer(msg core.Message, ethCfg *params.ChainConfig) vm.Tracer {
 func (k Keeper) HasInit(ctx sdk.Context) bool {
 	return k.paramSpace.Has(ctx, types.ParamStoreKeyEVMDenom)
 }
-
-func (k Keeper) HasInit(ctx sdk.Context) bool {
-	return k.paramSpace.Has(ctx, types.ParamStoreKeyEVMDenom)
-}

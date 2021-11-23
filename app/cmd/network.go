@@ -8,7 +8,6 @@ import (
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/functionx/fx-core/app/fxcore"
-	"github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
