@@ -8,9 +8,7 @@ import (
 
 func (k Keeper) HandleInitEvmParamsProposal(ctx sdk.Context, p *types.InitEvmParamsProposal) error {
 	// check duplicate init params.
-	var evmDenom string
-	k.paramSpace.GetIfExists(ctx, types.ParamStoreKeyEVMDenom, &evmDenom)
-	if len(evmDenom) != 0 {
+	if k.HasInit(ctx) {
 		return sdkerrors.Wrapf(types.ErrInvalid, "duplicate init evm params")
 	}
 
@@ -21,7 +19,7 @@ func (k Keeper) HandleInitEvmParamsProposal(ctx sdk.Context, p *types.InitEvmPar
 	k.feeMarketKeeper.SetParams(ctx, *p.FeemarketParams)
 
 	baseFee := sdk.ZeroInt()
-	if !p.FeemarketParams.NoBaseFee {
+	if !p.FeemarketParams.NoBaseFee && p.FeemarketParams.InitialBaseFee > 0 {
 		baseFee = sdk.NewInt(p.FeemarketParams.InitialBaseFee)
 	}
 	// set feeMarket baseFee

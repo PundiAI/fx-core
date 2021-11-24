@@ -369,6 +369,8 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 	if dynamicTxFee {
 		defaultFeeMarketParams.EnableHeight = 1
 		defaultFeeMarketParams.NoBaseFee = false
+	} else {
+		defaultFeeMarketParams.NoBaseFee = true
 	}
 
 	if err := keeper.HandleInitEvmParamsProposal(ctx, &types.InitEvmParamsProposal{
