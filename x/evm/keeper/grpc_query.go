@@ -49,6 +49,11 @@ func (k Keeper) Account(c context.Context, req *types.QueryAccountRequest) (*typ
 
 	ctx := sdk.UnwrapSDKContext(c)
 	k.WithContext(ctx)
+	if !k.HasInit(ctx) {
+		return nil, status.Error(
+			codes.InvalidArgument, "Not initialized or Unknown block number",
+		)
+	}
 
 	return &types.QueryAccountResponse{
 		Balance:  k.GetBalance(addr).String(),
@@ -137,6 +142,11 @@ func (k Keeper) Balance(c context.Context, req *types.QueryBalanceRequest) (*typ
 
 	ctx := sdk.UnwrapSDKContext(c)
 	k.WithContext(ctx)
+	if !k.HasInit(ctx) {
+		return nil, status.Error(
+			codes.InvalidArgument, "Not initialized or Unknown block number",
+		)
+	}
 
 	balanceInt := k.GetBalance(common.HexToAddress(req.Address))
 
@@ -199,6 +209,12 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 // Params implements the Query/Params gRPC method
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	if !k.HasInit(ctx) {
+		return nil, status.Error(
+			codes.InvalidArgument, "Not initialized or Unknown block number",
+		)
+	}
+
 	params := k.GetParams(ctx)
 
 	return &types.QueryParamsResponse{
@@ -214,6 +230,11 @@ func (k Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.Ms
 
 	ctx := sdk.UnwrapSDKContext(c)
 	k.WithContext(ctx)
+	if !k.HasInit(ctx) {
+		return nil, status.Error(
+			codes.InvalidArgument, "Not initialized or Unknown block number",
+		)
+	}
 
 	var args types.TransactionArgs
 	err := json.Unmarshal(req.Args, &args)
@@ -250,6 +271,11 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 
 	ctx := sdk.UnwrapSDKContext(c)
 	k.WithContext(ctx)
+	if !k.HasInit(ctx) {
+		return nil, status.Error(
+			codes.InvalidArgument, "Not initialized or Unknown block number",
+		)
+	}
 
 	if req.GasCap < ethparams.TxGas {
 		return nil, status.Error(codes.InvalidArgument, "gas cap cannot be lower than 21,000")
@@ -364,6 +390,11 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	k.WithContext(ctx)
+	if !k.HasInit(ctx) {
+		return nil, status.Error(
+			codes.InvalidArgument, "Not initialized or Unknown block number",
+		)
+	}
 
 	params := k.GetParams(ctx)
 	ethCfg := params.ChainConfig.EthereumConfig(k.eip155ChainID)
@@ -418,6 +449,11 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	k.WithContext(ctx)
+	if !k.HasInit(ctx) {
+		return nil, status.Error(
+			codes.InvalidArgument, "Not initialized or Unknown block number",
+		)
+	}
 
 	params := k.GetParams(ctx)
 	ethCfg := params.ChainConfig.EthereumConfig(k.eip155ChainID)
