@@ -19,31 +19,14 @@
     ]
   },
   "description": "fx chain node monitoring",
-  "editable": true,
+  "editable": false,
+  "fiscalYearStartMonth": 0,
   "gnetId": 11036,
   "graphTooltip": 0,
-  "id": 111,
-  "iteration": 1635757082578,
+  "iteration": 1637739402182,
   "links": [],
+  "liveNow": false,
   "panels": [
-    {
-      "collapsed": false,
-      "datasource": "prometheus",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 64,
-      "panels": [],
-      "title": "overview 1",
-      "type": "row"
-    },
     {
       "cacheTimeout": null,
       "datasource": "prometheus",
@@ -72,7 +55,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 0
       },
       "hideTimeOverride": false,
       "id": 4,
@@ -94,7 +77,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "expr": "tendermint_consensus_height{chain_id=\"$chain_id\", name=\"$name\"}",
@@ -143,7 +126,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 0
       },
       "hideTimeOverride": false,
       "id": 65,
@@ -165,7 +148,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -233,7 +216,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 0
       },
       "hideTimeOverride": true,
       "id": 56,
@@ -251,7 +234,7 @@
         "showThresholdMarkers": true,
         "text": {}
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -297,7 +280,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 0
       },
       "hideTimeOverride": false,
       "id": 40,
@@ -319,7 +302,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -370,7 +353,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 0
       },
       "hideTimeOverride": true,
       "id": 60,
@@ -392,7 +375,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -452,7 +435,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 0
       },
       "hideTimeOverride": true,
       "id": 53,
@@ -470,7 +453,7 @@
         "showThresholdMarkers": true,
         "text": {}
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "expr": "tendermint_p2p_peers{chain_id=\"$chain_id\", name=\"$name\"}",
@@ -514,7 +497,7 @@
         "h": 4,
         "w": 8,
         "x": 0,
-        "y": 5
+        "y": 4
       },
       "hideTimeOverride": false,
       "id": 47,
@@ -536,7 +519,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -596,7 +579,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 5
+        "y": 4
       },
       "hideTimeOverride": true,
       "id": 39,
@@ -618,7 +601,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -668,7 +651,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 5
+        "y": 4
       },
       "hideTimeOverride": true,
       "id": 61,
@@ -690,7 +673,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "expr": "tendermint_mempool_recheck_times{chain_id=\"$chain_id\", name=\"$name\"}",
@@ -738,7 +721,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 5
+        "y": 4
       },
       "hideTimeOverride": false,
       "id": 66,
@@ -760,7 +743,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -810,7 +793,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 5
+        "y": 4
       },
       "hideTimeOverride": false,
       "id": 81,
@@ -832,7 +815,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -872,7 +855,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 9
+        "y": 8
       },
       "hiddenSeries": false,
       "hideTimeOverride": false,
@@ -897,7 +880,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1001,7 +984,7 @@
         "h": 4,
         "w": 2,
         "x": 8,
-        "y": 9
+        "y": 8
       },
       "hideTimeOverride": false,
       "id": 75,
@@ -1023,7 +1006,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -1070,7 +1053,7 @@
         "h": 4,
         "w": 2,
         "x": 10,
-        "y": 9
+        "y": 8
       },
       "hideTimeOverride": false,
       "id": 71,
@@ -1092,7 +1075,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -1133,7 +1116,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 9
+        "y": 8
       },
       "hiddenSeries": false,
       "hideTimeOverride": false,
@@ -1157,7 +1140,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1246,7 +1229,7 @@
         "h": 5,
         "w": 4,
         "x": 8,
-        "y": 13
+        "y": 12
       },
       "hideTimeOverride": false,
       "id": 72,
@@ -1268,7 +1251,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -1308,7 +1291,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 18
+        "y": 17
       },
       "hiddenSeries": false,
       "hideTimeOverride": false,
@@ -1333,7 +1316,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1441,7 +1424,7 @@
         "h": 4,
         "w": 2,
         "x": 8,
-        "y": 18
+        "y": 17
       },
       "hideTimeOverride": false,
       "id": 70,
@@ -1463,7 +1446,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -1514,7 +1497,7 @@
         "h": 4,
         "w": 2,
         "x": 10,
-        "y": 18
+        "y": 17
       },
       "hideTimeOverride": false,
       "id": 73,
@@ -1536,7 +1519,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -1576,7 +1559,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 17
       },
       "hiddenSeries": false,
       "hideTimeOverride": false,
@@ -1600,7 +1583,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1693,7 +1676,7 @@
         "h": 5,
         "w": 4,
         "x": 8,
-        "y": 22
+        "y": 21
       },
       "hideTimeOverride": false,
       "id": 74,
@@ -1715,7 +1698,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "8.2.3",
       "targets": [
         {
           "exemplar": true,
@@ -1736,7 +1719,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 27,
+  "schemaVersion": 31,
   "style": "dark",
   "tags": [
     "FxChain"
@@ -1769,7 +1752,6 @@
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -1777,13 +1759,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": [
-            "val-node-01"
-          ],
-          "value": [
-            "val-node-01"
-          ]
+          "selected": false,
+          "text": "val-01",
+          "value": "val-01"
         },
         "datasource": "prometheus",
         "definition": "label_values({chain_id=\"$chain_id\"},name)",
@@ -1804,7 +1782,6 @@
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -1816,6 +1793,7 @@
     "to": "now"
   },
   "timepicker": {
+    "hidden": false,
     "refresh_intervals": [
       "5s",
       "10s",
