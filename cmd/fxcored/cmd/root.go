@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"errors"
-	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
+
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/functionx/fx-core/crypto/hd"
 	fxserver "github.com/functionx/fx-core/server"
@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
