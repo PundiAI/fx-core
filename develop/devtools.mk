@@ -30,25 +30,25 @@ ifneq ($(OS),Windows_NT)
   (test ! -d $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && cd $(GITHUBDIR)$(FS)$(1) && git clone https://github.com/$(1)/$(2)) || true &&\
   )\
   cd $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && git fetch origin && git checkout -q $(3)
-
+  
   go_install = $(call go_get,$(1),$(2),$(3)) && cd $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && $(GO) install
-
+  
   mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
   mkfile_dir := $(shell cd $(shell dirname $(mkfile_path)); pwd)
-
+  
   ###############################################################################
   ###                                 Tools                                   ###
   ###############################################################################
-
+  
   BIN ?= /usr/local/bin
   UNAME_S ?= $(shell uname -s)
   UNAME_M ?= $(shell uname -m)
-
+  
   TOOLS_DESTDIR  ?= $(GOPATH)/bin
-
+  
   BUF_VERSION ?= 0.7.0
   PROTOC_VERSION ?= 3.11.2
-
+  
   ifeq ($(UNAME_S),Linux)
     PROTOC_ZIP ?= protoc-3.11.2-linux-x86_64.zip
   endif
