@@ -64,7 +64,7 @@ func runConfigCmd(cmd *cobra.Command, args []string) error {
 
 	// 2. is len(args) == 2, get config key value
 	if len(args) == 2 {
-		return output(clientCtx, clientCtx.Viper.Get(args[1]))
+		return output(clientCtx, serverCtx.Viper.Get(args[1]))
 	}
 
 	serverCtx.Viper.Set(args[1], args[2])
