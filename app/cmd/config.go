@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/functionx/fx-core/app/fxcore"
 	fxconfig "github.com/functionx/fx-core/server/config"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,11 @@ func AppTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app.toml [key] [value]",
 		Short: "Create or query an `.fxcore/config/apptoml` file",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			customAppTemplate, _ := fxconfig.AppConfig(fxcore.MintDenom)
+			config.SetConfigTemplate(customAppTemplate)
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runConfigCmd(cmd, append([]string{appFileName}, args...))
 		},
