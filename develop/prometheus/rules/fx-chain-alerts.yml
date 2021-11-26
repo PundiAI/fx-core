@@ -21,7 +21,7 @@ groups:
 
       - alert: The fx chain consensus validators
         expr: sum(tendermint_consensus_validators - (tendermint_consensus_validators offset 1m) != 0) by (job)
-        for: 1m
+        for: 0m
         labels:
           level: critical
           monitor: tendermint_consensus_validators
@@ -29,7 +29,7 @@ groups:
           description: "The fx chain consensus validators has changed, current: {{$value}}"
 
       - alert: The fx chain node latest block height
-        expr: tendermint_consensus_latest_block_height - (tendermint_consensus_latest_block_height offset 2m) == 0
+        expr: tendermint_consensus_latest_block_height - (tendermint_consensus_latest_block_height offset 1m) == 0
         for: 0m
         labels:
           level: critical
@@ -38,7 +38,7 @@ groups:
           description: "The fx chain node block height does not increase for 2 minutes"
 
       - alert: The fx chain node last signed height
-        expr: tendermint_consensus_validator_last_signed_height - (tendermint_consensus_validator_last_signed_height offset 2m) == 0
+        expr: tendermint_consensus_validator_last_signed_height - (tendermint_consensus_validator_last_signed_height offset 1m) == 0
         for: 0m
         labels:
           level: warning
@@ -47,8 +47,8 @@ groups:
           description: "The fx chain node did not participate in the block signing for 2 minutes"
 
       - alert: The fx chain node missed blocks
-        expr: tendermint_consensus_validator_missed_blocks - (tendermint_consensus_validator_missed_blocks offset 2m) >= 3
-        for: 5m
+        expr: tendermint_consensus_validator_missed_blocks - (tendermint_consensus_validator_missed_blocks offset 1m) >= 3
+        for: 1m
         labels:
           level: warning
           monitor: tendermint_consensus_validator_missed_blocks
@@ -119,8 +119,8 @@ groups:
           description: "The fx chain failed transactions number in the memory pool has increased by more than 10 in 1 minute, current: {{$value}}"
 
       - alert: The fx chain node synchronization status
-        expr: tendermint_consensus_fast_syncing - (tendermint_consensus_fast_syncing offset 5m) != 0
-        for: 3m
+        expr: tendermint_consensus_fast_syncing - (tendermint_consensus_fast_syncing offset 1m) != 0
+        for: 1m
         labels:
           level: warning
           monitor: tendermint_consensus_fast_syncing
