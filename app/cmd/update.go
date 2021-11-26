@@ -16,8 +16,6 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
-
-	"github.com/functionx/fx-core/app"
 )
 
 const (
@@ -52,6 +50,9 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 			}
 
 			secret := args[0]
+			if len(secret) < 32 {
+				return fmt.Errorf("secret contains less than 32 characters")
+			}
 			pvKeyFile := serverCtx.Config.PrivValidatorKeyFile()
 			_ = os.Remove(pvKeyFile)
 			if err := tmos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {
@@ -75,7 +76,7 @@ func UpdateNodeKeyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-node-key [secret]",
 		Short: "update node key file (fxcore/config/node_key.json)",
-		Args:  cobra.RangeArgs(0, 1),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			rootDir := serverCtx.Viper.GetString(flags.FlagHome)
@@ -95,9 +96,9 @@ func UpdateNodeKeyCmd() *cobra.Command {
 					return nil
 				}
 			}
-			secret := app.NewMnemonic()
-			if len(args) > 0 {
-				secret = args[0]
+			secret := args[0]
+			if len(secret) < 32 {
+				return fmt.Errorf("secret contains less than 32 characters")
 			}
 			nodeKeyFile := serverCtx.Config.NodeKeyFile()
 			_ = os.Remove(nodeKeyFile)
