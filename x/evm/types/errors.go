@@ -35,7 +35,10 @@ const (
 	codeErrInvalid
 )
 
-var ErrPostTxProcessing = errors.New("failed to execute post processing")
+var (
+	ErrPostTxProcessing             = errors.New("failed to execute post processing")
+	ErrNotInitializedOrUnknownBlock = errors.New("not initialized or unknown block")
+)
 
 var (
 	// ErrInvalidState returns an error resulting from an invalid Storage State.

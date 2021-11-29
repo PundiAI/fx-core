@@ -51,7 +51,7 @@ func (k Keeper) Account(c context.Context, req *types.QueryAccountRequest) (*typ
 	k.WithContext(ctx)
 	if !k.HasInit(ctx) {
 		return nil, status.Error(
-			codes.InvalidArgument, "Not initialized or Unknown block number",
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
 
@@ -144,7 +144,7 @@ func (k Keeper) Balance(c context.Context, req *types.QueryBalanceRequest) (*typ
 	k.WithContext(ctx)
 	if !k.HasInit(ctx) {
 		return nil, status.Error(
-			codes.InvalidArgument, "Not initialized or Unknown block number",
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
 
@@ -211,7 +211,7 @@ func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 	ctx := sdk.UnwrapSDKContext(c)
 	if !k.HasInit(ctx) {
 		return nil, status.Error(
-			codes.InvalidArgument, "Not initialized or Unknown block number",
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
 
@@ -232,7 +232,7 @@ func (k Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.Ms
 	k.WithContext(ctx)
 	if !k.HasInit(ctx) {
 		return nil, status.Error(
-			codes.InvalidArgument, "Not initialized or Unknown block number",
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
 
@@ -273,7 +273,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 	k.WithContext(ctx)
 	if !k.HasInit(ctx) {
 		return nil, status.Error(
-			codes.InvalidArgument, "Not initialized or Unknown block number",
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
 
@@ -392,7 +392,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 	k.WithContext(ctx)
 	if !k.HasInit(ctx) {
 		return nil, status.Error(
-			codes.InvalidArgument, "Not initialized or Unknown block number",
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
 
@@ -451,7 +451,7 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 	k.WithContext(ctx)
 	if !k.HasInit(ctx) {
 		return nil, status.Error(
-			codes.InvalidArgument, "Not initialized or Unknown block number",
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
 

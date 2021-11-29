@@ -200,6 +200,12 @@ func (e *EVMBackend) getAccountNonce(accAddr common.Address, pending bool, heigh
 	return nonce, nil
 }
 
+func (e *EVMBackend) ensureExistsWithHeight(accAddr common.Address, height int64) error {
+	queryClient := authtypes.NewQueryClient(e.clientCtx)
+	_, err := queryClient.Account(types.ContextWithHeight(height), &authtypes.QueryAccountRequest{Address: sdk.AccAddress(accAddr.Bytes()).String()})
+	return err
+}
+
 // TxLogsFromEvents parses ethereum logs from cosmos events
 func TxLogsFromEvents(events []abci.Event) ([]*ethtypes.Log, error) {
 	logs := make([]*evmtypes.Log, 0)

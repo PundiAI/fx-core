@@ -854,11 +854,17 @@ func (e *EVMBackend) GetTransactionCount(address common.Address, blockNum types.
 	// Get nonce (sequence) from account
 	from := sdk.AccAddress(address.Bytes())
 	accRet := e.clientCtx.AccountRetriever
-
-	err := accRet.EnsureExists(e.clientCtx, from)
-	if err != nil {
+	n := hexutil.Uint64(0)
+	if err := accRet.EnsureExists(e.clientCtx, from); err != nil {
 		// account doesn't exist yet, return 0
-		n := hexutil.Uint64(0)
+		return &n, nil
+	}
+	currentHeight, _ := e.BlockNumber()
+	if int64(currentHeight) < blockNum.Int64() {
+		return nil, errors.New("unknown block")
+	}
+	if err := e.ensureExistsWithHeight(address, blockNum.Int64()); err != nil {
+		// account doesn't exist at specified block number, return 0
 		return &n, nil
 	}
 
@@ -867,8 +873,7 @@ func (e *EVMBackend) GetTransactionCount(address common.Address, blockNum types.
 	if err != nil {
 		return nil, err
 	}
-
-	n := hexutil.Uint64(nonce)
+	n = hexutil.Uint64(nonce)
 	return &n, nil
 }
 
