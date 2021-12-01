@@ -188,9 +188,11 @@ func PubkeyCmd() *cobra.Command {
 			}
 			addr := pk.Address()
 			data, err := json.Marshal(map[string]interface{}{
+				"BytesAddress": addr,
+				"HexAddress":   addr.String(),
 				"EIP55Address": common.BytesToAddress(addr),
 				"AccAddress":   sdk.AccAddress(addr).String(),
-				"HexAddress":   addr.String(),
+				"ConsAddress":  sdk.ConsAddress(addr).String(),
 				"PubKeyHex":    hex.EncodeToString(pk.Bytes()),
 			})
 			if err != nil {
@@ -202,7 +204,7 @@ func PubkeyCmd() *cobra.Command {
 }
 
 func AddrCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "addr [address]",
 		Short: "Convert an address between hex and bech32",
 		Long:  "Convert an address between hex encoding and bech32.",
@@ -227,6 +229,9 @@ $ %s debug addr 0xA588C66983a81e800Db4dF74564F09f91c026351`, version.AppName, ve
 				return fmt.Errorf("expected a valid hex or bech32 address (acc prefix %s), got '%s'", cfg.GetBech32AccountAddrPrefix(), addrString)
 			}
 
+			addressPrefix, _ := cmd.Flags().GetString("addr-prefix")
+			UpdateAddressPrefix(addressPrefix)
+
 			data, err := json.Marshal(map[string]interface{}{
 				"BytesAddress": addr,
 				"HexAddress":   bytes.HexBytes(addr).String(),
@@ -240,6 +245,18 @@ $ %s debug addr 0xA588C66983a81e800Db4dF74564F09f91c026351`, version.AppName, ve
 			return clientCtx.PrintString(string(data))
 		},
 	}
+	cmd.Flags().String("addr-prefix", "fx", "custom address prefix")
+	return cmd
+}
+
+func UpdateAddressPrefix(prefix string) {
+	config := sdk.GetConfig()
+	*config = *sdk.NewConfig()
+
+	config.SetBech32PrefixForAccount(prefix, prefix+sdk.PrefixPublic)
+	config.SetBech32PrefixForValidator(prefix+sdk.PrefixValidator+sdk.PrefixOperator, prefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic)
+	config.SetBech32PrefixForConsensusNode(prefix+sdk.PrefixValidator+sdk.PrefixConsensus, prefix+sdk.PrefixValidator+sdk.PrefixConsensus+sdk.PrefixPublic)
+	config.Seal()
 }
 
 func RawBytesCmd() *cobra.Command {
