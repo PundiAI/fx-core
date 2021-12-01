@@ -571,7 +571,7 @@ func (e *EVMBackend) GetLogsByHeight(height *int64) ([][]*ethtypes.Log, error) {
 		return nil, err
 	}
 
-	var blockLogs [][]*ethtypes.Log
+	blockLogs := [][]*ethtypes.Log{}
 	for _, txResult := range blockRes.TxsResults {
 		logs, err := TxLogsFromEvents(txResult.Events)
 		if err != nil {
