@@ -350,7 +350,7 @@ func (e *EVMBackend) EthBlockFromTendermint(
 	block *tmtypes.Block,
 	fullTx bool,
 ) (map[string]interface{}, error) {
-	var ethRPCTxs []interface{}
+	ethRPCTxs := []interface{}{}
 
 	ctx := types.ContextWithHeight(block.Height)
 
