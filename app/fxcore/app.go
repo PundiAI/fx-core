@@ -309,8 +309,11 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	scopedTransferKeeper := myApp.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 
 	// add keepers
+	//myApp.AccountKeeper = authkeeper.NewAccountKeeper(
+	//	appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), fxtype.ProtoAccount, maccPerms,
+	//)
 	myApp.AccountKeeper = authkeeper.NewAccountKeeper(
-		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), fxtype.ProtoAccount, maccPerms,
+		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
 	)
 	myApp.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], myApp.AccountKeeper, myApp.GetSubspace(banktypes.ModuleName), myApp.ModuleAccountAddrs(),
@@ -561,6 +564,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportTronBlock(), trontypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), evmtypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), feemarkettypes.StoreKey)
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {

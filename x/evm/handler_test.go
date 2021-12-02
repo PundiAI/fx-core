@@ -31,7 +31,6 @@ import (
 	"github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/tests"
-	ethermint "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/evm"
 	"github.com/functionx/fx-core/x/evm/types"
 
@@ -139,12 +138,16 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 
-	acc := &ethermint.EthAccount{
-		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(address.Bytes()), nil, 0, 0),
-		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-	}
+	//TODO update ethAccount 2021-12-02.
+	//acc := &ethermint.EthAccount{
+	//	BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(address.Bytes()), nil, 0, 0),
+	//	CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
+	//}
+
+	acc := authtypes.NewBaseAccount(address.Bytes(), nil, 0, 0)
 
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+	suite.app.EvmKeeper.SetAddressCode(suite.ctx, address, common.BytesToHash(crypto.Keccak256(nil)).Bytes())
 
 	valAddr := sdk.ValAddress(address.Bytes())
 	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})

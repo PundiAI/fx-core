@@ -279,19 +279,23 @@ func (k *Keeper) GetCodeHash(addr common.Address) common.Hash {
 	}
 
 	ctx := k.Ctx()
-	cosmosAddr := sdk.AccAddress(addr.Bytes())
+	//cosmosAddr := sdk.AccAddress(addr.Bytes())
 
-	account := k.accountKeeper.GetAccount(ctx, cosmosAddr)
-	if account == nil {
+	//account := k.accountKeeper.GetAccount(ctx, cosmosAddr)
+	//if account == nil {
+	//	return common.BytesToHash(types.EmptyCodeHash)
+	//}
+	//
+	//ethAccount, isEthAccount := account.(*ethermint.EthAccount)
+	//if !isEthAccount {
+	//	return common.BytesToHash(types.EmptyCodeHash)
+	//}
+
+	codeHash, found := k.GetAddressCodeHash(ctx, addr)
+	if !found {
 		return common.BytesToHash(types.EmptyCodeHash)
 	}
-
-	ethAccount, isEthAccount := account.(*ethermint.EthAccount)
-	if !isEthAccount {
-		return common.BytesToHash(types.EmptyCodeHash)
-	}
-
-	return common.HexToHash(ethAccount.CodeHash)
+	return common.BytesToHash(codeHash)
 }
 
 // GetCode returns the code byte array associated with the given address.
@@ -343,19 +347,20 @@ func (k *Keeper) SetCode(addr common.Address, code []byte) {
 		k.accountKeeper.SetAccount(ctx, account)
 	}
 
-	ethAccount, isEthAccount := account.(*ethermint.EthAccount)
-	if !isEthAccount {
-		k.Logger(ctx).Error(
-			"invalid account type",
-			"ethereum-address", addr.Hex(),
-			"code-hash", hash.Hex(),
-		)
-		k.stateErr = fmt.Errorf("invalid account type, ethereum-address %v, code-hash %v", addr.Hex(), hash.Hex())
-		return
-	}
+	//ethAccount, isEthAccount := account.(*ethermint.EthAccount)
+	//if !isEthAccount {
+	//	k.Logger(ctx).Error(
+	//		"invalid account type",
+	//		"ethereum-address", addr.Hex(),
+	//		"code-hash", hash.Hex(),
+	//	)
+	//	k.stateErr = fmt.Errorf("invalid account type, ethereum-address %v, code-hash %v", addr.Hex(), hash.Hex())
+	//	return
+	//}
 
-	ethAccount.CodeHash = hash.Hex()
-	k.accountKeeper.SetAccount(ctx, ethAccount)
+	//ethAccount.CodeHash = hash.Hex()
+	k.accountKeeper.SetAccount(ctx, account)
+	k.SetAddressCode(ctx, addr, hash.Bytes())
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCode)
 
@@ -616,12 +621,15 @@ func (k *Keeper) Empty(addr common.Address) bool {
 
 	if account != nil {
 		nonce = account.GetSequence()
-		ethAccount, isEthAccount := account.(*ethermint.EthAccount)
-		if !isEthAccount {
-			return false
+		//ethAccount, isEthAccount := account.(*ethermint.EthAccount)
+		//if !isEthAccount {
+		//	return false
+		//}
+		addressCodeHash, found := k.GetAddressCodeHash(ctx, addr)
+		if found {
+			codeHash = addressCodeHash
 		}
-
-		codeHash = common.HexToHash(ethAccount.CodeHash).Bytes()
+		//codeHash = common.HexToHash(ethAccount.CodeHash).Bytes()
 	}
 
 	balance := k.GetBalance(addr)

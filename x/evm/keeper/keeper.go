@@ -385,3 +385,14 @@ func (k Keeper) Tracer(msg core.Message, ethCfg *params.ChainConfig) vm.Tracer {
 func (k Keeper) HasInit(ctx sdk.Context) bool {
 	return k.paramSpace.Has(ctx, types.ParamStoreKeyEVMDenom)
 }
+
+func (k Keeper) GetAddressCodeHash(ctx sdk.Context, addr common.Address) ([]byte, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAddressCode)
+	data := store.Get(addr.Bytes())
+	return data, len(data) != 0
+}
+
+func (k Keeper) SetAddressCode(ctx sdk.Context, addr common.Address, codeHash []byte) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAddressCode)
+	store.Set(addr.Bytes(), codeHash)
+}

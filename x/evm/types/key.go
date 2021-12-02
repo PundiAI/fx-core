@@ -25,6 +25,7 @@ const (
 const (
 	prefixCode = iota + 1
 	prefixStorage
+	prefixAddressCode
 )
 
 // prefix bytes for the EVM transient store
@@ -42,8 +43,9 @@ const (
 
 // KVStore key prefixes
 var (
-	KeyPrefixCode    = []byte{prefixCode}
-	KeyPrefixStorage = []byte{prefixStorage}
+	KeyPrefixCode        = []byte{prefixCode}
+	KeyPrefixStorage     = []byte{prefixStorage}
+	KeyPrefixAddressCode = []byte{prefixAddressCode}
 )
 
 // Transient Store key prefixes
@@ -67,4 +69,8 @@ func AddressStoragePrefix(address common.Address) []byte {
 // StateKey defines the full key under which an account state is stored.
 func StateKey(address common.Address, key []byte) []byte {
 	return append(AddressStoragePrefix(address), key...)
+}
+
+func AddressCodePrefix(address common.Address) []byte {
+	return append(KeyPrefixAddressCode, address.Bytes()...)
 }

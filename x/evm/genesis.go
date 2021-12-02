@@ -1,14 +1,9 @@
 package evm
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/ethereum/go-ethereum/common"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	ethermint "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/evm/keeper"
 	"github.com/functionx/fx-core/x/evm/types"
 )
@@ -30,30 +25,30 @@ func InitGenesis(
 		panic("the EVM module account has not been set")
 	}
 
-	for _, account := range data.Accounts {
-		address := common.HexToAddress(account.Address)
-		accAddress := sdk.AccAddress(address.Bytes())
-		// check that the EVM balance the matches the account balance
-		acc := accountKeeper.GetAccount(ctx, accAddress)
-		if acc == nil {
-			panic(fmt.Errorf("account not found for address %s", account.Address))
-		}
-
-		_, ok := acc.(*ethermint.EthAccount)
-		if !ok {
-			panic(
-				fmt.Errorf("account %s must be an %T type, got %T",
-					account.Address, &ethermint.EthAccount{}, acc,
-				),
-			)
-		}
-
-		k.SetCode(address, common.Hex2Bytes(account.Code))
-
-		for _, storage := range account.Storage {
-			k.SetState(address, common.HexToHash(storage.Key), common.HexToHash(storage.Value))
-		}
-	}
+	//for _, account := range data.Accounts {
+	//	address := common.HexToAddress(account.Address)
+	//	accAddress := sdk.AccAddress(address.Bytes())
+	//	// check that the EVM balance the matches the account balance
+	//	acc := accountKeeper.GetAccount(ctx, accAddress)
+	//	if acc == nil {
+	//		panic(fmt.Errorf("account not found for address %s", account.Address))
+	//	}
+	//
+	//	_, ok := acc.(*ethermint.EthAccount)
+	//	if !ok {
+	//		panic(
+	//			fmt.Errorf("account %s must be an %T type, got %T",
+	//				account.Address, &ethermint.EthAccount{}, acc,
+	//			),
+	//		)
+	//	}
+	//
+	//	k.SetCode(address, common.Hex2Bytes(account.Code))
+	//
+	//	for _, storage := range account.Storage {
+	//		k.SetState(address, common.HexToHash(storage.Key), common.HexToHash(storage.Value))
+	//	}
+	//}
 
 	return []abci.ValidatorUpdate{}
 }
@@ -63,29 +58,29 @@ func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *t
 	k.WithContext(ctx)
 
 	var ethGenAccounts []types.GenesisAccount
-	ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
-		ethAccount, ok := account.(*ethermint.EthAccount)
-		if !ok {
-			// ignore non EthAccounts
-			return false
-		}
-
-		addr := ethAccount.EthAddress()
-
-		storage, err := k.GetAccountStorage(ctx, addr)
-		if err != nil {
-			panic(err)
-		}
-
-		genAccount := types.GenesisAccount{
-			Address: addr.String(),
-			Code:    common.Bytes2Hex(k.GetCode(addr)),
-			Storage: storage,
-		}
-
-		ethGenAccounts = append(ethGenAccounts, genAccount)
-		return false
-	})
+	//ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
+	//	ethAccount, ok := account.(*ethermint.EthAccount)
+	//	if !ok {
+	//		// ignore non EthAccounts
+	//		return false
+	//	}
+	//
+	//	addr := ethAccount.EthAddress()
+	//
+	//	storage, err := k.GetAccountStorage(ctx, addr)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//
+	//	genAccount := types.GenesisAccount{
+	//		Address: addr.String(),
+	//		Code:    common.Bytes2Hex(k.GetCode(addr)),
+	//		Storage: storage,
+	//	}
+	//
+	//	ethGenAccounts = append(ethGenAccounts, genAccount)
+	//	return false
+	//})
 
 	return &types.GenesisState{
 		Accounts: ethGenAccounts,

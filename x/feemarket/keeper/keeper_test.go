@@ -23,7 +23,6 @@ import (
 
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/tests"
-	ethermint "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/feemarket/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -99,10 +98,16 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	acc := &ethermint.EthAccount{
-		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
-		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-	}
+	//TODO update ethAccount 2021-12-02.
+	//acc := &ethermint.EthAccount{
+	//	BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
+	//	CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
+	//}
+
+	acc := authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0)
+
+	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+	suite.app.EvmKeeper.SetAddressCode(suite.ctx, suite.address, common.BytesToHash(crypto.Keccak256(nil)).Bytes())
 
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
