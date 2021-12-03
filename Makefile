@@ -5,7 +5,11 @@ COMMIT := $(shell git log -1 --format='%H')
 
 # don't override user values
 ifeq (,$(VERSION))
-  VERSION := $(shell git describe --exact-match 2>/dev/null)
+  ifeq ($(OS),Windows_NT)
+	VERSION := $(shell git describe --exact-match 2>$null)
+  else
+	VERSION := $(shell git describe --exact-match 2>/dev/null)
+  endif
   # if VERSION is empty, then populate it with branch's name and raw commit hash
   ifeq (,$(VERSION))
     VERSION := $(BRANCH)-$(COMMIT)
@@ -13,10 +17,16 @@ ifeq (,$(VERSION))
 endif
 
 LEDGER_ENABLED ?= true
-TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
+TM_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/tendermint/tendermint)
 BUILDDIR ?= $(CURDIR)/build
 
 export GO111MODULE = on
+
+ifeq ($(OS),Windows_NT)
+  BINARYNAME := fxcored.exe
+else
+  BINARYNAME := fxcored
+endif
 
 # process build tags
 
@@ -65,6 +75,19 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Name=fxcore \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored \
 
+ifneq (,$(FX_BUILD_OPTIONS))
+  network=$(FX_BUILD_OPTIONS)
+endif
+ifeq (devnet,$(network))
+  FX_BUILD_OPTIONS := devnet
+endif
+ifeq (testnet,$(network))
+  FX_BUILD_OPTIONS := testnet
+endif
+ifeq (,$(network))
+  FX_BUILD_OPTIONS := mainnet
+endif
+
 ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
 endif
@@ -111,7 +134,7 @@ go.sum: go.mod
 	@go mod download
 
 go-build: go.mod
-	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/fxcored ./cmd/fxcored
+	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd/fxcored
 
 build: go.mod
 	@echo "--> build mainnet <--"
@@ -133,6 +156,9 @@ build-linux-devnet:
 
 build-linux-testnet:
 	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-testnet
+
+build-win:
+	@make go-build
 
 install:
 	@$(MAKE) build
