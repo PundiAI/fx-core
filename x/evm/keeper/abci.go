@@ -29,6 +29,4 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) {
 	k.EmitBlockBloomEvent(infCtx, bloom)
 
 	k.WithContext(ctx)
-
-	return
 }

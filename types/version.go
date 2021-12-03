@@ -1,6 +1,9 @@
 package types
 
-import "math/big"
+import (
+	"math"
+	"math/big"
+)
 
 // network constant
 const (
@@ -17,6 +20,7 @@ const (
 
 	testnetGravityPruneValsetAndAttestationBlock = 1
 	testnetGravityValsetSlashBlock               = 1
+	testnetSupportEvmBlock                       = math.MaxInt
 )
 
 // mainnet constant
@@ -29,6 +33,7 @@ const (
 	mainnetGravityPruneValsetAndAttestationBlock = 610000
 	// gravity not slash no set eth address validator
 	mainnetGravityValsetSlashBlock = 1685000
+	mainnetSupportEvmBlock         = math.MaxInt
 )
 
 // devnet constant

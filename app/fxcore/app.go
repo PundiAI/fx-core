@@ -553,7 +553,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.SetInitChainer(myApp.InitChainer)
 	myApp.SetBeginBlocker(myApp.BeginBlocker)
 	myApp.SetAnteHandler(
-		app.NewAnteHandlerWithEVM(
+		app.NewAnteHandler(
 			myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
 			app.DefaultSigVerificationGasConsumer, encodingConfig.TxConfig.SignModeHandler(),
 		),

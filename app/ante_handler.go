@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	"github.com/palantir/stacktrace"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"runtime/debug"
 )
@@ -20,10 +19,54 @@ const (
 	secp256k1VerifyCost uint64 = 21000
 )
 
-// NewAnteHandler returns an AnteHandler that checks and increments sequence
+func NewAnteHandler(
+	ak evmtypes.AccountKeeper,
+	bankKeeper evmtypes.BankKeeper,
+	evmKeeper EVMKeeper,
+	feeMarketKeeper evmtypes.FeeMarketKeeper,
+	sigGasConsumer ante.SignatureVerificationGasConsumer,
+	signModeHandler authsigning.SignModeHandler,
+) sdk.AnteHandler {
+	return func(
+		ctx sdk.Context, tx sdk.Tx, sim bool,
+	) (newCtx sdk.Context, err error) {
+		var anteHandler sdk.AnteHandler
+
+		defer Recover(ctx.Logger(), &err)
+
+		txWithExtensions, ok := tx.(ante.HasExtensionOptionsTx)
+		if ok {
+			opts := txWithExtensions.GetExtensionOptions()
+			if len(opts) > 0 {
+				switch typeURL := opts[0].GetTypeUrl(); typeURL {
+				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
+					// handle as *evmtypes.MsgEthereumTx
+					anteHandler = ethereumTxAnteHandler(ak, bankKeeper, evmKeeper, feeMarketKeeper)
+				default:
+					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownExtensionOptions, "rejecting tx with unsupported extension option: %s", typeURL)
+				}
+
+				return anteHandler(ctx, tx, sim)
+			}
+		}
+
+		// handle as totally normal Cosmos SDK tx
+
+		switch tx.(type) {
+		case sdk.Tx:
+			anteHandler = normalTxAnteHandler(ak, bankKeeper, sigGasConsumer, signModeHandler)
+		default:
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid transaction type: %T", tx)
+		}
+
+		return anteHandler(ctx, tx, sim)
+	}
+}
+
+// normalTxAnteHandler returns an AnteHandler that checks and increments sequence
 // numbers, checks signatures & account numbers, and deducts fees from the first
 // signer.
-func NewAnteHandler(
+func normalTxAnteHandler(
 	ak ante.AccountKeeper, bankKeeper types.BankKeeper,
 	sigGasConsumer ante.SignatureVerificationGasConsumer,
 	signModeHandler signing.SignModeHandler,
@@ -46,83 +89,20 @@ func NewAnteHandler(
 	)
 }
 
-func NewAnteHandlerWithEVM(
-	ak evmtypes.AccountKeeper,
-	bankKeeper evmtypes.BankKeeper,
-	evmKeeper EVMKeeper,
-	feeMarketKeeper evmtypes.FeeMarketKeeper,
-	sigGasConsumer ante.SignatureVerificationGasConsumer,
-	signModeHandler authsigning.SignModeHandler,
-) sdk.AnteHandler {
-	return func(
-		ctx sdk.Context, tx sdk.Tx, sim bool,
-	) (newCtx sdk.Context, err error) {
-		var anteHandler sdk.AnteHandler
-
-		defer Recover(ctx.Logger(), &err)
-
-		txWithExtensions, ok := tx.(ante.HasExtensionOptionsTx)
-		if ok {
-			opts := txWithExtensions.GetExtensionOptions()
-			if len(opts) > 0 {
-				switch typeURL := opts[0].GetTypeUrl(); typeURL {
-				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
-					// handle as *evmtypes.MsgEthereumTx
-
-					anteHandler = sdk.ChainAnteDecorators(
-						NewEthSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
-						ante.NewMempoolFeeDecorator(),
-						ante.TxTimeoutHeightDecorator{},
-						ante.NewValidateMemoDecorator(ak),
-						NewEthValidateBasicDecorator(evmKeeper),
-						NewEthSigVerificationDecorator(evmKeeper),
-						NewEthAccountVerificationDecorator(ak, bankKeeper, evmKeeper),
-						NewEthNonceVerificationDecorator(ak),
-						NewEthGasConsumeDecorator(evmKeeper),
-						NewCanTransferDecorator(evmKeeper, feeMarketKeeper),
-						NewEthIncrementSenderSequenceDecorator(ak), // innermost AnteDecorator.
-					)
-
-				default:
-					return ctx, stacktrace.Propagate(
-						sdkerrors.Wrap(sdkerrors.ErrUnknownExtensionOptions, typeURL),
-						"rejecting tx with unsupported extension option",
-					)
-				}
-
-				return anteHandler(ctx, tx, sim)
-			}
-		}
-
-		// handle as totally normal Cosmos SDK tx
-
-		switch tx.(type) {
-		case sdk.Tx:
-			anteHandler = sdk.ChainAnteDecorators(
-				ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
-				NewRejectExtensionOptionsDecorator(),
-				ante.NewMempoolFeeDecorator(),
-				ante.NewValidateBasicDecorator(),
-				ante.TxTimeoutHeightDecorator{},
-				ante.NewValidateMemoDecorator(ak),
-				ante.NewConsumeGasForTxSizeDecorator(ak),
-				ante.NewRejectFeeGranterDecorator(),
-				ante.NewSetPubKeyDecorator(ak), // SetPubKeyDecorator must be called before all signature verification decorators
-				ante.NewValidateSigCountDecorator(ak),
-				ante.NewDeductFeeDecorator(ak, bankKeeper),
-				ante.NewSigGasConsumeDecorator(ak, sigGasConsumer),
-				ante.NewSigVerificationDecorator(ak, signModeHandler),
-				ante.NewIncrementSequenceDecorator(ak),
-			)
-		default:
-			return ctx, stacktrace.Propagate(
-				sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid transaction type: %T", tx),
-				"transaction is not an SDK tx",
-			)
-		}
-
-		return anteHandler(ctx, tx, sim)
-	}
+func ethereumTxAnteHandler(ak evmtypes.AccountKeeper, bankKeeper evmtypes.BankKeeper, evmKeeper EVMKeeper, feeMarketKeeper evmtypes.FeeMarketKeeper) sdk.AnteHandler {
+	return sdk.ChainAnteDecorators(
+		NewEthSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		ante.NewMempoolFeeDecorator(),
+		ante.TxTimeoutHeightDecorator{},
+		ante.NewValidateMemoDecorator(ak),
+		NewEthValidateBasicDecorator(evmKeeper),
+		NewEthSigVerificationDecorator(evmKeeper),
+		NewEthAccountVerificationDecorator(ak, bankKeeper, evmKeeper),
+		NewEthNonceVerificationDecorator(ak),
+		NewEthGasConsumeDecorator(evmKeeper),
+		NewCanTransferDecorator(evmKeeper, feeMarketKeeper),
+		NewEthIncrementSenderSequenceDecorator(ak), // innermost AnteDecorator.
+	)
 }
 
 // RejectExtensionOptionsDecorator is an AnteDecorator that rejects all extension
