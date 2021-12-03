@@ -120,7 +120,7 @@ func EvmSupportBlock() int64 {
 	if networkDevnet == network {
 		return devnetSupportEvmBlock
 	} else if networkTestnet == network {
-		return devnetSupportEvmBlock
+		return testnetSupportEvmBlock
 	}
-	return devnetSupportEvmBlock
+	return mainnetSupportEvmBlock
 }
