@@ -187,13 +187,18 @@ func PubkeyCmd() *cobra.Command {
 				}
 			}
 			addr := pk.Address()
+			consPubAddress, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, pk)
+			if err != nil {
+				return err
+			}
 			data, err := json.Marshal(map[string]interface{}{
-				"BytesAddress": addr,
+				"BytesAddress": fmt.Sprintf("%v", addr.Bytes()),
 				"HexAddress":   addr.String(),
 				"EIP55Address": common.BytesToAddress(addr),
 				"AccAddress":   sdk.AccAddress(addr).String(),
 				"ConsAddress":  sdk.ConsAddress(addr).String(),
 				"PubKeyHex":    hex.EncodeToString(pk.Bytes()),
+				"ConsPub":      consPubAddress,
 			})
 			if err != nil {
 				return err
@@ -233,7 +238,7 @@ $ %s debug addr 0xA588C66983a81e800Db4dF74564F09f91c026351`, version.AppName, ve
 			UpdateAddressPrefix(addressPrefix)
 
 			data, err := json.Marshal(map[string]interface{}{
-				"BytesAddress": addr,
+				"BytesAddress": fmt.Sprintf("%v", addr),
 				"HexAddress":   bytes.HexBytes(addr).String(),
 				"EIP55Address": common.BytesToAddress(addr),
 				"AccAddress":   sdk.AccAddress(addr),
