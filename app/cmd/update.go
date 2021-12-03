@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/functionx/fx-core/app"
 	"os"
 	"path/filepath"
 
@@ -28,7 +29,7 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-validator [secret]",
 		Short: "update validator node consensus private key file (.fxcore/config/priv_validator_key.json)",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			rootDir := serverCtx.Viper.GetString(flags.FlagHome)
@@ -49,7 +50,12 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 				}
 			}
 
-			secret := args[0]
+			secret := app.NewMnemonic()
+			if len(args) > 0 {
+				secret = args[0]
+			} else if !unsafe || !updateKey {
+				return fmt.Errorf("invalid params")
+			}
 			if len(secret) < 32 {
 				return fmt.Errorf("secret contains less than 32 characters")
 			}
@@ -76,7 +82,7 @@ func UpdateNodeKeyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-node-key [secret]",
 		Short: "update node key file (fxcore/config/node_key.json)",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			rootDir := serverCtx.Viper.GetString(flags.FlagHome)
@@ -96,7 +102,12 @@ func UpdateNodeKeyCmd() *cobra.Command {
 					return nil
 				}
 			}
-			secret := args[0]
+			secret := app.NewMnemonic()
+			if len(args) > 0 {
+				secret = args[0]
+			} else if !unsafe || !updateKey {
+				return fmt.Errorf("invalid params")
+			}
 			if len(secret) < 32 {
 				return fmt.Errorf("secret contains less than 32 characters")
 			}
