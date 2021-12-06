@@ -32,8 +32,8 @@ const (
 // devnet constant
 const (
 	devnetCrossChainSupportBscBlock     = 1
-	devnetCrossChainSupportTronBlock    = 225600
-	devnetCrossChainSupportPolygonBlock = 225600
+	devnetCrossChainSupportTronBlock    = 1
+	devnetCrossChainSupportPolygonBlock = 1
 
 	devnetGravityPruneValsetAndAttestationBlock = 1
 	devnetGravityValsetSlashBlock               = 1
