@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
@@ -23,6 +24,7 @@ const (
 	flagUpdateNodeKey = "update-node-key"
 	flagUpdatePrivKey = "update-priv-key"
 	flagUnsafe        = "unsafe"
+	flagKeyType       = "key-type"
 )
 
 func UpdateValidatorKeyCmd() *cobra.Command {
@@ -68,13 +70,21 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 			if err := tmos.EnsureDir(filepath.Dir(pvStateFile), 0777); err != nil {
 				return err
 			}
-			valPrivKey := privval.NewFilePV(ed25519.GenPrivKeyFromSecret([]byte(secret)), pvKeyFile, pvStateFile)
-			valPrivKey.Save()
+			keyType := serverCtx.Viper.GetString(flagKeyType)
+			if keyType == "ed25519" {
+				valPrivKey := privval.NewFilePV(ed25519.GenPrivKeyFromSecret([]byte(secret)), pvKeyFile, pvStateFile)
+				valPrivKey.Save()
+			} else if keyType == "secp256k1" {
+				pk := secp256k1.GenPrivKeySecp256k1([]byte(secret))
+				valPrivKey := privval.NewFilePV(pk, pvKeyFile, pvStateFile)
+				valPrivKey.Save()
+			}
 			return nil
 		},
 	}
 	cmd.Flags().Bool(flagUpdatePrivKey, false, "Update ed25519 private key. Requires --unsafe.")
 	cmd.Flags().Bool(flagUnsafe, false, "Enable unsafe operations. This flag must be switched on along with all unsafe operation-specific options.")
+	cmd.Flags().String(flagKeyType, "ed25519", "Private key type, ed25519 or secp256k1.")
 	return cmd
 }
 
