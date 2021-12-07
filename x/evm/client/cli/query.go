@@ -24,6 +24,7 @@ func GetQueryCmd() *cobra.Command {
 		GetStorageCmd(),
 		GetCodeCmd(),
 		GetModuleEnableCmd(),
+		GetCmdGetParams(),
 	)
 	return cmd
 }
@@ -128,5 +129,24 @@ func GetModuleEnableCmd() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func GetCmdGetParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Short: "Query the current parameters information",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
 	return cmd
 }
