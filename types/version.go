@@ -1,7 +1,6 @@
 package types
 
 import (
-	"math"
 	"math/big"
 )
 
@@ -20,7 +19,8 @@ const (
 
 	testnetGravityPruneValsetAndAttestationBlock = 1
 	testnetGravityValsetSlashBlock               = 1
-	testnetSupportEvmBlock                       = math.MaxInt
+	testnetSupportEvmBlock                       = 408000
+	testnetEvmChainID                            = 90001
 )
 
 // mainnet constant
@@ -33,7 +33,8 @@ const (
 	mainnetGravityPruneValsetAndAttestationBlock = 610000
 	// gravity not slash no set eth address validator
 	mainnetGravityValsetSlashBlock = 1685000
-	mainnetSupportEvmBlock         = math.MaxInt
+	mainnetSupportEvmBlock         = 999999999
+	mainnetEvmChainID              = 1
 )
 
 // devnet constant
@@ -44,7 +45,8 @@ const (
 
 	devnetGravityPruneValsetAndAttestationBlock = 1
 	devnetGravityValsetSlashBlock               = 1
-	devnetSupportEvmBlock                       = 1
+	devnetSupportEvmBlock                       = 300
+	devnetEvmChainID                            = 221
 )
 
 var (
@@ -109,11 +111,11 @@ func CrossChainSupportPolygonBlock() int64 {
 
 func EIP155ChainID() *big.Int {
 	if networkDevnet == network {
-		return big.NewInt(221)
+		return big.NewInt(devnetEvmChainID)
 	} else if networkTestnet == network {
-		return big.NewInt(555)
+		return big.NewInt(testnetEvmChainID)
 	}
-	return big.NewInt(1)
+	return big.NewInt(mainnetEvmChainID)
 }
 
 func EvmSupportBlock() int64 {
