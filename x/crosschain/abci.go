@@ -2,11 +2,11 @@ package crosschain
 
 import (
 	"fmt"
+	fxtype "github.com/functionx/fx-core/types"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/crosschain/keeper"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
@@ -53,7 +53,7 @@ func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper, oracleSetUpdatePow
 		panic(fmt.Errorf("covert power diff to dec err!!!powerDiff: %v, err: %v", powerDiffStr, err))
 	}
 
-	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) && ctx.BlockHeight() >= app.CrossChainSupportTronBlock() {
+	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) && ctx.BlockHeight() >= fxtype.CrossChainSupportTronBlock() {
 		oracleSetUpdatePowerChangePercent = sdk.OneDec()
 	}
 	if powerDiffDec.GTE(oracleSetUpdatePowerChangePercent) {

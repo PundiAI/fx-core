@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"fmt"
+	fxtype "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
@@ -25,7 +25,7 @@ func (s EthereumMsgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p
 	s.SetParams(ctx, *p.Params)
 
 	// FIP: slash fraction cannot greater than one 100%  2021-10-26.
-	if ctx.BlockHeight() >= app.CrossChainSupportTronBlock() {
+	if ctx.BlockHeight() >= fxtype.CrossChainSupportTronBlock() {
 		if p.Params.SlashFraction.GT(sdk.OneDec()) {
 			return sdkerrors.Wrapf(types.ErrInvalid, "slash fraction too large: %s", p.Params.SlashFraction)
 		}

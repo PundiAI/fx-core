@@ -225,7 +225,7 @@ func showAllBalance(c *Client, address sdk.AccAddress) {
 	c.t.Logf("\n")
 }
 
-// 从 eth -> fx
+// eth -> fx
 func ethToFx(c *Client) {
 	c.t.Helper()
 	c.t.Logf("\n####################      ETH to FX      ####################\n")
@@ -235,7 +235,7 @@ func ethToFx(c *Client) {
 	c.t.Logf("\n")
 }
 
-// 从 eth -> fx and ibc -> pundix
+// eth -> fx and ibc -> pundix
 func ethToFxAndIbcTransfer(c *Client) {
 	c.t.Helper()
 	c.t.Logf("\n####################      ETH to FX to PUNDIX      ####################\n")

@@ -3,6 +3,8 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/functionx/fx-core/app/fxcore"
+	fxconfig "github.com/functionx/fx-core/server/config"
 	"path/filepath"
 	"strings"
 
@@ -25,6 +27,11 @@ func AppTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app.toml [key] [value]",
 		Short: "Create or query an `.fxcore/config/apptoml` file",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			customAppTemplate, _ := fxconfig.AppConfig(fxcore.MintDenom)
+			config.SetConfigTemplate(customAppTemplate)
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runConfigCmd(cmd, append([]string{appFileName}, args...))
 		},
@@ -85,7 +92,7 @@ var (
 )
 
 type appTomlConfig struct {
-	config *config.Config
+	config *fxconfig.Config
 }
 
 func (a appTomlConfig) output(clientCtx client.Context) error {
@@ -121,7 +128,7 @@ func (c configTomlConfig) save(clientCtx *server.Context, configPath string) err
 func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) {
 	switch configName {
 	case appFileName:
-		var configData = config.Config{}
+		var configData = fxconfig.Config{}
 		if err := clientCtx.Viper.Unmarshal(&configData); err != nil {
 			return nil, err
 		}

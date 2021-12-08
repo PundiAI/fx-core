@@ -1,6 +1,11 @@
 package fxcore
 
 import (
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	serverty "github.com/functionx/fx-core/server"
+	fxtype "github.com/functionx/fx-core/types"
+	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"io"
 	"os"
 	"path/filepath"
@@ -30,12 +35,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -85,7 +88,6 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/functionx/fx-core/app"
@@ -106,6 +108,11 @@ import (
 	"github.com/functionx/fx-core/x/tron"
 	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
+
+	"github.com/functionx/fx-core/x/evm"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	"github.com/functionx/fx-core/x/feemarket"
+	feemarketkeeper "github.com/functionx/fx-core/x/feemarket/keeper"
 )
 
 var ChainID = "fxcore"
@@ -154,6 +161,8 @@ var (
 		bsc.AppModuleBasic{},
 		polygon.AppModuleBasic{},
 		tron.AppModuleBasic{},
+		evm.AppModuleBasic{},
+		feemarket.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -169,6 +178,8 @@ var (
 		bsctypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		polygontypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
 		trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+		// used for secure addition and subtraction of balance using module account
+		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -235,6 +246,10 @@ type App struct {
 	PolygonKeeper    crosschainkeeper.Keeper
 	TronKeeper       crosschainkeeper.Keeper
 
+	// Ethermint keepers
+	EvmKeeper       *evmkeeper.Keeper
+	FeeMarketKeeper feemarketkeeper.Keeper
+
 	// the module manager
 	mm *module.Manager
 }
@@ -263,8 +278,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.StoreKey,
 		polygontypes.StoreKey,
 		trontypes.StoreKey,
+		// ethermint keys
+		evmtypes.StoreKey, feemarkettypes.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	myApp := &App{
@@ -379,6 +396,17 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	myApp.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
+	tracer := cast.ToString(appOpts.Get(serverty.EVMTracer))
+
+	// Create Ethermint keepers
+	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
+		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
+	)
+
+	myApp.EvmKeeper = evmkeeper.NewKeeper(
+		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
+		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeper, tracer)
+
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
@@ -386,7 +414,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(myApp.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(myApp.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientUpdateProposalHandler(myApp.IBCKeeper.ClientKeeper)).
-		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper))
+		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)).
+		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(*myApp.EvmKeeper))
 
 	myApp.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], myApp.GetSubspace(govtypes.ModuleName), myApp.AccountKeeper, myApp.BankKeeper,
@@ -452,6 +481,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper),
 		polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper),
 		tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper),
+		// Ethermint app modules
+		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
+		feemarket.NewAppModule(myApp.FeeMarketKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -466,6 +498,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibchost.ModuleName,
+		evmtypes.ModuleName,
 	)
 
 	myApp.mm.SetOrderEndBlockers(
@@ -476,6 +509,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		polygontypes.ModuleName,
 		trontypes.ModuleName,
+		evmtypes.ModuleName,
+		feemarkettypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -515,15 +550,17 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.SetBeginBlocker(myApp.BeginBlocker)
 	myApp.SetAnteHandler(
 		app.NewAnteHandler(
-			myApp.AccountKeeper, myApp.BankKeeper, ante.DefaultSigVerificationGasConsumer,
-			encodingConfig.TxConfig.SignModeHandler(),
+			myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
+			app.DefaultSigVerificationGasConsumer, encodingConfig.TxConfig.SignModeHandler(),
 		),
 	)
 	myApp.SetEndBlocker(myApp.EndBlocker)
 
-	rootmulti.AddIgnoreCommitKey(app.CrossChainSupportBscBlock(), bsctypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(app.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(app.CrossChainSupportTronBlock(), trontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportBscBlock(), bsctypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportTronBlock(), trontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), evmtypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), feemarkettypes.StoreKey)
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
@@ -635,14 +672,14 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	clientCtx := apiSvr.ClientCtx
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 	// Register legacy tx routes.
-//	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
+	//	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
-//	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
+	//	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 }
 
@@ -676,5 +713,8 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(polygontypes.ModuleName)
 	paramsKeeper.Subspace(trontypes.ModuleName)
 
+	// ethermint subspaces
+	paramsKeeper.Subspace(evmtypes.ModuleName)
+	paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	return paramsKeeper
 }

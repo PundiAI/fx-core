@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/functionx/fx-core/app"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"os"
 	"path/filepath"
 
@@ -14,10 +14,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
+
+	"github.com/functionx/fx-core/app"
 )
 
 const (

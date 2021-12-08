@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/functionx/fx-core/types"
 
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
@@ -10,8 +11,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
-
-	"github.com/functionx/fx-core/app"
 )
 
 func Network() *cobra.Command {
@@ -24,12 +23,14 @@ func Network() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			outputBytes, err := json.Marshal(map[string]interface{}{
 				"ChainId":                                fxcore.ChainID,
-				"Network":                                app.Network(),
-				"GravityPruneValsetsAndAttestationBlock": fmt.Sprintf("%d", app.GravityPruneValsetsAndAttestationBlock()),
-				"GravityValsetSlashBlock":                fmt.Sprintf("%d", app.GravityValsetSlashBlock()),
-				"CrossChainSupportBscBlock":              fmt.Sprintf("%d", app.CrossChainSupportBscBlock()),
-				"CrossChainSupportTronBlock":             fmt.Sprintf("%d", app.CrossChainSupportTronBlock()),
-				"CrossChainSupportPolygonBlock":          fmt.Sprintf("%d", app.CrossChainSupportPolygonBlock()),
+				"Network":                                types.Network(),
+				"GravityPruneValsetsAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetsAndAttestationBlock()),
+				"GravityValsetSlashBlock":                fmt.Sprintf("%d", types.GravityValsetSlashBlock()),
+				"CrossChainSupportBscBlock":              fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
+				"CrossChainSupportTronBlock":             fmt.Sprintf("%d", types.CrossChainSupportTronBlock()),
+				"CrossChainSupportPolygonBlock":          fmt.Sprintf("%d", types.CrossChainSupportPolygonBlock()),
+				"EIP155ChainID":                          fmt.Sprintf("%d", types.EIP155ChainID()),
+				"EvmSupportBlock":                        fmt.Sprintf("%d", types.EvmSupportBlock()),
 			})
 			if err != nil {
 				return err

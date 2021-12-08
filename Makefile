@@ -70,17 +70,17 @@ ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
 endif
 
 ifeq (devnet,$(findstring devnet,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/functionx/fx-core/app.network=devnet
+  ldflags += -X github.com/functionx/fx-core/types.network=devnet
   ldflags += -X github.com/functionx/fx-core/app/fxcore.ChainID=boonlay
 endif
 
 ifeq (testnet,$(findstring testnet,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/functionx/fx-core/app.network=testnet
+  ldflags += -X github.com/functionx/fx-core/types.network=testnet
   ldflags += -X github.com/functionx/fx-core/app/fxcore.ChainID=dhobyghaut
 endif
 
 ifeq (mainnet,$(findstring mainnet,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/functionx/fx-core/app.network=mainnet
+  ldflags += -X github.com/functionx/fx-core/types.network=mainnet
   ldflags += -X github.com/functionx/fx-core/app/fxcore.ChainID=fxcore
 endif
 
@@ -146,14 +146,14 @@ install-testnet:
 	@$(MAKE) build-testnet
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
-docker: build-linux
-	@docker build --no-cache -f Dockerfile -t functionx/fx-core:mainnet-1.0 .
+docker:
+	@docker build --no-cache --build-arg NETWORK=mainnet -f Dockerfile -t functionx/fx-core:mainnet-1.0 .
 
-docker-devnet: build-linux-devnet
-	@docker build --no-cache -f Dockerfile -t functionx/fx-core:boonlay .
+docker-devnet:
+	@docker build --no-cache --build-arg NETWORK=devnet -f Dockerfile -t functionx/fx-core:boonlay .
 
-docker-testnet: build-linux-testnet
-	@docker build --no-cache -f Dockerfile -t functionx/fx-core:dhobyghaut-1.0 .
+docker-testnet:
+	@docker build --no-cache --build-arg NETWORK=testnet -f Dockerfile -t functionx/fx-core:dhobyghaut-1.0 .
 
 run-local: install
 	@./develop/run_fxcore.sh init

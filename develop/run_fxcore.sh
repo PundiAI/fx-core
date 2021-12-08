@@ -17,6 +17,8 @@ if [[ "$1" == "init" ]]; then
   # fxcored config config.toml rpc.pprof_laddr ""
   # open prometheus
   fxcored config config.toml instrumentation.prometheus true
+  fxcored config app.toml minimum-gas-prices 4000000000000FX
+  fxcored config app.toml json-rpc.api "eth,txpool,personal,net,debug,web3"
 
   # update fxcore client config
   fxcored config chain-id fxcore
@@ -38,4 +40,4 @@ if [[ "$1" == "init" ]]; then
   fxcored collect-gentxs
 fi
 
-fxcored start --minimum-gas-prices '4000000000000FX' --log_filter='ABCIQuery'
+fxcored start --log_filter='ABCIQuery'

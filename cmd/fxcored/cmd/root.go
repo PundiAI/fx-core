@@ -2,6 +2,10 @@ package cmd
 
 import (
 	"errors"
+	fxserver "github.com/functionx/fx-core/server"
+
+	"github.com/functionx/fx-core/crypto/hd"
+	"github.com/functionx/fx-core/server/config"
 	"io"
 	"os"
 	"path/filepath"
@@ -55,7 +59,8 @@ func NewRootCmd() *cobra.Command {
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(fxcore.DefaultNodeHome).
-		WithViper(EnvPrefix)
+		WithViper(EnvPrefix).
+		WithKeyringOptions(hd.EthSecp256k1Option())
 
 	rootCmd := &cobra.Command{
 		Use:   fxcore.Name + "d",
@@ -79,7 +84,8 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			if err := server.InterceptConfigsPreRunHandler(cmd, "", nil); err != nil {
+			customAppTemplate, customAppConfig := config.AppConfig(fxcore.MintDenom)
+			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
 				return err
 			}
 			// add log filter
@@ -124,7 +130,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	)
 
 	appCreator := appCreator{encodingConfig}
-	server.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
+	fxserver.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rpcStatusCmd := rpc.StatusCommand()
