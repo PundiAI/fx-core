@@ -458,7 +458,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		}
 
 		if cpuProfileCleanup != nil {
-			cpuProfileCleanup()
+			_ = cpuProfileCleanup()
 		}
 
 		if apiSrv != nil {

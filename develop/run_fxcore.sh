@@ -16,6 +16,7 @@ if [[ "$1" == "init" ]]; then
   # open prometheus
   fxcored config config.toml instrumentation.prometheus true
   fxcored config app.toml minimum-gas-prices 1000000000FX
+  fxcored config app.toml json-rpc.api "eth,txpool,personal,net,debug,web3"
   fxcored config config.toml consensus.timeout_commit 1s
 
   # update fxcore client config
