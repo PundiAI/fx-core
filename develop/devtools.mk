@@ -21,39 +21,40 @@ GITHUBDIR := $(GOPATH)$(FS)src$(FS)github.com
 ###
 # Functions
 ###
+ifneq ($(OS),Windows_NT)
+  go_get = $(if $(findstring Windows_NT,$(OS)),\
+  IF NOT EXIST $(GITHUBDIR)$(FS)$(1)$(FS) ( mkdir $(GITHUBDIR)$(FS)$(1) ) else (cd .) &\
+  IF NOT EXIST $(GITHUBDIR)$(FS)$(1)$(FS)$(2)$(FS) ( cd $(GITHUBDIR)$(FS)$(1) && git clone https://github.com/$(1)/$(2) ) else (cd .) &\
+  ,\
+  mkdir -p $(GITHUBDIR)$(FS)$(1) &&\
+  (test ! -d $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && cd $(GITHUBDIR)$(FS)$(1) && git clone https://github.com/$(1)/$(2)) || true &&\
+  )\
+  cd $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && git fetch origin && git checkout -q $(3)
 
-go_get = $(if $(findstring Windows_NT,$(OS)),\
-IF NOT EXIST $(GITHUBDIR)$(FS)$(1)$(FS) ( mkdir $(GITHUBDIR)$(FS)$(1) ) else (cd .) &\
-IF NOT EXIST $(GITHUBDIR)$(FS)$(1)$(FS)$(2)$(FS) ( cd $(GITHUBDIR)$(FS)$(1) && git clone https://github.com/$(1)/$(2) ) else (cd .) &\
-,\
-mkdir -p $(GITHUBDIR)$(FS)$(1) &&\
-(test ! -d $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && cd $(GITHUBDIR)$(FS)$(1) && git clone https://github.com/$(1)/$(2)) || true &&\
-)\
-cd $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && git fetch origin && git checkout -q $(3)
+  go_install = $(call go_get,$(1),$(2),$(3)) && cd $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && $(GO) install
 
-go_install = $(call go_get,$(1),$(2),$(3)) && cd $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && $(GO) install
+  mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+  mkfile_dir := $(shell cd $(shell dirname $(mkfile_path)); pwd)
 
-mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
-mkfile_dir := $(shell cd $(shell dirname $(mkfile_path)); pwd)
+  ###############################################################################
+  ###                                 Tools                                   ###
+  ###############################################################################
 
-###############################################################################
-###                                 Tools                                   ###
-###############################################################################
+  BIN ?= /usr/local/bin
+  UNAME_S ?= $(shell uname -s)
+  UNAME_M ?= $(shell uname -m)
 
-BIN ?= /usr/local/bin
-UNAME_S ?= $(shell uname -s)
-UNAME_M ?= $(shell uname -m)
+  TOOLS_DESTDIR  ?= $(GOPATH)/bin
 
-TOOLS_DESTDIR  ?= $(GOPATH)/bin
+  BUF_VERSION ?= 0.7.0
+  PROTOC_VERSION ?= 3.11.2
 
-BUF_VERSION ?= 0.7.0
-PROTOC_VERSION ?= 3.11.2
-
-ifeq ($(UNAME_S),Linux)
-  PROTOC_ZIP ?= protoc-3.11.2-linux-x86_64.zip
-endif
-ifeq ($(UNAME_S),Darwin)
-  PROTOC_ZIP ?= protoc-3.11.2-osx-x86_64.zip
+  ifeq ($(UNAME_S),Linux)
+    PROTOC_ZIP ?= protoc-3.11.2-linux-x86_64.zip
+  endif
+  ifeq ($(UNAME_S),Darwin)
+    PROTOC_ZIP ?= protoc-3.11.2-osx-x86_64.zip
+  endif
 endif
 
 protoc:
