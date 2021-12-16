@@ -6,6 +6,7 @@ import (
 	fxtype "github.com/functionx/fx-core/types"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
+	"github.com/functionx/fx-core/x/intrarelayer"
 	"io"
 	"os"
 	"path/filepath"
@@ -114,6 +115,9 @@ import (
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"github.com/functionx/fx-core/x/feemarket"
 	feemarketkeeper "github.com/functionx/fx-core/x/feemarket/keeper"
+
+	intrarelayerkeeper "github.com/functionx/fx-core/x/intrarelayer/keeper"
+	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 )
 
 var ChainID = "fxcore"
@@ -164,6 +168,7 @@ var (
 		tron.AppModuleBasic{},
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
+		intrarelayer.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -180,7 +185,12 @@ var (
 		polygontypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
 		trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 		// used for secure addition and subtraction of balance using module account
-		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
+		intrarelayertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+	}
+	// module accounts that are allowed to receive tokens
+	allowedReceivingModAcc = map[string]bool{
+		distrtypes.ModuleName: true,
 	}
 )
 
@@ -248,8 +258,9 @@ type App struct {
 	TronKeeper       crosschainkeeper.Keeper
 
 	// Ethermint keepers
-	EvmKeeper       *evmkeeper.Keeper
-	FeeMarketKeeper feemarketkeeper.Keeper
+	EvmKeeper          *evmkeeper.Keeper
+	FeeMarketKeeper    feemarketkeeper.Keeper
+	IntrarelayerKeeper intrarelayerkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -281,6 +292,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		trontypes.StoreKey,
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
+		// intrarelayer keys
+		intrarelayertypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -411,6 +424,14 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
 		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeper, tracer)
 
+	myApp.IntrarelayerKeeper = intrarelayerkeeper.NewKeeper(
+		keys[intrarelayertypes.StoreKey], appCodec, myApp.GetSubspace(intrarelayertypes.ModuleName),
+		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper,
+	)
+
+	evmHooks := evmkeeper.NewMultiEvmHooks(myApp.IntrarelayerKeeper)
+	myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
+
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
@@ -419,7 +440,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(myApp.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientUpdateProposalHandler(myApp.IBCKeeper.ClientKeeper)).
 		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)).
-		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(*myApp.EvmKeeper))
+		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(*myApp.EvmKeeper)).
+		AddRoute(intrarelayertypes.RouterKey, intrarelayer.NewIntrarelayerProposalHandler(&myApp.IntrarelayerKeeper))
 
 	myApp.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], myApp.GetSubspace(govtypes.ModuleName), myApp.AccountKeeper, myApp.BankKeeper,
@@ -488,6 +510,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		// Ethermint app modules
 		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		feemarket.NewAppModule(myApp.FeeMarketKeeper),
+		intrarelayer.NewAppModule(myApp.IntrarelayerKeeper, myApp.AccountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -565,6 +588,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportTronBlock(), trontypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), evmtypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), feemarkettypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.IntrarelayerSupportBlock(), intrarelayertypes.StoreKey)
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
@@ -720,5 +744,6 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
+	paramsKeeper.Subspace(intrarelayertypes.ModuleName)
 	return paramsKeeper
 }

@@ -1,0 +1,17 @@
+{
+  "description": "PundiX PURSE",
+  "denom_units": [
+    {
+      "denom": "ibc/0000000000000000000000000000000000000000000000000000000000000000",
+      "exponent": 0,
+      "aliases": []
+    },
+    {
+      "denom": "PURSE",
+      "exponent": 18,
+      "aliases": []
+    }
+  ],
+  "base": "ibc/0000000000000000000000000000000000000000000000000000000000000000",
+  "display": "PURSE"
+}

@@ -2,6 +2,8 @@ package evm_test
 
 import (
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	intrarelayerkeeper "github.com/functionx/fx-core/x/intrarelayer/keeper"
+	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 	"math/big"
 	"testing"
 	"time"
@@ -135,6 +137,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	suite.app.EvmKeeper.WithContext(suite.ctx)
 
 	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.dynamicTxFee))
+	require.NoError(suite.T(), InitIntrarelayerParams(suite.ctx, suite.app.IntrarelayerKeeper))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 
@@ -558,7 +561,7 @@ func (suite *EvmTestSuite) TestGasRefundWhenReverted() {
 	k := suite.app.EvmKeeper
 
 	// the bug only reproduce when there are hooks
-	k.SetHooks(&DummyHook{})
+	//k.SetHooks(&DummyHook{})
 
 	// add some fund to pay gas fee
 	k.AddBalance(suite.from, big.NewInt(10000000000))
@@ -631,4 +634,16 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 	}
 	keeper.WithChainID(ctx)
 	return nil
+}
+
+func InitIntrarelayerParams(ctx sdk.Context, keeper intrarelayerkeeper.Keeper) error {
+	params := intrarelayertypes.NewParams(true, 24*time.Hour*14, true)
+	if err := params.Validate(); err != nil {
+		return err
+	}
+	proposal := intrarelayertypes.InitIntrarelayerProposal{Title: "init intrarelayer module", Description: "init intrarelayer module description", Params: &params}
+	if err := proposal.ValidateBasic(); err != nil {
+		return err
+	}
+	return keeper.InitIntrarelayer(ctx, &proposal)
 }

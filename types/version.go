@@ -45,6 +45,7 @@ const (
 	devnetGravityPruneValsetAndAttestationBlock = 1
 	devnetGravityValsetSlashBlock               = 1
 	devnetSupportEvmBlock                       = 1
+	devnetSupportIntrarelayerBlock              = 1
 )
 
 var (
@@ -123,4 +124,13 @@ func EvmSupportBlock() int64 {
 		return testnetSupportEvmBlock
 	}
 	return mainnetSupportEvmBlock
+}
+
+func IntrarelayerSupportBlock() int64 {
+	if networkDevnet == network {
+		return devnetSupportIntrarelayerBlock
+	} else if networkTestnet == network {
+		return devnetSupportIntrarelayerBlock
+	}
+	return devnetSupportIntrarelayerBlock
 }

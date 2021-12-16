@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -12,6 +13,11 @@ import (
 
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 )
+
+// NewPriKey generates cosmos-sdk accAddress private key.
+func NewPriKey() cryptotypes.PrivKey {
+	return secp256k1.GenPrivKey()
+}
 
 // NewAddrKey generates an Ethereum address and its corresponding private key.
 func NewAddrKey() (common.Address, cryptotypes.PrivKey) {

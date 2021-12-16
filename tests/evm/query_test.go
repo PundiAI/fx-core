@@ -13,6 +13,7 @@ import (
 	_ "github.com/functionx/fx-core/app/fxcore"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/rpc/client/http"
+	"strings"
 	"testing"
 )
 
@@ -103,6 +104,30 @@ func TestFxAddressToEthAddress(t *testing.T) {
 	require.NoError(t, err)
 	ethAddress := common.BytesToAddress(fxAddress)
 	t.Logf("EthAddress:%v, FxAddress:%v", ethAddress.Hex(), sdk.AccAddress(ethAddress.Bytes()).String())
+}
+
+func TestTraverseBlockERC20(t *testing.T) {
+	fxClient, err := http.New("http://127.0.0.1:26657", "/websocket")
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	info, err := fxClient.Status(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := int64(1); i < info.SyncInfo.LatestBlockHeight; i++ {
+		block, err := fxClient.BlockResults(ctx, &i)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, v := range block.EndBlockEvents {
+			for _, vv := range v.Attributes {
+				if strings.EqualFold("erc20_token", string(vv.Key)) {
+					fmt.Println(i, "contract address:", string(vv.Value))
+				}
+			}
+		}
+	}
 }
 
 func mnemonicToFxPrivKey(mnemonic string) (*secp256k1.PrivKey, error) {

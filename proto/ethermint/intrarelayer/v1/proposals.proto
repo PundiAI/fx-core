@@ -1,0 +1,69 @@
+syntax = "proto3";
+package ethermint.intrarelayer.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/bank/v1beta1/bank.proto";
+import "ethermint/intrarelayer/v1/genesis.proto";
+
+option go_package = "github.com/functionx/fx-core/x/intrarelayer/types";
+
+
+message InitIntrarelayerProposal {
+  option (gogoproto.equal) = false;
+  // the title of the update proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // intrarelayer module params
+  ethermint.intrarelayer.v1.Params params = 3;
+}
+
+// RegisterCoinProposal is a gov Content type to register a token pair
+message RegisterCoinProposal {
+  option (gogoproto.equal) = false;
+  // title of the proposal
+  string title         = 1;
+  // proposal description
+  string description   = 2;
+  // token pair of Cosmos native denom and ERC20 token address
+  cosmos.bank.v1beta1.Metadata metadata = 3 [(gogoproto.nullable) = false];
+}
+
+// RegisterCoinProposal is a gov Content type to register a token pair
+message RegisterERC20Proposal {
+  option (gogoproto.equal) = false;
+  // title of the proposal
+  string title         = 1;
+  // proposal description
+  string description   = 2;
+  // contract address of ERC20 token
+  string erc20address = 3;
+}
+
+// ToggleTokenRelayProposal is a gov Content type to toggle
+// the internal relaying of a token pair.
+message ToggleTokenRelayProposal {
+  option (gogoproto.equal) = true;
+  // title of the proposal
+  string title         = 1;
+  // proposal description
+  string description   = 2;
+  // token identifier can be either the hex contract address of the ERC20 or the
+  // Cosmos base denomination
+  string token = 3;
+}
+
+// UpdateTokenPairERC20Proposal is a gov Content type to update a token pair's
+// ERC20 contract address.
+// Deprecated: unused proposal
+message UpdateTokenPairERC20Proposal {
+  option (gogoproto.equal) = true;
+  // title of the proposal
+  string title         = 1;
+  // proposal description
+  string description   = 2;
+  // contract address of ERC20 token
+  string erc20_address = 3;
+  // new address of ERC20 token contract
+  string new_erc20_address = 4;
+}

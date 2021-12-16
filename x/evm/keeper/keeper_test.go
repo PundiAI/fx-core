@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"encoding/json"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	intrarelayerkeeper "github.com/functionx/fx-core/x/intrarelayer/keeper"
+	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 	"math/big"
 	"testing"
 	"time"
@@ -138,6 +140,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.app.EvmKeeper.WithContext(suite.ctx)
 
 	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.dynamicTxFee))
+	require.NoError(suite.T(), InitIntrarelayerParams(suite.ctx, suite.app.IntrarelayerKeeper))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -386,4 +389,16 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 	}
 	keeper.WithChainID(ctx)
 	return nil
+}
+
+func InitIntrarelayerParams(ctx sdk.Context, keeper intrarelayerkeeper.Keeper) error {
+	p := intrarelayertypes.NewParams(true, 24*time.Hour*14, true)
+	if err := p.Validate(); err != nil {
+		return err
+	}
+	proposal := intrarelayertypes.InitIntrarelayerProposal{Title: "init intrarelayer module", Description: "init intrarelayer module description", Params: &p}
+	if err := proposal.ValidateBasic(); err != nil {
+		return err
+	}
+	return keeper.InitIntrarelayer(ctx, &proposal)
 }
