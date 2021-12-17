@@ -3,20 +3,24 @@ package cmd
 import (
 	"bufio"
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
+	"github.com/cosmos/cosmos-sdk/crypto/ledger"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	bip39 "github.com/cosmos/go-bip39"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
+	"unsafe"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -45,6 +49,11 @@ const (
 	flagMultiSigThreshold = "multisig-threshold"
 	flagNoSort            = "nosort"
 	flagHDPath            = "hd-path"
+
+	flagMultiSigKeyName = "multi"
+	flagShowMore        = "more"
+
+	flagListNames = "list-names"
 
 	mnemonicEntropySize = 256
 )
@@ -90,21 +99,24 @@ The pass backend requires GnuPG: https://gnupg.org/
 
 	// support adding Ethereum supported keys
 	addCmd := keys.AddKeyCommand()
-
 	addCmd.RunE = runAddCmdPrepare
+
+	showCmd := keys.ShowKeysCmd()
+	showCmd.RunE = runShowCmd
+
+	listCmd := keys.ListKeysCmd()
+	listCmd.RunE = runListCmd
 
 	cmd.AddCommand(
 		keys.MnemonicKeyCommand(),
 		addCmd,
 		keys.ExportKeyCommand(),
 		keys.ImportKeyCommand(),
-		keys.ListKeysCmd(),
-		keys.ShowKeysCmd(),
-		flags.LineBreak,
+		listCmd,
+		showCmd,
 		keys.DeleteKeyCommand(),
 		keys.ParseKeyStringCommand(),
 		keys.MigrateCommand(),
-		flags.LineBreak,
 		UnsafeExportEthKeyCommand(),
 		UnsafeImportKeyCommand(),
 	)
@@ -112,7 +124,8 @@ The pass backend requires GnuPG: https://gnupg.org/
 	cmd.PersistentFlags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.PersistentFlags().String(flags.FlagKeyringDir, "", "The client Keyring directory; if omitted, the default 'home' directory will be used")
 	cmd.PersistentFlags().String(flags.FlagKeyringBackend, keyring.BackendOS, "Select keyring's backend (os|file|test)")
-	cmd.PersistentFlags().String(cli.OutputFlag, "text", "Output format (text|json)")
+	cmd.PersistentFlags().StringP(cli.OutputFlag, "o", "text", "Output format (text|json)")
+	cmd.PersistentFlags().BoolP(flagShowMore, "m", false, "Show more info of account")
 	return cmd
 }
 
@@ -260,6 +273,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 	name := args[0]
 	interactive, _ := cmd.Flags().GetBool(flagInteractive)
 	noBackup, _ := cmd.Flags().GetBool(flagNoBackup)
+	showMore, _ := cmd.Flags().GetBool(flagShowMore)
 	showMnemonic := !noBackup
 	kb := ctx.Keyring
 	outputFormat := ctx.OutputFormat
@@ -322,24 +336,23 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 				return err
 			}
 
-			return printCreate(cmd, info, false, "", outputFormat)
+			return printCreate(cmd, info, false, showMore, "", outputFormat)
 		}
 	}
 
-	pubKey, _ := cmd.Flags().GetString(keys.FlagPublicKey)
-	if pubKey != "" {
-		var pk cryptotypes.PubKey
-		err = ctx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(pubKey), &pk)
+	pubKeyStr, _ := cmd.Flags().GetString(keys.FlagPublicKey)
+	if pubKeyStr != "" {
+		var pubkey cryptotypes.PubKey
+		pubkey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, pubKeyStr)
+		if err != nil {
+			return err
+		}
+		info, err := kb.SavePubKey(name, pubkey, algo.Name())
 		if err != nil {
 			return err
 		}
 
-		info, err := kb.SavePubKey(name, pk, algo.Name())
-		if err != nil {
-			return err
-		}
-
-		return printCreate(cmd, info, false, "", outputFormat)
+		return printCreate(cmd, info, false, showMore, "", outputFormat)
 	}
 
 	coinType, _ := cmd.Flags().GetUint32(flagCoinType)
@@ -363,7 +376,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 			return err
 		}
 
-		return printCreate(cmd, info, false, "", outputFormat)
+		return printCreate(cmd, info, false, showMore, "", outputFormat)
 	}
 
 	// Get bip39 mnemonic
@@ -437,7 +450,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 		mnemonic = ""
 	}
 
-	return printCreate(cmd, info, showMnemonic, mnemonic, outputFormat)
+	return printCreate(cmd, info, showMnemonic, showMore, mnemonic, outputFormat)
 }
 
 func validateMultisigThreshold(k, nKeys int) error {
@@ -463,11 +476,11 @@ func getLegacyKeyBaseFromDir(rootDir string, opts ...cryptokeyring.KeybaseOption
 	return cryptokeyring.NewLegacy(defaultKeyDBName, filepath.Join(rootDir, "keys"), opts...)
 }
 
-func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemonic, outputFormat string) error {
+func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic, eip55 bool, mnemonic, outputFormat string) error {
 	switch outputFormat {
 	case OutputFormatText:
 		cmd.PrintErrln()
-		printKeyInfo(cmd.OutOrStdout(), info, keyring.Bech32KeyOutput, outputFormat)
+		printKeyInfo(cmd.OutOrStdout(), info, keyring.Bech32KeyOutput, outputFormat, eip55)
 
 		// print mnemonic unless requested not to.
 		if showMnemonic {
@@ -500,30 +513,320 @@ func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemo
 	return nil
 }
 
-func printKeyInfo(w io.Writer, keyInfo cryptokeyring.Info, bechKeyOut bechKeyOutFn, output string) {
+func printKeyAddress(w io.Writer, info cryptokeyring.Info, bechKeyOut bechKeyOutFn) {
+	ko, err := bechKeyOut(info)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(w, ko.Address)
+}
+
+func printPubKey(w io.Writer, info cryptokeyring.Info, bechKeyOut bechKeyOutFn) {
+	ko, err := bechKeyOut(info)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(w, ko.PubKey)
+}
+
+type KeyOutputV2 struct {
+	Name              string                 `json:"name" yaml:"name"`
+	Type              string                 `json:"type" yaml:"type"`
+	Address           string                 `json:"address" yaml:"address"`
+	AddressByte       string                 `json:"address_byte" yaml:"address_byte"`
+	AddressHex        string                 `json:"address_hex" yaml:"address_hex"`
+	PubKey            string                 `json:"pubkey" yaml:"pubkey"`
+	ValAddress        string                 `json:"val_address" yaml:"val_address"`
+	ValPubKey         string                 `json:"val_pubkey" yaml:"val_pubkey"`
+	DecompressAddress string                 `json:"decompress_address" yaml:"decompress_address"`
+	DecompressPubkey  string                 `json:"decompress_pubkey" yaml:"decompress_pubkey"`
+	Mnemonic          string                 `json:"mnemonic,omitempty" yaml:"mnemonic"`
+	Threshold         uint                   `json:"threshold,omitempty" yaml:"threshold"`
+	PubKeys           []multisigPubKeyOutput `json:"pubkeys,omitempty" yaml:"pubkeys"`
+}
+
+type multisigPubKeyOutput struct {
+	Address string `json:"address" yaml:"address"`
+	PubKey  string `json:"pubkey" yaml:"pubkey"`
+	Weight  uint   `json:"weight" yaml:"weight"`
+}
+
+func KeyOutputToV2(v1 cryptokeyring.KeyOutput) KeyOutputV2 {
+	v2 := KeyOutputV2{
+		Name:      v1.Name,
+		Type:      v1.Type,
+		Address:   v1.Address,
+		PubKey:    v1.PubKey,
+		Mnemonic:  v1.Mnemonic,
+		Threshold: v1.Threshold,
+	}
+	for _, p := range v1.PubKeys {
+		v2.PubKeys = append(v2.PubKeys, multisigPubKeyOutput{
+			Address: p.Address,
+			PubKey:  p.PubKey,
+			Weight:  p.Weight,
+		})
+	}
+	pubkey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, v1.PubKey)
+	if err != nil {
+		panic(err)
+	}
+	v2.AddressByte = fmt.Sprintf("%v", pubkey.Address().Bytes())
+	v2.AddressHex = common.BytesToAddress(pubkey.Address()).Hex()
+	valPub, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeValPub, pubkey)
+	if err != nil {
+		panic(err)
+	}
+	v2.ValPubKey = valPub
+	v2.ValAddress = sdk.ValAddress(pubkey.Address()).String()
+	decompressPubkey, err := ethcrypto.DecompressPubkey(pubkey.Bytes())
+	if err != nil {
+		panic(err)
+	}
+	v2.DecompressPubkey = hex.EncodeToString(ethcrypto.FromECDSAPub(decompressPubkey))
+	v2.DecompressAddress = ethcrypto.PubkeyToAddress(*decompressPubkey).Hex()
+	return v2
+}
+
+func printKeyInfo(w io.Writer, keyInfo cryptokeyring.Info, bechKeyOut bechKeyOutFn, output string, isShowEIP55 bool) {
 	ko, err := bechKeyOut(keyInfo)
 	if err != nil {
 		panic(err)
 	}
-
+	var keyOutput interface{}
+	keyOutput = ko
+	if isShowEIP55 {
+		keyOutput = KeyOutputToV2(ko)
+	}
 	switch output {
 	case OutputFormatText:
-		printTextInfos(w, []cryptokeyring.KeyOutput{ko})
-
+		outputTextUnlimitedWidth(w, []interface{}{keyOutput})
 	case OutputFormatJSON:
-		out, err := keys.KeysCdc.MarshalJSON(ko)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Fprintln(w, string(out))
+		outputJSON(w, keyOutput)
 	}
 }
 
-func printTextInfos(w io.Writer, kos []cryptokeyring.KeyOutput) {
-	out, err := yaml.Marshal(&kos)
+func runShowCmd(cmd *cobra.Command, args []string) (err error) {
+	var info keyring.Info
+	clientCtx, err := client.GetClientQueryContext(cmd)
+	if err != nil {
+		return err
+	}
+
+	if len(args) == 1 {
+		info, err = fetchKey(clientCtx.Keyring, args[0])
+		if err != nil {
+			return fmt.Errorf("%s is not a valid name or address: %v", args[0], err)
+		}
+	} else {
+		pks := make([]cryptotypes.PubKey, len(args))
+		for i, keyref := range args {
+			info, err := fetchKey(clientCtx.Keyring, keyref)
+			if err != nil {
+				return fmt.Errorf("%s is not a valid name or address: %v", keyref, err)
+			}
+
+			pks[i] = info.GetPubKey()
+		}
+
+		multisigThreshold, _ := cmd.Flags().GetInt(flagMultiSigThreshold)
+		err = validateMultisigThreshold(multisigThreshold, len(args))
+		if err != nil {
+			return err
+		}
+
+		multikey := multisig.NewLegacyAminoPubKey(multisigThreshold, pks)
+		info = keyring.NewMultiInfo(flagMultiSigKeyName, multikey)
+	}
+
+	isShowAddr, _ := cmd.Flags().GetBool(keys.FlagAddress)
+	isShowPubKey, _ := cmd.Flags().GetBool(keys.FlagPublicKey)
+	isShowDevice, _ := cmd.Flags().GetBool(keys.FlagDevice)
+	showMore, _ := cmd.Flags().GetBool(flagShowMore)
+
+	isOutputSet := false
+	tmp := cmd.Flag(cli.OutputFlag)
+	if tmp != nil {
+		isOutputSet = tmp.Changed
+	}
+
+	if isShowAddr && isShowPubKey {
+		return errors.New("cannot use both --address and --pubkey at once")
+	}
+
+	if isOutputSet && (isShowAddr || isShowPubKey) {
+		return errors.New("cannot use --output with --address or --pubkey")
+	}
+
+	bechPrefix, _ := cmd.Flags().GetString(keys.FlagBechPrefix)
+	bechKeyOut, err := getBechKeyOut(bechPrefix)
+	if err != nil {
+		return err
+	}
+
+	output, _ := cmd.Flags().GetString(cli.OutputFlag)
+
+	switch {
+	case isShowAddr:
+		printKeyAddress(cmd.OutOrStdout(), info, bechKeyOut)
+	case isShowPubKey:
+		printPubKey(cmd.OutOrStdout(), info, bechKeyOut)
+	default:
+		printKeyInfo(cmd.OutOrStdout(), info, bechKeyOut, output, showMore)
+	}
+
+	if isShowDevice {
+		if isShowPubKey {
+			return fmt.Errorf("the device flag (-d) can only be used for addresses not pubkeys")
+		}
+		if bechPrefix != "acc" {
+			return fmt.Errorf("the device flag (-d) can only be used for accounts")
+		}
+
+		// Override and show in the device
+		if info.GetType() != keyring.TypeLedger {
+			return fmt.Errorf("the device flag (-d) can only be used for accounts stored in devices")
+		}
+
+		hdpath, err := info.GetPath()
+		if err != nil {
+			return nil
+		}
+
+		return ledger.ShowAddress(*hdpath, info.GetPubKey(), sdk.GetConfig().GetBech32AccountAddrPrefix())
+	}
+
+	return nil
+}
+
+func fetchKey(kb keyring.Keyring, keyref string) (keyring.Info, error) {
+	info, err := kb.Key(keyref)
+	if err != nil {
+		accAddr, err := sdk.AccAddressFromBech32(keyref)
+		if err != nil {
+			return info, err
+		}
+
+		info, err = kb.KeyByAddress(accAddr)
+		if err != nil {
+			return info, errors.New("key not found")
+		}
+	}
+	return info, nil
+}
+
+func getBechKeyOut(bechPrefix string) (bechKeyOutFn, error) {
+	switch bechPrefix {
+	case sdk.PrefixAccount:
+		return keyring.Bech32KeyOutput, nil
+	case sdk.PrefixValidator:
+		return keyring.Bech32ValKeyOutput, nil
+	case sdk.PrefixConsensus:
+		return keyring.Bech32ConsKeyOutput, nil
+	}
+
+	return nil, fmt.Errorf("invalid Bech32 prefix encoding provided: %s", bechPrefix)
+}
+
+func runListCmd(cmd *cobra.Command, _ []string) error {
+	clientCtx, err := client.GetClientQueryContext(cmd)
+	if err != nil {
+		return err
+	}
+
+	infos, err := clientCtx.Keyring.List()
+	if err != nil {
+		return err
+	}
+
+	cmd.SetOut(cmd.OutOrStdout())
+
+	showMore, _ := cmd.Flags().GetBool(flagShowMore)
+
+	if ok, _ := cmd.Flags().GetBool(flagListNames); !ok {
+		output, _ := cmd.Flags().GetString(cli.OutputFlag)
+		printInfos(cmd.OutOrStdout(), infos, output, showMore)
+		return nil
+	}
+	for _, info := range infos {
+		cmd.Println(info.GetName())
+	}
+	return nil
+}
+
+func printInfos(w io.Writer, infos []cryptokeyring.Info, output string, isShowEIP55 bool) {
+	var op interface{}
+	if isShowEIP55 {
+		kos, err := Bech32KeysOutputV2(infos)
+		if err != nil {
+			panic(err)
+		}
+		op = kos
+	} else {
+		kos, err := cryptokeyring.Bech32KeysOutput(infos)
+		if err != nil {
+			panic(err)
+		}
+		op = kos
+	}
+
+	switch output {
+	case OutputFormatText:
+		outputTextUnlimitedWidth(w, &op)
+	case OutputFormatJSON:
+		outputJSON(w, op)
+	}
+}
+
+func outputText(w io.Writer, info interface{}) {
+	out, err := yaml.Marshal(&info)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Fprintln(w, string(out))
+}
+
+//yamlOutputUnlimitedWidth unlimited emitter best_width, unsafe link https://github.com/go-yaml/yaml/pull/455
+func outputTextUnlimitedWidth(w io.Writer, info interface{}) {
+	var buf bytes.Buffer
+	enc := yaml.NewEncoder(&buf)
+	v := reflect.ValueOf(enc).Elem().FieldByName("encoder").Elem()
+	width := v.FieldByName("emitter").FieldByName("best_width").UnsafeAddr()
+	widthPtr := (*int)(unsafe.Pointer(width))
+	// don't limit the width
+	*widthPtr = -1
+	// encode contents
+	if err := enc.Encode(info); err != nil {
+		panic(err)
+	}
+	if err := enc.Close(); err != nil {
+		panic(err)
+	}
+	fmt.Fprintln(w, buf.String())
+}
+func outputJSON(w io.Writer, info interface{}) {
+	out, err := keys.KeysCdc.MarshalJSON(info)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintf(w, "%s", out)
+}
+
+// Bech32KeysOutputV2 returns a slice of KeyOutput objects, each with the "acc"
+// Bech32 prefixes, given a slice of Info objects. It returns an error if any
+// call to Bech32KeyOutput fails.
+func Bech32KeysOutputV2(infos []cryptokeyring.Info) ([]KeyOutputV2, error) {
+	kos := make([]KeyOutputV2, len(infos))
+	for i, info := range infos {
+		ko, err := cryptokeyring.Bech32KeyOutput(info)
+		if err != nil {
+			return nil, err
+		}
+		kos[i] = KeyOutputToV2(ko)
+	}
+
+	return kos, nil
 }
