@@ -9,11 +9,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	bip39 "github.com/cosmos/go-bip39"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -178,17 +178,17 @@ func UnsafeExportEthKeyCommand() *cobra.Command {
 				return err
 			}
 
-			if algo != ethsecp256k1.KeyType {
-				return fmt.Errorf("invalid key algorithm, got %s, expected %s", algo, ethsecp256k1.KeyType)
+			if algo != string(hd.Secp256k1Type) {
+				return fmt.Errorf("invalid key algorithm, got %s, expected %s", algo, string(hd.Secp256k1Type))
 			}
 
-			// Converts key to Ethermint secp256k1 implementation
-			ethPrivKey, ok := privKey.(*ethsecp256k1.PrivKey)
+			// Converts key to cosmos secp256k1 implementation
+			secp256k1PrivKey, ok := privKey.(*secp256k1.PrivKey)
 			if !ok {
-				return fmt.Errorf("invalid private key type %T, expected %T", privKey, &ethsecp256k1.PrivKey{})
+				return fmt.Errorf("invalid private key type %T, expected %T", privKey, &secp256k1.PrivKey{})
 			}
 
-			key, err := ethPrivKey.ToECDSA()
+			key, err := ethcrypto.ToECDSA(secp256k1PrivKey.Bytes())
 			if err != nil {
 				return err
 			}
@@ -231,18 +231,13 @@ func runImportCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	passphrase, err := input.GetPassword("Enter passphrase to encrypt your key:", inBuf)
-	if err != nil {
-		return err
-	}
-
-	privKey := &ethsecp256k1.PrivKey{
+	privKey := &secp256k1.PrivKey{
 		Key: common.FromHex(args[1]),
 	}
 
-	armor := crypto.EncryptArmorPrivKey(privKey, passphrase, "eth_secp256k1")
+	armor := crypto.EncryptArmorPrivKey(privKey, "", "secp256k1")
 
-	return kb.ImportPrivKey(args[0], armor, passphrase)
+	return kb.ImportPrivKey(args[0], armor, "")
 }
 
 /*
