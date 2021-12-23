@@ -44,8 +44,8 @@ const (
 
 	devnetGravityPruneValsetAndAttestationBlock = 1
 	devnetGravityValsetSlashBlock               = 1
-	devnetSupportEvmBlock                       = 1
-	devnetSupportIntrarelayerBlock              = 1
+	devnetSupportEvmBlock                       = 300
+	devnetSupportIntrarelayerBlock              = math.MaxInt
 )
 
 var (

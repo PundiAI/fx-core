@@ -590,14 +590,14 @@ func KeyOutputToV2(v1 cryptokeyring.KeyOutput) KeyOutputV2 {
 	return v2
 }
 
-func printKeyInfo(w io.Writer, keyInfo cryptokeyring.Info, bechKeyOut bechKeyOutFn, output string, isShowEIP55 bool) {
+func printKeyInfo(w io.Writer, keyInfo cryptokeyring.Info, bechKeyOut bechKeyOutFn, output string, isShowMore bool) {
 	ko, err := bechKeyOut(keyInfo)
 	if err != nil {
 		panic(err)
 	}
 	var keyOutput interface{}
 	keyOutput = ko
-	if isShowEIP55 {
+	if isShowMore {
 		keyOutput = KeyOutputToV2(ko)
 	}
 	switch output {
