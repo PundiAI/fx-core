@@ -20,7 +20,7 @@ import (
 var _ evmtypes.EvmHooks = (*Keeper)(nil)
 
 // PostTxProcessing implements EvmHooks.PostTxProcessing
-func (k Keeper) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
+func (k Keeper) PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error {
 	if ctx.BlockHeight() < fxtype.IntrarelayerSupportBlock() || !k.HasInit(ctx) {
 		return nil
 	}
@@ -29,13 +29,13 @@ func (k Keeper) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*et
 		return sdkerrors.Wrap(types.ErrInternalTokenPair, "EVM Hook is currently disabled")
 	}
 	//process relay event
-	if err := k.RelayEventProcessing(ctx, txHash, logs); err != nil {
+	if err := k.RelayEventProcessing(ctx, tx, logs); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (k *Keeper) RelayEventProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
+func (k *Keeper) RelayEventProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error {
 	for _, log := range logs {
 		if !isRelayEvent(log) {
 			continue
@@ -96,7 +96,7 @@ func (k *Keeper) RelayEventProcessing(ctx sdk.Context, txHash common.Hash, logs 
 					sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 					sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
 					sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
-					sdk.NewAttribute(types.EventERC20RelayHash, txHash.String()),
+					sdk.NewAttribute(types.EventERC20RelayHash, tx.Hash().String()),
 				),
 			},
 		)
@@ -105,7 +105,7 @@ func (k *Keeper) RelayEventProcessing(ctx sdk.Context, txHash common.Hash, logs 
 }
 
 func isRelayEvent(log *ethtypes.Log) bool {
-	if len(log.Topics) < 3 {
+	if len(log.Topics) < 3 { //relay event ---> event Relay(address indexed from, address indexed to, uint256 value);
 		return false
 	}
 	eventID := log.Topics[0] // event ID

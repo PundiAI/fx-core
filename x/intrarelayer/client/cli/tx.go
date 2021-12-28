@@ -3,9 +3,6 @@ package cli
 import (
 	"context"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -13,6 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"strconv"
 
 	ethermint "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/intrarelayer/types"
@@ -31,7 +31,6 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewConvertCoinCmd(),
 		NewConvertERC20Cmd(),
-		NewProposalCmd(),
 	)
 	return txCmd
 }
@@ -155,34 +154,13 @@ func NewConvertERC20Cmd() *cobra.Command {
 	return cmd
 }
 
-// NewProposalCmd returns a CLI command handler for proposal
-func NewProposalCmd() *cobra.Command {
+// NewInitIntrarelayerParamsProposalCmd init intrarelayer params proposal
+func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        "proposal",
-		Short:                      "intrarelayer proposals",
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		NewInitIntrarelayerProposalCmd(),
-		NewRegisterCoinProposalCmd(),
-		NewRegisterERC20ProposalCmd(),
-		NewToggleTokenRelayProposalCmd(),
-	)
-	cmd.PersistentFlags().String(cli.FlagTitle, "", "title of proposal")
-	cmd.PersistentFlags().String(cli.FlagDescription, "", "description of proposal")
-	cmd.PersistentFlags().String(cli.FlagDeposit, "1FX", "deposit of proposal")
-	return cmd
-}
-
-// NewInitIntrarelayerProposalCmd init intrarelayer proposal
-func NewInitIntrarelayerProposalCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "init-params",
-		Short:   "Submit a init params proposal",
-		Example: "fxcored tx intrarelayer proposal init-params --deposit=10000000000000000000000FX --title=\"Init intrarelayer module params\" --description=\"about init intrarelayer params description\"",
+		Use:     "init-intrarelayer-params [enable-intrarelayer] [enable-evm-hook] [token-pair-voting-period/seconds]",
+		Args:    cobra.RangeArgs(2, 3),
+		Short:   "Submit a init intrarelayer params proposal",
+		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-intrarelayer-params <true> <true> <1209600> --from=<key_or_address>`, version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -214,10 +192,22 @@ func NewInitIntrarelayerProposalCmd() *cobra.Command {
 				return err
 			}
 
-			enableIntrarelayer := viper.GetBool(flagInitIntrarelayerEnableIntrarelayer)
-			enableEvmHook := viper.GetBool(flagInitIntrarelayerEnableEvmHook)
-			//tokenPairVotingPeriod := viper.GetDuration(flagInitIntrarelayerTokenPairVotingPeriod)
+			enableIntrarelayer, err := strconv.ParseBool(args[0])
+			if err != nil {
+				return err
+			}
+			enableEvmHook, err := strconv.ParseBool(args[1])
+			if err != nil {
+				return err
+			}
 			tokenPairVotingPeriod := res.VotingParams.VotingPeriod
+			//if len(args) == 3 {
+			//	votingPeriod, err := strconv.ParseUint(args[2], 10, 64)
+			//	if err != nil {
+			//		return err
+			//	}
+			//	tokenPairVotingPeriod = time.Second * time.Duration(votingPeriod)
+			//}
 
 			params := types.NewParams(enableIntrarelayer, tokenPairVotingPeriod, enableEvmHook)
 			if err := params.Validate(); err != nil {
@@ -242,10 +232,18 @@ func NewInitIntrarelayerProposalCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
-	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().Bool(flagInitIntrarelayerEnableIntrarelayer, true, "enable intrarelayer")
-	cmd.Flags().Bool(flagInitIntrarelayerEnableEvmHook, true, "enable emv hook")
-	//cmd.Flags().Duration(flagInitIntrarelayerTokenPairVotingPeriod, time.Hour*24*14, "token pair voting period")
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "1FX", "deposit of proposal")
+	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
+		panic(err)
+	}
 	return cmd
 }
 
@@ -263,22 +261,21 @@ The proposal details must be supplied via a JSON file.`,
 Where metadata.json contains (example):
 	
 {
-  "description": "staking, gas and governance token of the Evmos testnets"
+  "description": "PundiX PURSE",
   "denom_units": [
-		{
-			"denom": "aphoton",
-			"exponent": 0,
-			"aliases": ["atto photon"]
-		},
-		{
-			"denom": "photon",
-			"exponent": 18
-		}
-	],
-	"base": "aphoton",
-	"display: "photon",
-	"name": "Photon",
-	"symbol": "PHOTON"
+    {
+      "denom": "ibc/0000000000000000000000000000000000000000000000000000000000000000",
+      "exponent": 0,
+      "aliases": []
+    },
+    {
+      "denom": "PURSE",
+      "exponent": 18,
+      "aliases": []
+    }
+  ],
+  "base": "ibc/0000000000000000000000000000000000000000000000000000000000000000",
+  "display": "PURSE"
 }`, version.AppName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -328,7 +325,18 @@ Where metadata.json contains (example):
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
-	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "1FX", "deposit of proposal")
+	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
+		panic(err)
+	}
 	return cmd
 }
 
@@ -339,7 +347,7 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		Short:   "Submit a proposal to register an ERC20 token",
 		Long:    "Submit a proposal to register an ERC20 token to the intrarelayer along with an initial deposit.",
-		Example: fmt.Sprintf("$ %s tx gov submit-proposal register-erc20 <path/to/proposal.json> --from=<key_or_address>", version.AppName),
+		Example: fmt.Sprintf("$ %s tx gov submit-proposal register-erc20 <erc20-address> --from=<key_or_address>", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -382,7 +390,18 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
-	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "1FX", "deposit of proposal")
+	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
+		panic(err)
+	}
 	return cmd
 }
 
@@ -436,12 +455,17 @@ func NewToggleTokenRelayProposalCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
-	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "1FX", "deposit of proposal")
+	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
+		panic(err)
+	}
 	return cmd
 }
-
-const (
-	flagInitIntrarelayerEnableIntrarelayer    = "enable-intrarelayer"
-	flagInitIntrarelayerEnableEvmHook         = "enable-evm-hook"
-	flagInitIntrarelayerTokenPairVotingPeriod = "token-pair-voting-period"
-)

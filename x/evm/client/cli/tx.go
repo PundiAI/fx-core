@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
+	"github.com/spf13/viper"
 	"math"
 	"os"
 
@@ -32,7 +35,6 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 	cmd.AddCommand(NewRawTxCmd())
-	cmd.AddCommand(CmdInitEvmParamsProposal())
 	return cmd
 }
 
@@ -117,26 +119,25 @@ func NewRawTxCmd() *cobra.Command {
 	return cmd
 }
 
-func CmdInitEvmParamsProposal() *cobra.Command {
+func InitEvmParamsProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "init-evm-params [initial proposal deposit]",
-		Short:   "init chian params",
-		Example: "fxcored tx evm init-evm-params 10000000000000000000000FX --title=\"Init evm module params\" --desc=\"about init evm params description\" --evm-params-evm-denom=\"FX\"",
-		Args:    cobra.ExactArgs(1),
+		Use:     "init-evm-params",
+		Short:   "Submit a init evm params proposal",
+		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-evm-params --evm-denom=<denom> --from=<key_or_address>`, version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			initProposalAmount, err := sdk.ParseCoinsNormalized(args[0])
+			initProposalAmount, err := sdk.ParseCoinsNormalized(viper.GetString(cli.FlagDeposit))
 			if err != nil {
 				return err
 			}
-			title, err := cmd.Flags().GetString(flagProposalTitle)
+			title, err := cmd.Flags().GetString(cli.FlagTitle)
 			if err != nil {
 				return err
 			}
-			description, err := cmd.Flags().GetString(flagProposalDescription)
+			description, err := cmd.Flags().GetString(cli.FlagDescription)
 			if err != nil {
 				return err
 			}
@@ -163,10 +164,20 @@ func CmdInitEvmParamsProposal() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
-	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().String(flagProposalTitle, "", "proposal title")
-	cmd.Flags().String(flagProposalDescription, "", "proposal desc")
+
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "1FX", "deposit of proposal")
 	cmd.Flags().String(flagEvmParamsEvmDenom, "FX", "evm denom represents the token denomination used to run the EVM state transitions.")
+	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
+		panic(err)
+	}
 	return cmd
 }
 
@@ -228,7 +239,5 @@ func getEvmParamsByFlags(cmd *cobra.Command) (*evmtypes.Params, error) {
 }
 
 const (
-	flagProposalTitle       = "title"
-	flagProposalDescription = "desc"
-	flagEvmParamsEvmDenom   = "evm-params-evm-denom"
+	flagEvmParamsEvmDenom = "evm-denom"
 )

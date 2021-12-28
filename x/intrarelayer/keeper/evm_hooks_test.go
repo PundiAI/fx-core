@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				logs := suite.app.EvmKeeper.GetTxLogsTransient(msg.AsTransaction().Hash())
 
 				// Since theres no pair registered, no coins should be minted
-				err := suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction().Hash(), logs)
+				err := suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction(), logs)
 				suite.Require().NoError(err)
 			},
 			false,
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				logs := suite.app.EvmKeeper.GetTxLogsTransient(msg.AsTransaction().Hash())
 
 				// No coins should be minted on cosmos after a mint of the erc20 token
-				err = suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction().Hash(), logs)
+				err = suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction(), logs)
 				suite.Require().NoError(err)
 			},
 			false,

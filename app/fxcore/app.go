@@ -112,10 +112,12 @@ import (
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 
 	"github.com/functionx/fx-core/x/evm"
+	evmclient "github.com/functionx/fx-core/x/evm/client"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"github.com/functionx/fx-core/x/feemarket"
 	feemarketkeeper "github.com/functionx/fx-core/x/feemarket/keeper"
 
+	intrarelayerclient "github.com/functionx/fx-core/x/intrarelayer/client"
 	intrarelayerkeeper "github.com/functionx/fx-core/x/intrarelayer/keeper"
 	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 )
@@ -132,6 +134,11 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		distrclient.ProposalHandler,
 		upgradeclient.ProposalHandler,
 		upgradeclient.CancelProposalHandler,
+		evmclient.InitEvmParamsProposalHandler,
+		intrarelayerclient.InitIntrarelayerParamsProposalHandler,
+		intrarelayerclient.RegisterCoinProposalHandler,
+		intrarelayerclient.RegisterERC20ProposalHandler,
+		intrarelayerclient.ToggleTokenRelayProposalHandler,
 	}
 }
 

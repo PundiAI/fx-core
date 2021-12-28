@@ -223,7 +223,7 @@ func (k *Keeper) ApplyTransaction(tx *ethtypes.Transaction) (*types.MsgEthereumT
 
 	if !res.Failed() {
 		// Only call hooks if tx executed successfully.
-		if err = k.PostTxProcessing(txHash, logs); err != nil {
+		if err = k.PostTxProcessing(tx, logs); err != nil {
 			// If hooks return error, revert the whole tx.
 			res.VmError = types.ErrPostTxProcessing.Error()
 			k.Logger(k.Ctx()).Error("tx post processing failed", "error", err)

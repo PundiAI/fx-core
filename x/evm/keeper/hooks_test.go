@@ -2,11 +2,10 @@ package keeper_test
 
 import (
 	"errors"
-	"math/big"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"math/big"
 
 	"github.com/functionx/fx-core/x/evm/types"
 )
@@ -16,7 +15,7 @@ type LogRecordHook struct {
 	Logs []*ethtypes.Log
 }
 
-func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
+func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error {
 	dh.Logs = logs
 	return nil
 }
@@ -24,7 +23,7 @@ func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, txHash common.Hash, l
 // FailureHook always fail
 type FailureHook struct{}
 
-func (dh FailureHook) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
+func (dh FailureHook) PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error {
 	return errors.New("post tx processing failed")
 }
 
@@ -57,17 +56,31 @@ func (suite *KeeperTestSuite) TestEvmHooks() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		hook := tc.setupHook()
-		//suite.app.EvmKeeper.SetHooks(keeper.NewMultiEvmHooks(hook))
 
 		k := suite.app.EvmKeeper
-		txHash := common.BigToHash(big.NewInt(1))
-		k.SetTxHashTransient(txHash)
+
+		tx := ethtypes.NewTx(&ethtypes.DynamicFeeTx{
+			Nonce:      1,
+			To:         &common.Address{},
+			Value:      big.NewInt(0),
+			Gas:        10000,
+			AccessList: make(ethtypes.AccessList, 0),
+			ChainID:    new(big.Int),
+			GasTipCap:  new(big.Int),
+			GasFeeCap:  new(big.Int),
+			V:          new(big.Int),
+			R:          new(big.Int),
+			S:          new(big.Int),
+		})
+
+		//txHash := common.BigToHash(big.NewInt(1))
+		k.SetTxHashTransient(tx.Hash())
 		k.AddLog(&ethtypes.Log{
 			Topics:  []common.Hash{},
 			Address: suite.address,
 		})
-		logs := k.GetTxLogsTransient(txHash)
-		result := k.PostTxProcessing(txHash, logs)
+		logs := k.GetTxLogsTransient(tx.Hash())
+		result := k.PostTxProcessing(tx, logs)
 
 		tc.expFunc(hook, result)
 	}

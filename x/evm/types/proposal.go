@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"strings"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -21,6 +22,16 @@ func init() {
 }
 
 // Proposal handler
+
+// NewInitEvmParamsProposal returns new instance of InitEvmParamsProposal
+func NewInitEvmParamsProposal(title, description string, evmParams *Params, feemarketParams *feemarkettypes.Params) govtypes.Content {
+	return &InitEvmParamsProposal{
+		Title:           title,
+		Description:     description,
+		EvmParams:       evmParams,
+		FeemarketParams: feemarketParams,
+	}
+}
 
 func (m *InitEvmParamsProposal) GetTitle() string {
 	return m.Title

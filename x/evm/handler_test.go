@@ -609,7 +609,7 @@ func (suite *EvmTestSuite) TestGasRefundWhenReverted() {
 // DummyHook implements EvmHooks interface
 type DummyHook struct{}
 
-func (dh *DummyHook) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
+func (dh *DummyHook) PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error {
 	return nil
 }
 

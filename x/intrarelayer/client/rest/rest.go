@@ -14,6 +14,15 @@ import (
 	"github.com/functionx/fx-core/x/intrarelayer/types"
 )
 
+// InitIntrarelayerParamsProposalRequest defines a request for a new init intrarelayer params proposal.
+type InitIntrarelayerParamsProposalRequest struct {
+	BaseReq     rest.BaseReq  `json:"base_req" yaml:"base_req"`
+	Title       string        `json:"title" yaml:"title"`
+	Description string        `json:"description" yaml:"description"`
+	Deposit     sdk.Coins     `json:"deposit" yaml:"deposit"`
+	Params      *types.Params `json:"params" yaml:"params"`
+}
+
 // RegisterCoinProposalRequest defines a request for a new register coin proposal.
 type RegisterCoinProposalRequest struct {
 	BaseReq     rest.BaseReq       `json:"base_req" yaml:"base_req"`
@@ -41,14 +50,11 @@ type ToggleTokenRelayProposalRequest struct {
 	Token       string       `json:"token" yaml:"token"`
 }
 
-// UpdateTokenPairERC20ProposalRequest defines a request for a update token pair ERC20 proposal.
-type UpdateTokenPairERC20ProposalRequest struct {
-	BaseReq         rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Title           string       `json:"title" yaml:"title"`
-	Description     string       `json:"description" yaml:"description"`
-	Deposit         sdk.Coins    `json:"deposit" yaml:"deposit"`
-	ERC20Address    string       `json:"erc20_address" yaml:"erc20_address"`
-	NewERC20Address string       `json:"new_erc20_address" yaml:"new_erc20_address"`
+func InitIntrarelayerParamsProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
+	return govrest.ProposalRESTHandler{
+		SubRoute: types.ModuleName,
+		Handler:  newInitIntrarelayerParamsProposalHandler(clientCtx),
+	}
 }
 
 func RegisterCoinProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
@@ -69,6 +75,39 @@ func ToggleTokenRelayRESTHandler(clientCtx client.Context) govrest.ProposalRESTH
 	return govrest.ProposalRESTHandler{
 		SubRoute: types.ModuleName,
 		Handler:  newToggleTokenRelayHandler(clientCtx),
+	}
+}
+
+// nolint: dupl
+func newInitIntrarelayerParamsProposalHandler(clientCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req InitIntrarelayerParamsProposalRequest
+
+		if !rest.ReadRESTReq(w, r, clientCtx.LegacyAmino, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		fromAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
+		content := types.NewInitIntrarelayerProposal(req.Title, req.Description, req.Params)
+		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, fromAddr)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
+		if rest.CheckBadRequestError(w, msg.ValidateBasic()) {
+			return
+		}
+
+		tx.WriteGeneratedTxResponse(clientCtx, w, req.BaseReq, msg)
 	}
 }
 
