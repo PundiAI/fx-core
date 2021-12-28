@@ -1,5 +1,7 @@
 package types
 
+import "math/big"
+
 // ERC20Data represents the ERC20 token details used to map
 // the token to a Cosmos Coin
 type ERC20Data struct {
@@ -30,4 +32,8 @@ func NewERC20Data(name, symbol string, decimals uint8) ERC20Data {
 		Symbol:   symbol,
 		Decimals: decimals,
 	}
+}
+
+type ERC20Uint256Response struct {
+	Value *big.Int
 }

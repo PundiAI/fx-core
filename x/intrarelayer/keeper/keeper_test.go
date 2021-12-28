@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 	})
 	suite.Require().NoError(err)
 
-	nonce := suite.app.EvmKeeper.GetNonce(suite.address)
+	nonce := suite.app.EvmKeeper.GetNonce(from)
 
 	ercTransferTx := evm.NewTx(
 		chainID,
@@ -367,11 +367,15 @@ func InitIntrarelayerParams(ctx sdk.Context, keeper keeper.Keeper) error {
 
 	err := keeper.InitIntrarelayer(ctx, &types.InitIntrarelayerProposal{
 		Title:       "Init intrarelayer title",
-		Description: "Init intrarelayer model description",
+		Description: "Init intrarelayer module description",
 		Params:      &defaultParams,
 	})
 
 	return err
+}
+
+func EvmKeeperSetHook(evm *evmkeeper.Keeper, hooks evmkeeper.MultiEvmHooks) {
+	evm.SetHooks(hooks)
 }
 
 func NewPriKey() cryptotypes.PrivKey {

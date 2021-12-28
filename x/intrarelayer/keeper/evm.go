@@ -59,6 +59,20 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	return types.NewERC20Data(nameRes.Value, symbolRes.Value, decimalRes.Value), nil
 }
 
+func (k Keeper) QueryERC20BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.Int, error) {
+	erc20 := contracts.ERC20RelayContract.ABI
+	res, err := k.CallEVMWithModule(ctx, erc20, contract, "balanceOf", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	var balanceRes types.ERC20Uint256Response
+	if err := erc20.UnpackIntoInterface(&balanceRes, "balanceOf", res.Ret); err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "failed to unpack balanceOf: %s", err.Error())
+	}
+	return balanceRes.Value, nil
+}
+
 // CallEVM performs a smart contract method call using  given args
 func (k Keeper) CallEVM(ctx sdk.Context, abi abi.ABI, from, contract common.Address, method string, args ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
 	payload, err := abi.Pack(method, args...)
@@ -131,14 +145,13 @@ func (k Keeper) CallEVMWithModule(ctx sdk.Context, abi abi.ABI, contract common.
 func (k Keeper) CallEVMWithPayloadWithModule(ctx sdk.Context, contract *common.Address, transferData []byte) (*evmtypes.MsgEthereumTxResponse, error) {
 	k.evmKeeper.WithContext(ctx)
 
-	moduleAddress := types.ModuleAddress
-	nonce, err := k.accountKeeper.GetSequence(ctx, moduleAddress.Bytes())
+	nonce, err := k.accountKeeper.GetSequence(ctx, types.ModuleAddress.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
 	msg := ethtypes.NewMessage(
-		moduleAddress,
+		types.ModuleAddress,
 		contract,
 		nonce,
 		big.NewInt(0),        // amount
@@ -156,7 +169,7 @@ func (k Keeper) CallEVMWithPayloadWithModule(ctx sdk.Context, contract *common.A
 		return nil, err
 	}
 
-	k.evmKeeper.SetNonce(moduleAddress, nonce+1)
+	k.evmKeeper.SetNonce(types.ModuleAddress, nonce+1)
 
 	if res.Failed() {
 		return nil, sdkerrors.Wrap(evmtypes.ErrVMExecution, res.VmError)

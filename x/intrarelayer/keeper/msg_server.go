@@ -2,12 +2,10 @@ package keeper
 
 import (
 	"context"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/functionx/fx-core/x/intrarelayer/types"
 	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 )
@@ -50,22 +48,32 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 
 	// Error checked during msg validation
 	receiver, _ := sdk.AccAddressFromBech32(msg.Receiver)
+	//address
+	accAddress := msg.AccAddress()
+	hexAddress := msg.HexAddress()
 
-	pubKey, _ := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, msg.PubKey)
-
-	pair, err := k.MintingEnabled(ctx, sdk.AccAddress(pubKey.Bytes()).Bytes(), receiver, msg.ContractAddress)
+	pair, err := k.MintingEnabled(ctx, accAddress, receiver, msg.ContractAddress)
 	if err != nil {
 		return nil, err
+	}
+
+	//check erc20 balance
+	balanceOf, err := k.QueryERC20BalanceOf(ctx, pair.GetERC20Contract(), hexAddress)
+	if err != nil {
+		return nil, err
+	}
+	if balanceOf.Cmp(msg.Amount.BigInt()) < 0 {
+		return nil, fmt.Errorf("insufficient balance of %s at token %s", hexAddress.Hex(), pair.GetERC20Contract().Hex())
 	}
 
 	// Check ownership
 	switch {
 	case pair.IsNativeCoin():
 		// case 1.2
-		return k.convertERC20NativeCoin(ctx, pair, msg, receiver, pubKey)
+		return k.convertERC20NativeCoin(ctx, pair, msg, receiver, accAddress, hexAddress)
 	case pair.IsNativeERC20():
 		// case 2.1
-		return k.convertERC20NativeToken(ctx, pair, msg, receiver, pubKey)
+		return k.convertERC20NativeToken(ctx, pair, msg, receiver, accAddress, hexAddress)
 	default:
 		return nil, types.ErrUndefinedOwner
 	}
@@ -181,20 +189,15 @@ func (k Keeper) convertERC20NativeCoin(
 	pair types.TokenPair,
 	msg *types.MsgConvertERC20,
 	receiver sdk.AccAddress,
-	pubKey cryptotypes.PubKey,
+	accAddress sdk.AccAddress,
+	hexAddress common.Address,
 ) (*types.MsgConvertERC20Response, error) {
 	// NOTE: coin fields already validated
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: msg.Amount}}
 	erc20 := contracts.ERC20RelayContract.ABI
 	contract := pair.GetERC20Contract()
 
-	uncompressedPubKey, err := crypto.DecompressPubkey(pubKey.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	from := crypto.PubkeyToAddress(*uncompressedPubKey)
-
-	_, err = k.CallEVMWithModule(ctx, erc20, contract, "burn", from, msg.Amount.BigInt())
+	_, err := k.CallEVMWithModule(ctx, erc20, contract, "burn", hexAddress, msg.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +211,7 @@ func (k Keeper) convertERC20NativeCoin(
 		sdk.Events{
 			sdk.NewEvent(
 				types.EventTypeConvertERC20,
-				sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(pubKey.Bytes()).String()),
+				sdk.NewAttribute(sdk.AttributeKeySender, accAddress.String()),
 				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 				sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
@@ -229,18 +232,13 @@ func (k Keeper) convertERC20NativeToken(
 	pair types.TokenPair,
 	msg *types.MsgConvertERC20,
 	receiver sdk.AccAddress,
-	pubKey cryptotypes.PubKey,
+	accAddress sdk.AccAddress,
+	hexAddress common.Address,
 ) (*types.MsgConvertERC20Response, error) {
 	// NOTE: coin fields already validated
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: msg.Amount}}
 	erc20 := contracts.ERC20RelayContract.ABI
 	contract := pair.GetERC20Contract()
-
-	uncompressedPubKey, err := crypto.DecompressPubkey(pubKey.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	from := crypto.PubkeyToAddress(*uncompressedPubKey)
 
 	// Escrow tokens on module account
 	transferData, err := erc20.Pack("transfer", types.ModuleAddress, msg.Amount.BigInt())
@@ -248,7 +246,7 @@ func (k Keeper) convertERC20NativeToken(
 		return nil, err
 	}
 	// Call evm with eip55 address
-	res, err := k.CallEVMWithPayload(ctx, from, &contract, transferData)
+	res, err := k.CallEVMWithPayload(ctx, hexAddress, &contract, transferData)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +275,7 @@ func (k Keeper) convertERC20NativeToken(
 		sdk.Events{
 			sdk.NewEvent(
 				types.EventTypeConvertERC20,
-				sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(pubKey.Bytes()).String()),
+				sdk.NewAttribute(sdk.AttributeKeySender, accAddress.String()),
 				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 				sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),

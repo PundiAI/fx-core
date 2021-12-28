@@ -30,9 +30,12 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				suite.Commit()
 
 				// Burn the 10 tokens of suite.address (owner)
+				// TODO ineffective
+				// depend on mainnet intrarelayer support height, now math.MaxInt
+				// fix after mainnet online, so result false
 				suite.RelayERC20Token(contractAddr, hexAddress, common.BytesToAddress(accAddress.Bytes()), big.NewInt(10))
 			},
-			true,
+			false,
 		},
 		{
 			"unregistered pair",
@@ -138,6 +141,9 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
 			// relay the 5 tokens of suite.address (owner)
+			// TODO ineffective
+			// depend on mainnet intrarelayer support height, now math.MaxInt
+			// fix after mainnet online, so cosmosBalance sub reconvert
 			suite.RelayERC20Token(contractAddr, hexAddress, common.BytesToAddress(accAddress.Bytes()), big.NewInt(tc.reconvert))
 
 			balance = suite.BalanceOf(common.HexToAddress(pair.Erc20Address), hexAddress)
@@ -146,7 +152,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			if tc.result {
 				// Check if the execution was successfull
 				suite.Require().NoError(err)
-				suite.Require().Equal(cosmosBalance.Amount, sdk.NewInt(tc.mint-tc.burn+tc.reconvert))
+				suite.Require().Equal(cosmosBalance.Amount, sdk.NewInt(tc.mint-tc.burn))
 			} else {
 				// Check that no changes were made to the account
 				suite.Require().Error(err)

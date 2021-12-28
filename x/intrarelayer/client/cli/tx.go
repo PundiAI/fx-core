@@ -1,11 +1,10 @@
 package cli
 
 import (
+	"context"
 	"fmt"
-	"github.com/spf13/viper"
-	"time"
-
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -171,7 +170,6 @@ func NewProposalCmd() *cobra.Command {
 		NewRegisterCoinProposalCmd(),
 		NewRegisterERC20ProposalCmd(),
 		NewToggleTokenRelayProposalCmd(),
-		//NewUpdateTokenPairERC20ProposalCmd(),
 	)
 	cmd.PersistentFlags().String(cli.FlagTitle, "", "title of proposal")
 	cmd.PersistentFlags().String(cli.FlagDescription, "", "description of proposal")
@@ -210,10 +208,16 @@ func NewInitIntrarelayerProposalCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			queryGovClient := govtypes.NewQueryClient(clientCtx)
+			res, err := queryGovClient.Params(context.Background(), &govtypes.QueryParamsRequest{ParamsType: govtypes.ParamVoting})
+			if err != nil {
+				return err
+			}
 
 			enableIntrarelayer := viper.GetBool(flagInitIntrarelayerEnableIntrarelayer)
 			enableEvmHook := viper.GetBool(flagInitIntrarelayerEnableEvmHook)
-			tokenPairVotingPeriod := viper.GetDuration(flagInitIntrarelayerTokenPairVotingPeriod)
+			//tokenPairVotingPeriod := viper.GetDuration(flagInitIntrarelayerTokenPairVotingPeriod)
+			tokenPairVotingPeriod := res.VotingParams.VotingPeriod
 
 			params := types.NewParams(enableIntrarelayer, tokenPairVotingPeriod, enableEvmHook)
 			if err := params.Validate(); err != nil {
@@ -241,7 +245,7 @@ func NewInitIntrarelayerProposalCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Bool(flagInitIntrarelayerEnableIntrarelayer, true, "enable intrarelayer")
 	cmd.Flags().Bool(flagInitIntrarelayerEnableEvmHook, true, "enable emv hook")
-	cmd.Flags().Duration(flagInitIntrarelayerTokenPairVotingPeriod, time.Hour*24*2, "token pair voting period")
+	//cmd.Flags().Duration(flagInitIntrarelayerTokenPairVotingPeriod, time.Hour*24*14, "token pair voting period")
 	return cmd
 }
 
@@ -420,62 +424,6 @@ func NewToggleTokenRelayProposalCmd() *cobra.Command {
 			token := args[0]
 			content := types.NewToggleTokenRelayProposal(title, description, token)
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
-			if err != nil {
-				return err
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// NewUpdateTokenPairERC20ProposalCmd implements the command to submit a community-pool-spend proposal
-// Deprecated: unused proposal
-func NewUpdateTokenPairERC20ProposalCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "update-token-pair-erc20 [erc20_address] [new_erc20_address]",
-		Args:    cobra.ExactArgs(2),
-		Short:   "Submit a update token pair ERC20 proposal",
-		Long:    `Submit a proposal to update the ERC20 address of a token pair along with an initial deposit.`,
-		Example: fmt.Sprintf("$ %s tx gov submit-proposal update-token-pair-erc20 <path/to/proposal.json> --from=<key_or_address>", version.AppName),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			title, err := cmd.Flags().GetString(cli.FlagTitle)
-			if err != nil {
-				return err
-			}
-
-			description, err := cmd.Flags().GetString(cli.FlagDescription)
-			if err != nil {
-				return err
-			}
-
-			depositStr, err := cmd.Flags().GetString(cli.FlagDeposit)
-			if err != nil {
-				return err
-			}
-
-			deposit, err := sdk.ParseCoinsNormalized(depositStr)
-			if err != nil {
-				return err
-			}
-
-			erc20Addr := args[0]
-			newERC20Addr := args[1]
-
-			from := clientCtx.GetFromAddress()
-			content := types.NewUpdateTokenPairERC20Proposal(title, description, erc20Addr, newERC20Addr)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err

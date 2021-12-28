@@ -9,7 +9,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/ethereum/go-ethereum/common"
 	ethermint "github.com/functionx/fx-core/types"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
@@ -29,7 +28,6 @@ var (
 	_ govtypes.Content = &RegisterCoinProposal{}
 	_ govtypes.Content = &RegisterERC20Proposal{}
 	_ govtypes.Content = &ToggleTokenRelayProposal{}
-	_ govtypes.Content = &UpdateTokenPairERC20Proposal{}
 )
 
 func init() {
@@ -42,7 +40,6 @@ func init() {
 	govtypes.RegisterProposalTypeCodec(&RegisterCoinProposal{}, "intrarelayer/RegisterCoinProposal")
 	govtypes.RegisterProposalTypeCodec(&RegisterERC20Proposal{}, "intrarelayer/RegisterERC20Proposal")
 	govtypes.RegisterProposalTypeCodec(&ToggleTokenRelayProposal{}, "intrarelayer/ToggleTokenRelayProposal")
-	govtypes.RegisterProposalTypeCodec(&UpdateTokenPairERC20Proposal{}, "intrarelayer/UpdateTokenPairERC20Proposal")
 }
 
 // CreateDenom generates a string the module name plus the address to avoid conflicts with names staring with a number
@@ -189,47 +186,6 @@ func (etrp *ToggleTokenRelayProposal) ValidateBasic() error {
 	}
 
 	return govtypes.ValidateAbstract(etrp)
-}
-
-// NewUpdateTokenPairERC20Proposal returns new instance of UpdateTokenPairERC20Proposal
-func NewUpdateTokenPairERC20Proposal(title, description string, erc20Addr, newERC20Addr string) govtypes.Content {
-	return &UpdateTokenPairERC20Proposal{
-		Title:           title,
-		Description:     description,
-		Erc20Address:    erc20Addr,
-		NewErc20Address: newERC20Addr,
-	}
-}
-
-// ProposalRoute returns router key for this proposal
-func (*UpdateTokenPairERC20Proposal) ProposalRoute() string { return RouterKey }
-
-// ProposalType returns proposal type for this proposal
-func (*UpdateTokenPairERC20Proposal) ProposalType() string {
-	return ProposalTypeUpdateTokenPairERC20
-}
-
-// ValidateBasic performs a stateless check of the proposal fields
-func (p *UpdateTokenPairERC20Proposal) ValidateBasic() error {
-	if err := ethermint.ValidateAddress(p.Erc20Address); err != nil {
-		return sdkerrors.Wrap(err, "ERC20 address")
-	}
-
-	if err := ethermint.ValidateAddress(p.NewErc20Address); err != nil {
-		return sdkerrors.Wrap(err, "new ERC20 address")
-	}
-
-	return govtypes.ValidateAbstract(p)
-}
-
-// GetERC20Address returns the common.Address representation of the ERC20 hex address
-func (p UpdateTokenPairERC20Proposal) GetERC20Address() common.Address {
-	return common.HexToAddress(p.Erc20Address)
-}
-
-// GetNewERC20Address returns the common.Address representation of the new ERC20 hex address
-func (p UpdateTokenPairERC20Proposal) GetNewERC20Address() common.Address {
-	return common.HexToAddress(p.NewErc20Address)
 }
 
 // ValidateIntrarelayerDenom checks if a denom is a valid intrarelayer/
