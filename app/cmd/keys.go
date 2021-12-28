@@ -476,11 +476,11 @@ func getLegacyKeyBaseFromDir(rootDir string, opts ...cryptokeyring.KeybaseOption
 	return cryptokeyring.NewLegacy(defaultKeyDBName, filepath.Join(rootDir, "keys"), opts...)
 }
 
-func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic, eip55 bool, mnemonic, outputFormat string) error {
+func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic, showMore bool, mnemonic, outputFormat string) error {
 	switch outputFormat {
 	case OutputFormatText:
 		cmd.PrintErrln()
-		printKeyInfo(cmd.OutOrStdout(), info, keyring.Bech32KeyOutput, outputFormat, eip55)
+		printKeyInfo(cmd.OutOrStdout(), info, keyring.Bech32KeyOutput, outputFormat, showMore)
 
 		// print mnemonic unless requested not to.
 		if showMnemonic {
