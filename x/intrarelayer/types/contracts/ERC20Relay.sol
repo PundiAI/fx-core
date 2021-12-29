@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-contract ERC20RelayExternal {
+contract ERC20Relay {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -13,13 +13,11 @@ contract ERC20RelayExternal {
     uint256 private _totalSupply;
 
     address private _owner;
-    address private _intrarelayer;
 
-    constructor(string memory name_, string memory symbol_, uint8 decimals_, address intrarelayer_) {
+    constructor(string memory name_, string memory symbol_, uint8 decimals_) {
         _name = name_;
         _symbol = symbol_;
         _decimals = decimals_;
-        _intrarelayer = intrarelayer_;
         _owner = msg.sender;
     }
 
@@ -70,8 +68,8 @@ contract ERC20RelayExternal {
         _mint(account, amount);
     }
 
-    function burn(uint256 amount) public {
-        _burn(msg.sender, amount);
+    function burn(address account, uint256 amount) public onlyOwner {
+        _burn(account, amount);
     }
 
     function relay(address recipient, uint256 amount) public returns (bool){
@@ -87,13 +85,10 @@ contract ERC20RelayExternal {
         return true;
     }
 
-    function intrarelayer() public view returns (address){
-        return _intrarelayer;
-    }
-
-    function owner() public view virtual returns (address) {
+    function owner() public view returns (address) {
         return _owner;
     }
+
     modifier onlyOwner() {
         require(owner() == msg.sender, "caller is not the owner");
         _;
@@ -137,7 +132,7 @@ contract ERC20RelayExternal {
         require(sender != address(0), "relay from the zero address");
         require(recipient != address(0), "relay to the zero address");
 
-        _transfer(sender, _intrarelayer, amount);
+        _burn(sender, amount);
 
         emit Relay(sender, recipient, amount);
     }
