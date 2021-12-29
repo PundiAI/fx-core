@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"encoding/hex"
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/tendermint/tendermint/libs/json"
 
@@ -36,6 +40,42 @@ func QueryStoreCmd() *cobra.Command {
 				return err
 			}
 			return PrintOutput(clientCtx, bts)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func QueryValidatorByConsAddr() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "validator-by-cons [validator-consAddr]",
+		Short: "Query details about an individual validator cons address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			consAddr, err := sdk.ConsAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			opAddr, _, err := clientCtx.QueryStore(types.GetValidatorByConsAddrKey(consAddr), types.StoreKey)
+			if err != nil {
+				return err
+			}
+			if opAddr == nil {
+				return fmt.Errorf("not found validator by consAddress:%s", consAddr.String())
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Validator(context.Background(), &types.QueryValidatorRequest{
+				ValidatorAddr: sdk.ValAddress(opAddr).String(),
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(&res.Validator)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)

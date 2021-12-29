@@ -31,6 +31,7 @@ func Network() *cobra.Command {
 				"CrossChainSupportPolygonBlock":          fmt.Sprintf("%d", types.CrossChainSupportPolygonBlock()),
 				"EIP155ChainID":                          fmt.Sprintf("%d", types.EIP155ChainID()),
 				"EvmSupportBlock":                        fmt.Sprintf("%d", types.EvmSupportBlock()),
+				"IntrarelayerSupportBlock":               fmt.Sprintf("%d", types.IntrarelayerSupportBlock()),
 			})
 			if err != nil {
 				return err

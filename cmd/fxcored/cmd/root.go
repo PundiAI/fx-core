@@ -171,6 +171,7 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
 		appCmd.QueryStoreCmd(),
+		appCmd.QueryValidatorByConsAddr(),
 		appCmd.QueryBlockResultsCmd(),
 	)
 

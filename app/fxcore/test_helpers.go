@@ -91,7 +91,6 @@ func DefaultTestGenesis(cdc codec.JSONMarshaler) AppGenesisState {
 func Setup(isCheckTx bool) *App {
 	app, genesisState := setup(!isCheckTx, 5)
 	if !isCheckTx {
-
 		// init chain must be called to stop deliverState from being nil
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 		if err != nil {
