@@ -432,8 +432,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper,
 	)
 
-	evmHooks := evmkeeper.NewMultiEvmHooks(myApp.IntrarelayerKeeper)
-	myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
+	//evmHooks := evmkeeper.NewMultiEvmHooks(myApp.IntrarelayerKeeper)
+	//myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()

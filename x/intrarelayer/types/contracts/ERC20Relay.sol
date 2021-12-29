@@ -72,19 +72,6 @@ contract ERC20Relay {
         _burn(account, amount);
     }
 
-    function relay(address recipient, uint256 amount) public returns (bool){
-        _relay(msg.sender, recipient, amount);
-        return true;
-    }
-
-    function relayFrom(address sender, address recipient, uint256 amount) public returns (bool){
-        uint256 currentAllowance = _allowances[sender][msg.sender];
-        require(currentAllowance >= amount, "relay amount exceeds allowance");
-        _approve(sender, msg.sender, currentAllowance - amount);
-        _relay(sender, recipient, amount);
-        return true;
-    }
-
     function owner() public view returns (address) {
         return _owner;
     }
@@ -128,16 +115,6 @@ contract ERC20Relay {
         _allowances[sender][spender] = amount;
     }
 
-    function _relay(address sender, address recipient, uint256 amount) internal {
-        require(sender != address(0), "relay from the zero address");
-        require(recipient != address(0), "relay to the zero address");
-
-        _burn(sender, amount);
-
-        emit Relay(sender, recipient, amount);
-    }
-
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
-    event Relay(address indexed from, address indexed to, uint256 value);
 }
