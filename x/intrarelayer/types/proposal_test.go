@@ -23,8 +23,8 @@ func TestProposalTestSuite(t *testing.T) {
 }
 
 func (suite *ProposalTestSuite) TestKeysTypes() {
-	suite.Require().Equal("intrarelayer", (&InitIntrarelayerProposal{}).ProposalRoute())
-	suite.Require().Equal("InitIntrarelayer", (&InitIntrarelayerProposal{}).ProposalType())
+	suite.Require().Equal("intrarelayer", (&InitIntrarelayerParamsProposal{}).ProposalRoute())
+	suite.Require().Equal("InitIntrarelayerParams", (&InitIntrarelayerParamsProposal{}).ProposalType())
 	suite.Require().Equal("intrarelayer", (&RegisterCoinProposal{}).ProposalRoute())
 	suite.Require().Equal("RegisterCoin", (&RegisterCoinProposal{}).ProposalType())
 	suite.Require().Equal("intrarelayer", (&RegisterERC20Proposal{}).ProposalRoute())

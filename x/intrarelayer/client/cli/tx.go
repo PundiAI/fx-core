@@ -214,7 +214,7 @@ func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 				return err
 			}
 
-			proposal := types.NewInitIntrarelayerProposal(title, description, &params)
+			proposal := types.NewInitIntrarelayerParamsProposal(title, description, &params)
 			if err := proposal.ValidateBasic(); err != nil {
 				return err
 			}

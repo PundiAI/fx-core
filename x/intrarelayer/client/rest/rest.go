@@ -97,7 +97,7 @@ func newInitIntrarelayerParamsProposalHandler(clientCtx client.Context) http.Han
 			return
 		}
 
-		content := types.NewInitIntrarelayerProposal(req.Title, req.Description, req.Params)
+		content := types.NewInitIntrarelayerParamsProposal(req.Title, req.Description, req.Params)
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, fromAddr)
 		if rest.CheckBadRequestError(w, err) {
 			return

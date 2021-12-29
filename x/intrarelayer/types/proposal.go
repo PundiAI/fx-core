@@ -15,28 +15,28 @@ import (
 
 // constants
 const (
-	ProposalTypeInitIntrarelayer     string = "InitIntrarelayer"
-	ProposalTypeRegisterCoin         string = "RegisterCoin"
-	ProposalTypeRegisterERC20        string = "RegisterERC20"
-	ProposalTypeToggleTokenRelay     string = "ToggleTokenRelay" // #nosec
-	ProposalTypeUpdateTokenPairERC20 string = "UpdateTokenPairERC20"
+	ProposalTypeInitIntrarelayerParams string = "InitIntrarelayerParams"
+	ProposalTypeRegisterCoin           string = "RegisterCoin"
+	ProposalTypeRegisterERC20          string = "RegisterERC20"
+	ProposalTypeToggleTokenRelay       string = "ToggleTokenRelay" // #nosec
+	ProposalTypeUpdateTokenPairERC20   string = "UpdateTokenPairERC20"
 )
 
 // Implements Proposal Interface
 var (
-	_ govtypes.Content = &InitIntrarelayerProposal{}
+	_ govtypes.Content = &InitIntrarelayerParamsProposal{}
 	_ govtypes.Content = &RegisterCoinProposal{}
 	_ govtypes.Content = &RegisterERC20Proposal{}
 	_ govtypes.Content = &ToggleTokenRelayProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeInitIntrarelayer)
+	govtypes.RegisterProposalType(ProposalTypeInitIntrarelayerParams)
 	govtypes.RegisterProposalType(ProposalTypeRegisterCoin)
 	govtypes.RegisterProposalType(ProposalTypeRegisterERC20)
 	govtypes.RegisterProposalType(ProposalTypeToggleTokenRelay)
 	govtypes.RegisterProposalType(ProposalTypeUpdateTokenPairERC20)
-	govtypes.RegisterProposalTypeCodec(&InitIntrarelayerProposal{}, "intrarelayer/InitIntrarelayerProposal")
+	govtypes.RegisterProposalTypeCodec(&InitIntrarelayerParamsProposal{}, "intrarelayer/InitIntrarelayerParamsProposal")
 	govtypes.RegisterProposalTypeCodec(&RegisterCoinProposal{}, "intrarelayer/RegisterCoinProposal")
 	govtypes.RegisterProposalTypeCodec(&RegisterERC20Proposal{}, "intrarelayer/RegisterERC20Proposal")
 	govtypes.RegisterProposalTypeCodec(&ToggleTokenRelayProposal{}, "intrarelayer/ToggleTokenRelayProposal")
@@ -47,9 +47,9 @@ func CreateDenom(address string) string {
 	return fmt.Sprintf("%s/%s", ModuleName, address)
 }
 
-// NewInitIntrarelayerProposal returns new instance of InitIntrarelayerProposal
-func NewInitIntrarelayerProposal(title, description string, params *Params) govtypes.Content {
-	return &InitIntrarelayerProposal{
+// NewInitIntrarelayerParamsProposal returns new instance of InitIntrarelayerParamsProposal
+func NewInitIntrarelayerParamsProposal(title, description string, params *Params) govtypes.Content {
+	return &InitIntrarelayerParamsProposal{
 		Title:       title,
 		Description: description,
 		Params:      params,
@@ -57,17 +57,17 @@ func NewInitIntrarelayerProposal(title, description string, params *Params) govt
 }
 
 // ProposalRoute returns router key for this proposal
-func (*InitIntrarelayerProposal) ProposalRoute() string {
+func (*InitIntrarelayerParamsProposal) ProposalRoute() string {
 	return RouterKey
 }
 
 // ProposalType returns proposal type for this proposal
-func (*InitIntrarelayerProposal) ProposalType() string {
-	return ProposalTypeInitIntrarelayer
+func (*InitIntrarelayerParamsProposal) ProposalType() string {
+	return ProposalTypeInitIntrarelayerParams
 }
 
 // ValidateBasic performs a stateless check of the proposal fields
-func (iip *InitIntrarelayerProposal) ValidateBasic() error {
+func (iip *InitIntrarelayerParamsProposal) ValidateBasic() error {
 	if len(iip.Title) == 0 {
 		return fmt.Errorf("invalid title: %s", iip.Title)
 	}

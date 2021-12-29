@@ -365,7 +365,7 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 func InitIntrarelayerParams(ctx sdk.Context, keeper keeper.Keeper) error {
 	defaultParams := types.DefaultParams()
 
-	err := keeper.InitIntrarelayer(ctx, &types.InitIntrarelayerProposal{
+	err := keeper.InitIntrarelayer(ctx, &types.InitIntrarelayerParamsProposal{
 		Title:       "Init intrarelayer title",
 		Description: "Init intrarelayer module description",
 		Params:      &defaultParams,

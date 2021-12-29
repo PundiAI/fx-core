@@ -641,7 +641,7 @@ func InitIntrarelayerParams(ctx sdk.Context, keeper intrarelayerkeeper.Keeper) e
 	if err := params.Validate(); err != nil {
 		return err
 	}
-	proposal := intrarelayertypes.InitIntrarelayerProposal{Title: "init intrarelayer module", Description: "init intrarelayer module description", Params: &params}
+	proposal := intrarelayertypes.InitIntrarelayerParamsProposal{Title: "init intrarelayer module", Description: "init intrarelayer module description", Params: &params}
 	if err := proposal.ValidateBasic(); err != nil {
 		return err
 	}

@@ -12,7 +12,7 @@ import (
 	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 )
 
-func (k Keeper) InitIntrarelayer(ctx sdk.Context, p *types.InitIntrarelayerProposal) error {
+func (k Keeper) InitIntrarelayer(ctx sdk.Context, p *types.InitIntrarelayerParamsProposal) error {
 	if !k.evmKeeper.HasInit(ctx) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module has not init")
 	}

@@ -16,8 +16,8 @@ import (
 func NewIntrarelayerProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
-		case *types.InitIntrarelayerProposal:
-			return handleInitIntrarelayerProposalHandler(ctx, k, c)
+		case *types.InitIntrarelayerParamsProposal:
+			return handleInitIntrarelayerParamsProposal(ctx, k, c)
 		case *types.RegisterCoinProposal:
 			return handleRegisterCoinProposal(ctx, k, c)
 		case *types.RegisterERC20Proposal:
@@ -30,7 +30,7 @@ func NewIntrarelayerProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	}
 }
 
-func handleInitIntrarelayerProposalHandler(ctx sdk.Context, k *keeper.Keeper, p *types.InitIntrarelayerProposal) error {
+func handleInitIntrarelayerParamsProposal(ctx sdk.Context, k *keeper.Keeper, p *types.InitIntrarelayerParamsProposal) error {
 	if ctx.BlockHeight() < fxtype.IntrarelayerSupportBlock() {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("evm module not enable"))
 	}
