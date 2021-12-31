@@ -32,7 +32,7 @@ func NewIntrarelayerProposalHandler(k *keeper.Keeper) govtypes.Handler {
 
 func handleInitIntrarelayerParamsProposal(ctx sdk.Context, k *keeper.Keeper, p *types.InitIntrarelayerParamsProposal) error {
 	if ctx.BlockHeight() < fxtype.IntrarelayerSupportBlock() {
-		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("evm module not enable"))
+		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("intrarelayer module not enable"))
 	}
 	return k.InitIntrarelayer(ctx, p)
 }

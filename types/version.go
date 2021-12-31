@@ -1,7 +1,6 @@
 package types
 
 import (
-	"math"
 	"math/big"
 )
 
@@ -22,6 +21,7 @@ const (
 	testnetGravityValsetSlashBlock               = 1
 	testnetSupportEvmBlock                       = 408000
 	testnetEvmChainID                            = 90001
+	testnetSupportIntrarelayerBlock              = 999999999
 )
 
 // mainnet constant
@@ -33,9 +33,10 @@ const (
 	//
 	mainnetGravityPruneValsetAndAttestationBlock = 610000
 	// gravity not slash no set eth address validator
-	mainnetGravityValsetSlashBlock = 1685000
-	mainnetSupportEvmBlock         = 999999999
-	mainnetEvmChainID              = 1
+	mainnetGravityValsetSlashBlock  = 1685000
+	mainnetSupportEvmBlock          = 999999999
+	mainnetEvmChainID               = 1
+	mainnetSupportIntrarelayerBlock = 999999999
 )
 
 // devnet constant
@@ -48,7 +49,7 @@ const (
 	devnetGravityValsetSlashBlock               = 1
 	devnetSupportEvmBlock                       = 300
 	devnetEvmChainID                            = 221
-	devnetSupportIntrarelayerBlock              = math.MaxInt
+	devnetSupportIntrarelayerBlock              = 999999999
 )
 
 var (
@@ -133,7 +134,7 @@ func IntrarelayerSupportBlock() int64 {
 	if networkDevnet == network {
 		return devnetSupportIntrarelayerBlock
 	} else if networkTestnet == network {
-		return devnetSupportIntrarelayerBlock
+		return testnetSupportIntrarelayerBlock
 	}
-	return devnetSupportIntrarelayerBlock
+	return mainnetSupportIntrarelayerBlock
 }
