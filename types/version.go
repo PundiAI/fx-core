@@ -49,7 +49,7 @@ const (
 	devnetGravityValsetSlashBlock               = 1
 	devnetSupportEvmBlock                       = 300
 	devnetEvmChainID                            = 221
-	devnetSupportIntrarelayerBlock              = 999999999
+	devnetSupportIntrarelayerBlock              = 503000
 )
 
 var (
