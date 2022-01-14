@@ -268,7 +268,6 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 	name := args[0]
 	interactive, _ := cmd.Flags().GetBool(flagInteractive)
 	noBackup, _ := cmd.Flags().GetBool(flagNoBackup)
-	showMore, _ := cmd.Flags().GetBool(flagShowMore)
 	showMnemonic := !noBackup
 	kb := ctx.Keyring
 	outputFormat := ctx.OutputFormat
@@ -331,7 +330,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 				return err
 			}
 
-			return printCreate(cmd, info, false, showMore, "", outputFormat)
+			return printCreate(cmd, info, false, "", outputFormat)
 		}
 	}
 
@@ -347,7 +346,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 			return err
 		}
 
-		return printCreate(cmd, info, false, showMore, "", outputFormat)
+		return printCreate(cmd, info, false, "", outputFormat)
 	}
 
 	coinType, _ := cmd.Flags().GetUint32(flagCoinType)
@@ -371,7 +370,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 			return err
 		}
 
-		return printCreate(cmd, info, false, showMore, "", outputFormat)
+		return printCreate(cmd, info, false, "", outputFormat)
 	}
 
 	// Get bip39 mnemonic
@@ -445,7 +444,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 		mnemonic = ""
 	}
 
-	return printCreate(cmd, info, showMnemonic, showMore, mnemonic, outputFormat)
+	return printCreate(cmd, info, showMnemonic, mnemonic, outputFormat)
 }
 
 func validateMultisigThreshold(k, nKeys int) error {
@@ -471,11 +470,11 @@ func getLegacyKeyBaseFromDir(rootDir string, opts ...cryptokeyring.KeybaseOption
 	return cryptokeyring.NewLegacy(defaultKeyDBName, filepath.Join(rootDir, "keys"), opts...)
 }
 
-func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic, showMore bool, mnemonic, outputFormat string) error {
+func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemonic, outputFormat string) error {
 	switch outputFormat {
 	case OutputFormatText:
 		cmd.PrintErrln()
-		printKeyInfo(cmd.OutOrStdout(), info, keyring.Bech32KeyOutput, outputFormat, showMore)
+		printKeyInfo(cmd.OutOrStdout(), info, keyring.Bech32KeyOutput, outputFormat, false)
 
 		// print mnemonic unless requested not to.
 		if showMnemonic {
@@ -529,6 +528,7 @@ func printPubKey(w io.Writer, info cryptokeyring.Info, bechKeyOut bechKeyOutFn) 
 type KeyOutputV2 struct {
 	Name              string                 `json:"name" yaml:"name"`
 	Type              string                 `json:"type" yaml:"type"`
+	Algo              hd.PubKeyType          `json:"algo" yaml:"algo"`
 	Address           string                 `json:"address" yaml:"address"`
 	AddressByte       string                 `json:"address_byte" yaml:"address_byte"`
 	AddressHex        string                 `json:"address_hex" yaml:"address_hex"`
@@ -548,7 +548,7 @@ type multisigPubKeyOutput struct {
 	Weight  uint   `json:"weight" yaml:"weight"`
 }
 
-func KeyOutputToV2(v1 cryptokeyring.KeyOutput) KeyOutputV2 {
+func KeyOutputToV2(v1 cryptokeyring.KeyOutput, info keyring.Info) KeyOutputV2 {
 	v2 := KeyOutputV2{
 		Name:      v1.Name,
 		Type:      v1.Type,
@@ -556,7 +556,9 @@ func KeyOutputToV2(v1 cryptokeyring.KeyOutput) KeyOutputV2 {
 		PubKey:    v1.PubKey,
 		Mnemonic:  v1.Mnemonic,
 		Threshold: v1.Threshold,
+		Algo:      info.GetAlgo(),
 	}
+	info.GetPubKey().Bytes()
 	for _, p := range v1.PubKeys {
 		v2.PubKeys = append(v2.PubKeys, multisigPubKeyOutput{
 			Address: p.Address,
@@ -593,7 +595,7 @@ func printKeyInfo(w io.Writer, keyInfo cryptokeyring.Info, bechKeyOut bechKeyOut
 	var keyOutput interface{}
 	keyOutput = ko
 	if isShowMore {
-		keyOutput = KeyOutputToV2(ko)
+		keyOutput = KeyOutputToV2(ko, keyInfo)
 	}
 	switch output {
 	case OutputFormatText:
@@ -751,9 +753,9 @@ func runListCmd(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-func printInfos(w io.Writer, infos []cryptokeyring.Info, output string, isShowEIP55 bool) {
+func printInfos(w io.Writer, infos []cryptokeyring.Info, output string, showMore bool) {
 	var op interface{}
-	if isShowEIP55 {
+	if showMore {
 		kos, err := Bech32KeysOutputV2(infos)
 		if err != nil {
 			panic(err)
@@ -820,7 +822,7 @@ func Bech32KeysOutputV2(infos []cryptokeyring.Info) ([]KeyOutputV2, error) {
 		if err != nil {
 			return nil, err
 		}
-		kos[i] = KeyOutputToV2(ko)
+		kos[i] = KeyOutputToV2(ko, info)
 	}
 
 	return kos, nil
