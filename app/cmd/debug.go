@@ -160,14 +160,14 @@ func PubkeyCmd() *cobra.Command {
 		Use:   "pubkey [pubkey]",
 		Short: "Decode a pubkey from proto JSON",
 		Long:  "Decode a pubkey from proto JSON and display it's address",
-		Example: fmt.Sprintf(
-			`"$ %s debug pubkey '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"AurroA7jvfPd1AadmmOvWM2rJSwipXfRf8yD6pLbA2DJ"}'`,
-			version.AppName,
-		),
+		Example: fmt.Sprintf(`
+$ %s debug pubkey '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"AurroA7jvfPd1AadmmOvWM2rJSwipXfRf8yD6pLbA2DJ"}'
+$ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNmD53omoNQrVrws5KT73hfmqeCSqL87A="}'
+`, version.AppName, version.AppName),
 		Args: cobra.RangeArgs(0, 1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			var pk cryptotypes.PubKey
+			var pubkey cryptotypes.PubKey
 			if len(args) <= 0 {
 				serverCtx := server.GetServerContextFromCmd(cmd)
 				serverCfg := serverCtx.Config
@@ -176,23 +176,36 @@ func PubkeyCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				pk, err = cryptocodec.FromTmPubKeyInterface(valPubKey)
+				pubkey, err = cryptocodec.FromTmPubKeyInterface(valPubKey)
 				if err != nil {
 					return err
 				}
 			} else {
-				err := clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(args[0]), &pk)
-				if err != nil {
+				if err = clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(args[0]), &pubkey); err != nil {
 					return err
 				}
 			}
-			addr := pk.Address()
-			data, err := json.Marshal(map[string]interface{}{
-				"EIP55Address": common.BytesToAddress(addr),
-				"AccAddress":   sdk.AccAddress(addr).String(),
-				"HexAddress":   addr.String(),
-				"PubKeyHex":    hex.EncodeToString(pk.Bytes()),
-			})
+			var data []byte
+			switch pubkey.Type() {
+			case "ed25519":
+				pubkeyBech32, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, pubkey)
+				if err != nil {
+					return err
+				}
+				data, err = json.Marshal(map[string]interface{}{
+					"Address":    strings.ToUpper(hex.EncodeToString(pubkey.Address().Bytes())),
+					"ValConsPub": pubkeyBech32,
+					"PubKeyHex":  hex.EncodeToString(pubkey.Bytes()),
+				})
+			case "secp256k1":
+				data, err = json.Marshal(map[string]interface{}{
+					"EIP55Address": common.BytesToAddress(pubkey.Address()).String(),
+					"AccAddress":   sdk.AccAddress(pubkey.Address().Bytes()).String(),
+					"PubKeyHex":    hex.EncodeToString(pubkey.Bytes()),
+				})
+			default:
+				return fmt.Errorf("invalied public key type")
+			}
 			if err != nil {
 				return err
 			}
@@ -230,7 +243,7 @@ $ %s debug addr 0xA588C66983a81e800Db4dF74564F09f91c026351`, version.AppName, ve
 			data, err := json.Marshal(map[string]interface{}{
 				"BytesAddress": addr,
 				"HexAddress":   bytes.HexBytes(addr).String(),
-				"EIP55Address": common.BytesToAddress(addr),
+				"EIP55Address": common.BytesToAddress(addr).String(),
 				"AccAddress":   sdk.AccAddress(addr),
 				"ValAddress":   sdk.ValAddress(addr),
 			})
