@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	types2 "github.com/functionx/fx-core/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -141,6 +142,10 @@ func (k msgServer) SendToEth(c context.Context, msg *types.MsgSendToEth) (*types
 func (k msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
+	if err := checkBaseFee(ctx, msg.BaseFee); err != nil {
+		return nil, err
+	}
+
 	// Check if the denom is a gravity coin, if not, check if there is a deployed ERC20 representing it.
 	// If not, error out
 	_, tokenContract, err := k.DenomToERC20Lookup(ctx, msg.Denom)
@@ -158,7 +163,7 @@ func (k msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 		}
 	}
 
-	batch, err := k.BuildOutgoingTXBatch(ctx, tokenContract, OutgoingTxBatchSize, msg.MinimumFee, msg.FeeReceive)
+	batch, err := k.BuildOutgoingTXBatch(ctx, tokenContract, OutgoingTxBatchSize, msg.MinimumFee, msg.FeeReceive, msg.BaseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -417,4 +422,14 @@ func (k msgServer) ValsetUpdateClaim(c context.Context, msg *types.MsgValsetUpda
 	)
 
 	return &types.MsgValsetUpdatedClaimResponse{}, nil
+}
+
+func checkBaseFee(ctx sdk.Context, baseFee sdk.Int) error {
+	if !types2.IsRequestBatchBaseFee(ctx.BlockHeight()) {
+		return nil
+	}
+	if baseFee.IsNil() || baseFee.IsNegative() {
+		return types.ErrBaseFeeInvalid
+	}
+	return nil
 }

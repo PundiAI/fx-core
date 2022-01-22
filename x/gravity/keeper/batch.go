@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	types2 "github.com/functionx/fx-core/types"
 	"strconv"
 	"strings"
 
@@ -21,7 +22,7 @@ const OutgoingTxBatchSize = 100
 // - select available transactions from the outgoing transaction pool sorted by fee desc
 // - persist an outgoing batch object with an incrementing ID = nonce
 // - emit an event
-func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress string, maxElements int, minimumFee sdk.Int, feeReceive string) (*types.OutgoingTxBatch, error) {
+func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress string, maxElements int, minimumFee sdk.Int, feeReceive string, baseFee sdk.Int) (*types.OutgoingTxBatch, error) {
 	if maxElements == 0 {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "max elements value")
 	}
@@ -41,7 +42,7 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress string, ma
 			return nil, sdkerrors.Wrap(types.ErrInvalid, "new batch would not be more profitable")
 		}
 	}
-	selectedTx, err := k.pickUnbatchedTX(ctx, contractAddress, maxElements)
+	selectedTx, err := k.pickUnbatchedTX(ctx, contractAddress, maxElements, baseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -169,11 +170,15 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch types.OutgoingTxBatch) {
 }
 
 // pickUnbatchedTX find TX in pool and remove from "available" second index
-func (k Keeper) pickUnbatchedTX(ctx sdk.Context, contractAddress string, maxElements int) ([]*types.OutgoingTransferTx, error) {
+func (k Keeper) pickUnbatchedTX(ctx sdk.Context, contractAddress string, maxElements int, baseFee sdk.Int) ([]*types.OutgoingTransferTx, error) {
+	isSupportBaseFee := types2.IsRequestBatchBaseFee(ctx.BlockHeight())
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
 	k.IterateOutgoingPoolByFee(ctx, contractAddress, func(txID uint64, tx *types.OutgoingTransferTx) bool {
 		if tx != nil && tx.Erc20Fee != nil {
+			if isSupportBaseFee && tx.Erc20Fee.Amount.LT(baseFee) {
+				return true
+			}
 			selectedTx = append(selectedTx, tx)
 			err = k.removeFromUnbatchedTXIndex(ctx, *tx.Erc20Fee, txID)
 			return err != nil || len(selectedTx) == maxElements

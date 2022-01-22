@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	types2 "github.com/functionx/fx-core/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -202,6 +203,10 @@ func (s EthereumMsgServer) CancelSendToExternal(c context.Context, msg *types.Ms
 func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
+	if err := checkBaseFee(ctx, msg.BaseFee); err != nil {
+		return nil, err
+	}
+
 	bridgeToken := s.GetDenomByBridgeToken(ctx, msg.Denom)
 	if bridgeToken == nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridge token is not exist")
@@ -218,7 +223,7 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 		}
 	}
 
-	batch, err := s.BuildOutgoingTXBatch(ctx, bridgeToken.Token, msg.FeeReceive, OutgoingTxBatchSize, msg.MinimumFee)
+	batch, err := s.BuildOutgoingTXBatch(ctx, bridgeToken.Token, msg.FeeReceive, OutgoingTxBatchSize, msg.MinimumFee, msg.BaseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -445,4 +450,14 @@ func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAdd
 		return nil, sdkerrors.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 	}
 	return oracle.GetOracle(), nil
+}
+
+func checkBaseFee(ctx sdk.Context, baseFee sdk.Int) error {
+	if !types2.IsRequestBatchBaseFee(ctx.BlockHeight()) {
+		return nil
+	}
+	if baseFee.IsNil() || baseFee.IsNegative() {
+		return types.ErrBaseFeeInvalid
+	}
+	return nil
 }

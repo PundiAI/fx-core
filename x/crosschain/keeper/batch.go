@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	types2 "github.com/functionx/fx-core/types"
 	"sort"
 	"strings"
 
@@ -21,8 +22,7 @@ const OutgoingTxBatchSize = 100
 // - select available transactions from the outgoing transaction pool sorted by fee desc
 // - persist an outgoing batch object with an incrementing ID = nonce
 // - emit an event
-func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceive string, maxElements uint,
-	minimumFee sdk.Int) (*types.OutgoingTxBatch, error) {
+func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceive string, maxElements uint, minimumFee, baseFee sdk.Int) (*types.OutgoingTxBatch, error) {
 	if maxElements == 0 {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "max elements value")
 	}
@@ -42,7 +42,7 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceiv
 			return nil, sdkerrors.Wrap(types.ErrInvalid, "new batch would not be more profitable")
 		}
 	}
-	selectedTx, err := k.pickUnBatchedTX(ctx, contractAddress, maxElements)
+	selectedTx, err := k.pickUnBatchedTX(ctx, contractAddress, maxElements, baseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -166,11 +166,15 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch types.OutgoingTxBatch) {
 }
 
 // pickUnBatchedTX find TX in pool and remove from "available" second index
-func (k Keeper) pickUnBatchedTX(ctx sdk.Context, contractAddress string, maxElements uint) ([]*types.OutgoingTransferTx, error) {
+func (k Keeper) pickUnBatchedTX(ctx sdk.Context, contractAddress string, maxElements uint, baseFee sdk.Int) ([]*types.OutgoingTransferTx, error) {
+	isSupportBaseFee := types2.IsRequestBatchBaseFee(ctx.BlockHeight())
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
 	k.IterateUnbatchedTransactionsByContract(ctx, contractAddress, func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		if tx != nil && tx.Fee != nil {
+			if isSupportBaseFee && tx.Fee.Amount.LT(baseFee) {
+				return true
+			}
 			selectedTx = append(selectedTx, tx)
 			err = k.removeUnbatchedTX(ctx, *tx.Fee, tx.Id)
 			oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, *tx.Fee, tx.Id)

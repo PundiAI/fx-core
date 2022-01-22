@@ -26,4 +26,6 @@ var (
 	ErrBadDepositDenom           = sdkerrors.Register(ModuleName, 24, "invalid coin denomination")
 	ErrDepositAmountBelowMinimum = sdkerrors.Register(ModuleName, 25, "deposit amount must be greater than oracle deposit threshold")
 	ErrDepositAmountBelowMaximum = sdkerrors.Register(ModuleName, 26, "deposit amount must be less than double oracle deposit threshold")
+
+	ErrBaseFeeInvalid = sdkerrors.Register(ModuleName, 27, "baseFee is invalid")
 )
