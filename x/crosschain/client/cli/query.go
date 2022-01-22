@@ -6,17 +6,14 @@ import (
 	"strconv"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	gethCommon "github.com/ethereum/go-ethereum/common"
-	abcitype "github.com/tendermint/tendermint/abci/types"
-
-	types2 "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cobra"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	gethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/functionx/fx-core/x/crosschain/types"
+	types2 "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/spf13/cobra"
+	abcitype "github.com/tendermint/tendermint/abci/types"
 )
 
 const (
@@ -147,7 +144,7 @@ func CmdGetChainOracles() *cobra.Command {
 			if err := clientCtx.LegacyAmino.UnmarshalBinaryBare(abciResp.Value, &chainOracle2); err != nil {
 				return err
 			}
-			return clientCtx.PrintObjectLegacy(chainOracle2)
+			return clientCtx.PrintProto(&chainOracle2)
 		},
 	}
 

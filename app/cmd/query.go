@@ -39,7 +39,7 @@ func QueryStoreCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return PrintOutput(clientCtx, bts)
+			return clientCtx.PrintOutput(bts)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)

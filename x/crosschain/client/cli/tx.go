@@ -173,9 +173,6 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
@@ -241,9 +238,6 @@ func CmdUpdateChainOraclesProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
@@ -281,9 +275,6 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 				Deposit:         deposit,
 				ChainName:       args[0],
 			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
@@ -310,9 +301,6 @@ func CmdAddOracleDeposit() *cobra.Command {
 				Oracle:    cliCtx.GetFromAddress().String(),
 				Amount:    deposit,
 				ChainName: args[0],
-			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
@@ -355,9 +343,6 @@ func CmdSendToExternal() *cobra.Command {
 				BridgeFee: bridgeFee,
 				ChainName: args[0],
 			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
@@ -385,9 +370,6 @@ func CmdCancelSendToExternal() *cobra.Command {
 				TransactionId: txId,
 				Sender:        cliCtx.GetFromAddress().String(),
 				ChainName:     args[0],
-			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
@@ -449,9 +431,6 @@ func CmdRequestBatch() *cobra.Command {
 				FeeReceive: feeReceive,
 				ChainName:  args[0],
 				BaseFee:    baseFee,
-			}
-			if err = msg.ValidateBasic(); err != nil {
-				return err
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -538,9 +517,6 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				Signature:           hex.EncodeToString(signature),
 				ChainName:           args[0],
 			}
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -605,9 +581,6 @@ func CmdValidatorSetConfirm() *cobra.Command {
 				ExternalAddress:     externalAddress.String(),
 				Signature:           hex.EncodeToString(signature),
 				ChainName:           args[0],
-			}
-			if err = msg.ValidateBasic(); err != nil {
-				return err
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

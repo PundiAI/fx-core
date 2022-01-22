@@ -143,5 +143,5 @@ func output(clientCtx client.Context, content interface{}) error {
 	if err != nil {
 		return err
 	}
-	return PrintOutput(clientCtx, data)
+	return clientCtx.PrintOutput(data)
 }

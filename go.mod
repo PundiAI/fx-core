@@ -6,13 +6,12 @@ require (
 	github.com/armon/go-metrics v0.3.6
 	github.com/cosmos/cosmos-sdk v0.42.4
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/ethereum/go-ethereum v1.10.9
+	github.com/ethereum/go-ethereum v1.10.15
 	github.com/fbsobreira/gotron-sdk v0.0.0-20211012084317-763989224068
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.0
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/onsi/ginkgo v1.14.2 // indirect
 	github.com/onsi/gomega v1.10.4 // indirect
@@ -40,4 +39,4 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 
 replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4
 
-replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.5-0.20211119074752-304cfa45aa08
+replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.5-0.20220122091741-a3d1de91ee25

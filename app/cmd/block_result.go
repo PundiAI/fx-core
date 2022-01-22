@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
 )
 
 func QueryBlockResultsCmd() *cobra.Command {
@@ -120,28 +119,9 @@ func QueryBlockResultsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return PrintOutput(clientCtx, output)
+			return clientCtx.PrintOutput(output)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
-}
-
-func PrintOutput(ctx client.Context, out []byte) error {
-	if ctx.OutputFormat == "text" {
-		// handle text format by decoding and re-encoding JSON as YAML
-		var j interface{}
-		err := json.Unmarshal(out, &j)
-		if err != nil {
-			return err
-		}
-
-		out, err = yaml.Marshal(j)
-		if err != nil {
-			return err
-		}
-		return ctx.PrintBytes(out)
-	} else {
-		return ctx.PrintBytes(out)
-	}
 }

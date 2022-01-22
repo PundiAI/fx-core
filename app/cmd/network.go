@@ -37,7 +37,7 @@ func Network() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return PrintOutput(clientCtx, outputBytes)
+			return clientCtx.PrintOutput(outputBytes)
 		},
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")

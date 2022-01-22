@@ -84,9 +84,6 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 				Orchestrator: orchestratorAddress.String(),
 				EthAddress:   ethAddress,
 			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
@@ -130,10 +127,6 @@ func CmdSendToEth() *cobra.Command {
 				Amount:    amount[0],
 				BridgeFee: bridgeFee[0],
 			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			// Send it
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
@@ -157,9 +150,6 @@ func CmdCancelSendToEth() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgCancelSendToEth(senderAddr, txId)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
@@ -200,9 +190,6 @@ func CmdRequestBatch() *cobra.Command {
 				}
 			}
 			msg := types.NewMsgRequestBatch(fromAddress, args[0], minimumFee, ethFeeReceive, baseFee)
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
@@ -304,9 +291,6 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgConfirmBatch(nonce, contractAddress, ethAddress.String(), hex.EncodeToString(signature), fromAddress)
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		}}
 
@@ -395,9 +379,6 @@ func CmdValidatorSetConfirm() *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgValsetConfirm(nonce, ethAddress.String(), fromAddress, hex.EncodeToString(signature))
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		}}
 
