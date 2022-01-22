@@ -188,13 +188,9 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 			var data []byte
 			switch pubkey.Type() {
 			case "ed25519":
-				pubkeyBech32, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, pubkey)
-				if err != nil {
-					return err
-				}
 				data, err = json.Marshal(map[string]interface{}{
 					"Address":    strings.ToUpper(hex.EncodeToString(pubkey.Address().Bytes())),
-					"ValConsPub": pubkeyBech32,
+					"ValConsPub": sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, pubkey),
 					"PubKeyHex":  hex.EncodeToString(pubkey.Bytes()),
 				})
 			case "secp256k1":
