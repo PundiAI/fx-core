@@ -178,7 +178,7 @@ var (
 )
 
 func init() {
-	fxHome := os.ExpandEnv("$FXHOME")
+	fxHome := os.ExpandEnv("$FX_HOME")
 	if len(fxHome) > 0 {
 		DefaultNodeHome = fxHome
 		return
