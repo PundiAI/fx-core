@@ -3,7 +3,9 @@ package crosschain_test
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math"
 	"math/big"
 	"testing"
@@ -517,6 +519,212 @@ func TestClaimTest(t *testing.T) {
 		require.EqualValues(t, testData.errReason, err.Error(), testData.name)
 	}
 
+}
+
+// Test Support RequestBatch baseFee
+func TestSupportRequestBatchBaseFee(t *testing.T) {
+	//fxcore.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
+	// get test env
+	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keep := app.BscKeeper
+	var err error
+
+	// Query the status before the configuration
+	totalDepositBefore := keep.GetTotalDeposit(ctx)
+	require.EqualValues(t, sdk.NewCoin(depositToken, sdk.ZeroInt()), totalDepositBefore)
+
+	endBlock := func() {
+		ctx = ctx.WithBlockHeight(fxtypes.CrossChainSupportBscBlock() + 1)
+		crosschain.EndBlocker(ctx, keep)
+	}
+
+	// 1. First sets up a valid validator
+	for i, oracle := range oracleAddressList {
+		normalMsg := &types.MsgSetOrchestratorAddress{
+			Oracle:          oracle.String(),
+			Orchestrator:    orchestratorAddressList[i].String(),
+			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
+			Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+			ChainName:       chainName,
+		}
+		_, err = h(ctx, normalMsg)
+		require.NoError(t, err)
+	}
+
+	endBlock()
+
+	var externalOracleMembers []*types.BridgeValidator
+	for _, key := range ethKeys {
+		externalOracleMembers = append(externalOracleMembers, &types.BridgeValidator{
+			Power:           100,
+			ExternalAddress: crypto.PubkeyToAddress(key.PublicKey).Hex(),
+		})
+	}
+
+	// 2. oracle update claim
+	for i := range oracleAddressList {
+		normalMsg := &types.MsgOracleSetUpdatedClaim{
+			EventNonce:     1,
+			BlockHeight:    1,
+			OracleSetNonce: 1,
+			Members:        externalOracleMembers,
+			Orchestrator:   orchestratorAddressList[i].String(),
+			ChainName:      chainName,
+		}
+		_, err = h(ctx, normalMsg)
+		require.NoError(t, err)
+	}
+
+	endBlock()
+
+	// 3. add bridge token.
+	sendToFxSendAddr := crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex()
+	sendToFxReceiveAddr := orchestratorAddressList[0]
+	sendToFxAmount := sdk.NewIntWithDecimal(1000, 18)
+	sendToFxToken := "0x0000000000000000000000000000000000001000"
+
+	for i, oracle := range oracleAddressList {
+		normalMsg := &types.MsgBridgeTokenClaim{
+			EventNonce:    keep.GetLastEventNonceByOracle(ctx, oracle) + 1,
+			BlockHeight:   1,
+			TokenContract: sendToFxToken,
+			Name:          "BSC USDT",
+			Symbol:        "USDT",
+			Decimals:      18,
+			Orchestrator:  orchestratorAddressList[i].String(),
+			ChannelIbc:    "",
+			ChainName:     chainName,
+		}
+		_, err = h(ctx, normalMsg)
+		require.NoError(t, err)
+	}
+
+	endBlock()
+
+	bridgeDenomData := keep.GetBridgeTokenDenom(ctx, sendToFxToken)
+	require.NotNil(t, bridgeDenomData)
+	tokenDenom := fmt.Sprintf("%s%s", chainName, sendToFxToken)
+	require.EqualValues(t, tokenDenom, bridgeDenomData.Denom)
+	bridgeTokenData := keep.GetDenomByBridgeToken(ctx, tokenDenom)
+	require.NotNil(t, bridgeTokenData)
+	require.EqualValues(t, sendToFxToken, bridgeTokenData.Token)
+
+	// 4. sendToFx.
+	for i, oracle := range oracleAddressList {
+		normalMsg := &types.MsgSendToFxClaim{
+			EventNonce:    keep.GetLastEventNonceByOracle(ctx, oracle) + 1,
+			BlockHeight:   1,
+			TokenContract: sendToFxToken,
+			Amount:        sendToFxAmount,
+			Sender:        sendToFxSendAddr,
+			Receiver:      sendToFxReceiveAddr.String(),
+			TargetIbc:     "",
+			Orchestrator:  orchestratorAddressList[i].String(),
+			ChainName:     chainName,
+		}
+		_, err = h(ctx, normalMsg)
+		require.NoError(t, err)
+	}
+
+	endBlock()
+
+	balance := app.BankKeeper.GetBalance(ctx, sendToFxReceiveAddr, tokenDenom)
+	require.NotNil(t, balance)
+	require.EqualValues(t, balance.Denom, tokenDenom)
+	require.True(t, balance.Amount.Equal(sendToFxAmount))
+
+	sendToExternal := func(bridgeFees []sdk.Int) {
+		for _, bridgeFee := range bridgeFees {
+			sendToExternal := &types.MsgSendToExternal{
+				Sender:    sendToFxReceiveAddr.String(),
+				Dest:      sendToFxSendAddr,
+				Amount:    sdk.NewCoin(tokenDenom, sdk.NewInt(3)),
+				BridgeFee: sdk.NewCoin(tokenDenom, bridgeFee),
+				ChainName: chainName,
+			}
+			_, err = h(ctx, sendToExternal)
+			require.NoError(t, err)
+		}
+	}
+
+	sendToExternal([]sdk.Int{sdk.NewInt(1), sdk.NewInt(2), sdk.NewInt(3)})
+	usdtBatchFee := keep.GetBatchFeeByTokenType(ctx, sendToFxToken, 100)
+	require.EqualValues(t, sendToFxToken, usdtBatchFee.TokenContract)
+	require.EqualValues(t, 3, usdtBatchFee.TotalTxs)
+	require.EqualValues(t, sdk.NewInt(6), usdtBatchFee.TotalFees)
+
+	testCases := []struct {
+		testName       string
+		height         int64
+		baseFee        sdk.Int
+		pass           bool
+		expectTotalTxs uint64
+		err            error
+	}{
+		{
+			testName:       "Not Support - no baseFee",
+			height:         ctx.BlockHeight(),
+			baseFee:        sdk.Int{},
+			pass:           true,
+			expectTotalTxs: 0,
+		},
+		{
+			testName:       "Not Support - baseFee 1000",
+			height:         ctx.BlockHeight(),
+			baseFee:        sdk.NewInt(1000),
+			pass:           true,
+			expectTotalTxs: 0,
+		},
+		{
+			testName:       "Support - baseFee 1000",
+			height:         fxtypes.RequestBatchBaseFee(),
+			baseFee:        sdk.NewInt(1000),
+			pass:           false,
+			expectTotalTxs: 3,
+			err:            types.ErrEmpty,
+		},
+		{
+			testName:       "Support - baseFee 2",
+			height:         fxtypes.RequestBatchBaseFee(),
+			baseFee:        sdk.NewInt(2),
+			pass:           true,
+			expectTotalTxs: 1,
+			err:            nil,
+		},
+		{
+			testName:       "Support - baseFee 0",
+			height:         fxtypes.RequestBatchBaseFee(),
+			baseFee:        sdk.NewInt(0),
+			pass:           true,
+			expectTotalTxs: 0,
+			err:            nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.testName, func(t *testing.T) {
+			cacheCtx, _ := ctx.CacheContext()
+			cacheCtx = cacheCtx.WithBlockHeight(testCase.height)
+			_, err = h(cacheCtx, &types.MsgRequestBatch{
+				Sender:     orchestratorAddressList[0].String(),
+				Denom:      tokenDenom,
+				MinimumFee: sdk.NewInt(1),
+				FeeReceive: "0x0000000000000000000000000000000000000000",
+				ChainName:  chainName,
+				BaseFee:    testCase.baseFee,
+			})
+			if testCase.pass {
+				require.NoError(t, err)
+				usdtBatchFee = keep.GetBatchFeeByTokenType(cacheCtx, sendToFxToken, 100)
+				require.EqualValues(t, testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
+				return
+			}
+
+			require.NotNil(t, err)
+			require.True(t, errors.As(err, &testCase.err))
+			require.Equal(t, err, testCase.err)
+		})
+	}
 }
 
 func createTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {

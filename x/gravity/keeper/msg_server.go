@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	types2 "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -142,7 +142,8 @@ func (k msgServer) SendToEth(c context.Context, msg *types.MsgSendToEth) (*types
 func (k msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if err := checkBaseFee(ctx, msg.BaseFee); err != nil {
+	baseFee, err := GetRequestBatchBaseFee(ctx.BlockHeight(), msg.BaseFee)
+	if err != nil {
 		return nil, err
 	}
 
@@ -163,7 +164,7 @@ func (k msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 		}
 	}
 
-	batch, err := k.BuildOutgoingTXBatch(ctx, tokenContract, OutgoingTxBatchSize, msg.MinimumFee, msg.FeeReceive, msg.BaseFee)
+	batch, err := k.BuildOutgoingTXBatch(ctx, tokenContract, OutgoingTxBatchSize, msg.MinimumFee, msg.FeeReceive, baseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -424,12 +425,15 @@ func (k msgServer) ValsetUpdateClaim(c context.Context, msg *types.MsgValsetUpda
 	return &types.MsgValsetUpdatedClaimResponse{}, nil
 }
 
-func checkBaseFee(ctx sdk.Context, baseFee sdk.Int) error {
-	if !types2.IsRequestBatchBaseFee(ctx.BlockHeight()) {
-		return nil
+func GetRequestBatchBaseFee(height int64, baseFee sdk.Int) (sdk.Int, error) {
+	if !fxtypes.IsRequestBatchBaseFee(height) {
+		return sdk.ZeroInt(), nil
 	}
-	if baseFee.IsNil() || baseFee.IsNegative() {
-		return types.ErrBaseFeeInvalid
+	if baseFee.IsNil() {
+		return sdk.ZeroInt(), nil
 	}
-	return nil
+	if baseFee.IsNegative() {
+		return sdk.ZeroInt(), types.ErrInvalidRequestBatchBaseFee
+	}
+	return baseFee, nil
 }

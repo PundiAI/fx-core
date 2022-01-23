@@ -203,7 +203,8 @@ func (s EthereumMsgServer) CancelSendToExternal(c context.Context, msg *types.Ms
 func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if err := checkBaseFee(ctx, msg.BaseFee); err != nil {
+	baseFee, err := GetRequestBatchBaseFee(ctx.BlockHeight(), msg.BaseFee)
+	if err != nil {
 		return nil, err
 	}
 
@@ -223,7 +224,7 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 		}
 	}
 
-	batch, err := s.BuildOutgoingTXBatch(ctx, bridgeToken.Token, msg.FeeReceive, OutgoingTxBatchSize, msg.MinimumFee, msg.BaseFee)
+	batch, err := s.BuildOutgoingTXBatch(ctx, bridgeToken.Token, msg.FeeReceive, OutgoingTxBatchSize, msg.MinimumFee, baseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -452,12 +453,15 @@ func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAdd
 	return oracle.GetOracle(), nil
 }
 
-func checkBaseFee(ctx sdk.Context, baseFee sdk.Int) error {
-	if !types2.IsRequestBatchBaseFee(ctx.BlockHeight()) {
-		return nil
+func GetRequestBatchBaseFee(blockHeight int64, baseFee sdk.Int) (sdk.Int, error) {
+	if !types2.IsRequestBatchBaseFee(blockHeight) {
+		return sdk.ZeroInt(), nil
 	}
-	if baseFee.IsNil() || baseFee.IsNegative() {
-		return types.ErrBaseFeeInvalid
+	if baseFee.IsNil() {
+		return sdk.ZeroInt(), nil
 	}
-	return nil
+	if baseFee.IsNegative() {
+		return sdk.ZeroInt(), types.ErrInvalidRequestBatchBaseFee
+	}
+	return baseFee, nil
 }
