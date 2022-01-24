@@ -418,6 +418,17 @@ func CmdRequestBatch() *cobra.Command {
 				}
 				feeReceive = gethcommon.HexToAddress(feeReceive).Hex()
 			}
+			baseFee := sdk.ZeroInt()
+			baseFeeStr, err := cmd.Flags().GetString("base-fee")
+			if err == nil {
+				baseFeeStr = strings.TrimSpace(baseFeeStr)
+				if len(baseFeeStr) > 0 {
+					baseFee, ok = sdk.NewIntFromString(baseFeeStr)
+					if !ok {
+						return fmt.Errorf("invalid baseFee:%v", baseFeeStr)
+					}
+				}
+			}
 			denom := args[1]
 			queryClient := types.NewQueryClient(clientCtx)
 			token, err := queryClient.DenomToToken(cmd.Context(), &types.QueryDenomToTokenRequest{
@@ -437,6 +448,7 @@ func CmdRequestBatch() *cobra.Command {
 				MinimumFee: minimumFee,
 				FeeReceive: feeReceive,
 				ChainName:  args[0],
+				BaseFee:    baseFee,
 			}
 			if err = msg.ValidateBasic(); err != nil {
 				return err
@@ -444,6 +456,7 @@ func CmdRequestBatch() *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+	cmd.Flags().String("base-fee", "", "requestBatch baseFee, is empty is sdk.ZeroInt")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

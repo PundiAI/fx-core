@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -187,13 +188,25 @@ func CmdRequestBatch() *cobra.Command {
 			if !gethcommon.IsHexAddress(ethFeeReceive) {
 				return fmt.Errorf("invalid ethFeeReceive address:%v", args[2])
 			}
-			msg := types.NewMsgRequestBatch(fromAddress, args[0], minimumFee, ethFeeReceive)
+			baseFee := sdk.ZeroInt()
+			baseFeeStr, err := cmd.Flags().GetString("base-fee")
+			if err == nil {
+				baseFeeStr = strings.TrimSpace(baseFeeStr)
+				if len(baseFeeStr) > 0 {
+					baseFee, ok = sdk.NewIntFromString(baseFeeStr)
+					if !ok {
+						return fmt.Errorf("invalid baseFee:%v", baseFeeStr)
+					}
+				}
+			}
+			msg := types.NewMsgRequestBatch(fromAddress, args[0], minimumFee, ethFeeReceive, baseFee)
 			if err = msg.ValidateBasic(); err != nil {
 				return err
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
+	cmd.Flags().String("base-fee", "", "requestBatch baseFee, is empty is sdk.ZeroInt")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

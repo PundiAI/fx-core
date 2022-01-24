@@ -183,7 +183,7 @@ func batchRequest(c *Client) {
 				continue
 			}
 			c.t.Logf("Send MsgRequestBatch: token:[%v], totalTxCount:[%v], totalFees:[%v]\n", denomResponse.Denom, batchToken.TotalTxs, batchToken.TotalFees)
-			msgList = append(msgList, gravitytypes.NewMsgRequestBatch(orchestrator, denomResponse.Denom, batchToken.TotalFees, feeReceive))
+			msgList = append(msgList, gravitytypes.NewMsgRequestBatch(orchestrator, denomResponse.Denom, batchToken.TotalFees, feeReceive, sdk.ZeroInt()))
 		}
 	}
 	if len(msgList) <= 0 {
