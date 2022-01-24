@@ -143,9 +143,12 @@ func (suite *MsgsTestSuite) TestMsgConvertCoin() {
 
 func (suite *MsgsTestSuite) TestMsgConvertERC20Getters() {
 	msgInvalid := MsgConvertERC20{}
-	pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, tests.NewPriKey().PubKey())
+	priKey := tests.NewPriKey()
+	pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, priKey.PubKey())
+	sender := sdk.AccAddress(priKey.PubKey().Address())
 	msg := NewMsgConvertERC20(
 		sdk.NewInt(100),
+		sender,
 		sdk.AccAddress(tests.GenerateAddress().Bytes()),
 		tests.GenerateAddress(),
 		pubKey,
@@ -177,7 +180,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20New() {
 
 	for i, tc := range testCases {
 		pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, tc.sender.PubKey())
-		tx := NewMsgConvertERC20(tc.amount, tc.receiver, tc.contract, pubKey)
+		tx := NewMsgConvertERC20(tc.amount, sdk.AccAddress(tc.sender.PubKey().Address()), tc.receiver, tc.contract, pubKey)
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {
@@ -194,7 +197,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 		amount     sdk.Int
 		receiver   string
 		contract   string
-		sender     []byte
+		public     []byte
 		expectPass bool
 	}{
 		{
@@ -222,7 +225,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 			false,
 		},
 		{
-			"invalid public key",
+			"invalid sender address",
 			sdk.NewInt(100),
 			sdk.AccAddress(tests.GenerateAddress().Bytes()).String(),
 			tests.GenerateAddress().String(),
@@ -240,9 +243,13 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 	}
 
 	for i, tc := range testCases {
-		key := &secp256k1.PubKey{Key: tc.sender}
+		key := &secp256k1.PubKey{Key: tc.public}
 		pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, key)
-		tx := MsgConvertERC20{tc.contract, tc.amount, tc.receiver, pubKey}
+		sender := string(tc.public)
+		if len(tc.public) > 10 {
+			sender = sdk.AccAddress(key.Address()).String()
+		}
+		tx := MsgConvertERC20{tc.contract, tc.amount, tc.receiver, sender, pubKey}
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {

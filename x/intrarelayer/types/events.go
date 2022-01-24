@@ -24,11 +24,10 @@ const (
 	AttributeKeyERC20Token = "erc20_token" // #nosec
 	AttributeKeyReceiver   = "receiver"
 
-	ERC20EventTransfer   = "Transfer"
-	ERC20RelayEventRelay = "Relay"
+	ERC20EventTransfer = "Transfer"
 
-	EventTypeERC20Relay = "erc20_relay"
-	EventERC20RelayHash = "hash"
+	EventTypeRelayToken = "relay_token"
+	EventEthereumTxHash = "ethereum_tx_hash"
 )
 
 // Event type for Transfer(address from, address to, uint256 value)

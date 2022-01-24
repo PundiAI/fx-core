@@ -323,12 +323,16 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 		baseFee = k.feeMarketKeeper.GetBaseFee(ctx)
 	}
 
+	// Create a unique identifier as a hash, Not a real tx hash
+	txHash := common.Hash{}
+
 	// Create a helper to check if a gas allowance results in an executable transaction
 	executable := func(gas uint64) (vmerror bool, rsp *types.MsgEthereumTxResponse, err error) {
 		args.Gas = (*hexutil.Uint64)(&gas)
 
 		// Reset to the initial context
 		k.WithContext(ctx)
+		k.SetTxHashTransient(txHash)
 
 		msg, err := args.ToMessage(req.GasCap, baseFee)
 		if err != nil {
@@ -342,6 +346,14 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 				return true, nil, nil // Special case, raise gas limit
 			}
 			return true, nil, err // Bail out
+		}
+		if !rsp.Failed() {
+			//processing tx hook
+			logs := k.GetTxLogsTransient(txHash)
+			if err := k.PostTxProcessing(txHash, logs); err != nil {
+				rsp.VmError = types.ErrPostTxProcessing.Error()
+				return true, rsp, err
+			}
 		}
 		return len(rsp.VmError) > 0, rsp, nil
 	}

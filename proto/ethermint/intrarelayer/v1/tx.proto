@@ -45,8 +45,10 @@ message MsgConvertERC20 {
   ];
   // bech32 address to receive SDK coins.
   string receiver = 3;
+  // msg sender, must be equal to pubkey address(new or old)
+  string sender = 4;
   // hex pubKey from the owner of the given ERC20 tokens and msg sender
-  string pubKey = 4;
+  string pubKey = 5;
 }
 
 // MsgConvertERC20Response returns no fields

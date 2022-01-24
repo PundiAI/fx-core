@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				suite.Require().NoError(err)
 
 				accAddress := sdk.AccAddress(suite.priKey.PubKey().Address())
-				hexAddress := suite.address
+				hexAddress := common.BytesToAddress(accAddress)
 
 				// Mint 10 tokens to suite.address (owner)
 				_ = suite.MintERC20Token(contractAddr, hexAddress, hexAddress, big.NewInt(10))
@@ -33,9 +33,9 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				// TODO ineffective
 				// depend on mainnet intrarelayer support height, now math.MaxInt
 				// fix after mainnet online, so result false
-				suite.RelayERC20Token(contractAddr, hexAddress, common.BytesToAddress(accAddress.Bytes()), big.NewInt(10))
+				suite.BurnERC20Token(contractAddr, hexAddress, big.NewInt(10))
 			},
-			false,
+			true,
 		},
 		{
 			"unregistered pair",
@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				logs := suite.app.EvmKeeper.GetTxLogsTransient(msg.AsTransaction().Hash())
 
 				// Since theres no pair registered, no coins should be minted
-				err := suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction(), logs)
+				err := suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction().Hash(), logs)
 				suite.Require().NoError(err)
 			},
 			false,
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				logs := suite.app.EvmKeeper.GetTxLogsTransient(msg.AsTransaction().Hash())
 
 				// No coins should be minted on cosmos after a mint of the erc20 token
-				err = suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction(), logs)
+				err = suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction().Hash(), logs)
 				suite.Require().NoError(err)
 			},
 			false,
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			suite.Require().NotNil(pair)
 
 			accAddress := sdk.AccAddress(suite.priKey.PubKey().Address())
-			hexAddress := suite.address
+			hexAddress := common.BytesToAddress(accAddress)
 
 			contractAddr := common.HexToAddress(pair.Erc20Address)
 
@@ -141,10 +141,9 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
 			// relay the 5 tokens of suite.address (owner)
-			// TODO ineffective
-			// depend on mainnet intrarelayer support height, now math.MaxInt
-			// fix after mainnet online, so cosmosBalance sub reconvert
-			suite.RelayERC20Token(contractAddr, hexAddress, common.BytesToAddress(accAddress.Bytes()), big.NewInt(tc.reconvert))
+			// TODO ineffective depend on mainnet intrarelayer support height, now math.MaxInt
+			// if want to go test, modify types/version.go IntrarelayerSupportBlock -> mainnetSupportIntrarelayerBlock
+			suite.BurnERC20Token(contractAddr, hexAddress, big.NewInt(tc.reconvert))
 
 			balance = suite.BalanceOf(common.HexToAddress(pair.Erc20Address), hexAddress)
 			cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, accAddress, metadata.Base)
@@ -152,7 +151,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			if tc.result {
 				// Check if the execution was successfull
 				suite.Require().NoError(err)
-				suite.Require().Equal(cosmosBalance.Amount, sdk.NewInt(tc.mint-tc.burn))
+				suite.Require().Equal(cosmosBalance.Amount, sdk.NewInt(tc.mint-tc.burn+tc.reconvert))
 			} else {
 				// Check that no changes were made to the account
 				suite.Require().Error(err)

@@ -67,12 +67,12 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.mintFeeCollector = true
 
 	// account key
-	suite.priKey = NewPriKey()
-	pubKey, _ := crypto.DecompressPubkey(suite.priKey.PubKey().Bytes())
-	suite.address = crypto.PubkeyToAddress(*pubKey)
+	priKey := NewPriKey()
 	//ethsecp256k1.GenerateKey()
-	ethPriv := &ethsecp256k1.PrivKey{Key: suite.priKey.Bytes()}
+	ethPriv := &ethsecp256k1.PrivKey{Key: priKey.Bytes()}
+	suite.priKey = ethPriv
 	suite.signer = tests.NewSigner(ethPriv)
+	suite.address = common.BytesToAddress(suite.priKey.PubKey().Address())
 
 	// consensus key
 	priv := NewPriKey()
@@ -250,12 +250,6 @@ func (suite *KeeperTestSuite) MintERC20Token(contractAddr, from, to common.Addre
 
 func (suite *KeeperTestSuite) BurnERC20Token(contractAddr, from common.Address, amount *big.Int) *evm.MsgEthereumTx {
 	transferData, err := contracts.ERC20RelayContract.ABI.Pack("transfer", types.ModuleAddress, amount)
-	suite.Require().NoError(err)
-	return suite.sendTx(contractAddr, from, transferData)
-}
-
-func (suite *KeeperTestSuite) RelayERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	transferData, err := contracts.ERC20RelayContract.ABI.Pack("relay", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }

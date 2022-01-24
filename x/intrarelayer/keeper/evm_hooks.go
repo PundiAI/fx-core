@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"encoding/hex"
+	"bytes"
 	"errors"
 	"fmt"
 	"math/big"
@@ -20,7 +20,7 @@ import (
 var _ evmtypes.EvmHooks = (*Keeper)(nil)
 
 // PostTxProcessing implements EvmHooks.PostTxProcessing
-func (k Keeper) PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error {
+func (k Keeper) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
 	if ctx.BlockHeight() < fxtype.IntrarelayerSupportBlock() || !k.HasInit(ctx) {
 		return nil
 	}
@@ -29,108 +29,119 @@ func (k Keeper) PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs
 		return sdkerrors.Wrap(types.ErrInternalTokenPair, "EVM Hook is currently disabled")
 	}
 	//process relay event
-	if err := k.RelayEventProcessing(ctx, tx, logs); err != nil {
+	if err := k.RelayTokenProcessing(ctx, txHash, logs); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (k *Keeper) RelayEventProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error {
+// RelayTokenProcessing relay token from evm contract to chain address
+func (k Keeper) RelayTokenProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
 	for _, log := range logs {
-		if !isRelayEvent(log) {
+		if !isRelayTokenEvent(log) {
 			continue
 		}
-		//check contract is registered
-		pairID := k.GetERC20Map(ctx, log.Address)
-		if len(pairID) == 0 { // contract is not registered coin or erc20
+		pair, found := k.GetTokenPairByAddress(ctx, log.Address)
+		if !found {
 			continue
 		}
-		pair, found := k.GetTokenPair(ctx, pairID)
-		if !found { //token pair info not found
-			continue
-		}
-		//relay amount
-		amount, err := parseRelayAmount(log.Data)
+		amount, err := parseTransferAmount(log.Data)
 		if err != nil {
-			k.Logger(ctx).Error("Unpack relay amount", "data", hex.EncodeToString(log.Data), "error", err.Error())
-			return errors.New("invalid amount")
+			return fmt.Errorf("parse transfer amount error %v", err.Error())
 		}
-		// create the corresponding sdk.Coin that is paired with ERC20
-		coins := sdk.Coins{{Denom: pair.Denom, Amount: sdk.NewIntFromBigInt(amount)}}
-		//relay from
-		sender := common.BytesToAddress(log.Topics[1].Bytes())
-		//relay to
-		recipient := common.BytesToAddress(log.Topics[2].Bytes())
-		k.Logger(ctx).Info("Relay erc20 from evm",
-			"coins", coins.String(),
-			"contract", pair.Erc20Address,
-			"from", sender.String(),
-			"recipient", recipient.String(),
-			"accAddress", sdk.AccAddress(recipient.Bytes()).String())
-
-		switch pair.ContractOwner {
-		case types.OWNER_MODULE:
-			err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.AccAddress(recipient.Bytes()), coins)
-		case types.OWNER_EXTERNAL:
-			if err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
-				panic(err)
-			}
-			err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.AccAddress(recipient.Bytes()), coins)
-		default:
-			err = types.ErrUndefinedOwner
-		}
-
+		from := common.BytesToAddress(log.Topics[1].Bytes())
+		err = k.ProcessRelayToken(ctx, txHash, pair, from, amount)
 		if err != nil {
-			k.Logger(ctx).Error(
-				"Process EVM hook for ER20 -> coin relay",
-				"coin", pair.Denom, "contract", pair.Erc20Address, "error", err.Error(),
-			)
+			k.Logger(ctx).Error("Process EVM hook -> Relay token from evm", "amount", amount.String(),
+				"coin", pair.Denom, "contract", pair.Erc20Address, "error", err.Error())
 			return err
 		}
-		ctx.EventManager().EmitEvents(
-			sdk.Events{
-				sdk.NewEvent(
-					types.EventTypeERC20Relay,
-					sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
-					sdk.NewAttribute(types.AttributeKeyReceiver, sdk.AccAddress(recipient.Bytes()).String()),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
-					sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-					sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
-					sdk.NewAttribute(types.EventERC20RelayHash, tx.Hash().String()),
-				),
-			},
-		)
 	}
 	return nil
 }
+func (k Keeper) GetTokenPairByAddress(ctx sdk.Context, address common.Address) (types.TokenPair, bool) {
+	//check contract is registered
+	pairID := k.GetERC20Map(ctx, address)
+	if len(pairID) == 0 {
+		// contract is not registered coin or erc20
+		return types.TokenPair{}, false
+	}
+	return k.GetTokenPair(ctx, pairID)
+}
+func (k Keeper) ProcessRelayToken(ctx sdk.Context, txHash common.Hash, pair types.TokenPair, from common.Address, amount *big.Int) error {
+	var err error
+	// create the corresponding sdk.Coin that is paired with ERC20
+	coins := sdk.Coins{{Denom: pair.Denom, Amount: sdk.NewIntFromBigInt(amount)}}
 
-func isRelayEvent(log *ethtypes.Log) bool {
-	if len(log.Topics) < 3 { //relay event ---> event Relay(address indexed from, address indexed to, uint256 value);
+	switch pair.ContractOwner {
+	case types.OWNER_MODULE:
+		_, err = k.CallEVMWithModule(ctx, contracts.ERC20RelayContract.ABI, pair.GetERC20Contract(), "burn", amount)
+	case types.OWNER_EXTERNAL:
+		err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
+	default:
+		err = types.ErrUndefinedOwner
+	}
+
+	//sender receive relay amount
+	recipient := sdk.AccAddress(from.Bytes())
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, coins)
+	if err != nil {
+		return err
+	}
+	ctx.EventManager().EmitEvents(
+		sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeRelayToken,
+				sdk.NewAttribute(sdk.AttributeKeySender, from.String()),
+				sdk.NewAttribute(types.AttributeKeyReceiver, sdk.AccAddress(recipient.Bytes()).String()),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+				sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
+				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+				sdk.NewAttribute(types.EventEthereumTxHash, txHash.String()),
+			),
+		},
+	)
+	k.Logger(ctx).Info("Process EVM hook -> Relay token from evm", "amount", amount.String(), "coins", coins.String(),
+		"contract", pair.Erc20Address, "from", from.String(), "recipient", sdk.AccAddress(recipient.Bytes()).String())
+	return nil
+}
+
+//isRelayTokenEvent check transfer event is relay token
+//transfer event ---> event Transfer(address indexed from, address indexed to, uint256 value);
+//address to must be equal ModuleAddress
+func isRelayTokenEvent(log *ethtypes.Log) bool {
+	if len(log.Topics) < 3 {
 		return false
 	}
 	eventID := log.Topics[0] // event ID
 	event, err := contracts.ERC20RelayContract.ABI.EventByID(eventID)
 	if err != nil {
-		// invalid event for ERC20Relay
 		return false
 	}
-	return event.Name == types.ERC20RelayEventRelay
+	if !(event.Name == types.ERC20EventTransfer) {
+		return false
+	}
+	//transfer to module address
+	to := common.BytesToAddress(log.Topics[2].Bytes())
+	return bytes.Equal(to.Bytes(), types.ModuleAddress.Bytes())
 }
-func parseRelayAmount(data []byte) (*big.Int, error) {
+
+//parseTransferAmount parse transfer event data to big int
+func parseTransferAmount(data []byte) (*big.Int, error) {
 	//relay amount
-	relayEvent, err := contracts.ERC20RelayContract.ABI.Unpack(types.ERC20RelayEventRelay, data)
+	transferEvent, err := contracts.ERC20RelayContract.ABI.Unpack(types.ERC20EventTransfer, data)
 	if err != nil {
-		return nil, fmt.Errorf("unpack relay event error %v", err.Error())
+		return nil, fmt.Errorf("unpack transfer event error %v", err.Error())
 	}
-	if len(relayEvent) == 0 {
-		return nil, errors.New("invalid relay event")
+	if len(transferEvent) == 0 {
+		return nil, errors.New("invalid transfer event")
 	}
-	amount, ok := relayEvent[0].(*big.Int)
+	amount, ok := transferEvent[0].(*big.Int)
 	if !ok || amount == nil {
-		return nil, fmt.Errorf("invalid type of relay event")
+		return nil, fmt.Errorf("invalid type of transfer event")
 	}
 	if amount.Sign() != 1 {
-		return nil, fmt.Errorf("invalid amount %v", amount)
+		return nil, fmt.Errorf("invalid transfer amount %v", amount)
 	}
 	return amount, nil
 }

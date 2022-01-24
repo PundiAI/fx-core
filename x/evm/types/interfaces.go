@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -56,5 +57,5 @@ type FeeMarketKeeper interface {
 // EvmHooks event hooks for evm tx processing
 type EvmHooks interface {
 	// PostTxProcessing Must be called after tx is processed successfully, if return an error, the whole transaction is reverted.
-	PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error
+	PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error
 }

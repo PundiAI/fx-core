@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -72,12 +73,12 @@ func (msg MsgConvertCoin) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgConvertERC20 creates a new instance of MsgConvertERC20
-func NewMsgConvertERC20(amount sdk.Int, receiver sdk.AccAddress, contract common.Address, bech32PubKey string) *MsgConvertERC20 { // nolint: interfacer
-
+func NewMsgConvertERC20(amount sdk.Int, sender, receiver sdk.AccAddress, contract common.Address, bech32PubKey string) *MsgConvertERC20 { // nolint: interfacer
 	return &MsgConvertERC20{
 		ContractAddress: contract.String(),
 		Amount:          amount,
 		Receiver:        receiver.String(),
+		Sender:          sender.String(),
 		PubKey:          bech32PubKey,
 	}
 }
@@ -98,14 +99,26 @@ func (msg MsgConvertERC20) ValidateBasic() error {
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
-		return sdkerrors.Wrap(err, "invalid reciver address")
+		return sdkerrors.Wrap(err, "invalid receiver address")
+	}
+
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrap(err, "invalid sender address")
 	}
 	pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, msg.PubKey)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bench32 string '%s'", msg.PubKey)
+		return sdkerrors.Wrap(err, "invalid public key")
 	}
-	if _, err := crypto.DecompressPubkey(pubKey.Bytes()); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "can not decompress pub key %s", msg.PubKey)
+	decompressPubkey, err := crypto.DecompressPubkey(pubKey.Bytes())
+	if err != nil {
+		return sdkerrors.Wrap(err, "invalid public key, can not decompress")
+	}
+	ethSender := crypto.PubkeyToAddress(*decompressPubkey)
+
+	if !bytes.Equal(sender, pubKey.Address().Bytes()) &&
+		!bytes.Equal(sender, ethSender.Bytes()) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "public key does not match sender address")
 	}
 	return nil
 }
@@ -117,18 +130,14 @@ func (msg *MsgConvertERC20) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (msg MsgConvertERC20) GetSigners() []sdk.AccAddress {
-	pubKey, _ := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, msg.PubKey)
-	return []sdk.AccAddress{pubKey.Address().Bytes()}
+	acc, _ := sdk.AccAddressFromBech32(msg.Sender)
+	return []sdk.AccAddress{acc}
 }
 
-func (msg MsgConvertERC20) AccAddress() sdk.AccAddress {
-	pubKey, _ := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, msg.PubKey)
-	return sdk.AccAddress(pubKey.Address().Bytes())
-}
 func (msg MsgConvertERC20) HexAddress() common.Address {
 	pubKey, _ := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, msg.PubKey)
-	uncompressedPubKey, _ := crypto.DecompressPubkey(pubKey.Bytes())
-	return crypto.PubkeyToAddress(*uncompressedPubKey)
+	decompressPubkey, _ := crypto.DecompressPubkey(pubKey.Bytes())
+	return crypto.PubkeyToAddress(*decompressPubkey)
 }
 
 func PubKeyToEIP55Address(pubKey cryptotypes.PubKey) (common.Address, error) {

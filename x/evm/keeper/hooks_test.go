@@ -15,7 +15,7 @@ type LogRecordHook struct {
 	Logs []*ethtypes.Log
 }
 
-func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error {
+func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
 	dh.Logs = logs
 	return nil
 }
@@ -23,7 +23,7 @@ func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transact
 // FailureHook always fail
 type FailureHook struct{}
 
-func (dh FailureHook) PostTxProcessing(ctx sdk.Context, tx *ethtypes.Transaction, logs []*ethtypes.Log) error {
+func (dh FailureHook) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
 	return errors.New("post tx processing failed")
 }
 
@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestEvmHooks() {
 			Address: suite.address,
 		})
 		logs := k.GetTxLogsTransient(tx.Hash())
-		result := k.PostTxProcessing(tx, logs)
+		result := k.PostTxProcessing(tx.Hash(), logs)
 
 		tc.expFunc(hook, result)
 	}
