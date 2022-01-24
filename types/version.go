@@ -52,7 +52,7 @@ const (
 	devnetSupportEvmBlock                       = 300
 	devnetEvmChainID                            = 221
 	devnetSupportIntrarelayerBlock              = 503000
-	devnetRequestBaseFee                        = 800000
+	devnetRequestBaseFee                        = 810000
 )
 
 var (
