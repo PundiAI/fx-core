@@ -42,12 +42,12 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // DefaultGenesis implements app module basic
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
 // ValidateGenesis implements app module basic
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, _ client.TxEncodingConfig, bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
 	return nil
 }
 
@@ -121,12 +121,12 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 func (am AppModule) RegisterServices(cfg module.Configurator) {}
 
 // InitGenesis initializes the genesis state for this module and implements app module.
-func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONMarshaler, _ json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 

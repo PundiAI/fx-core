@@ -46,7 +46,7 @@ func NewRootCmd() *cobra.Command {
 
 	encodingConfig := fxcore.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
-		WithJSONMarshaler(encodingConfig.Marshaler).
+		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).

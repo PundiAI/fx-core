@@ -17,16 +17,9 @@ if [[ "$1" == "init" ]]; then
   # fxcored config config.toml rpc.pprof_laddr ""
   # open prometheus
   fxcored config config.toml instrumentation.prometheus true
-  fxcored config app.toml minimum-gas-prices 1000000000FX
-  fxcored config app.toml json-rpc.api "eth,txpool,personal,net,debug,web3"
-  fxcored config config.toml consensus.timeout_commit 1s
-
-  # update fxcore client config
-  fxcored config chain-id fxcore
-  fxcored config keyring-backend test
-  fxcored config output json
-  fxcored config node "tcp://127.0.0.1:26657"
-  fxcored config broadcast-mode "block"
+  # open rest and swagger
+  fxcored config app.toml api.enable true
+  fxcored config app.toml api.swagger true
 
   # update fxcore client config
   fxcored config chain-id fxcore
@@ -36,11 +29,7 @@ if [[ "$1" == "init" ]]; then
   fxcored config broadcast-mode "block"
 
   fxcored keys add fx1
-  perl -pi -e 's|378604525462891000000000000|778600525462891000000000000|g' ~/.fxcore/config/genesis.json
-  perl -pi -e 's|"amount": "10000000000000000000000"|"amount": "100000000000000000000"|g' ~/.fxcore/config/genesis.json
-  perl -pi -e 's|"voting_period": "1209600s"|"voting_period": "30s"|g' ~/.fxcore/config/genesis.json
-  perl -pi -e 's|"unbonding_time": "1814400s"|"unbonding_time": "1800s"|g' ~/.fxcore/config/genesis.json
-  fxcored add-genesis-account fx1 400000000000000000000000000FX
+  fxcored add-genesis-account fx1 4000000000000000000000FX
   fxcored gentx fx1 1000000000000000000000FX --chain-id=fxcore \
     --moniker="fx-validator" \
     --commission-max-change-rate=0.01 \
@@ -52,4 +41,4 @@ if [[ "$1" == "init" ]]; then
   fxcored collect-gentxs
 fi
 
-fxcored start --log_filter='ABCIQuery'
+fxcored start --minimum-gas-prices '4000000000000FX' --log_filter='ABCIQuery'

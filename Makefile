@@ -2,6 +2,7 @@
 
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
+TM_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/tendermint/tendermint)
 
 # don't override user values
 ifeq (,$(VERSION))
@@ -17,8 +18,9 @@ ifeq (,$(VERSION))
 endif
 
 LEDGER_ENABLED ?= true
-TM_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/tendermint/tendermint)
 BUILDDIR ?= $(CURDIR)/build
+PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
+STATIK = $(GOPATH)/bin/statik
 
 export GO111MODULE = on
 
@@ -54,10 +56,9 @@ ifeq ($(LEDGER_ENABLED),true)
   endif
 endif
 
-ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
-  build_tags += gcc cleveldb muslc
-
-endif
+#ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
+#  build_tags += gcc cleveldb muslc
+#endif
 build_tags += $(BUILD_TAGS)
 build_tags := $(strip $(build_tags))
 
@@ -121,7 +122,7 @@ ifeq (,$(findstring nostrip,$(FX_BUILD_OPTIONS)))
 endif
 
 ###############################################################################
-###                              Documentation                              ###
+###                                  Build                                  ###
 ###############################################################################
 
 all: install lint test
@@ -188,6 +189,8 @@ draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
 	@goviz -i github.com/functionx/fx-core/cmd/fxcored -d 2 | dot -Tpng -o dependency-graph.png
 
+.PHONY: build build-linux install go.sum
+
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################
@@ -198,9 +201,11 @@ lint:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' | xargs gofmt -d -s
 
 format:
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' | xargs gofmt -w -s
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' | xargs goimports -w -local github.com/functionx/fx-core
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' -not -path "./client/docs/statik/statik.go" | xargs gofmt -w -s
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' -not -path "./client/docs/statik/statik.go" | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' -not -path "./client/docs/statik/statik.go" | xargs goimports -w -local github.com/functionx/fx-core
+
+.PHONY: format lint
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
@@ -221,21 +226,53 @@ test-cover:
 benchmark:
 	@go test -mod=readonly -bench=. ./...
 
+.PHONY: test test-cover test-unit test-race benchmark
+
 ###############################################################################
 ###                                Protobuf                                 ###
 ###############################################################################
 
-# The below include contains the tools target.
-include develop/devtools.mk
+protoVer=v0.2
+protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
+containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
+containerProtoGenSwagger=cosmos-sdk-proto-gen-swagger-$(protoVer)
+containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@./develop/protocgen.sh
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
+		sh ./develop/protocgen.sh; fi
 
-###############################################################################
-###                                 Other                                  ###
-###############################################################################
+proto-swagger-gen:
+	@echo "Generating Protobuf Swagger"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
+		sh ./develop/protoc-swagger-gen.sh; fi
 
-.PHONY: build build-linux install go.sum format lint clean draw-deps protoc-gen \
-	test test-cover test-unit test-race benchmark
+proto-format:
+	@echo "Formatting Protobuf files"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
+		find ./ -not -path "./third_party/*" -name "*.proto" -exec clang-format -i {} \; ; fi
 
+proto-lint:
+	@docker run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf:1.0.0-rc8 lint --error-format=json
+
+# Install the runsim binary with a temporary workaround of entering an outside
+# directory as the "go get" command ignores the -mod option and will polute the
+# go.{mod, sum} files.
+#
+# ref: https://github.com/golang/go/issues/30515
+statik: $(STATIK)
+$(STATIK):
+	@echo "Installing statik..."
+	@(cd /tmp && go get github.com/rakyll/statik@v0.1.6)
+
+update-swagger-docs: statik
+	$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
+	@if [ -n "$(git status --porcelain)" ]; then \
+        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
+        exit 1;\
+    else \
+        echo "\033[92mSwagger docs are in sync\033[0m";\
+    fi
+
+.PHONY: proto-gen proto-swagger-gen proto-format proto-lint update-swagger-docs

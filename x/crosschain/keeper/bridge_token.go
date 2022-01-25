@@ -20,7 +20,7 @@ func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, token string) *types.Bridge
 		return nil
 	}
 	var bridgeToken types.BridgeToken
-	k.cdc.MustUnmarshalBinaryBare(data, &bridgeToken)
+	k.cdc.MustUnmarshal(data, &bridgeToken)
 	return &bridgeToken
 }
 
@@ -32,7 +32,7 @@ func (k Keeper) GetDenomByBridgeToken(ctx sdk.Context, denom string) *types.Brid
 		return nil
 	}
 	var bridgeToken types.BridgeToken
-	k.cdc.MustUnmarshalBinaryBare(data, &bridgeToken)
+	k.cdc.MustUnmarshal(data, &bridgeToken)
 	return &bridgeToken
 }
 
@@ -58,11 +58,11 @@ func (k Keeper) addBridgeToken(ctx sdk.Context, token, _, channelIBC string) (st
 		k.ibcTransferKeeper.SetDenomTrace(ctx, denomTrace)
 		denom = denomTrace.IBCDenom()
 	}
-	store.Set(types.GetTokenToDenomKey(denom), k.cdc.MustMarshalBinaryBare(&types.BridgeToken{
+	store.Set(types.GetTokenToDenomKey(denom), k.cdc.MustMarshal(&types.BridgeToken{
 		Token:      token,
 		ChannelIbc: decodeChannelIBCStr,
 	}))
-	store.Set(types.GetDenomToTokenKey(token), k.cdc.MustMarshalBinaryBare(&types.BridgeToken{
+	store.Set(types.GetDenomToTokenKey(token), k.cdc.MustMarshal(&types.BridgeToken{
 		Denom:      denom,
 		ChannelIbc: decodeChannelIBCStr,
 	}))
@@ -78,7 +78,7 @@ func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func([]byte, *type
 
 	for ; iter.Valid(); iter.Next() {
 		var bridgeToken types.BridgeToken
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &bridgeToken)
+		k.cdc.MustUnmarshal(iter.Value(), &bridgeToken)
 		bridgeToken.Denom = string(iter.Value())
 		// cb returns true to stop early
 		if cb(iter.Key(), &bridgeToken) {

@@ -184,10 +184,10 @@ func (k Keeper) appendToUnbatchedTXIndex(ctx sdk.Context, tokenContract string, 
 	var idSet types.IDSet
 	if store.Has(idxKey) {
 		bz := store.Get(idxKey)
-		k.cdc.MustUnmarshalBinaryBare(bz, &idSet)
+		k.cdc.MustUnmarshal(bz, &idSet)
 	}
 	idSet.Ids = append(idSet.Ids, txID)
-	store.Set(idxKey, k.cdc.MustMarshalBinaryBare(&idSet))
+	store.Set(idxKey, k.cdc.MustMarshal(&idSet))
 }
 
 // prependToUnbatchedTXIndex add at the top when tx with same fee exists
@@ -197,10 +197,10 @@ func (k Keeper) prependToUnbatchedTXIndex(ctx sdk.Context, tokenContract string,
 	var idSet types.IDSet
 	if store.Has(idxKey) {
 		bz := store.Get(idxKey)
-		k.cdc.MustUnmarshalBinaryBare(bz, &idSet)
+		k.cdc.MustUnmarshal(bz, &idSet)
 	}
 	idSet.Ids = append([]uint64{txID}, idSet.Ids...)
-	store.Set(idxKey, k.cdc.MustMarshalBinaryBare(&idSet))
+	store.Set(idxKey, k.cdc.MustMarshal(&idSet))
 }
 
 // removeFromUnbatchedTXIndex removes the tx from the index and makes it implicit no available anymore
@@ -212,12 +212,12 @@ func (k Keeper) removeFromUnbatchedTXIndex(ctx sdk.Context, fee types.ERC20Token
 	if bz == nil {
 		return sdkerrors.Wrap(types.ErrUnknown, "fee")
 	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &idSet)
+	k.cdc.MustUnmarshal(bz, &idSet)
 	for i := range idSet.Ids {
 		if idSet.Ids[i] == txID {
 			idSet.Ids = append(idSet.Ids[0:i], idSet.Ids[i+1:]...)
 			if len(idSet.Ids) != 0 {
-				store.Set(idxKey, k.cdc.MustMarshalBinaryBare(&idSet))
+				store.Set(idxKey, k.cdc.MustMarshal(&idSet))
 			} else {
 				store.Delete(idxKey)
 			}
@@ -228,7 +228,7 @@ func (k Keeper) removeFromUnbatchedTXIndex(ctx sdk.Context, fee types.ERC20Token
 }
 
 func (k Keeper) setPoolEntry(ctx sdk.Context, val *types.OutgoingTransferTx) error {
-	bz, err := k.cdc.MarshalBinaryBare(val)
+	bz, err := k.cdc.Marshal(val)
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func (k Keeper) getPoolEntry(ctx sdk.Context, id uint64) (*types.OutgoingTransfe
 		return nil, types.ErrUnknown
 	}
 	var r types.OutgoingTransferTx
-	k.cdc.MustUnmarshalBinaryBare(bz, &r)
+	k.cdc.MustUnmarshal(bz, &r)
 	return &r, nil
 }
 
@@ -263,7 +263,7 @@ func (k Keeper) GetPoolTransactions(ctx sdk.Context) []*types.OutgoingTransferTx
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var ids types.IDSet
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &ids)
+		k.cdc.MustUnmarshal(iter.Value(), &ids)
 		for _, id := range ids.Ids {
 			tx, err := k.getPoolEntry(ctx, id)
 			if err != nil {
@@ -282,7 +282,7 @@ func (k Keeper) IterateOutgoingPoolByFee(ctx sdk.Context, contract string, cb fu
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var ids types.IDSet
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &ids)
+		k.cdc.MustUnmarshal(iter.Value(), &ids)
 		// cb returns true to stop early
 		for _, id := range ids.Ids {
 			tx, err := k.getPoolEntry(ctx, id)
@@ -339,7 +339,7 @@ func (k Keeper) createBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFe
 
 	for ; iter.Valid(); iter.Next() {
 		var ids types.IDSet
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &ids)
+		k.cdc.MustUnmarshal(iter.Value(), &ids)
 
 		// create a map to store the token contract address and its total fee
 		// Parse the iterator key to get contract address & fee

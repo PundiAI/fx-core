@@ -147,7 +147,7 @@ func (k Keeper) addUnbatchedTX(ctx sdk.Context, val *types.OutgoingTransferTx) e
 		return sdkerrors.Wrap(types.ErrDuplicate, "transaction already in pool")
 	}
 
-	bz, err := k.cdc.MarshalBinaryBare(val)
+	bz, err := k.cdc.Marshal(val)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func (k Keeper) GetUnbatchedTxByFeeAndId(ctx sdk.Context, fee types.ExternalToke
 		return nil, sdkerrors.Wrap(types.ErrUnknown, "pool transaction")
 	}
 	var r types.OutgoingTransferTx
-	err := k.cdc.UnmarshalBinaryBare(bz, &r)
+	err := k.cdc.Unmarshal(bz, &r)
 	return &r, err
 }
 
@@ -232,7 +232,7 @@ func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, prefixKey []byte, 
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var transact types.OutgoingTransferTx
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &transact)
+		k.cdc.MustUnmarshal(iter.Value(), &transact)
 		// cb returns true to stop early
 		if cb(iter.Key(), &transact) {
 			break

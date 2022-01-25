@@ -38,7 +38,7 @@ const (
 // object provided to it during init.
 type AppGenesisState map[string]json.RawMessage
 
-func NewDefAppGenesisByDenom(denom string, cdc codec.JSONMarshaler) map[string]json.RawMessage {
+func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) map[string]json.RawMessage {
 	genesis := make(map[string]json.RawMessage)
 	for _, b := range ModuleBasics {
 		switch b.Name() {

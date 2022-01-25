@@ -38,7 +38,6 @@ func CollectGenTxsCmd(genBalIterator types.GenesisBalancesIterator, defaultNodeH
 			config := serverCtx.Config
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			cdc := clientCtx.JSONMarshaler
 
 			config.SetRoot(clientCtx.HomeDir)
 
@@ -61,7 +60,7 @@ func CollectGenTxsCmd(genBalIterator types.GenesisBalancesIterator, defaultNodeH
 			toPrint := NewPrintInfo(config.Moniker, genDoc.ChainID, nodeID, genTxsDir, json.RawMessage(""))
 			initCfg := types.NewInitConfig(genDoc.ChainID, genTxsDir, nodeID, valPubKey)
 
-			toPrint.AppMessage, err = GenAppStateFromConfig(cdc, clientCtx.TxConfig, config, initCfg, *genDoc, genBalIterator)
+			toPrint.AppMessage, err = GenAppStateFromConfig(clientCtx.Codec, clientCtx.TxConfig, config, initCfg, *genDoc, genBalIterator)
 			if err != nil {
 				return errors.Wrap(err, "failed to get genesis app state from config")
 			}
@@ -81,7 +80,7 @@ func CollectGenTxsCmd(genBalIterator types.GenesisBalancesIterator, defaultNodeH
 }
 
 // GenAppStateFromConfig gets the genesis app state from the config
-func GenAppStateFromConfig(cdc codec.JSONMarshaler, txEncodingConfig client.TxEncodingConfig,
+func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodingConfig,
 	config *cfg.Config, initCfg types.InitConfig, genDoc tmtypes.GenesisDoc, genBalIterator types.GenesisBalancesIterator,
 ) (appState json.RawMessage, err error) {
 
@@ -125,7 +124,7 @@ func GenAppStateFromConfig(cdc codec.JSONMarshaler, txEncodingConfig client.TxEn
 
 // CollectTxs processes and validates application's genesis Txs and returns
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
-func CollectTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker, genTxsDir string,
+func CollectTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTxsDir string,
 	genDoc tmtypes.GenesisDoc, genBalIterator types.GenesisBalancesIterator,
 ) (appGenTxs []sdk.Tx, persistentPeers string, err error) {
 	// prepare a map of all balances in genesis state to then validate

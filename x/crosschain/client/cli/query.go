@@ -141,7 +141,7 @@ func CmdGetChainOracles() *cobra.Command {
 			}
 
 			var chainOracle2 types.ChainOracle
-			if err := clientCtx.LegacyAmino.UnmarshalBinaryBare(abciResp.Value, &chainOracle2); err != nil {
+			if err := clientCtx.LegacyAmino.Unmarshal(abciResp.Value, &chainOracle2); err != nil {
 				return err
 			}
 			return clientCtx.PrintProto(&chainOracle2)

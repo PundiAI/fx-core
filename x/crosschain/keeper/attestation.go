@@ -141,7 +141,7 @@ func (k Keeper) emitObservedEvent(ctx sdk.Context, _ *types.Attestation, claim t
 func (k Keeper) SetAttestation(ctx sdk.Context, eventNonce uint64, claimHash []byte, att *types.Attestation) {
 	store := ctx.KVStore(k.storeKey)
 	aKey := types.GetAttestationKey(eventNonce, claimHash)
-	store.Set(aKey, k.cdc.MustMarshalBinaryBare(att))
+	store.Set(aKey, k.cdc.MustMarshal(att))
 }
 
 // GetAttestation return an attestation given a nonce
@@ -153,7 +153,7 @@ func (k Keeper) GetAttestation(ctx sdk.Context, eventNonce uint64, claimHash []b
 		return nil
 	}
 	var att types.Attestation
-	k.cdc.MustUnmarshalBinaryBare(bz, &att)
+	k.cdc.MustUnmarshal(bz, &att)
 	return &att
 }
 
@@ -195,7 +195,7 @@ func (k Keeper) IterateAttestations(ctx sdk.Context, cb func([]byte, types.Attes
 
 	for ; iter.Valid(); iter.Next() {
 		att := types.Attestation{}
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &att)
+		k.cdc.MustUnmarshal(iter.Value(), &att)
 		// cb returns true to stop early
 		if cb(iter.Key(), att) {
 			return
@@ -227,7 +227,7 @@ func (k Keeper) GetLastObservedBlockHeight(ctx sdk.Context) types.LastObservedBl
 		}
 	}
 	height := types.LastObservedBlockHeight{}
-	k.cdc.MustUnmarshalBinaryBare(bytes, &height)
+	k.cdc.MustUnmarshal(bytes, &height)
 	return height
 }
 
@@ -238,7 +238,7 @@ func (k Keeper) SetLastObservedBlockHeight(ctx sdk.Context, externalBlockHeight 
 		ExternalBlockHeight: externalBlockHeight,
 		BlockHeight:         uint64(ctx.BlockHeight()),
 	}
-	store.Set(types.LastObservedBlockHeightKey, k.cdc.MustMarshalBinaryBare(&height))
+	store.Set(types.LastObservedBlockHeightKey, k.cdc.MustMarshal(&height))
 }
 
 // GetLastObservedOracleSet retrieves the last observed oracle set from the store
@@ -253,14 +253,14 @@ func (k Keeper) GetLastObservedOracleSet(ctx sdk.Context) *types.OracleSet {
 		return nil
 	}
 	valset := types.OracleSet{}
-	k.cdc.MustUnmarshalBinaryBare(bytes, &valset)
+	k.cdc.MustUnmarshal(bytes, &valset)
 	return &valset
 }
 
 // SetLastObservedOracleSet updates the last observed oracle set in the store
 func (k Keeper) SetLastObservedOracleSet(ctx sdk.Context, valset types.OracleSet) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastObservedOracleSetKey, k.cdc.MustMarshalBinaryBare(&valset))
+	store.Set(types.LastObservedOracleSetKey, k.cdc.MustMarshal(&valset))
 }
 
 // SetLastObservedEventNonce sets the latest observed event nonce

@@ -19,8 +19,8 @@ import (
 // Keeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
 	moduleName string
-	cdc        codec.BinaryMarshaler // The wire codec for binary encoding/decoding.
-	storeKey   sdk.StoreKey          // Unexposed key to access store from sdk.Context
+	cdc        codec.BinaryCodec // The wire codec for binary encoding/decoding.
+	storeKey   sdk.StoreKey      // Unexposed key to access store from sdk.Context
 	paramSpace paramtypes.Subspace
 
 	bankKeeper         types.BankKeeper
@@ -31,7 +31,7 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new instance of the gravity keeper
-func NewKeeper(cdc codec.BinaryMarshaler, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper) Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
@@ -102,7 +102,7 @@ func (k Keeper) GetOracleDepositThreshold(ctx sdk.Context) sdk.Coin {
 
 func (k Keeper) SetChainOracles(ctx sdk.Context, chainOracle *types.ChainOracle) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyChainOracles, k.cdc.MustMarshalBinaryBare(chainOracle))
+	store.Set(types.KeyChainOracles, k.cdc.MustMarshal(chainOracle))
 }
 
 func (k Keeper) GetChainOracles(ctx sdk.Context) (chainOracle types.ChainOracle, found bool) {
@@ -111,7 +111,7 @@ func (k Keeper) GetChainOracles(ctx sdk.Context) (chainOracle types.ChainOracle,
 	if bz == nil {
 		return chainOracle, false
 	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &chainOracle)
+	k.cdc.MustUnmarshal(bz, &chainOracle)
 	return chainOracle, true
 }
 
@@ -122,7 +122,7 @@ func (k Keeper) GetChainOracles(ctx sdk.Context) (chainOracle types.ChainOracle,
 // SetOracle save Oracle data
 func (k Keeper) SetOracle(ctx sdk.Context, oracle types.Oracle) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryBare(&oracle)
+	bz := k.cdc.MustMarshal(&oracle)
 	store.Set(types.GetOracleKey(oracle.GetOracle()), bz)
 }
 
@@ -133,7 +133,7 @@ func (k Keeper) GetOracle(ctx sdk.Context, addr sdk.AccAddress) (oracle types.Or
 	if value == nil {
 		return oracle, false
 	}
-	k.cdc.MustUnmarshalBinaryBare(value, &oracle)
+	k.cdc.MustUnmarshal(value, &oracle)
 	return oracle, true
 }
 
@@ -154,7 +154,7 @@ func (k Keeper) GetAllOracles(ctx sdk.Context) (oracles types.Oracles) {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var oracle types.Oracle
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &oracle)
+		k.cdc.MustUnmarshal(iterator.Value(), &oracle)
 		oracles = append(oracles, oracle)
 	}
 	sort.Sort(oracles)
@@ -168,7 +168,7 @@ func (k Keeper) GetAllActiveOracles(ctx sdk.Context) (oracles types.Oracles) {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var oracle types.Oracle
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &oracle)
+		k.cdc.MustUnmarshal(iterator.Value(), &oracle)
 		if oracle.Jailed {
 			continue
 		}
@@ -301,7 +301,7 @@ func (k Keeper) SetOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 // StoreOracleSet is for storing a oracle set at a given height
 func (k Keeper) StoreOracleSet(ctx sdk.Context, oracleSet *types.OracleSet) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetOracleSetKey(oracleSet.Nonce), k.cdc.MustMarshalBinaryBare(oracleSet))
+	store.Set(types.GetOracleSetKey(oracleSet.Nonce), k.cdc.MustMarshal(oracleSet))
 	k.SetLatestOracleSetNonce(ctx, oracleSet.Nonce)
 }
 
@@ -340,7 +340,7 @@ func (k Keeper) GetOracleSet(ctx sdk.Context, nonce uint64) *types.OracleSet {
 		return nil
 	}
 	var oracleSet types.OracleSet
-	k.cdc.MustUnmarshalBinaryBare(bz, &oracleSet)
+	k.cdc.MustUnmarshal(bz, &oracleSet)
 	return &oracleSet
 }
 
@@ -351,7 +351,7 @@ func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(key []byte, val *type
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var oracleSet types.OracleSet
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &oracleSet)
+		k.cdc.MustUnmarshal(iter.Value(), &oracleSet)
 		// cb returns true to stop early
 		if cb(iter.Key(), &oracleSet) {
 			break
@@ -448,7 +448,7 @@ func (k Keeper) IterateOracleSetBySlashedOracleSetNonce(ctx sdk.Context, lastSla
 
 	for ; iter.Valid(); iter.Next() {
 		var oracleSet types.OracleSet
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &oracleSet)
+		k.cdc.MustUnmarshal(iter.Value(), &oracleSet)
 		// cb returns true to stop early
 		if cb(iter.Key(), &oracleSet) {
 			break
@@ -464,7 +464,7 @@ func (k Keeper) GetOracleSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sd
 		return nil
 	}
 	confirm := types.MsgOracleSetConfirm{}
-	k.cdc.MustUnmarshalBinaryBare(entity, &confirm)
+	k.cdc.MustUnmarshal(entity, &confirm)
 	return &confirm
 }
 
@@ -472,7 +472,7 @@ func (k Keeper) GetOracleSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sd
 func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, oracleSetConfirm types.MsgOracleSetConfirm) []byte {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOracleSetConfirmKey(oracleSetConfirm.Nonce, oracleAddr)
-	store.Set(key, k.cdc.MustMarshalBinaryBare(&oracleSetConfirm))
+	store.Set(key, k.cdc.MustMarshal(&oracleSetConfirm))
 	return key
 }
 
@@ -486,7 +486,7 @@ func (k Keeper) GetOracleSetConfirms(ctx sdk.Context, nonce uint64) (confirms []
 
 	for ; iterator.Valid(); iterator.Next() {
 		confirm := types.MsgOracleSetConfirm{}
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &confirm)
+		k.cdc.MustUnmarshal(iterator.Value(), &confirm)
 		confirms = append(confirms, &confirm)
 	}
 
@@ -506,7 +506,7 @@ func (k Keeper) IterateOracleSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb
 
 	for ; iter.Valid(); iter.Next() {
 		confirm := types.MsgOracleSetConfirm{}
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &confirm)
+		k.cdc.MustUnmarshal(iter.Value(), &confirm)
 		// cb returns true to stop early
 		if cb(iter.Key(), confirm) {
 			break
@@ -522,7 +522,7 @@ func (k Keeper) GetBatchConfirm(ctx sdk.Context, nonce uint64, tokenContract str
 		return nil
 	}
 	confirm := types.MsgConfirmBatch{}
-	k.cdc.MustUnmarshalBinaryBare(entity, &confirm)
+	k.cdc.MustUnmarshal(entity, &confirm)
 	return &confirm
 }
 
@@ -530,7 +530,7 @@ func (k Keeper) GetBatchConfirm(ctx sdk.Context, nonce uint64, tokenContract str
 func (k Keeper) SetBatchConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, batch *types.MsgConfirmBatch) []byte {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetBatchConfirmKey(batch.TokenContract, batch.Nonce, oracleAddr)
-	store.Set(key, k.cdc.MustMarshalBinaryBare(batch))
+	store.Set(key, k.cdc.MustMarshal(batch))
 	return key
 }
 
@@ -544,7 +544,7 @@ func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonc
 
 	for ; iter.Valid(); iter.Next() {
 		confirm := types.MsgConfirmBatch{}
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &confirm)
+		k.cdc.MustUnmarshal(iter.Value(), &confirm)
 		// cb returns true to stop early
 		if cb(iter.Key(), confirm) {
 			break
@@ -593,7 +593,7 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {
 	}
 
 	ip := sdk.IntProto{}
-	k.cdc.MustUnmarshalBinaryBare(bz, &ip)
+	k.cdc.MustUnmarshal(bz, &ip)
 
 	return ip.Int
 }
@@ -601,7 +601,7 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {
 // SetLastTotalPower Set the last total validator power.
 func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryBare(&sdk.IntProto{Int: power})
+	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: power})
 	store.Set(types.LastTotalPowerKey, bz)
 }
 

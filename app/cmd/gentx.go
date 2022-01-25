@@ -62,7 +62,6 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			if err != nil {
 				return err
 			}
-			cdc := clientCtx.JSONMarshaler
 
 			config := serverCtx.Config
 			config.SetRoot(clientCtx.HomeDir)
@@ -95,7 +94,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				return errors.Wrap(err, "failed to unmarshal genesis state")
 			}
 
-			if err = mbm.ValidateGenesis(cdc, txEncCfg, genesisState); err != nil {
+			if err = mbm.ValidateGenesis(clientCtx.Codec, txEncCfg, genesisState); err != nil {
 				return errors.Wrap(err, "failed to validate genesis state")
 			}
 
@@ -124,7 +123,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				return errors.Wrap(err, "failed to parse coins")
 			}
 
-			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, key.GetAddress(), coins, cdc)
+			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, key.GetAddress(), coins, clientCtx.Codec)
 			if err != nil {
 				return errors.Wrap(err, "failed to validate account in genesis")
 			}

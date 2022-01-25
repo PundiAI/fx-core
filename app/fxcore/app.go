@@ -2,25 +2,20 @@ package fxcore
 
 import (
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 
-	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
-
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	"github.com/gorilla/mux"
+	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
-
-	"github.com/functionx/fx-core/x/crosschain"
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer"
-	ibctransferkeeper "github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -31,6 +26,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -64,6 +60,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	ibc "github.com/cosmos/cosmos-sdk/x/ibc/core"
 	ibcclient "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client"
+	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/05-port/types"
 	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	ibckeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/keeper"
@@ -90,6 +87,12 @@ import (
 
 	"github.com/functionx/fx-core/app"
 
+	"github.com/functionx/fx-core/x/crosschain"
+	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/x/ibc/applications/transfer"
+	ibctransferkeeper "github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
+	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+
 	"github.com/functionx/fx-core/x/gravity"
 	gravitykeeper "github.com/functionx/fx-core/x/gravity/keeper"
 	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
@@ -106,6 +109,8 @@ import (
 	"github.com/functionx/fx-core/x/tron"
 	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
+
+	_ "github.com/functionx/fx-core/docs/statik"
 )
 
 var ChainID = "fxcore"
@@ -198,7 +203,7 @@ type App struct {
 	*baseapp.BaseApp
 
 	cdc               *codec.LegacyAmino
-	appCodec          codec.Marshaler
+	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
 
 	invCheckPeriod uint
@@ -591,7 +596,7 @@ func (app *App) LegacyAmino() *codec.LegacyAmino {
 
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *App) AppCodec() codec.Marshaler {
+func (app *App) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
@@ -635,15 +640,18 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	clientCtx := apiSvr.ClientCtx
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 	// Register legacy tx routes.
-//	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
+	//	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
-//	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
+	//	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	if apiConfig.Swagger {
+		RegisterSwaggerAPI(apiSvr.Router)
+	}
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
@@ -657,7 +665,7 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 }
 
 // initParamsKeeper init params keeper and its subspaces
-func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
+func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
 	paramsKeeper.Subspace(authtypes.ModuleName)
@@ -677,4 +685,15 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(trontypes.ModuleName)
 
 	return paramsKeeper
+}
+
+// RegisterSwaggerAPI registers swagger route with API Server
+func RegisterSwaggerAPI(rtr *mux.Router) {
+	statikFS, err := fs.New()
+	if err != nil {
+		panic(err)
+	}
+
+	staticServer := http.FileServer(statikFS)
+	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
 }

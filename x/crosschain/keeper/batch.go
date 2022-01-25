@@ -137,14 +137,14 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 	// set the current block height when storing the batch
 	batch.Block = uint64(ctx.BlockHeight())
 	key := types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce)
-	store.Set(key, k.cdc.MustMarshalBinaryBare(batch))
+	store.Set(key, k.cdc.MustMarshal(batch))
 
 	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
 
 	if store.Has(blockKey) {
 		return sdkerrors.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] has batch request", batch.Block))
 	}
-	store.Set(blockKey, k.cdc.MustMarshalBinaryBare(batch))
+	store.Set(blockKey, k.cdc.MustMarshal(batch))
 	return nil
 }
 
@@ -152,10 +152,10 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 func (k Keeper) StoreBatchUnsafe(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce)
-	store.Set(key, k.cdc.MustMarshalBinaryBare(batch))
+	store.Set(key, k.cdc.MustMarshal(batch))
 
 	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
-	store.Set(blockKey, k.cdc.MustMarshalBinaryBare(batch))
+	store.Set(blockKey, k.cdc.MustMarshal(batch))
 }
 
 // DeleteBatch deletes an outgoing transaction batch
@@ -198,7 +198,7 @@ func (k Keeper) GetOutgoingTXBatch(ctx sdk.Context, tokenContract string, nonce 
 		return nil
 	}
 	var b types.OutgoingTxBatch
-	k.cdc.MustUnmarshalBinaryBare(bz, &b)
+	k.cdc.MustUnmarshal(bz, &b)
 	for _, tx := range b.Transactions {
 		tx.Token.Contract = tokenContract
 		tx.Fee.Contract = tokenContract
@@ -237,7 +237,7 @@ func (k Keeper) IterateOutgoingTXBatches(ctx sdk.Context, cb func(key []byte, ba
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var batch types.OutgoingTxBatch
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &batch)
+		k.cdc.MustUnmarshal(iter.Value(), &batch)
 		// cb returns true to stop early
 		if cb(iter.Key(), &batch) {
 			break
@@ -306,7 +306,7 @@ func (k Keeper) IterateBatchBySlashedBatchBlock(ctx sdk.Context, lastSlashedBatc
 
 	for ; iter.Valid(); iter.Next() {
 		var Batch types.OutgoingTxBatch
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &Batch)
+		k.cdc.MustUnmarshal(iter.Value(), &Batch)
 		// cb returns true to stop early
 		if cb(iter.Key(), &Batch) {
 			break

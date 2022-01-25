@@ -113,8 +113,8 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Equal returns a boolean determining if two Params types are identical.
 func (m Params) Equal(p2 Params) bool {
-	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&m)
-	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&p2)
+	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&m)
+	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&p2)
 	return bytes.Equal(bz1, bz2)
 }
 

@@ -181,7 +181,7 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 					return err
 				}
 			} else {
-				if err = clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(args[0]), &pubkey); err != nil {
+				if err = clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &pubkey); err != nil {
 					return err
 				}
 			}

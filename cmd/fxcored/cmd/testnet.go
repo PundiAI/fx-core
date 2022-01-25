@@ -230,10 +230,10 @@ func InitTestnet(
 		srvconfig.WriteConfigFile(filepath.Join(nodeDir, "config/app.toml"), appToml)
 	}
 
-	appGenState := fxcore.NewDefAppGenesisByDenom(denom, clientCtx.JSONMarshaler)
+	appGenState := fxcore.NewDefAppGenesisByDenom(denom, clientCtx.Codec)
 	// set the accounts in the genesis state
 	var authGenState authtypes.GenesisState
-	clientCtx.JSONMarshaler.MustUnmarshalJSON(appGenState[authtypes.ModuleName], &authGenState)
+	clientCtx.Codec.MustUnmarshalJSON(appGenState[authtypes.ModuleName], &authGenState)
 
 	accounts, err := authtypes.PackAccounts(genAccounts)
 	if err != nil {
@@ -241,14 +241,14 @@ func InitTestnet(
 	}
 
 	authGenState.Accounts = accounts
-	appGenState[authtypes.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(&authGenState)
+	appGenState[authtypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(&authGenState)
 
 	// set the balances in the genesis state
 	var bankGenState banktypes.GenesisState
-	clientCtx.JSONMarshaler.MustUnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState)
+	clientCtx.Codec.MustUnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState)
 
 	bankGenState.Balances = genBalances
-	appGenState[banktypes.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(&bankGenState)
+	appGenState[banktypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(&bankGenState)
 
 	appGenStateJSON, err := json.MarshalIndent(appGenState, "", "  ")
 	if err != nil {
@@ -297,7 +297,7 @@ func InitTestnet(
 		}
 
 		if appState == nil {
-			appState, err = genutil.GenAppStateFromConfig(clientCtx.JSONMarshaler, clientCtx.TxConfig, serverCtx.Config, initCfg, *genDoc, banktypes.GenesisBalancesIterator{})
+			appState, err = genutil.GenAppStateFromConfig(clientCtx.Codec, clientCtx.TxConfig, serverCtx.Config, initCfg, *genDoc, banktypes.GenesisBalancesIterator{})
 			if err != nil {
 				return err
 			}

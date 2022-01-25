@@ -27,7 +27,7 @@ type Keeper struct {
 	storeKey   sdk.StoreKey // Unexposed key to access store from sdk.Context
 	paramSpace paramtypes.Subspace
 
-	cdc            codec.BinaryMarshaler // The wire codec for binary encoding/decoding.
+	cdc            codec.BinaryCodec // The wire codec for binary encoding/decoding.
 	bankKeeper     types.BankKeeper
 	ak             types.AccountKeeper
 	SlashingKeeper types.SlashingKeeper
@@ -35,22 +35,20 @@ type Keeper struct {
 	ibcTransferKeeper keeper.Keeper
 	ibcChannelKeeper  ibcchannelkeeper.Keeper
 
-	IntrarelayerKeeper types.IntrarelayerKeeper
-
 	AttestationHandler interface {
 		Handle(sdk.Context, types.Attestation, types.EthereumClaim) error
 	}
 }
 
 // NewKeeper returns a new instance of the gravity keeper
-func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace, stakingKeeper types.StakingKeeper,
-	bankKeeper types.BankKeeper, ak types.AccountKeeper, slashingKeeper types.SlashingKeeper, ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace, stakingKeeper types.StakingKeeper,
+	bankKeeper types.BankKeeper, ak types.AccountKeeper, slashingKeeper types.SlashingKeeper, ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 
-	k := &Keeper{
+	k := Keeper{
 		cdc:               cdc,
 		paramSpace:        paramSpace,
 		storeKey:          storeKey,
@@ -61,7 +59,7 @@ func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, paramSpace para
 		ibcTransferKeeper: ibcTransferKeeper,
 		ibcChannelKeeper:  channelKeeper,
 	}
-	k.AttestationHandler = &AttestationHandler{
+	k.AttestationHandler = AttestationHandler{
 		keeper:     k,
 		bankKeeper: bankKeeper,
 	}
@@ -72,11 +70,6 @@ func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, paramSpace para
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
-}
-
-func (k *Keeper) SetIntrarelayerKeeper(intrarelayerKeeper types.IntrarelayerKeeper) *Keeper {
-	k.IntrarelayerKeeper = intrarelayerKeeper
-	return k
 }
 
 /////////////////////////////
@@ -109,7 +102,7 @@ func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) *types.V
 // StoreValset is for storing a valiator set at a given height
 func (k Keeper) StoreValset(ctx sdk.Context, valset *types.Valset) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetValsetKey(valset.Nonce), k.cdc.MustMarshalBinaryBare(valset))
+	store.Set(types.GetValsetKey(valset.Nonce), k.cdc.MustMarshal(valset))
 	k.SetLatestValsetNonce(ctx, valset.Nonce)
 }
 
@@ -149,7 +142,7 @@ func (k Keeper) GetValset(ctx sdk.Context, nonce uint64) *types.Valset {
 		return nil
 	}
 	var valset types.Valset
-	k.cdc.MustUnmarshalBinaryBare(bz, &valset)
+	k.cdc.MustUnmarshal(bz, &valset)
 	return &valset
 }
 
@@ -160,7 +153,7 @@ func (k Keeper) IterateValsets(ctx sdk.Context, cb func(key []byte, val *types.V
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var valset types.Valset
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &valset)
+		k.cdc.MustUnmarshal(iter.Value(), &valset)
 		// cb returns true to stop early
 		if cb(iter.Key(), &valset) {
 			break
@@ -239,7 +232,7 @@ func (k Keeper) IterateValsetBySlashedValsetNonce(ctx sdk.Context, lastSlashedVa
 
 	for ; iter.Valid(); iter.Next() {
 		var valset types.Valset
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &valset)
+		k.cdc.MustUnmarshal(iter.Value(), &valset)
 		// cb returns true to stop early
 		if cb(iter.Key(), &valset) {
 			break
@@ -259,7 +252,7 @@ func (k Keeper) GetValsetConfirm(ctx sdk.Context, nonce uint64, validator sdk.Ac
 		return nil
 	}
 	confirm := types.MsgValsetConfirm{}
-	k.cdc.MustUnmarshalBinaryBare(entity, &confirm)
+	k.cdc.MustUnmarshal(entity, &confirm)
 	return &confirm
 }
 
@@ -271,7 +264,7 @@ func (k Keeper) SetValsetConfirm(ctx sdk.Context, valsetConf types.MsgValsetConf
 		panic(err)
 	}
 	key := types.GetValsetConfirmKey(valsetConf.Nonce, addr)
-	store.Set(key, k.cdc.MustMarshalBinaryBare(&valsetConf))
+	store.Set(key, k.cdc.MustMarshal(&valsetConf))
 	return key
 }
 
@@ -285,7 +278,7 @@ func (k Keeper) GetValsetConfirms(ctx sdk.Context, nonce uint64) (confirms []*ty
 
 	for ; iterator.Valid(); iterator.Next() {
 		confirm := types.MsgValsetConfirm{}
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &confirm)
+		k.cdc.MustUnmarshal(iterator.Value(), &confirm)
 		confirms = append(confirms, &confirm)
 	}
 
@@ -301,7 +294,7 @@ func (k Keeper) IterateValsetConfirmByNonce(ctx sdk.Context, nonce uint64, cb fu
 
 	for ; iter.Valid(); iter.Next() {
 		confirm := types.MsgValsetConfirm{}
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &confirm)
+		k.cdc.MustUnmarshal(iter.Value(), &confirm)
 		// cb returns true to stop early
 		if cb(iter.Key(), confirm) {
 			break
@@ -321,7 +314,7 @@ func (k Keeper) GetBatchConfirm(ctx sdk.Context, nonce uint64, tokenContract str
 		return nil
 	}
 	confirm := types.MsgConfirmBatch{}
-	k.cdc.MustUnmarshalBinaryBare(entity, &confirm)
+	k.cdc.MustUnmarshal(entity, &confirm)
 	return &confirm
 }
 
@@ -333,7 +326,7 @@ func (k Keeper) SetBatchConfirm(ctx sdk.Context, batch *types.MsgConfirmBatch) [
 		panic(err)
 	}
 	key := types.GetBatchConfirmKey(batch.TokenContract, batch.Nonce, acc)
-	store.Set(key, k.cdc.MustMarshalBinaryBare(batch))
+	store.Set(key, k.cdc.MustMarshal(batch))
 	return key
 }
 
@@ -347,7 +340,7 @@ func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonc
 
 	for ; iter.Valid(); iter.Next() {
 		confirm := types.MsgConfirmBatch{}
-		k.cdc.MustUnmarshalBinaryBare(iter.Value(), &confirm)
+		k.cdc.MustUnmarshal(iter.Value(), &confirm)
 		// cb returns true to stop early
 		if cb(iter.Key(), confirm) {
 			break
@@ -607,7 +600,7 @@ func (k Keeper) GetDelegateKeys(ctx sdk.Context) []*types.MsgSetOrchestratorAddr
 // Adding here in gravity keeper as cdc is available inside endblocker.
 func (k Keeper) GetUnbondingValidators(unbondingVals []byte) stakingtypes.ValAddresses {
 	unbondingValidators := stakingtypes.ValAddresses{}
-	k.cdc.MustUnmarshalBinaryBare(unbondingVals, &unbondingValidators)
+	k.cdc.MustUnmarshal(unbondingVals, &unbondingValidators)
 	return unbondingValidators
 }
 

@@ -49,7 +49,6 @@ func InitCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			cdc := clientCtx.JSONMarshaler
 
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
@@ -96,7 +95,7 @@ func InitCmd() *cobra.Command {
 			if err != nil || flagDenom == "" {
 				return fmt.Errorf("invalid staking denom: %v", err)
 			}
-			appState, err := json.MarshalIndent(fxcore.NewDefAppGenesisByDenom(flagDenom, cdc), "", " ")
+			appState, err := json.MarshalIndent(fxcore.NewDefAppGenesisByDenom(flagDenom, clientCtx.Codec), "", " ")
 			if err != nil {
 				return fmt.Errorf("failed to marshall default genesis state: %s", err.Error())
 			}
