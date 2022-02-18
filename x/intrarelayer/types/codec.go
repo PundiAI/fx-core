@@ -20,13 +20,13 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgConvertCoin{},
-		&MsgConvertERC20{},
+		&MsgConvertFIP20{},
 	)
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
 		&InitIntrarelayerParamsProposal{},
 		&RegisterCoinProposal{},
-		&RegisterERC20Proposal{},
+		&RegisterFIP20Proposal{},
 		&ToggleTokenRelayProposal{},
 	)
 

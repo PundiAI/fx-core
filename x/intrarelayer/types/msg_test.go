@@ -141,12 +141,12 @@ func (suite *MsgsTestSuite) TestMsgConvertCoin() {
 	}
 }
 
-func (suite *MsgsTestSuite) TestMsgConvertERC20Getters() {
-	msgInvalid := MsgConvertERC20{}
+func (suite *MsgsTestSuite) TestMsgConvertFIP20Getters() {
+	msgInvalid := MsgConvertFIP20{}
 	priKey := tests.NewPriKey()
 	pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, priKey.PubKey())
 	sender := sdk.AccAddress(priKey.PubKey().Address())
-	msg := NewMsgConvertERC20(
+	msg := NewMsgConvertFIP20(
 		sdk.NewInt(100),
 		sender,
 		sdk.AccAddress(tests.GenerateAddress().Bytes()),
@@ -154,12 +154,12 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20Getters() {
 		pubKey,
 	)
 	suite.Require().Equal(RouterKey, msg.Route())
-	suite.Require().Equal(TypeMsgConvertERC20, msg.Type())
+	suite.Require().Equal(TypeMsgConvertFIP20, msg.Type())
 	suite.Require().NotNil(msgInvalid.GetSignBytes())
 	suite.Require().NotNil(msg.GetSigners())
 }
 
-func (suite *MsgsTestSuite) TestMsgConvertERC20New() {
+func (suite *MsgsTestSuite) TestMsgConvertFIP20New() {
 	testCases := []struct {
 		msg        string
 		amount     sdk.Int
@@ -180,7 +180,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20New() {
 
 	for i, tc := range testCases {
 		pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, tc.sender.PubKey())
-		tx := NewMsgConvertERC20(tc.amount, sdk.AccAddress(tc.sender.PubKey().Address()), tc.receiver, tc.contract, pubKey)
+		tx := NewMsgConvertFIP20(tc.amount, sdk.AccAddress(tc.sender.PubKey().Address()), tc.receiver, tc.contract, pubKey)
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {
@@ -191,7 +191,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20New() {
 	}
 }
 
-func (suite *MsgsTestSuite) TestMsgConvertERC20() {
+func (suite *MsgsTestSuite) TestMsgConvertFIP20() {
 	testCases := []struct {
 		msg        string
 		amount     sdk.Int
@@ -249,7 +249,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 		if len(tc.public) > 10 {
 			sender = sdk.AccAddress(key.Address()).String()
 		}
-		tx := MsgConvertERC20{tc.contract, tc.amount, tc.receiver, sender, pubKey}
+		tx := MsgConvertFIP20{tc.contract, tc.amount, tc.receiver, sender, pubKey}
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {

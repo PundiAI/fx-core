@@ -361,10 +361,6 @@ func (k Keeper) ResetAccount(addr common.Address) {
 
 // SetHooks sets the hooks for the EVM module
 func (k *Keeper) SetHooks(eh types.EvmHooks) *Keeper {
-	if k.hooks != nil {
-		panic("cannot set evm hooks twice")
-	}
-
 	k.hooks = eh
 	return k
 }

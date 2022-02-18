@@ -27,13 +27,13 @@ func init() {
 // prefix bytes for the EVM persistent store
 const (
 	prefixTokenPair = iota + 1
-	prefixTokenPairByERC20
+	prefixTokenPairByFIP20
 	prefixTokenPairByDenom
 )
 
 // KVStore key prefixes
 var (
 	KeyPrefixTokenPair        = []byte{prefixTokenPair}
-	KeyPrefixTokenPairByERC20 = []byte{prefixTokenPairByERC20}
+	KeyPrefixTokenPairByFIP20 = []byte{prefixTokenPairByFIP20}
 	KeyPrefixTokenPairByDenom = []byte{prefixTokenPairByDenom}
 )

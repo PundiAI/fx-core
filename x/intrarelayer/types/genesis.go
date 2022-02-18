@@ -14,8 +14,8 @@ func (gs GenesisState) Validate() error {
 	seenDenom := make(map[string]bool)
 
 	for _, b := range gs.TokenPairs {
-		if seenErc20[b.Erc20Address] {
-			return fmt.Errorf("token ERC20 contract duplicated on genesis '%s'", b.Erc20Address)
+		if seenErc20[b.Fip20Address] {
+			return fmt.Errorf("token ERC20 contract duplicated on genesis '%s'", b.Fip20Address)
 		}
 		if seenDenom[b.Denom] {
 			return fmt.Errorf("coin denomination duplicated on genesis: '%s'", b.Denom)
@@ -25,7 +25,7 @@ func (gs GenesisState) Validate() error {
 			return err
 		}
 
-		seenErc20[b.Erc20Address] = true
+		seenErc20[b.Fip20Address] = true
 		seenDenom[b.Denom] = true
 	}
 

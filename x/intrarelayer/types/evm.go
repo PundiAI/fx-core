@@ -2,38 +2,38 @@ package types
 
 import "math/big"
 
-// ERC20Data represents the ERC20 token details used to map
+// FIP20Data represents the ERC20 token details used to map
 // the token to a Cosmos Coin
-type ERC20Data struct {
+type FIP20Data struct {
 	Name     string
 	Symbol   string
 	Decimals uint8
 }
 
-// ERC20StringResponse defines the string value from the call response
-type ERC20StringResponse struct {
+// FIP20StringResponse defines the string value from the call response
+type FIP20StringResponse struct {
 	Value string
 }
 
-// ERC20Uint8Response defines the uint8 value from the call response
-type ERC20Uint8Response struct {
+// FIP20Uint8Response defines the uint8 value from the call response
+type FIP20Uint8Response struct {
 	Value uint8
 }
 
-// ERC20BoolResponse defines the bool value from the call response
-type ERC20BoolResponse struct {
+// FIP20BoolResponse defines the bool value from the call response
+type FIP20BoolResponse struct {
 	Value bool
 }
 
-// NewERC20Data creates a new ERC20Data instance
-func NewERC20Data(name, symbol string, decimals uint8) ERC20Data {
-	return ERC20Data{
+// NewFIP20Data creates a new FIP20Data instance
+func NewFIP20Data(name, symbol string, decimals uint8) FIP20Data {
+	return FIP20Data{
 		Name:     name,
 		Symbol:   symbol,
 		Decimals: decimals,
 	}
 }
 
-type ERC20Uint256Response struct {
+type FIP20Uint256Response struct {
 	Value *big.Int
 }

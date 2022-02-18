@@ -20,8 +20,8 @@ func NewIntrarelayerProposalHandler(k *keeper.Keeper) govtypes.Handler {
 			return handleInitIntrarelayerParamsProposal(ctx, k, c)
 		case *types.RegisterCoinProposal:
 			return handleRegisterCoinProposal(ctx, k, c)
-		case *types.RegisterERC20Proposal:
-			return handleRegisterERC20Proposal(ctx, k, c)
+		case *types.RegisterFIP20Proposal:
+			return handleRegisterFIP20Proposal(ctx, k, c)
 		case *types.ToggleTokenRelayProposal:
 			return handleToggleRelayProposal(ctx, k, c)
 		default:
@@ -49,26 +49,26 @@ func handleRegisterCoinProposal(ctx sdk.Context, k *keeper.Keeper, p *types.Regi
 		sdk.NewEvent(
 			types.EventTypeRegisterCoin,
 			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
 		),
 	)
 
 	return nil
 }
 
-func handleRegisterERC20Proposal(ctx sdk.Context, k *keeper.Keeper, p *types.RegisterERC20Proposal) error {
+func handleRegisterFIP20Proposal(ctx sdk.Context, k *keeper.Keeper, p *types.RegisterFIP20Proposal) error {
 	if !k.HasInit(ctx) {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("intrarelayer module not enable"))
 	}
-	pair, err := k.RegisterERC20(ctx, common.HexToAddress(p.Erc20Address))
+	pair, err := k.RegisterFIP20(ctx, common.HexToAddress(p.Fip20Address))
 	if err != nil {
 		return err
 	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeRegisterERC20,
+			types.EventTypeRegisterFIP20,
 			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
 		),
 	)
 
@@ -88,7 +88,7 @@ func handleToggleRelayProposal(ctx sdk.Context, k *keeper.Keeper, p *types.Toggl
 		sdk.NewEvent(
 			types.EventTypeToggleTokenRelay,
 			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
 		),
 	)
 

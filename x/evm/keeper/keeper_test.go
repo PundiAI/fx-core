@@ -392,7 +392,7 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 }
 
 func InitIntrarelayerParams(ctx sdk.Context, keeper intrarelayerkeeper.Keeper) error {
-	p := intrarelayertypes.NewParams(true, 24*time.Hour*14, true)
+	p := intrarelayertypes.NewParams(true, 24*time.Hour*14, true, 2000)
 	if err := p.Validate(); err != nil {
 		return err
 	}

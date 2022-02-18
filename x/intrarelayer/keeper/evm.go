@@ -16,58 +16,58 @@ import (
 	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 )
 
-// QueryERC20 returns the data of a deployed ERC20 contract
-func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC20Data, error) {
+// QueryFIP20 returns the data of a deployed FIP20 contract
+func (k Keeper) QueryFIP20(ctx sdk.Context, contract common.Address) (types.FIP20Data, error) {
 	var (
-		nameRes    types.ERC20StringResponse
-		symbolRes  types.ERC20StringResponse
-		decimalRes types.ERC20Uint8Response
+		nameRes    types.FIP20StringResponse
+		symbolRes  types.FIP20StringResponse
+		decimalRes types.FIP20Uint8Response
 	)
 
-	erc20 := contracts.ERC20RelayContract.ABI
+	fip20 := contracts.FIP20Contract.ABI
 
 	// Name
-	res, err := k.CallEVMWithModule(ctx, erc20, contract, "name")
+	res, err := k.CallEVMWithModule(ctx, fip20, contract, "name")
 	if err != nil {
-		return types.ERC20Data{}, err
+		return types.FIP20Data{}, err
 	}
 
-	if err := erc20.UnpackIntoInterface(&nameRes, "name", res.Ret); err != nil {
-		return types.ERC20Data{}, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "failed to unpack name: %s", err.Error())
+	if err := fip20.UnpackIntoInterface(&nameRes, "name", res.Ret); err != nil {
+		return types.FIP20Data{}, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "failed to unpack name: %s", err.Error())
 	}
 
 	// Symbol
-	res, err = k.CallEVMWithModule(ctx, erc20, contract, "symbol")
+	res, err = k.CallEVMWithModule(ctx, fip20, contract, "symbol")
 	if err != nil {
-		return types.ERC20Data{}, err
+		return types.FIP20Data{}, err
 	}
 
-	if err := erc20.UnpackIntoInterface(&symbolRes, "symbol", res.Ret); err != nil {
-		return types.ERC20Data{}, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "failed to unpack symbol: %s", err.Error())
+	if err := fip20.UnpackIntoInterface(&symbolRes, "symbol", res.Ret); err != nil {
+		return types.FIP20Data{}, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "failed to unpack symbol: %s", err.Error())
 	}
 
 	// Decimals
-	res, err = k.CallEVMWithModule(ctx, erc20, contract, "decimals")
+	res, err = k.CallEVMWithModule(ctx, fip20, contract, "decimals")
 	if err != nil {
-		return types.ERC20Data{}, err
+		return types.FIP20Data{}, err
 	}
 
-	if err := erc20.UnpackIntoInterface(&decimalRes, "decimals", res.Ret); err != nil {
-		return types.ERC20Data{}, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "failed to unpack decimals: %s", err.Error())
+	if err := fip20.UnpackIntoInterface(&decimalRes, "decimals", res.Ret); err != nil {
+		return types.FIP20Data{}, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "failed to unpack decimals: %s", err.Error())
 	}
 
-	return types.NewERC20Data(nameRes.Value, symbolRes.Value, decimalRes.Value), nil
+	return types.NewFIP20Data(nameRes.Value, symbolRes.Value, decimalRes.Value), nil
 }
 
-func (k Keeper) QueryERC20BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.Int, error) {
-	erc20 := contracts.ERC20RelayContract.ABI
-	res, err := k.CallEVMWithModule(ctx, erc20, contract, "balanceOf", addr)
+func (k Keeper) QueryFIP20BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.Int, error) {
+	fip20 := contracts.FIP20Contract.ABI
+	res, err := k.CallEVMWithModule(ctx, fip20, contract, "balanceOf", addr)
 	if err != nil {
 		return nil, err
 	}
 
-	var balanceRes types.ERC20Uint256Response
-	if err := erc20.UnpackIntoInterface(&balanceRes, "balanceOf", res.Ret); err != nil {
+	var balanceRes types.FIP20Uint256Response
+	if err := fip20.UnpackIntoInterface(&balanceRes, "balanceOf", res.Ret); err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "failed to unpack balanceOf: %s", err.Error())
 	}
 	return balanceRes.Value, nil

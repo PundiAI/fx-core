@@ -1,0 +1,17 @@
+{
+  "description": "Wrap Function X",
+  "denom_units": [
+    {
+      "denom": "FX",
+      "exponent": 0,
+      "aliases": []
+    },
+    {
+      "denom": "WFX",
+      "exponent": 18,
+      "aliases": []
+    }
+  ],
+  "base": "FX",
+  "display": "WFX"
+}

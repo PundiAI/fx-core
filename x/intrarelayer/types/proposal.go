@@ -17,28 +17,28 @@ import (
 const (
 	ProposalTypeInitIntrarelayerParams string = "InitIntrarelayerParams"
 	ProposalTypeRegisterCoin           string = "RegisterCoin"
-	ProposalTypeRegisterERC20          string = "RegisterERC20"
+	ProposalTypeRegisterFIP20          string = "RegisterFIP20"
 	ProposalTypeToggleTokenRelay       string = "ToggleTokenRelay" // #nosec
-	ProposalTypeUpdateTokenPairERC20   string = "UpdateTokenPairERC20"
+	ProposalTypeUpdateTokenPairFIP20   string = "UpdateTokenPairFIP20"
 )
 
 // Implements Proposal Interface
 var (
 	_ govtypes.Content = &InitIntrarelayerParamsProposal{}
 	_ govtypes.Content = &RegisterCoinProposal{}
-	_ govtypes.Content = &RegisterERC20Proposal{}
+	_ govtypes.Content = &RegisterFIP20Proposal{}
 	_ govtypes.Content = &ToggleTokenRelayProposal{}
 )
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeInitIntrarelayerParams)
 	govtypes.RegisterProposalType(ProposalTypeRegisterCoin)
-	govtypes.RegisterProposalType(ProposalTypeRegisterERC20)
+	govtypes.RegisterProposalType(ProposalTypeRegisterFIP20)
 	govtypes.RegisterProposalType(ProposalTypeToggleTokenRelay)
-	govtypes.RegisterProposalType(ProposalTypeUpdateTokenPairERC20)
+	govtypes.RegisterProposalType(ProposalTypeUpdateTokenPairFIP20)
 	govtypes.RegisterProposalTypeCodec(&InitIntrarelayerParamsProposal{}, "intrarelayer/InitIntrarelayerParamsProposal")
 	govtypes.RegisterProposalTypeCodec(&RegisterCoinProposal{}, "intrarelayer/RegisterCoinProposal")
-	govtypes.RegisterProposalTypeCodec(&RegisterERC20Proposal{}, "intrarelayer/RegisterERC20Proposal")
+	govtypes.RegisterProposalTypeCodec(&RegisterFIP20Proposal{}, "intrarelayer/RegisterFIP20Proposal")
 	govtypes.RegisterProposalTypeCodec(&ToggleTokenRelayProposal{}, "intrarelayer/ToggleTokenRelayProposal")
 }
 
@@ -133,27 +133,27 @@ func validateIBC(metadata banktypes.Metadata) error {
 	return nil
 }
 
-// NewRegisterERC20Proposal returns new instance of RegisterERC20Proposal
-func NewRegisterERC20Proposal(title, description, erc20Addr string) govtypes.Content {
-	return &RegisterERC20Proposal{
+// NewRegisterFIP20Proposal returns new instance of RegisterFIP20Proposal
+func NewRegisterFIP20Proposal(title, description, erc20Addr string) govtypes.Content {
+	return &RegisterFIP20Proposal{
 		Title:        title,
 		Description:  description,
-		Erc20Address: erc20Addr,
+		Fip20Address: erc20Addr,
 	}
 }
 
 // ProposalRoute returns router key for this proposal
-func (*RegisterERC20Proposal) ProposalRoute() string { return RouterKey }
+func (*RegisterFIP20Proposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns proposal type for this proposal
-func (*RegisterERC20Proposal) ProposalType() string {
-	return ProposalTypeRegisterERC20
+func (*RegisterFIP20Proposal) ProposalType() string {
+	return ProposalTypeRegisterFIP20
 }
 
 // ValidateBasic performs a stateless check of the proposal fields
-func (rtbp *RegisterERC20Proposal) ValidateBasic() error {
-	if err := ethermint.ValidateAddress(rtbp.Erc20Address); err != nil {
-		return sdkerrors.Wrap(err, "ERC20 address")
+func (rtbp *RegisterFIP20Proposal) ValidateBasic() error {
+	if err := ethermint.ValidateAddress(rtbp.Fip20Address); err != nil {
+		return sdkerrors.Wrap(err, "FIP20 address")
 	}
 	return govtypes.ValidateAbstract(rtbp)
 }

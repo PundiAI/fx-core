@@ -33,7 +33,7 @@ The intrarelayer module implements two transaction hooks from the EVM and Govern
 ## Governance Hooks
 
 ::: tip
-👉 **Purpose:** speed up the approval process of a token pair registration by defining a custom `VotingPeriod` duration for the `RegisterCoinProposal` and `RegisterERC20Proposal`.
+👉 **Purpose:** speed up the approval process of a token pair registration by defining a custom `VotingPeriod` duration for the `RegisterCoinProposal` and `RegisterFIP20Proposal`.
 :::
 
 ### Overwriting the Voting Period
@@ -41,5 +41,5 @@ The intrarelayer module implements two transaction hooks from the EVM and Govern
 By Implementing the [GovHooks](https://github.com/cosmos/cosmos-sdk/blob/86474748888204515f59aaeab9be295066563f46/x/gov/types/expected_keepers.go#L57) Interface from the Cosmos-SDK, the voting period for all proposals of the Intrarelayer module can be customized using the `AfterProposalDeposit` hook.
 
 1. Set the voting period  on the intrarelayer module parameters at genesis or through governance
-2. Submit a new governance proposal, e.g. `RegisterERC20Proposal`
+2. Submit a new governance proposal, e.g. `RegisterFIP20Proposal`
 3. The `AfterProposalDeposit` hook is automatically called and overrides the voting period for all proposals to the value defined on the intrarelayer module parameters.

@@ -89,7 +89,7 @@ func (suite *TokenPairTestSuite) TestGetERC20Contract() {
 	expAddr := tests.GenerateAddress()
 	denom := "test"
 	pair := NewTokenPair(expAddr, denom, true, OWNER_MODULE)
-	addr := pair.GetERC20Contract()
+	addr := pair.GetFIP20Contract()
 	suite.Require().Equal(expAddr, addr)
 }
 

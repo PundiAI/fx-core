@@ -13,12 +13,12 @@ import (
 
 var (
 	_ sdk.Msg = &MsgConvertCoin{}
-	_ sdk.Msg = &MsgConvertERC20{}
+	_ sdk.Msg = &MsgConvertFIP20{}
 )
 
 const (
 	TypeMsgConvertCoin  = "convert_coin"
-	TypeMsgConvertERC20 = "convert_ERC20"
+	TypeMsgConvertFIP20 = "convert_FIP20"
 )
 
 // NewMsgConvertCoin creates a new instance of MsgConvertCoin
@@ -72,9 +72,9 @@ func (msg MsgConvertCoin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
-// NewMsgConvertERC20 creates a new instance of MsgConvertERC20
-func NewMsgConvertERC20(amount sdk.Int, sender, receiver sdk.AccAddress, contract common.Address, bech32PubKey string) *MsgConvertERC20 { // nolint: interfacer
-	return &MsgConvertERC20{
+// NewMsgConvertFIP20 creates a new instance of MsgConvertFIP20
+func NewMsgConvertFIP20(amount sdk.Int, sender, receiver sdk.AccAddress, contract common.Address, bech32PubKey string) *MsgConvertFIP20 { // nolint: interfacer
+	return &MsgConvertFIP20{
 		ContractAddress: contract.String(),
 		Amount:          amount,
 		Receiver:        receiver.String(),
@@ -84,13 +84,13 @@ func NewMsgConvertERC20(amount sdk.Int, sender, receiver sdk.AccAddress, contrac
 }
 
 // Route should return the name of the module
-func (msg MsgConvertERC20) Route() string { return RouterKey }
+func (msg MsgConvertFIP20) Route() string { return RouterKey }
 
 // Type should return the action
-func (msg MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
+func (msg MsgConvertFIP20) Type() string { return TypeMsgConvertFIP20 }
 
 // ValidateBasic runs stateless checks on the message
-func (msg MsgConvertERC20) ValidateBasic() error {
+func (msg MsgConvertFIP20) ValidateBasic() error {
 	if !common.IsHexAddress(msg.ContractAddress) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid contract hex address '%s'", msg.ContractAddress)
 	}
@@ -124,17 +124,17 @@ func (msg MsgConvertERC20) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing
-func (msg *MsgConvertERC20) GetSignBytes() []byte {
+func (msg *MsgConvertFIP20) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
 // GetSigners defines whose signature is required
-func (msg MsgConvertERC20) GetSigners() []sdk.AccAddress {
+func (msg MsgConvertFIP20) GetSigners() []sdk.AccAddress {
 	acc, _ := sdk.AccAddressFromBech32(msg.Sender)
 	return []sdk.AccAddress{acc}
 }
 
-func (msg MsgConvertERC20) HexAddress() common.Address {
+func (msg MsgConvertFIP20) HexAddress() common.Address {
 	pubKey, _ := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, msg.PubKey)
 	decompressPubkey, _ := crypto.DecompressPubkey(pubKey.Bytes())
 	return crypto.PubkeyToAddress(*decompressPubkey)

@@ -29,7 +29,7 @@ func (k Keeper) GetAllTokenPairs(ctx sdk.Context) []types.TokenPair {
 func (k Keeper) GetTokenPairID(ctx sdk.Context, token string) []byte {
 	if common.IsHexAddress(token) {
 		addr := common.HexToAddress(token)
-		return k.GetERC20Map(ctx, addr)
+		return k.GetFIP20Map(ctx, addr)
 	}
 	return k.GetDenomMap(ctx, token)
 }
@@ -66,10 +66,10 @@ func (k Keeper) DeleteTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	store.Delete(key)
 }
 
-// GetERC20Map returns the token pair id for the given address
-func (k Keeper) GetERC20Map(ctx sdk.Context, erc20 common.Address) []byte {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
-	return store.Get(erc20.Bytes())
+// GetFIP20Map returns the token pair id for the given address
+func (k Keeper) GetFIP20Map(ctx sdk.Context, fip20 common.Address) []byte {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByFIP20)
+	return store.Get(fip20.Bytes())
 }
 
 // GetDenomMap returns the token pair id for the given denomination
@@ -80,13 +80,13 @@ func (k Keeper) GetDenomMap(ctx sdk.Context, denom string) []byte {
 
 // SetERC20Map sets the token pair id for the given address
 func (k Keeper) SetERC20Map(ctx sdk.Context, erc20 common.Address, id []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByFIP20)
 	store.Set(erc20.Bytes(), id)
 }
 
-// DeleteERC20Map deletes the token pair id for the given address
-func (k Keeper) DeleteERC20Map(ctx sdk.Context, erc20 common.Address) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
+// DeleteFIP20Map deletes the token pair id for the given address
+func (k Keeper) DeleteFIP20Map(ctx sdk.Context, erc20 common.Address) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByFIP20)
 	store.Delete(erc20.Bytes())
 }
 
@@ -102,9 +102,9 @@ func (k Keeper) IsTokenPairRegistered(ctx sdk.Context, id []byte) bool {
 	return store.Has(id)
 }
 
-// IsERC20Registered check if registered ERC20 token is registered
-func (k Keeper) IsERC20Registered(ctx sdk.Context, erc20 common.Address) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
+// IsFIP20Registered check if registered FIP20 token is registered
+func (k Keeper) IsFIP20Registered(ctx sdk.Context, erc20 common.Address) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByFIP20)
 	return store.Has(erc20.Bytes())
 }
 

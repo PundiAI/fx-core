@@ -136,7 +136,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		evmclient.InitEvmParamsProposalHandler,
 		intrarelayerclient.InitIntrarelayerParamsProposalHandler,
 		intrarelayerclient.RegisterCoinProposalHandler,
-		intrarelayerclient.RegisterERC20ProposalHandler,
+		intrarelayerclient.RegisterFIP20ProposalHandler,
 		intrarelayerclient.ToggleTokenRelayProposalHandler,
 	}
 }
@@ -430,10 +430,11 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.IntrarelayerKeeper = intrarelayerkeeper.NewKeeper(
 		keys[intrarelayertypes.StoreKey], appCodec, myApp.GetSubspace(intrarelayertypes.ModuleName),
 		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper,
-	)
+		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper,
+		myApp.GravityKeeper, myApp.BscKeeper, myApp.PolygonKeeper, myApp.TronKeeper)
 
-	//evmHooks := evmkeeper.NewMultiEvmHooks(myApp.IntrarelayerKeeper)
-	//myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
+	evmHooks := evmkeeper.NewMultiEvmHooks(myApp.IntrarelayerKeeper)
+	myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()

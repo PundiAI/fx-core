@@ -6,7 +6,7 @@ import (
 
 // errors
 var (
-	ErrInvalidErc20Address   = sdkerrors.Register(ModuleName, 2, "invalid erc20 address")
+	ErrInvalidFip20Address   = sdkerrors.Register(ModuleName, 2, "invalid erc20 address")
 	ErrUnmatchingCosmosDenom = sdkerrors.Register(ModuleName, 3, "unmatching cosmos denom")
 	ErrNotAllowedBridge      = sdkerrors.Register(ModuleName, 4, "not allowed bridge")
 	ErrInternalEthMinting    = sdkerrors.Register(ModuleName, 5, "internal ethereum minting error")

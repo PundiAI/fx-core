@@ -27,8 +27,8 @@ func (suite *ProposalTestSuite) TestKeysTypes() {
 	suite.Require().Equal("InitIntrarelayerParams", (&InitIntrarelayerParamsProposal{}).ProposalType())
 	suite.Require().Equal("intrarelayer", (&RegisterCoinProposal{}).ProposalRoute())
 	suite.Require().Equal("RegisterCoin", (&RegisterCoinProposal{}).ProposalType())
-	suite.Require().Equal("intrarelayer", (&RegisterERC20Proposal{}).ProposalRoute())
-	suite.Require().Equal("RegisterERC20", (&RegisterERC20Proposal{}).ProposalType())
+	suite.Require().Equal("intrarelayer", (&RegisterFIP20Proposal{}).ProposalRoute())
+	suite.Require().Equal("RegisterFIP20", (&RegisterFIP20Proposal{}).ProposalType())
 	suite.Require().Equal("intrarelayer", (&ToggleTokenRelayProposal{}).ProposalRoute())
 	suite.Require().Equal("ToggleTokenRelay", (&ToggleTokenRelayProposal{}).ProposalType())
 }
@@ -76,7 +76,7 @@ func (suite *ProposalTestSuite) TestValidateIntrarelayerDenom() {
 	}
 }
 
-func (suite *ProposalTestSuite) TestRegisterERC20Proposal() {
+func (suite *ProposalTestSuite) TestRegisterFIP20Proposal() {
 	testCases := []struct {
 		msg         string
 		title       string
@@ -98,7 +98,7 @@ func (suite *ProposalTestSuite) TestRegisterERC20Proposal() {
 	}
 
 	for i, tc := range testCases {
-		tx := NewRegisterERC20Proposal(tc.title, tc.description, tc.pair.Erc20Address)
+		tx := NewRegisterFIP20Proposal(tc.title, tc.description, tc.pair.Fip20Address)
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {

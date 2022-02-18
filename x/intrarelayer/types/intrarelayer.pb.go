@@ -24,7 +24,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Owner enumerates the ownership of a ERC20 contract.
+// Owner enumerates the ownership of a FIP20 contract.
 type Owner int32
 
 const (
@@ -57,15 +57,15 @@ func (Owner) EnumDescriptor() ([]byte, []int) {
 }
 
 // TokenPair defines an instance that records pairing consisting of a Cosmos
-// native Coin and an ERC20 token address.
+// native Coin and an FIP20 token address.
 type TokenPair struct {
-	// address of ERC20 contract token
-	Erc20Address string `protobuf:"bytes,1,opt,name=erc20_address,json=erc20Address,proto3" json:"erc20_address,omitempty"`
+	// address of FIP20 contract token
+	Fip20Address string `protobuf:"bytes,1,opt,name=fip20_address,json=fip20Address,proto3" json:"fip20_address,omitempty"`
 	// cosmos base denomination to be mapped to
 	Denom string `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
 	// shows token mapping enable status
 	Enabled bool `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	// ERC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external address)
+	// FIP20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external address)
 	ContractOwner Owner `protobuf:"varint,4,opt,name=contract_owner,json=contractOwner,proto3,enum=ethermint.intrarelayer.v1.Owner" json:"contract_owner,omitempty"`
 }
 
@@ -102,9 +102,9 @@ func (m *TokenPair) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_TokenPair proto.InternalMessageInfo
 
-func (m *TokenPair) GetErc20Address() string {
+func (m *TokenPair) GetFip20Address() string {
 	if m != nil {
-		return m.Erc20Address
+		return m.Fip20Address
 	}
 	return ""
 }
@@ -147,8 +147,8 @@ var fileDescriptor_75c568b0be956f5e = []byte{
 	0x55, 0xeb, 0xa1, 0xc8, 0x96, 0x19, 0x4a, 0x89, 0xa4, 0xe7, 0xa7, 0xe7, 0x83, 0x55, 0xe9, 0x83,
 	0x58, 0x10, 0x0d, 0x52, 0x72, 0xc9, 0xf9, 0xc5, 0xb9, 0xf9, 0xc5, 0xfa, 0x49, 0x89, 0x79, 0xd9,
 	0xfa, 0x65, 0x86, 0x49, 0xa9, 0x25, 0x89, 0x86, 0x60, 0x0e, 0x44, 0x5e, 0x69, 0x3d, 0x23, 0x17,
-	0x67, 0x48, 0x7e, 0x76, 0x6a, 0x5e, 0x40, 0x62, 0x66, 0x91, 0x90, 0x32, 0x17, 0x6f, 0x6a, 0x51,
-	0xb2, 0x91, 0x41, 0x7c, 0x62, 0x4a, 0x4a, 0x51, 0x6a, 0x71, 0xb1, 0x04, 0xa3, 0x02, 0xa3, 0x06,
+	0x67, 0x48, 0x7e, 0x76, 0x6a, 0x5e, 0x40, 0x62, 0x66, 0x91, 0x90, 0x32, 0x17, 0x6f, 0x5a, 0x66,
+	0x81, 0x91, 0x41, 0x7c, 0x62, 0x4a, 0x4a, 0x51, 0x6a, 0x71, 0xb1, 0x04, 0xa3, 0x02, 0xa3, 0x06,
 	0x67, 0x10, 0x0f, 0x58, 0xd0, 0x11, 0x22, 0x26, 0x24, 0xc2, 0xc5, 0x9a, 0x92, 0x9a, 0x97, 0x9f,
 	0x2b, 0xc1, 0x04, 0x96, 0x84, 0x70, 0x84, 0x24, 0xb8, 0xd8, 0x53, 0xf3, 0x12, 0x93, 0x72, 0x52,
 	0x53, 0x24, 0x98, 0x15, 0x18, 0x35, 0x38, 0x82, 0x60, 0x5c, 0x21, 0x77, 0x2e, 0xbe, 0xe4, 0x7c,
@@ -163,7 +163,7 @@ var fileDescriptor_75c568b0be956f5e = []byte{
 	0x1c, 0x43, 0x94, 0x61, 0x7a, 0x66, 0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x7e, 0x5a,
 	0x69, 0x5e, 0x72, 0x49, 0x66, 0x7e, 0x5e, 0x85, 0x7e, 0x5a, 0x85, 0x6e, 0x72, 0x7e, 0x51, 0xaa,
 	0x7e, 0x05, 0x6a, 0x5c, 0x95, 0x54, 0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81, 0x43, 0xd4, 0x18, 0x10,
-	0x00, 0x00, 0xff, 0xff, 0xe1, 0x08, 0x16, 0xa4, 0xd2, 0x01, 0x00, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0x4d, 0x39, 0xd9, 0x5f, 0xd2, 0x01, 0x00, 0x00,
 }
 
 func (this *TokenPair) Equal(that interface{}) bool {
@@ -185,7 +185,7 @@ func (this *TokenPair) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if this.Erc20Address != that1.Erc20Address {
+	if this.Fip20Address != that1.Fip20Address {
 		return false
 	}
 	if this.Denom != that1.Denom {
@@ -241,10 +241,10 @@ func (m *TokenPair) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Erc20Address) > 0 {
-		i -= len(m.Erc20Address)
-		copy(dAtA[i:], m.Erc20Address)
-		i = encodeVarintIntrarelayer(dAtA, i, uint64(len(m.Erc20Address)))
+	if len(m.Fip20Address) > 0 {
+		i -= len(m.Fip20Address)
+		copy(dAtA[i:], m.Fip20Address)
+		i = encodeVarintIntrarelayer(dAtA, i, uint64(len(m.Fip20Address)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -268,7 +268,7 @@ func (m *TokenPair) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Erc20Address)
+	l = len(m.Fip20Address)
 	if l > 0 {
 		n += 1 + l + sovIntrarelayer(uint64(l))
 	}
@@ -322,7 +322,7 @@ func (m *TokenPair) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Erc20Address", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Fip20Address", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -350,7 +350,7 @@ func (m *TokenPair) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Erc20Address = string(dAtA[iNdEx:postIndex])
+			m.Fip20Address = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {

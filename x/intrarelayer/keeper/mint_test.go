@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 				expPair.Enabled = false
 				suite.app.IntrarelayerKeeper.SetTokenPair(suite.ctx, expPair)
 				suite.app.IntrarelayerKeeper.SetDenomMap(suite.ctx, expPair.Denom, id)
-				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, expPair.GetERC20Contract(), id)
+				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, expPair.GetFIP20Contract(), id)
 			},
 			false,
 		},
@@ -50,7 +50,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 				expPair.Enabled = true
 				suite.app.IntrarelayerKeeper.SetTokenPair(suite.ctx, expPair)
 				suite.app.IntrarelayerKeeper.SetDenomMap(suite.ctx, expPair.Denom, id)
-				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, expPair.GetERC20Contract(), id)
+				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, expPair.GetFIP20Contract(), id)
 
 				params := banktypes.DefaultParams()
 				params.SendEnabled = []*banktypes.SendEnabled{
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 			func() {
 				suite.app.IntrarelayerKeeper.SetTokenPair(suite.ctx, expPair)
 				suite.app.IntrarelayerKeeper.SetDenomMap(suite.ctx, expPair.Denom, id)
-				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, expPair.GetERC20Contract(), id)
+				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, expPair.GetFIP20Contract(), id)
 			},
 			true,
 		},
@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 
 			tc.malleate()
 
-			pair, err := suite.app.IntrarelayerKeeper.MintingEnabled(suite.ctx, sender, receiver, expPair.Erc20Address)
+			pair, err := suite.app.IntrarelayerKeeper.MintingEnabled(suite.ctx, sender, receiver, expPair.Fip20Address)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expPair, pair)

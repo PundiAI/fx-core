@@ -168,13 +168,13 @@ func (suite *KeeperTestSuite) TestIsERC20Registered() {
 		ok       bool
 	}{
 		{"nil erc20 address", common.Address{}, func() {}, false},
-		{"valid erc20 address", pair.GetERC20Contract(), func() {}, true},
+		{"valid erc20 address", pair.GetFIP20Contract(), func() {}, true},
 		{
 			"deleted erc20map",
-			pair.GetERC20Contract(),
+			pair.GetFIP20Contract(),
 			func() {
-				addr := pair.GetERC20Contract()
-				suite.app.IntrarelayerKeeper.DeleteERC20Map(suite.ctx, addr)
+				addr := pair.GetFIP20Contract()
+				suite.app.IntrarelayerKeeper.DeleteFIP20Map(suite.ctx, addr)
 			},
 			false,
 		},
@@ -182,7 +182,7 @@ func (suite *KeeperTestSuite) TestIsERC20Registered() {
 	for _, tc := range testCases {
 		tc.malleate()
 
-		found := suite.app.IntrarelayerKeeper.IsERC20Registered(suite.ctx, tc.erc20)
+		found := suite.app.IntrarelayerKeeper.IsFIP20Registered(suite.ctx, tc.erc20)
 
 		if tc.ok {
 			suite.Require().True(found, tc.name)

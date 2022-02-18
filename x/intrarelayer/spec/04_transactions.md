@@ -33,18 +33,18 @@ The proposal content stateless validation fails if:
     - Denomination units are sorted in ascending order
     - Denomination units not duplicated
 
-## `RegisterERC20Proposal`
+## `RegisterFIP20Proposal`
 
-A gov `Content` type to register a token pair from an ERC20 Token. Governance users vote on this proposal and it automatically executes the custom handler for `RegisterERC20Proposal` when the vote passes.
+A gov `Content` type to register a token pair from an ERC20 Token. Governance users vote on this proposal and it automatically executes the custom handler for `RegisterFIP20Proposal` when the vote passes.
 
 ```go
-type RegisterERC20Proposal struct {
+type RegisterFIP20Proposal struct {
 	// title of the proposal
 	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	// proposal description
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	// contract address of ERC20 token
-	Erc20Address string `protobuf:"bytes,3,opt,name=erc20address,proto3" json:"erc20address,omitempty"`
+	Fip20Address string `protobuf:"bytes,3,opt,name=fip20address,proto3" json:"fip20address,omitempty"`
 }
 ```
 
@@ -52,7 +52,7 @@ The proposal Content stateless validation fails if:
 
 - Title is invalid (length or char)
 - Description is invalid (length or char)
-- ERC20Address is invalid
+- FIP20Address is invalid
 
 ## `MsgConvertCoin`
 
@@ -76,12 +76,12 @@ Message stateless validation fails if:
 - Receiver hex address is invalid
 - Sender bech32 address is invalid
 
-## `MsgConvertERC20`
+## `MsgConvertFIP20`
 
-A user broadcasts a `MsgConvertERC20` message to convert a ERC20 token to a native Cosmos coin.
+A user broadcasts a `MsgConvertFIP20` message to convert a ERC20 token to a native Cosmos coin.
 
 ```go
-type MsgConvertERC20 struct {
+type MsgConvertFIP20 struct {
 	// ERC20 token contract address registered on intrarelayer bridge
 	ContractAddress string `protobuf:"bytes,1,opt,name=contract_address,json=contractAddress,proto3" json:"contract_address,omitempty"`
 	// amount of ERC20 tokens to mint
@@ -127,8 +127,8 @@ type UpdateTokenPairERC20Proposal struct {
 	// proposal description
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	// contract address of ERC20 token
-	Erc20Address string `protobuf:"bytes,3,opt,name=erc20_address,json=erc20Address,proto3" json:"erc20_address,omitempty"`
+	Fip20Address string `protobuf:"bytes,3,opt,name=erc20_address,json=fip20Address,proto3" json:"erc20_address,omitempty"`
 	// new address of ERC20 token contract
-	NewErc20Address string `protobuf:"bytes,4,opt,name=new_erc20_address,json=newErc20Address,proto3" json:"new_erc20_address,omitempty"`
+	NewFip20Address string `protobuf:"bytes,4,opt,name=new_erc20_address,json=newFip20Address,proto3" json:"new_erc20_address,omitempty"`
 }
 ```

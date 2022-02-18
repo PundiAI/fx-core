@@ -16,7 +16,7 @@ const (
 	EventTypeConvertERC20         = "convert_erc20"
 	EventTypeBurn                 = "burn"
 	EventTypeRegisterCoin         = "register_coin"
-	EventTypeRegisterERC20        = "register_erc20"
+	EventTypeRegisterFIP20        = "register_erc20"
 	EventTypeToggleTokenRelay     = "toggle_token_relay" // #nosec
 	EventTypeUpdateTokenPairERC20 = "update_token_pair_erc20"
 
@@ -24,7 +24,10 @@ const (
 	AttributeKeyERC20Token = "erc20_token" // #nosec
 	AttributeKeyReceiver   = "receiver"
 
-	ERC20EventTransfer = "Transfer"
+	ERC20EventTransfer      = "Transfer"
+	ERC20EventCrossTransfer = "CrossTransfer"
+	ERC20EventTransferChain = "TransferChain"
+	ERC20EventTransferIBC   = "TransferIBC"
 
 	EventTypeRelayToken = "relay_token"
 	EventEthereumTxHash = "ethereum_tx_hash"

@@ -4,7 +4,7 @@ order: 3
 
 # State Transitions
 
-The intrarelayer modules allows for two types of registration state transitions. Depending on how token pairs are registered, with `RegisterCoinProposal` or `RegisterERC20Proposal`, there are four possible conversion state transitions.
+The intrarelayer modules allows for two types of registration state transitions. Depending on how token pairs are registered, with `RegisterCoinProposal` or `RegisterFIP20Proposal`, there are four possible conversion state transitions.
 
 ## Token Pair Registration
 
@@ -22,7 +22,7 @@ A user registers a native Cosmos Coin. Once the proposal passes (i.e is approved
 
 A user registers a ERC20 token contract that is already deployed on the EVM module. Once the proposal passes (i.e is approved by governance), the Intrarelayer module creates an Cosmos coin representation of the ERC20 token.
 
-1. User submits a `RegisterERC20Proposal`
+1. User submits a `RegisterFIP20Proposal`
 2. Validators of the EVMOS chain vote on the proposal using `MsgVote` and proposal passes
 3. If ERC-20 contract is deployed on the EVM module, create a bank coin `Metadata` from the ERC20 details.
 
@@ -72,7 +72,7 @@ Conversion of a registered `TokenPair` can be done via:
 ### 2. Registered ERC20
 
 ::: tip
-👉 **Context:** A `TokenPair` has been created through a `RegisterERC20Proposal` governance proposal. The `ModuleAccount` is not the owner of the contract, so it can't mint new tokens or burn on behalf of the user. The mechanism described below follows the same model as the ICS20 standard, by using escrow & mint / burn & unescrow logic.
+👉 **Context:** A `TokenPair` has been created through a `RegisterFIP20Proposal` governance proposal. The `ModuleAccount` is not the owner of the contract, so it can't mint new tokens or burn on behalf of the user. The mechanism described below follows the same model as the ICS20 standard, by using escrow & mint / burn & unescrow logic.
 :::
 
 #### Invariants

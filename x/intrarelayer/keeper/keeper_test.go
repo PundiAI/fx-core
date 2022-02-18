@@ -186,10 +186,10 @@ func (suite *KeeperTestSuite) DeployContract(name string, symbol string, decimal
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	chainID := suite.app.EvmKeeper.ChainID()
 
-	ctorArgs, err := contracts.ERC20RelayContract.ABI.Pack("", name, symbol, decimals)
+	ctorArgs, err := contracts.FIP20Contract.ABI.Pack("", name, symbol, decimals)
 	suite.Require().NoError(err)
 
-	data := append(contracts.ERC20RelayContract.Bin, ctorArgs...)
+	data := append(contracts.FIP20Contract.Bin, ctorArgs...)
 	args, err := json.Marshal(&evm.TransactionArgs{
 		From: &suite.address,
 		Data: (*hexutil.Bytes)(&data),
@@ -243,13 +243,13 @@ func (suite *KeeperTestSuite) Commit() {
 }
 
 func (suite *KeeperTestSuite) MintERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	transferData, err := contracts.ERC20RelayContract.ABI.Pack("mint", to, amount)
+	transferData, err := contracts.FIP20Contract.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
 
 func (suite *KeeperTestSuite) BurnERC20Token(contractAddr, from common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	transferData, err := contracts.ERC20RelayContract.ABI.Pack("transfer", types.ModuleAddress, amount)
+	transferData, err := contracts.FIP20Contract.ABI.Pack("transfer", types.ModuleAddress, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
@@ -291,7 +291,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 }
 
 func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interface{} {
-	erc20 := contracts.ERC20RelayContract.ABI
+	erc20 := contracts.FIP20Contract.ABI
 
 	res, err := suite.app.IntrarelayerKeeper.CallEVMWithModule(suite.ctx, erc20, contract, "balanceOf", account)
 	if err != nil {
@@ -308,7 +308,7 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 
 func (suite *KeeperTestSuite) NameOf(contract common.Address) interface{} {
 
-	erc20 := contracts.ERC20RelayContract.ABI
+	erc20 := contracts.FIP20Contract.ABI
 
 	res, err := suite.app.IntrarelayerKeeper.CallEVMWithModule(suite.ctx, erc20, contract, "name")
 	if err != nil {
@@ -324,7 +324,7 @@ func (suite *KeeperTestSuite) NameOf(contract common.Address) interface{} {
 }
 
 func (suite *KeeperTestSuite) TransferERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	transferData, err := contracts.ERC20RelayContract.ABI.Pack("transfer", to, amount)
+	transferData, err := contracts.FIP20Contract.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }

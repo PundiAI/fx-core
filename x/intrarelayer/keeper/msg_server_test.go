@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			res, err := suite.app.IntrarelayerKeeper.ConvertCoin(ctx, msg)
 			expRes := &types.MsgConvertCoinResponse{}
 			suite.Commit()
-			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.address)
+			balance := suite.BalanceOf(common.HexToAddress(pair.Fip20Address), suite.address)
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, metadata.Base)
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
@@ -110,16 +110,16 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeCoin() {
 			_, err := suite.app.IntrarelayerKeeper.ConvertCoin(ctx, msg)
 			suite.Require().NoError(err, tc.name)
 			suite.Commit()
-			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.address)
+			balance := suite.BalanceOf(common.HexToAddress(pair.Fip20Address), suite.address)
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, metadata.Base)
 			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
 			// Convert ERC20s back to Coins
 			ctx = sdk.WrapSDKContext(suite.ctx)
-			contractAddr := common.HexToAddress(pair.Erc20Address)
+			contractAddr := common.HexToAddress(pair.Fip20Address)
 			pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, suite.priKey.PubKey())
-			msgConvertERC20 := types.NewMsgConvertERC20(
+			msgConvertFIP20 := types.NewMsgConvertFIP20(
 				sdk.NewInt(tc.reconvert),
 				sender,
 				receiver,
@@ -127,8 +127,8 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeCoin() {
 				pubKey,
 			)
 
-			res, err := suite.app.IntrarelayerKeeper.ConvertERC20(ctx, msgConvertERC20)
-			expRes := &types.MsgConvertERC20Response{}
+			res, err := suite.app.IntrarelayerKeeper.ConvertFIP20(ctx, msgConvertFIP20)
+			expRes := &types.MsgConvertFIP20Response{}
 			suite.Commit()
 			balance = suite.BalanceOf(contractAddr, suite.address)
 			cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeERC20() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.mintFeeCollector = true
 			suite.SetupTest()
-			contractAddr := suite.setupRegisterERC20Pair()
+			contractAddr := suite.setupRegisterFIP20Pair()
 			suite.Require().NotNil(contractAddr)
 
 			tc.malleate()
@@ -182,7 +182,7 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeERC20() {
 			receiver := sdk.AccAddress(suite.address.Bytes())
 			pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, suite.priKey.PubKey())
 			sender := sdk.AccAddress(suite.priKey.PubKey().Address())
-			msg := types.NewMsgConvertERC20(
+			msg := types.NewMsgConvertFIP20(
 				sdk.NewInt(tc.burn),
 				sender,
 				receiver,
@@ -193,8 +193,8 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeERC20() {
 			suite.Commit()
 			ctx := sdk.WrapSDKContext(suite.ctx)
 
-			res, err := suite.app.IntrarelayerKeeper.ConvertERC20(ctx, msg)
-			expRes := &types.MsgConvertERC20Response{}
+			res, err := suite.app.IntrarelayerKeeper.ConvertFIP20(ctx, msg)
+			expRes := &types.MsgConvertFIP20Response{}
 			suite.Commit()
 			balance := suite.BalanceOf(contractAddr, suite.address)
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, coinName)
@@ -228,7 +228,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.mintFeeCollector = true
 			suite.SetupTest()
-			contractAddr := suite.setupRegisterERC20Pair()
+			contractAddr := suite.setupRegisterFIP20Pair()
 			suite.Require().NotNil(contractAddr)
 
 			// Precondition: Convert ERC20 to Coins
@@ -238,7 +238,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			receiver := sdk.AccAddress(suite.address.Bytes())
 			suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(tc.mint))
 			suite.Commit()
-			msgConvertERC20 := types.NewMsgConvertERC20(
+			msgConvertFIP20 := types.NewMsgConvertFIP20(
 				sdk.NewInt(tc.burn),
 				sender,
 				receiver,
@@ -247,7 +247,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			)
 
 			ctx := sdk.WrapSDKContext(suite.ctx)
-			_, err := suite.app.IntrarelayerKeeper.ConvertERC20(ctx, msgConvertERC20)
+			_, err := suite.app.IntrarelayerKeeper.ConvertFIP20(ctx, msgConvertFIP20)
 			suite.Require().NoError(err)
 			suite.Commit()
 			balance := suite.BalanceOf(contractAddr, suite.address)

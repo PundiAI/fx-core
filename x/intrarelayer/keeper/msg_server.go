@@ -23,13 +23,13 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
 	receiver := common.HexToAddress(msg.Receiver)
 
-	err := k.ConvertDenomToERC20(ctx, sender, receiver, msg.Coin)
+	err := k.ConvertDenomToFIP20(ctx, sender, receiver, msg.Coin)
 	return &types.MsgConvertCoinResponse{}, err
 }
 
 // ConvertERC20 converts ERC20 tokens into Cosmos-native Coins for both
 // Cosmos-native and ERC20 TokenPair Owners
-func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) (*types.MsgConvertERC20Response, error) {
+func (k Keeper) ConvertFIP20(goCtx context.Context, msg *types.MsgConvertFIP20) (*types.MsgConvertFIP20Response, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	k.evmKeeper.WithContext(ctx)
 
@@ -43,11 +43,11 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 		ethSender = crypto.PubkeyToAddress(*decompressPubkey)
 	}
 
-	err := k.ConvertERC20ToDenom(ctx, msg.ContractAddress, ethSender, receiver, msg.Amount)
-	return &types.MsgConvertERC20Response{}, err
+	err := k.ConvertFIP20ToDenom(ctx, msg.ContractAddress, ethSender, receiver, msg.Amount)
+	return &types.MsgConvertFIP20Response{}, err
 }
 
-func (k Keeper) ConvertDenomToERC20(
+func (k Keeper) ConvertDenomToFIP20(
 	ctx sdk.Context,
 	sender sdk.AccAddress,
 	receiver common.Address,
@@ -60,13 +60,13 @@ func (k Keeper) ConvertDenomToERC20(
 	case pair.IsNativeCoin():
 		return k.convertDenomNativeCoin(ctx, pair, sender, receiver, coin)
 	case pair.IsNativeERC20():
-		return k.convertDenomNativeERC20(ctx, pair, sender, receiver, coin)
+		return k.convertDenomNativeFIP20(ctx, pair, sender, receiver, coin)
 	default:
 		return types.ErrUndefinedOwner
 	}
 }
 
-func (k Keeper) ConvertERC20ToDenom(
+func (k Keeper) ConvertFIP20ToDenom(
 	ctx sdk.Context,
 	contract string,
 	sender common.Address,
@@ -77,18 +77,18 @@ func (k Keeper) ConvertERC20ToDenom(
 		return err
 	}
 	//check erc20 balance
-	balanceOf, err := k.QueryERC20BalanceOf(ctx, pair.GetERC20Contract(), sender)
+	balanceOf, err := k.QueryFIP20BalanceOf(ctx, pair.GetFIP20Contract(), sender)
 	if err != nil {
 		return err
 	}
 	if balanceOf.Cmp(amount.BigInt()) < 0 {
-		return fmt.Errorf("insufficient balance of %s at token %s", sender, pair.GetERC20Contract().Hex())
+		return fmt.Errorf("insufficient balance of %s at token %s", sender, pair.GetFIP20Contract().Hex())
 	}
 	switch {
 	case pair.IsNativeCoin():
 		return k.convertERC20NativeDenom(ctx, pair, sender, receiver, amount)
 	case pair.IsNativeERC20():
-		return k.convertERC20NativeToken(ctx, pair, sender, receiver, amount)
+		return k.convertFIP20NativeToken(ctx, pair, sender, receiver, amount)
 	default:
 		return types.ErrUndefinedOwner
 	}
@@ -99,8 +99,8 @@ func (k Keeper) ConvertERC20ToDenom(
 //  - Mint Tokens and send to receiver
 func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
 	coins := sdk.Coins{coin}
-	erc20 := contracts.ERC20RelayContract.ABI
-	contract := pair.GetERC20Contract()
+	erc20 := contracts.FIP20Contract.ABI
+	contract := pair.GetFIP20Contract()
 
 	// Escrow Coins on module account
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins); err != nil {
@@ -122,7 +122,7 @@ func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, se
 				sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
 				sdk.NewAttribute(types.AttributeKeyCosmosCoin, coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
 			),
 		},
 	)
@@ -133,10 +133,10 @@ func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, se
 //  - Escrow Coins on module account
 //  - Unescrow Tokens that have been previously escrowed with ConvertERC20 and send to receiver
 //  - Burn escrowed Coins
-func (k Keeper) convertDenomNativeERC20(ctx sdk.Context, pair types.TokenPair, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
+func (k Keeper) convertDenomNativeFIP20(ctx sdk.Context, pair types.TokenPair, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
 	coins := sdk.Coins{coin}
-	erc20 := contracts.ERC20RelayContract.ABI
-	contract := pair.GetERC20Contract()
+	erc20 := contracts.FIP20Contract.ABI
+	contract := pair.GetFIP20Contract()
 
 	// Escrow Coins on module account
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins); err != nil {
@@ -150,7 +150,7 @@ func (k Keeper) convertDenomNativeERC20(ctx sdk.Context, pair types.TokenPair, s
 	}
 
 	// Check unpackedRet execution
-	var unpackedRet types.ERC20BoolResponse
+	var unpackedRet types.FIP20BoolResponse
 	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
 		return sdkerrors.Wrap(err, "failed to unpack transfer return data")
 	}
@@ -172,7 +172,7 @@ func (k Keeper) convertDenomNativeERC20(ctx sdk.Context, pair types.TokenPair, s
 				sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
 				sdk.NewAttribute(types.AttributeKeyCosmosCoin, coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
 			),
 		},
 	)
@@ -185,8 +185,8 @@ func (k Keeper) convertDenomNativeERC20(ctx sdk.Context, pair types.TokenPair, s
 //  - Unescrow coins that have been previously escrowed with ConvertCoin
 func (k Keeper) convertERC20NativeDenom(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdk.Int) error {
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: amount}}
-	erc20 := contracts.ERC20RelayContract.ABI
-	contract := pair.GetERC20Contract()
+	erc20 := contracts.FIP20Contract.ABI
+	contract := pair.GetFIP20Contract()
 
 	// Call evm to burn amount
 	_, err := k.CallEVMWithModule(ctx, erc20, contract, "burn", sender, amount.BigInt())
@@ -218,10 +218,10 @@ func (k Keeper) convertERC20NativeDenom(ctx sdk.Context, pair types.TokenPair, s
 //  - Escrow tokens on module account (Don't burn as module is not contract owner)
 //  - Mint coins on module
 //  - Send minted coins to the receiver
-func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdk.Int) error {
+func (k Keeper) convertFIP20NativeToken(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdk.Int) error {
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: amount}}
-	erc20 := contracts.ERC20RelayContract.ABI
-	contract := pair.GetERC20Contract()
+	erc20 := contracts.FIP20Contract.ABI
+	contract := pair.GetFIP20Contract()
 
 	// Escrow tokens on module account
 	transferData, err := erc20.Pack("transfer", types.ModuleAddress, amount.BigInt())
@@ -235,7 +235,7 @@ func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 	}
 
 	// Check unpackedRet execution
-	var unpackedRet types.ERC20BoolResponse
+	var unpackedRet types.FIP20BoolResponse
 	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
 		return sdkerrors.Wrap(err, "failed to unpack transfer return data")
 	}

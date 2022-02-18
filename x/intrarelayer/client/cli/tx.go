@@ -30,7 +30,7 @@ func NewTxCmd() *cobra.Command {
 
 	txCmd.AddCommand(
 		NewConvertCoinCmd(),
-		NewConvertERC20Cmd(),
+		NewConvertFIP20Cmd(),
 	)
 	return txCmd
 }
@@ -39,7 +39,7 @@ func NewTxCmd() *cobra.Command {
 func NewConvertCoinCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "convert-coin [coin] [receiver_hex]",
-		Short: "Convert a Cosmos coin to ERC20",
+		Short: "Convert a Cosmos coin to FIP20",
 		Args:  cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
@@ -91,11 +91,11 @@ func NewConvertCoinCmd() *cobra.Command {
 	return cmd
 }
 
-// NewConvertERC20Cmd returns a CLI command handler for converting ERC20s
-func NewConvertERC20Cmd() *cobra.Command {
+// NewConvertFIP20Cmd returns a CLI command handler for converting FIP20s
+func NewConvertFIP20Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "convert-erc20 [contract-address] [amount] [receiver]",
-		Short: "Convert an ERC20 token to Cosmos coin",
+		Use:   "convert-fip20 [contract-address] [amount] [receiver]",
+		Short: "Convert an FIP20 token to Cosmos coin",
 		Args:  cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
@@ -105,7 +105,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 
 			contract := args[0]
 			if err := ethermint.ValidateAddress(contract); err != nil {
-				return fmt.Errorf("invalid ERC20 contract address %w", err)
+				return fmt.Errorf("invalid FIP20 contract address %w", err)
 			}
 
 			amount, ok := sdk.NewIntFromString(args[1])
@@ -135,7 +135,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 				return err
 			}
 
-			msg := &types.MsgConvertERC20{
+			msg := &types.MsgConvertFIP20{
 				ContractAddress: contract,
 				Amount:          amount,
 				Receiver:        receiver.String(),
@@ -157,10 +157,10 @@ func NewConvertERC20Cmd() *cobra.Command {
 // NewInitIntrarelayerParamsProposalCmd init intrarelayer params proposal
 func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "init-intrarelayer-params [enable-intrarelayer] [enable-evm-hook] [token-pair-voting-period/seconds]",
-		Args:    cobra.RangeArgs(2, 3),
+		Use:     "init-intrarelayer-params [enable-intrarelayer] [enable-evm-hook] [token-pair-voting-period/seconds] [ibc-transfer-timeout-height]",
+		Args:    cobra.ExactArgs(4),
 		Short:   "Submit a init intrarelayer params proposal",
-		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-intrarelayer-params <true> <true> <1209600> --from=<key_or_address>`, version.AppName),
+		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-intrarelayer-params <true> <true> <1209600> <20000>--from=<key_or_address>`, version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -209,7 +209,12 @@ func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 			//	tokenPairVotingPeriod = time.Second * time.Duration(votingPeriod)
 			//}
 
-			params := types.NewParams(enableIntrarelayer, tokenPairVotingPeriod, enableEvmHook)
+			ibcTransferTimeoutHeight, err := strconv.ParseUint(args[3], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			params := types.NewParams(enableIntrarelayer, tokenPairVotingPeriod, enableEvmHook, ibcTransferTimeoutHeight)
 			if err := params.Validate(); err != nil {
 				return err
 			}
@@ -340,14 +345,14 @@ Where metadata.json contains (example):
 	return cmd
 }
 
-// NewRegisterERC20ProposalCmd implements the command to submit a community-pool-spend proposal
-func NewRegisterERC20ProposalCmd() *cobra.Command {
+// NewRegisterFIP20ProposalCmd implements the command to submit a community-pool-spend proposal
+func NewRegisterFIP20ProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "register-erc20 [erc20-address]",
+		Use:     "register-fip20 [fip20-address]",
 		Args:    cobra.ExactArgs(1),
-		Short:   "Submit a proposal to register an ERC20 token",
-		Long:    "Submit a proposal to register an ERC20 token to the intrarelayer along with an initial deposit.",
-		Example: fmt.Sprintf("$ %s tx gov submit-proposal register-erc20 <erc20-address> --from=<key_or_address>", version.AppName),
+		Short:   "Submit a proposal to register an FIP20 token",
+		Long:    "Submit a proposal to register an FIP20 token to the intrarelayer along with an initial deposit.",
+		Example: fmt.Sprintf("$ %s tx gov submit-proposal register-fip20 <fip20-address> --from=<key_or_address>", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -374,9 +379,9 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 				return err
 			}
 
-			erc20Addr := args[0]
+			fip20Addr := args[0]
 			from := clientCtx.GetFromAddress()
-			content := types.NewRegisterERC20Proposal(title, description, erc20Addr)
+			content := types.NewRegisterFIP20Proposal(title, description, fip20Addr)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {

@@ -16,6 +16,8 @@ func (k Keeper) InitIntrarelayer(ctx sdk.Context, p *types.InitIntrarelayerParam
 	if !k.evmKeeper.HasInit(ctx) {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module has not init")
 	}
+	ctx.Logger().Info("init intrarelayer", "EnableIntrarelayer", p.Params.EnableIntrarelayer,
+		"EnableEVMHook", p.Params.EnableEVMHook, "TokenPairVotingPeriod", p.Params.TokenPairVotingPeriod, "IbcTransferTimeoutHeight", p.Params.IbcTransferTimeoutHeight)
 	k.SetParams(ctx, *p.Params)
 
 	// ensure intrarelayer module account is set on genesis
@@ -64,7 +66,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 
 	k.SetTokenPair(ctx, pair)
 	k.SetDenomMap(ctx, pair.Denom, pair.GetID())
-	k.SetERC20Map(ctx, common.HexToAddress(pair.Erc20Address), pair.GetID())
+	k.SetERC20Map(ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())
 
 	return &pair, nil
 }
@@ -81,14 +83,14 @@ func (k Keeper) verifyMetadata(ctx sdk.Context, coinMetadata banktypes.Metadata)
 
 // DeployERC20Contract creates and deploys an ERC20 contract on the EVM with the intrarelayer module account as owner
 func (k Keeper) DeployERC20Contract(ctx sdk.Context, name, symbol string, decimals uint8) (common.Address, error) {
-	ctorArgs, err := contracts.ERC20RelayContract.ABI.Pack("", name, symbol, decimals)
+	ctorArgs, err := contracts.FIP20Contract.ABI.Pack("", name, symbol, decimals)
 	if err != nil {
 		return common.Address{}, sdkerrors.Wrapf(err, "coin metadata is invalid  %s", name)
 	}
 
-	data := make([]byte, len(contracts.ERC20RelayContract.Bin)+len(ctorArgs))
-	copy(data[:len(contracts.ERC20RelayContract.Bin)], contracts.ERC20RelayContract.Bin)
-	copy(data[len(contracts.ERC20RelayContract.Bin):], ctorArgs)
+	data := make([]byte, len(contracts.FIP20Contract.Bin)+len(ctorArgs))
+	copy(data[:len(contracts.FIP20Contract.Bin)], contracts.FIP20Contract.Bin)
+	copy(data[len(contracts.FIP20Contract.Bin):], ctorArgs)
 
 	nonce, err := k.accountKeeper.GetSequence(ctx, types.ModuleAddress.Bytes())
 	if err != nil {
@@ -104,14 +106,14 @@ func (k Keeper) DeployERC20Contract(ctx sdk.Context, name, symbol string, decima
 	return contractAddr, nil
 }
 
-// RegisterERC20 creates a cosmos coin and registers the token pair between the coin and the ERC20
-func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.TokenPair, error) {
+// RegisterFIP20 creates a cosmos coin and registers the token pair between the coin and the ERC20
+func (k Keeper) RegisterFIP20(ctx sdk.Context, contract common.Address) (*types.TokenPair, error) {
 	params := k.GetParams(ctx)
 	if !params.EnableIntrarelayer {
 		return nil, sdkerrors.Wrap(types.ErrInternalTokenPair, "intrarelaying is currently disabled by governance")
 	}
 
-	if k.IsERC20Registered(ctx, contract) {
+	if k.IsFIP20Registered(ctx, contract) {
 		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "token ERC20 contract already registered: %s", contract.String())
 	}
 
@@ -123,7 +125,7 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 	pair := types.NewTokenPair(contract, baseDenom, true, types.OWNER_EXTERNAL)
 	k.SetTokenPair(ctx, pair)
 	k.SetDenomMap(ctx, pair.Denom, pair.GetID())
-	k.SetERC20Map(ctx, common.HexToAddress(pair.Erc20Address), pair.GetID())
+	k.SetERC20Map(ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())
 	return &pair, nil
 }
 
@@ -131,7 +133,7 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*banktypes.Metadata, string, string, error) {
 	strContract := contract.String()
 
-	erc20Data, err := k.QueryERC20(ctx, contract)
+	erc20Data, err := k.QueryFIP20(ctx, contract)
 	if err != nil {
 		return nil, "", "", err
 	}

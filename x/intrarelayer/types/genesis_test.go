@@ -49,7 +49,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 				Params: DefaultParams(),
 				TokenPairs: []TokenPair{
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Fip20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
@@ -63,12 +63,12 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 				Params: DefaultParams(),
 				TokenPairs: []TokenPair{
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Fip20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Fip20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
@@ -82,12 +82,12 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 				Params: DefaultParams(),
 				TokenPairs: []TokenPair{
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Fip20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Fip20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
 						Denom:        "usdt2",
 						Enabled:      true,
 					},
@@ -101,12 +101,12 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 				Params: DefaultParams(),
 				TokenPairs: []TokenPair{
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Fip20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
 					{
-						Erc20Address: "0xB8c77482e45F1F44dE1745F52C74426C631bDD52",
+						Fip20Address: "0xB8c77482e45F1F44dE1745F52C74426C631bDD52",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
@@ -120,7 +120,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 				Params: DefaultParams(),
 				TokenPairs: []TokenPair{
 					{
-						Erc20Address: "0xinvalidaddress",
+						Fip20Address: "0xinvalidaddress",
 						Denom:        "bad",
 						Enabled:      true,
 					},

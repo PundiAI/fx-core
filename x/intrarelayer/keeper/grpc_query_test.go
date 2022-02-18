@@ -128,7 +128,7 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 				suite.app.IntrarelayerKeeper.SetDenomMap(suite.ctx, pair.Denom, pair.GetID())
 
 				req = &types.QueryTokenPairRequest{
-					Token: pair.Erc20Address,
+					Token: pair.Fip20Address,
 				}
 				expRes = &types.QueryTokenPairResponse{TokenPair: pair}
 			},

@@ -32,13 +32,13 @@ type RegisterCoinProposalRequest struct {
 	Metadata    banktypes.Metadata `json:"metadata" yaml:"metadata"`
 }
 
-// RegisterERC20ProposalRequest defines a request for a new register ERC20 proposal.
-type RegisterERC20ProposalRequest struct {
+// RegisterFIP20ProposalRequest defines a request for a new register FIP20 proposal.
+type RegisterFIP20ProposalRequest struct {
 	BaseReq      rest.BaseReq `json:"base_req" yaml:"base_req"`
 	Title        string       `json:"title" yaml:"title"`
 	Description  string       `json:"description" yaml:"description"`
 	Deposit      sdk.Coins    `json:"deposit" yaml:"deposit"`
-	ERC20Address string       `json:"erc20_address" yaml:"erc20_address"`
+	FIP20Address string       `json:"fip20_address" yaml:"fip20_address"`
 }
 
 // ToggleTokenRelayProposalRequest defines a request for a toggle token relay proposal.
@@ -64,10 +64,10 @@ func RegisterCoinProposalRESTHandler(clientCtx client.Context) govrest.ProposalR
 	}
 }
 
-func RegisterERC20ProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
+func RegisterFIP20ProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
 		SubRoute: types.ModuleName,
-		Handler:  newRegisterERC20ProposalHandler(clientCtx),
+		Handler:  newRegisterFIP20ProposalHandler(clientCtx),
 	}
 }
 
@@ -145,9 +145,9 @@ func newRegisterCoinProposalHandler(clientCtx client.Context) http.HandlerFunc {
 }
 
 // nolint: dupl
-func newRegisterERC20ProposalHandler(clientCtx client.Context) http.HandlerFunc {
+func newRegisterFIP20ProposalHandler(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req RegisterERC20ProposalRequest
+		var req RegisterFIP20ProposalRequest
 
 		if !rest.ReadRESTReq(w, r, clientCtx.LegacyAmino, &req) {
 			return
@@ -163,7 +163,7 @@ func newRegisterERC20ProposalHandler(clientCtx client.Context) http.HandlerFunc 
 			return
 		}
 
-		content := types.NewRegisterERC20Proposal(req.Title, req.Description, req.ERC20Address)
+		content := types.NewRegisterFIP20Proposal(req.Title, req.Description, req.FIP20Address)
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, fromAddr)
 		if rest.CheckBadRequestError(w, err) {
 			return

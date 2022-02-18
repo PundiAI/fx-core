@@ -21,7 +21,7 @@ One-to-one mapping of native Cosmos coin denomination to ERC20 token contract ad
 ```go
 type TokenPair struct {
 	// address of ERC20 contract token
-	Erc20Address string `protobuf:"bytes,1,opt,name=erc20_address,json=erc20Address,proto3" json:"erc20_address,omitempty"`
+	Fip20Address string `protobuf:"bytes,1,opt,name=erc20_address,json=fip20Address,proto3" json:"erc20_address,omitempty"`
 	// cosmos base denomination to be mapped to
 	Denom string `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
 	// shows token mapping enable status
@@ -41,7 +41,7 @@ tokenPairId = sha256(erc20 + "|" + denom)
 
 ### Token Origin
 
-The `ConvertCoin` and `ConvertERC20` functionality need to check if the token being used is a native Coin or a native ERC20. The owner field is based on the token registration proposal type (`RegisterCoinProposal` = 1, `RegisterERC20Proposal` = 2).
+The `ConvertCoin` and `ConvertERC20` functionality need to check if the token being used is a native Coin or a native ERC20. The owner field is based on the token registration proposal type (`RegisterCoinProposal` = 1, `RegisterFIP20Proposal` = 2).
 
 The `Owner` enumerates the ownership of a ERC20 contract.
 

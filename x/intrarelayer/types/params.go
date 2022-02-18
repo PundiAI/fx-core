@@ -9,9 +9,10 @@ import (
 
 // Parameter store key
 var (
-	ParamStoreKeyEnableIntrarelayer    = []byte("EnableIntrarelayer")
-	ParamStoreKeyTokenPairVotingPeriod = []byte("TokenPairVotingPeriod")
-	ParamStoreKeyEnableEVMHook         = []byte("EnableEVMHook")
+	ParamStoreKeyEnableIntrarelayer       = []byte("EnableIntrarelayer")
+	ParamStoreKeyTokenPairVotingPeriod    = []byte("TokenPairVotingPeriod")
+	ParamStoreKeyEnableEVMHook            = []byte("EnableEVMHook")
+	ParamStoreKeyIBCTransferTimeoutHeight = []byte("IBCTransferTimeoutHeight")
 )
 
 // ParamKeyTable returns the parameter key table.
@@ -24,19 +25,22 @@ func NewParams(
 	enableIntrarelayer bool,
 	votingPeriod time.Duration,
 	enableEVMHook bool,
+	ibcTransferTimeoutHeight uint64,
 ) Params {
 	return Params{
-		EnableIntrarelayer:    enableIntrarelayer,
-		TokenPairVotingPeriod: votingPeriod,
-		EnableEVMHook:         enableEVMHook,
+		EnableIntrarelayer:       enableIntrarelayer,
+		TokenPairVotingPeriod:    votingPeriod,
+		EnableEVMHook:            enableEVMHook,
+		IbcTransferTimeoutHeight: ibcTransferTimeoutHeight,
 	}
 }
 
 func DefaultParams() Params {
 	return Params{
-		EnableIntrarelayer:    true,
-		TokenPairVotingPeriod: time.Hour * 24 * 14,
-		EnableEVMHook:         true,
+		EnableIntrarelayer:       true,
+		TokenPairVotingPeriod:    time.Hour * 24 * 14,
+		EnableEVMHook:            true,
+		IbcTransferTimeoutHeight: 20000,
 	}
 }
 
@@ -46,6 +50,13 @@ func validateBool(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
+	return nil
+}
+
+func validateIbcTransferTimeoutHeight(i interface{}) error {
+	if _, ok := i.(uint64); !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
 	return nil
 }
 
@@ -68,6 +79,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamStoreKeyEnableIntrarelayer, &p.EnableIntrarelayer, validateBool),
 		paramtypes.NewParamSetPair(ParamStoreKeyTokenPairVotingPeriod, &p.TokenPairVotingPeriod, validatePeriod),
 		paramtypes.NewParamSetPair(ParamStoreKeyEnableEVMHook, &p.EnableEVMHook, validateBool),
+		paramtypes.NewParamSetPair(ParamStoreKeyIBCTransferTimeoutHeight, &p.IbcTransferTimeoutHeight, validateIbcTransferTimeoutHeight),
 	}
 }
 

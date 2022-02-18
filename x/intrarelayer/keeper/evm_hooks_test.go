@@ -9,7 +9,7 @@ import (
 	"github.com/functionx/fx-core/x/intrarelayer/types"
 )
 
-func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
+func (suite *KeeperTestSuite) TestEvmHooksRegisterFIP20() {
 	testCases := []struct {
 		name     string
 		malleate func(common.Address)
@@ -19,7 +19,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 			"correct execution",
 			func(contractAddr common.Address) {
 				// pair := types.NewTokenPair(contractAddr, "coinevm", true, types.OWNER_MODULE)
-				_, err := suite.app.IntrarelayerKeeper.RegisterERC20(suite.ctx, contractAddr)
+				_, err := suite.app.IntrarelayerKeeper.RegisterFIP20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
 
 				accAddress := sdk.AccAddress(suite.priKey.PubKey().Address())
@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 		{
 			"wrong event",
 			func(contractAddr common.Address) {
-				_, err := suite.app.IntrarelayerKeeper.RegisterERC20(suite.ctx, contractAddr)
+				_, err := suite.app.IntrarelayerKeeper.RegisterFIP20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
 
 				// Mint 10 tokens to suite.address (owner)
@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			accAddress := sdk.AccAddress(suite.priKey.PubKey().Address())
 			hexAddress := common.BytesToAddress(accAddress)
 
-			contractAddr := common.HexToAddress(pair.Erc20Address)
+			contractAddr := common.HexToAddress(pair.Fip20Address)
 
 			coins := sdk.NewCoins(sdk.NewCoin(cosmosTokenName, sdk.NewInt(tc.mint)))
 			suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins)
@@ -135,7 +135,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			suite.Require().NoError(err, tc.name)
 			suite.Commit()
 
-			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), hexAddress)
+			balance := suite.BalanceOf(common.HexToAddress(pair.Fip20Address), hexAddress)
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, accAddress, metadata.Base)
 			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			// if want to go test, modify types/version.go IntrarelayerSupportBlock -> mainnetSupportIntrarelayerBlock
 			suite.BurnERC20Token(contractAddr, hexAddress, big.NewInt(tc.reconvert))
 
-			balance = suite.BalanceOf(common.HexToAddress(pair.Erc20Address), hexAddress)
+			balance = suite.BalanceOf(common.HexToAddress(pair.Fip20Address), hexAddress)
 			cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, accAddress, metadata.Base)
 
 			if tc.result {

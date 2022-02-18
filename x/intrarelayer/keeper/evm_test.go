@@ -31,11 +31,11 @@ func (suite *KeeperTestSuite) TestQueryERC20() {
 
 		tc.malleate()
 
-		res, err := suite.app.IntrarelayerKeeper.QueryERC20(suite.ctx, contract)
+		res, err := suite.app.IntrarelayerKeeper.QueryFIP20(suite.ctx, contract)
 		if tc.res {
 			suite.Require().NoError(err)
 			suite.Require().Equal(
-				types.ERC20Data{Name: "coin", Symbol: "token", Decimals: 0x12},
+				types.FIP20Data{Name: "coin", Symbol: "token", Decimals: 0x12},
 				res,
 			)
 		} else {
@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 	for _, tc := range testCases {
 		suite.SetupTest() // reset
 
-		erc20 := contracts.ERC20RelayContract.ABI
+		erc20 := contracts.FIP20Contract.ABI
 		contract := suite.DeployContract("coin", "token", 18)
 		account := tests.GenerateAddress()
 

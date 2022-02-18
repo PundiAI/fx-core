@@ -18,11 +18,11 @@ const (
 	zeroExponent    = uint32(0)
 )
 
-func (suite *KeeperTestSuite) setupRegisterERC20Pair() common.Address {
+func (suite *KeeperTestSuite) setupRegisterFIP20Pair() common.Address {
 	suite.SetupTest()
 	contractAddr := suite.DeployContract(erc20Name, erc20Symbol, 18)
 	suite.Commit()
-	_, err := suite.app.IntrarelayerKeeper.RegisterERC20(suite.ctx, contractAddr)
+	_, err := suite.app.IntrarelayerKeeper.RegisterFIP20(suite.ctx, contractAddr)
 	suite.Require().NoError(err)
 	return contractAddr
 }
@@ -135,7 +135,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 			pair, err := suite.app.IntrarelayerKeeper.RegisterCoin(suite.ctx, validMetadata)
 			suite.Commit()
 			expPair := &types.TokenPair{
-				Erc20Address:  "0x00819E780C6e96c50Ed70eFFf5B73569c15d0bd7",
+				Fip20Address:  "0x00819E780C6e96c50Ed70eFFf5B73569c15d0bd7",
 				Denom:         "coin",
 				Enabled:       true,
 				ContractOwner: 1,
@@ -150,7 +150,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 	}
 }
 
-func (suite KeeperTestSuite) TestRegisterERC20() {
+func (suite KeeperTestSuite) TestRegisterFIP20() {
 	var (
 		contractAddr common.Address
 		pair         types.TokenPair
@@ -172,7 +172,7 @@ func (suite KeeperTestSuite) TestRegisterERC20() {
 		{
 			"token ERC20 already registered",
 			func() {
-				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, pair.GetERC20Contract(), pair.GetID())
+				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, pair.GetFIP20Contract(), pair.GetID())
 			},
 			false,
 		},
@@ -207,7 +207,7 @@ func (suite KeeperTestSuite) TestRegisterERC20() {
 
 			tc.malleate()
 
-			_, err := suite.app.IntrarelayerKeeper.RegisterERC20(suite.ctx, contractAddr)
+			_, err := suite.app.IntrarelayerKeeper.RegisterFIP20(suite.ctx, contractAddr)
 			metadata := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, coinName)
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
@@ -260,7 +260,7 @@ func (suite KeeperTestSuite) TestToggleRelay() {
 				contractAddr = suite.DeployContract(erc20Name, erc20Symbol, 18)
 				suite.Commit()
 				pair = types.NewTokenPair(contractAddr, cosmosTokenName, true, types.OWNER_MODULE)
-				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, common.HexToAddress(pair.Erc20Address), pair.GetID())
+				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())
 			},
 			false,
 			false,
@@ -268,7 +268,7 @@ func (suite KeeperTestSuite) TestToggleRelay() {
 		{
 			"disable relay",
 			func() {
-				contractAddr = suite.setupRegisterERC20Pair()
+				contractAddr = suite.setupRegisterFIP20Pair()
 				id = suite.app.IntrarelayerKeeper.GetTokenPairID(suite.ctx, contractAddr.String())
 				pair, _ = suite.app.IntrarelayerKeeper.GetTokenPair(suite.ctx, id)
 			},
@@ -278,7 +278,7 @@ func (suite KeeperTestSuite) TestToggleRelay() {
 		{
 			"disable and enable relay",
 			func() {
-				contractAddr = suite.setupRegisterERC20Pair()
+				contractAddr = suite.setupRegisterFIP20Pair()
 				id = suite.app.IntrarelayerKeeper.GetTokenPairID(suite.ctx, contractAddr.String())
 				pair, _ = suite.app.IntrarelayerKeeper.GetTokenPair(suite.ctx, id)
 				pair, _ = suite.app.IntrarelayerKeeper.ToggleRelay(suite.ctx, contractAddr.String())
