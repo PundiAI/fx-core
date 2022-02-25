@@ -36,13 +36,9 @@ func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, extern
 			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", claim.EventNonce)),
 		)
 
-		sourcePort, sourceChannel, nextChannelSendSequence, isOk := k.handleIbcTransfer(ctx, claim, receiveAddr, coin)
-		if isOk {
-			event = event.
-				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSendSequence, fmt.Sprintf("%d", nextChannelSendSequence))).
-				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSourcePort, sourcePort)).
-				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSourceChannel, sourceChannel))
-			k.SetIbcSequenceHeight(ctx, sourcePort, sourceChannel, nextChannelSendSequence, uint64(ctx.BlockHeight()))
+		attributes, success := k.handlerRelayTransfer(ctx, claim, receiveAddr, coin)
+		if success {
+			event.AppendAttributes(attributes...)
 		}
 		// broadcast event
 		ctx.EventManager().EmitEvent(event)

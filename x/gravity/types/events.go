@@ -41,6 +41,7 @@ const (
 	AttributeKeyAttestationHandlerIbcChannelSendSequence  = "ibc_channel_send_sequence"
 	AttributeKeyAttestationHandlerIbcChannelSourcePort    = "ibc_channel_source_port"
 	AttributeKeyAttestationHandlerIbcChannelSourceChannel = "ibc_channel_source_channel"
+	AttributeKeyAttestationHandlerEvmTransfer             = "evm_transfer"
 
 	AttributeValueCategory = ModuleName
 )

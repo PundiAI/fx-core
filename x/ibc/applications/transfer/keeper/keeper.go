@@ -30,6 +30,7 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
 	Router        *types.Router
+	RefundHook    types.RefundHook
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
@@ -69,6 +70,10 @@ func (k *Keeper) SetRouter(rtr *types.Router) {
 	}
 	k.Router = rtr
 	k.Router.Seal()
+}
+
+func (k *Keeper) SetRefundHook(hook types.RefundHook) {
+	k.RefundHook = hook
 }
 
 // Logger returns a module-specific logger.

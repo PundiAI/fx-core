@@ -303,7 +303,8 @@ func (k *Keeper) ApplyMessageWithConfig(msg core.Message, tracer vm.Tracer, comm
 	)
 
 	if !k.ctxStack.IsEmpty() {
-		panic("context stack shouldn't be dirty before apply message")
+		//panic("context stack shouldn't be dirty before apply message")
+		return nil, sdkerrors.Wrap(types.ErrInvalidChainConfig, "context stack shouldn't be dirty before apply message")
 	}
 
 	evm := k.NewEVM(msg, cfg, tracer)

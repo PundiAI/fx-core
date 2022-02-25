@@ -34,7 +34,7 @@ func (k Keeper) RelayTransferIBCProcessing(ctx sdk.Context, txHash common.Hash, 
 		if balances.AmountOf(pair.Denom).BigInt().Cmp(event.Value) < 0 {
 			return errors.New("insufficient balance")
 		}
-		err = k.transferIBCHandler(ctx, event.Target, from, event.To, sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(event.Value)))
+		err = k.transferIBCHandler(ctx, event.Target, from, event.To, sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(event.Value)), txHash)
 		if err != nil {
 			k.Logger(ctx).Error("relay transfer chain error")
 			return err
@@ -71,7 +71,7 @@ func parseTransferIBCEvent(data []byte) (*TransferIBCEvent, error) {
 	return event, err
 }
 
-func (k Keeper) transferIBCHandler(ctx sdk.Context, targetIBC string, sender common.Address, to string, amount sdk.Coin) error {
+func (k Keeper) transferIBCHandler(ctx sdk.Context, targetIBC string, sender common.Address, to string, amount sdk.Coin, txHash common.Hash) error {
 	ibcPrefix, sourcePort, sourceChannel, ok := covertIBCData(targetIBC)
 	if !ok {
 		return fmt.Errorf("invalid target ibc %s", targetIBC)
@@ -101,8 +101,7 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, targetIBC string, sender com
 	if _, err = k.ibcTransferKeeper.Transfer(goCtx, ibcTransferMsg); err != nil {
 		return err
 	}
-	//TODO nextSequenceSend
-	_ = nextSequenceSend
+	k.setIBCTransferHash(ctx, sourcePort, sourceChannel, nextSequenceSend, txHash)
 	return nil
 }
 
@@ -118,4 +117,23 @@ func covertIBCData(targetIbc string) (prefix, sourcePort, sourceChannel string, 
 	sourceChannel = ibcData[2]
 	isOk = true
 	return
+}
+
+func (k Keeper) setIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64, hash common.Hash) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetIBCTransferKey(port, channel, sequence), hash.Bytes())
+}
+
+func (k Keeper) GetIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) (common.Hash, bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetIBCTransferKey(port, channel, sequence)
+	if !store.Has(key) {
+		return common.Hash{}, false
+	}
+	value := store.Get(key)
+	return common.BytesToHash(value), true
+}
+
+func (k Keeper) HashIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) bool {
+	return ctx.KVStore(k.storeKey).Has(types.GetIBCTransferKey(port, channel, sequence))
 }

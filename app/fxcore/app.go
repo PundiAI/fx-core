@@ -436,6 +436,12 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	evmHooks := evmkeeper.NewMultiEvmHooks(myApp.IntrarelayerKeeper)
 	myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
 
+	//set intrarelayer keeper
+	myApp.GravityKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
+	myApp.BscKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
+	myApp.PolygonKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
+	myApp.TronKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
+
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
@@ -457,7 +463,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	ibcTransferRouter.AddRoute(bsctypes.ModuleName, bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper))
 	ibcTransferRouter.AddRoute(polygontypes.ModuleName, polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper))
 	ibcTransferRouter.AddRoute(trontypes.ModuleName, tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper))
+	ibcTransferRouter.AddRoute(intrarelayertypes.ModuleName, intrarelayer.NewAppModule(myApp.IntrarelayerKeeper, myApp.AccountKeeper))
 	myApp.TransferKeeper.SetRouter(ibcTransferRouter)
+	myApp.TransferKeeper.SetRefundHook(intrarelayer.NewAppModule(myApp.IntrarelayerKeeper, myApp.AccountKeeper))
 	transferModule := transfer.NewAppModule(myApp.TransferKeeper)
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()

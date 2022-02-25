@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // BankKeeper defines the expected bank keeper methods
@@ -29,4 +30,10 @@ type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) types.ModuleAccountI
 	SetModuleAccount(sdk.Context, types.ModuleAccountI)
+}
+
+type IntrarelayerKeeper interface {
+	HasInit(ctx sdk.Context) bool
+	IsDenomRegistered(ctx sdk.Context, denom string) bool
+	ConvertDenomToFIP20(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error
 }

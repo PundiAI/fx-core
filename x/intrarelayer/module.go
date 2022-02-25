@@ -3,7 +3,10 @@ package intrarelayer
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -167,4 +170,40 @@ func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
 
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return []simtypes.WeightedOperation{}
+}
+
+// TransferAfter Hook operation after transfer transaction triggered by IBC module
+func (am AppModule) TransferAfter(
+	ctx sdk.Context,
+	sender, receive string, amount, fee sdk.Coin,
+) error {
+	//check support, TODO transfer height??
+	if ctx.BlockHeight() < fxtypes.IntrarelayerSupportBlock() || !am.keeper.HasInit(ctx) {
+		return errors.New("intrarelayer module not enable")
+	}
+	if !am.keeper.IsDenomRegistered(ctx, amount.Denom) {
+		return fmt.Errorf("denom %s not resgister", amount.Denom)
+	}
+
+	sendAddr, err := sdk.AccAddressFromBech32(sender)
+	if err != nil {
+		return err
+	}
+	if !common.IsHexAddress(receive) {
+		return fmt.Errorf("invalid receiver address %s", receive)
+	}
+	return am.keeper.ConvertDenomToFIP20(ctx, sendAddr, common.HexToAddress(receive), amount.Add(fee))
+}
+
+func (am AppModule) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64,
+	sender sdk.AccAddress, receiver string, amount sdk.Coin) error {
+	//check support TODO refund height??
+	if ctx.BlockHeight() < fxtypes.IntrarelayerSupportBlock() || !am.keeper.HasInit(ctx) {
+		return errors.New("intrarelayer module not enable")
+	}
+	//check tx
+	if !am.keeper.HashIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
+		return errors.New("transaction not belong to evm ibc transfer")
+	}
+	return am.keeper.ConvertDenomToFIP20(ctx, sender, common.BytesToAddress(sender.Bytes()), amount)
 }

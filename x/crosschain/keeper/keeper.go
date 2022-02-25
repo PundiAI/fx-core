@@ -23,10 +23,11 @@ type Keeper struct {
 	storeKey   sdk.StoreKey          // Unexposed key to access store from sdk.Context
 	paramSpace paramtypes.Subspace
 
-	bankKeeper        types.BankKeeper
-	accountKeeper     types.AccountKeeper
-	ibcTransferKeeper keeper.Keeper
-	ibcChannelKeeper  ibcchannelkeeper.Keeper
+	bankKeeper         types.BankKeeper
+	accountKeeper      types.AccountKeeper
+	ibcTransferKeeper  keeper.Keeper
+	ibcChannelKeeper   ibcchannelkeeper.Keeper
+	IntrarelayerKeeper types.IntrarelayerKeeper
 }
 
 // NewKeeper returns a new instance of the gravity keeper
@@ -51,6 +52,11 @@ func NewKeeper(cdc codec.BinaryMarshaler, moduleName string, storeKey sdk.StoreK
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+k.moduleName)
+}
+
+func (k *Keeper) SetIntrarelayerKeeper(intrarelayerKeeper types.IntrarelayerKeeper) *Keeper {
+	k.IntrarelayerKeeper = intrarelayerKeeper
+	return k
 }
 
 /////////////////////////////

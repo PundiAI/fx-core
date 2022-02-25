@@ -419,7 +419,13 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 			// escrow address by allowing more tokens to be sent back then were escrowed.
 			return sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
-
+		if k.RefundHook != nil {
+			ctx.Logger().Info("ibc refund hook, sender chain is source", "sourcePort", packet.SourcePort, "sourceChannel",
+				packet.SourceChannel, "sequence", fmt.Sprintf("%d", packet.Sequence), "sender", sender.String(), "token", token.String())
+			if err := k.RefundHook.RefundAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence, sender, data.Receiver, token); err != nil {
+				ctx.Logger().Error("refundPacketToken", "refund hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
+			}
+		}
 		return nil
 	}
 
@@ -433,7 +439,13 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(token)); err != nil {
 		panic(fmt.Sprintf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 	}
-
+	if k.RefundHook != nil {
+		ctx.Logger().Info("ibc refund hook", "sourcePort", packet.SourcePort, "sourceChannel",
+			packet.SourceChannel, "sequence", fmt.Sprintf("%d", packet.Sequence), "sender", sender.String(), "token", token.String())
+		if err := k.RefundHook.RefundAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence, sender, data.Receiver, token); err != nil {
+			ctx.Logger().Error("refundPacketToken", "refund hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
+		}
+	}
 	return nil
 }
 

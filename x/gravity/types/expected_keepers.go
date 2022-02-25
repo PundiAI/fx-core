@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -50,4 +51,10 @@ type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) types.ModuleAccountI
 	SetModuleAccount(sdk.Context, types.ModuleAccountI)
+}
+
+type IntrarelayerKeeper interface {
+	HasInit(ctx sdk.Context) bool
+	IsDenomRegistered(ctx sdk.Context, denom string) bool
+	ConvertDenomToFIP20(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error
 }

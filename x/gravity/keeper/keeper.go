@@ -35,6 +35,8 @@ type Keeper struct {
 	ibcTransferKeeper keeper.Keeper
 	ibcChannelKeeper  ibcchannelkeeper.Keeper
 
+	IntrarelayerKeeper types.IntrarelayerKeeper
+
 	AttestationHandler interface {
 		Handle(sdk.Context, types.Attestation, types.EthereumClaim) error
 	}
@@ -60,7 +62,7 @@ func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, paramSpace para
 		ibcChannelKeeper:  channelKeeper,
 	}
 	k.AttestationHandler = AttestationHandler{
-		keeper:     k,
+		keeper:     &k,
 		bankKeeper: bankKeeper,
 	}
 
@@ -70,6 +72,11 @@ func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, paramSpace para
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
+}
+
+func (k *Keeper) SetIntrarelayerKeeper(intrarelayerKeeper types.IntrarelayerKeeper) *Keeper {
+	k.IntrarelayerKeeper = intrarelayerKeeper
+	return k
 }
 
 /////////////////////////////

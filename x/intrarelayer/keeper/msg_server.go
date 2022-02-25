@@ -14,8 +14,8 @@ import (
 
 var _ types.MsgServer = &Keeper{}
 
-// ConvertCoin converts ERC20 tokens into Cosmos-native Coins for both
-// Cosmos-native and ERC20 TokenPair Owners
+// ConvertCoin converts Cosmos-native Coins into FIP20 tokens for both
+// Cosmos-native and FIP20 TokenPair Owners
 func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*types.MsgConvertCoinResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	k.evmKeeper.WithContext(ctx)
@@ -27,8 +27,8 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 	return &types.MsgConvertCoinResponse{}, err
 }
 
-// ConvertERC20 converts ERC20 tokens into Cosmos-native Coins for both
-// Cosmos-native and ERC20 TokenPair Owners
+// ConvertFIP20 converts FIP20 tokens into Cosmos-native Coins for both
+// Cosmos-native and FIP20 TokenPair Owners
 func (k Keeper) ConvertFIP20(goCtx context.Context, msg *types.MsgConvertFIP20) (*types.MsgConvertFIP20Response, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	k.evmKeeper.WithContext(ctx)
