@@ -78,16 +78,16 @@ func (k Keeper) GetDenomMap(ctx sdk.Context, denom string) []byte {
 	return store.Get([]byte(denom))
 }
 
-// SetERC20Map sets the token pair id for the given address
-func (k Keeper) SetERC20Map(ctx sdk.Context, erc20 common.Address, id []byte) {
+// SetFIP20Map sets the token pair id for the given address
+func (k Keeper) SetFIP20Map(ctx sdk.Context, fip20 common.Address, id []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByFIP20)
-	store.Set(erc20.Bytes(), id)
+	store.Set(fip20.Bytes(), id)
 }
 
 // DeleteFIP20Map deletes the token pair id for the given address
-func (k Keeper) DeleteFIP20Map(ctx sdk.Context, erc20 common.Address) {
+func (k Keeper) DeleteFIP20Map(ctx sdk.Context, fip20 common.Address) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByFIP20)
-	store.Delete(erc20.Bytes())
+	store.Delete(fip20.Bytes())
 }
 
 // SetDenomMap sets the token pair id for the denomination
@@ -103,9 +103,9 @@ func (k Keeper) IsTokenPairRegistered(ctx sdk.Context, id []byte) bool {
 }
 
 // IsFIP20Registered check if registered FIP20 token is registered
-func (k Keeper) IsFIP20Registered(ctx sdk.Context, erc20 common.Address) bool {
+func (k Keeper) IsFIP20Registered(ctx sdk.Context, fip20 common.Address) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByFIP20)
-	return store.Has(erc20.Bytes())
+	return store.Has(fip20.Bytes())
 }
 
 // IsDenomRegistered check if registered coin denom is registered

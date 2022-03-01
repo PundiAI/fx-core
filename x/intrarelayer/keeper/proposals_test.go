@@ -172,7 +172,7 @@ func (suite KeeperTestSuite) TestRegisterFIP20() {
 		{
 			"token ERC20 already registered",
 			func() {
-				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, pair.GetFIP20Contract(), pair.GetID())
+				suite.app.IntrarelayerKeeper.SetFIP20Map(suite.ctx, pair.GetFIP20Contract(), pair.GetID())
 			},
 			false,
 		},
@@ -260,7 +260,7 @@ func (suite KeeperTestSuite) TestToggleRelay() {
 				contractAddr = suite.DeployContract(erc20Name, erc20Symbol, 18)
 				suite.Commit()
 				pair = types.NewTokenPair(contractAddr, cosmosTokenName, true, types.OWNER_MODULE)
-				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())
+				suite.app.IntrarelayerKeeper.SetFIP20Map(suite.ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())
 			},
 			false,
 			false,

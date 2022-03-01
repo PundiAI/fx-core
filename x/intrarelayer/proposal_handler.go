@@ -49,7 +49,7 @@ func handleRegisterCoinProposal(ctx sdk.Context, k *keeper.Keeper, p *types.Regi
 		sdk.NewEvent(
 			types.EventTypeRegisterCoin,
 			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
+			sdk.NewAttribute(types.AttributeKeyFIP20Token, pair.Fip20Address),
 		),
 	)
 
@@ -68,7 +68,7 @@ func handleRegisterFIP20Proposal(ctx sdk.Context, k *keeper.Keeper, p *types.Reg
 		sdk.NewEvent(
 			types.EventTypeRegisterFIP20,
 			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
+			sdk.NewAttribute(types.AttributeKeyFIP20Token, pair.Fip20Address),
 		),
 	)
 
@@ -88,7 +88,7 @@ func handleToggleRelayProposal(ctx sdk.Context, k *keeper.Keeper, p *types.Toggl
 		sdk.NewEvent(
 			types.EventTypeToggleTokenRelay,
 			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
+			sdk.NewAttribute(types.AttributeKeyFIP20Token, pair.Fip20Address),
 		),
 	)
 

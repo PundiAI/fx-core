@@ -2,7 +2,7 @@ package types
 
 import "math/big"
 
-// FIP20Data represents the ERC20 token details used to map
+// FIP20Data represents the FIP20 token details used to map
 // the token to a Cosmos Coin
 type FIP20Data struct {
 	Name     string

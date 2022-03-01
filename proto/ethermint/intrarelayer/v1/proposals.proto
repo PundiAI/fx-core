@@ -16,6 +16,8 @@ message InitIntrarelayerParamsProposal {
   string description = 2;
   // intrarelayer module params
   ethermint.intrarelayer.v1.Params params = 3;
+  // token pairs of Cosmos native denom and FIP20 token address
+  repeated cosmos.bank.v1beta1.Metadata metadata = 4 [(gogoproto.nullable) = false];
 }
 
 // RegisterCoinProposal is a gov Content type to register a token pair

@@ -40,14 +40,14 @@ func (k Keeper) GetTokenPairByAddress(ctx sdk.Context, address common.Address) (
 	//check contract is registered
 	pairID := k.GetFIP20Map(ctx, address)
 	if len(pairID) == 0 {
-		// contract is not registered coin or erc20
+		// contract is not registered coin or fip20
 		return types.TokenPair{}, false
 	}
 	return k.GetTokenPair(ctx, pairID)
 }
 func (k Keeper) ProcessRelayToken(ctx sdk.Context, txHash common.Hash, pair types.TokenPair, from common.Address, amount *big.Int) error {
 	var err error
-	// create the corresponding sdk.Coin that is paired with ERC20
+	// create the corresponding sdk.Coin that is paired with FIP20
 	coins := sdk.Coins{{Denom: pair.Denom, Amount: sdk.NewIntFromBigInt(amount)}}
 
 	switch pair.ContractOwner {
@@ -73,7 +73,7 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, txHash common.Hash, pair type
 				sdk.NewAttribute(types.AttributeKeyReceiver, sdk.AccAddress(recipient.Bytes()).String()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 				sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
+				sdk.NewAttribute(types.AttributeKeyFIP20Token, pair.Fip20Address),
 				sdk.NewAttribute(types.EventEthereumTxHash, txHash.String()),
 			),
 		},
@@ -95,7 +95,7 @@ func isRelayTokenEvent(log *ethtypes.Log) bool {
 	if err != nil {
 		return false
 	}
-	if !(event.Name == types.ERC20EventTransfer) {
+	if !(event.Name == types.FIP20EventTransfer) {
 		return false
 	}
 	//transfer to module address
@@ -106,7 +106,7 @@ func isRelayTokenEvent(log *ethtypes.Log) bool {
 //parseTransferAmount parse transfer event data to big int
 func parseTransferAmount(data []byte) (*big.Int, error) {
 	//relay amount
-	transferEvent, err := contracts.FIP20Contract.ABI.Unpack(types.ERC20EventTransfer, data)
+	transferEvent, err := contracts.FIP20Contract.ABI.Unpack(types.FIP20EventTransfer, data)
 	if err != nil {
 		return nil, fmt.Errorf("unpack transfer event error %v", err.Error())
 	}

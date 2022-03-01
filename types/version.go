@@ -22,7 +22,7 @@ const (
 	testnetSupportEvmBlock                       = 408000
 	testnetEvmChainID                            = 90001
 	testnetSupportIntrarelayerBlock              = 999999999
-	testnetRequestBaseFee                        = 999999999
+	testnetSupportMigrateBlock                   = 999999999
 )
 
 // mainnet constant
@@ -38,7 +38,7 @@ const (
 	mainnetSupportEvmBlock          = 999999999
 	mainnetEvmChainID               = 1
 	mainnetSupportIntrarelayerBlock = 999999999
-	mainnetRequestBaseFee           = 999999999
+	mainnetSupportMigrateBlock      = 999999999
 )
 
 // devnet constant
@@ -52,7 +52,7 @@ const (
 	devnetSupportEvmBlock                       = 300
 	devnetEvmChainID                            = 221
 	devnetSupportIntrarelayerBlock              = 503000
-	devnetRequestBaseFee                        = 810000
+	devnetSupportMigrateBlock                   = 999999999
 )
 
 var (
@@ -142,15 +142,11 @@ func IntrarelayerSupportBlock() int64 {
 	return mainnetSupportIntrarelayerBlock
 }
 
-func RequestBatchBaseFee() int64 {
+func MigrateSupportBlock() int64 {
 	if networkDevnet == network {
-		return devnetRequestBaseFee
+		return devnetSupportMigrateBlock
 	} else if networkTestnet == network {
-		return testnetRequestBaseFee
+		return testnetSupportMigrateBlock
 	}
-	return mainnetRequestBaseFee
-}
-
-func IsRequestBatchBaseFee(height int64) bool {
-	return height >= RequestBatchBaseFee()
+	return mainnetSupportMigrateBlock
 }

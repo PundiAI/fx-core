@@ -3,48 +3,22 @@
 pragma solidity ^0.8.0;
 
 contract FIP20 {
-    string private _name;
-    string private _symbol;
-    uint8 private _decimals;
-    uint256 private _totalSupply;
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totalSupply;
 
-    mapping(address => uint256) private _balances;
-    mapping(address => mapping(address => uint256)) private _allowances;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
 
-    address private _owner;
+    address public owner;
 
     constructor(string memory name_, string memory symbol_, uint8 decimals_) {
-        _name = name_;
-        _symbol = symbol_;
-        _decimals = decimals_;
-        _owner = msg.sender;
+        name = name_;
+        symbol = symbol_;
+        decimals = decimals_;
+        owner = msg.sender;
     }
-
-
-    function name() public view returns (string memory) {
-        return _name;
-    }
-
-    function symbol() public view returns (string memory) {
-        return _symbol;
-    }
-
-    function decimals() public view returns (uint8) {
-        return _decimals;
-    }
-
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
-    }
-
-    function balanceOf(address account) public view returns (uint256) {
-        return _balances[account];
-    }
-
-    function allowance(address account, address spender) public view returns (uint256) {
-        return _allowances[account][spender];
-    }
-
 
     function approve(address spender, uint256 amount) public returns (bool) {
         _approve(msg.sender, spender, amount);
@@ -58,7 +32,7 @@ contract FIP20 {
     }
 
     function transferFrom(address sender, address recipient, uint256 amount) public returns (bool) {
-        uint256 currentAllowance = _allowances[sender][msg.sender];
+        uint256 currentAllowance = allowance[sender][msg.sender];
         require(currentAllowance >= amount, "transfer amount exceeds allowance");
         _approve(sender, msg.sender, currentAllowance - amount);
         _transfer(sender, recipient, amount);
@@ -74,27 +48,36 @@ contract FIP20 {
     }
 
 
-    function transferIBC(string memory to, uint256 amount, string memory target) public returns (bool){
+    function transferIBC(string memory to, uint256 amount, string memory target) public notContract returns (bool){
         _transferIBC(msg.sender, to, amount, target);
         return true;
     }
 
-    function transferChain(string memory to, uint256 amount, uint256 fee, string memory target) public returns (bool) {
+    function transferChain(string memory to, uint256 amount, uint256 fee, string memory target) public notContract returns (bool) {
         _transferChain(msg.sender, to, amount, fee, target);
         return true;
     }
 
 
-    function owner() public view returns (address) {
-        return _owner;
+    function module() public view returns (address){
+        return owner;
     }
 
-    function module() public view returns (address){
-        return _owner;
+    function isContract(address _addr) public view returns (bool){
+        uint32 size;
+        assembly {
+            size := extcodesize(_addr)
+        }
+        return (size > 0);
     }
 
     modifier onlyOwner() {
-        require(owner() == msg.sender, "caller is not the owner");
+        require(owner == msg.sender, "caller is not the owner");
+        _;
+    }
+
+    modifier notContract(){
+        require(!isContract(msg.sender), "caller cannot be contract");
         _;
     }
 
@@ -102,35 +85,35 @@ contract FIP20 {
     function _transfer(address sender, address recipient, uint256 amount) internal {
         require(sender != address(0), "transfer from the zero address");
         require(recipient != address(0), "transfer to the zero address");
-        uint256 senderBalance = _balances[sender];
+        uint256 senderBalance = balanceOf[sender];
         require(senderBalance >= amount, "transfer amount exceeds balance");
-        _balances[sender] = senderBalance - amount;
-        _balances[recipient] += amount;
+        balanceOf[sender] = senderBalance - amount;
+        balanceOf[recipient] += amount;
 
         emit Transfer(sender, recipient, amount);
     }
 
     function _mint(address account, uint256 amount) internal {
         require(account != address(0), "mint to the zero address");
-        _totalSupply += amount;
-        _balances[account] += amount;
+        totalSupply += amount;
+        balanceOf[account] += amount;
 
         emit Transfer(address(0), account, amount);
     }
 
     function _burn(address account, uint256 amount) internal {
         require(account != address(0), "burn from the zero address");
-        uint256 accountBalance = _balances[account];
+        uint256 accountBalance = balanceOf[account];
         require(accountBalance >= amount, "burn amount exceeds balance");
-        _balances[account] = accountBalance - amount;
-        _totalSupply -= amount;
+        balanceOf[account] = accountBalance - amount;
+        totalSupply -= amount;
 
         emit Transfer(account, address(0), amount);
     }
 
     function _approve(address sender, address spender, uint256 amount) internal {
         require(sender != address(0), "approve from the zero address");
-        _allowances[sender][spender] = amount;
+        allowance[sender][spender] = amount;
     }
 
     function _transferChain(address from, string memory to, uint256 amount, uint256 fee, string memory target) internal {

@@ -16,11 +16,12 @@ import (
 
 // InitIntrarelayerParamsProposalRequest defines a request for a new init intrarelayer params proposal.
 type InitIntrarelayerParamsProposalRequest struct {
-	BaseReq     rest.BaseReq  `json:"base_req" yaml:"base_req"`
-	Title       string        `json:"title" yaml:"title"`
-	Description string        `json:"description" yaml:"description"`
-	Deposit     sdk.Coins     `json:"deposit" yaml:"deposit"`
-	Params      *types.Params `json:"params" yaml:"params"`
+	BaseReq     rest.BaseReq         `json:"base_req" yaml:"base_req"`
+	Title       string               `json:"title" yaml:"title"`
+	Description string               `json:"description" yaml:"description"`
+	Deposit     sdk.Coins            `json:"deposit" yaml:"deposit"`
+	Params      *types.Params        `json:"params" yaml:"params"`
+	Metadata    []banktypes.Metadata `json:"metadata" yaml:"metadata"`
 }
 
 // RegisterCoinProposalRequest defines a request for a new register coin proposal.
@@ -97,7 +98,7 @@ func newInitIntrarelayerParamsProposalHandler(clientCtx client.Context) http.Han
 			return
 		}
 
-		content := types.NewInitIntrarelayerParamsProposal(req.Title, req.Description, req.Params)
+		content := types.NewInitIntrarelayerParamsProposal(req.Title, req.Description, req.Params, req.Metadata)
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, fromAddr)
 		if rest.CheckBadRequestError(w, err) {
 			return

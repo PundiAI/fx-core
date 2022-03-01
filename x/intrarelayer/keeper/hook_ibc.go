@@ -53,7 +53,7 @@ func isTransferIBCEvent(log *ethtypes.Log) bool {
 	if err != nil {
 		return false
 	}
-	if !(event.Name == types.ERC20EventTransferIBC) {
+	if !(event.Name == types.FIP20EventTransferIBC) {
 		return false
 	}
 	return true
@@ -67,7 +67,7 @@ type TransferIBCEvent struct {
 
 func parseTransferIBCEvent(data []byte) (*TransferIBCEvent, error) {
 	event := new(TransferIBCEvent)
-	err := contracts.FIP20Contract.ABI.UnpackIntoInterface(event, types.ERC20EventTransferIBC, data)
+	err := contracts.FIP20Contract.ABI.UnpackIntoInterface(event, types.FIP20EventTransferIBC, data)
 	return event, err
 }
 

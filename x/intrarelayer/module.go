@@ -177,9 +177,8 @@ func (am AppModule) TransferAfter(
 	ctx sdk.Context,
 	sender, receive string, amount, fee sdk.Coin,
 ) error {
-	//check support, TODO transfer height??
 	if ctx.BlockHeight() < fxtypes.IntrarelayerSupportBlock() || !am.keeper.HasInit(ctx) {
-		return errors.New("intrarelayer module not enable")
+		return errors.New("module not enable")
 	}
 	if !am.keeper.IsDenomRegistered(ctx, amount.Denom) {
 		return fmt.Errorf("denom %s not resgister", amount.Denom)
@@ -197,13 +196,14 @@ func (am AppModule) TransferAfter(
 
 func (am AppModule) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64,
 	sender sdk.AccAddress, receiver string, amount sdk.Coin) error {
-	//check support TODO refund height??
 	if ctx.BlockHeight() < fxtypes.IntrarelayerSupportBlock() || !am.keeper.HasInit(ctx) {
-		return errors.New("intrarelayer module not enable")
+		ctx.Logger().Info("ignore refund, module not enable", "module", types.ModuleName)
+		return nil
 	}
 	//check tx
 	if !am.keeper.HashIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
-		return errors.New("transaction not belong to evm ibc transfer")
+		ctx.Logger().Info("ignore ibc timeout refund, transaction not belong to evm ibc transfer", "module", types.ModuleName)
+		return nil
 	}
 	return am.keeper.ConvertDenomToFIP20(ctx, sender, common.BytesToAddress(sender.Bytes()), amount)
 }

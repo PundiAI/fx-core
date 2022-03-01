@@ -1,0 +1,613 @@
+package migrate
+
+import (
+	"context"
+	"encoding/hex"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/functionx/fx-core/app/fxcore"
+	migratetypesv1 "github.com/functionx/fx-core/x/migrate/types/v1"
+	"github.com/stretchr/testify/require"
+	"testing"
+	"time"
+)
+
+func Test_StakingParams(t *testing.T) {
+	cli := NewClient(t)
+
+	params, err := cli.StakingQuery().Params(context.Background(), &stakingtypes.QueryParamsRequest{})
+	require.NoError(t, err)
+	t.Log("params", params)
+}
+
+func Test_Delegate(t *testing.T) {
+	cli := NewClient(t)
+	ctx := context.Background()
+	//default account balance
+	cli.testQueryBalance(ctx, cli.FxAddress())
+	//query
+	vals := cli.testQueryValidator(ctx)
+	val := vals[0]
+	//default account delegate
+	cli.testDelegate(ctx, val)
+	acc, _ := sdk.AccAddressFromBech32("fx1968jve3k63a3u9whswlu2gsns4p0fqn0acxzgg")
+	cli.testSetWithdrawAddr(ctx, acc)
+	//to address
+	toPrivateKey, err := mnemonicToEthSecp256k1(toAddressMnemonic)
+	require.NoError(cli.t, err)
+	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
+	//send
+	cli.testSend(ctx, toAddress, 1000000)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+
+	//cli.testDelegate(ctx, val, toPrivateKey) //if not comments, can not migrate, to address has delegated
+
+	//migrate to
+	cli.testMigrateAccount(ctx, toPrivateKey)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+	// to delegate
+	cli.testDelegate(ctx, val, toPrivateKey)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+}
+
+func Test_WithdrawReward(t *testing.T) {
+	cli := NewClient(t)
+	ctx := context.Background()
+	//default account balance
+	cli.testQueryBalance(ctx, cli.FxAddress())
+	//query
+	vals := cli.testQueryValidator(ctx)
+	val := vals[0]
+	//default account delegate
+	cli.testDelegate(ctx, val)
+
+	//to address
+	toPrivateKey, err := mnemonicToEthSecp256k1(toAddressMnemonic)
+	require.NoError(cli.t, err)
+	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
+	//send
+	cli.testSend(ctx, toAddress, 1000000)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+
+	//migrate to
+	cli.testMigrateAccount(ctx, toPrivateKey)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+
+	cli.testWithdrawReward(ctx, val, toPrivateKey)
+
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+}
+
+func Test_Undelegate(t *testing.T) {
+	cli := NewClient(t)
+	ctx := context.Background()
+	//query
+	vals := cli.testQueryValidator(ctx)
+	val := vals[0]
+	//default account delegate
+	cli.testDelegate(ctx, val)
+	//undelegate
+	cli.testUndelegate(ctx, val, false)
+	//to address
+	toPrivateKey, err := mnemonicToEthSecp256k1(toAddressMnemonic)
+	require.NoError(cli.t, err)
+	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
+	//send
+	cli.testSend(ctx, toAddress, 1000000)
+	//delegate undelegate
+	//cli.testDelegate(ctx, val, toPrivateKey)         //if not comments, can not migrate, to address has delegated
+	//cli.testUndelegate(ctx, val, true, toPrivateKey) //if not comments, can not migrate, to address has undelegated
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+	//migrate to
+	cli.testMigrateAccount(ctx, toPrivateKey)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+
+	time.Sleep(30 * time.Second)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+}
+
+func Test_Redelegate(t *testing.T) {
+	cli := NewClient(t)
+	ctx := context.Background()
+	//create validator
+	cli.testCreateValidator(ctx, val2Mnemonic)
+	//query
+	vals := cli.testQueryValidator(ctx)
+	val, val2 := vals[0], vals[1]
+	//default account delegate
+	cli.testDelegate(ctx, val)
+	//redelegate
+	cli.testRedelegate(ctx, val, val2, false)
+	cli.testRedelegate(ctx, val, val2, false)
+	cli.testRedelegate(ctx, val, val2, false)
+	cli.testRedelegate(ctx, val, val2, false)
+	cli.testRedelegate(ctx, val, val2, false)
+	cli.testRedelegate(ctx, val, val2, false)
+	cli.testRedelegate(ctx, val, val2, false)
+	//to address
+	toPrivateKey, err := mnemonicToEthSecp256k1(toAddressMnemonic)
+	require.NoError(cli.t, err)
+	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
+	//send
+	cli.testSend(ctx, toAddress, 1000000)
+	//delegate redelegate
+	//cli.testDelegate(ctx, val, toPrivateKey)               //if not comments, can not migrate, to address has delegated
+	//cli.testRedelegate(ctx, val, val2, true, toPrivateKey) //if not comments, can not migrate, to address has delegated
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+	//migrate to
+	cli.testMigrateAccount(ctx, toPrivateKey)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+
+	time.Sleep(30 * time.Second)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+}
+
+func Test_ProposalDeposit(t *testing.T) {
+	cli := NewClient(t)
+	ctx := context.Background()
+
+	//cli.testProposalSubmit(ctx)       //deposit period
+	cli.testProposalSubmit(ctx, true) //vote period
+
+	//to address
+	toPrivateKey, err := mnemonicToEthSecp256k1(toAddressMnemonic)
+	require.NoError(cli.t, err)
+	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
+
+	cli.testSend(ctx, toAddress, 1000000)
+
+	cli.testProposalDeposit(ctx, toPrivateKey)
+
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+
+	//migrate to
+	cli.testMigrateAccount(ctx, toPrivateKey)
+
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+}
+
+func Test_ProposalVote(t *testing.T) {
+	cli := NewClient(t)
+	ctx := context.Background()
+
+	//cli.testProposalSubmit(ctx)       //deposit period
+	cli.testProposalSubmit(ctx, true) //vote period
+
+	//to address
+	toPrivateKey, err := mnemonicToEthSecp256k1(toAddressMnemonic)
+	require.NoError(cli.t, err)
+	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
+
+	cli.testSend(ctx, toAddress, 1000000)
+
+	cli.testProposalVote(ctx)
+	//cli.testProposalVote(ctx, toPrivateKey) //can not migrate, to address has voted
+
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+
+	//migrate to
+	cli.testMigrateAccount(ctx, toPrivateKey)
+
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+}
+
+func Test_All(t *testing.T) {
+	cli := NewClient(t)
+	ctx := context.Background()
+
+	//create validator
+	cli.testCreateValidator(ctx, val2Mnemonic)
+	//query
+	vals := cli.testQueryValidator(ctx)
+	val, val2 := vals[0], vals[1]
+
+	//default account delegate
+	cli.testDelegate(ctx, val)
+	acc, _ := sdk.AccAddressFromBech32("fx1968jve3k63a3u9whswlu2gsns4p0fqn0acxzgg")
+	cli.testSetWithdrawAddr(ctx, acc)
+
+	//to address
+	toPrivateKey, err := mnemonicToEthSecp256k1(toAddressMnemonic)
+	require.NoError(cli.t, err)
+	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
+	//send
+	cli.testSend(ctx, toAddress, 1000000)
+
+	//undelegate
+	cli.testUndelegate(ctx, val, false)
+
+	//redelegate(max=7)
+	cli.testRedelegate(ctx, val, val2, false)
+
+	//proposal
+	cli.testProposalSubmit(ctx, true)
+
+	//vote
+	cli.testProposalVote(ctx)
+
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+
+	//migrate to
+	cli.testMigrateAccount(ctx, toPrivateKey)
+
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+
+	time.Sleep(30 * time.Second)
+	//query
+	cli.testQueryAccount(ctx, cli.FxAddress())
+	cli.testQueryAccount(ctx, toAddress)
+}
+
+func (cli *Client) testQueryBalance(ctx context.Context, acc sdk.AccAddress) {
+	balances, err := cli.BankQuery().AllBalances(ctx, &banktypes.QueryAllBalancesRequest{Address: acc.String()})
+	require.NoError(cli.t, err)
+	cli.t.Log("=======>", "address", acc.String(), "balance", balances.Balances.String())
+}
+func (cli *Client) testQueryWithdrawAddr(ctx context.Context, acc sdk.AccAddress) {
+	withdrawAddr, err := cli.DistrQuery().DelegatorWithdrawAddress(ctx, &distritypes.QueryDelegatorWithdrawAddressRequest{DelegatorAddress: acc.String()})
+	require.NoError(cli.t, err)
+	cli.t.Log("withdraw address", withdrawAddr)
+}
+func (cli *Client) testQueryDelegation(ctx context.Context, acc sdk.AccAddress, val sdk.ValAddress) {
+	delegation, err := cli.StakingQuery().Delegation(ctx, &stakingtypes.QueryDelegationRequest{
+		DelegatorAddr: acc.String(),
+		ValidatorAddr: val.String(),
+	})
+	require.NoError(cli.t, err)
+	cli.t.Log("=======>", "delegate", acc.String(), "val", val.String(), "share", delegation.DelegationResponse.GetDelegation().Shares.String(), "amount", delegation.DelegationResponse.Balance.String())
+}
+func (cli *Client) testQueryUnbondingDelegate(ctx context.Context, acc sdk.AccAddress, val sdk.ValAddress) {
+	undelegation, err := cli.StakingQuery().UnbondingDelegation(ctx, &stakingtypes.QueryUnbondingDelegationRequest{
+		DelegatorAddr: acc.String(),
+		ValidatorAddr: val.String(),
+	})
+	require.NoError(cli.t, err)
+	for _, e := range undelegation.Unbond.Entries {
+		cli.t.Log("=======>", "query undelegate", undelegation.Unbond.DelegatorAddress, "val", undelegation.Unbond.ValidatorAddress, "balance", e.Balance.String(), "time", e.CompletionTime.String(), e.InitialBalance.String(), e.CreationHeight)
+	}
+}
+func (cli *Client) testQueryValidator(ctx context.Context) []sdk.ValAddress {
+	validators, err := cli.StakingQuery().Validators(ctx, &stakingtypes.QueryValidatorsRequest{Status: stakingtypes.Bonded.String()})
+	require.NoError(cli.t, err)
+	require.True(cli.t, len(validators.Validators) > 0)
+
+	vals := make([]sdk.ValAddress, 0, len(validators.Validators))
+	for _, v := range validators.Validators {
+		valAddr, err := sdk.ValAddressFromBech32(v.OperatorAddress)
+		require.NoError(cli.t, err)
+		vals = append(vals, valAddr)
+		cli.t.Log("=========> query validator", "val", v.OperatorAddress, "token", v.Tokens.String(), "share", v.DelegatorShares.String())
+	}
+
+	return vals
+}
+func (cli *Client) testQueryRedelegate(ctx context.Context, acc sdk.AccAddress, valSrc, valDest sdk.ValAddress) {
+	redelegation, err := cli.StakingQuery().Redelegations(ctx, &stakingtypes.QueryRedelegationsRequest{
+		DelegatorAddr:    acc.String(),
+		SrcValidatorAddr: valSrc.String(),
+		DstValidatorAddr: valDest.String(),
+	})
+	require.NoError(cli.t, err)
+	for _, r := range redelegation.RedelegationResponses {
+		for _, e := range r.Entries {
+			cli.t.Log("=======>", "query redelegate", acc.String(), "val src", valSrc.String(), "val dst", valDest.String(), "balance", e.Balance.String(), "time", e.RedelegationEntry.CompletionTime.String(), e.RedelegationEntry.InitialBalance.String(), e.RedelegationEntry.CreationHeight)
+		}
+	}
+}
+func (cli *Client) testQueryGov(ctx context.Context, acc sdk.AccAddress) {
+	proposals, err := cli.GovQuery().Proposals(ctx, &govtypes.QueryProposalsRequest{
+		ProposalStatus: govtypes.StatusDepositPeriod,
+		Depositor:      acc.String(),
+	})
+	require.NoError(cli.t, err)
+	for _, p := range proposals.Proposals {
+		cli.t.Log("deposit", "address", acc.String(), "id", p.ProposalId, "title", p.GetTitle())
+	}
+
+	proposals, err = cli.GovQuery().Proposals(ctx, &govtypes.QueryProposalsRequest{
+		ProposalStatus: govtypes.StatusVotingPeriod,
+		Depositor:      acc.String(),
+	})
+	require.NoError(cli.t, err)
+	for _, p := range proposals.Proposals {
+		cli.t.Log("vote - deposit", "address", acc.String(), "id", p.ProposalId, "title", p.GetTitle())
+	}
+
+	proposals, err = cli.GovQuery().Proposals(ctx, &govtypes.QueryProposalsRequest{
+		ProposalStatus: govtypes.StatusVotingPeriod,
+		Voter:          acc.String(),
+	})
+	require.NoError(cli.t, err)
+	for _, p := range proposals.Proposals {
+		cli.t.Log("vote", "address", acc.String(), "id", p.ProposalId, "title", p.GetTitle())
+	}
+}
+func (cli *Client) testQueryAccount(ctx context.Context, acc sdk.AccAddress) {
+	cli.t.Logf("============%s============\n", acc.String())
+	balances, err := cli.BankQuery().AllBalances(ctx, &banktypes.QueryAllBalancesRequest{Address: acc.String()})
+	require.NoError(cli.t, err)
+	cli.t.Log("all balance", balances.Balances.String())
+
+	validators, err := cli.StakingQuery().Validators(ctx, &stakingtypes.QueryValidatorsRequest{Status: stakingtypes.Bonded.String()})
+	require.NoError(cli.t, err)
+	require.True(cli.t, len(validators.Validators) > 0)
+
+	withdrawAddr, err := cli.DistrQuery().DelegatorWithdrawAddress(ctx, &distritypes.QueryDelegatorWithdrawAddressRequest{DelegatorAddress: acc.String()})
+	require.NoError(cli.t, err)
+	cli.t.Log("withdraw address", withdrawAddr.WithdrawAddress)
+
+	for _, v := range validators.Validators {
+		resp, err := cli.StakingQuery().Delegation(ctx, &stakingtypes.QueryDelegationRequest{
+			DelegatorAddr: acc.String(),
+			ValidatorAddr: v.OperatorAddress,
+		})
+		if err != nil {
+			continue
+		}
+		cli.t.Log("delegate validator", v.OperatorAddress, "balance", resp.DelegationResponse.Balance.String())
+	}
+
+	for _, v := range validators.Validators {
+		undelegationResp, err := cli.StakingQuery().UnbondingDelegation(ctx, &stakingtypes.QueryUnbondingDelegationRequest{
+			DelegatorAddr: acc.String(),
+			ValidatorAddr: v.OperatorAddress,
+		})
+		if err != nil {
+			continue
+		}
+		for _, e := range undelegationResp.Unbond.Entries {
+			cli.t.Log("undelegate validator", v.OperatorAddress, "balance", e.Balance.String(), "time", e.CompletionTime.String())
+		}
+	}
+
+	redelegationResp, err := cli.StakingQuery().Redelegations(ctx, &stakingtypes.QueryRedelegationsRequest{DelegatorAddr: acc.String()})
+	require.NoError(cli.t, err)
+	for _, r := range redelegationResp.RedelegationResponses {
+		for _, e := range r.Entries {
+			cli.t.Log("redelegate validator", r.Redelegation.ValidatorSrcAddress, "to", r.Redelegation.ValidatorDstAddress, "balance", e.Balance.String(), "time", e.RedelegationEntry.CompletionTime.String())
+		}
+	}
+
+	proposalsResp, err := cli.GovQuery().Proposals(ctx, &govtypes.QueryProposalsRequest{
+		ProposalStatus: govtypes.StatusDepositPeriod,
+		Depositor:      acc.String(),
+	})
+	require.NoError(cli.t, err)
+	for _, p := range proposalsResp.Proposals {
+		depositResp, err := cli.GovQuery().Deposit(ctx, &govtypes.QueryDepositRequest{ProposalId: p.ProposalId, Depositor: acc.String()})
+		if err == nil {
+			cli.t.Log("proposal deposit", "id", p.ProposalId, "title", p.GetTitle(), "status", p.Status.String(), "amount", depositResp.Deposit.Amount.String())
+		}
+	}
+	proposalsResp, err = cli.GovQuery().Proposals(ctx, &govtypes.QueryProposalsRequest{
+		ProposalStatus: govtypes.StatusVotingPeriod,
+		Depositor:      acc.String(),
+	})
+	require.NoError(cli.t, err)
+	for _, p := range proposalsResp.Proposals {
+		depositResp, err := cli.GovQuery().Deposit(ctx, &govtypes.QueryDepositRequest{ProposalId: p.ProposalId, Depositor: acc.String()})
+		if err == nil {
+			cli.t.Log("proposal vote-deposit", "id", p.ProposalId, "title", p.GetTitle(), "status", p.Status.String(), "amount", depositResp.Deposit.Amount.String())
+		}
+	}
+
+	proposalsResp, err = cli.GovQuery().Proposals(ctx, &govtypes.QueryProposalsRequest{
+		ProposalStatus: govtypes.StatusVotingPeriod,
+		Voter:          acc.String(),
+	})
+	require.NoError(cli.t, err)
+	for _, p := range proposalsResp.Proposals {
+		depositResp, err := cli.GovQuery().Deposit(ctx, &govtypes.QueryDepositRequest{ProposalId: p.ProposalId, Depositor: acc.String()})
+		if err == nil {
+			cli.t.Log("proposal vote", "id", p.ProposalId, "title", p.GetTitle(), "status", p.Status.String(), "amount", depositResp.Deposit.Amount.String())
+		}
+	}
+	cli.t.Log("=================================================================")
+}
+
+func (cli *Client) testCreateValidator(ctx context.Context, mnemonic string) sdk.ValAddress {
+	valPriv, err := mnemonicToEthSecp256k1(mnemonic)
+	require.NoError(cli.t, err)
+	valAddr := sdk.ValAddress(valPriv.PubKey().Address())
+
+	var msg sdk.Msg
+	amt := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1000))))
+	msg = banktypes.NewMsgSend(cli.FxAddress(), sdk.AccAddress(valAddr), amt)
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "send to validator txHash", txHash)
+
+	oldKey := cli.privateKey
+	defer cli.SetPrivateKey(oldKey)
+	cli.SetPrivateKey(valPriv)
+
+	ed25519, err := mnemonicToEd25519(mnemonic)
+	require.NoError(cli.t, err)
+
+	selfDelegate := sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(100)))
+	minSelfDelegate := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1))
+	description := stakingtypes.Description{
+		Moniker:         "val2",
+		Identity:        "",
+		Website:         "",
+		SecurityContact: "",
+		Details:         "",
+	}
+	rates := stakingtypes.CommissionRates{
+		Rate:          sdk.NewDecWithPrec(2, 2),
+		MaxRate:       sdk.NewDecWithPrec(50, 2),
+		MaxChangeRate: sdk.NewDecWithPrec(2, 2),
+	}
+	msg, err = stakingtypes.NewMsgCreateValidator(valAddr, ed25519.PubKey(), selfDelegate, description, rates, minSelfDelegate)
+	require.NoError(cli.t, err)
+	txHash = cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "create validator txHash", txHash)
+
+	return valAddr
+}
+func (cli *Client) testSend(ctx context.Context, acc sdk.AccAddress, amt int64, privateKey ...cryptotypes.PrivKey) {
+	if len(privateKey) > 0 {
+		oldKey := cli.privateKey
+		defer cli.SetPrivateKey(oldKey)
+
+		cli.SetPrivateKey(privateKey[0])
+	}
+	var msg sdk.Msg
+	amount := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(amt))))
+	msg = banktypes.NewMsgSend(cli.FxAddress(), acc, amount)
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "send txHash", txHash)
+}
+func (cli *Client) testSetWithdrawAddr(ctx context.Context, acc sdk.AccAddress, privateKey ...cryptotypes.PrivKey) {
+	if len(privateKey) > 0 {
+		oldKey := cli.privateKey
+		defer cli.SetPrivateKey(oldKey)
+
+		cli.SetPrivateKey(privateKey[0])
+	}
+	msg := distritypes.NewMsgSetWithdrawAddress(cli.FxAddress(), acc)
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "set withdraw txHash", txHash)
+}
+func (cli *Client) testDelegate(ctx context.Context, val sdk.ValAddress, privateKey ...cryptotypes.PrivKey) {
+	if len(privateKey) > 0 {
+		oldKey := cli.privateKey
+		defer cli.SetPrivateKey(oldKey)
+
+		cli.SetPrivateKey(privateKey[0])
+	}
+	var msg sdk.Msg
+	amt := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(100000))
+	msg = stakingtypes.NewMsgDelegate(cli.FxAddress(), val, sdk.NewCoin(fxcore.MintDenom, amt))
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "delegate txHash", txHash)
+}
+func (cli *Client) testWithdrawReward(ctx context.Context, val sdk.ValAddress, privateKey ...cryptotypes.PrivKey) {
+	if len(privateKey) > 0 {
+		oldKey := cli.privateKey
+		defer cli.SetPrivateKey(oldKey)
+
+		cli.SetPrivateKey(privateKey[0])
+	}
+	var msg sdk.Msg
+	msg = distritypes.NewMsgWithdrawDelegatorReward(cli.FxAddress(), val)
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "withdraw reward txHash", txHash)
+}
+func (cli *Client) testUndelegate(ctx context.Context, val sdk.ValAddress, all bool, privateKey ...cryptotypes.PrivKey) {
+	if len(privateKey) > 0 {
+		oldKey := cli.privateKey
+		defer cli.SetPrivateKey(oldKey)
+
+		cli.SetPrivateKey(privateKey[0])
+	}
+	var msg sdk.Msg
+	amt := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10))
+	if all {
+		delegation, err := cli.StakingQuery().Delegation(ctx, &stakingtypes.QueryDelegationRequest{
+			DelegatorAddr: cli.FxAddress().String(),
+			ValidatorAddr: val.String(),
+		})
+		require.NoError(cli.t, err)
+		amt = delegation.DelegationResponse.Balance.Amount
+	}
+	msg = stakingtypes.NewMsgUndelegate(cli.FxAddress(), val, sdk.NewCoin(fxcore.MintDenom, amt))
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "undelegate txHash", txHash)
+}
+func (cli *Client) testRedelegate(ctx context.Context, valSrc, valDest sdk.ValAddress, all bool, privateKey ...cryptotypes.PrivKey) {
+	if len(privateKey) > 0 {
+		oldKey := cli.privateKey
+		defer cli.SetPrivateKey(oldKey)
+
+		cli.SetPrivateKey(privateKey[0])
+	}
+	var msg sdk.Msg
+	amt := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10))
+	if all {
+		delegation, err := cli.StakingQuery().Delegation(ctx, &stakingtypes.QueryDelegationRequest{
+			DelegatorAddr: cli.FxAddress().String(),
+			ValidatorAddr: valSrc.String(),
+		})
+		require.NoError(cli.t, err)
+		amt = delegation.DelegationResponse.Balance.Amount
+	}
+	msg = stakingtypes.NewMsgBeginRedelegate(cli.FxAddress(), valSrc, valDest, sdk.NewCoin(fxcore.MintDenom, amt))
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "redelegate txHash", txHash)
+}
+func (cli *Client) testProposalSubmit(ctx context.Context, satisfyVote ...bool) {
+	content := govtypes.ContentFromProposalType("title", "description", "Text")
+	amount := int64(5000)
+	if len(satisfyVote) > 0 && satisfyVote[0] {
+		amount = 10000
+	}
+	initDeposit := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(amount))))
+	msg, err := govtypes.NewMsgSubmitProposal(content, initDeposit, cli.FxAddress())
+	require.NoError(cli.t, err)
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "proposal submit txHash", txHash)
+}
+func (cli *Client) testProposalDeposit(ctx context.Context, privateKey ...cryptotypes.PrivKey) {
+	if len(privateKey) > 0 {
+		oldKey := cli.privateKey
+		defer cli.SetPrivateKey(oldKey)
+		cli.SetPrivateKey(privateKey[0])
+	}
+	depositAmt := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1))))
+	msg := govtypes.NewMsgDeposit(cli.FxAddress(), 1, depositAmt)
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "proposal deposit txHash", txHash)
+}
+func (cli *Client) testProposalVote(ctx context.Context, privateKey ...cryptotypes.PrivKey) {
+	if len(privateKey) > 0 {
+		oldKey := cli.privateKey
+		defer cli.SetPrivateKey(oldKey)
+		cli.SetPrivateKey(privateKey[0])
+	}
+	msg := govtypes.NewMsgVote(cli.FxAddress(), 1, govtypes.OptionYes)
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "proposal vote txHash", txHash)
+}
+func (cli *Client) testMigrateAccount(ctx context.Context, toPrivateKey cryptotypes.PrivKey) {
+	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
+	cli.t.Log("=======>", "migrate from", cli.FxAddress().String(), "migrate to", toAddress.String())
+	migrateSign, err := toPrivateKey.Sign(migratetypesv1.MigrateAccountSignatureHash(cli.FxAddress(), toAddress))
+	require.NoError(cli.t, err)
+
+	msg := migratetypesv1.NewMsgMigrateAccount(cli.FxAddress(), toAddress, hex.EncodeToString(migrateSign))
+	txHash := cli.BroadcastTx(msg)
+	cli.t.Log("=======>", "migrate account txHash", txHash)
+}

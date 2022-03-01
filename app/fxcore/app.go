@@ -7,6 +7,7 @@ import (
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"github.com/functionx/fx-core/x/intrarelayer"
+	"github.com/functionx/fx-core/x/migrate"
 	"io"
 	"os"
 	"path/filepath"
@@ -119,6 +120,9 @@ import (
 	intrarelayerclient "github.com/functionx/fx-core/x/intrarelayer/client"
 	intrarelayerkeeper "github.com/functionx/fx-core/x/intrarelayer/keeper"
 	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
+
+	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
+	migratetypes "github.com/functionx/fx-core/x/migrate/types/common"
 )
 
 var ChainID = "fxcore"
@@ -175,6 +179,7 @@ var (
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
 		intrarelayer.AppModuleBasic{},
+		migrate.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -268,6 +273,8 @@ type App struct {
 	FeeMarketKeeper    feemarketkeeper.Keeper
 	IntrarelayerKeeper intrarelayerkeeper.Keeper
 
+	MigrateKeeper migratekeeper.Keeper
+
 	// the module manager
 	mm *module.Manager
 }
@@ -300,6 +307,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		// intrarelayer keys
 		intrarelayertypes.StoreKey,
+		migratetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -483,6 +491,11 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		),
 	)
 
+	myApp.MigrateKeeper = migratekeeper.NewKeeper(appCodec, keys[migratetypes.StoreKey])
+	bankMigrate := migratekeeper.NewBankMigrate(myApp.BankKeeper)
+	distrStakingMigrate := migratekeeper.NewDistrStakingMigrate(keys[distrtypes.StoreKey], keys[stakingtypes.StoreKey], myApp.StakingKeeper)
+	govMigrate := migratekeeper.NewGovMigrate(keys[govtypes.StoreKey], myApp.GovKeeper)
+	myApp.MigrateKeeper.SetMigrateI(bankMigrate, distrStakingMigrate, govMigrate)
 	/****  Module Options ****/
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
@@ -523,6 +536,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		feemarket.NewAppModule(myApp.FeeMarketKeeper),
 		intrarelayer.NewAppModule(myApp.IntrarelayerKeeper, myApp.AccountKeeper),
+		migrate.NewAppModule(myApp.MigrateKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -601,6 +615,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), evmtypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), feemarkettypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(fxtype.IntrarelayerSupportBlock(), intrarelayertypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtype.MigrateSupportBlock(), migratetypes.StoreKey)
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {

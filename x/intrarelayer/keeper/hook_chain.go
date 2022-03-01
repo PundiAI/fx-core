@@ -60,7 +60,7 @@ func isTransferChainEvent(log *ethtypes.Log) bool {
 	if err != nil {
 		return false
 	}
-	if !(event.Name == types.ERC20EventTransferChain) {
+	if !(event.Name == types.FIP20EventTransferChain) {
 		return false
 	}
 	return true
@@ -75,7 +75,7 @@ type TransferChainData struct {
 
 func parseTransferChainData(data []byte) (*TransferChainData, error) {
 	event := new(TransferChainData)
-	err := contracts.FIP20Contract.ABI.UnpackIntoInterface(event, types.ERC20EventTransferChain, data)
+	err := contracts.FIP20Contract.ABI.UnpackIntoInterface(event, types.FIP20EventTransferChain, data)
 	return event, err
 }
 

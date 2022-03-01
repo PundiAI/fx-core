@@ -8,26 +8,25 @@ import (
 
 // intrarelayer events
 const (
-	EventTypeTokenLock            = "token_lock"
-	EventTypeTokenUnlock          = "token_unlock"
-	EventTypeMint                 = "mint"
-	EventTypeRelay                = "relay"
-	EventTypeConvertCoin          = "convert_coin"
-	EventTypeConvertERC20         = "convert_erc20"
-	EventTypeBurn                 = "burn"
-	EventTypeRegisterCoin         = "register_coin"
-	EventTypeRegisterFIP20        = "register_erc20"
-	EventTypeToggleTokenRelay     = "toggle_token_relay" // #nosec
-	EventTypeUpdateTokenPairERC20 = "update_token_pair_erc20"
+	EventTypeTokenLock        = "token_lock"
+	EventTypeTokenUnlock      = "token_unlock"
+	EventTypeMint             = "mint"
+	EventTypeRelay            = "relay"
+	EventTypeConvertCoin      = "convert_coin"
+	EventTypeConvertFIP20     = "convert_fip20"
+	EventTypeBurn             = "burn"
+	EventTypeRegisterCoin     = "register_coin"
+	EventTypeRegisterFIP20    = "register_fip20"
+	EventTypeToggleTokenRelay = "toggle_token_relay" // #nosec
 
-	AttributeKeyCosmosCoin = "cosmos_coin"
-	AttributeKeyERC20Token = "erc20_token" // #nosec
-	AttributeKeyReceiver   = "receiver"
+	AttributeKeyCosmosCoin  = "cosmos_coin"
+	AttributeKeyFIP20Token  = "fip20_token" // #nosec
+	AttributeKeyFIP20Symbol = "fip20_symbol"
+	AttributeKeyReceiver    = "receiver"
 
-	ERC20EventTransfer      = "Transfer"
-	ERC20EventCrossTransfer = "CrossTransfer"
-	ERC20EventTransferChain = "TransferChain"
-	ERC20EventTransferIBC   = "TransferIBC"
+	FIP20EventTransfer      = "Transfer"
+	FIP20EventTransferChain = "TransferChain"
+	FIP20EventTransferIBC   = "TransferIBC"
 
 	EventTypeRelayToken = "relay_token"
 	EventEthereumTxHash = "ethereum_tx_hash"

@@ -152,7 +152,7 @@ func (suite *TokenPairTestSuite) TestIsNativeERC20() {
 	}
 
 	for _, tc := range testCases {
-		res := tc.pair.IsNativeERC20()
+		res := tc.pair.IsNativeFIP20()
 		fmt.Println(res)
 
 		if tc.expectPass {

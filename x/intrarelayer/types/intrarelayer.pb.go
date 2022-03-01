@@ -30,9 +30,9 @@ type Owner int32
 const (
 	// OWNER_UNSPECIFIED defines an invalid/undefined owner.
 	OWNER_UNSPECIFIED Owner = 0
-	// OWNER_MODULE erc20 is owned by the intrarelayer module account.
+	// OWNER_MODULE fip20 is owned by the intrarelayer module account.
 	OWNER_MODULE Owner = 1
-	// EXTERNAL erc20 is owned by an external account.
+	// EXTERNAL fip20 is owned by an external account.
 	OWNER_EXTERNAL Owner = 2
 )
 

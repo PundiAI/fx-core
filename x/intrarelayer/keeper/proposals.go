@@ -2,20 +2,21 @@ package keeper
 
 import (
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/intrarelayer/types"
 	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 )
 
 func (k Keeper) InitIntrarelayer(ctx sdk.Context, p *types.InitIntrarelayerParamsProposal) error {
-	if !k.evmKeeper.HasInit(ctx) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module has not init")
-	}
+	//TODO No longer dependent on the EVM module
+	//if !k.evmKeeper.HasInit(ctx) {
+	//	return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module has not init")
+	//}
 	ctx.Logger().Info("init intrarelayer", "EnableIntrarelayer", p.Params.EnableIntrarelayer,
 		"EnableEVMHook", p.Params.EnableEVMHook, "TokenPairVotingPeriod", p.Params.TokenPairVotingPeriod, "IbcTransferTimeoutHeight", p.Params.IbcTransferTimeoutHeight)
 	k.SetParams(ctx, *p.Params)
@@ -24,10 +25,33 @@ func (k Keeper) InitIntrarelayer(ctx sdk.Context, p *types.InitIntrarelayerParam
 	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
 		panic("the intrarelayer module account has not been set")
 	}
+
+	if !k.evmKeeper.HasInit(ctx) {
+		//TODO Make sure the EVM proposal has been sent and bound to succeed
+		return nil
+	}
+
+	events := make([]sdk.Event, 0, len(p.Metadata))
+	for _, metadata := range p.Metadata {
+		pair, err := k.RegisterCoin(ctx, metadata)
+		if err != nil {
+			return sdkerrors.Wrapf(types.ErrInvalidMetadata, fmt.Sprintf("base %s, display %s, error %s",
+				metadata.Base, metadata.Display, err.Error()))
+		}
+		event := sdk.NewEvent(
+			types.EventTypeRegisterCoin,
+			sdk.NewAttribute(types.AttributeKeyCosmosCoin, metadata.Base),
+			sdk.NewAttribute(types.AttributeKeyFIP20Symbol, metadata.Display),
+			sdk.NewAttribute(types.AttributeKeyFIP20Token, pair.Fip20Address),
+		)
+		events = append(events, event)
+	}
+	ctx.EventManager().EmitEvents(events)
+
 	return nil
 }
 
-// RegisterCoin deploys an erc20 contract and creates the token pair for the cosmos coin
+// RegisterCoin deploys an fip20 contract and creates the token pair for the cosmos coin
 func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (*types.TokenPair, error) {
 	params := k.GetParams(ctx)
 	if !params.EnableIntrarelayer {
@@ -57,16 +81,16 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin metadata is invalid %s, error %v", name, err)
 	}
 
-	addr, err := k.DeployERC20Contract(ctx, name, symbol, decimals)
+	addr, err := k.DeployFIP20Contract(ctx, name, symbol, decimals, coinMetadata.Base == fxcoretypes.FX)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
+		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for FIP20")
 	}
 
 	pair := types.NewTokenPair(addr, coinMetadata.Base, true, types.OWNER_MODULE)
 
 	k.SetTokenPair(ctx, pair)
 	k.SetDenomMap(ctx, pair.Denom, pair.GetID())
-	k.SetERC20Map(ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())
+	k.SetFIP20Map(ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())
 
 	return &pair, nil
 }
@@ -81,9 +105,12 @@ func (k Keeper) verifyMetadata(ctx sdk.Context, coinMetadata banktypes.Metadata)
 	return equalMetadata(meta, coinMetadata)
 }
 
-// DeployERC20Contract creates and deploys an ERC20 contract on the EVM with the intrarelayer module account as owner
-func (k Keeper) DeployERC20Contract(ctx sdk.Context, name, symbol string, decimals uint8) (common.Address, error) {
+// DeployFIP20Contract creates and deploys an FIP20 contract on the EVM with the intrarelayer module account as owner
+func (k Keeper) DeployFIP20Contract(ctx sdk.Context, name, symbol string, decimals uint8, origin ...bool) (common.Address, error) {
 	ctorArgs, err := contracts.FIP20Contract.ABI.Pack("", name, symbol, decimals)
+	if len(origin) > 0 && origin[0] {
+		ctorArgs, err = contracts.WFXContract.ABI.Pack("", name, symbol, decimals)
+	}
 	if err != nil {
 		return common.Address{}, sdkerrors.Wrapf(err, "coin metadata is invalid  %s", name)
 	}
@@ -106,7 +133,7 @@ func (k Keeper) DeployERC20Contract(ctx sdk.Context, name, symbol string, decima
 	return contractAddr, nil
 }
 
-// RegisterFIP20 creates a cosmos coin and registers the token pair between the coin and the ERC20
+// RegisterFIP20 creates a cosmos coin and registers the token pair between the coin and the FIP20
 func (k Keeper) RegisterFIP20(ctx sdk.Context, contract common.Address) (*types.TokenPair, error) {
 	params := k.GetParams(ctx)
 	if !params.EnableIntrarelayer {
@@ -114,22 +141,22 @@ func (k Keeper) RegisterFIP20(ctx sdk.Context, contract common.Address) (*types.
 	}
 
 	if k.IsFIP20Registered(ctx, contract) {
-		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "token ERC20 contract already registered: %s", contract.String())
+		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "token FIP20 contract already registered: %s", contract.String())
 	}
 
 	_, baseDenom, _, err := k.CreateCoinMetadata(ctx, contract)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
+		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for FIP20")
 	}
 
 	pair := types.NewTokenPair(contract, baseDenom, true, types.OWNER_EXTERNAL)
 	k.SetTokenPair(ctx, pair)
 	k.SetDenomMap(ctx, pair.Denom, pair.GetID())
-	k.SetERC20Map(ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())
+	k.SetFIP20Map(ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())
 	return &pair, nil
 }
 
-// CreateCoinMetadata generates the metadata to represent the ERC20 token on evmos.
+// CreateCoinMetadata generates the metadata to represent the FIP20 token on evmos.
 func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*banktypes.Metadata, string, string, error) {
 	strContract := contract.String()
 

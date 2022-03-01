@@ -59,7 +59,7 @@ func (k Keeper) ConvertDenomToFIP20(
 	switch {
 	case pair.IsNativeCoin():
 		return k.convertDenomNativeCoin(ctx, pair, sender, receiver, coin)
-	case pair.IsNativeERC20():
+	case pair.IsNativeFIP20():
 		return k.convertDenomNativeFIP20(ctx, pair, sender, receiver, coin)
 	default:
 		return types.ErrUndefinedOwner
@@ -76,7 +76,7 @@ func (k Keeper) ConvertFIP20ToDenom(
 	if err != nil {
 		return err
 	}
-	//check erc20 balance
+	//check fip20 balance
 	balanceOf, err := k.QueryFIP20BalanceOf(ctx, pair.GetFIP20Contract(), sender)
 	if err != nil {
 		return err
@@ -86,8 +86,8 @@ func (k Keeper) ConvertFIP20ToDenom(
 	}
 	switch {
 	case pair.IsNativeCoin():
-		return k.convertERC20NativeDenom(ctx, pair, sender, receiver, amount)
-	case pair.IsNativeERC20():
+		return k.convertFIP20NativeDenom(ctx, pair, sender, receiver, amount)
+	case pair.IsNativeFIP20():
 		return k.convertFIP20NativeToken(ctx, pair, sender, receiver, amount)
 	default:
 		return types.ErrUndefinedOwner
@@ -99,7 +99,7 @@ func (k Keeper) ConvertFIP20ToDenom(
 //  - Mint Tokens and send to receiver
 func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
 	coins := sdk.Coins{coin}
-	erc20 := contracts.FIP20Contract.ABI
+	fip20 := contracts.FIP20Contract.ABI
 	contract := pair.GetFIP20Contract()
 
 	// Escrow Coins on module account
@@ -108,7 +108,7 @@ func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, se
 	}
 
 	// Mint Tokens and send to receiver
-	_, err := k.CallEVMWithModule(ctx, erc20, contract, "mint", receiver, coin.Amount.BigInt())
+	_, err := k.CallEVMWithModule(ctx, fip20, contract, "mint", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to call mint function with module")
 	}
@@ -122,20 +122,20 @@ func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, se
 				sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
 				sdk.NewAttribute(types.AttributeKeyCosmosCoin, coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
+				sdk.NewAttribute(types.AttributeKeyFIP20Token, pair.Fip20Address),
 			),
 		},
 	)
 	return nil
 }
 
-// convertDenomNativeERC20 handles the Coin conversion flow for a native ERC20 token pair:
+// convertDenomNativeFIP20 handles the Coin conversion flow for a native FIP20 token pair:
 //  - Escrow Coins on module account
-//  - Unescrow Tokens that have been previously escrowed with ConvertERC20 and send to receiver
+//  - Unescrow Tokens that have been previously escrowed with ConvertFIP20 and send to receiver
 //  - Burn escrowed Coins
 func (k Keeper) convertDenomNativeFIP20(ctx sdk.Context, pair types.TokenPair, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
 	coins := sdk.Coins{coin}
-	erc20 := contracts.FIP20Contract.ABI
+	fip20 := contracts.FIP20Contract.ABI
 	contract := pair.GetFIP20Contract()
 
 	// Escrow Coins on module account
@@ -144,14 +144,14 @@ func (k Keeper) convertDenomNativeFIP20(ctx sdk.Context, pair types.TokenPair, s
 	}
 
 	// Unescrow Tokens and send to receiver
-	res, err := k.CallEVMWithModule(ctx, erc20, contract, "transfer", receiver, coin.Amount.BigInt())
+	res, err := k.CallEVMWithModule(ctx, fip20, contract, "transfer", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to call transfer function with module")
 	}
 
 	// Check unpackedRet execution
 	var unpackedRet types.FIP20BoolResponse
-	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
+	if err := fip20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
 		return sdkerrors.Wrap(err, "failed to unpack transfer return data")
 	}
 	if !unpackedRet.Value {
@@ -172,24 +172,24 @@ func (k Keeper) convertDenomNativeFIP20(ctx sdk.Context, pair types.TokenPair, s
 				sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
 				sdk.NewAttribute(types.AttributeKeyCosmosCoin, coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Fip20Address),
+				sdk.NewAttribute(types.AttributeKeyFIP20Token, pair.Fip20Address),
 			),
 		},
 	)
 	return nil
 }
 
-// convertERC20NativeDenom handles the erc20 conversion flow for a native coin token pair:
+// convertFIP20NativeDenom handles the fip20 conversion flow for a native coin token pair:
 //  - Escrow tokens on module account
 //  - Burn escrowed tokens
 //  - Unescrow coins that have been previously escrowed with ConvertCoin
-func (k Keeper) convertERC20NativeDenom(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdk.Int) error {
+func (k Keeper) convertFIP20NativeDenom(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdk.Int) error {
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: amount}}
-	erc20 := contracts.FIP20Contract.ABI
+	fip20 := contracts.FIP20Contract.ABI
 	contract := pair.GetFIP20Contract()
 
 	// Call evm to burn amount
-	_, err := k.CallEVMWithModule(ctx, erc20, contract, "burn", sender, amount.BigInt())
+	_, err := k.CallEVMWithModule(ctx, fip20, contract, "burn", sender, amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to call burn function with module")
 	}
@@ -202,29 +202,29 @@ func (k Keeper) convertERC20NativeDenom(ctx sdk.Context, pair types.TokenPair, s
 	ctx.EventManager().EmitEvents(
 		sdk.Events{
 			sdk.NewEvent(
-				types.EventTypeConvertERC20,
+				types.EventTypeConvertFIP20,
 				sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
 				sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 				sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, contract.String()),
+				sdk.NewAttribute(types.AttributeKeyFIP20Token, contract.String()),
 			),
 		},
 	)
 	return nil
 }
 
-// convertERC20NativeToken handles the erc20 conversion flow for a native erc20 token pair:
+// convertFIP20NativeToken handles the fip20 conversion flow for a native fip20 token pair:
 //  - Escrow tokens on module account (Don't burn as module is not contract owner)
 //  - Mint coins on module
 //  - Send minted coins to the receiver
 func (k Keeper) convertFIP20NativeToken(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdk.Int) error {
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: amount}}
-	erc20 := contracts.FIP20Contract.ABI
+	fip20 := contracts.FIP20Contract.ABI
 	contract := pair.GetFIP20Contract()
 
 	// Escrow tokens on module account
-	transferData, err := erc20.Pack("transfer", types.ModuleAddress, amount.BigInt())
+	transferData, err := fip20.Pack("transfer", types.ModuleAddress, amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to pack transfer")
 	}
@@ -236,7 +236,7 @@ func (k Keeper) convertFIP20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 
 	// Check unpackedRet execution
 	var unpackedRet types.FIP20BoolResponse
-	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
+	if err := fip20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
 		return sdkerrors.Wrap(err, "failed to unpack transfer return data")
 	}
 
@@ -257,12 +257,12 @@ func (k Keeper) convertFIP20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 	ctx.EventManager().EmitEvents(
 		sdk.Events{
 			sdk.NewEvent(
-				types.EventTypeConvertERC20,
+				types.EventTypeConvertFIP20,
 				sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
 				sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 				sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, contract.String()),
+				sdk.NewAttribute(types.AttributeKeyFIP20Token, contract.String()),
 			),
 		},
 	)

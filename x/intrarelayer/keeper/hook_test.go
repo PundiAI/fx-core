@@ -20,6 +20,7 @@ import (
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"
+	"github.com/functionx/fx-core/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
@@ -198,9 +199,9 @@ func TestHookChainBSC(t *testing.T) {
 	transferChainData := packTransferChainData(t, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, "bsc")
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
-	transactions := app.GravityKeeper.GetPoolTransactions(ctx)
+	transactions := app.BscKeeper.GetUnbatchedTransactions(ctx)
 	for _, tx := range transactions {
-		t.Log("sender", tx.Sender, "dest", tx.DestAddress, "amount", tx.Erc20Token.String())
+		t.Log("sender", tx.Sender, "dest", tx.DestAddress, "amount", tx.Token.String())
 	}
 }
 
@@ -331,8 +332,8 @@ func GetValidator(t *testing.T, app *fxcore.App, vals ...*tmtypes.Validator) []s
 }
 
 var (
-	FxOriginatedTokenContract = common.HexToAddress("0x0")
-	BSCBridgeTokenContract    = common.HexToAddress("0x1")
+	FxOriginatedTokenContract = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	BSCBridgeTokenContract    = common.HexToAddress("0x0000000000000000000000000000000000000001")
 )
 
 func TestContractAddr(t *testing.T) {
@@ -433,7 +434,7 @@ func testInitBscCrossChain(t *testing.T, ctx sdk.Context, app *fxcore.App, oracl
 
 	testBSCBridgeTokenClaim(t, ctx, app, orchestratorAddr)
 
-	gravity.EndBlocker(ctx, app.GravityKeeper)
+	crosschain.EndBlocker(ctx, app.BscKeeper)
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 

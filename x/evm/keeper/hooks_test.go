@@ -58,29 +58,14 @@ func (suite *KeeperTestSuite) TestEvmHooks() {
 		hook := tc.setupHook()
 
 		k := suite.app.EvmKeeper
-
-		tx := ethtypes.NewTx(&ethtypes.DynamicFeeTx{
-			Nonce:      1,
-			To:         &common.Address{},
-			Value:      big.NewInt(0),
-			Gas:        10000,
-			AccessList: make(ethtypes.AccessList, 0),
-			ChainID:    new(big.Int),
-			GasTipCap:  new(big.Int),
-			GasFeeCap:  new(big.Int),
-			V:          new(big.Int),
-			R:          new(big.Int),
-			S:          new(big.Int),
-		})
-
-		//txHash := common.BigToHash(big.NewInt(1))
-		k.SetTxHashTransient(tx.Hash())
+		txHash := common.BigToHash(big.NewInt(1))
+		k.SetTxHashTransient(txHash)
 		k.AddLog(&ethtypes.Log{
 			Topics:  []common.Hash{},
 			Address: suite.address,
 		})
-		logs := k.GetTxLogsTransient(tx.Hash())
-		result := k.PostTxProcessing(tx.Hash(), logs)
+		logs := k.GetTxLogsTransient(txHash)
+		result := k.PostTxProcessing(txHash, logs)
 
 		tc.expFunc(hook, result)
 	}

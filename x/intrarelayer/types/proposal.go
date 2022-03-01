@@ -48,11 +48,12 @@ func CreateDenom(address string) string {
 }
 
 // NewInitIntrarelayerParamsProposal returns new instance of InitIntrarelayerParamsProposal
-func NewInitIntrarelayerParamsProposal(title, description string, params *Params) govtypes.Content {
+func NewInitIntrarelayerParamsProposal(title, description string, params *Params, metadata []banktypes.Metadata) govtypes.Content {
 	return &InitIntrarelayerParamsProposal{
 		Title:       title,
 		Description: description,
 		Params:      params,
+		Metadata:    metadata,
 	}
 }
 
@@ -68,19 +69,31 @@ func (*InitIntrarelayerParamsProposal) ProposalType() string {
 
 // ValidateBasic performs a stateless check of the proposal fields
 func (iip *InitIntrarelayerParamsProposal) ValidateBasic() error {
-	if len(iip.Title) == 0 {
-		return fmt.Errorf("invalid title: %s", iip.Title)
-	}
-	if len(iip.Description) == 0 {
-		return fmt.Errorf("invalid description: %s", iip.Title)
-	}
+
 	if iip.Params == nil {
 		return errors.New("empty params")
 	}
 	if err := iip.Params.Validate(); err != nil {
 		return err
 	}
-	return nil
+
+	if len(iip.Metadata) > 0 {
+		for _, metadata := range iip.Metadata {
+			if err := metadata.Validate(); err != nil {
+				return err
+			}
+
+			if err := ibctransfertypes.ValidateIBCDenom(metadata.Base); err != nil {
+				return err
+			}
+
+			if err := validateIBC(metadata); err != nil {
+				return err
+			}
+		}
+	}
+
+	return govtypes.ValidateAbstract(iip)
 }
 
 // NewRegisterCoinProposal returns new instance of RegisterCoinProposal

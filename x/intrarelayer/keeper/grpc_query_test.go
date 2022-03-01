@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 				addr := tests.GenerateAddress()
 				pair := types.NewTokenPair(addr, "coin", true, types.OWNER_MODULE)
 				suite.app.IntrarelayerKeeper.SetTokenPair(suite.ctx, pair)
-				suite.app.IntrarelayerKeeper.SetERC20Map(suite.ctx, addr, pair.GetID())
+				suite.app.IntrarelayerKeeper.SetFIP20Map(suite.ctx, addr, pair.GetID())
 				suite.app.IntrarelayerKeeper.SetDenomMap(suite.ctx, pair.Denom, pair.GetID())
 
 				req = &types.QueryTokenPairRequest{

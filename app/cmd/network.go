@@ -32,7 +32,7 @@ func Network() *cobra.Command {
 				"EIP155ChainID":                          fmt.Sprintf("%d", types.EIP155ChainID()),
 				"EvmSupportBlock":                        fmt.Sprintf("%d", types.EvmSupportBlock()),
 				"IntrarelayerSupportBlock":               fmt.Sprintf("%d", types.IntrarelayerSupportBlock()),
-				"RequestBaseFee":                         fmt.Sprintf("%d", types.RequestBatchBaseFee()),
+				"MigrateSupportBlock":                    fmt.Sprintf("%d", types.MigrateSupportBlock()),
 			})
 			if err != nil {
 				return err

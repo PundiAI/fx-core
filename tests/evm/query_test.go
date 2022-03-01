@@ -122,8 +122,11 @@ func TestTraverseBlockERC20(t *testing.T) {
 		}
 		for _, v := range block.EndBlockEvents {
 			for _, vv := range v.Attributes {
-				if strings.EqualFold("erc20_token", string(vv.Key)) {
-					fmt.Println(i, "contract address:", string(vv.Value))
+				if strings.EqualFold("fip20_symbol", string(vv.Key)) {
+					fmt.Println(i, "fip20 symbol:", string(vv.Value))
+				}
+				if strings.EqualFold("fip20_token", string(vv.Key)) {
+					fmt.Println(i, "fip20 address:", string(vv.Value))
 				}
 			}
 		}

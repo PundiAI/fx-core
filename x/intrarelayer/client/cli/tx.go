@@ -8,14 +8,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"strconv"
+	"strings"
 
 	ethermint "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/intrarelayer/types"
+)
+
+const (
+	metadataFlag = "metadata"
 )
 
 // NewTxCmd returns a root CLI command handler for certain modules/intrarelayer transaction commands.
@@ -201,13 +207,6 @@ func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 				return err
 			}
 			tokenPairVotingPeriod := res.VotingParams.VotingPeriod
-			//if len(args) == 3 {
-			//	votingPeriod, err := strconv.ParseUint(args[2], 10, 64)
-			//	if err != nil {
-			//		return err
-			//	}
-			//	tokenPairVotingPeriod = time.Second * time.Duration(votingPeriod)
-			//}
 
 			ibcTransferTimeoutHeight, err := strconv.ParseUint(args[3], 10, 64)
 			if err != nil {
@@ -219,7 +218,16 @@ func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 				return err
 			}
 
-			proposal := types.NewInitIntrarelayerParamsProposal(title, description, &params)
+			metadataPath := viper.GetString(metadataFlag)
+			var metadatas []banktypes.Metadata
+			if len(strings.TrimSpace(metadataPath)) > 0 {
+				metadatas, err = ReadMetadataFromPath(clientCtx.JSONMarshaler, metadataPath)
+				if err != nil {
+					return err
+				}
+			}
+
+			proposal := types.NewInitIntrarelayerParamsProposal(title, description, &params, metadatas)
 			if err := proposal.ValidateBasic(); err != nil {
 				return err
 			}
@@ -240,6 +248,7 @@ func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
 	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
 	cmd.Flags().String(cli.FlagDeposit, "1FX", "deposit of proposal")
+	cmd.Flags().String(metadataFlag, "", "path to metadata file/directory")
 	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
 		panic(err)
 	}

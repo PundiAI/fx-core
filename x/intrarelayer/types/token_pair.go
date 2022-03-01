@@ -17,7 +17,7 @@ func NewTokenPair(Fip20Address common.Address, denom string, enabled bool, contr
 	}
 }
 
-// GetID returns the SHA256 hash of the ERC20 address and denomination
+// GetID returns the SHA256 hash of the FIP20 address and denomination
 func (tp TokenPair) GetID() []byte {
 	id := tp.Fip20Address + "|" + tp.Denom
 	return tmhash.Sum([]byte(id))
@@ -41,14 +41,14 @@ func (tp TokenPair) Validate() error {
 	return nil
 }
 
-// IsNativeCoin returns true if the owner of the ERC20 contract is the
+// IsNativeCoin returns true if the owner of the FIP20 contract is the
 // intrarelayer module account
 func (tp TokenPair) IsNativeCoin() bool {
 	return tp.ContractOwner == OWNER_MODULE
 }
 
-// IsNativeERC20 returns true if the owner of the ERC20 contract not the
+// IsNativeFIP20 returns true if the owner of the FIP20 contract not the
 // intrarelayer module account
-func (tp TokenPair) IsNativeERC20() bool {
+func (tp TokenPair) IsNativeFIP20() bool {
 	return tp.ContractOwner == OWNER_EXTERNAL
 }
