@@ -1,4 +1,4 @@
-package v1
+package types
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/crypto"
-	typescommon "github.com/functionx/fx-core/x/migrate/types/common"
 )
 
 var (
@@ -23,7 +22,7 @@ func NewMsgMigrateAccount(from, to sdk.AccAddress, signature string) *MsgMigrate
 }
 
 // Route should return the name of the module
-func (m *MsgMigrateAccount) Route() string { return typescommon.RouterKey }
+func (m *MsgMigrateAccount) Route() string { return RouterKey }
 
 // Type should return the action
 func (m *MsgMigrateAccount) Type() string { return "migrate_account" }
@@ -39,19 +38,19 @@ func (m *MsgMigrateAccount) ValidateBasic() (err error) {
 		return err
 	}
 	if len(m.Signature) == 0 {
-		return sdkerrors.Wrap(typescommon.ErrInvalidSignature, "signature is empty")
+		return sdkerrors.Wrap(ErrInvalidSignature, "signature is empty")
 	}
 	sig, err := hex.DecodeString(m.Signature)
 	if err != nil {
-		return sdkerrors.Wrapf(typescommon.ErrInvalidSignature, "could not hex decode signature: %s", m.Signature)
+		return sdkerrors.Wrapf(ErrInvalidSignature, "could not hex decode signature: %s", m.Signature)
 	}
 	pubKey, err := crypto.SigToPub(MigrateAccountSignatureHash(from, to), sig)
 	if err != nil {
-		return sdkerrors.Wrapf(typescommon.ErrInvalidSignature, "unmarshal pub key error: %v", err)
+		return sdkerrors.Wrapf(ErrInvalidSignature, "unmarshal pub key error: %v", err)
 	}
 	address := crypto.PubkeyToAddress(*pubKey)
 	if !bytes.Equal(address.Bytes(), to.Bytes()) { //fx address byte not equal recover address byte
-		return sdkerrors.Wrap(typescommon.ErrInvalidAddress, "signature key not equal to address")
+		return sdkerrors.Wrap(ErrInvalidAddress, "signature key not equal to address")
 	}
 	return nil
 }
@@ -71,5 +70,5 @@ func (m *MsgMigrateAccount) GetSigners() []sdk.AccAddress {
 }
 
 func MigrateAccountSignatureHash(from, to sdk.AccAddress) []byte {
-	return crypto.Keccak256([]byte(typescommon.MigrateAccountSignaturePrefix), from.Bytes(), to.Bytes())
+	return crypto.Keccak256([]byte(MigrateAccountSignaturePrefix), from.Bytes(), to.Bytes())
 }

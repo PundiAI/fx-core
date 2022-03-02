@@ -4,8 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	typescommon "github.com/functionx/fx-core/x/migrate/types/common"
-	typesv1 "github.com/functionx/fx-core/x/migrate/types/v1"
+	"github.com/functionx/fx-core/x/migrate/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -20,7 +19,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case QueryMigrateRecord:
 			return queryMigrateRecord(ctx, path[1], keeper)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", typescommon.ModuleName)
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 }
@@ -28,10 +27,10 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 func queryMigrateRecord(ctx sdk.Context, address string, keeper Keeper) ([]byte, error) {
 	bech32, err := sdk.AccAddressFromBech32(address)
 	if err != nil {
-		return nil, sdkerrors.Wrap(typescommon.ErrInvalidAddress, err.Error())
+		return nil, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
 	}
 	record, _ := keeper.GetMigrateRecord(ctx, bech32)
-	res, err := codec.MarshalJSONIndent(typesv1.ModuleCdc, record)
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, record)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

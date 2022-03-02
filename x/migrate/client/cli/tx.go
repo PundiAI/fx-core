@@ -7,14 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	typescommon "github.com/functionx/fx-core/x/migrate/types/common"
-	typesv1 "github.com/functionx/fx-core/x/migrate/types/v1"
+	"github.com/functionx/fx-core/x/migrate/types"
 	"github.com/spf13/cobra"
 )
 
 func GetTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        typescommon.ModuleName,
+		Use:                        types.ModuleName,
 		Short:                      "migrate transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -40,11 +39,11 @@ func GetMigrateAccountCmd() *cobra.Command {
 				return err
 			}
 			toInfo, err := cliCtx.Keyring.KeyByAddress(toAddress)
-			sign, _, err := cliCtx.Keyring.Sign(toInfo.GetName(), typesv1.MigrateAccountSignatureHash(fromAddress, toAddress))
+			sign, _, err := cliCtx.Keyring.Sign(toInfo.GetName(), types.MigrateAccountSignatureHash(fromAddress, toAddress))
 			if err != nil {
 				return fmt.Errorf("sign migrate signature error %v", err)
 			}
-			msg := typesv1.NewMsgMigrateAccount(fromAddress, toAddress, hex.EncodeToString(sign))
+			msg := types.NewMsgMigrateAccount(fromAddress, toAddress, hex.EncodeToString(sign))
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

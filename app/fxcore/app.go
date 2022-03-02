@@ -122,7 +122,7 @@ import (
 	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
-	migratetypes "github.com/functionx/fx-core/x/migrate/types/common"
+	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 )
 
 var ChainID = "fxcore"

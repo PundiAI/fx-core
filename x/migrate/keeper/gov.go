@@ -4,16 +4,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	migratetypes "github.com/functionx/fx-core/x/migrate/types"
-	typescommon "github.com/functionx/fx-core/x/migrate/types/common"
+	"github.com/functionx/fx-core/x/migrate/types"
 )
 
 type GovMigrate struct {
 	govKey    sdk.StoreKey
-	govKeeper migratetypes.GovKeeper
+	govKeeper types.GovKeeper
 }
 
-func NewGovMigrate(govKey sdk.StoreKey, govKeeper migratetypes.GovKeeper) MigrateI {
+func NewGovMigrate(govKey sdk.StoreKey, govKeeper types.GovKeeper) MigrateI {
 	return &GovMigrate{
 		govKey:    govKey,
 		govKeeper: govKeeper,
@@ -71,7 +70,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.AccAddress)
 			_, toFound := m.govKeeper.GetVote(ctx, proposalID, to)
 			//TODO error or remain unchanged or cover ???
 			if toFound {
-				return sdkerrors.Wrapf(typescommon.ErrInvalidAddress, "can not migrate, %s has voted proposal %d", to.String(), proposalID)
+				return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s has voted proposal %d", to.String(), proposalID)
 			}
 			fromVote.Voter = to.String()
 			govStore.Delete(govtypes.VoteKey(proposalID, from))

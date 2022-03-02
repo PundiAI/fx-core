@@ -6,14 +6,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	typescommon "github.com/functionx/fx-core/x/migrate/types/common"
-	typesv1 "github.com/functionx/fx-core/x/migrate/types/v1"
+	"github.com/functionx/fx-core/x/migrate/types"
 	"github.com/spf13/cobra"
 )
 
 func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        typescommon.ModuleName,
+		Use:                        types.ModuleName,
 		Short:                      "Querying commands for the eth module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -37,13 +36,13 @@ func CmdGetMigrateRecord() *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := typesv1.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
-			res, err := queryClient.QueryMigrateRecord(cmd.Context(), &typesv1.QueryMigrateRecordRequest{Address: addr.String()})
+			res, err := queryClient.QueryMigrateRecord(cmd.Context(), &types.QueryMigrateRecordRequest{Address: addr.String()})
 			if err != nil {
 				return err
 			}

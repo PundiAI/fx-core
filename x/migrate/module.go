@@ -11,8 +11,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/functionx/fx-core/x/migrate/client/cli"
 	"github.com/functionx/fx-core/x/migrate/keeper"
-	typescommon "github.com/functionx/fx-core/x/migrate/types/common"
-	migratev1 "github.com/functionx/fx-core/x/migrate/types/v1"
+	"github.com/functionx/fx-core/x/migrate/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -25,12 +24,12 @@ type AppModuleBasic struct{}
 
 // Name implements app module basic
 func (AppModuleBasic) Name() string {
-	return typescommon.ModuleName
+	return types.ModuleName
 }
 
 // RegisterLegacyAminoCodec implements app module basic
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	migratev1.RegisterCodec(cdc)
+	types.RegisterCodec(cdc)
 }
 
 // DefaultGenesis implements app module basic
@@ -59,12 +58,12 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
 // also implements app modeul basic
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	_ = migratev1.RegisterQueryHandlerClient(context.Background(), mux, migratev1.NewQueryClient(clientCtx))
+	_ = types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
 
 // RegisterInterfaces implements app bmodule basic
 func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	migratev1.RegisterInterfaces(registry)
+	types.RegisterInterfaces(registry)
 }
 
 //____________________________________________________________________________
@@ -85,7 +84,7 @@ func NewAppModule(k keeper.Keeper) AppModule {
 
 // Name implements app module
 func (AppModule) Name() string {
-	return typescommon.ModuleName
+	return types.ModuleName
 }
 
 // RegisterInvariants implements app module
@@ -95,12 +94,12 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // Route implements app module
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(typescommon.RouterKey, NewHandler(am.keeper))
+	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
 }
 
 // QuerierRoute implements app module
 func (am AppModule) QuerierRoute() string {
-	return typescommon.QuerierRoute
+	return types.QuerierRoute
 }
 
 // LegacyQuerierHandler returns the distribution module sdk.Querier.
@@ -110,8 +109,8 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	migratev1.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	migratev1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
 // InitGenesis initializes the genesis state for this module and implements app module.

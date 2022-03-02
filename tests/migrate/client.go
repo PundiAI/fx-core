@@ -31,7 +31,7 @@ const (
 	defaultFxGrpcUrl  = "localhost:9090"
 	hdPath            = "m/44'/118'/0'/0/0"
 	defaultFxMnemonic = "dune antenna hood magic kit blouse film video another pioneer dilemma hobby message rug sail gas culture upgrade twin flag joke people general aunt"
-	defaultChainId    = "boonlay"
+	defaultChainId    = "fxcore"
 
 	toAddressMnemonic = "cloud exclude pass crime pill garment feature cancel affair dream aware reunion reward wide autumn strike edit now crop fever swift easy price about"
 	val2Mnemonic      = "position shrug hamster range arena cash uncover execute piece cherry unknown wonder obscure remain coach clump arrest park cover cotton ginger educate radio spawn"

@@ -9,8 +9,11 @@ import (
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/functionx/fx-core/app/fxcore"
-	migratetypesv1 "github.com/functionx/fx-core/x/migrate/types/v1"
+	"github.com/functionx/fx-core/crypto/ethsecp256k1"
+	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -269,6 +272,38 @@ func Test_All(t *testing.T) {
 	//query
 	cli.testQueryAccount(ctx, cli.FxAddress())
 	cli.testQueryAccount(ctx, toAddress)
+}
+
+func Test_Signature(t *testing.T) {
+	bz, err := hex.DecodeString("3741e28e26d1df113bffff063d4121d1559f9efa87cf0110aa3d0be1cf742018")
+	require.NoError(t, err)
+	pri := &ethsecp256k1.PrivKey{Key: bz}
+	t.Log("private key address", common.BytesToAddress(pri.PubKey().Address()).String())
+
+	sig, err := hex.DecodeString("a010cf5b836eb934203ce5cc79544c79c7abca116dc9181c600d69d4163574120d1f1d5fd18225288dc9b8386a98f35af2a34cec36ae67f73cf70726819a9e8001")
+	require.NoError(t, err)
+
+	from, err := sdk.AccAddressFromBech32("fx1as048peq0hzfz4d64ew68ulwfx90m27lmckwaq")
+	require.NoError(t, err)
+
+	to := common.HexToAddress("0x77F2022532009c5EB4c6C70f395DEAaA793481Bc")
+
+	b := []byte{}
+	b = append(b, []byte(migratetypes.MigrateAccountSignaturePrefix)...)
+	b = append(b, from.Bytes()...)
+	b = append(b, to.Bytes()...)
+
+	t.Log("data", hex.EncodeToString(b))
+
+	bb := crypto.Keccak256(b)
+	t.Log("hhh", hex.EncodeToString(bb))
+
+	hash := migratetypes.MigrateAccountSignatureHash(from, to.Bytes())
+	t.Log("hash", hex.EncodeToString(hash))
+
+	pubKey, err := crypto.SigToPub(hash, sig)
+	address := crypto.PubkeyToAddress(*pubKey)
+	t.Log("address", address.String())
 }
 
 func (cli *Client) testQueryBalance(ctx context.Context, acc sdk.AccAddress) {
@@ -604,10 +639,10 @@ func (cli *Client) testProposalVote(ctx context.Context, privateKey ...cryptotyp
 func (cli *Client) testMigrateAccount(ctx context.Context, toPrivateKey cryptotypes.PrivKey) {
 	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
 	cli.t.Log("=======>", "migrate from", cli.FxAddress().String(), "migrate to", toAddress.String())
-	migrateSign, err := toPrivateKey.Sign(migratetypesv1.MigrateAccountSignatureHash(cli.FxAddress(), toAddress))
+	migrateSign, err := toPrivateKey.Sign(migratetypes.MigrateAccountSignatureHash(cli.FxAddress(), toAddress))
 	require.NoError(cli.t, err)
 
-	msg := migratetypesv1.NewMsgMigrateAccount(cli.FxAddress(), toAddress, hex.EncodeToString(migrateSign))
+	msg := migratetypes.NewMsgMigrateAccount(cli.FxAddress(), toAddress, hex.EncodeToString(migrateSign))
 	txHash := cli.BroadcastTx(msg)
 	cli.t.Log("=======>", "migrate account txHash", txHash)
 }
