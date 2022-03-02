@@ -27,26 +27,28 @@ func (k Keeper) RelayTransferChainProcessing(ctx sdk.Context, txHash common.Hash
 		if !found {
 			continue
 		}
-		data, err := parseTransferChainData(log.Data)
+		event, err := parseTransferChainData(log.Data)
 		if err != nil {
-			return fmt.Errorf("parse cross transfer event error %v", err)
+			return fmt.Errorf("parse transfer chain event error %v", err)
 		}
 		from := common.BytesToAddress(log.Topics[1].Bytes())
+		k.Logger(ctx).Info("relay transfer chain", "hash", txHash.Hex(), "from", from.Hex(), "to", event.To, "target",
+			event.Target, "amount", event.Value.String(), "fee", event.Fee, "denom", pair.Denom, "token", pair.Fip20Address)
 		//check balance
 		balances := k.bankKeeper.GetAllBalances(ctx, from.Bytes())
-		totalAmount := big.NewInt(0).Add(data.Value, data.Fee)
+		totalAmount := big.NewInt(0).Add(event.Value, event.Fee)
 		if balances.AmountOf(pair.Denom).BigInt().Cmp(totalAmount) < 0 {
 			return errors.New("insufficient balance")
 		}
 		//transfer chain
-		err = k.transferChainHandler(ctx, data.Target, from, data.To,
-			sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(data.Value)),
-			sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(data.Fee)))
+		err = k.transferChainHandler(ctx, event.Target, from, event.To,
+			sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(event.Value)),
+			sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(event.Fee)))
 		if err != nil {
-			k.Logger(ctx).Error("relay transfer chain error")
+			k.Logger(ctx).Error("failed relay transfer chain", "hash", txHash.Hex(), "error", err.Error())
 			return err
 		}
-		k.Logger(ctx).Info("relay transfer chain success")
+		k.Logger(ctx).Info("relay transfer chain success", "hash", txHash.Hex())
 	}
 	return nil
 }

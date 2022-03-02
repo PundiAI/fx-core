@@ -40,8 +40,7 @@ func (k Keeper) InitIntrarelayer(ctx sdk.Context, p *types.InitIntrarelayerParam
 		}
 		event := sdk.NewEvent(
 			types.EventTypeRegisterCoin,
-			sdk.NewAttribute(types.AttributeKeyCosmosCoin, metadata.Base),
-			sdk.NewAttribute(types.AttributeKeyFIP20Symbol, metadata.Display),
+			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
 			sdk.NewAttribute(types.AttributeKeyFIP20Token, pair.Fip20Address),
 		)
 		events = append(events, event)

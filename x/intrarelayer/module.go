@@ -177,19 +177,18 @@ func (am AppModule) TransferAfter(
 	ctx sdk.Context,
 	sender, receive string, amount, fee sdk.Coin,
 ) error {
-	if ctx.BlockHeight() < fxtypes.IntrarelayerSupportBlock() || !am.keeper.HasInit(ctx) {
-		return errors.New("module not enable")
-	}
-	if !am.keeper.IsDenomRegistered(ctx, amount.Denom) {
-		return fmt.Errorf("denom %s not resgister", amount.Denom)
-	}
-
 	sendAddr, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid sender address %s, error %s", sender, err.Error())
 	}
 	if !common.IsHexAddress(receive) {
 		return fmt.Errorf("invalid receiver address %s", receive)
+	}
+	if ctx.BlockHeight() < fxtypes.IntrarelayerSupportBlock() || !am.keeper.HasInit(ctx) {
+		return errors.New("intrarelayer module not enable")
+	}
+	if !am.keeper.IsDenomRegistered(ctx, amount.Denom) {
+		return fmt.Errorf("denom %s not resgister", amount.Denom)
 	}
 	return am.keeper.ConvertDenomToFIP20(ctx, sendAddr, common.HexToAddress(receive), amount.Add(fee))
 }
@@ -202,7 +201,7 @@ func (am AppModule) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel strin
 	}
 	//check tx
 	if !am.keeper.HashIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
-		ctx.Logger().Info("ignore ibc timeout refund, transaction not belong to evm ibc transfer", "module", types.ModuleName)
+		ctx.Logger().Info("ignore refund, transaction not belong to evm ibc transfer", "module", types.ModuleName)
 		return nil
 	}
 	return am.keeper.ConvertDenomToFIP20(ctx, sender, common.BytesToAddress(sender.Bytes()), amount)

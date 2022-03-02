@@ -27,12 +27,16 @@ func (k Keeper) RelayTokenProcessing(ctx sdk.Context, txHash common.Hash, logs [
 			return fmt.Errorf("parse transfer amount error %v", err.Error())
 		}
 		from := common.BytesToAddress(log.Topics[1].Bytes())
+
+		k.Logger(ctx).Info("relay token", "hash", txHash.String(), "from", from.Hex(),
+			"amount", amount.String(), "denom", pair.Denom, "token", pair.Fip20Address)
+
 		err = k.ProcessRelayToken(ctx, txHash, pair, from, amount)
 		if err != nil {
-			k.Logger(ctx).Error("Process EVM hook -> Relay token from evm", "amount", amount.String(),
-				"coin", pair.Denom, "contract", pair.Fip20Address, "error", err.Error())
+			k.Logger(ctx).Error("failed to relay token", "hash", txHash.String(), "error", err.Error())
 			return err
 		}
+		k.Logger(ctx).Info("relay transfer token success", "hash", txHash.Hex())
 	}
 	return nil
 }
@@ -78,7 +82,7 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, txHash common.Hash, pair type
 			),
 		},
 	)
-	k.Logger(ctx).Info("Process EVM hook -> Relay token from evm", "amount", amount.String(), "coins", coins.String(),
+	k.Logger(ctx).Info("relay token from evm success", "amount", amount.String(), "coins", coins.String(),
 		"contract", pair.Fip20Address, "from", from.String(), "recipient", sdk.AccAddress(recipient.Bytes()).String())
 	return nil
 }

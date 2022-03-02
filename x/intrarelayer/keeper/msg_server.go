@@ -18,6 +18,10 @@ var _ types.MsgServer = &Keeper{}
 // Cosmos-native and FIP20 TokenPair Owners
 func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*types.MsgConvertCoinResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.evmKeeper.HasInit(ctx) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module not enable")
+	}
 	k.evmKeeper.WithContext(ctx)
 
 	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
@@ -31,6 +35,10 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 // Cosmos-native and FIP20 TokenPair Owners
 func (k Keeper) ConvertFIP20(goCtx context.Context, msg *types.MsgConvertFIP20) (*types.MsgConvertFIP20Response, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.evmKeeper.HasInit(ctx) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module not enable")
+	}
 	k.evmKeeper.WithContext(ctx)
 
 	sender, _ := sdk.AccAddressFromBech32(msg.Sender)

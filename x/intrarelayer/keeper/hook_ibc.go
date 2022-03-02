@@ -26,9 +26,13 @@ func (k Keeper) RelayTransferIBCProcessing(ctx sdk.Context, txHash common.Hash, 
 		}
 		event, err := parseTransferIBCEvent(log.Data)
 		if err != nil {
-			return fmt.Errorf("parse cross transfer event error %v", err)
+			return fmt.Errorf("parse transfer ibc event error %v", err)
 		}
 		from := common.BytesToAddress(log.Topics[1].Bytes())
+
+		k.Logger(ctx).Info("relay transfer ibc", "hash", txHash.Hex(), "from", from.Hex(), "to", event.To,
+			"amount", event.Value.String(), "denom", pair.Denom, "token", pair.Fip20Address)
+
 		//check balance
 		balances := k.bankKeeper.GetAllBalances(ctx, from.Bytes())
 		if balances.AmountOf(pair.Denom).BigInt().Cmp(event.Value) < 0 {
@@ -36,10 +40,10 @@ func (k Keeper) RelayTransferIBCProcessing(ctx sdk.Context, txHash common.Hash, 
 		}
 		err = k.transferIBCHandler(ctx, event.Target, from, event.To, sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(event.Value)), txHash)
 		if err != nil {
-			k.Logger(ctx).Error("relay transfer chain error")
+			k.Logger(ctx).Error("failed to relay transfer ibc", "hash", txHash.Hex(), "error", err.Error())
 			return err
 		}
-		k.Logger(ctx).Info("relay transfer chain success")
+		k.Logger(ctx).Info("relay transfer ibc success", "hash", txHash.Hex())
 	}
 	return nil
 }
