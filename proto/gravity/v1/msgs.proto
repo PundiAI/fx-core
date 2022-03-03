@@ -105,8 +105,8 @@ message MsgRequestBatch {
     string sender = 1;
     string denom = 2;
     string minimum_fee = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-    string feeReceive = 4;
-    string baseFee = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+    string fee_receive = 4;
+    string base_fee = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }
 
 message MsgRequestBatchResponse {

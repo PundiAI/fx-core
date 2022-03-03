@@ -105,8 +105,16 @@ func (k Keeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.
 }
 
 // BatchFees queries the batch fees from unbatched pool
-func (k Keeper) BatchFees(c context.Context, _ *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
-	return &types.QueryBatchFeeResponse{BatchFees: k.GetAllBatchFees(sdk.UnwrapSDKContext(c), MaxResults)}, nil
+func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
+	baseFee := req.BaseFee
+	if baseFee.IsNil() {
+		baseFee = sdk.ZeroInt()
+	}
+	if baseFee.IsNegative() {
+		return nil, types.ErrInvalidRequestBatchBaseFee
+	}
+	allBatchFees := k.GetAllBatchFees(sdk.UnwrapSDKContext(c), MaxResults, baseFee)
+	return &types.QueryBatchFeeResponse{BatchFees: allBatchFees}, nil
 }
 
 // LastPendingBatchRequestByAddr queries the LastPendingBatchRequestByAddr of the bsc module

@@ -71,7 +71,7 @@ const (
 )
 
 // NewQuerier is the module level router for state queries
-func NewQuerier(keeper Keeper) sdk.Querier {
+func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 
@@ -99,7 +99,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case QueryOutgoingTxBatches:
 			return lastBatchesRequest(ctx, keeper)
 		case QueryBatchFees:
-			return queryBatchFees(ctx, keeper)
+			return queryBatchFees(ctx, keeper, req, legacyQuerierCdc)
 
 		case QueryGravityID:
 			return queryGravityID(ctx, keeper)
@@ -329,8 +329,12 @@ func lastBatchesRequest(ctx sdk.Context, keeper Keeper) ([]byte, error) {
 	return res, nil
 }
 
-func queryBatchFees(ctx sdk.Context, keeper Keeper) ([]byte, error) {
-	val := types.QueryBatchFeeResponse{BatchFees: keeper.GetAllBatchFees(ctx)}
+func queryBatchFees(ctx sdk.Context, keeper Keeper, req abci.RequestQuery, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	var params types.QueryBatchFeeRequest
+	if err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params); err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	val := types.QueryBatchFeeResponse{BatchFees: keeper.GetAllBatchFees(ctx, params.BaseFee)}
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, val)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())

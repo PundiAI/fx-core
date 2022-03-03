@@ -152,6 +152,7 @@ message QueryLastPendingOracleSetRequestByAddrResponse {
 
 message QueryBatchFeeRequest {
     string chain_name = 1;
+    string base_fee = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }
 message QueryBatchFeeResponse {
     repeated BatchFees batch_fees = 1;

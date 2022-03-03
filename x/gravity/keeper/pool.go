@@ -299,15 +299,15 @@ func (k Keeper) IterateOutgoingPoolByFee(ctx sdk.Context, contract string, cb fu
 // have if created. This info is both presented to relayers for the purpose of determining
 // when to request batches and also used by the batch creation process to decide not to create
 // a new batch
-func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContractAddr string) *types.BatchFees {
-	batchFeesMap := k.createBatchFees(ctx)
+func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContractAddr string, baseFee sdk.Int) *types.BatchFees {
+	batchFeesMap := k.createBatchFees(ctx, baseFee)
 	return batchFeesMap[tokenContractAddr]
 }
 
 // GetAllBatchFees creates a fee entry for every batch type currently in the store
 // this can be used by relayers to determine what batch types are desirable to request
-func (k Keeper) GetAllBatchFees(ctx sdk.Context) (batchFees []*types.BatchFees) {
-	batchFeesMap := k.createBatchFees(ctx)
+func (k Keeper) GetAllBatchFees(ctx sdk.Context, baseFee sdk.Int) (batchFees []*types.BatchFees) {
+	batchFeesMap := k.createBatchFees(ctx, baseFee)
 	// create array of batchFees
 	for _, batchFee := range batchFeesMap {
 		batchFees = append(batchFees, batchFee)
@@ -323,7 +323,7 @@ func (k Keeper) GetAllBatchFees(ctx sdk.Context) (batchFees []*types.BatchFees) 
 }
 
 // CreateBatchFees iterates over the outgoing pool and creates batch token fee map
-func (k Keeper) createBatchFees(ctx sdk.Context) map[string]*types.BatchFees {
+func (k Keeper) createBatchFees(ctx sdk.Context, baseFee sdk.Int) map[string]*types.BatchFees {
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondIndexOutgoingTXFeeKey)
 	iter := prefixStore.Iterator(nil, nil)
 	defer iter.Close()
@@ -345,6 +345,9 @@ func (k Keeper) createBatchFees(ctx sdk.Context) map[string]*types.BatchFees {
 		feeAmountBytes := key[len(tokenContractBytes):]
 		feeAmount := big.NewInt(0).SetBytes(feeAmountBytes)
 
+		if sdk.NewIntFromBigInt(feeAmount).LT(baseFee) {
+			continue
+		}
 		if _, ok := batchFeesMap[tokenContractAddr]; !ok {
 			handleSize := math.MinInt(OutgoingTxBatchSize, len(ids.Ids))
 			keyFeeTotals := feeAmount.Mul(feeAmount, big.NewInt(int64(handleSize)))

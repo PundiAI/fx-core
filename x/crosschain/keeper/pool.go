@@ -262,8 +262,8 @@ func (k Keeper) GetBatchFeeByTokenType(ctx sdk.Context, tokenContractAddr string
 
 // GetAllBatchFees creates a fee entry for every batch type currently in the store
 // this can be used by relayers to determine what batch types are desirable to request
-func (k Keeper) GetAllBatchFees(ctx sdk.Context, maxElements uint) (batchFees []*types.BatchFees) {
-	batchFeesMap := k.createBatchFees(ctx, maxElements)
+func (k Keeper) GetAllBatchFees(ctx sdk.Context, maxElements uint, baseFee sdk.Int) (batchFees []*types.BatchFees) {
+	batchFeesMap := k.createBatchFees(ctx, maxElements, baseFee)
 	// create array of batchFees
 	for _, batchFee := range batchFeesMap {
 		batchFees = append(batchFees, batchFee)
@@ -281,13 +281,13 @@ func (k Keeper) GetAllBatchFees(ctx sdk.Context, maxElements uint) (batchFees []
 // createBatchFees iterates over the unbatched transaction pool and creates batch token fee map
 // Implicitly creates batches with the highest potential fee because the transaction keys enforce an order which goes
 // fee contract address -> fee amount -> transaction nonce
-func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint) map[string]*types.BatchFees {
+func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, baseFee sdk.Int) map[string]*types.BatchFees {
 	batchFeesMap := make(map[string]*types.BatchFees)
 	txCountMap := make(map[string]int)
 
 	k.IterateUnbatchedTransactions(ctx, types.OutgoingTXPoolKey, func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		fee := tx.Fee
-		if txCountMap[fee.Contract] < int(maxElements) {
+		if fee.Amount.GTE(baseFee) && txCountMap[fee.Contract] < int(maxElements) {
 			addFeeToMap(fee, batchFeesMap, txCountMap)
 		}
 		return false
@@ -305,12 +305,14 @@ func addFeeToMap(fee *types.ExternalToken, batchFeesMap map[string]*types.BatchF
 		batchFees := batchFeesMap[fee.Contract]
 		batchFees.TotalFees = batchFees.TotalFees.Add(fee.Amount)
 		batchFees.TotalTxs = batchFees.TotalTxs + 1
+		batchFees.TotalAmount = batchFees.TotalAmount.Add(fee.Amount)
 		batchFeesMap[fee.Contract] = batchFees
 	} else {
 		batchFeesMap[fee.Contract] = &types.BatchFees{
 			TokenContract: fee.Contract,
 			TotalFees:     fee.Amount,
 			TotalTxs:      1,
+			TotalAmount:   sdk.ZeroInt(),
 		}
 	}
 }

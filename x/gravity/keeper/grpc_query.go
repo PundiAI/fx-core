@@ -13,7 +13,7 @@ import (
 var _ types.QueryServer = Keeper{}
 
 // Params queries the params of the gravity module
-func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	var params types.Params
 	k.paramSpace.GetParamSet(sdk.UnwrapSDKContext(c), &params)
 	return &types.QueryParamsResponse{Params: params}, nil
@@ -21,7 +21,7 @@ func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types
 }
 
 // CurrentValset queries the CurrentValset of the gravity module
-func (k Keeper) CurrentValset(c context.Context, req *types.QueryCurrentValsetRequest) (*types.QueryCurrentValsetResponse, error) {
+func (k Keeper) CurrentValset(c context.Context, _ *types.QueryCurrentValsetRequest) (*types.QueryCurrentValsetResponse, error) {
 	return &types.QueryCurrentValsetResponse{Valset: k.GetCurrentValset(sdk.UnwrapSDKContext(c))}, nil
 }
 
@@ -50,7 +50,7 @@ func (k Keeper) ValsetConfirmsByNonce(c context.Context, req *types.QueryValsetC
 }
 
 // LastValsetRequests queries the LastValsetRequests of the gravity module
-func (k Keeper) LastValsetRequests(c context.Context, req *types.QueryLastValsetRequestsRequest) (*types.QueryLastValsetRequestsResponse, error) {
+func (k Keeper) LastValsetRequests(c context.Context, _ *types.QueryLastValsetRequestsRequest) (*types.QueryLastValsetRequestsResponse, error) {
 	valReq := k.GetValsets(sdk.UnwrapSDKContext(c))
 	valReqLen := len(valReq)
 	retLen := 0
@@ -91,7 +91,14 @@ func (k Keeper) LastPendingValsetRequestByAddr(c context.Context, req *types.Que
 
 // BatchFees queries the batch fees from unbatched pool
 func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
-	return &types.QueryBatchFeeResponse{BatchFees: k.GetAllBatchFees(sdk.UnwrapSDKContext(c))}, nil
+	baseFee := req.BaseFee
+	if baseFee.IsNil() {
+		baseFee = sdk.ZeroInt()
+	}
+	if baseFee.IsNegative() {
+		return nil, types.ErrInvalidRequestBatchBaseFee
+	}
+	return &types.QueryBatchFeeResponse{BatchFees: k.GetAllBatchFees(sdk.UnwrapSDKContext(c), baseFee)}, nil
 }
 
 // LastPendingBatchRequestByAddr queries the LastPendingBatchRequestByAddr of the gravity module
@@ -115,7 +122,7 @@ func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.Quer
 }
 
 // OutgoingTxBatches queries the OutgoingTxBatches of the gravity module
-func (k Keeper) OutgoingTxBatches(c context.Context, req *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
+func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
 	var batches []*types.OutgoingTxBatch
 	k.IterateOutgoingTXBatches(sdk.UnwrapSDKContext(c), func(_ []byte, batch *types.OutgoingTxBatch) bool {
 		batches = append(batches, batch)
@@ -285,7 +292,7 @@ func (k Keeper) GetIbcSequenceHeightByChannel(c context.Context, req *types.Quer
 	}, nil
 }
 
-func (k Keeper) LastObservedEthBlockHeight(c context.Context, req *types.QueryLastObservedEthBlockHeightRequest) (*types.QueryLastObservedEthBlockHeightResponse, error) {
+func (k Keeper) LastObservedEthBlockHeight(c context.Context, _ *types.QueryLastObservedEthBlockHeightRequest) (*types.QueryLastObservedEthBlockHeightResponse, error) {
 	blockHeight := k.GetLastObservedEthBlockHeight(sdk.UnwrapSDKContext(c))
 	return &types.QueryLastObservedEthBlockHeightResponse{BlockHeight: blockHeight.EthBlockHeight}, nil
 }

@@ -141,6 +141,7 @@ message QueryLastPendingValsetRequestByAddrResponse {
 }
 
 message QueryBatchFeeRequest {
+    string baseFee = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }
 message QueryBatchFeeResponse {
     repeated BatchFees batch_fees = 1;
