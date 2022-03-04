@@ -25,6 +25,10 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/ethermint/intrarelayer/v1/params";
   }
+
+  rpc ModuleEnable(QueryModuleEnableRequest) returns (QueryModuleEnableResponse) {
+    option (google.api.http).get = "/ethermint/intrarelayer/v1/module_enable";
+  }
 }
 
 // QueryTokenPairsRequest is the request type for the Query/TokenPairs RPC method.
@@ -62,3 +66,10 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
+
+
+// QueryModuleEnableRequest defines the request type for querying the module is enable.
+message QueryModuleEnableRequest {}
+
+// QueryModuleEnableResponse returns module is enable.
+message QueryModuleEnableResponse { bool enable = 1; }

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -114,6 +115,32 @@ func GetParamsCmd() *cobra.Command {
 			req := &types.QueryParamsRequest{}
 
 			res, err := queryClient.Params(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetModuleEnableCmd queries evm module is enable
+func GetModuleEnableCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "enable",
+		Short: "Query evm module is enable",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.ModuleEnable(rpctypes.ContextWithHeight(clientCtx.Height), &types.QueryModuleEnableRequest{})
 			if err != nil {
 				return err
 			}

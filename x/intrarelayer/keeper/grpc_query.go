@@ -82,3 +82,8 @@ func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 	params := k.GetParams(ctx)
 	return &types.QueryParamsResponse{Params: params}, nil
 }
+
+func (k Keeper) ModuleEnable(c context.Context, _ *types.QueryModuleEnableRequest) (*types.QueryModuleEnableResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	return &types.QueryModuleEnableResponse{Enable: k.HasInit(ctx)}, nil
+}
