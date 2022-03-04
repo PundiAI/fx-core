@@ -6,7 +6,9 @@ ARG NETWORK=mainnet
 
 COPY . /app
 
-RUN apk add --no-cache git build-base linux-headers && \
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
+    apk add --no-cache git build-base linux-headers && \
+    export GOPROXY=goproxy.cn && \
     cd /app && FX_BUILD_OPTIONS=${NETWORK} make go-build
 
 # build fx-core
