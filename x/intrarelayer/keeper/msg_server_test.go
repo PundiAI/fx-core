@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeCoin() {
 			suite.Require().NotNil(metadata)
 			suite.Require().NotNil(pair)
 
-			// Precondition: Convert Coin to ERC20
+			// Precondition: Convert Coin to FIP20
 			coins := sdk.NewCoins(sdk.NewCoin(cosmosTokenName, sdk.NewInt(tc.mint)))
 			sender := sdk.AccAddress(suite.priKey.PubKey().Address())
 			receiver := sdk.AccAddress(suite.address.Bytes())
@@ -115,7 +115,7 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeCoin() {
 			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
-			// Convert ERC20s back to Coins
+			// Convert FIP20s back to Coins
 			ctx = sdk.WrapSDKContext(suite.ctx)
 			contractAddr := common.HexToAddress(pair.Fip20Address)
 			pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, suite.priKey.PubKey())
@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeCoin() {
 	suite.mintFeeCollector = false
 }
 
-func (suite *KeeperTestSuite) TestConvertECR20NativeERC20() {
+func (suite *KeeperTestSuite) TestConvertECR20NativeFIP20() {
 	testCases := []struct {
 		name     string
 		mint     int64
@@ -189,7 +189,7 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeERC20() {
 				contractAddr,
 				pubKey,
 			)
-			suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(tc.mint))
+			suite.MintFIP20Token(contractAddr, suite.address, suite.address, big.NewInt(tc.mint))
 			suite.Commit()
 			ctx := sdk.WrapSDKContext(suite.ctx)
 
@@ -212,7 +212,7 @@ func (suite *KeeperTestSuite) TestConvertECR20NativeERC20() {
 	suite.mintFeeCollector = false
 }
 
-func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
+func (suite *KeeperTestSuite) TestConvertCoinNativeFIP20() {
 	testCases := []struct {
 		name      string
 		mint      int64
@@ -231,12 +231,12 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			contractAddr := suite.setupRegisterFIP20Pair()
 			suite.Require().NotNil(contractAddr)
 
-			// Precondition: Convert ERC20 to Coins
+			// Precondition: Convert FIP20 to Coins
 			coinName := types.CreateDenom(contractAddr.String())
 			pubKey, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, suite.priKey.PubKey())
 			sender := sdk.AccAddress(suite.priKey.PubKey().Address())
 			receiver := sdk.AccAddress(suite.address.Bytes())
-			suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(tc.mint))
+			suite.MintFIP20Token(contractAddr, suite.address, suite.address, big.NewInt(tc.mint))
 			suite.Commit()
 			msgConvertFIP20 := types.NewMsgConvertFIP20(
 				sdk.NewInt(tc.burn),
@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			suite.Require().Equal(cosmosBalance.Amount, sdk.NewInt(tc.burn))
 			suite.Require().Equal(balance.(*big.Int).Int64(), big.NewInt(tc.mint-tc.burn).Int64())
 
-			// Convert Coins back to ERC20s
+			// Convert Coins back to FIP20s
 			ctx = sdk.WrapSDKContext(suite.ctx)
 			msg := types.NewMsgConvertCoin(
 				sdk.NewCoin(coinName, sdk.NewInt(tc.reconvert)),

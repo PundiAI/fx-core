@@ -14,9 +14,9 @@ import (
 	"strings"
 )
 
-func (k Keeper) RelayTransferIBCProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
+func (k Keeper) RelayTransferIBCProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
 	//TODO check height support relay
-	for _, log := range logs {
+	for _, log := range receipt.Logs {
 		if !isTransferIBCEvent(log) {
 			continue
 		}
@@ -30,7 +30,7 @@ func (k Keeper) RelayTransferIBCProcessing(ctx sdk.Context, txHash common.Hash, 
 		}
 		from := common.BytesToAddress(log.Topics[1].Bytes())
 
-		k.Logger(ctx).Info("relay transfer ibc", "hash", txHash.Hex(), "from", from.Hex(), "to", event.To,
+		k.Logger(ctx).Info("relay transfer ibc", "hash", receipt.TxHash.Hex(), "from", from.Hex(), "to", event.To,
 			"amount", event.Value.String(), "denom", pair.Denom, "token", pair.Fip20Address)
 
 		//check balance
@@ -38,12 +38,12 @@ func (k Keeper) RelayTransferIBCProcessing(ctx sdk.Context, txHash common.Hash, 
 		if balances.AmountOf(pair.Denom).BigInt().Cmp(event.Value) < 0 {
 			return errors.New("insufficient balance")
 		}
-		err = k.transferIBCHandler(ctx, event.Target, from, event.To, sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(event.Value)), txHash)
+		err = k.transferIBCHandler(ctx, event.Target, from, event.To, sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(event.Value)), receipt.TxHash)
 		if err != nil {
-			k.Logger(ctx).Error("failed to relay transfer ibc", "hash", txHash.Hex(), "error", err.Error())
+			k.Logger(ctx).Error("failed to relay transfer ibc", "hash", receipt.TxHash.Hex(), "error", err.Error())
 			return err
 		}
-		k.Logger(ctx).Info("relay transfer ibc success", "hash", txHash.Hex())
+		k.Logger(ctx).Info("relay transfer ibc success", "hash", receipt.TxHash.Hex())
 	}
 	return nil
 }

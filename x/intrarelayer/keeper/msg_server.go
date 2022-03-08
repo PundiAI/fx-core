@@ -22,7 +22,6 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 	if !k.evmKeeper.HasInit(ctx) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module not enable")
 	}
-	k.evmKeeper.WithContext(ctx)
 
 	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
 	receiver := common.HexToAddress(msg.Receiver)
@@ -39,7 +38,6 @@ func (k Keeper) ConvertFIP20(goCtx context.Context, msg *types.MsgConvertFIP20) 
 	if !k.evmKeeper.HasInit(ctx) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module not enable")
 	}
-	k.evmKeeper.WithContext(ctx)
 
 	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
 	receiver, _ := sdk.AccAddressFromBech32(msg.Receiver)
@@ -116,9 +114,16 @@ func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, se
 	}
 
 	// Mint Tokens and send to receiver
-	_, err := k.CallEVMWithModule(ctx, fip20, contract, "mint", receiver, coin.Amount.BigInt())
+	_, err := k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "mint", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to call mint function with module")
+	}
+
+	evmParams := k.evmKeeper.GetParams(ctx)
+	if pair.Denom == evmParams.EvmDenom {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, contract.Bytes(), coins); err != nil {
+			return sdkerrors.Wrap(err, "failed to transfer escrow coins to origin denom")
+		}
 	}
 
 	// Event
@@ -152,7 +157,7 @@ func (k Keeper) convertDenomNativeFIP20(ctx sdk.Context, pair types.TokenPair, s
 	}
 
 	// Unescrow Tokens and send to receiver
-	res, err := k.CallEVMWithModule(ctx, fip20, contract, "transfer", receiver, coin.Amount.BigInt())
+	res, err := k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "transfer", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to call transfer function with module")
 	}
@@ -197,14 +202,22 @@ func (k Keeper) convertFIP20NativeDenom(ctx sdk.Context, pair types.TokenPair, s
 	contract := pair.GetFIP20Contract()
 
 	// Call evm to burn amount
-	_, err := k.CallEVMWithModule(ctx, fip20, contract, "burn", sender, amount.BigInt())
+	_, err := k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "burn", sender, amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to call burn function with module")
 	}
 
+	// Transfer origin fip20 to module
+	evmParams := k.evmKeeper.GetParams(ctx)
+	if pair.Denom == evmParams.EvmDenom {
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, contract.Bytes(), types.ModuleName, coins); err != nil {
+			return sdkerrors.Wrap(err, "failed to transfer origin fip20 to module")
+		}
+	}
+
 	// Unescrow Coins and send to receiver
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, receiver, coins); err != nil {
-		return err
+		return sdkerrors.Wrap(err, "failed to unescrow coins")
 	}
 
 	ctx.EventManager().EmitEvents(

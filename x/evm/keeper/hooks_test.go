@@ -2,11 +2,14 @@ package keeper_test
 
 import (
 	"errors"
+	"github.com/functionx/fx-core/x/evm/statedb"
+	"math/big"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
 
+	"github.com/functionx/fx-core/x/evm/keeper"
 	"github.com/functionx/fx-core/x/evm/types"
 )
 
@@ -15,15 +18,15 @@ type LogRecordHook struct {
 	Logs []*ethtypes.Log
 }
 
-func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
-	dh.Logs = logs
+func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
+	dh.Logs = receipt.Logs
 	return nil
 }
 
 // FailureHook always fail
 type FailureHook struct{}
 
-func (dh FailureHook) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
+func (dh FailureHook) PostTxProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
 	return errors.New("post tx processing failed")
 }
 
@@ -40,6 +43,7 @@ func (suite *KeeperTestSuite) TestEvmHooks() {
 			},
 			func(hook types.EvmHooks, result error) {
 				suite.Require().NoError(result)
+				suite.Require().Equal(1, len((hook.(*LogRecordHook).Logs)))
 			},
 		},
 		{
@@ -48,7 +52,7 @@ func (suite *KeeperTestSuite) TestEvmHooks() {
 				return &FailureHook{}
 			},
 			func(hook types.EvmHooks, result error) {
-				suite.Require().NoError(result)
+				suite.Require().Error(result)
 			},
 		},
 	}
@@ -56,16 +60,28 @@ func (suite *KeeperTestSuite) TestEvmHooks() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		hook := tc.setupHook()
+		suite.app.EvmKeeper.SetHooks(keeper.NewMultiEvmHooks(hook))
 
 		k := suite.app.EvmKeeper
+		ctx := suite.ctx
 		txHash := common.BigToHash(big.NewInt(1))
-		k.SetTxHashTransient(txHash)
-		k.AddLog(&ethtypes.Log{
+		vmdb := statedb.New(ctx, k, statedb.NewTxConfig(
+			common.BytesToHash(ctx.HeaderHash().Bytes()),
+			txHash,
+			0,
+			0,
+		))
+
+		vmdb.AddLog(&ethtypes.Log{
 			Topics:  []common.Hash{},
 			Address: suite.address,
 		})
-		logs := k.GetTxLogsTransient(txHash)
-		result := k.PostTxProcessing(txHash, logs)
+		logs := vmdb.Logs()
+		receipt := &ethtypes.Receipt{
+			TxHash: txHash,
+			Logs:   logs,
+		}
+		result := k.PostTxProcessing(ctx, common.Address{}, nil, receipt)
 
 		tc.expFunc(hook, result)
 	}

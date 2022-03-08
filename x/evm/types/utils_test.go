@@ -47,7 +47,7 @@ func TestEvmDataEncoding(t *testing.T) {
 }
 
 func TestUnwrapEthererumMsg(t *testing.T) {
-	_, err := evmtypes.UnwrapEthereumMsg(nil)
+	_, err := evmtypes.UnwrapEthereumMsg(nil, common.Hash{})
 	require.NotNil(t, err)
 
 	encodingConfig := fxcore.MakeEncodingConfig()
@@ -55,14 +55,14 @@ func TestUnwrapEthererumMsg(t *testing.T) {
 	builder, _ := clientCtx.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 
 	tx := builder.GetTx().(sdk.Tx)
-	_, err = evmtypes.UnwrapEthereumMsg(&tx)
+	_, err = evmtypes.UnwrapEthereumMsg(&tx, common.Hash{})
 	require.NotNil(t, err)
 
 	msg := evmtypes.NewTx(big.NewInt(1), 0, &common.Address{}, big.NewInt(0), 0, big.NewInt(0), nil, nil, []byte{}, nil)
 	err = builder.SetMsgs(msg)
 
 	tx = builder.GetTx().(sdk.Tx)
-	msg_, err := evmtypes.UnwrapEthereumMsg(&tx)
+	msg_, err := evmtypes.UnwrapEthereumMsg(&tx, msg.AsTransaction().Hash())
 	require.Nil(t, err)
 	require.Equal(t, msg_, msg)
 }

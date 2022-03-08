@@ -29,13 +29,13 @@ type Backend interface {
 	HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error)
 	GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, error)
 	GetLogsByNumber(blockNum types.BlockNumber) ([][]*ethtypes.Log, error)
+	BlockBloom(height *int64) (ethtypes.Bloom, error)
 
-	GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, error)
 	BloomStatus() (uint64, uint64)
 
-	GetFilteredBlocks(from int64, to int64, bloomIndexes [][]BloomIV, filterAddresses bool) ([]int64, error)
-
 	RPCFilterCap() int32
+	RPCLogsCap() int32
+	RPCBlockRangeCap() int32
 }
 
 // consider a filter inactive if it has not been polled for within deadline
@@ -258,7 +258,7 @@ func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 					continue
 				}
 
-				baseFee := types.BaseFeeFromEvents(data.ResultEndBlock.Events)
+				baseFee := types.BaseFeeFromEvents(data.ResultBeginBlock.Events)
 
 				header := types.EthHeaderFromTendermint(data.Header, ethtypes.Bloom{}, baseFee)
 				api.filtersMu.Lock()
@@ -310,7 +310,7 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 					continue
 				}
 
-				baseFee := types.BaseFeeFromEvents(data.ResultEndBlock.Events)
+				baseFee := types.BaseFeeFromEvents(data.ResultBeginBlock.Events)
 
 				// TODO: fetch bloom from events
 				header := types.EthHeaderFromTendermint(data.Header, ethtypes.Bloom{}, baseFee)
@@ -432,7 +432,7 @@ func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, 
 
 	filterID = logsSub.ID()
 
-	api.filters[filterID] = &filter{typ: filters.LogsSubscription, deadline: time.NewTimer(deadline), hashes: []common.Hash{}, s: logsSub}
+	api.filters[filterID] = &filter{typ: filters.LogsSubscription, crit: criteria, deadline: time.NewTimer(deadline), hashes: []common.Hash{}, s: logsSub}
 
 	go func(eventCh <-chan coretypes.ResultEvent) {
 		defer cancelSubs()
@@ -499,7 +499,7 @@ func (api *PublicFilterAPI) GetLogs(ctx context.Context, crit filters.FilterCrit
 	}
 
 	// Run the filter and return all the logs
-	logs, err := filter.Logs(ctx)
+	logs, err := filter.Logs(ctx, int(api.backend.RPCLogsCap()), int64(api.backend.RPCBlockRangeCap()))
 	if err != nil {
 		return nil, err
 	}
@@ -560,7 +560,7 @@ func (api *PublicFilterAPI) GetFilterLogs(ctx context.Context, id rpc.ID) ([]*et
 		filter = NewRangeFilter(api.logger, api.backend, begin, end, f.crit.Addresses, f.crit.Topics)
 	}
 	// Run the filter and return all the logs
-	logs, err := filter.Logs(ctx)
+	logs, err := filter.Logs(ctx, int(api.backend.RPCLogsCap()), int64(api.backend.RPCBlockRangeCap()))
 	if err != nil {
 		return nil, err
 	}

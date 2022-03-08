@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"fmt"
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/functionx/fx-core/x/feemarket/types"
@@ -43,9 +43,10 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		expPass  bool
 	}{
 		{
-			"pass - nil Base Fee",
+			"pass - default Base Fee",
 			func() {
-				expRes = &types.QueryBaseFeeResponse{}
+				initialBaseFee := sdk.NewInt(ethparams.InitialBaseFee)
+				expRes = &types.QueryBaseFeeResponse{BaseFee: &initialBaseFee}
 			},
 			true,
 		},
@@ -62,9 +63,6 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		},
 	}
 	for _, tc := range testCases {
-		fee := suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx)
-		fmt.Printf("baseFee: %v", fee)
-
 		tc.malleate()
 
 		res, err := suite.queryClient.BaseFee(suite.ctx.Context(), &types.QueryBaseFeeRequest{})

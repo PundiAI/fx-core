@@ -4,10 +4,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
-	intrarelayerkeeper "github.com/functionx/fx-core/x/intrarelayer/keeper"
-	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
+	"github.com/functionx/fx-core/x/evm/statedb"
+	"math"
 	"math/big"
-	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
@@ -62,7 +61,8 @@ type KeeperTestSuite struct {
 	appCodec codec.Marshaler
 	signer   keyring.Signer
 
-	dynamicTxFee     bool
+	enableFeemarket  bool
+	enableLondonHF   bool
 	mintFeeCollector bool
 }
 
@@ -70,9 +70,12 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	checkTx := false
 
-	// account key
-	priv, err := ethsecp256k1.GenerateKey()
+	// account key, use a constant account to keep unit test deterministic.
+	ecdsaPriv, err := crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 	require.NoError(t, err)
+	priv := &ethsecp256k1.PrivKey{
+		Key: crypto.FromECDSA(ecdsaPriv),
+	}
 	suite.address = common.BytesToAddress(priv.PubKey().Address().Bytes())
 	suite.signer = tests.NewSigner(priv)
 
@@ -81,7 +84,25 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = app.Setup(checkTx)
+	suite.app = app.Setup(checkTx, func(app *app.App, genesis app.AppGenesisState) app.AppGenesisState {
+		feemarketGenesis := feemarkettypes.DefaultGenesisState()
+		if suite.enableFeemarket {
+			feemarketGenesis.Params.EnableHeight = 1
+			feemarketGenesis.Params.NoBaseFee = false
+		} else {
+			feemarketGenesis.Params.NoBaseFee = true
+		}
+		genesis[feemarkettypes.ModuleName] = app.AppCodec().MustMarshalJSON(feemarketGenesis)
+		if !suite.enableLondonHF {
+			evmGenesis := types.DefaultGenesisState()
+			maxInt := sdk.NewInt(math.MaxInt64)
+			evmGenesis.Params.ChainConfig.LondonBlock = &maxInt
+			evmGenesis.Params.ChainConfig.ArrowGlacierBlock = &maxInt
+			evmGenesis.Params.ChainConfig.MergeForkBlock = &maxInt
+			genesis[types.ModuleName] = app.AppCodec().MustMarshalJSON(evmGenesis)
+		}
+		return genesis
+	})
 
 	if suite.mintFeeCollector {
 		// mint some coin to fee collector
@@ -103,7 +124,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		stateBytes, err := tmjson.MarshalIndent(genesisState, "", " ")
 		require.NoError(t, err)
 
-		//Initialize the chain
+		// Initialize the chain
 		suite.app.InitChain(
 			abci.RequestInitChain{
 				ChainId:         "fxcore",
@@ -137,10 +158,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		ConsensusHash:      tmhash.Sum([]byte("consensus")),
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
-	suite.app.EvmKeeper.WithContext(suite.ctx)
 
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.dynamicTxFee))
-	require.NoError(suite.T(), InitIntrarelayerParams(suite.ctx, suite.app.IntrarelayerKeeper))
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.enableLondonHF))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -191,11 +210,14 @@ func (suite *KeeperTestSuite) Commit() {
 
 	// update ctx
 	suite.ctx = suite.app.BaseApp.NewContext(false, header)
-	suite.app.EvmKeeper.WithContext(suite.ctx)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
+}
+
+func (suite *KeeperTestSuite) StateDB() *statedb.StateDB {
+	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes())))
 }
 
 // DeployTestContract deploy a test erc20 contract and returns the contract address
@@ -205,6 +227,8 @@ func (suite *KeeperTestSuite) DeployTestContract(t require.TestingT, owner commo
 
 	ctorArgs, err := types.ERC20Contract.ABI.Pack("", owner, supply)
 	require.NoError(t, err)
+
+	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 
 	data := append(types.ERC20Contract.Bin, ctorArgs...)
 	args, err := json.Marshal(&types.TransactionArgs{
@@ -219,10 +243,8 @@ func (suite *KeeperTestSuite) DeployTestContract(t require.TestingT, owner commo
 	})
 	require.NoError(t, err)
 
-	nonce := suite.app.EvmKeeper.GetNonce(suite.address)
-
 	var erc20DeployTx *types.MsgEthereumTx
-	if suite.dynamicTxFee {
+	if suite.enableFeemarket {
 		erc20DeployTx = types.NewTxContract(
 			chainID,
 			nonce,
@@ -270,10 +292,10 @@ func (suite *KeeperTestSuite) TransferERC20Token(t require.TestingT, contractAdd
 	})
 	require.NoError(t, err)
 
-	nonce := suite.app.EvmKeeper.GetNonce(suite.address)
+	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 
 	var ercTransferTx *types.MsgEthereumTx
-	if suite.dynamicTxFee {
+	if suite.enableFeemarket {
 		ercTransferTx = types.NewTx(
 			chainID,
 			nonce,
@@ -327,10 +349,10 @@ func (suite *KeeperTestSuite) DeployTestMessageCall(t require.TestingT) common.A
 	})
 	require.NoError(t, err)
 
-	nonce := suite.app.EvmKeeper.GetNonce(suite.address)
+	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 
 	var erc20DeployTx *types.MsgEthereumTx
-	if suite.dynamicTxFee {
+	if suite.enableFeemarket {
 		erc20DeployTx = types.NewTxContract(
 			chainID,
 			nonce,
@@ -364,8 +386,33 @@ func (suite *KeeperTestSuite) DeployTestMessageCall(t require.TestingT) common.A
 	return crypto.CreateAddress(suite.address, nonce)
 }
 
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+func (suite *KeeperTestSuite) TestBaseFee() {
+	testCases := []struct {
+		name            string
+		enableLondonHF  bool
+		enableFeemarket bool
+		expectBaseFee   *big.Int
+	}{
+		{"not enable london HF, not enable feemarket", false, false, nil},
+		{"enable london HF, not enable feemarket", true, false, big.NewInt(0)},
+		{"enable london HF, enable feemarket", true, true, big.NewInt(1000000000)},
+		{"not enable london HF, enable feemarket", false, true, nil},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.enableFeemarket = tc.enableFeemarket
+			suite.enableLondonHF = tc.enableLondonHF
+			suite.SetupTest()
+			suite.app.EvmKeeper.BeginBlock(suite.ctx, abci.RequestBeginBlock{})
+			params := suite.app.EvmKeeper.GetParams(suite.ctx)
+			ethCfg := params.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
+			baseFee := suite.app.EvmKeeper.BaseFee(suite.ctx, ethCfg)
+			suite.Require().Equal(tc.expectBaseFee, baseFee)
+		})
+	}
+	suite.enableFeemarket = false
+	suite.enableLondonHF = true
 }
 
 func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee bool) error {
@@ -389,16 +436,4 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 	}
 	keeper.WithChainID(ctx)
 	return nil
-}
-
-func InitIntrarelayerParams(ctx sdk.Context, keeper intrarelayerkeeper.Keeper) error {
-	p := intrarelayertypes.NewParams(true, 24*time.Hour*14, true, 2000)
-	if err := p.Validate(); err != nil {
-		return err
-	}
-	proposal := intrarelayertypes.InitIntrarelayerParamsProposal{Title: "init intrarelayer module", Description: "init intrarelayer module description", Params: &p}
-	if err := proposal.ValidateBasic(); err != nil {
-		return err
-	}
-	return keeper.InitIntrarelayer(ctx, &proposal)
 }

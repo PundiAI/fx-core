@@ -1,6 +1,7 @@
 package web3
 
 import (
+	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -15,7 +16,8 @@ func NewPublicAPI() *PublicAPI {
 
 // ClientVersion returns the client version in the Web3 user agent format.
 func (a *PublicAPI) ClientVersion() string {
-	return "1.0"
+	info := sdkversion.NewInfo()
+	return info.Version
 }
 
 // Sha3 returns the keccak-256 hash of the passed-in input.

@@ -148,8 +148,7 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // EndBlock returns the end blocker for the evm module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	am.keeper.EndBlock(ctx, req)
-	return []abci.ValidatorUpdate{}
+	return am.keeper.EndBlock(ctx, req)
 }
 
 // InitGenesis performs genesis initialization for the evm module. It returns

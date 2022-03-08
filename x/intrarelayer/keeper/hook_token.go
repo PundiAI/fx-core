@@ -13,8 +13,8 @@ import (
 )
 
 // RelayTokenProcessing relay token from evm contract to chain address
-func (k Keeper) RelayTokenProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
-	for _, log := range logs {
+func (k Keeper) RelayTokenProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
+	for _, log := range receipt.Logs {
 		if !isRelayTokenEvent(log) {
 			continue
 		}
@@ -28,15 +28,15 @@ func (k Keeper) RelayTokenProcessing(ctx sdk.Context, txHash common.Hash, logs [
 		}
 		from := common.BytesToAddress(log.Topics[1].Bytes())
 
-		k.Logger(ctx).Info("relay token", "hash", txHash.String(), "from", from.Hex(),
+		k.Logger(ctx).Info("relay token", "hash", receipt.TxHash.String(), "from", from.Hex(),
 			"amount", amount.String(), "denom", pair.Denom, "token", pair.Fip20Address)
 
-		err = k.ProcessRelayToken(ctx, txHash, pair, from, amount)
+		err = k.ProcessRelayToken(ctx, receipt.TxHash, pair, from, amount)
 		if err != nil {
-			k.Logger(ctx).Error("failed to relay token", "hash", txHash.String(), "error", err.Error())
+			k.Logger(ctx).Error("failed to relay token", "hash", receipt.TxHash.String(), "error", err.Error())
 			return err
 		}
-		k.Logger(ctx).Info("relay transfer token success", "hash", txHash.Hex())
+		k.Logger(ctx).Info("relay transfer token success", "hash", receipt.TxHash.Hex())
 	}
 	return nil
 }
@@ -56,17 +56,28 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, txHash common.Hash, pair type
 
 	switch pair.ContractOwner {
 	case types.OWNER_MODULE:
-		_, err = k.CallEVMWithModule(ctx, contracts.FIP20Contract.ABI, pair.GetFIP20Contract(), "burn", amount)
+		if _, err = k.CallEVM(ctx, contracts.FIP20Contract.ABI, types.ModuleAddress, pair.GetFIP20Contract(),
+			"burn", types.ModuleAddress, amount); err != nil {
+			return err
+		}
+
+		evmParams := k.evmKeeper.GetParams(ctx)
+		if pair.Denom == evmParams.EvmDenom {
+			if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, pair.GetFIP20Contract().Bytes(), types.ModuleName, coins); err != nil {
+				return err
+			}
+		}
 	case types.OWNER_EXTERNAL:
-		err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
+		if err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
+			return err
+		}
 	default:
-		err = types.ErrUndefinedOwner
+		return types.ErrUndefinedOwner
 	}
 
 	//sender receive relay amount
 	recipient := sdk.AccAddress(from.Bytes())
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, coins)
-	if err != nil {
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, coins); err != nil {
 		return err
 	}
 	ctx.EventManager().EmitEvents(

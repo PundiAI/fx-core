@@ -169,7 +169,7 @@ func (suite *MsgsTestSuite) TestMsgConvertFIP20New() {
 		expectPass bool
 	}{
 		{
-			"msg convert erc20 - pass",
+			"msg convert fip20 - pass",
 			sdk.NewInt(100),
 			sdk.AccAddress(tests.GenerateAddress().Bytes()),
 			tests.GenerateAddress(),
@@ -233,7 +233,7 @@ func (suite *MsgsTestSuite) TestMsgConvertFIP20() {
 			false,
 		},
 		{
-			"msg convert erc20 - pass",
+			"msg convert fip20 - pass",
 			sdk.NewInt(100),
 			sdk.AccAddress(tests.GenerateAddress().Bytes()).String(),
 			tests.GenerateAddress().String(),

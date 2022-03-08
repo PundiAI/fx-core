@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math/big"
 
 	"github.com/functionx/fx-core/x/feemarket/types"
 )
@@ -15,4 +16,24 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 // SetParams sets the fee market parameters to the param space.
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
+}
+
+// ----------------------------------------------------------------------------
+// Parent Base Fee
+// Required by EIP1559 base fee calculation.
+// ----------------------------------------------------------------------------
+
+// GetBaseFee get's the base fee from the paramSpace
+// return nil if base fee is not enabled
+func (k Keeper) GetBaseFee(ctx sdk.Context) *big.Int {
+	params := k.GetParams(ctx)
+	if params.NoBaseFee {
+		return nil
+	}
+	return params.BaseFee.BigInt()
+}
+
+// SetBaseFee set's the base fee in the paramSpace
+func (k Keeper) SetBaseFee(ctx sdk.Context, baseFee *big.Int) {
+	k.paramSpace.Set(ctx, types.ParamStoreKeyBaseFee, sdk.NewIntFromBigInt(baseFee))
 }

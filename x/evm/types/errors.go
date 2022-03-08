@@ -32,7 +32,7 @@ const (
 	codeErrInvalidGasCap
 	codeErrInvalidBaseFee
 	codeErrGasOverflow
-	codeErrInvalid
+	codeErrInvalidAccount
 )
 
 var (
@@ -97,7 +97,9 @@ var (
 
 	// ErrGasOverflow returns an error if gas computation overlow/underflow
 	ErrGasOverflow = sdkerrors.Register(ModuleName, codeErrGasOverflow, "gas computation overflow/underflow")
-	ErrInvalid     = sdkerrors.Register(ModuleName, codeErrInvalid, "invalid")
+
+	// ErrInvalidAccount returns an error if the account is not an EVM compatible account
+	ErrInvalidAccount = sdkerrors.Register(ModuleName, codeErrInvalidAccount, "account type is not a valid ethereum account")
 )
 
 // NewExecErrorWithReason unpacks the revert return bytes and returns a wrapped error

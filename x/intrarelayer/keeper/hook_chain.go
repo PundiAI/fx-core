@@ -17,9 +17,9 @@ const (
 	TransferChainETH = "eth"
 )
 
-func (k Keeper) RelayTransferChainProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) (err error) {
+func (k Keeper) RelayTransferChainProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {
 	//TODO check height support relay
-	for _, log := range logs {
+	for _, log := range receipt.Logs {
 		if !isTransferChainEvent(log) {
 			continue
 		}
@@ -32,7 +32,7 @@ func (k Keeper) RelayTransferChainProcessing(ctx sdk.Context, txHash common.Hash
 			return fmt.Errorf("parse transfer chain event error %v", err)
 		}
 		from := common.BytesToAddress(log.Topics[1].Bytes())
-		k.Logger(ctx).Info("relay transfer chain", "hash", txHash.Hex(), "from", from.Hex(), "to", event.To, "target",
+		k.Logger(ctx).Info("relay transfer chain", "hash", receipt.TxHash.Hex(), "from", from.Hex(), "to", event.To, "target",
 			event.Target, "amount", event.Value.String(), "fee", event.Fee, "denom", pair.Denom, "token", pair.Fip20Address)
 		//check balance
 		balances := k.bankKeeper.GetAllBalances(ctx, from.Bytes())
@@ -45,10 +45,10 @@ func (k Keeper) RelayTransferChainProcessing(ctx sdk.Context, txHash common.Hash
 			sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(event.Value)),
 			sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(event.Fee)))
 		if err != nil {
-			k.Logger(ctx).Error("failed relay transfer chain", "hash", txHash.Hex(), "error", err.Error())
+			k.Logger(ctx).Error("failed relay transfer chain", "hash", receipt.TxHash.Hex(), "error", err.Error())
 			return err
 		}
-		k.Logger(ctx).Info("relay transfer chain success", "hash", txHash.Hex())
+		k.Logger(ctx).Info("relay transfer chain success", "hash", receipt.TxHash.Hex())
 	}
 	return nil
 }

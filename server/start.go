@@ -486,7 +486,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 			}
 		}
 
-		logger.Info("exiting...!")
+		logger.Info("Bye!")
 	}()
 
 	// Wait for SIGINT or SIGTERM signal

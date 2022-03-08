@@ -30,15 +30,10 @@ const (
 
 // prefix bytes for the EVM transient store
 const (
-	prefixTransientSuicided = iota + 1
-	prefixTransientBloom
+	prefixTransientBloom = iota + 1
 	prefixTransientTxIndex
-	prefixTransientRefund
-	prefixTransientAccessListAddress
-	prefixTransientAccessListSlot
-	prefixTransientTxHash
 	prefixTransientLogSize
-	prefixTransientTxLogs
+	prefixTransientGasUsed
 )
 
 // KVStore key prefixes
@@ -50,15 +45,10 @@ var (
 
 // Transient Store key prefixes
 var (
-	KeyPrefixTransientSuicided          = []byte{prefixTransientSuicided}
-	KeyPrefixTransientBloom             = []byte{prefixTransientBloom}
-	KeyPrefixTransientTxIndex           = []byte{prefixTransientTxIndex}
-	KeyPrefixTransientRefund            = []byte{prefixTransientRefund}
-	KeyPrefixTransientAccessListAddress = []byte{prefixTransientAccessListAddress}
-	KeyPrefixTransientAccessListSlot    = []byte{prefixTransientAccessListSlot}
-	KeyPrefixTransientTxHash            = []byte{prefixTransientTxHash}
-	KeyPrefixTransientLogSize           = []byte{prefixTransientLogSize}
-	KeyPrefixTransientTxLogs            = []byte{prefixTransientTxLogs}
+	KeyPrefixTransientBloom   = []byte{prefixTransientBloom}
+	KeyPrefixTransientTxIndex = []byte{prefixTransientTxIndex}
+	KeyPrefixTransientLogSize = []byte{prefixTransientLogSize}
+	KeyPrefixTransientGasUsed = []byte{prefixTransientGasUsed}
 )
 
 // AddressStoragePrefix returns a prefix to iterate over a given account storage.

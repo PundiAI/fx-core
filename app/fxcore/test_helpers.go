@@ -94,9 +94,14 @@ func DefaultTestGenesis(cdc codec.JSONMarshaler) AppGenesisState {
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
-func Setup(isCheckTx bool) *App {
+func Setup(isCheckTx bool, patchGenesis func(*App, AppGenesisState) AppGenesisState) *App {
 	app, genesisState := setup(!isCheckTx, 5)
 	if !isCheckTx {
+		// init chain must be called to stop deliverState from being nil
+		if patchGenesis != nil {
+			genesisState = patchGenesis(app, genesisState)
+		}
+
 		// init chain must be called to stop deliverState from being nil
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 		if err != nil {

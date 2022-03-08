@@ -15,7 +15,7 @@ import (
 func (k Keeper) MintingEnabled(ctx sdk.Context, sender, receiver sdk.AccAddress, token string) (types.TokenPair, error) {
 	params := k.GetParams(ctx)
 	if !params.EnableIntrarelayer {
-		return types.TokenPair{}, sdkerrors.Wrap(types.ErrInternalTokenPair, "intrarelaying is currently disabled by governance")
+		return types.TokenPair{}, sdkerrors.Wrap(types.ErrInternalTokenPair, "module is currently disabled by governance")
 	}
 	id := k.GetTokenPairID(ctx, token)
 	if len(id) == 0 {

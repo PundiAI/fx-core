@@ -9,7 +9,7 @@ import (
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/functionx/fx-core/x/evm/client/cli"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	"github.com/functionx/fx-core/x/evm/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"net/http"
 )
@@ -24,13 +24,13 @@ type InitEvmParamsProposalRequest struct {
 	Title           string                 `json:"title" yaml:"title"`
 	Description     string                 `json:"description" yaml:"description"`
 	Deposit         sdk.Coins              `json:"deposit" yaml:"deposit"`
-	EvmParams       *evmtypes.Params       `json:"evm_params" yaml:"evm_params"`
+	EvmParams       *types.Params          `json:"evm_params" yaml:"evm_params"`
 	FeemarketParams *feemarkettypes.Params `json:"feemarket_params" yaml:"feemarket_params"`
 }
 
 func InitEvmParamsProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
-		SubRoute: evmtypes.ModuleName,
+		SubRoute: types.ModuleName,
 		Handler:  newInitEvmParamsProposalHandler(clientCtx),
 	}
 }
@@ -54,7 +54,7 @@ func newInitEvmParamsProposalHandler(clientCtx client.Context) http.HandlerFunc 
 			return
 		}
 
-		content := evmtypes.NewInitEvmParamsProposal(req.Title, req.Description, req.EvmParams, req.FeemarketParams)
+		content := types.NewInitEvmParamsProposal(req.Title, req.Description, req.EvmParams, req.FeemarketParams)
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, fromAddr)
 		if rest.CheckBadRequestError(w, err) {
 			return

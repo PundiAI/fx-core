@@ -18,7 +18,7 @@ type Keeper struct {
 
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
-	evmKeeper     types.EVMKeeper // TODO: use interface
+	evmKeeper     types.EVMKeeper
 
 	ibcTransferKeeper types.IBCTransferKeeper
 	ibcChannelKeeper  types.IBCChannelKeeper

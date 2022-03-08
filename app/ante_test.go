@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"math/big"
 	"strings"
 
@@ -13,7 +14,7 @@ import (
 )
 
 func (suite AnteTestSuite) TestAnteHandler() {
-	suite.dynamicTxFee = false
+	suite.enableFeemarket = false
 	suite.SetupTest() // reset
 
 	addr, privKey := tests.NewAddrKey()
@@ -23,7 +24,7 @@ func (suite AnteTestSuite) TestAnteHandler() {
 	suite.Require().NoError(acc.SetSequence(1))
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
-	suite.app.EvmKeeper.AddBalance(addr, big.NewInt(10000000000))
+	suite.app.EvmKeeper.SetBalance(suite.ctx, addr, big.NewInt(10000000000))
 
 	suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, big.NewInt(100))
 
@@ -60,7 +61,7 @@ func (suite AnteTestSuite) TestAnteHandler() {
 			func() sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
-					1,
+					2,
 					big.NewInt(10),
 					100000,
 					big.NewInt(150),
@@ -81,7 +82,7 @@ func (suite AnteTestSuite) TestAnteHandler() {
 			func() sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
-					1,
+					3,
 					big.NewInt(10),
 					100000,
 					big.NewInt(150),
@@ -102,7 +103,7 @@ func (suite AnteTestSuite) TestAnteHandler() {
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
-					1,
+					4,
 					&to,
 					big.NewInt(10),
 					100000,
@@ -124,7 +125,7 @@ func (suite AnteTestSuite) TestAnteHandler() {
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
-					2,
+					5,
 					&to,
 					big.NewInt(10),
 					100000,
@@ -146,7 +147,7 @@ func (suite AnteTestSuite) TestAnteHandler() {
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
-					3,
+					6,
 					&to,
 					big.NewInt(10),
 					100000,
@@ -167,7 +168,7 @@ func (suite AnteTestSuite) TestAnteHandler() {
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
-					4,
+					7,
 					&to,
 					big.NewInt(10),
 					100000,
@@ -186,14 +187,14 @@ func (suite AnteTestSuite) TestAnteHandler() {
 		{
 			"fail - CheckTx (cosmos tx is not valid)",
 			func() sdk.Tx {
-				signedTx := evmtypes.NewTx(suite.app.EvmKeeper.ChainID(), 4, &to, big.NewInt(10), 100000, big.NewInt(1), nil, nil, nil, nil)
+				signedTx := evmtypes.NewTx(suite.app.EvmKeeper.ChainID(), 8, &to, big.NewInt(10), 100000, big.NewInt(1), nil, nil, nil, nil)
 				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				// bigger than MaxGasWanted
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
-			}, false, true, false,
+			}, true, false, false,
 		},
 		{
 			"fail - CheckTx (memo too long)",
@@ -203,6 +204,16 @@ func (suite AnteTestSuite) TestAnteHandler() {
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				txBuilder.SetMemo(strings.Repeat("*", 257))
+				return txBuilder.GetTx()
+			}, true, false, false,
+		},
+		{
+			"fail - CheckTx (ExtensionOptionsEthereumTx not set)",
+			func() sdk.Tx {
+				signedTx := evmtypes.NewTx(suite.app.EvmKeeper.ChainID(), 5, &to, big.NewInt(10), 100000, big.NewInt(1), nil, nil, nil, nil)
+				signedTx.From = addr.Hex()
+
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, true)
 				return txBuilder.GetTx()
 			}, true, false, false,
 		},
@@ -282,11 +293,106 @@ func (suite AnteTestSuite) TestAnteHandler() {
 				return txBuilder.GetTx()
 			}, false, false, false,
 		},
+		{
+			"success - DeliverTx EIP712 signed Cosmos Tx with MsgSend",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(20)))
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "ethermint_9000-1", gas, amount)
+				return txBuilder.GetTx()
+			}, false, false, true,
+		},
+		{
+			"success - DeliverTx EIP712 signed Cosmos Tx with DelegateMsg",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(20))
+				amount := sdk.NewCoins(coinAmount)
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgDelegate(from, privKey, "ethermint_9000-1", gas, amount)
+				return txBuilder.GetTx()
+			}, false, false, true,
+		},
+		{
+			"fails - DeliverTx EIP712 signed Cosmos Tx with wrong Chain ID",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(20)))
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "ethermint_9002-1", gas, amount)
+				return txBuilder.GetTx()
+			}, false, false, false,
+		},
+		{
+			"fails - DeliverTx EIP712 signed Cosmos Tx with different gas fees",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(20)))
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "ethermint_9001-1", gas, amount)
+				txBuilder.SetGasLimit(uint64(300000))
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(30))))
+				return txBuilder.GetTx()
+			}, false, false, false,
+		},
+		{
+			"fails - DeliverTx EIP712 signed Cosmos Tx with empty signature",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(20)))
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "ethermint_9001-1", gas, amount)
+				sigsV2 := signing.SignatureV2{}
+				txBuilder.SetSignatures(sigsV2)
+				return txBuilder.GetTx()
+			}, false, false, false,
+		},
+		{
+			"fails - DeliverTx EIP712 signed Cosmos Tx with invalid sequence",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(20)))
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "ethermint_9001-1", gas, amount)
+				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, acc.GetAddress())
+				suite.Require().NoError(err)
+				sigsV2 := signing.SignatureV2{
+					PubKey: privKey.PubKey(),
+					Data: &signing.SingleSignatureData{
+						SignMode: signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
+					},
+					Sequence: nonce - 1,
+				}
+				txBuilder.SetSignatures(sigsV2)
+				return txBuilder.GetTx()
+			}, false, false, false,
+		},
+		{
+			"fails - DeliverTx EIP712 signed Cosmos Tx with invalid signMode",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(20)))
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "ethermint_9001-1", gas, amount)
+				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, acc.GetAddress())
+				suite.Require().NoError(err)
+				sigsV2 := signing.SignatureV2{
+					PubKey: privKey.PubKey(),
+					Data: &signing.SingleSignatureData{
+						SignMode: signing.SignMode_SIGN_MODE_UNSPECIFIED,
+					},
+					Sequence: nonce,
+				}
+				txBuilder.SetSignatures(sigsV2)
+				return txBuilder.GetTx()
+			}, false, false, false,
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.ctx = suite.ctx.WithIsCheckTx(tc.reCheckTx).WithIsReCheckTx(tc.reCheckTx)
+			suite.ctx = suite.ctx.WithIsCheckTx(tc.checkTx).WithIsReCheckTx(tc.reCheckTx)
 
 			// expConsumed := params.TxGasContractCreation + params.TxGas
 			_, err := suite.anteHandler(suite.ctx, tc.txFn(), false)
@@ -304,24 +410,16 @@ func (suite AnteTestSuite) TestAnteHandler() {
 }
 
 func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
-	suite.dynamicTxFee = true
-	suite.SetupTest() // reset
-
 	addr, privKey := tests.NewAddrKey()
 	to := tests.GenerateAddress()
 
-	acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
-	suite.Require().NoError(acc.SetSequence(1))
-	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-
-	suite.app.EvmKeeper.AddBalance(addr, big.NewInt((ethparams.InitialBaseFee+10)*100000))
-
 	testCases := []struct {
-		name      string
-		txFn      func() sdk.Tx
-		checkTx   bool
-		reCheckTx bool
-		expPass   bool
+		name           string
+		txFn           func() sdk.Tx
+		enableLondonHF bool
+		checkTx        bool
+		reCheckTx      bool
+		expPass        bool
 	}{
 		{
 			"success - DeliverTx (contract)",
@@ -343,6 +441,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
+			true,
 			false, false, true,
 		},
 		{
@@ -365,6 +464,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
+			true,
 			true, false, true,
 		},
 		{
@@ -387,6 +487,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
+			true,
 			false, true, true,
 		},
 		{
@@ -410,6 +511,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
+			true,
 			false, false, true,
 		},
 		{
@@ -418,7 +520,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				signedTx :=
 					evmtypes.NewTx(
 						suite.app.EvmKeeper.ChainID(),
-						2,
+						1,
 						&to,
 						big.NewInt(10),
 						100000,
@@ -433,6 +535,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
+			true,
 			true, false, true,
 		},
 		{
@@ -441,7 +544,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				signedTx :=
 					evmtypes.NewTx(
 						suite.app.EvmKeeper.ChainID(),
-						3,
+						1,
 						&to,
 						big.NewInt(10),
 						100000,
@@ -455,7 +558,9 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
-			}, false, true, true,
+			},
+			true,
+			false, true, true,
 		},
 		{
 			"success - CheckTx (cosmos tx not signed)",
@@ -463,7 +568,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				signedTx :=
 					evmtypes.NewTx(
 						suite.app.EvmKeeper.ChainID(),
-						4,
+						1,
 						&to,
 						big.NewInt(10),
 						100000,
@@ -477,7 +582,9 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
-			}, false, true, true,
+			},
+			true,
+			false, true, true,
 		},
 		{
 			"fail - CheckTx (cosmos tx is not valid)",
@@ -485,7 +592,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				signedTx :=
 					evmtypes.NewTx(
 						suite.app.EvmKeeper.ChainID(),
-						4,
+						1,
 						&to,
 						big.NewInt(10),
 						100000,
@@ -501,7 +608,9 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				// bigger than MaxGasWanted
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
-			}, false, true, false,
+			},
+			true,
+			true, false, false,
 		},
 		{
 			"fail - CheckTx (memo too long)",
@@ -509,7 +618,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				signedTx :=
 					evmtypes.NewTx(
 						suite.app.EvmKeeper.ChainID(),
-						5,
+						1,
 						&to,
 						big.NewInt(10),
 						100000,
@@ -524,13 +633,47 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				txBuilder.SetMemo(strings.Repeat("*", 257))
 				return txBuilder.GetTx()
-			}, true, false, false,
+			},
+			true,
+			true, false, false,
+		},
+		{
+			"fail - DynamicFeeTx without london hark fork",
+			func() sdk.Tx {
+				signedContractTx :=
+					evmtypes.NewTxContract(
+						suite.app.EvmKeeper.ChainID(),
+						1,
+						big.NewInt(10),
+						100000,
+						nil,
+						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(1),
+						nil,
+						&types.AccessList{},
+					)
+				signedContractTx.From = addr.Hex()
+
+				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
+				return tx
+			},
+			false,
+			false, false, false,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.ctx = suite.ctx.WithIsCheckTx(tc.reCheckTx).WithIsReCheckTx(tc.reCheckTx)
+			suite.enableFeemarket = true
+			suite.enableLondonHF = tc.enableLondonHF
+			suite.SetupTest() // reset
+
+			acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
+			suite.Require().NoError(acc.SetSequence(1))
+			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+
+			suite.ctx = suite.ctx.WithIsCheckTx(tc.checkTx).WithIsReCheckTx(tc.reCheckTx)
+			suite.app.EvmKeeper.SetBalance(suite.ctx, addr, big.NewInt((ethparams.InitialBaseFee+10)*100000))
 			_, err := suite.anteHandler(suite.ctx, tc.txFn(), false)
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -539,5 +682,6 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			}
 		})
 	}
-	suite.dynamicTxFee = false
+	suite.enableFeemarket = false
+	suite.enableLondonHF = true
 }

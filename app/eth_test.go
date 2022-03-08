@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"github.com/functionx/fx-core/x/evm/statedb"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,7 +32,7 @@ func (suite AnteTestSuite) TestEthSigVerificationDecorator() {
 		reCheckTx bool
 		expPass   bool
 	}{
-		{"ReCheckTx", nil, true, false},
+		{"ReCheckTx", &invalidTx{}, true, false},
 		{"invalid transaction type", &invalidTx{}, false, false},
 		{
 			"invalid sender",
@@ -65,6 +66,8 @@ func (suite AnteTestSuite) TestNewEthAccountVerificationDecorator() {
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	tx.From = addr.Hex()
 
+	var vmdb *statedb.StateDB
+
 	testCases := []struct {
 		name     string
 		tx       sdk.Tx
@@ -82,30 +85,10 @@ func (suite AnteTestSuite) TestNewEthAccountVerificationDecorator() {
 			false,
 		},
 		{
-			"sender not EOA",
-			tx,
-			func() {
-				// set not as an EOA
-				suite.app.EvmKeeper.SetCode(addr, []byte("1"))
-			},
-			true,
-			false,
-		},
-		{
-			"not enough balance to cover tx cost",
-			tx,
-			func() {
-				// reset back to EOA
-				suite.app.EvmKeeper.SetCode(addr, nil)
-			},
-			true,
-			false,
-		},
-		{
 			"success new account",
 			tx,
 			func() {
-				suite.app.EvmKeeper.AddBalance(addr, big.NewInt(1000000))
+				vmdb.AddBalance(addr, big.NewInt(1000000))
 			},
 			true,
 			true,
@@ -117,16 +100,38 @@ func (suite AnteTestSuite) TestNewEthAccountVerificationDecorator() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
-				suite.app.EvmKeeper.AddBalance(addr, big.NewInt(1000000))
+				vmdb.AddBalance(addr, big.NewInt(1000000))
 			},
 			true,
 			true,
+		},
+		{
+			"sender not EOA",
+			tx,
+			func() {
+				// set not as an EOA
+				vmdb.SetCode(addr, []byte("1"))
+			},
+			true,
+			false,
+		},
+		{
+			"not enough balance to cover tx cost",
+			tx,
+			func() {
+				// reset back to EOA
+				vmdb.SetCode(addr, nil)
+			},
+			true,
+			false,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			vmdb = suite.StateDB()
 			tc.malleate()
+			suite.Require().NoError(vmdb.Commit())
 			_, err := dec.AnteHandle(suite.ctx.WithIsCheckTx(tc.checkTx), tc.tx, false, nextFn)
 
 			if tc.expPass {
@@ -139,7 +144,8 @@ func (suite AnteTestSuite) TestNewEthAccountVerificationDecorator() {
 }
 
 func (suite AnteTestSuite) TestEthNonceVerificationDecorator() {
-	dec := ante.NewEthNonceVerificationDecorator(suite.app.AccountKeeper)
+	suite.SetupTest()
+	dec := ante.NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper)
 
 	addr := tests.GenerateAddress()
 
@@ -153,7 +159,7 @@ func (suite AnteTestSuite) TestEthNonceVerificationDecorator() {
 		reCheckTx bool
 		expPass   bool
 	}{
-		{"ReCheckTx", nil, func() {}, true, true},
+		{"ReCheckTx", &invalidTx{}, func() {}, true, false},
 		{"invalid transaction type", &invalidTx{}, func() {}, false, false},
 		{"sender account not found", tx, func() {}, false, false},
 		{
@@ -204,6 +210,8 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 	tx2 := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000000, big.NewInt(1), nil, nil, nil, &ethtypes.AccessList{{Address: addr, StorageKeys: nil}})
 	tx2.From = addr.Hex()
 
+	var vmdb *statedb.StateDB
+
 	testCases := []struct {
 		name     string
 		tx       sdk.Tx
@@ -221,29 +229,20 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 		{
 			"gas limit too low",
 			tx,
-			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-			},
+			func() {},
 			false, false,
 		},
 		{
 			"not enough balance for fees",
 			tx2,
-			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-			},
+			func() {},
 			false, false,
 		},
 		{
 			"not enough tx gas",
 			tx2,
 			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-
-				suite.app.EvmKeeper.AddBalance(addr, big.NewInt(1000000))
+				vmdb.AddBalance(addr, big.NewInt(1000000))
 			},
 			false, true,
 		},
@@ -251,10 +250,7 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 			"not enough block gas",
 			tx2,
 			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-
-				suite.app.EvmKeeper.AddBalance(addr, big.NewInt(1000000))
+				vmdb.AddBalance(addr, big.NewInt(1000000))
 
 				suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1))
 			},
@@ -264,10 +260,7 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 			"success",
 			tx2,
 			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-
-				suite.app.EvmKeeper.AddBalance(addr, big.NewInt(1000000))
+				vmdb.AddBalance(addr, big.NewInt(1000000))
 
 				suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(10000000000000000000))
 			},
@@ -277,7 +270,9 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			vmdb = suite.StateDB()
 			tc.malleate()
+			suite.Require().NoError(vmdb.Commit())
 
 			if tc.expPanic {
 				suite.Require().Panics(func() {
@@ -297,7 +292,7 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 }
 
 func (suite AnteTestSuite) TestCanTransferDecorator() {
-	dec := ante.NewCanTransferDecorator(suite.app.EvmKeeper, suite.app.FeeMarketKeeper)
+	dec := ante.NewCanTransferDecorator(suite.app.EvmKeeper)
 
 	addr, privKey := tests.NewAddrKey()
 
@@ -331,6 +326,8 @@ func (suite AnteTestSuite) TestCanTransferDecorator() {
 	err := tx.Sign(suite.ethSigner, tests.NewSigner(privKey))
 	suite.Require().NoError(err)
 
+	var vmdb *statedb.StateDB
+
 	testCases := []struct {
 		name     string
 		tx       sdk.Tx
@@ -355,7 +352,7 @@ func (suite AnteTestSuite) TestCanTransferDecorator() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
-				suite.app.EvmKeeper.AddBalance(addr, big.NewInt(1000000))
+				vmdb.AddBalance(addr, big.NewInt(1000000))
 			},
 			true,
 		},
@@ -363,7 +360,9 @@ func (suite AnteTestSuite) TestCanTransferDecorator() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			vmdb = suite.StateDB()
 			tc.malleate()
+			suite.Require().NoError(vmdb.Commit())
 
 			_, err := dec.AnteHandle(suite.ctx.WithIsCheckTx(true), tc.tx, false, nextFn)
 
@@ -382,15 +381,18 @@ func (suite AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 
 	contract := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 0, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	contract.From = addr.Hex()
+	err := contract.Sign(suite.ethSigner, tests.NewSigner(privKey))
+	suite.Require().NoError(err)
 
 	to := tests.GenerateAddress()
 	tx := evmtypes.NewTx(suite.app.EvmKeeper.ChainID(), 0, &to, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	tx.From = addr.Hex()
-
-	err := contract.Sign(suite.ethSigner, tests.NewSigner(privKey))
+	err = tx.Sign(suite.ethSigner, tests.NewSigner(privKey))
 	suite.Require().NoError(err)
 
-	err = tx.Sign(suite.ethSigner, tests.NewSigner(privKey))
+	tx2 := evmtypes.NewTx(suite.app.EvmKeeper.ChainID(), 1, &to, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
+	tx2.From = addr.Hex()
+	err = tx2.Sign(suite.ethSigner, tests.NewSigner(privKey))
 	suite.Require().NoError(err)
 
 	testCases := []struct {
@@ -410,7 +412,7 @@ func (suite AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 			"no signers",
 			evmtypes.NewTx(suite.app.EvmKeeper.ChainID(), 1, &to, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil),
 			func() {},
-			false, true,
+			false, false,
 		},
 		{
 			"account not set to store",
@@ -429,7 +431,7 @@ func (suite AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		},
 		{
 			"success - call",
-			tx,
+			tx2,
 			func() {},
 			true, false,
 		},
@@ -455,12 +457,8 @@ func (suite AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 				txData, err := evmtypes.UnpackTxData(msg.Data)
 				suite.Require().NoError(err)
 
-				nonce := suite.app.EvmKeeper.GetNonce(addr)
-				if txData.GetTo() == nil {
-					suite.Require().Equal(txData.GetNonce(), nonce)
-				} else {
-					suite.Require().Equal(txData.GetNonce()+1, nonce)
-				}
+				nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, addr)
+				suite.Require().Equal(txData.GetNonce()+1, nonce)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -469,7 +467,7 @@ func (suite AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 }
 
 func (suite AnteTestSuite) TestEthSetupContextDecorator() {
-	dec := ante.NewEthSetUpContextDecorator()
+	dec := ante.NewEthSetUpContextDecorator(suite.app.EvmKeeper)
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 
 	testCases := []struct {

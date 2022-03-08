@@ -7,7 +7,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	fxcoretypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/intrarelayer/types"
 	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 )
@@ -18,7 +17,7 @@ func (k Keeper) InitIntrarelayer(ctx sdk.Context, p *types.InitIntrarelayerParam
 	//	return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module has not init")
 	//}
 	ctx.Logger().Info("init intrarelayer", "EnableIntrarelayer", p.Params.EnableIntrarelayer,
-		"EnableEVMHook", p.Params.EnableEVMHook, "TokenPairVotingPeriod", p.Params.TokenPairVotingPeriod, "IbcTransferTimeoutHeight", p.Params.IbcTransferTimeoutHeight)
+		"EnableEVMHook", p.Params.EnableEVMHook, "TokenPairVotingPeriod", "IbcTransferTimeoutHeight", p.Params.IbcTransferTimeoutHeight)
 	k.SetParams(ctx, *p.Params)
 
 	// ensure intrarelayer module account is set on genesis
@@ -80,7 +79,8 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin metadata is invalid %s, error %v", name, err)
 	}
 
-	addr, err := k.DeployFIP20Contract(ctx, name, symbol, decimals, coinMetadata.Base == fxcoretypes.FX)
+	evmParams := k.evmKeeper.GetParams(ctx)
+	addr, err := k.DeployFIP20Contract(ctx, name, symbol, decimals, coinMetadata.Base == evmParams.EvmDenom)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for FIP20")
 	}
@@ -106,17 +106,19 @@ func (k Keeper) verifyMetadata(ctx sdk.Context, coinMetadata banktypes.Metadata)
 
 // DeployFIP20Contract creates and deploys an FIP20 contract on the EVM with the intrarelayer module account as owner
 func (k Keeper) DeployFIP20Contract(ctx sdk.Context, name, symbol string, decimals uint8, origin ...bool) (common.Address, error) {
-	ctorArgs, err := contracts.FIP20Contract.ABI.Pack("", name, symbol, decimals)
+	contract := contracts.FIP20Contract
 	if len(origin) > 0 && origin[0] {
-		ctorArgs, err = contracts.WFXContract.ABI.Pack("", name, symbol, decimals)
+		contract = contracts.WFXContract
 	}
+
+	ctorArgs, err := contract.ABI.Pack("", name, symbol, decimals)
 	if err != nil {
 		return common.Address{}, sdkerrors.Wrapf(err, "coin metadata is invalid  %s", name)
 	}
 
-	data := make([]byte, len(contracts.FIP20Contract.Bin)+len(ctorArgs))
-	copy(data[:len(contracts.FIP20Contract.Bin)], contracts.FIP20Contract.Bin)
-	copy(data[len(contracts.FIP20Contract.Bin):], ctorArgs)
+	data := make([]byte, len(contract.Bin)+len(ctorArgs))
+	copy(data[:len(contract.Bin)], contract.Bin)
+	copy(data[len(contract.Bin):], ctorArgs)
 
 	nonce, err := k.accountKeeper.GetSequence(ctx, types.ModuleAddress.Bytes())
 	if err != nil {
@@ -124,7 +126,7 @@ func (k Keeper) DeployFIP20Contract(ctx sdk.Context, name, symbol string, decima
 	}
 
 	contractAddr := crypto.CreateAddress(types.ModuleAddress, nonce)
-	_, err = k.CallEVMWithPayloadWithModule(ctx, nil, data)
+	_, err = k.CallEVMWithPayload(ctx, types.ModuleAddress, nil, data)
 	if err != nil {
 		return common.Address{}, fmt.Errorf("failed to deploy contract for %s", name)
 	}
@@ -159,7 +161,7 @@ func (k Keeper) RegisterFIP20(ctx sdk.Context, contract common.Address) (*types.
 func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*banktypes.Metadata, string, string, error) {
 	strContract := contract.String()
 
-	erc20Data, err := k.QueryFIP20(ctx, contract)
+	fip20Data, err := k.QueryFIP20(ctx, contract)
 	if err != nil {
 		return nil, "", "", err
 	}
@@ -171,15 +173,15 @@ func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*b
 	}
 
 	if k.IsDenomRegistered(ctx, types.CreateDenom(strContract)) {
-		return nil, "", "", sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin denomination already registered: %s", erc20Data.Name)
+		return nil, "", "", sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin denomination already registered: %s", fip20Data.Name)
 	}
 
 	baseDenom := types.CreateDenom(strContract)
-	// create a bank denom metadata based on the ERC20 token ABI details
+	// create a bank denom metadata based on the FIP20 token ABI details
 	metadata := banktypes.Metadata{
-		Description: erc20Data.Name,
+		Description: fip20Data.Name,
 		Base:        baseDenom,
-		Display:     erc20Data.Symbol,
+		Display:     fip20Data.Symbol,
 		// NOTE: Denom units MUST be increasing
 		DenomUnits: []*banktypes.DenomUnit{
 			{
@@ -187,15 +189,15 @@ func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*b
 				Exponent: 0,
 			},
 			{
-				Denom:    erc20Data.Symbol,
-				Exponent: uint32(erc20Data.Decimals),
+				Denom:    fip20Data.Symbol,
+				Exponent: uint32(fip20Data.Decimals),
 			},
 		},
 	}
-	symbol := erc20Data.Symbol
+	symbol := fip20Data.Symbol
 
 	if err := metadata.Validate(); err != nil {
-		return nil, "", "", sdkerrors.Wrapf(err, "ERC20 token data is invalid for contract %s", strContract)
+		return nil, "", "", sdkerrors.Wrapf(err, "FIP20 token data is invalid for contract %s", strContract)
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)

@@ -19,15 +19,10 @@ message GenesisState {
 message Params {
     // parameter to enable the intrarelaying of Cosmos coins <--> FIP20 tokens.
     bool enable_intrarelayer = 1;
-    // overrides the governance voting period for token pairs proposals
-    google.protobuf.Duration  token_pair_voting_period = 2 [
-        (gogoproto.stdduration) = true,
-        (gogoproto.nullable) = false
-    ];
     // parameter to enable the EVM hook to convert an FIP20 token to a Cosmos
     // Coin by transferring the Tokens through a MsgEthereumTx to the
     // ModuleAddress Ethereum address.
-    bool enable_evm_hook = 3 [(gogoproto.customname) = "EnableEVMHook"];
+    bool enable_evm_hook = 2 [(gogoproto.customname) = "EnableEVMHook"];
     // ibc transfer timeout height
-    uint64 ibc_transfer_timeout_height = 4;
+    uint64 ibc_transfer_timeout_height = 3;
 }

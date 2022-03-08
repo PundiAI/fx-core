@@ -14,7 +14,7 @@ import (
 var _ evmtypes.EvmHooks = (*Keeper)(nil)
 
 // PostTxProcessing implements EvmHooks.PostTxProcessing
-func (k Keeper) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error {
+func (k Keeper) PostTxProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
 	if ctx.BlockHeight() < fxtype.IntrarelayerSupportBlock() || !k.HasInit(ctx) {
 		return nil
 	}
@@ -23,15 +23,15 @@ func (k Keeper) PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*et
 		return sdkerrors.Wrap(types.ErrInternalTokenPair, "EVM Hook is currently disabled")
 	}
 	//process relay token
-	if err := k.RelayTokenProcessing(ctx, txHash, logs); err != nil {
+	if err := k.RelayTokenProcessing(ctx, from, to, receipt); err != nil {
 		return err
 	}
 	//process relay chain transfer
-	if err := k.RelayTransferChainProcessing(ctx, txHash, logs); err != nil {
+	if err := k.RelayTransferChainProcessing(ctx, from, to, receipt); err != nil {
 		return err
 	}
 	//process relay ibc transfer
-	if err := k.RelayTransferIBCProcessing(ctx, txHash, logs); err != nil {
+	if err := k.RelayTransferIBCProcessing(ctx, from, to, receipt); err != nil {
 		return err
 	}
 	return nil

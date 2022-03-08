@@ -9,7 +9,7 @@ const DefaultConfigTemplate = `
 [evm]
 
 # Tracer defines the 'vm.Tracer' type that the EVM will use when the node is run in
-# debug mode. To enable tracing use the '--trace' flag when starting your node.
+# debug mode. To enable tracing use the '--evm.tracer' flag when starting your node.
 # Valid types are: json|struct|access_list|markdown
 tracer = "{{ .EVM.Tracer }}"
 
@@ -47,6 +47,11 @@ filter-cap = {{ .JSONRPC.FilterCap }}
 # FeeHistoryCap sets the global cap for total number of blocks that can be fetched
 feehistory-cap = {{ .JSONRPC.FeeHistoryCap }}
 
+# LogsCap defines the max number of results can be returned from single 'eth_getLogs' query.
+logs-cap = {{ .JSONRPC.LogsCap }}
+
+# BlockRangeCap defines the max block range allowed for 'eth_getLogs' query.
+block-range-cap = {{ .JSONRPC.BlockRangeCap }}
 
 ###############################################################################
 ###                             TLS Configuration                           ###

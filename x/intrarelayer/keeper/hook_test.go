@@ -118,7 +118,7 @@ var (
 func TestHookChainGravity(t *testing.T) {
 	app, validators, _, delegateAddressArr := initTest(t)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
-	require.NoError(t, InitEvmModuleParams(ctx, app.EvmKeeper, false))
+	require.NoError(t, InitEvmModuleParams(ctx, app.EvmKeeper, true))
 	require.NoError(t, InitIntrarelayerParams(ctx, app.IntrarelayerKeeper))
 
 	pair, err := app.IntrarelayerKeeper.RegisterCoin(ctx, wfxMetadata)
@@ -139,14 +139,14 @@ func TestHookChainGravity(t *testing.T) {
 	ctx = testInitGravity(t, ctx, app, validator.GetOperator(), addr1.Bytes(), addr2)
 
 	balances := app.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
-	t.Log("balance", balances.String())
+	t.Log("b", balances.String())
 
 	err = app.IntrarelayerKeeper.ConvertDenomToFIP20(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
 	balanceOf, err := app.IntrarelayerKeeper.QueryFIP20BalanceOf(ctx, pair.GetFIP20Contract(), addr1)
 	require.NoError(t, err)
-	t.Log("balanceOf", balanceOf.String())
+	t.Log("c", balanceOf.String())
 
 	token := pair.GetFIP20Contract()
 	transferChainData := packTransferChainData(t, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, "eth")
@@ -156,12 +156,14 @@ func TestHookChainGravity(t *testing.T) {
 	for _, tx := range transactions {
 		t.Log("sender", tx.Sender, "dest", tx.DestAddress, "amount", tx.Erc20Token.String())
 	}
+	//100000000000000000000FX
+	//10000000000000000000
 }
 
 func TestHookChainBSC(t *testing.T) {
 	app, validators, genesisAccount, delegateAddressArr := initTest(t)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
-	require.NoError(t, InitEvmModuleParams(ctx, app.EvmKeeper, false))
+	require.NoError(t, InitEvmModuleParams(ctx, app.EvmKeeper, true))
 	require.NoError(t, InitIntrarelayerParams(ctx, app.IntrarelayerKeeper))
 
 	pair, err := app.IntrarelayerKeeper.RegisterCoin(ctx, purseMetadata)
@@ -208,7 +210,7 @@ func TestHookChainBSC(t *testing.T) {
 func TestHookIBC(t *testing.T) {
 	app, validators, _, delegateAddressArr := initTest(t)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
-	require.NoError(t, InitEvmModuleParams(ctx, app.EvmKeeper, false))
+	require.NoError(t, InitEvmModuleParams(ctx, app.EvmKeeper, true))
 	require.NoError(t, InitIntrarelayerParams(ctx, app.IntrarelayerKeeper))
 
 	pair, err := app.IntrarelayerKeeper.RegisterCoin(ctx, wfxMetadata)
@@ -273,7 +275,8 @@ func sendEthTx(t *testing.T, ctx sdk.Context, app *fxcore.App,
 	})
 	require.NoError(t, err)
 
-	nonce := app.EvmKeeper.GetNonce(from)
+	nonce, err := app.AccountKeeper.GetSequence(ctx, from.Bytes())
+	require.NoError(t, err)
 
 	ercTransferTx := evm.NewTx(
 		chainID,

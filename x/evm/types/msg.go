@@ -245,6 +245,24 @@ func (msg MsgEthereumTx) GetGas() uint64 {
 	return txData.GetGas()
 }
 
+// GetFee returns the fee for non dynamic fee tx
+func (msg MsgEthereumTx) GetFee() *big.Int {
+	txData, err := UnpackTxData(msg.Data)
+	if err != nil {
+		return nil
+	}
+	return txData.Fee()
+}
+
+// GetEffectiveFee returns the fee for dynamic fee tx
+func (msg MsgEthereumTx) GetEffectiveFee(baseFee *big.Int) *big.Int {
+	txData, err := UnpackTxData(msg.Data)
+	if err != nil {
+		return nil
+	}
+	return txData.EffectiveFee(baseFee)
+}
+
 // GetFrom loads the ethereum sender address from the sigcache and returns an
 // sdk.AccAddress from its bytes
 func (msg *MsgEthereumTx) GetFrom() sdk.AccAddress {
@@ -312,11 +330,10 @@ func (msg *MsgEthereumTx) BuildTx(b client.TxBuilder, evmDenom string) (signing.
 	if err != nil {
 		return nil, err
 	}
-	fees := sdk.Coins{
-		{
-			Denom:  evmDenom,
-			Amount: sdk.NewIntFromBigInt(txData.Fee()),
-		},
+	fees := make(sdk.Coins, 0)
+	feeAmt := sdk.NewIntFromBigInt(txData.Fee())
+	if feeAmt.Sign() > 0 {
+		fees = append(fees, sdk.NewCoin(evmDenom, feeAmt))
 	}
 
 	builder.SetExtensionOptions(option)

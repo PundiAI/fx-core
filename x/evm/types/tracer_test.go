@@ -2,10 +2,10 @@ package types
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/holiman/uint256"
 	"github.com/stretchr/testify/require"
 )
@@ -17,17 +17,17 @@ func TestFormatLogs(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		logs []vm.StructLog
+		logs []logger.StructLog
 		exp  []StructLogRes
 	}{
 		{
 			"empty logs",
-			[]vm.StructLog{},
+			[]logger.StructLog{},
 			[]StructLogRes{},
 		},
 		{
 			"non-empty stack",
-			[]vm.StructLog{
+			[]logger.StructLog{
 				{
 					Stack: zeroUint256,
 				},
@@ -42,7 +42,7 @@ func TestFormatLogs(t *testing.T) {
 		},
 		{
 			"non-empty memory",
-			[]vm.StructLog{
+			[]logger.StructLog{
 				{
 					Memory: zeroByte,
 				},
@@ -51,13 +51,13 @@ func TestFormatLogs(t *testing.T) {
 				{
 					Pc:     uint64(0),
 					Op:     "STOP",
-					Memory: &[]string{},
+					Memory: &[]string{"05"},
 				},
 			},
 		},
 		{
 			"non-empty storage",
-			[]vm.StructLog{
+			[]logger.StructLog{
 				{
 					Storage: make(map[common.Hash]common.Hash),
 				},
@@ -72,9 +72,11 @@ func TestFormatLogs(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		actual := FormatLogs(tc.logs)
+		t.Run(tc.name, func(t *testing.T) {
+			actual := FormatLogs(tc.logs)
 
-		require.Equal(t, tc.exp, actual)
+			require.Equal(t, tc.exp, actual)
+		})
 	}
 }
 

@@ -1,7 +1,9 @@
 package keeper
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,7 +29,7 @@ func (k Keeper) QueryFIP20(ctx sdk.Context, contract common.Address) (types.FIP2
 	fip20 := contracts.FIP20Contract.ABI
 
 	// Name
-	res, err := k.CallEVMWithModule(ctx, fip20, contract, "name")
+	res, err := k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "name")
 	if err != nil {
 		return types.FIP20Data{}, err
 	}
@@ -37,7 +39,7 @@ func (k Keeper) QueryFIP20(ctx sdk.Context, contract common.Address) (types.FIP2
 	}
 
 	// Symbol
-	res, err = k.CallEVMWithModule(ctx, fip20, contract, "symbol")
+	res, err = k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "symbol")
 	if err != nil {
 		return types.FIP20Data{}, err
 	}
@@ -47,7 +49,7 @@ func (k Keeper) QueryFIP20(ctx sdk.Context, contract common.Address) (types.FIP2
 	}
 
 	// Decimals
-	res, err = k.CallEVMWithModule(ctx, fip20, contract, "decimals")
+	res, err = k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "decimals")
 	if err != nil {
 		return types.FIP20Data{}, err
 	}
@@ -61,7 +63,7 @@ func (k Keeper) QueryFIP20(ctx sdk.Context, contract common.Address) (types.FIP2
 
 func (k Keeper) QueryFIP20BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.Int, error) {
 	fip20 := contracts.FIP20Contract.ABI
-	res, err := k.CallEVMWithModule(ctx, fip20, contract, "balanceOf", addr)
+	res, err := k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "balanceOf", addr)
 	if err != nil {
 		return nil, err
 	}
@@ -91,85 +93,52 @@ func (k Keeper) CallEVM(ctx sdk.Context, abi abi.ABI, from, contract common.Addr
 }
 
 // CallEVMWithPayload performs a smart contract method call using contract data
-func (k Keeper) CallEVMWithPayload(ctx sdk.Context, from common.Address, contract *common.Address, transferData []byte) (*evmtypes.MsgEthereumTxResponse, error) {
-	k.evmKeeper.WithContext(ctx)
+func (k Keeper) CallEVMWithPayload(
+	ctx sdk.Context,
+	from common.Address,
+	contract *common.Address,
+	data []byte,
+) (*evmtypes.MsgEthereumTxResponse, error) {
+	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
+	if err != nil {
+		return nil, err
+	}
 
-	nonce := k.evmKeeper.GetNonce(from)
+	args, err := json.Marshal(evmtypes.TransactionArgs{
+		From: &from,
+		To:   contract,
+		Data: (*hexutil.Bytes)(&data),
+	})
+	if err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "failled to marshal tx args: %s", err.Error())
+	}
+
+	gasRes, err := k.evmKeeper.EstimateGas(sdk.WrapSDKContext(ctx), &evmtypes.EthCallRequest{
+		Args:   args,
+		GasCap: config.DefaultGasCap,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	msg := ethtypes.NewMessage(
 		from,
 		contract,
 		nonce,
-		big.NewInt(0),        // amount
-		config.DefaultGasCap, // gasLimit
-		big.NewInt(0),        // gasFeeCap
-		big.NewInt(0),        // gasTipCap
-		big.NewInt(0),        // gasPrice
-		transferData,
+		big.NewInt(0), // amount
+		gasRes.Gas,    // gasLimit
+		big.NewInt(0), // gasFeeCap
+		big.NewInt(0), // gasTipCap
+		big.NewInt(0), // gasPrice
+		data,
 		ethtypes.AccessList{}, // AccessList
 		true,                  // checkNonce
 	)
 
-	res, err := k.evmKeeper.ApplyMessage(msg, evmtypes.NewNoOpTracer(), true)
+	res, err := k.evmKeeper.ApplyMessage(ctx, msg, evmtypes.NewNoOpTracer(), true)
 	if err != nil {
 		return nil, err
 	}
-
-	k.evmKeeper.SetNonce(from, nonce+1)
-
-	if res.Failed() {
-		return nil, sdkerrors.Wrap(evmtypes.ErrVMExecution, res.VmError)
-	}
-
-	return res, nil
-}
-
-// CallEVMWithModule performs a smart contract method call using  given args with module
-func (k Keeper) CallEVMWithModule(ctx sdk.Context, abi abi.ABI, contract common.Address, method string, args ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
-	payload, err := abi.Pack(method, args...)
-	if err != nil {
-		return nil, sdkerrors.Wrap(
-			types.ErrWritingEthTxPayload,
-			sdkerrors.Wrap(err, "failed to create transaction payload").Error(),
-		)
-	}
-
-	resp, err := k.CallEVMWithPayloadWithModule(ctx, &contract, payload)
-	if err != nil {
-		return nil, fmt.Errorf("contract call failed: method '%s' %s, %s", method, contract, err)
-	}
-	return resp, nil
-}
-
-// CallEVMWithPayloadWithModule performs a smart contract method call using contract data with module
-func (k Keeper) CallEVMWithPayloadWithModule(ctx sdk.Context, contract *common.Address, transferData []byte) (*evmtypes.MsgEthereumTxResponse, error) {
-	k.evmKeeper.WithContext(ctx)
-
-	nonce, err := k.accountKeeper.GetSequence(ctx, types.ModuleAddress.Bytes())
-	if err != nil {
-		return nil, err
-	}
-
-	msg := ethtypes.NewMessage(
-		types.ModuleAddress,
-		contract,
-		nonce,
-		big.NewInt(0),        // amount
-		config.DefaultGasCap, // gasLimit
-		big.NewInt(0),        // gasFeeCap
-		big.NewInt(0),        // gasTipCap
-		big.NewInt(0),        // gasPrice
-		transferData,
-		ethtypes.AccessList{}, // AccessList
-		true,                  // checkNonce
-	)
-
-	res, err := k.evmKeeper.ApplyMessage(msg, evmtypes.NewNoOpTracer(), true)
-	if err != nil {
-		return nil, err
-	}
-
-	k.evmKeeper.SetNonce(types.ModuleAddress, nonce+1)
 
 	if res.Failed() {
 		return nil, sdkerrors.Wrap(evmtypes.ErrVMExecution, res.VmError)

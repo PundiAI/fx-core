@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -23,26 +22,26 @@ func TestTokenPairSuite(t *testing.T) {
 func (suite *TokenPairTestSuite) TestTokenPairNew() {
 	testCases := []struct {
 		msg          string
-		erc20Address common.Address
+		fip20Address common.Address
 		denom        string
 		enabled      bool
 		owner        Owner
 		expectPass   bool
 	}{
-		{msg: "Register token pair - invalid starts with number", erc20Address: tests.GenerateAddress(), denom: "1test", enabled: true, owner: OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - invalid char '('", erc20Address: tests.GenerateAddress(), denom: "(test", enabled: true, owner: OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - invalid char '^'", erc20Address: tests.GenerateAddress(), denom: "^test", enabled: true, owner: OWNER_MODULE, expectPass: false},
+		{msg: "Register token pair - invalid starts with number", fip20Address: tests.GenerateAddress(), denom: "1test", enabled: true, owner: OWNER_MODULE, expectPass: false},
+		{msg: "Register token pair - invalid char '('", fip20Address: tests.GenerateAddress(), denom: "(test", enabled: true, owner: OWNER_MODULE, expectPass: false},
+		{msg: "Register token pair - invalid char '^'", fip20Address: tests.GenerateAddress(), denom: "^test", enabled: true, owner: OWNER_MODULE, expectPass: false},
 		// TODO: (guille) should the "\" be allowed to support unicode names?
-		{msg: "Register token pair - invalid char '\\'", erc20Address: tests.GenerateAddress(), denom: "-test", enabled: true, owner: OWNER_MODULE, expectPass: false},
+		{msg: "Register token pair - invalid char '\\'", fip20Address: tests.GenerateAddress(), denom: "-test", enabled: true, owner: OWNER_MODULE, expectPass: false},
 		// Invalid length
-		{msg: "Register token pair - invalid length token (0)", erc20Address: tests.GenerateAddress(), denom: "", enabled: true, owner: OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - invalid length token (1)", erc20Address: tests.GenerateAddress(), denom: "a", enabled: true, owner: OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - invalid length token (128)", erc20Address: tests.GenerateAddress(), denom: strings.Repeat("a", 129), enabled: true, owner: OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - pass", erc20Address: tests.GenerateAddress(), denom: "test", enabled: true, owner: OWNER_MODULE, expectPass: true},
+		{msg: "Register token pair - invalid length token (0)", fip20Address: tests.GenerateAddress(), denom: "", enabled: true, owner: OWNER_MODULE, expectPass: false},
+		{msg: "Register token pair - invalid length token (1)", fip20Address: tests.GenerateAddress(), denom: "a", enabled: true, owner: OWNER_MODULE, expectPass: false},
+		{msg: "Register token pair - invalid length token (128)", fip20Address: tests.GenerateAddress(), denom: strings.Repeat("a", 129), enabled: true, owner: OWNER_MODULE, expectPass: false},
+		{msg: "Register token pair - pass", fip20Address: tests.GenerateAddress(), denom: "test", enabled: true, owner: OWNER_MODULE, expectPass: true},
 	}
 
 	for i, tc := range testCases {
-		tp := NewTokenPair(tc.erc20Address, tc.denom, tc.enabled, tc.owner)
+		tp := NewTokenPair(tc.fip20Address, tc.denom, tc.enabled, tc.owner)
 		err := tp.Validate()
 
 		if tc.expectPass {
@@ -85,7 +84,7 @@ func (suite *TokenPairTestSuite) TestGetID() {
 	suite.Require().Equal(expID, id)
 }
 
-func (suite *TokenPairTestSuite) TestGetERC20Contract() {
+func (suite *TokenPairTestSuite) TestGetFIP20Contract() {
 	expAddr := tests.GenerateAddress()
 	denom := "test"
 	pair := NewTokenPair(expAddr, denom, true, OWNER_MODULE)
@@ -105,7 +104,7 @@ func (suite *TokenPairTestSuite) TestIsNativeCoin() {
 			false,
 		},
 		{
-			"external ERC20 owner",
+			"external FIP20 owner",
 			TokenPair{tests.GenerateAddress().String(), "test", true, OWNER_EXTERNAL},
 			false,
 		},
@@ -118,8 +117,6 @@ func (suite *TokenPairTestSuite) TestIsNativeCoin() {
 
 	for _, tc := range testCases {
 		res := tc.pair.IsNativeCoin()
-		fmt.Println(res)
-
 		if tc.expectPass {
 			suite.Require().True(res, tc.name)
 		} else {
@@ -128,7 +125,7 @@ func (suite *TokenPairTestSuite) TestIsNativeCoin() {
 	}
 }
 
-func (suite *TokenPairTestSuite) TestIsNativeERC20() {
+func (suite *TokenPairTestSuite) TestIsNativeFIP20() {
 	testCases := []struct {
 		name       string
 		pair       TokenPair
@@ -153,8 +150,6 @@ func (suite *TokenPairTestSuite) TestIsNativeERC20() {
 
 	for _, tc := range testCases {
 		res := tc.pair.IsNativeFIP20()
-		fmt.Println(res)
-
 		if tc.expectPass {
 			suite.Require().True(res, tc.name)
 		} else {

@@ -17,13 +17,12 @@ contract WFX is FIP20 {
     }
 
     function deposit() public payable {
-        balanceOf[msg.sender] += msg.value;
+        _mint(msg.sender, msg.value);
         emit Deposit(msg.sender, msg.value);
     }
 
     function withdraw(address payable to, uint256 value) public {
-        require(balanceOf[msg.sender] >= value);
-        balanceOf[msg.sender] -= value;
+        _burn(msg.sender, value);
         to.transfer(value);
         emit Withdraw(msg.sender, to, value);
     }

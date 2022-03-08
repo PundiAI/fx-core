@@ -42,6 +42,9 @@ func NewAnteHandler(
 				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
 					// handle as *evmtypes.MsgEthereumTx
 					anteHandler = ethereumTxAnteHandler(ak, bankKeeper, evmKeeper, feeMarketKeeper)
+				case "/ethermint.types.v1.ExtensionOptionsWeb3Tx":
+					// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
+					anteHandler = normalTxAnteHandlerEip712(ak, bankKeeper, sigGasConsumer, signModeHandler)
 				default:
 					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownExtensionOptions, "rejecting tx with unsupported extension option: %s", typeURL)
 				}
@@ -91,17 +94,40 @@ func normalTxAnteHandler(
 
 func ethereumTxAnteHandler(ak evmtypes.AccountKeeper, bankKeeper evmtypes.BankKeeper, evmKeeper EVMKeeper, feeMarketKeeper evmtypes.FeeMarketKeeper) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
-		NewEthSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
-		ante.NewMempoolFeeDecorator(),
-		ante.TxTimeoutHeightDecorator{},
-		ante.NewValidateMemoDecorator(ak),
+		NewEthSetUpContextDecorator(evmKeeper), // outermost AnteDecorator. SetUpContext must be called first
+		NewEthMempoolFeeDecorator(evmKeeper),
 		NewEthValidateBasicDecorator(evmKeeper),
 		NewEthSigVerificationDecorator(evmKeeper),
 		NewEthAccountVerificationDecorator(ak, bankKeeper, evmKeeper),
-		NewEthNonceVerificationDecorator(ak),
 		NewEthGasConsumeDecorator(evmKeeper),
-		NewCanTransferDecorator(evmKeeper, feeMarketKeeper),
+		NewCanTransferDecorator(evmKeeper),
 		NewEthIncrementSenderSequenceDecorator(ak), // innermost AnteDecorator.
+	)
+}
+
+func normalTxAnteHandlerEip712(
+	ak evmtypes.AccountKeeper, bankKeeper types.BankKeeper,
+	sigGasConsumer ante.SignatureVerificationGasConsumer,
+	signModeHandler signing.SignModeHandler,
+) sdk.AnteHandler {
+	return sdk.ChainAnteDecorators(
+		RejectMessagesDecorator{},       // reject MsgEthereumTxs
+		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		// NOTE: extensions option decorator removed
+		//NewRejectExtensionOptionsDecorator(),
+		ante.NewMempoolFeeDecorator(),
+		ante.NewValidateBasicDecorator(),
+		ante.TxTimeoutHeightDecorator{},
+		ante.NewValidateMemoDecorator(ak),
+		ante.NewConsumeGasForTxSizeDecorator(ak),
+		ante.NewRejectFeeGranterDecorator(),
+		ante.NewSetPubKeyDecorator(ak), // SetPubKeyDecorator must be called before all signature verification decorators
+		ante.NewValidateSigCountDecorator(ak),
+		ante.NewDeductFeeDecorator(ak, bankKeeper),
+		ante.NewSigGasConsumeDecorator(ak, sigGasConsumer),
+		// Note: signature verification uses EIP instead of the cosmos signature validator
+		NewEip712SigVerificationDecorator(ak, signModeHandler),
+		ante.NewIncrementSequenceDecorator(ak),
 	)
 }
 

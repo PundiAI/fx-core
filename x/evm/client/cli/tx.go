@@ -9,9 +9,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/params"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"github.com/spf13/viper"
-	"math"
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -22,14 +23,14 @@ import (
 	"github.com/spf13/cobra"
 
 	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	"github.com/functionx/fx-core/x/evm/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        evmtypes.ModuleName,
-		Short:                      fmt.Sprintf("%s transactions subcommands", evmtypes.ModuleName),
+		Use:                        types.ModuleName,
+		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -50,7 +51,7 @@ func NewRawTxCmd() *cobra.Command {
 				return errors.Wrap(err, "failed to decode ethereum tx hex bytes")
 			}
 
-			msg := &evmtypes.MsgEthereumTx{}
+			msg := &types.MsgEthereumTx{}
 			if err := msg.UnmarshalBinary(data); err != nil {
 				return err
 			}
@@ -64,7 +65,7 @@ func NewRawTxCmd() *cobra.Command {
 				return err
 			}
 
-			rsp, err := rpctypes.NewQueryClient(clientCtx).Params(cmd.Context(), &evmtypes.QueryParamsRequest{})
+			rsp, err := rpctypes.NewQueryClient(clientCtx).Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -119,6 +120,67 @@ func NewRawTxCmd() *cobra.Command {
 	return cmd
 }
 
+func getFeeMarkerParamsByFlags(cmd *cobra.Command) (*feemarkettypes.Params, error) {
+	NoBaseFee := false
+	var BaseFeeChangeDenominator uint32 = params.BaseFeeChangeDenominator
+	var ElasticityMultiplier uint32 = params.ElasticityMultiplier
+	var BaseFee int64 = params.InitialBaseFee
+	var EnableHeight = fxcoretypes.EvmSupportBlock()
+	return &feemarkettypes.Params{
+		NoBaseFee:                NoBaseFee,
+		BaseFeeChangeDenominator: BaseFeeChangeDenominator,
+		ElasticityMultiplier:     ElasticityMultiplier,
+		BaseFee:                  sdk.NewInt(BaseFee),
+		EnableHeight:             EnableHeight,
+	}, nil
+}
+
+func getEvmParamsByFlags(cmd *cobra.Command) (*types.Params, error) {
+	evmParamsEvmDenom, err := cmd.Flags().GetString(flagEvmParamsEvmDenom)
+	if err != nil {
+		return nil, err
+	}
+	homesteadBlock := sdk.ZeroInt()
+	daoForkBlock := sdk.ZeroInt()
+	eip150Block := sdk.ZeroInt()
+	eip155Block := sdk.ZeroInt()
+	eip158Block := sdk.ZeroInt()
+	byzantiumBlock := sdk.ZeroInt()
+	constantinopleBlock := sdk.ZeroInt()
+	petersburgBlock := sdk.ZeroInt()
+	istanbulBlock := sdk.ZeroInt()
+	muirGlacierBlock := sdk.ZeroInt()
+	berlinBlock := sdk.ZeroInt()
+	londonBlock := sdk.ZeroInt()
+	arrowGlacierBlock := sdk.ZeroInt()
+	mergeForkBlock := sdk.ZeroInt()
+
+	return &types.Params{
+		EvmDenom:     evmParamsEvmDenom,
+		EnableCreate: true,
+		EnableCall:   true,
+		ExtraEIPs:    nil,
+		ChainConfig: types.ChainConfig{
+			HomesteadBlock:      &homesteadBlock,
+			DAOForkBlock:        &daoForkBlock,
+			DAOForkSupport:      true,
+			EIP150Block:         &eip150Block,
+			EIP150Hash:          common.Hash{}.String(),
+			EIP155Block:         &eip155Block,
+			EIP158Block:         &eip158Block,
+			ByzantiumBlock:      &byzantiumBlock,
+			ConstantinopleBlock: &constantinopleBlock,
+			PetersburgBlock:     &petersburgBlock,
+			IstanbulBlock:       &istanbulBlock,
+			MuirGlacierBlock:    &muirGlacierBlock,
+			BerlinBlock:         &berlinBlock,
+			LondonBlock:         &londonBlock,
+			ArrowGlacierBlock:   &arrowGlacierBlock,
+			MergeForkBlock:      &mergeForkBlock,
+		},
+	}, nil
+}
+
 func InitEvmParamsProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "init-evm-params",
@@ -147,7 +209,7 @@ func InitEvmParamsProposalCmd() *cobra.Command {
 				return err
 			}
 			feeMarketParams, err := getFeeMarkerParamsByFlags(cmd)
-			proposal := &evmtypes.InitEvmParamsProposal{
+			proposal := &types.InitEvmParamsProposal{
 				Title:           title,
 				Description:     description,
 				EvmParams:       evmParams,
@@ -179,63 +241,6 @@ func InitEvmParamsProposalCmd() *cobra.Command {
 		panic(err)
 	}
 	return cmd
-}
-
-func getFeeMarkerParamsByFlags(cmd *cobra.Command) (*feemarkettypes.Params, error) {
-	NoBaseFee := true
-	var BaseFeeChangeDenominator uint32 = 8
-	var ElasticityMultiplier uint32 = 2
-	var InitialBaseFee int64 = 1000000000
-	var EnableHeight int64 = math.MaxInt64
-	return &feemarkettypes.Params{
-		NoBaseFee:                NoBaseFee,
-		BaseFeeChangeDenominator: BaseFeeChangeDenominator,
-		ElasticityMultiplier:     ElasticityMultiplier,
-		InitialBaseFee:           InitialBaseFee,
-		EnableHeight:             EnableHeight,
-	}, nil
-}
-
-func getEvmParamsByFlags(cmd *cobra.Command) (*evmtypes.Params, error) {
-	evmParamsEvmDenom, err := cmd.Flags().GetString(flagEvmParamsEvmDenom)
-	if err != nil {
-		return nil, err
-	}
-	homesteadBlock := sdk.ZeroInt()
-	daoForkBlock := sdk.ZeroInt()
-	eip150Block := sdk.ZeroInt()
-	eip155Block := sdk.ZeroInt()
-	eip158Block := sdk.ZeroInt()
-	byzantiumBlock := sdk.ZeroInt()
-	constantinopleBlock := sdk.ZeroInt()
-	petersburgBlock := sdk.ZeroInt()
-	istanbulBlock := sdk.ZeroInt()
-	muirGlacierBlock := sdk.ZeroInt()
-	berlinBlock := sdk.ZeroInt()
-	londonBlock := sdk.ZeroInt()
-
-	return &evmtypes.Params{
-		EvmDenom:     evmParamsEvmDenom,
-		EnableCreate: true,
-		EnableCall:   true,
-		ExtraEIPs:    nil,
-		ChainConfig: evmtypes.ChainConfig{
-			HomesteadBlock:      &homesteadBlock,
-			DAOForkBlock:        &daoForkBlock,
-			DAOForkSupport:      true,
-			EIP150Block:         &eip150Block,
-			EIP150Hash:          common.Hash{}.String(),
-			EIP155Block:         &eip155Block,
-			EIP158Block:         &eip158Block,
-			ByzantiumBlock:      &byzantiumBlock,
-			ConstantinopleBlock: &constantinopleBlock,
-			PetersburgBlock:     &petersburgBlock,
-			IstanbulBlock:       &istanbulBlock,
-			MuirGlacierBlock:    &muirGlacierBlock,
-			BerlinBlock:         &berlinBlock,
-			LondonBlock:         &londonBlock,
-		},
-	}, nil
 }
 
 const (

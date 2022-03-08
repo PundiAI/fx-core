@@ -9,7 +9,6 @@ import (
 
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
-	cmath "github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -54,23 +53,23 @@ func (k Keeper) DeductTxCostsFromUserBalance(
 		)
 	}
 
-	// calculate the fees paid to validators based on the effective tip and price
-	effectiveTip := txData.GetGasPrice()
+	var feeAmt *big.Int
 
 	feeMktParams := k.feeMarketKeeper.GetParams(ctx)
-
 	if london && !feeMktParams.NoBaseFee && txData.TxType() == ethtypes.DynamicFeeTxType {
 		baseFee := k.feeMarketKeeper.GetBaseFee(ctx)
-		gasFeeGap := new(big.Int).Sub(txData.GetGasFeeCap(), baseFee)
-		if gasFeeGap.Sign() == -1 {
+		if txData.GetGasFeeCap().Cmp(baseFee) < 0 {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "the tx gasfeecap is lower than the tx baseFee: %s (gasfeecap), %s (basefee) ", txData.GetGasFeeCap(), baseFee)
 		}
-
-		effectiveTip = cmath.BigMin(txData.GetGasTipCap(), gasFeeGap)
+		feeAmt = txData.EffectiveFee(baseFee)
+	} else {
+		feeAmt = txData.Fee()
 	}
 
-	gasUsed := new(big.Int).SetUint64(txData.GetGas())
-	feeAmt := new(big.Int).Mul(gasUsed, effectiveTip)
+	if feeAmt.Sign() == 0 {
+		// zero fee, no need to deduct
+		return sdk.NewCoins(), nil
+	}
 
 	fees := sdk.Coins{sdk.NewCoin(denom, sdk.NewIntFromBigInt(feeAmt))}
 
@@ -88,26 +87,22 @@ func (k Keeper) DeductTxCostsFromUserBalance(
 // CheckSenderBalance validates that the tx cost value is positive and that the
 // sender has enough funds to pay for the fees and value of the transaction.
 func CheckSenderBalance(
-	ctx sdk.Context,
-	bankKeeper evmtypes.BankKeeper,
-	sender sdk.AccAddress,
+	balance sdk.Int,
 	txData evmtypes.TxData,
-	denom string,
 ) error {
-	balance := bankKeeper.GetBalance(ctx, sender, denom)
 	cost := txData.Cost()
 
 	if cost.Sign() < 0 {
 		return sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidCoins,
-			"tx cost (%s%s) is negative and invalid", cost, denom,
+			"tx cost (%s) is negative and invalid", cost,
 		)
 	}
 
-	if balance.IsNegative() || balance.Amount.BigInt().Cmp(cost) < 0 {
+	if balance.IsNegative() || balance.BigInt().Cmp(cost) < 0 {
 		return sdkerrors.Wrapf(
 			sdkerrors.ErrInsufficientFunds,
-			"sender balance < tx cost (%s < %s%s)", balance, txData.Cost(), denom,
+			"sender balance < tx cost (%s < %s)", balance, txData.Cost(),
 		)
 	}
 	return nil

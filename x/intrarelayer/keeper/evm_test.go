@@ -8,7 +8,7 @@ import (
 	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 )
 
-func (suite *KeeperTestSuite) TestQueryERC20() {
+func (suite *KeeperTestSuite) TestQueryFIP20() {
 	var contract common.Address
 	testCases := []struct {
 		name     string
@@ -16,7 +16,7 @@ func (suite *KeeperTestSuite) TestQueryERC20() {
 		res      bool
 	}{
 		{
-			"erc20 not deployed",
+			"fip20 not deployed",
 			func() { contract = common.Address{} },
 			false,
 		},
@@ -64,11 +64,11 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 	for _, tc := range testCases {
 		suite.SetupTest() // reset
 
-		erc20 := contracts.FIP20Contract.ABI
+		fip20 := contracts.FIP20Contract.ABI
 		contract := suite.DeployContract("coin", "token", 18)
 		account := tests.GenerateAddress()
 
-		res, err := suite.app.IntrarelayerKeeper.CallEVMWithModule(suite.ctx, erc20, contract, tc.method, account)
+		res, err := suite.app.IntrarelayerKeeper.CallEVM(suite.ctx, fip20, types.ModuleAddress, contract, tc.method, account)
 		if tc.expPass {
 			suite.Require().IsTypef(&evmtypes.MsgEthereumTxResponse{}, res, tc.name)
 			suite.Require().NoError(err)

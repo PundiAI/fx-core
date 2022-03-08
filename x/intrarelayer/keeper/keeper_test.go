@@ -2,10 +2,12 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	"github.com/functionx/fx-core/x/evm/statedb"
 	"github.com/functionx/fx-core/x/intrarelayer/keeper"
 	"math/big"
 	"testing"
@@ -35,7 +37,7 @@ import (
 	app "github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"
-	ethermint "github.com/functionx/fx-core/types"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	evm "github.com/functionx/fx-core/x/evm/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
@@ -65,6 +67,7 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	checkTx := false
 	suite.mintFeeCollector = true
+	suite.dynamicTxFee = true
 
 	// account key
 	priKey := NewPriKey()
@@ -82,8 +85,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	feemarketGenesis := feemarkettypes.DefaultGenesisState()
 	feemarketGenesis.Params.EnableHeight = 1
 	feemarketGenesis.Params.NoBaseFee = false
-	feemarketGenesis.BaseFee = sdk.NewInt(feemarketGenesis.Params.InitialBaseFee)
-	suite.app = app.Setup(checkTx)
+	suite.app = app.Setup(checkTx, nil)
 
 	if suite.mintFeeCollector {
 		// mint some coin to fee collector
@@ -118,7 +120,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{
 		Height:          1,
-		ChainID:         ethermint.EIP155ChainID().String(),
+		ChainID:         fxcoretypes.EIP155ChainID().String(),
 		Time:            time.Now().UTC(),
 		ProposerAddress: suite.consAddress.Bytes(),
 
@@ -140,7 +142,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		ConsensusHash:      tmhash.Sum([]byte("consensus")),
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
-	suite.app.EvmKeeper.WithContext(suite.ctx)
 
 	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.dynamicTxFee))
 	require.NoError(suite.T(), InitIntrarelayerParams(suite.ctx, suite.app.IntrarelayerKeeper))
@@ -152,14 +153,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	types.RegisterQueryServer(queryHelper, suite.app.IntrarelayerKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	//TODO update ethAccount 2021-12-02.
-	//acc := &ethermint.EthAccount{
-	//	BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
-	//	CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-	//}
-
 	acc := authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0)
-
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 	suite.app.EvmKeeper.SetAddressCode(suite.ctx, suite.address, common.BytesToHash(crypto.Keccak256(nil)).Bytes())
 
@@ -175,11 +169,21 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	encodingConfig := app.MakeEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
-
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.DoSetupTest(suite.T())
+}
+
+func (suite *KeeperTestSuite) StateDB() *statedb.StateDB {
+	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes())))
+}
+
+func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
+	err := suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins)
+	suite.Require().NoError(err)
+	err = suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx, types.ModuleName, authtypes.FeeCollectorName, coins)
+	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) DeployContract(name string, symbol string, decimals uint8) common.Address {
@@ -202,9 +206,9 @@ func (suite *KeeperTestSuite) DeployContract(name string, symbol string, decimal
 	})
 	suite.Require().NoError(err)
 
-	nonce := suite.app.EvmKeeper.GetNonce(suite.address)
+	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 
-	erc20DeployTx := evm.NewTxContract(
+	fip20DeployTx := evm.NewTxContract(
 		chainID,
 		nonce,
 		nil,     // amount
@@ -216,10 +220,52 @@ func (suite *KeeperTestSuite) DeployContract(name string, symbol string, decimal
 		&ethtypes.AccessList{}, // accesses
 	)
 
-	erc20DeployTx.From = suite.address.Hex()
-	err = erc20DeployTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
+	fip20DeployTx.From = suite.address.Hex()
+	err = fip20DeployTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	suite.Require().NoError(err)
-	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, erc20DeployTx)
+	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, fip20DeployTx)
+	suite.Require().NoError(err)
+	suite.Require().Empty(rsp.VmError)
+	return crypto.CreateAddress(suite.address, nonce)
+}
+func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation(name string, symbol string) common.Address {
+	ctx := sdk.WrapSDKContext(suite.ctx)
+	chainID := suite.app.EvmKeeper.ChainID()
+
+	ctorArgs, err := contracts.FIP20Contract.ABI.Pack("", big.NewInt(1000000000000000000))
+	suite.Require().NoError(err)
+
+	data := append(contracts.FIP20Contract.Bin, ctorArgs...)
+	args, err := json.Marshal(&evm.TransactionArgs{
+		From: &suite.address,
+		Data: (*hexutil.Bytes)(&data),
+	})
+	suite.Require().NoError(err)
+
+	res, err := suite.queryClientEvm.EstimateGas(ctx, &evm.EthCallRequest{
+		Args:   args,
+		GasCap: uint64(config.DefaultGasCap),
+	})
+	suite.Require().NoError(err)
+
+	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
+
+	fip20DeployTx := evm.NewTxContract(
+		chainID,
+		nonce,
+		nil,     // amount
+		res.Gas, // gasLimit
+		nil,     // gasPrice
+		suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
+		big.NewInt(1),
+		data,                   // input
+		&ethtypes.AccessList{}, // accesses
+	)
+
+	fip20DeployTx.From = suite.address.Hex()
+	err = fip20DeployTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
+	suite.Require().NoError(err)
+	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, fip20DeployTx)
 	suite.Require().NoError(err)
 	suite.Require().Empty(rsp.VmError)
 	return crypto.CreateAddress(suite.address, nonce)
@@ -235,20 +281,19 @@ func (suite *KeeperTestSuite) Commit() {
 
 	// update ctx
 	suite.ctx = suite.app.BaseApp.NewContext(false, header)
-	suite.app.EvmKeeper.WithContext(suite.ctx)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evm.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 	suite.queryClientEvm = evm.NewQueryClient(queryHelper)
 }
 
-func (suite *KeeperTestSuite) MintERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
+func (suite *KeeperTestSuite) MintFIP20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
 	transferData, err := contracts.FIP20Contract.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
 
-func (suite *KeeperTestSuite) BurnERC20Token(contractAddr, from common.Address, amount *big.Int) *evm.MsgEthereumTx {
+func (suite *KeeperTestSuite) BurnFIP20Token(contractAddr, from common.Address, amount *big.Int) *evm.MsgEthereumTx {
 	transferData, err := contracts.FIP20Contract.ABI.Pack("transfer", types.ModuleAddress, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
@@ -266,7 +311,11 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 	})
 	suite.Require().NoError(err)
 
-	nonce := suite.app.EvmKeeper.GetNonce(from)
+	nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, suite.address.Bytes())
+	suite.Require().NoError(err)
+
+	// Mint the max gas to the FeeCollector to ensure balance in case of refund
+	suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(evm.DefaultEVMDenom, sdk.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
 
 	ercTransferTx := evm.NewTx(
 		chainID,
@@ -291,14 +340,14 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 }
 
 func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interface{} {
-	erc20 := contracts.FIP20Contract.ABI
+	fip20 := contracts.FIP20Contract.ABI
 
-	res, err := suite.app.IntrarelayerKeeper.CallEVMWithModule(suite.ctx, erc20, contract, "balanceOf", account)
+	res, err := suite.app.IntrarelayerKeeper.CallEVM(suite.ctx, fip20, types.ModuleAddress, contract, "balanceOf", account)
 	if err != nil {
 		return nil
 	}
 
-	unpacked, err := erc20.Unpack("balanceOf", res.Ret)
+	unpacked, err := fip20.Unpack("balanceOf", res.Ret)
 	if len(unpacked) == 0 {
 		return nil
 	}
@@ -306,24 +355,21 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 	return unpacked[0]
 }
 
-func (suite *KeeperTestSuite) NameOf(contract common.Address) interface{} {
+func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
+	fip20 := contracts.FIP20Contract.ABI
 
-	erc20 := contracts.FIP20Contract.ABI
+	res, err := suite.app.IntrarelayerKeeper.CallEVM(suite.ctx, fip20, types.ModuleAddress, contract, "name")
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
 
-	res, err := suite.app.IntrarelayerKeeper.CallEVMWithModule(suite.ctx, erc20, contract, "name")
-	if err != nil {
-		return nil
-	}
+	unpacked, err := fip20.Unpack("name", res.Ret)
+	suite.Require().NoError(err)
+	suite.Require().NotEmpty(unpacked)
 
-	unpacked, err := erc20.Unpack("name", res.Ret)
-	if len(unpacked) == 0 {
-		return nil
-	}
-
-	return unpacked[0]
+	return fmt.Sprintf("%v", unpacked[0])
 }
 
-func (suite *KeeperTestSuite) TransferERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
+func (suite *KeeperTestSuite) TransferFIP20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
 	transferData, err := contracts.FIP20Contract.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
@@ -338,7 +384,7 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
 
 	if dynamicTxFee {
-		defaultFeeMarketParams.EnableHeight = 1
+		defaultFeeMarketParams.EnableHeight = fxcoretypes.EvmSupportBlock()
 		defaultFeeMarketParams.NoBaseFee = false
 	} else {
 		defaultFeeMarketParams.NoBaseFee = true
@@ -366,10 +412,6 @@ func InitIntrarelayerParams(ctx sdk.Context, keeper keeper.Keeper) error {
 	})
 
 	return err
-}
-
-func EvmKeeperSetHook(evm *evmkeeper.Keeper, hooks evmkeeper.MultiEvmHooks) {
-	evm.SetHooks(hooks)
 }
 
 func NewPriKey() cryptotypes.PrivKey {

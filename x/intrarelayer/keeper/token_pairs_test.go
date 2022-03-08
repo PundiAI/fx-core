@@ -155,7 +155,7 @@ func (suite *KeeperTestSuite) TestIsTokenPairRegistered() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestIsERC20Registered() {
+func (suite *KeeperTestSuite) TestIsFIP20Registered() {
 	addr := tests.GenerateAddress()
 	pair := types.NewTokenPair(addr, "coin", true, types.OWNER_MODULE)
 	suite.app.IntrarelayerKeeper.SetTokenPair(suite.ctx, pair)
@@ -163,14 +163,14 @@ func (suite *KeeperTestSuite) TestIsERC20Registered() {
 
 	testCases := []struct {
 		name     string
-		erc20    common.Address
+		fip20    common.Address
 		malleate func()
 		ok       bool
 	}{
-		{"nil erc20 address", common.Address{}, func() {}, false},
-		{"valid erc20 address", pair.GetFIP20Contract(), func() {}, true},
+		{"nil fip20 address", common.Address{}, func() {}, false},
+		{"valid fip20 address", pair.GetFIP20Contract(), func() {}, true},
 		{
-			"deleted erc20map",
+			"deleted fip20map",
 			pair.GetFIP20Contract(),
 			func() {
 				addr := pair.GetFIP20Contract()
@@ -182,7 +182,7 @@ func (suite *KeeperTestSuite) TestIsERC20Registered() {
 	for _, tc := range testCases {
 		tc.malleate()
 
-		found := suite.app.IntrarelayerKeeper.IsFIP20Registered(suite.ctx, tc.erc20)
+		found := suite.app.IntrarelayerKeeper.IsFIP20Registered(suite.ctx, tc.fip20)
 
 		if tc.ok {
 			suite.Require().True(found, tc.name)

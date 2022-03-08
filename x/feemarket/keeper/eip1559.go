@@ -10,7 +10,7 @@ import (
 )
 
 // CalculateBaseFee calculates the base fee for the current block. This is only calculated once per
-// block during EndBlock. If the NoBaseFee parameter is enabled or below activation height, this function returns nil.
+// block during BeginBlock. If the NoBaseFee parameter is enabled or below activation height, this function returns nil.
 // NOTE: This code is inspired from the go-ethereum EIP1559 implementation and adapted to Cosmos SDK-based
 // chains. For the canonical code refer to: https://github.com/ethereum/go-ethereum/blob/master/consensus/misc/eip1559.go
 func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
@@ -25,13 +25,13 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 
 	// If the current block is the first EIP-1559 block, return the InitialBaseFee.
 	if ctx.BlockHeight() == params.EnableHeight {
-		return new(big.Int).SetInt64(params.InitialBaseFee)
+		return params.BaseFee.BigInt()
 	}
 
 	// get the block gas used and the base fee values for the parent block.
-	parentBaseFee := k.GetBaseFee(ctx)
+	parentBaseFee := params.BaseFee.BigInt()
 	if parentBaseFee == nil {
-		parentBaseFee = new(big.Int).SetInt64(params.InitialBaseFee)
+		return nil
 	}
 
 	parentGasUsed := k.GetBlockGasUsed(ctx)
@@ -43,7 +43,7 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 
 	parentGasTargetBig := new(big.Int).Div(gasLimit, new(big.Int).SetUint64(uint64(params.ElasticityMultiplier)))
 	if !parentGasTargetBig.IsUint64() {
-		return new(big.Int).SetInt64(params.InitialBaseFee)
+		return nil
 	}
 
 	parentGasTarget := parentGasTargetBig.Uint64()

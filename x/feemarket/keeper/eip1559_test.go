@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	"math/big"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -24,16 +25,16 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			"with BaseFee - initial EIP-1559 block",
 			false,
 			func() {
-				suite.ctx = suite.ctx.WithBlockHeight(0)
+				suite.ctx = suite.ctx.WithBlockHeight(fxcoretypes.EvmSupportBlock())
 			},
-			big.NewInt(suite.app.FeeMarketKeeper.GetParams(suite.ctx).InitialBaseFee),
+			suite.app.FeeMarketKeeper.GetParams(suite.ctx).BaseFee.BigInt(),
 		},
 		{
 			"with BaseFee - parent block used the same gas as its target",
 			false,
 			func() {
 				// non initial block
-				suite.ctx = suite.ctx.WithBlockHeight(1)
+				suite.ctx = suite.ctx.WithBlockHeight(fxcoretypes.EvmSupportBlock() + 1)
 
 				// Set gas used
 				suite.app.FeeMarketKeeper.SetBlockGasUsed(suite.ctx, 100)
@@ -51,13 +52,13 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 				params.ElasticityMultiplier = 1
 				suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 			},
-			big.NewInt(suite.app.FeeMarketKeeper.GetParams(suite.ctx).InitialBaseFee),
+			suite.app.FeeMarketKeeper.GetParams(suite.ctx).BaseFee.BigInt(),
 		},
 		{
 			"with BaseFee - parent block used more gas than its target",
 			false,
 			func() {
-				suite.ctx = suite.ctx.WithBlockHeight(1)
+				suite.ctx = suite.ctx.WithBlockHeight(fxcoretypes.EvmSupportBlock() + 1)
 
 				suite.app.FeeMarketKeeper.SetBlockGasUsed(suite.ctx, 200)
 
@@ -78,7 +79,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			"with BaseFee - Parent gas used smaller than parent gas target",
 			false,
 			func() {
-				suite.ctx = suite.ctx.WithBlockHeight(1)
+				suite.ctx = suite.ctx.WithBlockHeight(fxcoretypes.EvmSupportBlock() + 1)
 
 				suite.app.FeeMarketKeeper.SetBlockGasUsed(suite.ctx, 50)
 

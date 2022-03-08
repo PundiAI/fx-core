@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -24,17 +25,21 @@ import (
 )
 
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
-func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) (*evmtypes.MsgEthereumTx, error) {
+func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
 	tx, err := clientCtx.TxConfig.TxDecoder()(txBz)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	ethTx, ok := tx.(*evmtypes.MsgEthereumTx)
-	if !ok {
-		return nil, fmt.Errorf("invalid transaction type %T, expected %T", tx, evmtypes.MsgEthereumTx{})
+	ethTxs := make([]*evmtypes.MsgEthereumTx, len(tx.GetMsgs()))
+	for i, msg := range tx.GetMsgs() {
+		ethTx, ok := msg.(*evmtypes.MsgEthereumTx)
+		if !ok {
+			return nil, fmt.Errorf("invalid message type %T, expected %T", msg, &evmtypes.MsgEthereumTx{})
+		}
+		ethTxs[i] = ethTx
 	}
-	return ethTx, nil
+	return ethTxs, nil
 }
 
 // EthHeaderFromTendermint is an util function that returns an Ethereum Header
@@ -97,7 +102,7 @@ func FormatBlock(
 		transactionsRoot = common.BytesToHash(header.DataHash)
 	}
 
-	return map[string]interface{}{
+	result := map[string]interface{}{
 		"number":           hexutil.Uint64(header.Height),
 		"hash":             hexutil.Bytes(header.Hash()),
 		"parentHash":       common.BytesToHash(header.LastBlockID.Hash.Bytes()),
@@ -115,12 +120,17 @@ func FormatBlock(
 		"timestamp":        hexutil.Uint64(header.Time.Unix()),
 		"transactionsRoot": transactionsRoot,
 		"receiptsRoot":     ethtypes.EmptyRootHash,
-		"baseFeePerGas":    (*hexutil.Big)(baseFee),
 
 		"uncles":          []common.Hash{},
 		"transactions":    transactions,
 		"totalDifficulty": (*hexutil.Big)(big.NewInt(0)),
 	}
+
+	if baseFee != nil {
+		result["baseFeePerGas"] = (*hexutil.Big)(baseFee)
+	}
+
+	return result
 }
 
 type DataError interface {
@@ -244,4 +254,107 @@ func BaseFeeFromEvents(events []abci.Event) *big.Int {
 		}
 	}
 	return nil
+}
+
+// FindTxAttributes returns the msg index of the eth tx in cosmos tx, and the attributes,
+// returns -1 and nil if not found.
+func FindTxAttributes(events []abci.Event, txHash string) (int, map[string]string) {
+	msgIndex := -1
+	for _, event := range events {
+		if event.Type != evmtypes.EventTypeEthereumTx {
+			continue
+		}
+
+		msgIndex++
+
+		value := FindAttribute(event.Attributes, []byte(evmtypes.AttributeKeyEthereumTxHash))
+		if !bytes.Equal(value, []byte(txHash)) {
+			continue
+		}
+
+		// found, convert attributes to map for later lookup
+		attrs := make(map[string]string, len(event.Attributes))
+		for _, attr := range event.Attributes {
+			attrs[string(attr.Key)] = string(attr.Value)
+		}
+		return msgIndex, attrs
+	}
+	// not found
+	return -1, nil
+}
+
+// FindTxAttributesByIndex search the msg in tx events by txIndex
+// returns the msgIndex, returns -1 if not found.
+func FindTxAttributesByIndex(events []abci.Event, txIndex uint64) int {
+	strIndex := []byte(strconv.FormatUint(txIndex, 10))
+	txIndexKey := []byte(evmtypes.AttributeKeyTxIndex)
+	msgIndex := -1
+	for _, event := range events {
+		if event.Type != evmtypes.EventTypeEthereumTx {
+			continue
+		}
+
+		msgIndex++
+
+		value := FindAttribute(event.Attributes, txIndexKey)
+		if !bytes.Equal(value, strIndex) {
+			continue
+		}
+
+		// found, convert attributes to map for later lookup
+		return msgIndex
+	}
+	// not found
+	return -1
+}
+
+// FindAttribute find event attribute with specified key, if not found returns nil.
+func FindAttribute(attrs []abci.EventAttribute, key []byte) []byte {
+	for _, attr := range attrs {
+		if !bytes.Equal(attr.Key, key) {
+			continue
+		}
+		return attr.Value
+	}
+	return nil
+}
+
+// GetUint64Attribute parses the uint64 value from event attributes
+func GetUint64Attribute(attrs map[string]string, key string) (uint64, error) {
+	value, found := attrs[key]
+	if !found {
+		return 0, fmt.Errorf("tx index attribute not found: %s", key)
+	}
+	var result int64
+	result, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	if result < 0 {
+		return 0, fmt.Errorf("negative tx index: %d", result)
+	}
+	return uint64(result), nil
+}
+
+// AccumulativeGasUsedOfMsg accumulate the gas used by msgs before `msgIndex`.
+func AccumulativeGasUsedOfMsg(events []abci.Event, msgIndex int) (gasUsed uint64) {
+	for _, event := range events {
+		if event.Type != evmtypes.EventTypeEthereumTx {
+			continue
+		}
+
+		if msgIndex < 0 {
+			break
+		}
+		msgIndex--
+
+		value := FindAttribute(event.Attributes, []byte(evmtypes.AttributeKeyTxGasUsed))
+		var result int64
+		result, err := strconv.ParseInt(string(value), 10, 64)
+		if err != nil {
+			continue
+		}
+		gasUsed += uint64(result)
+	}
+	return
 }

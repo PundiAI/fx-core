@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	erc20Name       = "coin"
-	erc20Symbol     = "token"
+	fip20Name       = "coin"
+	fip20Symbol     = "token"
 	cosmosTokenName = "coin"
 	displayCoinName = "COIN"
 	defaultExponent = uint32(18)
@@ -20,7 +20,7 @@ const (
 
 func (suite *KeeperTestSuite) setupRegisterFIP20Pair() common.Address {
 	suite.SetupTest()
-	contractAddr := suite.DeployContract(erc20Name, erc20Symbol, 18)
+	contractAddr := suite.DeployContract(fip20Name, fip20Symbol, 18)
 	suite.Commit()
 	_, err := suite.app.IntrarelayerKeeper.RegisterFIP20(suite.ctx, contractAddr)
 	suite.Require().NoError(err)
@@ -170,7 +170,7 @@ func (suite KeeperTestSuite) TestRegisterFIP20() {
 			false,
 		},
 		{
-			"token ERC20 already registered",
+			"token FIP20 already registered",
 			func() {
 				suite.app.IntrarelayerKeeper.SetFIP20Map(suite.ctx, pair.GetFIP20Contract(), pair.GetID())
 			},
@@ -200,7 +200,7 @@ func (suite KeeperTestSuite) TestRegisterFIP20() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			contractAddr = suite.DeployContract(erc20Name, erc20Symbol, 18)
+			contractAddr = suite.DeployContract(fip20Name, fip20Symbol, 18)
 			suite.Commit()
 			coinName := types.CreateDenom(contractAddr.String())
 			pair = types.NewTokenPair(contractAddr, coinName, true, types.OWNER_EXTERNAL)
@@ -215,13 +215,13 @@ func (suite KeeperTestSuite) TestRegisterFIP20() {
 				suite.Require().True(len(metadata.Base) > 0)
 				suite.Require().Equal(coinName, metadata.Base)
 				//suite.Require().Equal(coinName, metadata.Name)
-				suite.Require().Equal(erc20Symbol, metadata.Display)
-				//suite.Require().Equal(erc20Symbol, metadata.Symbol)
+				suite.Require().Equal(fip20Symbol, metadata.Display)
+				//suite.Require().Equal(fip20Symbol, metadata.Symbol)
 				// Denom units
 				suite.Require().Equal(len(metadata.DenomUnits), 2)
 				suite.Require().Equal(coinName, metadata.DenomUnits[0].Denom)
 				suite.Require().Equal(uint32(zeroExponent), metadata.DenomUnits[0].Exponent)
-				suite.Require().Equal(erc20Symbol, metadata.DenomUnits[1].Denom)
+				suite.Require().Equal(fip20Symbol, metadata.DenomUnits[1].Denom)
 				// Default exponent at contract creation is 18
 				suite.Require().Equal(metadata.DenomUnits[1].Exponent, uint32(defaultExponent))
 			} else {
@@ -247,7 +247,7 @@ func (suite KeeperTestSuite) TestToggleRelay() {
 		{
 			"token not registered",
 			func() {
-				contractAddr = suite.DeployContract(erc20Name, erc20Symbol, 18)
+				contractAddr = suite.DeployContract(fip20Name, fip20Symbol, 18)
 				suite.Commit()
 				pair = types.NewTokenPair(contractAddr, cosmosTokenName, true, types.OWNER_MODULE)
 			},
@@ -257,7 +257,7 @@ func (suite KeeperTestSuite) TestToggleRelay() {
 		{
 			"token not registered - pair not found",
 			func() {
-				contractAddr = suite.DeployContract(erc20Name, erc20Symbol, 18)
+				contractAddr = suite.DeployContract(fip20Name, fip20Symbol, 18)
 				suite.Commit()
 				pair = types.NewTokenPair(contractAddr, cosmosTokenName, true, types.OWNER_MODULE)
 				suite.app.IntrarelayerKeeper.SetFIP20Map(suite.ctx, common.HexToAddress(pair.Fip20Address), pair.GetID())

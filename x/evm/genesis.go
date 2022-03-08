@@ -15,7 +15,6 @@ func InitGenesis(
 	accountKeeper types.AccountKeeper,
 	data types.GenesisState,
 ) []abci.ValidatorUpdate {
-	k.WithContext(ctx)
 	k.WithChainID(ctx)
 
 	k.SetParams(ctx, data.Params)
@@ -55,8 +54,6 @@ func InitGenesis(
 
 // ExportGenesis exports genesis state of the EVM module
 func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *types.GenesisState {
-	k.WithContext(ctx)
-
 	var ethGenAccounts []types.GenesisAccount
 	//ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
 	//	ethAccount, ok := account.(*ethermint.EthAccount)

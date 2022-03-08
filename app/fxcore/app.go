@@ -551,6 +551,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibchost.ModuleName,
+		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
 	)
 

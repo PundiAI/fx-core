@@ -26,14 +26,11 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterFIP20() {
 				hexAddress := common.BytesToAddress(accAddress)
 
 				// Mint 10 tokens to suite.address (owner)
-				_ = suite.MintERC20Token(contractAddr, hexAddress, hexAddress, big.NewInt(10))
+				_ = suite.MintFIP20Token(contractAddr, hexAddress, hexAddress, big.NewInt(10))
 				suite.Commit()
 
 				// Burn the 10 tokens of suite.address (owner)
-				// TODO ineffective
-				// depend on mainnet intrarelayer support height, now math.MaxInt
-				// fix after mainnet online, so result false
-				suite.BurnERC20Token(contractAddr, hexAddress, big.NewInt(10))
+				suite.BurnFIP20Token(contractAddr, hexAddress, big.NewInt(10))
 			},
 			true,
 		},
@@ -41,16 +38,11 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterFIP20() {
 			"unregistered pair",
 			func(contractAddr common.Address) {
 				// Mint 10 tokens to suite.address (owner)
-				_ = suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
+				_ = suite.MintFIP20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
 				suite.Commit()
 
 				// Burn the 10 tokens of suite.address (owner)
-				msg := suite.BurnERC20Token(contractAddr, suite.address, big.NewInt(10))
-				logs := suite.app.EvmKeeper.GetTxLogsTransient(msg.AsTransaction().Hash())
-
-				// Since theres no pair registered, no coins should be minted
-				err := suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction().Hash(), logs)
-				suite.Require().NoError(err)
+				_ = suite.BurnFIP20Token(contractAddr, suite.address, big.NewInt(10))
 			},
 			false,
 		},
@@ -61,12 +53,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterFIP20() {
 				suite.Require().NoError(err)
 
 				// Mint 10 tokens to suite.address (owner)
-				msg := suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
-				logs := suite.app.EvmKeeper.GetTxLogsTransient(msg.AsTransaction().Hash())
-
-				// No coins should be minted on cosmos after a mint of the erc20 token
-				err = suite.app.IntrarelayerKeeper.PostTxProcessing(suite.ctx, msg.AsTransaction().Hash(), logs)
-				suite.Require().NoError(err)
+				_ = suite.MintFIP20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
 			},
 			false,
 		},
@@ -141,9 +128,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
 			// relay the 5 tokens of suite.address (owner)
-			// TODO ineffective depend on mainnet intrarelayer support height, now math.MaxInt
-			// if want to go test, modify types/version.go IntrarelayerSupportBlock -> mainnetSupportIntrarelayerBlock
-			suite.BurnERC20Token(contractAddr, hexAddress, big.NewInt(tc.reconvert))
+			suite.BurnFIP20Token(contractAddr, hexAddress, big.NewInt(tc.reconvert))
 
 			balance = suite.BalanceOf(common.HexToAddress(pair.Fip20Address), hexAddress)
 			cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, accAddress, metadata.Base)

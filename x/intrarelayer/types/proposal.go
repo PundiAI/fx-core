@@ -146,12 +146,24 @@ func validateIBC(metadata banktypes.Metadata) error {
 	return nil
 }
 
+// ValidateIntrarelayerDenom checks if a denom is a valid intrarelayer/
+// denomination
+func ValidateIntrarelayerDenom(denom string) error {
+	denomSplit := strings.SplitN(denom, "/", 2)
+
+	if len(denomSplit) != 2 || denomSplit[0] != ModuleName {
+		return fmt.Errorf("invalid denom. %s denomination should be prefixed with the format 'intrarelayer/", denom)
+	}
+
+	return ethermint.ValidateAddress(denomSplit[1])
+}
+
 // NewRegisterFIP20Proposal returns new instance of RegisterFIP20Proposal
-func NewRegisterFIP20Proposal(title, description, erc20Addr string) govtypes.Content {
+func NewRegisterFIP20Proposal(title, description, fip20Addr string) govtypes.Content {
 	return &RegisterFIP20Proposal{
 		Title:        title,
 		Description:  description,
-		Fip20Address: erc20Addr,
+		Fip20Address: fip20Addr,
 	}
 }
 
@@ -199,16 +211,4 @@ func (etrp *ToggleTokenRelayProposal) ValidateBasic() error {
 	}
 
 	return govtypes.ValidateAbstract(etrp)
-}
-
-// ValidateIntrarelayerDenom checks if a denom is a valid intrarelayer/
-// denomination
-func ValidateIntrarelayerDenom(denom string) error {
-	denomSplit := strings.SplitN(denom, "/", 2)
-
-	if len(denomSplit) != 2 || denomSplit[0] != ModuleName {
-		return fmt.Errorf("invalid denom. %s denomination should be prefixed with the format 'intrarelayer/", denom)
-	}
-
-	return ethermint.ValidateAddress(denomSplit[1])
 }

@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = app.Setup(checkTx)
+	suite.app = app.Setup(checkTx, nil)
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{
 		Height:          1,
 		ChainID:         "ethermint_9000-1",
@@ -91,7 +91,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		ConsensusHash:      tmhash.Sum([]byte("consensus")),
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
-	suite.app.EvmKeeper.WithContext(suite.ctx)
 
 	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.app.FeeMarketKeeper))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
@@ -191,7 +190,7 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, marketKeeper
 		return err
 	}
 
-	marketKeeper.SetBaseFee(ctx, sdk.ZeroInt().BigInt())
+	//marketKeeper.SetBaseFee(ctx, sdk.ZeroInt().BigInt())
 
 	keeper.WithChainID(ctx)
 	return nil

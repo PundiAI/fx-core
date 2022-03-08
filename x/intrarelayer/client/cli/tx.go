@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -163,10 +162,10 @@ func NewConvertFIP20Cmd() *cobra.Command {
 // NewInitIntrarelayerParamsProposalCmd init intrarelayer params proposal
 func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "init-intrarelayer-params [enable-intrarelayer] [enable-evm-hook] [token-pair-voting-period/seconds] [ibc-transfer-timeout-height]",
-		Args:    cobra.ExactArgs(4),
+		Use:     "init-intrarelayer-params [enable-intrarelayer] [enable-evm-hook] [ibc-transfer-timeout-height]",
+		Args:    cobra.ExactArgs(3),
 		Short:   "Submit a init intrarelayer params proposal",
-		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-intrarelayer-params <true> <true> <1209600> <20000>--from=<key_or_address>`, version.AppName),
+		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-intrarelayer-params <true> <true> <20000>--from=<key_or_address>`, version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -192,11 +191,6 @@ func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryGovClient := govtypes.NewQueryClient(clientCtx)
-			res, err := queryGovClient.Params(context.Background(), &govtypes.QueryParamsRequest{ParamsType: govtypes.ParamVoting})
-			if err != nil {
-				return err
-			}
 
 			enableIntrarelayer, err := strconv.ParseBool(args[0])
 			if err != nil {
@@ -206,14 +200,13 @@ func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			tokenPairVotingPeriod := res.VotingParams.VotingPeriod
 
-			ibcTransferTimeoutHeight, err := strconv.ParseUint(args[3], 10, 64)
+			ibcTransferTimeoutHeight, err := strconv.ParseUint(args[2], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			params := types.NewParams(enableIntrarelayer, tokenPairVotingPeriod, enableEvmHook, ibcTransferTimeoutHeight)
+			params := types.NewParams(enableIntrarelayer, enableEvmHook, ibcTransferTimeoutHeight)
 			if err := params.Validate(); err != nil {
 				return err
 			}
