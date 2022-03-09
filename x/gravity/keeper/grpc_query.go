@@ -91,14 +91,7 @@ func (k Keeper) LastPendingValsetRequestByAddr(c context.Context, req *types.Que
 
 // BatchFees queries the batch fees from unbatched pool
 func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
-	baseFee := req.BaseFee
-	if baseFee.IsNil() {
-		baseFee = sdk.ZeroInt()
-	}
-	if baseFee.IsNegative() {
-		return nil, types.ErrInvalidRequestBatchBaseFee
-	}
-	return &types.QueryBatchFeeResponse{BatchFees: k.GetAllBatchFees(sdk.UnwrapSDKContext(c), baseFee)}, nil
+	return &types.QueryBatchFeeResponse{BatchFees: k.GetAllBatchFees(sdk.UnwrapSDKContext(c), req.MinBatchFees)}, nil
 }
 
 // LastPendingBatchRequestByAddr queries the LastPendingBatchRequestByAddr of the gravity module

@@ -16,3 +16,8 @@ message BatchFees {
     uint64 total_txs = 3;
     string total_amount = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }
+
+message MinBatchFee {
+    string token_contract = 1;
+    string baseFee = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+}

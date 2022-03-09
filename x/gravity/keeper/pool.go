@@ -300,14 +300,17 @@ func (k Keeper) IterateOutgoingPoolByFee(ctx sdk.Context, contract string, cb fu
 // when to request batches and also used by the batch creation process to decide not to create
 // a new batch
 func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContractAddr string, baseFee sdk.Int) *types.BatchFees {
-	batchFeesMap := k.createBatchFees(ctx, baseFee)
+	batchFeesMap := k.createBatchFees(ctx, []types.MinBatchFee{{
+		TokenContract: tokenContractAddr,
+		BaseFee:       baseFee,
+	}})
 	return batchFeesMap[tokenContractAddr]
 }
 
 // GetAllBatchFees creates a fee entry for every batch type currently in the store
 // this can be used by relayers to determine what batch types are desirable to request
-func (k Keeper) GetAllBatchFees(ctx sdk.Context, baseFee sdk.Int) (batchFees []*types.BatchFees) {
-	batchFeesMap := k.createBatchFees(ctx, baseFee)
+func (k Keeper) GetAllBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFee) (batchFees []*types.BatchFees) {
+	batchFeesMap := k.createBatchFees(ctx, minBatchFees)
 	// create array of batchFees
 	for _, batchFee := range batchFeesMap {
 		batchFees = append(batchFees, batchFee)
@@ -323,11 +326,15 @@ func (k Keeper) GetAllBatchFees(ctx sdk.Context, baseFee sdk.Int) (batchFees []*
 }
 
 // CreateBatchFees iterates over the outgoing pool and creates batch token fee map
-func (k Keeper) createBatchFees(ctx sdk.Context, baseFee sdk.Int) map[string]*types.BatchFees {
+func (k Keeper) createBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFee) map[string]*types.BatchFees {
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondIndexOutgoingTXFeeKey)
 	iter := prefixStore.Iterator(nil, nil)
 	defer iter.Close()
 
+	minBatchFeeMap := make(map[string]*types.MinBatchFee)
+	for _, minBatchFee := range minBatchFees {
+		minBatchFeeMap[minBatchFee.TokenContract] = &minBatchFee
+	}
 	batchFeesMap := make(map[string]*types.BatchFees)
 
 	for ; iter.Valid(); iter.Next() {
@@ -341,6 +348,11 @@ func (k Keeper) createBatchFees(ctx sdk.Context, baseFee sdk.Int) map[string]*ty
 		key := iter.Key()
 		tokenContractBytes := key[:types.ETHContractAddressLen]
 		tokenContractAddr := string(tokenContractBytes)
+		baseFee := sdk.ZeroInt()
+		minBatchFee := minBatchFeeMap[tokenContractAddr]
+		if minBatchFee != nil && !minBatchFee.BaseFee.IsNil() && !baseFee.IsNegative() {
+			baseFee = minBatchFee.BaseFee
+		}
 
 		feeAmountBytes := key[len(tokenContractBytes):]
 		feeAmount := big.NewInt(0).SetBytes(feeAmountBytes)

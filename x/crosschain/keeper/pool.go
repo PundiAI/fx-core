@@ -262,8 +262,8 @@ func (k Keeper) GetBatchFeeByTokenType(ctx sdk.Context, tokenContractAddr string
 
 // GetAllBatchFees creates a fee entry for every batch type currently in the store
 // this can be used by relayers to determine what batch types are desirable to request
-func (k Keeper) GetAllBatchFees(ctx sdk.Context, maxElements uint, baseFee sdk.Int) (batchFees []*types.BatchFees) {
-	batchFeesMap := k.createBatchFees(ctx, maxElements, baseFee)
+func (k Keeper) GetAllBatchFees(ctx sdk.Context, maxElements uint, minBatchFees []types.MinBatchFee) (batchFees []*types.BatchFees) {
+	batchFeesMap := k.createBatchFees(ctx, maxElements, minBatchFees)
 	// create array of batchFees
 	for _, batchFee := range batchFeesMap {
 		batchFees = append(batchFees, batchFee)
@@ -281,11 +281,22 @@ func (k Keeper) GetAllBatchFees(ctx sdk.Context, maxElements uint, baseFee sdk.I
 // createBatchFees iterates over the unbatched transaction pool and creates batch token fee map
 // Implicitly creates batches with the highest potential fee because the transaction keys enforce an order which goes
 // fee contract address -> fee amount -> transaction nonce
-func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, baseFee sdk.Int) map[string]*types.BatchFees {
+func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees []types.MinBatchFee) map[string]*types.BatchFees {
+	minBatchFeeMap := make(map[string]*types.MinBatchFee)
+	for _, minBatchFee := range minBatchFees {
+		minBatchFeeMap[minBatchFee.TokenContract] = &minBatchFee
+	}
+
 	batchFeesMap := make(map[string]*types.BatchFees)
 	txCountMap := make(map[string]int)
 
 	k.IterateUnbatchedTransactions(ctx, types.OutgoingTXPoolKey, func(_ []byte, tx *types.OutgoingTransferTx) bool {
+		baseFee := sdk.ZeroInt()
+		minBatchFee := minBatchFeeMap[tx.Token.Contract]
+		if minBatchFee != nil && !minBatchFee.BaseFee.IsNil() && !baseFee.IsNegative() {
+			baseFee = minBatchFee.BaseFee
+		}
+
 		fee := tx.Fee
 		if fee.Amount.GTE(baseFee) && txCountMap[fee.Contract] < int(maxElements) {
 			addFeeToMap(fee, batchFeesMap, txCountMap)
