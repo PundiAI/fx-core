@@ -262,7 +262,7 @@ type App struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	GravityKeeper    gravitykeeper.Keeper
+	GravityKeeper    *gravitykeeper.Keeper
 	CrosschainKeeper crosschainkeeper.RouterKeeper
 	BscKeeper        crosschainkeeper.Keeper
 	PolygonKeeper    crosschainkeeper.Keeper
@@ -445,7 +445,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
 
 	//set intrarelayer keeper
-	myApp.GravityKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
+	myApp.GravityKeeper = myApp.GravityKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
 	myApp.BscKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
 	myApp.PolygonKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
 	myApp.TronKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
@@ -467,7 +467,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	)
 
 	ibcTransferRouter := ibctransfertypes.NewRouter()
-	ibcTransferRouter.AddRoute(gravitytypes.ModuleName, gravity.NewAppModule(myApp.GravityKeeper, myApp.BankKeeper))
+	ibcTransferRouter.AddRoute(gravitytypes.ModuleName, gravity.NewAppModule(*myApp.GravityKeeper, myApp.BankKeeper))
 	ibcTransferRouter.AddRoute(bsctypes.ModuleName, bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper))
 	ibcTransferRouter.AddRoute(polygontypes.ModuleName, polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper))
 	ibcTransferRouter.AddRoute(trontypes.ModuleName, tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper))
@@ -526,7 +526,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		params.NewAppModule(myApp.ParamsKeeper),
 		transferModule,
 		// this line is used by starport scaffolding # stargate/myApp/appModule
-		gravity.NewAppModule(myApp.GravityKeeper, myApp.BankKeeper),
+		gravity.NewAppModule(*myApp.GravityKeeper, myApp.BankKeeper),
 		other.NewAppModule(appCodec),
 		crosschain.NewAppModuleByRouter(myApp.CrosschainKeeper),
 		bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper),

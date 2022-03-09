@@ -156,8 +156,6 @@ func TestHookChainGravity(t *testing.T) {
 	for _, tx := range transactions {
 		t.Log("sender", tx.Sender, "dest", tx.DestAddress, "amount", tx.Erc20Token.String())
 	}
-	//100000000000000000000FX
-	//10000000000000000000
 }
 
 func TestHookChainBSC(t *testing.T) {
@@ -352,7 +350,7 @@ func testInitGravity(t *testing.T, ctx sdk.Context, app *fxcore.App, val sdk.Val
 
 	testFxOriginatedTokenClaim(t, ctx, app, orch)
 
-	gravity.EndBlocker(ctx, app.GravityKeeper)
+	gravity.EndBlocker(ctx, *app.GravityKeeper)
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 
