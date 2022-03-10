@@ -333,6 +333,9 @@ func queryBatchFees(ctx sdk.Context, keeper Keeper, req abci.RequestQuery, legac
 	if err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params); err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
+	if params.MinBatchFees == nil {
+		params.MinBatchFees = make([]types.MinBatchFee, 0)
+	}
 	val := types.QueryBatchFeeResponse{BatchFees: keeper.GetAllBatchFees(ctx, MaxResults, params.MinBatchFees)}
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, val)
 	if err != nil {

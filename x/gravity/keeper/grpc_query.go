@@ -91,6 +91,9 @@ func (k Keeper) LastPendingValsetRequestByAddr(c context.Context, req *types.Que
 
 // BatchFees queries the batch fees from unbatched pool
 func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
+	if req.MinBatchFees == nil {
+		req.MinBatchFees = make([]types.MinBatchFee, 0)
+	}
 	return &types.QueryBatchFeeResponse{BatchFees: k.GetAllBatchFees(sdk.UnwrapSDKContext(c), req.MinBatchFees)}, nil
 }
 
