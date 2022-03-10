@@ -44,7 +44,7 @@ done
 # combine swagger files
 # uses nodejs package `swagger-combine`.
 # all the individual swagger files need to be configured in `config.json` for merging
-swagger-combine ./docs/swagger-ui/config.json \
+swagger-combine ./docs/config.json \
   -o ./docs/swagger-ui/swagger.yaml \
   -f yaml \
   --continueOnConflictingPaths true \
