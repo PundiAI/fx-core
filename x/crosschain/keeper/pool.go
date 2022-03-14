@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -243,14 +244,19 @@ func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, prefixKey []byte, 
 // have if created right now. This info is both presented to relayers for the purpose of determining
 // when to request batches and also used by the batch creation process to decide not to create
 // a new batch (fees must be increasing)
-func (k Keeper) GetBatchFeeByTokenType(ctx sdk.Context, tokenContractAddr string, maxElements uint) *types.BatchFees {
+func (k Keeper) GetBatchFeeByTokenType(ctx sdk.Context, tokenContractAddr string, maxElements uint, baseFee sdk.Int) *types.BatchFees {
 	batchFee := types.BatchFees{TokenContract: tokenContractAddr, TotalFees: sdk.NewInt(0)}
 	txCount := 0
+	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 
 	k.IterateUnbatchedTransactions(ctx, types.GetOutgoingTxPoolContractPrefix(tokenContractAddr), func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		fee := tx.Fee
 		if fee.Contract != tokenContractAddr {
 			panic(fmt.Errorf("unexpected fee contract %s when getting batch fees for contract %s", fee.Contract, tokenContractAddr))
+		}
+		if isSupportBaseFee && fee.Amount.LT(baseFee) {
+			// sort by fee and use ReverseIterator, so the fee behind is less than base fee
+			return true
 		}
 		batchFee.TotalFees = batchFee.TotalFees.Add(fee.Amount)
 		txCount += 1
@@ -282,24 +288,21 @@ func (k Keeper) GetAllBatchFees(ctx sdk.Context, maxElements uint, minBatchFees 
 // Implicitly creates batches with the highest potential fee because the transaction keys enforce an order which goes
 // fee contract address -> fee amount -> transaction nonce
 func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees []types.MinBatchFee) map[string]*types.BatchFees {
-	minBatchFeeMap := make(map[string]*types.MinBatchFee)
-	for _, minBatchFee := range minBatchFees {
-		minBatchFeeMap[minBatchFee.TokenContract] = &minBatchFee
-	}
-
 	batchFeesMap := make(map[string]*types.BatchFees)
 	txCountMap := make(map[string]int)
+	baseFees := types.MinBatchFeeToBaseFees(minBatchFees)
+	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 
 	k.IterateUnbatchedTransactions(ctx, types.OutgoingTXPoolKey, func(_ []byte, tx *types.OutgoingTransferTx) bool {
-		baseFee := sdk.ZeroInt()
-		minBatchFee := minBatchFeeMap[tx.Token.Contract]
-		if minBatchFee != nil && !minBatchFee.BaseFee.IsNil() && !baseFee.IsNegative() {
-			baseFee = minBatchFee.BaseFee
+		fee := tx.Fee
+
+		baseFee, ok := baseFees[fee.Contract]
+		if isSupportBaseFee && ok && fee.Amount.LT(baseFee) {
+			return false //sort by token address and fee, behind have other token
 		}
 
-		fee := tx.Fee
-		if fee.Amount.GTE(baseFee) && txCountMap[fee.Contract] < int(maxElements) {
-			addFeeToMap(fee, batchFeesMap, txCountMap)
+		if txCountMap[fee.Contract] < int(maxElements) {
+			addFeeToMap(tx.Token, fee, batchFeesMap, txCountMap)
 		}
 		return false
 	})
@@ -308,7 +311,7 @@ func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees 
 }
 
 // Helper method for creating batch fees
-func addFeeToMap(fee *types.ExternalToken, batchFeesMap map[string]*types.BatchFees, txCountMap map[string]int) {
+func addFeeToMap(amt, fee *types.ExternalToken, batchFeesMap map[string]*types.BatchFees, txCountMap map[string]int) {
 	txCountMap[fee.Contract] = txCountMap[fee.Contract] + 1
 
 	// add fee amount
@@ -316,14 +319,14 @@ func addFeeToMap(fee *types.ExternalToken, batchFeesMap map[string]*types.BatchF
 		batchFees := batchFeesMap[fee.Contract]
 		batchFees.TotalFees = batchFees.TotalFees.Add(fee.Amount)
 		batchFees.TotalTxs = batchFees.TotalTxs + 1
-		batchFees.TotalAmount = batchFees.TotalAmount.Add(fee.Amount)
+		batchFees.TotalAmount = batchFees.TotalAmount.Add(amt.Amount)
 		batchFeesMap[fee.Contract] = batchFees
 	} else {
 		batchFeesMap[fee.Contract] = &types.BatchFees{
 			TokenContract: fee.Contract,
 			TotalFees:     fee.Amount,
 			TotalTxs:      1,
-			TotalAmount:   sdk.ZeroInt(),
+			TotalAmount:   amt.Amount,
 		}
 	}
 }

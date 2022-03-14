@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"fmt"
-	types2 "github.com/functionx/fx-core/types"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	"sort"
 	"strings"
 
@@ -33,7 +33,7 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceiv
 	if lastBatch != nil {
 		// this traverses the current tx pool for this token type and determines what
 		// fees a hypothetical batch would have if created
-		currentFees := k.GetBatchFeeByTokenType(ctx, contractAddress, maxElements)
+		currentFees := k.GetBatchFeeByTokenType(ctx, contractAddress, maxElements, baseFee)
 		if currentFees == nil {
 			return nil, sdkerrors.Wrap(types.ErrInvalid, "error getting fees from tx pool")
 		}
@@ -167,7 +167,7 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch types.OutgoingTxBatch) {
 
 // pickUnBatchedTX find TX in pool and remove from "available" second index
 func (k Keeper) pickUnBatchedTX(ctx sdk.Context, contractAddress string, maxElements uint, baseFee sdk.Int) ([]*types.OutgoingTransferTx, error) {
-	isSupportBaseFee := types2.IsRequestBatchBaseFee(ctx.BlockHeight())
+	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
 	k.IterateUnbatchedTransactionsByContract(ctx, contractAddress, func(_ []byte, tx *types.OutgoingTransferTx) bool {

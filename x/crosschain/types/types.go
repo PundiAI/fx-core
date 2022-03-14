@@ -280,3 +280,14 @@ func (v Oracles) Less(i, j int) bool {
 func (v Oracles) Swap(i, j int) {
 	v[i], v[j] = v[j], v[i]
 }
+
+func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdk.Int {
+	kv := make(map[string]sdk.Int, len(ms))
+	for _, m := range ms {
+		if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
+			continue
+		}
+		kv[m.TokenContract] = m.BaseFee
+	}
+	return kv
+}

@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"fmt"
-	types2 "github.com/functionx/fx-core/types"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	"strconv"
 	"strings"
 
@@ -171,7 +171,7 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch types.OutgoingTxBatch) {
 
 // pickUnbatchedTX find TX in pool and remove from "available" second index
 func (k Keeper) pickUnbatchedTX(ctx sdk.Context, contractAddress string, maxElements int, baseFee sdk.Int) ([]*types.OutgoingTransferTx, error) {
-	isSupportBaseFee := types2.IsRequestBatchBaseFee(ctx.BlockHeight())
+	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
 	k.IterateOutgoingPoolByFee(ctx, contractAddress, func(txID uint64, tx *types.OutgoingTransferTx) bool {

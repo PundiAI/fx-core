@@ -237,3 +237,14 @@ func (b OutgoingTxBatch) GetFees() sdk.Int {
 	}
 	return sum
 }
+
+func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdk.Int {
+	kv := make(map[string]sdk.Int, len(ms))
+	for _, m := range ms {
+		if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
+			continue
+		}
+		kv[m.TokenContract] = m.BaseFee
+	}
+	return kv
+}
