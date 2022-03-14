@@ -23,6 +23,7 @@ const (
 	testnetEvmChainID                            = 90001
 	testnetSupportIntrarelayerBlock              = 999999999
 	testnetSupportMigrateBlock                   = 999999999
+	testnetSupportEGFProposalBlock               = 999999999
 )
 
 // mainnet constant
@@ -39,6 +40,7 @@ const (
 	mainnetEvmChainID               = 1
 	mainnetSupportIntrarelayerBlock = 999999999
 	mainnetSupportMigrateBlock      = 999999999
+	mainnetSupportEGFProposalBlock  = 999999999
 )
 
 // devnet constant
@@ -51,8 +53,9 @@ const (
 	devnetGravityValsetSlashBlock               = 1
 	devnetSupportEvmBlock                       = 100
 	devnetEvmChainID                            = 221
-	devnetSupportIntrarelayerBlock              = 200
-	devnetSupportMigrateBlock                   = 300
+	devnetSupportIntrarelayerBlock              = 100
+	devnetSupportMigrateBlock                   = 100
+	devnetSupportEGFProposalBlock               = 100
 )
 
 var (
@@ -149,4 +152,13 @@ func MigrateSupportBlock() int64 {
 		return testnetSupportMigrateBlock
 	}
 	return mainnetSupportMigrateBlock
+}
+
+func EGFProposalSupportBlock() int64 {
+	if networkDevnet == network {
+		return devnetSupportEGFProposalBlock
+	} else if networkTestnet == network {
+		return testnetSupportEGFProposalBlock
+	}
+	return mainnetSupportEGFProposalBlock
 }

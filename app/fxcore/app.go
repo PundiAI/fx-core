@@ -617,6 +617,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), feemarkettypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(fxtype.IntrarelayerSupportBlock(), intrarelayertypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(fxtype.MigrateSupportBlock(), migratetypes.StoreKey)
+	govtypes.SetEGFProposalSupportBlock(fxtype.EGFProposalSupportBlock())
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
