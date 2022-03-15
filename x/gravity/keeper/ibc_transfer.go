@@ -42,11 +42,12 @@ const (
 )
 
 func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgDepositClaim, receiveAddr sdk.AccAddress, coin sdk.Coin) ([]sdk.Attribute, bool) {
+	logger := a.keeper.Logger(ctx)
 	ibcPrefix, sourcePort, sourceChannel, ok := covertIbcData(claim.TargetIbc)
 	if !ok {
+		logger.Error("convert target ibc data error!!!", "targetIbc", claim.GetTargetIbc())
 		return nil, false
 	}
-	logger := a.keeper.Logger(ctx)
 	ibcReceiveAddress, err := bech32.ConvertAndEncode(ibcPrefix, receiveAddr)
 	if err != nil {
 		logger.Error("convert ibc transfer receive address error!!!", "fxReceive:", claim.FxReceiver,
@@ -133,10 +134,13 @@ func (a AttestationHandler) handlerRelayTransfer(ctx sdk.Context, claim *types.M
 	} else {
 		switch verifyTarget(claim.TargetIbc) {
 		case TargetEvm:
+			ctx.Logger().Info("verify target ibc", "targetIbc", claim.TargetIbc, "target", "evm")
 			return a.handlerEvmTransfer(ctx, claim, receiver, coin)
 		case TargetIBC:
+			ctx.Logger().Info("verify target ibc", "targetIbc", claim.TargetIbc, "target", "ibc")
 			return a.handleIbcTransfer(ctx, claim, receiver, coin)
 		default:
+			ctx.Logger().Error("verify target ibc", "targetIbc", claim.TargetIbc, "target", "unknown")
 			return nil, false
 		}
 	}
