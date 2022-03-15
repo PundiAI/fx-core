@@ -41,6 +41,10 @@ const (
 	TargetIBC
 )
 
+const (
+	TargetEvmPrefix = "module/evm"
+)
+
 func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgDepositClaim, receiveAddr sdk.AccAddress, coin sdk.Coin) ([]sdk.Attribute, bool) {
 	logger := a.keeper.Logger(ctx)
 	ibcPrefix, sourcePort, sourceChannel, ok := covertIbcData(claim.TargetIbc)
@@ -128,16 +132,36 @@ func verifyTarget(targetHex string) Target {
 	return TargetUnknown
 }
 
+func verifyTargetV2(targetHex string) Target {
+	targetBZ, err := hex.DecodeString(targetHex)
+	if err != nil {
+		return TargetUnknown
+	}
+	target := string(targetBZ)
+	if strings.HasPrefix(target, TargetEvmPrefix) {
+		return TargetEvm
+	}
+	ibcData := strings.Split(string(targetBZ), "/")
+	if len(ibcData) >= 3 {
+		return TargetIBC
+	}
+	return TargetUnknown
+}
+
 func (a AttestationHandler) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgDepositClaim, receiver sdk.AccAddress, coin sdk.Coin) ([]sdk.Attribute, bool) {
 	if ctx.BlockHeight() < fxtypes.IntrarelayerSupportBlock() {
 		return a.handleIbcTransfer(ctx, claim, receiver, coin)
 	} else {
-		switch verifyTarget(claim.TargetIbc) {
+		var target = TargetUnknown
+		if fxtypes.Network() == "devnet" && ctx.BlockHeight() < 11700 {
+			target = verifyTarget(claim.TargetIbc)
+		} else {
+			target = verifyTargetV2(claim.TargetIbc)
+		}
+		switch target {
 		case TargetEvm:
-			ctx.Logger().Info("verify target ibc", "targetIbc", claim.TargetIbc, "target", "evm")
 			return a.handlerEvmTransfer(ctx, claim, receiver, coin)
 		case TargetIBC:
-			ctx.Logger().Info("verify target ibc", "targetIbc", claim.TargetIbc, "target", "ibc")
 			return a.handleIbcTransfer(ctx, claim, receiver, coin)
 		default:
 			ctx.Logger().Error("verify target ibc", "targetIbc", claim.TargetIbc, "target", "unknown")

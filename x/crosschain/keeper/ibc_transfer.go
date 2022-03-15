@@ -41,12 +41,17 @@ const (
 	TargetIBC
 )
 
+const (
+	TargetEvmPrefix = "module/evm"
+)
+
 func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiveAddr sdk.AccAddress, coin sdk.Coin) ([]sdk.Attribute, bool) {
+	logger := k.Logger(ctx)
 	ibcPrefix, sourcePort, sourceChannel, ok := covertIbcData(claim.TargetIbc)
 	if !ok {
+		logger.Error("convert target ibc data error!!!", "targetIbc", claim.GetTargetIbc())
 		return nil, false
 	}
-	logger := k.Logger(ctx)
 	ibcReceiveAddress, err := bech32.ConvertAndEncode(ibcPrefix, receiveAddr)
 	if err != nil {
 		logger.Error("convert ibc transfer receive address error!!!", "fxReceive:", claim.Receiver,
@@ -119,10 +124,11 @@ func verifyTarget(targetHex string) Target {
 	}
 
 	target := string(targetBZ)
-	if strings.HasPrefix(target, "module/evm") {
+	if strings.HasPrefix(target, TargetEvmPrefix) {
 		return TargetEvm
 	}
-	if _, _, _, ok := covertIbcData(target); ok {
+	ibcData := strings.Split(string(targetBZ), "/")
+	if len(ibcData) >= 3 {
 		return TargetIBC
 	}
 	return TargetUnknown
@@ -138,6 +144,7 @@ func (k Keeper) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxCl
 		case TargetIBC:
 			return k.handleIbcTransfer(ctx, claim, receiver, coin)
 		default:
+			ctx.Logger().Error("verify target ibc", "targetIbc", claim.TargetIbc, "target", "unknown")
 			return nil, false
 		}
 	}
