@@ -17,7 +17,7 @@ func (k Keeper) GetAllTokenPairs(ctx sdk.Context) []types.TokenPair {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var tokenPair types.TokenPair
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &tokenPair)
+		k.cdc.MustUnmarshal(iterator.Value(), &tokenPair)
 
 		tokenPairs = append(tokenPairs, tokenPair)
 	}
@@ -47,7 +47,7 @@ func (k Keeper) GetTokenPair(ctx sdk.Context, id []byte) (types.TokenPair, bool)
 		return types.TokenPair{}, false
 	}
 
-	k.cdc.MustUnmarshalBinaryBare(bz, &tokenPair)
+	k.cdc.MustUnmarshal(bz, &tokenPair)
 	return tokenPair, true
 }
 
@@ -55,7 +55,7 @@ func (k Keeper) GetTokenPair(ctx sdk.Context, id []byte) (types.TokenPair, bool)
 func (k Keeper) SetTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
 	key := tokenPair.GetID()
-	bz := k.cdc.MustMarshalBinaryBare(&tokenPair)
+	bz := k.cdc.MustMarshal(&tokenPair)
 	store.Set(key, bz)
 }
 

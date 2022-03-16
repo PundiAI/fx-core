@@ -12,7 +12,7 @@ import (
 // Keeper grants access to the Fee Market module state.
 type Keeper struct {
 	// Protobuf codec
-	cdc codec.BinaryMarshaler
+	cdc codec.BinaryCodec
 	// Store key required for the Fee Market Prefix KVStore.
 	storeKey sdk.StoreKey
 	// module specific parameter space that can be configured through governance
@@ -21,7 +21,7 @@ type Keeper struct {
 
 // NewKeeper generates new fee market module keeper
 func NewKeeper(
-	cdc codec.BinaryMarshaler, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {

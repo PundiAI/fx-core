@@ -214,7 +214,7 @@ func NewInitIntrarelayerParamsProposalCmd() *cobra.Command {
 			metadataPath := viper.GetString(metadataFlag)
 			var metadatas []banktypes.Metadata
 			if len(strings.TrimSpace(metadataPath)) > 0 {
-				metadatas, err = ReadMetadataFromPath(clientCtx.JSONMarshaler, metadataPath)
+				metadatas, err = ReadMetadataFromPath(clientCtx.Codec, metadataPath)
 				if err != nil {
 					return err
 				}
@@ -311,7 +311,7 @@ Where metadata.json contains (example):
 				return err
 			}
 
-			metadata, err := ParseMetadata(clientCtx.JSONMarshaler, args[0])
+			metadata, err := ParseMetadata(clientCtx.Codec, args[0])
 			if err != nil {
 				return err
 			}

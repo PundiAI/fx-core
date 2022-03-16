@@ -9,7 +9,7 @@ import (
 
 type Keeper struct {
 	// Protobuf codec
-	cdc codec.BinaryMarshaler
+	cdc codec.BinaryCodec
 	// Store key required for the Fee Market Prefix KVStore.
 	storeKey sdk.StoreKey
 	// Migrate handlers
@@ -17,7 +17,7 @@ type Keeper struct {
 }
 
 // NewKeeper generates new fee market module keeper
-func NewKeeper(cdc codec.BinaryMarshaler, storeKey sdk.StoreKey) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey) Keeper {
 	return Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
@@ -48,7 +48,7 @@ func (k *Keeper) SetMigrateRecord(ctx sdk.Context, from, to sdk.AccAddress) {
 		To:     to.String(),
 		Height: ctx.BlockHeight(),
 	}
-	bz := k.cdc.MustMarshalBinaryBare(&mr)
+	bz := k.cdc.MustMarshal(&mr)
 	store.Set(types.GetMigratedRecordKey(from), bz)
 	store.Set(types.GetMigratedRecordKey(to), bz)
 }
@@ -60,7 +60,7 @@ func (k *Keeper) GetMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) (mr type
 	if bz == nil {
 		return mr, false
 	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &mr)
+	k.cdc.MustUnmarshal(bz, &mr)
 	return mr, true
 }
 

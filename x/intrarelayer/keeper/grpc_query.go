@@ -28,7 +28,7 @@ func (k Keeper) TokenPairs(c context.Context, req *types.QueryTokenPairsRequest)
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
 		var pair types.TokenPair
-		if err := k.cdc.UnmarshalBinaryBare(value, &pair); err != nil {
+		if err := k.cdc.Unmarshal(value, &pair); err != nil {
 			return err
 		}
 		pairs = append(pairs, pair)

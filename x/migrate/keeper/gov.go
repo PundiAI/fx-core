@@ -42,7 +42,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.AccAddress)
 			fromDeposit.Depositor = to.String()
 			fromDeposit.Amount = amount
 			govStore.Delete(govtypes.DepositKey(fromDeposit.ProposalId, from))
-			govStore.Set(govtypes.DepositKey(fromDeposit.ProposalId, to), k.cdc.MustMarshalBinaryBare(&fromDeposit))
+			govStore.Set(govtypes.DepositKey(fromDeposit.ProposalId, to), k.cdc.MustMarshal(&fromDeposit))
 		}
 	}
 
@@ -62,7 +62,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.AccAddress)
 			fromDeposit.Depositor = to.String()
 			fromDeposit.Amount = amount
 			govStore.Delete(govtypes.DepositKey(proposalID, from))
-			govStore.Set(govtypes.DepositKey(proposalID, to), k.cdc.MustMarshalBinaryBare(&fromDeposit))
+			govStore.Set(govtypes.DepositKey(proposalID, to), k.cdc.MustMarshal(&fromDeposit))
 		}
 		//migrate vote
 		fromVote, voteFound := m.govKeeper.GetVote(ctx, proposalID, from)
@@ -74,7 +74,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.AccAddress)
 			}
 			fromVote.Voter = to.String()
 			govStore.Delete(govtypes.VoteKey(proposalID, from))
-			govStore.Set(govtypes.VoteKey(proposalID, to), k.cdc.MustMarshalBinaryBare(&fromVote))
+			govStore.Set(govtypes.VoteKey(proposalID, to), k.cdc.MustMarshal(&fromVote))
 		}
 	}
 	return nil

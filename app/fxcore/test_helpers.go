@@ -72,7 +72,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*App, AppGenesisState) {
 	return app, AppGenesisState{}
 }
 
-func DefaultTestGenesis(cdc codec.JSONMarshaler) AppGenesisState {
+func DefaultTestGenesis(cdc codec.JSONCodec) AppGenesisState {
 	genesisState := NewDefAppGenesisByDenom(MintDenom, cdc)
 	var bankGenesis banktypes.GenesisState
 	cdc.MustUnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenesis)

@@ -12,7 +12,7 @@ import (
 )
 
 // ParseRegisterCoinProposal reads and parses a ParseRegisterCoinProposal from a file.
-func ParseMetadata(cdc codec.JSONMarshaler, metadataFile string) (banktypes.Metadata, error) {
+func ParseMetadata(cdc codec.JSONCodec, metadataFile string) (banktypes.Metadata, error) {
 	metadata := banktypes.Metadata{}
 
 	contents, err := ioutil.ReadFile(filepath.Clean(metadataFile))
@@ -27,7 +27,7 @@ func ParseMetadata(cdc codec.JSONMarshaler, metadataFile string) (banktypes.Meta
 	return metadata, nil
 }
 
-func ReadMetadataFromPath(cdc codec.JSONMarshaler, path string) ([]banktypes.Metadata, error) {
+func ReadMetadataFromPath(cdc codec.JSONCodec, path string) ([]banktypes.Metadata, error) {
 	metadatas := make([]banktypes.Metadata, 0, 10)
 	stat, err := os.Stat(path)
 	if err != nil {

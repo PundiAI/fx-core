@@ -104,7 +104,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.Ac
 			}
 			if ubdFlag {
 				key := stakingtypes.GetUnbondingDelegationTimeKey(entry.CompletionTime)
-				value := k.cdc.MustMarshalBinaryBare(&stakingtypes.DVPairs{Pairs: UBDQueue})
+				value := k.cdc.MustMarshal(&stakingtypes.DVPairs{Pairs: UBDQueue})
 				stakingStore.Set(key, value)
 			}
 		}
@@ -147,7 +147,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.Ac
 			}
 			if redFlag {
 				key := stakingtypes.GetRedelegationTimeKey(entry.CompletionTime)
-				value := k.cdc.MustMarshalBinaryBare(&stakingtypes.DVVTriplets{Triplets: redQueue})
+				value := k.cdc.MustMarshal(&stakingtypes.DVVTriplets{Triplets: redQueue})
 				stakingStore.Set(key, value)
 			}
 		}

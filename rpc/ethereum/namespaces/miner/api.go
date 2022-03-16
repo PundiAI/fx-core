@@ -105,7 +105,7 @@ func (api *API) SetEtherbase(etherbase common.Address) bool {
 		WithSequence(uint64(*nonce)).
 		WithGasAdjustment(1.25)
 
-	_, gas, err := tx.CalculateGas(api.clientCtx.QueryWithData, txFactory, msg)
+	_, gas, err := tx.CalculateGas(api.clientCtx, txFactory, msg)
 	if err != nil {
 		api.logger.Debug("failed to calculate gas", "error", err.Error())
 		return false

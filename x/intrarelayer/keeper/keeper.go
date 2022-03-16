@@ -13,7 +13,7 @@ import (
 // Keeper of this module maintains collections of intrarelayer.
 type Keeper struct {
 	storeKey   sdk.StoreKey
-	cdc        codec.BinaryMarshaler
+	cdc        codec.BinaryCodec
 	paramstore paramtypes.Subspace
 
 	accountKeeper types.AccountKeeper
@@ -30,7 +30,7 @@ type Keeper struct {
 // NewKeeper creates new instances of the intrarelayer Keeper
 func NewKeeper(
 	storeKey sdk.StoreKey,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	ps paramtypes.Subspace,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,

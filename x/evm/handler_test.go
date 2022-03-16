@@ -49,7 +49,7 @@ type EvmTestSuite struct {
 	ctx     sdk.Context
 	handler sdk.Handler
 	app     *fxcore.App
-	codec   codec.BinaryMarshaler
+	codec   codec.BinaryCodec
 	chainID *big.Int
 
 	signer    keyring.Signer

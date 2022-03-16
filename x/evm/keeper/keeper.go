@@ -23,7 +23,7 @@ import (
 // Keeper grants access to the EVM module state and implements the go-ethereum StateDB interface.
 type Keeper struct {
 	// Protobuf codec
-	cdc codec.BinaryMarshaler
+	cdc codec.BinaryCodec
 	// Store key required for the EVM Prefix KVStore. It is required by:
 	// - storing account's Storage State
 	// - storing account's Code
@@ -57,7 +57,7 @@ type Keeper struct {
 
 // NewKeeper generates new evm module keeper
 func NewKeeper(
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	storeKey, transientKey sdk.StoreKey, paramSpace paramtypes.Subspace,
 	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper,
 	fmk types.FeeMarketKeeper,
