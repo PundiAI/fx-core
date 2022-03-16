@@ -43,11 +43,6 @@ const (
 	DefaultTxFeeCap float64 = 1.0
 )
 
-var (
-	// ErrAppConfig defines an error occurred if min-gas-prices field in BaseConfig is empty.
-	ErrAppConfig = sdkerrors.Register(sdkerrors.RootCodespace, 40, "error in app.toml")
-)
-
 var evmTracers = []string{"json", "markdown", "struct", "access_list"}
 
 // Config defines the server's top level configuration. It includes the default app config
@@ -298,18 +293,18 @@ func ParseConfig(v *viper.Viper) (*Config, error) {
 // ValidateBasic returns an error any of the application configuration fields are invalid
 func (c Config) ValidateBasic() error {
 	if err := c.EVM.Validate(); err != nil {
-		return sdkerrors.Wrapf(ErrAppConfig, "invalid evm config value: %s", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrAppConfig, "invalid evm config value: %s", err.Error())
 	}
 
 	if err := c.JSONRPC.Validate(); err != nil {
-		return sdkerrors.Wrapf(ErrAppConfig, "invalid json-rpc config value: %s", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrAppConfig, "invalid json-rpc config value: %s", err.Error())
 	}
 
 	if err := c.TLS.Validate(); err != nil {
-		return sdkerrors.Wrapf(ErrAppConfig, "invalid tls config value: %s", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrAppConfig, "invalid tls config value: %s", err.Error())
 	}
 	if c.BaseConfig.MinGasPrices == "" {
-		return sdkerrors.Wrap(ErrAppConfig, "set min gas price in app.toml or flag or env variable")
+		return sdkerrors.Wrap(sdkerrors.ErrAppConfig, "set min gas price in app.toml or flag or env variable")
 	}
 	return nil
 }
