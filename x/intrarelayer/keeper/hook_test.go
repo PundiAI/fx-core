@@ -42,7 +42,7 @@ type IBCTransferSimulate struct {
 }
 
 func (it *IBCTransferSimulate) Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error) {
-	it.T.Logf("ibc transfer simulate ======> sender %s, receiver %s, amount %s, fee %s", msg.Sender, msg.Receiver, msg.Token.String(), msg.Fee.String())
+	//it.T.Logf("ibc transfer simulate sender %s, receiver %s, amount %s, fee %s", msg.Sender, msg.Receiver, msg.Token.String(), msg.Fee.String())
 	return &ibctransfertypes.MsgTransferResponse{}, nil
 }
 
@@ -169,7 +169,8 @@ func TestHookChainBSC(t *testing.T) {
 
 	fip20, err := app.IntrarelayerKeeper.QueryFIP20(ctx, pair.GetFIP20Contract())
 	require.NoError(t, err)
-	t.Log("fip20 ====>", fip20.Name, fip20.Symbol, fip20.Decimals)
+	_ = fip20
+	//t.Log("fip20", fip20.Name, fip20.Symbol, fip20.Decimals)
 
 	del := delegateAddressArr[0]
 	ga := genesisAccount[0]

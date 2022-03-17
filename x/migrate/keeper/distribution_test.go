@@ -133,7 +133,7 @@ func migrateAfterVerify(t *testing.T, ctx sdk.Context, distrKeeper distrkeeper.K
 	require.EqualValues(t, toExists, distrKeeper.HasDelegatorStartingInfo(ctx, validator, toDelegate))
 }
 
-func buildCommitVotes(t *testing.T, ctx sdk.Context, stakingKeeper stakingkeeper.Keeper, codec codec.Marshaler) []abcitypes.VoteInfo {
+func buildCommitVotes(t *testing.T, ctx sdk.Context, stakingKeeper stakingkeeper.Keeper, codec codec.Codec) []abcitypes.VoteInfo {
 	t.Helper()
 	validators := stakingKeeper.GetAllValidators(ctx)
 

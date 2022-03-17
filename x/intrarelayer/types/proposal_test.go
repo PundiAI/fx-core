@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 	"testing"
@@ -188,9 +187,6 @@ func (suite *ProposalTestSuite) TestRegisterCoinProposal() {
 	}
 
 	for i, tc := range testCases {
-		if tc.msg == "Register token pair - ibc" {
-			fmt.Println("=====>")
-		}
 		tx := NewRegisterCoinProposal(tc.title, tc.description, tc.metadata)
 		err := tx.ValidateBasic()
 

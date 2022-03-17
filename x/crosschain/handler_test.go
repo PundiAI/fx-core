@@ -648,7 +648,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	}
 
 	sendToExternal([]sdk.Int{sdk.NewInt(1), sdk.NewInt(2), sdk.NewInt(3)})
-	usdtBatchFee := keep.GetBatchFeeByTokenType(ctx, sendToFxToken, 100)
+	usdtBatchFee := keep.GetBatchFeeByTokenType(ctx, sendToFxToken, 100, sdk.NewInt(0))
 	require.EqualValues(t, sendToFxToken, usdtBatchFee.TokenContract)
 	require.EqualValues(t, 3, usdtBatchFee.TotalTxs)
 	require.EqualValues(t, sdk.NewInt(6), usdtBatchFee.TotalFees)
@@ -715,7 +715,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 			})
 			if testCase.pass {
 				require.NoError(t, err)
-				usdtBatchFee = keep.GetBatchFeeByTokenType(cacheCtx, sendToFxToken, 100)
+				usdtBatchFee = keep.GetBatchFeeByTokenType(cacheCtx, sendToFxToken, 100, sdk.NewInt(0))
 				require.EqualValues(t, testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
 				return
 			}

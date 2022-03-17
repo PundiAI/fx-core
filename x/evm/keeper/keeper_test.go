@@ -58,7 +58,7 @@ type KeeperTestSuite struct {
 	clientCtx client.Context
 	ethSigner ethtypes.Signer
 
-	appCodec codec.Marshaler
+	appCodec codec.Codec
 	signer   keyring.Signer
 
 	enableFeemarket  bool
