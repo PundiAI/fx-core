@@ -301,7 +301,7 @@ func (k Keeper) IterateOutgoingPoolByFee(ctx sdk.Context, contract string, cb fu
 // when to request batches and also used by the batch creation process to decide not to create
 // a new batch
 func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContractAddr string, baseFee sdk.Int) *types.BatchFees {
-	batchFeesMap := k.createBatchFees(ctx, []types.MinBatchFee{{
+	batchFeesMap := k.getBatchFeesMap(ctx, []types.MinBatchFee{{
 		TokenContract: tokenContractAddr,
 		BaseFee:       baseFee,
 	}}, false)
@@ -311,7 +311,7 @@ func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContractAddr strin
 // GetAllBatchFees creates a fee entry for every batch type currently in the store
 // this can be used by relayers to determine what batch types are desirable to request
 func (k Keeper) GetAllBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFee) (batchFees []*types.BatchFees) {
-	batchFeesMap := k.createBatchFees(ctx, minBatchFees, true)
+	batchFeesMap := k.getBatchFeesMap(ctx, minBatchFees, true)
 	// create array of batchFees
 	for _, batchFee := range batchFeesMap {
 		batchFees = append(batchFees, batchFee)
@@ -326,8 +326,64 @@ func (k Keeper) GetAllBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFe
 	return batchFees
 }
 
-// CreateBatchFees iterates over the outgoing pool and creates batch token fee map
-func (k Keeper) createBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFee,
+// getBatchFeesMap get batch fee map
+func (k Keeper) getBatchFeesMap(ctx sdk.Context, minBatchFees []types.MinBatchFee, needTotalAmount bool) map[string]*types.BatchFees {
+	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
+	if !isSupportBaseFee {
+		return k.createBatchFees(ctx)
+	}
+	return k.createBatchFeesWithBaseFee(ctx, minBatchFees, needTotalAmount)
+}
+
+// createBatchFees iterates over the outgoing pool and creates batch token fee map
+func (k Keeper) createBatchFees(ctx sdk.Context) map[string]*types.BatchFees {
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondIndexOutgoingTXFeeKey)
+	iter := prefixStore.Iterator(nil, nil)
+	defer iter.Close()
+
+	batchFeesMap := make(map[string]*types.BatchFees)
+
+	for ; iter.Valid(); iter.Next() {
+		var ids types.IDSet
+		k.cdc.MustUnmarshal(iter.Value(), &ids)
+
+		// create a map to store the token contract address and its total fee
+		// Parse the iterator key to get contract address & fee
+		// If len(ids.Ids) > 1, multiply fee amount with len(ids.Ids) and add it to total fee amount
+
+		key := iter.Key()
+		tokenContractBytes := key[:types.ETHContractAddressLen]
+		tokenContractAddr := string(tokenContractBytes)
+
+		feeAmountBytes := key[len(tokenContractBytes):]
+		feeAmount := big.NewInt(0).SetBytes(feeAmountBytes)
+
+		if _, ok := batchFeesMap[tokenContractAddr]; !ok {
+			handleSize := math.MinInt(OutgoingTxBatchSize, len(ids.Ids))
+			keyFeeTotals := feeAmount.Mul(feeAmount, big.NewInt(int64(handleSize)))
+			batchFeesMap[tokenContractAddr] = &types.BatchFees{
+				TokenContract: tokenContractAddr,
+				TotalFees:     sdk.NewIntFromBigInt(keyFeeTotals),
+				TotalTxs:      uint64(len(ids.Ids)),
+			}
+			continue
+		}
+		fullTxBatchSize := OutgoingTxBatchSize - batchFeesMap[tokenContractAddr].TotalTxs
+		batchFeesMap[tokenContractAddr].TotalTxs = batchFeesMap[tokenContractAddr].TotalTxs + uint64(len(ids.Ids))
+		if fullTxBatchSize <= 0 {
+			continue
+		}
+		// Fee for filling 100 transactions
+		fullTxBatchHandleSize := math.MinInt(int(fullTxBatchSize), len(ids.Ids))
+		fullTxBatchFee := feeAmount.Mul(feeAmount, big.NewInt(int64(fullTxBatchHandleSize)))
+		batchFeesMap[tokenContractAddr].TotalFees = batchFeesMap[tokenContractAddr].TotalFees.Add(sdk.NewIntFromBigInt(fullTxBatchFee))
+	}
+
+	return batchFeesMap
+}
+
+// createBatchFeesWithBaseFee iterates over the outgoing pool and creates batch token fee map with base fee
+func (k Keeper) createBatchFeesWithBaseFee(ctx sdk.Context, minBatchFees []types.MinBatchFee,
 	needTotalAmount bool) map[string]*types.BatchFees {
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondIndexOutgoingTXFeeKey)
 	iter := prefixStore.Iterator(nil, nil)
@@ -335,7 +391,6 @@ func (k Keeper) createBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFe
 
 	batchFeesMap := make(map[string]*types.BatchFees)
 	baseFees := types.MinBatchFeeToBaseFees(minBatchFees)
-	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 
 	for ; iter.Valid(); iter.Next() {
 		var ids types.IDSet
@@ -353,7 +408,7 @@ func (k Keeper) createBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFe
 		feeAmount := big.NewInt(0).SetBytes(feeAmountBytes)
 
 		baseFee, ok := baseFees[tokenContractAddr]
-		if isSupportBaseFee && ok && sdk.NewIntFromBigInt(feeAmount).LT(baseFee) {
+		if ok && sdk.NewIntFromBigInt(feeAmount).LT(baseFee) {
 			continue
 		}
 		if _, ok := batchFeesMap[tokenContractAddr]; !ok {
@@ -364,13 +419,13 @@ func (k Keeper) createBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFe
 				TotalFees:     sdk.NewIntFromBigInt(keyFeeTotals),
 				TotalTxs:      uint64(len(ids.Ids)),
 			}
-			if isSupportBaseFee && needTotalAmount {
+			if needTotalAmount {
 				totalAmount := k.getIdsTotalAmount(ctx, ids.Ids[:handleSize])
 				batchFeesMap[tokenContractAddr].TotalAmount = totalAmount
 			}
 			continue
 		}
-		//TODO check support height for total tx
+
 		fullTxBatchSize := OutgoingTxBatchSize - int(batchFeesMap[tokenContractAddr].TotalTxs)
 		batchFeesMap[tokenContractAddr].TotalTxs = batchFeesMap[tokenContractAddr].TotalTxs + uint64(len(ids.Ids))
 		if fullTxBatchSize <= 0 {
@@ -380,7 +435,7 @@ func (k Keeper) createBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFe
 		fullTxBatchHandleSize := math.MinInt(fullTxBatchSize, len(ids.Ids))
 		fullTxBatchFee := feeAmount.Mul(feeAmount, big.NewInt(int64(fullTxBatchHandleSize)))
 		batchFeesMap[tokenContractAddr].TotalFees = batchFeesMap[tokenContractAddr].TotalFees.Add(sdk.NewIntFromBigInt(fullTxBatchFee))
-		if isSupportBaseFee && needTotalAmount {
+		if needTotalAmount {
 			totalAmount := k.getIdsTotalAmount(ctx, ids.Ids[:fullTxBatchHandleSize])
 			batchFeesMap[tokenContractAddr].TotalAmount = batchFeesMap[tokenContractAddr].TotalAmount.Add(totalAmount)
 		}
