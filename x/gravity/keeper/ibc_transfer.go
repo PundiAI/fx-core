@@ -153,7 +153,7 @@ func (a AttestationHandler) handlerRelayTransfer(ctx sdk.Context, claim *types.M
 		return a.handleIbcTransfer(ctx, claim, receiver, coin)
 	} else {
 		var target = TargetUnknown
-		if fxtypes.Network() == "devnet" && ctx.BlockHeight() < 11700 {
+		if fxtypes.Network() == fxtypes.NetworkDevnet() && ctx.BlockHeight() < 11700 {
 			target = verifyTarget(claim.TargetIbc)
 		} else {
 			target = verifyTargetV2(claim.TargetIbc)

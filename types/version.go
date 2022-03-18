@@ -73,6 +73,16 @@ func Network() string {
 	return network
 }
 
+func NetworkMiannet() string {
+	return networkMainnet
+}
+func NetworkTestnet() string {
+	return networkTestnet
+}
+func NetworkDevnet() string {
+	return networkDevnet
+}
+
 func GravityPruneValsetsAndAttestationBlock() int64 {
 	if networkDevnet == network {
 		return devnetGravityPruneValsetAndAttestationBlock
