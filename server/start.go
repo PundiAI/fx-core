@@ -77,14 +77,16 @@ const (
 
 // JSON-RPC flags
 const (
-	JSONRPCEnable     = "json-rpc.enable"
-	JSONRPCAPI        = "json-rpc.api"
-	JSONRPCAddress    = "json-rpc.address"
-	JSONWsAddress     = "json-rpc.ws-address"
-	JSONRPCGasCap     = "json-rpc.gas-cap"
-	JSONRPCEVMTimeout = "json-rpc.evm-timeout"
-	JSONRPCTxFeeCap   = "json-rpc.txfee-cap"
-	JSONRPCFilterCap  = "json-rpc.filter-cap"
+	JSONRPCEnable        = "json-rpc.enable"
+	JSONRPCAPI           = "json-rpc.api"
+	JSONRPCAddress       = "json-rpc.address"
+	JSONWsAddress        = "json-rpc.ws-address"
+	JSONRPCGasCap        = "json-rpc.gas-cap"
+	JSONRPCEVMTimeout    = "json-rpc.evm-timeout"
+	JSONRPCTxFeeCap      = "json-rpc.txfee-cap"
+	JSONRPCFilterCap     = "json-rpc.filter-cap"
+	JSONRPCLogsCap       = "json-rpc.logs-cap"
+	JSONRPCBlockRangeCap = "json-rpc.block-range-cap"
 )
 
 // EVM flags
@@ -211,6 +213,8 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Float64(JSONRPCTxFeeCap, config.DefaultTxFeeCap, "Sets a cap on transaction fee that can be sent via the RPC APIs (1 = default 1 photon)")
 	cmd.Flags().Int32(JSONRPCFilterCap, config.DefaultFilterCap, "Sets the global cap for total number of filters that can be created")
 	cmd.Flags().Duration(JSONRPCEVMTimeout, config.DefaultEVMTimeout, "Sets a timeout used for eth_call (0=infinite)")
+	cmd.Flags().Int32(JSONRPCLogsCap, config.DefaultLogsCap, "Sets the max number of results can be returned from single `eth_getLogs` query")
+	cmd.Flags().Int32(JSONRPCBlockRangeCap, config.DefaultBlockRangeCap, "Sets the max block range allowed for `eth_getLogs` query")
 
 	cmd.Flags().String(EVMTracer, config.DefaultEVMTracer, "the EVM tracer type to collect execution traces from the EVM transaction execution (json|struct|access_list|markdown)")
 

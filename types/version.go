@@ -24,7 +24,7 @@ const (
 	testnetSupportIntrarelayerBlock              = 999999999
 	testnetSupportMigrateBlock                   = 999999999
 	testnetSupportEGFProposalBlock               = 999999999
-	testnetRequestBaseFee                        = 999999999
+	testnetRequestBaseFeeBlock                   = 999999999
 )
 
 // mainnet constant
@@ -40,9 +40,9 @@ const (
 	mainnetSupportEvmBlock          = 999999999
 	mainnetEvmChainID               = 1
 	mainnetSupportIntrarelayerBlock = 999999999
-	mainnetRequestBaseFee           = 999999999
 	mainnetSupportMigrateBlock      = 999999999
 	mainnetSupportEGFProposalBlock  = 999999999
+	mainnetRequestBaseFeeBlock      = 999999999
 )
 
 // devnet constant
@@ -57,8 +57,8 @@ const (
 	devnetEvmChainID                            = 221
 	devnetSupportIntrarelayerBlock              = 100
 	devnetSupportMigrateBlock                   = 100
-	devnetSupportEGFProposalBlock               = 100
-	devnetRequestBaseFee                        = 62000
+	devnetSupportEGFProposalBlock               = 112000
+	devnetRequestBaseFeeBlock                   = 112000
 )
 
 var (
@@ -178,11 +178,11 @@ func EGFProposalSupportBlock() int64 {
 
 func RequestBatchBaseFeeBlock() int64 {
 	if networkDevnet == network {
-		return devnetRequestBaseFee
+		return devnetRequestBaseFeeBlock
 	} else if networkTestnet == network {
-		return testnetRequestBaseFee
+		return testnetRequestBaseFeeBlock
 	}
-	return mainnetRequestBaseFee
+	return mainnetRequestBaseFeeBlock
 }
 
 func IsRequestBatchBaseFee(height int64) bool {
