@@ -677,7 +677,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 		},
 		{
 			testName:       "Support - baseFee 1000",
-			height:         fxtypes.RequestBatchBaseFee(),
+			height:         fxtypes.RequestBatchBaseFeeBlock(),
 			baseFee:        sdk.NewInt(1000),
 			pass:           false,
 			expectTotalTxs: 3,
@@ -685,7 +685,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 		},
 		{
 			testName:       "Support - baseFee 2",
-			height:         fxtypes.RequestBatchBaseFee(),
+			height:         fxtypes.RequestBatchBaseFeeBlock(),
 			baseFee:        sdk.NewInt(2),
 			pass:           true,
 			expectTotalTxs: 1,
@@ -693,7 +693,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 		},
 		{
 			testName:       "Support - baseFee 0",
-			height:         fxtypes.RequestBatchBaseFee(),
+			height:         fxtypes.RequestBatchBaseFeeBlock(),
 			baseFee:        sdk.NewInt(0),
 			pass:           true,
 			expectTotalTxs: 0,

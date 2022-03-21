@@ -176,7 +176,7 @@ func EGFProposalSupportBlock() int64 {
 	return mainnetSupportEGFProposalBlock
 }
 
-func RequestBatchBaseFee() int64 {
+func RequestBatchBaseFeeBlock() int64 {
 	if networkDevnet == network {
 		return devnetRequestBaseFee
 	} else if networkTestnet == network {
@@ -186,5 +186,5 @@ func RequestBatchBaseFee() int64 {
 }
 
 func IsRequestBatchBaseFee(height int64) bool {
-	return height >= RequestBatchBaseFee()
+	return height >= RequestBatchBaseFeeBlock()
 }
