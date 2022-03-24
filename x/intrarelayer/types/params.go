@@ -63,4 +63,9 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-func (p Params) Validate() error { return nil }
+func (p Params) Validate() error {
+	if p.IbcTransferTimeoutHeight == 0 {
+		return fmt.Errorf("ibc transfer timeout height cannot be zero: %d", p.IbcTransferTimeoutHeight)
+	}
+	return nil
+}

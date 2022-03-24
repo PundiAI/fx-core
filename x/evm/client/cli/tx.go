@@ -6,14 +6,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
+	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
 	fxcoretypes "github.com/functionx/fx-core/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"github.com/spf13/viper"
 	"os"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -22,7 +25,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
 	"github.com/functionx/fx-core/x/evm/types"
 )
 
@@ -120,21 +122,6 @@ func NewRawTxCmd() *cobra.Command {
 	return cmd
 }
 
-func getFeeMarkerParamsByFlags(cmd *cobra.Command) (*feemarkettypes.Params, error) {
-	NoBaseFee := false
-	var BaseFeeChangeDenominator uint32 = params.BaseFeeChangeDenominator
-	var ElasticityMultiplier uint32 = params.ElasticityMultiplier
-	var BaseFee int64 = params.InitialBaseFee
-	var EnableHeight = fxcoretypes.EvmSupportBlock()
-	return &feemarkettypes.Params{
-		NoBaseFee:                NoBaseFee,
-		BaseFeeChangeDenominator: BaseFeeChangeDenominator,
-		ElasticityMultiplier:     ElasticityMultiplier,
-		BaseFee:                  sdk.NewInt(BaseFee),
-		EnableHeight:             EnableHeight,
-	}, nil
-}
-
 func getEvmParamsByFlags(cmd *cobra.Command) (*types.Params, error) {
 	evmParamsEvmDenom, err := cmd.Flags().GetString(flagEvmParamsEvmDenom)
 	if err != nil {
@@ -181,11 +168,37 @@ func getEvmParamsByFlags(cmd *cobra.Command) (*types.Params, error) {
 	}, nil
 }
 
-func InitEvmParamsProposalCmd() *cobra.Command {
+func getFeeMarkerParamsByFlags(cmd *cobra.Command) (*feemarkettypes.Params, error) {
+	NoBaseFee := false
+	var BaseFeeChangeDenominator uint32 = params.BaseFeeChangeDenominator
+	var ElasticityMultiplier uint32 = params.ElasticityMultiplier
+	var BaseFee int64 = params.InitialBaseFee
+	var EnableHeight = fxcoretypes.EvmSupportBlock()
+	return &feemarkettypes.Params{
+		NoBaseFee:                NoBaseFee,
+		BaseFeeChangeDenominator: BaseFeeChangeDenominator,
+		ElasticityMultiplier:     ElasticityMultiplier,
+		BaseFee:                  sdk.NewInt(BaseFee),
+		EnableHeight:             EnableHeight,
+	}, nil
+}
+
+func getIntrarelayerParamsByFlags(cmd *cobra.Command) (*types.IntrarelayerParams, error) {
+	var enableIntrarelayer = true
+	var enableEVMHook = true
+	var ibcTransferTimeoutHeight = uint64(20000)
+	return &types.IntrarelayerParams{
+		EnableIntrarelayer:       enableIntrarelayer,
+		EnableEVMHook:            enableEVMHook,
+		IbcTransferTimeoutHeight: ibcTransferTimeoutHeight,
+	}, nil
+}
+
+func InitEvmProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "init-evm-params",
-		Short:   "Submit a init evm params proposal",
-		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-evm-params --evm-denom=<denom> --from=<key_or_address>`, version.AppName),
+		Use:     "init-evm",
+		Short:   "Submit a init evm proposal",
+		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-evm --evm-denom=<denom> --metadata=<path/to/metadata> --from=<key_or_address>`, version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -209,12 +222,33 @@ func InitEvmParamsProposalCmd() *cobra.Command {
 				return err
 			}
 			feeMarketParams, err := getFeeMarkerParamsByFlags(cmd)
-			proposal := &types.InitEvmParamsProposal{
-				Title:           title,
-				Description:     description,
-				EvmParams:       evmParams,
-				FeemarketParams: feeMarketParams,
+			if err != nil {
+				return err
 			}
+
+			intrarelayerParams, err := getIntrarelayerParamsByFlags(cmd)
+			if err != nil {
+				return err
+			}
+
+			metadataPath := viper.GetString(flagMetadata)
+			var metadatas []banktypes.Metadata
+			if len(strings.TrimSpace(metadataPath)) > 0 {
+				metadatas, err = ReadMetadataFromPath(cliCtx.Codec, metadataPath)
+				if err != nil {
+					return err
+				}
+			}
+
+			proposal := &types.InitEvmProposal{
+				Title:              title,
+				Description:        description,
+				EvmParams:          evmParams,
+				FeemarketParams:    feeMarketParams,
+				IntrarelayerParams: intrarelayerParams,
+				Metadata:           metadatas,
+			}
+
 			fromAddress := cliCtx.GetFromAddress()
 			msg, err := govtypes.NewMsgSubmitProposal(proposal, initProposalAmount, fromAddress)
 			if err != nil {
@@ -229,8 +263,9 @@ func InitEvmParamsProposalCmd() *cobra.Command {
 
 	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
 	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
-	cmd.Flags().String(cli.FlagDeposit, "1FX", "deposit of proposal")
-	cmd.Flags().String(flagEvmParamsEvmDenom, "FX", "evm denom represents the token denomination used to run the EVM state transitions.")
+	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
+	cmd.Flags().String(flagEvmParamsEvmDenom, fxcoretypes.FX, "evm denom represents the token denomination used to run the EVM state transitions.")
+	cmd.Flags().String(flagMetadata, "", "path to metadata file/directory")
 	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
 		panic(err)
 	}
@@ -245,4 +280,5 @@ func InitEvmParamsProposalCmd() *cobra.Command {
 
 const (
 	flagEvmParamsEvmDenom = "evm-denom"
+	flagMetadata          = "metadata"
 )

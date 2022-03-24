@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -15,30 +16,32 @@ import (
 )
 
 var (
-	InitEvmParamsProposalHandler = govclient.NewProposalHandler(cli.InitEvmParamsProposalCmd, InitEvmParamsProposalRESTHandler)
+	InitEvmProposalHandler = govclient.NewProposalHandler(cli.InitEvmProposalCmd, InitEvmProposalRESTHandler)
 )
 
-// InitEvmParamsProposalRequest defines a request for a new init evm params proposal.
-type InitEvmParamsProposalRequest struct {
-	BaseReq         rest.BaseReq           `json:"base_req" yaml:"base_req"`
-	Title           string                 `json:"title" yaml:"title"`
-	Description     string                 `json:"description" yaml:"description"`
-	Deposit         sdk.Coins              `json:"deposit" yaml:"deposit"`
-	EvmParams       *types.Params          `json:"evm_params" yaml:"evm_params"`
-	FeemarketParams *feemarkettypes.Params `json:"feemarket_params" yaml:"feemarket_params"`
+// InitEvmProposalRequest defines a request for a new init evm proposal.
+type InitEvmProposalRequest struct {
+	BaseReq            rest.BaseReq              `json:"base_req" yaml:"base_req"`
+	Title              string                    `json:"title" yaml:"title"`
+	Description        string                    `json:"description" yaml:"description"`
+	Deposit            sdk.Coins                 `json:"deposit" yaml:"deposit"`
+	EvmParams          *types.Params             `json:"evm_params" yaml:"evm_params"`
+	FeemarketParams    *feemarkettypes.Params    `json:"feemarket_params" yaml:"feemarket_params"`
+	IntrarelayerParams *types.IntrarelayerParams `json:"intrarelayer_params" yaml:"intrarelayer_params"`
+	Metadata           []banktypes.Metadata      `json:"metadata" yaml:"metadata"`
 }
 
-func InitEvmParamsProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
+func InitEvmProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
 		SubRoute: types.ModuleName,
-		Handler:  newInitEvmParamsProposalHandler(clientCtx),
+		Handler:  newInitEvmProposalHandler(clientCtx),
 	}
 }
 
 // nolint: dupl
-func newInitEvmParamsProposalHandler(clientCtx client.Context) http.HandlerFunc {
+func newInitEvmProposalHandler(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req InitEvmParamsProposalRequest
+		var req InitEvmProposalRequest
 
 		if !rest.ReadRESTReq(w, r, clientCtx.LegacyAmino, &req) {
 			return
@@ -54,7 +57,7 @@ func newInitEvmParamsProposalHandler(clientCtx client.Context) http.HandlerFunc 
 			return
 		}
 
-		content := types.NewInitEvmParamsProposal(req.Title, req.Description, req.EvmParams, req.FeemarketParams)
+		content := types.NewInitEvmProposal(req.Title, req.Description, req.EvmParams, req.FeemarketParams, req.IntrarelayerParams, req.Metadata)
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, fromAddr)
 		if rest.CheckBadRequestError(w, err) {
 			return

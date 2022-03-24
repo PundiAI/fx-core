@@ -11,42 +11,17 @@ import (
 	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 )
 
-func (k Keeper) InitIntrarelayer(ctx sdk.Context, p *types.InitIntrarelayerParamsProposal) error {
-	//TODO No longer dependent on the EVM module
-	//if !k.evmKeeper.HasInit(ctx) {
-	//	return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "evm module has not init")
-	//}
-	ctx.Logger().Info("init intrarelayer", "EnableIntrarelayer", p.Params.EnableIntrarelayer,
-		"EnableEVMHook", p.Params.EnableEVMHook, "TokenPairVotingPeriod", "IbcTransferTimeoutHeight", p.Params.IbcTransferTimeoutHeight)
-	k.SetParams(ctx, *p.Params)
-
+// ModuleInit export to init module
+func (k Keeper) ModuleInit(ctx sdk.Context, enableIntrarelayer, enableEvmHook bool, ibcTransferTimeoutHeight uint64) {
+	k.SetParams(ctx, types.Params{
+		EnableIntrarelayer:       enableIntrarelayer,
+		EnableEVMHook:            enableEvmHook,
+		IbcTransferTimeoutHeight: ibcTransferTimeoutHeight,
+	})
 	// ensure intrarelayer module account is set on genesis
 	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
 		panic("the intrarelayer module account has not been set")
 	}
-
-	if !k.evmKeeper.HasInit(ctx) {
-		//TODO Make sure the EVM proposal has been sent and bound to succeed
-		return nil
-	}
-
-	events := make([]sdk.Event, 0, len(p.Metadata))
-	for _, metadata := range p.Metadata {
-		pair, err := k.RegisterCoin(ctx, metadata)
-		if err != nil {
-			return sdkerrors.Wrapf(types.ErrInvalidMetadata, fmt.Sprintf("base %s, display %s, error %s",
-				metadata.Base, metadata.Display, err.Error()))
-		}
-		event := sdk.NewEvent(
-			types.EventTypeRegisterCoin,
-			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyFIP20Token, pair.Fip20Address),
-		)
-		events = append(events, event)
-	}
-	ctx.EventManager().EmitEvents(events)
-
-	return nil
 }
 
 // RegisterCoin deploys an fip20 contract and creates the token pair for the cosmos coin

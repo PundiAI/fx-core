@@ -6,7 +6,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
-	fxtype "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/intrarelayer/keeper"
 	"github.com/functionx/fx-core/x/intrarelayer/types"
 )
@@ -16,8 +15,6 @@ import (
 func NewIntrarelayerProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
-		case *types.InitIntrarelayerParamsProposal:
-			return handleInitIntrarelayerParamsProposal(ctx, k, c)
 		case *types.RegisterCoinProposal:
 			return handleRegisterCoinProposal(ctx, k, c)
 		case *types.RegisterFIP20Proposal:
@@ -28,13 +25,6 @@ func NewIntrarelayerProposalHandler(k *keeper.Keeper) govtypes.Handler {
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s proposal content type: %T", types.ModuleName, c)
 		}
 	}
-}
-
-func handleInitIntrarelayerParamsProposal(ctx sdk.Context, k *keeper.Keeper, p *types.InitIntrarelayerParamsProposal) error {
-	if ctx.BlockHeight() < fxtype.IntrarelayerSupportBlock() {
-		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("intrarelayer module not enable"))
-	}
-	return k.InitIntrarelayer(ctx, p)
 }
 
 func handleRegisterCoinProposal(ctx sdk.Context, k *keeper.Keeper, p *types.RegisterCoinProposal) error {

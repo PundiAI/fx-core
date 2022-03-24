@@ -147,8 +147,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		distrclient.ProposalHandler,
 		upgradeclient.ProposalHandler,
 		upgradeclient.CancelProposalHandler,
-		evmclient.InitEvmParamsProposalHandler,
-		intrarelayerclient.InitIntrarelayerParamsProposalHandler,
+		evmclient.InitEvmProposalHandler,
 		intrarelayerclient.RegisterCoinProposalHandler,
 		intrarelayerclient.RegisterFIP20ProposalHandler,
 		intrarelayerclient.ToggleTokenRelayProposalHandler,
@@ -455,6 +454,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
 
 	//set intrarelayer keeper
+	myApp.EvmKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
 	myApp.GravityKeeper = myApp.GravityKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
 	myApp.BscKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
 	myApp.PolygonKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
@@ -501,7 +501,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		),
 	)
 
-	myApp.MigrateKeeper = migratekeeper.NewKeeper(appCodec, keys[migratetypes.StoreKey])
+	myApp.MigrateKeeper = migratekeeper.NewKeeper(appCodec, keys[migratetypes.StoreKey], myApp.IntrarelayerKeeper)
 	bankMigrate := migratekeeper.NewBankMigrate(myApp.BankKeeper)
 	distrStakingMigrate := migratekeeper.NewDistrStakingMigrate(keys[distrtypes.StoreKey], keys[stakingtypes.StoreKey], myApp.StakingKeeper)
 	govMigrate := migratekeeper.NewGovMigrate(keys[govtypes.StoreKey], myApp.GovKeeper)

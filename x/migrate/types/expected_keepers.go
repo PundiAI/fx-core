@@ -33,3 +33,7 @@ type GovKeeper interface {
 	GetDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk.AccAddress) (deposit govtypes.Deposit, found bool)
 	GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress) (vote govtypes.Vote, found bool)
 }
+
+type IntrarelayerKeeper interface {
+	HasInit(ctx sdk.Context) bool
+}

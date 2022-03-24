@@ -32,11 +32,11 @@ func NewHandler(server types.MsgServer) sdk.Handler {
 func NewEvmProposalHandler(k keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
-		case *types.InitEvmParamsProposal:
+		case *types.InitEvmProposal:
 			if ctx.BlockHeight() < fxtype.EvmSupportBlock() {
 				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("evm module not enable"))
 			}
-			return k.HandleInitEvmParamsProposal(ctx, c)
+			return k.HandleInitEvmProposal(ctx, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized evm proposal content type: %T", c)
 		}

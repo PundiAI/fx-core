@@ -24,78 +24,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type InitIntrarelayerParamsProposal struct {
-	// the title of the update proposal
-	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	// the description of the proposal
-	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	// intrarelayer module params
-	Params *Params `protobuf:"bytes,3,opt,name=params,proto3" json:"params,omitempty"`
-	// token pairs of Cosmos native denom and FIP20 token address
-	Metadata []types.Metadata `protobuf:"bytes,4,rep,name=metadata,proto3" json:"metadata"`
-}
-
-func (m *InitIntrarelayerParamsProposal) Reset()         { *m = InitIntrarelayerParamsProposal{} }
-func (m *InitIntrarelayerParamsProposal) String() string { return proto.CompactTextString(m) }
-func (*InitIntrarelayerParamsProposal) ProtoMessage()    {}
-func (*InitIntrarelayerParamsProposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bbfafe7ab48e5a7d, []int{0}
-}
-func (m *InitIntrarelayerParamsProposal) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *InitIntrarelayerParamsProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_InitIntrarelayerParamsProposal.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *InitIntrarelayerParamsProposal) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_InitIntrarelayerParamsProposal.Merge(m, src)
-}
-func (m *InitIntrarelayerParamsProposal) XXX_Size() int {
-	return m.Size()
-}
-func (m *InitIntrarelayerParamsProposal) XXX_DiscardUnknown() {
-	xxx_messageInfo_InitIntrarelayerParamsProposal.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_InitIntrarelayerParamsProposal proto.InternalMessageInfo
-
-func (m *InitIntrarelayerParamsProposal) GetTitle() string {
-	if m != nil {
-		return m.Title
-	}
-	return ""
-}
-
-func (m *InitIntrarelayerParamsProposal) GetDescription() string {
-	if m != nil {
-		return m.Description
-	}
-	return ""
-}
-
-func (m *InitIntrarelayerParamsProposal) GetParams() *Params {
-	if m != nil {
-		return m.Params
-	}
-	return nil
-}
-
-func (m *InitIntrarelayerParamsProposal) GetMetadata() []types.Metadata {
-	if m != nil {
-		return m.Metadata
-	}
-	return nil
-}
-
 // RegisterCoinProposal is a gov Content type to register a token pair
 type RegisterCoinProposal struct {
 	// title of the proposal
@@ -110,7 +38,7 @@ func (m *RegisterCoinProposal) Reset()         { *m = RegisterCoinProposal{} }
 func (m *RegisterCoinProposal) String() string { return proto.CompactTextString(m) }
 func (*RegisterCoinProposal) ProtoMessage()    {}
 func (*RegisterCoinProposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bbfafe7ab48e5a7d, []int{1}
+	return fileDescriptor_bbfafe7ab48e5a7d, []int{0}
 }
 func (m *RegisterCoinProposal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -174,7 +102,7 @@ func (m *RegisterFIP20Proposal) Reset()         { *m = RegisterFIP20Proposal{} }
 func (m *RegisterFIP20Proposal) String() string { return proto.CompactTextString(m) }
 func (*RegisterFIP20Proposal) ProtoMessage()    {}
 func (*RegisterFIP20Proposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bbfafe7ab48e5a7d, []int{2}
+	return fileDescriptor_bbfafe7ab48e5a7d, []int{1}
 }
 func (m *RegisterFIP20Proposal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -240,7 +168,7 @@ func (m *ToggleTokenRelayProposal) Reset()         { *m = ToggleTokenRelayPropos
 func (m *ToggleTokenRelayProposal) String() string { return proto.CompactTextString(m) }
 func (*ToggleTokenRelayProposal) ProtoMessage()    {}
 func (*ToggleTokenRelayProposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bbfafe7ab48e5a7d, []int{3}
+	return fileDescriptor_bbfafe7ab48e5a7d, []int{2}
 }
 func (m *ToggleTokenRelayProposal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -291,7 +219,6 @@ func (m *ToggleTokenRelayProposal) GetToken() string {
 }
 
 func init() {
-	proto.RegisterType((*InitIntrarelayerParamsProposal)(nil), "ethermint.intrarelayer.v1.InitIntrarelayerParamsProposal")
 	proto.RegisterType((*RegisterCoinProposal)(nil), "ethermint.intrarelayer.v1.RegisterCoinProposal")
 	proto.RegisterType((*RegisterFIP20Proposal)(nil), "ethermint.intrarelayer.v1.RegisterFIP20Proposal")
 	proto.RegisterType((*ToggleTokenRelayProposal)(nil), "ethermint.intrarelayer.v1.ToggleTokenRelayProposal")
@@ -302,33 +229,29 @@ func init() {
 }
 
 var fileDescriptor_bbfafe7ab48e5a7d = []byte{
-	// 409 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x52, 0x31, 0x8f, 0xd3, 0x30,
-	0x14, 0x8e, 0xb9, 0x72, 0xe2, 0x5c, 0xa6, 0xa8, 0x48, 0xe1, 0x24, 0x7c, 0xa1, 0x0b, 0x65, 0xc0,
-	0xbe, 0x84, 0x09, 0x16, 0xa4, 0x43, 0x42, 0xaa, 0x10, 0x52, 0x15, 0xdd, 0xc4, 0xe6, 0x24, 0xaf,
-	0x39, 0xeb, 0x12, 0x3b, 0xb2, 0x7d, 0x55, 0xfb, 0x2f, 0x58, 0xd8, 0xf9, 0x39, 0x37, 0x76, 0x44,
-	0x0c, 0x08, 0xb5, 0x0b, 0x3f, 0x03, 0x25, 0x31, 0x55, 0x3a, 0x74, 0xb9, 0x6e, 0x79, 0xef, 0x7d,
-	0xdf, 0xfb, 0xbe, 0x2f, 0x7e, 0xf8, 0x35, 0xd8, 0x1b, 0xd0, 0x95, 0x90, 0x96, 0x09, 0x69, 0x35,
-	0xd7, 0x50, 0xf2, 0x15, 0x68, 0xb6, 0x88, 0x58, 0xad, 0x55, 0xad, 0x0c, 0x2f, 0x0d, 0xad, 0xb5,
-	0xb2, 0xca, 0x7f, 0xbe, 0x83, 0xd2, 0x3e, 0x94, 0x2e, 0xa2, 0xf3, 0x51, 0xa1, 0x0a, 0xd5, 0xa2,
-	0x58, 0xf3, 0xd5, 0x11, 0xce, 0x49, 0xa6, 0x4c, 0xa5, 0x0c, 0x4b, 0xb9, 0xbc, 0x65, 0x8b, 0x28,
-	0x05, 0xcb, 0xa3, 0xb6, 0x70, 0xf3, 0x57, 0x87, 0xb5, 0x0b, 0x90, 0x60, 0x84, 0x53, 0x1e, 0xff,
-	0x42, 0x98, 0x4c, 0xa5, 0xb0, 0xd3, 0x1e, 0x6a, 0xc6, 0x35, 0xaf, 0xcc, 0xcc, 0x79, 0xf4, 0x47,
-	0xf8, 0xb1, 0x15, 0xb6, 0x84, 0x00, 0x85, 0x68, 0x72, 0x96, 0x74, 0x85, 0x1f, 0xe2, 0x61, 0x0e,
-	0x26, 0xd3, 0xa2, 0xb6, 0x42, 0xc9, 0xe0, 0x51, 0x3b, 0xeb, 0xb7, 0xfc, 0x77, 0xf8, 0xb4, 0x6e,
-	0x37, 0x05, 0x27, 0x21, 0x9a, 0x0c, 0xe3, 0x97, 0xf4, 0x60, 0x4a, 0xda, 0x49, 0x26, 0x8e, 0xe0,
-	0x7f, 0xc0, 0x4f, 0x2a, 0xb0, 0x3c, 0xe7, 0x96, 0x07, 0x83, 0xf0, 0x64, 0x32, 0x8c, 0x5f, 0xd0,
-	0x2e, 0x31, 0x6d, 0x43, 0xba, 0xc4, 0xf4, 0x8b, 0x03, 0x5d, 0x0d, 0xee, 0x7f, 0x5f, 0x78, 0xc9,
-	0x8e, 0xf4, 0x7e, 0xf0, 0xf7, 0xc7, 0x85, 0x37, 0xfe, 0x8e, 0xf0, 0x28, 0x81, 0x42, 0x18, 0x0b,
-	0xfa, 0xa3, 0x12, 0xf2, 0xe8, 0x48, 0x7d, 0x5f, 0x5d, 0xa8, 0x07, 0xf9, 0x5a, 0xe1, 0x67, 0xff,
-	0x6d, 0x7d, 0x9a, 0xce, 0xe2, 0xcb, 0xa3, 0x7d, 0x8d, 0xf1, 0xd3, 0xb9, 0xa8, 0xe3, 0x4b, 0x9e,
-	0xe7, 0x1a, 0x4c, 0xf7, 0xc3, 0xcf, 0x92, 0xbd, 0x9e, 0x93, 0x96, 0x38, 0xb8, 0x56, 0x45, 0x51,
-	0xc2, 0xb5, 0xba, 0x05, 0x99, 0x34, 0x2f, 0x70, 0xb4, 0x7a, 0xc3, 0x6b, 0xb6, 0x39, 0xd9, 0xae,
-	0x68, 0xf5, 0xd0, 0xd5, 0xe7, 0xfb, 0x0d, 0x41, 0xeb, 0x0d, 0x41, 0x7f, 0x36, 0x04, 0x7d, 0xdb,
-	0x12, 0x6f, 0xbd, 0x25, 0xde, 0xcf, 0x2d, 0xf1, 0xbe, 0x46, 0x85, 0xb0, 0x37, 0x77, 0x29, 0xcd,
-	0x54, 0xc5, 0xe6, 0x77, 0x32, 0x6b, 0x56, 0x2d, 0xd9, 0x7c, 0xf9, 0x26, 0x53, 0x1a, 0xd8, 0x72,
-	0xff, 0x6e, 0xed, 0xaa, 0x06, 0x93, 0x9e, 0xb6, 0x37, 0xfb, 0xf6, 0x5f, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x8f, 0xbd, 0xfe, 0x0f, 0x5a, 0x03, 0x00, 0x00,
+	// 352 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x92, 0xb1, 0x6e, 0xea, 0x30,
+	0x14, 0x86, 0xe3, 0x7b, 0xb9, 0x57, 0x17, 0x73, 0xa7, 0x88, 0x4a, 0x29, 0x52, 0x03, 0x62, 0xa2,
+	0x43, 0x63, 0x42, 0xb7, 0x2e, 0x95, 0xa8, 0x54, 0xa9, 0xaa, 0x2a, 0xa1, 0x88, 0xa9, 0x9b, 0x93,
+	0x1c, 0x82, 0x45, 0x62, 0x47, 0xb6, 0x41, 0xf0, 0x16, 0x5d, 0xba, 0xf7, 0x71, 0x18, 0x19, 0x3b,
+	0x55, 0x15, 0x2c, 0x7d, 0x8c, 0x2a, 0x4e, 0x8a, 0x60, 0x66, 0xf3, 0x39, 0xe7, 0xff, 0xcf, 0xf7,
+	0xcb, 0x36, 0xbe, 0x04, 0x3d, 0x05, 0x99, 0x31, 0xae, 0x09, 0xe3, 0x5a, 0x52, 0x09, 0x29, 0x5d,
+	0x81, 0x24, 0x0b, 0x9f, 0xe4, 0x52, 0xe4, 0x42, 0xd1, 0x54, 0x79, 0xb9, 0x14, 0x5a, 0xd8, 0xe7,
+	0x7b, 0xa9, 0x77, 0x28, 0xf5, 0x16, 0x7e, 0xab, 0x99, 0x88, 0x44, 0x18, 0x15, 0x29, 0x4e, 0xa5,
+	0xa1, 0xe5, 0x46, 0x42, 0x65, 0x42, 0x91, 0x90, 0xf2, 0x19, 0x59, 0xf8, 0x21, 0x68, 0xea, 0x9b,
+	0xa2, 0x9c, 0x77, 0x5f, 0x11, 0x6e, 0x06, 0x90, 0x30, 0xa5, 0x41, 0xde, 0x09, 0xc6, 0x47, 0x15,
+	0xd0, 0x6e, 0xe2, 0x3f, 0x9a, 0xe9, 0x14, 0x1c, 0xd4, 0x41, 0xbd, 0x7a, 0x50, 0x16, 0x76, 0x07,
+	0x37, 0x62, 0x50, 0x91, 0x64, 0xb9, 0x66, 0x82, 0x3b, 0xbf, 0xcc, 0xec, 0xb0, 0x65, 0xdf, 0xe2,
+	0x7f, 0x19, 0x68, 0x1a, 0x53, 0x4d, 0x9d, 0xdf, 0x1d, 0xd4, 0x6b, 0x0c, 0x2e, 0xbc, 0x32, 0x83,
+	0x67, 0xb0, 0x55, 0x06, 0xef, 0xa9, 0x12, 0x0d, 0x6b, 0xeb, 0x8f, 0xb6, 0x15, 0xec, 0x4d, 0x37,
+	0xb5, 0xaf, 0xb7, 0xb6, 0xd5, 0x5d, 0xe1, 0xb3, 0x9f, 0x58, 0xf7, 0x0f, 0xa3, 0x41, 0xff, 0xe4,
+	0x5c, 0x5d, 0xfc, 0x7f, 0xc2, 0xf2, 0x41, 0x9f, 0xc6, 0xb1, 0x04, 0xa5, 0x4c, 0xb6, 0x7a, 0x70,
+	0xd4, 0xab, 0xd0, 0x1c, 0x3b, 0x63, 0x91, 0x24, 0x29, 0x8c, 0xc5, 0x0c, 0x78, 0x50, 0xdc, 0xf0,
+	0xc9, 0xf4, 0xc2, 0x57, 0x6c, 0xab, 0xb0, 0x65, 0x61, 0x78, 0x68, 0xf8, 0xb8, 0xde, 0xba, 0x68,
+	0xb3, 0x75, 0xd1, 0xe7, 0xd6, 0x45, 0x2f, 0x3b, 0xd7, 0xda, 0xec, 0x5c, 0xeb, 0x7d, 0xe7, 0x5a,
+	0xcf, 0x7e, 0xc2, 0xf4, 0x74, 0x1e, 0x7a, 0x91, 0xc8, 0xc8, 0x64, 0xce, 0xa3, 0x62, 0xd5, 0x92,
+	0x4c, 0x96, 0x57, 0x91, 0x90, 0x40, 0x96, 0xc7, 0xbf, 0x45, 0xaf, 0x72, 0x50, 0xe1, 0x5f, 0xf3,
+	0xac, 0xd7, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xed, 0x07, 0xe9, 0x3b, 0x54, 0x02, 0x00, 0x00,
 }
 
 func (this *ToggleTokenRelayProposal) Equal(that interface{}) bool {
@@ -361,69 +284,6 @@ func (this *ToggleTokenRelayProposal) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (m *InitIntrarelayerParamsProposal) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *InitIntrarelayerParamsProposal) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *InitIntrarelayerParamsProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Metadata) > 0 {
-		for iNdEx := len(m.Metadata) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Metadata[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintProposals(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x22
-		}
-	}
-	if m.Params != nil {
-		{
-			size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintProposals(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintProposals(dAtA, i, uint64(len(m.Description)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Title) > 0 {
-		i -= len(m.Title)
-		copy(dAtA[i:], m.Title)
-		i = encodeVarintProposals(dAtA, i, uint64(len(m.Title)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *RegisterCoinProposal) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -570,33 +430,6 @@ func encodeVarintProposals(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *InitIntrarelayerParamsProposal) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Title)
-	if l > 0 {
-		n += 1 + l + sovProposals(uint64(l))
-	}
-	l = len(m.Description)
-	if l > 0 {
-		n += 1 + l + sovProposals(uint64(l))
-	}
-	if m.Params != nil {
-		l = m.Params.Size()
-		n += 1 + l + sovProposals(uint64(l))
-	}
-	if len(m.Metadata) > 0 {
-		for _, e := range m.Metadata {
-			l = e.Size()
-			n += 1 + l + sovProposals(uint64(l))
-		}
-	}
-	return n
-}
-
 func (m *RegisterCoinProposal) Size() (n int) {
 	if m == nil {
 		return 0
@@ -663,190 +496,6 @@ func sovProposals(x uint64) (n int) {
 }
 func sozProposals(x uint64) (n int) {
 	return sovProposals(uint64((x << 1) ^ uint64((int64(x) >> 63))))
-}
-func (m *InitIntrarelayerParamsProposal) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowProposals
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: InitIntrarelayerParamsProposal: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: InitIntrarelayerParamsProposal: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowProposals
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthProposals
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthProposals
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Title = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowProposals
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthProposals
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthProposals
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Description = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowProposals
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthProposals
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthProposals
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Params == nil {
-				m.Params = &Params{}
-			}
-			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowProposals
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthProposals
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthProposals
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Metadata = append(m.Metadata, types.Metadata{})
-			if err := m.Metadata[len(m.Metadata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipProposals(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthProposals
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
 }
 func (m *RegisterCoinProposal) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)

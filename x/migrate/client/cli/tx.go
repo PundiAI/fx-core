@@ -39,6 +39,9 @@ func GetMigrateAccountCmd() *cobra.Command {
 				return err
 			}
 			toInfo, err := cliCtx.Keyring.KeyByAddress(toAddress)
+			if err != nil {
+				return fmt.Errorf("key for %s not found", toAddress.String())
+			}
 			sign, _, err := cliCtx.Keyring.Sign(toInfo.GetName(), types.MigrateAccountSignatureHash(fromAddress, toAddress))
 			if err != nil {
 				return fmt.Errorf("sign migrate signature error %v", err)

@@ -32,7 +32,9 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		},
 		{
 			"empty",
-			Params{},
+			Params{
+				IbcTransferTimeoutHeight: 20000,
+			},
 			false,
 		},
 	}

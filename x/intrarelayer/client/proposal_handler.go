@@ -7,8 +7,7 @@ import (
 )
 
 var (
-	InitIntrarelayerParamsProposalHandler = govclient.NewProposalHandler(cli.NewInitIntrarelayerParamsProposalCmd, rest.InitIntrarelayerParamsProposalRESTHandler)
-	RegisterCoinProposalHandler           = govclient.NewProposalHandler(cli.NewRegisterCoinProposalCmd, rest.RegisterCoinProposalRESTHandler)
-	RegisterFIP20ProposalHandler          = govclient.NewProposalHandler(cli.NewRegisterFIP20ProposalCmd, rest.RegisterFIP20ProposalRESTHandler)
-	ToggleTokenRelayProposalHandler       = govclient.NewProposalHandler(cli.NewToggleTokenRelayProposalCmd, rest.ToggleTokenRelayRESTHandler)
+	RegisterCoinProposalHandler     = govclient.NewProposalHandler(cli.NewRegisterCoinProposalCmd, rest.RegisterCoinProposalRESTHandler)
+	RegisterFIP20ProposalHandler    = govclient.NewProposalHandler(cli.NewRegisterFIP20ProposalCmd, rest.RegisterFIP20ProposalRESTHandler)
+	ToggleTokenRelayProposalHandler = govclient.NewProposalHandler(cli.NewToggleTokenRelayProposalCmd, rest.ToggleTokenRelayRESTHandler)
 )

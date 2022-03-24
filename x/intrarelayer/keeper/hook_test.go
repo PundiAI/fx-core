@@ -119,7 +119,6 @@ func TestHookChainGravity(t *testing.T) {
 	app, validators, _, delegateAddressArr := initTest(t)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
 	require.NoError(t, InitEvmModuleParams(ctx, app.EvmKeeper, true))
-	require.NoError(t, InitIntrarelayerParams(ctx, app.IntrarelayerKeeper))
 
 	pair, err := app.IntrarelayerKeeper.RegisterCoin(ctx, wfxMetadata)
 	require.NoError(t, err)
@@ -162,7 +161,6 @@ func TestHookChainBSC(t *testing.T) {
 	app, validators, genesisAccount, delegateAddressArr := initTest(t)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
 	require.NoError(t, InitEvmModuleParams(ctx, app.EvmKeeper, true))
-	require.NoError(t, InitIntrarelayerParams(ctx, app.IntrarelayerKeeper))
 
 	pair, err := app.IntrarelayerKeeper.RegisterCoin(ctx, purseMetadata)
 	require.NoError(t, err)
@@ -210,7 +208,6 @@ func TestHookIBC(t *testing.T) {
 	app, validators, _, delegateAddressArr := initTest(t)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
 	require.NoError(t, InitEvmModuleParams(ctx, app.EvmKeeper, true))
-	require.NoError(t, InitIntrarelayerParams(ctx, app.IntrarelayerKeeper))
 
 	pair, err := app.IntrarelayerKeeper.RegisterCoin(ctx, wfxMetadata)
 	require.NoError(t, err)

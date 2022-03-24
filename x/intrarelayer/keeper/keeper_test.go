@@ -8,7 +8,6 @@ import (
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	"github.com/functionx/fx-core/x/evm/statedb"
-	"github.com/functionx/fx-core/x/intrarelayer/keeper"
 	"math/big"
 	"testing"
 	"time"
@@ -144,7 +143,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	})
 
 	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.dynamicTxFee))
-	require.NoError(suite.T(), InitIntrarelayerParams(suite.ctx, suite.app.IntrarelayerKeeper))
 	queryHelperEvm := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evm.RegisterQueryServer(queryHelperEvm, suite.app.EvmKeeper)
 	suite.queryClientEvm = evm.NewQueryClient(queryHelperEvm)
@@ -382,6 +380,7 @@ func TestKeeperTestSuite(t *testing.T) {
 func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee bool) error {
 	defaultEvmParams := evmtypes.DefaultParams()
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
+	defaultIntrarelayerParams := types.DefaultParams()
 
 	if dynamicTxFee {
 		defaultFeeMarketParams.EnableHeight = fxcoretypes.EvmSupportBlock()
@@ -390,11 +389,12 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 		defaultFeeMarketParams.NoBaseFee = true
 	}
 
-	if err := keeper.HandleInitEvmParamsProposal(ctx, &evmtypes.InitEvmParamsProposal{
-		Title:           "Init evm title",
-		Description:     "Init emv module description",
-		EvmParams:       &defaultEvmParams,
-		FeemarketParams: &defaultFeeMarketParams,
+	if err := keeper.HandleInitEvmProposal(ctx, &evmtypes.InitEvmProposal{
+		Title:              "Init evm title",
+		Description:        "Init emv module description",
+		EvmParams:          &defaultEvmParams,
+		FeemarketParams:    &defaultFeeMarketParams,
+		IntrarelayerParams: IntrarelayerParamsToEvm(defaultIntrarelayerParams),
 	}); err != nil {
 		return err
 	}
@@ -402,16 +402,12 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 	return nil
 }
 
-func InitIntrarelayerParams(ctx sdk.Context, keeper keeper.Keeper) error {
-	defaultParams := types.DefaultParams()
-
-	err := keeper.InitIntrarelayer(ctx, &types.InitIntrarelayerParamsProposal{
-		Title:       "Init intrarelayer title",
-		Description: "Init intrarelayer module description",
-		Params:      &defaultParams,
-	})
-
-	return err
+func IntrarelayerParamsToEvm(p types.Params) *evmtypes.IntrarelayerParams {
+	return &evmtypes.IntrarelayerParams{
+		EnableIntrarelayer:       p.EnableIntrarelayer,
+		EnableEVMHook:            p.EnableEVMHook,
+		IbcTransferTimeoutHeight: p.IbcTransferTimeoutHeight,
+	}
 }
 
 func NewPriKey() cryptotypes.PrivKey {

@@ -69,9 +69,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) HasInit(ctx sdk.Context) bool {
-	hasEvmInit := k.evmKeeper.HasInit(ctx)
-	hasIntrarelayerInit := k.paramstore.Has(ctx, types.ParamStoreKeyEnableIntrarelayer)
-	return hasEvmInit && hasIntrarelayerInit
+	return k.paramstore.Has(ctx, types.ParamStoreKeyEnableIntrarelayer)
 }
 
 func (k *Keeper) SetIBCTransferKeeper(ibcTransferKeepr types.IBCTransferKeeper) {

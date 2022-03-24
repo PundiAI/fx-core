@@ -4,6 +4,7 @@ import (
 	"errors"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	"github.com/functionx/fx-core/x/evm/statedb"
+	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 	"math/big"
 	"testing"
 	"time"
@@ -695,6 +696,7 @@ func (dh *DummyHook) PostTxProcessing(ctx sdk.Context, from common.Address, to *
 func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee bool) error {
 	defaultEvmParams := types.DefaultParams()
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
+	defaultIntrarelayerParams := intrarelayertypes.DefaultParams()
 
 	if dynamicTxFee {
 		defaultFeeMarketParams.EnableHeight = 1
@@ -703,16 +705,25 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 		defaultFeeMarketParams.NoBaseFee = true
 	}
 
-	if err := keeper.HandleInitEvmParamsProposal(ctx, &types.InitEvmParamsProposal{
-		Title:           "Init evm title",
-		Description:     "Init emv module description",
-		EvmParams:       &defaultEvmParams,
-		FeemarketParams: &defaultFeeMarketParams,
+	if err := keeper.HandleInitEvmProposal(ctx, &types.InitEvmProposal{
+		Title:              "Init evm title",
+		Description:        "Init emv module description",
+		EvmParams:          &defaultEvmParams,
+		FeemarketParams:    &defaultFeeMarketParams,
+		IntrarelayerParams: IntrarelayerParamsToEvm(defaultIntrarelayerParams),
 	}); err != nil {
 		return err
 	}
 	keeper.WithChainID(ctx)
 	return nil
+}
+
+func IntrarelayerParamsToEvm(p intrarelayertypes.Params) *types.IntrarelayerParams {
+	return &types.IntrarelayerParams{
+		EnableIntrarelayer:       p.EnableIntrarelayer,
+		EnableEVMHook:            p.EnableEVMHook,
+		IbcTransferTimeoutHeight: p.IbcTransferTimeoutHeight,
+	}
 }
 
 // FailureHook implements EvmHooks interface

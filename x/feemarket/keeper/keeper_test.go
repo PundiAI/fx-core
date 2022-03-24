@@ -6,6 +6,7 @@ import (
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"github.com/functionx/fx-core/x/feemarket/keeper"
+	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 	"math/big"
 	"testing"
 	"time"
@@ -48,7 +49,7 @@ type KeeperTestSuite struct {
 	clientCtx client.Context
 	ethSigner ethtypes.Signer
 
-	appCodec codec.Marshaler
+	appCodec codec.Codec
 	signer   keyring.Signer
 }
 
@@ -180,12 +181,14 @@ func (suite *KeeperTestSuite) TestSetGetGasFee() {
 func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, marketKeeper keeper.Keeper) error {
 	defaultEvmParams := evmtypes.DefaultParams()
 	defaultFeeMarketParams := types.DefaultParams()
+	defaultIntrarelayerParams := intrarelayertypes.DefaultParams()
 
-	if err := keeper.HandleInitEvmParamsProposal(ctx, &evmtypes.InitEvmParamsProposal{
-		Title:           "Init evm title",
-		Description:     "Init emv module description",
-		EvmParams:       &defaultEvmParams,
-		FeemarketParams: &defaultFeeMarketParams,
+	if err := keeper.HandleInitEvmProposal(ctx, &evmtypes.InitEvmProposal{
+		Title:              "Init evm title",
+		Description:        "Init emv module description",
+		EvmParams:          &defaultEvmParams,
+		FeemarketParams:    &defaultFeeMarketParams,
+		IntrarelayerParams: IntrarelayerParamsToEvm(defaultIntrarelayerParams),
 	}); err != nil {
 		return err
 	}
@@ -194,4 +197,12 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, marketKeeper
 
 	keeper.WithChainID(ctx)
 	return nil
+}
+
+func IntrarelayerParamsToEvm(p intrarelayertypes.Params) *evmtypes.IntrarelayerParams {
+	return &evmtypes.IntrarelayerParams{
+		EnableIntrarelayer:       p.EnableIntrarelayer,
+		EnableEVMHook:            p.EnableEVMHook,
+		IbcTransferTimeoutHeight: p.IbcTransferTimeoutHeight,
+	}
 }

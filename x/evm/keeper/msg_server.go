@@ -23,6 +23,9 @@ var _ types.MsgServer = &Keeper{}
 // parameter.
 func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*types.MsgEthereumTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if !k.HasInit(ctx) {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "evm module not enable")
+	}
 
 	sender := msg.From
 	tx := msg.AsTransaction()

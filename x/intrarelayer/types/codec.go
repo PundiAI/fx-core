@@ -24,7 +24,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
-		&InitIntrarelayerParamsProposal{},
 		&RegisterCoinProposal{},
 		&RegisterFIP20Proposal{},
 		&ToggleTokenRelayProposal{},

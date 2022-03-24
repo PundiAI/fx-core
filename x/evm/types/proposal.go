@@ -2,55 +2,55 @@ package types
 
 import (
 	"fmt"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	"strings"
-
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
+	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"strings"
 )
 
 const (
-	// ProposalTypeInitEvmParams defines the type for a InitCrossChainParamsProposal
-	ProposalTypeInitEvmParams = "InitEvmParams"
+	// ProposalTypeInitEvm defines the type for a InitEvmProposal
+	ProposalTypeInitEvm = "InitEvm"
 )
 
 var (
-	_ govtypes.Content = &InitEvmParamsProposal{}
+	_ govtypes.Content = &InitEvmProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeInitEvmParams)
+	govtypes.RegisterProposalType(ProposalTypeInitEvm)
 }
 
 // Proposal handler
 
-// NewInitEvmParamsProposal returns new instance of InitEvmParamsProposal
-func NewInitEvmParamsProposal(title, description string, evmParams *Params, feemarketParams *feemarkettypes.Params) govtypes.Content {
-	return &InitEvmParamsProposal{
-		Title:           title,
-		Description:     description,
-		EvmParams:       evmParams,
-		FeemarketParams: feemarketParams,
+// NewInitEvmProposal returns new instance of InitEvmProposal
+func NewInitEvmProposal(
+	title, description string,
+	evmParams *Params,
+	feemarketParams *feemarkettypes.Params,
+	intrarelayerParams *IntrarelayerParams,
+	metadata []banktypes.Metadata,
+) govtypes.Content {
+	return &InitEvmProposal{
+		Title:              title,
+		Description:        description,
+		EvmParams:          evmParams,
+		FeemarketParams:    feemarketParams,
+		IntrarelayerParams: intrarelayerParams,
+		Metadata:           metadata,
 	}
 }
 
-func (m *InitEvmParamsProposal) GetTitle() string {
-	return m.Title
-}
-
-func (m *InitEvmParamsProposal) GetDescription() string {
-	return m.Description
-}
-
-func (m *InitEvmParamsProposal) ProposalRoute() string {
+func (m *InitEvmProposal) ProposalRoute() string {
 	return RouterKey
 }
 
-func (m *InitEvmParamsProposal) ProposalType() string {
-	return ProposalTypeInitEvmParams
+func (m *InitEvmProposal) ProposalType() string {
+	return ProposalTypeInitEvm
 }
 
-func (m *InitEvmParamsProposal) ValidateBasic() error {
-
+func (m *InitEvmProposal) ValidateBasic() error {
 	if err := govtypes.ValidateAbstract(m); err != nil {
 		return err
 	}
@@ -60,16 +60,48 @@ func (m *InitEvmParamsProposal) ValidateBasic() error {
 	if err := m.FeemarketParams.Validate(); err != nil {
 		return err
 	}
+	if err := m.IntrarelayerParams.Validate(); err != nil {
+		return err
+	}
+
+	if len(m.Metadata) > 0 {
+		for _, metadata := range m.Metadata {
+			if err := metadata.Validate(); err != nil {
+				return err
+			}
+
+			if err := ibctransfertypes.ValidateIBCDenom(metadata.Base); err != nil {
+				return err
+			}
+
+			if err := ValidateIBC(metadata); err != nil {
+				return err
+			}
+		}
+	}
+
+	return govtypes.ValidateAbstract(m)
+}
+
+func (ip IntrarelayerParams) Validate() error {
+	if ip.IbcTransferTimeoutHeight == 0 {
+		return fmt.Errorf("ibc transfer timeout hegith cannot be zero: %d", ip.IbcTransferTimeoutHeight)
+	}
 	return nil
 }
 
-func (m *InitEvmParamsProposal) String() string {
-	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`Init Evm Params Proposal:
-  Title:       %s
-  Description: %s
-  EvmParams: %v
-  FeeMarketParams: %v
-`, m.Title, m.Description, m.EvmParams, m.FeemarketParams))
-	return b.String()
+func ValidateIBC(metadata banktypes.Metadata) error {
+	// Check ibc/ denom
+	denomSplit := strings.SplitN(metadata.Base, "/", 2)
+
+	if denomSplit[0] == metadata.Base && strings.TrimSpace(metadata.Base) != "" {
+		// Not IBC
+		return nil
+	}
+
+	if len(denomSplit) != 2 || denomSplit[0] != ibctransfertypes.DenomPrefix {
+		// NOTE: should be unaccessible (covered on ValidateIBCDenom)
+		return fmt.Errorf("invalid metadata. %s denomination should be prefixed with the format 'ibc/", metadata.Base)
+	}
+	return nil
 }

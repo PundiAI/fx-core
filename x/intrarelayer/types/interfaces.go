@@ -43,7 +43,6 @@ type BankKeeper interface {
 
 // EVMKeeper defines the expected EVM keeper interface used on intrarelayer
 type EVMKeeper interface {
-	HasInit(ctx sdk.Context) bool
 	GetParams(ctx sdk.Context) evmtypes.Params
 	GetAccountWithoutBalance(ctx sdk.Context, addr common.Address) *statedb.Account
 	EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*evmtypes.EstimateGasResponse, error)
