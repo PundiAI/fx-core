@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -24,9 +25,10 @@ const (
 	AttributeKeyFIP20Symbol = "fip20_symbol"
 	AttributeKeyReceiver    = "receiver"
 
-	FIP20EventTransfer      = "Transfer"
-	FIP20EventTransferChain = "TransferChain"
-	FIP20EventTransferIBC   = "TransferIBC"
+	FIP20EventTransfer      = contracts.FIP20EventTransfer
+	FIP20EventTransferCross = contracts.FIP20EventTransferCross
+	FIP20EventTransferChain = contracts.FIP20EventTransferChain
+	FIP20EventTransferIBC   = contracts.FIP20EventTransferIBC
 
 	EventTypeRelayToken = "relay_token"
 	EventEthereumTxHash = "ethereum_tx_hash"

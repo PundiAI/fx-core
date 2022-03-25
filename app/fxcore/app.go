@@ -280,7 +280,7 @@ type App struct {
 	// Ethermint keepers
 	EvmKeeper          *evmkeeper.Keeper
 	FeeMarketKeeper    feemarketkeeper.Keeper
-	IntrarelayerKeeper intrarelayerkeeper.Keeper
+	IntrarelayerKeeper *intrarelayerkeeper.Keeper
 
 	MigrateKeeper migratekeeper.Keeper
 
@@ -447,8 +447,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.IntrarelayerKeeper = intrarelayerkeeper.NewKeeper(
 		keys[intrarelayertypes.StoreKey], appCodec, myApp.GetSubspace(intrarelayertypes.ModuleName),
 		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper,
-		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper,
-		myApp.GravityKeeper, myApp.BscKeeper, myApp.PolygonKeeper, myApp.TronKeeper)
+		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
 
 	evmHooks := evmkeeper.NewMultiEvmHooks(myApp.IntrarelayerKeeper)
 	myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
@@ -469,7 +468,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientUpdateProposalHandler(myApp.IBCKeeper.ClientKeeper)).
 		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(*myApp.EvmKeeper)).
-		AddRoute(intrarelayertypes.RouterKey, intrarelayer.NewIntrarelayerProposalHandler(&myApp.IntrarelayerKeeper))
+		AddRoute(intrarelayertypes.RouterKey, intrarelayer.NewIntrarelayerProposalHandler(myApp.IntrarelayerKeeper))
 
 	myApp.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], myApp.GetSubspace(govtypes.ModuleName), myApp.AccountKeeper, myApp.BankKeeper,
@@ -481,9 +480,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	ibcTransferRouter.AddRoute(bsctypes.ModuleName, bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper))
 	ibcTransferRouter.AddRoute(polygontypes.ModuleName, polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper))
 	ibcTransferRouter.AddRoute(trontypes.ModuleName, tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper))
-	ibcTransferRouter.AddRoute(intrarelayertypes.ModuleName, intrarelayer.NewAppModule(myApp.IntrarelayerKeeper, myApp.AccountKeeper))
+	ibcTransferRouter.AddRoute(intrarelayertypes.ModuleName, intrarelayer.NewAppModule(*myApp.IntrarelayerKeeper, myApp.AccountKeeper))
 	myApp.TransferKeeper.SetRouter(ibcTransferRouter)
-	myApp.TransferKeeper.SetRefundHook(intrarelayer.NewAppModule(myApp.IntrarelayerKeeper, myApp.AccountKeeper))
+	myApp.TransferKeeper.SetRefundHook(intrarelayer.NewAppModule(*myApp.IntrarelayerKeeper, myApp.AccountKeeper))
 	transferModule := transfer.NewAppModule(myApp.TransferKeeper)
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
@@ -501,6 +500,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		),
 	)
 
+	myApp.IntrarelayerKeeper.SetIBCTransferKeeper(myApp.TransferKeeper)
 	myApp.MigrateKeeper = migratekeeper.NewKeeper(appCodec, keys[migratetypes.StoreKey], myApp.IntrarelayerKeeper)
 	bankMigrate := migratekeeper.NewBankMigrate(myApp.BankKeeper)
 	distrStakingMigrate := migratekeeper.NewDistrStakingMigrate(keys[distrtypes.StoreKey], keys[stakingtypes.StoreKey], myApp.StakingKeeper)
@@ -545,7 +545,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		// Ethermint app modules
 		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		feemarket.NewAppModule(myApp.FeeMarketKeeper),
-		intrarelayer.NewAppModule(myApp.IntrarelayerKeeper, myApp.AccountKeeper),
+		intrarelayer.NewAppModule(*myApp.IntrarelayerKeeper, myApp.AccountKeeper),
 		migrate.NewAppModule(myApp.MigrateKeeper),
 	)
 

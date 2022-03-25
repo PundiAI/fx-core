@@ -59,6 +59,7 @@ type CrossChainKeeper interface {
 }
 
 type IBCTransferKeeper interface {
+	GetRouter() *ibctransfertypes.Router
 	Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error)
 }
 

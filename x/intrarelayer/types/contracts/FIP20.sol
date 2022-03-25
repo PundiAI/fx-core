@@ -47,14 +47,8 @@ contract FIP20 {
         _burn(account, amount);
     }
 
-
-    function transferIBC(string memory to, uint256 amount, string memory target) public notContract returns (bool){
-        _transferIBC(msg.sender, to, amount, target);
-        return true;
-    }
-
-    function transferChain(string memory to, uint256 amount, uint256 fee, string memory target) public notContract returns (bool) {
-        _transferChain(msg.sender, to, amount, fee, target);
+    function transferCross(string memory to, uint256 amount, uint256 fee, string memory target) public notContract returns (bool) {
+        _transferCross(msg.sender, to, amount, fee, target);
         return true;
     }
 
@@ -116,28 +110,17 @@ contract FIP20 {
         allowance[sender][spender] = amount;
     }
 
-    function _transferChain(address from, string memory to, uint256 amount, uint256 fee, string memory target) internal {
+    function _transferCross(address from, string memory to, uint256 amount, uint256 fee, string memory target) internal {
         require(from != address(0), "transfer from zero address");
         require(bytes(to).length > 0, "transfer to the empty");
-        require(bytes(target).length > 0, "target empty");
+        require(bytes(target).length > 0, "empty target");
 
         _transfer(from, module(), amount + fee);
-        emit TransferChain(from, to, amount, fee, target);
+        emit TransferCross(from, to, amount, fee, target);
     }
-
-    function _transferIBC(address from, string memory to, uint256 amount, string memory target) internal {
-        require(from != address(0), "transfer from zero address");
-        require(bytes(to).length > 0, "transfer to the empty");
-        require(bytes(target).length > 0, "target empty");
-
-        _transfer(from, module(), amount);
-        emit TransferIBC(from, to, amount, target);
-    }
-
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    event TransferChain(address indexed from, string to, uint256 value, uint256 fee, string target);
-    event TransferIBC(address indexed from, string to, uint256 value, string target);
+    event TransferCross(address indexed from, string to, uint256 value, uint256 fee, string target);
 }

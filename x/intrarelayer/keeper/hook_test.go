@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,6 +21,7 @@ import (
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"
+	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
@@ -44,6 +46,12 @@ type IBCTransferSimulate struct {
 func (it *IBCTransferSimulate) Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error) {
 	//it.T.Logf("ibc transfer simulate sender %s, receiver %s, amount %s, fee %s", msg.Sender, msg.Receiver, msg.Token.String(), msg.Fee.String())
 	return &ibctransfertypes.MsgTransferResponse{}, nil
+}
+
+func (it *IBCTransferSimulate) GetRouter() *ibctransfertypes.Router {
+	router := ibctransfertypes.NewRouter()
+
+	return router
 }
 
 type IBCChannelSimulate struct {
@@ -148,7 +156,8 @@ func TestHookChainGravity(t *testing.T) {
 	t.Log("c", balanceOf.String())
 
 	token := pair.GetFIP20Contract()
-	transferChainData := packTransferChainData(t, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, "eth")
+	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, gravitytypes.ModuleName)
+	transferChainData := packTransferCrossData(t, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
 	transactions := app.GravityKeeper.GetPoolTransactions(ctx)
@@ -195,7 +204,8 @@ func TestHookChainBSC(t *testing.T) {
 	t.Log("balanceOf", balanceOf.String())
 
 	token := pair.GetFIP20Contract()
-	transferChainData := packTransferChainData(t, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, "bsc")
+	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, bsctypes.ModuleName)
+	transferChainData := packTransferCrossData(t, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
 	transactions := app.BscKeeper.GetUnbatchedTransactions(ctx)
@@ -242,18 +252,13 @@ func TestHookIBC(t *testing.T) {
 	app.EvmKeeper = app.EvmKeeper.SetHooks(evmHooks)
 
 	token := pair.GetFIP20Contract()
-	transferIBCData := packTransferIBCData(t, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", fxcore.CoinOne, "px/transfer/channel-0")
+	ibcTarget := fmt.Sprintf("%s%s", contracts.TransferIBCPrefix, "px/transfer/channel-0")
+	transferIBCData := packTransferCrossData(t, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", fxcore.CoinOne, big.NewInt(0), ibcTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferIBCData)
 }
 
-func packTransferChainData(t *testing.T, to string, amount, fee *big.Int, target string) []byte {
-	pack, err := contracts.FIP20Contract.ABI.Pack("transferChain", to, amount, fee, target)
-	require.NoError(t, err)
-	return pack
-}
-
-func packTransferIBCData(t *testing.T, to string, amount *big.Int, target string) []byte {
-	pack, err := contracts.FIP20Contract.ABI.Pack("transferIBC", to, amount, target)
+func packTransferCrossData(t *testing.T, to string, amount, fee *big.Int, target string) []byte {
+	pack, err := contracts.FIP20Contract.ABI.Pack("transferCross", to, amount, fee, target)
 	require.NoError(t, err)
 	return pack
 }

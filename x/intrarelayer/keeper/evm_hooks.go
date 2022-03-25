@@ -26,12 +26,8 @@ func (k Keeper) PostTxProcessing(ctx sdk.Context, from common.Address, to *commo
 	if err := k.RelayTokenProcessing(ctx, from, to, receipt); err != nil {
 		return err
 	}
-	//process relay chain transfer
-	if err := k.RelayTransferChainProcessing(ctx, from, to, receipt); err != nil {
-		return err
-	}
-	//process relay ibc transfer
-	if err := k.RelayTransferIBCProcessing(ctx, from, to, receipt); err != nil {
+	//process relay transfer cross(cross-chain,ibc...)
+	if err := k.RelayTransferCrossProcessing(ctx, from, to, receipt); err != nil {
 		return err
 	}
 	return nil

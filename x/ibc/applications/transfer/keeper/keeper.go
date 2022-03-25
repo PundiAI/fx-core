@@ -72,6 +72,10 @@ func (k *Keeper) SetRouter(rtr *types.Router) {
 	k.Router.Seal()
 }
 
+func (k Keeper) GetRouter() *types.Router {
+	return k.Router
+}
+
 func (k *Keeper) SetRefundHook(hook types.RefundHook) {
 	k.RefundHook = hook
 }

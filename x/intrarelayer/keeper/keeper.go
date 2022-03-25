@@ -22,9 +22,6 @@ type Keeper struct {
 
 	ibcTransferKeeper types.IBCTransferKeeper
 	ibcChannelKeeper  types.IBCChannelKeeper
-
-	gravityKeeper     types.GravityKeeper
-	crossChainKeepers map[string]types.CrossChainKeeper
 }
 
 // NewKeeper creates new instances of the intrarelayer Keeper
@@ -37,15 +34,13 @@ func NewKeeper(
 	evmKeeper types.EVMKeeper,
 	ibcTransferKeeper types.IBCTransferKeeper,
 	ibcChannelKeeper types.IBCChannelKeeper,
-	gravityKeeper types.GravityKeeper,
-	crossChainKeepers ...types.CrossChainKeeper,
-) Keeper {
+) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	k := Keeper{
+	k := &Keeper{
 		storeKey:          storeKey,
 		cdc:               cdc,
 		paramstore:        ps,
@@ -54,11 +49,6 @@ func NewKeeper(
 		evmKeeper:         evmKeeper,
 		ibcTransferKeeper: ibcTransferKeeper,
 		ibcChannelKeeper:  ibcChannelKeeper,
-		gravityKeeper:     gravityKeeper,
-		crossChainKeepers: make(map[string]types.CrossChainKeeper, len(crossChainKeepers)),
-	}
-	for _, chk := range crossChainKeepers {
-		k.crossChainKeepers[chk.GetModuleName()] = chk
 	}
 	return k
 }
@@ -72,8 +62,9 @@ func (k Keeper) HasInit(ctx sdk.Context) bool {
 	return k.paramstore.Has(ctx, types.ParamStoreKeyEnableIntrarelayer)
 }
 
-func (k *Keeper) SetIBCTransferKeeper(ibcTransferKeepr types.IBCTransferKeeper) {
+func (k *Keeper) SetIBCTransferKeeper(ibcTransferKeepr types.IBCTransferKeeper) *Keeper {
 	k.ibcTransferKeeper = ibcTransferKeepr
+	return k
 }
 
 func (k *Keeper) SetIBCChannelKeeper(ibcChannelKeeper types.IBCChannelKeeper) {
