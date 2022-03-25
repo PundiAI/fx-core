@@ -129,6 +129,10 @@ import (
 	"github.com/functionx/fx-core/x/migrate"
 
 	_ "github.com/functionx/fx-core/docs/statik"
+
+	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
+	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
+	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
 )
 
 var ChainID = "fxcore"
