@@ -168,18 +168,23 @@ func getEvmParamsByFlags(cmd *cobra.Command) (*types.Params, error) {
 	}, nil
 }
 
-func getFeeMarkerParamsByFlags(cmd *cobra.Command) (*feemarkettypes.Params, error) {
-	NoBaseFee := false
+func getFeeMarkerParamsByFlags(cmd *cobra.Command, noBaseFee bool, baseFee, minBaseFee, maxBaseFee, maxGas int64) (*feemarkettypes.Params, error) {
 	var BaseFeeChangeDenominator uint32 = params.BaseFeeChangeDenominator
 	var ElasticityMultiplier uint32 = params.ElasticityMultiplier
-	var BaseFee int64 = params.InitialBaseFee
+	var BaseFee = baseFee * params.InitialBaseFee //4000 gWei
 	var EnableHeight = fxcoretypes.EvmSupportBlock()
+	var MinBaseFee = sdk.NewInt(minBaseFee * params.InitialBaseFee)
+	var MaxBaseFee = sdk.NewInt(maxBaseFee * params.InitialBaseFee)
+	var MaxGas = sdk.NewInt(maxGas)
 	return &feemarkettypes.Params{
-		NoBaseFee:                NoBaseFee,
+		NoBaseFee:                noBaseFee,
 		BaseFeeChangeDenominator: BaseFeeChangeDenominator,
 		ElasticityMultiplier:     ElasticityMultiplier,
 		BaseFee:                  sdk.NewInt(BaseFee),
 		EnableHeight:             EnableHeight,
+		MinBaseFee:               MinBaseFee,
+		MaxBaseFee:               MaxBaseFee,
+		MaxGas:                   MaxGas,
 	}, nil
 }
 
@@ -221,7 +226,9 @@ func InitEvmProposalCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			feeMarketParams, err := getFeeMarkerParamsByFlags(cmd)
+			feeMarketParams, err := getFeeMarkerParamsByFlags(cmd, viper.GetBool(flagNoBaseFee),
+				viper.GetInt64(flagBaseFee), viper.GetInt64(flagMinBaseFee),
+				viper.GetInt64(flagMaxBaseFee), viper.GetInt64(flagMaxGas))
 			if err != nil {
 				return err
 			}
@@ -266,6 +273,12 @@ func InitEvmProposalCmd() *cobra.Command {
 	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
 	cmd.Flags().String(flagEvmParamsEvmDenom, fxcoretypes.FX, "evm denom represents the token denomination used to run the EVM state transitions.")
 	cmd.Flags().String(flagMetadata, "", "path to metadata file/directory")
+	cmd.Flags().Bool(flagNoBaseFee, false, "no base fee")
+	cmd.Flags().Int64(flagBaseFee, 4000, "enable base fee(gwei)")
+	cmd.Flags().Int64(flagMinBaseFee, 4000, "min base fee(gwei)")
+	cmd.Flags().Int64(flagMaxBaseFee, 40000, "max base fee(gwei)")
+	cmd.Flags().Int64(flagMaxGas, 10000000, "max gas limit")
+
 	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
 		panic(err)
 	}
@@ -280,5 +293,10 @@ func InitEvmProposalCmd() *cobra.Command {
 
 const (
 	flagEvmParamsEvmDenom = "evm-denom"
+	flagNoBaseFee         = "no-base-fee"
+	flagBaseFee           = "base-fee"
+	flagMinBaseFee        = "min-base-fee"
+	flagMaxBaseFee        = "max-base-fee"
+	flagMaxGas            = "max-gas"
 	flagMetadata          = "metadata"
 )

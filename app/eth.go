@@ -524,7 +524,7 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		params := mfd.evmKeeper.GetParams(ctx)
 		ethCfg := params.ChainConfig.EthereumConfig(mfd.evmKeeper.ChainID())
 		baseFee := mfd.evmKeeper.BaseFee(ctx, ethCfg)
-		if baseFee == nil {
+		if baseFee == nil || baseFee.Cmp(big.NewInt(0)) <= 0 {
 			for _, msg := range tx.GetMsgs() {
 				ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
 				if !ok {

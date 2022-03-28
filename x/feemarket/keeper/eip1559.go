@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/functionx/fx-core/x/feemarket/types"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,8 +22,6 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 		return nil
 	}
 
-	consParams := ctx.ConsensusParams()
-
 	// If the current block is the first EIP-1559 block, return the InitialBaseFee.
 	if ctx.BlockHeight() == params.EnableHeight {
 		return params.BaseFee.BigInt()
@@ -34,11 +33,24 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 		return nil
 	}
 
-	parentGasUsed := k.GetBlockGasUsed(ctx)
+	minBaseFee := params.MinBaseFee.BigInt()
+	if minBaseFee == nil {
+		minBaseFee = types.MinBaseFee.BigInt()
+	}
+
+	maxBaseFee := params.MaxBaseFee.BigInt()
+	if maxBaseFee == nil || maxBaseFee.Cmp(big.NewInt(0)) <= 0 {
+		maxBaseFee = types.MaxBaseFee.BigInt()
+	}
 
 	gasLimit := new(big.Int).SetUint64(math.MaxUint64)
-	if consParams != nil && consParams.Block.MaxGas > -1 {
-		gasLimit = big.NewInt(consParams.Block.MaxGas)
+	if !params.MaxGas.IsNil() && params.MaxGas.GT(sdk.ZeroInt()) {
+		gasLimit = params.MaxGas.BigInt()
+	} else {
+		consParams := ctx.ConsensusParams()
+		if consParams != nil && consParams.Block.MaxGas > -1 {
+			gasLimit = big.NewInt(consParams.Block.MaxGas)
+		}
 	}
 
 	parentGasTargetBig := new(big.Int).Div(gasLimit, new(big.Int).SetUint64(uint64(params.ElasticityMultiplier)))
@@ -49,6 +61,7 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 	parentGasTarget := parentGasTargetBig.Uint64()
 	baseFeeChangeDenominator := new(big.Int).SetUint64(uint64(params.BaseFeeChangeDenominator))
 
+	parentGasUsed := k.GetBlockGasUsed(ctx)
 	// If the parent gasUsed is the same as the target, the baseFee remains unchanged.
 	if parentGasUsed == parentGasTarget {
 		return new(big.Int).Set(parentBaseFee)
@@ -63,8 +76,7 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 			x.Div(y, baseFeeChangeDenominator),
 			common.Big1,
 		)
-
-		return x.Add(parentBaseFee, baseFeeDelta)
+		return math.BigMin(x.Add(parentBaseFee, baseFeeDelta), maxBaseFee)
 	}
 
 	// Otherwise if the parent block used less gas than its target, the baseFee should decrease.
@@ -73,8 +85,5 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 	y := x.Div(x, parentGasTargetBig)
 	baseFeeDelta := x.Div(y, baseFeeChangeDenominator)
 
-	return math.BigMax(
-		x.Sub(parentBaseFee, baseFeeDelta),
-		common.Big0,
-	)
+	return math.BigMax(x.Sub(parentBaseFee, baseFeeDelta), minBaseFee)
 }

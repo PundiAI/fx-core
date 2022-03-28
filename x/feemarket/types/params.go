@@ -3,10 +3,10 @@ package types
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	fxcoretypes "github.com/functionx/fx-core/types"
-
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/params"
+	fxcoretypes "github.com/functionx/fx-core/types"
+	"math"
 )
 
 var _ paramtypes.ParamSet = &Params{}
@@ -18,6 +18,14 @@ var (
 	ParamStoreKeyElasticityMultiplier     = []byte("ElasticityMultiplier")
 	ParamStoreKeyBaseFee                  = []byte("BaseFee")
 	ParamStoreKeyEnableHeight             = []byte("EnableHeight")
+	ParamStoreKeyMinBaseFee               = []byte("MinBaseFee")
+	ParamStoreKeyMaxBaseFee               = []byte("MaxBaseFee")
+	ParamStoreKeyMaxGas                   = []byte("MaxGas")
+)
+
+var (
+	MinBaseFee = sdk.NewInt(0)
+	MaxBaseFee = sdk.NewIntFromUint64(math.MaxUint64 - 1).Mul(sdk.NewInt(1000000000))
 )
 
 // ParamKeyTable returns the parameter key table.
@@ -26,13 +34,17 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(noBaseFee bool, baseFeeChangeDenom, elasticityMultiplier uint32, baseFee uint64, enableHeight int64) Params {
+func NewParams(noBaseFee bool, baseFeeChangeDenom, elasticityMultiplier uint32, baseFee uint64,
+	enableHeight int64, minBaseFee, maxBaseFee, maxGas uint64) Params {
 	return Params{
 		NoBaseFee:                noBaseFee,
 		BaseFeeChangeDenominator: baseFeeChangeDenom,
 		ElasticityMultiplier:     elasticityMultiplier,
 		BaseFee:                  sdk.NewIntFromUint64(baseFee),
 		EnableHeight:             enableHeight,
+		MinBaseFee:               sdk.NewIntFromUint64(minBaseFee),
+		MaxBaseFee:               sdk.NewIntFromUint64(maxBaseFee),
+		MaxGas:                   sdk.NewIntFromUint64(maxGas),
 	}
 }
 
@@ -44,6 +56,9 @@ func DefaultParams() Params {
 		ElasticityMultiplier:     params.ElasticityMultiplier,
 		BaseFee:                  sdk.NewIntFromUint64(params.InitialBaseFee),
 		EnableHeight:             fxcoretypes.EvmSupportBlock(),
+		MinBaseFee:               MinBaseFee,
+		MaxBaseFee:               MaxBaseFee,
+		MaxGas:                   sdk.NewIntFromUint64(0), //default use block max gas
 	}
 }
 
@@ -55,6 +70,9 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamStoreKeyElasticityMultiplier, &p.ElasticityMultiplier, validateElasticityMultiplier),
 		paramtypes.NewParamSetPair(ParamStoreKeyBaseFee, &p.BaseFee, validateBaseFee),
 		paramtypes.NewParamSetPair(ParamStoreKeyEnableHeight, &p.EnableHeight, validateEnableHeight),
+		paramtypes.NewParamSetPair(ParamStoreKeyMinBaseFee, &p.MinBaseFee, validateBaseFee),
+		paramtypes.NewParamSetPair(ParamStoreKeyMaxBaseFee, &p.MaxBaseFee, validateBaseFee),
+		paramtypes.NewParamSetPair(ParamStoreKeyMaxGas, &p.MaxGas, validateMaxGas),
 	}
 }
 
@@ -68,8 +86,20 @@ func (p Params) Validate() error {
 		return fmt.Errorf("initial base fee cannot be negative: %s", p.BaseFee)
 	}
 
+	if p.MinBaseFee.IsNegative() {
+		return fmt.Errorf("min base fee cannot be negative: %s", p.BaseFee)
+	}
+
+	if p.MaxBaseFee.IsNegative() {
+		return fmt.Errorf("max base fee cannot be negative: %s", p.BaseFee)
+	}
+
 	if p.EnableHeight < 0 {
 		return fmt.Errorf("enable height cannot be negative: %d", p.EnableHeight)
+	}
+
+	if p.MaxGas.IsNegative() {
+		return fmt.Errorf("max gas cannot be negative: %s", p.BaseFee)
 	}
 
 	return nil
@@ -131,5 +161,17 @@ func validateEnableHeight(i interface{}) error {
 		return fmt.Errorf("enable height cannot be negative: %d", value)
 	}
 
+	return nil
+}
+
+func validateMaxGas(i interface{}) error {
+	value, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if value.IsNegative() {
+		return fmt.Errorf("max gas cannot be negative")
+	}
 	return nil
 }
