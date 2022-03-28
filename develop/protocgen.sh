@@ -13,7 +13,7 @@ protoc_gen_gocosmos() {
 
 protoc_gen_gocosmos
 
-if [ -f ./build/cosmos-sdk/README.md ]; then
+if [ ! -f ./build/cosmos-sdk/README.md ]; then
   if [ ! -f ./build/upgrade.zip ]; then
     wget -c https://github.com/functionx/cosmos-sdk/archive/refs/heads/feature/upgrade.zip -O ./build/upgrade.zip
   fi
@@ -26,7 +26,7 @@ for dir in $proto_dirs; do
     -I "proto" \
     -I "build/cosmos-sdk/proto" \
     -I "build/cosmos-sdk/third_party/proto" \
-    --gocosmos_out=plugins=interfacetype+grpc, Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
+    --gocosmos_out=plugins=interfacetype+grpc,Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
     --grpc-gateway_out=logtostderr=true:. \
     $(find "${dir}" -maxdepth 1 -name '*.proto')
 done
@@ -36,8 +36,11 @@ buf protoc \
   -I "proto" \
   -I "build/cosmos-sdk/proto" \
   -I "build/cosmos-sdk/third_party/proto" \
-  --doc_out=./docs/core \
+  --doc_out=./docs \
   --doc_opt=./docs/protodoc-markdown.tmpl,proto-docs.md \
   $(find "$(pwd)/proto" -maxdepth 5 -name '*.proto')
 
 go mod tidy
+
+cp -r github.com/functionx/fx-core/* ./
+rm -rf github.com
