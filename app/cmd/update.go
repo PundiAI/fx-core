@@ -4,14 +4,13 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/functionx/fx-core/app"
 	"os"
 	"path/filepath"
 
-	"github.com/cosmos/cosmos-sdk/client/input"
-
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/go-bip39"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -52,7 +51,7 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 				}
 			}
 
-			secret := app.NewMnemonic()
+			secret := newMnemonic()
 			if len(args) > 0 {
 				secret = args[0]
 			} else if !unsafe || !updateKey {
@@ -112,7 +111,7 @@ func UpdateNodeKeyCmd() *cobra.Command {
 					return nil
 				}
 			}
-			secret := app.NewMnemonic()
+			secret := newMnemonic()
 			if len(args) > 0 {
 				secret = args[0]
 			} else if !unsafe || !updateKey {
@@ -134,4 +133,16 @@ func UpdateNodeKeyCmd() *cobra.Command {
 	cmd.Flags().Bool(flagUpdateNodeKey, false, "Update node key. Requires --unsafe.")
 	cmd.Flags().Bool(flagUnsafe, false, "Enable unsafe operations. This flag must be switched on along with all unsafe operation-specific options.")
 	return cmd
+}
+
+func newMnemonic() string {
+	entropySeed, err := bip39.NewEntropy(256)
+	if err != nil {
+		panic(err)
+	}
+	mnemonic, err := bip39.NewMnemonic(entropySeed)
+	if err != nil {
+		panic(err)
+	}
+	return mnemonic
 }
