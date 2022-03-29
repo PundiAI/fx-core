@@ -67,6 +67,9 @@ const (
 const (
 	flagGRPCEnable  = "grpc.enable"
 	flagGRPCAddress = "grpc.address"
+
+	flagRPCEnable         = "api.enable"
+	flagEnabledUnsafeCors = "api.enabled-unsafe-cors"
 )
 
 // State sync-related flags.
@@ -77,21 +80,24 @@ const (
 
 // JSON-RPC flags
 const (
-	JSONRPCEnable        = "json-rpc.enable"
-	JSONRPCAPI           = "json-rpc.api"
-	JSONRPCAddress       = "json-rpc.address"
-	JSONWsAddress        = "json-rpc.ws-address"
-	JSONRPCGasCap        = "json-rpc.gas-cap"
-	JSONRPCEVMTimeout    = "json-rpc.evm-timeout"
-	JSONRPCTxFeeCap      = "json-rpc.txfee-cap"
-	JSONRPCFilterCap     = "json-rpc.filter-cap"
-	JSONRPCLogsCap       = "json-rpc.logs-cap"
-	JSONRPCBlockRangeCap = "json-rpc.block-range-cap"
+	JSONRPCEnable          = "json-rpc.enable"
+	JSONRPCAPI             = "json-rpc.api"
+	JSONRPCAddress         = "json-rpc.address"
+	JSONWsAddress          = "json-rpc.ws-address"
+	JSONRPCGasCap          = "json-rpc.gas-cap"
+	JSONRPCEVMTimeout      = "json-rpc.evm-timeout"
+	JSONRPCTxFeeCap        = "json-rpc.txfee-cap"
+	JSONRPCFilterCap       = "json-rpc.filter-cap"
+	JSONRPCLogsCap         = "json-rpc.logs-cap"
+	JSONRPCBlockRangeCap   = "json-rpc.block-range-cap"
+	JSONRPCHTTPTimeout     = "json-rpc.http-timeout"
+	JSONRPCHTTPIdleTimeout = "json-rpc.http-idle-timeout"
 )
 
 // EVM flags
 const (
-	EVMTracer = "evm.tracer"
+	EVMTracer         = "evm.tracer"
+	EVMMaxTxGasWanted = "evm.max-tx-gas-wanted"
 )
 
 // TLS flags
@@ -205,6 +211,9 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Bool(flagGRPCEnable, true, "Define if the gRPC server should be enabled")
 	cmd.Flags().String(flagGRPCAddress, config.DefaultGRPCAddress, "the gRPC server address to listen on")
 
+	cmd.Flags().Bool(flagRPCEnable, false, "Defines if Cosmos-sdk REST server should be enabled")
+	cmd.Flags().Bool(flagEnabledUnsafeCors, false, "Defines if CORS should be enabled (unsafe - use it at your own risk)")
+
 	cmd.Flags().Bool(JSONRPCEnable, true, "Define if the gRPC server should be enabled")
 	cmd.Flags().StringSlice(JSONRPCAPI, config.GetDefaultAPINamespaces(), "Defines a list of JSON-RPC namespaces that should be enabled")
 	cmd.Flags().String(JSONRPCAddress, config.DefaultJSONRPCAddress, "the JSON-RPC server address to listen on")
@@ -213,10 +222,13 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Float64(JSONRPCTxFeeCap, config.DefaultTxFeeCap, "Sets a cap on transaction fee that can be sent via the RPC APIs (1 = default 1 photon)")
 	cmd.Flags().Int32(JSONRPCFilterCap, config.DefaultFilterCap, "Sets the global cap for total number of filters that can be created")
 	cmd.Flags().Duration(JSONRPCEVMTimeout, config.DefaultEVMTimeout, "Sets a timeout used for eth_call (0=infinite)")
+	cmd.Flags().Duration(JSONRPCHTTPTimeout, config.DefaultHTTPTimeout, "Sets a read/write timeout for json-rpc http server (0=infinite)")
+	cmd.Flags().Duration(JSONRPCHTTPIdleTimeout, config.DefaultHTTPIdleTimeout, "Sets a idle timeout for json-rpc http server (0=infinite)")
 	cmd.Flags().Int32(JSONRPCLogsCap, config.DefaultLogsCap, "Sets the max number of results can be returned from single `eth_getLogs` query")
 	cmd.Flags().Int32(JSONRPCBlockRangeCap, config.DefaultBlockRangeCap, "Sets the max block range allowed for `eth_getLogs` query")
 
 	cmd.Flags().String(EVMTracer, config.DefaultEVMTracer, "the EVM tracer type to collect execution traces from the EVM transaction execution (json|struct|access_list|markdown)")
+	cmd.Flags().Uint64(EVMMaxTxGasWanted, config.DefaultMaxTxGasWanted, "the gas wanted for each eth tx returned in ante handler in check tx mode")
 
 	cmd.Flags().String(TLSCertPath, "", "the cert.pem file path for the server TLS configuration")
 	cmd.Flags().String(TLSKeyPath, "", "the key.pem file path for the server TLS configuration")
@@ -371,9 +383,9 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	logger.Debug("initialization: tmNode started")
 
 	// Add the tx service to the gRPC router. We only need to register this
-	// service if API or gRPC is enabled, and avoid doing so in the general
+	// service if API or gRPC  or JSONRPC is enabled, and avoid doing so in the general
 	// case, because it spawns a new local tendermint RPC client.
-	if config.API.Enable || config.GRPC.Enable {
+	if config.API.Enable || config.GRPC.Enable || config.JSONRPC.Enable {
 		clientCtx = clientCtx.WithClient(local.New(tmNode))
 
 		app.RegisterTxService(clientCtx)

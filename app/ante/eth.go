@@ -1,10 +1,7 @@
-package app
+package ante
 
 import (
 	"errors"
-	"github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/functionx/fx-core/x/evm/statedb"
 	"math/big"
 
@@ -18,28 +15,8 @@ import (
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
-
-// EVMKeeper defines the expected keeper interface used on the Eth AnteHandler
-type EVMKeeper interface {
-	statedb.Keeper
-
-	ChainID() *big.Int
-	GetParams(ctx sdk.Context) evmtypes.Params
-	NewEVM(ctx sdk.Context, msg core.Message, cfg *evmtypes.EVMConfig, tracer vm.EVMLogger, stateDB vm.StateDB) *vm.EVM
-	DeductTxCostsFromUserBalance(
-		ctx sdk.Context, msgEthTx evmtypes.MsgEthereumTx, txData evmtypes.TxData, denom string, homestead, istanbul, london bool,
-	) (sdk.Coins, error)
-	BaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
-	GetBalance(ctx sdk.Context, addr common.Address) *big.Int
-	ResetTransientGasUsed(ctx sdk.Context)
-}
-
-type protoTxProvider interface {
-	GetProtoTx() *tx.Tx
-}
 
 // EthSigVerificationDecorator validates an ethereum signatures
 type EthSigVerificationDecorator struct {
@@ -158,15 +135,18 @@ func (avd EthAccountVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx
 // EthGasConsumeDecorator validates enough intrinsic gas for the transaction and
 // gas consumption.
 type EthGasConsumeDecorator struct {
-	evmKeeper EVMKeeper
+	evmKeeper    EVMKeeper
+	maxGasWanted uint64
 }
 
 // NewEthGasConsumeDecorator creates a new EthGasConsumeDecorator
 func NewEthGasConsumeDecorator(
 	evmKeeper EVMKeeper,
+	maxGasWanted uint64,
 ) EthGasConsumeDecorator {
 	return EthGasConsumeDecorator{
-		evmKeeper: evmKeeper,
+		evmKeeper:    evmKeeper,
+		maxGasWanted: maxGasWanted,
 	}
 }
 
@@ -208,7 +188,17 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		if err != nil {
 			return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
 		}
-		gasWanted += txData.GetGas()
+
+		if ctx.IsCheckTx() {
+			// We can't trust the tx gas limit, because we'll refund the unused gas.
+			if txData.GetGas() > egcd.maxGasWanted {
+				gasWanted += egcd.maxGasWanted
+			} else {
+				gasWanted += txData.GetGas()
+			}
+		} else {
+			gasWanted += txData.GetGas()
+		}
 
 		fees, err := egcd.evmKeeper.DeductTxCostsFromUserBalance(
 			ctx,

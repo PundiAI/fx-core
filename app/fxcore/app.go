@@ -1,6 +1,7 @@
 package fxcore
 
 import (
+	"github.com/functionx/fx-core/app/ante"
 	"io"
 	"net/http"
 	"os"
@@ -612,12 +613,23 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// initialize BaseApp
 	myApp.SetInitChainer(myApp.InitChainer)
 	myApp.SetBeginBlocker(myApp.BeginBlocker)
-	myApp.SetAnteHandler(
-		app.NewAnteHandler(
-			myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
-			app.DefaultSigVerificationGasConsumer, encodingConfig.TxConfig.SignModeHandler(),
-		),
-	)
+
+	maxGasWanted := cast.ToUint64(appOpts.Get(serverty.EVMMaxTxGasWanted))
+	options := ante.HandlerOptions{
+		AccountKeeper:   myApp.AccountKeeper,
+		BankKeeper:      myApp.BankKeeper,
+		EvmKeeper:       myApp.EvmKeeper,
+		FeeMarketKeeper: myApp.FeeMarketKeeper,
+		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
+		SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+		MaxTxGasWanted:  maxGasWanted,
+	}
+
+	if err := options.Validate(); err != nil {
+		panic(err)
+	}
+
+	myApp.SetAnteHandler(ante.NewAnteHandler(options))
 	myApp.SetEndBlocker(myApp.EndBlocker)
 
 	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportBscBlock(), bsctypes.StoreKey)

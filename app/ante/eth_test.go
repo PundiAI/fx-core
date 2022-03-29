@@ -1,11 +1,13 @@
-package app_test
+package ante_test
 
 import (
 	"github.com/functionx/fx-core/x/evm/statedb"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/functionx/fx-core/server/config"
 
+	"github.com/functionx/fx-core/app/ante"
 	"github.com/functionx/fx-core/tests"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
@@ -17,7 +19,7 @@ func nextFn(ctx sdk.Context, _ sdk.Tx, _ bool) (sdk.Context, error) {
 }
 
 func (suite AnteTestSuite) TestEthSigVerificationDecorator() {
-	dec := NewEthSigVerificationDecorator(suite.app.EvmKeeper)
+	dec := ante.NewEthSigVerificationDecorator(suite.app.EvmKeeper)
 	addr, privKey := tests.NewAddrKey()
 
 	signedTx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
@@ -56,7 +58,7 @@ func (suite AnteTestSuite) TestEthSigVerificationDecorator() {
 }
 
 func (suite AnteTestSuite) TestNewEthAccountVerificationDecorator() {
-	dec := NewEthAccountVerificationDecorator(
+	dec := ante.NewEthAccountVerificationDecorator(
 		suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.EvmKeeper,
 	)
 
@@ -144,7 +146,7 @@ func (suite AnteTestSuite) TestNewEthAccountVerificationDecorator() {
 
 func (suite AnteTestSuite) TestEthNonceVerificationDecorator() {
 	suite.SetupTest()
-	dec := NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper)
+	dec := ante.NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper)
 
 	addr := tests.GenerateAddress()
 
@@ -199,7 +201,7 @@ func (suite AnteTestSuite) TestEthNonceVerificationDecorator() {
 }
 
 func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
-	dec := NewEthGasConsumeDecorator(suite.app.EvmKeeper)
+	dec := ante.NewEthGasConsumeDecorator(suite.app.EvmKeeper, config.DefaultMaxTxGasWanted)
 
 	addr := tests.GenerateAddress()
 
@@ -301,7 +303,7 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 }
 
 func (suite AnteTestSuite) TestCanTransferDecorator() {
-	dec := NewCanTransferDecorator(suite.app.EvmKeeper)
+	dec := ante.NewCanTransferDecorator(suite.app.EvmKeeper)
 
 	addr, privKey := tests.NewAddrKey()
 
@@ -385,7 +387,7 @@ func (suite AnteTestSuite) TestCanTransferDecorator() {
 }
 
 func (suite AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
-	dec := NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper)
+	dec := ante.NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper)
 	addr, privKey := tests.NewAddrKey()
 
 	contract := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 0, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
@@ -476,7 +478,7 @@ func (suite AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 }
 
 func (suite AnteTestSuite) TestEthSetupContextDecorator() {
-	dec := NewEthSetUpContextDecorator(suite.app.EvmKeeper)
+	dec := ante.NewEthSetUpContextDecorator(suite.app.EvmKeeper)
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 
 	testCases := []struct {
