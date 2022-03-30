@@ -84,8 +84,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
-	"github.com/functionx/fx-core/app"
-
 	"github.com/functionx/fx-core/x/crosschain"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer"
