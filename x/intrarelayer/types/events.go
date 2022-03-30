@@ -23,6 +23,7 @@ const (
 	AttributeKeyCosmosCoin  = "cosmos_coin"
 	AttributeKeyFIP20Token  = "fip20_token" // #nosec
 	AttributeKeyFIP20Symbol = "fip20_symbol"
+	AttributeKeyEthSender   = "eth_sender"
 	AttributeKeyReceiver    = "receiver"
 
 	FIP20EventTransfer      = contracts.FIP20EventTransfer

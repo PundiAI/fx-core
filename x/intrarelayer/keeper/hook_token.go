@@ -22,6 +22,11 @@ func (k Keeper) RelayTokenProcessing(ctx sdk.Context, from common.Address, to *c
 		if !found {
 			continue
 		}
+		// check that conversion for the pair is enabled
+		if !pair.Enabled {
+			return fmt.Errorf("token pair not enable, contract %s, denom %s", pair.Fip20Address, pair.Denom)
+		}
+
 		amount, err := parseTransferAmount(log.Data)
 		if err != nil {
 			return fmt.Errorf("parse transfer amount error %v", err.Error())

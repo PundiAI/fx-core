@@ -14,4 +14,5 @@ var (
 	ErrInternalTokenPair     = sdkerrors.Register(ModuleName, 7, "internal ethereum token mapping error")
 	ErrUndefinedOwner        = sdkerrors.Register(ModuleName, 8, "undefined owner of contract pair")
 	ErrInvalidMetadata       = sdkerrors.Register(ModuleName, 9, "invalid metadata")
+	ErrInvalidBalance        = sdkerrors.Register(ModuleName, 10, "invalid balance")
 )

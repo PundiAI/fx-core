@@ -136,6 +136,7 @@ func NewConvertFIP20Cmd() *cobra.Command {
 				ContractAddress: contract,
 				Amount:          amount,
 				Receiver:        receiver.String(),
+				Sender:          key.GetAddress().String(),
 				PubKey:          pubKey,
 			}
 
