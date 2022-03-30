@@ -619,7 +619,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		AccountKeeper:   myApp.AccountKeeper,
 		BankKeeper:      myApp.BankKeeper,
 		EvmKeeper:       myApp.EvmKeeper,
-		FeeMarketKeeper: myApp.FeeMarketKeeper,
 		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 		SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  maxGasWanted,
