@@ -9,6 +9,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"testing"
+	"time"
 )
 
 func TestMigrateBankFunc(t *testing.T) {
@@ -40,6 +41,12 @@ func initTest(t *testing.T) (*fxcore.App, []*tmtypes.Validator, []sdk.AccAddress
 		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+
+	//update staking unbonding time
+	stakingParams := app.StakingKeeper.GetParams(ctx)
+	stakingParams.UnbondingTime = 5 * time.Minute
+	app.StakingKeeper.SetParams(ctx, stakingParams)
+
 	delegateAddressArr := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10000)))
 	return app, validator.Validators, delegateAddressArr
 }

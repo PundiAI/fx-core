@@ -87,7 +87,6 @@ func DefaultTestGenesis(cdc codec.JSONCodec) AppGenesisState {
 
 	var stakingGenesis stakingtypes.GenesisState
 	cdc.MustUnmarshalJSON(genesisState[stakingtypes.ModuleName], &stakingGenesis)
-	stakingGenesis.Params.UnbondingTime = time.Minute * 5
 	genesisState[stakingtypes.ModuleName] = cdc.MustMarshalJSON(&stakingGenesis)
 
 	return genesisState
