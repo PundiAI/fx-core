@@ -9,6 +9,19 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
+const (
+	TypeMsgSetOrchestratorAddress = "set_operator_address"
+	TypeMsgValsetConfirm          = "valset_confirm"
+	TypeMsgSendToEth              = "send_to_eth"
+	TypeMsgRequestBatch           = "request_batch"
+	TypeMsgConfirmBatch           = "confirm_batch"
+	TypeMsgDepositClaim           = "deposit_claim"
+	TypeMsgWithdrawClaim          = "withdraw_claim"
+	TypeMsgFxOriginatedTokenClaim = "fx_originated_token_claim"
+	TypeMsgCancelSendToEth        = "cancel_send_to_eth"
+	TypeMsgValsetUpdatedClaim     = "Valset_Updated_Claim"
+)
+
 var (
 	_ sdk.Msg = &MsgSetOrchestratorAddress{}
 	_ sdk.Msg = &MsgValsetConfirm{}
@@ -18,6 +31,8 @@ var (
 	_ sdk.Msg = &MsgDepositClaim{}
 	_ sdk.Msg = &MsgWithdrawClaim{}
 	_ sdk.Msg = &MsgFxOriginatedTokenClaim{}
+	_ sdk.Msg = &MsgCancelSendToEth{}
+	_ sdk.Msg = &MsgValsetUpdatedClaim{}
 )
 
 // NewMsgSetOrchestratorAddress returns a new msgSetOrchestratorAddress
@@ -33,18 +48,18 @@ func NewMsgSetOrchestratorAddress(val sdk.ValAddress, oper sdk.AccAddress, eth s
 func (m *MsgSetOrchestratorAddress) Route() string { return RouterKey }
 
 // Type should return the action
-func (m *MsgSetOrchestratorAddress) Type() string { return "set_operator_address" }
+func (m *MsgSetOrchestratorAddress) Type() string { return TypeMsgSetOrchestratorAddress }
 
 // ValidateBasic performs stateless checks
 func (m *MsgSetOrchestratorAddress) ValidateBasic() (err error) {
 	if _, err = sdk.ValAddressFromBech32(m.Validator); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Validator)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "validator: %s, err: %s", m.Validator, err.Error())
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Orchestrator)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "orchestrator: %s, err: %s", m.Orchestrator, err.Error())
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.EthAddress); err != nil {
-		return sdkerrors.Wrap(err, "ethereum address")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "ethereum address: %s, err: %s", m.EthAddress, err.Error())
 	}
 	return nil
 }
@@ -77,21 +92,21 @@ func NewMsgValsetConfirm(nonce uint64, ethAddress string, validator sdk.AccAddre
 func (m *MsgValsetConfirm) Route() string { return RouterKey }
 
 // Type should return the action
-func (m *MsgValsetConfirm) Type() string { return "valset_confirm" }
+func (m *MsgValsetConfirm) Type() string { return TypeMsgValsetConfirm }
 
 // ValidateBasic performs stateless checks
 func (m *MsgValsetConfirm) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Orchestrator)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "orchestrator: %s, err: %s", m.Orchestrator, err.Error())
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.EthAddress); err != nil {
-		return sdkerrors.Wrap(err, "ethereum address")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "ethereum address: %s, err: %s", m.EthAddress, err.Error())
 	}
 	if len(m.Signature) == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "signature is empty")
+		return sdkerrors.Wrap(ErrEmpty, "signature is empty")
 	}
 	if _, err = hex.DecodeString(m.Signature); err != nil {
-		return sdkerrors.Wrapf(ErrInvalid, "could not hex decode signature: %s", m.Signature)
+		return sdkerrors.Wrapf(err, "could not hex decode signature: %s", m.Signature)
 	}
 	return nil
 }
@@ -124,25 +139,25 @@ func NewMsgSendToEth(sender sdk.AccAddress, destAddress string, send sdk.Coin, b
 func (m MsgSendToEth) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgSendToEth) Type() string { return "send_to_eth" }
+func (m MsgSendToEth) Type() string { return TypeMsgSendToEth }
 
 // ValidateBasic runs stateless checks on the message
 // Checks if the Eth address is valid
 func (m MsgSendToEth) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Sender)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "sender: %s, err: %s", m.Sender, err.Error())
 	}
 	if m.Amount.Denom != m.BridgeFee.Denom {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, fmt.Sprintf("fee and amount must be the same type %s != %s", m.Amount.Denom, m.BridgeFee.Denom))
 	}
 	if !m.Amount.IsValid() || m.Amount.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "amount")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount: %s", m.Amount)
 	}
 	if !m.BridgeFee.IsValid() || m.BridgeFee.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "fee")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "bridge fee: %s", m.BridgeFee)
 	}
 	if err := ValidateEthAddress(m.EthDest); err != nil {
-		return sdkerrors.Wrap(err, "ethereum dest address")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "ethereum dest address: %s, err: %s", m.EthDest, err.Error())
 	}
 	return nil
 }
@@ -177,21 +192,21 @@ func NewMsgRequestBatch(orchestrator sdk.AccAddress, denom string, minimumFee sd
 func (m MsgRequestBatch) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgRequestBatch) Type() string { return "request_batch" }
+func (m MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
 
 // ValidateBasic performs stateless checks
 func (m MsgRequestBatch) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Sender)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "sender: %s, err: %s", m.Sender, err.Error())
 	}
 	if len(m.Denom) <= 0 {
-		return sdkerrors.Wrap(ErrEmpty, fmt.Sprintf("denom is empty:%s", m.Denom))
+		return sdkerrors.Wrap(ErrEmpty, "denom is empty")
 	}
 	if !m.MinimumFee.IsPositive() {
 		return sdkerrors.Wrap(ErrEmpty, "minimum fee is lg zero")
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.FeeReceive); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("err feeReceive address:%s", m.FeeReceive))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "fee receive: %s, err: %s", m.FeeReceive, err.Error())
 	}
 	return nil
 }
@@ -226,25 +241,25 @@ func NewMsgConfirmBatch(nonce uint64, tokenContract, bscAddress, signature strin
 func (m MsgConfirmBatch) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgConfirmBatch) Type() string { return "confirm_batch" }
+func (m MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
 
 // ValidateBasic performs stateless checks
 func (m MsgConfirmBatch) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Orchestrator)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "orchestrator: %s, err: %s", m.Orchestrator, err.Error())
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.EthSigner); err != nil {
-		return sdkerrors.Wrap(err, "eth signer")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "eth signer: %s, err: %s", m.EthSigner, err.Error())
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
-		return sdkerrors.Wrap(err, "token contract")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "token: %s, err: %s", m.TokenContract, err.Error())
 	}
 	if len(m.Signature) == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "signature is empty")
+		return sdkerrors.Wrap(ErrEmpty, "signature is empty")
 	}
 	_, err := hex.DecodeString(m.Signature)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Could not decode hex string %s", m.Signature)
+		return sdkerrors.Wrapf(ErrInvalid, "could not decode hex string %s, err: %s", m.Signature, err.Error())
 	}
 	return nil
 }
@@ -263,23 +278,54 @@ func (m MsgConfirmBatch) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
+// Route should return the name of the module
+func (m *MsgCancelSendToEth) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgCancelSendToEth) Type() string { return TypeMsgCancelSendToEth }
+
+// ValidateBasic performs stateless checks
+func (m *MsgCancelSendToEth) ValidateBasic() (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "sender: %s, err: %s", m.Sender, err.Error())
+	}
+	if m.TransactionId == 0 {
+		return sdkerrors.Wrap(ErrEmpty, "transaction == 0")
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgCancelSendToEth) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgCancelSendToEth) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
 // EthereumClaim represents a claim on ethereum state
 type EthereumClaim interface {
-	// All Ethereum claims that we relay from the Gravity contract and into the module
+	// GetEventNonce All Ethereum claims that we relay from the Gravity contract and into the module
 	// have a nonce that is monotonically increasing and unique, since this nonce is
 	// issued by the Ethereum contract it is immutable and must be agreed on by all validators
 	// any disagreement on what claim goes to what nonce means someone is lying.
 	GetEventNonce() uint64
-	// The block height that the claimed event occurred on. This EventNonce provides sufficient
+	// GetBlockHeight The block height that the claimed event occurred on. This EventNonce provides sufficient
 	// ordering for the execution of all claims. The block height is used only for batchTimeouts + logicTimeouts
 	// when we go to create a new batch we set the timeout some number of batches out from the last
 	// known height plus projected block progress since then.
 	GetBlockHeight() uint64
-	// the delegate address of the claimer, for MsgDepositClaim and MsgWithdrawClaim
+	// GetClaimer the delegate address of the claimer, for MsgDepositClaim and MsgWithdrawClaim
 	// this is sent in as the sdk.AccAddress of the delegated key. it is up to the user
 	// to disambiguate this into a sdk.ValAddress
 	GetClaimer() sdk.AccAddress
-	// Which type of claim this is
+	// GetType Which type of claim this is
 	GetType() ClaimType
 	ValidateBasic() error
 	ClaimHash() []byte
@@ -289,6 +335,7 @@ var (
 	_ EthereumClaim = &MsgDepositClaim{}
 	_ EthereumClaim = &MsgWithdrawClaim{}
 	_ EthereumClaim = &MsgFxOriginatedTokenClaim{}
+	_ EthereumClaim = &MsgValsetUpdatedClaim{}
 )
 
 func NewMsgDepositClaim(eventNonce, blockHeight uint64, tokenContract string, amount sdk.Int, ethSender, fxReceiver,
@@ -313,16 +360,16 @@ func (m *MsgDepositClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgDepositClaim) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.FxReceiver); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.FxReceiver)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "fx receiver: %s, err: %s", m.FxReceiver, err.Error())
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.EthSender); err != nil {
-		return sdkerrors.Wrap(err, "eth sender")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "eth sender: %s, err: %s", m.EthSender, err.Error())
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
-		return sdkerrors.Wrap(err, "erc20 token")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "token: %s, err: %s", m.TokenContract, err.Error())
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Orchestrator)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "orchestrator: %s, err: %s", m.Orchestrator, err.Error())
 	}
 	if m.Amount.IsNil() || m.Amount.IsNegative() {
 		return sdkerrors.Wrap(ErrInvalid, "amount cannot be negative")
@@ -345,12 +392,14 @@ func (m MsgDepositClaim) GetSignBytes() []byte {
 }
 
 func (m MsgDepositClaim) GetClaimer() sdk.AccAddress {
-	err := m.ValidateBasic()
-	if err != nil {
+	if err := m.ValidateBasic(); err != nil {
 		panic("MsgDepositClaim failed ValidateBasic! Should have been handled earlier")
 	}
 
-	val, _ := sdk.AccAddressFromBech32(m.Orchestrator)
+	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
+	if err != nil {
+		panic(err)
+	}
 	return val
 }
 
@@ -365,12 +414,12 @@ func (m MsgDepositClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Type should return the action
-func (m MsgDepositClaim) Type() string { return "deposit_claim" }
+func (m MsgDepositClaim) Type() string { return TypeMsgDepositClaim }
 
 // Route should return the name of the module
 func (m MsgDepositClaim) Route() string { return RouterKey }
 
-// Hash implements BridgeDeposit.Hash
+// ClaimHash Hash implements BridgeDeposit.Hash
 func (m *MsgDepositClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%s/%s/%s/", m.TokenContract, m.EthSender, m.FxReceiver)
 	return tmhash.Sum([]byte(path))
@@ -384,24 +433,24 @@ func (m *MsgWithdrawClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgWithdrawClaim) ValidateBasic() error {
 	if m.EventNonce == 0 {
-		return fmt.Errorf("event_nonce == 0")
+		return sdkerrors.Wrap(ErrEmpty, "event nonce == 0")
 	}
 	if m.BatchNonce == 0 {
-		return fmt.Errorf("batch_nonce == 0")
+		return sdkerrors.Wrap(ErrEmpty, "batch_nonce == 0")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "block height == 0")
+		return sdkerrors.Wrap(ErrEmpty, "block height == 0")
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
-		return sdkerrors.Wrap(err, "erc20 token")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "token: %s, err: %s", m.TokenContract, err.Error())
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Orchestrator)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "orchestrator: %s, err: %s", m.Orchestrator, err.Error())
 	}
 	return nil
 }
 
-// Hash implements WithdrawBatch.Hash
+// ClaimHash Hash implements WithdrawBatch.Hash
 func (m *MsgWithdrawClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%s/%d/", m.TokenContract, m.BatchNonce)
 	return tmhash.Sum([]byte(path))
@@ -417,7 +466,10 @@ func (m MsgWithdrawClaim) GetClaimer() sdk.AccAddress {
 	if err != nil {
 		panic("MsgWithdrawClaim failed ValidateBasic! Should have been handled earlier")
 	}
-	val, _ := sdk.AccAddressFromBech32(m.Orchestrator)
+	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
+	if err != nil {
+		panic(err)
+	}
 	return val
 }
 
@@ -435,7 +487,7 @@ func (m MsgWithdrawClaim) GetSigners() []sdk.AccAddress {
 func (m MsgWithdrawClaim) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgWithdrawClaim) Type() string { return "withdraw_claim" }
+func (m MsgWithdrawClaim) Type() string { return TypeMsgWithdrawClaim }
 
 // NewMsgCancelSendToEth returns a new MsgCancelSendToEth
 func NewMsgCancelSendToEth(sender sdk.AccAddress, id uint64) *MsgCancelSendToEth {
@@ -445,63 +497,30 @@ func NewMsgCancelSendToEth(sender sdk.AccAddress, id uint64) *MsgCancelSendToEth
 	}
 }
 
-// Route should return the name of the module
-func (m *MsgCancelSendToEth) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgCancelSendToEth) Type() string { return "cancel_send_to_eth" }
-
-// ValidateBasic performs stateless checks
-func (m *MsgCancelSendToEth) ValidateBasic() (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, m.Sender)
-	}
-	if m.TransactionId == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "Transaction == 0")
-	}
-	return nil
-}
-
-// GetSignBytes encodes the message for signing
-func (m *MsgCancelSendToEth) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgCancelSendToEth) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{sdk.AccAddress(acc)}
-}
-
 func (m *MsgFxOriginatedTokenClaim) Route() string {
 	return RouterKey
 }
 
-func (m *MsgFxOriginatedTokenClaim) Type() string {
-	return "fx_originated_token_claim"
-}
+func (m *MsgFxOriginatedTokenClaim) Type() string { return TypeMsgFxOriginatedTokenClaim }
 
 func (m *MsgFxOriginatedTokenClaim) ValidateBasic() error {
 	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
-		return sdkerrors.Wrap(err, "erc20 token")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "token: %s, err: %s", m.TokenContract, err.Error())
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Orchestrator)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "orchestrator: %s, err: %s", m.Orchestrator, err.Error())
 	}
 	if m.EventNonce == 0 {
-		return fmt.Errorf("nonce == 0")
+		return sdkerrors.Wrap(ErrEmpty, "event nonce == 0")
 	}
 	if len(m.Name) == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "token name is empty")
+		return sdkerrors.Wrap(ErrEmpty, "token name is empty")
 	}
 	if len(m.Symbol) == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "token symbol is empty")
+		return sdkerrors.Wrap(ErrEmpty, "token symbol is empty")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "block height == 0")
+		return sdkerrors.Wrap(ErrEmpty, "block height == 0")
 	}
 	return nil
 }
@@ -523,7 +542,10 @@ func (m *MsgFxOriginatedTokenClaim) GetClaimer() sdk.AccAddress {
 	if err != nil {
 		panic("MsgFxOriginatedTokenClaim failed ValidateBasic! Should have been handled earlier")
 	}
-	val, _ := sdk.AccAddressFromBech32(m.Orchestrator)
+	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
+	if err != nil {
+		panic(err)
+	}
 	return val
 }
 
@@ -540,53 +562,56 @@ func (m *MsgFxOriginatedTokenClaim) ClaimHash() []byte {
 // ======================================================
 
 // GetType returns the type of the claim
-func (e *MsgValsetUpdatedClaim) GetType() ClaimType {
+func (m *MsgValsetUpdatedClaim) GetType() ClaimType {
 	return CLAIM_TYPE_VALSET_UPDATED
 }
 
 // ValidateBasic performs stateless checks
-func (e *MsgValsetUpdatedClaim) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(e.Orchestrator); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, e.Orchestrator)
+func (m *MsgValsetUpdatedClaim) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "orchestrator: %s, err: %s", m.Orchestrator, err.Error())
 	}
-	if len(e.Members) == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "members len == 0")
+	if len(m.Members) == 0 {
+		return sdkerrors.Wrap(ErrEmpty, "members len == 0")
 	}
-	for _, member := range e.Members {
+	for _, member := range m.Members {
 		if err := ValidateEthAddress(member.EthAddress); err != nil {
-			return sdkerrors.Wrap(ErrInvalid, err.Error())
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "eth address: %s, err: %s", member.EthAddress, err.Error())
 		}
 		if member.Power == 0 {
-			return sdkerrors.Wrap(ErrInvalid, "member power == 0")
+			return sdkerrors.Wrap(ErrEmpty, "member power == 0")
 		}
 	}
-	if e.EventNonce == 0 {
-		return fmt.Errorf("nonce == 0")
+	if m.EventNonce == 0 {
+		return sdkerrors.Wrap(ErrEmpty, "event nonce == 0")
 	}
-	if e.BlockHeight == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "block height == 0")
+	if m.BlockHeight == 0 {
+		return sdkerrors.Wrap(ErrEmpty, "block height == 0")
 	}
 	return nil
 }
 
 // GetSignBytes encodes the message for signing
-func (msg MsgValsetUpdatedClaim) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+func (m MsgValsetUpdatedClaim) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (msg MsgValsetUpdatedClaim) GetClaimer() sdk.AccAddress {
-	err := msg.ValidateBasic()
+func (m MsgValsetUpdatedClaim) GetClaimer() sdk.AccAddress {
+	err := m.ValidateBasic()
 	if err != nil {
 		panic("MsgERC20DeployedClaim failed ValidateBasic! Should have been handled earlier")
 	}
 
-	val, _ := sdk.AccAddressFromBech32(msg.Orchestrator)
+	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
+	if err != nil {
+		panic(err)
+	}
 	return val
 }
 
 // GetSigners defines whose signature is required
-func (msg MsgValsetUpdatedClaim) GetSigners() []sdk.AccAddress {
-	acc, err := sdk.AccAddressFromBech32(msg.Orchestrator)
+func (m MsgValsetUpdatedClaim) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
 	if err != nil {
 		panic(err)
 	}
@@ -595,13 +620,13 @@ func (msg MsgValsetUpdatedClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Type should return the action
-func (msg MsgValsetUpdatedClaim) Type() string { return "Valset_Updated_Claim" }
+func (m MsgValsetUpdatedClaim) Type() string { return TypeMsgValsetUpdatedClaim }
 
 // Route should return the name of the module
-func (msg MsgValsetUpdatedClaim) Route() string { return RouterKey }
+func (m MsgValsetUpdatedClaim) Route() string { return RouterKey }
 
-// Hash implements BridgeDeposit.Hash
-func (b *MsgValsetUpdatedClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%d/%s/", b.ValsetNonce, b.EventNonce, b.BlockHeight, b.Members)
+// ClaimHash Hash implements BridgeDeposit.Hash
+func (m *MsgValsetUpdatedClaim) ClaimHash() []byte {
+	path := fmt.Sprintf("%d/%d/%d/%s/", m.ValsetNonce, m.EventNonce, m.BlockHeight, m.Members)
 	return tmhash.Sum([]byte(path))
 }
