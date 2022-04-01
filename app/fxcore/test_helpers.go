@@ -84,11 +84,6 @@ func DefaultTestGenesis(cdc codec.JSONCodec) AppGenesisState {
 		bankGenesis.Supply = sdk.NewCoins(sdk.NewCoin(MintDenom, gravityModuleInitAmount))
 	}
 	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(&bankGenesis)
-
-	var stakingGenesis stakingtypes.GenesisState
-	cdc.MustUnmarshalJSON(genesisState[stakingtypes.ModuleName], &stakingGenesis)
-	genesisState[stakingtypes.ModuleName] = cdc.MustMarshalJSON(&stakingGenesis)
-
 	return genesisState
 }
 

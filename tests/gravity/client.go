@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/app"
 	othertypes "github.com/functionx/fx-core/x/other/types"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -64,7 +63,7 @@ type Client struct {
 	otherQueryClient   othertypes.QueryClient
 	gasPrice           sdk.Coin
 	fxPrivKey          *secp256k1.PrivKey
-	encodingConfig     app.EncodingConfig
+	encodingConfig     fxcore.EncodingConfig
 	ethPrivKey         *ecdsa.PrivateKey
 	ethAddress         gethCommon.Address
 	mutex              *sync.Mutex

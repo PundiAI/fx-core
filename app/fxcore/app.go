@@ -483,9 +483,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.TransferKeeper.SetRouter(ibcTransferRouter)
 	myApp.TransferKeeper.SetRefundHook(intrarelayer.NewAppModule(*myApp.IntrarelayerKeeper, myApp.AccountKeeper))
 	transferModule := transfer.NewAppModule(myApp.TransferKeeper)
+	transferIBCModule := transfer.NewIBCModule(myApp.TransferKeeper)
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
 	// this line is used by starport scaffolding # ibc/myApp/router
 	myApp.IBCKeeper.SetRouter(ibcRouter)
 

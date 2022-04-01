@@ -12,7 +12,6 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 
-	"github.com/functionx/fx-core/app"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 
@@ -78,7 +77,7 @@ type Client struct {
 	bankQueryClient       banktypes.QueryClient
 	paramsQueryClient     paramstypes.QueryClient
 	fxPrivKey             *secp256k1.PrivKey
-	encodingConfig        app.EncodingConfig
+	encodingConfig        fxcore.EncodingConfig
 	externalPrivKey       *ecdsa.PrivateKey
 	externalAddress       tronAddress.Address
 	mutex                 *sync.Mutex

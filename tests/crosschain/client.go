@@ -7,7 +7,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/functionx/fx-core/app"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	types2 "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
@@ -68,7 +67,7 @@ type Client struct {
 	crosschainQueryClient crosschaintypes.QueryClient
 	bankQueryClient       banktypes.QueryClient
 	fxPrivKey             *secp256k1.PrivKey
-	encodingConfig        app.EncodingConfig
+	encodingConfig        fxcore.EncodingConfig
 	ethPrivKey            *ecdsa.PrivateKey
 	ethAddress            gethCommon.Address
 	mutex                 *sync.Mutex
