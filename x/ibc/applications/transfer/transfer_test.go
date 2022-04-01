@@ -17,7 +17,7 @@ import (
 var (
 	zeroFee  = sdk.NewCoin(fxcore.MintDenom, sdk.ZeroInt())
 	noRouter = ""
-	noFeeStr = ""
+	noFeeStr = "0"
 )
 
 type TransferTestSuite struct {

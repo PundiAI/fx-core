@@ -560,6 +560,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
+		capabilitytypes.ModuleName,
 		ibchost.ModuleName,
 		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
