@@ -7,6 +7,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/functionx/fx-core/app/ante"
 	"github.com/functionx/fx-core/ethereum/eip712"
 	"github.com/functionx/fx-core/types"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
@@ -33,7 +34,6 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/tests"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
@@ -86,10 +86,15 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 
-	suite.anteHandler = app.NewAnteHandler(
-		suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.EvmKeeper, suite.app.FeeMarketKeeper,
-		app.DefaultSigVerificationGasConsumer, encodingConfig.TxConfig.SignModeHandler(),
-	)
+	options := ante.HandlerOptions{
+		AccountKeeper:   suite.app.AccountKeeper,
+		BankKeeper:      suite.app.BankKeeper,
+		EvmKeeper:       suite.app.EvmKeeper,
+		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
+		SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+	}
+	suite.Require().NoError(options.Validate())
+	suite.anteHandler = ante.NewAnteHandler(options)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 }
 

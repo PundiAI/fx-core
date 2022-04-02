@@ -268,7 +268,7 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 		{
 			"success",
 			tx2,
-			tx2GasLimit,
+			config.DefaultMaxTxGasWanted,
 			func() {
 				vmdb.AddBalance(addr, big.NewInt(1000000))
 
