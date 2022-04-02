@@ -53,13 +53,12 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 	}
 	key := s.SetBatchConfirm(ctx, oracleAddr, msg)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyBatchConfirmKey, hex.EncodeToString(key)),
-		),
-	)
+	_ = key
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.GetModuleName()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OrchestratorAddress),
+	))
 
 	return nil, nil
 }
@@ -89,13 +88,12 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetCo
 	}
 	key := s.SetOracleSetConfirm(ctx, oracleAddr, *msg)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyOracleSetConfirmKey, hex.EncodeToString(key)),
-		),
-	)
+	_ = key
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.GetModuleName()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OrchestratorAddress),
+	))
 
 	return &types.MsgOracleSetConfirmResponse{}, nil
 }

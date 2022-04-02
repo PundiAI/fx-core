@@ -62,9 +62,9 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeSendToExternalReceived,
+		types.EventTypeSendToExternal,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyOutgoingTXID, fmt.Sprint(nextTxID)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(nextTxID)),
 	))
 
 	return nextTxID, nil
@@ -133,7 +133,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToExternalCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyOutgoingTXID, fmt.Sprint(txId)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
 	))
 	return nil
 }

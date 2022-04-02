@@ -88,13 +88,11 @@ func (s EthereumMsgServer) SetOrchestratorAddress(c context.Context, msg *types.
 	s.SetTotalDeposit(ctx, totalDeposit.Add(msg.Deposit))
 
 	s.CommonSetOracleTotalPower(ctx)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeySetOperatorAddr, orchestratorAddr.String()),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Oracle),
+	))
 
 	return &types.MsgSetOrchestratorAddressResponse{}, nil
 }
@@ -143,13 +141,11 @@ func (s EthereumMsgServer) AddOracleDeposit(c context.Context, msg *types.MsgAdd
 	s.SetOracle(ctx, oracle)
 
 	s.CommonSetOracleTotalPower(ctx)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Oracle),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Oracle),
+	))
 
 	return &types.MsgAddOracleDepositResponse{}, nil
 }
@@ -166,13 +162,12 @@ func (s EthereumMsgServer) SendToExternal(c context.Context, msg *types.MsgSendT
 		return nil, sdkerrors.Wrap(types.ErrInvalid, err.Error())
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
-		),
-	)
+	_ = txID
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
 
 	return &types.MsgSendToExternalResponse{}, nil
 }
@@ -188,13 +183,11 @@ func (s EthereumMsgServer) CancelSendToExternal(c context.Context, msg *types.Ms
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyOutgoingTXID, fmt.Sprint(msg.TransactionId)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
 
 	return &types.MsgCancelSendToExternalResponse{}, nil
 }
@@ -229,13 +222,12 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyBatchNonce, fmt.Sprint(batch.BatchNonce)),
-		),
-	)
+	_ = batch
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
 
 	return &types.MsgRequestBatchResponse{}, nil
 }
@@ -268,13 +260,12 @@ func (s EthereumMsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirm
 	}
 	key := s.SetBatchConfirm(ctx, oracleAddr, msg)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyBatchConfirmKey, hex.EncodeToString(key)),
-		),
-	)
+	_ = key
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OrchestratorAddress),
+	))
 
 	return nil, nil
 }
@@ -301,13 +292,12 @@ func (s EthereumMsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOra
 	}
 	key := s.SetOracleSetConfirm(ctx, oracleAddr, *msg)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyOracleSetConfirmKey, hex.EncodeToString(key)),
-		),
-	)
+	_ = key
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OrchestratorAddress),
+	))
 
 	return &types.MsgOracleSetConfirmResponse{}, nil
 }
@@ -413,14 +403,11 @@ func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectype
 	}
 
 	// Emit the handle message event
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msgType),
-			// TODO: maybe return something better here? is this the right string representation?
-			sdk.NewAttribute(types.AttributeKeyAttestationID, hex.EncodeToString(types.GetAttestationKey(msg.GetEventNonce(), msg.ClaimHash()))),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.GetClaimer().String()),
+	))
 
 	return nil
 }

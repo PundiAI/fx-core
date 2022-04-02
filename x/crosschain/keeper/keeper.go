@@ -287,13 +287,12 @@ func (k Keeper) SetOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 	checkpoint := currentOracleSet.GetCheckpoint(gravityId)
 	k.SetPastExternalSignatureCheckpoint(ctx, checkpoint)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeOracleSetRequest,
-			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-			sdk.NewAttribute(types.AttributeKeyOracleSetNonce, fmt.Sprint(currentOracleSet.Nonce)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeOracleSetUpdate,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+		sdk.NewAttribute(types.AttributeKeyOracleSetNonce, fmt.Sprint(currentOracleSet.Nonce)),
+		sdk.NewAttribute(types.AttributeKeyOracleSetLen, fmt.Sprint(len(currentOracleSet.Members))),
+	))
 
 	return currentOracleSet
 }

@@ -100,14 +100,21 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 		att.Observed = true
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
-		k.processAttestation(ctx, att, claim)
-		k.emitObservedEvent(ctx, att, claim)
+		err = k.processAttestation(ctx, att, claim)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeContractEvnet,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType().String()),
+			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.GetEventNonce())),
+			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
+			sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
+		))
 		break
 	}
 }
 
 // processAttestation actually applies the attestation to the consensus state
-func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, claim types.ExternalClaim) {
+func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, claim types.ExternalClaim) error {
 	// then execute in a new Tx so that we can store state on failure
 	xCtx, commit := ctx.CacheContext()
 	if err := k.AttestationHandler(xCtx, *att, claim); err != nil {
@@ -119,22 +126,11 @@ func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, clai
 			"id", hex.EncodeToString(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash())),
 			"nonce", fmt.Sprint(claim.GetEventNonce()),
 		)
-	} else {
-		commit() // persist transient storage
-		ctx.EventManager().EmitEvents(xCtx.EventManager().Events())
+		return err
 	}
-}
-
-// emitObservedEvent emits an event with information about an attestation that has been applied to
-// consensus state.
-func (k Keeper) emitObservedEvent(ctx sdk.Context, _ *types.Attestation, claim types.ExternalClaim) {
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeObservation,
-		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyAttestationType, claim.GetType().String()),
-		sdk.NewAttribute(types.AttributeKeyAttestationID, hex.EncodeToString(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash()))),
-		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.GetEventNonce())),
-	))
+	commit() // persist transient storage
+	ctx.EventManager().EmitEvents(xCtx.EventManager().Events())
+	return nil
 }
 
 // SetAttestation sets the attestation in the store

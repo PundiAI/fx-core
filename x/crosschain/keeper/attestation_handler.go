@@ -1,15 +1,13 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
-// Handle is the entry point for Attestation processing.
+// AttestationHandler Handle is the entry point for Attestation processing.
 func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, externalClaim types.ExternalClaim) error {
 	switch claim := externalClaim.(type) {
 	case *types.MsgSendToFxClaim:
@@ -17,8 +15,10 @@ func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, extern
 		if bridgeToken == nil {
 			return sdkerrors.Wrap(types.ErrInvalid, "bridge token is not exist")
 		}
+
 		coin := sdk.NewCoin(bridgeToken.Denom, claim.Amount)
 		coins := sdk.NewCoins(coin)
+
 		receiveAddr, err := sdk.AccAddressFromBech32(claim.Receiver)
 		if err != nil {
 			return sdkerrors.Wrap(err, "invalid receiver address")
@@ -30,18 +30,7 @@ func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, extern
 			return sdkerrors.Wrap(err, "transfer vouchers")
 		}
 
-		event := sdk.NewEvent(
-			types.EventTypeSendToFx,
-			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", claim.EventNonce)),
-		)
-
-		attributes, success := k.handlerRelayTransfer(ctx, claim, receiveAddr, coin)
-		if success {
-			event.AppendAttributes(attributes...)
-		}
-		// broadcast event
-		ctx.EventManager().EmitEvent(event)
+		k.handlerRelayTransfer(ctx, claim, receiveAddr, coin)
 
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
@@ -54,9 +43,9 @@ func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, extern
 			return sdkerrors.Wrap(types.ErrInvalid, "bridge token is exist")
 		}
 		k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc)
-		var coinDenom string
-		var err error
-		if coinDenom, err = k.addBridgeToken(ctx, claim.TokenContract, claim.Symbol, claim.ChannelIbc); err != nil {
+
+		coinDenom, err := k.addBridgeToken(ctx, claim.TokenContract, claim.Symbol, claim.ChannelIbc)
+		if err != nil {
 			return err
 		}
 		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc, "coinDenom", coinDenom)

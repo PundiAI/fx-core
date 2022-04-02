@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 	fxcoretypes "github.com/functionx/fx-core/types"
-	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -73,15 +72,12 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress string, ma
 	for _, tx := range selectedTx[1:] {
 		_, _ = eventBatchNonceTxIds.WriteString(fmt.Sprintf(",%d", tx.Id))
 	}
-	batchEvent := sdk.NewEvent(
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatch,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
-		sdk.NewAttribute(types.AttributeKeyOutgoingBatchID, fmt.Sprint(nextID)),
-		sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(nextID)),
-		sdk.NewAttribute(types.AttributeKeyBatchNonceTxIds, eventBatchNonceTxIds.String()),
-	)
-	ctx.EventManager().EmitEvent(batchEvent)
+		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(nextID)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxIds, eventBatchNonceTxIds.String()),
+	))
 	return batch, nil
 }
 
@@ -208,8 +204,8 @@ func (k Keeper) GetOutgoingTXBatch(ctx sdk.Context, tokenContract string, nonce 
 }
 
 // CancelOutgoingTXBatch releases all TX in the batch and deletes the batch
-func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, nonce uint64) error {
-	batch := k.GetOutgoingTXBatch(ctx, tokenContract, nonce)
+func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, batchNonce uint64) error {
+	batch := k.GetOutgoingTXBatch(ctx, tokenContract, batchNonce)
 	if batch == nil {
 		return types.ErrUnknown
 	}
@@ -221,15 +217,11 @@ func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, non
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, *batch)
 
-	batchEvent := sdk.NewEvent(
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		//sdk.NewAttribute(types.AttributeKeyContract, k.GetBridgeContractAddress(ctx)),
-		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
-		sdk.NewAttribute(types.AttributeKeyOutgoingBatchID, fmt.Sprint(nonce)),
-		sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(nonce)),
-	)
-	ctx.EventManager().EmitEvent(batchEvent)
+		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(batchNonce)),
+	))
 	return nil
 }
 

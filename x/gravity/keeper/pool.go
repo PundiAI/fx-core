@@ -3,15 +3,13 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
-	fxcoretypes "github.com/functionx/fx-core/types"
-	"math/big"
-	"sort"
-	"strconv"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	"github.com/tendermint/tendermint/libs/math"
+	"math/big"
+	"sort"
 
 	"github.com/functionx/fx-core/x/gravity/types"
 )
@@ -76,22 +74,11 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, counte
 	// add a second index with the fee
 	k.appendToUnbatchedTXIndex(ctx, tokenContract, *erc20Fee, nextID)
 
-	// todo: add second index for sender so that we can easily query: give pending Tx by sender what about a second index for receiver?
-
-	poolEvent := sdk.NewEvent(
-		types.EventTypeBridgeWithdrawalReceived,
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeSendToEth,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		//sdk.NewAttribute(types.AttributeKeyContract, k.GetBridgeContractAddress(ctx)),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalTokenContract, outgoing.Erc20Token.Contract),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalSender, outgoing.Sender),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalReceiver, outgoing.DestAddress),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalAmount, outgoing.Erc20Token.Amount.String()),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalFee, outgoing.Erc20Fee.Amount.String()),
-		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
-		sdk.NewAttribute(types.AttributeKeyOutgoingTXID, strconv.Itoa(int(nextID))),
-		sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(nextID)),
-	)
-	ctx.EventManager().EmitEvent(poolEvent)
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(nextID)),
+	))
 
 	return nextID, nil
 }
@@ -166,14 +153,11 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		}
 	}
 
-	poolEvent := sdk.NewEvent(
-		types.EventTypeBridgeWithdrawCanceled,
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeSendToEthCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		//sdk.NewAttribute(types.AttributeKeyContract, k.GetBridgeContractAddress(ctx)),
-		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
-	)
-	ctx.EventManager().EmitEvent(poolEvent)
-
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
+	))
 	return nil
 }
 

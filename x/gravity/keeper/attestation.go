@@ -3,11 +3,9 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	fxtype "github.com/functionx/fx-core/types"
-	"strconv"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	fxtype "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/gravity/types"
 )
@@ -95,8 +93,15 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 				att.Observed = true
 				k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
-				k.processAttestation(ctx, att, claim)
-				k.emitObservedEvent(ctx, att, claim)
+				err = k.processAttestation(ctx, att, claim)
+				ctx.EventManager().EmitEvent(sdk.NewEvent(
+					types.EventTypeContractEvnet,
+					sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+					sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType().String()),
+					sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.GetEventNonce())),
+					sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
+					sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
+				))
 				break
 			}
 		}
@@ -107,7 +112,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 }
 
 // processAttestation actually applies the attestation to the consensus state
-func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, claim types.EthereumClaim) {
+func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, claim types.EthereumClaim) error {
 	// then execute in a new Tx so that we can store state on failure
 	xCtx, commit := ctx.CacheContext()
 	if err := k.AttestationHandler.Handle(xCtx, *att, claim); err != nil { // execute with a transient storage
@@ -120,24 +125,11 @@ func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, clai
 			"id", hex.EncodeToString(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash())),
 			"nonce", fmt.Sprint(claim.GetEventNonce()),
 		)
-	} else {
-		commit() // persist transient storage
-		ctx.EventManager().EmitEvents(xCtx.EventManager().Events())
+		return err
 	}
-}
-
-// emitObservedEvent emits an event with information about an attestation that has been applied to
-// consensus state.
-func (k Keeper) emitObservedEvent(ctx sdk.Context, _ *types.Attestation, claim types.EthereumClaim) {
-	observationEvent := sdk.NewEvent(
-		types.EventTypeObservation,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(types.AttributeKeyAttestationType, claim.GetType().String()),
-		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
-		sdk.NewAttribute(types.AttributeKeyAttestationID, hex.EncodeToString(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash()))),
-		sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(claim.GetEventNonce())),
-	)
-	ctx.EventManager().EmitEvent(observationEvent)
+	commit() // persist transient storage
+	ctx.EventManager().EmitEvents(xCtx.EventManager().Events())
+	return nil
 }
 
 // SetAttestation sets the attestation in the store

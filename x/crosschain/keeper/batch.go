@@ -83,8 +83,8 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceiv
 	batchEvent := sdk.NewEvent(
 		types.EventTypeOutgoingBatch,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyOutgoingTXID, fmt.Sprint(nextID)),
-		sdk.NewAttribute(types.AttributeKeyBatchNonceTxIds, eventBatchNonceTxIds.String()),
+		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(nextID)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxIds, eventBatchNonceTxIds.String()),
 	)
 	ctx.EventManager().EmitEvent(batchEvent)
 	return batch, nil
@@ -225,7 +225,7 @@ func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, bat
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyBatchNonce, fmt.Sprint(batchNonce)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(batchNonce)),
 	))
 	return nil
 }
