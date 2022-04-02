@@ -322,7 +322,7 @@ func (c Config) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrAppConfig, "invalid evm config value: %s", err.Error())
 	}
 
-	if err := c.JSONRPC.Validate(); err != nil {
+	if err := c.JSONRPC.Validate(); err != nil && c.JSONRPC.Enable {
 		return sdkerrors.Wrapf(sdkerrors.ErrAppConfig, "invalid json-rpc config value: %s", err.Error())
 	}
 

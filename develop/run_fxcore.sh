@@ -20,6 +20,7 @@ if [[ "$1" == "init" ]]; then
   # open rest and swagger
   fxcored config app.toml api.enable true
   fxcored config app.toml api.swagger true
+  fxcored config app.toml json-rpc.enable true
 
   # update fxcore client config
   fxcored config chain-id fxcore
