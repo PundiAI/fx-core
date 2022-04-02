@@ -1,6 +1,7 @@
 package transfer_test
 
 import (
+	"fmt"
 	"github.com/functionx/fx-core/app/fxcore"
 	ibctesting "github.com/functionx/fx-core/x/ibc/testing"
 	"testing"
@@ -123,6 +124,48 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// check that balance on chain B is empty
 	balance = suite.chainC.App.BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
 	suite.Require().Zero(balance.Amount.Int64())
+}
+
+func (suite *TransferTestSuite) TestTransferForwardPacket() {
+	var err error
+	// setup between chainA and chainB
+	clientA, clientB, connA, connB := suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
+	channelA, channelB := suite.coordinator.CreateTransferChannels(suite.chainA, suite.chainB, connA, connB, channeltypes.UNORDERED)
+
+	// setup between chainB to chainC
+	clientOnBForC, clientOnCForB, connOnBForC, connOnCForB := suite.coordinator.SetupClientConnections(suite.chainB, suite.chainC, exported.Tendermint)
+	channelOnBForC, channelOnCForB := suite.coordinator.CreateTransferChannels(suite.chainB, suite.chainC, connOnBForC, connOnCForB, channeltypes.UNORDERED)
+
+	// test forward-packet-to-chain
+	// send from chainA -> chainB --(forward)--> chainC
+	timeoutHeight := clienttypes.NewHeight(0, 1010)
+	coinToSendToC := sdk.NewCoin(fxcore.MintDenom, sdk.NewInt(100))
+
+	forwardPacketReceiverAddress := fmt.Sprintf("%s|%s/%s:%s", suite.chainB.SenderAccount.GetAddress().String(), channelOnBForC.PortID, channelOnBForC.ID, suite.chainC.SenderAccount.GetAddress().String())
+	chainAToChainBForwardChainCMsg := types.NewMsgTransfer(channelA.PortID, channelA.ID, coinToSendToC, suite.chainA.SenderAccount.GetAddress(), forwardPacketReceiverAddress, timeoutHeight, 0, noRouter, zeroFee)
+
+	err = suite.coordinator.SendMsg(suite.chainA, suite.chainB, clientB, chainAToChainBForwardChainCMsg)
+	suite.Require().NoError(err) // message committed
+
+	// relay chainA to chainB
+	fungibleTokenPacket := types.NewFungibleTokenPacketData(coinToSendToC.Denom, coinToSendToC.Amount.String(), suite.chainA.SenderAccount.GetAddress().String(), forwardPacketReceiverAddress, noRouter, noFeeStr)
+	packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	err = suite.coordinator.RelayPacket(suite.chainA, suite.chainB, clientA, clientB, packet, ack.GetBytes())
+	suite.Require().NoError(err)
+
+	// update chainC clientOnCForB state
+	err = suite.coordinator.UpdateClient(suite.chainC, suite.chainB, clientOnCForB, exported.Tendermint)
+	suite.Require().NoError(err)
+
+	// relay chainB to chainC
+	voucherDenomTrace := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), fxcore.MintDenom))
+	//fullDenomPath := types.GetPrefixedDenom(channelOnCForB.PortID, channelOnCForB.ID, )
+	fungibleTokenPacket = types.NewFungibleTokenPacketData(voucherDenomTrace.GetFullDenomPath(), coinToSendToC.Amount.String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), noRouter, noFeeStr)
+	packet = channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelOnBForC.PortID, channelOnBForC.ID, channelOnCForB.PortID, channelOnCForB.ID, timeoutHeight, 0)
+	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	err = suite.coordinator.RelayPacket(suite.chainB, suite.chainC, clientOnBForC, clientOnCForB, packet, ack.GetBytes())
+	suite.Require().NoError(err) // relay committed
 }
 
 func TestTransferTestSuite(t *testing.T) {

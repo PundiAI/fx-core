@@ -55,12 +55,12 @@ const (
 
 	devnetGravityPruneValsetAndAttestationBlock = 1
 	devnetGravityValsetSlashBlock               = 1
-	devnetSupportEvmBlock                       = 1
+	devnetSupportEvmBlock                       = 100
 	devnetEvmChainID                            = 221
-	devnetSupportIntrarelayerBlock              = 1
-	devnetSupportMigrateBlock                   = 1
-	devnetSupportEGFProposalBlock               = 1
-	devnetRequestBaseFeeBlock                   = 1
+	devnetSupportIntrarelayerBlock              = 100
+	devnetSupportMigrateBlock                   = 100
+	devnetSupportEGFProposalBlock               = 112000
+	devnetRequestBaseFeeBlock                   = 112000
 )
 
 var (
