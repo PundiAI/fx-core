@@ -3,8 +3,11 @@ package transfer_test
 import (
 	"fmt"
 	"github.com/functionx/fx-core/app/fxcore"
+	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/x/ibc/applications/transfer"
 	ibctesting "github.com/functionx/fx-core/x/ibc/testing"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -33,6 +36,7 @@ type TransferTestSuite struct {
 }
 
 func (suite *TransferTestSuite) SetupTest() {
+	fxtypes.ChangeNetworkForTest("devnet")
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -132,6 +136,7 @@ func (suite *TransferTestSuite) TestTransferForwardPacket() {
 	clientA, clientB, connA, connB := suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
 	channelA, channelB := suite.coordinator.CreateTransferChannels(suite.chainA, suite.chainB, connA, connB, channeltypes.UNORDERED)
 
+	suite.coordinator.CommitNBlocks(suite.chainB, uint64(fxtypes.EvmSupportBlock()-suite.chainB.CurrentHeader.GetHeight())+1)
 	// setup between chainB to chainC
 	clientOnBForC, clientOnCForB, connOnBForC, connOnCForB := suite.coordinator.SetupClientConnections(suite.chainB, suite.chainC, exported.Tendermint)
 	channelOnBForC, channelOnCForB := suite.coordinator.CreateTransferChannels(suite.chainB, suite.chainC, connOnBForC, connOnCForB, channeltypes.UNORDERED)
@@ -160,12 +165,20 @@ func (suite *TransferTestSuite) TestTransferForwardPacket() {
 
 	// relay chainB to chainC
 	voucherDenomTrace := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), fxcore.MintDenom))
-	//fullDenomPath := types.GetPrefixedDenom(channelOnCForB.PortID, channelOnCForB.ID, )
+
 	fungibleTokenPacket = types.NewFungibleTokenPacketData(voucherDenomTrace.GetFullDenomPath(), coinToSendToC.Amount.String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), noRouter, noFeeStr)
-	packet = channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelOnBForC.PortID, channelOnBForC.ID, channelOnCForB.PortID, channelOnCForB.ID, timeoutHeight, 0)
+	chainCTimeoutHeight := clienttypes.NewHeight(0, 0)
+	chainCTimeoutTimestamp := uint64(suite.chainB.LastRecvPacketHeader.Time.Add(transfer.ForwardPacketTimeHour * time.Hour).UnixNano())
+	packet = channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelOnBForC.PortID, channelOnBForC.ID, channelOnCForB.PortID, channelOnCForB.ID, chainCTimeoutHeight, chainCTimeoutTimestamp)
 	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	err = suite.coordinator.RelayPacket(suite.chainB, suite.chainC, clientOnBForC, clientOnCForB, packet, ack.GetBytes())
 	suite.Require().NoError(err) // relay committed
+
+	// check chainC receive address balance
+	voucherDenomTrace = types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), voucherDenomTrace.GetFullDenomPath()))
+	balance := suite.chainC.App.BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
+	chainCReceiveAddrBalance := sdk.NewCoin(voucherDenomTrace.IBCDenom(), coinToSendToC.Amount)
+	suite.Require().True(chainCReceiveAddrBalance.Equal(balance))
 }
 
 func TestTransferTestSuite(t *testing.T) {

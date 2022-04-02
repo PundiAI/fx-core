@@ -9,11 +9,16 @@ import (
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/05-port/types"
 	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
+	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"math"
 	"strings"
 	"time"
+)
+
+const (
+	ForwardPacketTimeHour time.Duration = 6
 )
 
 var (
@@ -182,7 +187,7 @@ func (im IBCModule) OnRecvPacket(
 
 	var err error
 	// if router set, route packet
-	if data.Router != "" {
+	if ctx.BlockHeight() <= fxtypes.EvmSupportBlock() || data.Router != "" {
 		err = im.keeper.OnRecvPacket(ctx, packet, data)
 	} else {
 		err = handlerForwardTransferPacket(ctx, im, packet, data)
@@ -251,7 +256,7 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCModule, packet channelt
 		var token = sdk.NewCoin(denom, sdk.NewIntFromUint64(unit.Uint64()))
 
 		if err = im.keeper.SendTransfer(ctx, port, channel, token, receiver, finalDest,
-			clienttypes.Height{}, uint64(ctx.BlockTime().Add(6*time.Hour).UnixNano()),
+			clienttypes.Height{}, uint64(ctx.BlockTime().Add(ForwardPacketTimeHour*time.Hour).UnixNano()),
 			"", sdk.NewCoin(denom, sdk.ZeroInt())); err != nil {
 			return fmt.Errorf("failed to foward transfer packet")
 		}

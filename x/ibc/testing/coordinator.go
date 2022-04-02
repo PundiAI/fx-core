@@ -247,6 +247,7 @@ func (coord *Coordinator) RecvPacket(
 
 	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, counterparty.SenderAccount.GetAddress())
 
+	counterparty.LastRecvPacketHeader = counterparty.CurrentHeader
 	// receive on counterparty and update source client
 	return coord.SendMsgs(counterparty, source, sourceClient, []sdk.Msg{recvMsg})
 }

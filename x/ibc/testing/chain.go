@@ -85,13 +85,14 @@ var (
 type TestChain struct {
 	t *testing.T
 
-	App           *fxcore.App
-	ChainID       string
-	LastHeader    *ibctmtypes.Header // header for last block height committed
-	CurrentHeader tmproto.Header     // header for current block height
-	QueryServer   types.QueryServer
-	TxConfig      client.TxConfig
-	Codec         codec.BinaryCodec
+	App                  *fxcore.App
+	ChainID              string
+	LastHeader           *ibctmtypes.Header // header for last block height committed
+	CurrentHeader        tmproto.Header     // header for current block height
+	LastRecvPacketHeader tmproto.Header     // header for current block height
+	QueryServer          types.QueryServer
+	TxConfig             client.TxConfig
+	Codec                codec.BinaryCodec
 
 	Vals    *tmtypes.ValidatorSet
 	Signers []tmtypes.PrivValidator
