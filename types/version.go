@@ -1,6 +1,7 @@
 package types
 
 import (
+	"math"
 	"math/big"
 )
 
@@ -21,10 +22,10 @@ const (
 	testnetGravityValsetSlashBlock               = 1
 	testnetSupportEvmBlock                       = 408000
 	testnetEvmChainID                            = 90001
-	testnetSupportIntrarelayerBlock              = 999999999
-	testnetSupportMigrateBlock                   = 999999999
-	testnetSupportEGFProposalBlock               = 999999999
-	testnetRequestBaseFeeBlock                   = 999999999
+	testnetSupportIntrarelayerBlock              = math.MaxInt64
+	testnetSupportMigrateBlock                   = math.MaxInt64
+	testnetSupportEGFProposalBlock               = math.MaxInt64
+	testnetRequestBaseFeeBlock                   = math.MaxInt64
 )
 
 // mainnet constant
@@ -37,12 +38,13 @@ const (
 	mainnetGravityPruneValsetAndAttestationBlock = 610000
 	// gravity not slash no set eth address validator
 	mainnetGravityValsetSlashBlock  = 1685000
-	mainnetSupportEvmBlock          = 999999999
-	mainnetEvmChainID               = 1
-	mainnetSupportIntrarelayerBlock = 999999999
-	mainnetSupportMigrateBlock      = 999999999
-	mainnetSupportEGFProposalBlock  = 999999999
-	mainnetRequestBaseFeeBlock      = 999999999
+	mainnetSupportEvmBlock          = math.MaxInt64
+	mainnetSupportIntrarelayerBlock = math.MaxInt64
+	mainnetSupportMigrateBlock      = math.MaxInt64
+	mainnetSupportEGFProposalBlock  = math.MaxInt64
+	mainnetRequestBaseFeeBlock      = math.MaxInt64
+
+	mainnetEvmChainID = 1
 )
 
 // devnet constant
