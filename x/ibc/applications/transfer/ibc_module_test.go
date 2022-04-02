@@ -1,7 +1,10 @@
 package transfer_test
 
 import (
+	"github.com/functionx/fx-core/x/ibc/applications/transfer"
+	"github.com/stretchr/testify/require"
 	"math"
+	"testing"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
@@ -241,6 +244,89 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 				suite.Require().Error(err)
 			}
 
+		})
+	}
+}
+
+func TestParseIncomingTransferField(t *testing.T) {
+	testCases := []struct {
+		name                string
+		input               string
+		expThisChainAddress string
+		expFinalDestination string
+		expPort             string
+		expChannel          string
+		expPass             bool
+	}{
+		{
+			name:    "error - no-forward error thisChainAddress",
+			input:   "cosmos1av497q6kjky9j5v3z95668d57q9ha80p5fypd4",
+			expPass: false,
+		},
+		{
+			name:    "error - no-forward empty thisChainAddress",
+			input:   "",
+			expPass: false,
+		},
+		{
+			name:    "error - forward empty thisChainAddress",
+			input:   "|transfer/channel-0:cosmos1av497q6kjky9j5v3z95668d57q9ha80p5fypd4",
+			expPass: false,
+		},
+		{
+			name:    "error - forward empty destinationAddress",
+			input:   "fx1av497q6kjky9j5v3z95668d57q9ha80pwe45qy|transfer/channel-0:",
+			expPass: false,
+		},
+		{
+			name:                "ok - no-forward",
+			input:               "fx1av497q6kjky9j5v3z95668d57q9ha80pwe45qy",
+			expPass:             true,
+			expThisChainAddress: "fx1av497q6kjky9j5v3z95668d57q9ha80pwe45qy",
+		},
+		{
+			name:                "ok - forward empty portID",
+			input:               "fx1av497q6kjky9j5v3z95668d57q9ha80pwe45qy|/channel-0:cosmos1av497q6kjky9j5v3z95668d57q9ha80p5fypd4",
+			expPass:             true,
+			expThisChainAddress: "fx1av497q6kjky9j5v3z95668d57q9ha80pwe45qy",
+			expPort:             "",
+			expChannel:          "channel-0",
+			expFinalDestination: "cosmos1av497q6kjky9j5v3z95668d57q9ha80p5fypd4",
+		},
+		{
+			name:                "ok - forward empty channelID",
+			input:               "fx1av497q6kjky9j5v3z95668d57q9ha80pwe45qy|transfer/:cosmos1av497q6kjky9j5v3z95668d57q9ha80p5fypd4",
+			expPass:             true,
+			expThisChainAddress: "fx1av497q6kjky9j5v3z95668d57q9ha80pwe45qy",
+			expPort:             "transfer",
+			expChannel:          "",
+			expFinalDestination: "cosmos1av497q6kjky9j5v3z95668d57q9ha80p5fypd4",
+		},
+		{
+			name:                "ok - forward",
+			input:               "fx1av497q6kjky9j5v3z95668d57q9ha80pwe45qy|transfer/channel-0:cosmos1av497q6kjky9j5v3z95668d57q9ha80p5fypd4",
+			expPass:             true,
+			expThisChainAddress: "fx1av497q6kjky9j5v3z95668d57q9ha80pwe45qy",
+			expPort:             "transfer",
+			expChannel:          "channel-0",
+			expFinalDestination: "cosmos1av497q6kjky9j5v3z95668d57q9ha80p5fypd4",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			thisChainAddress, finalDestination, port, channel, err := transfer.ParseIncomingTransferField(tc.input)
+			if tc.expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				return
+			}
+
+			require.EqualValues(t, tc.expThisChainAddress, thisChainAddress.String())
+			require.EqualValues(t, tc.expFinalDestination, finalDestination)
+			require.EqualValues(t, tc.expPort, port)
+			require.EqualValues(t, tc.expChannel, channel)
 		})
 	}
 }

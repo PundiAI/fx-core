@@ -341,14 +341,14 @@ func (im IBCModule) OnTimeoutPacket(
 }
 
 // ParseIncomingTransferField For now this assumes one hop, should be better parsing
-func ParseIncomingTransferField(receiverData string) (thischainaddr sdk.AccAddress, finaldestination, port, channel string, err error) {
+func ParseIncomingTransferField(receiverData string) (thisChainAddr sdk.AccAddress, finalDestination, port, channel string, err error) {
 	sep1 := strings.Split(receiverData, ":")
 	switch {
 	case len(sep1) == 1 && sep1[0] != "":
-		thischainaddr, err = sdk.AccAddressFromBech32(receiverData)
+		thisChainAddr, err = sdk.AccAddressFromBech32(receiverData)
 		return
 	case len(sep1) >= 2 && sep1[len(sep1)-1] != "":
-		finaldestination = strings.Join(sep1[1:], ":")
+		finalDestination = strings.Join(sep1[1:], ":")
 	default:
 		return nil, "", "", "", fmt.Errorf("unparsable reciever field, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
 	}
@@ -357,7 +357,7 @@ func ParseIncomingTransferField(receiverData string) (thischainaddr sdk.AccAddre
 		err = fmt.Errorf("formatting incorect, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
 		return
 	}
-	thischainaddr, err = sdk.AccAddressFromBech32(sep2[0])
+	thisChainAddr, err = sdk.AccAddressFromBech32(sep2[0])
 	if err != nil {
 		return
 	}
