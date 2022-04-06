@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	ibcchannelkeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/keeper"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	"math"
 	"sort"
 
@@ -83,6 +84,9 @@ func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) *types.V
 	}
 	k.StoreValset(ctx, valset)
 
+	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
+		k.GetBridgeChainID(ctx)
+	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeValsetUpdate,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),

@@ -72,6 +72,9 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress string, ma
 	for _, tx := range selectedTx[1:] {
 		_, _ = eventBatchNonceTxIds.WriteString(fmt.Sprintf(",%d", tx.Id))
 	}
+	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
+		k.GetBridgeChainID(ctx)
+	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatch,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
@@ -217,6 +220,9 @@ func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, bat
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, *batch)
 
+	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
+		k.GetBridgeChainID(ctx)
+	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),

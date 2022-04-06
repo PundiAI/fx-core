@@ -94,6 +94,9 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 				k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
 				err = k.processAttestation(ctx, att, claim)
+				if ctx.BlockHeight() < fxtype.EvmSupportBlock() {
+					k.GetBridgeChainID(ctx)
+				}
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeContractEvnet,
 					sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
