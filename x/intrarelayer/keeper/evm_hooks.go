@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
@@ -12,7 +12,7 @@ import (
 var _ evmtypes.EvmHooks = (*Keeper)(nil)
 
 // PostTxProcessing implements EvmHooks.PostTxProcessing
-func (k Keeper) PostTxProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
+func (k Keeper) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
 	if ctx.BlockHeight() < fxtype.IntrarelayerSupportBlock() || !k.HasInit(ctx) {
 		return nil
 	}
@@ -21,11 +21,11 @@ func (k Keeper) PostTxProcessing(ctx sdk.Context, from common.Address, to *commo
 		return nil
 	}
 	//process relay token
-	if err := k.RelayTokenProcessing(ctx, from, to, receipt); err != nil {
+	if err := k.RelayTokenProcessing(ctx, msg.From(), msg.To(), receipt); err != nil {
 		return err
 	}
 	//process relay transfer cross(cross-chain,ibc...)
-	if err := k.RelayTransferCrossProcessing(ctx, from, to, receipt); err != nil {
+	if err := k.RelayTransferCrossProcessing(ctx, msg.From(), msg.To(), receipt); err != nil {
 		return err
 	}
 	return nil

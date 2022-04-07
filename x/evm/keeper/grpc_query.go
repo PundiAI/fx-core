@@ -503,7 +503,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 				BlockNumber:       big.NewInt(ctx.BlockHeight()),
 				TransactionIndex:  txConfig.TxIndex,
 			}
-			if err := k.PostTxProcessing(tmpCtx, msg.From(), msg.To(), receipt); err != nil {
+			if err := k.PostTxProcessing(tmpCtx, msg, receipt); err != nil {
 				rsp.VmError = sdkerrors.Wrap(types.ErrPostTxProcessing, err.Error()).Error()
 				return true, rsp, err
 			}

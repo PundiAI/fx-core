@@ -2,6 +2,7 @@ package evm_test
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/core"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	"github.com/functionx/fx-core/x/evm/statedb"
 	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
@@ -102,7 +103,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	var bankGenesis banktypes.GenesisState
 	suite.app.AppCodec().MustUnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenesis)
 
-	// update total supply
+	// Update total supply
 	bankGenesis.Balances = append(bankGenesis.Balances, balances...)
 	bankGenesis.Supply = bankGenesis.Supply.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultEVMDenom, sdk.NewInt(200000000000000)))...)
 	genesisState[banktypes.ModuleName] = suite.app.AppCodec().MustMarshalJSON(&bankGenesis)
@@ -563,7 +564,7 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 			"failure hooks",
 			1000000, // enough gas limit, but hooks fails.
 			&FailureHook{},
-			"mock error: failed to execute post processing",
+			"failed to execute post processing",
 		},
 	}
 
@@ -574,7 +575,7 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 			k.SetHooks(tc.hooks)
 
 			// add some fund to pay gas fee
-			k.SetBalance(suite.ctx, suite.from, big.NewInt(10000000000))
+			require.NoError(suite.T(), k.SetBalance(suite.ctx, suite.from, big.NewInt(10000000000)))
 
 			contract := suite.deployERC20Contract()
 
@@ -689,7 +690,7 @@ func (suite *EvmTestSuite) TestContractDeploymentRevert() {
 // DummyHook implements EvmHooks interface
 type DummyHook struct{}
 
-func (dh *DummyHook) PostTxProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
+func (dh *DummyHook) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
 	return nil
 }
 
@@ -729,6 +730,6 @@ func IntrarelayerParamsToEvm(p intrarelayertypes.Params) *types.IntrarelayerPara
 // FailureHook implements EvmHooks interface
 type FailureHook struct{}
 
-func (dh *FailureHook) PostTxProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
+func (dh *FailureHook) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
 	return errors.New("mock error")
 }

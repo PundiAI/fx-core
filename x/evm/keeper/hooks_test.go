@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/core"
 	"github.com/functionx/fx-core/x/evm/statedb"
 	"math/big"
 
@@ -18,7 +19,7 @@ type LogRecordHook struct {
 	Logs []*ethtypes.Log
 }
 
-func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
+func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
 	dh.Logs = receipt.Logs
 	return nil
 }
@@ -26,7 +27,7 @@ func (dh *LogRecordHook) PostTxProcessing(ctx sdk.Context, from common.Address, 
 // FailureHook always fail
 type FailureHook struct{}
 
-func (dh FailureHook) PostTxProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
+func (dh FailureHook) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
 	return errors.New("post tx processing failed")
 }
 
@@ -81,7 +82,7 @@ func (suite *KeeperTestSuite) TestEvmHooks() {
 			TxHash: txHash,
 			Logs:   logs,
 		}
-		result := k.PostTxProcessing(ctx, common.Address{}, nil, receipt)
+		result := k.PostTxProcessing(ctx, ethtypes.Message{}, receipt)
 
 		tc.expFunc(hook, result)
 	}
