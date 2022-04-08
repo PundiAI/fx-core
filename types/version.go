@@ -193,7 +193,7 @@ func IsRequestBatchBaseFee(height int64) bool {
 
 // ChangeNetworkForTest change network for test
 func ChangeNetworkForTest(newNetwork string) {
-	if network != networkTestnet && network != networkMainnet && network != networkDevnet && network != networkMainnet {
+	if network != networkDevnet && network != networkTestnet && network != networkMainnet {
 		panic("Unsupported network:" + newNetwork)
 	}
 	network = newNetwork

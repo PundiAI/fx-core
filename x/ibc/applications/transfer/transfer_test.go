@@ -36,7 +36,7 @@ type TransferTestSuite struct {
 }
 
 func (suite *TransferTestSuite) SetupTest() {
-	fxtypes.ChangeNetworkForTest("devnet")
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))

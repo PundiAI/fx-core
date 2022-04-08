@@ -24,7 +24,7 @@ import (
 )
 
 func TestOrchestratorChain(t *testing.T) {
-	if testing.Short() {
+	if !testing.Short() {
 		t.SkipNow()
 	}
 	client := NewClient(t)
@@ -236,11 +236,11 @@ func getBalanceByAddress(c *Client, accAddr sdk.AccAddress, denom string) *sdk.C
 func getSentToExternalTxIdByEvents(logs sdk.ABCIMessageLogs) (uint64, bool, error) {
 	for _, eventLog := range logs {
 		for _, event := range eventLog.Events {
-			if event.Type != types.EventTypeSendToExternalReceived {
+			if event.Type != types.EventTypeSendToExternal {
 				continue
 			}
 			for _, attribute := range event.Attributes {
-				if attribute.Key != types.AttributeKeyOutgoingTXID {
+				if attribute.Key != types.AttributeKeyOutgoingTxID {
 					continue
 				}
 				result, err := strconv.ParseUint(attribute.Value, 10, 64)

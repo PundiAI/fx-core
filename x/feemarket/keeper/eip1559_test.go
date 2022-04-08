@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	fxcoretypes "github.com/functionx/fx-core/types"
 	"math/big"
 
@@ -9,6 +10,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestCalculateBaseFee() {
+	fxcoretypes.ChangeNetworkForTest(fxcoretypes.NetworkDevnet())
 	testCases := []struct {
 		name      string
 		NoBaseFee bool
@@ -50,6 +52,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 				// set ElasticityMultiplier
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 				params.ElasticityMultiplier = 1
+				params.MaxGas = sdk.NewInt(100)
 				suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 			},
 			suite.app.FeeMarketKeeper.GetParams(suite.ctx).BaseFee.BigInt(),
@@ -71,6 +74,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 				params.ElasticityMultiplier = 1
+				params.MaxGas = sdk.NewInt(100)
 				suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 			},
 			big.NewInt(1125000000),
@@ -92,6 +96,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 				params.ElasticityMultiplier = 1
+				params.MaxGas = sdk.NewInt(100)
 				suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 			},
 			big.NewInt(937500000),

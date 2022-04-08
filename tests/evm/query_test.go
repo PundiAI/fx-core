@@ -18,7 +18,7 @@ import (
 )
 
 func TestQueryBalance(t *testing.T) {
-	if testing.Short() {
+	if !testing.Short() {
 		t.SkipNow()
 	}
 	client, err := ethclient.Dial("http://0.0.0.0:8545")
@@ -35,7 +35,7 @@ func TestQueryBalance(t *testing.T) {
 }
 
 func TestQueryTransaction(t *testing.T) {
-	if testing.Short() {
+	if !testing.Short() {
 		t.SkipNow()
 	}
 	client, err := ethclient.Dial("http://0.0.0.0:8545")
@@ -47,7 +47,7 @@ func TestQueryTransaction(t *testing.T) {
 }
 
 func TestQueryFxTxByEvmHash(t *testing.T) {
-	if testing.Short() {
+	if !testing.Short() {
 		t.SkipNow()
 	}
 	client, err := ethclient.Dial("http://0.0.0.0:8545")
@@ -107,6 +107,9 @@ func TestFxAddressToEthAddress(t *testing.T) {
 }
 
 func TestTraverseBlockERC20(t *testing.T) {
+	if !testing.Short() {
+		t.SkipNow()
+	}
 	fxClient, err := http.New("http://127.0.0.1:26657", "/websocket")
 	require.NoError(t, err)
 

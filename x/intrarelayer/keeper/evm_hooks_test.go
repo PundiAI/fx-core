@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 
 		result bool
 	}{
-		{"correct execution", 100, 10, 5, true},
+		{name: "correct execution", mint: 100, burn: 10, reconvert: 5, result: true},
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
@@ -107,18 +107,17 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 
 			contractAddr := common.HexToAddress(pair.Fip20Address)
 
+			// 1. mint token to accAddress
 			coins := sdk.NewCoins(sdk.NewCoin(cosmosTokenName, sdk.NewInt(tc.mint)))
-			suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins)
-			suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, accAddress, coins)
+			suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins))
+			suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, accAddress, coins))
 
-			convertCoin := types.NewMsgConvertCoin(
+			// 2. accAddress convert token to 0xAddress
+			_, err := suite.app.IntrarelayerKeeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), types.NewMsgConvertCoin(
 				sdk.NewCoin(cosmosTokenName, sdk.NewInt(tc.burn)),
 				hexAddress,
 				accAddress,
-			)
-
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			_, err := suite.app.IntrarelayerKeeper.ConvertCoin(ctx, convertCoin)
+			))
 			suite.Require().NoError(err, tc.name)
 			suite.Commit()
 

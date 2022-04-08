@@ -19,7 +19,10 @@ import (
 	"time"
 )
 
-func Test_StakingParams(t *testing.T) {
+func TestStakingParams(t *testing.T) {
+	if !testing.Short() {
+		t.SkipNow()
+	}
 	cli := NewClient(t)
 
 	params, err := cli.StakingQuery().Params(context.Background(), &stakingtypes.QueryParamsRequest{})
@@ -27,7 +30,10 @@ func Test_StakingParams(t *testing.T) {
 	t.Log("params", params)
 }
 
-func Test_Delegate(t *testing.T) {
+func TestDelegate(t *testing.T) {
+	if !testing.Short() {
+		t.SkipNow()
+	}
 	cli := NewClient(t)
 	ctx := context.Background()
 	//default account balance
@@ -63,7 +69,10 @@ func Test_Delegate(t *testing.T) {
 	cli.testQueryAccount(ctx, toAddress)
 }
 
-func Test_WithdrawReward(t *testing.T) {
+func TestWithdrawReward(t *testing.T) {
+	if !testing.Short() {
+		t.SkipNow()
+	}
 	cli := NewClient(t)
 	ctx := context.Background()
 	//default account balance
@@ -96,7 +105,10 @@ func Test_WithdrawReward(t *testing.T) {
 	cli.testQueryAccount(ctx, toAddress)
 }
 
-func Test_Undelegate(t *testing.T) {
+func TestUnDelegate(t *testing.T) {
+	if !testing.Short() {
+		t.SkipNow()
+	}
 	cli := NewClient(t)
 	ctx := context.Background()
 	//query
@@ -130,7 +142,10 @@ func Test_Undelegate(t *testing.T) {
 	cli.testQueryAccount(ctx, toAddress)
 }
 
-func Test_Redelegate(t *testing.T) {
+func TestReDelegate(t *testing.T) {
+	if !testing.Short() {
+		t.SkipNow()
+	}
 	cli := NewClient(t)
 	ctx := context.Background()
 	//create validator
@@ -172,7 +187,10 @@ func Test_Redelegate(t *testing.T) {
 	cli.testQueryAccount(ctx, toAddress)
 }
 
-func Test_ProposalDeposit(t *testing.T) {
+func TestProposalDeposit(t *testing.T) {
+	if !testing.Short() {
+		t.SkipNow()
+	}
 	cli := NewClient(t)
 	ctx := context.Background()
 
@@ -198,7 +216,10 @@ func Test_ProposalDeposit(t *testing.T) {
 	cli.testQueryAccount(ctx, toAddress)
 }
 
-func Test_ProposalVote(t *testing.T) {
+func TestProposalVote(t *testing.T) {
+	if !testing.Short() {
+		t.SkipNow()
+	}
 	cli := NewClient(t)
 	ctx := context.Background()
 
@@ -225,7 +246,10 @@ func Test_ProposalVote(t *testing.T) {
 	cli.testQueryAccount(ctx, toAddress)
 }
 
-func Test_All(t *testing.T) {
+func TestAll(t *testing.T) {
+	if !testing.Short() {
+		t.SkipNow()
+	}
 	cli := NewClient(t)
 	ctx := context.Background()
 
@@ -274,7 +298,7 @@ func Test_All(t *testing.T) {
 	cli.testQueryAccount(ctx, toAddress)
 }
 
-func Test_Signature(t *testing.T) {
+func TestSignature(t *testing.T) {
 	bz, err := hex.DecodeString("3741e28e26d1df113bffff063d4121d1559f9efa87cf0110aa3d0be1cf742018")
 	require.NoError(t, err)
 	pri := &ethsecp256k1.PrivKey{Key: bz}

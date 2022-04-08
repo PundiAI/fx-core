@@ -23,7 +23,7 @@ import (
 )
 
 func TestOrchestratorChain(t *testing.T) {
-	if testing.Short() {
+	if !testing.Short() {
 		t.SkipNow()
 	}
 	client := NewClient(t)
@@ -111,11 +111,11 @@ func getBalanceByAddress(c *Client, accAddr sdk.AccAddress, denom string) *sdk.C
 func getSentToEthTxIdByEvents(logs sdk.ABCIMessageLogs) (uint64, bool, error) {
 	for _, eventLog := range logs {
 		for _, event := range eventLog.Events {
-			if event.Type != crosschaintypes.EventTypeSendToExternalReceived {
+			if event.Type != crosschaintypes.EventTypeSendToExternal {
 				continue
 			}
 			for _, attribute := range event.Attributes {
-				if attribute.Key != crosschaintypes.AttributeKeyOutgoingTXID {
+				if attribute.Key != crosschaintypes.AttributeKeyOutgoingTxID {
 					continue
 				}
 				result, err := strconv.ParseUint(attribute.Value, 10, 64)

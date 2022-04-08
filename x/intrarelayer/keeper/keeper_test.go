@@ -109,7 +109,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		//Initialize the chain
 		suite.app.InitChain(
 			abci.RequestInitChain{
-				ChainId:         "evmos_9000-1",
+				InitialHeight:   fxcoretypes.IntrarelayerSupportBlock(),
+				ChainId:         fxcoretypes.EIP155ChainID().String(),
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: simapp.DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
@@ -118,7 +119,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	}
 
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{
-		Height:          1,
+		Height:          fxcoretypes.IntrarelayerSupportBlock(),
 		ChainID:         fxcoretypes.EIP155ChainID().String(),
 		Time:            time.Now().UTC(),
 		ProposerAddress: suite.consAddress.Bytes(),
@@ -170,6 +171,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
+	fxcoretypes.ChangeNetworkForTest(fxcoretypes.NetworkDevnet())
 	suite.DoSetupTest(suite.T())
 }
 

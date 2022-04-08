@@ -13,13 +13,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
-	cryptocodec "github.com/functionx/fx-core/crypto/codec"
+	cosmoscryptocdc "github.com/cosmos/cosmos-sdk/crypto/codec"
+	fxcryptocodec "github.com/functionx/fx-core/crypto/codec"
 	ethermint "github.com/functionx/fx-core/types"
 )
 
 func init() {
 	amino := codec.NewLegacyAmino()
-	cryptocodec.RegisterCrypto(amino)
+	fxcryptocodec.RegisterCrypto(amino)
+	cosmoscryptocdc.RegisterCrypto(amino)
 }
 
 const mnemonic = "picnic rent average infant boat squirrel federal assault mercy purity very motor fossil wheel verify upset box fresh horse vivid copy predict square regret"

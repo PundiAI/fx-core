@@ -8,7 +8,7 @@ import (
 )
 
 func TestQueryValidatorPowerChanger(t *testing.T) {
-	if testing.Short() {
+	if !testing.Short() {
 		t.SkipNow()
 	}
 	grpcClient, err := grpcNewClient("localhost:9090")
