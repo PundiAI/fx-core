@@ -370,7 +370,6 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 	}); err != nil {
 		return err
 	}
-	keeper.WithChainID(ctx)
 	return nil
 }
 

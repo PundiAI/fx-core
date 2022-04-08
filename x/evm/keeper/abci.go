@@ -8,11 +8,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// BeginBlock sets the sdk Context and EIP155 chain id to the Keeper.
-func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	k.WithChainID(ctx)
-}
-
 // EndBlock also retrieves the bloom filter value from the transient store and commits it to the
 // KVStore. The EVM end block logic doesn't update the validator set, thus it returns
 // an empty slice.

@@ -88,26 +88,13 @@ func NewKeeper(
 		storeKey:        storeKey,
 		transientKey:    transientKey,
 		tracer:          tracer,
+		eip155ChainID:   ethermint.EIP155ChainID(),
 	}
 }
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", types.ModuleName)
-}
-
-// WithChainID sets the chain id to the local variable in the keeper
-func (k *Keeper) WithChainID(ctx sdk.Context) {
-	chainID, err := ethermint.ParseChainID(ctx.ChainID())
-	if err != nil {
-		panic(err)
-	}
-
-	if k.eip155ChainID != nil && k.eip155ChainID.Cmp(chainID) != 0 {
-		panic("chain id already set")
-	}
-
-	k.eip155ChainID = chainID
 }
 
 // ChainID returns the EIP155 chain ID for the EVM context

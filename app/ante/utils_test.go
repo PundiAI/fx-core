@@ -74,7 +74,6 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 2, ChainID: "ethermint_9000-1", Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
-	suite.app.EvmKeeper.WithChainID(suite.ctx)
 	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.enableFeemarket, suite.enableLondonHF))
 	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
@@ -207,9 +206,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, from)
 	suite.Require().NoError(err)
 
-	pc, err := types.ParseChainID(chainId)
-	suite.Require().NoError(err)
-	ethChainId := pc.Uint64()
+	ethChainId := types.EIP155ChainID()
 
 	// GenerateTypedData TypedData
 	var ethermintCodec codec.ProtoCodecMarshaler
@@ -217,7 +214,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	accNumber := suite.app.AccountKeeper.GetAccount(suite.ctx, from).GetAccountNumber()
 
 	data := legacytx.StdSignBytes(chainId, accNumber, nonce, 0, fee, []sdk.Msg{msg}, "")
-	typedData, err := eip712.WrapTxToTypedData(ethermintCodec, ethChainId, msg, data, &eip712.FeeDelegationOptions{
+	typedData, err := eip712.WrapTxToTypedData(ethermintCodec, ethChainId.Uint64(), msg, data, &eip712.FeeDelegationOptions{
 		FeePayer: from,
 	})
 	suite.Require().NoError(err)
@@ -235,7 +232,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	var option *codectypes.Any
 	option, err = codectypes.NewAnyWithValue(&types.ExtensionOptionsWeb3Tx{
 		FeePayer:         from.String(),
-		TypedDataChainID: ethChainId,
+		TypedDataChainID: ethChainId.Uint64(),
 		FeePayerSig:      signature,
 	})
 	suite.Require().NoError(err)
@@ -301,7 +298,6 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 	}); err != nil {
 		return err
 	}
-	keeper.WithChainID(ctx)
 	return nil
 }
 

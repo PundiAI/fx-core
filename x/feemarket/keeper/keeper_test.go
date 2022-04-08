@@ -195,7 +195,6 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, marketKeeper
 
 	//marketKeeper.SetBaseFee(ctx, sdk.ZeroInt().BigInt())
 
-	keeper.WithChainID(ctx)
 	return nil
 }
 

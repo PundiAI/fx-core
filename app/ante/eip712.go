@@ -174,11 +174,6 @@ func VerifySignature(
 			msgs, tx.GetMemo(),
 		)
 
-		signerChainID, err := ethermint.ParseChainID(signerData.ChainID)
-		if err != nil {
-			return sdkerrors.Wrapf(err, "failed to parse chainID: %s", signerData.ChainID)
-		}
-
 		txWithExtensions, ok := tx.(authante.HasExtensionOptionsTx)
 		if !ok {
 			return sdkerrors.Wrap(sdkerrors.ErrUnknownExtensionOptions, "tx doesnt contain any extensions")
@@ -199,7 +194,7 @@ func VerifySignature(
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidChainID, "unknown extension option")
 		}
 
-		if extOpt.TypedDataChainID != signerChainID.Uint64() {
+		if extOpt.TypedDataChainID != ethermint.EIP155ChainID().Uint64() {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidChainID, "invalid chainID")
 		}
 

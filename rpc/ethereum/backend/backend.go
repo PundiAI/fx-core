@@ -98,20 +98,13 @@ type EVMBackend struct {
 
 // NewEVMBackend creates a new EVMBackend instance
 func NewEVMBackend(ctx *server.Context, logger log.Logger, clientCtx client.Context) *EVMBackend {
-	chainID, err := ethermint.ParseChainID(clientCtx.ChainID)
-	if err != nil {
-		panic(err)
-	}
-
-	appConf := config.GetConfig(ctx.Viper)
-
 	return &EVMBackend{
 		ctx:         context.Background(),
 		clientCtx:   clientCtx,
 		queryClient: types.NewQueryClient(clientCtx),
 		logger:      logger.With("module", "evm-backend"),
-		chainID:     chainID,
-		cfg:         appConf,
+		chainID:     ethermint.EIP155ChainID(),
+		cfg:         config.GetConfig(ctx.Viper),
 	}
 }
 
