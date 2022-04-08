@@ -103,7 +103,10 @@ func (k Keeper) ConvertFIP20ToDenom(ctx sdk.Context, contract string, ethSender 
 //  - Mint Tokens and send to receiver
 func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
 	coins := sdk.Coins{coin}
-	fip20 := contracts.FIP20Contract.ABI
+	fip20ABI, found := contracts.GetABI(ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	if !found {
+		return sdkerrors.Wrap(types.ErrInvalidContract, "fip20 contract not found")
+	}
 	contract := pair.GetFIP20Contract()
 
 	//check balance
@@ -118,7 +121,7 @@ func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, se
 	}
 
 	// Mint Tokens and send to receiver
-	_, err = k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "mint", receiver, coin.Amount.BigInt())
+	_, err = k.CallEVM(ctx, fip20ABI, types.ModuleAddress, contract, "mint", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to call mint function with module")
 	}
@@ -167,7 +170,10 @@ func (k Keeper) convertDenomNativeCoin(ctx sdk.Context, pair types.TokenPair, se
 //  - Burn escrowed Coins
 func (k Keeper) convertDenomNativeFIP20(ctx sdk.Context, pair types.TokenPair, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
 	coins := sdk.Coins{coin}
-	fip20 := contracts.FIP20Contract.ABI
+	fip20ABI, found := contracts.GetABI(ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	if !found {
+		return sdkerrors.Wrap(types.ErrInvalidContract, "fip20 contract not found")
+	}
 	contract := pair.GetFIP20Contract()
 	//check balance
 	balanceCoin, balanceToken, err := k.balanceOfConvert(ctx, pair.Denom, sender, contract, receiver)
@@ -181,14 +187,14 @@ func (k Keeper) convertDenomNativeFIP20(ctx sdk.Context, pair types.TokenPair, s
 	}
 
 	// Unescrow Tokens and send to receiver
-	res, err := k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "transfer", receiver, coin.Amount.BigInt())
+	res, err := k.CallEVM(ctx, fip20ABI, types.ModuleAddress, contract, "transfer", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to call transfer function with module")
 	}
 
 	// Check unpackedRet execution
 	var unpackedRet types.FIP20BoolResponse
-	if err := fip20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
+	if err := fip20ABI.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
 		return sdkerrors.Wrap(err, "failed to unpack transfer return data")
 	}
 	if !unpackedRet.Value {
@@ -237,7 +243,10 @@ func (k Keeper) convertDenomNativeFIP20(ctx sdk.Context, pair types.TokenPair, s
 //  - Unescrow coins that have been previously escrowed with ConvertCoin
 func (k Keeper) convertFIP20NativeDenom(ctx sdk.Context, pair types.TokenPair, ethSender common.Address, sender, receiver sdk.AccAddress, amount sdk.Int) error {
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: amount}}
-	fip20 := contracts.FIP20Contract.ABI
+	fip20ABI, found := contracts.GetABI(ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	if !found {
+		return sdkerrors.Wrap(types.ErrInvalidContract, "fip20 contract not found")
+	}
 	contract := pair.GetFIP20Contract()
 	//check balance
 	balanceCoin, balanceToken, err := k.balanceOfConvert(ctx, pair.Denom, receiver, contract, ethSender)
@@ -246,7 +255,7 @@ func (k Keeper) convertFIP20NativeDenom(ctx sdk.Context, pair types.TokenPair, e
 	}
 
 	// Call evm to burn amount
-	_, err = k.CallEVM(ctx, fip20, types.ModuleAddress, contract, "burn", ethSender, amount.BigInt())
+	_, err = k.CallEVM(ctx, fip20ABI, types.ModuleAddress, contract, "burn", ethSender, amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to call burn function with module")
 	}
@@ -300,7 +309,10 @@ func (k Keeper) convertFIP20NativeDenom(ctx sdk.Context, pair types.TokenPair, e
 //  - Send minted coins to the receiver
 func (k Keeper) convertFIP20NativeToken(ctx sdk.Context, pair types.TokenPair, ethSender common.Address, sender, receiver sdk.AccAddress, amount sdk.Int) error {
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: amount}}
-	fip20 := contracts.FIP20Contract.ABI
+	fip20ABI, found := contracts.GetABI(ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	if !found {
+		return sdkerrors.Wrap(types.ErrInvalidContract, "fip20 contract not found")
+	}
 	contract := pair.GetFIP20Contract()
 
 	//check balance
@@ -310,7 +322,7 @@ func (k Keeper) convertFIP20NativeToken(ctx sdk.Context, pair types.TokenPair, e
 	}
 
 	// Escrow tokens on module account
-	transferData, err := fip20.Pack("transfer", types.ModuleAddress, amount.BigInt())
+	transferData, err := fip20ABI.Pack("transfer", types.ModuleAddress, amount.BigInt())
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to pack transfer")
 	}
@@ -322,7 +334,7 @@ func (k Keeper) convertFIP20NativeToken(ctx sdk.Context, pair types.TokenPair, e
 
 	// Check unpackedRet execution
 	var unpackedRet types.FIP20BoolResponse
-	if err := fip20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
+	if err := fip20ABI.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
 		return sdkerrors.Wrap(err, "failed to unpack transfer return data")
 	}
 

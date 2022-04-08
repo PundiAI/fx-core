@@ -19,6 +19,7 @@ const (
 	EventTypeRegisterCoin     = "register_coin"
 	EventTypeRegisterFIP20    = "register_fip20"
 	EventTypeToggleTokenRelay = "toggle_token_relay" // #nosec
+	EventTypeUpgradeContract  = "upgrade_contract"
 
 	AttributeKeyCosmosCoin  = "cosmos_coin"
 	AttributeKeyFIP20Token  = "fip20_token" // #nosec
@@ -28,8 +29,6 @@ const (
 
 	FIP20EventTransfer      = contracts.FIP20EventTransfer
 	FIP20EventTransferCross = contracts.FIP20EventTransferCross
-	FIP20EventTransferChain = contracts.FIP20EventTransferChain
-	FIP20EventTransferIBC   = contracts.FIP20EventTransferIBC
 
 	EventTypeRelayToken = "relay_token"
 	EventEthereumTxHash = "ethereum_tx_hash"

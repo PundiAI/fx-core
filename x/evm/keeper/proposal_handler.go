@@ -10,7 +10,7 @@ import (
 )
 
 type IntrarelayerKeeperI interface {
-	ModuleInit(ctx sdk.Context, enableIntrarelayer, enableEvmHook bool, ibcTransferTimeoutHeight uint64)
+	ModuleInit(ctx sdk.Context, enableIntrarelayer, enableEvmHook bool, ibcTransferTimeoutHeight uint64) error
 	RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (*intrarelayertypes.TokenPair, error)
 }
 
@@ -38,8 +38,10 @@ func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, p *types.InitEvmProposal)
 	//init intrarelayer
 	k.Logger(ctx).Info("init intrarelayer", "params", p.IntrarelayerParams.String())
 
-	k.intrarelayerKeeper.ModuleInit(ctx, p.IntrarelayerParams.EnableIntrarelayer,
-		p.IntrarelayerParams.EnableEVMHook, p.IntrarelayerParams.IbcTransferTimeoutHeight)
+	if err := k.intrarelayerKeeper.ModuleInit(ctx, p.IntrarelayerParams.EnableIntrarelayer,
+		p.IntrarelayerParams.EnableEVMHook, p.IntrarelayerParams.IbcTransferTimeoutHeight); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+	}
 
 	//init register coin
 	events := make([]sdk.Event, 0, len(p.Metadata))

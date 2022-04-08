@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"encoding/hex"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/functionx/fx-core/x/evm/statedb"
 	"math/big"
 
@@ -353,4 +355,24 @@ func (k Keeper) GetAddressCodeHash(ctx sdk.Context, addr common.Address) ([]byte
 func (k Keeper) SetAddressCode(ctx sdk.Context, addr common.Address, codeHash []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAddressCode)
 	store.Set(addr.Bytes(), codeHash)
+}
+
+func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error {
+	codeHash := crypto.Keccak256(code)
+	acc := k.GetAccount(ctx, addr)
+	if acc == nil {
+		k.Logger(ctx).Info("create contract with code", "address", addr.String(), "code", hex.EncodeToString(code))
+		acc = statedb.NewEmptyAccount()
+		acc.CodeHash = codeHash
+		k.SetCode(ctx, acc.CodeHash, code)
+		return k.SetAccount(ctx, addr, *acc)
+	}
+	if !acc.IsContract() {
+		return sdkerrors.Wrapf(types.ErrInvalidAccount, "address %s not contract, can not update code", addr.Hex())
+	}
+	k.Logger(ctx).Info("create contract with code", "address", addr.String(), "code", hex.EncodeToString(code))
+	k.SetCode(ctx, acc.CodeHash, nil)
+	acc.CodeHash = codeHash
+	k.SetCode(ctx, acc.CodeHash, code)
+	return k.SetAccount(ctx, addr, *acc)
 }

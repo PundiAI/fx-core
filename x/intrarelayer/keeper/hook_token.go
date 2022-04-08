@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/functionx/fx-core/x/intrarelayer/types"
@@ -13,9 +14,13 @@ import (
 )
 
 // RelayTokenProcessing relay token from evm contract to chain address
-func (k Keeper) RelayTokenProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
+func (k Keeper) RelayTokenProcessing(ctx sdk.Context, _ common.Address, _ *common.Address, receipt *ethtypes.Receipt) error {
+	fip20ABI, found := contracts.GetABI(ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	if !found {
+		return fmt.Errorf("fip20 contract not found")
+	}
 	for _, log := range receipt.Logs {
-		if !isRelayTokenEvent(log) {
+		if !isRelayTokenEvent(fip20ABI, log) {
 			continue
 		}
 		pair, found := k.GetTokenPairByAddress(ctx, log.Address)
@@ -27,7 +32,7 @@ func (k Keeper) RelayTokenProcessing(ctx sdk.Context, from common.Address, to *c
 			return fmt.Errorf("token pair not enable, contract %s, denom %s", pair.Fip20Address, pair.Denom)
 		}
 
-		amount, err := parseTransferAmount(log.Data)
+		amount, err := parseTransferAmount(fip20ABI, log.Data)
 		if err != nil {
 			return fmt.Errorf("parse transfer amount error %v", err.Error())
 		}
@@ -36,7 +41,7 @@ func (k Keeper) RelayTokenProcessing(ctx sdk.Context, from common.Address, to *c
 		k.Logger(ctx).Info("relay token", "hash", receipt.TxHash.String(), "from", from.Hex(),
 			"amount", amount.String(), "denom", pair.Denom, "token", pair.Fip20Address)
 
-		err = k.ProcessRelayToken(ctx, receipt.TxHash, pair, from, amount)
+		err = k.ProcessRelayToken(ctx, fip20ABI, receipt.TxHash, pair, from, amount)
 		if err != nil {
 			k.Logger(ctx).Error("failed to relay token", "hash", receipt.TxHash.String(), "error", err.Error())
 			return err
@@ -54,14 +59,14 @@ func (k Keeper) GetTokenPairByAddress(ctx sdk.Context, address common.Address) (
 	}
 	return k.GetTokenPair(ctx, pairID)
 }
-func (k Keeper) ProcessRelayToken(ctx sdk.Context, txHash common.Hash, pair types.TokenPair, from common.Address, amount *big.Int) error {
+func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash common.Hash, pair types.TokenPair, from common.Address, amount *big.Int) error {
 	var err error
 	// create the corresponding sdk.Coin that is paired with FIP20
 	coins := sdk.Coins{{Denom: pair.Denom, Amount: sdk.NewIntFromBigInt(amount)}}
 
 	switch pair.ContractOwner {
 	case types.OWNER_MODULE:
-		if _, err = k.CallEVM(ctx, contracts.FIP20Contract.ABI, types.ModuleAddress, pair.GetFIP20Contract(),
+		if _, err = k.CallEVM(ctx, fip20ABI, types.ModuleAddress, pair.GetFIP20Contract(),
 			"burn", types.ModuleAddress, amount); err != nil {
 			return err
 		}
@@ -106,12 +111,12 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, txHash common.Hash, pair type
 //isRelayTokenEvent check transfer event is relay token
 //transfer event ---> event Transfer(address indexed from, address indexed to, uint256 value);
 //address to must be equal ModuleAddress
-func isRelayTokenEvent(log *ethtypes.Log) bool {
+func isRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) bool {
 	if len(log.Topics) < 3 {
 		return false
 	}
 	eventID := log.Topics[0] // event ID
-	event, err := contracts.FIP20Contract.ABI.EventByID(eventID)
+	event, err := fip20ABI.EventByID(eventID)
 	if err != nil {
 		return false
 	}
@@ -124,9 +129,9 @@ func isRelayTokenEvent(log *ethtypes.Log) bool {
 }
 
 //parseTransferAmount parse transfer event data to big int
-func parseTransferAmount(data []byte) (*big.Int, error) {
+func parseTransferAmount(fip20ABI abi.ABI, data []byte) (*big.Int, error) {
 	//relay amount
-	transferEvent, err := contracts.FIP20Contract.ABI.Unpack(types.FIP20EventTransfer, data)
+	transferEvent, err := fip20ABI.Unpack(types.FIP20EventTransfer, data)
 	if err != nil {
 		return nil, fmt.Errorf("unpack transfer event error %v", err.Error())
 	}

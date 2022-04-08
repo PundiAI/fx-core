@@ -13,15 +13,19 @@ import (
 )
 
 func (k Keeper) RelayTransferCrossProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {
+	fip20ABI, found := contracts.GetABI(ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	if !found {
+		return fmt.Errorf("fip20 contract not found")
+	}
 	for _, log := range receipt.Logs {
-		if !contracts.VerifyTransferCrossEvent(log) {
+		if !contracts.VerifyTransferCrossEvent(fip20ABI, log) {
 			continue
 		}
 		pair, found := k.GetTokenPairByAddress(ctx, log.Address)
 		if !found {
 			continue
 		}
-		tc, err := contracts.LogToTransferCross(log, pair.Denom)
+		tc, err := contracts.LogToTransferCross(fip20ABI, log, pair.Denom)
 		if err != nil {
 			return err
 		}

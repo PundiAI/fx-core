@@ -1,10 +1,13 @@
 package keeper
 
 import (
+	"encoding/hex"
+	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/functionx/fx-core/x/intrarelayer/types"
@@ -12,7 +15,7 @@ import (
 )
 
 // ModuleInit export to init module
-func (k Keeper) ModuleInit(ctx sdk.Context, enableIntrarelayer, enableEvmHook bool, ibcTransferTimeoutHeight uint64) {
+func (k Keeper) ModuleInit(ctx sdk.Context, enableIntrarelayer, enableEvmHook bool, ibcTransferTimeoutHeight uint64) error {
 	k.SetParams(ctx, types.Params{
 		EnableIntrarelayer:       enableIntrarelayer,
 		EnableEVMHook:            enableEvmHook,
@@ -20,8 +23,13 @@ func (k Keeper) ModuleInit(ctx sdk.Context, enableIntrarelayer, enableEvmHook bo
 	})
 	// ensure intrarelayer module account is set on genesis
 	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
-		panic("the intrarelayer module account has not been set")
+		return errors.New("the intrarelayer module account has not been set")
 	}
+	//init system contract
+	if err := contracts.InitSystemContract(ctx, k.evmKeeper); err != nil {
+		return fmt.Errorf("intrarelayer module init system contract error: %v", err)
+	}
+	return nil
 }
 
 // RegisterCoin deploys an fip20 contract and creates the token pair for the cosmos coin
@@ -55,7 +63,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	}
 
 	evmParams := k.evmKeeper.GetParams(ctx)
-	addr, err := k.DeployFIP20Contract(ctx, name, symbol, decimals, coinMetadata.Base == evmParams.EvmDenom)
+	addr, err := k.DeployTokenUpgrade(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == evmParams.EvmDenom)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for FIP20")
 	}
@@ -79,34 +87,74 @@ func (k Keeper) verifyMetadata(ctx sdk.Context, coinMetadata banktypes.Metadata)
 	return equalMetadata(meta, coinMetadata)
 }
 
-// DeployFIP20Contract creates and deploys an FIP20 contract on the EVM with the intrarelayer module account as owner
-func (k Keeper) DeployFIP20Contract(ctx sdk.Context, name, symbol string, decimals uint8, origin ...bool) (common.Address, error) {
-	contract := contracts.FIP20Contract
-	if len(origin) > 0 && origin[0] {
-		contract = contracts.WFXContract
-	}
-
-	ctorArgs, err := contract.ABI.Pack("", name, symbol, decimals)
+func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, constructorData ...interface{}) (common.Address, error) {
+	ctorArgs, err := abi.Pack("", constructorData...)
 	if err != nil {
-		return common.Address{}, sdkerrors.Wrapf(err, "coin metadata is invalid  %s", name)
+		return common.Address{}, sdkerrors.Wrap(err, "pack constructor data")
 	}
+	data := make([]byte, len(bin)+len(ctorArgs))
+	copy(data[:len(bin)], bin)
+	copy(data[len(bin):], ctorArgs)
 
-	data := make([]byte, len(contract.Bin)+len(ctorArgs))
-	copy(data[:len(contract.Bin)], contract.Bin)
-	copy(data[len(contract.Bin):], ctorArgs)
-
-	nonce, err := k.accountKeeper.GetSequence(ctx, types.ModuleAddress.Bytes())
+	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
 		return common.Address{}, err
 	}
 
-	contractAddr := crypto.CreateAddress(types.ModuleAddress, nonce)
-	_, err = k.CallEVMWithPayload(ctx, types.ModuleAddress, nil, data)
+	contractAddr := crypto.CreateAddress(from, nonce)
+	_, err = k.CallEVMWithPayload(ctx, from, nil, data)
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to deploy contract for %s", name)
+		return common.Address{}, sdkerrors.Wrap(err, "failed to deploy contract")
+	}
+	return contractAddr, nil
+}
+
+func (k Keeper) DeployTokenUpgrade(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8, origin bool) (common.Address, error) {
+	k.Logger(ctx).Info("deploy token upgrade", "name", name, "symbol", symbol, "decimals", decimals)
+
+	ccLogicABI, foundLogic := contracts.GetABI(ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	logicAddr := common.HexToAddress(contracts.FIP20UpgradeCodeAddress)
+	if origin {
+		ccLogicABI, foundLogic = contracts.GetABI(ctx.BlockHeight(), contracts.WFXUpgradeType)
+		logicAddr = common.HexToAddress(contracts.WFXUpgradeCodeAddress)
+	}
+	if !foundLogic {
+		return common.Address{}, sdkerrors.Wrapf(types.ErrInvalidContract, "logic contract not found(origin:%v, logic:%v)", origin, foundLogic)
 	}
 
-	return contractAddr, nil
+	//deploy proxy
+	proxy, err := k.DeployERC1967Proxy(ctx, from, logicAddr)
+	if err != nil {
+		return common.Address{}, err
+	}
+	err = k.InitializeUpgradable(ctx, from, proxy, ccLogicABI, name, symbol, decimals, types.ModuleAddress)
+	return proxy, err
+}
+
+func (k Keeper) DeployERC1967Proxy(ctx sdk.Context, from, logicAddr common.Address, logicData ...byte) (common.Address, error) {
+	k.Logger(ctx).Info("deploy erc1967 proxy", "logic", logicAddr.String(), "data", hex.EncodeToString(logicData))
+	proxyABI, found := contracts.GetABI(ctx.BlockHeight(), contracts.ERC1967ProxyType)
+	if !found {
+		return common.Address{}, sdkerrors.Wrap(types.ErrInvalidContract, "erc1967 proxy abi not found")
+	}
+	proxyBin, found := contracts.GetBin(ctx.BlockHeight(), contracts.ERC1967ProxyType)
+	if !found {
+		return common.Address{}, sdkerrors.Wrap(types.ErrInvalidContract, "erc1967 proxy bin not found")
+	}
+
+	if len(logicData) == 0 {
+		logicData = []byte{}
+	}
+	return k.DeployContract(ctx, from, proxyABI, proxyBin, logicAddr, logicData)
+}
+
+func (k Keeper) InitializeUpgradable(ctx sdk.Context, from, contract common.Address, abi abi.ABI, data ...interface{}) error {
+	k.Logger(ctx).Info("initialize upgradable", "contract", contract.Hex())
+	_, err := k.CallEVM(ctx, abi, from, contract, "initialize", data...)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to initialize contract")
+	}
+	return nil
 }
 
 // RegisterFIP20 creates a cosmos coin and registers the token pair between the coin and the FIP20

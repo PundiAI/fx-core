@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterFIP20() {
 			suite.mintFeeCollector = true
 			suite.SetupTest()
 
-			contractAddr := suite.DeployContract("coin", "token", 18)
+			contractAddr := suite.DeployContract(suite.address, "coin", "token", 18)
 			suite.Commit()
 
 			tc.malleate(contractAddr)

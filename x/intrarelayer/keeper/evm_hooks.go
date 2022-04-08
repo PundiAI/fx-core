@@ -4,9 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
-
 	fxtype "github.com/functionx/fx-core/types"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
 )
 
 var _ evmtypes.EvmHooks = (*Keeper)(nil)

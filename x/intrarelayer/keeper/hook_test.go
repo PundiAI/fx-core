@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/functionx/fx-core/app/ante"
 	"github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
@@ -30,6 +32,7 @@ import (
 	"github.com/functionx/fx-core/x/gravity"
 	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/x/intrarelayer/keeper"
 	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -157,7 +160,7 @@ func TestHookChainGravity(t *testing.T) {
 
 	token := pair.GetFIP20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, gravitytypes.ModuleName)
-	transferChainData := packTransferCrossData(t, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
+	transferChainData := packTransferCrossData(t, ctx, *app.IntrarelayerKeeper, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
 	transactions := app.GravityKeeper.GetPoolTransactions(ctx)
@@ -205,7 +208,7 @@ func TestHookChainBSC(t *testing.T) {
 
 	token := pair.GetFIP20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, bsctypes.ModuleName)
-	transferChainData := packTransferCrossData(t, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
+	transferChainData := packTransferCrossData(t, ctx, *app.IntrarelayerKeeper, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
 	transactions := app.BscKeeper.GetUnbatchedTransactions(ctx)
@@ -253,12 +256,13 @@ func TestHookIBC(t *testing.T) {
 
 	token := pair.GetFIP20Contract()
 	ibcTarget := fmt.Sprintf("%s%s", contracts.TransferIBCPrefix, "px/transfer/channel-0")
-	transferIBCData := packTransferCrossData(t, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", fxcore.CoinOne, big.NewInt(0), ibcTarget)
+	transferIBCData := packTransferCrossData(t, ctx, *app.IntrarelayerKeeper, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", fxcore.CoinOne, big.NewInt(0), ibcTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferIBCData)
 }
 
-func packTransferCrossData(t *testing.T, to string, amount, fee *big.Int, target string) []byte {
-	pack, err := contracts.FIP20Contract.ABI.Pack("transferCross", to, amount, fee, target)
+func packTransferCrossData(t *testing.T, ctx sdk.Context, k keeper.Keeper, to string, amount, fee *big.Int, target string) []byte {
+	fip20ABI := contracts.MustGetABI(ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	pack, err := fip20ABI.Pack("transferCross", to, amount, fee, target)
 	require.NoError(t, err)
 	return pack
 }
@@ -295,6 +299,24 @@ func sendEthTx(t *testing.T, ctx sdk.Context, app *fxcore.App,
 	ercTransferTx.From = from.String()
 	err = ercTransferTx.Sign(ethtypes.LatestSignerForChainID(chainID), signer)
 	require.NoError(t, err)
+
+	options := ante.HandlerOptions{
+		AccountKeeper:   app.AccountKeeper,
+		BankKeeper:      app.BankKeeper,
+		EvmKeeper:       app.EvmKeeper,
+		SignModeHandler: fxcore.MakeEncodingConfig().TxConfig.SignModeHandler(),
+		SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+	}
+	require.NoError(t, options.Validate())
+	handler := ante.NewAnteHandler(options)
+
+	clientCtx := client.Context{}.WithTxConfig(fxcore.MakeEncodingConfig().TxConfig)
+	params := app.EvmKeeper.GetParams(ctx)
+	tx, err := ercTransferTx.BuildTx(clientCtx.TxConfig.NewTxBuilder(), params.EvmDenom)
+	require.NoError(t, err)
+	ctx, err = handler(ctx, tx, false)
+	require.NoError(t, err)
+
 	rsp, err := app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(ctx), ercTransferTx)
 	require.NoError(t, err)
 	require.Empty(t, rsp.VmError)

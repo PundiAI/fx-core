@@ -7,7 +7,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/functionx/fx-core/x/evm/statedb"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"time"
@@ -46,7 +45,7 @@ type BankKeeper interface {
 // EVMKeeper defines the expected EVM keeper interface used on intrarelayer
 type EVMKeeper interface {
 	GetParams(ctx sdk.Context) evmtypes.Params
-	GetAccountWithoutBalance(ctx sdk.Context, addr common.Address) *statedb.Account
+	CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error
 	EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*evmtypes.EstimateGasResponse, error)
 	ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error)
 }

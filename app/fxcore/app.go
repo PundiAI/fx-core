@@ -564,6 +564,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		ibchost.ModuleName,
 		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
+		intrarelayertypes.ModuleName,
 	)
 
 	myApp.mm.SetOrderEndBlockers(

@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/functionx/fx-core/x/intrarelayer/types"
@@ -69,4 +70,8 @@ func (k *Keeper) SetIBCTransferKeeper(ibcTransferKeepr types.IBCTransferKeeper) 
 
 func (k *Keeper) SetIBCChannelKeeper(ibcChannelKeeper types.IBCChannelKeeper) {
 	k.ibcChannelKeeper = ibcChannelKeeper
+}
+
+func (k *Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error {
+	return k.evmKeeper.CreateContractWithCode(ctx, addr, code)
 }

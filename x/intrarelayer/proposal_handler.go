@@ -17,8 +17,8 @@ func NewIntrarelayerProposalHandler(k *keeper.Keeper) govtypes.Handler {
 		switch c := content.(type) {
 		case *types.RegisterCoinProposal:
 			return handleRegisterCoinProposal(ctx, k, c)
-		case *types.RegisterFIP20Proposal:
-			return handleRegisterFIP20Proposal(ctx, k, c)
+		//case *types.RegisterFIP20Proposal:
+		//	return handleRegisterFIP20Proposal(ctx, k, c)
 		case *types.ToggleTokenRelayProposal:
 			return handleToggleRelayProposal(ctx, k, c)
 		default:

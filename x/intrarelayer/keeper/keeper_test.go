@@ -8,6 +8,7 @@ import (
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	"github.com/functionx/fx-core/x/evm/statedb"
+	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 	"math/big"
 	"testing"
 	"time"
@@ -41,7 +42,6 @@ import (
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"github.com/functionx/fx-core/x/intrarelayer/types"
-	"github.com/functionx/fx-core/x/intrarelayer/types/contracts"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 )
 
@@ -184,56 +184,22 @@ func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
 	suite.Require().NoError(err)
 }
 
-func (suite *KeeperTestSuite) DeployContract(name string, symbol string, decimals uint8) common.Address {
-	ctx := sdk.WrapSDKContext(suite.ctx)
-	chainID := suite.app.EvmKeeper.ChainID()
-
-	ctorArgs, err := contracts.FIP20Contract.ABI.Pack("", name, symbol, decimals)
+func (suite *KeeperTestSuite) DeployContract(from common.Address, name string, symbol string, decimals uint8) common.Address {
+	contractAddress, err := suite.app.IntrarelayerKeeper.DeployTokenUpgrade(suite.ctx, from, name, symbol, decimals, false)
 	suite.Require().NoError(err)
-
-	data := append(contracts.FIP20Contract.Bin, ctorArgs...)
-	args, err := json.Marshal(&evm.TransactionArgs{
-		From: &suite.address,
-		Data: (*hexutil.Bytes)(&data),
-	})
-	suite.Require().NoError(err)
-
-	res, err := suite.queryClientEvm.EstimateGas(ctx, &evm.EthCallRequest{
-		Args:   args,
-		GasCap: uint64(config.DefaultGasCap),
-	})
-	suite.Require().NoError(err)
-
-	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
-
-	fip20DeployTx := evm.NewTxContract(
-		chainID,
-		nonce,
-		nil,     // amount
-		res.Gas, // gasLimit
-		nil,     // gasPrice
-		suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
-		big.NewInt(1),
-		data,                   // input
-		&ethtypes.AccessList{}, // accesses
-	)
-
-	fip20DeployTx.From = suite.address.Hex()
-	err = fip20DeployTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
-	suite.Require().NoError(err)
-	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, fip20DeployTx)
-	suite.Require().NoError(err)
-	suite.Require().Empty(rsp.VmError)
-	return crypto.CreateAddress(suite.address, nonce)
+	return contractAddress
 }
+
 func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation(name string, symbol string) common.Address {
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	chainID := suite.app.EvmKeeper.ChainID()
 
-	ctorArgs, err := contracts.FIP20Contract.ABI.Pack("", big.NewInt(1000000000000000000))
+	fip20ABI := contracts.MustGetABI(suite.ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	fip20Bin := contracts.MustGetBin(suite.ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	ctorArgs, err := fip20ABI.Pack("", big.NewInt(1000000000000000000))
 	suite.Require().NoError(err)
 
-	data := append(contracts.FIP20Contract.Bin, ctorArgs...)
+	data := append(fip20Bin, ctorArgs...)
 	args, err := json.Marshal(&evm.TransactionArgs{
 		From: &suite.address,
 		Data: (*hexutil.Bytes)(&data),
@@ -286,13 +252,15 @@ func (suite *KeeperTestSuite) Commit() {
 }
 
 func (suite *KeeperTestSuite) MintFIP20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	transferData, err := contracts.FIP20Contract.ABI.Pack("mint", to, amount)
+	fip20ABI := contracts.MustGetABI(suite.ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	transferData, err := fip20ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
 
 func (suite *KeeperTestSuite) BurnFIP20Token(contractAddr, from common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	transferData, err := contracts.FIP20Contract.ABI.Pack("transfer", types.ModuleAddress, amount)
+	fip20ABI := contracts.MustGetABI(suite.ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	transferData, err := fip20ABI.Pack("transfer", types.ModuleAddress, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
@@ -338,14 +306,14 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 }
 
 func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interface{} {
-	fip20 := contracts.FIP20Contract.ABI
+	fip20ABI := contracts.MustGetABI(suite.ctx.BlockHeight(), contracts.FIP20UpgradeType)
 
-	res, err := suite.app.IntrarelayerKeeper.CallEVM(suite.ctx, fip20, types.ModuleAddress, contract, "balanceOf", account)
+	res, err := suite.app.IntrarelayerKeeper.CallEVM(suite.ctx, fip20ABI, types.ModuleAddress, contract, "balanceOf", account)
 	if err != nil {
 		return nil
 	}
 
-	unpacked, err := fip20.Unpack("balanceOf", res.Ret)
+	unpacked, err := fip20ABI.Unpack("balanceOf", res.Ret)
 	if len(unpacked) == 0 {
 		return nil
 	}
@@ -354,13 +322,13 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 }
 
 func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
-	fip20 := contracts.FIP20Contract.ABI
+	fip20ABI := contracts.MustGetABI(suite.ctx.BlockHeight(), contracts.FIP20UpgradeType)
 
-	res, err := suite.app.IntrarelayerKeeper.CallEVM(suite.ctx, fip20, types.ModuleAddress, contract, "name")
+	res, err := suite.app.IntrarelayerKeeper.CallEVM(suite.ctx, fip20ABI, types.ModuleAddress, contract, "name")
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res)
 
-	unpacked, err := fip20.Unpack("name", res.Ret)
+	unpacked, err := fip20ABI.Unpack("name", res.Ret)
 	suite.Require().NoError(err)
 	suite.Require().NotEmpty(unpacked)
 
@@ -368,7 +336,8 @@ func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
 }
 
 func (suite *KeeperTestSuite) TransferFIP20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	transferData, err := contracts.FIP20Contract.ABI.Pack("transfer", to, amount)
+	fip20ABI := contracts.MustGetABI(suite.ctx.BlockHeight(), contracts.FIP20UpgradeType)
+	transferData, err := fip20ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
@@ -378,6 +347,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee bool) error {
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxcoretypes.EvmSupportBlock())
 	defaultEvmParams := evmtypes.DefaultParams()
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
 	defaultIntrarelayerParams := types.DefaultParams()

@@ -15,4 +15,7 @@ var (
 	ErrUndefinedOwner        = sdkerrors.Register(ModuleName, 8, "undefined owner of contract pair")
 	ErrInvalidMetadata       = sdkerrors.Register(ModuleName, 9, "invalid metadata")
 	ErrInvalidBalance        = sdkerrors.Register(ModuleName, 10, "invalid balance")
+	ErrInvalidAddress        = sdkerrors.Register(ModuleName, 11, "invalid address")
+	ErrInvalidContract       = sdkerrors.Register(ModuleName, 12, "invalid contract")
+	ErrInvalidVersion        = sdkerrors.Register(ModuleName, 13, "invalid version")
 )

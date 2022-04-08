@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) TestQueryFIP20() {
 		},
 		{
 			"ok",
-			func() { contract = suite.DeployContract("coin", "token", 18) },
+			func() { contract = suite.DeployContract(types.ModuleAddress, "coin", "token", 18) },
 			true,
 		},
 	}
@@ -64,11 +64,11 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 	for _, tc := range testCases {
 		suite.SetupTest() // reset
 
-		fip20 := contracts.FIP20Contract.ABI
-		contract := suite.DeployContract("coin", "token", 18)
+		fip20ABI := contracts.MustGetABI(suite.ctx.BlockHeight(), contracts.FIP20UpgradeType)
+		contract := suite.DeployContract(types.ModuleAddress, "coin", "token", 18)
 		account := tests.GenerateAddress()
 
-		res, err := suite.app.IntrarelayerKeeper.CallEVM(suite.ctx, fip20, types.ModuleAddress, contract, tc.method, account)
+		res, err := suite.app.IntrarelayerKeeper.CallEVM(suite.ctx, fip20ABI, types.ModuleAddress, contract, tc.method, account)
 		if tc.expPass {
 			suite.Require().IsTypef(&evmtypes.MsgEthereumTxResponse{}, res, tc.name)
 			suite.Require().NoError(err)
