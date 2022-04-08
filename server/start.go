@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"io"
 	"net/http"
 	"os"
@@ -11,8 +10,6 @@ import (
 	"runtime/pprof"
 	"strings"
 	"time"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
 	"github.com/spf13/cobra"
 
@@ -30,6 +27,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
@@ -39,6 +37,7 @@ import (
 
 	ethdebug "github.com/functionx/fx-core/rpc/ethereum/namespaces/debug"
 	"github.com/functionx/fx-core/server/config"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
 )
 
 const (
@@ -214,7 +213,7 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Bool(flagRPCEnable, false, "Defines if Cosmos-sdk REST server should be enabled")
 	cmd.Flags().Bool(flagEnabledUnsafeCors, false, "Defines if CORS should be enabled (unsafe - use it at your own risk)")
 
-	cmd.Flags().Bool(JSONRPCEnable, false, "Define if the gRPC server should be enabled")
+	cmd.Flags().Bool(JSONRPCEnable, true, "Define if the gRPC server should be enabled")
 	cmd.Flags().StringSlice(JSONRPCAPI, config.GetDefaultAPINamespaces(), "Defines a list of JSON-RPC namespaces that should be enabled")
 	cmd.Flags().String(JSONRPCAddress, config.DefaultJSONRPCAddress, "the JSON-RPC server address to listen on")
 	cmd.Flags().String(JSONWsAddress, config.DefaultJSONRPCWsAddress, "the JSON-RPC WS server address to listen on")

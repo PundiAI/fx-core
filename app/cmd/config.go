@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	fxconfig "github.com/functionx/fx-core/server/config"
 	"path/filepath"
 	"strings"
 
@@ -26,6 +26,10 @@ func AppTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app.toml [key] [value]",
 		Short: "Create or query an `.fxcore/config/apptoml` file",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			config.SetConfigTemplate(fxconfig.DefaultConfigTemplate())
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runConfigCmd(cmd, append([]string{appFileName}, args...))
 		},
@@ -86,7 +90,7 @@ var (
 )
 
 type appTomlConfig struct {
-	config *config.Config
+	config *fxconfig.Config
 }
 
 func (a appTomlConfig) output(clientCtx client.Context) error {
@@ -122,7 +126,7 @@ func (c configTomlConfig) save(clientCtx *server.Context, configPath string) err
 func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) {
 	switch configName {
 	case appFileName:
-		var configData = config.Config{}
+		var configData = fxconfig.Config{}
 		if err := clientCtx.Viper.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
@@ -134,7 +138,7 @@ func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) 
 		}
 		return &configTomlConfig{config: &configData}, nil
 	default:
-		return nil, errors.New(fmt.Sprintf("invalid config file:%s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/")))
+		return nil, fmt.Errorf("invalid config file:%s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/"))
 	}
 }
 

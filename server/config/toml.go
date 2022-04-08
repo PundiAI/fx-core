@@ -1,7 +1,13 @@
 package config
 
-// DefaultConfigTemplate defines the configuration template for the EVM RPC configuration
-const DefaultConfigTemplate = `
+import "github.com/cosmos/cosmos-sdk/server/config"
+
+func DefaultConfigTemplate() string {
+	return config.DefaultConfigTemplate + DefaultEvmConfigTemplate
+}
+
+// DefaultEvmConfigTemplate defines the configuration template for the EVM RPC configuration
+const DefaultEvmConfigTemplate = `
 ###############################################################################
 ###                             EVM Configuration                           ###
 ###############################################################################
