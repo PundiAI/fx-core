@@ -8,6 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+const TypeMsgMigrateAccount = "migrate_account"
+
 var (
 	_ sdk.Msg = &MsgMigrateAccount{}
 )
@@ -25,7 +27,7 @@ func NewMsgMigrateAccount(from, to sdk.AccAddress, signature string) *MsgMigrate
 func (m *MsgMigrateAccount) Route() string { return RouterKey }
 
 // Type should return the action
-func (m *MsgMigrateAccount) Type() string { return "migrate_account" }
+func (m *MsgMigrateAccount) Type() string { return TypeMsgMigrateAccount }
 
 // ValidateBasic performs stateless checks
 func (m *MsgMigrateAccount) ValidateBasic() (err error) {

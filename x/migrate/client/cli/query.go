@@ -29,10 +29,9 @@ func GetQueryCmd() *cobra.Command {
 
 func CmdGetMigrateRecord() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "migrate-record [address]",
+		Use:     "record [address]",
 		Short:   "Query the migrate record of address",
-		Example: fmt.Sprintf("%s q migrate migrate-record fx1plglgtkj4kj7z2q0jqgyw8exfnahwu8rlu6kzm", version.AppName),
-		Aliases: []string{"mr"},
+		Example: fmt.Sprintf("%s q migrate record fx1plglgtkj4kj7z2q0jqgyw8exfnahwu8rlu6kzm", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)

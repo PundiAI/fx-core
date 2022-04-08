@@ -25,7 +25,7 @@ func GetTxCmd() *cobra.Command {
 
 func GetMigrateAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "migrate-account [to-address]",
+		Use:   "account [to-address]",
 		Short: "migrate account to new address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -47,9 +47,6 @@ func GetMigrateAccountCmd() *cobra.Command {
 				return fmt.Errorf("sign migrate signature error %v", err)
 			}
 			msg := types.NewMsgMigrateAccount(fromAddress, toAddress, hex.EncodeToString(sign))
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}

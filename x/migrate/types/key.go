@@ -19,8 +19,6 @@ const (
 const (
 	MigrateAccountSignaturePrefix = "MigrateAccount:"
 
-	MigratedRecordKey = "migrated_record"
-
 	EventTypeMigrate = "migrate"
 	AttributeKeyFrom = "from"
 	AttributeKeyTo   = "to"
@@ -28,5 +26,5 @@ const (
 
 // GetMigratedRecordKey returns the following key format
 func GetMigratedRecordKey(addr sdk.AccAddress) []byte {
-	return append([]byte(MigratedRecordKey), addr.Bytes()...)
+	return append([]byte{0x11}, addr.Bytes()...)
 }
