@@ -3,7 +3,7 @@ package fx.gravity.v1;
 
 import "gravity/v1/genesis.proto";
 import "gravity/v1/types.proto";
-import "gravity/v1/msgs.proto";
+import "gravity/v1/tx.proto";
 import "gravity/v1/pool.proto";
 import "gravity/v1/batch.proto";
 import "google/api/annotations.proto";

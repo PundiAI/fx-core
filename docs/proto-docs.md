@@ -239,7 +239,7 @@
     - [LastObservedEthereumBlockHeight](#fx.gravity.v1.LastObservedEthereumBlockHeight)
     - [Valset](#fx.gravity.v1.Valset)
   
-- [gravity/v1/msgs.proto](#gravity/v1/msgs.proto)
+- [gravity/v1/tx.proto](#gravity/v1/tx.proto)
     - [MsgCancelSendToEth](#fx.gravity.v1.MsgCancelSendToEth)
     - [MsgCancelSendToEthResponse](#fx.gravity.v1.MsgCancelSendToEthResponse)
     - [MsgConfirmBatch](#fx.gravity.v1.MsgConfirmBatch)
@@ -3702,10 +3702,10 @@ ETH because of the significant gas savings
 
 
 
-<a name="gravity/v1/msgs.proto"></a>
+<a name="gravity/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## gravity/v1/msgs.proto
+## gravity/v1/tx.proto
 
 
 
