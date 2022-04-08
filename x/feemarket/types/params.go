@@ -81,17 +81,24 @@ func (p Params) Validate() error {
 	if p.BaseFeeChangeDenominator == 0 {
 		return fmt.Errorf("base fee change denominator cannot be 0")
 	}
+	if p.ElasticityMultiplier == 0 {
+		return fmt.Errorf("elasticity multiplier cannot be 0")
+	}
 
 	if p.BaseFee.IsNegative() {
 		return fmt.Errorf("initial base fee cannot be negative: %s", p.BaseFee)
 	}
 
 	if p.MinBaseFee.IsNegative() {
-		return fmt.Errorf("min base fee cannot be negative: %s", p.BaseFee)
+		return fmt.Errorf("min base fee cannot be negative: %s", p.MinBaseFee)
 	}
 
 	if p.MaxBaseFee.IsNegative() {
-		return fmt.Errorf("max base fee cannot be negative: %s", p.BaseFee)
+		return fmt.Errorf("max base fee cannot be negative: %s", p.MaxBaseFee)
+	}
+
+	if p.MaxBaseFee.LT(MinBaseFee) {
+		return fmt.Errorf("max base fee(%s) must be gte min base fee(%s)", p.MaxBaseFee, p.MinBaseFee)
 	}
 
 	if p.EnableHeight < 0 {
@@ -99,7 +106,7 @@ func (p Params) Validate() error {
 	}
 
 	if p.MaxGas.IsNegative() {
-		return fmt.Errorf("max gas cannot be negative: %s", p.BaseFee)
+		return fmt.Errorf("max gas cannot be negative: %s", p.MaxGas)
 	}
 
 	return nil
@@ -131,9 +138,12 @@ func validateBaseFeeChangeDenominator(i interface{}) error {
 }
 
 func validateElasticityMultiplier(i interface{}) error {
-	_, ok := i.(uint32)
+	value, ok := i.(uint32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if value == 0 {
+		return fmt.Errorf("elasticity multiplier cannot be 0")
 	}
 	return nil
 }
