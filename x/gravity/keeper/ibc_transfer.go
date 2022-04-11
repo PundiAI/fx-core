@@ -78,10 +78,6 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 
 func (a AttestationHandler) handlerEvmTransfer(ctx sdk.Context, claim *types.MsgDepositClaim, receiver sdk.AccAddress, coin sdk.Coin) {
 	logger := a.keeper.Logger(ctx)
-	if !a.keeper.erc20Keeper.HasInit(ctx) {
-		logger.Error("emv transfer, module not init", "module", "erc20")
-		return
-	}
 	if !a.keeper.erc20Keeper.IsDenomRegistered(ctx, coin.Denom) {
 		logger.Error("evm transfer, denom not registered", "denom", coin.Denom)
 		return

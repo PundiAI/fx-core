@@ -14,10 +14,21 @@ protoc_gen_gocosmos() {
 protoc_gen_gocosmos
 
 if [ ! -f ./build/cosmos-sdk/README.md ]; then
-  if [ ! -f ./build/upgrade.zip ]; then
-    wget -c https://github.com/functionx/cosmos-sdk/archive/refs/heads/feature/upgrade.zip -O ./build/upgrade.zip
+  mkdir -p build
+  cosmos_sdk_commit_hash=$(go list -m -f '{{.Replace.Version}}' github.com/cosmos/cosmos-sdk | awk -F- '{print $3}')
+  if [ ! -f "./build/cosmos-sdk-$cosmos_sdk_commit_hash.zip" ]; then
+    wget -c "https://github.com/functionx/cosmos-sdk/archive/$cosmos_sdk_commit_hash.zip" -O "./build/cosmos-sdk-$cosmos_sdk_commit_hash.zip"
   fi
-  (cd build && unzip -o upgrade.zip && mv cosmos-sdk-feature-upgrade cosmos-sdk)
+  (
+    cd build
+    unzip -o "./cosmos-sdk-$cosmos_sdk_commit_hash.zip"
+    for dir in */; do
+      if [[ -d $dir && "$dir" == "cosmos-sdk-$cosmos_sdk_commit_hash"* ]]; then
+        mv "./$dir" cosmos-sdk
+      fi
+    done
+    rm -rf ./cosmos-sdk/proto/ibc/applications
+  )
 fi
 
 proto_dirs=$(find ./proto -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
@@ -40,7 +51,7 @@ buf protoc \
   --doc_opt=./docs/protodoc-markdown.tmpl,proto-docs.md \
   $(find "$(pwd)/proto" -maxdepth 5 -name '*.proto')
 
-go mod tidy
+#go mod tidy
 
 cp -r github.com/functionx/fx-core/* ./
 rm -rf github.com
