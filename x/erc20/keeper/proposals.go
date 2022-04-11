@@ -345,30 +345,28 @@ func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, erc20Params *types.Params
 func (k Keeper) DeployTokenUpgrade(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8, origin bool) (common.Address, error) {
 	k.Logger(ctx).Info("deploy token upgrade", "name", name, "symbol", symbol, "decimals", decimals)
 
-	logicConfig := contracts.GetERC20Config(ctx.BlockHeight())
-	logicAddr := common.HexToAddress(contracts.FIP20UpgradeCodeAddress)
+	tokenContract := contracts.GetERC20(ctx.BlockHeight())
 	if origin {
-		logicConfig = contracts.GetWFXConfig(ctx.BlockHeight())
-		logicAddr = common.HexToAddress(contracts.WFXUpgradeCodeAddress)
+		tokenContract = contracts.GetWFX(ctx.BlockHeight())
 	}
 
 	//deploy proxy
-	proxy, err := k.DeployERC1967Proxy(ctx, from, logicAddr)
+	proxy, err := k.DeployERC1967Proxy(ctx, from, tokenContract.Address)
 	if err != nil {
 		return common.Address{}, err
 	}
-	err = k.InitializeUpgradable(ctx, from, proxy, logicConfig.ABI, name, symbol, decimals, types.ModuleAddress)
+	err = k.InitializeUpgradable(ctx, from, proxy, tokenContract.ABI, name, symbol, decimals, types.ModuleAddress)
 	return proxy, err
 }
 
 func (k Keeper) DeployERC1967Proxy(ctx sdk.Context, from, logicAddr common.Address, logicData ...byte) (common.Address, error) {
 	k.Logger(ctx).Info("deploy erc1967 proxy", "logic", logicAddr.String(), "data", hex.EncodeToString(logicData))
-	erc1967ProxyConfig := contracts.GetERC1967ProxyConfig(ctx.BlockHeight())
+	erc1967Proxy := contracts.GetERC1967Proxy(ctx.BlockHeight())
 
 	if len(logicData) == 0 {
 		logicData = []byte{}
 	}
-	return k.DeployContract(ctx, from, erc1967ProxyConfig.ABI, erc1967ProxyConfig.Bin, logicAddr, logicData)
+	return k.DeployContract(ctx, from, erc1967Proxy.ABI, erc1967Proxy.Bin, logicAddr, logicData)
 }
 
 func (k Keeper) InitializeUpgradable(ctx sdk.Context, from, contract common.Address, abi abi.ABI, data ...interface{}) error {
