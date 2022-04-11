@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
@@ -93,7 +94,7 @@ func (k Keeper) verifyMetadata(ctx sdk.Context, coinMetadata banktypes.Metadata)
 // erc20 module account as owner.
 func (k Keeper) DeployERC20Contract(ctx sdk.Context, coinMetadata banktypes.Metadata) (common.Address, error) {
 	decimals := uint8(coinMetadata.DenomUnits[0].Exponent)
-	erc20 := contracts.GetERC20Config(ctx.BlockHeight())
+	erc20 := contracts.GetERC20(ctx.BlockHeight())
 	ctorArgs, err := erc20.ABI.Pack(
 		"",
 		coinMetadata.Description,
@@ -304,28 +305,30 @@ func (k Keeper) UpdateTokenPairERC20(ctx sdk.Context, erc20Addr, newERC20Addr co
 	return pair, nil
 }
 
-func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, erc20Params *types.Params, feemarketParams *feemarkettypes.Params, evmParams *evmtypes.Params, metadataList []banktypes.Metadata) error {
-	//init fee market
+func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, erc20Params types.Params, feemarketParams feemarkettypes.Params, evmParams evmtypes.Params, metadataList []banktypes.Metadata) error {
+	// init fee market
 	k.Logger(ctx).Info("init fee market", "erc20Params", feemarketParams.String())
 	// set feeMarket baseFee
 	k.feeMarketKeeper.SetBaseFee(ctx, feemarketParams.BaseFee.BigInt())
 	// set feeMarket blockGasUsed
 	k.feeMarketKeeper.SetBlockGasUsed(ctx, 0)
 	// init feeMarket module erc20Params
-	k.feeMarketKeeper.SetParams(ctx, *feemarketParams)
+	k.feeMarketKeeper.SetParams(ctx, feemarketParams)
 
-	//init evm
+	// init evm
 	k.Logger(ctx).Info("init evm", "erc20Params", evmParams.String())
-	k.evmKeeper.SetParams(ctx, *evmParams)
+	k.evmKeeper.SetParams(ctx, evmParams)
 
-	//init erc20
+	// init erc20
 	k.Logger(ctx).Info("init erc20", "erc20Params", erc20Params.String())
+	k.SetParams(ctx, erc20Params)
 
-	if err := k.ModuleInit(ctx, erc20Params.EnableErc20, erc20Params.EnableEVMHook, erc20Params.IbcTimeout); err != nil {
+	// init contract
+	if err := k.initSystemContract(ctx); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
-	//init register coin
+	// init coin
 	for _, metadata := range metadataList {
 		k.Logger(ctx).Info("register coin", "coin", metadata.String())
 		_, err := k.RegisterCoin(ctx, metadata)
@@ -338,6 +341,22 @@ func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, erc20Params *types.Params
 		//	sdk.NewAttribute(erc20types.AttributeKeyCosmosCoin, pair.Denom),
 		//	sdk.NewAttribute(erc20types.AttributeKeyFIP20Token, pair.Fip20Address),
 		//))
+	}
+	return nil
+}
+
+func (k Keeper) initSystemContract(ctx sdk.Context) error {
+	// ensure erc20 module account is set on genesis
+	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
+		return errors.New("the erc20 module account has not been set")
+	}
+	for _, contract := range contracts.GetInitContracts() {
+		if len(contract.Code) <= 0 || contract.Address == common.HexToAddress(contracts.EmptyEvmAddress) {
+			return errors.New("invalid contract")
+		}
+		if err := k.evmKeeper.CreateContractWithCode(ctx, contract.Address, contract.Code); err != nil {
+			return err
+		}
 	}
 	return nil
 }

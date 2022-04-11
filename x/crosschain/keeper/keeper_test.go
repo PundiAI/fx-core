@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 	"testing"
 
@@ -29,9 +30,9 @@ func defaultModuleParams(oracles []string) types.Params {
 }
 
 func TestSetOracle(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	oracleAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
@@ -80,9 +81,9 @@ func TestSetOracle(t *testing.T) {
 }
 
 func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	oracleAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
@@ -149,9 +150,9 @@ func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
 
 func TestLastPendingBatchRequestByAddr(t *testing.T) {
 
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	oracleAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
@@ -225,9 +226,9 @@ func TestLastPendingBatchRequestByAddr(t *testing.T) {
 
 func TestGetUnSlashedOracleSets(t *testing.T) {
 
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	//oracleAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())

@@ -17,7 +17,7 @@ const (
 	prefixBlockGasUsed = iota + 1
 )
 
-// KVStore key prefixes
+// KeyPrefixBlockGasUsed KVStore key prefixes
 var (
 	KeyPrefixBlockGasUsed = []byte{prefixBlockGasUsed}
 )

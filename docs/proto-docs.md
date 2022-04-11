@@ -2353,7 +2353,7 @@ GenesisState defines the module's genesis state.
 | `evmParams` | [fx.ethermint.evm.v1.Params](#fx.ethermint.evm.v1.Params) |  | evm module params |
 | `feemarketParams` | [fx.ethermint.feemarket.v1.Params](#fx.ethermint.feemarket.v1.Params) |  | feeMarket module params. |
 | `erc20Params` | [Params](#fx.ethermint.erc20.v1.Params) |  | erc20 moduel params. |
-| `metadata` | [cosmos.bank.v1beta1.Metadata](#cosmos.bank.v1beta1.Metadata) | repeated | token pairs of Cosmos native denom and FIP20 token address |
+| `metadatas` | [cosmos.bank.v1beta1.Metadata](#cosmos.bank.v1beta1.Metadata) | repeated | token pairs of Cosmos native denom and FIP20 token address |
 
 
 
@@ -2370,7 +2370,7 @@ Params defines the erc20 module params
 | ----- | ---- | ----- | ----------- |
 | `enable_erc20` | [bool](#bool) |  | parameter to enable the intrarelaying of Cosmos coins <--> ERC20 tokens. |
 | `enable_evm_hook` | [bool](#bool) |  | parameter to enable the EVM hook to convert an ERC20 token to a Cosmos Coin by transferring the Tokens through a MsgEthereumTx to the ModuleAddress Ethereum address. |
-| `ibc_timeout` | [uint64](#uint64) |  | parameter to set ibc timeout |
+| `ibc_timeout` | [google.protobuf.Duration](#google.protobuf.Duration) |  | parameter to set ibc timeout |
 
 
 

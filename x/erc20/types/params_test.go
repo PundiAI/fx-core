@@ -2,6 +2,7 @@ package types
 
 import (
 	"testing"
+	"time"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/suite"
@@ -28,7 +29,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{"default", DefaultParams(), false},
 		{
 			"valid",
-			NewParams(true, true),
+			NewParams(true, true, 12*time.Hour),
 			false,
 		},
 		{

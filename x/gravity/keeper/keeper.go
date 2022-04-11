@@ -89,7 +89,7 @@ func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) *types.V
 	k.StoreValset(ctx, valset)
 
 	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
-		k.GetBridgeChainID(ctx)
+		k.GetBridgeChainID(ctx) //used gas
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeValsetUpdate,

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	fxtypes "github.com/functionx/fx-core/types"
-	"math/big"
 	"strconv"
 	"testing"
 	"time"
@@ -136,7 +135,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
 	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
 
-	bondAmt := sdk.NewIntFromBigInt(CoinOne).Mul(sdk.NewInt(100))
+	bondAmt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
 
 	for _, val := range valSet.Validators {
 		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
@@ -521,7 +520,3 @@ func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (*tmtypes.V
 	}
 	return tmtypes.NewValidatorSet(valSets), genesisAccounts, balances
 }
-
-var (
-	CoinOne = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
-)

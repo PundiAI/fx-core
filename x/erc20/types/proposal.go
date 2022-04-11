@@ -220,10 +220,10 @@ func (p UpdateTokenPairERC20Proposal) GetNewERC20Address() common.Address {
 // NewInitEvmProposal returns new instance of InitEvmProposal
 func NewInitEvmProposal(
 	title, description string,
-	evmParams *evmtypes.Params,
-	feemarketParams *feemarkettypes.Params,
-	erc20Params *Params,
-	metadata []banktypes.Metadata,
+	evmParams evmtypes.Params,
+	feemarketParams feemarkettypes.Params,
+	erc20Params Params,
+	metadatas []banktypes.Metadata,
 ) govtypes.Content {
 	return &InitEvmProposal{
 		Title:           title,
@@ -231,7 +231,7 @@ func NewInitEvmProposal(
 		EvmParams:       evmParams,
 		FeemarketParams: feemarketParams,
 		Erc20Params:     erc20Params,
-		Metadata:        metadata,
+		Metadatas:       metadatas,
 	}
 }
 
@@ -257,19 +257,17 @@ func (m *InitEvmProposal) ValidateBasic() error {
 		return err
 	}
 
-	if len(m.Metadata) > 0 {
-		for _, metadata := range m.Metadata {
-			if err := metadata.Validate(); err != nil {
-				return err
-			}
+	for _, metadata := range m.Metadatas {
+		if err := metadata.Validate(); err != nil {
+			return err
+		}
 
-			if err := ibctransfertypes.ValidateIBCDenom(metadata.Base); err != nil {
-				return err
-			}
+		if err := ibctransfertypes.ValidateIBCDenom(metadata.Base); err != nil {
+			return err
+		}
 
-			if err := validateIBC(metadata); err != nil {
-				return err
-			}
+		if err := validateIBC(metadata); err != nil {
+			return err
 		}
 	}
 

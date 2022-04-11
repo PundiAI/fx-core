@@ -8,6 +8,7 @@ import (
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/functionx/fx-core/app/fxcore"
+	fxtypes "github.com/functionx/fx-core/types"
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -21,7 +22,7 @@ func TestMigrateStakingHandler_Delegate(t *testing.T) {
 	validator1 := GetValidator(t, app, val1)[0]
 	alice, bob, _, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
 
-	_, err := app.StakingKeeper.Delegate(ctx, alice, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validator1, true)
+	_, err := app.StakingKeeper.Delegate(ctx, alice, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validator1, true)
 	require.NoError(t, err)
 
 	delegation, found := app.StakingKeeper.GetDelegation(ctx, alice, val1.Address.Bytes())
@@ -68,7 +69,7 @@ func TestMigrateStakingHandler_Unbonding(t *testing.T) {
 	alice, bob, _, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
 
 	//delegate
-	delegateAmount := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1000))
+	delegateAmount := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))
 	_, err := app.StakingKeeper.Delegate(ctx, alice, delegateAmount, stakingtypes.Unbonded, validator1, true)
 	require.NoError(t, err)
 
@@ -120,14 +121,14 @@ func TestMigrateStakingHandler_Unbonding(t *testing.T) {
 	require.Equal(t, 1, len(slice))
 	require.Equal(t, bob.String(), slice[0].DelegatorAddress)
 
-	bobBalanceV1 := app.BankKeeper.GetBalance(ctx, bob, fxcore.MintDenom)
+	bobBalanceV1 := app.BankKeeper.GetBalance(ctx, bob, fxtypes.MintDenom)
 	require.True(t, bobBalanceV1.Amount.GT(sdk.NewInt(0)))
 
 	ctx = commitUnbonding(t, ctx, app)
 
 	ctx = commitBlock(t, ctx, app)
 
-	bobBalanceV2 := app.BankKeeper.GetBalance(ctx, bob, fxcore.MintDenom)
+	bobBalanceV2 := app.BankKeeper.GetBalance(ctx, bob, fxtypes.MintDenom)
 	require.Equal(t, bobBalanceV2.Sub(bobBalanceV1).Amount, delegateAmount.Quo(sdk.NewInt(10)))
 
 }
@@ -141,7 +142,7 @@ func TestMigrateStakingHandler_Redelegate(t *testing.T) {
 	alice, bob, _, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
 
 	//delegate
-	_, err := app.StakingKeeper.Delegate(ctx, alice, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validator1, true)
+	_, err := app.StakingKeeper.Delegate(ctx, alice, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validator1, true)
 	require.NoError(t, err)
 
 	_, found := app.StakingKeeper.GetDelegation(ctx, alice, val1.Address.Bytes())

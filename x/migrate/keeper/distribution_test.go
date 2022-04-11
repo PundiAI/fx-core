@@ -12,6 +12,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/functionx/fx-core/app/fxcore"
+	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
@@ -22,13 +23,13 @@ import (
 
 func TestMigrateDistributionHandler(t *testing.T) {
 
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(3,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
-	delegateAddressArr := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10000)))
+	delegateAddressArr := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000)))
 
 	valA, valB, valC := validator.Validators[0], validator.Validators[1], validator.Validators[2]
 
@@ -45,13 +46,13 @@ func TestMigrateDistributionHandler(t *testing.T) {
 	validatorC, found := app.StakingKeeper.GetValidator(ctx, valC.Address.Bytes())
 	require.True(t, found)
 
-	_, err := app.StakingKeeper.Delegate(ctx, addA, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorA, true)
+	_, err := app.StakingKeeper.Delegate(ctx, addA, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorA, true)
 	require.NoError(t, err)
 
-	_, err = app.StakingKeeper.Delegate(ctx, addC, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorB, true)
+	_, err = app.StakingKeeper.Delegate(ctx, addC, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorB, true)
 	require.NoError(t, err)
 
-	_, err = app.StakingKeeper.Delegate(ctx, addD, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorC, true)
+	_, err = app.StakingKeeper.Delegate(ctx, addD, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorC, true)
 	require.NoError(t, err)
 
 	ctx = commitBlock(t, ctx, app)

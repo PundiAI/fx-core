@@ -196,7 +196,7 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation(name strin
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	chainID := suite.app.EvmKeeper.ChainID()
 
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
+	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
 
 	ctorArgs, err := erc20Config.ABI.Pack("", big.NewInt(1000000000000000000))
 	suite.Require().NoError(err)
@@ -254,15 +254,15 @@ func (suite *KeeperTestSuite) Commit() {
 }
 
 func (suite *KeeperTestSuite) MintFIP20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
-	transferData, err := erc20Config.ABI.Pack("mint", to, amount)
+	erc20 := contracts.GetERC20(suite.ctx.BlockHeight())
+	transferData, err := erc20.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
 
 func (suite *KeeperTestSuite) BurnFIP20Token(contractAddr, from common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
-	transferData, err := erc20Config.ABI.Pack("transfer", types.ModuleAddress, amount)
+	erc20 := contracts.GetERC20(suite.ctx.BlockHeight())
+	transferData, err := erc20.ABI.Pack("transfer", types.ModuleAddress, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
@@ -308,14 +308,14 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 }
 
 func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interface{} {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
+	erc20 := contracts.GetERC20(suite.ctx.BlockHeight())
 
-	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, "balanceOf", account)
+	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20.ABI, types.ModuleAddress, contract, "balanceOf", account)
 	if err != nil {
 		return nil
 	}
 
-	unpacked, err := erc20Config.ABI.Unpack("balanceOf", res.Ret)
+	unpacked, err := erc20.ABI.Unpack("balanceOf", res.Ret)
 	if len(unpacked) == 0 {
 		return nil
 	}
@@ -324,12 +324,12 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 }
 
 func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
-	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, "name")
+	erc20 := contracts.GetERC20(suite.ctx.BlockHeight())
+	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20.ABI, types.ModuleAddress, contract, "name")
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res)
 
-	unpacked, err := erc20Config.ABI.Unpack("name", res.Ret)
+	unpacked, err := erc20.ABI.Unpack("name", res.Ret)
 	suite.Require().NoError(err)
 	suite.Require().NotEmpty(unpacked)
 
@@ -337,8 +337,8 @@ func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
 }
 
 func (suite *KeeperTestSuite) TransferFIP20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
-	transferData, err := erc20Config.ABI.Pack("transfer", to, amount)
+	erc20 := contracts.GetERC20(suite.ctx.BlockHeight())
+	transferData, err := erc20.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
@@ -351,7 +351,7 @@ func InitEvmModuleParams(ctx sdk.Context, keeper erc20keeper.Keeper, dynamicTxFe
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxcoretypes.EvmSupportBlock())
 	defaultEvmParams := evmtypes.DefaultParams()
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
-	ibcTimeout := 24 * time.Hour
+	defaultErc20Params := types.DefaultParams()
 
 	if dynamicTxFee {
 		defaultFeeMarketParams.EnableHeight = fxcoretypes.EvmSupportBlock()
@@ -360,17 +360,7 @@ func InitEvmModuleParams(ctx sdk.Context, keeper erc20keeper.Keeper, dynamicTxFe
 		defaultFeeMarketParams.NoBaseFee = true
 	}
 
-	if err := keeper.HandleInitEvmProposal(ctx, &types.InitEvmProposal{
-		Title:           "Init evm title",
-		Description:     "Init emv module description",
-		EvmParams:       &defaultEvmParams,
-		FeemarketParams: &defaultFeeMarketParams,
-		Erc20Params: &types.Params{
-			EnableErc20:   true,
-			EnableEVMHook: true,
-			IbcTimeout:    uint64(ibcTimeout.Nanoseconds()),
-		},
-	}); err != nil {
+	if err := keeper.HandleInitEvmProposal(ctx, defaultErc20Params, defaultFeeMarketParams, defaultEvmParams, nil); err != nil {
 		return err
 	}
 	return nil

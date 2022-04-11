@@ -431,10 +431,10 @@ func InitEvmProposalCmd() *cobra.Command {
 			proposal := &types.InitEvmProposal{
 				Title:           title,
 				Description:     description,
-				EvmParams:       &evmParams,
-				FeemarketParams: &feemarketParams,
-				Erc20Params:     &erc20Params,
-				Metadata:        metadatas,
+				EvmParams:       evmParams,
+				FeemarketParams: feemarketParams,
+				Erc20Params:     erc20Params,
+				Metadatas:       metadatas,
 			}
 
 			fromAddress := cliCtx.GetFromAddress()

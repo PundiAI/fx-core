@@ -2,6 +2,7 @@ package fxcore
 
 import (
 	"encoding/json"
+	fxtypes "github.com/functionx/fx-core/types"
 	"testing"
 
 	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
@@ -9,12 +10,12 @@ import (
 
 func TestNewDefaultGenesisByDenom(t *testing.T) {
 	encodingConfig := MakeEncodingConfig()
-	genAppState := NewDefAppGenesisByDenom(MintDenom, encodingConfig.Marshaler)
+	genAppState := NewDefAppGenesisByDenom(fxtypes.MintDenom, encodingConfig.Marshaler)
 
 	state := gravitytypes.DefaultGenesisState()
 	state.Erc20ToDenoms = []*gravitytypes.ERC20ToDenom{
 		{
-			Denom: MintDenom,                                    // token symbol
+			Denom: fxtypes.MintDenom,                            // token symbol
 			Erc20: "0x0AD5CE837A789423CC6158053CAd5eB75A6183AC", // token contract address
 		},
 	}
@@ -23,7 +24,6 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	//data := []byte{}
 	if err := json.Unmarshal(data, &genAppState); err != nil && len(data) > 0 {
 		t.Fatal(err)
 	}

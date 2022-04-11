@@ -289,7 +289,7 @@ func InitEvmModuleParams(ctx sdk.Context, keeper erc20keeper.Keeper, dynamicTxFe
 		defaultEvmParams.ChainConfig.MergeForkBlock = &maxInt
 	}
 
-	if err := keeper.HandleInitEvmProposal(ctx, &defaultErc20Params, &defaultFeeMarketParams, &defaultEvmParams, nil); err != nil {
+	if err := keeper.HandleInitEvmProposal(ctx, defaultErc20Params, defaultFeeMarketParams, defaultEvmParams, nil); err != nil {
 		return err
 	}
 	return nil

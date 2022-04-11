@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/functionx/fx-core/app/fxcore"
+	fxtypes "github.com/functionx/fx-core/types"
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -36,9 +37,9 @@ func TestMigrateBankFunc(t *testing.T) {
 }
 
 func initTest(t *testing.T) (*fxcore.App, []*tmtypes.Validator, []sdk.AccAddress) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(3,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
@@ -47,7 +48,7 @@ func initTest(t *testing.T) (*fxcore.App, []*tmtypes.Validator, []sdk.AccAddress
 	stakingParams.UnbondingTime = 5 * time.Minute
 	app.StakingKeeper.SetParams(ctx, stakingParams)
 
-	delegateAddressArr := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10000)))
+	delegateAddressArr := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000)))
 	return app, validator.Validators, delegateAddressArr
 }
 

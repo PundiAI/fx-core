@@ -3,7 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/functionx/fx-core/app/fxcore"
+	fxtypes "github.com/functionx/fx-core/types"
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -16,7 +16,7 @@ func Test_MigrateGovInactiveFunc(t *testing.T) {
 	alice, bob, _, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	amount := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(5000))))
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
 
 	proposal, err := app.GovKeeper.SubmitProposal(ctx, content)
 	require.NoError(t, err)
@@ -52,7 +52,7 @@ func Test_MigrateGovActiveFunc(t *testing.T) {
 	alice, bob, tom, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	amount := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(5000))))
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
 
 	proposal, err := app.GovKeeper.SubmitProposal(ctx, content)
 	require.NoError(t, err)

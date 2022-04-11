@@ -21,7 +21,7 @@ func NewErc20ProposalHandler(k *keeper.Keeper) govtypes.Handler {
 		}
 		switch c := content.(type) {
 		case *types.InitEvmProposal:
-			return k.HandleInitEvmProposal(ctx, c.Erc20Params, c.FeemarketParams, c.EvmParams, c.Metadata)
+			return k.HandleInitEvmProposal(ctx, c.Erc20Params, c.FeemarketParams, c.EvmParams, c.Metadatas)
 		case *types.RegisterCoinProposal:
 			return handleRegisterCoinProposal(ctx, k, c)
 		//case *types.RegisterERC20Proposal:

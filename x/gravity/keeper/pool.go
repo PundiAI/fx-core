@@ -75,7 +75,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, counte
 	k.appendToUnbatchedTXIndex(ctx, tokenContract, *erc20Fee, nextID)
 
 	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
-		k.GetBridgeChainID(ctx)
+		k.GetBridgeChainID(ctx) // gas used
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToEth,
@@ -157,7 +157,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	}
 
 	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
-		k.GetBridgeChainID(ctx)
+		k.GetBridgeChainID(ctx) // gas used
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToEthCanceled,

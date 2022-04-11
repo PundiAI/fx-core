@@ -24,6 +24,7 @@ import (
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"
+	fxtypes "github.com/functionx/fx-core/types"
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
@@ -142,8 +143,8 @@ func TestHookChainGravity(t *testing.T) {
 
 	signer1, addr1 := privateSigner()
 	_, addr2 := privateSigner()
-	amt := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(100))
-	err = app.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, amt)))
+	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
+	err = app.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, amt)))
 	require.NoError(t, err)
 
 	ctx = testInitGravity(t, ctx, app, validator.GetOperator(), addr1.Bytes(), addr2)
@@ -151,7 +152,7 @@ func TestHookChainGravity(t *testing.T) {
 	balances := app.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
 	t.Log("b", balances.String())
 
-	err = app.Erc20Keeper.ConvertDenomToFIP20(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10))))
+	err = app.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
 	balanceOf, err := app.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
@@ -160,7 +161,7 @@ func TestHookChainGravity(t *testing.T) {
 
 	token := pair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, gravitytypes.ModuleName)
-	transferChainData := packTransferCrossData(t, ctx, app.Erc20Keeper, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
+	transferChainData := packTransferCrossData(t, ctx, app.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
 	transactions := app.GravityKeeper.GetPoolTransactions(ctx)
@@ -189,9 +190,9 @@ func TestHookChainBSC(t *testing.T) {
 
 	signer1, addr1 := privateSigner()
 	_, addr2 := privateSigner()
-	amt := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(100))
+	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
 
-	err = app.BankKeeper.SendCoins(ctx, ga.GetAddress(), sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, amt), sdk.NewCoin(purseDenom, amt)))
+	err = app.BankKeeper.SendCoins(ctx, ga.GetAddress(), sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, amt), sdk.NewCoin(purseDenom, amt)))
 	require.NoError(t, err)
 
 	ctx = testInitBscCrossChain(t, ctx, app, del, addr1.Bytes(), addr2)
@@ -199,7 +200,7 @@ func TestHookChainBSC(t *testing.T) {
 	balances := app.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
 	t.Log("balance", balances.String())
 
-	err = app.Erc20Keeper.ConvertDenomToFIP20(ctx, addr1.Bytes(), addr1, sdk.NewCoin(purseDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10))))
+	err = app.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(purseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
 	balanceOf, err := app.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
@@ -208,7 +209,7 @@ func TestHookChainBSC(t *testing.T) {
 
 	token := pair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, bsctypes.ModuleName)
-	transferChainData := packTransferCrossData(t, ctx, app.Erc20Keeper, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
+	transferChainData := packTransferCrossData(t, ctx, app.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
 	transactions := app.BscKeeper.GetUnbatchedTransactions(ctx)
@@ -233,14 +234,14 @@ func TestHookIBC(t *testing.T) {
 
 	signer1, addr1 := privateSigner()
 	//_, addr2 := privateSigner()
-	amt := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(100))
-	err = app.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, amt)))
+	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
+	err = app.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, amt)))
 	require.NoError(t, err)
 
 	balances := app.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
 	t.Log("balance", balances.String())
 
-	err = app.Erc20Keeper.ConvertDenomToFIP20(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10))))
+	err = app.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
 	balanceOf, err := app.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
@@ -248,20 +249,20 @@ func TestHookIBC(t *testing.T) {
 	t.Log("balanceOf", balanceOf.String())
 
 	//reset ibc
-	app.Erc20Keeper.SetIBCTransferKeeper(&IBCTransferSimulate{T: t})
-	app.Erc20Keeper.SetIBCChannelKeeper(&IBCChannelSimulate{})
+	//app.Erc20Keeper.SetIBCTransferKeeper(&IBCTransferSimulate{T: t})
+	//app.Erc20Keeper.SetIBCChannelKeeper(&IBCChannelSimulate{})
 
-	evmHooks := evmkeeper.NewMultiEvmHooks(app.Erc20Keeper)
+	evmHooks := evmkeeper.NewMultiEvmHooks(app.Erc20Keeper.Hooks())
 	app.EvmKeeper = app.EvmKeeper.SetHooks(evmHooks)
 
 	token := pair.GetERC20Contract()
 	ibcTarget := fmt.Sprintf("%s%s", contracts.TransferIBCPrefix, "px/transfer/channel-0")
-	transferIBCData := packTransferCrossData(t, ctx, app.Erc20Keeper, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", fxcore.CoinOne, big.NewInt(0), ibcTarget)
+	transferIBCData := packTransferCrossData(t, ctx, app.Erc20Keeper, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", big.NewInt(1e18), big.NewInt(0), ibcTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferIBCData)
 }
 
 func packTransferCrossData(t *testing.T, ctx sdk.Context, k keeper.Keeper, to string, amount, fee *big.Int, target string) []byte {
-	fip20 := contracts.GetERC20Config(ctx.BlockHeight())
+	fip20 := contracts.GetERC20(ctx.BlockHeight())
 	pack, err := fip20.ABI.Pack("transferCross", to, amount, fee, target)
 	require.NoError(t, err)
 	return pack
@@ -332,16 +333,16 @@ func privateSigner() (keyring.Signer, common.Address) {
 }
 
 func initTest(t *testing.T) (*fxcore.App, []*tmtypes.Validator, authtypes.GenesisAccounts, []sdk.AccAddress) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(1,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances),
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances),
 			sdk.NewCoin("eth0xd9EEd31F5731DfC3Ca18f09B487e200F50a6343B", initBalances),
 			sdk.NewCoin("ibc/4757BC3AA2C696F7083C825BD3951AE3D1631F2A272EA7AFB9B3E1CCCA8560D4", initBalances),
 			sdk.NewCoin(purseDenom, initBalances)))
 
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	delegateAddressArr := fxcore.AddTestAddrsIncremental(app, ctx, 1, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1000000000)))
+	delegateAddressArr := fxcore.AddTestAddrsIncremental(app, ctx, 1, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000000000)))
 
 	return app, validator.Validators, genesisAccounts, delegateAddressArr
 }
@@ -429,7 +430,7 @@ func testValSetUpdateClaim(t *testing.T, ctx sdk.Context, app *fxcore.App, orch 
 }
 
 func testInitBscCrossChain(t *testing.T, ctx sdk.Context, app *fxcore.App, oracleAddress, orchestratorAddr sdk.AccAddress, externalAddress common.Address) sdk.Context {
-	deposit := sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), fxcore.CoinOne)))
+	deposit := sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), big.NewInt(1e18))))
 	err := app.BankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddress, app.BscKeeper.GetModuleName(), sdk.NewCoins(deposit))
 	require.NoError(t, err)
 
@@ -483,7 +484,7 @@ func testBSCParamsProposal(t *testing.T, ctx sdk.Context, app *fxcore.App, oracl
 			OracleSetUpdatePowerChangePercent: oracleSetUpdatePowerChangePercent,
 			IbcTransferTimeoutHeight:          20000,
 			Oracles:                           []string{oracles.String()},
-			DepositThreshold:                  sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), fxcore.CoinOne))),
+			DepositThreshold:                  sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), big.NewInt(1e18)))),
 		},
 		ChainName: app.BscKeeper.GetModuleName(),
 	}

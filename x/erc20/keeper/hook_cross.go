@@ -13,7 +13,7 @@ import (
 )
 
 func (k Keeper) RelayTransferCrossProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {
-	fip20ABI := contracts.GetERC20Config(ctx.BlockHeight()).ABI
+	fip20ABI := contracts.GetERC20(ctx.BlockHeight()).ABI
 	for _, log := range receipt.Logs {
 		if !contracts.VerifyTransferCrossEvent(fip20ABI, log) {
 			continue
@@ -77,7 +77,7 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, tc *contracts.TransferCross,
 	}
 	params := k.GetParams(ctx)
 	ibcTimeoutHeight := ibcclienttypes.ZeroHeight()
-	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + params.IbcTimeout
+	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(params.IbcTimeout)
 	nextSequenceSend, found := k.ibcChannelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
 		return fmt.Errorf("ibc channel next sequence send not found, port %s, channel %s", sourcePort, sourceChannel)

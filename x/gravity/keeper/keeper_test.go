@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	fxtypes "github.com/functionx/fx-core/types"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,9 +13,9 @@ import (
 )
 
 func TestSetOrchestratorValidator(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	accAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 2, sdk.ZeroInt())
@@ -37,9 +38,9 @@ func TestSetOrchestratorValidator(t *testing.T) {
 }
 
 func TestStoreValset(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
@@ -71,9 +72,9 @@ func TestStoreValset(t *testing.T) {
 }
 
 func TestSetLatestValsetNonce(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
@@ -113,9 +114,9 @@ func TestSetLatestValsetNonce(t *testing.T) {
 	}
 }
 func TestLastSlashedValsetNonce(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
@@ -142,9 +143,9 @@ func TestLastSlashedValsetNonce(t *testing.T) {
 }
 
 func TestLastUnBondingBlockHeight(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
+	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 

@@ -215,14 +215,14 @@ func newUpdateTokenPairERC20ProposalHandler(clientCtx client.Context) http.Handl
 
 // InitEvmProposalRequest defines a request for a new init evm proposal.
 type InitEvmProposalRequest struct {
-	BaseReq         rest.BaseReq           `json:"base_req" yaml:"base_req"`
-	Title           string                 `json:"title" yaml:"title"`
-	Description     string                 `json:"description" yaml:"description"`
-	Deposit         sdk.Coins              `json:"deposit" yaml:"deposit"`
-	EvmParams       *evmtypes.Params       `json:"evm_params" yaml:"evm_params"`
-	FeemarketParams *feemarkettypes.Params `json:"feemarket_params" yaml:"feemarket_params"`
-	Erc20Params     *types.Params          `json:"erc20_params" yaml:"erc20_params"`
-	Metadata        []banktypes.Metadata   `json:"metadata" yaml:"metadata"`
+	BaseReq         rest.BaseReq          `json:"base_req" yaml:"base_req"`
+	Title           string                `json:"title" yaml:"title"`
+	Description     string                `json:"description" yaml:"description"`
+	Deposit         sdk.Coins             `json:"deposit" yaml:"deposit"`
+	EvmParams       evmtypes.Params       `json:"evm_params" yaml:"evm_params"`
+	FeemarketParams feemarkettypes.Params `json:"feemarket_params" yaml:"feemarket_params"`
+	Erc20Params     types.Params          `json:"erc20_params" yaml:"erc20_params"`
+	Metadata        []banktypes.Metadata  `json:"metadata" yaml:"metadata"`
 }
 
 func InitEvmProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {

@@ -2,7 +2,6 @@ package transfer_test
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/app/fxcore"
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer"
 	ibctesting "github.com/functionx/fx-core/x/ibc/testing"
@@ -19,7 +18,7 @@ import (
 )
 
 var (
-	zeroFee  = sdk.NewCoin(fxcore.MintDenom, sdk.ZeroInt())
+	zeroFee  = sdk.NewCoin(fxtypes.MintDenom, sdk.ZeroInt())
 	noRouter = ""
 	noFeeStr = "0"
 )
@@ -52,7 +51,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	//	originalBalance := suite.chainA.App.BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	timeoutHeight := clienttypes.NewHeight(0, 110)
 
-	coinToSendToB := sdk.NewCoin(fxcore.MintDenom, sdk.NewInt(100))
+	coinToSendToB := sdk.NewCoin(fxtypes.MintDenom, sdk.NewInt(100))
 
 	// send from chainA to chainB
 	msg := types.NewMsgTransfer(channelA.PortID, channelA.ID, coinToSendToB, suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, noRouter, zeroFee)
@@ -68,10 +67,10 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().NoError(err) // relay committed
 
 	// check that voucher exists on chain B
-	voucherDenomTrace := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), fxcore.MintDenom))
+	voucherDenomTrace := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), fxtypes.MintDenom))
 	balance := suite.chainB.App.BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
 
-	coinSentFromAToB := types.GetTransferCoin(channelB.PortID, channelB.ID, fxcore.MintDenom, 100)
+	coinSentFromAToB := types.GetTransferCoin(channelB.PortID, channelB.ID, fxtypes.MintDenom, 100)
 	suite.Require().Equal(coinSentFromAToB, balance)
 
 	// setup between chainB to chainC
@@ -122,8 +121,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 
 	// check that module account escrow address is empty
 	escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-	balance = suite.chainB.App.BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddress, fxcore.MintDenom)
-	suite.Require().Equal(sdk.NewCoin(fxcore.MintDenom, sdk.ZeroInt()), balance)
+	balance = suite.chainB.App.BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddress, fxtypes.MintDenom)
+	suite.Require().Equal(sdk.NewCoin(fxtypes.MintDenom, sdk.ZeroInt()), balance)
 
 	// check that balance on chain B is empty
 	balance = suite.chainC.App.BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
@@ -144,7 +143,7 @@ func (suite *TransferTestSuite) TestTransferForwardPacket() {
 	// test forward-packet-to-chain
 	// send from chainA -> chainB --(forward)--> chainC
 	timeoutHeight := clienttypes.NewHeight(0, 1010)
-	coinToSendToC := sdk.NewCoin(fxcore.MintDenom, sdk.NewInt(100))
+	coinToSendToC := sdk.NewCoin(fxtypes.MintDenom, sdk.NewInt(100))
 
 	forwardPacketReceiverAddress := fmt.Sprintf("%s|%s/%s:%s", suite.chainB.SenderAccount.GetAddress().String(), channelOnBForC.PortID, channelOnBForC.ID, suite.chainC.SenderAccount.GetAddress().String())
 	chainAToChainBForwardChainCMsg := types.NewMsgTransfer(channelA.PortID, channelA.ID, coinToSendToC, suite.chainA.SenderAccount.GetAddress(), forwardPacketReceiverAddress, timeoutHeight, 0, noRouter, zeroFee)
@@ -164,7 +163,7 @@ func (suite *TransferTestSuite) TestTransferForwardPacket() {
 	suite.Require().NoError(err)
 
 	// relay chainB to chainC
-	voucherDenomTrace := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), fxcore.MintDenom))
+	voucherDenomTrace := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), fxtypes.MintDenom))
 
 	fungibleTokenPacket = types.NewFungibleTokenPacketData(voucherDenomTrace.GetFullDenomPath(), coinToSendToC.Amount.String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), noRouter, noFeeStr)
 	chainCTimeoutHeight := clienttypes.NewHeight(0, 0)

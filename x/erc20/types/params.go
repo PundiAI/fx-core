@@ -2,8 +2,8 @@ package types
 
 import (
 	fmt "fmt"
-
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"time"
 )
 
 // Parameter store key
@@ -24,10 +24,12 @@ func ParamKeyTable() paramtypes.KeyTable {
 func NewParams(
 	enableErc20 bool,
 	enableEVMHook bool,
+	ibcTimeout time.Duration,
 ) Params {
 	return Params{
 		EnableErc20:   enableErc20,
 		EnableEVMHook: enableEVMHook,
+		IbcTimeout:    ibcTimeout,
 	}
 }
 
@@ -35,6 +37,7 @@ func DefaultParams() Params {
 	return Params{
 		EnableErc20:   true,
 		EnableEVMHook: true,
+		IbcTimeout:    12 * time.Hour,
 	}
 }
 
@@ -47,8 +50,8 @@ func validateBool(i interface{}) error {
 	return nil
 }
 
-func validateUint64(i interface{}) error {
-	_, ok := i.(uint64)
+func validateTimeDuration(i interface{}) error {
+	_, ok := i.(time.Duration)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -61,12 +64,12 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(ParamStoreKeyEnableErc20, &p.EnableErc20, validateBool),
 		paramtypes.NewParamSetPair(ParamStoreKeyEnableEVMHook, &p.EnableEVMHook, validateBool),
-		paramtypes.NewParamSetPair(ParamStoreKeyIBCTimeout, &p.IbcTimeout, validateUint64),
+		paramtypes.NewParamSetPair(ParamStoreKeyIBCTimeout, &p.IbcTimeout, validateTimeDuration),
 	}
 }
 
 func (p Params) Validate() error {
-	if p.IbcTimeout == 0 {
+	if p.IbcTimeout <= 0 {
 		return fmt.Errorf("ibc timeout cannot be 0")
 	}
 	return nil

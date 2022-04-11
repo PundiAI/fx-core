@@ -11,8 +11,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
+	fxtypes "github.com/functionx/fx-core/types"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -503,7 +503,7 @@ func (cli *Client) testCreateValidator(ctx context.Context, mnemonic string) sdk
 	valAddr := sdk.ValAddress(valPriv.PubKey().Address())
 
 	var msg sdk.Msg
-	amt := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1000))))
+	amt := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
 	msg = banktypes.NewMsgSend(cli.FxAddress(), sdk.AccAddress(valAddr), amt)
 	txHash := cli.BroadcastTx(msg)
 	cli.t.Log("=======>", "send to validator txHash", txHash)
@@ -515,8 +515,8 @@ func (cli *Client) testCreateValidator(ctx context.Context, mnemonic string) sdk
 	ed25519, err := mnemonicToEd25519(mnemonic)
 	require.NoError(cli.t, err)
 
-	selfDelegate := sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(100)))
-	minSelfDelegate := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1))
+	selfDelegate := sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100)))
+	minSelfDelegate := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1))
 	description := stakingtypes.Description{
 		Moniker:         "val2",
 		Identity:        "",
@@ -544,7 +544,7 @@ func (cli *Client) testSend(ctx context.Context, acc sdk.AccAddress, amt int64, 
 		cli.SetPrivateKey(privateKey[0])
 	}
 	var msg sdk.Msg
-	amount := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(amt))))
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(amt))))
 	msg = banktypes.NewMsgSend(cli.FxAddress(), acc, amount)
 	txHash := cli.BroadcastTx(msg)
 	cli.t.Log("=======>", "send txHash", txHash)
@@ -568,8 +568,8 @@ func (cli *Client) testDelegate(ctx context.Context, val sdk.ValAddress, private
 		cli.SetPrivateKey(privateKey[0])
 	}
 	var msg sdk.Msg
-	amt := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(100000))
-	msg = stakingtypes.NewMsgDelegate(cli.FxAddress(), val, sdk.NewCoin(fxcore.MintDenom, amt))
+	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100000))
+	msg = stakingtypes.NewMsgDelegate(cli.FxAddress(), val, sdk.NewCoin(fxtypes.MintDenom, amt))
 	txHash := cli.BroadcastTx(msg)
 	cli.t.Log("=======>", "delegate txHash", txHash)
 }
@@ -593,7 +593,7 @@ func (cli *Client) testUndelegate(ctx context.Context, val sdk.ValAddress, all b
 		cli.SetPrivateKey(privateKey[0])
 	}
 	var msg sdk.Msg
-	amt := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10))
+	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))
 	if all {
 		delegation, err := cli.StakingQuery().Delegation(ctx, &stakingtypes.QueryDelegationRequest{
 			DelegatorAddr: cli.FxAddress().String(),
@@ -602,7 +602,7 @@ func (cli *Client) testUndelegate(ctx context.Context, val sdk.ValAddress, all b
 		require.NoError(cli.t, err)
 		amt = delegation.DelegationResponse.Balance.Amount
 	}
-	msg = stakingtypes.NewMsgUndelegate(cli.FxAddress(), val, sdk.NewCoin(fxcore.MintDenom, amt))
+	msg = stakingtypes.NewMsgUndelegate(cli.FxAddress(), val, sdk.NewCoin(fxtypes.MintDenom, amt))
 	txHash := cli.BroadcastTx(msg)
 	cli.t.Log("=======>", "undelegate txHash", txHash)
 }
@@ -614,7 +614,7 @@ func (cli *Client) testRedelegate(ctx context.Context, valSrc, valDest sdk.ValAd
 		cli.SetPrivateKey(privateKey[0])
 	}
 	var msg sdk.Msg
-	amt := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(10))
+	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))
 	if all {
 		delegation, err := cli.StakingQuery().Delegation(ctx, &stakingtypes.QueryDelegationRequest{
 			DelegatorAddr: cli.FxAddress().String(),
@@ -623,7 +623,7 @@ func (cli *Client) testRedelegate(ctx context.Context, valSrc, valDest sdk.ValAd
 		require.NoError(cli.t, err)
 		amt = delegation.DelegationResponse.Balance.Amount
 	}
-	msg = stakingtypes.NewMsgBeginRedelegate(cli.FxAddress(), valSrc, valDest, sdk.NewCoin(fxcore.MintDenom, amt))
+	msg = stakingtypes.NewMsgBeginRedelegate(cli.FxAddress(), valSrc, valDest, sdk.NewCoin(fxtypes.MintDenom, amt))
 	txHash := cli.BroadcastTx(msg)
 	cli.t.Log("=======>", "redelegate txHash", txHash)
 }
@@ -633,7 +633,7 @@ func (cli *Client) testProposalSubmit(ctx context.Context, satisfyVote ...bool) 
 	if len(satisfyVote) > 0 && satisfyVote[0] {
 		amount = 10000
 	}
-	initDeposit := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(amount))))
+	initDeposit := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(amount))))
 	msg, err := govtypes.NewMsgSubmitProposal(content, initDeposit, cli.FxAddress())
 	require.NoError(cli.t, err)
 	txHash := cli.BroadcastTx(msg)
@@ -645,7 +645,7 @@ func (cli *Client) testProposalDeposit(ctx context.Context, privateKey ...crypto
 		defer cli.SetPrivateKey(oldKey)
 		cli.SetPrivateKey(privateKey[0])
 	}
-	depositAmt := sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(1))))
+	depositAmt := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1))))
 	msg := govtypes.NewMsgDeposit(cli.FxAddress(), 1, depositAmt)
 	txHash := cli.BroadcastTx(msg)
 	cli.t.Log("=======>", "proposal deposit txHash", txHash)
