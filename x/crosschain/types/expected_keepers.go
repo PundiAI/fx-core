@@ -33,6 +33,5 @@ type AccountKeeper interface {
 }
 
 type Erc20Keeper interface {
-	IsDenomRegistered(ctx sdk.Context, denom string) bool
 	ConvertDenomToFIP20(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error
 }

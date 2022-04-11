@@ -46,6 +46,11 @@ func (k Keeper) HasInit(ctx sdk.Context) bool {
 }
 
 func (k Keeper) ConvertDenomToFIP20(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
+	logger := ctx.Logger()
+	if !k.IsDenomRegistered(ctx, coin.Denom) {
+		logger.Error("evm transfer, denom not registered", "denom", coin.Denom)
+		return nil
+	}
 	//TODO implement me
 	panic("implement me")
 }

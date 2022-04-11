@@ -80,10 +80,6 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 
 func (k Keeper) handlerEvmTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
 	logger := k.Logger(ctx)
-	if !k.erc20Keeper.IsDenomRegistered(ctx, coin.Denom) {
-		logger.Error("evm transfer, denom not registered", "denom", coin.Denom)
-		return
-	}
 	receiverEthType := common.BytesToAddress(receiver.Bytes())
 	logger.Info("convert denom to fip20", "sender", claim.Sender, "receiver", claim.Receiver,
 		"receiver-eth-type", receiverEthType.String(), "amount", coin.String(), "target", claim.TargetIbc)
