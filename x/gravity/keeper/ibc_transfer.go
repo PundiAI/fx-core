@@ -18,7 +18,7 @@ import (
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
 func (a AttestationHandler) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgDepositClaim, receiver sdk.AccAddress, coin sdk.Coin) {
-	if ctx.BlockHeight() >= fxtypes.IntrarelayerSupportBlock() && claim.TargetIbc == targetEvmPrefix {
+	if ctx.BlockHeight() >= fxtypes.EvmSupportBlock() && claim.TargetIbc == targetEvmPrefix {
 		// TODO Do not judge by TargetIbc
 		a.handlerEvmTransfer(ctx, claim, receiver, coin)
 		return
@@ -78,18 +78,18 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 
 func (a AttestationHandler) handlerEvmTransfer(ctx sdk.Context, claim *types.MsgDepositClaim, receiver sdk.AccAddress, coin sdk.Coin) {
 	logger := a.keeper.Logger(ctx)
-	if !a.keeper.IntrarelayerKeeper.HasInit(ctx) {
-		logger.Error("emv transfer, module not init", "module", "intrarelayer")
+	if !a.keeper.erc20Keeper.HasInit(ctx) {
+		logger.Error("emv transfer, module not init", "module", "erc20")
 		return
 	}
-	if !a.keeper.IntrarelayerKeeper.IsDenomRegistered(ctx, coin.Denom) {
+	if !a.keeper.erc20Keeper.IsDenomRegistered(ctx, coin.Denom) {
 		logger.Error("evm transfer, denom not registered", "denom", coin.Denom)
 		return
 	}
 	receiverEthType := common.BytesToAddress(receiver.Bytes())
 	logger.Info("convert denom to fip20", "eth sender", claim.EthSender, "receiver", claim.FxReceiver,
 		"receiver-eth-type", receiverEthType.String(), "amount", coin.String(), "target", claim.TargetIbc)
-	err := a.keeper.IntrarelayerKeeper.ConvertDenomToFIP20(ctx, receiver, receiverEthType, coin)
+	err := a.keeper.erc20Keeper.ConvertDenomToFIP20(ctx, receiver, receiverEthType, coin)
 	if err != nil {
 		logger.Error("evm transfer, convert denom to fip20 failed", "error", err.Error())
 		return

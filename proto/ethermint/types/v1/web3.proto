@@ -1,5 +1,5 @@
 syntax = "proto3";
-package ethermint.types.v1;
+package fx.ethermint.types.v1;
 
 import "gogoproto/gogo.proto";
 

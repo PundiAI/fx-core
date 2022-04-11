@@ -42,7 +42,6 @@ type StakingKeeper interface {
 	GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool)
 }
 
-// FeeMarketKeeper
 type FeeMarketKeeper interface {
 	GetBaseFee(ctx sdk.Context) *big.Int
 	GetParams(ctx sdk.Context) feemarkettypes.Params

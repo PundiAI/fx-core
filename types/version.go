@@ -12,55 +12,42 @@ const (
 	networkDevnet  = "devnet"
 )
 
+// mainnet constant
+const (
+	mainnetCrossChainSupportBscBlock            = 1354000
+	mainnetCrossChainSupportTronAndPolygonBlock = 2062000
+
+	// gravity prune validator set
+	mainnetGravityPruneValsetAndAttestationBlock = 610000
+	// gravity not slash no set eth address validator
+	mainnetGravityValsetSlashBlock = 1685000
+
+	mainnetEvmChainID      = 1
+	mainnetSupportEvmBlock = math.MaxInt64
+)
+
 // testnet constant
 const (
-	testnetCrossChainSupportBscBlock     = 1
-	testnetCrossChainSupportTronBlock    = 1
-	testnetCrossChainSupportPolygonBlock = 1
+	testnetCrossChainSupportBscBlock            = 1
+	testnetCrossChainSupportTronAndPolygonBlock = 1
 
 	testnetGravityPruneValsetAndAttestationBlock = 1
 	testnetGravityValsetSlashBlock               = 1
-	testnetSupportEvmBlock                       = 408000
-	testnetEvmChainID                            = 90001
-	testnetSupportIntrarelayerBlock              = math.MaxInt64
-	testnetSupportMigrateBlock                   = math.MaxInt64
-	testnetSupportEGFProposalBlock               = math.MaxInt64
-	testnetRequestBaseFeeBlock                   = math.MaxInt64
-)
 
-// mainnet constant
-const (
-	mainnetCrossChainSupportBscBlock     = 1354000
-	mainnetCrossChainSupportTronBlock    = 2062000
-	mainnetCrossChainSupportPolygonBlock = 2062000
-
-	//
-	mainnetGravityPruneValsetAndAttestationBlock = 610000
-	// gravity not slash no set eth address validator
-	mainnetGravityValsetSlashBlock  = 1685000
-	mainnetSupportEvmBlock          = math.MaxInt64
-	mainnetSupportIntrarelayerBlock = math.MaxInt64
-	mainnetSupportMigrateBlock      = math.MaxInt64
-	mainnetSupportEGFProposalBlock  = math.MaxInt64
-	mainnetRequestBaseFeeBlock      = math.MaxInt64
-
-	mainnetEvmChainID = 1
+	testnetEvmChainID      = 90001
+	testnetSupportEvmBlock = 408000
 )
 
 // devnet constant
 const (
-	devnetCrossChainSupportBscBlock     = 1
-	devnetCrossChainSupportTronBlock    = 1
-	devnetCrossChainSupportPolygonBlock = 1
+	devnetCrossChainSupportBscBlock            = 1
+	devnetCrossChainSupportTronAndPolygonBlock = 1
 
 	devnetGravityPruneValsetAndAttestationBlock = 1
 	devnetGravityValsetSlashBlock               = 1
-	devnetSupportEvmBlock                       = 100
-	devnetEvmChainID                            = 221
-	devnetSupportIntrarelayerBlock              = 100
-	devnetSupportMigrateBlock                   = 100
-	devnetSupportEGFProposalBlock               = 112000
-	devnetRequestBaseFeeBlock                   = 112000
+
+	devnetEvmChainID      = 221
+	devnetSupportEvmBlock = 100
 )
 
 var (
@@ -115,22 +102,13 @@ func CrossChainSupportBscBlock() int64 {
 	return mainnetCrossChainSupportBscBlock
 }
 
-func CrossChainSupportTronBlock() int64 {
+func CrossChainSupportPolygonAndTronBlock() int64 {
 	if networkDevnet == network {
-		return devnetCrossChainSupportTronBlock
+		return devnetCrossChainSupportTronAndPolygonBlock
 	} else if networkTestnet == network {
-		return testnetCrossChainSupportTronBlock
+		return testnetCrossChainSupportTronAndPolygonBlock
 	}
-	return mainnetCrossChainSupportTronBlock
-}
-
-func CrossChainSupportPolygonBlock() int64 {
-	if networkDevnet == network {
-		return devnetCrossChainSupportPolygonBlock
-	} else if networkTestnet == network {
-		return testnetCrossChainSupportPolygonBlock
-	}
-	return mainnetCrossChainSupportPolygonBlock
+	return mainnetCrossChainSupportTronAndPolygonBlock
 }
 
 func EIP155ChainID() *big.Int {
@@ -151,40 +129,8 @@ func EvmSupportBlock() int64 {
 	return mainnetSupportEvmBlock
 }
 
-func IntrarelayerSupportBlock() int64 {
-	if networkDevnet == network {
-		return devnetSupportIntrarelayerBlock
-	} else if networkTestnet == network {
-		return testnetSupportIntrarelayerBlock
-	}
-	return mainnetSupportIntrarelayerBlock
-}
-
-func MigrateSupportBlock() int64 {
-	if networkDevnet == network {
-		return devnetSupportMigrateBlock
-	} else if networkTestnet == network {
-		return testnetSupportMigrateBlock
-	}
-	return mainnetSupportMigrateBlock
-}
-
-func EGFProposalSupportBlock() int64 {
-	if networkDevnet == network {
-		return devnetSupportEGFProposalBlock
-	} else if networkTestnet == network {
-		return testnetSupportEGFProposalBlock
-	}
-	return mainnetSupportEGFProposalBlock
-}
-
 func RequestBatchBaseFeeBlock() int64 {
-	if networkDevnet == network {
-		return devnetRequestBaseFeeBlock
-	} else if networkTestnet == network {
-		return testnetRequestBaseFeeBlock
-	}
-	return mainnetRequestBaseFeeBlock
+	return EvmSupportBlock()
 }
 
 func IsRequestBatchBaseFee(height int64) bool {

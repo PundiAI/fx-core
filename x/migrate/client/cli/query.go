@@ -18,12 +18,7 @@ func GetQueryCmd() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-
 	cmd.AddCommand(CmdGetMigrateRecord())
-
-	for _, command := range cmd.Commands() {
-		flags.AddQueryFlagsToCmd(command)
-	}
 	return cmd
 }
 
@@ -49,5 +44,6 @@ func CmdGetMigrateRecord() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

@@ -10,7 +10,7 @@ import "migrate/v1/migrate.proto";
 service Query {
   // DenomTrace queries a denomination trace information.
   rpc QueryMigrateRecord (QueryMigrateRecordRequest) returns (MigrateRecord) {
-    option (google.api.http).get = "/migrate/v1/migrate_record/{address}";
+    option (google.api.http).get = "/migrate/v1/record/{address}";
   }
 }
 

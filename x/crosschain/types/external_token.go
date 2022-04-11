@@ -49,10 +49,6 @@ func ValidateExternalAddress(addr string) error {
 //     ExternalToken   //
 /////////////////////////
 
-func NewExternalToken(amount uint64, contract string) *ExternalToken {
-	return &ExternalToken{Amount: sdk.NewIntFromUint64(amount), Contract: contract}
-}
-
 func NewExternalTokenBySdkInt(amount sdk.Int, contract string) *ExternalToken {
 	return &ExternalToken{Amount: amount, Contract: contract}
 }

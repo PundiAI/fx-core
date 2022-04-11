@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -50,8 +50,8 @@ func Test_FxAddress(t *testing.T) {
 	t.Log("eth address", crypto.PubkeyToAddress(priKeyEth.PublicKey).Hex())
 }
 
-func Test_IntrarelayerModuleAddress(t *testing.T) {
-	address := intrarelayertypes.ModuleAddress
+func Test_Erc20ModuleAddress(t *testing.T) {
+	address := erc20types.ModuleAddress
 	t.Log("hex", address.Hex())                           //0xa64Ca24E8d45ca9e1D4EC5e0fd4b5C5bbb37989e
 	t.Log("fx", sdk.AccAddress(address.Bytes()).String()) //fx15ex2yn5dgh9fu82wchs06j6utwan0xy76syjjz
 }

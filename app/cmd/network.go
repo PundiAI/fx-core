@@ -27,14 +27,9 @@ func Network() *cobra.Command {
 				"GravityPruneValsetsAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetsAndAttestationBlock()),
 				"GravityValsetSlashBlock":                fmt.Sprintf("%d", types.GravityValsetSlashBlock()),
 				"CrossChainSupportBscBlock":              fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
-				"CrossChainSupportTronBlock":             fmt.Sprintf("%d", types.CrossChainSupportTronBlock()),
-				"CrossChainSupportPolygonBlock":          fmt.Sprintf("%d", types.CrossChainSupportPolygonBlock()),
+				"CrossChainSupportPolygonAndTronBlock":   fmt.Sprintf("%d", types.CrossChainSupportPolygonAndTronBlock()),
 				"EIP155ChainID":                          fmt.Sprintf("%d", types.EIP155ChainID()),
 				"EvmSupportBlock":                        fmt.Sprintf("%d", types.EvmSupportBlock()),
-				"IntrarelayerSupportBlock":               fmt.Sprintf("%d", types.IntrarelayerSupportBlock()),
-				"MigrateSupportBlock":                    fmt.Sprintf("%d", types.MigrateSupportBlock()),
-				"EGFProposalSupportBlock":                fmt.Sprintf("%d", types.EGFProposalSupportBlock()),
-				"RequestBatchBaseFeeBlock":               fmt.Sprintf("%d", types.RequestBatchBaseFeeBlock()),
 			})
 			if err != nil {
 				return err

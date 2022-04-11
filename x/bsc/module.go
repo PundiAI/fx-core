@@ -2,8 +2,6 @@ package bsc
 
 import (
 	"encoding/json"
-	"math/rand"
-
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"
@@ -13,7 +11,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -138,48 +135,4 @@ func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	crosschain.EndBlocker(ctx, am.keeper)
 	return []abci.ValidatorUpdate{}
-}
-
-//____________________________________________________________________________
-
-// AppModuleSimulation functions
-
-// GenerateGenesisState creates a randomized GenState of the distribution module.
-func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	// simulation.RandomizedGenState(simState)
-}
-
-// ProposalContents returns all the distribution content functions used to
-// simulate governance proposals.
-func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-// RandomizedParams creates randomized distribution param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return nil
-}
-
-// RegisterStoreDecoder registers a decoder for distribution module's types
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	// sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
-}
-
-// WeightedOperations returns the all the gov module operations with their respective weights.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return nil
-}
-
-func (am AppModule) TransferAfter(ctx sdk.Context, sender, receive string, amount, fee sdk.Coin) error {
-	// TODO: validate data
-	// Claim channel capability passed back by IBC module
-	sendAddr, err := sdk.AccAddressFromBech32(sender)
-	if err != nil {
-		return err
-	}
-	if err = types.ValidateExternalAddress(receive); err != nil {
-		return err
-	}
-	_, err = am.keeper.AddToOutgoingPool(ctx, sendAddr, receive, amount, fee)
-	return err
 }

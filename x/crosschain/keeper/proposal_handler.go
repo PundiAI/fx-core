@@ -25,7 +25,7 @@ func (s EthereumMsgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p
 	s.SetParams(ctx, *p.Params)
 
 	// FIP: slash fraction cannot greater than one 100%  2021-10-26.
-	if ctx.BlockHeight() >= fxtype.CrossChainSupportTronBlock() {
+	if ctx.BlockHeight() >= fxtype.CrossChainSupportPolygonAndTronBlock() {
 		if p.Params.SlashFraction.GT(sdk.OneDec()) {
 			return sdkerrors.Wrapf(types.ErrInvalid, "slash fraction too large: %s", p.Params.SlashFraction)
 		}

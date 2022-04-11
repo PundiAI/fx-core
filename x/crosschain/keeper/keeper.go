@@ -23,15 +23,17 @@ type Keeper struct {
 	storeKey   sdk.StoreKey      // Unexposed key to access store from sdk.Context
 	paramSpace paramtypes.Subspace
 
-	bankKeeper         types.BankKeeper
-	accountKeeper      types.AccountKeeper
-	ibcTransferKeeper  keeper.Keeper
-	ibcChannelKeeper   ibcchannelkeeper.Keeper
-	IntrarelayerKeeper types.IntrarelayerKeeper
+	bankKeeper        types.BankKeeper
+	accountKeeper     types.AccountKeeper
+	ibcTransferKeeper keeper.Keeper
+	ibcChannelKeeper  ibcchannelkeeper.Keeper
+	erc20Keeper       types.Erc20Keeper
 }
 
 // NewKeeper returns a new instance of the gravity keeper
-func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
+	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper,
+	ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper, erc20Keeper types.Erc20Keeper) Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
@@ -45,6 +47,7 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, 
 		bankKeeper:        bankKeeper,
 		ibcTransferKeeper: ibcTransferKeeper,
 		ibcChannelKeeper:  channelKeeper,
+		erc20Keeper:       erc20Keeper,
 	}
 	return k
 }
@@ -52,11 +55,6 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+k.moduleName)
-}
-
-func (k *Keeper) SetIntrarelayerKeeper(intrarelayerKeeper types.IntrarelayerKeeper) *Keeper {
-	k.IntrarelayerKeeper = intrarelayerKeeper
-	return k
 }
 
 /////////////////////////////

@@ -3,27 +3,19 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/input"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/params"
 	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
 	fxcoretypes "github.com/functionx/fx-core/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	"github.com/spf13/viper"
-	"os"
-	"strings"
-
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"os"
 
 	"github.com/functionx/fx-core/x/evm/types"
 )
@@ -188,108 +180,108 @@ func getFeeMarkerParamsByFlags(cmd *cobra.Command, noBaseFee bool, baseFee, minB
 	}, nil
 }
 
-func getIntrarelayerParamsByFlags(cmd *cobra.Command) (*types.IntrarelayerParams, error) {
-	var enableIntrarelayer = true
-	var enableEVMHook = true
-	var ibcTransferTimeoutHeight = uint64(20000)
-	return &types.IntrarelayerParams{
-		EnableIntrarelayer:       enableIntrarelayer,
-		EnableEVMHook:            enableEVMHook,
-		IbcTransferTimeoutHeight: ibcTransferTimeoutHeight,
-	}, nil
-}
-
-func InitEvmProposalCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "init-evm",
-		Short:   "Submit a init evm proposal",
-		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-evm --evm-denom=<denom> --metadata=<path/to/metadata> --from=<key_or_address>`, version.AppName),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			initProposalAmount, err := sdk.ParseCoinsNormalized(viper.GetString(cli.FlagDeposit))
-			if err != nil {
-				return err
-			}
-			title, err := cmd.Flags().GetString(cli.FlagTitle)
-			if err != nil {
-				return err
-			}
-			description, err := cmd.Flags().GetString(cli.FlagDescription)
-			if err != nil {
-				return err
-			}
-
-			evmParams, err := getEvmParamsByFlags(cmd)
-			if err != nil {
-				return err
-			}
-			feeMarketParams, err := getFeeMarkerParamsByFlags(cmd, viper.GetBool(flagNoBaseFee),
-				viper.GetInt64(flagBaseFee), viper.GetInt64(flagMinBaseFee),
-				viper.GetInt64(flagMaxBaseFee), viper.GetInt64(flagMaxGas))
-			if err != nil {
-				return err
-			}
-
-			intrarelayerParams, err := getIntrarelayerParamsByFlags(cmd)
-			if err != nil {
-				return err
-			}
-
-			metadataPath := viper.GetString(flagMetadata)
-			var metadatas []banktypes.Metadata
-			if len(strings.TrimSpace(metadataPath)) > 0 {
-				metadatas, err = ReadMetadataFromPath(cliCtx.Codec, metadataPath)
-				if err != nil {
-					return err
-				}
-			}
-
-			proposal := &types.InitEvmProposal{
-				Title:              title,
-				Description:        description,
-				EvmParams:          evmParams,
-				FeemarketParams:    feeMarketParams,
-				IntrarelayerParams: intrarelayerParams,
-				Metadata:           metadatas,
-			}
-
-			fromAddress := cliCtx.GetFromAddress()
-			msg, err := govtypes.NewMsgSubmitProposal(proposal, initProposalAmount, fromAddress)
-			if err != nil {
-				return err
-			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
-		},
-	}
-
-	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
-	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
-	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
-	cmd.Flags().String(flagEvmParamsEvmDenom, fxcoretypes.FX, "evm denom represents the token denomination used to run the EVM state transitions.")
-	cmd.Flags().String(flagMetadata, "", "path to metadata file/directory")
-	cmd.Flags().Bool(flagNoBaseFee, false, "no base fee")
-	cmd.Flags().Int64(flagBaseFee, 4000, "enable base fee(gwei)")
-	cmd.Flags().Int64(flagMinBaseFee, 4000, "min base fee(gwei)")
-	cmd.Flags().Int64(flagMaxBaseFee, 40000, "max base fee(gwei)")
-	cmd.Flags().Int64(flagMaxGas, 10000000, "max gas limit")
-
-	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
-		panic(err)
-	}
-	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
-		panic(err)
-	}
-	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
-		panic(err)
-	}
-	return cmd
-}
+//func getErc20ParamsByFlags(cmd *cobra.Command) (*types.Erc20Params, error) {
+//	var enableErc20 = true
+//	var enableEVMHook = true
+//	var ibcTransferTimeoutHeight = uint64(20000)
+//	return &types.Erc20Params{
+//		EnableErc20:              enableErc20,
+//		EnableEVMHook:            enableEVMHook,
+//		IbcTransferTimeoutHeight: ibcTransferTimeoutHeight,
+//	}, nil
+//}
+//
+//func InitEvmProposalCmd() *cobra.Command {
+//	cmd := &cobra.Command{
+//		Use:     "init-evm",
+//		Short:   "Submit a init evm proposal",
+//		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-evm --evm-denom=<denom> --metadata=<path/to/metadata> --from=<key_or_address>`, version.AppName),
+//		RunE: func(cmd *cobra.Command, args []string) error {
+//			cliCtx, err := client.GetClientTxContext(cmd)
+//			if err != nil {
+//				return err
+//			}
+//			initProposalAmount, err := sdk.ParseCoinsNormalized(viper.GetString(cli.FlagDeposit))
+//			if err != nil {
+//				return err
+//			}
+//			title, err := cmd.Flags().GetString(cli.FlagTitle)
+//			if err != nil {
+//				return err
+//			}
+//			description, err := cmd.Flags().GetString(cli.FlagDescription)
+//			if err != nil {
+//				return err
+//			}
+//
+//			evmParams, err := getEvmParamsByFlags(cmd)
+//			if err != nil {
+//				return err
+//			}
+//			feeMarketParams, err := getFeeMarkerParamsByFlags(cmd, viper.GetBool(flagNoBaseFee),
+//				viper.GetInt64(flagBaseFee), viper.GetInt64(flagMinBaseFee),
+//				viper.GetInt64(flagMaxBaseFee), viper.GetInt64(flagMaxGas))
+//			if err != nil {
+//				return err
+//			}
+//
+//			erc20Params, err := getErc20ParamsByFlags(cmd)
+//			if err != nil {
+//				return err
+//			}
+//
+//			metadataPath := viper.GetString(flagMetadata)
+//			var metadatas []banktypes.Metadata
+//			if len(strings.TrimSpace(metadataPath)) > 0 {
+//				metadatas, err = ReadMetadataFromPath(cliCtx.Codec, metadataPath)
+//				if err != nil {
+//					return err
+//				}
+//			}
+//
+//			proposal := &types.InitEvmProposal{
+//				Title:           title,
+//				Description:     description,
+//				EvmParams:       evmParams,
+//				FeemarketParams: feeMarketParams,
+//				Erc20Params:     erc20Params,
+//				Metadata:        metadatas,
+//			}
+//
+//			fromAddress := cliCtx.GetFromAddress()
+//			msg, err := govtypes.NewMsgSubmitProposal(proposal, initProposalAmount, fromAddress)
+//			if err != nil {
+//				return err
+//			}
+//			if err := msg.ValidateBasic(); err != nil {
+//				return err
+//			}
+//			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
+//		},
+//	}
+//
+//	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+//	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+//	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
+//	cmd.Flags().String(flagEvmParamsEvmDenom, fxcoretypes.FX, "evm denom represents the token denomination used to run the EVM state transitions.")
+//	cmd.Flags().String(flagMetadata, "", "path to metadata file/directory")
+//	cmd.Flags().Bool(flagNoBaseFee, false, "no base fee")
+//	cmd.Flags().Int64(flagBaseFee, 4000, "enable base fee(gwei)")
+//	cmd.Flags().Int64(flagMinBaseFee, 4000, "min base fee(gwei)")
+//	cmd.Flags().Int64(flagMaxBaseFee, 40000, "max base fee(gwei)")
+//	cmd.Flags().Int64(flagMaxGas, 10000000, "max gas limit")
+//
+//	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
+//		panic(err)
+//	}
+//	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
+//		panic(err)
+//	}
+//	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
+//		panic(err)
+//	}
+//	return cmd
+//}
 
 const (
 	flagEvmParamsEvmDenom = "evm-denom"

@@ -34,14 +34,17 @@ type Keeper struct {
 	ibcTransferKeeper keeper.Keeper
 	ibcChannelKeeper  ibcchannelkeeper.Keeper
 
-	AttestationHandler interface {
+	erc20Keeper types.Erc20Keeper
+
+	attestationHandler interface {
 		Handle(sdk.Context, types.Attestation, types.EthereumClaim) error
 	}
 }
 
 // NewKeeper returns a new instance of the gravity keeper
-func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace, stakingKeeper types.StakingKeeper,
-	bankKeeper types.BankKeeper, ak types.AccountKeeper, slashingKeeper types.SlashingKeeper, ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
+	stakingKeeper types.StakingKeeper, bankKeeper types.BankKeeper, ak types.AccountKeeper, slashingKeeper types.SlashingKeeper,
+	ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper, erc20Keeper types.Erc20Keeper) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -57,9 +60,10 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, paramSpace paramtyp
 		SlashingKeeper:    slashingKeeper,
 		ibcTransferKeeper: ibcTransferKeeper,
 		ibcChannelKeeper:  channelKeeper,
+		erc20Keeper:       erc20Keeper,
 	}
-	k.AttestationHandler = AttestationHandler{
-		keeper:     k,
+	k.attestationHandler = &AttestationHandler{
+		keeper:     &k,
 		bankKeeper: bankKeeper,
 	}
 
@@ -192,13 +196,13 @@ func (k Keeper) GetLastSlashedValsetNonce(ctx sdk.Context) uint64 {
 	return types.UInt64FromBytes(bytes)
 }
 
-// SetLastProposalBlockHeight sets the last unbonding block height
+// SetLastUnBondingBlockHeight sets the last unbonding block height
 func (k Keeper) SetLastUnBondingBlockHeight(ctx sdk.Context, unbondingBlockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LastUnBondingBlockHeight, types.UInt64Bytes(unbondingBlockHeight))
 }
 
-// GetLastProposalBlockHeight returns the last unbonding block height
+// GetLastUnBondingBlockHeight returns the last unbonding block height
 func (k Keeper) GetLastUnBondingBlockHeight(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bytes := store.Get(types.LastUnBondingBlockHeight)
@@ -358,13 +362,13 @@ func (k Keeper) GetBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce ui
 //    ADDRESS DELEGATION   //
 /////////////////////////////
 
-// SetOrchestratorOracle sets the Orchestrator key for a given validator
+// SetOrchestratorValidator sets the Orchestrator key for a given validator
 func (k Keeper) SetOrchestratorValidator(ctx sdk.Context, val sdk.ValAddress, orch sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetOrchestratorAddressKey(orch), val.Bytes())
 }
 
-// GetOrchestratorOracle returns the validator key associated with an orchestrator key
+// GetOrchestratorValidator returns the validator key associated with an orchestrator key
 func (k Keeper) GetOrchestratorValidator(ctx sdk.Context, orch sdk.AccAddress) (valAddr sdk.ValAddress, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	valAddr = store.Get(types.GetOrchestratorAddressKey(orch))

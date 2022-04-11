@@ -3,8 +3,6 @@ package crosschain
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
-
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -14,7 +12,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/functionx/fx-core/x/crosschain/client/cli"
@@ -43,17 +40,11 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // DefaultGenesis implements app module basic
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	//return cdc.MustMarshalJSON(types.DefaultGenesisState())
 	return nil
 }
 
 // ValidateGenesis implements app module basic
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
-	//var data types.GenesisState
-	//if err := cdc.UnmarshalJSON(bz, &data); err != nil {
-	//	return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
-	//}
-	//return data.ValidateBasic()
 	return nil
 }
 
@@ -87,10 +78,9 @@ func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 type AppModule struct {
 	AppModuleBasic
 	keeper keeper.RouterKeeper
-	//bankKeeper bankkeeper.Keeper
 }
 
-// NewAppModule creates a new AppModule Object
+// NewAppModuleByRouter creates a new AppModule Object
 func NewAppModuleByRouter(k keeper.RouterKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
@@ -130,16 +120,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // InitGenesis initializes the genesis state for this module and implements app module.
 func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {
-	//var genesisState types.GenesisState
-	//cdc.MustUnmarshalJSON(data, &genesisState)
-	//keeper.InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	//gs := keeper.ExportGenesis(ctx, am.keeper)
-	//return cdc.MustMarshalJSON(&gs)
 	return nil
 }
 
@@ -149,34 +134,4 @@ func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {}
 // EndBlock implements app module
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
-}
-
-//____________________________________________________________________________
-
-// AppModuleSimulation functions
-
-// GenerateGenesisState creates a randomized GenState of the distribution module.
-func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	// simulation.RandomizedGenState(simState)
-}
-
-// ProposalContents returns all the distribution content functions used to
-// simulate governance proposals.
-func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-// RandomizedParams creates randomized distribution param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return nil
-}
-
-// RegisterStoreDecoder registers a decoder for distribution module's types
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	// sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
-}
-
-// WeightedOperations returns the all the gov module operations with their respective weights.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return nil
 }

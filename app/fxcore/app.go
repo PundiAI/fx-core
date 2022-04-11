@@ -1,7 +1,6 @@
 package fxcore
 
 import (
-	"github.com/functionx/fx-core/app/ante"
 	"io"
 	"net/http"
 	"os"
@@ -108,23 +107,23 @@ import (
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 
 	"github.com/functionx/fx-core/x/evm"
-	evmclient "github.com/functionx/fx-core/x/evm/client"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"github.com/functionx/fx-core/x/feemarket"
 	feemarketkeeper "github.com/functionx/fx-core/x/feemarket/keeper"
 
-	intrarelayerclient "github.com/functionx/fx-core/x/intrarelayer/client"
-	intrarelayerkeeper "github.com/functionx/fx-core/x/intrarelayer/keeper"
-	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
+	erc20client "github.com/functionx/fx-core/x/erc20/client"
+	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
 
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
+	"github.com/functionx/fx-core/app/ante"
 	serverty "github.com/functionx/fx-core/server"
 	fxtype "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/x/erc20"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	"github.com/functionx/fx-core/x/intrarelayer"
 	"github.com/functionx/fx-core/x/migrate"
 
 	_ "github.com/functionx/fx-core/docs/statik"
@@ -146,10 +145,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		distrclient.ProposalHandler,
 		upgradeclient.ProposalHandler,
 		upgradeclient.CancelProposalHandler,
-		evmclient.InitEvmProposalHandler,
-		intrarelayerclient.RegisterCoinProposalHandler,
-		intrarelayerclient.RegisterFIP20ProposalHandler,
-		intrarelayerclient.ToggleTokenRelayProposalHandler,
+		erc20client.RegisterCoinProposalHandler,
+		erc20client.ToggleTokenRelayProposalHandler,
 	}
 }
 
@@ -186,7 +183,7 @@ var (
 		tron.AppModuleBasic{},
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
-		intrarelayer.AppModuleBasic{},
+		erc20.AppModuleBasic{},
 		migrate.AppModuleBasic{},
 	)
 
@@ -204,13 +201,13 @@ var (
 		polygontypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
 		trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 		// used for secure addition and subtraction of balance using module account
-		evmtypes.ModuleName:          {authtypes.Minter, authtypes.Burner},
-		intrarelayertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
+		erc20types.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 	// module accounts that are allowed to receive tokens
-	allowedReceivingModAcc = map[string]bool{
-		distrtypes.ModuleName: true,
-	}
+	//allowedReceivingModAcc = map[string]bool{
+	//	distrtypes.ModuleName: true,
+	//}
 )
 
 var (
@@ -270,16 +267,16 @@ type App struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	GravityKeeper    *gravitykeeper.Keeper
+	GravityKeeper    gravitykeeper.Keeper
 	CrosschainKeeper crosschainkeeper.RouterKeeper
 	BscKeeper        crosschainkeeper.Keeper
 	PolygonKeeper    crosschainkeeper.Keeper
 	TronKeeper       crosschainkeeper.Keeper
 
 	// Ethermint keepers
-	EvmKeeper          *evmkeeper.Keeper
-	FeeMarketKeeper    feemarketkeeper.Keeper
-	IntrarelayerKeeper *intrarelayerkeeper.Keeper
+	EvmKeeper       *evmkeeper.Keeper
+	FeeMarketKeeper feemarketkeeper.Keeper
+	Erc20Keeper     erc20keeper.Keeper
 
 	MigrateKeeper migratekeeper.Keeper
 
@@ -313,8 +310,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		trontypes.StoreKey,
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
-		// intrarelayer keys
-		intrarelayertypes.StoreKey,
+		// erc20 keys
+		erc20types.StoreKey,
 		migratetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
@@ -390,32 +387,36 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	// this line is used by starport scaffolding # stargate/myApp/keeperDefinition
 
+	tracer := cast.ToString(appOpts.Get(serverty.EVMTracer))
+	myApp.EvmKeeper = evmkeeper.NewKeeper(
+		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
+		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeper, tracer)
+
+	myApp.Erc20Keeper = erc20keeper.NewKeeper(
+		keys[erc20types.StoreKey], appCodec, myApp.GetSubspace(erc20types.ModuleName),
+		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
+		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
+
+	myApp.EvmKeeper.SetHooks(evmkeeper.NewMultiEvmHooks(myApp.Erc20Keeper))
+
 	myApp.GravityKeeper = gravitykeeper.NewKeeper(
-		appCodec,
-		keys[gravitytypes.StoreKey],
-		myApp.GetSubspace(gravitytypes.ModuleName),
-		stakingKeeper,
-		myApp.BankKeeper,
-		myApp.AccountKeeper,
-		myApp.SlashingKeeper,
-		myApp.TransferKeeper,
-		myApp.IBCKeeper.ChannelKeeper,
+		appCodec, keys[gravitytypes.StoreKey], myApp.GetSubspace(gravitytypes.ModuleName),
+		stakingKeeper, myApp.BankKeeper, myApp.AccountKeeper, myApp.SlashingKeeper,
+		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper,
 	)
 
-	// ## init cross chain module
-
-	// ### init bsc cross chain module
+	// init cross chain module
 	myApp.BscKeeper = crosschainkeeper.NewKeeper(appCodec, bsctypes.ModuleName, keys[bsctypes.StoreKey], myApp.GetSubspace(bsctypes.ModuleName),
-		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
+		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
 	myApp.PolygonKeeper = crosschainkeeper.NewKeeper(appCodec, polygontypes.ModuleName, keys[polygontypes.StoreKey], myApp.GetSubspace(polygontypes.ModuleName),
-		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
+		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
 	myApp.TronKeeper = crosschainkeeper.NewKeeper(appCodec, trontypes.ModuleName, keys[trontypes.StoreKey], myApp.GetSubspace(trontypes.ModuleName),
-		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
+		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
+	// add cross-chain router
 	crosschainRouter := crosschainkeeper.NewRouter()
-	//// add cross-chain router
 	crosschainRouter.
 		AddRoute(bsctypes.ModuleName, &crosschainkeeper.ModuleHandler{
 			QueryServer: myApp.BscKeeper,
@@ -432,31 +433,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	myApp.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
 
-	tracer := cast.ToString(appOpts.Get(serverty.EVMTracer))
-
 	// Create Ethermint keepers
 	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
 	)
-
-	myApp.EvmKeeper = evmkeeper.NewKeeper(
-		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
-		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeper, tracer)
-
-	myApp.IntrarelayerKeeper = intrarelayerkeeper.NewKeeper(
-		keys[intrarelayertypes.StoreKey], appCodec, myApp.GetSubspace(intrarelayertypes.ModuleName),
-		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper,
-		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
-
-	evmHooks := evmkeeper.NewMultiEvmHooks(myApp.IntrarelayerKeeper)
-	myApp.EvmKeeper = myApp.EvmKeeper.SetHooks(evmHooks)
-
-	//set intrarelayer keeper
-	myApp.EvmKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
-	myApp.GravityKeeper = myApp.GravityKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
-	myApp.BscKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
-	myApp.PolygonKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
-	myApp.TronKeeper.SetIntrarelayerKeeper(myApp.IntrarelayerKeeper)
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
@@ -466,8 +446,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(myApp.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientUpdateProposalHandler(myApp.IBCKeeper.ClientKeeper)).
 		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)).
-		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(*myApp.EvmKeeper)).
-		AddRoute(intrarelayertypes.RouterKey, intrarelayer.NewIntrarelayerProposalHandler(myApp.IntrarelayerKeeper))
+		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(&myApp.Erc20Keeper))
 
 	myApp.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], myApp.GetSubspace(govtypes.ModuleName), myApp.AccountKeeper, myApp.BankKeeper,
@@ -475,13 +454,13 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	)
 
 	ibcTransferRouter := ibctransfertypes.NewRouter()
-	ibcTransferRouter.AddRoute(gravitytypes.ModuleName, gravity.NewAppModule(*myApp.GravityKeeper, myApp.BankKeeper))
-	ibcTransferRouter.AddRoute(bsctypes.ModuleName, bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper))
-	ibcTransferRouter.AddRoute(polygontypes.ModuleName, polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper))
-	ibcTransferRouter.AddRoute(trontypes.ModuleName, tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper))
-	ibcTransferRouter.AddRoute(intrarelayertypes.ModuleName, intrarelayer.NewAppModule(*myApp.IntrarelayerKeeper, myApp.AccountKeeper))
+	ibcTransferRouter.AddRoute(gravitytypes.ModuleName, myApp.GravityKeeper)
+	ibcTransferRouter.AddRoute(bsctypes.ModuleName, myApp.BscKeeper)
+	ibcTransferRouter.AddRoute(polygontypes.ModuleName, myApp.PolygonKeeper)
+	ibcTransferRouter.AddRoute(trontypes.ModuleName, myApp.TronKeeper)
+	ibcTransferRouter.AddRoute(erc20types.ModuleName, myApp.Erc20Keeper)
 	myApp.TransferKeeper.SetRouter(ibcTransferRouter)
-	myApp.TransferKeeper.SetRefundHook(intrarelayer.NewAppModule(*myApp.IntrarelayerKeeper, myApp.AccountKeeper))
+	myApp.TransferKeeper.SetRefundHook(myApp.Erc20Keeper)
 	transferModule := transfer.NewAppModule(myApp.TransferKeeper)
 	transferIBCModule := transfer.NewIBCModule(myApp.TransferKeeper)
 	// Create static IBC router, add transfer route, then set and seal it
@@ -500,8 +479,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		),
 	)
 
-	myApp.IntrarelayerKeeper.SetIBCTransferKeeper(myApp.TransferKeeper)
-	myApp.MigrateKeeper = migratekeeper.NewKeeper(appCodec, keys[migratetypes.StoreKey], myApp.IntrarelayerKeeper)
+	myApp.MigrateKeeper = migratekeeper.NewKeeper(appCodec, keys[migratetypes.StoreKey])
 	bankMigrate := migratekeeper.NewBankMigrate(myApp.BankKeeper)
 	distrStakingMigrate := migratekeeper.NewDistrStakingMigrate(keys[distrtypes.StoreKey], keys[stakingtypes.StoreKey], myApp.StakingKeeper)
 	govMigrate := migratekeeper.NewGovMigrate(keys[govtypes.StoreKey], myApp.GovKeeper)
@@ -536,7 +514,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		params.NewAppModule(myApp.ParamsKeeper),
 		transferModule,
 		// this line is used by starport scaffolding # stargate/myApp/appModule
-		gravity.NewAppModule(*myApp.GravityKeeper, myApp.BankKeeper),
+		gravity.NewAppModule(myApp.GravityKeeper, myApp.BankKeeper),
 		other.NewAppModule(appCodec),
 		crosschain.NewAppModuleByRouter(myApp.CrosschainKeeper),
 		bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper),
@@ -545,7 +523,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		// Ethermint app modules
 		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		feemarket.NewAppModule(myApp.FeeMarketKeeper),
-		intrarelayer.NewAppModule(*myApp.IntrarelayerKeeper, myApp.AccountKeeper),
+		erc20.NewAppModule(myApp.Erc20Keeper, myApp.AccountKeeper),
 		migrate.NewAppModule(myApp.MigrateKeeper),
 	)
 
@@ -562,7 +540,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		stakingtypes.ModuleName,
 		ibchost.ModuleName,
 		feemarkettypes.ModuleName,
-		intrarelayertypes.ModuleName,
+		erc20types.ModuleName,
 	)
 
 	myApp.mm.SetOrderEndBlockers(
@@ -631,13 +609,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.SetEndBlocker(myApp.EndBlocker)
 
 	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportBscBlock(), bsctypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportPolygonBlock(), polygontypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportTronBlock(), trontypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), evmtypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), feemarkettypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(fxtype.IntrarelayerSupportBlock(), intrarelayertypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(fxtype.MigrateSupportBlock(), migratetypes.StoreKey)
-	govtypes.SetEGFProposalSupportBlock(fxtype.EGFProposalSupportBlock())
+	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportPolygonAndTronBlock(), polygontypes.StoreKey, trontypes.StoreKey)
+
+	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), evmtypes.StoreKey, feemarkettypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey)
+	govtypes.SetEGFProposalSupportBlock(fxtype.EvmSupportBlock())
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
@@ -796,7 +771,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
-	paramsKeeper.Subspace(intrarelayertypes.ModuleName)
+	paramsKeeper.Subspace(erc20types.ModuleName)
 	return paramsKeeper
 }
 

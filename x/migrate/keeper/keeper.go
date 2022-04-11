@@ -12,18 +12,15 @@ type Keeper struct {
 	cdc codec.BinaryCodec
 	// Store key required for the Fee Market Prefix KVStore.
 	storeKey sdk.StoreKey
-	// access intrarelayer module
-	intrarelayerKeeper types.IntrarelayerKeeper
 	// Migrate handlers
 	migrateI []MigrateI
 }
 
 // NewKeeper generates new fee market module keeper
-func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, intrarelayerKeeper types.IntrarelayerKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey) Keeper {
 	return Keeper{
-		cdc:                cdc,
-		storeKey:           storeKey,
-		intrarelayerKeeper: intrarelayerKeeper,
+		cdc:      cdc,
+		storeKey: storeKey,
 	}
 }
 

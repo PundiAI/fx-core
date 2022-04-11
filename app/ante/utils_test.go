@@ -10,10 +10,10 @@ import (
 	"github.com/functionx/fx-core/app/ante"
 	"github.com/functionx/fx-core/ethereum/eip712"
 	"github.com/functionx/fx-core/types"
-	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 	"github.com/stretchr/testify/require"
 	"math"
 	"testing"
@@ -74,7 +74,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 2, ChainID: "ethermint_9000-1", Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.enableFeemarket, suite.enableLondonHF))
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.Erc20Keeper, suite.enableFeemarket, suite.enableLondonHF))
 	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
 
@@ -270,10 +270,10 @@ type invalidTx struct{}
 func (invalidTx) GetMsgs() []sdk.Msg   { return []sdk.Msg{nil} }
 func (invalidTx) ValidateBasic() error { return nil }
 
-func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee, londonHF bool) error {
+func InitEvmModuleParams(ctx sdk.Context, keeper erc20keeper.Keeper, dynamicTxFee, londonHF bool) error {
 	defaultEvmParams := evmtypes.DefaultParams()
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
-	defaultIntrarelayerParams := intrarelayertypes.DefaultParams()
+	defaultErc20Params := erc20types.DefaultParams()
 
 	if dynamicTxFee {
 		defaultFeeMarketParams.EnableHeight = 1
@@ -289,22 +289,14 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee
 		defaultEvmParams.ChainConfig.MergeForkBlock = &maxInt
 	}
 
-	if err := keeper.HandleInitEvmProposal(ctx, &evmtypes.InitEvmProposal{
-		Title:              "Init evm title",
-		Description:        "Init emv module description",
-		EvmParams:          &defaultEvmParams,
-		FeemarketParams:    &defaultFeeMarketParams,
-		IntrarelayerParams: IntrarelayerParamsToEvm(defaultIntrarelayerParams),
+	if err := keeper.HandleInitEvmProposal(ctx, &erc20types.InitEvmProposal{
+		Title:           "Init evm title",
+		Description:     "Init emv module description",
+		EvmParams:       &defaultEvmParams,
+		FeemarketParams: &defaultFeeMarketParams,
+		Erc20Params:     &defaultErc20Params,
 	}); err != nil {
 		return err
 	}
 	return nil
-}
-
-func IntrarelayerParamsToEvm(p intrarelayertypes.Params) *evmtypes.IntrarelayerParams {
-	return &evmtypes.IntrarelayerParams{
-		EnableIntrarelayer:       p.EnableIntrarelayer,
-		EnableEVMHook:            p.EnableEVMHook,
-		IbcTransferTimeoutHeight: p.IbcTransferTimeoutHeight,
-	}
 }

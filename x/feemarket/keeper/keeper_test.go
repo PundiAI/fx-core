@@ -3,10 +3,10 @@ package keeper_test
 import (
 	_ "embed"
 	app "github.com/functionx/fx-core/app/fxcore"
-	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"github.com/functionx/fx-core/x/feemarket/keeper"
-	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 	"math/big"
 	"testing"
 	"time"
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.app.FeeMarketKeeper))
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, &suite.app.Erc20Keeper, suite.app.FeeMarketKeeper))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -178,17 +178,17 @@ func (suite *KeeperTestSuite) TestSetGetGasFee() {
 	}
 }
 
-func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, marketKeeper keeper.Keeper) error {
+func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, marketKeeper keeper.Keeper) error {
 	defaultEvmParams := evmtypes.DefaultParams()
 	defaultFeeMarketParams := types.DefaultParams()
-	defaultIntrarelayerParams := intrarelayertypes.DefaultParams()
+	defaultErc20Params := erc20types.DefaultParams()
 
-	if err := keeper.HandleInitEvmProposal(ctx, &evmtypes.InitEvmProposal{
-		Title:              "Init evm title",
-		Description:        "Init emv module description",
-		EvmParams:          &defaultEvmParams,
-		FeemarketParams:    &defaultFeeMarketParams,
-		IntrarelayerParams: IntrarelayerParamsToEvm(defaultIntrarelayerParams),
+	if err := keeper.HandleInitEvmProposal(ctx, &erc20types.InitEvmProposal{
+		Title:           "Init evm title",
+		Description:     "Init emv module description",
+		EvmParams:       &defaultEvmParams,
+		FeemarketParams: &defaultFeeMarketParams,
+		Erc20Params:     &defaultErc20Params,
 	}); err != nil {
 		return err
 	}
@@ -196,12 +196,4 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, marketKeeper
 	//marketKeeper.SetBaseFee(ctx, sdk.ZeroInt().BigInt())
 
 	return nil
-}
-
-func IntrarelayerParamsToEvm(p intrarelayertypes.Params) *evmtypes.IntrarelayerParams {
-	return &evmtypes.IntrarelayerParams{
-		EnableIntrarelayer:       p.EnableIntrarelayer,
-		EnableEVMHook:            p.EnableEVMHook,
-		IbcTransferTimeoutHeight: p.IbcTransferTimeoutHeight,
-	}
 }

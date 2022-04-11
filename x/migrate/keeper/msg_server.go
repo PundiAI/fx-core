@@ -4,7 +4,6 @@ import (
 	"context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	fxtype "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/migrate/types"
 )
 
@@ -14,10 +13,6 @@ var (
 
 func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccount) (*types.MsgMigrateAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	//check module enable
-	if ctx.BlockHeight() < fxtype.MigrateSupportBlock() || !k.intrarelayerKeeper.HasInit(ctx) {
-		return nil, sdkerrors.Wrap(types.InvalidRequest, "migrate module not enable")
-	}
 
 	fromAddress, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {

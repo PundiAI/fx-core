@@ -5,7 +5,6 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	"github.com/functionx/fx-core/x/evm/statedb"
-	intrarelayertypes "github.com/functionx/fx-core/x/intrarelayer/types"
 	"math/big"
 	"testing"
 	"time"
@@ -695,35 +694,27 @@ func (dh *DummyHook) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt
 }
 
 func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee bool) error {
-	defaultEvmParams := types.DefaultParams()
-	defaultFeeMarketParams := feemarkettypes.DefaultParams()
-	defaultIntrarelayerParams := intrarelayertypes.DefaultParams()
-
-	if dynamicTxFee {
-		defaultFeeMarketParams.EnableHeight = 1
-		defaultFeeMarketParams.NoBaseFee = false
-	} else {
-		defaultFeeMarketParams.NoBaseFee = true
-	}
-
-	if err := keeper.HandleInitEvmProposal(ctx, &types.InitEvmProposal{
-		Title:              "Init evm title",
-		Description:        "Init emv module description",
-		EvmParams:          &defaultEvmParams,
-		FeemarketParams:    &defaultFeeMarketParams,
-		IntrarelayerParams: IntrarelayerParamsToEvm(defaultIntrarelayerParams),
-	}); err != nil {
-		return err
-	}
+	//defaultEvmParams := types.DefaultParams()
+	//defaultFeeMarketParams := feemarkettypes.DefaultParams()
+	//defaultErc20Params := erc20types.DefaultParams()
+	//
+	//if dynamicTxFee {
+	//	defaultFeeMarketParams.EnableHeight = 1
+	//	defaultFeeMarketParams.NoBaseFee = false
+	//} else {
+	//	defaultFeeMarketParams.NoBaseFee = true
+	//}
+	//
+	//if err := keeper.HandleInitEvmProposal(ctx, &types.InitEvmProposal{
+	//	Title:           "Init evm title",
+	//	Description:     "Init emv module description",
+	//	EvmParams:       &defaultEvmParams,
+	//	FeemarketParams: &defaultFeeMarketParams,
+	//	Erc20Params:     ERC20ParamsToEvm(defaultErc20Params),
+	//}); err != nil {
+	//	return err
+	//}
 	return nil
-}
-
-func IntrarelayerParamsToEvm(p intrarelayertypes.Params) *types.IntrarelayerParams {
-	return &types.IntrarelayerParams{
-		EnableIntrarelayer:       p.EnableIntrarelayer,
-		EnableEVMHook:            p.EnableEVMHook,
-		IbcTransferTimeoutHeight: p.IbcTransferTimeoutHeight,
-	}
 }
 
 // FailureHook implements EvmHooks interface

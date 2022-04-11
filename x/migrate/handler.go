@@ -4,12 +4,17 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	fxtype "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/migrate/types"
 )
 
 // NewHandler returns a handler for "Gravity" type messages.
 func NewHandler(server types.MsgServer) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		//check module enable
+		if ctx.BlockHeight() < fxtype.EvmSupportBlock() {
+			return nil, sdkerrors.Wrap(types.InvalidRequest, "migrate module not enable")
+		}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case *types.MsgMigrateAccount:

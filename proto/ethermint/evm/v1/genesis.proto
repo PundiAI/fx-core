@@ -1,10 +1,9 @@
 syntax = "proto3";
-package ethermint.evm.v1;
+package fx.ethermint.evm.v1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/bank/v1beta1/bank.proto";
 import "ethermint/evm/v1/evm.proto";
-import "ethermint/feemarket/v1/feemarket.proto";
 
 
 option go_package = "github.com/functionx/fx-core/x/evm/types";
@@ -28,36 +27,4 @@ message GenesisAccount {
   // storage defines the set of state key values for the account.
   repeated State storage = 3
       [ (gogoproto.nullable) = false, (gogoproto.castrepeated) = "Storage" ];
-}
-
-message InitEvmProposal {
-  option (gogoproto.equal) = false;
-
-  // the title of the update proposal
-  string title = 1;
-  // the description of the proposal
-  string description = 2;
-
-  // evm module params
-  ethermint.evm.v1.Params evmParams = 3;
-
-  // feeMarket module params.
-  ethermint.feemarket.v1.Params feemarketParams = 4;
-
-  // intrarelayer moduel params.
-  IntrarelayerParams intrarelayerParams = 5;
-
-  // token pairs of Cosmos native denom and FIP20 token address
-  repeated cosmos.bank.v1beta1.Metadata metadata = 6 [(gogoproto.nullable) = false];
-}
-
-message IntrarelayerParams {
-  // parameter to enable the intrarelaying of Cosmos coins <--> FIP20 tokens.
-  bool enable_intrarelayer = 1;
-  // parameter to enable the EVM hook to convert an FIP20 token to a Cosmos
-  // Coin by transferring the Tokens through a MsgEthereumTx to the
-  // ModuleAddress Ethereum address.
-  bool enable_evm_hook = 2 [(gogoproto.customname) = "EnableEVMHook"];
-  // ibc transfer timeout height
-  uint64 ibc_transfer_timeout_height = 3;
 }

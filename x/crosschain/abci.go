@@ -53,7 +53,7 @@ func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper, oracleSetUpdatePow
 		panic(fmt.Errorf("covert power diff to dec err!!!powerDiff: %v, err: %v", powerDiffStr, err))
 	}
 
-	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) && ctx.BlockHeight() >= fxtype.CrossChainSupportTronBlock() {
+	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) && ctx.BlockHeight() >= fxtype.CrossChainSupportPolygonAndTronBlock() {
 		oracleSetUpdatePowerChangePercent = sdk.OneDec()
 	}
 	if powerDiffDec.GTE(oracleSetUpdatePowerChangePercent) {
