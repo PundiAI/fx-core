@@ -384,6 +384,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// this line is used by starport scaffolding # stargate/myApp/keeperDefinition
 
 	tracer := cast.ToString(appOpts.Get(serverty.EVMTracer))
+	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
+		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
+	)
 	myApp.EvmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
 		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeper, tracer)
@@ -392,10 +395,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		keys[erc20types.StoreKey], appCodec, myApp.GetSubspace(erc20types.ModuleName),
 		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
 		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
-
-	myApp.EvmKeeper.SetHooks(evmkeeper.NewMultiEvmHooks(
-		myApp.Erc20Keeper.Hooks(),
-	))
 
 	myApp.GravityKeeper = gravitykeeper.NewKeeper(
 		appCodec, keys[gravitytypes.StoreKey], myApp.GetSubspace(gravitytypes.ModuleName),
@@ -430,11 +429,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		})
 
 	myApp.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
-
-	// Create Ethermint keepers
-	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
-		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
-	)
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
@@ -476,6 +470,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 			myApp.GravityKeeper.Hooks(),
 		),
 	)
+	// erc20 keeper user ibc transfer router
+	myApp.Erc20Keeper.SetIBCTransferKeeper(myApp.TransferKeeper)
+	// evm keeper hook use erc20 keeper
+	myApp.EvmKeeper.SetHooks(evmkeeper.NewMultiEvmHooks(myApp.Erc20Keeper.Hooks()))
 
 	myApp.MigrateKeeper = migratekeeper.NewKeeper(appCodec, keys[migratetypes.StoreKey])
 	bankMigrate := migratekeeper.NewBankMigrate(myApp.BankKeeper)

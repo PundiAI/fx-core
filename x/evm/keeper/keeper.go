@@ -211,6 +211,11 @@ func (k *Keeper) SetHooks(eh types.EvmHooks) *Keeper {
 	return k
 }
 
+func (k *Keeper) SetHooksForTest(eh types.EvmHooks) *Keeper {
+	k.hooks = eh
+	return k
+}
+
 // PostTxProcessing delegate the call to the hooks. If no hook has been registered, this function returns with a `nil` error
 func (k *Keeper) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
 	if k.hooks == nil {
@@ -340,12 +345,12 @@ func (k Keeper) SetAddressCode(ctx sdk.Context, addr common.Address, codeHash []
 }
 
 func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error {
-	codeHash := crypto.Keccak256(code)
+	codeHash := crypto.Keccak256Hash(code)
 	acc := k.GetAccount(ctx, addr)
 	if acc == nil {
 		k.Logger(ctx).Info("create contract with code", "address", addr.String(), "code", hex.EncodeToString(code))
 		acc = statedb.NewEmptyAccount()
-		acc.CodeHash = codeHash
+		acc.CodeHash = codeHash.Bytes()
 		k.SetCode(ctx, acc.CodeHash, code)
 		return k.SetAccount(ctx, addr, *acc)
 	}
@@ -353,8 +358,7 @@ func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, cod
 		return sdkerrors.Wrapf(types.ErrInvalidAccount, "address %s not contract, can not update code", addr.Hex())
 	}
 	k.Logger(ctx).Info("create contract with code", "address", addr.String(), "code", hex.EncodeToString(code))
-	k.SetCode(ctx, acc.CodeHash, nil)
-	acc.CodeHash = codeHash
+	acc.CodeHash = codeHash.Bytes()
 	k.SetCode(ctx, acc.CodeHash, code)
 	return k.SetAccount(ctx, addr, *acc)
 }

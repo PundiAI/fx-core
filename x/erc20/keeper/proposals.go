@@ -133,35 +133,35 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "token ERC20 contract already registered: %s", contract.String())
 	}
 
-	metadata, err := k.CreateCoinMetadata(ctx, contract)
+	_, baseDenom, _, err := k.CreateCoinMetadata(ctx, contract)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
 	}
 
-	pair := types.NewTokenPair(contract, metadata.Description, true, types.OWNER_EXTERNAL)
+	pair := types.NewTokenPair(contract, baseDenom, true, types.OWNER_EXTERNAL)
 	k.SetTokenPair(ctx, pair)
 	k.SetDenomMap(ctx, pair.Denom, pair.GetID())
 	k.SetERC20Map(ctx, common.HexToAddress(pair.Erc20Address), pair.GetID())
 	return &pair, nil
 }
 
-// CreateCoinMetadata generates the metadata to represent the ERC20 token on evmos.
-func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*banktypes.Metadata, error) {
+// CreateCoinMetadata generates the metadata to represent the ERC20 token on functionX.
+func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*banktypes.Metadata, string, string, error) {
 	strContract := contract.String()
 
 	erc20Data, err := k.QueryERC20(ctx, contract)
 	if err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
 
 	meta := k.bankKeeper.GetDenomMetaData(ctx, types.CreateDenom(strContract))
 	if len(meta.Base) > 0 {
 		// metadata already exists; exit
-		return nil, sdkerrors.Wrap(types.ErrInternalTokenPair, "denom metadata already registered")
+		return nil, "", "", sdkerrors.Wrap(types.ErrInternalTokenPair, "denom metadata already registered")
 	}
 
 	if k.IsDenomRegistered(ctx, types.CreateDenom(strContract)) {
-		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin denomination already registered: %s", erc20Data.Name)
+		return nil, "", "", sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin denomination already registered: %s", erc20Data.Name)
 	}
 
 	// base denomination
@@ -185,24 +185,24 @@ func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*b
 
 	// only append metadata if decimals > 0, otherwise validation fails
 	if erc20Data.Decimals > 0 {
-		nameSanitized := types.SanitizeERC20Name(erc20Data.Name)
 		metadata.DenomUnits = append(
 			metadata.DenomUnits,
 			&banktypes.DenomUnit{
-				Denom:    nameSanitized,
+				Denom:    erc20Data.Symbol,
 				Exponent: uint32(erc20Data.Decimals),
 			},
 		)
-		metadata.Display = nameSanitized
+		metadata.Display = erc20Data.Symbol
 	}
+	symbol := erc20Data.Symbol
 
 	if err := metadata.Validate(); err != nil {
-		return nil, sdkerrors.Wrapf(err, "ERC20 token data is invalid for contract %s", strContract)
+		return nil, "", "", sdkerrors.Wrapf(err, "FIP20 token data is invalid for contract %s", strContract)
 	}
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 
-	return &metadata, nil
+	return &metadata, base, symbol, nil
 }
 
 // ToggleRelay toggles relaying for a given token pair
