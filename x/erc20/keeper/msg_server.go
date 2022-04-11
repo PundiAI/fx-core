@@ -34,17 +34,6 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 		return nil, err
 	}
 
-	// Remove token pair if contract is suicided
-	erc20 := common.HexToAddress(pair.Erc20Address)
-	acc := k.evmKeeper.GetAccountWithoutBalance(ctx, erc20)
-
-	if acc == nil || !acc.IsContract() {
-		k.DeleteTokenPair(ctx, pair)
-		k.Logger(ctx).Debug("deleting selfdestructed token pair from state", "contract", pair.Erc20Address)
-		// NOTE: return nil error to persist the changes from the deletion
-		return nil, nil
-	}
-
 	// Check ownership and execute conversion
 	switch {
 	case pair.IsNativeCoin():
@@ -86,20 +75,6 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 	pair, err := k.MintingEnabled(ctx, ethSender.Bytes(), receiver, msg.ContractAddress)
 	if err != nil {
 		return nil, err
-	}
-
-	// Remove token pair if contract is suicided
-	erc20 := common.HexToAddress(pair.Erc20Address)
-	acc := k.evmKeeper.GetAccountWithoutBalance(ctx, erc20)
-
-	if acc == nil || !acc.IsContract() {
-		k.DeleteTokenPair(ctx, pair)
-		k.Logger(ctx).Debug(
-			"deleting selfdestructed token pair from state",
-			"contract", pair.Erc20Address,
-		)
-		// NOTE: return nil error to persist the changes from the deletion
-		return nil, nil
 	}
 
 	// Check ownership

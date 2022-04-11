@@ -10,6 +10,7 @@ import (
 var (
 	ParamStoreKeyEnableErc20   = []byte("EnableErc20")
 	ParamStoreKeyEnableEVMHook = []byte("EnableEVMHook")
+	ParamStoreKeyIBCTimeout    = []byte("IBCTimeout")
 )
 
 var _ paramtypes.ParamSet = &Params{}
@@ -46,12 +47,27 @@ func validateBool(i interface{}) error {
 	return nil
 }
 
+func validateUint64(i interface{}) error {
+	_, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
+}
+
 // ParamSetPairs returns the parameter set pairs.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(ParamStoreKeyEnableErc20, &p.EnableErc20, validateBool),
 		paramtypes.NewParamSetPair(ParamStoreKeyEnableEVMHook, &p.EnableEVMHook, validateBool),
+		paramtypes.NewParamSetPair(ParamStoreKeyIBCTimeout, &p.IbcTimeout, validateUint64),
 	}
 }
 
-func (p Params) Validate() error { return nil }
+func (p Params) Validate() error {
+	if p.IbcTimeout == 0 {
+		return fmt.Errorf("ibc timeout cannot be 0")
+	}
+	return nil
+}

@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	FIP20EventTransfer      = "Transfer"
 	FIP20EventTransferCross = "TransferCross"
 )
 

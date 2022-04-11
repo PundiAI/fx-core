@@ -81,7 +81,7 @@ func (a AttestationHandler) handlerEvmTransfer(ctx sdk.Context, claim *types.Msg
 	receiverEthType := common.BytesToAddress(receiver.Bytes())
 	logger.Info("convert denom to fip20", "eth sender", claim.EthSender, "receiver", claim.FxReceiver,
 		"receiver-eth-type", receiverEthType.String(), "amount", coin.String(), "target", claim.TargetIbc)
-	err := a.keeper.erc20Keeper.ConvertDenomToFIP20(ctx, receiver, receiverEthType, coin)
+	err := a.keeper.erc20Keeper.RelayConvertCoin(ctx, receiver, receiverEthType, coin)
 	if err != nil {
 		logger.Error("evm transfer, convert denom to fip20 failed", "error", err.Error())
 		return

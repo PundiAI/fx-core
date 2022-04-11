@@ -54,5 +54,5 @@ type AccountKeeper interface {
 }
 
 type Erc20Keeper interface {
-	ConvertDenomToFIP20(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error
+	RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error
 }
