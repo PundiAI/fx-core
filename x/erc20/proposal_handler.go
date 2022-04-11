@@ -20,6 +20,8 @@ func NewErc20ProposalHandler(k *keeper.Keeper) govtypes.Handler {
 			return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("erc20 module not enable"))
 		}
 		switch c := content.(type) {
+		case *types.InitEvmProposal:
+			return k.HandleInitEvmProposal(ctx, c.Erc20Params, c.FeemarketParams, c.EvmParams, c.Metadata)
 		case *types.RegisterCoinProposal:
 			return handleRegisterCoinProposal(ctx, k, c)
 		//case *types.RegisterERC20Proposal:
@@ -28,8 +30,6 @@ func NewErc20ProposalHandler(k *keeper.Keeper) govtypes.Handler {
 			return handleToggleRelayProposal(ctx, k, c)
 		//case *types.UpdateTokenPairERC20Proposal:
 		//	return handleUpdateTokenPairERC20Proposal(ctx, k, c)
-		case *types.InitEvmProposal:
-			return k.HandleInitEvmProposal(ctx, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s proposal content type: %T", types.ModuleName, c)
 		}

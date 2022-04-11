@@ -35,7 +35,7 @@ import (
 	"github.com/functionx/fx-core/crypto/hd"
 	"github.com/functionx/fx-core/rpc/ethereum/backend"
 	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
-	ethermint "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 )
 
@@ -58,7 +58,7 @@ func NewPublicAPI(
 	backend backend.Backend,
 	nonceLock *rpctypes.AddrLocker,
 ) *PublicAPI {
-	eip155ChainID := ethermint.EIP155ChainID()
+	eip155ChainID := fxtypes.EIP155ChainID()
 
 	algos, _ := clientCtx.Keyring.SupportedAlgorithms()
 
@@ -116,7 +116,7 @@ func (e *PublicAPI) Ctx() context.Context {
 // ProtocolVersion returns the supported Ethereum protocol version.
 func (e *PublicAPI) ProtocolVersion() hexutil.Uint {
 	e.logger.Debug("eth_protocolVersion")
-	return hexutil.Uint(ethermint.ProtocolVersion)
+	return hexutil.Uint(fxtypes.ProtocolVersion)
 }
 
 // ChainId is the EIP-155 replay-protection chain id for the current ethereum chain config.

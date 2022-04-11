@@ -15,7 +15,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ethermint "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/evm/types"
 )
 

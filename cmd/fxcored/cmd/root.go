@@ -2,6 +2,11 @@ package cmd
 
 import (
 	"errors"
+	fxserver "github.com/functionx/fx-core/server"
+	fxtypes "github.com/functionx/fx-core/types"
+
+	"github.com/functionx/fx-core/crypto/hd"
+	"github.com/functionx/fx-core/server/config"
 	"io"
 	"os"
 	"path/filepath"
@@ -37,7 +42,7 @@ import (
 	// this line is u by starport scaffolding # stargate/root/import
 )
 
-const EnvPrefix = "FX"
+const envPrefix = "FX"
 
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
@@ -54,10 +59,11 @@ func NewRootCmd() *cobra.Command {
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(fxcore.DefaultNodeHome).
-		WithViper(EnvPrefix)
+		WithViper(envPrefix).
+		WithKeyringOptions(hd.EthSecp256k1Option())
 
 	rootCmd := &cobra.Command{
-		Use:   fxcore.Name + "d",
+		Use:   fxtypes.Name + "d",
 		Short: "FunctionX Core Chain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
@@ -78,7 +84,8 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			if err := server.InterceptConfigsPreRunHandler(cmd, "", nil); err != nil {
+			customAppTemplate, customAppConfig := config.AppConfig(fxtypes.MintDenom)
+			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
 				return err
 			}
 			// add log filter
@@ -89,9 +96,9 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringSlice(app.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery)`)
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID:        fxcore.ChainID,
+		flags.FlagChainID:        fxtypes.ChainID,
 		flags.FlagKeyringBackend: keyring.BackendTest,
-		flags.FlagGasPrices:      "4000000000000" + fxcore.MintDenom,
+		flags.FlagGasPrices:      "4000000000000" + fxtypes.MintDenom,
 	})
 	for _, command := range rootCmd.Commands() {
 		if command.Use == "" {
@@ -121,7 +128,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig fxcore.EncodingConfig) {
 	)
 
 	appCreator := appCreator{encodingConfig}
-	server.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
+	fxserver.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, func(startCmd *cobra.Command) {})
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rpcStatusCmd := rpc.StatusCommand()
@@ -142,9 +149,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig fxcore.EncodingConfig) {
 	}
 }
 
-func addStartFlags(startCmd *cobra.Command) {
-}
-
 func queryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",
@@ -162,6 +166,7 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
 		appCmd.QueryStoreCmd(),
+		appCmd.QueryValidatorByConsAddr(),
 		appCmd.QueryBlockResultsCmd(),
 	)
 

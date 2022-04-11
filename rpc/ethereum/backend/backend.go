@@ -33,7 +33,7 @@ import (
 
 	"github.com/functionx/fx-core/rpc/ethereum/types"
 	"github.com/functionx/fx-core/server/config"
-	ethermint "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 )
@@ -103,7 +103,7 @@ func NewEVMBackend(ctx *server.Context, logger log.Logger, clientCtx client.Cont
 		clientCtx:   clientCtx,
 		queryClient: types.NewQueryClient(clientCtx),
 		logger:      logger.With("module", "evm-backend"),
-		chainID:     ethermint.EIP155ChainID(),
+		chainID:     fxtypes.EIP155ChainID(),
 		cfg:         config.GetConfig(ctx.Viper),
 	}
 }
@@ -928,13 +928,13 @@ func (e *EVMBackend) RPCBlockRangeCap() int32 {
 func (e *EVMBackend) RPCMinGasPrice() int64 {
 	evmParams, err := e.queryClient.Params(e.ctx, &evmtypes.QueryParamsRequest{})
 	if err != nil {
-		return ethermint.DefaultGasPrice
+		return fxtypes.DefaultGasPrice
 	}
 
 	minGasPrice := e.cfg.GetMinGasPrices()
 	amt := minGasPrice.AmountOf(evmParams.Params.EvmDenom).TruncateInt64()
 	if amt == 0 {
-		return ethermint.DefaultGasPrice
+		return fxtypes.DefaultGasPrice
 	}
 
 	return amt

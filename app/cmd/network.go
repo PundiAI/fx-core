@@ -3,14 +3,14 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/functionx/fx-core/types"
+
+	"github.com/spf13/cobra"
 
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
-	"github.com/functionx/fx-core/app/fxcore"
-
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/spf13/cobra"
+
+	"github.com/functionx/fx-core/types"
 )
 
 func Network() *cobra.Command {
@@ -22,7 +22,7 @@ func Network() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			outputBytes, err := json.Marshal(map[string]interface{}{
-				"ChainId":                                fxcore.ChainID,
+				"ChainId":                                types.ChainID,
 				"Network":                                types.Network(),
 				"GravityPruneValsetsAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetsAndAttestationBlock()),
 				"GravityValsetSlashBlock":                fmt.Sprintf("%d", types.GravityValsetSlashBlock()),

@@ -2,7 +2,10 @@ package keeper
 
 import (
 	"encoding/hex"
+	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -301,48 +304,41 @@ func (k Keeper) UpdateTokenPairERC20(ctx sdk.Context, erc20Addr, newERC20Addr co
 	return pair, nil
 }
 
-func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, p *types.InitEvmProposal) error {
+func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, erc20Params *types.Params, feemarketParams *feemarkettypes.Params, evmParams *evmtypes.Params, metadataList []banktypes.Metadata) error {
 	//init fee market
-	k.Logger(ctx).Info("init fee market", "params", p.FeemarketParams.String())
-	if p.FeemarketParams.BaseFee.IsNegative() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "base fee cannot be negative")
-	}
+	k.Logger(ctx).Info("init fee market", "erc20Params", feemarketParams.String())
 	// set feeMarket baseFee
-	k.feeMarketKeeper.SetBaseFee(ctx, p.FeemarketParams.BaseFee.BigInt())
+	k.feeMarketKeeper.SetBaseFee(ctx, feemarketParams.BaseFee.BigInt())
 	// set feeMarket blockGasUsed
 	k.feeMarketKeeper.SetBlockGasUsed(ctx, 0)
-	// init feeMarket module params
-	k.feeMarketKeeper.SetParams(ctx, *p.FeemarketParams)
+	// init feeMarket module erc20Params
+	k.feeMarketKeeper.SetParams(ctx, *feemarketParams)
 
 	//init evm
-	k.Logger(ctx).Info("init evm", "params", p.EvmParams.String())
-	k.evmKeeper.SetParams(ctx, *p.EvmParams)
+	k.Logger(ctx).Info("init evm", "erc20Params", evmParams.String())
+	k.evmKeeper.SetParams(ctx, *evmParams)
 
 	//init erc20
-	k.Logger(ctx).Info("init erc20", "params", p.Erc20Params.String())
+	k.Logger(ctx).Info("init erc20", "erc20Params", erc20Params.String())
 
-	//if err := k.ModuleInit(ctx, p.Erc20Params.EnableErc20,
-	//	p.Erc20Params.EnableEVMHook, p.Erc20Params.IbcTransferTimeoutHeight); err != nil {
-	//	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-	//}
+	if err := k.ModuleInit(ctx, erc20Params.EnableErc20, erc20Params.EnableEVMHook, erc20Params.IbcTimeout); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+	}
 
-	////init register coin
-	//events := make([]sdk.Event, 0, len(p.Metadata))
-	//for _, metadata := range p.Metadata {
-	//	k.Logger(ctx).Info("register coin", "coin", metadata.String())
-	//	pair, err := k.erc20Keeper.RegisterCoin(ctx, metadata)
-	//	if err != nil {
-	//		return sdkerrors.Wrapf(erc20types.ErrInvalidMetadata, fmt.Sprintf("base %s, display %s, error %s",
-	//			metadata.Base, metadata.Display, err.Error()))
-	//	}
-	//	event := sdk.NewEvent(
-	//		erc20types.EventTypeRegisterCoin,
-	//		sdk.NewAttribute(erc20types.AttributeKeyCosmosCoin, pair.Denom),
-	//		sdk.NewAttribute(erc20types.AttributeKeyFIP20Token, pair.Fip20Address),
-	//	)
-	//	events = append(events, event)
-	//}
-	//ctx.EventManager().EmitEvents(events)
+	//init register coin
+	for _, metadata := range metadataList {
+		k.Logger(ctx).Info("register coin", "coin", metadata.String())
+		_, err := k.RegisterCoin(ctx, metadata)
+		if err != nil {
+			return sdkerrors.Wrapf(types.ErrInvalidMetadata, fmt.Sprintf("base %s, display %s, error %s",
+				metadata.Base, metadata.Display, err.Error()))
+		}
+		//ctx.EventManager().EmitEvent(sdk.NewEvent(
+		//	erc20types.EventTypeRegisterCoin,
+		//	sdk.NewAttribute(erc20types.AttributeKeyCosmosCoin, pair.Denom),
+		//	sdk.NewAttribute(erc20types.AttributeKeyFIP20Token, pair.Fip20Address),
+		//))
+	}
 	return nil
 }
 

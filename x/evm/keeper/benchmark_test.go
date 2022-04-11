@@ -11,7 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	ethermint "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/evm/types"
 )
 

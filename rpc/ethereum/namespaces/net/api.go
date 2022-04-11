@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	ethermint "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 )
 
@@ -18,7 +18,7 @@ type PublicAPI struct {
 // NewPublicAPI creates an instance of the public Net Web3 API.
 func NewPublicAPI(clientCtx client.Context) *PublicAPI {
 	return &PublicAPI{
-		networkVersion: ethermint.EIP155ChainID().Uint64(),
+		networkVersion: fxtypes.EIP155ChainID().Uint64(),
 		tmClient:       clientCtx.Client,
 	}
 }

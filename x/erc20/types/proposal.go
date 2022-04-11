@@ -11,7 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
-	ethermint "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
 
@@ -116,7 +116,7 @@ func ValidateErc20Denom(denom string) error {
 		return fmt.Errorf("invalid denom. %s denomination should be prefixed with the format 'erc20/", denom)
 	}
 
-	return ethermint.ValidateAddress(denomSplit[1])
+	return fxtypes.ValidateAddress(denomSplit[1])
 }
 
 // NewRegisterERC20Proposal returns new instance of RegisterERC20Proposal
@@ -138,7 +138,7 @@ func (*RegisterERC20Proposal) ProposalType() string {
 
 // ValidateBasic performs a stateless check of the proposal fields
 func (rtbp *RegisterERC20Proposal) ValidateBasic() error {
-	if err := ethermint.ValidateAddress(rtbp.Erc20Address); err != nil {
+	if err := fxtypes.ValidateAddress(rtbp.Erc20Address); err != nil {
 		return sdkerrors.Wrap(err, "ERC20 address")
 	}
 	return govtypes.ValidateAbstract(rtbp)
@@ -165,7 +165,7 @@ func (*ToggleTokenRelayProposal) ProposalType() string {
 func (etrp *ToggleTokenRelayProposal) ValidateBasic() error {
 	// check if the token is a hex address, if not, check if it is a valid SDK
 	// denom
-	if err := ethermint.ValidateAddress(etrp.Token); err != nil {
+	if err := fxtypes.ValidateAddress(etrp.Token); err != nil {
 		if err := sdk.ValidateDenom(etrp.Token); err != nil {
 			return err
 		}
@@ -194,11 +194,11 @@ func (*UpdateTokenPairERC20Proposal) ProposalType() string {
 
 // ValidateBasic performs a stateless check of the proposal fields
 func (p *UpdateTokenPairERC20Proposal) ValidateBasic() error {
-	if err := ethermint.ValidateAddress(p.Erc20Address); err != nil {
+	if err := fxtypes.ValidateAddress(p.Erc20Address); err != nil {
 		return sdkerrors.Wrap(err, "ERC20 address")
 	}
 
-	if err := ethermint.ValidateAddress(p.NewErc20Address); err != nil {
+	if err := fxtypes.ValidateAddress(p.NewErc20Address); err != nil {
 		return sdkerrors.Wrap(err, "new ERC20 address")
 	}
 

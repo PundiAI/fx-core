@@ -2,23 +2,25 @@ package keeper
 
 import (
 	"encoding/hex"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/functionx/fx-core/x/evm/statedb"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/ethereum/go-ethereum/params"
-	ethermint "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/x/evm/statedb"
 	"github.com/functionx/fx-core/x/evm/types"
 )
 
@@ -86,7 +88,7 @@ func NewKeeper(
 		storeKey:        storeKey,
 		transientKey:    transientKey,
 		tracer:          tracer,
-		eip155ChainID:   ethermint.EIP155ChainID(),
+		eip155ChainID:   fxtypes.EIP155ChainID(),
 	}
 }
 

@@ -9,8 +9,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
-	ethermint "github.com/functionx/fx-core/types"
 	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
@@ -220,7 +220,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	ctx.EventManager().EmitEvents(events)
 
 	// TODO: deprecate after https://github.com/cosmos/cosmos-sdk/issues/9514  is fixed on SDK
-	blockGasLimit := ethermint.BlockGasLimit(ctx)
+	blockGasLimit := fxtypes.BlockGasLimit(ctx)
 
 	// NOTE: safety check
 	if blockGasLimit > 0 {

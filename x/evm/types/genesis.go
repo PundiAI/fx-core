@@ -3,12 +3,12 @@ package types
 import (
 	"fmt"
 
-	ethermint "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 )
 
 // Validate performs a basic validation of a GenesisAccount fields.
 func (ga GenesisAccount) Validate() error {
-	if err := ethermint.ValidateAddress(ga.Address); err != nil {
+	if err := fxtypes.ValidateAddress(ga.Address); err != nil {
 		return err
 	}
 	return ga.Storage.Validate()

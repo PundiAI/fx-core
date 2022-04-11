@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/functionx/fx-core/crypto/hd"
-	ethermint "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -33,7 +33,7 @@ type PrivateAccountAPI struct {
 	clientCtx  client.Context
 	backend    backend.Backend
 	logger     log.Logger
-	hdPathIter ethermint.HDPathIterator
+	hdPathIter fxtypes.HDPathIterator
 }
 
 // NewAPI creates an instance of the public Personal Eth API.
@@ -41,7 +41,7 @@ func NewAPI(logger log.Logger, clientCtx client.Context, backend backend.Backend
 	cfg := sdk.GetConfig()
 	basePath := cfg.GetFullFundraiserPath()
 
-	iterator, err := ethermint.NewHDPathIterator(basePath, true)
+	iterator, err := fxtypes.NewHDPathIterator(basePath, true)
 	if err != nil {
 		panic(err)
 	}

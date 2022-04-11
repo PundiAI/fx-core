@@ -17,7 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/ethereum/eip712"
-	ethermint "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 )
 
@@ -25,7 +25,7 @@ var ethermintCodec codec.ProtoCodecMarshaler
 
 func init() {
 	registry := codectypes.NewInterfaceRegistry()
-	ethermint.RegisterInterfaces(registry)
+	fxtypes.RegisterInterfaces(registry)
 	ethermintCodec = codec.NewProtoCodec(registry)
 }
 
@@ -183,18 +183,18 @@ func VerifySignature(
 			return sdkerrors.Wrap(sdkerrors.ErrUnknownExtensionOptions, "tx doesnt contain expected amount of extension options")
 		}
 
-		var optIface ethermint.ExtensionOptionsWeb3TxI
+		var optIface fxtypes.ExtensionOptionsWeb3TxI
 
 		if err := ethermintCodec.UnpackAny(opts[0], &optIface); err != nil {
 			return sdkerrors.Wrap(err, "failed to proto-unpack ExtensionOptionsWeb3Tx")
 		}
 
-		extOpt, ok := optIface.(*ethermint.ExtensionOptionsWeb3Tx)
+		extOpt, ok := optIface.(*fxtypes.ExtensionOptionsWeb3Tx)
 		if !ok {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidChainID, "unknown extension option")
 		}
 
-		if extOpt.TypedDataChainID != ethermint.EIP155ChainID().Uint64() {
+		if extOpt.TypedDataChainID != fxtypes.EIP155ChainID().Uint64() {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidChainID, "invalid chainID")
 		}
 

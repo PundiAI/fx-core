@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/functionx/fx-core/x/evm/statedb"
 	"math"
 	"math/big"
 
@@ -13,14 +11,16 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	ethermint "github.com/functionx/fx-core/types"
-	"github.com/functionx/fx-core/x/evm/types"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
+
+	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/x/evm/statedb"
+	"github.com/functionx/fx-core/x/evm/types"
 )
 
 // GasToRefund calculates the amount of gas the state machine should refund to the sender. It is
@@ -81,7 +81,7 @@ func (k *Keeper) NewEVM(
 		Transfer:    core.Transfer,
 		GetHash:     k.GetHashFn(ctx),
 		Coinbase:    cfg.CoinBase,
-		GasLimit:    ethermint.BlockGasLimit(ctx),
+		GasLimit:    fxtypes.BlockGasLimit(ctx),
 		BlockNumber: big.NewInt(ctx.BlockHeight()),
 		Time:        big.NewInt(ctx.BlockHeader().Time.Unix()),
 		Difficulty:  big.NewInt(0), // unused. Only required in PoW context
@@ -123,7 +123,7 @@ func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig
 //  3. The requested height is from a height greater than the latest one
 func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 	return func(height uint64) common.Hash {
-		h, err := ethermint.SafeInt64(height)
+		h, err := fxtypes.SafeInt64(height)
 		if err != nil {
 			k.Logger(ctx).Error("failed to cast height to int64", "error", err)
 			return common.Hash{}

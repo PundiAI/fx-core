@@ -2,20 +2,25 @@ package cli
 
 import (
 	"fmt"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	ethermint "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/erc20/types"
 )
@@ -59,7 +64,7 @@ func NewConvertCoinCmd() *cobra.Command {
 
 			if len(args) == 2 {
 				receiver = args[1]
-				if err := ethermint.ValidateAddress(receiver); err != nil {
+				if err := fxtypes.ValidateAddress(receiver); err != nil {
 					return fmt.Errorf("invalid receiver hex address %w", err)
 				}
 			} else {
@@ -93,7 +98,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 			}
 
 			contract := args[0]
-			if err := ethermint.ValidateAddress(contract); err != nil {
+			if err := fxtypes.ValidateAddress(contract); err != nil {
 				return fmt.Errorf("invalid ERC20 contract address %w", err)
 			}
 
@@ -371,6 +376,81 @@ func NewUpdateTokenPairERC20ProposalCmd() *cobra.Command {
 	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
 	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
 	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
+	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
+		panic(err)
+	}
+	return cmd
+}
+
+const (
+	flagMetadata = "metadata"
+)
+
+func InitEvmProposalCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "init-evm",
+		Short:   "Submit a init evm proposal",
+		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-evm --evm-denom=<denom> --metadata=<path/to/metadata> --from=<key_or_address>`, version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			initProposalAmount, err := sdk.ParseCoinsNormalized(viper.GetString(cli.FlagDeposit))
+			if err != nil {
+				return err
+			}
+			title, err := cmd.Flags().GetString(cli.FlagTitle)
+			if err != nil {
+				return err
+			}
+			description, err := cmd.Flags().GetString(cli.FlagDescription)
+			if err != nil {
+				return err
+			}
+
+			evmParams := evmtypes.DefaultParams()
+			feemarketParams := feemarkettypes.DefaultParams()
+			erc20Params := types.DefaultParams()
+
+			metadataPath := viper.GetString(flagMetadata)
+			var metadatas []banktypes.Metadata
+			if len(strings.TrimSpace(metadataPath)) > 0 {
+				metadatas, err = ReadMetadataFromPath(cliCtx.Codec, metadataPath)
+				if err != nil {
+					return err
+				}
+			}
+
+			proposal := &types.InitEvmProposal{
+				Title:           title,
+				Description:     description,
+				EvmParams:       &evmParams,
+				FeemarketParams: &feemarketParams,
+				Erc20Params:     &erc20Params,
+				Metadata:        metadatas,
+			}
+
+			fromAddress := cliCtx.GetFromAddress()
+			msg, err := govtypes.NewMsgSubmitProposal(proposal, initProposalAmount, fromAddress)
+			if err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
+	cmd.Flags().String(flagMetadata, "", "path to metadata file/directory")
+
 	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
 		panic(err)
 	}

@@ -107,6 +107,7 @@ import (
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 
 	"github.com/functionx/fx-core/x/evm"
+	evmrest "github.com/functionx/fx-core/x/evm/client/rest"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"github.com/functionx/fx-core/x/feemarket"
 	feemarketkeeper "github.com/functionx/fx-core/x/feemarket/keeper"
@@ -120,7 +121,7 @@ import (
 
 	"github.com/functionx/fx-core/app/ante"
 	serverty "github.com/functionx/fx-core/server"
-	fxtype "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/erc20"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
@@ -133,12 +134,6 @@ import (
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
 )
 
-var ChainID = "fxcore"
-
-const Name = "fxcore"
-const MintDenom = "FX"
-const AddressPrefix = "fx"
-
 func getGovProposalHandlers() []govclient.ProposalHandler {
 	return []govclient.ProposalHandler{
 		paramsclient.ProposalHandler,
@@ -147,6 +142,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		upgradeclient.CancelProposalHandler,
 		erc20client.RegisterCoinProposalHandler,
 		erc20client.ToggleTokenRelayProposalHandler,
+		erc20client.InitEvmProposalHandler,
 	}
 }
 
@@ -226,7 +222,7 @@ func init() {
 		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
+	DefaultNodeHome = filepath.Join(userHomeDir, "."+fxtypes.Name)
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -293,7 +289,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
-	bApp := baseapp.NewBaseApp(Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
+	bApp := baseapp.NewBaseApp(fxtypes.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
@@ -610,11 +606,11 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.SetAnteHandler(ante.NewAnteHandler(options))
 	myApp.SetEndBlocker(myApp.EndBlocker)
 
-	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportBscBlock(), bsctypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(fxtype.CrossChainSupportPolygonAndTronBlock(), polygontypes.StoreKey, trontypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportBscBlock(), bsctypes.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportPolygonAndTronBlock(), polygontypes.StoreKey, trontypes.StoreKey)
 
-	rootmulti.AddIgnoreCommitKey(fxtype.EvmSupportBlock(), evmtypes.StoreKey, feemarkettypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey)
-	govtypes.SetEGFProposalSupportBlock(fxtype.EvmSupportBlock())
+	rootmulti.AddIgnoreCommitKey(fxtypes.EvmSupportBlock(), evmtypes.StoreKey, feemarkettypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey)
+	govtypes.SetEGFProposalSupportBlock(fxtypes.EvmSupportBlock())
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
@@ -674,13 +670,13 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 	return modAccAddrs
 }
 
-// NOTE: This is solely to be used for testing purposes as it may be desirable
+// LegacyAmino NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
 	return app.cdc
 }
 
-// NOTE: This is solely to be used for testing purposes as it may be desirable
+// AppCodec NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
 func (app *App) AppCodec() codec.Codec {
 	return app.appCodec
@@ -725,15 +721,16 @@ func (app *App) GetSubspace(moduleName string) paramstypes.Subspace {
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
-	// Register legacy tx routes.
-	//	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
+
+	evmrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
+
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
-	//	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
+	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	if apiConfig.Swagger {
 		RegisterSwaggerAPI(apiSvr.Router)

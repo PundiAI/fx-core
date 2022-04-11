@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/params"
@@ -15,7 +15,7 @@ import (
 var _ paramtypes.ParamSet = &Params{}
 
 const (
-	DefaultEVMDenom = fxcoretypes.FX
+	DefaultEVMDenom = fxtypes.MintDenom
 )
 
 // Parameter keys
