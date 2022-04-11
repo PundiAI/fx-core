@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"encoding/hex"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,6 +28,22 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrapf(types.ErrEVMDenom, "cannot register the EVM denomination %s", coinMetadata.Base)
 	}
 
+	//description use for name
+	name := coinMetadata.Description
+	//display use for symbol
+	symbol := coinMetadata.Display
+	//decimals
+	decimals := uint8(0)
+	for _, du := range coinMetadata.DenomUnits {
+		if du.Denom == symbol {
+			decimals = uint8(du.Exponent)
+			break
+		}
+	}
+	if decimals == 0 {
+		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid display denom exponent")
+	}
+
 	// check if the denomination already registered
 	if k.IsDenomRegistered(ctx, coinMetadata.Description) {
 		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Description)
@@ -43,7 +61,8 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin metadata is invalid %s", coinMetadata.Description)
 	}
 
-	addr, err := k.DeployERC20Contract(ctx, coinMetadata)
+	evmParams := k.evmKeeper.GetParams(ctx)
+	addr, err := k.DeployTokenUpgrade(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == evmParams.EvmDenom)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
 	}
@@ -325,4 +344,64 @@ func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, p *types.InitEvmProposal)
 	//}
 	//ctx.EventManager().EmitEvents(events)
 	return nil
+}
+
+func (k Keeper) DeployTokenUpgrade(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8, origin bool) (common.Address, error) {
+	k.Logger(ctx).Info("deploy token upgrade", "name", name, "symbol", symbol, "decimals", decimals)
+
+	logicConfig := contracts.GetERC20Config(ctx.BlockHeight())
+	logicAddr := common.HexToAddress(contracts.FIP20UpgradeCodeAddress)
+	if origin {
+		logicConfig = contracts.GetWFXConfig(ctx.BlockHeight())
+		logicAddr = common.HexToAddress(contracts.WFXUpgradeCodeAddress)
+	}
+
+	//deploy proxy
+	proxy, err := k.DeployERC1967Proxy(ctx, from, logicAddr)
+	if err != nil {
+		return common.Address{}, err
+	}
+	err = k.InitializeUpgradable(ctx, from, proxy, logicConfig.ABI, name, symbol, decimals, types.ModuleAddress)
+	return proxy, err
+}
+
+func (k Keeper) DeployERC1967Proxy(ctx sdk.Context, from, logicAddr common.Address, logicData ...byte) (common.Address, error) {
+	k.Logger(ctx).Info("deploy erc1967 proxy", "logic", logicAddr.String(), "data", hex.EncodeToString(logicData))
+	erc1967ProxyConfig := contracts.GetERC1967ProxyConfig(ctx.BlockHeight())
+
+	if len(logicData) == 0 {
+		logicData = []byte{}
+	}
+	return k.DeployContract(ctx, from, erc1967ProxyConfig.ABI, erc1967ProxyConfig.Bin, logicAddr, logicData)
+}
+
+func (k Keeper) InitializeUpgradable(ctx sdk.Context, from, contract common.Address, abi abi.ABI, data ...interface{}) error {
+	k.Logger(ctx).Info("initialize upgradable", "contract", contract.Hex())
+	_, err := k.CallEVM(ctx, abi, from, contract, "initialize", data...)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to initialize contract")
+	}
+	return nil
+}
+
+func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, constructorData ...interface{}) (common.Address, error) {
+	ctorArgs, err := abi.Pack("", constructorData...)
+	if err != nil {
+		return common.Address{}, sdkerrors.Wrap(err, "pack constructor data")
+	}
+	data := make([]byte, len(bin)+len(ctorArgs))
+	copy(data[:len(bin)], bin)
+	copy(data[len(bin):], ctorArgs)
+
+	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	contractAddr := crypto.CreateAddress(from, nonce)
+	_, err = k.CallEVMWithData(ctx, from, nil, data)
+	if err != nil {
+		return common.Address{}, sdkerrors.Wrap(err, "failed to deploy contract")
+	}
+	return contractAddr, nil
 }

@@ -25,6 +25,8 @@ message Params {
   // Coin by transferring the Tokens through a MsgEthereumTx to the
   // ModuleAddress Ethereum address.
   bool enable_evm_hook = 2 [ (gogoproto.customname) = "EnableEVMHook" ];
+  // parameter to set ibc timeout
+  uint64 ibc_timeout = 3;
 }
 
 message InitEvmProposal {

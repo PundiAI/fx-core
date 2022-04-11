@@ -60,6 +60,19 @@ func (k Keeper) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *eth
 	panic("implement me")
 }
 
+func (k *Keeper) SetIBCTransferKeeper(ibcTransferKeepr types.IBCTransferKeeper) *Keeper {
+	k.ibcTransferKeeper = ibcTransferKeepr
+	return k
+}
+
+func (k *Keeper) SetIBCChannelKeeper(ibcChannelKeeper types.IBCChannelKeeper) {
+	k.ibcChannelKeeper = ibcChannelKeeper
+}
+
+func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error {
+	return k.evmKeeper.CreateContractWithCode(ctx, addr, code)
+}
+
 // NewKeeper creates new instances of the erc20 Keeper
 func NewKeeper(
 	storeKey sdk.StoreKey,

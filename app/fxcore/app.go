@@ -397,7 +397,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
 		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
 
-	myApp.EvmKeeper.SetHooks(evmkeeper.NewMultiEvmHooks(myApp.Erc20Keeper))
+	myApp.EvmKeeper.SetHooks(evmkeeper.NewMultiEvmHooks(
+		myApp.Erc20Keeper.Hooks(),
+	))
 
 	myApp.GravityKeeper = gravitykeeper.NewKeeper(
 		appCodec, keys[gravitytypes.StoreKey], myApp.GetSubspace(gravitytypes.ModuleName),

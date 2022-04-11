@@ -60,6 +60,22 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	return types.NewERC20Data(nameRes.Value, symbolRes.Value, decimalRes.Value), nil
 }
 
+// BalanceOf returns the balance of an address for ERC20 contract
+func (k Keeper) BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.Int, error) {
+	erc20 := contracts.GetERC20Config(ctx.BlockHeight()).ABI
+
+	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "balanceOf", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	var balanceRes types.ERC20Uint256Response
+	if err := erc20.UnpackIntoInterface(&balanceRes, "balanceOf", res.Ret); err != nil {
+		return nil, err
+	}
+	return balanceRes.Value, nil
+}
+
 // CallEVM performs a smart contract method call using given args
 func (k Keeper) CallEVM(ctx sdk.Context, abi abi.ABI, from, contract common.Address, method string, args ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
 	data, err := abi.Pack(method, args...)
@@ -90,7 +106,7 @@ func (k Keeper) CallEVMWithData(ctx sdk.Context, from common.Address, contract *
 		Data: (*hexutil.Bytes)(&data),
 	})
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "failled to marshal tx args: %s", err.Error())
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "failed to marshal tx args: %s", err.Error())
 	}
 
 	gasRes, err := k.evmKeeper.EstimateGas(sdk.WrapSDKContext(ctx), &evmtypes.EthCallRequest{

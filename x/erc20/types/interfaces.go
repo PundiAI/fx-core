@@ -2,6 +2,7 @@ package types
 
 import (
 	context "context"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
@@ -24,6 +25,9 @@ import (
 type AccountKeeper interface {
 	GetModuleAddress(moduleName string) sdk.AccAddress
 	GetSequence(sdk.Context, sdk.AccAddress) (uint64, error)
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	SetAccount(sdk.Context, authtypes.AccountI)
+	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
@@ -37,6 +41,7 @@ type BankKeeper interface {
 	GetDenomMetaData(ctx sdk.Context, denom string) banktypes.Metadata
 	SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata)
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 }
 
 // EVMKeeper defines the expected EVM keeper interface used on erc20
@@ -46,6 +51,7 @@ type EVMKeeper interface {
 	GetAccountWithoutBalance(ctx sdk.Context, addr common.Address) *statedb.Account
 	EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*evmtypes.EstimateGasResponse, error)
 	ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error)
+	CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error
 }
 
 type FeeMarketKeeper interface {

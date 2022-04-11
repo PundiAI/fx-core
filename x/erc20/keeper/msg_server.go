@@ -1,7 +1,9 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,10 +40,7 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 
 	if acc == nil || !acc.IsContract() {
 		k.DeleteTokenPair(ctx, pair)
-		k.Logger(ctx).Debug(
-			"deleting selfdestructed token pair from state",
-			"contract", pair.Erc20Address,
-		)
+		k.Logger(ctx).Debug("deleting selfdestructed token pair from state", "contract", pair.Erc20Address)
 		// NOTE: return nil error to persist the changes from the deletion
 		return nil, nil
 	}
@@ -66,7 +65,25 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 	receiver, _ := sdk.AccAddressFromBech32(msg.Receiver)
 	sender := common.HexToAddress(msg.Sender)
 
-	pair, err := k.MintingEnabled(ctx, sender.Bytes(), receiver, msg.ContractAddress)
+	//TODO convert eth address by account pub key
+	accSender := k.accountKeeper.GetAccount(ctx, sender.Bytes())
+	if accSender == nil {
+		return nil, fmt.Errorf("account %s not found", msg.Sender)
+	}
+	pubKey := accSender.GetPubKey()
+	ethPubKey, err := crypto.DecompressPubkey(pubKey.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	ethSender := crypto.PubkeyToAddress(*ethPubKey)
+	if !bytes.Equal(sender.Bytes(), ethSender.Bytes()) {
+		if _, err := k.accountKeeper.GetSequence(ctx, ethSender.Bytes()); err != nil {
+			accI := k.accountKeeper.NewAccountWithAddress(ctx, ethSender.Bytes())
+			k.accountKeeper.SetAccount(ctx, accI)
+		}
+	}
+
+	pair, err := k.MintingEnabled(ctx, ethSender.Bytes(), receiver, msg.ContractAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -88,9 +105,9 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 	// Check ownership
 	switch {
 	case pair.IsNativeCoin():
-		return k.convertERC20NativeCoin(ctx, pair, msg, receiver, sender) // case 1.2
+		return k.convertERC20NativeCoin(ctx, pair, msg, receiver, ethSender) // case 1.2
 	case pair.IsNativeERC20():
-		return k.convertERC20NativeToken(ctx, pair, msg, receiver, sender) // case 2.1
+		return k.convertERC20NativeToken(ctx, pair, msg, receiver, ethSender) // case 2.1
 	default:
 		return nil, types.ErrUndefinedOwner
 	}
@@ -117,6 +134,13 @@ func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "mint", receiver, msg.Coin.Amount.BigInt())
 	if err != nil {
 		return nil, err
+	}
+
+	evmParams := k.evmKeeper.GetParams(ctx)
+	if pair.Denom == evmParams.EvmDenom {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, contract.Bytes(), coins); err != nil {
+			return nil, sdkerrors.Wrap(err, "failed to transfer escrow coins to origin denom")
+		}
 	}
 
 	// Check expected Receiver balance after transfer execution
@@ -162,9 +186,17 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 	balanceToken := k.balanceOf(ctx, erc20, contract, sender)
 
 	// Burn escrowed tokens
-	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "burnCoins", sender, msg.Amount.BigInt())
+	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "burn", sender, msg.Amount.BigInt())
 	if err != nil {
 		return nil, err
+	}
+
+	// Transfer origin denom to module
+	evmParams := k.evmKeeper.GetParams(ctx)
+	if pair.Denom == evmParams.EvmDenom {
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, contract.Bytes(), types.ModuleName, coins); err != nil {
+			return nil, sdkerrors.Wrap(err, "failed to transfer origin denom to module")
+		}
 	}
 
 	// Unescrow Coins and send to receiver

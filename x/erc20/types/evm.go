@@ -1,5 +1,7 @@
 package types
 
+import "math/big"
+
 // ERC20Data represents the ERC20 token details used to map
 // the token to a Cosmos Coin
 type ERC20Data struct {
@@ -21,6 +23,11 @@ type ERC20Uint8Response struct {
 // ERC20BoolResponse defines the bool value from the call response
 type ERC20BoolResponse struct {
 	Value bool
+}
+
+// ERC20Uint256Response defines the uint256 value from the call response
+type ERC20Uint256Response struct {
+	Value *big.Int
 }
 
 // NewERC20Data creates a new ERC20Data instance

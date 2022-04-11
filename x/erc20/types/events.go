@@ -24,6 +24,9 @@ const (
 	AttributeKeyReceiver   = "receiver"
 
 	ERC20EventTransfer = "Transfer"
+
+	EventTypeRelayToken = "relay_token"
+	EventEthereumTxHash = "ethereum_tx_hash"
 )
 
 // Event type for Transfer(address from, address to, uint256 value)

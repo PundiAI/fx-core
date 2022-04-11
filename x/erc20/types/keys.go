@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -29,6 +30,7 @@ const (
 	prefixTokenPair = iota + 1
 	prefixTokenPairByERC20
 	prefixTokenPairByDenom
+	prefixIBCTransfer
 )
 
 // KVStore key prefixes
@@ -36,4 +38,11 @@ var (
 	KeyPrefixTokenPair        = []byte{prefixTokenPair}
 	KeyPrefixTokenPairByERC20 = []byte{prefixTokenPairByERC20}
 	KeyPrefixTokenPairByDenom = []byte{prefixTokenPairByDenom}
+	KeyPrefixIBCTransfer      = []byte{prefixIBCTransfer}
 )
+
+//GetIBCTransferKey [sourcePort/sourceChannel/sequence]
+func GetIBCTransferKey(sourcePort, sourceChannel string, sequence uint64) []byte {
+	key := fmt.Sprintf("%s/%s/%d", sourcePort, sourceChannel, sequence)
+	return append(KeyPrefixIBCTransfer, []byte(key)...)
+}
