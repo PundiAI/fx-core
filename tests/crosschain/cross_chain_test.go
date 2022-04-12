@@ -26,7 +26,7 @@ import (
 // 1. fxcored tx crosschain init-crosschain-params bsc 10000000000000000000000FX --title="Init Bsc chain params", --desc="about bsc chain description" --gravity-id="bsc" --oracles="fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2" --from fx1 -y --gas=auto --gas-adjustment=1.3
 // 2. fxcored tx gov vote 1 yes --from fx1 -y --gas=auto --gas-adjustment=1.3
 func TestOrchestratorChain(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	client := NewClient(t)

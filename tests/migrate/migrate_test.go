@@ -20,7 +20,7 @@ import (
 )
 
 func TestStakingParams(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	cli := NewClient(t)
@@ -31,7 +31,7 @@ func TestStakingParams(t *testing.T) {
 }
 
 func TestDelegate(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	cli := NewClient(t)
@@ -70,7 +70,7 @@ func TestDelegate(t *testing.T) {
 }
 
 func TestWithdrawReward(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	cli := NewClient(t)
@@ -106,7 +106,7 @@ func TestWithdrawReward(t *testing.T) {
 }
 
 func TestUnDelegate(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	cli := NewClient(t)
@@ -143,7 +143,7 @@ func TestUnDelegate(t *testing.T) {
 }
 
 func TestReDelegate(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	cli := NewClient(t)
@@ -188,7 +188,7 @@ func TestReDelegate(t *testing.T) {
 }
 
 func TestProposalDeposit(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	cli := NewClient(t)
@@ -217,7 +217,7 @@ func TestProposalDeposit(t *testing.T) {
 }
 
 func TestProposalVote(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	cli := NewClient(t)
@@ -247,7 +247,7 @@ func TestProposalVote(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	if !testing.Short() {
+	if testing.Short() {
 		t.SkipNow()
 	}
 	cli := NewClient(t)
