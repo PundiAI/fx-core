@@ -78,18 +78,12 @@ func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, s
 }
 
 func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error {
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() || !k.HasInit(ctx) {
-		return errors.New("erc20 module not enable")
-	}
 	sendAddr, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
 		return fmt.Errorf("invalid sender address %s, error %s", sender, err.Error())
 	}
 	if !common.IsHexAddress(receive) {
 		return fmt.Errorf("invalid receiver address %s", receive)
-	}
-	if !k.IsDenomRegistered(ctx, coin.Denom) {
-		return fmt.Errorf("denom %s not resgister", coin.Denom)
 	}
 	return k.RelayConvertCoin(ctx, sendAddr, common.HexToAddress(receive), coin.Add(fee))
 }
