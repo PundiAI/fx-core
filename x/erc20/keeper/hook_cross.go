@@ -8,7 +8,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"strings"
 )
 
@@ -83,9 +82,9 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, tc *contracts.TransferCross,
 		return fmt.Errorf("ibc channel next sequence send not found, port %s, channel %s", sourcePort, sourceChannel)
 	}
 	ctx.Logger().Info("ibc transfer", "port", sourcePort, "channel", sourceChannel, "sequence", nextSequenceSend, "timeout-height", ibcTimeoutHeight)
-	goCtx := sdk.WrapSDKContext(ctx)
-	ibcTransferMsg := ibctransfertypes.NewMsgTransfer(sourcePort, sourceChannel, tc.Amount, tc.From.Bytes(), tc.To, ibcTimeoutHeight, ibcTimeoutTimestamp, "", tc.Fee)
-	if _, err = k.ibcTransferKeeper.Transfer(goCtx, ibcTransferMsg); err != nil {
+	if err := k.ibcTransferKeeper.SendTransfer(
+		ctx, sourcePort, sourceChannel, tc.Amount, tc.From.Bytes(),
+		tc.To, ibcTimeoutHeight, ibcTimeoutTimestamp, "", tc.Fee); err != nil {
 		return err
 	}
 	k.setIBCTransferHash(ctx, sourcePort, sourceChannel, nextSequenceSend, receipt.TxHash)

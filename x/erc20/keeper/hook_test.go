@@ -47,6 +47,11 @@ type IBCTransferSimulate struct {
 	T *testing.T
 }
 
+func (it *IBCTransferSimulate) SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
+	receiver string, timeoutHeight ibcclienttypes.Height, timeoutTimestamp uint64, router string, fee sdk.Coin) error {
+	return nil
+}
+
 func (it *IBCTransferSimulate) Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error) {
 	return &ibctransfertypes.MsgTransferResponse{}, nil
 }

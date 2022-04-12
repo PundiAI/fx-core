@@ -4,6 +4,7 @@ import (
 	context "context"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
@@ -75,6 +76,8 @@ type CrossChainKeeper interface {
 type IBCTransferKeeper interface {
 	GetRouter() *ibctransfertypes.Router
 	Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error)
+	SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
+		receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, router string, fee sdk.Coin) error
 }
 
 type IBCChannelKeeper interface {
