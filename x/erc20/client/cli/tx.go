@@ -396,7 +396,7 @@ func InitEvmProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "init-evm",
 		Short:   "Submit a init evm proposal",
-		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-evm --evm-denom=<denom> --metadata=<path/to/metadata> --from=<key_or_address>`, version.AppName),
+		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-evm --metadata=<path/to/metadata> --from=<key_or_address>`, version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
