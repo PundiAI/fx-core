@@ -49,7 +49,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	}
 
 	// check if the denomination already registered
-	if k.IsDenomRegistered(ctx, coinMetadata.Description) {
+	if k.IsDenomRegistered(ctx, coinMetadata.Base) {
 		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Description)
 	}
 
