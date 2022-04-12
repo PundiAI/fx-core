@@ -104,119 +104,119 @@
   
     - [Query](#fx.gravity.crosschain.v1.Query)
   
-- [ethermint/crypto/v1/ethsecp256k1/keys.proto](#ethermint/crypto/v1/ethsecp256k1/keys.proto)
-    - [PrivKey](#fx.ethermint.crypto.v1.ethsecp256k1.PrivKey)
-    - [PubKey](#fx.ethermint.crypto.v1.ethsecp256k1.PubKey)
+- [ethereum/crypto/v1/ethsecp256k1/keys.proto](#ethereum/crypto/v1/ethsecp256k1/keys.proto)
+    - [PrivKey](#fx.ethereum.crypto.v1.ethsecp256k1.PrivKey)
+    - [PubKey](#fx.ethereum.crypto.v1.ethsecp256k1.PubKey)
   
-- [ethermint/erc20/v1/erc20.proto](#ethermint/erc20/v1/erc20.proto)
-    - [RegisterCoinProposal](#fx.ethermint.erc20.v1.RegisterCoinProposal)
-    - [RegisterERC20Proposal](#fx.ethermint.erc20.v1.RegisterERC20Proposal)
-    - [ToggleTokenRelayProposal](#fx.ethermint.erc20.v1.ToggleTokenRelayProposal)
-    - [TokenPair](#fx.ethermint.erc20.v1.TokenPair)
-    - [UpdateTokenPairERC20Proposal](#fx.ethermint.erc20.v1.UpdateTokenPairERC20Proposal)
+- [ethereum/erc20/v1/erc20.proto](#ethereum/erc20/v1/erc20.proto)
+    - [RegisterCoinProposal](#fx.ethereum.erc20.v1.RegisterCoinProposal)
+    - [RegisterERC20Proposal](#fx.ethereum.erc20.v1.RegisterERC20Proposal)
+    - [ToggleTokenRelayProposal](#fx.ethereum.erc20.v1.ToggleTokenRelayProposal)
+    - [TokenPair](#fx.ethereum.erc20.v1.TokenPair)
+    - [UpdateTokenPairERC20Proposal](#fx.ethereum.erc20.v1.UpdateTokenPairERC20Proposal)
   
-    - [Owner](#fx.ethermint.erc20.v1.Owner)
+    - [Owner](#fx.ethereum.erc20.v1.Owner)
   
-- [ethermint/feemarket/v1/feemarket.proto](#ethermint/feemarket/v1/feemarket.proto)
-    - [Params](#fx.ethermint.feemarket.v1.Params)
+- [ethereum/feemarket/v1/feemarket.proto](#ethereum/feemarket/v1/feemarket.proto)
+    - [Params](#fx.ethereum.feemarket.v1.Params)
   
-- [ethermint/evm/v1/evm.proto](#ethermint/evm/v1/evm.proto)
-    - [AccessTuple](#fx.ethermint.evm.v1.AccessTuple)
-    - [ChainConfig](#fx.ethermint.evm.v1.ChainConfig)
-    - [Log](#fx.ethermint.evm.v1.Log)
-    - [Params](#fx.ethermint.evm.v1.Params)
-    - [State](#fx.ethermint.evm.v1.State)
-    - [TraceConfig](#fx.ethermint.evm.v1.TraceConfig)
-    - [TransactionLogs](#fx.ethermint.evm.v1.TransactionLogs)
-    - [TxResult](#fx.ethermint.evm.v1.TxResult)
+- [ethereum/evm/v1/evm.proto](#ethereum/evm/v1/evm.proto)
+    - [AccessTuple](#fx.ethereum.evm.v1.AccessTuple)
+    - [ChainConfig](#fx.ethereum.evm.v1.ChainConfig)
+    - [Log](#fx.ethereum.evm.v1.Log)
+    - [Params](#fx.ethereum.evm.v1.Params)
+    - [State](#fx.ethereum.evm.v1.State)
+    - [TraceConfig](#fx.ethereum.evm.v1.TraceConfig)
+    - [TransactionLogs](#fx.ethereum.evm.v1.TransactionLogs)
+    - [TxResult](#fx.ethereum.evm.v1.TxResult)
   
-- [ethermint/erc20/v1/genesis.proto](#ethermint/erc20/v1/genesis.proto)
-    - [GenesisState](#fx.ethermint.erc20.v1.GenesisState)
-    - [InitEvmProposal](#fx.ethermint.erc20.v1.InitEvmProposal)
-    - [Params](#fx.ethermint.erc20.v1.Params)
+- [ethereum/erc20/v1/genesis.proto](#ethereum/erc20/v1/genesis.proto)
+    - [GenesisState](#fx.ethereum.erc20.v1.GenesisState)
+    - [InitEvmProposal](#fx.ethereum.erc20.v1.InitEvmProposal)
+    - [Params](#fx.ethereum.erc20.v1.Params)
   
-- [ethermint/erc20/v1/query.proto](#ethermint/erc20/v1/query.proto)
-    - [QueryModuleEnableRequest](#fx.ethermint.erc20.v1.QueryModuleEnableRequest)
-    - [QueryModuleEnableResponse](#fx.ethermint.erc20.v1.QueryModuleEnableResponse)
-    - [QueryParamsRequest](#fx.ethermint.erc20.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#fx.ethermint.erc20.v1.QueryParamsResponse)
-    - [QueryTokenPairRequest](#fx.ethermint.erc20.v1.QueryTokenPairRequest)
-    - [QueryTokenPairResponse](#fx.ethermint.erc20.v1.QueryTokenPairResponse)
-    - [QueryTokenPairsRequest](#fx.ethermint.erc20.v1.QueryTokenPairsRequest)
-    - [QueryTokenPairsResponse](#fx.ethermint.erc20.v1.QueryTokenPairsResponse)
+- [ethereum/erc20/v1/query.proto](#ethereum/erc20/v1/query.proto)
+    - [QueryModuleEnableRequest](#fx.ethereum.erc20.v1.QueryModuleEnableRequest)
+    - [QueryModuleEnableResponse](#fx.ethereum.erc20.v1.QueryModuleEnableResponse)
+    - [QueryParamsRequest](#fx.ethereum.erc20.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#fx.ethereum.erc20.v1.QueryParamsResponse)
+    - [QueryTokenPairRequest](#fx.ethereum.erc20.v1.QueryTokenPairRequest)
+    - [QueryTokenPairResponse](#fx.ethereum.erc20.v1.QueryTokenPairResponse)
+    - [QueryTokenPairsRequest](#fx.ethereum.erc20.v1.QueryTokenPairsRequest)
+    - [QueryTokenPairsResponse](#fx.ethereum.erc20.v1.QueryTokenPairsResponse)
   
-    - [Query](#fx.ethermint.erc20.v1.Query)
+    - [Query](#fx.ethereum.erc20.v1.Query)
   
-- [ethermint/erc20/v1/tx.proto](#ethermint/erc20/v1/tx.proto)
-    - [MsgConvertCoin](#fx.ethermint.erc20.v1.MsgConvertCoin)
-    - [MsgConvertCoinResponse](#fx.ethermint.erc20.v1.MsgConvertCoinResponse)
-    - [MsgConvertERC20](#fx.ethermint.erc20.v1.MsgConvertERC20)
-    - [MsgConvertERC20Response](#fx.ethermint.erc20.v1.MsgConvertERC20Response)
+- [ethereum/erc20/v1/tx.proto](#ethereum/erc20/v1/tx.proto)
+    - [MsgConvertCoin](#fx.ethereum.erc20.v1.MsgConvertCoin)
+    - [MsgConvertCoinResponse](#fx.ethereum.erc20.v1.MsgConvertCoinResponse)
+    - [MsgConvertERC20](#fx.ethereum.erc20.v1.MsgConvertERC20)
+    - [MsgConvertERC20Response](#fx.ethereum.erc20.v1.MsgConvertERC20Response)
   
-    - [Msg](#fx.ethermint.erc20.v1.Msg)
+    - [Msg](#fx.ethereum.erc20.v1.Msg)
   
-- [ethermint/evm/v1/genesis.proto](#ethermint/evm/v1/genesis.proto)
-    - [GenesisAccount](#fx.ethermint.evm.v1.GenesisAccount)
-    - [GenesisState](#fx.ethermint.evm.v1.GenesisState)
+- [ethereum/evm/v1/genesis.proto](#ethereum/evm/v1/genesis.proto)
+    - [GenesisAccount](#fx.ethereum.evm.v1.GenesisAccount)
+    - [GenesisState](#fx.ethereum.evm.v1.GenesisState)
   
-- [ethermint/evm/v1/tx.proto](#ethermint/evm/v1/tx.proto)
-    - [AccessListTx](#fx.ethermint.evm.v1.AccessListTx)
-    - [DynamicFeeTx](#fx.ethermint.evm.v1.DynamicFeeTx)
-    - [ExtensionOptionsEthereumTx](#fx.ethermint.evm.v1.ExtensionOptionsEthereumTx)
-    - [LegacyTx](#fx.ethermint.evm.v1.LegacyTx)
-    - [MsgEthereumTx](#fx.ethermint.evm.v1.MsgEthereumTx)
-    - [MsgEthereumTxResponse](#fx.ethermint.evm.v1.MsgEthereumTxResponse)
+- [ethereum/evm/v1/tx.proto](#ethereum/evm/v1/tx.proto)
+    - [AccessListTx](#fx.ethereum.evm.v1.AccessListTx)
+    - [DynamicFeeTx](#fx.ethereum.evm.v1.DynamicFeeTx)
+    - [ExtensionOptionsEthereumTx](#fx.ethereum.evm.v1.ExtensionOptionsEthereumTx)
+    - [LegacyTx](#fx.ethereum.evm.v1.LegacyTx)
+    - [MsgEthereumTx](#fx.ethereum.evm.v1.MsgEthereumTx)
+    - [MsgEthereumTxResponse](#fx.ethereum.evm.v1.MsgEthereumTxResponse)
   
-    - [Msg](#fx.ethermint.evm.v1.Msg)
+    - [Msg](#fx.ethereum.evm.v1.Msg)
   
-- [ethermint/evm/v1/query.proto](#ethermint/evm/v1/query.proto)
-    - [EstimateGasResponse](#fx.ethermint.evm.v1.EstimateGasResponse)
-    - [EthCallRequest](#fx.ethermint.evm.v1.EthCallRequest)
-    - [QueryAccountRequest](#fx.ethermint.evm.v1.QueryAccountRequest)
-    - [QueryAccountResponse](#fx.ethermint.evm.v1.QueryAccountResponse)
-    - [QueryBalanceRequest](#fx.ethermint.evm.v1.QueryBalanceRequest)
-    - [QueryBalanceResponse](#fx.ethermint.evm.v1.QueryBalanceResponse)
-    - [QueryCodeRequest](#fx.ethermint.evm.v1.QueryCodeRequest)
-    - [QueryCodeResponse](#fx.ethermint.evm.v1.QueryCodeResponse)
-    - [QueryCosmosAccountRequest](#fx.ethermint.evm.v1.QueryCosmosAccountRequest)
-    - [QueryCosmosAccountResponse](#fx.ethermint.evm.v1.QueryCosmosAccountResponse)
-    - [QueryModuleEnableRequest](#fx.ethermint.evm.v1.QueryModuleEnableRequest)
-    - [QueryModuleEnableResponse](#fx.ethermint.evm.v1.QueryModuleEnableResponse)
-    - [QueryParamsRequest](#fx.ethermint.evm.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#fx.ethermint.evm.v1.QueryParamsResponse)
-    - [QueryStorageRequest](#fx.ethermint.evm.v1.QueryStorageRequest)
-    - [QueryStorageResponse](#fx.ethermint.evm.v1.QueryStorageResponse)
-    - [QueryTraceBlockRequest](#fx.ethermint.evm.v1.QueryTraceBlockRequest)
-    - [QueryTraceBlockResponse](#fx.ethermint.evm.v1.QueryTraceBlockResponse)
-    - [QueryTraceTxRequest](#fx.ethermint.evm.v1.QueryTraceTxRequest)
-    - [QueryTraceTxResponse](#fx.ethermint.evm.v1.QueryTraceTxResponse)
-    - [QueryTxLogsRequest](#fx.ethermint.evm.v1.QueryTxLogsRequest)
-    - [QueryTxLogsResponse](#fx.ethermint.evm.v1.QueryTxLogsResponse)
-    - [QueryValidatorAccountRequest](#fx.ethermint.evm.v1.QueryValidatorAccountRequest)
-    - [QueryValidatorAccountResponse](#fx.ethermint.evm.v1.QueryValidatorAccountResponse)
+- [ethereum/evm/v1/query.proto](#ethereum/evm/v1/query.proto)
+    - [EstimateGasResponse](#fx.ethereum.evm.v1.EstimateGasResponse)
+    - [EthCallRequest](#fx.ethereum.evm.v1.EthCallRequest)
+    - [QueryAccountRequest](#fx.ethereum.evm.v1.QueryAccountRequest)
+    - [QueryAccountResponse](#fx.ethereum.evm.v1.QueryAccountResponse)
+    - [QueryBalanceRequest](#fx.ethereum.evm.v1.QueryBalanceRequest)
+    - [QueryBalanceResponse](#fx.ethereum.evm.v1.QueryBalanceResponse)
+    - [QueryCodeRequest](#fx.ethereum.evm.v1.QueryCodeRequest)
+    - [QueryCodeResponse](#fx.ethereum.evm.v1.QueryCodeResponse)
+    - [QueryCosmosAccountRequest](#fx.ethereum.evm.v1.QueryCosmosAccountRequest)
+    - [QueryCosmosAccountResponse](#fx.ethereum.evm.v1.QueryCosmosAccountResponse)
+    - [QueryModuleEnableRequest](#fx.ethereum.evm.v1.QueryModuleEnableRequest)
+    - [QueryModuleEnableResponse](#fx.ethereum.evm.v1.QueryModuleEnableResponse)
+    - [QueryParamsRequest](#fx.ethereum.evm.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#fx.ethereum.evm.v1.QueryParamsResponse)
+    - [QueryStorageRequest](#fx.ethereum.evm.v1.QueryStorageRequest)
+    - [QueryStorageResponse](#fx.ethereum.evm.v1.QueryStorageResponse)
+    - [QueryTraceBlockRequest](#fx.ethereum.evm.v1.QueryTraceBlockRequest)
+    - [QueryTraceBlockResponse](#fx.ethereum.evm.v1.QueryTraceBlockResponse)
+    - [QueryTraceTxRequest](#fx.ethereum.evm.v1.QueryTraceTxRequest)
+    - [QueryTraceTxResponse](#fx.ethereum.evm.v1.QueryTraceTxResponse)
+    - [QueryTxLogsRequest](#fx.ethereum.evm.v1.QueryTxLogsRequest)
+    - [QueryTxLogsResponse](#fx.ethereum.evm.v1.QueryTxLogsResponse)
+    - [QueryValidatorAccountRequest](#fx.ethereum.evm.v1.QueryValidatorAccountRequest)
+    - [QueryValidatorAccountResponse](#fx.ethereum.evm.v1.QueryValidatorAccountResponse)
   
-    - [Query](#fx.ethermint.evm.v1.Query)
+    - [Query](#fx.ethereum.evm.v1.Query)
   
-- [ethermint/feemarket/v1/genesis.proto](#ethermint/feemarket/v1/genesis.proto)
-    - [GenesisState](#fx.ethermint.feemarket.v1.GenesisState)
+- [ethereum/feemarket/v1/genesis.proto](#ethereum/feemarket/v1/genesis.proto)
+    - [GenesisState](#fx.ethereum.feemarket.v1.GenesisState)
   
-- [ethermint/feemarket/v1/query.proto](#ethermint/feemarket/v1/query.proto)
-    - [QueryBaseFeeRequest](#fx.ethermint.feemarket.v1.QueryBaseFeeRequest)
-    - [QueryBaseFeeResponse](#fx.ethermint.feemarket.v1.QueryBaseFeeResponse)
-    - [QueryBlockGasRequest](#fx.ethermint.feemarket.v1.QueryBlockGasRequest)
-    - [QueryBlockGasResponse](#fx.ethermint.feemarket.v1.QueryBlockGasResponse)
-    - [QueryModuleEnableRequest](#fx.ethermint.feemarket.v1.QueryModuleEnableRequest)
-    - [QueryModuleEnableResponse](#fx.ethermint.feemarket.v1.QueryModuleEnableResponse)
-    - [QueryParamsRequest](#fx.ethermint.feemarket.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#fx.ethermint.feemarket.v1.QueryParamsResponse)
+- [ethereum/feemarket/v1/query.proto](#ethereum/feemarket/v1/query.proto)
+    - [QueryBaseFeeRequest](#fx.ethereum.feemarket.v1.QueryBaseFeeRequest)
+    - [QueryBaseFeeResponse](#fx.ethereum.feemarket.v1.QueryBaseFeeResponse)
+    - [QueryBlockGasRequest](#fx.ethereum.feemarket.v1.QueryBlockGasRequest)
+    - [QueryBlockGasResponse](#fx.ethereum.feemarket.v1.QueryBlockGasResponse)
+    - [QueryModuleEnableRequest](#fx.ethereum.feemarket.v1.QueryModuleEnableRequest)
+    - [QueryModuleEnableResponse](#fx.ethereum.feemarket.v1.QueryModuleEnableResponse)
+    - [QueryParamsRequest](#fx.ethereum.feemarket.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#fx.ethereum.feemarket.v1.QueryParamsResponse)
   
-    - [Query](#fx.ethermint.feemarket.v1.Query)
+    - [Query](#fx.ethereum.feemarket.v1.Query)
   
-- [ethermint/types/v1/account.proto](#ethermint/types/v1/account.proto)
-    - [EthAccount](#fx.ethermint.types.v1.EthAccount)
+- [ethereum/types/v1/account.proto](#ethereum/types/v1/account.proto)
+    - [EthAccount](#fx.ethereum.types.v1.EthAccount)
   
-- [ethermint/types/v1/web3.proto](#ethermint/types/v1/web3.proto)
-    - [ExtensionOptionsWeb3Tx](#fx.ethermint.types.v1.ExtensionOptionsWeb3Tx)
+- [ethereum/types/v1/web3.proto](#ethereum/types/v1/web3.proto)
+    - [ExtensionOptionsWeb3Tx](#fx.ethereum.types.v1.ExtensionOptionsWeb3Tx)
   
 - [gravity/v1/attestation.proto](#gravity/v1/attestation.proto)
     - [Attestation](#fx.gravity.v1.Attestation)
@@ -1926,14 +1926,14 @@ Query defines the gRPC querier service
 
 
 
-<a name="ethermint/crypto/v1/ethsecp256k1/keys.proto"></a>
+<a name="ethereum/crypto/v1/ethsecp256k1/keys.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/crypto/v1/ethsecp256k1/keys.proto
+## ethereum/crypto/v1/ethsecp256k1/keys.proto
 
 
 
-<a name="fx.ethermint.crypto.v1.ethsecp256k1.PrivKey"></a>
+<a name="fx.ethereum.crypto.v1.ethsecp256k1.PrivKey"></a>
 
 ### PrivKey
 PrivKey defines a type alias for an ecdsa.PrivateKey that implements
@@ -1949,7 +1949,7 @@ Tendermint's PrivateKey interface.
 
 
 
-<a name="fx.ethermint.crypto.v1.ethsecp256k1.PubKey"></a>
+<a name="fx.ethereum.crypto.v1.ethsecp256k1.PubKey"></a>
 
 ### PubKey
 PubKey defines a type alias for an ecdsa.PublicKey that implements
@@ -1975,14 +1975,14 @@ key format.
 
 
 
-<a name="ethermint/erc20/v1/erc20.proto"></a>
+<a name="ethereum/erc20/v1/erc20.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/erc20/v1/erc20.proto
+## ethereum/erc20/v1/erc20.proto
 
 
 
-<a name="fx.ethermint.erc20.v1.RegisterCoinProposal"></a>
+<a name="fx.ethereum.erc20.v1.RegisterCoinProposal"></a>
 
 ### RegisterCoinProposal
 RegisterCoinProposal is a gov Content type to register a token pair
@@ -1999,7 +1999,7 @@ RegisterCoinProposal is a gov Content type to register a token pair
 
 
 
-<a name="fx.ethermint.erc20.v1.RegisterERC20Proposal"></a>
+<a name="fx.ethereum.erc20.v1.RegisterERC20Proposal"></a>
 
 ### RegisterERC20Proposal
 RegisterCoinProposal is a gov Content type to register a token pair
@@ -2016,7 +2016,7 @@ RegisterCoinProposal is a gov Content type to register a token pair
 
 
 
-<a name="fx.ethermint.erc20.v1.ToggleTokenRelayProposal"></a>
+<a name="fx.ethereum.erc20.v1.ToggleTokenRelayProposal"></a>
 
 ### ToggleTokenRelayProposal
 ToggleTokenRelayProposal is a gov Content type to toggle
@@ -2034,7 +2034,7 @@ the internal relaying of a token pair.
 
 
 
-<a name="fx.ethermint.erc20.v1.TokenPair"></a>
+<a name="fx.ethereum.erc20.v1.TokenPair"></a>
 
 ### TokenPair
 TokenPair defines an instance that records pairing consisting of a Cosmos
@@ -2046,14 +2046,14 @@ native Coin and an ERC20 token address.
 | `erc20_address` | [string](#string) |  | address of ERC20 contract token |
 | `denom` | [string](#string) |  | cosmos base denomination to be mapped to |
 | `enabled` | [bool](#bool) |  | shows token mapping enable status |
-| `contract_owner` | [Owner](#fx.ethermint.erc20.v1.Owner) |  | ERC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external address) |
+| `contract_owner` | [Owner](#fx.ethereum.erc20.v1.Owner) |  | ERC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external address) |
 
 
 
 
 
 
-<a name="fx.ethermint.erc20.v1.UpdateTokenPairERC20Proposal"></a>
+<a name="fx.ethereum.erc20.v1.UpdateTokenPairERC20Proposal"></a>
 
 ### UpdateTokenPairERC20Proposal
 UpdateTokenPairERC20Proposal is a gov Content type to update a token pair's
@@ -2074,7 +2074,7 @@ ERC20 contract address.
  <!-- end messages -->
 
 
-<a name="fx.ethermint.erc20.v1.Owner"></a>
+<a name="fx.ethereum.erc20.v1.Owner"></a>
 
 ### Owner
 Owner enumerates the ownership of a ERC20 contract.
@@ -2094,14 +2094,14 @@ Owner enumerates the ownership of a ERC20 contract.
 
 
 
-<a name="ethermint/feemarket/v1/feemarket.proto"></a>
+<a name="ethereum/feemarket/v1/feemarket.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/feemarket/v1/feemarket.proto
+## ethereum/feemarket/v1/feemarket.proto
 
 
 
-<a name="fx.ethermint.feemarket.v1.Params"></a>
+<a name="fx.ethereum.feemarket.v1.Params"></a>
 
 ### Params
 Params defines the EVM module parameters
@@ -2132,14 +2132,14 @@ Params defines the EVM module parameters
 
 
 
-<a name="ethermint/evm/v1/evm.proto"></a>
+<a name="ethereum/evm/v1/evm.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/evm/v1/evm.proto
+## ethereum/evm/v1/evm.proto
 
 
 
-<a name="fx.ethermint.evm.v1.AccessTuple"></a>
+<a name="fx.ethereum.evm.v1.AccessTuple"></a>
 
 ### AccessTuple
 AccessTuple is the element type of an access list.
@@ -2155,7 +2155,7 @@ AccessTuple is the element type of an access list.
 
 
 
-<a name="fx.ethermint.evm.v1.ChainConfig"></a>
+<a name="fx.ethereum.evm.v1.ChainConfig"></a>
 
 ### ChainConfig
 ChainConfig defines the Ethereum ChainConfig parameters using *sdk.Int values
@@ -2186,7 +2186,7 @@ instead of *big.Int.
 
 
 
-<a name="fx.ethermint.evm.v1.Log"></a>
+<a name="fx.ethereum.evm.v1.Log"></a>
 
 ### Log
 Log represents an protobuf compatible Ethereum Log that defines a contract
@@ -2211,7 +2211,7 @@ the node.
 
 
 
-<a name="fx.ethermint.evm.v1.Params"></a>
+<a name="fx.ethereum.evm.v1.Params"></a>
 
 ### Params
 Params defines the EVM module parameters
@@ -2223,14 +2223,14 @@ Params defines the EVM module parameters
 | `enable_create` | [bool](#bool) |  | enable create toggles state transitions that use the vm.Create function |
 | `enable_call` | [bool](#bool) |  | enable call toggles state transitions that use the vm.Call function |
 | `extra_eips` | [int64](#int64) | repeated | extra eips defines the additional EIPs for the vm.Config |
-| `chain_config` | [ChainConfig](#fx.ethermint.evm.v1.ChainConfig) |  | chain config defines the EVM chain configuration parameters |
+| `chain_config` | [ChainConfig](#fx.ethereum.evm.v1.ChainConfig) |  | chain config defines the EVM chain configuration parameters |
 
 
 
 
 
 
-<a name="fx.ethermint.evm.v1.State"></a>
+<a name="fx.ethereum.evm.v1.State"></a>
 
 ### State
 State represents a single Storage key value pair item.
@@ -2246,7 +2246,7 @@ State represents a single Storage key value pair item.
 
 
 
-<a name="fx.ethermint.evm.v1.TraceConfig"></a>
+<a name="fx.ethereum.evm.v1.TraceConfig"></a>
 
 ### TraceConfig
 TraceConfig holds extra parameters to trace functions.
@@ -2261,7 +2261,7 @@ TraceConfig holds extra parameters to trace functions.
 | `disable_storage` | [bool](#bool) |  | disable storage capture |
 | `debug` | [bool](#bool) |  | print output during capture end |
 | `limit` | [int32](#int32) |  | maximum length of output, but zero means unlimited |
-| `overrides` | [ChainConfig](#fx.ethermint.evm.v1.ChainConfig) |  | Chain overrides, can be used to execute a trace using future fork rules |
+| `overrides` | [ChainConfig](#fx.ethereum.evm.v1.ChainConfig) |  | Chain overrides, can be used to execute a trace using future fork rules |
 | `enable_memory` | [bool](#bool) |  | enable memory capture |
 | `enable_return_data` | [bool](#bool) |  | enable return data capture |
 
@@ -2270,7 +2270,7 @@ TraceConfig holds extra parameters to trace functions.
 
 
 
-<a name="fx.ethermint.evm.v1.TransactionLogs"></a>
+<a name="fx.ethereum.evm.v1.TransactionLogs"></a>
 
 ### TransactionLogs
 TransactionLogs define the logs generated from a transaction execution
@@ -2281,14 +2281,14 @@ persisted on blockchain state after an upgrade.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `hash` | [string](#string) |  |  |
-| `logs` | [Log](#fx.ethermint.evm.v1.Log) | repeated |  |
+| `logs` | [Log](#fx.ethereum.evm.v1.Log) | repeated |  |
 
 
 
 
 
 
-<a name="fx.ethermint.evm.v1.TxResult"></a>
+<a name="fx.ethereum.evm.v1.TxResult"></a>
 
 ### TxResult
 TxResult stores results of Tx execution.
@@ -2298,7 +2298,7 @@ TxResult stores results of Tx execution.
 | ----- | ---- | ----- | ----------- |
 | `contract_address` | [string](#string) |  | contract_address contains the ethereum address of the created contract (if any). If the state transition is an evm.Call, the contract address will be empty. |
 | `bloom` | [bytes](#bytes) |  | bloom represents the bloom filter bytes |
-| `tx_logs` | [TransactionLogs](#fx.ethermint.evm.v1.TransactionLogs) |  | tx_logs contains the transaction hash and the proto-compatible ethereum logs. |
+| `tx_logs` | [TransactionLogs](#fx.ethereum.evm.v1.TransactionLogs) |  | tx_logs contains the transaction hash and the proto-compatible ethereum logs. |
 | `ret` | [bytes](#bytes) |  | ret defines the bytes from the execution. |
 | `reverted` | [bool](#bool) |  | reverted flag is set to true when the call has been reverted |
 | `gas_used` | [uint64](#uint64) |  | gas_used notes the amount of gas consumed while execution |
@@ -2317,14 +2317,14 @@ TxResult stores results of Tx execution.
 
 
 
-<a name="ethermint/erc20/v1/genesis.proto"></a>
+<a name="ethereum/erc20/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/erc20/v1/genesis.proto
+## ethereum/erc20/v1/genesis.proto
 
 
 
-<a name="fx.ethermint.erc20.v1.GenesisState"></a>
+<a name="fx.ethereum.erc20.v1.GenesisState"></a>
 
 ### GenesisState
 GenesisState defines the module's genesis state.
@@ -2332,15 +2332,15 @@ GenesisState defines the module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#fx.ethermint.erc20.v1.Params) |  | module parameters |
-| `token_pairs` | [TokenPair](#fx.ethermint.erc20.v1.TokenPair) | repeated | registered token pairs |
+| `params` | [Params](#fx.ethereum.erc20.v1.Params) |  | module parameters |
+| `token_pairs` | [TokenPair](#fx.ethereum.erc20.v1.TokenPair) | repeated | registered token pairs |
 
 
 
 
 
 
-<a name="fx.ethermint.erc20.v1.InitEvmProposal"></a>
+<a name="fx.ethereum.erc20.v1.InitEvmProposal"></a>
 
 ### InitEvmProposal
 
@@ -2350,9 +2350,9 @@ GenesisState defines the module's genesis state.
 | ----- | ---- | ----- | ----------- |
 | `title` | [string](#string) |  | the title of the update proposal |
 | `description` | [string](#string) |  | the description of the proposal |
-| `evmParams` | [fx.ethermint.evm.v1.Params](#fx.ethermint.evm.v1.Params) |  | evm module params |
-| `feemarketParams` | [fx.ethermint.feemarket.v1.Params](#fx.ethermint.feemarket.v1.Params) |  | feeMarket module params. |
-| `erc20Params` | [Params](#fx.ethermint.erc20.v1.Params) |  | erc20 moduel params. |
+| `evmParams` | [fx.ethereum.evm.v1.Params](#fx.ethereum.evm.v1.Params) |  | evm module params |
+| `feemarketParams` | [fx.ethereum.feemarket.v1.Params](#fx.ethereum.feemarket.v1.Params) |  | feeMarket module params. |
+| `erc20Params` | [Params](#fx.ethereum.erc20.v1.Params) |  | erc20 moduel params. |
 | `metadatas` | [cosmos.bank.v1beta1.Metadata](#cosmos.bank.v1beta1.Metadata) | repeated | token pairs of Cosmos native denom and FIP20 token address |
 
 
@@ -2360,7 +2360,7 @@ GenesisState defines the module's genesis state.
 
 
 
-<a name="fx.ethermint.erc20.v1.Params"></a>
+<a name="fx.ethereum.erc20.v1.Params"></a>
 
 ### Params
 Params defines the erc20 module params
@@ -2386,14 +2386,14 @@ Params defines the erc20 module params
 
 
 
-<a name="ethermint/erc20/v1/query.proto"></a>
+<a name="ethereum/erc20/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/erc20/v1/query.proto
+## ethereum/erc20/v1/query.proto
 
 
 
-<a name="fx.ethermint.erc20.v1.QueryModuleEnableRequest"></a>
+<a name="fx.ethereum.erc20.v1.QueryModuleEnableRequest"></a>
 
 ### QueryModuleEnableRequest
 QueryModuleEnableRequest defines the request type for querying the module is enable.
@@ -2403,7 +2403,7 @@ QueryModuleEnableRequest defines the request type for querying the module is ena
 
 
 
-<a name="fx.ethermint.erc20.v1.QueryModuleEnableResponse"></a>
+<a name="fx.ethereum.erc20.v1.QueryModuleEnableResponse"></a>
 
 ### QueryModuleEnableResponse
 QueryModuleEnableResponse returns module is enable.
@@ -2418,7 +2418,7 @@ QueryModuleEnableResponse returns module is enable.
 
 
 
-<a name="fx.ethermint.erc20.v1.QueryParamsRequest"></a>
+<a name="fx.ethereum.erc20.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
 QueryParamsRequest is the request type for the Query/Params RPC method.
@@ -2428,7 +2428,7 @@ QueryParamsRequest is the request type for the Query/Params RPC method.
 
 
 
-<a name="fx.ethermint.erc20.v1.QueryParamsResponse"></a>
+<a name="fx.ethereum.erc20.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
 QueryParamsResponse is the response type for the Query/Params RPC
@@ -2437,14 +2437,14 @@ method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#fx.ethermint.erc20.v1.Params) |  |  |
+| `params` | [Params](#fx.ethereum.erc20.v1.Params) |  |  |
 
 
 
 
 
 
-<a name="fx.ethermint.erc20.v1.QueryTokenPairRequest"></a>
+<a name="fx.ethereum.erc20.v1.QueryTokenPairRequest"></a>
 
 ### QueryTokenPairRequest
 QueryTokenPairRequest is the request type for the Query/TokenPair RPC method.
@@ -2459,7 +2459,7 @@ QueryTokenPairRequest is the request type for the Query/TokenPair RPC method.
 
 
 
-<a name="fx.ethermint.erc20.v1.QueryTokenPairResponse"></a>
+<a name="fx.ethereum.erc20.v1.QueryTokenPairResponse"></a>
 
 ### QueryTokenPairResponse
 QueryTokenPairResponse is the response type for the Query/TokenPair RPC
@@ -2468,14 +2468,14 @@ method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `token_pair` | [TokenPair](#fx.ethermint.erc20.v1.TokenPair) |  |  |
+| `token_pair` | [TokenPair](#fx.ethereum.erc20.v1.TokenPair) |  |  |
 
 
 
 
 
 
-<a name="fx.ethermint.erc20.v1.QueryTokenPairsRequest"></a>
+<a name="fx.ethereum.erc20.v1.QueryTokenPairsRequest"></a>
 
 ### QueryTokenPairsRequest
 QueryTokenPairsRequest is the request type for the Query/TokenPairs RPC
@@ -2491,7 +2491,7 @@ method.
 
 
 
-<a name="fx.ethermint.erc20.v1.QueryTokenPairsResponse"></a>
+<a name="fx.ethereum.erc20.v1.QueryTokenPairsResponse"></a>
 
 ### QueryTokenPairsResponse
 QueryTokenPairsResponse is the response type for the Query/TokenPairs RPC
@@ -2500,7 +2500,7 @@ method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `token_pairs` | [TokenPair](#fx.ethermint.erc20.v1.TokenPair) | repeated |  |
+| `token_pairs` | [TokenPair](#fx.ethereum.erc20.v1.TokenPair) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
 
@@ -2514,30 +2514,30 @@ method.
  <!-- end HasExtensions -->
 
 
-<a name="fx.ethermint.erc20.v1.Query"></a>
+<a name="fx.ethereum.erc20.v1.Query"></a>
 
 ### Query
 Query defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `TokenPairs` | [QueryTokenPairsRequest](#fx.ethermint.erc20.v1.QueryTokenPairsRequest) | [QueryTokenPairsResponse](#fx.ethermint.erc20.v1.QueryTokenPairsResponse) | Retrieves registered token pairs | GET|/evmos/erc20/v1/token_pairs|
-| `TokenPair` | [QueryTokenPairRequest](#fx.ethermint.erc20.v1.QueryTokenPairRequest) | [QueryTokenPairResponse](#fx.ethermint.erc20.v1.QueryTokenPairResponse) | Retrieves a registered token pair | GET|/evmos/erc20/v1/token_pairs/{token}|
-| `Params` | [QueryParamsRequest](#fx.ethermint.erc20.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ethermint.erc20.v1.QueryParamsResponse) | Params retrieves the erc20 module params | GET|/evmos/erc20/v1/params|
-| `ModuleEnable` | [QueryModuleEnableRequest](#fx.ethermint.erc20.v1.QueryModuleEnableRequest) | [QueryModuleEnableResponse](#fx.ethermint.erc20.v1.QueryModuleEnableResponse) |  | GET|/evmos/erc20/v1/module_enable|
+| `TokenPairs` | [QueryTokenPairsRequest](#fx.ethereum.erc20.v1.QueryTokenPairsRequest) | [QueryTokenPairsResponse](#fx.ethereum.erc20.v1.QueryTokenPairsResponse) | Retrieves registered token pairs | GET|/ethereum/erc20/v1/token_pairs|
+| `TokenPair` | [QueryTokenPairRequest](#fx.ethereum.erc20.v1.QueryTokenPairRequest) | [QueryTokenPairResponse](#fx.ethereum.erc20.v1.QueryTokenPairResponse) | Retrieves a registered token pair | GET|/ethereum/erc20/v1/token_pairs/{token}|
+| `Params` | [QueryParamsRequest](#fx.ethereum.erc20.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ethereum.erc20.v1.QueryParamsResponse) | Params retrieves the erc20 module params | GET|/ethereum/erc20/v1/params|
+| `ModuleEnable` | [QueryModuleEnableRequest](#fx.ethereum.erc20.v1.QueryModuleEnableRequest) | [QueryModuleEnableResponse](#fx.ethereum.erc20.v1.QueryModuleEnableResponse) |  | GET|/ethereum/erc20/v1/module_enable|
 
  <!-- end services -->
 
 
 
-<a name="ethermint/erc20/v1/tx.proto"></a>
+<a name="ethereum/erc20/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/erc20/v1/tx.proto
+## ethereum/erc20/v1/tx.proto
 
 
 
-<a name="fx.ethermint.erc20.v1.MsgConvertCoin"></a>
+<a name="fx.ethereum.erc20.v1.MsgConvertCoin"></a>
 
 ### MsgConvertCoin
 MsgConvertCoin defines a Msg to convert a Cosmos Coin to a ERC20 token
@@ -2554,7 +2554,7 @@ MsgConvertCoin defines a Msg to convert a Cosmos Coin to a ERC20 token
 
 
 
-<a name="fx.ethermint.erc20.v1.MsgConvertCoinResponse"></a>
+<a name="fx.ethereum.erc20.v1.MsgConvertCoinResponse"></a>
 
 ### MsgConvertCoinResponse
 MsgConvertCoinResponse returns no fields
@@ -2564,7 +2564,7 @@ MsgConvertCoinResponse returns no fields
 
 
 
-<a name="fx.ethermint.erc20.v1.MsgConvertERC20"></a>
+<a name="fx.ethereum.erc20.v1.MsgConvertERC20"></a>
 
 ### MsgConvertERC20
 MsgConvertERC20 defines a Msg to convert an ERC20 token to a Cosmos SDK coin.
@@ -2582,7 +2582,7 @@ MsgConvertERC20 defines a Msg to convert an ERC20 token to a Cosmos SDK coin.
 
 
 
-<a name="fx.ethermint.erc20.v1.MsgConvertERC20Response"></a>
+<a name="fx.ethereum.erc20.v1.MsgConvertERC20Response"></a>
 
 ### MsgConvertERC20Response
 MsgConvertERC20Response returns no fields
@@ -2598,28 +2598,28 @@ MsgConvertERC20Response returns no fields
  <!-- end HasExtensions -->
 
 
-<a name="fx.ethermint.erc20.v1.Msg"></a>
+<a name="fx.ethereum.erc20.v1.Msg"></a>
 
 ### Msg
 Msg defines the erc20 Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `ConvertCoin` | [MsgConvertCoin](#fx.ethermint.erc20.v1.MsgConvertCoin) | [MsgConvertCoinResponse](#fx.ethermint.erc20.v1.MsgConvertCoinResponse) | ConvertCoin mints a ERC20 representation of the SDK Coin denom that is registered on the token mapping. | GET|/evmos/erc20/v1/tx/convert_coin|
-| `ConvertERC20` | [MsgConvertERC20](#fx.ethermint.erc20.v1.MsgConvertERC20) | [MsgConvertERC20Response](#fx.ethermint.erc20.v1.MsgConvertERC20Response) | ConvertERC20 mints a Cosmos coin representation of the ERC20 token contract that is registered on the token mapping. | GET|/evmos/erc20/v1/tx/convert_erc20|
+| `ConvertCoin` | [MsgConvertCoin](#fx.ethereum.erc20.v1.MsgConvertCoin) | [MsgConvertCoinResponse](#fx.ethereum.erc20.v1.MsgConvertCoinResponse) | ConvertCoin mints a ERC20 representation of the SDK Coin denom that is registered on the token mapping. | GET|/erc20/v1/tx/convert_coin|
+| `ConvertERC20` | [MsgConvertERC20](#fx.ethereum.erc20.v1.MsgConvertERC20) | [MsgConvertERC20Response](#fx.ethereum.erc20.v1.MsgConvertERC20Response) | ConvertERC20 mints a Cosmos coin representation of the ERC20 token contract that is registered on the token mapping. | GET|/erc20/v1/tx/convert_erc20|
 
  <!-- end services -->
 
 
 
-<a name="ethermint/evm/v1/genesis.proto"></a>
+<a name="ethereum/evm/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/evm/v1/genesis.proto
+## ethereum/evm/v1/genesis.proto
 
 
 
-<a name="fx.ethermint.evm.v1.GenesisAccount"></a>
+<a name="fx.ethereum.evm.v1.GenesisAccount"></a>
 
 ### GenesisAccount
 GenesisAccount defines an account to be initialized in the genesis state.
@@ -2631,14 +2631,14 @@ custom storage type and that it doesn't contain the private key field.
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  | address defines an ethereum hex formated address of an account |
 | `code` | [string](#string) |  | code defines the hex bytes of the account code. |
-| `storage` | [State](#fx.ethermint.evm.v1.State) | repeated | storage defines the set of state key values for the account. |
+| `storage` | [State](#fx.ethereum.evm.v1.State) | repeated | storage defines the set of state key values for the account. |
 
 
 
 
 
 
-<a name="fx.ethermint.evm.v1.GenesisState"></a>
+<a name="fx.ethereum.evm.v1.GenesisState"></a>
 
 ### GenesisState
 GenesisState defines the evm module's genesis state.
@@ -2646,8 +2646,8 @@ GenesisState defines the evm module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `accounts` | [GenesisAccount](#fx.ethermint.evm.v1.GenesisAccount) | repeated | accounts is an array containing the ethereum genesis accounts. |
-| `params` | [Params](#fx.ethermint.evm.v1.Params) |  | params defines all the parameters of the module. |
+| `accounts` | [GenesisAccount](#fx.ethereum.evm.v1.GenesisAccount) | repeated | accounts is an array containing the ethereum genesis accounts. |
+| `params` | [Params](#fx.ethereum.evm.v1.Params) |  | params defines all the parameters of the module. |
 
 
 
@@ -2663,14 +2663,14 @@ GenesisState defines the evm module's genesis state.
 
 
 
-<a name="ethermint/evm/v1/tx.proto"></a>
+<a name="ethereum/evm/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/evm/v1/tx.proto
+## ethereum/evm/v1/tx.proto
 
 
 
-<a name="fx.ethermint.evm.v1.AccessListTx"></a>
+<a name="fx.ethereum.evm.v1.AccessListTx"></a>
 
 ### AccessListTx
 AccessListTx is the data of EIP-2930 access list transactions.
@@ -2685,7 +2685,7 @@ AccessListTx is the data of EIP-2930 access list transactions.
 | `to` | [string](#string) |  | hex formatted address of the recipient |
 | `value` | [string](#string) |  | value defines the unsigned integer value of the transaction amount. |
 | `data` | [bytes](#bytes) |  | input defines the data payload bytes of the transaction. |
-| `accesses` | [AccessTuple](#fx.ethermint.evm.v1.AccessTuple) | repeated |  |
+| `accesses` | [AccessTuple](#fx.ethereum.evm.v1.AccessTuple) | repeated |  |
 | `v` | [bytes](#bytes) |  | v defines the signature value |
 | `r` | [bytes](#bytes) |  | r defines the signature value |
 | `s` | [bytes](#bytes) |  | s define the signature value |
@@ -2695,7 +2695,7 @@ AccessListTx is the data of EIP-2930 access list transactions.
 
 
 
-<a name="fx.ethermint.evm.v1.DynamicFeeTx"></a>
+<a name="fx.ethereum.evm.v1.DynamicFeeTx"></a>
 
 ### DynamicFeeTx
 DynamicFeeTx is the data of EIP-1559 dinamic fee transactions.
@@ -2711,7 +2711,7 @@ DynamicFeeTx is the data of EIP-1559 dinamic fee transactions.
 | `to` | [string](#string) |  | hex formatted address of the recipient |
 | `value` | [string](#string) |  | value defines the the transaction amount. |
 | `data` | [bytes](#bytes) |  | input defines the data payload bytes of the transaction. |
-| `accesses` | [AccessTuple](#fx.ethermint.evm.v1.AccessTuple) | repeated |  |
+| `accesses` | [AccessTuple](#fx.ethereum.evm.v1.AccessTuple) | repeated |  |
 | `v` | [bytes](#bytes) |  | v defines the signature value |
 | `r` | [bytes](#bytes) |  | r defines the signature value |
 | `s` | [bytes](#bytes) |  | s define the signature value |
@@ -2721,7 +2721,7 @@ DynamicFeeTx is the data of EIP-1559 dinamic fee transactions.
 
 
 
-<a name="fx.ethermint.evm.v1.ExtensionOptionsEthereumTx"></a>
+<a name="fx.ethereum.evm.v1.ExtensionOptionsEthereumTx"></a>
 
 ### ExtensionOptionsEthereumTx
 
@@ -2731,7 +2731,7 @@ DynamicFeeTx is the data of EIP-1559 dinamic fee transactions.
 
 
 
-<a name="fx.ethermint.evm.v1.LegacyTx"></a>
+<a name="fx.ethereum.evm.v1.LegacyTx"></a>
 
 ### LegacyTx
 LegacyTx is the transaction data of regular Ethereum transactions.
@@ -2754,7 +2754,7 @@ LegacyTx is the transaction data of regular Ethereum transactions.
 
 
 
-<a name="fx.ethermint.evm.v1.MsgEthereumTx"></a>
+<a name="fx.ethereum.evm.v1.MsgEthereumTx"></a>
 
 ### MsgEthereumTx
 MsgEthereumTx encapsulates an Ethereum transaction as an SDK message.
@@ -2774,7 +2774,7 @@ caches |
 
 
 
-<a name="fx.ethermint.evm.v1.MsgEthereumTxResponse"></a>
+<a name="fx.ethereum.evm.v1.MsgEthereumTxResponse"></a>
 
 ### MsgEthereumTxResponse
 MsgEthereumTxResponse defines the Msg/EthereumTx response type.
@@ -2783,7 +2783,7 @@ MsgEthereumTxResponse defines the Msg/EthereumTx response type.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `hash` | [string](#string) |  | ethereum transaction hash in hex format. This hash differs from the Tendermint sha256 hash of the transaction bytes. See https://github.com/tendermint/tendermint/issues/6539 for reference |
-| `logs` | [Log](#fx.ethermint.evm.v1.Log) | repeated | logs contains the transaction hash and the proto-compatible ethereum logs. |
+| `logs` | [Log](#fx.ethereum.evm.v1.Log) | repeated | logs contains the transaction hash and the proto-compatible ethereum logs. |
 | `ret` | [bytes](#bytes) |  | returned data from evm function (result or data supplied with revert opcode) |
 | `vm_error` | [string](#string) |  | vm error is the error returned by vm execution |
 | `gas_used` | [uint64](#uint64) |  | gas consumed by the transaction |
@@ -2799,27 +2799,27 @@ MsgEthereumTxResponse defines the Msg/EthereumTx response type.
  <!-- end HasExtensions -->
 
 
-<a name="fx.ethermint.evm.v1.Msg"></a>
+<a name="fx.ethereum.evm.v1.Msg"></a>
 
 ### Msg
 Msg defines the evm Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `EthereumTx` | [MsgEthereumTx](#fx.ethermint.evm.v1.MsgEthereumTx) | [MsgEthereumTxResponse](#fx.ethermint.evm.v1.MsgEthereumTxResponse) | EthereumTx defines a method submitting Ethereum transactions. | POST|/ethermint/evm/v1/ethereum_tx|
+| `EthereumTx` | [MsgEthereumTx](#fx.ethereum.evm.v1.MsgEthereumTx) | [MsgEthereumTxResponse](#fx.ethereum.evm.v1.MsgEthereumTxResponse) | EthereumTx defines a method submitting Ethereum transactions. | POST|/evm/v1/ethereum_tx|
 
  <!-- end services -->
 
 
 
-<a name="ethermint/evm/v1/query.proto"></a>
+<a name="ethereum/evm/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/evm/v1/query.proto
+## ethereum/evm/v1/query.proto
 
 
 
-<a name="fx.ethermint.evm.v1.EstimateGasResponse"></a>
+<a name="fx.ethereum.evm.v1.EstimateGasResponse"></a>
 
 ### EstimateGasResponse
 EstimateGasResponse defines EstimateGas response
@@ -2834,7 +2834,7 @@ EstimateGasResponse defines EstimateGas response
 
 
 
-<a name="fx.ethermint.evm.v1.EthCallRequest"></a>
+<a name="fx.ethereum.evm.v1.EthCallRequest"></a>
 
 ### EthCallRequest
 EthCallRequest defines EthCall request
@@ -2850,7 +2850,7 @@ EthCallRequest defines EthCall request
 
 
 
-<a name="fx.ethermint.evm.v1.QueryAccountRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryAccountRequest"></a>
 
 ### QueryAccountRequest
 QueryAccountRequest is the request type for the Query/Account RPC method.
@@ -2865,7 +2865,7 @@ QueryAccountRequest is the request type for the Query/Account RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryAccountResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryAccountResponse"></a>
 
 ### QueryAccountResponse
 QueryAccountResponse is the response type for the Query/Account RPC method.
@@ -2882,7 +2882,7 @@ QueryAccountResponse is the response type for the Query/Account RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryBalanceRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryBalanceRequest"></a>
 
 ### QueryBalanceRequest
 QueryBalanceRequest is the request type for the Query/Balance RPC method.
@@ -2897,7 +2897,7 @@ QueryBalanceRequest is the request type for the Query/Balance RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryBalanceResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryBalanceResponse"></a>
 
 ### QueryBalanceResponse
 QueryBalanceResponse is the response type for the Query/Balance RPC method.
@@ -2912,7 +2912,7 @@ QueryBalanceResponse is the response type for the Query/Balance RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryCodeRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryCodeRequest"></a>
 
 ### QueryCodeRequest
 QueryCodeRequest is the request type for the Query/Code RPC method.
@@ -2927,7 +2927,7 @@ QueryCodeRequest is the request type for the Query/Code RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryCodeResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryCodeResponse"></a>
 
 ### QueryCodeResponse
 QueryCodeResponse is the response type for the Query/Code RPC
@@ -2943,7 +2943,7 @@ method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryCosmosAccountRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryCosmosAccountRequest"></a>
 
 ### QueryCosmosAccountRequest
 QueryCosmosAccountRequest is the request type for the Query/CosmosAccount RPC
@@ -2959,7 +2959,7 @@ method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryCosmosAccountResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryCosmosAccountResponse"></a>
 
 ### QueryCosmosAccountResponse
 QueryCosmosAccountResponse is the response type for the Query/CosmosAccount
@@ -2977,7 +2977,7 @@ RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryModuleEnableRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryModuleEnableRequest"></a>
 
 ### QueryModuleEnableRequest
 QueryModuleEnableRequest defines the request type for querying the module is enable.
@@ -2987,7 +2987,7 @@ QueryModuleEnableRequest defines the request type for querying the module is ena
 
 
 
-<a name="fx.ethermint.evm.v1.QueryModuleEnableResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryModuleEnableResponse"></a>
 
 ### QueryModuleEnableResponse
 QueryModuleEnableResponse returns module is enable.
@@ -3002,7 +3002,7 @@ QueryModuleEnableResponse returns module is enable.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryParamsRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
 QueryParamsRequest defines the request type for querying x/evm parameters.
@@ -3012,7 +3012,7 @@ QueryParamsRequest defines the request type for querying x/evm parameters.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryParamsResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
 QueryParamsResponse defines the response type for querying x/evm parameters.
@@ -3020,14 +3020,14 @@ QueryParamsResponse defines the response type for querying x/evm parameters.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#fx.ethermint.evm.v1.Params) |  | params define the evm module parameters. |
+| `params` | [Params](#fx.ethereum.evm.v1.Params) |  | params define the evm module parameters. |
 
 
 
 
 
 
-<a name="fx.ethermint.evm.v1.QueryStorageRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryStorageRequest"></a>
 
 ### QueryStorageRequest
 QueryStorageRequest is the request type for the Query/Storage RPC method.
@@ -3043,7 +3043,7 @@ QueryStorageRequest is the request type for the Query/Storage RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryStorageResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryStorageResponse"></a>
 
 ### QueryStorageResponse
 QueryStorageResponse is the response type for the Query/Storage RPC
@@ -3059,7 +3059,7 @@ method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryTraceBlockRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryTraceBlockRequest"></a>
 
 ### QueryTraceBlockRequest
 QueryTraceBlockRequest defines TraceTx request
@@ -3067,8 +3067,8 @@ QueryTraceBlockRequest defines TraceTx request
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `txs` | [MsgEthereumTx](#fx.ethermint.evm.v1.MsgEthereumTx) | repeated | txs messages in the block |
-| `trace_config` | [TraceConfig](#fx.ethermint.evm.v1.TraceConfig) |  | TraceConfig holds extra parameters to trace functions. |
+| `txs` | [MsgEthereumTx](#fx.ethereum.evm.v1.MsgEthereumTx) | repeated | txs messages in the block |
+| `trace_config` | [TraceConfig](#fx.ethereum.evm.v1.TraceConfig) |  | TraceConfig holds extra parameters to trace functions. |
 | `block_number` | [int64](#int64) |  | block number |
 | `block_hash` | [string](#string) |  | block hex hash |
 | `block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | block time |
@@ -3078,7 +3078,7 @@ QueryTraceBlockRequest defines TraceTx request
 
 
 
-<a name="fx.ethermint.evm.v1.QueryTraceBlockResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryTraceBlockResponse"></a>
 
 ### QueryTraceBlockResponse
 QueryTraceBlockResponse defines TraceBlock response
@@ -3093,7 +3093,7 @@ QueryTraceBlockResponse defines TraceBlock response
 
 
 
-<a name="fx.ethermint.evm.v1.QueryTraceTxRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryTraceTxRequest"></a>
 
 ### QueryTraceTxRequest
 QueryTraceTxRequest defines TraceTx request
@@ -3101,10 +3101,10 @@ QueryTraceTxRequest defines TraceTx request
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `msg` | [MsgEthereumTx](#fx.ethermint.evm.v1.MsgEthereumTx) |  | msgEthereumTx for the requested transaction |
+| `msg` | [MsgEthereumTx](#fx.ethereum.evm.v1.MsgEthereumTx) |  | msgEthereumTx for the requested transaction |
 | `tx_index` | [uint64](#uint64) |  | transaction index |
-| `trace_config` | [TraceConfig](#fx.ethermint.evm.v1.TraceConfig) |  | TraceConfig holds extra parameters to trace functions. |
-| `predecessors` | [MsgEthereumTx](#fx.ethermint.evm.v1.MsgEthereumTx) | repeated | the predecessor transactions included in the same block need to be replayed first to get correct context for tracing. |
+| `trace_config` | [TraceConfig](#fx.ethereum.evm.v1.TraceConfig) |  | TraceConfig holds extra parameters to trace functions. |
+| `predecessors` | [MsgEthereumTx](#fx.ethereum.evm.v1.MsgEthereumTx) | repeated | the predecessor transactions included in the same block need to be replayed first to get correct context for tracing. |
 | `block_number` | [int64](#int64) |  | block number of requested transaction |
 | `block_hash` | [string](#string) |  | block hex hash of requested transaction |
 | `block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | block time of requested transaction |
@@ -3114,7 +3114,7 @@ QueryTraceTxRequest defines TraceTx request
 
 
 
-<a name="fx.ethermint.evm.v1.QueryTraceTxResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryTraceTxResponse"></a>
 
 ### QueryTraceTxResponse
 QueryTraceTxResponse defines TraceTx response
@@ -3129,7 +3129,7 @@ QueryTraceTxResponse defines TraceTx response
 
 
 
-<a name="fx.ethermint.evm.v1.QueryTxLogsRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryTxLogsRequest"></a>
 
 ### QueryTxLogsRequest
 QueryTxLogsRequest is the request type for the Query/TxLogs RPC method.
@@ -3145,7 +3145,7 @@ QueryTxLogsRequest is the request type for the Query/TxLogs RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryTxLogsResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryTxLogsResponse"></a>
 
 ### QueryTxLogsResponse
 QueryTxLogs is the response type for the Query/TxLogs RPC method.
@@ -3153,7 +3153,7 @@ QueryTxLogs is the response type for the Query/TxLogs RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `logs` | [Log](#fx.ethermint.evm.v1.Log) | repeated | logs represents the ethereum logs generated from the given transaction. |
+| `logs` | [Log](#fx.ethereum.evm.v1.Log) | repeated | logs represents the ethereum logs generated from the given transaction. |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
 
@@ -3161,7 +3161,7 @@ QueryTxLogs is the response type for the Query/TxLogs RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryValidatorAccountRequest"></a>
+<a name="fx.ethereum.evm.v1.QueryValidatorAccountRequest"></a>
 
 ### QueryValidatorAccountRequest
 QueryValidatorAccountRequest is the request type for the
@@ -3177,7 +3177,7 @@ Query/ValidatorAccount RPC method.
 
 
 
-<a name="fx.ethermint.evm.v1.QueryValidatorAccountResponse"></a>
+<a name="fx.ethereum.evm.v1.QueryValidatorAccountResponse"></a>
 
 ### QueryValidatorAccountResponse
 QueryValidatorAccountResponse is the response type for the
@@ -3201,38 +3201,38 @@ Query/ValidatorAccount RPC method.
  <!-- end HasExtensions -->
 
 
-<a name="fx.ethermint.evm.v1.Query"></a>
+<a name="fx.ethereum.evm.v1.Query"></a>
 
 ### Query
 Query defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Account` | [QueryAccountRequest](#fx.ethermint.evm.v1.QueryAccountRequest) | [QueryAccountResponse](#fx.ethermint.evm.v1.QueryAccountResponse) | Account queries an Ethereum account. | GET|/ethermint/evm/v1/account/{address}|
-| `CosmosAccount` | [QueryCosmosAccountRequest](#fx.ethermint.evm.v1.QueryCosmosAccountRequest) | [QueryCosmosAccountResponse](#fx.ethermint.evm.v1.QueryCosmosAccountResponse) | CosmosAccount queries an Ethereum account's Cosmos Address. | GET|/ethermint/evm/v1/cosmos_account/{address}|
-| `ValidatorAccount` | [QueryValidatorAccountRequest](#fx.ethermint.evm.v1.QueryValidatorAccountRequest) | [QueryValidatorAccountResponse](#fx.ethermint.evm.v1.QueryValidatorAccountResponse) | ValidatorAccount queries an Ethereum account's from a validator consensus Address. | GET|/ethermint/evm/v1/validator_account/{cons_address}|
-| `Balance` | [QueryBalanceRequest](#fx.ethermint.evm.v1.QueryBalanceRequest) | [QueryBalanceResponse](#fx.ethermint.evm.v1.QueryBalanceResponse) | Balance queries the balance of a the EVM denomination for a single EthAccount. | GET|/ethermint/evm/v1/balances/{address}|
-| `Storage` | [QueryStorageRequest](#fx.ethermint.evm.v1.QueryStorageRequest) | [QueryStorageResponse](#fx.ethermint.evm.v1.QueryStorageResponse) | Storage queries the balance of all coins for a single account. | GET|/ethermint/evm/v1/storage/{address}/{key}|
-| `Code` | [QueryCodeRequest](#fx.ethermint.evm.v1.QueryCodeRequest) | [QueryCodeResponse](#fx.ethermint.evm.v1.QueryCodeResponse) | Code queries the balance of all coins for a single account. | GET|/ethermint/evm/v1/codes/{address}|
-| `Params` | [QueryParamsRequest](#fx.ethermint.evm.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ethermint.evm.v1.QueryParamsResponse) | Params queries the parameters of x/evm module. | GET|/ethermint/evm/v1/params|
-| `EthCall` | [EthCallRequest](#fx.ethermint.evm.v1.EthCallRequest) | [MsgEthereumTxResponse](#fx.ethermint.evm.v1.MsgEthereumTxResponse) | EthCall implements the `eth_call` rpc api | GET|/ethermint/evm/v1/eth_call|
-| `EstimateGas` | [EthCallRequest](#fx.ethermint.evm.v1.EthCallRequest) | [EstimateGasResponse](#fx.ethermint.evm.v1.EstimateGasResponse) | EstimateGas implements the `eth_estimateGas` rpc api | GET|/ethermint/evm/v1/estimate_gas|
-| `TraceTx` | [QueryTraceTxRequest](#fx.ethermint.evm.v1.QueryTraceTxRequest) | [QueryTraceTxResponse](#fx.ethermint.evm.v1.QueryTraceTxResponse) | TraceTx implements the `debug_traceTransaction` rpc api | GET|/ethermint/evm/v1/trace_tx|
-| `TraceBlock` | [QueryTraceBlockRequest](#fx.ethermint.evm.v1.QueryTraceBlockRequest) | [QueryTraceBlockResponse](#fx.ethermint.evm.v1.QueryTraceBlockResponse) | TraceBlock implements the `debug_traceBlockByNumber` and `debug_traceBlockByHash` rpc api | GET|/ethermint/evm/v1/trace_block|
-| `ModuleEnable` | [QueryModuleEnableRequest](#fx.ethermint.evm.v1.QueryModuleEnableRequest) | [QueryModuleEnableResponse](#fx.ethermint.evm.v1.QueryModuleEnableResponse) |  | GET|/ethermint/evm/v1/module_enable|
+| `Account` | [QueryAccountRequest](#fx.ethereum.evm.v1.QueryAccountRequest) | [QueryAccountResponse](#fx.ethereum.evm.v1.QueryAccountResponse) | Account queries an Ethereum account. | GET|/ethereum/evm/v1/account/{address}|
+| `CosmosAccount` | [QueryCosmosAccountRequest](#fx.ethereum.evm.v1.QueryCosmosAccountRequest) | [QueryCosmosAccountResponse](#fx.ethereum.evm.v1.QueryCosmosAccountResponse) | CosmosAccount queries an Ethereum account's Cosmos Address. | GET|/ethereum/evm/v1/cosmos_account/{address}|
+| `ValidatorAccount` | [QueryValidatorAccountRequest](#fx.ethereum.evm.v1.QueryValidatorAccountRequest) | [QueryValidatorAccountResponse](#fx.ethereum.evm.v1.QueryValidatorAccountResponse) | ValidatorAccount queries an Ethereum account's from a validator consensus Address. | GET|/ethereum/evm/v1/validator_account/{cons_address}|
+| `Balance` | [QueryBalanceRequest](#fx.ethereum.evm.v1.QueryBalanceRequest) | [QueryBalanceResponse](#fx.ethereum.evm.v1.QueryBalanceResponse) | Balance queries the balance of a the EVM denomination for a single EthAccount. | GET|/ethereum/evm/v1/balances/{address}|
+| `Storage` | [QueryStorageRequest](#fx.ethereum.evm.v1.QueryStorageRequest) | [QueryStorageResponse](#fx.ethereum.evm.v1.QueryStorageResponse) | Storage queries the balance of all coins for a single account. | GET|/ethereum/evm/v1/storage/{address}/{key}|
+| `Code` | [QueryCodeRequest](#fx.ethereum.evm.v1.QueryCodeRequest) | [QueryCodeResponse](#fx.ethereum.evm.v1.QueryCodeResponse) | Code queries the balance of all coins for a single account. | GET|/ethereum/evm/v1/codes/{address}|
+| `Params` | [QueryParamsRequest](#fx.ethereum.evm.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ethereum.evm.v1.QueryParamsResponse) | Params queries the parameters of x/evm module. | GET|/ethereum/evm/v1/params|
+| `EthCall` | [EthCallRequest](#fx.ethereum.evm.v1.EthCallRequest) | [MsgEthereumTxResponse](#fx.ethereum.evm.v1.MsgEthereumTxResponse) | EthCall implements the `eth_call` rpc api | GET|/ethereum/evm/v1/eth_call|
+| `EstimateGas` | [EthCallRequest](#fx.ethereum.evm.v1.EthCallRequest) | [EstimateGasResponse](#fx.ethereum.evm.v1.EstimateGasResponse) | EstimateGas implements the `eth_estimateGas` rpc api | GET|/ethereum/evm/v1/estimate_gas|
+| `TraceTx` | [QueryTraceTxRequest](#fx.ethereum.evm.v1.QueryTraceTxRequest) | [QueryTraceTxResponse](#fx.ethereum.evm.v1.QueryTraceTxResponse) | TraceTx implements the `debug_traceTransaction` rpc api | GET|/ethereum/evm/v1/trace_tx|
+| `TraceBlock` | [QueryTraceBlockRequest](#fx.ethereum.evm.v1.QueryTraceBlockRequest) | [QueryTraceBlockResponse](#fx.ethereum.evm.v1.QueryTraceBlockResponse) | TraceBlock implements the `debug_traceBlockByNumber` and `debug_traceBlockByHash` rpc api | GET|/ethereum/evm/v1/trace_block|
+| `ModuleEnable` | [QueryModuleEnableRequest](#fx.ethereum.evm.v1.QueryModuleEnableRequest) | [QueryModuleEnableResponse](#fx.ethereum.evm.v1.QueryModuleEnableResponse) |  | GET|/ethereum/evm/v1/module_enable|
 
  <!-- end services -->
 
 
 
-<a name="ethermint/feemarket/v1/genesis.proto"></a>
+<a name="ethereum/feemarket/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/feemarket/v1/genesis.proto
+## ethereum/feemarket/v1/genesis.proto
 
 
 
-<a name="fx.ethermint.feemarket.v1.GenesisState"></a>
+<a name="fx.ethereum.feemarket.v1.GenesisState"></a>
 
 ### GenesisState
 GenesisState defines the feemarket module's genesis state.
@@ -3240,7 +3240,7 @@ GenesisState defines the feemarket module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#fx.ethermint.feemarket.v1.Params) |  | params defines all the paramaters of the module. |
+| `params` | [Params](#fx.ethereum.feemarket.v1.Params) |  | params defines all the paramaters of the module. |
 | `block_gas` | [uint64](#uint64) |  | block gas is the amount of gas used on the last block before the upgrade. Zero by default. |
 
 
@@ -3257,14 +3257,14 @@ GenesisState defines the feemarket module's genesis state.
 
 
 
-<a name="ethermint/feemarket/v1/query.proto"></a>
+<a name="ethereum/feemarket/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/feemarket/v1/query.proto
+## ethereum/feemarket/v1/query.proto
 
 
 
-<a name="fx.ethermint.feemarket.v1.QueryBaseFeeRequest"></a>
+<a name="fx.ethereum.feemarket.v1.QueryBaseFeeRequest"></a>
 
 ### QueryBaseFeeRequest
 QueryBaseFeeRequest defines the request type for querying the EIP1559 base
@@ -3275,7 +3275,7 @@ fee.
 
 
 
-<a name="fx.ethermint.feemarket.v1.QueryBaseFeeResponse"></a>
+<a name="fx.ethereum.feemarket.v1.QueryBaseFeeResponse"></a>
 
 ### QueryBaseFeeResponse
 BaseFeeResponse returns the EIP1559 base fee.
@@ -3290,7 +3290,7 @@ BaseFeeResponse returns the EIP1559 base fee.
 
 
 
-<a name="fx.ethermint.feemarket.v1.QueryBlockGasRequest"></a>
+<a name="fx.ethereum.feemarket.v1.QueryBlockGasRequest"></a>
 
 ### QueryBlockGasRequest
 QueryBlockGasRequest defines the request type for querying the EIP1559 base
@@ -3301,7 +3301,7 @@ fee.
 
 
 
-<a name="fx.ethermint.feemarket.v1.QueryBlockGasResponse"></a>
+<a name="fx.ethereum.feemarket.v1.QueryBlockGasResponse"></a>
 
 ### QueryBlockGasResponse
 QueryBlockGasResponse returns block gas used for a given height.
@@ -3316,7 +3316,7 @@ QueryBlockGasResponse returns block gas used for a given height.
 
 
 
-<a name="fx.ethermint.feemarket.v1.QueryModuleEnableRequest"></a>
+<a name="fx.ethereum.feemarket.v1.QueryModuleEnableRequest"></a>
 
 ### QueryModuleEnableRequest
 QueryModuleEnableRequest defines the request type for querying the module is enable.
@@ -3326,7 +3326,7 @@ QueryModuleEnableRequest defines the request type for querying the module is ena
 
 
 
-<a name="fx.ethermint.feemarket.v1.QueryModuleEnableResponse"></a>
+<a name="fx.ethereum.feemarket.v1.QueryModuleEnableResponse"></a>
 
 ### QueryModuleEnableResponse
 QueryModuleEnableResponse returns module is enable.
@@ -3341,7 +3341,7 @@ QueryModuleEnableResponse returns module is enable.
 
 
 
-<a name="fx.ethermint.feemarket.v1.QueryParamsRequest"></a>
+<a name="fx.ethereum.feemarket.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
 QueryParamsRequest defines the request type for querying x/evm parameters.
@@ -3351,7 +3351,7 @@ QueryParamsRequest defines the request type for querying x/evm parameters.
 
 
 
-<a name="fx.ethermint.feemarket.v1.QueryParamsResponse"></a>
+<a name="fx.ethereum.feemarket.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
 QueryParamsResponse defines the response type for querying x/evm parameters.
@@ -3359,7 +3359,7 @@ QueryParamsResponse defines the response type for querying x/evm parameters.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#fx.ethermint.feemarket.v1.Params) |  | params define the evm module parameters. |
+| `params` | [Params](#fx.ethereum.feemarket.v1.Params) |  | params define the evm module parameters. |
 
 
 
@@ -3372,30 +3372,30 @@ QueryParamsResponse defines the response type for querying x/evm parameters.
  <!-- end HasExtensions -->
 
 
-<a name="fx.ethermint.feemarket.v1.Query"></a>
+<a name="fx.ethereum.feemarket.v1.Query"></a>
 
 ### Query
 Query defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#fx.ethermint.feemarket.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ethermint.feemarket.v1.QueryParamsResponse) | Params queries the parameters of x/feemarket module. | GET|/feemarket/evm/v1/params|
-| `BaseFee` | [QueryBaseFeeRequest](#fx.ethermint.feemarket.v1.QueryBaseFeeRequest) | [QueryBaseFeeResponse](#fx.ethermint.feemarket.v1.QueryBaseFeeResponse) | BaseFee queries the base fee of the parent block of the current block. | GET|/feemarket/evm/v1/base_fee|
-| `BlockGas` | [QueryBlockGasRequest](#fx.ethermint.feemarket.v1.QueryBlockGasRequest) | [QueryBlockGasResponse](#fx.ethermint.feemarket.v1.QueryBlockGasResponse) | BlockGas queries the gas used at a given block height | GET|/feemarket/evm/v1/block_gas|
-| `ModuleEnable` | [QueryModuleEnableRequest](#fx.ethermint.feemarket.v1.QueryModuleEnableRequest) | [QueryModuleEnableResponse](#fx.ethermint.feemarket.v1.QueryModuleEnableResponse) |  | GET|/feemarket/evm/v1/module_enable|
+| `Params` | [QueryParamsRequest](#fx.ethereum.feemarket.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ethereum.feemarket.v1.QueryParamsResponse) | Params queries the parameters of x/feemarket module. | GET|/ethereum/feemarket/evm/v1/params|
+| `BaseFee` | [QueryBaseFeeRequest](#fx.ethereum.feemarket.v1.QueryBaseFeeRequest) | [QueryBaseFeeResponse](#fx.ethereum.feemarket.v1.QueryBaseFeeResponse) | BaseFee queries the base fee of the parent block of the current block. | GET|/ethereum/feemarket/evm/v1/base_fee|
+| `BlockGas` | [QueryBlockGasRequest](#fx.ethereum.feemarket.v1.QueryBlockGasRequest) | [QueryBlockGasResponse](#fx.ethereum.feemarket.v1.QueryBlockGasResponse) | BlockGas queries the gas used at a given block height | GET|/ethereum/feemarket/evm/v1/block_gas|
+| `ModuleEnable` | [QueryModuleEnableRequest](#fx.ethereum.feemarket.v1.QueryModuleEnableRequest) | [QueryModuleEnableResponse](#fx.ethereum.feemarket.v1.QueryModuleEnableResponse) |  | GET|/ethereum/feemarket/evm/v1/module_enable|
 
  <!-- end services -->
 
 
 
-<a name="ethermint/types/v1/account.proto"></a>
+<a name="ethereum/types/v1/account.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/types/v1/account.proto
+## ethereum/types/v1/account.proto
 
 
 
-<a name="fx.ethermint.types.v1.EthAccount"></a>
+<a name="fx.ethereum.types.v1.EthAccount"></a>
 
 ### EthAccount
 EthAccount implements the authtypes.AccountI interface and embeds an
@@ -3421,14 +3421,14 @@ authtypes.BaseAccount type. It is compatible with the auth AccountKeeper.
 
 
 
-<a name="ethermint/types/v1/web3.proto"></a>
+<a name="ethereum/types/v1/web3.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ethermint/types/v1/web3.proto
+## ethereum/types/v1/web3.proto
 
 
 
-<a name="fx.ethermint.types.v1.ExtensionOptionsWeb3Tx"></a>
+<a name="fx.ethereum.types.v1.ExtensionOptionsWeb3Tx"></a>
 
 ### ExtensionOptionsWeb3Tx
 

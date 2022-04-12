@@ -10,7 +10,7 @@ type ExtensionOptionsWeb3TxI interface{}
 // implementations and interfaces.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterInterface(
-		"fx.ethermint.v1.ExtensionOptionsWeb3Tx",
+		"fx.ethereum.v1.ExtensionOptionsWeb3Tx",
 		(*ExtensionOptionsWeb3TxI)(nil),
 		&ExtensionOptionsWeb3Tx{},
 	)

@@ -1,10 +1,10 @@
 syntax = "proto3";
-package fx.ethermint.feemarket.v1;
+package fx.ethereum.feemarket.v1;
 
 import "gogoproto/gogo.proto";
 // import "cosmos/base/query/v1beta1/pagination.proto";
 import "google/api/annotations.proto";
-import "ethermint/feemarket/v1/feemarket.proto";
+import "ethereum/feemarket/v1/feemarket.proto";
 
 option go_package = "github.com/functionx/fx-core/x/feemarket/types";
 
@@ -12,21 +12,21 @@ option go_package = "github.com/functionx/fx-core/x/feemarket/types";
 service Query {
   // Params queries the parameters of x/feemarket module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/feemarket/evm/v1/params";
+    option (google.api.http).get = "/ethereum/feemarket/evm/v1/params";
   }
 
   // BaseFee queries the base fee of the parent block of the current block.
   rpc BaseFee(QueryBaseFeeRequest) returns (QueryBaseFeeResponse) {
-    option (google.api.http).get = "/feemarket/evm/v1/base_fee";
+    option (google.api.http).get = "/ethereum/feemarket/evm/v1/base_fee";
   }
 
   // BlockGas queries the gas used at a given block height
   rpc BlockGas(QueryBlockGasRequest) returns (QueryBlockGasResponse) {
-    option (google.api.http).get = "/feemarket/evm/v1/block_gas";
+    option (google.api.http).get = "/ethereum/feemarket/evm/v1/block_gas";
   }
 
   rpc ModuleEnable(QueryModuleEnableRequest) returns (QueryModuleEnableResponse) {
-    option (google.api.http).get = "/feemarket/evm/v1/module_enable";
+    option (google.api.http).get = "/ethereum/feemarket/evm/v1/module_enable";
   }
 }
 

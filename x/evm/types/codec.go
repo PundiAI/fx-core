@@ -22,12 +22,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgEthereumTx{},
 	)
 	registry.RegisterInterface(
-		"fx.ethermint.evm.v1.ExtensionOptionsEthereumTx",
+		"fx.ethereum.evm.v1.ExtensionOptionsEthereumTx",
 		(*ExtensionOptionsEthereumTxI)(nil),
 		&ExtensionOptionsEthereumTx{},
 	)
 	registry.RegisterInterface(
-		"fx.ethermint.evm.v1.TxData",
+		"fx.ethereum.evm.v1.TxData",
 		(*TxData)(nil),
 		&DynamicFeeTx{},
 		&AccessListTx{},

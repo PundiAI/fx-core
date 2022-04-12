@@ -1,9 +1,9 @@
 syntax = "proto3";
-package fx.ethermint.erc20.v1;
+package fx.ethereum.erc20.v1;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "ethermint/erc20/v1/genesis.proto";
-import "ethermint/erc20/v1/erc20.proto";
+import "ethereum/erc20/v1/genesis.proto";
+import "ethereum/erc20/v1/erc20.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 
@@ -13,21 +13,21 @@ option go_package = "github.com/functionx/fx-core/x/erc20/types";
 service Query {
   // Retrieves registered token pairs
   rpc TokenPairs(QueryTokenPairsRequest) returns (QueryTokenPairsResponse) {
-    option (google.api.http).get = "/evmos/erc20/v1/token_pairs";
+    option (google.api.http).get = "/ethereum/erc20/v1/token_pairs";
   }
 
   // Retrieves a registered token pair
   rpc TokenPair(QueryTokenPairRequest) returns (QueryTokenPairResponse) {
-    option (google.api.http).get = "/evmos/erc20/v1/token_pairs/{token}";
+    option (google.api.http).get = "/ethereum/erc20/v1/token_pairs/{token}";
   }
 
   // Params retrieves the erc20 module params
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/evmos/erc20/v1/params";
+    option (google.api.http).get = "/ethereum/erc20/v1/params";
   }
 
   rpc ModuleEnable(QueryModuleEnableRequest) returns (QueryModuleEnableResponse) {
-    option (google.api.http).get = "/evmos/erc20/v1/module_enable";
+    option (google.api.http).get = "/ethereum/erc20/v1/module_enable";
   }
 }
 

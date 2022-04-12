@@ -1,8 +1,8 @@
 syntax = "proto3";
-package fx.ethermint.feemarket.v1;
+package fx.ethereum.feemarket.v1;
 
 import "gogoproto/gogo.proto";
-import "ethermint/feemarket/v1/feemarket.proto";
+import "ethereum/feemarket/v1/feemarket.proto";
 
 option go_package = "github.com/functionx/fx-core/x/feemarket/types";
 
