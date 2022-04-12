@@ -3,10 +3,10 @@ package keeper_test
 import (
 	_ "embed"
 	app "github.com/functionx/fx-core/app/fxcore"
+	fxcoretypes "github.com/functionx/fx-core/types"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	"github.com/functionx/fx-core/x/feemarket/keeper"
 	"math/big"
 	"testing"
 	"time"
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, &suite.app.Erc20Keeper, suite.app.FeeMarketKeeper))
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, &suite.app.Erc20Keeper, true))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -178,16 +178,22 @@ func (suite *KeeperTestSuite) TestSetGetGasFee() {
 	}
 }
 
-func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, marketKeeper keeper.Keeper) error {
+func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, dynamicTxFee bool) error {
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxcoretypes.EvmSupportBlock())
 	defaultEvmParams := evmtypes.DefaultParams()
 	defaultFeeMarketParams := types.DefaultParams()
 	defaultErc20Params := erc20types.DefaultParams()
 
-	if err := keeper.HandleInitEvmProposal(ctx, defaultErc20Params, defaultFeeMarketParams, defaultEvmParams, nil); err != nil {
-		return err
+	if dynamicTxFee {
+		defaultFeeMarketParams.EnableHeight = fxcoretypes.EvmSupportBlock()
+		defaultFeeMarketParams.NoBaseFee = false
+	} else {
+		defaultFeeMarketParams.NoBaseFee = true
 	}
 
-	//marketKeeper.SetBaseFee(ctx, sdk.ZeroInt().BigInt())
-
+	if err := keeper.HandleInitEvmProposal(ctx, &defaultErc20Params,
+		&defaultFeeMarketParams, &defaultEvmParams, nil); err != nil {
+		return err
+	}
 	return nil
 }

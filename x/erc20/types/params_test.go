@@ -34,7 +34,9 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		},
 		{
 			"empty",
-			Params{},
+			Params{
+				IbcTimeout: 12 * time.Hour,
+			},
 			false,
 		},
 	}

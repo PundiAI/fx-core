@@ -130,7 +130,7 @@ var (
 func TestHookChainGravity(t *testing.T) {
 	app, validators, _, delegateAddressArr := initTest(t)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
-	require.NoError(t, InitEvmModuleParams(ctx, app.Erc20Keeper, true))
+	require.NoError(t, InitEvmModuleParams(ctx, &app.Erc20Keeper, true))
 
 	pair, err := app.Erc20Keeper.RegisterCoin(ctx, wfxMetadata)
 	require.NoError(t, err)
@@ -150,14 +150,14 @@ func TestHookChainGravity(t *testing.T) {
 	ctx = testInitGravity(t, ctx, app, validator.GetOperator(), addr1.Bytes(), addr2)
 
 	balances := app.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
-	t.Log("b", balances.String())
+	_ = balances
 
 	err = app.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
 	balanceOf, err := app.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
 	require.NoError(t, err)
-	t.Log("c", balanceOf.String())
+	_ = balanceOf
 
 	token := pair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, gravitytypes.ModuleName)
@@ -165,15 +165,13 @@ func TestHookChainGravity(t *testing.T) {
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
 	transactions := app.GravityKeeper.GetPoolTransactions(ctx)
-	for _, tx := range transactions {
-		t.Log("sender", tx.Sender, "dest", tx.DestAddress, "amount", tx.Erc20Token.String())
-	}
+	_ = transactions
 }
 
 func TestHookChainBSC(t *testing.T) {
 	app, validators, genesisAccount, delegateAddressArr := initTest(t)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
-	require.NoError(t, InitEvmModuleParams(ctx, app.Erc20Keeper, true))
+	require.NoError(t, InitEvmModuleParams(ctx, &app.Erc20Keeper, true))
 
 	pair, err := app.Erc20Keeper.RegisterCoin(ctx, purseMetadata)
 	require.NoError(t, err)
@@ -198,30 +196,28 @@ func TestHookChainBSC(t *testing.T) {
 	ctx = testInitBscCrossChain(t, ctx, app, del, addr1.Bytes(), addr2)
 
 	balances := app.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
-	t.Log("balance", balances.String())
+	_ = balances
 
 	err = app.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(purseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
 	balanceOf, err := app.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
 	require.NoError(t, err)
-	t.Log("balanceOf", balanceOf.String())
+	_ = balanceOf
 
 	token := pair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, bsctypes.ModuleName)
-	transferChainData := packTransferCrossData(t, ctx, app.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
+	transferChainData := packTransferCrossData(t, ctx, app.Erc20Keeper, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
 	transactions := app.BscKeeper.GetUnbatchedTransactions(ctx)
-	for _, tx := range transactions {
-		t.Log("sender", tx.Sender, "dest", tx.DestAddress, "amount", tx.Token.String())
-	}
+	_ = transactions
 }
 
 func TestHookIBC(t *testing.T) {
 	app, validators, _, delegateAddressArr := initTest(t)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
-	require.NoError(t, InitEvmModuleParams(ctx, app.Erc20Keeper, true))
+	require.NoError(t, InitEvmModuleParams(ctx, &app.Erc20Keeper, true))
 
 	pair, err := app.Erc20Keeper.RegisterCoin(ctx, wfxMetadata)
 	require.NoError(t, err)
@@ -239,21 +235,21 @@ func TestHookIBC(t *testing.T) {
 	require.NoError(t, err)
 
 	balances := app.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
-	t.Log("balance", balances.String())
+	_ = balances
 
 	err = app.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
 	balanceOf, err := app.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
 	require.NoError(t, err)
-	t.Log("balanceOf", balanceOf.String())
+	_ = balanceOf
 
 	//reset ibc
-	//app.Erc20Keeper.SetIBCTransferKeeper(&IBCTransferSimulate{T: t})
-	//app.Erc20Keeper.SetIBCChannelKeeper(&IBCChannelSimulate{})
+	app.Erc20Keeper.SetIBCTransferKeeper(&IBCTransferSimulate{T: t})
+	app.Erc20Keeper.SetIBCChannelKeeper(&IBCChannelSimulate{})
 
 	evmHooks := evmkeeper.NewMultiEvmHooks(app.Erc20Keeper.Hooks())
-	app.EvmKeeper = app.EvmKeeper.SetHooks(evmHooks)
+	app.EvmKeeper = app.EvmKeeper.SetHooksForTest(evmHooks)
 
 	token := pair.GetERC20Contract()
 	ibcTarget := fmt.Sprintf("%s%s", contracts.TransferIBCPrefix, "px/transfer/channel-0")
@@ -362,11 +358,6 @@ var (
 	FxOriginatedTokenContract = common.HexToAddress("0x0000000000000000000000000000000000000000")
 	BSCBridgeTokenContract    = common.HexToAddress("0x0000000000000000000000000000000000000001")
 )
-
-func TestContractAddr(t *testing.T) {
-	t.Log(FxOriginatedTokenContract.String())
-	t.Log(BSCBridgeTokenContract.String())
-}
 
 func testInitGravity(t *testing.T, ctx sdk.Context, app *fxcore.App, val sdk.ValAddress, orch sdk.AccAddress, addr common.Address) sdk.Context {
 	app.GravityKeeper.SetOrchestratorValidator(ctx, val, orch)

@@ -131,7 +131,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 		{
 			// Voting period cant be zero
 			name:     "empty genesis",
-			genState: &GenesisState{},
+			genState: &GenesisState{Params: Params{IbcTimeout: 1}},
 			expPass:  true,
 		},
 	}

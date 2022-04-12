@@ -3,7 +3,9 @@ package evm_test
 import (
 	"errors"
 	"github.com/ethereum/go-ethereum/core"
-	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	fxcoretypes "github.com/functionx/fx-core/types"
+	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
 	"math/big"
 	"testing"
@@ -144,15 +146,9 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.EvmKeeper, suite.dynamicTxFee))
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, &suite.app.Erc20Keeper, suite.dynamicTxFee))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
-
-	//TODO update ethAccount 2021-12-02.
-	//acc := &ethermint.EthAccount{
-	//	BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(address.Bytes()), nil, 0, 0),
-	//	CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-	//}
 
 	acc := authtypes.NewBaseAccount(address.Bytes(), nil, 0, 0)
 
@@ -571,7 +567,7 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest()
 			k := suite.app.EvmKeeper
-			k.SetHooks(tc.hooks)
+			k.SetHooksForTest(tc.hooks)
 
 			// add some fund to pay gas fee
 			require.NoError(suite.T(), k.SetBalance(suite.ctx, suite.from, big.NewInt(10000000000)))
@@ -652,7 +648,7 @@ func (suite *EvmTestSuite) TestContractDeploymentRevert() {
 			k := suite.app.EvmKeeper
 
 			// test with different hooks scenarios
-			k.SetHooks(tc.hooks)
+			k.SetHooksForTest(tc.hooks)
 
 			nonce := k.GetNonce(suite.ctx, suite.from)
 			ctorArgs, err := types.ERC20Contract.ABI.Pack("", suite.from, big.NewInt(0))
@@ -693,27 +689,23 @@ func (dh *DummyHook) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt
 	return nil
 }
 
-func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee bool) error {
-	//defaultEvmParams := types.DefaultParams()
-	//defaultFeeMarketParams := feemarkettypes.DefaultParams()
-	//defaultErc20Params := erc20types.DefaultParams()
-	//
-	//if dynamicTxFee {
-	//	defaultFeeMarketParams.EnableHeight = 1
-	//	defaultFeeMarketParams.NoBaseFee = false
-	//} else {
-	//	defaultFeeMarketParams.NoBaseFee = true
-	//}
-	//
-	//if err := keeper.HandleInitEvmProposal(ctx, &types.InitEvmProposal{
-	//	Title:           "Init evm title",
-	//	Description:     "Init emv module description",
-	//	EvmParams:       &defaultEvmParams,
-	//	FeemarketParams: &defaultFeeMarketParams,
-	//	Erc20Params:     ERC20ParamsToEvm(defaultErc20Params),
-	//}); err != nil {
-	//	return err
-	//}
+func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, dynamicTxFee bool) error {
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxcoretypes.EvmSupportBlock())
+	defaultEvmParams := types.DefaultParams()
+	defaultFeeMarketParams := feemarkettypes.DefaultParams()
+	defaultErc20Params := erc20types.DefaultParams()
+
+	if dynamicTxFee {
+		defaultFeeMarketParams.EnableHeight = fxcoretypes.EvmSupportBlock()
+		defaultFeeMarketParams.NoBaseFee = false
+	} else {
+		defaultFeeMarketParams.NoBaseFee = true
+	}
+
+	if err := keeper.HandleInitEvmProposal(ctx, &defaultErc20Params,
+		&defaultFeeMarketParams, &defaultEvmParams, nil); err != nil {
+		return err
+	}
 	return nil
 }
 
