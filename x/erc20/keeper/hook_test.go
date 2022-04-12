@@ -48,7 +48,6 @@ type IBCTransferSimulate struct {
 }
 
 func (it *IBCTransferSimulate) Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error) {
-	//it.T.Logf("ibc transfer simulate sender %s, receiver %s, amount %s, fee %s", msg.Sender, msg.Receiver, msg.Token.String(), msg.Fee.String())
 	return &ibctransfertypes.MsgTransferResponse{}, nil
 }
 
@@ -129,7 +128,7 @@ var (
 
 func TestHookChainGravity(t *testing.T) {
 	app, validators, _, delegateAddressArr := initTest(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
 	require.NoError(t, InitEvmModuleParams(ctx, &app.Erc20Keeper, true))
 
 	pair, err := app.Erc20Keeper.RegisterCoin(ctx, wfxMetadata)
@@ -170,7 +169,7 @@ func TestHookChainGravity(t *testing.T) {
 
 func TestHookChainBSC(t *testing.T) {
 	app, validators, genesisAccount, delegateAddressArr := initTest(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
 	require.NoError(t, InitEvmModuleParams(ctx, &app.Erc20Keeper, true))
 
 	pair, err := app.Erc20Keeper.RegisterCoin(ctx, purseMetadata)
@@ -207,7 +206,7 @@ func TestHookChainBSC(t *testing.T) {
 
 	token := pair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, bsctypes.ModuleName)
-	transferChainData := packTransferCrossData(t, ctx, app.Erc20Keeper, addr2.String(), fxcore.CoinOne, fxcore.CoinOne, crossChainTarget)
+	transferChainData := packTransferCrossData(t, ctx, app.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
 	sendEthTx(t, ctx, app, signer1, addr1, token, transferChainData)
 
 	transactions := app.BscKeeper.GetUnbatchedTransactions(ctx)
@@ -216,7 +215,7 @@ func TestHookChainBSC(t *testing.T) {
 
 func TestHookIBC(t *testing.T) {
 	app, validators, _, delegateAddressArr := initTest(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address})
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
 	require.NoError(t, InitEvmModuleParams(ctx, &app.Erc20Keeper, true))
 
 	pair, err := app.Erc20Keeper.RegisterCoin(ctx, wfxMetadata)
@@ -245,8 +244,8 @@ func TestHookIBC(t *testing.T) {
 	_ = balanceOf
 
 	//reset ibc
-	app.Erc20Keeper.SetIBCTransferKeeper(&IBCTransferSimulate{T: t})
-	app.Erc20Keeper.SetIBCChannelKeeper(&IBCChannelSimulate{})
+	app.Erc20Keeper.SetIBCTransferKeeperForTest(&IBCTransferSimulate{T: t})
+	app.Erc20Keeper.SetIBCChannelKeeperForTest(&IBCChannelSimulate{})
 
 	evmHooks := evmkeeper.NewMultiEvmHooks(app.Erc20Keeper.Hooks())
 	app.EvmKeeper = app.EvmKeeper.SetHooksForTest(evmHooks)
@@ -340,6 +339,7 @@ func initTest(t *testing.T) (*fxcore.App, []*tmtypes.Validator, authtypes.Genesi
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	delegateAddressArr := fxcore.AddTestAddrsIncremental(app, ctx, 1, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000000000)))
 
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 	return app, validator.Validators, genesisAccounts, delegateAddressArr
 }
 

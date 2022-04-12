@@ -394,7 +394,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.Erc20Keeper = erc20keeper.NewKeeper(
 		keys[erc20types.StoreKey], appCodec, myApp.GetSubspace(erc20types.ModuleName),
 		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
-		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
+		&myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
 
 	myApp.GravityKeeper = gravitykeeper.NewKeeper(
 		appCodec, keys[gravitytypes.StoreKey], myApp.GetSubspace(gravitytypes.ModuleName),
@@ -470,9 +470,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 			myApp.GravityKeeper.Hooks(),
 		),
 	)
-	// erc20 keeper user ibc transfer router
-	myApp.Erc20Keeper.SetIBCTransferKeeper(myApp.TransferKeeper)
-	// evm keeper hook use erc20 keeper
 	myApp.EvmKeeper.SetHooks(evmkeeper.NewMultiEvmHooks(myApp.Erc20Keeper.Hooks()))
 
 	myApp.MigrateKeeper = migratekeeper.NewKeeper(appCodec, keys[migratetypes.StoreKey])

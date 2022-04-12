@@ -3,7 +3,7 @@ package evm_test
 import (
 	"errors"
 	"github.com/ethereum/go-ethereum/core"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
@@ -77,6 +77,8 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	priv, err = ethsecp256k1.GenerateKey()
 	require.NoError(t, err)
 	consAddress := sdk.ConsAddress(priv.PubKey().Address())
+
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
 	suite.app = fxcore.Setup(checkTx, func(app *fxcore.App, genesis fxcore.AppGenesisState) fxcore.AppGenesisState {
 		if suite.dynamicTxFee {
@@ -167,6 +169,8 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.handler = evm.NewHandler(suite.app.EvmKeeper)
+
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock() + 1)
 }
 
 func (suite *EvmTestSuite) SetupTest() {
@@ -690,20 +694,20 @@ func (dh *DummyHook) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt
 }
 
 func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, dynamicTxFee bool) error {
-	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxcoretypes.EvmSupportBlock())
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxtypes.EvmSupportBlock())
 	defaultEvmParams := types.DefaultParams()
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
 	defaultErc20Params := erc20types.DefaultParams()
 
 	if dynamicTxFee {
-		defaultFeeMarketParams.EnableHeight = fxcoretypes.EvmSupportBlock()
+		defaultFeeMarketParams.EnableHeight = fxtypes.EvmSupportBlock()
 		defaultFeeMarketParams.NoBaseFee = false
 	} else {
 		defaultFeeMarketParams.NoBaseFee = true
 	}
 
-	if err := keeper.HandleInitEvmProposal(ctx, &defaultErc20Params,
-		&defaultFeeMarketParams, &defaultEvmParams, nil); err != nil {
+	if err := keeper.HandleInitEvmProposal(ctx, defaultErc20Params,
+		defaultFeeMarketParams, defaultEvmParams, nil); err != nil {
 		return err
 	}
 	return nil

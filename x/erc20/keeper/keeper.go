@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/functionx/fx-core/x/erc20/types"
@@ -65,7 +65,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, receiver string, amount sdk.Coin) error {
-	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() || !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() || !k.HasInit(ctx) {
 		ctx.Logger().Info("ignore refund, module not enable", "module", types.ModuleName)
 		return nil
 	}
@@ -78,7 +78,7 @@ func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, s
 }
 
 func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error {
-	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() || !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() || !k.HasInit(ctx) {
 		return errors.New("erc20 module not enable")
 	}
 	sendAddr, err := sdk.AccAddressFromBech32(sender)
@@ -95,7 +95,7 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee
 }
 
 func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
-	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() || !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() || !k.HasInit(ctx) {
 		return errors.New("erc20 module not enable")
 	}
 	if !k.IsDenomRegistered(ctx, coin.Denom) {
@@ -112,4 +112,12 @@ func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receive
 
 func (k Keeper) HasInit(ctx sdk.Context) bool {
 	return k.paramstore.Has(ctx, types.ParamStoreKeyEnableErc20)
+}
+
+func (k *Keeper) SetIBCTransferKeeperForTest(t types.IBCTransferKeeper) {
+	k.ibcTransferKeeper = t
+}
+
+func (k *Keeper) SetIBCChannelKeeperForTest(t types.IBCChannelKeeper) {
+	k.ibcChannelKeeper = t
 }

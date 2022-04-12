@@ -3,7 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -247,7 +247,7 @@ func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, prefixKey []byte, 
 func (k Keeper) GetBatchFeeByTokenType(ctx sdk.Context, tokenContractAddr string, maxElements uint, baseFee sdk.Int) *types.BatchFees {
 	batchFee := types.BatchFees{TokenContract: tokenContractAddr, TotalFees: sdk.NewInt(0)}
 	txCount := 0
-	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
+	isSupportBaseFee := fxtypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 
 	k.IterateUnbatchedTransactions(ctx, types.GetOutgoingTxPoolContractPrefix(tokenContractAddr), func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		fee := tx.Fee
@@ -291,7 +291,7 @@ func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees 
 	batchFeesMap := make(map[string]*types.BatchFees)
 	txCountMap := make(map[string]int)
 	baseFees := types.MinBatchFeeToBaseFees(minBatchFees)
-	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
+	isSupportBaseFee := fxtypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 
 	k.IterateUnbatchedTransactions(ctx, types.OutgoingTXPoolKey, func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		fee := tx.Fee

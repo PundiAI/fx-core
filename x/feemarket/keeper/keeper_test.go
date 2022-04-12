@@ -3,7 +3,7 @@ package keeper_test
 import (
 	_ "embed"
 	app "github.com/functionx/fx-core/app/fxcore"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
@@ -56,6 +56,7 @@ type KeeperTestSuite struct {
 /// DoSetupTest setup test environment, it uses`require.TestingT` to support both `testing.T` and `testing.B`.
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	checkTx := false
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
@@ -98,12 +99,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	//TODO update ethAccount 2021-12-02.
-	//acc := &ethermint.EthAccount{
-	//	BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
-	//	CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-	//}
-
 	acc := authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0)
 
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
@@ -123,6 +118,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.appCodec = encodingConfig.Marshaler
+
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -179,20 +176,20 @@ func (suite *KeeperTestSuite) TestSetGetGasFee() {
 }
 
 func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, dynamicTxFee bool) error {
-	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxcoretypes.EvmSupportBlock())
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxtypes.EvmSupportBlock())
 	defaultEvmParams := evmtypes.DefaultParams()
 	defaultFeeMarketParams := types.DefaultParams()
 	defaultErc20Params := erc20types.DefaultParams()
 
 	if dynamicTxFee {
-		defaultFeeMarketParams.EnableHeight = fxcoretypes.EvmSupportBlock()
+		defaultFeeMarketParams.EnableHeight = fxtypes.EvmSupportBlock()
 		defaultFeeMarketParams.NoBaseFee = false
 	} else {
 		defaultFeeMarketParams.NoBaseFee = true
 	}
 
-	if err := keeper.HandleInitEvmProposal(ctx, &defaultErc20Params,
-		&defaultFeeMarketParams, &defaultEvmParams, nil); err != nil {
+	if err := keeper.HandleInitEvmProposal(ctx, defaultErc20Params,
+		defaultFeeMarketParams, defaultEvmParams, nil); err != nil {
 		return err
 	}
 	return nil

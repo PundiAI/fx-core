@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 	for _, tc := range testCases {
 		suite.SetupTest() // reset
 
-		erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
+		erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
 		contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
 		suite.Require().NoError(err)
 		account := tests.GenerateAddress()

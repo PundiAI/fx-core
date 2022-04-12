@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 	ibcchannelkeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/keeper"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math"
 	"sort"
 
@@ -88,7 +88,7 @@ func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) *types.V
 	}
 	k.StoreValset(ctx, valset)
 
-	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		k.GetBridgeChainID(ctx) //used gas
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 
 				// Mint 10 tokens to suite.address (owner)
 				_ = suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
-				suite.Commit()
+				//suite.Commit()
 
 				// Burn the 10 tokens of suite.address (owner)
 				_ = suite.BurnERC20Token(contractAddr, suite.address, big.NewInt(10))
@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 			func(contractAddr common.Address) {
 				// Mint 10 tokens to suite.address (owner)
 				_ = suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
-				suite.Commit()
+				//suite.Commit()
 
 				// Burn the 10 tokens of suite.address (owner)
 				_ = suite.BurnERC20Token(contractAddr, suite.address, big.NewInt(10))
@@ -74,12 +74,12 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 
 			contractAddr, err := suite.DeployContract(suite.address, "coin", "token", 18)
 			suite.Require().NoError(err)
-			suite.Commit()
+			//suite.Commit()
 
 			tc.malleate(contractAddr)
 
 			balance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(suite.address.Bytes()), types.CreateDenom(contractAddr.String()))
-			suite.Commit()
+			//suite.Commit()
 			if tc.result {
 				// Check if the execution was successful
 				suite.Require().Equal(int64(10), balance.Amount.Int64())
@@ -130,7 +130,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			ctx := sdk.WrapSDKContext(suite.ctx)
 			_, err := suite.app.Erc20Keeper.ConvertCoin(ctx, convertCoin)
 			suite.Require().NoError(err, tc.name)
-			suite.Commit()
+			//suite.Commit()
 
 			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.address)
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, metadata.Base)

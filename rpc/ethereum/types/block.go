@@ -17,7 +17,7 @@ import (
 
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 )
 
 // BlockNumber represents decoding hex string to block values
@@ -181,7 +181,7 @@ func (bnh *BlockNumberOrHash) decodeFromString(input string) error {
 			return err
 		}
 
-		bnInt, err := fxcoretypes.SafeInt64(blockNumber)
+		bnInt, err := fxtypes.SafeInt64(blockNumber)
 		if err != nil {
 			return err
 		}

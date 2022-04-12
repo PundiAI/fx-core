@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/core"
@@ -20,7 +20,7 @@ func (k Keeper) Hooks() Hooks {
 
 // PostTxProcessing implements EvmHooks.PostTxProcessing
 func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
-	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() || !h.k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() || !h.k.HasInit(ctx) {
 		return nil
 	}
 	params := h.k.GetParams(ctx)

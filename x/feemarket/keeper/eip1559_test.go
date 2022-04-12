@@ -3,14 +3,14 @@ package keeper_test
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func (suite *KeeperTestSuite) TestCalculateBaseFee() {
-	fxcoretypes.ChangeNetworkForTest(fxcoretypes.NetworkDevnet())
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 	testCases := []struct {
 		name      string
 		NoBaseFee bool
@@ -26,9 +26,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 		{
 			"with BaseFee - initial EIP-1559 block",
 			false,
-			func() {
-				suite.ctx = suite.ctx.WithBlockHeight(fxcoretypes.EvmSupportBlock())
-			},
+			func() {},
 			suite.app.FeeMarketKeeper.GetParams(suite.ctx).BaseFee.BigInt(),
 		},
 		{
@@ -36,7 +34,6 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			false,
 			func() {
 				// non initial block
-				suite.ctx = suite.ctx.WithBlockHeight(fxcoretypes.EvmSupportBlock() + 1)
 
 				// Set gas used
 				suite.app.FeeMarketKeeper.SetBlockGasUsed(suite.ctx, 100)
@@ -61,7 +58,6 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			"with BaseFee - parent block used more gas than its target",
 			false,
 			func() {
-				suite.ctx = suite.ctx.WithBlockHeight(fxcoretypes.EvmSupportBlock() + 1)
 
 				suite.app.FeeMarketKeeper.SetBlockGasUsed(suite.ctx, 200)
 
@@ -76,6 +72,8 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 				params.ElasticityMultiplier = 1
 				params.MaxGas = sdk.NewInt(100)
 				suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
+
+				suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 			},
 			big.NewInt(1125000000),
 		},
@@ -83,7 +81,6 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			"with BaseFee - Parent gas used smaller than parent gas target",
 			false,
 			func() {
-				suite.ctx = suite.ctx.WithBlockHeight(fxcoretypes.EvmSupportBlock() + 1)
 
 				suite.app.FeeMarketKeeper.SetBlockGasUsed(suite.ctx, 50)
 
@@ -98,6 +95,8 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 				params.ElasticityMultiplier = 1
 				params.MaxGas = sdk.NewInt(100)
 				suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
+
+				suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 			},
 			big.NewInt(937500000),
 		},

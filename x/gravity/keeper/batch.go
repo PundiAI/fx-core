@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"fmt"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -72,7 +72,7 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress string, ma
 	for _, tx := range selectedTx[1:] {
 		_, _ = eventBatchNonceTxIds.WriteString(fmt.Sprintf(",%d", tx.Id))
 	}
-	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		k.GetBridgeChainID(ctx) // gas used
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -170,7 +170,7 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch types.OutgoingTxBatch) {
 
 // pickUnbatchedTX find TX in pool and remove from "available" second index
 func (k Keeper) pickUnbatchedTX(ctx sdk.Context, contractAddress string, maxElements int, baseFee sdk.Int) ([]*types.OutgoingTransferTx, error) {
-	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
+	isSupportBaseFee := fxtypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
 	k.IterateOutgoingPoolByFee(ctx, contractAddress, func(txID uint64, tx *types.OutgoingTransferTx) bool {
@@ -220,7 +220,7 @@ func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, bat
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, *batch)
 
-	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		k.GetBridgeChainID(ctx) // gas used
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

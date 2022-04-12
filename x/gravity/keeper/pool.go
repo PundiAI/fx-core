@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/tendermint/tendermint/libs/math"
 	"math/big"
 	"sort"
@@ -74,7 +74,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, counte
 	// add a second index with the fee
 	k.appendToUnbatchedTXIndex(ctx, tokenContract, *erc20Fee, nextID)
 
-	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		k.GetBridgeChainID(ctx) // gas used
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -156,7 +156,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		}
 	}
 
-	if ctx.BlockHeight() < fxcoretypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		k.GetBridgeChainID(ctx) // gas used
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -318,7 +318,7 @@ func (k Keeper) GetAllBatchFees(ctx sdk.Context, minBatchFees []types.MinBatchFe
 
 // getBatchFeesMap get batch fee map
 func (k Keeper) getBatchFeesMap(ctx sdk.Context, minBatchFees []types.MinBatchFee, needTotalAmount bool) map[string]*types.BatchFees {
-	isSupportBaseFee := fxcoretypes.IsRequestBatchBaseFee(ctx.BlockHeight())
+	isSupportBaseFee := fxtypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 	if !isSupportBaseFee {
 		return k.createBatchFees(ctx)
 	}

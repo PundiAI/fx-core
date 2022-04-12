@@ -9,7 +9,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
-	fxcoretypes "github.com/functionx/fx-core/types"
 	fxtypes "github.com/functionx/fx-core/types"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
@@ -232,7 +231,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 
 	// Set ctx.GasMeter with a limit of GasWanted (gasLimit)
 	gasConsumed := ctx.GasMeter().GasConsumed()
-	ctx = ctx.WithGasMeter(fxcoretypes.NewInfiniteGasMeterWithLimit(gasWanted))
+	ctx = ctx.WithGasMeter(fxtypes.NewInfiniteGasMeterWithLimit(gasWanted))
 	ctx.GasMeter().ConsumeGas(gasConsumed, "copy gas consumed")
 
 	// we know that we have enough gas on the pool to cover the intrinsic gas

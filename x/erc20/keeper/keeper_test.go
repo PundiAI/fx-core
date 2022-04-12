@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 	"math/big"
 	"testing"
@@ -78,6 +78,7 @@ func TestKeeperTestSuite(t *testing.T) {
 // Test helpers
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	checkTx := false
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
@@ -186,6 +187,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	encodingConfig := app.MakeEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock() + 1)
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -212,7 +215,7 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation(name strin
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	chainID := suite.app.EvmKeeper.ChainID()
 
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
+	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
 
 	ctorArgs, err := erc20Config.ABI.Pack("", big.NewInt(1000000000000000000))
 	suite.Require().NoError(err)
@@ -270,14 +273,14 @@ func (suite *KeeperTestSuite) Commit() {
 }
 
 func (suite *KeeperTestSuite) MintERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
+	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
 	transferData, err := erc20Config.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
 
 func (suite *KeeperTestSuite) BurnERC20Token(contractAddr, from common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
+	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
 	transferData, err := erc20Config.ABI.Pack("transfer", types.ModuleAddress, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
@@ -323,7 +326,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 }
 
 func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interface{} {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
+	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
 	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, "balanceOf", account)
 	if err != nil {
 		return nil
@@ -338,7 +341,7 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 }
 
 func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
+	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
 
 	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, "name")
 	suite.Require().NoError(err)
@@ -352,27 +355,27 @@ func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
 }
 
 func (suite *KeeperTestSuite) TransferERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := contracts.GetERC20Config(suite.ctx.BlockHeight())
+	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
 	transferData, err := erc20Config.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
 
 func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, dynamicTxFee bool) error {
-	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxcoretypes.EvmSupportBlock())
+	ctx = ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
 	defaultEvmParams := evm.DefaultParams()
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
 	defaultErc20Params := types.DefaultParams()
 
 	if dynamicTxFee {
-		defaultFeeMarketParams.EnableHeight = fxcoretypes.EvmSupportBlock()
+		defaultFeeMarketParams.EnableHeight = fxtypes.EvmSupportBlock()
 		defaultFeeMarketParams.NoBaseFee = false
 	} else {
 		defaultFeeMarketParams.NoBaseFee = true
 	}
 
-	if err := keeper.HandleInitEvmProposal(ctx, &defaultErc20Params,
-		&defaultFeeMarketParams, &defaultEvmParams, nil); err != nil {
+	if err := keeper.HandleInitEvmProposal(ctx, defaultErc20Params,
+		defaultFeeMarketParams, defaultEvmParams, nil); err != nil {
 		return err
 	}
 	return nil

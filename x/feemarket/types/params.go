@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/params"
-	fxcoretypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math"
 )
 
@@ -55,7 +55,7 @@ func DefaultParams() Params {
 		BaseFeeChangeDenominator: params.BaseFeeChangeDenominator,
 		ElasticityMultiplier:     params.ElasticityMultiplier,
 		BaseFee:                  sdk.NewIntFromUint64(params.InitialBaseFee),
-		EnableHeight:             fxcoretypes.EvmSupportBlock(),
+		EnableHeight:             fxtypes.EvmSupportBlock(),
 		MinBaseFee:               MinBaseFee,
 		MaxBaseFee:               MaxBaseFee,
 		MaxGas:                   sdk.NewIntFromUint64(0), //default use block max gas
