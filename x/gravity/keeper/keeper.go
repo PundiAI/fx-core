@@ -2,12 +2,9 @@ package keeper
 
 import (
 	"fmt"
-	ibcchannelkeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/keeper"
 	fxtypes "github.com/functionx/fx-core/types"
 	"math"
 	"sort"
-
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -31,8 +28,8 @@ type Keeper struct {
 	ak             types.AccountKeeper
 	SlashingKeeper types.SlashingKeeper
 
-	ibcTransferKeeper keeper.Keeper
-	ibcChannelKeeper  ibcchannelkeeper.Keeper
+	ibcTransferKeeper types.IBCTransferKeeper
+	ibcChannelKeeper  types.IBCChannelKeeper
 
 	erc20Keeper types.Erc20Keeper
 
@@ -44,7 +41,7 @@ type Keeper struct {
 // NewKeeper returns a new instance of the gravity keeper
 func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
 	stakingKeeper types.StakingKeeper, bankKeeper types.BankKeeper, ak types.AccountKeeper, slashingKeeper types.SlashingKeeper,
-	ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper, erc20Keeper types.Erc20Keeper) Keeper {
+	ibcTransferKeeper types.IBCTransferKeeper, channelKeeper types.IBCChannelKeeper, erc20Keeper types.Erc20Keeper) Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())

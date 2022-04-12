@@ -8,12 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcchannelkeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
 )
 
 // Keeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
@@ -25,15 +23,15 @@ type Keeper struct {
 
 	bankKeeper        types.BankKeeper
 	accountKeeper     types.AccountKeeper
-	ibcTransferKeeper keeper.Keeper
-	ibcChannelKeeper  ibcchannelkeeper.Keeper
+	ibcTransferKeeper types.IBCTransferKeeper
+	ibcChannelKeeper  types.IBCChannelKeeper
 	erc20Keeper       types.Erc20Keeper
 }
 
 // NewKeeper returns a new instance of the gravity keeper
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
 	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper,
-	ibcTransferKeeper keeper.Keeper, channelKeeper ibcchannelkeeper.Keeper, erc20Keeper types.Erc20Keeper) Keeper {
+	ibcTransferKeeper types.IBCTransferKeeper, channelKeeper types.IBCChannelKeeper, erc20Keeper types.Erc20Keeper) Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}

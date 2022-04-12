@@ -4,8 +4,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
+	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/ethereum/go-ethereum/common"
+	tranfsertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
 
 // BankKeeper defines the expected bank keeper methods
@@ -34,4 +37,25 @@ type AccountKeeper interface {
 
 type Erc20Keeper interface {
 	RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error
+}
+
+type IBCChannelKeeper interface {
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
+	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
+}
+
+type IBCTransferKeeper interface {
+	SendTransfer(
+		ctx sdk.Context,
+		sourcePort,
+		sourceChannel string,
+		token sdk.Coin,
+		sender sdk.AccAddress,
+		receiver string,
+		timeoutHeight clienttypes.Height,
+		timeoutTimestamp uint64,
+		router string,
+		fee sdk.Coin,
+	) error
+	SetDenomTrace(ctx sdk.Context, denomTrace tranfsertypes.DenomTrace)
 }

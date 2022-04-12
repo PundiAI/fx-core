@@ -22,6 +22,9 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
+// TestOrchestratorChain init operator.
+// 1. fxcored tx crosschain init-crosschain-params bsc 10000000000000000000000FX --title="Init Bsc chain params", --desc="about bsc chain description" --gravity-id="bsc" --oracles="fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2" --from fx1 -y --gas=auto --gas-adjustment=1.3
+// 2. fxcored tx gov vote 1 yes --from fx1 -y --gas=auto --gas-adjustment=1.3
 func TestOrchestratorChain(t *testing.T) {
 	if !testing.Short() {
 		t.SkipNow()
@@ -102,7 +105,7 @@ func sendToExternalAndCancel(c *Client) {
 }
 
 func getBalanceByAddress(c *Client, accAddr sdk.AccAddress, denom string) *sdk.Coin {
-	balanceResp, err := c.bankQueryClient.Balance(c.ctx, banktypes.NewQueryBalanceRequest(c.FxAddress(), denom))
+	balanceResp, err := c.bankQueryClient.Balance(c.ctx, banktypes.NewQueryBalanceRequest(accAddr, denom))
 	require.NoError(c.t, err)
 	return balanceResp.Balance
 }

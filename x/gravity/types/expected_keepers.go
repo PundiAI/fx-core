@@ -1,6 +1,8 @@
 package types
 
 import (
+	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
 	"github.com/ethereum/go-ethereum/common"
 	"time"
 
@@ -51,6 +53,26 @@ type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) types.ModuleAccountI
 	SetModuleAccount(sdk.Context, types.ModuleAccountI)
+}
+
+type IBCChannelKeeper interface {
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
+	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
+}
+
+type IBCTransferKeeper interface {
+	SendTransfer(
+		ctx sdk.Context,
+		sourcePort,
+		sourceChannel string,
+		token sdk.Coin,
+		sender sdk.AccAddress,
+		receiver string,
+		timeoutHeight clienttypes.Height,
+		timeoutTimestamp uint64,
+		router string,
+		fee sdk.Coin,
+	) error
 }
 
 type Erc20Keeper interface {

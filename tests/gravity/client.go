@@ -31,7 +31,6 @@ import (
 
 const (
 	// Fx chain data
-	fxChainId        = "fxcore"
 	defaultFxGrpcUrl = "localhost:9090"
 	defaultFxRpcUrl  = "tcp://localhost:26657"
 
@@ -67,6 +66,7 @@ type Client struct {
 	ethPrivKey         *ecdsa.PrivateKey
 	ethAddress         gethCommon.Address
 	mutex              *sync.Mutex
+	chainId            string
 }
 
 func (c *Client) FxAddress() sdk.AccAddress {
@@ -100,6 +100,10 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 	if err != nil {
 		t.Fatal(err)
 	}
+	status, err := httpClient.Status(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
 	client := &Client{
 		t:                  t,
 		ctx:                context.Background(),
@@ -114,6 +118,7 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 		ethPrivKey:         ethPrivateKey,
 		ethAddress:         ethAddress,
 		mutex:              &sync.Mutex{},
+		chainId:            status.NodeInfo.Network,
 	}
 	gasPrice, err := client.otherQueryClient.GasPrice(client.ctx, &othertypes.GasPriceRequest{})
 	require.NoError(t, err)
@@ -197,7 +202,7 @@ func buildTxBodyAndTxAuthInfo(c *Client, msgList *[]sdk.Msg, accountNumber, acco
 	signResultBytes := sign(c.t, c.fxPrivKey, &tx.SignDoc{
 		BodyBytes:     txBodyBytes,
 		AuthInfoBytes: txAuthInfoBytes,
-		ChainId:       fxChainId,
+		ChainId:       c.chainId,
 		AccountNumber: accountNumber,
 	})
 	simulateResponse, err := c.TxClient.Simulate(context.Background(), &tx.SimulateRequest{
@@ -268,7 +273,7 @@ func (c *Client) BroadcastTx(msgList *[]sdk.Msg) string {
 	signResultBytes := sign(c.t, c.fxPrivKey, &tx.SignDoc{
 		BodyBytes:     txBodyBytes,
 		AuthInfoBytes: txAuthInfoBytes,
-		ChainId:       fxChainId,
+		ChainId:       c.chainId,
 		AccountNumber: account.GetAccountNumber(),
 	})
 

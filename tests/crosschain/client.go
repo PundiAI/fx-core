@@ -29,7 +29,6 @@ import (
 )
 
 const (
-	fxChainId          = "fxcore"
 	defaultNodeGrpcUrl = "localhost:9090"
 	defaultNodeRpcUrl  = "tcp://localhost:26657"
 
@@ -74,6 +73,7 @@ type Client struct {
 	mutex                 *sync.Mutex
 	gasFee                sdk.Coin
 	chainName             string
+	chainId               string
 }
 
 func (c *Client) FxAddress() sdk.AccAddress {
@@ -127,7 +127,7 @@ func (c *Client) BroadcastTx(msgList *[]sdk.Msg) string {
 	signResultBytes := sign(c.t, c.fxPrivKey, &tx.SignDoc{
 		BodyBytes:     txBodyBytes,
 		AuthInfoBytes: txAuthInfoBytes,
-		ChainId:       fxChainId,
+		ChainId:       c.chainId,
 		AccountNumber: account.GetAccountNumber(),
 	})
 
@@ -157,6 +157,11 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("ethAddress:%v", ethAddress.String())
+	status, err := httpClient.Status(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
 	client := &Client{
 		t:                     t,
 		ctx:                   context.Background(),
@@ -172,6 +177,7 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 		mutex:                 &sync.Mutex{},
 		gasFee:                sdk.NewCoin("FX", sdk.NewInt(4000000000000)),
 		chainName:             chainName,
+		chainId:               status.NodeInfo.Network,
 	}
 	for _, opt := range opts {
 		opt.apply(client)
@@ -252,7 +258,7 @@ func buildTxBodyAndTxAuthInfo(c *Client, msgList *[]sdk.Msg, accountNumber, acco
 	signResultBytes := sign(c.t, c.fxPrivKey, &tx.SignDoc{
 		BodyBytes:     txBodyBytes,
 		AuthInfoBytes: txAuthInfoBytes,
-		ChainId:       fxChainId,
+		ChainId:       c.chainId,
 		AccountNumber: accountNumber,
 	})
 	simulateResponse, err := c.TxClient.Simulate(context.Background(), &tx.SimulateRequest{

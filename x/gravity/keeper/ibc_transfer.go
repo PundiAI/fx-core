@@ -12,7 +12,6 @@ import (
 	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 
 	"github.com/functionx/fx-core/x/gravity/types"
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
 
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
@@ -35,12 +34,11 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 	}
 	ibcReceiveAddress, err := bech32.ConvertAndEncode(ibcPrefix, receiveAddr)
 	if err != nil {
-		logger.Error("convert ibc transfer receive address error!!!", "fxReceive:", claim.FxReceiver,
-			"ibcPrefix:", ibcPrefix, "sourcePort:", sourcePort, "sourceChannel:", sourceChannel, "error:", err)
+		logger.Error("convert ibc transfer receive address error!!!", "fxReceive", claim.FxReceiver,
+			"ibcPrefix", ibcPrefix, "sourcePort", sourcePort, "sourceChannel", sourceChannel, "error", err)
 		return
 	}
 
-	wrapSdkContext := sdk.WrapSDKContext(ctx)
 	_, clientState, err := a.keeper.ibcChannelKeeper.GetChannelClientState(ctx, sourcePort, sourceChannel)
 	if err != nil {
 		logger.Error("get channel client state error!!!", "sourcePort", sourcePort, "sourceChannel", sourceChannel)
@@ -48,19 +46,23 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 	}
 	params := a.keeper.GetParams(ctx)
 	clientStateHeight := clientState.GetLatestHeight()
+	destTimeoutHeight := clientStateHeight.GetRevisionHeight() + params.IbcTransferTimeoutHeight
 	ibcTimeoutHeight := ibcclienttypes.Height{
 		RevisionNumber: clientStateHeight.GetRevisionNumber(),
-		RevisionHeight: clientStateHeight.GetRevisionHeight() + params.IbcTransferTimeoutHeight,
+		RevisionHeight: destTimeoutHeight,
 	}
 	nextSequenceSend, found := a.keeper.ibcChannelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		logger.Error("ibc channel next sequence send not found!!!", "source port:", sourcePort, "source channel:", sourceChannel)
+		logger.Error("ibc channel next sequence send not found!!!", "sourcePort", sourcePort, "sourceChannel", sourceChannel)
 		return
 	}
-	logger.Info("gravity start ibc transfer", "sender:", receiveAddr, "receive:", ibcReceiveAddress, "coin:", coin, "timeout:", params.IbcTransferTimeoutHeight, "nextSequenceSend:", nextSequenceSend)
-	ibcTransferMsg := ibctransfertypes.NewMsgTransfer(sourcePort, sourceChannel, coin, receiveAddr, ibcReceiveAddress, ibcTimeoutHeight, 0, "", sdk.NewCoin(coin.Denom, sdk.ZeroInt()))
-	if _, err = a.keeper.ibcTransferKeeper.Transfer(wrapSdkContext, ibcTransferMsg); err != nil {
-		logger.Error("gravity ibc transfer fail. ", "sender:", receiveAddr, "receive:", ibcReceiveAddress, "coin:", coin, "err:", err)
+	logger.Info("gravity start ibc transfer", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "destCurrentHeight", clientStateHeight.GetRevisionHeight(), "destTimeoutHeight", destTimeoutHeight, "nextSequenceSend", nextSequenceSend)
+	if err = a.keeper.ibcTransferKeeper.SendTransfer(ctx,
+		sourcePort, sourceChannel,
+		coin, receiveAddr, ibcReceiveAddress,
+		ibcTimeoutHeight, 0,
+		"", sdk.NewCoin(coin.Denom, sdk.ZeroInt())); err != nil {
+		logger.Error("gravity ibc transfer fail. ", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "err", err)
 		return
 	}
 
