@@ -58,6 +58,7 @@ func (k Keeper) RelayTransferCrossProcessing(ctx sdk.Context, from common.Addres
 				telemetry.NewLabel("denom", pair.Denom),
 				telemetry.NewLabel("type", tc.Type.String()),
 				telemetry.NewLabel("target", tc.Target),
+				telemetry.NewLabel("amount", tc.Amount.Amount.String()),
 			},
 		)
 	}

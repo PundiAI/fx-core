@@ -52,6 +52,7 @@ func (k Keeper) RelayTokenProcessing(ctx sdk.Context, _ common.Address, _ *commo
 			[]metrics.Label{
 				telemetry.NewLabel("erc20", pair.Erc20Address),
 				telemetry.NewLabel("denom", pair.Denom),
+				telemetry.NewLabel("amount", amount.String()),
 			},
 		)
 	}

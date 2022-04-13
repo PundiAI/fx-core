@@ -8,20 +8,21 @@ import (
 
 // erc20 events
 const (
-	EventTypeTokenLock            = "token_lock"
-	EventTypeTokenUnlock          = "token_unlock"
-	EventTypeMint                 = "mint"
-	EventTypeConvertCoin          = "convert_coin"
-	EventTypeConvertERC20         = "convert_erc20"
-	EventTypeBurn                 = "burn"
-	EventTypeRegisterCoin         = "register_coin"
-	EventTypeRegisterERC20        = "register_erc20"
-	EventTypeToggleTokenRelay     = "toggle_token_relay" // #nosec
-	EventTypeUpdateTokenPairERC20 = "update_token_pair_erc20"
+	EventTypeTokenLock             = "token_lock"
+	EventTypeTokenUnlock           = "token_unlock"
+	EventTypeMint                  = "mint"
+	EventTypeConvertCoin           = "convert_coin"
+	EventTypeConvertERC20          = "convert_erc20"
+	EventTypeBurn                  = "burn"
+	EventTypeRegisterCoin          = "register_coin"
+	EventTypeRegisterERC20         = "register_erc20"
+	EventTypeToggleTokenRelay      = "toggle_token_relay" // #nosec
+	EventTypeUpgradeSystemContract = "upgrade_system_contract"
 
-	AttributeKeyCosmosCoin = "cosmos_coin"
-	AttributeKeyERC20Token = "erc20_token" // #nosec
-	AttributeKeyReceiver   = "receiver"
+	AttributeKeyCosmosCoin      = "cosmos_coin"
+	AttributeKeyERC20Token      = "erc20_token" // #nosec
+	AttributeKeyReceiver        = "receiver"
+	AttributeKeyContractAddress = "contract_address"
 
 	ERC20EventTransfer = "Transfer"
 

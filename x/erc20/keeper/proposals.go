@@ -255,16 +255,16 @@ func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, erc20Params types.Params,
 	// init coin
 	for _, metadata := range metadataList {
 		k.Logger(ctx).Info("register coin", "coin", metadata.String())
-		_, err := k.RegisterCoin(ctx, metadata)
+		pair, err := k.RegisterCoin(ctx, metadata)
 		if err != nil {
 			return sdkerrors.Wrapf(types.ErrInvalidMetadata, fmt.Sprintf("base %s, display %s, error %s",
 				metadata.Base, metadata.Display, err.Error()))
 		}
-		//ctx.EventManager().EmitEvent(sdk.NewEvent(
-		//	erc20types.EventTypeRegisterCoin,
-		//	sdk.NewAttribute(erc20types.AttributeKeyCosmosCoin, pair.Denom),
-		//	sdk.NewAttribute(erc20types.AttributeKeyFIP20Token, pair.Fip20Address),
-		//))
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeRegisterCoin,
+			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
+			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+		))
 	}
 	return nil
 }

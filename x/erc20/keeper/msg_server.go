@@ -132,6 +132,7 @@ func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 			[]metrics.Label{
 				telemetry.NewLabel("erc20", pair.Erc20Address),
 				telemetry.NewLabel("denom", pair.Denom),
+				telemetry.NewLabel("amount", msg.Coin.Amount.String()),
 			},
 		)
 	}()
@@ -215,6 +216,7 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 			[]metrics.Label{
 				telemetry.NewLabel("erc20", pair.Erc20Address),
 				telemetry.NewLabel("denom", pair.Denom),
+				telemetry.NewLabel("amount", msg.Amount.String()),
 			},
 		)
 	}()
@@ -318,6 +320,7 @@ func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 			[]metrics.Label{
 				telemetry.NewLabel("erc20", pair.Erc20Address),
 				telemetry.NewLabel("denom", pair.Denom),
+				telemetry.NewLabel("amount", msg.Amount.String()),
 			},
 		)
 	}()
@@ -404,6 +407,7 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 			[]metrics.Label{
 				telemetry.NewLabel("erc20", pair.Erc20Address),
 				telemetry.NewLabel("denom", pair.Denom),
+				telemetry.NewLabel("amount", msg.Coin.Amount.String()),
 			},
 		)
 	}()
