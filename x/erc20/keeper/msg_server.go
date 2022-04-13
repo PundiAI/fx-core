@@ -307,7 +307,7 @@ func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 	}
 
 	// Check for unexpected `appove` event in logs
-	if err := k.monitorApprovalEvent(res); err != nil {
+	if err = k.monitorApprovalEvent(res); err != nil {
 		return nil, err
 	}
 
@@ -393,7 +393,7 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	}
 
 	// Check for unexpected `appove` event in logs
-	if err := k.monitorApprovalEvent(res); err != nil {
+	if err = k.monitorApprovalEvent(res); err != nil {
 		return nil, err
 	}
 

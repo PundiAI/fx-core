@@ -36,21 +36,20 @@ func (m MsgConvertCoin) Type() string { return TypeMsgConvertCoin }
 
 // ValidateBasic runs stateless checks on the message
 func (m MsgConvertCoin) ValidateBasic() error {
-	if err := ValidateErc20Denom(m.Coin.Denom); err != nil {
-		if err := ibctransfertypes.ValidateIBCDenom(m.Coin.Denom); err != nil {
-			return err
-		}
-	}
-
-	if !m.Coin.Amount.IsPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cannot mint a non-positive amount")
-	}
 	_, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(err, "invalid sender address")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 	if err = fxtypes.ValidateAddress(m.Receiver); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address %s", err.Error())
+	}
+	if err = ValidateErc20Denom(m.Coin.Denom); err != nil {
+		if err = ibctransfertypes.ValidateIBCDenom(m.Coin.Denom); err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid coin denom %s", err.Error())
+		}
+	}
+	if !m.Coin.Amount.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, m.Coin.Amount.String())
 	}
 	return nil
 }
@@ -88,18 +87,18 @@ func (m MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
 
 // ValidateBasic runs stateless checks on the message
 func (m MsgConvertERC20) ValidateBasic() error {
-	if err := fxtypes.ValidateAddress(m.ContractAddress); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid contract address '%s'", err.Error())
-	}
-	if !m.Amount.IsPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cannot mint a non-positive amount")
+	if err := fxtypes.ValidateAddress(m.Sender); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err.Error())
 	}
 	_, err := sdk.AccAddressFromBech32(m.Receiver)
 	if err != nil {
-		return sdkerrors.Wrap(err, "invalid receiver address")
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
 	}
-	if err := fxtypes.ValidateAddress(m.Sender); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err.Error())
+	if err := fxtypes.ValidateAddress(m.ContractAddress); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid contract address %s", err.Error())
+	}
+	if !m.Amount.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, m.Amount.String())
 	}
 	return nil
 }
