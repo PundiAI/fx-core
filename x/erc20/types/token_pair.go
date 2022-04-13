@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	fxtypes "github.com/functionx/fx-core/types"
@@ -12,18 +13,17 @@ func NewTokenPair(erc20Address common.Address, denom string, enabled bool, contr
 	return TokenPair{
 		Erc20Address:  erc20Address.String(),
 		Denom:         denom,
-		Enabled:       true,
+		Enabled:       enabled,
 		ContractOwner: contractOwner,
 	}
 }
 
 // GetID returns the SHA256 hash of the ERC20 address and denomination
 func (tp TokenPair) GetID() []byte {
-	id := tp.Erc20Address + "|" + tp.Denom
-	return tmhash.Sum([]byte(id))
+	return tmhash.Sum([]byte(fmt.Sprintf("%s|%s", tp.Erc20Address, tp.Denom)))
 }
 
-// GetErc20Contract casts the hex string address of the ERC20 to common.Address
+// GetERC20Contract casts the hex string address of the ERC20 to common.Address
 func (tp TokenPair) GetERC20Contract() common.Address {
 	return common.HexToAddress(tp.Erc20Address)
 }

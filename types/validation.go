@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -25,6 +26,11 @@ func ValidateAddress(address string) error {
 			sdkerrors.ErrInvalidAddress, "address '%s' is not a valid ethereum hex address",
 			address,
 		)
+	}
+
+	expectAddress := common.HexToAddress(address).Hex()
+	if expectAddress != address {
+		return fmt.Errorf("invalid address got:%s, expected:%s", address, expectAddress)
 	}
 	return nil
 }

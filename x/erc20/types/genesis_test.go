@@ -49,7 +49,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 				Params: DefaultParams(),
 				TokenPairs: []TokenPair{
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Erc20Address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
@@ -63,12 +63,12 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 				Params: DefaultParams(),
 				TokenPairs: []TokenPair{
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Erc20Address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Erc20Address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
@@ -82,12 +82,12 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 				Params: DefaultParams(),
 				TokenPairs: []TokenPair{
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Erc20Address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Erc20Address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
 						Denom:        "usdt2",
 						Enabled:      true,
 					},
@@ -101,7 +101,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 				Params: DefaultParams(),
 				TokenPairs: []TokenPair{
 					{
-						Erc20Address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+						Erc20Address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
 						Denom:        "usdt",
 						Enabled:      true,
 					},

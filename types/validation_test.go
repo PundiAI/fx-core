@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -71,6 +72,12 @@ func TestValidateAddress(t *testing.T) {
 		},
 		{
 			"valid address", tests.GenerateAddress().Hex(), false,
+		},
+		{
+			"invalid address - upper address", strings.ToUpper(tests.GenerateAddress().Hex()), true,
+		},
+		{
+			"invalid address - lower address", strings.ToLower(tests.GenerateAddress().Hex()), true,
 		},
 	}
 
