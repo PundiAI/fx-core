@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
@@ -28,40 +29,40 @@ func NewMsgConvertCoin(coin sdk.Coin, receiver common.Address, sender sdk.AccAdd
 }
 
 // Route should return the name of the module
-func (msg MsgConvertCoin) Route() string { return RouterKey }
+func (m MsgConvertCoin) Route() string { return RouterKey }
 
 // Type should return the action
-func (msg MsgConvertCoin) Type() string { return TypeMsgConvertCoin }
+func (m MsgConvertCoin) Type() string { return TypeMsgConvertCoin }
 
 // ValidateBasic runs stateless checks on the message
-func (msg MsgConvertCoin) ValidateBasic() error {
-	if err := ValidateErc20Denom(msg.Coin.Denom); err != nil {
-		if err := ibctransfertypes.ValidateIBCDenom(msg.Coin.Denom); err != nil {
+func (m MsgConvertCoin) ValidateBasic() error {
+	if err := ValidateErc20Denom(m.Coin.Denom); err != nil {
+		if err := ibctransfertypes.ValidateIBCDenom(m.Coin.Denom); err != nil {
 			return err
 		}
 	}
 
-	if !msg.Coin.Amount.IsPositive() {
+	if !m.Coin.Amount.IsPositive() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cannot mint a non-positive amount")
 	}
-	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	_, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
 		return sdkerrors.Wrap(err, "invalid sender address")
 	}
-	if !common.IsHexAddress(msg.Receiver) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver hex address %s", msg.Receiver)
+	if err = fxtypes.ValidateAddress(m.Receiver); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address %s", err.Error())
 	}
 	return nil
 }
 
 // GetSignBytes encodes the message for signing
-func (msg *MsgConvertCoin) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+func (m *MsgConvertCoin) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (msg MsgConvertCoin) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.Sender)
+func (m MsgConvertCoin) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
 		return nil
 	}
@@ -80,36 +81,36 @@ func NewMsgConvertERC20(amount sdk.Int, receiver sdk.AccAddress, contract, sende
 }
 
 // Route should return the name of the module
-func (msg MsgConvertERC20) Route() string { return RouterKey }
+func (m MsgConvertERC20) Route() string { return RouterKey }
 
 // Type should return the action
-func (msg MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
+func (m MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
 
 // ValidateBasic runs stateless checks on the message
-func (msg MsgConvertERC20) ValidateBasic() error {
-	if !common.IsHexAddress(msg.ContractAddress) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid contract hex address '%s'", msg.ContractAddress)
+func (m MsgConvertERC20) ValidateBasic() error {
+	if err := fxtypes.ValidateAddress(m.ContractAddress); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid contract address '%s'", err.Error())
 	}
-	if !msg.Amount.IsPositive() {
+	if !m.Amount.IsPositive() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cannot mint a non-positive amount")
 	}
-	_, err := sdk.AccAddressFromBech32(msg.Receiver)
+	_, err := sdk.AccAddressFromBech32(m.Receiver)
 	if err != nil {
-		return sdkerrors.Wrap(err, "invalid reciver address")
+		return sdkerrors.Wrap(err, "invalid receiver address")
 	}
-	if !common.IsHexAddress(msg.Sender) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender hex address %s", msg.Sender)
+	if err := fxtypes.ValidateAddress(m.Sender); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err.Error())
 	}
 	return nil
 }
 
 // GetSignBytes encodes the message for signing
-func (msg *MsgConvertERC20) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+func (m *MsgConvertERC20) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (msg MsgConvertERC20) GetSigners() []sdk.AccAddress {
-	addr := common.HexToAddress(msg.Sender)
+func (m MsgConvertERC20) GetSigners() []sdk.AccAddress {
+	addr := common.HexToAddress(m.Sender)
 	return []sdk.AccAddress{addr.Bytes()}
 }

@@ -82,8 +82,8 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee
 	if err != nil {
 		return fmt.Errorf("invalid sender address %s, error %s", sender, err.Error())
 	}
-	if !common.IsHexAddress(receive) {
-		return fmt.Errorf("invalid receiver address %s", receive)
+	if err = fxtypes.ValidateAddress(receive); err != nil {
+		return fmt.Errorf("invalid receiver address %s", err.Error())
 	}
 	return k.RelayConvertCoin(ctx, sendAddr, common.HexToAddress(receive), coin.Add(fee))
 }

@@ -4,10 +4,18 @@ import (
 	"bytes"
 	"fmt"
 	"math"
+	"regexp"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 )
+
+var (
+	ExternalAddressRegular = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
+)
+
+// ExternalContractAddressLen is the length of contract address strings
+const ExternalContractAddressLen = 42
 
 // IsEmptyHash returns true if the hash corresponds to an empty ethereum hex hash.
 func IsEmptyHash(hash string) bool {
@@ -19,15 +27,21 @@ func IsZeroAddress(address string) bool {
 	return bytes.Equal(common.HexToAddress(address).Bytes(), common.Address{}.Bytes())
 }
 
-// ValidateAddress returns an error if the provided string is either not a hex formatted string address
+// ValidateAddress validates the ethereum address strings
 func ValidateAddress(address string) error {
-	if !common.IsHexAddress(address) {
-		return sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidAddress, "address '%s' is not a valid ethereum hex address",
-			address,
-		)
+	if address == "" {
+		return fmt.Errorf("empty")
 	}
-
+	if len(address) != ExternalContractAddressLen {
+		return fmt.Errorf("address(%s) of the wrong length exp(%d) actual(%d)", address, len(address), ExternalContractAddressLen)
+	}
+	if !ExternalAddressRegular.MatchString(address) {
+		return fmt.Errorf("address(%s) doesn't pass regex", address)
+	}
+	// add ethereum address checksum check 2021-09-02.
+	if !common.IsHexAddress(address) {
+		return fmt.Errorf("invalid address: %s", address)
+	}
 	expectAddress := common.HexToAddress(address).Hex()
 	if expectAddress != address {
 		return fmt.Errorf("invalid address got:%s, expected:%s", address, expectAddress)
