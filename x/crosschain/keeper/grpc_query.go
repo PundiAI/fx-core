@@ -340,3 +340,19 @@ func (k Keeper) Oracles(c context.Context, req *types.QueryOraclesRequest) (*typ
 	oracles := k.GetAllOracles(ctx)
 	return &types.QueryOraclesResponse{Oracles: oracles}, nil
 }
+
+func (k Keeper) ProjectedBatchTimeoutHeight(c context.Context, req *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	timeout := k.GetBatchTimeoutHeight(ctx)
+	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: timeout}, nil
+}
+
+func (k Keeper) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	var bridgeTokens = make([]*types.BridgeToken, 0)
+	k.IterateBridgeTokenToDenom(ctx, func(bytes []byte, token *types.BridgeToken) bool {
+		bridgeTokens = append(bridgeTokens, token)
+		return false
+	})
+	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens}, nil
+}

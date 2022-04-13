@@ -42,7 +42,7 @@ const (
 func GetTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Cross chain transaction sub commands",
+		Short:                      "Cross chain transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -62,8 +62,8 @@ func GetTxCmd() *cobra.Command {
 		CmdCancelSendToExternal(),
 		CmdRequestBatch(),
 
-		// validator consensus confirm
-		CmdValidatorSetConfirm(),
+		// oracle consensus confirm
+		CmdOracleSetConfirm(),
 		CmdRequestBatchConfirm(),
 	}...)
 
@@ -524,7 +524,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 	return cmd
 }
 
-func CmdValidatorSetConfirm() *cobra.Command {
+func CmdOracleSetConfirm() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracle-set-confirm [chain-name] [nonce] [private-key]",
 		Short: "Send oracle-set confirm msg",

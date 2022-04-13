@@ -52,7 +52,7 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceiv
 	if types.OutgoingTransferTxs(selectedTx).TotalFee().LT(minimumFee) {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "total fee less than minimum fee")
 	}
-	batchTimeout := k.getBatchTimeoutHeight(ctx)
+	batchTimeout := k.GetBatchTimeoutHeight(ctx)
 	if batchTimeout <= 0 {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "batch timeout height")
 	}
@@ -90,9 +90,9 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceiv
 	return batch, nil
 }
 
-/// This gets the batch timeout height in Ethereum blocks.
-func (k Keeper) getBatchTimeoutHeight(ctx sdk.Context) uint64 {
-	currentCosmosHeight := ctx.BlockHeight()
+// GetBatchTimeoutHeight This gets the batch timeout height in External blocks.
+func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
+	currentFxHeight := ctx.BlockHeight()
 	params := k.GetParams(ctx)
 	// we store the last observed Cosmos and Ethereum heights, we do not concern ourselves if these values
 	// are zero because no batch can be produced if the last Ethereum block height is not first populated by a deposit event.
@@ -101,7 +101,7 @@ func (k Keeper) getBatchTimeoutHeight(ctx sdk.Context) uint64 {
 		return 0
 	}
 	// we project how long it has been in milliseconds since the last Ethereum block height was observed
-	projectedMillis := (uint64(currentCosmosHeight) - heights.BlockHeight) * params.AverageBlockTime
+	projectedMillis := (uint64(currentFxHeight) - heights.BlockHeight) * params.AverageBlockTime
 	// we convert that projection into the current Ethereum height using the average Ethereum block time in millis
 	projectedCurrentEthereumHeight := (projectedMillis / params.AverageExternalBlockTime) + heights.ExternalBlockHeight
 	// we convert our target time for block timeouts (lets say 12 hours) into a number of blocks to

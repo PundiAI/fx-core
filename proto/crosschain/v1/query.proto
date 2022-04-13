@@ -39,60 +39,57 @@ service Query {
     rpc LastEventNonceByAddr (QueryLastEventNonceByAddrRequest) returns (QueryLastEventNonceByAddrResponse) {
         option (google.api.http).get = "/crosschain/v1beta/oracle/event_nonce";
     }
-
     rpc LastEventBlockHeightByAddr (QueryLastEventBlockHeightByAddrRequest) returns (QueryLastEventBlockHeightByAddrResponse) {
         option (google.api.http).get = "/crosschain/v1beta/oracle/event/block_height";
     }
-
     rpc BatchFees (QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
         option (google.api.http).get = "/crosschain/v1beta/batch_fees";
     }
     rpc LastObservedBlockHeight (QueryLastObservedBlockHeightRequest) returns (QueryLastObservedBlockHeightResponse) {
-        option (google.api.http).get = "/crosschain/v1beta/block_height";
+        option (google.api.http).get = "/crosschain/v1beta/observed/block_height";
     }
-
     rpc OutgoingTxBatches (QueryOutgoingTxBatchesRequest) returns (QueryOutgoingTxBatchesResponse) {
         option (google.api.http).get = "/crosschain/v1beta/batch/outgoing_tx";
     }
     rpc BatchRequestByNonce (QueryBatchRequestByNonceRequest) returns (QueryBatchRequestByNonceResponse) {
         option (google.api.http).get = "/crosschain/v1beta/batch/request";
     }
-
     rpc BatchConfirm (QueryBatchConfirmRequest) returns (QueryBatchConfirmResponse) {
         option (google.api.http).get = "/crosschain/v1beta/batch/confirm";
     }
-
     rpc BatchConfirms (QueryBatchConfirmsRequest) returns (QueryBatchConfirmsResponse) {
         option (google.api.http).get = "/crosschain/v1beta/batch/confirms";
     }
     rpc TokenToDenom (QueryTokenToDenomRequest) returns (QueryTokenToDenomResponse) {
-        option (google.api.http).get = "/crosschain/v1beta/bridge_denom";
+        option (google.api.http).get = "/crosschain/v1beta/denom";
     }
     rpc DenomToToken (QueryDenomToTokenRequest) returns (QueryDenomToTokenResponse) {
-        option (google.api.http).get = "/crosschain/v1beta/bridge_token";
+        option (google.api.http).get = "/crosschain/v1beta/token";
     }
-
     rpc GetOracleByAddr (QueryOracleByAddrRequest) returns (QueryOracleResponse) {
-        option (google.api.http).get = "/crosschain/v1beta/query_oracle_by_addr";
+        option (google.api.http).get = "/crosschain/v1beta/oracle_by_addr";
     }
     rpc GetOracleByExternalAddr (QueryOracleByExternalAddrRequest) returns (QueryOracleResponse) {
-        option (google.api.http).get = "/crosschain/v1beta/query_oracle_by_external_addr";
+        option (google.api.http).get = "/crosschain/v1beta/oracle_by_external_addr";
     }
     rpc GetOracleByOrchestrator (QueryOracleByOrchestratorRequest) returns (QueryOracleResponse) {
-        option (google.api.http).get = "/crosschain/v1beta/query_oracle_by_orchestrator";
+        option (google.api.http).get = "/crosschain/v1beta/oracle_by_orchestrator";
     }
-
     rpc GetPendingSendToExternal (QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
-        option (google.api.http).get = "/crosschain/v1beta/query_pending_send_to_external";
+        option (google.api.http).get = "/crosschain/v1beta/pending_send_to_external";
     }
-
     rpc GetIbcSequenceHeightByChannel (QueryIbcSequenceHeightRequest) returns (QueryIbcSequenceHeightResponse) {
-        option (google.api.http).get = "/crosschain/v1beta/query_ibc_sequence_height";
+        option (google.api.http).get = "/crosschain/v1beta/ibc_sequence_height";
     }
-
     // Validators queries all oracle that match the given status.
     rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
         option (google.api.http).get = "/crosschain/v1beta1/oracles";
+    }
+    rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest) returns (QueryProjectedBatchTimeoutHeightResponse) {
+        option (google.api.http).get = "/crosschain/v1beta1/projected_batch_timeout";
+    }
+    rpc BridgeTokens(QueryBridgeTokensRequest) returns (QueryBridgeTokensResponse) {
+        option (google.api.http).get = "/gravity/v1beta1/bridge_tokens";
     }
 }
 
@@ -290,4 +287,20 @@ message QueryOraclesRequest {
 message QueryOraclesResponse {
     // oracles contains all the queried oracles.
     repeated Oracle oracles = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryProjectedBatchTimeoutHeightRequest {
+    string chain_name = 1;
+}
+
+message QueryProjectedBatchTimeoutHeightResponse {
+    uint64 timeout_height = 1;
+}
+
+message QueryBridgeTokensRequest {
+    string chain_name = 1;
+}
+
+message QueryBridgeTokensResponse {
+    repeated BridgeToken bridge_tokens = 1;
 }

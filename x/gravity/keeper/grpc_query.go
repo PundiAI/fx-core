@@ -132,10 +132,10 @@ func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBat
 
 // BatchRequestByNonce queries the BatchRequestByNonce of the gravity module
 func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
-	if err := types.ValidateEthAddressAndValidateChecksum(req.ContractAddress); err != nil {
+	if err := types.ValidateEthAddressAndValidateChecksum(req.TokenContract); err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
 	}
-	foundBatch := k.GetOutgoingTXBatch(sdk.UnwrapSDKContext(c), req.ContractAddress, req.Nonce)
+	foundBatch := k.GetOutgoingTXBatch(sdk.UnwrapSDKContext(c), req.TokenContract, req.Nonce)
 	if foundBatch == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "Can not find tx batch")
 	}
@@ -147,14 +147,14 @@ func (k Keeper) BatchConfirm(ctx context.Context, req *types.QueryBatchConfirmRe
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
-	confirm := k.GetBatchConfirm(sdk.UnwrapSDKContext(ctx), req.GetNonce(), req.GetContractAddress(), orchestrator)
+	confirm := k.GetBatchConfirm(sdk.UnwrapSDKContext(ctx), req.GetNonce(), req.GetTokenContract(), orchestrator)
 	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
 }
 
 // BatchConfirms returns the batch confirmations by nonce and token contract
 func (k Keeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
 	var confirms []*types.MsgConfirmBatch
-	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.ContractAddress, func(_ []byte, c types.MsgConfirmBatch) bool {
+	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(_ []byte, c types.MsgConfirmBatch) bool {
 		confirms = append(confirms, &c)
 		return false
 	})
@@ -164,7 +164,6 @@ func (k Keeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRe
 // LastEventNonceByAddr returns the last event nonce for the given validator address, this allows eth oracles to figure out where they left off
 func (k Keeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	var ret types.QueryLastEventNonceByAddrResponse
 	addr, err := sdk.AccAddressFromBech32(req.Address)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, req.Address)
@@ -174,28 +173,21 @@ func (k Keeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEven
 		return nil, sdkerrors.Wrap(types.ErrUnknown, "address")
 	}
 	lastEventNonce := k.GetLastEventNonceByValidator(ctx, valAddr)
-	ret.EventNonce = lastEventNonce
-	return &ret, nil
+	return &types.QueryLastEventNonceByAddrResponse{EventNonce: lastEventNonce}, nil
 }
 
 // DenomToERC20 queries the Cosmos Denom that maps to an Ethereum ERC20
 func (k Keeper) DenomToERC20(c context.Context, req *types.QueryDenomToERC20Request) (*types.QueryDenomToERC20Response, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	cosmosOriginated, erc20, err := k.DenomToERC20Lookup(ctx, req.Denom)
-	var ret types.QueryDenomToERC20Response
-	ret.Erc20 = erc20
-	ret.FxOriginated = cosmosOriginated
-	return &ret, err
+	fxOriginated, erc20, err := k.DenomToERC20Lookup(ctx, req.Denom)
+	return &types.QueryDenomToERC20Response{Erc20: erc20, FxOriginated: fxOriginated}, err
 }
 
 // ERC20ToDenom queries the ERC20 contract that maps to an Ethereum ERC20 if any
 func (k Keeper) ERC20ToDenom(c context.Context, req *types.QueryERC20ToDenomRequest) (*types.QueryERC20ToDenomResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	cosmosOriginated, name := k.ERC20ToDenomLookup(ctx, req.Erc20)
-	var ret types.QueryERC20ToDenomResponse
-	ret.Denom = name
-	ret.FxOriginated = cosmosOriginated
-	return &ret, nil
+	fxOriginated, denom := k.ERC20ToDenomLookup(ctx, req.Erc20)
+	return &types.QueryERC20ToDenomResponse{Denom: denom, FxOriginated: fxOriginated}, nil
 }
 
 func (k Keeper) GetDelegateKeyByValidator(c context.Context, req *types.QueryDelegateKeyByValidatorRequest) (*types.QueryDelegateKeyByValidatorResponse, error) {
@@ -282,20 +274,16 @@ func (k Keeper) GetPendingSendToEth(c context.Context, req *types.QueryPendingSe
 func (k Keeper) GetIbcSequenceHeightByChannel(c context.Context, req *types.QueryIbcSequenceHeightRequest) (*types.QueryIbcSequenceHeightResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	height, found := k.GetIbcSequenceHeight(ctx, req.GetSourcePort(), req.GetSourceChannel(), req.GetSequence())
-	return &types.QueryIbcSequenceHeightResponse{
-		Found:  found,
-		Height: height,
-	}, nil
+	return &types.QueryIbcSequenceHeightResponse{Found: found, Height: height}, nil
 }
 
-func (k Keeper) LastObservedEthBlockHeight(c context.Context, _ *types.QueryLastObservedEthBlockHeightRequest) (*types.QueryLastObservedEthBlockHeightResponse, error) {
+func (k Keeper) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
 	blockHeight := k.GetLastObservedEthBlockHeight(sdk.UnwrapSDKContext(c))
-	return &types.QueryLastObservedEthBlockHeightResponse{BlockHeight: blockHeight.EthBlockHeight}, nil
+	return &types.QueryLastObservedBlockHeightResponse{BlockHeight: blockHeight.FxBlockHeight, EthBlockHeight: blockHeight.EthBlockHeight}, nil
 }
 
 func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	var res types.QueryLastEventBlockHeightByAddrResponse
 	addr, err := sdk.AccAddressFromBech32(req.Address)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, req.Address)
@@ -305,6 +293,21 @@ func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLa
 		return nil, sdkerrors.Wrap(types.ErrUnknown, "address")
 	}
 	lastEventBlockHeight := k.getLastEventBlockHeightByValidator(ctx, valAddr)
-	res.BlockHeight = lastEventBlockHeight
-	return &res, nil
+	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
+}
+
+func (k Keeper) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	timeout := k.GetBatchTimeoutHeight(ctx)
+	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: timeout}, nil
+}
+
+func (k Keeper) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	var bridgeTokens = make([]*types.ERC20ToDenom, 0)
+	k.IterateERC20ToDenom(ctx, func(bytes []byte, token *types.ERC20ToDenom) bool {
+		bridgeTokens = append(bridgeTokens, token)
+		return false
+	})
+	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens}, nil
 }

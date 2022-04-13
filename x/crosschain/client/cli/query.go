@@ -46,29 +46,35 @@ func GetQueryCmd() *cobra.Command {
 
 		// need oracle consensus sign
 		// 1. oracle set change confirm
+		CmdGetLastOracleSetRequests(),
 		CmdGetPendingOracleSetRequest(),
 		CmdGetOracleSetConfirm(),
 		CmdGetOracleSetConfirms(),
+
 		// 2. request batch confirm
 		CmdGetPendingOutgoingTXBatchRequest(),
 		CmdBatchConfirm(),
 		CmdBatchConfirms(),
 
 		// send to external
+		CmdBatchRequestByNonce(),
 		CmdGetPendingSendToExternal(),
 		CmdOutgoingTxBatches(),
 		CmdGetBatchFees(),
 
+		CmdGetLastObservedBlockHeight(),
+		CmdProjectedBatchTimeoutHeight(),
+
 		// denom <-> external token
 		CmdGetDenomToExternalToken(),
 		CmdGetExternalTokenToDenom(),
+		CmdGetBridgeTokens(),
 
 		// 1. oracle event nonce
-		CmdGetValidatorEventNonce(),
+		CmdGetOracleEventNonce(),
 		// 2. event nonce block height
-		CmdGetValidatorEventBlockHeight(),
+		CmdGetOracleEventBlockHeight(),
 
-		//
 		// 1. query external -> fx -> ibc transfer sequence block height
 		CmdIbcSequenceHeight(),
 
@@ -106,7 +112,7 @@ func CmdGetParams() *cobra.Command {
 func CmdGetOracles() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracles [chain-name]",
-		Short: "Get Oracles",
+		Short: "Query init oracles",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -127,7 +133,7 @@ func CmdGetOracles() *cobra.Command {
 func CmdGetChainOracles() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "chain-oracles [chain-name]",
-		Short: "Get Oracles",
+		Short: "Query active oracles",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -140,11 +146,11 @@ func CmdGetChainOracles() *cobra.Command {
 				return err
 			}
 
-			var chainOracle2 types.ChainOracle
-			if err := clientCtx.LegacyAmino.Unmarshal(abciResp.Value, &chainOracle2); err != nil {
+			var chainOracle types.ChainOracle
+			if err := clientCtx.LegacyAmino.Unmarshal(abciResp.Value, &chainOracle); err != nil {
 				return err
 			}
-			return clientCtx.PrintProto(&chainOracle2)
+			return clientCtx.PrintProto(&chainOracle)
 		},
 	}
 
@@ -154,7 +160,7 @@ func CmdGetChainOracles() *cobra.Command {
 func CmdGetOracleByAddr() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracle-by-addr [chain-name] [oracle-address]",
-		Short: "Get Oracle for a given oracle address",
+		Short: "Query Oracle for a given oracle address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -184,7 +190,7 @@ func CmdGetOracleByAddr() *cobra.Command {
 func CmdGetOracleByOrchestrator() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracle-by-orchestrator [chain-name] [orchestrator]",
-		Short: "Get Oracle for a given orchestrator",
+		Short: "Query Oracle for a given orchestrator",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -214,7 +220,7 @@ func CmdGetOracleByOrchestrator() *cobra.Command {
 func CmdGetOracleByExternalAddr() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracle-key-by-external-addr [chain-name] [external-address]",
-		Short: "query Oracle by external address",
+		Short: "Query Oracle by external address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -267,7 +273,7 @@ func CmdGetCurrentOracleSet() *cobra.Command {
 func CmdGetOracleSetRequest() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracle-set-request [chain-name] [nonce]",
-		Short: "Get requested oracle-set with a particular nonce",
+		Short: "Query requested oracle-set with a particular nonce",
 		Args:  cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -307,10 +313,35 @@ func CmdGetOracleSetRequest() *cobra.Command {
 	return cmd
 }
 
+func CmdGetLastOracleSetRequests() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "last-oracle-set-requests [chain-name]",
+		Short: "Query last oracle set requests",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryLastOracleSetRequestsRequest{
+				ChainName: args[0],
+			}
+
+			res, err := queryClient.LastOracleSetRequests(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	return cmd
+}
+
 func CmdGetPendingOracleSetRequest() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pending-oracle-set-request [chain-name] [orchestrator]",
-		Short: "Get the latest oracle-set request which has not been signed by a particular oracle orchestrator",
+		Short: "Query the latest oracle-set request which has not been signed by a particular oracle orchestrator",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -341,7 +372,7 @@ func CmdGetPendingOracleSetRequest() *cobra.Command {
 func CmdGetOracleSetConfirm() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracle-set-confirm [chain-name] [nonce] [orchestrator]",
-		Short: "Get oracle-set confirmation with a particular nonce from a particular oracle orchestrator",
+		Short: "Query oracle-set confirmation with a particular nonce from a particular oracle orchestrator",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -373,7 +404,7 @@ func CmdGetOracleSetConfirm() *cobra.Command {
 func CmdGetOracleSetConfirms() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracle-set-confirms [chain-name] [nonce]",
-		Short: "Get oracle-set confirmations with a particular nonce",
+		Short: "Query oracle-set confirmations with a particular nonce",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -402,7 +433,7 @@ func CmdGetOracleSetConfirms() *cobra.Command {
 func CmdGetPendingOutgoingTXBatchRequest() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pending-batch-request [chain-name] [orchestrator]",
-		Short: "Get the latest outgoing TX batch request which has not been signed by a particular oracle orchestrator",
+		Short: "Query the latest outgoing TX batch request which has not been signed by a particular oracle orchestrator",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -429,7 +460,7 @@ func CmdGetPendingOutgoingTXBatchRequest() *cobra.Command {
 func CmdBatchConfirm() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "batch-confirm [chain-name] [token-contract] [nonce] [orchestrator]",
-		Short: "query outgoing tx batches confirm by oracle orchestrator",
+		Short: "Query outgoing tx batches confirm by oracle orchestrator",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -469,7 +500,7 @@ func CmdBatchConfirm() *cobra.Command {
 func CmdBatchConfirms() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "batch-confirms [chain-name] [token-contract] [nonce]",
-		Short: "query outgoing tx batches confirms",
+		Short: "Query outgoing tx batches confirms",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -503,10 +534,39 @@ func CmdBatchConfirms() *cobra.Command {
 	return cmd
 }
 
+func CmdBatchRequestByNonce() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "batch-request [chain-name] [token-contract] [nonce]",
+		Short: "Query outgoing tx batches",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			nonce, err := strconv.ParseUint(args[2], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
+				ChainName:     args[0],
+				TokenContract: args[1],
+				Nonce:         nonce,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
 func CmdGetPendingSendToExternal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pending-send-to-external [chain-name] [fxAddr]",
-		Short: "query pending send to external txs",
+		Use:   "pending-send-to-external [chain-name] [address]",
+		Short: "Query pending send to external txs",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -535,7 +595,7 @@ func CmdGetPendingSendToExternal() *cobra.Command {
 func CmdOutgoingTxBatches() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "outgoing-tx-batches [chain-name]",
-		Short: "query outgoing tx batches",
+		Short: "Query outgoing tx batches",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -557,7 +617,7 @@ func CmdOutgoingTxBatches() *cobra.Command {
 func CmdGetBatchFees() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "batch-fees [chain-name]",
-		Short: "Gets a list of send to external transaction fees to be processed",
+		Short: "Query a list of send to external transaction fees to be processed",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -576,9 +636,51 @@ func CmdGetBatchFees() *cobra.Command {
 	return cmd
 }
 
+func CmdGetLastObservedBlockHeight() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "last-observed-block-height [chain-name]",
+		Short: "Query last observed block height",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.LastObservedBlockHeight(cmd.Context(), &types.QueryLastObservedBlockHeightRequest{
+				ChainName: args[0],
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdProjectedBatchTimeoutHeight() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "projected-batch-timeout-height [chain-name]",
+		Short: "Query projected batch timeout height",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.ProjectedBatchTimeoutHeight(cmd.Context(), &types.QueryProjectedBatchTimeoutHeightRequest{
+				ChainName: args[0],
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
 func CmdGetDenomToExternalToken() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "external-token [chain-name] [denom]",
+		Use:   "token [chain-name] [denom]",
 		Short: "Query contract address from denom",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -601,7 +703,7 @@ func CmdGetDenomToExternalToken() *cobra.Command {
 
 func CmdGetExternalTokenToDenom() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "denom  [chain-name] [token-address]",
+		Use:   "denom [chain-name] [token-contract]",
 		Short: "Query denom from contract address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -631,10 +733,33 @@ func CmdGetExternalTokenToDenom() *cobra.Command {
 	return cmd
 }
 
-func CmdGetValidatorEventNonce() *cobra.Command {
+func CmdGetBridgeTokens() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bridge-tokens [chain-name]",
+		Short: "Query bridge token list",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.BridgeTokens(cmd.Context(), &types.QueryBridgeTokensRequest{
+				ChainName: args[0],
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	return cmd
+}
+
+func CmdGetOracleEventNonce() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "event-nonce [chain-name] [orchestrator]",
-		Short: "query last event nonce by oracle orchestratorAddress",
+		Short: "Query last event nonce by oracle orchestratorAddress",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -659,10 +784,10 @@ func CmdGetValidatorEventNonce() *cobra.Command {
 	return cmd
 }
 
-func CmdGetValidatorEventBlockHeight() *cobra.Command {
+func CmdGetOracleEventBlockHeight() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "event-block-height [chain-name] [orchestrator]",
-		Short: "query last event block height by oracle orchestrator",
+		Short: "Query last event block height by oracle orchestrator",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -689,7 +814,7 @@ func CmdGetValidatorEventBlockHeight() *cobra.Command {
 func CmdIbcSequenceHeight() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ibc-sequence-height [chain-name] [sourcePort] [sourceChannel] [sequence]",
-		Short: "query ibc sequence block height",
+		Short: "Query ibc sequence block height",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -716,7 +841,7 @@ func CmdIbcSequenceHeight() *cobra.Command {
 
 func CmdCovertBridgeToken() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "covert-bridge-token [chain-name] [tokenContract]",
+		Use:     "covert-bridge-token [chain-name] [token-contract]",
 		Short:   "covert bridge claim token name",
 		Example: "fxcored q crosschain covert-bridge-token bsc 0x3f6795b8ABE0775a88973469909adE1405f7ac09 --channelIBC=transfer/channel-0",
 		Args:    cobra.ExactArgs(2),

@@ -139,26 +139,19 @@ func local_request_Query_ValsetConfirm_0(ctx context.Context, marshaler runtime.
 
 }
 
+var (
+	filter_Query_ValsetConfirmsByNonce_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Query_ValsetConfirmsByNonce_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryValsetConfirmsByNonceRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["nonce"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "nonce")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Nonce, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "nonce", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_ValsetConfirmsByNonce_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.ValsetConfirmsByNonce(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -170,22 +163,11 @@ func local_request_Query_ValsetConfirmsByNonce_0(ctx context.Context, marshaler 
 	var protoReq QueryValsetConfirmsByNonceRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["nonce"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "nonce")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Nonce, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "nonce", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_ValsetConfirmsByNonce_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.ValsetConfirmsByNonce(ctx, &protoReq)
@@ -247,26 +229,19 @@ func local_request_Query_LastPendingValsetRequestByAddr_0(ctx context.Context, m
 
 }
 
+var (
+	filter_Query_LastPendingBatchRequestByAddr_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Query_LastPendingBatchRequestByAddr_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryLastPendingBatchRequestByAddrRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["address"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "address")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Address, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "address", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_LastPendingBatchRequestByAddr_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.LastPendingBatchRequestByAddr(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -278,22 +253,11 @@ func local_request_Query_LastPendingBatchRequestByAddr_0(ctx context.Context, ma
 	var protoReq QueryLastPendingBatchRequestByAddrRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["address"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "address")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Address, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "address", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_LastPendingBatchRequestByAddr_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.LastPendingBatchRequestByAddr(ctx, &protoReq)
@@ -445,20 +409,20 @@ func local_request_Query_BatchFees_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-func request_Query_LastObservedEthBlockHeight_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryLastObservedEthBlockHeightRequest
+func request_Query_LastObservedBlockHeight_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryLastObservedBlockHeightRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := client.LastObservedEthBlockHeight(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.LastObservedBlockHeight(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_LastObservedEthBlockHeight_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryLastObservedEthBlockHeightRequest
+func local_request_Query_LastObservedBlockHeight_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryLastObservedBlockHeightRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := server.LastObservedEthBlockHeight(ctx, &protoReq)
+	msg, err := server.LastObservedBlockHeight(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -482,30 +446,12 @@ func local_request_Query_OutgoingTxBatches_0(ctx context.Context, marshaler runt
 }
 
 var (
-	filter_Query_BatchRequestByNonce_0 = &utilities.DoubleArray{Encoding: map[string]int{"nonce": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Query_BatchRequestByNonce_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
 func request_Query_BatchRequestByNonce_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryBatchRequestByNonceRequest
 	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["nonce"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "nonce")
-	}
-
-	protoReq.Nonce, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "nonce", err)
-	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -522,24 +468,6 @@ func request_Query_BatchRequestByNonce_0(ctx context.Context, marshaler runtime.
 func local_request_Query_BatchRequestByNonce_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryBatchRequestByNonceRequest
 	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["nonce"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "nonce")
-	}
-
-	protoReq.Nonce, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "nonce", err)
-	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -877,6 +805,42 @@ func local_request_Query_GetIbcSequenceHeightByChannel_0(ctx context.Context, ma
 
 }
 
+func request_Query_ProjectedBatchTimeoutHeight_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryProjectedBatchTimeoutHeightRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.ProjectedBatchTimeoutHeight(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Query_ProjectedBatchTimeoutHeight_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryProjectedBatchTimeoutHeightRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.ProjectedBatchTimeoutHeight(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_Query_BridgeTokens_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBridgeTokensRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.BridgeTokens(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Query_BridgeTokens_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBridgeTokensRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.BridgeTokens(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterQueryHandlerServer registers the http handlers for service Query to "mux".
 // UnaryRPC     :call QueryServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -1103,7 +1067,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 
 	})
 
-	mux.Handle("GET", pattern_Query_LastObservedEthBlockHeight_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_LastObservedBlockHeight_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1112,14 +1076,14 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_LastObservedEthBlockHeight_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_LastObservedBlockHeight_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_LastObservedEthBlockHeight_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_LastObservedBlockHeight_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1340,6 +1304,46 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		}
 
 		forward_Query_GetIbcSequenceHeightByChannel_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Query_ProjectedBatchTimeoutHeight_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Query_ProjectedBatchTimeoutHeight_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_ProjectedBatchTimeoutHeight_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Query_BridgeTokens_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Query_BridgeTokens_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_BridgeTokens_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1604,7 +1608,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 
 	})
 
-	mux.Handle("GET", pattern_Query_LastObservedEthBlockHeight_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_LastObservedBlockHeight_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1613,14 +1617,14 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_LastObservedEthBlockHeight_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_LastObservedBlockHeight_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_LastObservedEthBlockHeight_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_LastObservedBlockHeight_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1844,6 +1848,46 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 
 	})
 
+	mux.Handle("GET", pattern_Query_ProjectedBatchTimeoutHeight_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Query_ProjectedBatchTimeoutHeight_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_ProjectedBatchTimeoutHeight_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Query_BridgeTokens_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Query_BridgeTokens_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_BridgeTokens_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -1852,17 +1896,17 @@ var (
 
 	pattern_Query_CurrentValset_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "valset", "current"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_ValsetRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "valset"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ValsetRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "valset", "request"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_ValsetConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "valset", "confirm"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_ValsetConfirmsByNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"gravity", "v1beta", "confirms", "nonce"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ValsetConfirmsByNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "valset", "confirms"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_LastValsetRequests_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "valset", "requests"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_LastPendingValsetRequestByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "valset", "last"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_LastPendingBatchRequestByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"gravity", "v1beta", "batch", "address"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastPendingBatchRequestByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "batch", "last"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_LastEventNonceByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"gravity", "v1beta", "oracle", "event_nonce", "address"}, "", runtime.AssumeColonVerbOpt(true)))
 
@@ -1870,29 +1914,33 @@ var (
 
 	pattern_Query_BatchFees_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "batch_fees"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_LastObservedEthBlockHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "eth", "block_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastObservedBlockHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "observed", "block_height"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_OutgoingTxBatches_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "batch", "outgoing_tx"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_BatchRequestByNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"gravity", "v1beta", "batch", "nonce"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_BatchRequestByNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "batch", "request"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_BatchConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "batch", "confirm"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_BatchConfirms_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "batch", "confirms"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_ERC20ToDenom_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "fx_originated", "erc20_to_denom"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ERC20ToDenom_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "denom"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_DenomToERC20_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"gravity", "v1beta", "fx_originated", "denom_to_erc20"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DenomToERC20_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "erc20"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetDelegateKeyByValidator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "query_delegate_key_by_validator"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetDelegateKeyByValidator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "delegate_key_by_validator"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetDelegateKeyByEth_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "query_delegate_key_by_eth"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetDelegateKeyByEth_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "delegate_key_by_eth"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetDelegateKeyByOrchestrator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "query_delegate_key_by_orchestrator"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetDelegateKeyByOrchestrator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "delegate_key_by_orchestrator"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetPendingSendToEth_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "query_pending_send_to_eth"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetPendingSendToEth_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "pending_send_to_eth"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetIbcSequenceHeightByChannel_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "query_ibc_sequence_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetIbcSequenceHeightByChannel_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta", "ibc_sequence_height"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_Query_ProjectedBatchTimeoutHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta1", "projected_batch_timeout"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_Query_BridgeTokens_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta1", "bridge_tokens"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -1918,7 +1966,7 @@ var (
 
 	forward_Query_BatchFees_0 = runtime.ForwardResponseMessage
 
-	forward_Query_LastObservedEthBlockHeight_0 = runtime.ForwardResponseMessage
+	forward_Query_LastObservedBlockHeight_0 = runtime.ForwardResponseMessage
 
 	forward_Query_OutgoingTxBatches_0 = runtime.ForwardResponseMessage
 
@@ -1941,4 +1989,8 @@ var (
 	forward_Query_GetPendingSendToEth_0 = runtime.ForwardResponseMessage
 
 	forward_Query_GetIbcSequenceHeightByChannel_0 = runtime.ForwardResponseMessage
+
+	forward_Query_ProjectedBatchTimeoutHeight_0 = runtime.ForwardResponseMessage
+
+	forward_Query_BridgeTokens_0 = runtime.ForwardResponseMessage
 )

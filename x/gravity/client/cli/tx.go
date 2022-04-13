@@ -255,8 +255,8 @@ func CmdRequestBatchConfirm() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 			batchRequestByNonceResp, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
-				Nonce:           nonce,
-				ContractAddress: contractAddress,
+				Nonce:         nonce,
+				TokenContract: contractAddress,
 			})
 			if err != nil {
 				return err
@@ -266,9 +266,9 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			}
 			// Determine whether it has been confirmed
 			batchConfirmResp, err := queryClient.BatchConfirm(cmd.Context(), &types.QueryBatchConfirmRequest{
-				Nonce:           nonce,
-				ContractAddress: contractAddress,
-				Address:         fromAddress.String(),
+				Nonce:         nonce,
+				TokenContract: contractAddress,
+				Address:       fromAddress.String(),
 			})
 			if err != nil {
 				return err

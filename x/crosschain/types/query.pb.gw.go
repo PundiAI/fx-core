@@ -895,6 +895,78 @@ func local_request_Query_Oracles_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
+var (
+	filter_Query_ProjectedBatchTimeoutHeight_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_Query_ProjectedBatchTimeoutHeight_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryProjectedBatchTimeoutHeightRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_ProjectedBatchTimeoutHeight_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.ProjectedBatchTimeoutHeight(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Query_ProjectedBatchTimeoutHeight_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryProjectedBatchTimeoutHeightRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_ProjectedBatchTimeoutHeight_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.ProjectedBatchTimeoutHeight(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+var (
+	filter_Query_BridgeTokens_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_Query_BridgeTokens_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBridgeTokensRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_BridgeTokens_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.BridgeTokens(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Query_BridgeTokens_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBridgeTokensRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_BridgeTokens_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.BridgeTokens(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterQueryHandlerServer registers the http handlers for service Query to "mux".
 // UnaryRPC     :call QueryServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -1378,6 +1450,46 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		}
 
 		forward_Query_Oracles_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Query_ProjectedBatchTimeoutHeight_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Query_ProjectedBatchTimeoutHeight_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_ProjectedBatchTimeoutHeight_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Query_BridgeTokens_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Query_BridgeTokens_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_BridgeTokens_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1902,6 +2014,46 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 
 	})
 
+	mux.Handle("GET", pattern_Query_ProjectedBatchTimeoutHeight_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Query_ProjectedBatchTimeoutHeight_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_ProjectedBatchTimeoutHeight_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Query_BridgeTokens_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Query_BridgeTokens_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_BridgeTokens_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -1928,7 +2080,7 @@ var (
 
 	pattern_Query_BatchFees_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "batch_fees"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_LastObservedBlockHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "block_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastObservedBlockHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"crosschain", "v1beta", "observed", "block_height"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_OutgoingTxBatches_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"crosschain", "v1beta", "batch", "outgoing_tx"}, "", runtime.AssumeColonVerbOpt(true)))
 
@@ -1938,21 +2090,25 @@ var (
 
 	pattern_Query_BatchConfirms_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"crosschain", "v1beta", "batch", "confirms"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_TokenToDenom_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "bridge_denom"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_TokenToDenom_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "denom"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_DenomToToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "bridge_token"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DenomToToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "token"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetOracleByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "query_oracle_by_addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetOracleByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "oracle_by_addr"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetOracleByExternalAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "query_oracle_by_external_addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetOracleByExternalAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "oracle_by_external_addr"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetOracleByOrchestrator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "query_oracle_by_orchestrator"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetOracleByOrchestrator_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "oracle_by_orchestrator"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetPendingSendToExternal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "query_pending_send_to_external"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetPendingSendToExternal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "pending_send_to_external"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetIbcSequenceHeightByChannel_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "query_ibc_sequence_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetIbcSequenceHeightByChannel_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta", "ibc_sequence_height"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_Oracles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta1", "oracles"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_Query_ProjectedBatchTimeoutHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"crosschain", "v1beta1", "projected_batch_timeout"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_Query_BridgeTokens_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1beta1", "bridge_tokens"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -2003,4 +2159,8 @@ var (
 	forward_Query_GetIbcSequenceHeightByChannel_0 = runtime.ForwardResponseMessage
 
 	forward_Query_Oracles_0 = runtime.ForwardResponseMessage
+
+	forward_Query_ProjectedBatchTimeoutHeight_0 = runtime.ForwardResponseMessage
+
+	forward_Query_BridgeTokens_0 = runtime.ForwardResponseMessage
 )

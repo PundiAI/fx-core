@@ -221,3 +221,19 @@ func (k RouterKeeper) Oracles(c context.Context, req *types.QueryOraclesRequest)
 		return queryServer.Oracles(c, req)
 	}
 }
+
+func (k RouterKeeper) ProjectedBatchTimeoutHeight(c context.Context, req *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.ProjectedBatchTimeoutHeight(c, req)
+	}
+}
+
+func (k RouterKeeper) BridgeTokens(c context.Context, req *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeTokens(c, req)
+	}
+}

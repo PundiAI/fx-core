@@ -21,13 +21,13 @@ service Query {
         option (google.api.http).get = "/gravity/v1beta/valset/current";
     }
     rpc ValsetRequest (QueryValsetRequestRequest) returns (QueryValsetRequestResponse) {
-        option (google.api.http).get = "/gravity/v1beta/valset";
+        option (google.api.http).get = "/gravity/v1beta/valset/request";
     }
     rpc ValsetConfirm (QueryValsetConfirmRequest) returns (QueryValsetConfirmResponse) {
         option (google.api.http).get = "/gravity/v1beta/valset/confirm";
     }
     rpc ValsetConfirmsByNonce (QueryValsetConfirmsByNonceRequest) returns (QueryValsetConfirmsByNonceResponse) {
-        option (google.api.http).get = "/gravity/v1beta/confirms/{nonce}";
+        option (google.api.http).get = "/gravity/v1beta/valset/confirms";
     }
     rpc LastValsetRequests (QueryLastValsetRequestsRequest) returns (QueryLastValsetRequestsResponse) {
         option (google.api.http).get = "/gravity/v1beta/valset/requests";
@@ -36,60 +36,58 @@ service Query {
         option (google.api.http).get = "/gravity/v1beta/valset/last";
     }
     rpc LastPendingBatchRequestByAddr (QueryLastPendingBatchRequestByAddrRequest) returns (QueryLastPendingBatchRequestByAddrResponse) {
-        option (google.api.http).get = "/gravity/v1beta/batch/{address}";
+        option (google.api.http).get = "/gravity/v1beta/batch/last";
     }
     rpc LastEventNonceByAddr (QueryLastEventNonceByAddrRequest) returns (QueryLastEventNonceByAddrResponse) {
         option (google.api.http).get = "/gravity/v1beta/oracle/event_nonce/{address}";
     }
-
     rpc LastEventBlockHeightByAddr (QueryLastEventBlockHeightByAddrRequest) returns (QueryLastEventBlockHeightByAddrResponse) {
         option (google.api.http).get = "/gravity/v1beta/oracle/event/block_height/{address}";
     }
-
     rpc BatchFees (QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
         option (google.api.http).get = "/gravity/v1beta/batch_fees";
     }
-    rpc LastObservedEthBlockHeight (QueryLastObservedEthBlockHeightRequest) returns (QueryLastObservedEthBlockHeightResponse) {
-        option (google.api.http).get = "/gravity/v1beta/eth/block_height";
+    rpc LastObservedBlockHeight (QueryLastObservedBlockHeightRequest) returns (QueryLastObservedBlockHeightResponse) {
+        option (google.api.http).get = "/gravity/v1beta/observed/block_height";
     }
-
     rpc OutgoingTxBatches (QueryOutgoingTxBatchesRequest) returns (QueryOutgoingTxBatchesResponse) {
         option (google.api.http).get = "/gravity/v1beta/batch/outgoing_tx";
     }
     rpc BatchRequestByNonce (QueryBatchRequestByNonceRequest) returns (QueryBatchRequestByNonceResponse) {
-        option (google.api.http).get = "/gravity/v1beta/batch/{nonce}";
+        option (google.api.http).get = "/gravity/v1beta/batch/request";
     }
-
     rpc BatchConfirm (QueryBatchConfirmRequest) returns (QueryBatchConfirmResponse) {
       option (google.api.http).get = "/gravity/v1beta/batch/confirm";
     }
-
     rpc BatchConfirms (QueryBatchConfirmsRequest) returns (QueryBatchConfirmsResponse) {
         option (google.api.http).get = "/gravity/v1beta/batch/confirms";
     }
     rpc ERC20ToDenom (QueryERC20ToDenomRequest) returns (QueryERC20ToDenomResponse) {
-        option (google.api.http).get = "/gravity/v1beta/fx_originated/erc20_to_denom";
+        option (google.api.http).get = "/gravity/v1beta/denom";
     }
     rpc DenomToERC20 (QueryDenomToERC20Request) returns (QueryDenomToERC20Response) {
-        option (google.api.http).get = "/gravity/v1beta/fx_originated/denom_to_erc20";
+        option (google.api.http).get = "/gravity/v1beta/erc20";
     }
-
     rpc GetDelegateKeyByValidator (QueryDelegateKeyByValidatorRequest) returns (QueryDelegateKeyByValidatorResponse) {
-        option (google.api.http).get = "/gravity/v1beta/query_delegate_key_by_validator";
+        option (google.api.http).get = "/gravity/v1beta/delegate_key_by_validator";
     }
     rpc GetDelegateKeyByEth (QueryDelegateKeyByEthRequest) returns (QueryDelegateKeyByEthResponse) {
-        option (google.api.http).get = "/gravity/v1beta/query_delegate_key_by_eth";
+        option (google.api.http).get = "/gravity/v1beta/delegate_key_by_eth";
     }
     rpc GetDelegateKeyByOrchestrator (QueryDelegateKeyByOrchestratorRequest) returns (QueryDelegateKeyByOrchestratorResponse) {
-        option (google.api.http).get = "/gravity/v1beta/query_delegate_key_by_orchestrator";
+        option (google.api.http).get = "/gravity/v1beta/delegate_key_by_orchestrator";
     }
-
     rpc GetPendingSendToEth (QueryPendingSendToEthRequest) returns (QueryPendingSendToEthResponse) {
-        option (google.api.http).get = "/gravity/v1beta/query_pending_send_to_eth";
+        option (google.api.http).get = "/gravity/v1beta/pending_send_to_eth";
     }
-
     rpc GetIbcSequenceHeightByChannel (QueryIbcSequenceHeightRequest) returns (QueryIbcSequenceHeightResponse) {
-        option (google.api.http).get = "/gravity/v1beta/query_ibc_sequence_height";
+        option (google.api.http).get = "/gravity/v1beta/ibc_sequence_height";
+    }
+    rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest) returns (QueryProjectedBatchTimeoutHeightResponse) {
+        option (google.api.http).get = "/gravity/v1beta1/projected_batch_timeout";
+    }
+    rpc BridgeTokens(QueryBridgeTokensRequest) returns (QueryBridgeTokensResponse) {
+        option (google.api.http).get = "/gravity/v1beta1/bridge_tokens";
     }
 }
 
@@ -162,7 +160,7 @@ message QueryOutgoingTxBatchesResponse {
 
 message QueryBatchRequestByNonceRequest {
     uint64 nonce = 1;
-    string contract_address = 2;
+    string token_contract = 2;
 }
 message QueryBatchRequestByNonceResponse {
     OutgoingTxBatch batch = 1;
@@ -170,7 +168,7 @@ message QueryBatchRequestByNonceResponse {
 
 message QueryBatchConfirmRequest {
     uint64 nonce = 1;
-    string contract_address = 2;
+    string token_contract = 2;
     string address = 3;
 }
 
@@ -180,7 +178,7 @@ message QueryBatchConfirmResponse {
 
 message QueryBatchConfirmsRequest {
     uint64 nonce = 1;
-    string contract_address = 2;
+    string token_contract = 2;
 }
 message QueryBatchConfirmsResponse {
     repeated MsgConfirmBatch confirms = 1;
@@ -252,10 +250,11 @@ message QueryIbcSequenceHeightResponse {
     uint64 height = 2;
 }
 
-message QueryLastObservedEthBlockHeightRequest {}
+message QueryLastObservedBlockHeightRequest {}
 
-message QueryLastObservedEthBlockHeightResponse {
-    uint64 blockHeight = 1;
+message QueryLastObservedBlockHeightResponse {
+    uint64 eth_block_height = 1;
+    uint64 block_height = 2;
 }
 
 message QueryLastEventBlockHeightByAddrRequest {
@@ -263,4 +262,16 @@ message QueryLastEventBlockHeightByAddrRequest {
 }
 message QueryLastEventBlockHeightByAddrResponse {
     uint64 block_height = 1;
+}
+
+message QueryProjectedBatchTimeoutHeightRequest {}
+
+message QueryProjectedBatchTimeoutHeightResponse {
+    uint64 timeout_height = 1;
+}
+
+message QueryBridgeTokensRequest {}
+
+message QueryBridgeTokensResponse {
+    repeated ERC20ToDenom bridge_tokens = 1;
 }
