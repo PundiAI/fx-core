@@ -1,9 +1,7 @@
 package keeper
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -52,27 +50,23 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 
 	// Error checked during msg validation
 	receiver, _ := sdk.AccAddressFromBech32(msg.Receiver)
+	/* sender have two cases
+	* 1. cosmos - m/44'/118'/0'/0/0
+	* private key ---> cosmos address ---> hex sender
+	* hex sender convert from cosmos address
+	* private key can authenticate cosmos address in fxcore (verify with cosmos_spec256k1)
+	* private key can **NOT** authenticate hex sender address in EVM (verify with eth_spec256k1)
+	*
+	* 2. eth - m/44'/60'/0'/0/1
+	* private key ---> eth public key ---> hex sender ---> cosmos address
+	*						 | ---> cosmos public key
+	* cosmos address equal to hex sender, generate by eth public key
+	* private key can authenticate cosmos address in fxcore (verify with eth_spec256k1)
+	* private key can authenticate hex sender address in EVM (verify with eth_spec256k1)
+	 */
 	sender := common.HexToAddress(msg.Sender)
 
-	//TODO convert eth address by account pub key
-	accSender := k.accountKeeper.GetAccount(ctx, sender.Bytes())
-	if accSender == nil {
-		return nil, fmt.Errorf("account %s not found", msg.Sender)
-	}
-	pubKey := accSender.GetPubKey()
-	ethPubKey, err := crypto.DecompressPubkey(pubKey.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	ethSender := crypto.PubkeyToAddress(*ethPubKey)
-	if !bytes.Equal(sender.Bytes(), ethSender.Bytes()) {
-		if _, err := k.accountKeeper.GetSequence(ctx, ethSender.Bytes()); err != nil {
-			accI := k.accountKeeper.NewAccountWithAddress(ctx, ethSender.Bytes())
-			k.accountKeeper.SetAccount(ctx, accI)
-		}
-	}
-
-	pair, err := k.MintingEnabled(ctx, ethSender.Bytes(), receiver, msg.ContractAddress)
+	pair, err := k.MintingEnabled(ctx, sender.Bytes(), receiver, msg.ContractAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -80,9 +74,9 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 	// Check ownership
 	switch {
 	case pair.IsNativeCoin():
-		return k.convertERC20NativeCoin(ctx, pair, msg, receiver, ethSender) // case 1.2
+		return k.convertERC20NativeCoin(ctx, pair, msg, receiver, sender) // case 1.2
 	case pair.IsNativeERC20():
-		return k.convertERC20NativeToken(ctx, pair, msg, receiver, ethSender) // case 2.1
+		return k.convertERC20NativeToken(ctx, pair, msg, receiver, sender) // case 2.1
 	default:
 		return nil, types.ErrUndefinedOwner
 	}

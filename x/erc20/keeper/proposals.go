@@ -53,7 +53,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Description)
 	}
 
-	// check if the coin exists by ensuring the supply is set
+	////check if the coin exists by ensuring the supply is set
 	//if !k.bankKeeper.HasSupply(ctx, coinMetadata.Base) {
 	//	return nil, sdkerrors.Wrapf(
 	//		sdkerrors.ErrInvalidCoins,
@@ -61,8 +61,13 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	//	)
 	//}
 
-	if err := k.verifyMetadata(ctx, coinMetadata); err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin metadata is invalid %s", coinMetadata.Description)
+	meta := k.bankKeeper.GetDenomMetaData(ctx, coinMetadata.Base)
+	if len(meta.Base) > 0 {
+		if err := types.EqualMetadata(meta, coinMetadata); err != nil {
+			return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, err.Error())
+		}
+	} else {
+		k.bankKeeper.SetDenomMetaData(ctx, coinMetadata)
 	}
 
 	evmParams := k.evmKeeper.GetParams(ctx)
