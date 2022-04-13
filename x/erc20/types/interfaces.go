@@ -7,7 +7,6 @@ import (
 	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"math/big"
 	"time"
 
@@ -74,8 +73,6 @@ type CrossChainKeeper interface {
 }
 
 type IBCTransferKeeper interface {
-	GetRouter() *ibctransfertypes.Router
-	Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error)
 	SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
 		receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, router string, fee sdk.Coin) error
 }
@@ -92,4 +89,8 @@ type GovKeeper interface {
 	InsertActiveProposalQueue(ctx sdk.Context, proposalID uint64, timestamp time.Time)
 	RemoveFromActiveProposalQueue(ctx sdk.Context, proposalID uint64, timestamp time.Time)
 	SetProposal(ctx sdk.Context, proposal govtypes.Proposal)
+}
+
+type TransactionHook interface {
+	TransferAfter(ctx sdk.Context, sender, receive string, coins, fee sdk.Coin) error
 }

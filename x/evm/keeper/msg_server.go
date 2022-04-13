@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	"strconv"
 
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
@@ -23,9 +25,6 @@ var _ types.MsgServer = &Keeper{}
 // parameter.
 func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*types.MsgEthereumTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if !k.HasInit(ctx) {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "evm module not enable")
-	}
 
 	sender := msg.From
 	tx := msg.AsTransaction()
@@ -68,6 +67,16 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		}
 		txLogAttrs[i] = sdk.NewAttribute(types.AttributeKeyTxLog, string(value))
 	}
+
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, msg.Type()},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("result", strconv.FormatBool(response.Failed())),
+			},
+		)
+	}()
 
 	// emit events
 	ctx.EventManager().EmitEvents(sdk.Events{

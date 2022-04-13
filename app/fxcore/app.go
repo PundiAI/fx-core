@@ -445,6 +445,13 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		&stakingKeeper, govRouter,
 	)
 
+	erc20TransferRouter := erc20types.NewRouter()
+	erc20TransferRouter.AddRoute(gravitytypes.ModuleName, myApp.GravityKeeper)
+	erc20TransferRouter.AddRoute(bsctypes.ModuleName, myApp.BscKeeper)
+	erc20TransferRouter.AddRoute(polygontypes.ModuleName, myApp.PolygonKeeper)
+	erc20TransferRouter.AddRoute(trontypes.ModuleName, myApp.TronKeeper)
+	myApp.Erc20Keeper.SetRouter(erc20TransferRouter)
+
 	ibcTransferRouter := ibctransfertypes.NewRouter()
 	ibcTransferRouter.AddRoute(gravitytypes.ModuleName, myApp.GravityKeeper)
 	ibcTransferRouter.AddRoute(bsctypes.ModuleName, myApp.BscKeeper)

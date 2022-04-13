@@ -2,13 +2,14 @@ package keeper
 
 import (
 	"context"
-	"math/big"
-
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"math/big"
 
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
@@ -124,6 +125,17 @@ func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 		)
 	}
 
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, msg.Type()},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("erc20", pair.Erc20Address),
+				telemetry.NewLabel("denom", pair.Denom),
+			},
+		)
+	}()
+
 	ctx.EventManager().EmitEvents(
 		sdk.Events{
 			sdk.NewEvent(
@@ -195,6 +207,17 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 			expToken, balanceTokenAfter,
 		)
 	}
+
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, msg.Type()},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("erc20", pair.Erc20Address),
+				telemetry.NewLabel("denom", pair.Denom),
+			},
+		)
+	}()
 
 	ctx.EventManager().EmitEvents(
 		sdk.Events{
@@ -288,6 +311,17 @@ func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 		return nil, err
 	}
 
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, msg.Type()},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("erc20", pair.Erc20Address),
+				telemetry.NewLabel("denom", pair.Denom),
+			},
+		)
+	}()
+
 	ctx.EventManager().EmitEvents(
 		sdk.Events{
 			sdk.NewEvent(
@@ -362,6 +396,17 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	if err := k.monitorApprovalEvent(res); err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, msg.Type()},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("erc20", pair.Erc20Address),
+				telemetry.NewLabel("denom", pair.Denom),
+			},
+		)
+	}()
 
 	ctx.EventManager().EmitEvents(
 		sdk.Events{

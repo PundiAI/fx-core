@@ -27,6 +27,17 @@ const (
 
 type TargetType int
 
+func (tt TargetType) String() string {
+	switch tt {
+	case TargetChain:
+		return "chain"
+	case TargetIBC:
+		return "ibc"
+	default:
+		return "unknown"
+	}
+}
+
 type TransferCrossEvent struct {
 	To     string
 	Value  *big.Int

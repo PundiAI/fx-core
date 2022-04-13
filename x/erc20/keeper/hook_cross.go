@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -47,13 +49,24 @@ func (k Keeper) RelayTransferCrossProcessing(ctx sdk.Context, from common.Addres
 			return err
 		}
 		k.Logger(ctx).Info("transfer cross success", "tx-hash", receipt.TxHash.Hex())
+
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, "relay_transfer_cross"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("erc20", pair.Erc20Address),
+				telemetry.NewLabel("denom", pair.Denom),
+				telemetry.NewLabel("type", tc.Type.String()),
+				telemetry.NewLabel("target", tc.Target),
+			},
+		)
 	}
 	return nil
 }
 
 func (k Keeper) TransferChainHandler(ctx sdk.Context, tc *contracts.TransferCross, _ *ethtypes.Receipt) error {
 	k.Logger(ctx).Info("transfer chain handler", "from", tc.From.Hex(), "to", tc.To, "amount", tc.Amount.String(), "fee", tc.Fee.String(), "target", tc.Target)
-	router := k.ibcTransferKeeper.GetRouter()
+	router := k.GetRouter()
 	if router == nil || !router.HasRoute(tc.Target) {
 		return fmt.Errorf("target %s not support", tc.Target)
 	}

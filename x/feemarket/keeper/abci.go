@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"fmt"
-
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/functionx/fx-core/x/feemarket/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -22,6 +23,10 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 	}
 
 	k.SetBaseFee(ctx, baseFee)
+
+	if baseFee.IsInt64() {
+		defer telemetry.ModuleSetGauge(types.ModuleName, float32(baseFee.Int64()), "base_fee")
+	}
 
 	// Store current base fee in event
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -47,6 +52,10 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) {
 	gasUsed := ctx.BlockGasMeter().GasConsumedToLimit()
 
 	k.SetBlockGasUsed(ctx, gasUsed)
+
+	if gasUsed <= math.MaxInt64 {
+		defer telemetry.ModuleSetGauge(types.ModuleName, float32(gasUsed), "block_gas_used")
+	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		"block_gas",

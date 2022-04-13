@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -44,6 +46,14 @@ func (k Keeper) RelayTokenProcessing(ctx sdk.Context, _ common.Address, _ *commo
 			return err
 		}
 		k.Logger(ctx).Info("relay transfer token success", "hash", receipt.TxHash.Hex())
+		telemetry.IncrCounterWithLabels(
+			[]string{types.ModuleName, "relay_token"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("erc20", pair.Erc20Address),
+				telemetry.NewLabel("denom", pair.Denom),
+			},
+		)
 	}
 	return nil
 }

@@ -27,6 +27,8 @@ type Keeper struct {
 
 	ibcTransferKeeper types.IBCTransferKeeper
 	ibcChannelKeeper  types.IBCChannelKeeper
+
+	Router *types.Router
 }
 
 // NewKeeper creates new instances of the erc20 Keeper
@@ -106,6 +108,20 @@ func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receive
 
 func (k Keeper) HasInit(ctx sdk.Context) bool {
 	return k.paramstore.Has(ctx, types.ParamStoreKeyEnableErc20)
+}
+
+// SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if
+// there is an existing router that's already sealed.
+func (k *Keeper) SetRouter(rtr *types.Router) {
+	if k.Router != nil && k.Router.Sealed() {
+		panic("cannot reset a sealed router")
+	}
+	k.Router = rtr
+	k.Router.Seal()
+}
+
+func (k Keeper) GetRouter() *types.Router {
+	return k.Router
 }
 
 func (k *Keeper) SetIBCTransferKeeperForTest(t types.IBCTransferKeeper) {
