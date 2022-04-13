@@ -113,7 +113,6 @@
     - [RegisterERC20Proposal](#fx.ethereum.erc20.v1.RegisterERC20Proposal)
     - [ToggleTokenRelayProposal](#fx.ethereum.erc20.v1.ToggleTokenRelayProposal)
     - [TokenPair](#fx.ethereum.erc20.v1.TokenPair)
-    - [UpdateTokenPairERC20Proposal](#fx.ethereum.erc20.v1.UpdateTokenPairERC20Proposal)
   
     - [Owner](#fx.ethereum.erc20.v1.Owner)
   
@@ -2047,25 +2046,6 @@ native Coin and an ERC20 token address.
 | `denom` | [string](#string) |  | cosmos base denomination to be mapped to |
 | `enabled` | [bool](#bool) |  | shows token mapping enable status |
 | `contract_owner` | [Owner](#fx.ethereum.erc20.v1.Owner) |  | ERC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external address) |
-
-
-
-
-
-
-<a name="fx.ethereum.erc20.v1.UpdateTokenPairERC20Proposal"></a>
-
-### UpdateTokenPairERC20Proposal
-UpdateTokenPairERC20Proposal is a gov Content type to update a token pair's
-ERC20 contract address.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  | title of the proposal |
-| `description` | [string](#string) |  | proposal description |
-| `erc20_address` | [string](#string) |  | contract address of ERC20 token |
-| `new_erc20_address` | [string](#string) |  | new address of ERC20 token contract |
 
 
 
