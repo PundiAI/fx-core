@@ -29,6 +29,18 @@ func IsZeroAddress(address string) bool {
 
 // ValidateAddress validates the ethereum address strings
 func ValidateAddress(address string) error {
+	err := ValidateAddressIgnoreChecksum(address)
+	if err != nil {
+		return err
+	}
+	expectAddress := common.HexToAddress(address).Hex()
+	if expectAddress != address {
+		return fmt.Errorf("invalid address got:%s, expected:%s", address, expectAddress)
+	}
+	return nil
+}
+
+func ValidateAddressIgnoreChecksum(address string) error {
 	if address == "" {
 		return fmt.Errorf("empty")
 	}
@@ -41,10 +53,6 @@ func ValidateAddress(address string) error {
 	// add ethereum address checksum check 2021-09-02.
 	if !common.IsHexAddress(address) {
 		return fmt.Errorf("invalid address: %s", address)
-	}
-	expectAddress := common.HexToAddress(address).Hex()
-	if expectAddress != address {
-		return fmt.Errorf("invalid address got:%s, expected:%s", address, expectAddress)
 	}
 	return nil
 }

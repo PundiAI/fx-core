@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -17,16 +16,12 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
-
 	"github.com/pkg/errors"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -112,24 +107,12 @@ func NewEVMBackend(ctx *server.Context, logger log.Logger, clientCtx client.Cont
 // Because abci app state could lag behind from tendermint latest block, it's more stable
 // for the client to use the latest block number in abci app state than tendermint rpc.
 func (e *EVMBackend) BlockNumber() (hexutil.Uint64, error) {
-	// do any grpc query, ignore the response and use the returned block height
-	var header metadata.MD
-	_, err := e.queryClient.Params(e.ctx, &evmtypes.QueryParamsRequest{}, grpc.Header(&header))
+	// NOTE: using 0 as min and max height returns the blockchain info up to the latest block.
+	info, err := e.clientCtx.Client.BlockchainInfo(e.ctx, 0, 0)
 	if err != nil {
-		return hexutil.Uint64(0), err
+		return 0, err
 	}
-
-	blockHeightHeader := header.Get(grpctypes.GRPCBlockHeightHeader)
-	if headerLen := len(blockHeightHeader); headerLen != 1 {
-		return 0, fmt.Errorf("unexpected '%s' gRPC header length; got %d, expected: %d", grpctypes.GRPCBlockHeightHeader, headerLen, 1)
-	}
-
-	height, err := strconv.ParseUint(blockHeightHeader[0], 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("failed to parse block height: %w", err)
-	}
-
-	return hexutil.Uint64(height), nil
+	return hexutil.Uint64(info.LastHeight), nil
 }
 
 // GetBlockByNumber returns the block identified by number.

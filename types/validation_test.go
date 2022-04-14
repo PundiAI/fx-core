@@ -92,6 +92,43 @@ func TestValidateAddress(t *testing.T) {
 	}
 }
 
+func TestValidateAddressIgnoreChecksum(t *testing.T) {
+	testCases := []struct {
+		name     string
+		address  string
+		expError bool
+	}{
+		{
+			"empty string", "", true,
+		},
+		{
+			"invalid address", "0x", true,
+		},
+		{
+			"zero address", common.Address{}.String(), false,
+		},
+		{
+			"valid address", tests.GenerateAddress().Hex(), false,
+		},
+		{
+			"invalid address - upper address", strings.ToUpper(tests.GenerateAddress().Hex()), false,
+		},
+		{
+			"invalid address - lower address", strings.ToLower(tests.GenerateAddress().Hex()), false,
+		},
+	}
+
+	for _, tc := range testCases {
+		err := ValidateAddressIgnoreChecksum(tc.address)
+
+		if tc.expError {
+			require.Error(t, err, tc.name)
+		} else {
+			require.NoError(t, err, tc.name)
+		}
+	}
+}
+
 func TestSafeInt64(t *testing.T) {
 	testCases := []struct {
 		name     string
