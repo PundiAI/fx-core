@@ -233,7 +233,7 @@ func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, erc20Params types.Params,
 	// init fee market
 	k.Logger(ctx).Info("init fee market", "erc20Params", feemarketParams.String())
 	// set feeMarket baseFee
-	k.feeMarketKeeper.SetBaseFee(ctx, feemarketParams.BaseFee.BigInt())
+	//k.feeMarketKeeper.SetBaseFee(ctx, feemarketParams.BaseFee.BigInt())
 	// set feeMarket blockGasUsed
 	k.feeMarketKeeper.SetBlockGasUsed(ctx, 0)
 	// init feeMarket module erc20Params

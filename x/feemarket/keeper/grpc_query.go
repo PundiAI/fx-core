@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -13,6 +15,11 @@ var _ types.QueryServer = Keeper{}
 // Params implements the Query/Params gRPC method
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	if !k.HasInit(ctx) {
+		return nil, status.Error(
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
+		)
+	}
 	params := k.GetParams(ctx)
 
 	return &types.QueryParamsResponse{
@@ -23,6 +30,11 @@ func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 // BaseFee implements the Query/BaseFee gRPC method
 func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	if !k.HasInit(ctx) {
+		return nil, status.Error(
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
+		)
+	}
 
 	res := &types.QueryBaseFeeResponse{}
 	baseFee := k.GetBaseFee(ctx)
