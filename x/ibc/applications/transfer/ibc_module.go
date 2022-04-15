@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	ForwardPacketTimeHour time.Duration = 6
+	ForwardPacketTimeHour time.Duration = 12
 )
 
 var (
