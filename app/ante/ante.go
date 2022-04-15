@@ -2,6 +2,8 @@ package ante
 
 import (
 	"fmt"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	"github.com/gogo/protobuf/proto"
 	"runtime/debug"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,7 +33,7 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 			opts := txWithExtensions.GetExtensionOptions()
 			if len(opts) > 0 {
 				switch typeURL := opts[0].GetTypeUrl(); typeURL {
-				case "/fx.ethereum.evm.v1.ExtensionOptionsEthereumTx":
+				case "/" + proto.MessageName(&evmtypes.ExtensionOptionsEthereumTx{}):
 					// handle as *evmtypes.MsgEthereumTx
 					anteHandler = newEthAnteHandler(options)
 				//case "/fx.ethereum.types.v1.ExtensionOptionsWeb3Tx":
