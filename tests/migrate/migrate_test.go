@@ -3,6 +3,9 @@ package migrate
 import (
 	"context"
 	"encoding/hex"
+	"testing"
+	"time"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -11,12 +14,11 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/require"
+
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	fxtypes "github.com/functionx/fx-core/types"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
-	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestStakingParams(t *testing.T) {

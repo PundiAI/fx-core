@@ -1,4 +1,4 @@
-package cmd
+package app
 
 import (
 	"bufio"
@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	appCmd "github.com/functionx/fx-core/app/cmd"
-	"github.com/functionx/fx-core/app/fxcore"
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -96,7 +95,7 @@ func InitCmd() *cobra.Command {
 			if err != nil || flagDenom == "" {
 				return fmt.Errorf("invalid staking denom: %v", err)
 			}
-			appState, err := json.MarshalIndent(fxcore.NewDefAppGenesisByDenom(flagDenom, clientCtx.Codec), "", " ")
+			appState, err := json.MarshalIndent(NewDefAppGenesisByDenom(flagDenom, clientCtx.Codec), "", " ")
 			if err != nil {
 				return fmt.Errorf("failed to marshall default genesis state: %s", err.Error())
 			}
@@ -133,7 +132,7 @@ func InitCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(cli.HomeFlag, fxcore.DefaultNodeHome, "node's home directory")
+	cmd.Flags().String(cli.HomeFlag, DefaultNodeHome, "node's home directory")
 	cmd.Flags().Bool(FlagOverwrite, false, "overwrite the genesis.json file")
 	cmd.Flags().Bool(FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")

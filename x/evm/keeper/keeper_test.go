@@ -23,7 +23,7 @@ import (
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 
-	app "github.com/functionx/fx-core/app/fxcore"
+	app "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"

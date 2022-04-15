@@ -1,16 +1,16 @@
-package cmd
+package app
 
 import (
 	"errors"
-	fxserver "github.com/functionx/fx-core/server"
-	fxtypes "github.com/functionx/fx-core/types"
-
-	"github.com/functionx/fx-core/crypto/hd"
-	"github.com/functionx/fx-core/server/config"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/functionx/fx-core/crypto/hd"
+	fxserver "github.com/functionx/fx-core/server"
+	"github.com/functionx/fx-core/server/config"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 
@@ -35,9 +35,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/app"
 	appCmd "github.com/functionx/fx-core/app/cmd"
-	"github.com/functionx/fx-core/app/fxcore"
 	// this line is u by starport scaffolding # stargate/root/import
 )
 
@@ -47,7 +45,7 @@ const envPrefix = "FX"
 // main function.
 func NewRootCmd() *cobra.Command {
 
-	encodingConfig := fxcore.MakeEncodingConfig()
+	encodingConfig := MakeEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -57,7 +55,7 @@ func NewRootCmd() *cobra.Command {
 		WithOutput(os.Stdout).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
-		WithHomeDir(fxcore.DefaultNodeHome).
+		WithHomeDir(DefaultNodeHome).
 		WithViper(envPrefix).
 		WithKeyringOptions(hd.EthSecp256k1Option())
 
@@ -88,11 +86,11 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 			// add log filter
-			return app.AddCmdLogWrapFilterLogType(cmd)
+			return appCmd.AddCmdLogWrapFilterLogType(cmd)
 		},
 	}
 
-	rootCmd.PersistentFlags().StringSlice(app.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery)`)
+	rootCmd.PersistentFlags().StringSlice(appCmd.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery)`)
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxtypes.ChainID,
@@ -107,33 +105,33 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig fxcore.EncodingConfig) {
+func initRootCmd(rootCmd *cobra.Command, encodingConfig EncodingConfig) {
 	sdkCfgCmd := sdkCfg.Cmd()
-	sdkCfgCmd.AddCommand(appCmd.AppTomlCmd(), appCmd.ConfigTomlCmd())
+	sdkCfgCmd.AddCommand(AppTomlCmd(), ConfigTomlCmd())
 
 	rootCmd.AddCommand(
 		InitCmd(),
-		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, fxcore.DefaultNodeHome),
+		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, DefaultNodeHome),
 		genutilcli.MigrateGenesisCmd(),
-		appCmd.GenTxCmd(fxcore.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, fxcore.DefaultNodeHome),
-		genutilcli.ValidateGenesisCmd(fxcore.ModuleBasics),
-		appCmd.AddGenesisAccountCmd(fxcore.DefaultNodeHome),
+		appCmd.GenTxCmd(ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, DefaultNodeHome),
+		genutilcli.ValidateGenesisCmd(ModuleBasics),
+		appCmd.AddGenesisAccountCmd(DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		TestnetCmd(),
 		appCmd.Debug(),
 		// this line is used by starport scaffolding # stargate/root/commands
-		appCmd.Network(),
+		Network(),
 		sdkCfgCmd,
 	)
 
 	appCreator := appCreator{encodingConfig}
-	fxserver.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, func(startCmd *cobra.Command) {})
+	fxserver.AddCommands(rootCmd, DefaultNodeHome, appCreator.newApp, appCreator.appExport, func(startCmd *cobra.Command) {})
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rpcStatusCmd := rpc.StatusCommand()
 	rpcStatusCmd.SetOut(os.Stdout)
 	rootCmd.AddCommand(
-		appCmd.KeyCommands(fxcore.DefaultNodeHome),
+		KeyCommands(DefaultNodeHome),
 		rpcStatusCmd,
 		queryCommand(),
 		txCommand(),
@@ -142,8 +140,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig fxcore.EncodingConfig) {
 	for _, command := range rootCmd.Commands() {
 		// tendermint add update validator key command
 		if command.Use == "tendermint" {
-			command.AddCommand(appCmd.UpdateValidatorKeyCmd())
-			command.AddCommand(appCmd.UpdateNodeKeyCmd())
+			command.AddCommand(appCmd.UnsafeRestPrivValidatorCmd())
+			command.AddCommand(appCmd.UnsafeResetNodeKeyCmd())
 		}
 	}
 }
@@ -169,7 +167,7 @@ func queryCommand() *cobra.Command {
 		appCmd.QueryBlockResultsCmd(),
 	)
 
-	fxcore.ModuleBasics.AddQueryCommands(cmd)
+	ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -194,14 +192,14 @@ func txCommand() *cobra.Command {
 		authcmd.GetDecodeCommand(),
 	)
 
-	fxcore.ModuleBasics.AddTxCommands(cmd)
+	ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
 
 type appCreator struct {
-	encCfg fxcore.EncodingConfig
+	encCfg EncodingConfig
 }
 
 // newApp is an AppCreator
@@ -236,7 +234,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 	if strings.Contains(gasPrice, ".") {
 		panic("Invalid gas price, cannot contain decimals")
 	}
-	return fxcore.New(
+	return New(
 		logger, db, traceStore, true, skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
@@ -262,7 +260,7 @@ func (a appCreator) appExport(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
 
-	var anApp *fxcore.App
+	var anApp *App
 
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
@@ -270,7 +268,7 @@ func (a appCreator) appExport(
 	}
 
 	if height != -1 {
-		anApp = fxcore.New(
+		anApp = New(
 			logger,
 			db,
 			traceStore,
@@ -287,7 +285,7 @@ func (a appCreator) appExport(
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		anApp = fxcore.New(
+		anApp = New(
 			logger,
 			db,
 			traceStore,

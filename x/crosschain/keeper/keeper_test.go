@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
@@ -31,33 +31,33 @@ func defaultModuleParams(oracles []string) types.Params {
 
 func TestSetOracle(t *testing.T) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	oracleAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
-	orchestratorAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
+	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	oracleAddressList := app.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.ZeroInt())
+	orchestratorAddressList := app.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.ZeroInt())
 
 	var oracles []string
 	for _, account := range oracleAddressList {
 		oracles = append(oracles, account.String())
 	}
 	// set chain init params
-	app.BscKeeper.SetParams(ctx, defaultModuleParams(oracles))
+	fxcore.BscKeeper.SetParams(ctx, defaultModuleParams(oracles))
 
 	oracleAddr1, oracleAddr2 := oracleAddressList[0], oracleAddressList[1]
 	orchestratorAddr1, orchestratorAddr2 := orchestratorAddressList[0], orchestratorAddressList[1]
 	var dbOracleAddr1 sdk.AccAddress
 	var found bool
-	dbOracleAddr1, found = app.BscKeeper.GetOracleAddressByOrchestratorKey(ctx, orchestratorAddr1)
+	dbOracleAddr1, found = fxcore.BscKeeper.GetOracleAddressByOrchestratorKey(ctx, orchestratorAddr1)
 	require.False(t, found)
 	require.Empty(t, dbOracleAddr1)
 
 	// 1. set oracle -> orchestrator  and  orchestrator -> oracle
-	app.BscKeeper.SetOracleByOrchestrator(ctx, oracleAddr1, orchestratorAddr1)
+	fxcore.BscKeeper.SetOracleByOrchestrator(ctx, oracleAddr1, orchestratorAddr1)
 
 	// 2. find oracle by orchestrator
-	dbOracleAddr1, found = app.BscKeeper.GetOracleAddressByOrchestratorKey(ctx, orchestratorAddr1)
+	dbOracleAddr1, found = fxcore.BscKeeper.GetOracleAddressByOrchestratorKey(ctx, orchestratorAddr1)
 	require.True(t, found)
 	require.EqualValues(t, oracleAddr1, dbOracleAddr1)
 
@@ -72,24 +72,24 @@ func TestSetOracle(t *testing.T) {
 	//require.Nil(t, dbOrchestratorAddr2)
 
 	// 3.1 set oracle2 -> orchestrator2
-	app.BscKeeper.SetOracleByOrchestrator(ctx, oracleAddr2, orchestratorAddr2)
+	fxcore.BscKeeper.SetOracleByOrchestrator(ctx, oracleAddr2, orchestratorAddr2)
 
 	// 3.2 find oracle2 by orchestrator2
-	dbOrchestratorAddr2, found := app.BscKeeper.GetOracleAddressByOrchestratorKey(ctx, oracleAddr2)
+	dbOrchestratorAddr2, found := fxcore.BscKeeper.GetOracleAddressByOrchestratorKey(ctx, oracleAddr2)
 	require.True(t, found)
 	require.EqualValues(t, orchestratorAddr2, dbOrchestratorAddr2)
 }
 
 func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	oracleAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
-	orchestratorAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
+	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	oracleAddressList := app.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.ZeroInt())
+	orchestratorAddressList := app.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.ZeroInt())
 
-	keeper := app.BscKeeper
+	keeper := fxcore.BscKeeper
 
 	testCases := []struct {
 		OracleAddress       sdk.AccAddress
@@ -151,14 +151,14 @@ func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
 func TestLastPendingBatchRequestByAddr(t *testing.T) {
 
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	oracleAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
-	orchestratorAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
+	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	oracleAddressList := app.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.ZeroInt())
+	orchestratorAddressList := app.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.ZeroInt())
 
-	keeper := app.BscKeeper
+	keeper := fxcore.BscKeeper
 
 	testCases := []struct {
 		Name                string
@@ -227,14 +227,14 @@ func TestLastPendingBatchRequestByAddr(t *testing.T) {
 func TestGetUnSlashedOracleSets(t *testing.T) {
 
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	//oracleAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
-	//orchestratorAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
+	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	//oracleAddressList := fxcore.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.ZeroInt())
+	//orchestratorAddressList := fxcore.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.ZeroInt())
 
-	keeper := app.BscKeeper
+	keeper := fxcore.BscKeeper
 
 	for i := 1; i <= 3; i++ {
 		keeper.StoreOracleSet(ctx, &types.OracleSet{

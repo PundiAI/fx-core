@@ -1,4 +1,4 @@
-package fxcore
+package app
 
 import (
 	"encoding/json"

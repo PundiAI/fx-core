@@ -258,7 +258,7 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCModule, packet channelt
 		if err = im.keeper.SendTransfer(ctx, port, channel, token, receiver, finalDest,
 			clienttypes.Height{}, uint64(ctx.BlockTime().Add(ForwardPacketTimeHour*time.Hour).UnixNano()),
 			"", sdk.NewCoin(denom, sdk.ZeroInt())); err != nil {
-			return fmt.Errorf("failed to foward transfer packet")
+			return fmt.Errorf("failed to forward transfer packet")
 		}
 	}
 	return nil
@@ -355,11 +355,11 @@ func ParseIncomingTransferField(receiverData string) (thisChainAddr sdk.AccAddre
 	case len(sep1) >= 2 && sep1[len(sep1)-1] != "":
 		finalDestination = strings.Join(sep1[1:], ":")
 	default:
-		return nil, "", "", "", fmt.Errorf("unparsable reciever field, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
+		return nil, "", "", "", fmt.Errorf("unparsable receiver field, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
 	}
 	sep2 := strings.Split(sep1[0], "|")
 	if len(sep2) != 2 {
-		err = fmt.Errorf("formatting incorect, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
+		err = fmt.Errorf("formatting incorrect, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
 		return
 	}
 	thisChainAddr, err = sdk.AccAddressFromBech32(sep2[0])
@@ -368,7 +368,7 @@ func ParseIncomingTransferField(receiverData string) (thisChainAddr sdk.AccAddre
 	}
 	sep3 := strings.Split(sep2[1], "/")
 	if len(sep3) != 2 {
-		err = fmt.Errorf("formatting incorect, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
+		err = fmt.Errorf("formatting incorrect, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
 		return
 	}
 	port = sep3[0]

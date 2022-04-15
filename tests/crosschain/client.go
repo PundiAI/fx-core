@@ -4,9 +4,10 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"sync"
 	"testing"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	types2 "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
@@ -25,7 +26,7 @@ import (
 	"github.com/tendermint/tendermint/rpc/client/http"
 	"google.golang.org/grpc"
 
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 )
 
 const (
@@ -67,7 +68,7 @@ type Client struct {
 	crosschainQueryClient crosschaintypes.QueryClient
 	bankQueryClient       banktypes.QueryClient
 	fxPrivKey             *secp256k1.PrivKey
-	encodingConfig        fxcore.EncodingConfig
+	encodingConfig        app.EncodingConfig
 	ethPrivKey            *ecdsa.PrivateKey
 	ethAddress            gethCommon.Address
 	mutex                 *sync.Mutex
@@ -171,7 +172,7 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 		bankQueryClient:       banktypes.NewQueryClient(grpcClientConn),
 		crosschainQueryClient: crosschaintypes.NewQueryClient(grpcClientConn),
 		fxPrivKey:             fxPrivateKey,
-		encodingConfig:        fxcore.MakeEncodingConfig(),
+		encodingConfig:        app.MakeEncodingConfig(),
 		ethPrivKey:            ethPrivateKey,
 		ethAddress:            ethAddress,
 		mutex:                 &sync.Mutex{},

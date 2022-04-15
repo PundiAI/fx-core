@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+
 	fxtypes "github.com/functionx/fx-core/types"
 )
 

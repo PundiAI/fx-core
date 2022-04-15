@@ -33,7 +33,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/tests"
 	"github.com/functionx/fx-core/x/evm"
@@ -51,7 +51,7 @@ type EvmTestSuite struct {
 
 	ctx     sdk.Context
 	handler sdk.Handler
-	app     *fxcore.App
+	app     *app.App
 	codec   codec.BinaryCodec
 	chainID *big.Int
 
@@ -80,18 +80,18 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
-	suite.app = fxcore.Setup(checkTx, func(app *fxcore.App, genesis fxcore.AppGenesisState) fxcore.AppGenesisState {
+	suite.app = app.Setup(checkTx, func(fxcore *app.App, genesis app.AppGenesisState) app.AppGenesisState {
 		if suite.dynamicTxFee {
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()
 			feemarketGenesis.Params.EnableHeight = 1
 			feemarketGenesis.Params.NoBaseFee = false
-			genesis[feemarkettypes.ModuleName] = app.AppCodec().MustMarshalJSON(feemarketGenesis)
+			genesis[feemarkettypes.ModuleName] = fxcore.AppCodec().MustMarshalJSON(feemarketGenesis)
 		}
 		return genesis
 	})
 
 	coins := sdk.NewCoins(sdk.NewCoin(types.DefaultEVMDenom, sdk.NewInt(100000000000000)))
-	genesisState := fxcore.DefaultTestGenesis(suite.app.AppCodec())
+	genesisState := app.DefaultTestGenesis(suite.app.AppCodec())
 	b32address := sdk.MustBech32ifyAddressBytes(sdk.GetConfig().GetBech32AccountAddrPrefix(), priv.PubKey().Address().Bytes())
 	balances := []banktypes.Balance{
 		{

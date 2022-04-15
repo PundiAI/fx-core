@@ -1,12 +1,18 @@
 package ante_test
 
 import (
+	"math"
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/require"
+
 	"github.com/functionx/fx-core/app/ante"
 	"github.com/functionx/fx-core/ethereum/eip712"
 	"github.com/functionx/fx-core/types"
@@ -14,10 +20,6 @@ import (
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	"github.com/stretchr/testify/require"
-	"math"
-	"testing"
-	"time"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -34,17 +36,18 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/functionx/fx-core/app/fxcore"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/tests"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 type AnteTestSuite struct {
 	suite.Suite
 
 	ctx             sdk.Context
-	app             *fxcore.App
+	app             *app.App
 	clientCtx       client.Context
 	anteHandler     sdk.AnteHandler
 	ethSigner       ethtypes.Signer
@@ -59,7 +62,7 @@ func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
 func (suite *AnteTestSuite) SetupTest() {
 	checkTx := false
 
-	suite.app = fxcore.Setup(checkTx, func(app *fxcore.App, genesis fxcore.AppGenesisState) fxcore.AppGenesisState {
+	suite.app = app.Setup(checkTx, func(app *app.App, genesis app.AppGenesisState) app.AppGenesisState {
 		if !suite.enableLondonHF {
 			evmGenesis := evmtypes.DefaultGenesisState()
 			maxInt := sdk.NewInt(math.MaxInt64)
@@ -78,7 +81,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
 
-	encodingConfig := fxcore.MakeEncodingConfig()
+	encodingConfig := app.MakeEncodingConfig()
 
 	// We're using TestMsg amino encoding in some tests, so register it here.
 	encodingConfig.Amino.RegisterConcrete(&testdata.TestMsg{}, "testdata.TestMsg", nil)

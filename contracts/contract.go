@@ -2,10 +2,12 @@ package contracts
 
 import (
 	"encoding/hex"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+
 	fxtypes "github.com/functionx/fx-core/types"
-	"strings"
 )
 
 const (

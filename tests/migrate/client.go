@@ -3,6 +3,8 @@ package migrate
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -17,14 +19,14 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/functionx/fx-core/app/fxcore"
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
-	cryptohd "github.com/functionx/fx-core/crypto/hd"
-	othertypes "github.com/functionx/fx-core/x/other/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
-	"testing"
+
+	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/crypto/ethsecp256k1"
+	cryptohd "github.com/functionx/fx-core/crypto/hd"
+	othertypes "github.com/functionx/fx-core/x/other/types"
 )
 
 const (
@@ -103,7 +105,7 @@ func (c *Client) BroadcastTx(msgList ...sdk.Msg) string {
 		c.t.Fatal(err)
 	}
 
-	encodingConfig := fxcore.MakeEncodingConfig()
+	encodingConfig := app.MakeEncodingConfig()
 	var account authtypes.AccountI
 	err = encodingConfig.InterfaceRegistry.UnpackAny(accountResponse.GetAccount(), &account)
 	if err != nil {

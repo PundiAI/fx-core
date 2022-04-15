@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
@@ -24,78 +24,78 @@ import (
 func TestMigrateDistributionHandler(t *testing.T) {
 
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(3,
+	validator, genesisAccounts, balances := app.GenerateGenesisValidator(3,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
 
-	delegateAddressArr := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000)))
+	delegateAddressArr := app.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000)))
 
 	valA, valB, valC := validator.Validators[0], validator.Validators[1], validator.Validators[2]
 
 	addA, addB, addC, addD := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
 
-	ctx = commitBlock(t, ctx, app)
+	ctx = commitBlock(t, ctx, fxcore)
 
-	validatorA, found := app.StakingKeeper.GetValidator(ctx, valA.Address.Bytes())
+	validatorA, found := fxcore.StakingKeeper.GetValidator(ctx, valA.Address.Bytes())
 	require.True(t, found)
 
-	validatorB, found := app.StakingKeeper.GetValidator(ctx, valB.Address.Bytes())
+	validatorB, found := fxcore.StakingKeeper.GetValidator(ctx, valB.Address.Bytes())
 	require.True(t, found)
 
-	validatorC, found := app.StakingKeeper.GetValidator(ctx, valC.Address.Bytes())
+	validatorC, found := fxcore.StakingKeeper.GetValidator(ctx, valC.Address.Bytes())
 	require.True(t, found)
 
-	_, err := app.StakingKeeper.Delegate(ctx, addA, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorA, true)
+	_, err := fxcore.StakingKeeper.Delegate(ctx, addA, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorA, true)
 	require.NoError(t, err)
 
-	_, err = app.StakingKeeper.Delegate(ctx, addC, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorB, true)
+	_, err = fxcore.StakingKeeper.Delegate(ctx, addC, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorB, true)
 	require.NoError(t, err)
 
-	_, err = app.StakingKeeper.Delegate(ctx, addD, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorC, true)
+	_, err = fxcore.StakingKeeper.Delegate(ctx, addD, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, validatorC, true)
 	require.NoError(t, err)
 
-	ctx = commitBlock(t, ctx, app)
+	ctx = commitBlock(t, ctx, fxcore)
 
-	delAAndValAReward := getDelegationRewards(t, ctx, app.StakingKeeper, app.DistrKeeper, valA.Address.Bytes(), addA, true)
+	delAAndValAReward := getDelegationRewards(t, ctx, fxcore.StakingKeeper, fxcore.DistrKeeper, valA.Address.Bytes(), addA, true)
 	require.False(t, delAAndValAReward.IsZero())
 
-	migrateBeforeVerify(t, ctx, app.DistrKeeper, valA.Address.Bytes(), addA, addB, true)
-	migrateBeforeVerify(t, ctx, app.DistrKeeper, valA.Address.Bytes(), addB, addB, false)
+	migrateBeforeVerify(t, ctx, fxcore.DistrKeeper, valA.Address.Bytes(), addA, addB, true)
+	migrateBeforeVerify(t, ctx, fxcore.DistrKeeper, valA.Address.Bytes(), addB, addB, false)
 
-	migrateKeeper := app.MigrateKeeper
-	m := keeper.NewDistrStakingMigrate(app.GetKey(distrtypes.StoreKey), app.GetKey(stakingtypes.StoreKey), app.StakingKeeper)
+	migrateKeeper := fxcore.MigrateKeeper
+	m := keeper.NewDistrStakingMigrate(fxcore.GetKey(distrtypes.StoreKey), fxcore.GetKey(stakingtypes.StoreKey), fxcore.StakingKeeper)
 	err = m.Validate(ctx, migrateKeeper, addA, addB)
 	require.NoError(t, err)
 	err = m.Execute(ctx, migrateKeeper, addA, addB)
 	require.NoError(t, err)
 
-	migrateAfterVerify(t, ctx, app.DistrKeeper, valA.Address.Bytes(), addA, addB, false, true)
+	migrateAfterVerify(t, ctx, fxcore.DistrKeeper, valA.Address.Bytes(), addA, addB, false, true)
 
-	ctx = commitBlock(t, ctx, app)
-	delAAndValAReward = getDelegationRewards(t, ctx, app.StakingKeeper, app.DistrKeeper, valA.Address.Bytes(), addA, false)
+	ctx = commitBlock(t, ctx, fxcore)
+	delAAndValAReward = getDelegationRewards(t, ctx, fxcore.StakingKeeper, fxcore.DistrKeeper, valA.Address.Bytes(), addA, false)
 	require.True(t, delAAndValAReward.IsZero())
 
-	delAAndValAReward = getDelegationRewards(t, ctx, app.StakingKeeper, app.DistrKeeper, valA.Address.Bytes(), addB, true)
+	delAAndValAReward = getDelegationRewards(t, ctx, fxcore.StakingKeeper, fxcore.DistrKeeper, valA.Address.Bytes(), addB, true)
 	require.False(t, delAAndValAReward.IsZero())
 }
 
-func commitBlock(t *testing.T, ctx sdk.Context, app *fxcore.App) sdk.Context {
+func commitBlock(t *testing.T, ctx sdk.Context, fxcore *app.App) sdk.Context {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(5 * time.Second))
 
-	staking.EndBlocker(ctx, app.StakingKeeper)
-	mint.BeginBlocker(ctx, app.MintKeeper)
+	staking.EndBlocker(ctx, fxcore.StakingKeeper)
+	mint.BeginBlocker(ctx, fxcore.MintKeeper)
 
 	distribution.BeginBlocker(ctx, abcitypes.RequestBeginBlock{
 		Hash:   nil,
 		Header: tmproto.Header{},
 		LastCommitInfo: abcitypes.LastCommitInfo{
 			Round: 0,
-			Votes: buildCommitVotes(t, ctx, app.StakingKeeper, app.AppCodec()),
+			Votes: buildCommitVotes(t, ctx, fxcore.StakingKeeper, fxcore.AppCodec()),
 		},
 		ByzantineValidators: nil,
-	}, app.DistrKeeper)
+	}, fxcore.DistrKeeper)
 
 	return ctx
 }

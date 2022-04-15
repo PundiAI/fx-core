@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
@@ -188,9 +188,9 @@ func TestMigrateStakingHandler_Redelegate(t *testing.T) {
 	require.Equal(t, queue[0].DelegatorAddress, bob.String())
 }
 
-func GetDelegateRewards(ctx sdk.Context, app *fxcore.App, delegate sdk.AccAddress, validator sdk.ValAddress) (sdk.DecCoins, error) {
-	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.DistrKeeper)
+func GetDelegateRewards(ctx sdk.Context, fxcore *app.App, delegate sdk.AccAddress, validator sdk.ValAddress) (sdk.DecCoins, error) {
+	queryHelper := baseapp.NewQueryServerTestHelper(ctx, fxcore.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, fxcore.DistrKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 	rewards, err := queryClient.DelegationRewards(context.Background(), &types.QueryDelegationRewardsRequest{
 		DelegatorAddress: delegate.String(),
@@ -202,10 +202,10 @@ func GetDelegateRewards(ctx sdk.Context, app *fxcore.App, delegate sdk.AccAddres
 	return rewards.Rewards, nil
 }
 
-func commitUnbonding(t *testing.T, ctx sdk.Context, app *fxcore.App) sdk.Context {
+func commitUnbonding(t *testing.T, ctx sdk.Context, fxcore *app.App) sdk.Context {
 	i := 0
 	for i < 70 {
-		ctx = commitBlock(t, ctx, app)
+		ctx = commitBlock(t, ctx, fxcore)
 		i++
 	}
 	return ctx

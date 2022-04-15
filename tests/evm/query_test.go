@@ -6,19 +6,21 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/functionx/fx-core/app/fxcore"
-	_ "github.com/functionx/fx-core/app/fxcore"
-	"github.com/functionx/fx-core/contracts"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/rpc/client/http"
-	"strings"
-	"testing"
+
+	"github.com/functionx/fx-core/app"
+	_ "github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/contracts"
 )
 
 func TestQueryBalance(t *testing.T) {
@@ -68,7 +70,7 @@ func TestQueryFxTxByEvmHash(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, uint(len(blockData.Block.Txs)) > transactionReceipt.TransactionIndex)
 	fxTx := blockData.Block.Txs[transactionReceipt.TransactionIndex]
-	encodingConfig := fxcore.MakeEncodingConfig()
+	encodingConfig := app.MakeEncodingConfig()
 	tx, err := encodingConfig.TxConfig.TxDecoder()(fxTx)
 	require.NoError(t, err)
 	txJsonStr, err := encodingConfig.TxConfig.TxJSONEncoder()(tx)

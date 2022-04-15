@@ -1,11 +1,12 @@
-package cmd
+package app
 
 import (
 	"encoding/json"
 	"fmt"
-	fxconfig "github.com/functionx/fx-core/server/config"
 	"path/filepath"
 	"strings"
+
+	fxconfig "github.com/functionx/fx-core/server/config"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"

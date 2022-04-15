@@ -40,7 +40,7 @@ import (
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 
-	app "github.com/functionx/fx-core/app/fxcore"
+	app "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
 )

@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -88,7 +87,6 @@ func TestUnmarshalBlockNumberOrHash(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		fmt.Sprintf("Case %s", tc.msg)
 		// reset input
 		bnh = new(BlockNumberOrHash)
 		err := bnh.UnmarshalJSON(tc.input)

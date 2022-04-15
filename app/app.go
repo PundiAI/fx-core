@@ -1,4 +1,4 @@
-package fxcore
+package app
 
 import (
 	"io"
@@ -81,6 +81,7 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/functionx/fx-core/x/crosschain"

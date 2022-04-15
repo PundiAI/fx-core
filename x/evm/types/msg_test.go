@@ -18,7 +18,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/evm/types"
 )
 
@@ -47,7 +47,7 @@ func (suite *MsgsTestSuite) SetupTest() {
 	suite.to = tests.GenerateAddress()
 	suite.chainID = big.NewInt(1)
 
-	encodingConfig := fxcore.MakeEncodingConfig()
+	encodingConfig := app.MakeEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 }
 

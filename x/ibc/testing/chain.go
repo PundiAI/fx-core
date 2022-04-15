@@ -3,7 +3,7 @@ package ibctesting
 import (
 	"bytes"
 	"fmt"
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
 	"strconv"
 	"testing"
@@ -86,7 +86,7 @@ var (
 type TestChain struct {
 	t *testing.T
 
-	App                  *fxcore.App
+	App                  *app.App
 	ChainID              string
 	LastHeader           *ibctmtypes.Header // header for last block height committed
 	CurrentHeader        tmproto.Header     // header for current block height
@@ -133,7 +133,7 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 		Coins:   sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewInt(100000000000000))),
 	}
 
-	app := fxcore.SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	fxcore := app.SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
 
 	// create current header and call begin block
 	header := tmproto.Header{
@@ -148,11 +148,11 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 	chain := &TestChain{
 		t:             t,
 		ChainID:       chainID,
-		App:           app,
+		App:           fxcore,
 		CurrentHeader: header,
-		QueryServer:   app.IBCKeeper,
+		QueryServer:   fxcore.IBCKeeper,
 		TxConfig:      txConfig,
-		Codec:         app.AppCodec(),
+		Codec:         fxcore.AppCodec(),
 		Vals:          valSet,
 		Signers:       signers,
 		senderPrivKey: senderPrivKey,

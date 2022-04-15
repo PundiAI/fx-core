@@ -25,7 +25,7 @@ import (
 	"github.com/tendermint/tendermint/rpc/client/http"
 	"google.golang.org/grpc"
 
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
 )
 
@@ -62,7 +62,7 @@ type Client struct {
 	otherQueryClient   othertypes.QueryClient
 	gasPrice           sdk.Coin
 	fxPrivKey          *secp256k1.PrivKey
-	encodingConfig     fxcore.EncodingConfig
+	encodingConfig     app.EncodingConfig
 	ethPrivKey         *ecdsa.PrivateKey
 	ethAddress         gethCommon.Address
 	mutex              *sync.Mutex
@@ -114,7 +114,7 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 		gravityQueryClient: gravitytypes.NewQueryClient(grpcClientConn),
 		otherQueryClient:   othertypes.NewQueryClient(grpcClientConn),
 		fxPrivKey:          fxPrivateKey,
-		encodingConfig:     fxcore.MakeEncodingConfig(),
+		encodingConfig:     app.MakeEncodingConfig(),
 		ethPrivKey:         ethPrivateKey,
 		ethAddress:         ethAddress,
 		mutex:              &sync.Mutex{},

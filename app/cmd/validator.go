@@ -20,16 +20,16 @@ import (
 )
 
 const (
-	flagUpdateNodeKey = "update-node-key"
-	flagUpdatePrivKey = "update-priv-key"
-	flagUnsafe        = "unsafe"
-	flagKeyType       = "key-type"
+	flagResetNodeKey = "reset-node-key"
+	flagResetPrivKey = "reset-priv-key"
+	flagUnsafe       = "unsafe"
+	flagKeyType      = "key-type"
 )
 
-func UpdateValidatorKeyCmd() *cobra.Command {
+func UnsafeRestPrivValidatorCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-validator [secret]",
-		Short: "update validator node consensus private key file (.fxcore/config/priv_validator_key.json)",
+		Use:   "unsafe-reset-priv-validator [secret]",
+		Short: "(unsafe) Reset validator node consensus private key file (.fxcore/config/priv_validator_key.json)",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
@@ -38,11 +38,11 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 				return errors.New("please set the home directory")
 			}
 			unsafe := serverCtx.Viper.GetBool(flagUnsafe)
-			updateKey := serverCtx.Viper.GetBool(flagUpdatePrivKey)
-			if (unsafe && !updateKey) || (!unsafe && updateKey) {
-				return fmt.Errorf("the flags %s and %s must be used together", flagUnsafe, flagUpdatePrivKey)
+			resetKey := serverCtx.Viper.GetBool(flagResetPrivKey)
+			if (unsafe && !resetKey) || (!unsafe && resetKey) {
+				return fmt.Errorf("the flags %s and %s must be used together", flagUnsafe, flagResetPrivKey)
 			}
-			if !unsafe && !updateKey {
+			if !unsafe && !resetKey {
 				buf := bufio.NewReader(cmd.InOrStdin())
 				if yes, err := input.GetConfirmation("WARNING: The consensus private key of the node will be replaced. Ensure that the backup is complete. USE AT YOUR OWN RISK. Continue?", buf, cmd.ErrOrStderr()); err != nil {
 					return err
@@ -54,7 +54,7 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 			secret := newMnemonic()
 			if len(args) > 0 {
 				secret = args[0]
-			} else if !unsafe || !updateKey {
+			} else if !unsafe || !resetKey {
 				return fmt.Errorf("invalid params")
 			}
 			if len(secret) < 32 {
@@ -81,16 +81,16 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().Bool(flagUpdatePrivKey, false, "Update ed25519 private key. Requires --unsafe.")
+	cmd.Flags().Bool(flagResetPrivKey, false, "Reset ed25519 private key. Requires --unsafe.")
 	cmd.Flags().Bool(flagUnsafe, false, "Enable unsafe operations. This flag must be switched on along with all unsafe operation-specific options.")
 	cmd.Flags().String(flagKeyType, "ed25519", "Private key type, ed25519 or secp256k1.")
 	return cmd
 }
 
-func UpdateNodeKeyCmd() *cobra.Command {
+func UnsafeResetNodeKeyCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-node-key [secret]",
-		Short: "update node key file (fxcore/config/node_key.json)",
+		Use:   "reset-node-key [secret]",
+		Short: "reset node key file (fxcore/config/node_key.json)",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
@@ -99,11 +99,11 @@ func UpdateNodeKeyCmd() *cobra.Command {
 				return errors.New("please set the home directory")
 			}
 			unsafe := serverCtx.Viper.GetBool(flagUnsafe)
-			updateKey := serverCtx.Viper.GetBool(flagUpdateNodeKey)
-			if (unsafe && !updateKey) || (!unsafe && updateKey) {
-				return fmt.Errorf("the flags %s and %s must be used together", flagUnsafe, flagUpdateNodeKey)
+			resetKey := serverCtx.Viper.GetBool(flagResetNodeKey)
+			if (unsafe && !resetKey) || (!unsafe && resetKey) {
+				return fmt.Errorf("the flags %s and %s must be used together", flagUnsafe, flagResetNodeKey)
 			}
-			if !unsafe && !updateKey {
+			if !unsafe && !resetKey {
 				buf := bufio.NewReader(cmd.InOrStdin())
 				if yes, err := input.GetConfirmation("WARNING: The node key of the node will be replaced. Ensure that the backup is complete. USE AT YOUR OWN RISK. Continue?", buf, cmd.ErrOrStderr()); err != nil {
 					return err
@@ -114,7 +114,7 @@ func UpdateNodeKeyCmd() *cobra.Command {
 			secret := newMnemonic()
 			if len(args) > 0 {
 				secret = args[0]
-			} else if !unsafe || !updateKey {
+			} else if !unsafe || !resetKey {
 				return fmt.Errorf("invalid params")
 			}
 			if len(secret) < 32 {
@@ -130,7 +130,7 @@ func UpdateNodeKeyCmd() *cobra.Command {
 			return nodeKey.SaveAs(nodeKeyFile)
 		},
 	}
-	cmd.Flags().Bool(flagUpdateNodeKey, false, "Update node key. Requires --unsafe.")
+	cmd.Flags().Bool(flagResetNodeKey, false, "Reset node key. Requires --unsafe.")
 	cmd.Flags().Bool(flagUnsafe, false, "Enable unsafe operations. This flag must be switched on along with all unsafe operation-specific options.")
 	return cmd
 }

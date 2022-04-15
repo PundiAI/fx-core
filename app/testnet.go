@@ -1,14 +1,15 @@
-package cmd
+package app
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"html/template"
 	"net"
 	"os"
 	"path/filepath"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -28,8 +29,6 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
-
-	"github.com/functionx/fx-core/app/fxcore"
 )
 
 const (
@@ -230,7 +229,7 @@ func InitTestnet(
 		srvconfig.WriteConfigFile(filepath.Join(nodeDir, "config/app.toml"), appToml)
 	}
 
-	appGenState := fxcore.NewDefAppGenesisByDenom(denom, clientCtx.Codec)
+	appGenState := NewDefAppGenesisByDenom(denom, clientCtx.Codec)
 	// set the accounts in the genesis state
 	var authGenState authtypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appGenState[authtypes.ModuleName], &authGenState)

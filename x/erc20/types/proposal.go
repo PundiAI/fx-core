@@ -14,8 +14,6 @@ import (
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
 
-var ()
-
 func init() {
 
 }

@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	_ "embed"
-	app "github.com/functionx/fx-core/app/fxcore"
+	app "github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"

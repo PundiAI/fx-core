@@ -1,11 +1,17 @@
-package cmd
+package app
 
 import (
 	"bufio"
 	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
+	"sort"
+	"strings"
+	"unsafe"
+
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -13,14 +19,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/ledger"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	bip39 "github.com/cosmos/go-bip39"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"path/filepath"
-	"reflect"
-	"sort"
-	"strings"
-	"unsafe"
+
+	"io"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -30,9 +34,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/cli"
 	yaml "gopkg.in/yaml.v2"
-	"io"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+
 	etherminthd "github.com/functionx/fx-core/crypto/hd"
 
 	cryptokeyring "github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -56,15 +60,6 @@ const (
 	flagListNames = "list-names"
 
 	mnemonicEntropySize = 256
-)
-
-// available output formats.
-const (
-	OutputFormatText = "text"
-	OutputFormatJSON = "json"
-
-	// defaultKeyDBName is the client's subdirectory where keys are stored.
-	defaultKeyDBName = "keys"
 )
 
 // KeyCommands registers a sub-tree of commands to interact with
@@ -115,8 +110,8 @@ The pass backend requires GnuPG: https://gnupg.org/
 		listCmd,
 		showCmd,
 		keys.DeleteKeyCommand(),
-		keys.ParseKeyStringCommand(),
 		keys.MigrateCommand(),
+		ParseAddressCommand(),
 		UnsafeExportEthKeyCommand(),
 		UnsafeImportKeyCommand(),
 	)
@@ -135,122 +130,8 @@ func runAddCmdPrepare(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	buf := bufio.NewReader(cmd.InOrStdin())
+	buf := bufio.NewReader(clientCtx.Input)
 	return runAddCmd(clientCtx, cmd, args, buf)
-}
-
-// UnsafeExportEthKeyCommand exports a key with the given name as a private key in hex format.
-func UnsafeExportEthKeyCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "unsafe-export-eth-key [name]",
-		Short: "**UNSAFE** Export an Ethereum private key",
-		Long:  `**UNSAFE** Export an Ethereum private key unencrypted to use in dev tooling`,
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-
-			keyringBackend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
-			rootDir, _ := cmd.Flags().GetString(flags.FlagHome)
-
-			kr, err := keyring.New(
-				sdk.KeyringServiceName(),
-				keyringBackend,
-				rootDir,
-				inBuf,
-				etherminthd.EthSecp256k1Option(),
-			)
-			if err != nil {
-				return err
-			}
-
-			decryptPassword := ""
-			conf := true
-
-			switch keyringBackend {
-			case keyring.BackendFile:
-				decryptPassword, err = input.GetPassword(
-					"**WARNING this is an unsafe way to export your unencrypted private key**\nEnter key password:",
-					inBuf)
-			case keyring.BackendOS:
-				conf, err = input.GetConfirmation(
-					"**WARNING** this is an unsafe way to export your unencrypted private key, are you sure?",
-					inBuf, cmd.ErrOrStderr())
-			}
-			if err != nil || !conf {
-				return err
-			}
-
-			// Exports private key from keybase using password
-			armor, err := kr.ExportPrivKeyArmor(args[0], decryptPassword)
-			if err != nil {
-				return err
-			}
-
-			privKey, algo, err := crypto.UnarmorDecryptPrivKey(armor, decryptPassword)
-			if err != nil {
-				return err
-			}
-
-			if algo != string(hd.Secp256k1Type) {
-				return fmt.Errorf("invalid key algorithm, got %s, expected %s", algo, string(hd.Secp256k1Type))
-			}
-
-			// Converts key to cosmos secp256k1 implementation
-			secp256k1PrivKey, ok := privKey.(*secp256k1.PrivKey)
-			if !ok {
-				return fmt.Errorf("invalid private key type %T, expected %T", privKey, &secp256k1.PrivKey{})
-			}
-
-			key, err := ethcrypto.ToECDSA(secp256k1PrivKey.Bytes())
-			if err != nil {
-				return err
-			}
-
-			// Formats key for output
-			privB := ethcrypto.FromECDSA(key)
-			keyS := strings.ToUpper(hexutil.Encode(privB)[2:])
-
-			fmt.Println(keyS)
-
-			return nil
-		},
-	}
-}
-
-// UnsafeImportKeyCommand imports private keys from a keyfile.
-func UnsafeImportKeyCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "unsafe-import-eth-key <name> <pk>",
-		Short: "**UNSAFE** Import Ethereum private keys into the local keybase",
-		Long:  "**UNSAFE** Import a hex-encoded Ethereum private key into the local keybase.",
-		Args:  cobra.ExactArgs(2),
-		RunE:  runImportCmd,
-	}
-}
-
-func runImportCmd(cmd *cobra.Command, args []string) error {
-	inBuf := bufio.NewReader(cmd.InOrStdin())
-	keyringBackend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
-	rootDir, _ := cmd.Flags().GetString(flags.FlagHome)
-
-	kb, err := keyring.New(
-		sdk.KeyringServiceName(),
-		keyringBackend,
-		rootDir,
-		inBuf,
-		etherminthd.EthSecp256k1Option(),
-	)
-	if err != nil {
-		return err
-	}
-
-	privKey := &secp256k1.PrivKey{
-		Key: common.FromHex(args[1]),
-	}
-
-	armor := crypto.EncryptArmorPrivKey(privKey, "", "secp256k1")
-
-	return kb.ImportPrivKey(args[0], armor, "")
 }
 
 /*
@@ -449,32 +330,9 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 	return printCreate(cmd, info, showMnemonic, mnemonic, outputFormat)
 }
 
-func validateMultisigThreshold(k, nKeys int) error {
-	if k <= 0 {
-		return fmt.Errorf("threshold must be a positive integer")
-	}
-	if nKeys < k {
-		return fmt.Errorf(
-			"threshold k of n multisignature: %d < %d", nKeys, k)
-	}
-	return nil
-}
-
-type bechKeyOutFn func(keyInfo cryptokeyring.Info) (cryptokeyring.KeyOutput, error)
-
-// NewLegacyKeyBaseFromDir initializes a legacy keybase at the rootDir directory. Keybase
-// options can be applied when generating this new Keybase.
-func NewLegacyKeyBaseFromDir(rootDir string, opts ...cryptokeyring.KeybaseOption) (cryptokeyring.LegacyKeybase, error) {
-	return getLegacyKeyBaseFromDir(rootDir, opts...)
-}
-
-func getLegacyKeyBaseFromDir(rootDir string, opts ...cryptokeyring.KeybaseOption) (cryptokeyring.LegacyKeybase, error) {
-	return cryptokeyring.NewLegacy(defaultKeyDBName, filepath.Join(rootDir, "keys"), opts...)
-}
-
 func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemonic, outputFormat string) error {
 	switch outputFormat {
-	case OutputFormatText:
+	case keys.OutputFormatText:
 		cmd.PrintErrln()
 		printKeyInfo(cmd.OutOrStdout(), info, keyring.Bech32KeyOutput, outputFormat, false)
 
@@ -485,7 +343,7 @@ func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemo
 			fmt.Fprintln(cmd.ErrOrStderr(), "")
 			fmt.Fprintln(cmd.ErrOrStderr(), mnemonic)
 		}
-	case OutputFormatJSON:
+	case keys.OutputFormatJSON:
 		out, err := keyring.Bech32KeyOutput(info)
 		if err != nil {
 			return err
@@ -508,6 +366,19 @@ func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemo
 
 	return nil
 }
+
+func validateMultisigThreshold(k, nKeys int) error {
+	if k <= 0 {
+		return fmt.Errorf("threshold must be a positive integer")
+	}
+	if nKeys < k {
+		return fmt.Errorf(
+			"threshold k of n multisignature: %d < %d", nKeys, k)
+	}
+	return nil
+}
+
+type bechKeyOutFn func(keyInfo cryptokeyring.Info) (cryptokeyring.KeyOutput, error)
 
 func printKeyAddress(w io.Writer, info cryptokeyring.Info, bechKeyOut bechKeyOutFn) {
 	ko, err := bechKeyOut(info)
@@ -600,9 +471,9 @@ func printKeyInfo(w io.Writer, keyInfo cryptokeyring.Info, bechKeyOut bechKeyOut
 		keyOutput = KeyOutputToV2(ko, keyInfo)
 	}
 	switch output {
-	case OutputFormatText:
+	case keys.OutputFormatText:
 		outputTextUnlimitedWidth(w, []interface{}{keyOutput})
-	case OutputFormatJSON:
+	case keys.OutputFormatJSON:
 		outputJSON(w, keyOutput)
 	}
 }
@@ -648,18 +519,8 @@ func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 	isShowDevice, _ := cmd.Flags().GetBool(keys.FlagDevice)
 	showMore, _ := cmd.Flags().GetBool(flagShowMore)
 
-	isOutputSet := false
-	tmp := cmd.Flag(cli.OutputFlag)
-	if tmp != nil {
-		isOutputSet = tmp.Changed
-	}
-
 	if isShowAddr && isShowPubKey {
 		return errors.New("cannot use both --address and --pubkey at once")
-	}
-
-	if isOutputSet && (isShowAddr || isShowPubKey) {
-		return errors.New("cannot use --output with --address or --pubkey")
 	}
 
 	bechPrefix, _ := cmd.Flags().GetString(keys.FlagBechPrefix)
@@ -668,15 +529,13 @@ func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	output, _ := cmd.Flags().GetString(cli.OutputFlag)
-
 	switch {
 	case isShowAddr:
 		printKeyAddress(cmd.OutOrStdout(), info, bechKeyOut)
 	case isShowPubKey:
 		printPubKey(cmd.OutOrStdout(), info, bechKeyOut)
 	default:
-		printKeyInfo(cmd.OutOrStdout(), info, bechKeyOut, output, showMore)
+		printKeyInfo(cmd.OutOrStdout(), info, bechKeyOut, clientCtx.OutputFormat, showMore)
 	}
 
 	if isShowDevice {
@@ -743,18 +602,13 @@ func runListCmd(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	cmd.SetOut(cmd.OutOrStdout())
-
+	if ok, _ := cmd.Flags().GetBool(flagListNames); ok {
+		for _, info := range infos {
+			cmd.Println(info.GetName())
+		}
+	}
 	showMore, _ := cmd.Flags().GetBool(flagShowMore)
-
-	if ok, _ := cmd.Flags().GetBool(flagListNames); !ok {
-		output, _ := cmd.Flags().GetString(cli.OutputFlag)
-		printInfos(cmd.OutOrStdout(), infos, output, showMore)
-		return nil
-	}
-	for _, info := range infos {
-		cmd.Println(info.GetName())
-	}
+	printInfos(cmd.OutOrStdout(), infos, clientCtx.OutputFormat, showMore)
 	return nil
 }
 
@@ -775,9 +629,9 @@ func printInfos(w io.Writer, infos []cryptokeyring.Info, output string, showMore
 	}
 
 	switch output {
-	case OutputFormatText:
+	case keys.OutputFormatText:
 		outputTextUnlimitedWidth(w, &op)
-	case OutputFormatJSON:
+	case keys.OutputFormatJSON:
 		outputJSON(w, op)
 	}
 }
@@ -808,6 +662,7 @@ func outputTextUnlimitedWidth(w io.Writer, info interface{}) {
 	}
 	fmt.Fprintln(w, buf.String())
 }
+
 func outputJSON(w io.Writer, info interface{}) {
 	out, err := keys.KeysCdc.MarshalJSON(info)
 	if err != nil {
@@ -831,4 +686,174 @@ func Bech32KeysOutputV2(infos []cryptokeyring.Info) ([]KeyOutputV2, error) {
 	}
 
 	return kos, nil
+}
+
+func ParseAddressCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "parse [address]",
+		Short: "Parse address from hex to bech32 and vice versa",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			addrString := args[0]
+			var addr []byte
+
+			// try hex, then bech32
+			addr, err = hex.DecodeString(addrString)
+			if err != nil {
+				var err2 error
+				addr, err2 = sdk.AccAddressFromBech32(addrString)
+				if err2 != nil {
+					var err3 error
+					addr, err3 = sdk.ValAddressFromBech32(addrString)
+
+					if err3 != nil {
+						return fmt.Errorf("expected hex or bech32. Got errors: hex: %v, bech32 acc: %v, bech32 val: %v", err, err2, err3)
+
+					}
+				}
+			}
+			prefix, err := cmd.Flags().GetString("prefix")
+			if err != nil {
+				return err
+			}
+			accAddress, err := bech32.ConvertAndEncode(prefix, addr)
+			if err != nil {
+				return err
+			}
+			valAddress, err := bech32.ConvertAndEncode(prefix+sdk.PrefixValidator+sdk.PrefixOperator, addr)
+			if err != nil {
+				return err
+			}
+
+			data, err := json.Marshal(map[string]interface{}{
+				"BytesAddress": addr,
+				"HexAddress":   hex.EncodeToString(addr),
+				"EIP55Address": common.BytesToAddress(addr).String(),
+				"AccAddress":   accAddress,
+				"ValAddress":   valAddress,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintOutput(data)
+		},
+	}
+	cmd.Flags().String("prefix", "fx", "custom address prefix")
+	return cmd
+}
+
+// UnsafeExportEthKeyCommand exports a key with the given name as a private key in hex format.
+func UnsafeExportEthKeyCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "unsafe-export-eth-key [name]",
+		Short: "**UNSAFE** Export an Ethereum private key",
+		Long:  `**UNSAFE** Export an Ethereum private key unencrypted to use in dev tooling`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+
+			keyringBackend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
+			rootDir, _ := cmd.Flags().GetString(flags.FlagHome)
+
+			kr, err := keyring.New(
+				sdk.KeyringServiceName(),
+				keyringBackend,
+				rootDir,
+				inBuf,
+				etherminthd.EthSecp256k1Option(),
+			)
+			if err != nil {
+				return err
+			}
+
+			decryptPassword := ""
+			conf := true
+
+			switch keyringBackend {
+			case keyring.BackendFile:
+				decryptPassword, err = input.GetPassword(
+					"**WARNING this is an unsafe way to export your unencrypted private key**\nEnter key password:",
+					inBuf)
+			case keyring.BackendOS:
+				conf, err = input.GetConfirmation(
+					"**WARNING** this is an unsafe way to export your unencrypted private key, are you sure?",
+					inBuf, cmd.ErrOrStderr())
+			}
+			if err != nil || !conf {
+				return err
+			}
+
+			// Exports private key from keybase using password
+			armor, err := kr.ExportPrivKeyArmor(args[0], decryptPassword)
+			if err != nil {
+				return err
+			}
+
+			privKey, algo, err := crypto.UnarmorDecryptPrivKey(armor, decryptPassword)
+			if err != nil {
+				return err
+			}
+
+			if algo != string(hd.Secp256k1Type) {
+				return fmt.Errorf("invalid key algorithm, got %s, expected %s", algo, string(hd.Secp256k1Type))
+			}
+
+			// Converts key to cosmos secp256k1 implementation
+			secp256k1PrivKey, ok := privKey.(*secp256k1.PrivKey)
+			if !ok {
+				return fmt.Errorf("invalid private key type %T, expected %T", privKey, &secp256k1.PrivKey{})
+			}
+
+			key, err := ethcrypto.ToECDSA(secp256k1PrivKey.Bytes())
+			if err != nil {
+				return err
+			}
+
+			// Formats key for output
+			privB := ethcrypto.FromECDSA(key)
+			keyS := strings.ToUpper(hexutil.Encode(privB)[2:])
+
+			fmt.Println(keyS)
+
+			return nil
+		},
+	}
+}
+
+// UnsafeImportKeyCommand imports private keys from a keyfile.
+func UnsafeImportKeyCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "unsafe-import-eth-key <name> <pk>",
+		Short: "**UNSAFE** Import Ethereum private keys into the local keybase",
+		Long:  "**UNSAFE** Import a hex-encoded Ethereum private key into the local keybase.",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			keyringBackend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
+			rootDir, _ := cmd.Flags().GetString(flags.FlagHome)
+
+			kb, err := keyring.New(
+				sdk.KeyringServiceName(),
+				keyringBackend,
+				rootDir,
+				inBuf,
+				etherminthd.EthSecp256k1Option(),
+			)
+			if err != nil {
+				return err
+			}
+
+			privKey := &secp256k1.PrivKey{
+				Key: common.FromHex(args[1]),
+			}
+
+			armor := crypto.EncryptArmorPrivKey(privKey, "", "secp256k1")
+
+			return kb.ImportPrivKey(args[0], armor, "")
+		},
+	}
 }

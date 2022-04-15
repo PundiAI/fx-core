@@ -50,6 +50,7 @@ func handleRegisterCoinProposal(ctx sdk.Context, k *keeper.Keeper, p *types.Regi
 	return nil
 }
 
+// nolint
 func handleRegisterERC20Proposal(ctx sdk.Context, k *keeper.Keeper, p *types.RegisterERC20Proposal) error {
 	pair, err := k.RegisterERC20(ctx, common.HexToAddress(p.Erc20Address))
 	if err != nil {

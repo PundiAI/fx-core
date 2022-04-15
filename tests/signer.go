@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	"github.com/ethereum/go-ethereum/common"

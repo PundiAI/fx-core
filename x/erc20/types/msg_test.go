@@ -4,7 +4,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	_ "github.com/functionx/fx-core/app/fxcore"
+	_ "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/erc20/types"
 	"github.com/stretchr/testify/require"
 	"testing"

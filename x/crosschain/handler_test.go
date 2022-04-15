@@ -16,7 +16,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
@@ -147,8 +147,8 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 // 2. Test MsgAddOracleDeposit
 func TestMsgAddOracleDeposit(t *testing.T) {
 	// get test env
-	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keep := app.BscKeeper
+	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keep := fxcore.BscKeeper
 	var err error
 
 	// Query the status before the configuration
@@ -230,8 +230,8 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 
 func TestMsgSetOracleSetConfirm(t *testing.T) {
 	// get test env
-	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keep := app.BscKeeper
+	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keep := fxcore.BscKeeper
 	var err error
 
 	totalDepositBefore := keep.GetTotalDeposit(ctx)
@@ -249,7 +249,7 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 
 	latestOracleSetNonce := keep.GetLatestOracleSetNonce(ctx)
 	require.EqualValues(t, 0, latestOracleSetNonce)
-	app.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 	latestOracleSetNonce = keep.GetLatestOracleSetNonce(ctx)
 	require.EqualValues(t, 1, latestOracleSetNonce)
 
@@ -352,8 +352,8 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 }
 
 func TestClaimWithOracleJailed(t *testing.T) {
-	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keeper := app.BscKeeper
+	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keeper := fxcore.BscKeeper
 	var err error
 
 	totalDepositBefore := keeper.GetTotalDeposit(ctx)
@@ -368,7 +368,7 @@ func TestClaimWithOracleJailed(t *testing.T) {
 	}
 	_, err = h(ctx, normalMsg)
 	require.NoError(t, err)
-	app.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	latestOracleSetNonce := keeper.GetLatestOracleSetNonce(ctx)
 	require.EqualValues(t, 1, latestOracleSetNonce)
@@ -406,7 +406,7 @@ func TestClaimWithOracleJailed(t *testing.T) {
 
 func TestClaimTest(t *testing.T) {
 	// get test env
-	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
 	var err error
 
 	normalMsg := &types.MsgSetOrchestratorAddress{
@@ -419,7 +419,7 @@ func TestClaimTest(t *testing.T) {
 	_, err = h(ctx, normalMsg)
 	require.NoError(t, err)
 
-	oracleLastEventNonce := app.BscKeeper.GetLastEventNonceByOracle(ctx, oracleAddressList[0])
+	oracleLastEventNonce := fxcore.BscKeeper.GetLastEventNonceByOracle(ctx, oracleAddressList[0])
 	require.EqualValues(t, 0, oracleLastEventNonce)
 
 	errMsgDatas := []struct {
@@ -525,8 +525,8 @@ func TestClaimTest(t *testing.T) {
 func TestSupportRequestBatchBaseFee(t *testing.T) {
 	//fxcore.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keep := app.BscKeeper
+	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keep := fxcore.BscKeeper
 	var err error
 
 	// Query the status before the configuration
@@ -628,7 +628,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 
 	endBlock()
 
-	balance := app.BankKeeper.GetBalance(ctx, sendToFxReceiveAddr, tokenDenom)
+	balance := fxcore.BankKeeper.GetBalance(ctx, sendToFxReceiveAddr, tokenDenom)
 	require.NotNil(t, balance)
 	require.EqualValues(t, balance.Denom, tokenDenom)
 	require.True(t, balance.Amount.Equal(sendToFxAmount))
@@ -727,15 +727,15 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	}
 }
 
-func createTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {
+func createTestEnv(t *testing.T) (fxcore *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
-	app = fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx = app.BaseApp.NewContext(false, tmproto.Header{})
+	fxcore = app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx = fxcore.BaseApp.NewContext(false, tmproto.Header{})
 	ctx = ctx.WithBlockHeight(2000000)
-	oracleAddressList = fxcore.AddTestAddrsIncremental(app, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
-	orchestratorAddressList = fxcore.AddTestAddrs(app, ctx, GenerateAccountNum, sdk.ZeroInt())
+	oracleAddressList = app.AddTestAddrsIncremental(fxcore, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
+	orchestratorAddressList = app.AddTestAddrs(fxcore, ctx, GenerateAccountNum, sdk.ZeroInt())
 	ethKeys = genEthKey(GenerateAccountNum)
 	// chain module oracle list
 	var oracles []string
@@ -745,7 +745,7 @@ func createTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, oracleAddres
 
 	var err error
 	// init bsc params by proposal
-	proposalHandler := crosschain.NewCrossChainProposalHandler(app.CrosschainKeeper)
+	proposalHandler := crosschain.NewCrossChainProposalHandler(fxcore.CrosschainKeeper)
 	err = proposalHandler(ctx, &types.InitCrossChainParamsProposal{
 		Title:       "init bsc chain params",
 		Description: "init fx chain <-> bsc chain params",
@@ -754,13 +754,13 @@ func createTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, oracleAddres
 	})
 	require.NoError(t, err)
 
-	crosschianHandler := crosschain.NewHandler(app.CrosschainKeeper)
+	crosschianHandler := crosschain.NewHandler(fxcore.CrosschainKeeper)
 
 	proxyHandler := func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		require.NoError(t, msg.ValidateBasic(), fmt.Sprintf("msg %s/%s validate basic error", msg.Route(), msg.Type()))
 		return crosschianHandler(ctx, msg)
 	}
-	return app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, proxyHandler
+	return fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, proxyHandler
 }
 
 func defaultModuleParams(oracles []string) *types.Params {

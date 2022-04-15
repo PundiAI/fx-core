@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/functionx/fx-core/tests"
 	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/tests"
 )
 
 func TestIsEmptyHash(t *testing.T) {
@@ -111,10 +112,10 @@ func TestValidateAddressIgnoreChecksum(t *testing.T) {
 			"valid address", tests.GenerateAddress().Hex(), false,
 		},
 		{
-			"invalid address - upper address", strings.ToUpper(tests.GenerateAddress().Hex()), false,
+			"invalid address - upper address", "0x" + strings.ToUpper(tests.GenerateAddress().Hex()[2:]), false,
 		},
 		{
-			"invalid address - lower address", strings.ToLower(tests.GenerateAddress().Hex()), false,
+			"invalid address - lower address", "0x" + strings.ToLower(tests.GenerateAddress().Hex()[2:]), false,
 		},
 	}
 

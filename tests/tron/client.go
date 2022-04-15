@@ -4,10 +4,11 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 	"sync"
 	"testing"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -29,7 +30,7 @@ import (
 	"github.com/tendermint/tendermint/rpc/client/http"
 	"google.golang.org/grpc"
 
-	"github.com/functionx/fx-core/app/fxcore"
+	"github.com/functionx/fx-core/app"
 )
 
 const (
@@ -78,7 +79,7 @@ type Client struct {
 	bankQueryClient       banktypes.QueryClient
 	paramsQueryClient     paramstypes.QueryClient
 	fxPrivKey             *secp256k1.PrivKey
-	encodingConfig        fxcore.EncodingConfig
+	encodingConfig        app.EncodingConfig
 	externalPrivKey       *ecdsa.PrivateKey
 	externalAddress       tronAddress.Address
 	mutex                 *sync.Mutex
@@ -183,7 +184,7 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 		govQueryClient:        govtypes.NewQueryClient(grpcClientConn),
 		paramsQueryClient:     paramstypes.NewQueryClient(grpcClientConn),
 		fxPrivKey:             fxPrivateKey,
-		encodingConfig:        fxcore.MakeEncodingConfig(),
+		encodingConfig:        app.MakeEncodingConfig(),
 		externalPrivKey:       externalPrivateKey,
 		externalAddress:       externalAddress,
 		mutex:                 &sync.Mutex{},

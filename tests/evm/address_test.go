@@ -2,12 +2,14 @@ package evm_test
 
 import (
 	"encoding/hex"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	"github.com/stretchr/testify/require"
-	"testing"
+
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
 )
 
 const (
