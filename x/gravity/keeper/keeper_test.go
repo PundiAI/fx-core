@@ -30,7 +30,6 @@ func TestSetOrchestratorValidator(t *testing.T) {
 
 	val1Addr, found = fxcore.GravityKeeper.GetOrchestratorValidator(ctx, val1OrchestratorAddr)
 	require.True(t, found)
-	t.Log(val1Addr)
 	require.EqualValues(t, sdk.ValAddress(val1OrchestratorAddr), val1Addr)
 
 	val2Addr, found := fxcore.GravityKeeper.GetOrchestratorValidator(ctx, val2OrchestratorAddr)

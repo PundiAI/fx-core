@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"math/big"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -14,7 +16,6 @@ import (
 	"github.com/functionx/fx-core/server/config"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
-	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
@@ -26,7 +27,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 		decimalRes types.ERC20Uint8Response
 	)
 
-	erc20 := contracts.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 
 	// Name
 	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "name")
@@ -63,7 +64,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 
 // BalanceOf returns the balance of an address for ERC20 contract
 func (k Keeper) BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.Int, error) {
-	erc20 := contracts.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 
 	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "balanceOf", addr)
 	if err != nil {

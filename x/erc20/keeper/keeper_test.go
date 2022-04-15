@@ -44,7 +44,6 @@ import (
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	app "github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
@@ -211,7 +210,7 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation(name strin
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	chainID := suite.app.EvmKeeper.ChainID()
 
-	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
 
 	ctorArgs, err := erc20Config.ABI.Pack("", big.NewInt(1000000000000000000))
 	suite.Require().NoError(err)
@@ -269,14 +268,14 @@ func (suite *KeeperTestSuite) Commit() {
 }
 
 func (suite *KeeperTestSuite) MintERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
 	transferData, err := erc20Config.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
 
 func (suite *KeeperTestSuite) BurnERC20Token(contractAddr, from common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
 	transferData, err := erc20Config.ABI.Pack("transfer", types.ModuleAddress, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
@@ -322,7 +321,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 }
 
 func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interface{} {
-	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
 	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, "balanceOf", account)
 	if err != nil {
 		return nil
@@ -338,7 +337,7 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 }
 
 func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
-	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
 
 	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, "name")
 	suite.Require().NoError(err)
@@ -352,7 +351,7 @@ func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
 }
 
 func (suite *KeeperTestSuite) TransferERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
 	transferData, err := erc20Config.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)

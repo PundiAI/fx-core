@@ -28,7 +28,6 @@ import (
 
 	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/ante"
-	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"
@@ -167,7 +166,7 @@ func TestHookChainGravity(t *testing.T) {
 	_ = balanceOf
 
 	token := pair.GetERC20Contract()
-	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, gravitytypes.ModuleName)
+	crossChainTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, gravitytypes.ModuleName)
 	transferChainData := packTransferCrossData(t, ctx, fxcore.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
 	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferChainData)
 
@@ -229,7 +228,7 @@ func TestHookChainBSC(t *testing.T) {
 	_ = balanceOf
 
 	token := pair.GetERC20Contract()
-	crossChainTarget := fmt.Sprintf("%s%s", contracts.TransferChainPrefix, bsctypes.ModuleName)
+	crossChainTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, bsctypes.ModuleName)
 	transferChainData := packTransferCrossData(t, ctx, fxcore.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
 	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferChainData)
 
@@ -275,13 +274,13 @@ func TestHookIBC(t *testing.T) {
 	fxcore.EvmKeeper = fxcore.EvmKeeper.SetHooksForTest(evmHooks)
 
 	token := pair.GetERC20Contract()
-	ibcTarget := fmt.Sprintf("%s%s", contracts.TransferIBCPrefix, "px/transfer/channel-0")
+	ibcTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, "px/transfer/channel-0")
 	transferIBCData := packTransferCrossData(t, ctx, fxcore.Erc20Keeper, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", big.NewInt(1e18), big.NewInt(0), ibcTarget)
 	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferIBCData)
 }
 
 func packTransferCrossData(t *testing.T, ctx sdk.Context, k keeper.Keeper, to string, amount, fee *big.Int, target string) []byte {
-	fip20 := contracts.GetERC20(ctx.BlockHeight())
+	fip20 := fxtypes.GetERC20(ctx.BlockHeight())
 	pack, err := fip20.ABI.Pack("transferCross", to, amount, fee, target)
 	require.NoError(t, err)
 	return pack

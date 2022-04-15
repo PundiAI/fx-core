@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
@@ -17,7 +19,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
@@ -90,7 +91,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 // erc20 module account as owner.
 func (k Keeper) DeployERC20Contract(ctx sdk.Context, coinMetadata banktypes.Metadata) (common.Address, error) {
 	decimals := uint8(coinMetadata.DenomUnits[0].Exponent)
-	erc20 := contracts.GetERC20(ctx.BlockHeight())
+	erc20 := fxtypes.GetERC20(ctx.BlockHeight())
 	ctorArgs, err := erc20.ABI.Pack(
 		"",
 		coinMetadata.Description,
@@ -265,8 +266,8 @@ func (k Keeper) initSystemContract(ctx sdk.Context) error {
 	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
 		return errors.New("the erc20 module account has not been set")
 	}
-	for _, contract := range contracts.GetInitContracts() {
-		if len(contract.Code) <= 0 || contract.Address == common.HexToAddress(contracts.EmptyEvmAddress) {
+	for _, contract := range fxtypes.GetInitContracts() {
+		if len(contract.Code) <= 0 || contract.Address == common.HexToAddress(fxtypes.EmptyEvmAddress) {
 			return errors.New("invalid contract")
 		}
 		if err := k.evmKeeper.CreateContractWithCode(ctx, contract.Address, contract.Code); err != nil {
@@ -279,9 +280,9 @@ func (k Keeper) initSystemContract(ctx sdk.Context) error {
 func (k Keeper) DeployTokenUpgrade(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8, origin bool) (common.Address, error) {
 	k.Logger(ctx).Info("deploy token upgrade", "name", name, "symbol", symbol, "decimals", decimals)
 
-	tokenContract := contracts.GetERC20(ctx.BlockHeight())
+	tokenContract := fxtypes.GetERC20(ctx.BlockHeight())
 	if origin {
-		tokenContract = contracts.GetWFX(ctx.BlockHeight())
+		tokenContract = fxtypes.GetWFX(ctx.BlockHeight())
 	}
 
 	//deploy proxy
@@ -295,7 +296,7 @@ func (k Keeper) DeployTokenUpgrade(ctx sdk.Context, from common.Address, name, s
 
 func (k Keeper) DeployERC1967Proxy(ctx sdk.Context, from, logicAddr common.Address, logicData ...byte) (common.Address, error) {
 	k.Logger(ctx).Info("deploy erc1967 proxy", "logic", logicAddr.String(), "data", hex.EncodeToString(logicData))
-	erc1967Proxy := contracts.GetERC1967Proxy(ctx.BlockHeight())
+	erc1967Proxy := fxtypes.GetERC1967Proxy(ctx.BlockHeight())
 
 	if len(logicData) == 0 {
 		logicData = []byte{}

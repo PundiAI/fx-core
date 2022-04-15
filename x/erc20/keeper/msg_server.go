@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/big"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,7 +16,6 @@ import (
 
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
-	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
@@ -92,7 +93,7 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg *types.MsgConvertCoin, receiver common.Address, sender sdk.AccAddress) (*types.MsgConvertCoinResponse, error) {
 	// NOTE: ignore validation from NewCoin constructor
 	coins := sdk.Coins{msg.Coin}
-	erc20 := contracts.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 	contract := pair.GetERC20Contract()
 	balanceToken := k.balanceOf(ctx, erc20, contract, receiver)
 
@@ -163,7 +164,7 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 	// NOTE: coin fields already validated
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: msg.Amount}}
 
-	erc20 := contracts.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 	contract := pair.GetERC20Contract()
 	balanceCoin := k.bankKeeper.GetBalance(ctx, receiver, pair.Denom)
 	balanceToken := k.balanceOf(ctx, erc20, contract, sender)
@@ -248,7 +249,7 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, msg *types.MsgConvertERC20, receiver sdk.AccAddress, sender common.Address) (*types.MsgConvertERC20Response, error) {
 	// NOTE: coin fields already validated
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: msg.Amount}}
-	erc20 := contracts.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 	contract := pair.GetERC20Contract()
 	balanceCoin := k.bankKeeper.GetBalance(ctx, receiver, pair.Denom)
 	balanceToken := k.balanceOf(ctx, erc20, contract, types.ModuleAddress)
@@ -353,7 +354,7 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	// NOTE: ignore validation from NewCoin constructor
 	coins := sdk.Coins{msg.Coin}
 
-	erc20 := contracts.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 	contract := pair.GetERC20Contract()
 	balanceToken := k.balanceOf(ctx, erc20, contract, receiver)
 

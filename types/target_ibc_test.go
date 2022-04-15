@@ -1,4 +1,4 @@
-package keeper
+package types
 
 import (
 	"encoding/hex"
@@ -77,13 +77,13 @@ func TestCovertIbcData(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		addressPrefix, sourcePort, sourceChannel, isOk := covertIbcData(tc.ibcData)
+		targetIBC, isOk := ParseHexTargetIBC(tc.ibcData)
 		require.EqualValues(t, tc.expect.ok, isOk, tc.name)
 		if !tc.expect.ok {
 			return
 		}
-		require.EqualValues(t, tc.expect.prefix, addressPrefix, tc.name)
-		require.EqualValues(t, tc.expect.port, sourcePort, tc.name)
-		require.EqualValues(t, tc.expect.channel, sourceChannel, tc.name)
+		require.EqualValues(t, tc.expect.prefix, targetIBC.Prefix, tc.name)
+		require.EqualValues(t, tc.expect.port, targetIBC.SourcePort, tc.name)
+		require.EqualValues(t, tc.expect.channel, targetIBC.SourceChannel, tc.name)
 	}
 }

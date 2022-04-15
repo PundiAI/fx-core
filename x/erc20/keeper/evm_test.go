@@ -3,10 +3,11 @@ package keeper_test
 import (
 	"github.com/ethereum/go-ethereum/common"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/functionx/fx-core/tests"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
-	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
@@ -66,7 +67,7 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 	for _, tc := range testCases {
 		suite.SetupTest() // reset
 
-		erc20Config := contracts.GetERC20(suite.ctx.BlockHeight())
+		erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
 		contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
 		suite.Require().NoError(err)
 		account := tests.GenerateAddress()

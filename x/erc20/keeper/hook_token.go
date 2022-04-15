@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math/big"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,13 +15,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
 // RelayTokenProcessing relay token from evm contract to chain address
 func (k Keeper) RelayTokenProcessing(ctx sdk.Context, _ common.Address, _ *common.Address, receipt *ethtypes.Receipt) error {
-	erc20ABI := contracts.GetERC20(ctx.BlockHeight()).ABI
+	erc20ABI := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 	for _, log := range receipt.Logs {
 		if !isRelayTokenEvent(erc20ABI, log) {
 			continue

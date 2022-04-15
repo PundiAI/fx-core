@@ -31,8 +31,8 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 	if err := h.k.RelayTokenProcessing(ctx, msg.From(), msg.To(), receipt); err != nil {
 		return err
 	}
-	//process relay transfer cross(cross-chain,ibc...)
-	if err := h.k.RelayTransferCrossProcessing(ctx, msg.From(), msg.To(), receipt); err != nil {
+	//process relay transfer crosschain(cross-chain,ibc...)
+	if err := h.k.RelayTransferCrosschainProcessing(ctx, msg.From(), msg.To(), receipt); err != nil {
 		return err
 	}
 	return nil

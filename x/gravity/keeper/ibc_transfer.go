@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -29,21 +28,21 @@ func (a AttestationHandler) handlerRelayTransfer(ctx sdk.Context, claim *types.M
 
 func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgDepositClaim, receiveAddr sdk.AccAddress, coin sdk.Coin) {
 	logger := a.keeper.Logger(ctx)
-	ibcPrefix, sourcePort, sourceChannel, ok := covertIbcData(claim.TargetIbc)
+	targetIBC, ok := fxtypes.ParseHexTargetIBC(claim.TargetIbc)
 	if !ok {
 		logger.Error("convert target ibc data error!!!", "targetIbc", claim.GetTargetIbc())
 		return
 	}
-	ibcReceiveAddress, err := bech32.ConvertAndEncode(ibcPrefix, receiveAddr)
+	ibcReceiveAddress, err := bech32.ConvertAndEncode(targetIBC.Prefix, receiveAddr)
 	if err != nil {
 		logger.Error("convert ibc transfer receive address error!!!", "fxReceive", claim.FxReceiver,
-			"ibcPrefix", ibcPrefix, "sourcePort", sourcePort, "sourceChannel", sourceChannel, "error", err)
+			"ibcPrefix", targetIBC.Prefix, "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel, "error", err)
 		return
 	}
 
-	_, clientState, err := a.keeper.ibcChannelKeeper.GetChannelClientState(ctx, sourcePort, sourceChannel)
+	_, clientState, err := a.keeper.ibcChannelKeeper.GetChannelClientState(ctx, targetIBC.SourcePort, targetIBC.SourceChannel)
 	if err != nil {
-		logger.Error("get channel client state error!!!", "sourcePort", sourcePort, "sourceChannel", sourceChannel)
+		logger.Error("get channel client state error!!!", "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel)
 		return
 	}
 	params := a.keeper.GetParams(ctx)
@@ -53,14 +52,14 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 		RevisionNumber: clientStateHeight.GetRevisionNumber(),
 		RevisionHeight: destTimeoutHeight,
 	}
-	nextSequenceSend, found := a.keeper.ibcChannelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
+	nextSequenceSend, found := a.keeper.ibcChannelKeeper.GetNextSequenceSend(ctx, targetIBC.SourcePort, targetIBC.SourceChannel)
 	if !found {
-		logger.Error("ibc channel next sequence send not found!!!", "sourcePort", sourcePort, "sourceChannel", sourceChannel)
+		logger.Error("ibc channel next sequence send not found!!!", "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel)
 		return
 	}
 	logger.Info("gravity start ibc transfer", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "destCurrentHeight", clientStateHeight.GetRevisionHeight(), "destTimeoutHeight", destTimeoutHeight, "nextSequenceSend", nextSequenceSend)
 	if err = a.keeper.ibcTransferKeeper.SendTransfer(ctx,
-		sourcePort, sourceChannel,
+		targetIBC.SourcePort, targetIBC.SourceChannel,
 		coin, receiveAddr, ibcReceiveAddress,
 		ibcTimeoutHeight, 0,
 		"", sdk.NewCoin(coin.Denom, sdk.ZeroInt())); err != nil {
@@ -68,15 +67,15 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 		return
 	}
 
-	a.keeper.SetIbcSequenceHeight(ctx, sourcePort, sourceChannel, nextSequenceSend, uint64(ctx.BlockHeight()))
+	a.keeper.SetIbcSequenceHeight(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, nextSequenceSend, uint64(ctx.BlockHeight()))
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeIbcTransfer,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
 		sdk.NewAttribute(types.AttributeKeyIbcSendSequence, fmt.Sprint(nextSequenceSend)),
-		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, sourcePort),
-		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, sourceChannel),
+		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, targetIBC.SourcePort),
+		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, targetIBC.SourceChannel),
 	))
 }
 
@@ -95,22 +94,4 @@ func (a AttestationHandler) handlerEvmTransfer(ctx sdk.Context, claim *types.Msg
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
 	))
-}
-
-func covertIbcData(targetIbc string) (prefix, sourcePort, sourceChannel string, isOk bool) {
-	// pay/transfer/channel-0
-	targetIbcBytes, err := hex.DecodeString(targetIbc)
-	if err != nil {
-		return
-	}
-	ibcData := strings.Split(string(targetIbcBytes), "/")
-	if len(ibcData) < 3 {
-		isOk = false
-		return
-	}
-	prefix = ibcData[0]
-	sourcePort = ibcData[1]
-	sourceChannel = ibcData[2]
-	isOk = true
-	return
 }

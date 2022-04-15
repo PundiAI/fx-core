@@ -212,7 +212,7 @@ format:
 ###############################################################################
 
 test:
-	go test -mod=readonly -short $(shell go list ./...)
+	@go test -mod=readonly -short $(shell go list ./...)
 
 test-unit:
 	@VERSION=$(VERSION) go test -mod=readonly -short -tags='ledger test_ledger_mock' ./...

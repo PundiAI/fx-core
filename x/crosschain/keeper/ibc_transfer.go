@@ -29,21 +29,21 @@ func (a Keeper) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxCl
 
 func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiveAddr sdk.AccAddress, coin sdk.Coin) {
 	logger := k.Logger(ctx)
-	ibcPrefix, sourcePort, sourceChannel, ok := covertIbcData(claim.TargetIbc)
+	targetIBC, ok := fxtypes.ParseHexTargetIBC(claim.TargetIbc)
 	if !ok {
 		logger.Error("convert target ibc data error!!!", "targetIbc", claim.GetTargetIbc())
 		return
 	}
-	ibcReceiveAddress, err := bech32.ConvertAndEncode(ibcPrefix, receiveAddr)
+	ibcReceiveAddress, err := bech32.ConvertAndEncode(targetIBC.Prefix, receiveAddr)
 	if err != nil {
 		logger.Error("convert ibc transfer receive address error!!!", "fxReceive", claim.Receiver,
-			"ibcPrefix", ibcPrefix, "sourcePort", sourcePort, "sourceChannel", sourceChannel, "error", err)
+			"ibcPrefix", targetIBC.Prefix, "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel, "error", err)
 		return
 	}
 
-	_, clientState, err := k.ibcChannelKeeper.GetChannelClientState(ctx, sourcePort, sourceChannel)
+	_, clientState, err := k.ibcChannelKeeper.GetChannelClientState(ctx, targetIBC.SourcePort, targetIBC.SourceChannel)
 	if err != nil {
-		logger.Error("get channel client state error!!!", "sourcePort", sourcePort, "sourceChannel", sourceChannel)
+		logger.Error("get channel client state error!!!", "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel)
 		return
 	}
 
@@ -55,30 +55,30 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 		RevisionHeight: destTimeoutHeight,
 	}
 
-	nextSequenceSend, found := k.ibcChannelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
+	nextSequenceSend, found := k.ibcChannelKeeper.GetNextSequenceSend(ctx, targetIBC.SourcePort, targetIBC.SourceChannel)
 	if !found {
-		logger.Error("ibc channel next sequence send not found!!!", "sourcePort", sourcePort, "sourceChannel", sourceChannel)
+		logger.Error("ibc channel next sequence send not found!!!", "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel)
 		return
 	}
 	logger.Info("CrossChain start ibc transfer", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "destCurrentHeight", clientStateHeight.GetRevisionHeight(), "destTimeoutHeight", destTimeoutHeight, "nextSequenceSend", nextSequenceSend)
 
 	if err = k.ibcTransferKeeper.SendTransfer(ctx,
-		sourcePort, sourceChannel,
+		targetIBC.SourcePort, targetIBC.SourceChannel,
 		coin, receiveAddr, ibcReceiveAddress,
 		ibcTimeoutHeight, 0,
 		"", sdk.NewCoin(coin.Denom, sdk.ZeroInt())); err != nil {
 		logger.Error("CrossChain ibc transfer fail", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "err", err)
 		return
 	}
-	k.SetIbcSequenceHeight(ctx, sourcePort, sourceChannel, nextSequenceSend, uint64(ctx.BlockHeight()))
+	k.SetIbcSequenceHeight(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, nextSequenceSend, uint64(ctx.BlockHeight()))
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeIbcTransfer,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
 		sdk.NewAttribute(types.AttributeKeyIbcSendSequence, fmt.Sprint(nextSequenceSend)),
-		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, sourcePort),
-		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, sourceChannel),
+		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, targetIBC.SourcePort),
+		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, targetIBC.SourceChannel),
 	))
 }
 
