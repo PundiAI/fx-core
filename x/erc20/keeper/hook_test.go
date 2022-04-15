@@ -281,7 +281,9 @@ func TestHookIBC(t *testing.T) {
 
 func packTransferCrossData(t *testing.T, ctx sdk.Context, k keeper.Keeper, to string, amount, fee *big.Int, target string) []byte {
 	fip20 := fxtypes.GetERC20(ctx.BlockHeight())
-	pack, err := fip20.ABI.Pack("transferCross", to, amount, fee, target)
+	var targetIBCByte32 [32]byte
+	copy(targetIBCByte32[:], target)
+	pack, err := fip20.ABI.Pack("transferCrossChain", to, amount, fee, targetIBCByte32)
 	require.NoError(t, err)
 	return pack
 }
