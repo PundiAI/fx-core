@@ -336,30 +336,7 @@ func TestSignature(t *testing.T) {
 func (cli *Client) testQueryBalance(ctx context.Context, acc sdk.AccAddress) {
 	balances, err := cli.BankQuery().AllBalances(ctx, &banktypes.QueryAllBalancesRequest{Address: acc.String()})
 	require.NoError(cli.t, err)
-	cli.t.Log("=======>", "address", acc.String(), "balance", balances.Balances.String())
-}
-func (cli *Client) testQueryWithdrawAddr(ctx context.Context, acc sdk.AccAddress) {
-	withdrawAddr, err := cli.DistrQuery().DelegatorWithdrawAddress(ctx, &distritypes.QueryDelegatorWithdrawAddressRequest{DelegatorAddress: acc.String()})
-	require.NoError(cli.t, err)
-	cli.t.Log("withdraw address", withdrawAddr)
-}
-func (cli *Client) testQueryDelegation(ctx context.Context, acc sdk.AccAddress, val sdk.ValAddress) {
-	delegation, err := cli.StakingQuery().Delegation(ctx, &stakingtypes.QueryDelegationRequest{
-		DelegatorAddr: acc.String(),
-		ValidatorAddr: val.String(),
-	})
-	require.NoError(cli.t, err)
-	cli.t.Log("=======>", "delegate", acc.String(), "val", val.String(), "share", delegation.DelegationResponse.GetDelegation().Shares.String(), "amount", delegation.DelegationResponse.Balance.String())
-}
-func (cli *Client) testQueryUnbondingDelegate(ctx context.Context, acc sdk.AccAddress, val sdk.ValAddress) {
-	undelegation, err := cli.StakingQuery().UnbondingDelegation(ctx, &stakingtypes.QueryUnbondingDelegationRequest{
-		DelegatorAddr: acc.String(),
-		ValidatorAddr: val.String(),
-	})
-	require.NoError(cli.t, err)
-	for _, e := range undelegation.Unbond.Entries {
-		cli.t.Log("=======>", "query undelegate", undelegation.Unbond.DelegatorAddress, "val", undelegation.Unbond.ValidatorAddress, "balance", e.Balance.String(), "time", e.CompletionTime.String(), e.InitialBalance.String(), e.CreationHeight)
-	}
+	cli.t.Log("address", acc.String(), "balance", balances.Balances.String())
 }
 func (cli *Client) testQueryValidator(ctx context.Context) []sdk.ValAddress {
 	validators, err := cli.StakingQuery().Validators(ctx, &stakingtypes.QueryValidatorsRequest{Status: stakingtypes.Bonded.String()})
@@ -371,54 +348,12 @@ func (cli *Client) testQueryValidator(ctx context.Context) []sdk.ValAddress {
 		valAddr, err := sdk.ValAddressFromBech32(v.OperatorAddress)
 		require.NoError(cli.t, err)
 		vals = append(vals, valAddr)
-		cli.t.Log("=========> query validator", "val", v.OperatorAddress, "token", v.Tokens.String(), "share", v.DelegatorShares.String())
+		cli.t.Log("query validator", "val", v.OperatorAddress, "token", v.Tokens.String(), "share", v.DelegatorShares.String())
 	}
 
 	return vals
 }
-func (cli *Client) testQueryRedelegate(ctx context.Context, acc sdk.AccAddress, valSrc, valDest sdk.ValAddress) {
-	redelegation, err := cli.StakingQuery().Redelegations(ctx, &stakingtypes.QueryRedelegationsRequest{
-		DelegatorAddr:    acc.String(),
-		SrcValidatorAddr: valSrc.String(),
-		DstValidatorAddr: valDest.String(),
-	})
-	require.NoError(cli.t, err)
-	for _, r := range redelegation.RedelegationResponses {
-		for _, e := range r.Entries {
-			cli.t.Log("=======>", "query redelegate", acc.String(), "val src", valSrc.String(), "val dst", valDest.String(), "balance", e.Balance.String(), "time", e.RedelegationEntry.CompletionTime.String(), e.RedelegationEntry.InitialBalance.String(), e.RedelegationEntry.CreationHeight)
-		}
-	}
-}
-func (cli *Client) testQueryGov(ctx context.Context, acc sdk.AccAddress) {
-	proposals, err := cli.GovQuery().Proposals(ctx, &govtypes.QueryProposalsRequest{
-		ProposalStatus: govtypes.StatusDepositPeriod,
-		Depositor:      acc.String(),
-	})
-	require.NoError(cli.t, err)
-	for _, p := range proposals.Proposals {
-		cli.t.Log("deposit", "address", acc.String(), "id", p.ProposalId, "title", p.GetTitle())
-	}
-
-	proposals, err = cli.GovQuery().Proposals(ctx, &govtypes.QueryProposalsRequest{
-		ProposalStatus: govtypes.StatusVotingPeriod,
-		Depositor:      acc.String(),
-	})
-	require.NoError(cli.t, err)
-	for _, p := range proposals.Proposals {
-		cli.t.Log("vote - deposit", "address", acc.String(), "id", p.ProposalId, "title", p.GetTitle())
-	}
-
-	proposals, err = cli.GovQuery().Proposals(ctx, &govtypes.QueryProposalsRequest{
-		ProposalStatus: govtypes.StatusVotingPeriod,
-		Voter:          acc.String(),
-	})
-	require.NoError(cli.t, err)
-	for _, p := range proposals.Proposals {
-		cli.t.Log("vote", "address", acc.String(), "id", p.ProposalId, "title", p.GetTitle())
-	}
-}
 func (cli *Client) testQueryAccount(ctx context.Context, acc sdk.AccAddress) {
-	cli.t.Logf("============%s============\n", acc.String())
 	balances, err := cli.BankQuery().AllBalances(ctx, &banktypes.QueryAllBalancesRequest{Address: acc.String()})
 	require.NoError(cli.t, err)
 	cli.t.Log("all balance", balances.Balances.String())
@@ -497,7 +432,6 @@ func (cli *Client) testQueryAccount(ctx context.Context, acc sdk.AccAddress) {
 			cli.t.Log("proposal vote", "id", p.ProposalId, "title", p.GetTitle(), "status", p.Status.String(), "amount", depositResp.Deposit.Amount.String())
 		}
 	}
-	cli.t.Log("=================================================================")
 }
 
 func (cli *Client) testCreateValidator(ctx context.Context, mnemonic string) sdk.ValAddress {
@@ -509,7 +443,7 @@ func (cli *Client) testCreateValidator(ctx context.Context, mnemonic string) sdk
 	amt := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
 	msg = banktypes.NewMsgSend(cli.FxAddress(), sdk.AccAddress(valAddr), amt)
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "send to validator txHash", txHash)
+	cli.t.Log("send to validator txHash", txHash)
 
 	oldKey := cli.privateKey
 	defer cli.SetPrivateKey(oldKey)
@@ -535,7 +469,7 @@ func (cli *Client) testCreateValidator(ctx context.Context, mnemonic string) sdk
 	msg, err = stakingtypes.NewMsgCreateValidator(valAddr, ed25519.PubKey(), selfDelegate, description, rates, minSelfDelegate)
 	require.NoError(cli.t, err)
 	txHash = cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "create validator txHash", txHash)
+	cli.t.Log("create validator txHash", txHash)
 
 	return valAddr
 }
@@ -550,7 +484,7 @@ func (cli *Client) testSend(ctx context.Context, acc sdk.AccAddress, amt int64, 
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(amt))))
 	msg = banktypes.NewMsgSend(cli.FxAddress(), acc, amount)
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "send txHash", txHash)
+	cli.t.Log("send txHash", txHash)
 }
 func (cli *Client) testSetWithdrawAddr(ctx context.Context, acc sdk.AccAddress, privateKey ...cryptotypes.PrivKey) {
 	if len(privateKey) > 0 {
@@ -561,7 +495,7 @@ func (cli *Client) testSetWithdrawAddr(ctx context.Context, acc sdk.AccAddress, 
 	}
 	msg := distritypes.NewMsgSetWithdrawAddress(cli.FxAddress(), acc)
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "set withdraw txHash", txHash)
+	cli.t.Log("set withdraw txHash", txHash)
 }
 func (cli *Client) testDelegate(ctx context.Context, val sdk.ValAddress, privateKey ...cryptotypes.PrivKey) {
 	if len(privateKey) > 0 {
@@ -574,7 +508,7 @@ func (cli *Client) testDelegate(ctx context.Context, val sdk.ValAddress, private
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100000))
 	msg = stakingtypes.NewMsgDelegate(cli.FxAddress(), val, sdk.NewCoin(fxtypes.MintDenom, amt))
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "delegate txHash", txHash)
+	cli.t.Log("delegate txHash", txHash)
 }
 func (cli *Client) testWithdrawReward(ctx context.Context, val sdk.ValAddress, privateKey ...cryptotypes.PrivKey) {
 	if len(privateKey) > 0 {
@@ -585,7 +519,7 @@ func (cli *Client) testWithdrawReward(ctx context.Context, val sdk.ValAddress, p
 	}
 	msg := distritypes.NewMsgWithdrawDelegatorReward(cli.FxAddress(), val)
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "withdraw reward txHash", txHash)
+	cli.t.Log("withdraw reward txHash", txHash)
 }
 
 func (cli *Client) testUndelegate(ctx context.Context, val sdk.ValAddress, all bool, privateKey ...cryptotypes.PrivKey) {
@@ -607,7 +541,7 @@ func (cli *Client) testUndelegate(ctx context.Context, val sdk.ValAddress, all b
 	}
 	msg = stakingtypes.NewMsgUndelegate(cli.FxAddress(), val, sdk.NewCoin(fxtypes.MintDenom, amt))
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "undelegate txHash", txHash)
+	cli.t.Log("undelegate txHash", txHash)
 }
 func (cli *Client) testRedelegate(ctx context.Context, valSrc, valDest sdk.ValAddress, all bool, privateKey ...cryptotypes.PrivKey) {
 	if len(privateKey) > 0 {
@@ -628,7 +562,7 @@ func (cli *Client) testRedelegate(ctx context.Context, valSrc, valDest sdk.ValAd
 	}
 	msg = stakingtypes.NewMsgBeginRedelegate(cli.FxAddress(), valSrc, valDest, sdk.NewCoin(fxtypes.MintDenom, amt))
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "redelegate txHash", txHash)
+	cli.t.Log("redelegate txHash", txHash)
 }
 func (cli *Client) testProposalSubmit(ctx context.Context, satisfyVote ...bool) {
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
@@ -640,7 +574,7 @@ func (cli *Client) testProposalSubmit(ctx context.Context, satisfyVote ...bool) 
 	msg, err := govtypes.NewMsgSubmitProposal(content, initDeposit, cli.FxAddress())
 	require.NoError(cli.t, err)
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "proposal submit txHash", txHash)
+	cli.t.Log("proposal submit txHash", txHash)
 }
 func (cli *Client) testProposalDeposit(ctx context.Context, privateKey ...cryptotypes.PrivKey) {
 	if len(privateKey) > 0 {
@@ -651,7 +585,7 @@ func (cli *Client) testProposalDeposit(ctx context.Context, privateKey ...crypto
 	depositAmt := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1))))
 	msg := govtypes.NewMsgDeposit(cli.FxAddress(), 1, depositAmt)
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "proposal deposit txHash", txHash)
+	cli.t.Log("proposal deposit txHash", txHash)
 }
 func (cli *Client) testProposalVote(ctx context.Context, privateKey ...cryptotypes.PrivKey) {
 	if len(privateKey) > 0 {
@@ -661,15 +595,15 @@ func (cli *Client) testProposalVote(ctx context.Context, privateKey ...cryptotyp
 	}
 	msg := govtypes.NewMsgVote(cli.FxAddress(), 1, govtypes.OptionYes)
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "proposal vote txHash", txHash)
+	cli.t.Log("proposal vote txHash", txHash)
 }
 func (cli *Client) testMigrateAccount(ctx context.Context, toPrivateKey cryptotypes.PrivKey) {
 	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
-	cli.t.Log("=======>", "migrate from", cli.FxAddress().String(), "migrate to", toAddress.String())
+	cli.t.Log("migrate from", cli.FxAddress().String(), "migrate to", toAddress.String())
 	migrateSign, err := toPrivateKey.Sign(migratetypes.MigrateAccountSignatureHash(cli.FxAddress(), toAddress))
 	require.NoError(cli.t, err)
 
 	msg := migratetypes.NewMsgMigrateAccount(cli.FxAddress(), toAddress, hex.EncodeToString(migrateSign))
 	txHash := cli.BroadcastTx(msg)
-	cli.t.Log("=======>", "migrate account txHash", txHash)
+	cli.t.Log("migrate account txHash", txHash)
 }

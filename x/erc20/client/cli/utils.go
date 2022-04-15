@@ -34,7 +34,7 @@ func ReadMetadataFromPath(cdc codec.Codec, path string) ([]banktypes.Metadata, e
 		return nil, fmt.Errorf("path %s error %v", path, err)
 	}
 	if stat.IsDir() {
-		if err := filepath.Walk(path, func(p string, info fs.FileInfo, err error) error {
+		if err := filepath.Walk(path, func(p string, info fs.FileInfo, _ error) error {
 			if info.IsDir() {
 				return nil
 			}

@@ -86,17 +86,6 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	return &pair, nil
 }
 
-// verify if the metadata matches the existing one, if not it sets it to the store
-func (k Keeper) verifyMetadata(ctx sdk.Context, coinMetadata banktypes.Metadata) error {
-	meta := k.bankKeeper.GetDenomMetaData(ctx, coinMetadata.Base)
-	if len(meta.Base) == 0 { //new coin metadata
-		k.bankKeeper.SetDenomMetaData(ctx, coinMetadata)
-		return nil
-	}
-	// If it already existed, Check that is equal to what is stored
-	return types.EqualMetadata(meta, coinMetadata)
-}
-
 // DeployERC20Contract creates and deploys an ERC20 contract on the EVM with the
 // erc20 module account as owner.
 func (k Keeper) DeployERC20Contract(ctx sdk.Context, coinMetadata banktypes.Metadata) (common.Address, error) {

@@ -413,35 +413,3 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 	suite.enableFeemarket = false
 	suite.enableLondonHF = true
 }
-
-//func InitEvmModuleParams(ctx sdk.Context, keeper *evmkeeper.Keeper, dynamicTxFee bool) error {
-//	defaultEvmParams := types.DefaultParams()
-//	defaultFeeMarketParams := feemarkettypes.DefaultParams()
-//	defaultErc20Params := erc20types.DefaultParams()
-//
-//	if dynamicTxFee {
-//		defaultFeeMarketParams.EnableHeight = 1
-//		defaultFeeMarketParams.NoBaseFee = false
-//	} else {
-//		defaultFeeMarketParams.NoBaseFee = true
-//	}
-//
-//	if err := keeper.HandleInitEvmProposal(ctx, &types.InitEvmProposal{
-//		Title:           "Init evm title",
-//		Description:     "Init emv module description",
-//		EvmParams:       &defaultEvmParams,
-//		FeemarketParams: &defaultFeeMarketParams,
-//		Erc20Params:     Erc20ParamsToEvm(defaultErc20Params),
-//	}); err != nil {
-//		return err
-//	}
-//	return nil
-//}
-//
-//func Erc20ParamsToEvm(p erc20types.Params) *types.Erc20Params {
-//	return &types.Erc20Params{
-//		EnableErc20:   p.EnableErc20,
-//		EnableEVMHook: p.EnableEVMHook,
-//		//IbcTransferTimeoutHeight: p.IbcTransferTimeoutHeight,
-//	}
-//}
