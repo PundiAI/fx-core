@@ -37,15 +37,15 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(noBaseFee bool, baseFeeChangeDenom, elasticityMultiplier uint32, baseFee uint64,
-	enableHeight int64, minBaseFee, maxBaseFee, maxGas uint64) Params {
+	enableHeight int64, minBaseFee, maxBaseFee sdk.Int, maxGas uint64) Params {
 	return Params{
 		NoBaseFee:                noBaseFee,
 		BaseFeeChangeDenominator: baseFeeChangeDenom,
 		ElasticityMultiplier:     elasticityMultiplier,
 		BaseFee:                  sdk.NewIntFromUint64(baseFee),
 		EnableHeight:             enableHeight,
-		MinBaseFee:               sdk.NewIntFromUint64(minBaseFee),
-		MaxBaseFee:               sdk.NewIntFromUint64(maxBaseFee),
+		MinBaseFee:               minBaseFee,
+		MaxBaseFee:               maxBaseFee,
 		MaxGas:                   sdk.NewIntFromUint64(maxGas),
 	}
 }
@@ -99,8 +99,8 @@ func (p Params) Validate() error {
 		return fmt.Errorf("max base fee cannot be negative: %s", p.MaxBaseFee)
 	}
 
-	if p.MaxBaseFee.LT(MinBaseFee) {
-		return fmt.Errorf("max base fee(%s) must be gte min base fee(%s)", p.MaxBaseFee, p.MinBaseFee)
+	if p.MaxBaseFee.GT(sdk.ZeroInt()) && p.MaxBaseFee.LT(MinBaseFee) {
+		return fmt.Errorf("if max base fee gt 0, max base fee(%s) must be gte min base fee(%s)", p.MaxBaseFee, p.MinBaseFee)
 	}
 
 	if p.EnableHeight < 0 {
