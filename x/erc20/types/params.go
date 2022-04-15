@@ -2,8 +2,9 @@ package types
 
 import (
 	fmt "fmt"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"time"
+
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Parameter store key

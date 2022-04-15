@@ -1,4 +1,4 @@
-package app
+package main
 
 import (
 	"bufio"
@@ -62,9 +62,9 @@ const (
 	mnemonicEntropySize = 256
 )
 
-// KeyCommands registers a sub-tree of commands to interact with
+// keyCommands registers a sub-tree of commands to interact with
 // local private key storage.
-func KeyCommands(defaultNodeHome string) *cobra.Command {
+func keyCommands(defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "keys",
 		Short: "Manage your application's keys",
@@ -111,9 +111,9 @@ The pass backend requires GnuPG: https://gnupg.org/
 		showCmd,
 		keys.DeleteKeyCommand(),
 		keys.MigrateCommand(),
-		ParseAddressCommand(),
-		UnsafeExportEthKeyCommand(),
-		UnsafeImportKeyCommand(),
+		parseAddressCommand(),
+		unsafeExportEthKeyCommand(),
+		unsafeImportKeyCommand(),
 	)
 
 	cmd.PersistentFlags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
@@ -398,7 +398,7 @@ func printPubKey(w io.Writer, info cryptokeyring.Info, bechKeyOut bechKeyOutFn) 
 	fmt.Fprintln(w, ko.PubKey)
 }
 
-type KeyOutputV2 struct {
+type keyOutputV2 struct {
 	Name              string                 `json:"name" yaml:"name"`
 	Type              string                 `json:"type" yaml:"type"`
 	Algo              hd.PubKeyType          `json:"algo" yaml:"algo"`
@@ -421,8 +421,8 @@ type multisigPubKeyOutput struct {
 	Weight  uint   `json:"weight" yaml:"weight"`
 }
 
-func KeyOutputToV2(v1 cryptokeyring.KeyOutput, info keyring.Info) KeyOutputV2 {
-	v2 := KeyOutputV2{
+func keyOutputToV2(v1 cryptokeyring.KeyOutput, info keyring.Info) keyOutputV2 {
+	v2 := keyOutputV2{
 		Name:      v1.Name,
 		Type:      v1.Type,
 		Address:   v1.Address,
@@ -468,7 +468,7 @@ func printKeyInfo(w io.Writer, keyInfo cryptokeyring.Info, bechKeyOut bechKeyOut
 	var keyOutput interface{}
 	keyOutput = ko
 	if isShowMore {
-		keyOutput = KeyOutputToV2(ko, keyInfo)
+		keyOutput = keyOutputToV2(ko, keyInfo)
 	}
 	switch output {
 	case keys.OutputFormatText:
@@ -615,7 +615,7 @@ func runListCmd(cmd *cobra.Command, _ []string) error {
 func printInfos(w io.Writer, infos []cryptokeyring.Info, output string, showMore bool) {
 	var op interface{}
 	if showMore {
-		kos, err := Bech32KeysOutputV2(infos)
+		kos, err := bech32KeysOutputV2(infos)
 		if err != nil {
 			panic(err)
 		}
@@ -634,14 +634,6 @@ func printInfos(w io.Writer, infos []cryptokeyring.Info, output string, showMore
 	case keys.OutputFormatJSON:
 		outputJSON(w, op)
 	}
-}
-
-func outputText(w io.Writer, info interface{}) {
-	out, err := yaml.Marshal(&info)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Fprintln(w, string(out))
 }
 
 //yamlOutputUnlimitedWidth unlimited emitter best_width, unsafe link https://github.com/go-yaml/yaml/pull/455
@@ -672,23 +664,23 @@ func outputJSON(w io.Writer, info interface{}) {
 	fmt.Fprintf(w, "%s", out)
 }
 
-// Bech32KeysOutputV2 returns a slice of KeyOutput objects, each with the "acc"
+// bech32KeysOutputV2 returns a slice of KeyOutput objects, each with the "acc"
 // Bech32 prefixes, given a slice of Info objects. It returns an error if any
 // call to Bech32KeyOutput fails.
-func Bech32KeysOutputV2(infos []cryptokeyring.Info) ([]KeyOutputV2, error) {
-	kos := make([]KeyOutputV2, len(infos))
+func bech32KeysOutputV2(infos []cryptokeyring.Info) ([]keyOutputV2, error) {
+	kos := make([]keyOutputV2, len(infos))
 	for i, info := range infos {
 		ko, err := cryptokeyring.Bech32KeyOutput(info)
 		if err != nil {
 			return nil, err
 		}
-		kos[i] = KeyOutputToV2(ko, info)
+		kos[i] = keyOutputToV2(ko, info)
 	}
 
 	return kos, nil
 }
 
-func ParseAddressCommand() *cobra.Command {
+func parseAddressCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "parse [address]",
 		Short: "Parse address from hex to bech32 and vice versa",
@@ -746,8 +738,8 @@ func ParseAddressCommand() *cobra.Command {
 	return cmd
 }
 
-// UnsafeExportEthKeyCommand exports a key with the given name as a private key in hex format.
-func UnsafeExportEthKeyCommand() *cobra.Command {
+// unsafeExportEthKeyCommand exports a key with the given name as a private key in hex format.
+func unsafeExportEthKeyCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "unsafe-export-eth-key [name]",
 		Short: "**UNSAFE** Export an Ethereum private key",
@@ -824,8 +816,8 @@ func UnsafeExportEthKeyCommand() *cobra.Command {
 	}
 }
 
-// UnsafeImportKeyCommand imports private keys from a keyfile.
-func UnsafeImportKeyCommand() *cobra.Command {
+// unsafeImportKeyCommand imports private keys from a keyfile.
+func unsafeImportKeyCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "unsafe-import-eth-key <name> <pk>",
 		Short: "**UNSAFE** Import Ethereum private keys into the local keybase",

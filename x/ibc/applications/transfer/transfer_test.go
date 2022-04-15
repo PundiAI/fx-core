@@ -2,11 +2,12 @@ package transfer_test
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer"
 	ibctesting "github.com/functionx/fx-core/x/ibc/testing"
-	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -14,6 +15,7 @@ import (
 	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
+
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
 

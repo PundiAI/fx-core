@@ -3,11 +3,12 @@ package ibctesting
 import (
 	"bytes"
 	"fmt"
-	"github.com/functionx/fx-core/app"
-	fxtypes "github.com/functionx/fx-core/types"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/functionx/fx-core/app"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"

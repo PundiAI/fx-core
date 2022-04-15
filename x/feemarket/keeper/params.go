@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/x/feemarket/types"
 )

@@ -1,4 +1,4 @@
-package app
+package main
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ const (
 	appFileName    = "app.toml"
 )
 
-func AppTomlCmd() *cobra.Command {
+func appTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app.toml [key] [value]",
 		Short: "Create or query an `.fxcore/config/apptoml` file",
@@ -40,7 +40,7 @@ func AppTomlCmd() *cobra.Command {
 	return cmd
 }
 
-func ConfigTomlCmd() *cobra.Command {
+func configTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config.toml [key] [value]",
 		Short: "Create or query an `.fxcore/config/config.toml` file",

@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/ethereum/go-ethereum/common/math"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/common/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"

@@ -1,9 +1,10 @@
 package types
 
 import (
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	"reflect"
 	"testing"
+
+	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
 func TestTokenPair_GetID(t *testing.T) {

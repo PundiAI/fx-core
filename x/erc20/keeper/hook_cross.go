@@ -2,15 +2,17 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
-	"strings"
 )
 
 func (k Keeper) RelayTransferCrossProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {

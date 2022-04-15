@@ -3,8 +3,9 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/functionx/fx-core/x/migrate/types"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/functionx/fx-core/x/migrate/types"
 )
 
 type Keeper struct {

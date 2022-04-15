@@ -2,9 +2,11 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/functionx/fx-core/x/evm/statedb"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/core/vm"
+
+	"github.com/functionx/fx-core/x/evm/statedb"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -16,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/functionx/fx-core/tests"
 	"github.com/functionx/fx-core/x/evm/types"
 )

@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,14 +14,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/functionx/fx-core/app"
-	fxtypes "github.com/functionx/fx-core/types"
-	"github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
-	"time"
+
+	"github.com/functionx/fx-core/app"
+	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/x/migrate/keeper"
 )
 
 func TestMigrateDistributionHandler(t *testing.T) {

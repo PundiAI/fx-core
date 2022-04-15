@@ -3,9 +3,10 @@ package crosschain_test
 import (
 	"crypto/ecdsa"
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 	"testing"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"

@@ -2,15 +2,17 @@ package types_test
 
 import (
 	"errors"
-	"github.com/functionx/fx-core/app"
 	"math/big"
 	"testing"
+
+	"github.com/functionx/fx-core/app"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	proto "github.com/gogo/protobuf/proto"
+
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
 	"github.com/stretchr/testify/require"
 

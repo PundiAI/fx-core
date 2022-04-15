@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/erc20/types"

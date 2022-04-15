@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	if err := svrcmd.Execute(app.NewRootCmd(), app.DefaultNodeHome); err != nil {
+	if err := svrcmd.Execute(newRootCmd(), app.DefaultNodeHome); err != nil {
 		os.Exit(1)
 	}
 }

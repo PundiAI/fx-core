@@ -2,7 +2,9 @@ package erc20
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/functionx/fx-core/x/erc20/keeper"
 )
 

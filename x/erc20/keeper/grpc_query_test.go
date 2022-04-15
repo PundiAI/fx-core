@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
 	"github.com/functionx/fx-core/tests"
 
 	"github.com/functionx/fx-core/x/erc20/types"

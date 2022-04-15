@@ -3,8 +3,9 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"sort"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"

@@ -2,6 +2,7 @@ package bsc
 
 import (
 	"encoding/json"
+
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"

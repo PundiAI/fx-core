@@ -5,6 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
+
 	fxtype "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/erc20/keeper"

@@ -2,10 +2,12 @@ package types
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	fxtypes "github.com/functionx/fx-core/types"
 )
 
 // NewTokenPair returns an instance of TokenPair

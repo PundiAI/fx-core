@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math/big"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/functionx/fx-core/contracts"
 	"github.com/functionx/fx-core/x/erc20/types"
-	"math/big"
 )
 
 // RelayTokenProcessing relay token from evm contract to chain address

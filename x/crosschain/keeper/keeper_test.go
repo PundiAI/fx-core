@@ -2,9 +2,10 @@ package keeper_test
 
 import (
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 	"testing"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"

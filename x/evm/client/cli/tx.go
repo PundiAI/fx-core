@@ -3,14 +3,16 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"os"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"os"
+
+	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
 
 	"github.com/functionx/fx-core/x/evm/types"
 )

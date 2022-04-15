@@ -2,8 +2,9 @@ package types
 
 import (
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/ethereum/go-ethereum/params"
 

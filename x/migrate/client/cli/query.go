@@ -2,12 +2,14 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/functionx/fx-core/x/migrate/types"
 	"github.com/spf13/cobra"
+
+	"github.com/functionx/fx-core/x/migrate/types"
 )
 
 func GetQueryCmd() *cobra.Command {

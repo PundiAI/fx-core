@@ -2,8 +2,9 @@ package crosschain
 
 import (
 	"fmt"
-	fxtype "github.com/functionx/fx-core/types"
 	"sort"
+
+	fxtype "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

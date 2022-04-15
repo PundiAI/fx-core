@@ -1,10 +1,11 @@
 package types
 
 import (
+	"time"
+
 	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
 	"github.com/ethereum/go-ethereum/common"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 

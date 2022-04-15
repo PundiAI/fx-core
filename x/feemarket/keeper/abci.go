@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/functionx/fx-core/x/feemarket/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"math"
+
+	"github.com/cosmos/cosmos-sdk/telemetry"
+	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/functionx/fx-core/x/feemarket/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

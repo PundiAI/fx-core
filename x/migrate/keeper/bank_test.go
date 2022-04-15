@@ -1,16 +1,18 @@
 package keeper_test
 
 import (
+	"testing"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/functionx/fx-core/app"
-	fxtypes "github.com/functionx/fx-core/types"
-	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"testing"
-	"time"
+
+	"github.com/functionx/fx-core/app"
+	fxtypes "github.com/functionx/fx-core/types"
+	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 )
 
 func TestMigrateBankFunc(t *testing.T) {

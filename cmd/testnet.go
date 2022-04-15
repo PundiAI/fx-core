@@ -1,4 +1,4 @@
-package app
+package main
 
 import (
 	"bufio"
@@ -8,6 +8,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+
+	"github.com/functionx/fx-core/app"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -39,8 +41,8 @@ const (
 	flagStartingIP     = "starting-ip"
 )
 
-// TestnetCmd get cmd to initialize all files for tendermint testnet and application
-func TestnetCmd() *cobra.Command {
+// testnetCmd get cmd to initialize all files for tendermint testnet and application
+func testnetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "testnet",
 		Short: "Initialize files for a fxchain testnet",
@@ -64,7 +66,7 @@ Example:
 			startingIPAddress := serverCtx.Viper.GetString(flagStartingIP)
 
 			_ = os.RemoveAll(outputDir)
-			err = InitTestnet(
+			err = initTestnet(
 				clientCtx,
 				serverCtx,
 				serverCtx.Viper.GetString(flagOutputDir),
@@ -102,7 +104,7 @@ Example:
 	return cmd
 }
 
-func InitTestnet(
+func initTestnet(
 	clientCtx client.Context,
 	serverCtx *server.Context,
 	outputDir,
@@ -229,7 +231,7 @@ func InitTestnet(
 		srvconfig.WriteConfigFile(filepath.Join(nodeDir, "config/app.toml"), appToml)
 	}
 
-	appGenState := NewDefAppGenesisByDenom(denom, clientCtx.Codec)
+	appGenState := app.NewDefAppGenesisByDenom(denom, clientCtx.Codec)
 	// set the accounts in the genesis state
 	var authGenState authtypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appGenState[authtypes.ModuleName], &authGenState)

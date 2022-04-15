@@ -2,16 +2,18 @@ package types_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/tests"
 

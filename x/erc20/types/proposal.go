@@ -2,14 +2,16 @@ package types
 
 import (
 	"fmt"
+	"strings"
+
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	fxtypes "github.com/functionx/fx-core/types"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )

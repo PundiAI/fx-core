@@ -7,8 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/functionx/fx-core/tests"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/functionx/fx-core/tests"
 )
 
 type TxDataTestSuite struct {

@@ -239,6 +239,7 @@ func mnemonicToFxPrivKey(mnemonic string) (*secp256k1.PrivKey, error) {
 	return priv, nil
 }
 
+// nolint
 func mnemonicToSecp256k1(mnemonic string) (cryptotypes.PrivKey, error) {
 	algo := hd.Secp256k1
 	bytes, err := algo.Derive()(mnemonic, "", hdPath)

@@ -1,4 +1,4 @@
-package app
+package main
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ import (
 	"github.com/functionx/fx-core/types"
 )
 
-func Network() *cobra.Command {
+func networkCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "network",
 		Args:    cobra.NoArgs,

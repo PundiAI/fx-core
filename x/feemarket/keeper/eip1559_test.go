@@ -2,9 +2,11 @@ package keeper_test
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 )

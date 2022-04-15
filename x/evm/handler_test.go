@@ -2,14 +2,16 @@ package evm_test
 
 import (
 	"errors"
+	"math/big"
+	"testing"
+	"time"
+
 	"github.com/ethereum/go-ethereum/core"
+
 	fxtypes "github.com/functionx/fx-core/types"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
-	"math/big"
-	"testing"
-	"time"
 
 	"github.com/gogo/protobuf/proto"
 
@@ -19,6 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"

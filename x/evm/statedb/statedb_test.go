@@ -9,8 +9,9 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/functionx/fx-core/x/evm/statedb"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/functionx/fx-core/x/evm/statedb"
 )
 
 var (
@@ -557,17 +558,18 @@ func (suite *StateDBTestSuite) TestIterateStorage() {
 
 	// break early iteration
 	storage = make(statedb.Storage)
-	db.ForEachStorage(address, func(k, v common.Hash) bool {
+	err := db.ForEachStorage(address, func(k, v common.Hash) bool {
 		storage[k] = v
 		// return false to break early
 		return false
 	})
+	suite.Require().NoError(err)
 	suite.Require().Equal(1, len(storage))
 }
 
 func CollectContractStorage(db vm.StateDB) statedb.Storage {
 	storage := make(statedb.Storage)
-	db.ForEachStorage(address, func(k, v common.Hash) bool {
+	_ = db.ForEachStorage(address, func(k, v common.Hash) bool {
 		storage[k] = v
 		return true
 	})

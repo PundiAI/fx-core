@@ -3,10 +3,11 @@ package keeper_test
 import (
 	_ "embed"
 	"encoding/json"
-	"github.com/functionx/fx-core/x/evm/statedb"
 	"math"
 	"math/big"
 	"time"
+
+	"github.com/functionx/fx-core/x/evm/statedb"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -20,8 +21,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
+
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	app "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
@@ -174,6 +176,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	valAddr := sdk.ValAddress(suite.address.Bytes())
 	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
+	require.NoError(t, err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
 	require.NoError(t, err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)

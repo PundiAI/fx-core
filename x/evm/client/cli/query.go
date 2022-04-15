@@ -1,8 +1,9 @@
 package cli
 
 import (
-	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
 	"github.com/spf13/cobra"
+
+	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

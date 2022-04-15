@@ -3,9 +3,11 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/ethereum/go-ethereum/common"
+
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
 

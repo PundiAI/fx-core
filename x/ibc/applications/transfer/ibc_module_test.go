@@ -1,16 +1,19 @@
 package transfer_test
 
 import (
-	"github.com/functionx/fx-core/x/ibc/applications/transfer"
-	"github.com/stretchr/testify/require"
 	"math"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
+
 	ibctesting "github.com/functionx/fx-core/x/ibc/testing"
 )
 

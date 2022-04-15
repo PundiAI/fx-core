@@ -1,4 +1,4 @@
-package app
+package main
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/functionx/fx-core/app"
 
 	"github.com/functionx/fx-core/crypto/hd"
 	fxserver "github.com/functionx/fx-core/server"
@@ -41,11 +43,11 @@ import (
 
 const envPrefix = "FX"
 
-// NewRootCmd creates a new root command for simd. It is called once in the
+// newRootCmd creates a new root command for simd. It is called once in the
 // main function.
-func NewRootCmd() *cobra.Command {
+func newRootCmd() *cobra.Command {
 
-	encodingConfig := MakeEncodingConfig()
+	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -55,7 +57,7 @@ func NewRootCmd() *cobra.Command {
 		WithOutput(os.Stdout).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
-		WithHomeDir(DefaultNodeHome).
+		WithHomeDir(app.DefaultNodeHome).
 		WithViper(envPrefix).
 		WithKeyringOptions(hd.EthSecp256k1Option())
 
@@ -105,33 +107,33 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig EncodingConfig) {
+func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	sdkCfgCmd := sdkCfg.Cmd()
-	sdkCfgCmd.AddCommand(AppTomlCmd(), ConfigTomlCmd())
+	sdkCfgCmd.AddCommand(appTomlCmd(), configTomlCmd())
 
 	rootCmd.AddCommand(
-		InitCmd(),
-		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, DefaultNodeHome),
+		initCmd(),
+		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.MigrateGenesisCmd(),
-		appCmd.GenTxCmd(ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, DefaultNodeHome),
-		genutilcli.ValidateGenesisCmd(ModuleBasics),
-		appCmd.AddGenesisAccountCmd(DefaultNodeHome),
+		appCmd.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		appCmd.AddGenesisAccountCmd(app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
-		TestnetCmd(),
+		testnetCmd(),
 		appCmd.Debug(),
 		// this line is used by starport scaffolding # stargate/root/commands
-		Network(),
+		networkCmd(),
 		sdkCfgCmd,
 	)
 
 	appCreator := appCreator{encodingConfig}
-	fxserver.AddCommands(rootCmd, DefaultNodeHome, appCreator.newApp, appCreator.appExport, func(startCmd *cobra.Command) {})
+	fxserver.AddCommands(rootCmd, app.DefaultNodeHome, appCreator.newApp, appCreator.appExport, func(startCmd *cobra.Command) {})
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rpcStatusCmd := rpc.StatusCommand()
 	rpcStatusCmd.SetOut(os.Stdout)
 	rootCmd.AddCommand(
-		KeyCommands(DefaultNodeHome),
+		keyCommands(app.DefaultNodeHome),
 		rpcStatusCmd,
 		queryCommand(),
 		txCommand(),
@@ -167,7 +169,7 @@ func queryCommand() *cobra.Command {
 		appCmd.QueryBlockResultsCmd(),
 	)
 
-	ModuleBasics.AddQueryCommands(cmd)
+	app.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -192,14 +194,14 @@ func txCommand() *cobra.Command {
 		authcmd.GetDecodeCommand(),
 	)
 
-	ModuleBasics.AddTxCommands(cmd)
+	app.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
 
 type appCreator struct {
-	encCfg EncodingConfig
+	encCfg app.EncodingConfig
 }
 
 // newApp is an AppCreator
@@ -234,7 +236,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 	if strings.Contains(gasPrice, ".") {
 		panic("Invalid gas price, cannot contain decimals")
 	}
-	return New(
+	return app.New(
 		logger, db, traceStore, true, skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
@@ -260,7 +262,7 @@ func (a appCreator) appExport(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
 
-	var anApp *App
+	var anApp *app.App
 
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
@@ -268,7 +270,7 @@ func (a appCreator) appExport(
 	}
 
 	if height != -1 {
-		anApp = New(
+		anApp = app.New(
 			logger,
 			db,
 			traceStore,
@@ -285,7 +287,7 @@ func (a appCreator) appExport(
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		anApp = New(
+		anApp = app.New(
 			logger,
 			db,
 			traceStore,

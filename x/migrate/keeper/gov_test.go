@@ -1,13 +1,15 @@
 package keeper_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	fxtypes "github.com/functionx/fx-core/types"
-	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
+
+	fxtypes "github.com/functionx/fx-core/types"
+	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 )
 
 func Test_MigrateGovInactiveFunc(t *testing.T) {

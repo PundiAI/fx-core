@@ -2,10 +2,12 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/x/evm/keeper"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	"math"
 	"math/big"
+
+	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	"github.com/functionx/fx-core/x/evm/keeper"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,10 +15,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/functionx/fx-core/tests"
-	"github.com/functionx/fx-core/x/evm/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/functionx/fx-core/tests"
+	"github.com/functionx/fx-core/x/evm/types"
 )
 
 func (suite *KeeperTestSuite) TestGetHashFn() {

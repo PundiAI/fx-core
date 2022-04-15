@@ -2,9 +2,10 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

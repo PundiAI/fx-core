@@ -2,17 +2,19 @@ package keeper_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
-	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
 )
 
 func TestMigrateStakingHandler_Delegate(t *testing.T) {

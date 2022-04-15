@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"math"
 	"sort"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"

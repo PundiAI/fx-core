@@ -3,9 +3,11 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	fxtypes "github.com/functionx/fx-core/types"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/common"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"

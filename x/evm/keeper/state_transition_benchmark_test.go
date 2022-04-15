@@ -11,8 +11,9 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"github.com/stretchr/testify/require"
+
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
 )
 
 var templateAccessListTx = &ethtypes.AccessListTx{

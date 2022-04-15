@@ -8,8 +8,9 @@ import (
 	"math/big"
 	"strconv"
 
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	tmtypes "github.com/tendermint/tendermint/types"
 

@@ -1,4 +1,4 @@
-package app
+package main
 
 import (
 	"bufio"
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/functionx/fx-core/app"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -23,7 +25,6 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
 	bip39 "github.com/tyler-smith/go-bip39"
 )
@@ -39,9 +40,9 @@ const (
 	FlagDenom = "denom"
 )
 
-// InitCmd returns a command that initializes all files needed for Tendermint
+// initCmd returns a command that initializes all files needed for Tendermint
 // and the respective application.
-func InitCmd() *cobra.Command {
+func initCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init [moniker]",
 		Short: "Initialize private validator, p2p, genesis, and application configuration files",
@@ -95,7 +96,7 @@ func InitCmd() *cobra.Command {
 			if err != nil || flagDenom == "" {
 				return fmt.Errorf("invalid staking denom: %v", err)
 			}
-			appState, err := json.MarshalIndent(NewDefAppGenesisByDenom(flagDenom, clientCtx.Codec), "", " ")
+			appState, err := json.MarshalIndent(app.NewDefAppGenesisByDenom(flagDenom, clientCtx.Codec), "", " ")
 			if err != nil {
 				return fmt.Errorf("failed to marshall default genesis state: %s", err.Error())
 			}
@@ -105,7 +106,7 @@ func InitCmd() *cobra.Command {
 				if !os.IsNotExist(err) {
 					return err
 				}
-				genDoc.ConsensusParams = CustomConsensusParams()
+				genDoc.ConsensusParams = app.CustomConsensusParams()
 			} else {
 				genDoc, err = types.GenesisDocFromFile(genFile)
 				if err != nil {
@@ -132,22 +133,11 @@ func InitCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(cli.HomeFlag, DefaultNodeHome, "node's home directory")
+	cmd.Flags().String(cli.HomeFlag, app.DefaultNodeHome, "node's home directory")
 	cmd.Flags().Bool(FlagOverwrite, false, "overwrite the genesis.json file")
 	cmd.Flags().Bool(FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().String(FlagDenom, fxtypes.MintDenom, "set the default coin denomination")
 	cmd.Flags().StringP(cli.OutputFlag, "o", "json", "Output format (text|json)")
 	return cmd
-}
-
-func CustomConsensusParams() *tmproto.ConsensusParams {
-	result := types.DefaultConsensusParams()
-	result.Block.MaxBytes = 1048576 //1M
-	result.Block.MaxGas = -1
-	result.Block.TimeIotaMs = 1000
-	result.Evidence.MaxAgeNumBlocks = 1000000
-	result.Evidence.MaxBytes = 100000
-	result.Evidence.MaxAgeDuration = 172800000000000
-	return result
 }

@@ -2,12 +2,14 @@ package types_test
 
 import (
 	"fmt"
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/stretchr/testify/require"
+
 	_ "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/erc20/types"
-	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestMsgConvertCoinValidateBasic(t *testing.T) {

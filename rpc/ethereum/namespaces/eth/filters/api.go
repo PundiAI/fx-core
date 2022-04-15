@@ -3,9 +3,10 @@ package filters
 import (
 	"context"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client"
 	"sync"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/functionx/fx-core/rpc/ethereum/types"
 

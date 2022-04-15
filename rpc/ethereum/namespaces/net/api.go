@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	fxtypes "github.com/functionx/fx-core/types"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
+
+	fxtypes "github.com/functionx/fx-core/types"
 )
 
 // PublicAPI is the eth_ prefixed set of APIs in the Web3 JSON-RPC spec.

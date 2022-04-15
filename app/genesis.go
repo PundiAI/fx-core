@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
@@ -139,4 +142,15 @@ func GetFxBankMetaData(denom string) banktypes.Metadata {
 		Base:    strings.ToLower(denom),
 		Display: denom,
 	}
+}
+
+func CustomConsensusParams() *tmproto.ConsensusParams {
+	result := tmtypes.DefaultConsensusParams()
+	result.Block.MaxBytes = 1048576 //1M
+	result.Block.MaxGas = -1
+	result.Block.TimeIotaMs = 1000
+	result.Evidence.MaxAgeNumBlocks = 1000000
+	result.Evidence.MaxBytes = 100000
+	result.Evidence.MaxAgeDuration = 172800000000000
+	return result
 }

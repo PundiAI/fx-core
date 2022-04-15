@@ -4,16 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/functionx/fx-core/ethereum/eip712"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"math"
-	"math/big"
+
+	"github.com/functionx/fx-core/ethereum/eip712"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"

@@ -2,9 +2,11 @@ package keeper_test
 
 import (
 	"errors"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/functionx/fx-core/x/evm/statedb"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/core"
+
+	"github.com/functionx/fx-core/x/evm/statedb"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"

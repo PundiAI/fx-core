@@ -2,8 +2,10 @@ package migrate
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	fxtype "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/migrate/types"
 )
