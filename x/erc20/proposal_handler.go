@@ -1,7 +1,6 @@
 package erc20
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -17,7 +16,7 @@ import (
 func NewErc20ProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		if ctx.BlockHeight() < fxtype.EvmSupportBlock() {
-			return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("erc20 module not enable"))
+			return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "erc20 module not enable")
 		}
 		switch c := content.(type) {
 		case *types.InitEvmProposal:

@@ -1,7 +1,6 @@
 package evm
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	fxtype "github.com/functionx/fx-core/types"
@@ -13,7 +12,7 @@ import (
 func NewHandler(k *keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (result *sdk.Result, err error) {
 		if ctx.BlockHeight() < fxtype.EvmSupportBlock() || !k.HasInit(ctx) {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("evm module not enable"))
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "evm module not enable")
 		}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {

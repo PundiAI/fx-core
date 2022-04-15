@@ -250,10 +250,10 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCModule, packet channelt
 			denom = types.ParseDenomTrace(prefixedDenom).IBCDenom()
 		}
 		unit, err := sdk.ParseUint(newData.Amount)
-		if err != nil || &unit == nil {
+		if err != nil {
 			return fmt.Errorf("cannot parse amount in forwarding information")
 		}
-		var token = sdk.NewCoin(denom, sdk.NewIntFromUint64(unit.Uint64()))
+		var token = sdk.NewCoin(denom, sdk.NewIntFromBigInt(unit.BigInt()))
 
 		if err = im.keeper.SendTransfer(ctx, port, channel, token, receiver, finalDest,
 			clienttypes.Height{}, uint64(ctx.BlockTime().Add(ForwardPacketTimeHour*time.Hour).UnixNano()),
