@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"math/big"
 	"reflect"
 	"testing"
@@ -353,7 +354,7 @@ func (suite *MsgsTestSuite) TestTransactionCoding() {
 		if err != nil {
 			suite.T().Fatal(err)
 		}
-		assertEqual(parsedTx.AsTransaction(), tx)
+		require.NoError(suite.T(), assertEqual(parsedTx.AsTransaction(), tx))
 	}
 }
 

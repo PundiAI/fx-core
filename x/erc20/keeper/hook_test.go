@@ -30,6 +30,7 @@ import (
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	"github.com/functionx/fx-core/x/erc20/keeper"
+	"github.com/functionx/fx-core/x/erc20/types"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 	evm "github.com/functionx/fx-core/x/evm/types"
 	"github.com/functionx/fx-core/x/gravity"
@@ -175,10 +176,26 @@ func TestHookChainGravity(t *testing.T) {
 func TestHookChainBSC(t *testing.T) {
 	fxcore, validators, genesisAccount, delegateAddressArr := initTest(t)
 	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
+	// 1. init evm + erc20 module params
 	require.NoError(t, InitEvmModuleParams(ctx, &fxcore.Erc20Keeper, true))
 
+	// 2. register erc20 module coin
 	pair, err := fxcore.Erc20Keeper.RegisterCoin(ctx, purseMetadata)
 	require.NoError(t, err)
+
+	purseID := fxcore.Erc20Keeper.GetDenomMap(ctx, purseMetadata.Base)
+	require.NotEmpty(t, purseID)
+	purseTokenPair, found := fxcore.Erc20Keeper.GetTokenPair(ctx, purseID)
+	require.True(t, found)
+	require.NotNil(t, purseTokenPair)
+	require.NotEmpty(t, purseTokenPair.GetErc20Address())
+
+	require.Equal(t, types.TokenPair{
+		Erc20Address:  purseTokenPair.GetErc20Address(),
+		Denom:         purseMetadata.GetBase(),
+		Enabled:       true,
+		ContractOwner: types.OWNER_MODULE,
+	}, purseTokenPair)
 
 	fip20, err := fxcore.Erc20Keeper.QueryERC20(ctx, pair.GetERC20Contract())
 	require.NoError(t, err)
@@ -194,7 +211,7 @@ func TestHookChainBSC(t *testing.T) {
 	_, addr2 := privateSigner()
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
 
-	err = fxcore.BankKeeper.SendCoins(ctx, ga.GetAddress(), sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, amt), sdk.NewCoin(purseDenom, amt)))
+	err = fxcore.BankKeeper.SendCoins(ctx, ga.GetAddress(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, amt), sdk.NewCoin(purseDenom, amt)))
 	require.NoError(t, err)
 
 	ctx = testInitBscCrossChain(t, ctx, fxcore, del, addr1.Bytes(), addr2)

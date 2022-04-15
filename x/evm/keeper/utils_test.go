@@ -206,7 +206,7 @@ func (suite *KeeperTestSuite) TestCheckSenderBalance() {
 	vmdb.AddBalance(suite.address, hundredInt.BigInt())
 	balance := vmdb.GetBalance(suite.address)
 	suite.Require().Equal(balance, hundredInt.BigInt())
-	vmdb.Commit()
+	suite.Require().NoError(vmdb.Commit())
 
 	for i, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -395,7 +395,7 @@ func (suite *KeeperTestSuite) TestDeductTxCostsFromUserBalance() {
 				balance := vmdb.GetBalance(suite.address)
 				suite.Require().Equal(balance, hundredInt.BigInt())
 			}
-			vmdb.Commit()
+			suite.Require().NoError(vmdb.Commit())
 
 			tx := evmtypes.NewTx(zeroInt.BigInt(), 1, &suite.address, amount, tc.gasLimit, gasPrice, gasFeeCap, gasTipCap, nil, tc.accessList)
 			tx.From = suite.address.String()

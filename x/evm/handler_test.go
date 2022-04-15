@@ -29,7 +29,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -52,7 +51,6 @@ type EvmTestSuite struct {
 	ctx     sdk.Context
 	handler sdk.Handler
 	app     *app.App
-	codec   codec.BinaryCodec
 	chainID *big.Int
 
 	signer    keyring.Signer
@@ -488,7 +486,7 @@ func (suite *EvmTestSuite) TestOutOfGasWhenDeployContract() {
 		}
 	}()
 
-	suite.handler(suite.ctx, tx)
+	_, _ = suite.handler(suite.ctx, tx)
 	suite.Require().Fail("panic did not happen")
 }
 

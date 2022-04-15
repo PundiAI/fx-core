@@ -74,6 +74,7 @@ func TestQueryFxTxByEvmHash(t *testing.T) {
 	tx, err := encodingConfig.TxConfig.TxDecoder()(fxTx)
 	require.NoError(t, err)
 	txJsonStr, err := encodingConfig.TxConfig.TxJSONEncoder()(tx)
+	require.NoError(t, err)
 	//marshalIndent, err := json.MarshalIndent(string(txJsonStr), "", "  ")
 	//require.NoError(t, err)
 	t.Logf("\nTxHash:%x\nData:\n%v", fxTx.Hash(), string(txJsonStr))

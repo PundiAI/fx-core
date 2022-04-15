@@ -58,6 +58,7 @@ func TestMigrateStakingHandler_Delegate(t *testing.T) {
 	require.Equal(t, "delegation does not exist", err.Error())
 	require.Equal(t, rewards2, rewards3)
 	rewards4, err := GetDelegateRewards(ctx, app, bob, sdk.ValAddress(val1.Address))
+	require.NoError(t, err)
 	require.Equal(t, rewards1, rewards4)
 }
 

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	mnemonic   = "december slow blue fury silly bread friend unknown render resource dry buyer brand final abstract gallery slow since hood shadow neglect travel convince foil"
+	_          = "december slow blue fury silly bread friend unknown render resource dry buyer brand final abstract gallery slow since hood shadow neglect travel convince foil"
 	privateKey = "845e3bad4fcb74154b491119be75a655f456efae0a8040476a440483ed91de79"
 )
 

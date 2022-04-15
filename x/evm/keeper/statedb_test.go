@@ -391,7 +391,7 @@ func (suite *KeeperTestSuite) TestCommittedState() {
 
 	vmdb := suite.StateDB()
 	vmdb.SetState(suite.address, key, value1)
-	vmdb.Commit()
+	suite.Require().NoError(vmdb.Commit())
 
 	vmdb = suite.StateDB()
 	vmdb.SetState(suite.address, key, value2)
@@ -399,7 +399,7 @@ func (suite *KeeperTestSuite) TestCommittedState() {
 	suite.Require().Equal(value2, tmp)
 	tmp = vmdb.GetCommittedState(suite.address, key)
 	suite.Require().Equal(value1, tmp)
-	vmdb.Commit()
+	suite.Require().NoError(vmdb.Commit())
 
 	vmdb = suite.StateDB()
 	tmp = vmdb.GetCommittedState(suite.address, key)
@@ -585,7 +585,8 @@ func (suite *KeeperTestSuite) TestAddLog() {
 	msg2.From = addr.Hex()
 
 	tx2 := suite.CreateTestTx(msg2, privKey)
-	msg2, _ = tx2.GetMsgs()[0].(*types.MsgEthereumTx)
+	_, ok := tx2.GetMsgs()[0].(*types.MsgEthereumTx)
+	suite.Require().True(ok)
 
 	msg3 := types.NewTx(big.NewInt(1), 0, &suite.address, big.NewInt(1), 100000, nil, big.NewInt(1), big.NewInt(1), []byte("test"), nil)
 	msg3.From = addr.Hex()
@@ -598,7 +599,8 @@ func (suite *KeeperTestSuite) TestAddLog() {
 	msg4.From = addr.Hex()
 
 	tx4 := suite.CreateTestTx(msg4, privKey)
-	msg4, _ = tx4.GetMsgs()[0].(*types.MsgEthereumTx)
+	_, ok = tx4.GetMsgs()[0].(*types.MsgEthereumTx)
+	suite.Require().True(ok)
 
 	testCases := []struct {
 		name        string

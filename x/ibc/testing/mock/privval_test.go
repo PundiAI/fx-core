@@ -24,7 +24,7 @@ func TestSignVote(t *testing.T) {
 	pk, _ := pv.GetPubKey()
 
 	vote := &tmproto.Vote{Height: 2}
-	pv.SignVote(chainID, vote)
+	require.NoError(t, pv.SignVote(chainID, vote))
 
 	msg := tmtypes.VoteSignBytes(chainID, vote)
 	ok := pk.VerifySignature(msg, vote.Signature)
@@ -36,7 +36,7 @@ func TestSignProposal(t *testing.T) {
 	pk, _ := pv.GetPubKey()
 
 	proposal := &tmproto.Proposal{Round: 2}
-	pv.SignProposal(chainID, proposal)
+	require.NoError(t, pv.SignProposal(chainID, proposal))
 
 	msg := tmtypes.ProposalSignBytes(chainID, proposal)
 	ok := pk.VerifySignature(msg, proposal.Signature)

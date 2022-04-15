@@ -213,7 +213,10 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 
 	// GenerateTypedData TypedData
 	var ethermintCodec codec.ProtoCodecMarshaler
-	fee := legacytx.NewStdFee(gas, gasAmount)
+	fee := legacytx.StdFee{
+		Amount: gasAmount,
+		Gas:    gas,
+	}
 	accNumber := suite.app.AccountKeeper.GetAccount(suite.ctx, from).GetAccountNumber()
 
 	data := legacytx.StdSignBytes(chainId, accNumber, nonce, 0, fee, []sdk.Msg{msg}, "")

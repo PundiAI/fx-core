@@ -328,6 +328,7 @@ func TestSignature(t *testing.T) {
 	t.Log("hash", hex.EncodeToString(hash))
 
 	pubKey, err := crypto.SigToPub(hash, sig)
+	require.NoError(t, err)
 	address := crypto.PubkeyToAddress(*pubKey)
 	t.Log("address", address.String())
 }
@@ -582,11 +583,11 @@ func (cli *Client) testWithdrawReward(ctx context.Context, val sdk.ValAddress, p
 
 		cli.SetPrivateKey(privateKey[0])
 	}
-	var msg sdk.Msg
-	msg = distritypes.NewMsgWithdrawDelegatorReward(cli.FxAddress(), val)
+	msg := distritypes.NewMsgWithdrawDelegatorReward(cli.FxAddress(), val)
 	txHash := cli.BroadcastTx(msg)
 	cli.t.Log("=======>", "withdraw reward txHash", txHash)
 }
+
 func (cli *Client) testUndelegate(ctx context.Context, val sdk.ValAddress, all bool, privateKey ...cryptotypes.PrivKey) {
 	if len(privateKey) > 0 {
 		oldKey := cli.privateKey
