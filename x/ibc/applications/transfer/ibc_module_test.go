@@ -333,3 +333,35 @@ func TestParseIncomingTransferField(t *testing.T) {
 		})
 	}
 }
+
+func TestGetDenomByIBCPacket(t *testing.T) {
+	testCases := []struct {
+		name          string
+		sourcePort    string
+		sourceChannel string
+		packetDenom   string
+		expDenom      string
+	}{
+		{
+			name:          "normal - source - FX",
+			sourcePort:    "transfer",
+			sourceChannel: "channel-0",
+			packetDenom:   "transfer/channel-0/FX",
+			expDenom:      "FX",
+		},
+		{
+			name:          "normal - source - eth0x61CAf09780f6F227B242EA64997a36c94a40Aa3a",
+			sourcePort:    "transfer",
+			sourceChannel: "channel-0",
+			packetDenom:   "transfer/channel-0/eth0x61CAf09780f6F227B242EA64997a36c94a40Aa3a",
+			expDenom:      "eth0x61CAf09780f6F227B242EA64997a36c94a40Aa3a",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actualValue := transfer.GetDenomByIBCPacket(tc.sourcePort, tc.sourceChannel, tc.packetDenom)
+			require.EqualValues(t, tc.expDenom, actualValue)
+		})
+	}
+}

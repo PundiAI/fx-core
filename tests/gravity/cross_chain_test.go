@@ -232,7 +232,7 @@ func ethToFx(c *Client) {
 	c.t.Helper()
 	c.t.Logf("\n####################      ETH to FX      ####################\n")
 	depositClaimMsg := gravitytypes.NewMsgDepositClaim(c.QueryFxLastEventNonce(), 3, ethTokenContract,
-		sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(10000)), c.ethAddress.Hex(), c.FxAddress().String(), "", c.FxAddress().String())
+		sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)), c.ethAddress.Hex(), c.FxAddress().String(), "", c.FxAddress().String())
 	c.BroadcastTx(&[]sdk.Msg{depositClaimMsg})
 	c.t.Logf("\n")
 }
@@ -244,8 +244,8 @@ func ethToFxAndIbcTransfer(c *Client) {
 	// fxAddr: fx1u66dz4r6yg4xugz3ej27ejpd73helayz5y0xwr
 	// pundixAddr: px1u66dz4r6yg4xugz3ej27ejpd73helayz09l7gx
 	depositClaimMsg := gravitytypes.NewMsgDepositClaim(c.QueryFxLastEventNonce(), 5, ethTokenContract,
-		sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(10000)), c.ethAddress.Hex(),
-		"fx1u66dz4r6yg4xugz3ej27ejpd73helayz5y0xwr", hex.EncodeToString([]byte("px/transfer/channel-0")), c.FxAddress().String())
+		sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)), c.ethAddress.Hex(),
+		"fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2", hex.EncodeToString([]byte("px/transfer/channel-0")), c.FxAddress().String())
 	c.BroadcastTx(&[]sdk.Msg{depositClaimMsg})
 	c.t.Logf("\n")
 }

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -13,6 +15,7 @@ import (
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/05-port/types"
 	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
+	coretypes "github.com/cosmos/cosmos-sdk/x/ibc/core/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
@@ -244,26 +247,57 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCModule, packet channelt
 			return err
 		}
 		// recalculate denom, skip checks that were already done in app.OnRecvPacket
-		var denom string
-		if types.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), newData.Denom) {
-			denom = types.ParseDenomTrace(newData.Denom).IBCDenom()
-		} else {
-			prefixedDenom := types.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel()) + newData.Denom
-			denom = types.ParseDenomTrace(prefixedDenom).IBCDenom()
+		denom := GetDenomByIBCPacket(packet.GetSourcePort(), packet.GetSourceChannel(), newData.GetDenom())
+		// parse the transfer amount
+		transferAmount, ok := sdk.NewIntFromString(data.Amount)
+		if !ok {
+			return sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse forward transfer amount (%s) into sdk.Int", data.Amount)
 		}
-		unit, err := sdk.ParseUint(newData.Amount)
-		if err != nil {
-			return fmt.Errorf("cannot parse amount in forwarding information")
-		}
-		var token = sdk.NewCoin(denom, sdk.NewIntFromBigInt(unit.BigInt()))
+
+		var token = sdk.NewCoin(denom, transferAmount)
 
 		if err = im.keeper.SendTransfer(ctx, port, channel, token, receiver, finalDest,
 			clienttypes.Height{}, uint64(ctx.BlockTime().Add(ForwardPacketTimeHour*time.Hour).UnixNano()),
 			"", sdk.NewCoin(denom, sdk.ZeroInt())); err != nil {
 			return fmt.Errorf("failed to forward transfer packet")
 		}
+		defer func() {
+			telemetry.IncrCounterWithLabels(
+				[]string{"ibc", types.ModuleName, "packet", "forward"},
+				1,
+				append(
+					[]metrics.Label{
+						telemetry.NewLabel(coretypes.LabelSourcePort, packet.GetSourcePort()),
+						telemetry.NewLabel(coretypes.LabelSourceChannel, packet.GetSourceChannel()),
+					},
+					telemetry.NewLabel(coretypes.LabelSource, "true"),
+				),
+			)
+		}()
 	}
 	return nil
+}
+
+func GetDenomByIBCPacket(sourcePort, sourceChannel, packetDenom string) string {
+	var denom string
+	voucherPrefix := types.GetDenomPrefix(sourcePort, sourceChannel)
+	if types.ReceiverChainIsSource(sourcePort, sourceChannel, packetDenom) {
+		unPrefixedDenom := packetDenom[len(voucherPrefix):]
+
+		// coin denomination used in sending from the escrow address
+		denom = unPrefixedDenom
+
+		// The denomination used to send the coins is either the native denom or the hash of the path
+		// if the denomination is not native.
+		denomTrace := types.ParseDenomTrace(unPrefixedDenom)
+		if denomTrace.Path != "" {
+			denom = denomTrace.IBCDenom()
+		}
+	} else {
+		prefixedDenom := voucherPrefix + packetDenom
+		denom = types.ParseDenomTrace(prefixedDenom).IBCDenom()
+	}
+	return denom
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
