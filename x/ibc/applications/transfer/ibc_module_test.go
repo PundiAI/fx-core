@@ -1,6 +1,8 @@
 package transfer_test
 
 import (
+	"fmt"
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"math"
 	"testing"
 
@@ -9,7 +11,6 @@ import (
 	"github.com/functionx/fx-core/x/ibc/applications/transfer"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
@@ -339,29 +340,59 @@ func TestGetDenomByIBCPacket(t *testing.T) {
 		name          string
 		sourcePort    string
 		sourceChannel string
+		destPort      string
+		destChannel   string
 		packetDenom   string
 		expDenom      string
 	}{
 		{
-			name:          "normal - source - FX",
+			name:          "source token FX",
 			sourcePort:    "transfer",
 			sourceChannel: "channel-0",
+			destPort:      "transfer",
+			destChannel:   "channel-1",
 			packetDenom:   "transfer/channel-0/FX",
 			expDenom:      "FX",
 		},
 		{
-			name:          "normal - source - eth0x61CAf09780f6F227B242EA64997a36c94a40Aa3a",
+			name:          "source token - eth0x61CAf09780f6F227B242EA64997a36c94a40Aa3a",
 			sourcePort:    "transfer",
 			sourceChannel: "channel-0",
+			destPort:      "transfer",
+			destChannel:   "channel-1",
 			packetDenom:   "transfer/channel-0/eth0x61CAf09780f6F227B242EA64997a36c94a40Aa3a",
 			expDenom:      "eth0x61CAf09780f6F227B242EA64997a36c94a40Aa3a",
+		},
+		{
+			name:          "dest token - atom",
+			sourcePort:    "transfer",
+			sourceChannel: "channel-0",
+			destPort:      "transfer",
+			destChannel:   "channel-1",
+			packetDenom:   "atom",
+			expDenom:      types.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", "transfer", "channel-1", "atom")).IBCDenom(),
+		},
+		{
+			name:          "dest token - ibc denom a->b  b->c",
+			sourcePort:    "transfer",
+			sourceChannel: "channel-0",
+			destPort:      "transfer",
+			destChannel:   "channel-1",
+			packetDenom:   "transfer/channel-2/atom",
+			expDenom:      types.ParseDenomTrace(fmt.Sprintf("%s/%s/%s", "transfer", "channel-1", "transfer/channel-2/atom")).IBCDenom(),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actualValue := transfer.GetDenomByIBCPacket(tc.sourcePort, tc.sourceChannel, tc.packetDenom)
+			actualValue := transfer.GetDenomByIBCPacket(tc.sourcePort, tc.sourceChannel, tc.destPort, tc.destChannel, tc.packetDenom)
 			require.EqualValues(t, tc.expDenom, actualValue)
 		})
 	}
+}
+
+func TestParseDenomTrace(t *testing.T) {
+	denomTrace := types.ParseDenomTrace("transfer/channel-0/Atoken")
+	t.Logf("denomTrace: %+v", denomTrace)
+	t.Logf("IBCDenom: %+v", denomTrace.IBCDenom())
 }

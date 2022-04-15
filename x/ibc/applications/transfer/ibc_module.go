@@ -247,7 +247,7 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCModule, packet channelt
 			return err
 		}
 		// recalculate denom, skip checks that were already done in app.OnRecvPacket
-		denom := GetDenomByIBCPacket(packet.GetSourcePort(), packet.GetSourceChannel(), newData.GetDenom())
+		denom := GetDenomByIBCPacket(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetDestPort(), packet.GetDestChannel(), newData.GetDenom())
 		// parse the transfer amount
 		transferAmount, ok := sdk.NewIntFromString(data.Amount)
 		if !ok {
@@ -278,10 +278,11 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCModule, packet channelt
 	return nil
 }
 
-func GetDenomByIBCPacket(sourcePort, sourceChannel, packetDenom string) string {
+func GetDenomByIBCPacket(sourcePort, sourceChannel, destPort, destChannel, packetDenom string) string {
 	var denom string
-	voucherPrefix := types.GetDenomPrefix(sourcePort, sourceChannel)
+
 	if types.ReceiverChainIsSource(sourcePort, sourceChannel, packetDenom) {
+		voucherPrefix := types.GetDenomPrefix(sourcePort, sourceChannel)
 		unPrefixedDenom := packetDenom[len(voucherPrefix):]
 
 		// coin denomination used in sending from the escrow address
@@ -294,7 +295,12 @@ func GetDenomByIBCPacket(sourcePort, sourceChannel, packetDenom string) string {
 			denom = denomTrace.IBCDenom()
 		}
 	} else {
-		prefixedDenom := voucherPrefix + packetDenom
+		// since SendPacket did not prefix the denomination, we must prefix denomination here
+		sourcePrefix := types.GetDenomPrefix(destPort, destChannel)
+		// NOTE: sourcePrefix contains the trailing "/"
+		prefixedDenom := sourcePrefix + packetDenom
+
+		// construct the denomination trace from the full raw denomination
 		denom = types.ParseDenomTrace(prefixedDenom).IBCDenom()
 	}
 	return denom
