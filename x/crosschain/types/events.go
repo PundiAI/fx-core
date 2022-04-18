@@ -15,10 +15,11 @@ const (
 	EventTypeSendToExternalCanceled = "send_to_external_canceled"
 	AttributeKeyOutgoingTxID        = "outgoing_tx_id"
 
-	EventTypeOutgoingBatch         = "outgoing_batch"
-	EventTypeOutgoingBatchCanceled = "outgoing_batch_canceled"
-	AttributeKeyOutgoingTxIds      = "outgoing_tx_ids"
-	AttributeKeyOutgoingBatchNonce = "batch_nonce"
+	EventTypeOutgoingBatch           = "outgoing_batch"
+	EventTypeOutgoingBatchCanceled   = "outgoing_batch_canceled"
+	AttributeKeyOutgoingTxIds        = "outgoing_tx_ids"
+	AttributeKeyOutgoingBatchNonce   = "batch_nonce"
+	AttributeKeyOutgoingBatchTimeout = "outgoing_batch_timeout"
 
 	EventTypeIbcTransfer         = "ibc_transfer"
 	AttributeKeyIbcSendSequence  = "ibc_send_sequence"
