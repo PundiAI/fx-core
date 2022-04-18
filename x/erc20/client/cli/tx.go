@@ -2,22 +2,14 @@ package cli
 
 import (
 	"fmt"
-	"strings"
-
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/spf13/cobra"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -314,81 +306,6 @@ func NewToggleTokenRelayProposalCmd() *cobra.Command {
 	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
 	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
 	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
-	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
-		panic(err)
-	}
-	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
-		panic(err)
-	}
-	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
-		panic(err)
-	}
-	return cmd
-}
-
-const (
-	flagMetadata = "metadata"
-)
-
-func InitEvmProposalCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "init-evm",
-		Short:   "Submit a init evm proposal",
-		Example: fmt.Sprintf(`$ %s tx gov submit-proposal init-evm --metadata=<path/to/metadata> --from=<key_or_address>`, version.AppName),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			initProposalAmount, err := sdk.ParseCoinsNormalized(viper.GetString(cli.FlagDeposit))
-			if err != nil {
-				return err
-			}
-			title, err := cmd.Flags().GetString(cli.FlagTitle)
-			if err != nil {
-				return err
-			}
-			description, err := cmd.Flags().GetString(cli.FlagDescription)
-			if err != nil {
-				return err
-			}
-
-			evmParams := evmtypes.DefaultParams()
-			feemarketParams := feemarkettypes.DefaultParams()
-			erc20Params := types.DefaultParams()
-
-			metadataPath := viper.GetString(flagMetadata)
-			var metadatas []banktypes.Metadata
-			if len(strings.TrimSpace(metadataPath)) > 0 {
-				metadatas, err = ReadMetadataFromPath(cliCtx.Codec, metadataPath)
-				if err != nil {
-					return err
-				}
-			}
-
-			proposal := &types.InitEvmProposal{
-				Title:           title,
-				Description:     description,
-				EvmParams:       evmParams,
-				FeemarketParams: feemarketParams,
-				Erc20Params:     erc20Params,
-				Metadatas:       metadatas,
-			}
-
-			fromAddress := cliCtx.GetFromAddress()
-			msg, err := govtypes.NewMsgSubmitProposal(proposal, initProposalAmount, fromAddress)
-			if err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
-		},
-	}
-
-	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
-	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
-	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
-	cmd.Flags().String(flagMetadata, "", "path to metadata file/directory")
-
 	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
 		panic(err)
 	}

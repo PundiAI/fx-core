@@ -146,8 +146,8 @@ func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyCosmosCoin, msg.Coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+				sdk.NewAttribute(types.AttributeKeyDenom, msg.Coin.Denom),
+				sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
 			),
 		},
 	)
@@ -230,8 +230,8 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, msg.ContractAddress),
+				sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+				sdk.NewAttribute(types.AttributeKeyTokenAddress, msg.ContractAddress),
 			),
 		},
 	)
@@ -334,8 +334,8 @@ func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, msg.ContractAddress),
+				sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+				sdk.NewAttribute(types.AttributeKeyTokenAddress, msg.ContractAddress),
 			),
 		},
 	)
@@ -421,8 +421,8 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyCosmosCoin, msg.Coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+				sdk.NewAttribute(types.AttributeKeyDenom, msg.Coin.Denom),
+				sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
 			),
 		},
 	)

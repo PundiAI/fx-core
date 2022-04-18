@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/functionx/fx-core/app/forks"
+
 	app "github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
-	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 
@@ -95,7 +96,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, &suite.app.Erc20Keeper, true))
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app, true))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -177,7 +178,7 @@ func (suite *KeeperTestSuite) TestSetGetGasFee() {
 	}
 }
 
-func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, dynamicTxFee bool) error {
+func InitEvmModuleParams(ctx sdk.Context, fxcore *app.App, dynamicTxFee bool) error {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxtypes.EvmSupportBlock())
 	defaultEvmParams := evmtypes.DefaultParams()
 	defaultFeeMarketParams := types.DefaultParams()
@@ -190,9 +191,8 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, dynamicTxF
 		defaultFeeMarketParams.NoBaseFee = true
 	}
 
-	if err := keeper.HandleInitEvmProposal(ctx, defaultErc20Params,
-		defaultFeeMarketParams, defaultEvmParams, nil); err != nil {
-		return err
-	}
-	return nil
+	return forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
+		fxcore.FeeMarketKeeper, defaultFeeMarketParams,
+		fxcore.EvmKeeper, defaultEvmParams,
+		fxcore.Erc20Keeper, defaultErc20Params)
 }

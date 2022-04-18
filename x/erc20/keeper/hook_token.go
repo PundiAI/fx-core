@@ -108,9 +108,9 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash comm
 				sdk.NewAttribute(sdk.AttributeKeySender, from.String()),
 				sdk.NewAttribute(types.AttributeKeyReceiver, sdk.AccAddress(recipient.Bytes()).String()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
-				sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-				sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
-				sdk.NewAttribute(types.EventEthereumTxHash, txHash.String()),
+				sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+				sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+				sdk.NewAttribute(types.AttributeKeyEvmTxHash, txHash.String()),
 			),
 		},
 	)

@@ -86,7 +86,7 @@ var (
 func TestHookChainGravity(t *testing.T) {
 	fxcore, validators, _, delegateAddressArr := initTest(t)
 	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
-	require.NoError(t, InitEvmModuleParams(ctx, &fxcore.Erc20Keeper, true))
+	require.NoError(t, InitEvmModuleParams(ctx, fxcore, true))
 
 	pair, err := fxcore.Erc20Keeper.RegisterCoin(ctx, wfxMetadata)
 	require.NoError(t, err)
@@ -128,7 +128,7 @@ func TestHookChainBSC(t *testing.T) {
 	fxcore, validators, genesisAccount, delegateAddressArr := initTest(t)
 	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
 	// 1. init evm + erc20 module params
-	require.NoError(t, InitEvmModuleParams(ctx, &fxcore.Erc20Keeper, true))
+	require.NoError(t, InitEvmModuleParams(ctx, fxcore, true))
 
 	// 2. register erc20 module coin
 	pair, err := fxcore.Erc20Keeper.RegisterCoin(ctx, purseMetadata)
@@ -231,7 +231,7 @@ var (
 func TestHookIBC(t *testing.T) {
 	fxcore, validators, _, delegateAddressArr := initTest(t)
 	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
-	require.NoError(t, InitEvmModuleParams(ctx, &fxcore.Erc20Keeper, true))
+	require.NoError(t, InitEvmModuleParams(ctx, fxcore, true))
 
 	pair, err := fxcore.Erc20Keeper.RegisterCoin(ctx, wfxMetadata)
 	require.NoError(t, err)

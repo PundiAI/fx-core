@@ -9,12 +9,7 @@ import (
 )
 
 // InitGenesis import module genesis
-func InitGenesis(
-	ctx sdk.Context,
-	k keeper.Keeper,
-	accountKeeper authkeeper.AccountKeeper,
-	data types.GenesisState,
-) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper authkeeper.AccountKeeper, data types.GenesisState) {
 	k.SetParams(ctx, data.Params)
 
 	// ensure erc20 module account is set on genesis

@@ -12,7 +12,7 @@ import (
 // NewHandler defines the erc20 module handler instance
 func NewHandler(k keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		if ctx.BlockHeight() < fxtype.EvmSupportBlock() || !k.HasInit(ctx) {
+		if ctx.BlockHeight() < fxtype.EvmSupportBlock() {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "erc20 module not enable")
 		}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())

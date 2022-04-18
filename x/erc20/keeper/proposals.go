@@ -2,16 +2,11 @@ package keeper
 
 import (
 	"encoding/hex"
-	"errors"
-	"fmt"
 	"strings"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -56,14 +51,6 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Description)
 	}
 
-	////check if the coin exists by ensuring the supply is set
-	//if !k.bankKeeper.HasSupply(ctx, coinMetadata.Base) {
-	//	return nil, sdkerrors.Wrapf(
-	//		sdkerrors.ErrInvalidCoins,
-	//		"base denomination '%s' cannot have a supply of 0", coinMetadata.Base,
-	//	)
-	//}
-
 	meta := k.bankKeeper.GetDenomMetaData(ctx, coinMetadata.Base)
 	if len(meta.Base) > 0 {
 		if err := types.EqualMetadata(meta, coinMetadata); err != nil {
@@ -74,7 +61,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	}
 
 	evmParams := k.evmKeeper.GetParams(ctx)
-	addr, err := k.DeployTokenUpgrade(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == evmParams.EvmDenom)
+	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == evmParams.EvmDenom)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
 	}
@@ -221,64 +208,8 @@ func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, err
 	return pair, nil
 }
 
-func (k Keeper) HandleInitEvmProposal(ctx sdk.Context, erc20Params types.Params, feemarketParams feemarkettypes.Params, evmParams evmtypes.Params, metadataList []banktypes.Metadata) error {
-	// init fee market
-	k.Logger(ctx).Info("init fee market", "erc20Params", feemarketParams.String())
-	// set feeMarket baseFee
-	//k.feeMarketKeeper.SetBaseFee(ctx, feemarketParams.BaseFee.BigInt())
-	// set feeMarket blockGasUsed
-	k.feeMarketKeeper.SetBlockGasUsed(ctx, 0)
-	// init feeMarket module erc20Params
-	k.feeMarketKeeper.SetParams(ctx, feemarketParams)
-
-	// init evm
-	k.Logger(ctx).Info("init evm", "erc20Params", evmParams.String())
-	k.evmKeeper.SetParams(ctx, evmParams)
-
-	// init erc20
-	k.Logger(ctx).Info("init erc20", "erc20Params", erc20Params.String())
-	k.SetParams(ctx, erc20Params)
-
-	// init contract
-	if err := k.initSystemContract(ctx); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-	}
-
-	// init coin
-	for _, metadata := range metadataList {
-		k.Logger(ctx).Info("register coin", "coin", metadata.String())
-		pair, err := k.RegisterCoin(ctx, metadata)
-		if err != nil {
-			return sdkerrors.Wrapf(types.ErrInvalidMetadata, fmt.Sprintf("base %s, display %s, error %s",
-				metadata.Base, metadata.Display, err.Error()))
-		}
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeRegisterCoin,
-			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
-		))
-	}
-	return nil
-}
-
-func (k Keeper) initSystemContract(ctx sdk.Context) error {
-	// ensure erc20 module account is set on genesis
-	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
-		return errors.New("the erc20 module account has not been set")
-	}
-	for _, contract := range fxtypes.GetInitContracts() {
-		if len(contract.Code) <= 0 || contract.Address == common.HexToAddress(fxtypes.EmptyEvmAddress) {
-			return errors.New("invalid contract")
-		}
-		if err := k.evmKeeper.CreateContractWithCode(ctx, contract.Address, contract.Code); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (k Keeper) DeployTokenUpgrade(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8, origin bool) (common.Address, error) {
-	k.Logger(ctx).Info("deploy token upgrade", "name", name, "symbol", symbol, "decimals", decimals)
+func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8, origin bool) (common.Address, error) {
+	k.Logger(ctx).Info("deploy token", "name", name, "symbol", symbol, "decimals", decimals)
 
 	tokenContract := fxtypes.GetERC20(ctx.BlockHeight())
 	if origin {

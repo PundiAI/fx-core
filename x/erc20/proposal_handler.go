@@ -20,12 +20,10 @@ func NewErc20ProposalHandler(k *keeper.Keeper) govtypes.Handler {
 			return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "erc20 module not enable")
 		}
 		switch c := content.(type) {
-		case *types.InitEvmProposal:
-			return k.HandleInitEvmProposal(ctx, c.Erc20Params, c.FeemarketParams, c.EvmParams, c.Metadatas)
 		case *types.RegisterCoinProposal:
 			return handleRegisterCoinProposal(ctx, k, c)
-		//case *types.RegisterERC20Proposal:
-		//	return handleRegisterERC20Proposal(ctx, k, c)
+		case *types.RegisterERC20Proposal:
+			return handleRegisterERC20Proposal(ctx, k, c)
 		case *types.ToggleTokenRelayProposal:
 			return handleToggleRelayProposal(ctx, k, c)
 		default:
@@ -42,8 +40,8 @@ func handleRegisterCoinProposal(ctx sdk.Context, k *keeper.Keeper, p *types.Regi
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRegisterCoin,
-			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+			sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+			sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
 		),
 	)
 
@@ -59,8 +57,8 @@ func handleRegisterERC20Proposal(ctx sdk.Context, k *keeper.Keeper, p *types.Reg
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRegisterERC20,
-			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+			sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+			sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
 		),
 	)
 
@@ -76,8 +74,8 @@ func handleToggleRelayProposal(ctx sdk.Context, k *keeper.Keeper, p *types.Toggl
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeToggleTokenRelay,
-			sdk.NewAttribute(types.AttributeKeyCosmosCoin, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+			sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+			sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
 		),
 	)
 

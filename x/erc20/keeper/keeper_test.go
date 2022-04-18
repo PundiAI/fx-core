@@ -7,10 +7,9 @@ import (
 	"testing"
 	"time"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/functionx/fx-core/app/forks"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -31,6 +30,8 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/version"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -157,7 +158,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, &suite.app.Erc20Keeper, true))
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app, true))
 	queryHelperEvm := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evm.RegisterQueryServer(queryHelperEvm, suite.app.EvmKeeper)
 	suite.queryClientEvm = evm.NewQueryClient(queryHelperEvm)
@@ -203,7 +204,7 @@ func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
 
 // DeployContract deploys the ERC20MinterBurnerDecimalsContract.
 func (suite *KeeperTestSuite) DeployContract(from common.Address, name, symbol string, decimals uint8) (common.Address, error) {
-	return suite.app.Erc20Keeper.DeployTokenUpgrade(suite.ctx, from, name, symbol, decimals, false)
+	return suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, from, name, symbol, decimals, false)
 }
 
 func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation(name string, symbol string) common.Address {
@@ -357,7 +358,7 @@ func (suite *KeeperTestSuite) TransferERC20Token(contractAddr, from, to common.A
 	return suite.sendTx(contractAddr, from, transferData)
 }
 
-func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, dynamicTxFee bool) error {
+func InitEvmModuleParams(ctx sdk.Context, fxcore *app.App, dynamicTxFee bool) error {
 	ctx = ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
 	defaultEvmParams := evm.DefaultParams()
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
@@ -370,11 +371,10 @@ func InitEvmModuleParams(ctx sdk.Context, keeper *erc20keeper.Keeper, dynamicTxF
 		defaultFeeMarketParams.NoBaseFee = true
 	}
 
-	if err := keeper.HandleInitEvmProposal(ctx, defaultErc20Params,
-		defaultFeeMarketParams, defaultEvmParams, nil); err != nil {
-		return err
-	}
-	return nil
+	return forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
+		fxcore.FeeMarketKeeper, defaultFeeMarketParams,
+		fxcore.EvmKeeper, defaultEvmParams,
+		fxcore.Erc20Keeper, defaultErc20Params)
 }
 
 func NewPriKey() cryptotypes.PrivKey {

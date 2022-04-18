@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/functionx/fx-core/app/forks"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -16,7 +18,6 @@ import (
 	"github.com/functionx/fx-core/app/ante"
 	"github.com/functionx/fx-core/ethereum/eip712"
 	"github.com/functionx/fx-core/types"
-	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
@@ -77,7 +78,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 2, ChainID: "ethermint_9000-1", Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app.Erc20Keeper, suite.enableFeemarket, suite.enableLondonHF))
+	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app, suite.enableFeemarket, suite.enableLondonHF))
 	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
 
@@ -276,9 +277,9 @@ type invalidTx struct{}
 func (invalidTx) GetMsgs() []sdk.Msg   { return []sdk.Msg{nil} }
 func (invalidTx) ValidateBasic() error { return nil }
 
-func InitEvmModuleParams(ctx sdk.Context, keeper erc20keeper.Keeper, dynamicTxFee, londonHF bool) error {
-	defaultEvmParams := evmtypes.DefaultParams()
+func InitEvmModuleParams(ctx sdk.Context, fxcore *app.App, dynamicTxFee, londonHF bool) error {
 	defaultFeeMarketParams := feemarkettypes.DefaultParams()
+	defaultEvmParams := evmtypes.DefaultParams()
 	defaultErc20Params := erc20types.DefaultParams()
 
 	if dynamicTxFee {
@@ -295,8 +296,8 @@ func InitEvmModuleParams(ctx sdk.Context, keeper erc20keeper.Keeper, dynamicTxFe
 		defaultEvmParams.ChainConfig.MergeForkBlock = &maxInt
 	}
 
-	if err := keeper.HandleInitEvmProposal(ctx, defaultErc20Params, defaultFeeMarketParams, defaultEvmParams, nil); err != nil {
-		return err
-	}
-	return nil
+	return forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
+		fxcore.FeeMarketKeeper, defaultFeeMarketParams,
+		fxcore.EvmKeeper, defaultEvmParams,
+		fxcore.Erc20Keeper, defaultErc20Params)
 }

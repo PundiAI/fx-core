@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -25,7 +22,6 @@ const (
 	ProposalTypeRegisterCoin     string = "RegisterCoin"
 	ProposalTypeRegisterERC20    string = "RegisterERC20"
 	ProposalTypeToggleTokenRelay string = "ToggleTokenRelay" // #nosec
-	ProposalTypeInitEvm                 = "InitEvm"
 )
 
 // Implements Proposal Interface
@@ -33,18 +29,15 @@ var (
 	_ govtypes.Content = &RegisterCoinProposal{}
 	_ govtypes.Content = &RegisterERC20Proposal{}
 	_ govtypes.Content = &ToggleTokenRelayProposal{}
-	_ govtypes.Content = &InitEvmProposal{}
 )
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeRegisterCoin)
 	govtypes.RegisterProposalType(ProposalTypeRegisterERC20)
 	govtypes.RegisterProposalType(ProposalTypeToggleTokenRelay)
-	govtypes.RegisterProposalType(ProposalTypeInitEvm)
 	govtypes.RegisterProposalTypeCodec(&RegisterCoinProposal{}, "erc20/RegisterCoinProposal")
 	govtypes.RegisterProposalTypeCodec(&RegisterERC20Proposal{}, "erc20/RegisterERC20Proposal")
 	govtypes.RegisterProposalTypeCodec(&ToggleTokenRelayProposal{}, "erc20/ToggleTokenRelayProposal")
-	govtypes.RegisterProposalTypeCodec(&InitEvmProposal{}, "erc20/InitEvmProposal")
 }
 
 // CreateDenom generates a string the module name plus the address to avoid conflicts with names staring with a number
@@ -167,61 +160,4 @@ func (etrp *ToggleTokenRelayProposal) ValidateBasic() error {
 	}
 
 	return govtypes.ValidateAbstract(etrp)
-}
-
-// NewInitEvmProposal returns new instance of InitEvmProposal
-func NewInitEvmProposal(
-	title, description string,
-	evmParams evmtypes.Params,
-	feemarketParams feemarkettypes.Params,
-	erc20Params Params,
-	metadatas []banktypes.Metadata,
-) govtypes.Content {
-	return &InitEvmProposal{
-		Title:           title,
-		Description:     description,
-		EvmParams:       evmParams,
-		FeemarketParams: feemarketParams,
-		Erc20Params:     erc20Params,
-		Metadatas:       metadatas,
-	}
-}
-
-func (m *InitEvmProposal) ProposalRoute() string {
-	return RouterKey
-}
-
-func (m *InitEvmProposal) ProposalType() string {
-	return ProposalTypeInitEvm
-}
-
-func (m *InitEvmProposal) ValidateBasic() error {
-	if err := govtypes.ValidateAbstract(m); err != nil {
-		return err
-	}
-	if err := m.EvmParams.Validate(); err != nil {
-		return err
-	}
-	if err := m.FeemarketParams.Validate(); err != nil {
-		return err
-	}
-	if err := m.Erc20Params.Validate(); err != nil {
-		return err
-	}
-
-	for _, metadata := range m.Metadatas {
-		if err := metadata.Validate(); err != nil {
-			return err
-		}
-
-		if err := ibctransfertypes.ValidateIBCDenom(metadata.Base); err != nil {
-			return err
-		}
-
-		if err := validateIBC(metadata); err != nil {
-			return err
-		}
-	}
-
-	return govtypes.ValidateAbstract(m)
 }

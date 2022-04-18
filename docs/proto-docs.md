@@ -135,12 +135,9 @@
   
 - [ethereum/erc20/v1/genesis.proto](#ethereum/erc20/v1/genesis.proto)
     - [GenesisState](#fx.ethereum.erc20.v1.GenesisState)
-    - [InitEvmProposal](#fx.ethereum.erc20.v1.InitEvmProposal)
     - [Params](#fx.ethereum.erc20.v1.Params)
   
 - [ethereum/erc20/v1/query.proto](#ethereum/erc20/v1/query.proto)
-    - [QueryModuleEnableRequest](#fx.ethereum.erc20.v1.QueryModuleEnableRequest)
-    - [QueryModuleEnableResponse](#fx.ethereum.erc20.v1.QueryModuleEnableResponse)
     - [QueryParamsRequest](#fx.ethereum.erc20.v1.QueryParamsRequest)
     - [QueryParamsResponse](#fx.ethereum.erc20.v1.QueryParamsResponse)
     - [QueryTokenPairRequest](#fx.ethereum.erc20.v1.QueryTokenPairRequest)
@@ -2390,26 +2387,6 @@ GenesisState defines the module's genesis state.
 
 
 
-<a name="fx.ethereum.erc20.v1.InitEvmProposal"></a>
-
-### InitEvmProposal
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  | the title of the update proposal |
-| `description` | [string](#string) |  | the description of the proposal |
-| `evmParams` | [fx.ethereum.evm.v1.Params](#fx.ethereum.evm.v1.Params) |  | evm module params |
-| `feemarketParams` | [fx.ethereum.feemarket.v1.Params](#fx.ethereum.feemarket.v1.Params) |  | feeMarket module params. |
-| `erc20Params` | [Params](#fx.ethereum.erc20.v1.Params) |  | erc20 moduel params. |
-| `metadatas` | [cosmos.bank.v1beta1.Metadata](#cosmos.bank.v1beta1.Metadata) | repeated | token pairs of Cosmos native denom and FIP20 token address |
-
-
-
-
-
-
 <a name="fx.ethereum.erc20.v1.Params"></a>
 
 ### Params
@@ -2440,31 +2417,6 @@ Params defines the erc20 module params
 <p align="right"><a href="#top">Top</a></p>
 
 ## ethereum/erc20/v1/query.proto
-
-
-
-<a name="fx.ethereum.erc20.v1.QueryModuleEnableRequest"></a>
-
-### QueryModuleEnableRequest
-QueryModuleEnableRequest defines the request type for querying the module is enable.
-
-
-
-
-
-
-<a name="fx.ethereum.erc20.v1.QueryModuleEnableResponse"></a>
-
-### QueryModuleEnableResponse
-QueryModuleEnableResponse returns module is enable.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `enable` | [bool](#bool) |  |  |
-
-
-
 
 
 
@@ -2574,7 +2526,6 @@ Query defines the gRPC querier service.
 | `TokenPairs` | [QueryTokenPairsRequest](#fx.ethereum.erc20.v1.QueryTokenPairsRequest) | [QueryTokenPairsResponse](#fx.ethereum.erc20.v1.QueryTokenPairsResponse) | Retrieves registered token pairs | GET|/ethereum/erc20/v1/token_pairs|
 | `TokenPair` | [QueryTokenPairRequest](#fx.ethereum.erc20.v1.QueryTokenPairRequest) | [QueryTokenPairResponse](#fx.ethereum.erc20.v1.QueryTokenPairResponse) | Retrieves a registered token pair | GET|/ethereum/erc20/v1/token_pairs/{token}|
 | `Params` | [QueryParamsRequest](#fx.ethereum.erc20.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ethereum.erc20.v1.QueryParamsResponse) | Params retrieves the erc20 module params | GET|/ethereum/erc20/v1/params|
-| `ModuleEnable` | [QueryModuleEnableRequest](#fx.ethereum.erc20.v1.QueryModuleEnableRequest) | [QueryModuleEnableResponse](#fx.ethereum.erc20.v1.QueryModuleEnableResponse) |  | GET|/ethereum/erc20/v1/module_enable|
 
  <!-- end services -->
 

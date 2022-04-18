@@ -143,7 +143,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		upgradeclient.CancelProposalHandler,
 		erc20client.RegisterCoinProposalHandler,
 		erc20client.ToggleTokenRelayProposalHandler,
-		erc20client.InitEvmProposalHandler,
+		erc20client.RegisterERC20ProposalHandler,
 	}
 }
 
@@ -394,7 +394,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	myApp.Erc20Keeper = erc20keeper.NewKeeper(
 		keys[erc20types.StoreKey], appCodec, myApp.GetSubspace(erc20types.ModuleName),
-		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper, myApp.FeeMarketKeeper,
+		myApp.AccountKeeper, myApp.BankKeeper, myApp.EvmKeeper,
 		&myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper)
 
 	myApp.GravityKeeper = gravitykeeper.NewKeeper(
@@ -541,7 +541,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		stakingtypes.ModuleName,
 		ibchost.ModuleName,
 		feemarkettypes.ModuleName,
-		erc20types.ModuleName,
 	)
 
 	myApp.mm.SetOrderEndBlockers(
@@ -641,6 +640,7 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	BeginBlockForks(ctx, app)
 	return app.mm.BeginBlock(ctx, req)
 }
 

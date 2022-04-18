@@ -25,7 +25,6 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 	evmKeeper     types.EVMKeeper
 	// fetch EIP1559 base fee and parameters
-	feeMarketKeeper types.FeeMarketKeeper
 
 	ibcTransferKeeper types.IBCTransferKeeper
 	ibcChannelKeeper  types.IBCChannelKeeper
@@ -41,7 +40,6 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	evmKeeper types.EVMKeeper,
-	feeMarketKeeper types.FeeMarketKeeper,
 	ibcTransferKeeper types.IBCTransferKeeper,
 	ibcChannelKeeper types.IBCChannelKeeper,
 ) Keeper {
@@ -57,7 +55,6 @@ func NewKeeper(
 		accountKeeper:     ak,
 		bankKeeper:        bk,
 		evmKeeper:         evmKeeper,
-		feeMarketKeeper:   feeMarketKeeper,
 		ibcTransferKeeper: ibcTransferKeeper,
 		ibcChannelKeeper:  ibcChannelKeeper,
 	}
@@ -69,7 +66,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, receiver string, amount sdk.Coin) error {
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() || !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		ctx.Logger().Info("ignore refund, module not enable", "module", types.ModuleName)
 		return nil
 	}
@@ -93,7 +90,7 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee
 }
 
 func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() || !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		return errors.New("erc20 module not enable")
 	}
 	if !k.IsDenomRegistered(ctx, coin.Denom) {
@@ -106,10 +103,6 @@ func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receive
 	}
 	_, err := k.ConvertCoin(sdk.WrapSDKContext(ctx), msg)
 	return err
-}
-
-func (k Keeper) HasInit(ctx sdk.Context) bool {
-	return k.paramstore.Has(ctx, types.ParamStoreKeyEnableErc20)
 }
 
 // SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if

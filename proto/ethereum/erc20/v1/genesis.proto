@@ -31,23 +31,3 @@ message Params {
   [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"ibc_timeout\"" ];
 }
 
-message InitEvmProposal {
-  option (gogoproto.equal) = false;
-
-  // the title of the update proposal
-  string title = 1;
-  // the description of the proposal
-  string description = 2;
-
-  // evm module params
-  fx.ethereum.evm.v1.Params evmParams = 3 [ (gogoproto.nullable) = false ];
-
-  // feeMarket module params.
-  fx.ethereum.feemarket.v1.Params feemarketParams = 4 [ (gogoproto.nullable) = false ];
-
-  // erc20 moduel params.
-  Params erc20Params = 5 [ (gogoproto.nullable) = false ];
-
-  // token pairs of Cosmos native denom and FIP20 token address
-  repeated cosmos.bank.v1beta1.Metadata metadatas = 6 [(gogoproto.nullable) = false];
-}
