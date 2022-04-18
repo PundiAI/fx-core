@@ -7,19 +7,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/params"
-
-	fxtypes "github.com/functionx/fx-core/types"
 )
 
 var _ paramtypes.ParamSet = &Params{}
 
 // Parameter keys
 var (
-	ParamStoreKeyNoBaseFee                = []byte("NoBaseFee")
 	ParamStoreKeyBaseFeeChangeDenominator = []byte("BaseFeeChangeDenominator")
 	ParamStoreKeyElasticityMultiplier     = []byte("ElasticityMultiplier")
 	ParamStoreKeyBaseFee                  = []byte("BaseFee")
-	ParamStoreKeyEnableHeight             = []byte("EnableHeight")
 	ParamStoreKeyMinBaseFee               = []byte("MinBaseFee")
 	ParamStoreKeyMaxBaseFee               = []byte("MaxBaseFee")
 	ParamStoreKeyMaxGas                   = []byte("MaxGas")
@@ -36,14 +32,12 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(noBaseFee bool, baseFeeChangeDenom, elasticityMultiplier uint32, baseFee uint64,
-	enableHeight int64, minBaseFee, maxBaseFee sdk.Int, maxGas uint64) Params {
+func NewParams(baseFeeChangeDenom, elasticityMultiplier uint32, baseFee uint64,
+	minBaseFee, maxBaseFee sdk.Int, maxGas uint64) Params {
 	return Params{
-		NoBaseFee:                noBaseFee,
 		BaseFeeChangeDenominator: baseFeeChangeDenom,
 		ElasticityMultiplier:     elasticityMultiplier,
 		BaseFee:                  sdk.NewIntFromUint64(baseFee),
-		EnableHeight:             enableHeight,
 		MinBaseFee:               minBaseFee,
 		MaxBaseFee:               maxBaseFee,
 		MaxGas:                   sdk.NewIntFromUint64(maxGas),
@@ -53,11 +47,9 @@ func NewParams(noBaseFee bool, baseFeeChangeDenom, elasticityMultiplier uint32, 
 // DefaultParams returns default evm parameters
 func DefaultParams() Params {
 	return Params{
-		NoBaseFee:                false,
 		BaseFeeChangeDenominator: params.BaseFeeChangeDenominator,
 		ElasticityMultiplier:     params.ElasticityMultiplier,
 		BaseFee:                  sdk.NewIntFromUint64(params.InitialBaseFee),
-		EnableHeight:             fxtypes.EvmSupportBlock(),
 		MinBaseFee:               MinBaseFee,
 		MaxBaseFee:               MaxBaseFee,
 		MaxGas:                   sdk.NewIntFromUint64(0), //default use block max gas
@@ -67,11 +59,9 @@ func DefaultParams() Params {
 // ParamSetPairs returns the parameter set pairs.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(ParamStoreKeyNoBaseFee, &p.NoBaseFee, validateBool),
 		paramtypes.NewParamSetPair(ParamStoreKeyBaseFeeChangeDenominator, &p.BaseFeeChangeDenominator, validateBaseFeeChangeDenominator),
 		paramtypes.NewParamSetPair(ParamStoreKeyElasticityMultiplier, &p.ElasticityMultiplier, validateElasticityMultiplier),
 		paramtypes.NewParamSetPair(ParamStoreKeyBaseFee, &p.BaseFee, validateBaseFee),
-		paramtypes.NewParamSetPair(ParamStoreKeyEnableHeight, &p.EnableHeight, validateEnableHeight),
 		paramtypes.NewParamSetPair(ParamStoreKeyMinBaseFee, &p.MinBaseFee, validateBaseFee),
 		paramtypes.NewParamSetPair(ParamStoreKeyMaxBaseFee, &p.MaxBaseFee, validateBaseFee),
 		paramtypes.NewParamSetPair(ParamStoreKeyMaxGas, &p.MaxGas, validateMaxGas),
@@ -103,26 +93,10 @@ func (p Params) Validate() error {
 		return fmt.Errorf("if max base fee gt 0, max base fee(%s) must be gte min base fee(%s)", p.MaxBaseFee, p.MinBaseFee)
 	}
 
-	if p.EnableHeight < 0 {
-		return fmt.Errorf("enable height cannot be negative: %d", p.EnableHeight)
-	}
-
 	if p.MaxGas.IsNegative() {
 		return fmt.Errorf("max gas cannot be negative: %s", p.MaxGas)
 	}
 
-	return nil
-}
-
-func (p *Params) IsBaseFeeEnabled(height int64) bool {
-	return !p.NoBaseFee && height >= p.EnableHeight
-}
-
-func validateBool(i interface{}) error {
-	_, ok := i.(bool)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
 	return nil
 }
 
@@ -158,19 +132,6 @@ func validateBaseFee(i interface{}) error {
 
 	if value.IsNegative() {
 		return fmt.Errorf("base fee cannot be negative")
-	}
-
-	return nil
-}
-
-func validateEnableHeight(i interface{}) error {
-	value, ok := i.(int64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if value < 0 {
-		return fmt.Errorf("enable height cannot be negative: %d", value)
 	}
 
 	return nil

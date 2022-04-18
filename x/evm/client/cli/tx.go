@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"os"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
 
 	"github.com/functionx/fx-core/x/evm/types"
 )
@@ -56,12 +56,7 @@ func NewRawTxCmd() *cobra.Command {
 				return err
 			}
 
-			rsp, err := rpctypes.NewQueryClient(clientCtx).Params(cmd.Context(), &types.QueryParamsRequest{})
-			if err != nil {
-				return err
-			}
-
-			tx, err := msg.BuildTx(clientCtx.TxConfig.NewTxBuilder(), rsp.Params.EvmDenom)
+			tx, err := msg.BuildTx(clientCtx.TxConfig.NewTxBuilder(), fxtypes.DefaultDenom)
 			if err != nil {
 				return err
 			}

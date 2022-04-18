@@ -69,7 +69,6 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.AccAddress)
 		fromVote, voteFound := m.govKeeper.GetVote(ctx, proposalID, from)
 		if voteFound {
 			_, toFound := m.govKeeper.GetVote(ctx, proposalID, to)
-			//TODO error or remain unchanged or cover ???
 			if toFound {
 				return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s has voted proposal %d", to.String(), proposalID)
 			}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	fxtype "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -54,7 +54,7 @@ func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper, oracleSetUpdatePow
 		panic(fmt.Errorf("covert power diff to dec err!!!powerDiff: %v, err: %v", powerDiffStr, err))
 	}
 
-	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) && ctx.BlockHeight() >= fxtype.CrossChainSupportPolygonAndTronBlock() {
+	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) && ctx.BlockHeight() >= fxtypes.CrossChainSupportPolygonAndTronBlock() {
 		oracleSetUpdatePowerChangePercent = sdk.OneDec()
 	}
 	if powerDiffDec.GTE(oracleSetUpdatePowerChangePercent) {

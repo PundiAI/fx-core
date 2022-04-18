@@ -4,6 +4,8 @@ import (
 	"math/big"
 	"testing"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,7 +21,7 @@ func SetupContract(b *testing.B) (*KeeperTestSuite, common.Address) {
 	suite := KeeperTestSuite{}
 	suite.DoSetupTest(b)
 
-	amt := sdk.Coins{sdk.NewInt64Coin(types.DefaultEVMDenom, 1000000000000000000)}
+	amt := sdk.Coins{sdk.NewInt64Coin(fxtypes.DefaultDenom, 1000000000000000000)}
 	err := suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, amt)
 	require.NoError(b, err)
 	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, suite.address.Bytes(), amt)
@@ -35,7 +37,7 @@ func SetupTestMessageCall(b *testing.B) (*KeeperTestSuite, common.Address) {
 	suite := KeeperTestSuite{}
 	suite.DoSetupTest(b)
 
-	amt := sdk.Coins{sdk.NewInt64Coin(types.DefaultEVMDenom, 1000000000000000000)}
+	amt := sdk.Coins{sdk.NewInt64Coin(fxtypes.DefaultDenom, 1000000000000000000)}
 	err := suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, amt)
 	require.NoError(b, err)
 	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, suite.address.Bytes(), amt)
@@ -66,7 +68,7 @@ func DoBenchmark(b *testing.B, txBuilder TxBuilder) {
 		txData, err := types.UnpackTxData(msg.Data)
 		require.NoError(b, err)
 
-		fees := sdk.Coins{sdk.NewCoin(suite.EvmDenom(), sdk.NewIntFromBigInt(txData.Fee()))}
+		fees := sdk.Coins{sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(txData.Fee()))}
 		err = authante.DeductFees(suite.app.BankKeeper, suite.ctx, suite.app.AccountKeeper.GetAccount(ctx, msg.GetFrom()), fees)
 		require.NoError(b, err)
 
@@ -133,7 +135,7 @@ func BenchmarkMessageCall(b *testing.B) {
 		txData, err := types.UnpackTxData(msg.Data)
 		require.NoError(b, err)
 
-		fees := sdk.Coins{sdk.NewCoin(suite.EvmDenom(), sdk.NewIntFromBigInt(txData.Fee()))}
+		fees := sdk.Coins{sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(txData.Fee()))}
 		err = authante.DeductFees(suite.app.BankKeeper, suite.ctx, suite.app.AccountKeeper.GetAccount(ctx, msg.GetFrom()), fees)
 		require.NoError(b, err)
 

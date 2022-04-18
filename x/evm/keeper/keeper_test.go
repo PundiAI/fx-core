@@ -3,9 +3,10 @@ package keeper_test
 import (
 	_ "embed"
 	"encoding/json"
-	"math"
 	"math/big"
 	"time"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/evm/statedb"
 
@@ -22,8 +23,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
-
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	app "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
@@ -62,12 +61,12 @@ type KeeperTestSuite struct {
 
 	enableFeemarket  bool
 	enableLondonHF   bool
+	checkTx          bool
 	mintFeeCollector bool
 }
 
 /// DoSetupTest setup test environment, it uses`require.TestingT` to support both `testing.T` and `testing.B`.
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
-	checkTx := false
 
 	// account key, use a constant account to keep unit test deterministic.
 	ecdsaPriv, err := crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
@@ -83,29 +82,13 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = app.Setup(checkTx, func(app *app.App, genesis app.AppGenesisState) app.AppGenesisState {
-		feemarketGenesis := feemarkettypes.DefaultGenesisState()
-		if suite.enableFeemarket {
-			feemarketGenesis.Params.EnableHeight = 1
-			feemarketGenesis.Params.NoBaseFee = false
-		} else {
-			feemarketGenesis.Params.NoBaseFee = true
-		}
-		genesis[feemarkettypes.ModuleName] = app.AppCodec().MustMarshalJSON(feemarketGenesis)
-		if !suite.enableLondonHF {
-			evmGenesis := types.DefaultGenesisState()
-			maxInt := sdk.NewInt(math.MaxInt64)
-			evmGenesis.Params.ChainConfig.LondonBlock = &maxInt
-			evmGenesis.Params.ChainConfig.ArrowGlacierBlock = &maxInt
-			evmGenesis.Params.ChainConfig.MergeForkBlock = &maxInt
-			genesis[types.ModuleName] = app.AppCodec().MustMarshalJSON(evmGenesis)
-		}
+	suite.app = app.Setup(suite.checkTx, func(app *app.App, genesis app.AppGenesisState) app.AppGenesisState {
 		return genesis
 	})
 
 	if suite.mintFeeCollector {
 		// mint some coin to fee collector
-		coins := sdk.NewCoins(sdk.NewCoin(types.DefaultEVMDenom, sdk.NewInt(int64(params.TxGas)-1)))
+		coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(int64(params.TxGas)-1)))
 		genesisState := app.ModuleBasics.DefaultGenesis(suite.app.AppCodec())
 		balances := []banktypes.Balance{
 			{
@@ -114,7 +97,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 			},
 		}
 		// update total supply
-		bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, sdk.NewCoins(sdk.NewCoin(types.DefaultEVMDenom, sdk.NewInt((int64(params.TxGas)-1)))), []banktypes.Metadata{})
+		bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt((int64(params.TxGas)-1)))), []banktypes.Metadata{})
 		bz := suite.app.AppCodec().MustMarshalJSON(bankGenesis)
 		require.NotNil(t, bz)
 		genesisState[banktypes.ModuleName] = suite.app.AppCodec().MustMarshalJSON(bankGenesis)
@@ -134,7 +117,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		)
 	}
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{
+	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
 		Height:          1,
 		ChainID:         "fxcore",
 		Time:            time.Now().UTC(),
@@ -191,12 +174,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.DoSetupTest(suite.T())
-}
-
-func (suite *KeeperTestSuite) EvmDenom() string {
-	ctx := sdk.WrapSDKContext(suite.ctx)
-	rsp, _ := suite.queryClient.Params(ctx, &types.QueryParamsRequest{})
-	return rsp.Params.EvmDenom
 }
 
 // Commit and begin new block
@@ -404,8 +381,7 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.enableLondonHF = tc.enableLondonHF
 			suite.SetupTest()
-			params := suite.app.EvmKeeper.GetParams(suite.ctx)
-			ethCfg := params.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
+			ethCfg := types.DefEthereumConfig(suite.app.EvmKeeper.ChainID())
 			baseFee := suite.app.EvmKeeper.BaseFee(suite.ctx, ethCfg)
 			suite.Require().Equal(tc.expectBaseFee, baseFee)
 		})

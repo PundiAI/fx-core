@@ -41,7 +41,7 @@ func TestMigrateBankFunc(t *testing.T) {
 func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, []sdk.AccAddress) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := app.GenerateGenesisValidator(3,
-		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
 

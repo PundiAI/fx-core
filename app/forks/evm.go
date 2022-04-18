@@ -23,7 +23,6 @@ func InitSupportEvm(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper,
 ) error {
 	logger := ctx.Logger()
 	// init fee market
-	//feemarketParams := feemarkettypes.DefaultParams()
 	logger.Info("init fee market", "params", feemarketParams.String())
 	// set feeMarket blockGasUsed
 	feeMarketKeeper.SetBlockGasUsed(ctx, 0)
@@ -31,12 +30,10 @@ func InitSupportEvm(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper,
 	feeMarketKeeper.SetParams(ctx, feemarketParams)
 
 	// init evm
-	//evmParams := evmtypes.DefaultParams()
 	logger.Info("init evm", "params", evmParams.String())
 	evmKeeper.SetParams(ctx, evmParams)
 
 	// init erc20
-	//erc20Params := erc20types.DefaultParams()
 	logger.Info("init erc20", "params", erc20Params.String())
 	erc20Keeper.SetParams(ctx, erc20Params)
 

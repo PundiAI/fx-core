@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	fxtype "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/migrate/types"
 )
 
@@ -14,7 +14,7 @@ import (
 func NewHandler(server types.MsgServer) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		//check module enable
-		if ctx.BlockHeight() < fxtype.EvmSupportBlock() {
+		if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 			return nil, sdkerrors.Wrap(types.InvalidRequest, "migrate module not enable")
 		}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())

@@ -63,7 +63,3 @@ func (k Keeper) SetBlockGasUsed(ctx sdk.Context, gas uint64) {
 	gasBz := sdk.Uint64ToBigEndian(gas)
 	store.Set(types.KeyPrefixBlockGasUsed, gasBz)
 }
-
-func (k Keeper) HasInit(ctx sdk.Context) bool {
-	return k.paramSpace.Has(ctx, types.ParamStoreKeyNoBaseFee)
-}

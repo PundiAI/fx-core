@@ -60,8 +60,6 @@ func NewPublicAPI(
 	backend backend.Backend,
 	nonceLock *rpctypes.AddrLocker,
 ) *PublicAPI {
-	eip155ChainID := fxtypes.EIP155ChainID()
-
 	algos, _ := clientCtx.Keyring.SupportedAlgorithms()
 
 	if !algos.Contains(hd.EthSecp256k1) {
@@ -81,18 +79,15 @@ func NewPublicAPI(
 
 	// The signer used by the API should always be the 'latest' known one because we expect
 	// signers to be backwards-compatible with old transactions.
-	cfg := backend.ChainConfig()
-	if cfg == nil {
-		cfg = evmtypes.DefaultChainConfig().EthereumConfig(eip155ChainID)
-	}
 
-	signer := ethtypes.LatestSigner(cfg)
+	ethCfg := evmtypes.DefEthereumConfig(fxtypes.EIP155ChainID())
+	signer := ethtypes.LatestSigner(ethCfg)
 
 	api := &PublicAPI{
 		ctx:          context.Background(),
 		clientCtx:    clientCtx,
 		queryClient:  rpctypes.NewQueryClient(clientCtx),
-		chainIDEpoch: eip155ChainID,
+		chainIDEpoch: ethCfg.ChainID,
 		logger:       logger.With("client", "json-rpc"),
 		backend:      backend,
 		nonceLock:    nonceLock,
@@ -512,14 +507,7 @@ func (e *PublicAPI) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) 
 		return common.Hash{}, err
 	}
 
-	// Query params to use the EVM denomination
-	res, err := e.queryClient.QueryClient.Params(e.ctx, &evmtypes.QueryParamsRequest{})
-	if err != nil {
-		e.logger.Error("failed to query evm params", "error", err.Error())
-		return common.Hash{}, err
-	}
-
-	cosmosTx, err := ethereumTx.BuildTx(e.clientCtx.TxConfig.NewTxBuilder(), res.Params.EvmDenom)
+	cosmosTx, err := ethereumTx.BuildTx(e.clientCtx.TxConfig.NewTxBuilder(), fxtypes.DefaultDenom)
 	if err != nil {
 		e.logger.Error("failed to build cosmos tx", "error", err.Error())
 		return common.Hash{}, err

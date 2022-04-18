@@ -69,7 +69,7 @@ var (
 	// Default params variables used to create a TM client
 	DefaultTrustLevel ibctmtypes.Fraction = ibctmtypes.DefaultTrustLevel
 	TestHash                              = tmhash.Sum([]byte("TESTING HASH"))
-	TestCoin                              = sdk.NewCoin(fxtypes.MintDenom, sdk.NewInt(100))
+	TestCoin                              = sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 
@@ -131,7 +131,7 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewInt(100000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000000000000))),
 	}
 
 	fxcore := app.SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)

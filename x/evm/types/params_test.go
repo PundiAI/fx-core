@@ -1,6 +1,7 @@
 package types
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/params"
@@ -22,32 +23,24 @@ func TestParamsValidate(t *testing.T) {
 		{"default", DefaultParams(), false},
 		{
 			"valid",
-			NewParams("ara", true, true, DefaultChainConfig(), 2929, 1884, 1344),
+			NewParams(true, true, 2929, 1884, 1344),
 			false,
 		},
 		{
 			"empty",
 			Params{},
-			true,
-		},
-		{
-			"invalid evm denom",
-			Params{
-				EvmDenom: "@!#!@$!@5^32",
-			},
-			true,
+			false,
 		},
 		{
 			"invalid eip",
 			Params{
-				EvmDenom:  "stake",
 				ExtraEIPs: []int64{1},
 			},
 			true,
 		},
 		{
 			"invalid chain config",
-			NewParams("ara", true, true, ChainConfig{}, 2929, 1884, 1344),
+			NewParams(true, true, 2929, 1884, 1344),
 			false,
 		},
 	}
@@ -64,47 +57,15 @@ func TestParamsValidate(t *testing.T) {
 }
 
 func TestParamsEIPs(t *testing.T) {
-	params := NewParams("ara", true, true, DefaultChainConfig(), 2929, 1884, 1344)
-	actual := params.EIPs()
-
+	actual := NewParams(true, true, 2929, 1884, 1344).EIPs()
 	require.Equal(t, []int([]int{2929, 1884, 1344}), actual)
 }
 
 func TestParamsValidatePriv(t *testing.T) {
-	require.Error(t, validateEVMDenom(false))
-	require.NoError(t, validateEVMDenom("inj"))
 	require.Error(t, validateBool(""))
 	require.NoError(t, validateBool(true))
 	require.Error(t, validateEIPs(""))
 	require.NoError(t, validateEIPs([]int64{1884}))
-}
-
-func TestValidateChainConfig(t *testing.T) {
-	testCases := []struct {
-		name     string
-		i        interface{}
-		expError bool
-	}{
-		{
-			"invalid chain config type",
-			"string",
-			true,
-		},
-		{
-			"valid chain config type",
-			DefaultChainConfig(),
-			false,
-		},
-	}
-	for _, tc := range testCases {
-		err := validateChainConfig(tc.i)
-
-		if tc.expError {
-			require.Error(t, err, tc.name)
-		} else {
-			require.NoError(t, err, tc.name)
-		}
-	}
 }
 
 func TestIsLondon(t *testing.T) {
@@ -131,7 +92,7 @@ func TestIsLondon(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		ethConfig := params.MainnetChainConfig
-		require.Equal(t, IsLondon(ethConfig, tc.height), tc.result)
+		ethCfg := params.MainnetChainConfig
+		require.Equal(t, ethCfg.IsLondon(big.NewInt(tc.height)), tc.result)
 	}
 }

@@ -48,15 +48,14 @@ func (k Keeper) Account(c context.Context, req *types.QueryAccountRequest) (*typ
 		)
 	}
 
-	addr := common.HexToAddress(req.Address)
-
 	ctx := sdk.UnwrapSDKContext(c)
-	if !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
 
+	addr := common.HexToAddress(req.Address)
 	acct := k.GetAccountOrEmpty(ctx, addr)
 	codeHash := types.EmptyCodeHash
 	if bz, found := k.GetAddressCodeHash(ctx, addr); found {
@@ -147,7 +146,7 @@ func (k Keeper) Balance(c context.Context, req *types.QueryBalanceRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -217,16 +216,14 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 // Params implements the Query/Params gRPC method
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
 
-	params := k.GetParams(ctx)
-
 	return &types.QueryParamsResponse{
-		Params: params,
+		Params: k.GetParams(ctx),
 	}, nil
 }
 
@@ -237,7 +234,7 @@ func (k Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.Ms
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -282,7 +279,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -445,14 +442,15 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	ctx = ctx.WithBlockHeight(req.BlockNumber)
-	ctx = ctx.WithBlockTime(req.BlockTime)
-	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
-	if !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
+
+	ctx = ctx.WithBlockHeight(req.BlockNumber)
+	ctx = ctx.WithBlockTime(req.BlockTime)
+	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 
 	cfg, err := k.EVMConfig(ctx)
 	if err != nil {
@@ -508,14 +506,14 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	ctx = ctx.WithBlockHeight(req.BlockNumber)
-	ctx = ctx.WithBlockTime(req.BlockTime)
-	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
-	if !k.HasInit(ctx) {
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
+	ctx = ctx.WithBlockHeight(req.BlockNumber)
+	ctx = ctx.WithBlockTime(req.BlockTime)
+	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 
 	cfg, err := k.EVMConfig(ctx)
 	if err != nil {
@@ -574,7 +572,7 @@ func (k *Keeper) traceTx(
 	}
 
 	if traceConfig != nil && traceConfig.Overrides != nil {
-		overrides = traceConfig.Overrides.EthereumConfig(cfg.ChainConfig.ChainID)
+		overrides = types.DefEthereumConfig(cfg.ChainConfig.ChainID)
 	}
 
 	switch {
@@ -660,9 +658,4 @@ func (k *Keeper) traceTx(
 	}
 
 	return &result, txConfig.LogIndex + uint(len(res.Logs)), nil
-}
-
-func (k Keeper) ModuleEnable(c context.Context, _ *types.QueryModuleEnableRequest) (*types.QueryModuleEnableResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	return &types.QueryModuleEnableResponse{Enable: k.HasInit(ctx)}, nil
 }

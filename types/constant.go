@@ -6,7 +6,7 @@ const (
 	Name          = "fxcore"
 	AddressPrefix = "fx"
 
-	MintDenom = "FX"
+	DefaultDenom = "FX"
 	// BaseDenomUnit defines the base denomination unit for Photons.
 	// 1 FX = 1x10^{BaseDenomUnit} fx
 	BaseDenomUnit = 18

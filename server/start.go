@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/spf13/cobra"
 
 	"google.golang.org/grpc"
@@ -37,7 +39,6 @@ import (
 
 	ethdebug "github.com/functionx/fx-core/rpc/ethereum/namespaces/debug"
 	"github.com/functionx/fx-core/server/config"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
 )
 
 const (
@@ -430,23 +431,22 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	}
 
 	var (
-		httpSrv                       *http.Server
-		httpSrvDone                   chan struct{}
-		jsonRpcContext, jsonRpcCancel = context.WithCancel(context.Background())
+		httpSrv     *http.Server
+		httpSrvDone chan struct{}
 	)
 	if config.JSONRPC.Enable {
 		go func() {
-			evmQueryClient := evmtypes.NewQueryClient(clientCtx)
+
 			web3Logger := ctx.Logger.With("Web3JsonRpc")
 			for {
-				moduleEnableResp, err := evmQueryClient.ModuleEnable(jsonRpcContext, &evmtypes.QueryModuleEnableRequest{})
+				block, err := clientCtx.Client.Block(context.Background(), nil)
 				if err != nil {
-					web3Logger.Info(fmt.Sprintf("Query evm module enable err!err:%v", err))
+					web3Logger.Error(fmt.Sprintf("Query block failed!err:%s", err.Error()))
 					time.Sleep(30 * time.Second)
 					continue
 				}
-				if !moduleEnableResp.Enable {
-					web3Logger.Info("Evm Module not enable sleep 30s")
+				if block.Block.Height < fxtypes.EvmSupportBlock() {
+					web3Logger.Debug("Evm Module not enable sleep 30s")
 					time.Sleep(30 * time.Second)
 					continue
 				}
@@ -483,8 +483,6 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		if grpcSrv != nil {
 			grpcSrv.Stop()
 		}
-		// cancel start jsonRpc task.
-		jsonRpcCancel()
 
 		if httpSrv != nil {
 			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)

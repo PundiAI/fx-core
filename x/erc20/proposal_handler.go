@@ -6,7 +6,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtype "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/erc20/keeper"
 	"github.com/functionx/fx-core/x/erc20/types"
@@ -16,7 +16,7 @@ import (
 // It enables RegisterTokenPairProposal to propose a registration of token mapping
 func NewErc20ProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
-		if ctx.BlockHeight() < fxtype.EvmSupportBlock() {
+		if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 			return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "erc20 module not enable")
 		}
 		switch c := content.(type) {

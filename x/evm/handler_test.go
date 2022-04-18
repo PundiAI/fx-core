@@ -61,13 +61,11 @@ type EvmTestSuite struct {
 	ethSigner ethtypes.Signer
 	from      common.Address
 	to        sdk.AccAddress
-
-	dynamicTxFee bool
+	checkTx   bool
 }
 
 /// DoSetupTest setup test environment, it uses`require.TestingT` to support both `testing.T` and `testing.B`.
 func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
-	checkTx := false
 
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
@@ -82,17 +80,11 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
-	suite.app = app.Setup(checkTx, func(fxcore *app.App, genesis app.AppGenesisState) app.AppGenesisState {
-		if suite.dynamicTxFee {
-			feemarketGenesis := feemarkettypes.DefaultGenesisState()
-			feemarketGenesis.Params.EnableHeight = 1
-			feemarketGenesis.Params.NoBaseFee = false
-			genesis[feemarkettypes.ModuleName] = fxcore.AppCodec().MustMarshalJSON(feemarketGenesis)
-		}
+	suite.app = app.Setup(suite.checkTx, func(fxcore *app.App, genesis app.AppGenesisState) app.AppGenesisState {
 		return genesis
 	})
 
-	coins := sdk.NewCoins(sdk.NewCoin(types.DefaultEVMDenom, sdk.NewInt(100000000000000)))
+	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000000000000)))
 	genesisState := app.DefaultTestGenesis(suite.app.AppCodec())
 	b32address := sdk.MustBech32ifyAddressBytes(sdk.GetConfig().GetBech32AccountAddrPrefix(), priv.PubKey().Address().Bytes())
 	balances := []banktypes.Balance{
@@ -110,7 +102,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 
 	// Update total supply
 	bankGenesis.Balances = append(bankGenesis.Balances, balances...)
-	bankGenesis.Supply = bankGenesis.Supply.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultEVMDenom, sdk.NewInt(200000000000000)))...)
+	bankGenesis.Supply = bankGenesis.Supply.Add(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(200000000000000)))...)
 	genesisState[banktypes.ModuleName] = suite.app.AppCodec().MustMarshalJSON(&bankGenesis)
 
 	stateBytes, err := tmjson.MarshalIndent(genesisState, "", " ")
@@ -126,7 +118,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 		},
 	)
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{
+	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
 		Height:          1,
 		ChainID:         "fxcore",
 		Time:            time.Now().UTC(),
@@ -150,7 +142,11 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app, suite.dynamicTxFee))
+	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + fxtypes.EvmSupportBlock())
+	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+		suite.app.EvmKeeper, types.DefaultParams(),
+		suite.app.Erc20Keeper, erc20types.DefaultParams()))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 
@@ -602,7 +598,7 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 
 			txData, err := types.UnpackTxData(tx.Data)
 			suite.Require().NoError(err)
-			_, err = k.DeductTxCostsFromUserBalance(suite.ctx, *tx, txData, "FX", true, true, true)
+			_, err = k.DeductTxCostsFromUserBalance(suite.ctx, *tx, txData, true, true, true)
 			suite.Require().NoError(err)
 
 			res, err := k.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
@@ -693,25 +689,6 @@ type DummyHook struct{}
 
 func (dh *DummyHook) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
 	return nil
-}
-
-func InitEvmModuleParams(ctx sdk.Context, fxcore *app.App, dynamicTxFee bool) error {
-	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxtypes.EvmSupportBlock())
-	defaultEvmParams := types.DefaultParams()
-	defaultFeeMarketParams := feemarkettypes.DefaultParams()
-	defaultErc20Params := erc20types.DefaultParams()
-
-	if dynamicTxFee {
-		defaultFeeMarketParams.EnableHeight = fxtypes.EvmSupportBlock()
-		defaultFeeMarketParams.NoBaseFee = false
-	} else {
-		defaultFeeMarketParams.NoBaseFee = true
-	}
-
-	return forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
-		fxcore.FeeMarketKeeper, defaultFeeMarketParams,
-		fxcore.EvmKeeper, defaultEvmParams,
-		fxcore.Erc20Keeper, defaultErc20Params)
 }
 
 // FailureHook implements EvmHooks interface

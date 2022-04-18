@@ -82,8 +82,7 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash comm
 			return err
 		}
 
-		evmParams := k.evmKeeper.GetParams(ctx)
-		if pair.Denom == evmParams.EvmDenom {
+		if pair.Denom == fxtypes.DefaultDenom {
 			if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, pair.GetERC20Contract().Bytes(), types.ModuleName, coins); err != nil {
 				return err
 			}

@@ -10,15 +10,15 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	fxtype "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
 func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {
-	fip20ABI := fxtype.GetERC20(ctx.BlockHeight()).ABI
+	fip20ABI := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 	for _, log := range receipt.Logs {
-		tc, isOk, err := fxtype.ParseTransferCrossChainEvent(fip20ABI, log)
+		tc, isOk, err := fxtypes.ParseTransferCrossChainEvent(fip20ABI, log)
 		if err != nil {
 			return err
 		}
@@ -38,9 +38,9 @@ func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.A
 
 		targetType, target := tc.GetTarget()
 		switch targetType {
-		case fxtype.FIP20TargetChain:
+		case fxtypes.FIP20TargetChain:
 			err = k.TransferChainHandler(ctx, tc.GetFrom(), tc.Recipient, tc.GetAmount(pair.Denom), tc.GetFee(pair.Denom), target, receipt)
-		case fxtype.FIP20TargetIBC:
+		case fxtypes.FIP20TargetIBC:
 			err = k.TransferIBCHandler(ctx, tc.GetFrom(), tc.Recipient, tc.GetAmount(pair.Denom), tc.GetFee(pair.Denom), target, receipt)
 		default:
 			err = fmt.Errorf("traget unknown %d", targetType)
@@ -78,7 +78,7 @@ func (k Keeper) TransferChainHandler(ctx sdk.Context, from sdk.AccAddress, to st
 
 func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string, receipt *ethtypes.Receipt) error {
 	k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
-	targetIBC, ok := fxtype.ParseTargetIBC(target)
+	targetIBC, ok := fxtypes.ParseTargetIBC(target)
 	if !ok {
 		return fmt.Errorf("invalid target ibc %s", target)
 	}

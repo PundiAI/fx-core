@@ -108,8 +108,7 @@ func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 		return nil, err
 	}
 
-	evmParams := k.evmKeeper.GetParams(ctx)
-	if pair.Denom == evmParams.EvmDenom {
+	if pair.Denom == fxtypes.DefaultDenom {
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, contract.Bytes(), coins); err != nil {
 			return nil, sdkerrors.Wrap(err, "failed to transfer escrow coins to origin denom")
 		}
@@ -176,8 +175,7 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 	}
 
 	// Transfer origin denom to module
-	evmParams := k.evmKeeper.GetParams(ctx)
-	if pair.Denom == evmParams.EvmDenom {
+	if pair.Denom == fxtypes.DefaultDenom {
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, contract.Bytes(), types.ModuleName, coins); err != nil {
 			return nil, sdkerrors.Wrap(err, "failed to transfer origin denom to module")
 		}

@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"math/big"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -407,7 +409,6 @@ func (suite *KeeperTestSuite) TestDeductTxCostsFromUserBalance() {
 				suite.ctx,
 				*tx,
 				txData,
-				evmtypes.DefaultEVMDenom,
 				false,
 				false,
 				suite.enableFeemarket, // london
@@ -420,7 +421,7 @@ func (suite *KeeperTestSuite) TestDeductTxCostsFromUserBalance() {
 					suite.Require().Equal(
 						fees,
 						sdk.NewCoins(
-							sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewIntFromBigInt(txData.EffectiveFee(baseFee))),
+							sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(txData.EffectiveFee(baseFee))),
 						),
 						"valid test %d failed, fee value is wrong ", i,
 					)
@@ -428,7 +429,7 @@ func (suite *KeeperTestSuite) TestDeductTxCostsFromUserBalance() {
 					suite.Require().Equal(
 						fees,
 						sdk.NewCoins(
-							sdk.NewCoin(evmtypes.DefaultEVMDenom, tc.gasPrice.Mul(sdk.NewIntFromUint64(tc.gasLimit))),
+							sdk.NewCoin(fxtypes.DefaultDenom, tc.gasPrice.Mul(sdk.NewIntFromUint64(tc.gasLimit))),
 						),
 						"valid test %d failed, fee value is wrong ", i,
 					)

@@ -79,7 +79,7 @@ func TestUpdateOracleProposal(t *testing.T) {
 func createProposalTestEnv(t *testing.T) (fxcore *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler, govHandler govtypes.Handler) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	fxcore = app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx = fxcore.BaseApp.NewContext(false, tmproto.Header{})
 	ctx = ctx.WithBlockHeight(2000000)

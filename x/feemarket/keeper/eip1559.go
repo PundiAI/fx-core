@@ -3,6 +3,8 @@ package keeper
 import (
 	"math/big"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/functionx/fx-core/x/feemarket/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,13 +20,8 @@ import (
 func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
 
-	// Ignore the calculation if not enable
-	if !params.IsBaseFeeEnabled(ctx.BlockHeight()) {
-		return nil
-	}
-
 	// If the current block is the first EIP-1559 block, return the InitialBaseFee.
-	if ctx.BlockHeight() == params.EnableHeight {
+	if ctx.BlockHeight() == fxtypes.EvmSupportBlock() {
 		return params.BaseFee.BigInt()
 	}
 

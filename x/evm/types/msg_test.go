@@ -57,18 +57,14 @@ func (suite *MsgsTestSuite) SetupTest() {
 func (suite *MsgsTestSuite) TestMsgEthereumTx_Constructor() {
 	msg := types.NewTx(nil, 0, &suite.to, nil, 100000, nil, nil, nil, []byte("test"), nil)
 
-	// suite.Require().Equal(msg.Data.To, suite.to.Hex())
 	suite.Require().Equal(msg.Route(), types.RouterKey)
 	suite.Require().Equal(msg.Type(), types.TypeMsgEthereumTx)
-	// suite.Require().NotNil(msg.To())
 	suite.Require().Equal(msg.GetMsgs(), []sdk.Msg{msg})
 	suite.Require().Panics(func() { msg.GetSigners() })
 	suite.Require().Panics(func() { msg.GetSignBytes() })
 
 	msg = types.NewTxContract(nil, 0, nil, 100000, nil, nil, nil, []byte("test"), nil)
 	suite.Require().NotNil(msg)
-	// suite.Require().Empty(msg.Data.To)
-	// suite.Require().Nil(msg.To())
 }
 
 func (suite *MsgsTestSuite) TestMsgEthereumTx_BuildTx() {
@@ -105,7 +101,6 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 		{msg: "pass with recipient - Legacy Tx", to: suite.to.Hex(), amount: &hundredInt, gasPrice: &hundredInt, expectPass: true},
 		{msg: "pass with recipient - AccessList Tx", to: suite.to.Hex(), amount: &hundredInt, gasPrice: &zeroInt, accessList: &ethtypes.AccessList{}, chainID: &hundredInt, expectPass: true},
 		{msg: "pass contract - Legacy Tx", to: "", amount: &hundredInt, gasPrice: &hundredInt, expectPass: true},
-		// {msg: "invalid recipient", to: invalidFromAddress, amount: &minusOneInt, gasPrice: &hundredInt, expectPass: false},
 		{msg: "nil amount - Legacy Tx", to: suite.to.Hex(), amount: nil, gasPrice: &hundredInt, expectPass: true},
 		{msg: "negative amount - Legacy Tx", to: suite.to.Hex(), amount: &minusOneInt, gasPrice: &hundredInt, expectPass: false},
 		{msg: "nil gas price - Legacy Tx", to: suite.to.Hex(), amount: &hundredInt, gasPrice: nil, expectPass: false},

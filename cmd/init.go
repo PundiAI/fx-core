@@ -137,7 +137,7 @@ func initCmd() *cobra.Command {
 	cmd.Flags().Bool(FlagOverwrite, false, "overwrite the genesis.json file")
 	cmd.Flags().Bool(FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
-	cmd.Flags().String(FlagDenom, fxtypes.MintDenom, "set the default coin denomination")
+	cmd.Flags().String(FlagDenom, fxtypes.DefaultDenom, "set the default coin denomination")
 	cmd.Flags().StringP(cli.OutputFlag, "o", "json", "Output format (text|json)")
 	return cmd
 }

@@ -728,8 +728,7 @@ func (suite *KeeperTestSuite) AddSlotToAccessList() {
 	}
 }
 
-// FIXME skip for now
-func (suite *KeeperTestSuite) _TestForEachStorage() {
+func (suite *KeeperTestSuite) TestForEachStorage() {
 	var storage types.Storage
 
 	testCase := []struct {

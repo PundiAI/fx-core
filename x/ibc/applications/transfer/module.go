@@ -97,9 +97,7 @@ func NewAppModule(k keeper2.Keeper) AppModule {
 }
 
 // RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-	// TODO
-}
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route implements the AppModule interface
 func (am AppModule) Route() sdk.Route {

@@ -75,7 +75,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*App, AppGenesisState) {
 }
 
 func DefaultTestGenesis(cdc codec.JSONCodec) AppGenesisState {
-	genesisState := NewDefAppGenesisByDenom(fxtypes.MintDenom, cdc)
+	genesisState := NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cdc)
 	var bankGenesis banktypes.GenesisState
 	cdc.MustUnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenesis)
 	if !bankGenesis.Supply.IsZero() {
@@ -83,7 +83,7 @@ func DefaultTestGenesis(cdc codec.JSONCodec) AppGenesisState {
 		if !ok {
 			panic("parse gravity module init amount not ok!str:" + GravityModuleInitAmount)
 		}
-		bankGenesis.Supply = sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, gravityModuleInitAmount))
+		bankGenesis.Supply = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, gravityModuleInitAmount))
 	}
 	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(&bankGenesis)
 	return genesisState
@@ -175,11 +175,11 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	if !totalSupply.IsZero() {
 		gravityModuleInitAmount, ok := sdk.NewIntFromString(GravityModuleInitAmount)
 		require.True(t, ok)
-		totalSupply = sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, gravityModuleInitAmount))
+		totalSupply = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, gravityModuleInitAmount))
 	}
 	for _, b := range balances {
 		// add genesis acc tokens and delegated tokens to total supply
-		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(fxtypes.MintDenom, bondAmt))...)
+		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(fxtypes.DefaultDenom, bondAmt))...)
 	}
 	bankGenesis.Supply = totalSupply
 	bankGenesis.Balances = balances

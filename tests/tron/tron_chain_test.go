@@ -58,7 +58,6 @@ func moduleParamsInit(c *Client) {
 		Subspace: c.chainName,
 		Key:      string(types.ParamsStoreKeyGravityID),
 	})
-	//queryResult, err := c.fxRpc.ABCIQuery(c.ctx, fmt.Sprintf("/store/%s/key", c.chainName), types.ParamsStoreKeyGravityID)
 	require.NoError(c.t, err, fmt.Sprintf("query subspace %v params %v err", c.chainName, string(types.ParamsStoreKeyGravityID)))
 
 	if len(queryParamsResponse.Param.Value) == 0 {
@@ -96,8 +95,6 @@ func sendInitModuleParamsGov(c *Client) uint64 {
 		},
 		ChainName: chainName,
 	}
-	//params, err := c.govQueryClient.Params(c.ctx, &govtypes.QueryParamsRequest{})
-	//require.NoError(c.t, err)
 	minDeposit := sdk.NewCoin("FX", oneInt.Mul(sdk.NewInt(10000)))
 	msg, err := govtypes.NewMsgSubmitProposal(proposal, sdk.NewCoins(minDeposit), c.FxAddress())
 	require.NoError(c.t, err)

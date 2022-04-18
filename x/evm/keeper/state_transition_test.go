@@ -209,16 +209,6 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			true,
 			params.TxGas + params.TxDataNonZeroGasFrontier*1,
 		},
-		// we are not able to test the ErrGasUintOverflow due to RAM limitation
-		// {
-		// 	"with big data size overflow",
-		// 	make([]byte, 271300000000000000),
-		// 	nil,
-		// 	1,
-		// 	false,
-		// 	false,
-		// 	0,
-		// },
 		{
 			"no data, one accesslist, not contract creation, not homestead, not istanbul",
 			nil,
@@ -265,8 +255,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
-			ethCfg := evmParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
+			ethCfg := types.DefEthereumConfig(suite.app.EvmKeeper.ChainID())
 			ethCfg.HomesteadBlock = big.NewInt(2)
 			ethCfg.IstanbulBlock = big.NewInt(3)
 			signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
@@ -401,8 +390,7 @@ func (suite *KeeperTestSuite) TestRefundGas() {
 			suite.mintFeeCollector = true
 			suite.SetupTest() // reset
 
-			keeperParams := suite.app.EvmKeeper.GetParams(suite.ctx)
-			ethCfg := keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
+			ethCfg := types.DefEthereumConfig(suite.app.EvmKeeper.ChainID())
 			signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 			vmdb := suite.StateDB()
 
@@ -506,7 +494,7 @@ func (suite *KeeperTestSuite) TestEVMConfig() {
 	// london hardfork is enabled by default
 	suite.Require().Equal(big.NewInt(0), cfg.BaseFee)
 	suite.Require().Equal(suite.address, cfg.CoinBase)
-	suite.Require().Equal(types.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(9000)), cfg.ChainConfig)
+	suite.Require().Equal(types.DefEthereumConfig(big.NewInt(9000)), cfg.ChainConfig)
 }
 
 func (suite *KeeperTestSuite) TestContractDeployment() {

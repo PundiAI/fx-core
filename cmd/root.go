@@ -83,7 +83,7 @@ func newRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := config.AppConfig(fxtypes.MintDenom)
+			customAppTemplate, customAppConfig := config.AppConfig(fxtypes.DefaultDenom)
 			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
 				return err
 			}
@@ -97,7 +97,7 @@ func newRootCmd() *cobra.Command {
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxtypes.ChainID,
 		flags.FlagKeyringBackend: keyring.BackendTest,
-		flags.FlagGasPrices:      "4000000000000" + fxtypes.MintDenom,
+		flags.FlagGasPrices:      "4000000000000" + fxtypes.DefaultDenom,
 	})
 	for _, command := range rootCmd.Commands() {
 		if command.Use == "" {

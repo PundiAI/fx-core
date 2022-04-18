@@ -60,8 +60,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		k.bankKeeper.SetDenomMetaData(ctx, coinMetadata)
 	}
 
-	evmParams := k.evmKeeper.GetParams(ctx)
-	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == evmParams.EvmDenom)
+	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == fxtypes.DefaultDenom)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
 	}

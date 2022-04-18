@@ -24,10 +24,6 @@ service Query {
   rpc BlockGas(QueryBlockGasRequest) returns (QueryBlockGasResponse) {
     option (google.api.http).get = "/ethereum/feemarket/evm/v1/block_gas";
   }
-
-  rpc ModuleEnable(QueryModuleEnableRequest) returns (QueryModuleEnableResponse) {
-    option (google.api.http).get = "/ethereum/feemarket/evm/v1/module_enable";
-  }
 }
 
 // QueryParamsRequest defines the request type for querying x/evm parameters.

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
 
@@ -51,7 +53,7 @@ func (suite *KeeperTestSuite) TestQueryAccount() {
 		{
 			"success",
 			func() {
-				amt := sdk.Coins{sdk.NewInt64Coin(types.DefaultEVMDenom, 100)}
+				amt := sdk.Coins{sdk.NewInt64Coin(fxtypes.DefaultDenom, 100)}
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, amt)
 				suite.Require().NoError(err)
 				err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, suite.address.Bytes(), amt)
@@ -192,7 +194,7 @@ func (suite *KeeperTestSuite) TestQueryBalance() {
 		{
 			"success",
 			func() {
-				amt := sdk.Coins{sdk.NewInt64Coin(types.DefaultEVMDenom, 100)}
+				amt := sdk.Coins{sdk.NewInt64Coin(fxtypes.DefaultDenom, 100)}
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, amt)
 				suite.Require().NoError(err)
 				err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, suite.address.Bytes(), amt)

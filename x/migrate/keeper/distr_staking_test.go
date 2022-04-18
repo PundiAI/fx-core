@@ -124,14 +124,14 @@ func TestMigrateStakingHandler_Unbonding(t *testing.T) {
 	require.Equal(t, 1, len(slice))
 	require.Equal(t, bob.String(), slice[0].DelegatorAddress)
 
-	bobBalanceV1 := app.BankKeeper.GetBalance(ctx, bob, fxtypes.MintDenom)
+	bobBalanceV1 := app.BankKeeper.GetBalance(ctx, bob, fxtypes.DefaultDenom)
 	require.True(t, bobBalanceV1.Amount.GT(sdk.NewInt(0)))
 
 	ctx = commitUnbonding(t, ctx, app)
 
 	ctx = commitBlock(t, ctx, app)
 
-	bobBalanceV2 := app.BankKeeper.GetBalance(ctx, bob, fxtypes.MintDenom)
+	bobBalanceV2 := app.BankKeeper.GetBalance(ctx, bob, fxtypes.DefaultDenom)
 	require.Equal(t, bobBalanceV2.Sub(bobBalanceV1).Amount, delegateAmount.Quo(sdk.NewInt(10)))
 
 }

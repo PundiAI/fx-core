@@ -36,10 +36,10 @@ import (
 // Backend implements the functionality shared within namespaces.
 // Implemented by EVMBackend.
 type Backend interface {
-	// Fee API
+	// FeeHistory Fee API
 	FeeHistory(blockCount rpc.DecimalOrHex, lastBlock rpc.BlockNumber, rewardPercentiles []float64) (*types.FeeHistoryResult, error)
 
-	// General Ethereum API
+	// RPCGasCap General Ethereum API
 	RPCGasCap() uint64            // global gas cap for eth_call over rpc: DoS protection
 	RPCEVMTimeout() time.Duration // global timeout for eth_call over rpc: DoS protection
 	RPCTxFeeCap() float64         // RPCTxFeeCap is the global transaction fee(price * gaslimit) cap for send-transaction variants. The unit is ether.
@@ -47,7 +47,7 @@ type Backend interface {
 	RPCMinGasPrice() int64
 	SuggestGasTipCap(baseFee *big.Int) (*big.Int, error)
 
-	// Blockchain API
+	// BlockNumber Blockchain API
 	BlockNumber() (hexutil.Uint64, error)
 	GetTendermintBlockByNumber(blockNum types.BlockNumber) (*tmrpctypes.ResultBlock, error)
 	GetTendermintBlockByHash(blockHash common.Hash) (*tmrpctypes.ResultBlock, error)
@@ -68,7 +68,7 @@ type Backend interface {
 	EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *types.BlockNumber) (hexutil.Uint64, error)
 	BaseFee(height int64) (*big.Int, error)
 
-	// Filter API
+	// BloomStatus Filter API
 	BloomStatus() (uint64, uint64)
 	GetLogs(hash common.Hash) ([][]*ethtypes.Log, error)
 	GetLogsByHeight(height *int64) ([][]*ethtypes.Log, error)
@@ -323,7 +323,7 @@ func (e *EVMBackend) EthBlockFromTendermint(
 	block *tmtypes.Block,
 	fullTx bool,
 ) (map[string]interface{}, error) {
-	ethRPCTxs := []interface{}{}
+	var ethRPCTxs []interface{}
 
 	ctx := types.ContextWithHeight(block.Height)
 
@@ -532,7 +532,7 @@ func (e *EVMBackend) GetLogsByHeight(height *int64) ([][]*ethtypes.Log, error) {
 		return nil, err
 	}
 
-	blockLogs := [][]*ethtypes.Log{}
+	var blockLogs [][]*ethtypes.Log
 	for _, txResult := range blockRes.TxsResults {
 		logs, err := AllTxLogsFromEvents(txResult.Events)
 		if err != nil {
@@ -771,15 +771,8 @@ func (e *EVMBackend) SendTransaction(args evmtypes.TransactionArgs) (common.Hash
 		return common.Hash{}, err
 	}
 
-	// Query params to use the EVM denomination
-	res, err := e.queryClient.QueryClient.Params(e.ctx, &evmtypes.QueryParamsRequest{})
-	if err != nil {
-		e.logger.Error("failed to query evm params", "error", err.Error())
-		return common.Hash{}, err
-	}
-
 	// Assemble transaction from fields
-	tx, err := msg.BuildTx(e.clientCtx.TxConfig.NewTxBuilder(), res.Params.EvmDenom)
+	tx, err := msg.BuildTx(e.clientCtx.TxConfig.NewTxBuilder(), fxtypes.DefaultDenom)
 	if err != nil {
 		e.logger.Error("build cosmos tx failed", "error", err.Error())
 		return common.Hash{}, err
@@ -880,7 +873,7 @@ func (e *EVMBackend) RPCEVMTimeout() time.Duration {
 	return e.cfg.JSONRPC.EVMTimeout
 }
 
-// RPCGasCap is the global gas cap for eth-call variants.
+// RPCTxFeeCap is the global gas cap for eth-call variants.
 func (e *EVMBackend) RPCTxFeeCap() float64 {
 	return e.cfg.JSONRPC.TxFeeCap
 }
@@ -909,13 +902,8 @@ func (e *EVMBackend) RPCBlockRangeCap() int32 {
 // the node config. If set value is 0, it will default to 20.
 
 func (e *EVMBackend) RPCMinGasPrice() int64 {
-	evmParams, err := e.queryClient.Params(e.ctx, &evmtypes.QueryParamsRequest{})
-	if err != nil {
-		return fxtypes.DefaultGasPrice
-	}
-
 	minGasPrice := e.cfg.GetMinGasPrices()
-	amt := minGasPrice.AmountOf(evmParams.Params.EvmDenom).TruncateInt64()
+	amt := minGasPrice.AmountOf(fxtypes.DefaultDenom).TruncateInt64()
 	if amt == 0 {
 		return fxtypes.DefaultGasPrice
 	}
@@ -925,12 +913,7 @@ func (e *EVMBackend) RPCMinGasPrice() int64 {
 
 // ChainConfig return the ethereum chain configuration
 func (e *EVMBackend) ChainConfig() *params.ChainConfig {
-	params, err := e.queryClient.Params(e.ctx, &evmtypes.QueryParamsRequest{})
-	if err != nil {
-		return nil
-	}
-
-	return params.Params.ChainConfig.EthereumConfig(e.chainID)
+	return evmtypes.DefEthereumConfig(e.chainID)
 }
 
 // SuggestGasTipCap returns the suggested tip cap
@@ -942,7 +925,7 @@ func (e *EVMBackend) SuggestGasTipCap(baseFee *big.Int) (*big.Int, error) {
 		return big.NewInt(0), nil
 	}
 
-	params, err := e.queryClient.FeeMarket.Params(e.ctx, &feemarkettypes.QueryParamsRequest{})
+	feeMarketParams, err := e.queryClient.FeeMarket.Params(e.ctx, &feemarkettypes.QueryParamsRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -956,7 +939,7 @@ func (e *EVMBackend) SuggestGasTipCap(baseFee *big.Int) (*big.Int, error) {
 	// MaxDelta = BaseFee * (GasLimit - GasLimit / ElasticityMultiplier) / (GasLimit / ElasticityMultiplier) / Denominator
 	//          = BaseFee * (ElasticityMultiplier - 1) / Denominator
 	// ```
-	maxDelta := baseFee.Int64() * (int64(params.Params.ElasticityMultiplier) - 1) / int64(params.Params.BaseFeeChangeDenominator)
+	maxDelta := baseFee.Int64() * (int64(feeMarketParams.Params.ElasticityMultiplier) - 1) / int64(feeMarketParams.Params.BaseFeeChangeDenominator)
 	if maxDelta < 0 {
 		// impossible if the parameter validation passed.
 		maxDelta = 0
@@ -970,16 +953,6 @@ func (e *EVMBackend) BaseFee(height int64) (*big.Int, error) {
 	cfg := e.ChainConfig()
 	if !cfg.IsLondon(new(big.Int).SetInt64(height)) {
 		return nil, nil
-	}
-
-	// Checks the feemarket param NoBaseFee settings, return 0 if it is enabled.
-	resParams, err := e.queryClient.FeeMarket.Params(types.ContextWithHeight(height), &feemarkettypes.QueryParamsRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	if resParams.Params.NoBaseFee {
-		return big.NewInt(0), nil
 	}
 
 	blockRes, err := e.clientCtx.Client.BlockResults(e.ctx, &height)

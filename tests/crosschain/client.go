@@ -278,7 +278,7 @@ func buildTxBodyAndTxAuthInfo(c *Client, msgList *[]sdk.Msg, accountNumber, acco
 	gasPrice, _ := sdk.NewIntFromString("4000000000000")
 	gasFeeAmount := gasPrice.Mul(sdk.NewInt(int64(gasLimit)))
 	authInfo.Fee = &tx.Fee{
-		Amount:   sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, gasFeeAmount)),
+		Amount:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, gasFeeAmount)),
 		GasLimit: gasLimit,
 	}
 	txAuthInfoBytes = mustProtoMarshal(c.t, authInfo)

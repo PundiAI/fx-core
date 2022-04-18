@@ -71,10 +71,6 @@ service Query {
   rpc TraceBlock(QueryTraceBlockRequest) returns (QueryTraceBlockResponse) {
     option (google.api.http).get = "/ethereum/evm/v1/trace_block";
   }
-
-  rpc ModuleEnable(QueryModuleEnableRequest) returns (QueryModuleEnableResponse) {
-    option (google.api.http).get = "/ethereum/evm/v1/module_enable";
-  }
 }
 
 // QueryAccountRequest is the request type for the Query/Account RPC method.

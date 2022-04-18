@@ -12,7 +12,6 @@ import (
 
 // ensureHooksSet tries to set the hooks on EVMKeeper, this will fail if the erc20 hook is already set
 func (suite *KeeperTestSuite) ensureHooksSet() {
-	// TODO: PR to Ethermint to add the functionality `GetHooks` or `areHooksSet` to avoid catching a panic
 	defer func() {
 		err := recover()
 		suite.Require().NotNil(err)

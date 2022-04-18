@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	fxtype "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/evm/keeper"
 	"github.com/functionx/fx-core/x/evm/types"
 )
@@ -12,7 +12,7 @@ import (
 // NewHandler returns a handler for Ethermint type messages.
 func NewHandler(k *keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (result *sdk.Result, err error) {
-		if ctx.BlockHeight() < fxtype.EvmSupportBlock() || !k.HasInit(ctx) {
+		if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "evm module not enable")
 		}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())

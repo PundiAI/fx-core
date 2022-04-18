@@ -96,10 +96,10 @@ Example:
 	cmd.Flags().String(flagNodeDaemonHome, fxtypes.Name, "Home directory of the node's daemon configuration")
 	cmd.Flags().String(flagStartingIP, "172.20.0.2", "Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")
 	cmd.Flags().String(flags.FlagChainID, fxtypes.ChainID, "genesis file chain-id, if left blank will be randomly created")
-	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("4000000000000%s", fxtypes.MintDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum")
+	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("4000000000000%s", fxtypes.DefaultDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum")
 	cmd.Flags().String(flags.FlagKeyringBackend, keyring.BackendTest, "Select keyring's backend (os|file|test)")
 	cmd.Flags().String(flags.FlagKeyAlgorithm, string(hd.Secp256k1Type), "Key signing algorithm to generate keys for")
-	cmd.Flags().String(FlagDenom, fxtypes.MintDenom, "set the default coin denomination")
+	cmd.Flags().String(FlagDenom, fxtypes.DefaultDenom, "set the default coin denomination")
 
 	return cmd
 }
@@ -167,6 +167,7 @@ func initTestnet(
 		if err != nil {
 			return err
 		}
+		// nolint
 		valAddr, mnemonic, err := server.GenerateSaveCoinKey(kb, nodeDirName, true, algo)
 		if err != nil {
 			return err

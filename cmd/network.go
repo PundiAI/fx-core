@@ -22,14 +22,14 @@ func networkCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			outputBytes, err := json.Marshal(map[string]interface{}{
-				"ChainId":                                types.ChainID,
-				"Network":                                types.Network(),
-				"GravityPruneValsetsAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetsAndAttestationBlock()),
-				"GravityValsetSlashBlock":                fmt.Sprintf("%d", types.GravityValsetSlashBlock()),
-				"CrossChainSupportBscBlock":              fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
-				"CrossChainSupportPolygonAndTronBlock":   fmt.Sprintf("%d", types.CrossChainSupportPolygonAndTronBlock()),
-				"EIP155ChainID":                          fmt.Sprintf("%d", types.EIP155ChainID()),
-				"EvmSupportBlock":                        fmt.Sprintf("%d", types.EvmSupportBlock()),
+				"ChainId":                               types.ChainID,
+				"Network":                               types.Network(),
+				"GravityPruneValsetAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetAndAttestationBlock()),
+				"GravityValsetSlashBlock":               fmt.Sprintf("%d", types.GravityValsetSlashBlock()),
+				"CrossChainSupportBscBlock":             fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
+				"CrossChainSupportPolygonAndTronBlock":  fmt.Sprintf("%d", types.CrossChainSupportPolygonAndTronBlock()),
+				"EIP155ChainID":                         fmt.Sprintf("%d", types.EIP155ChainID()),
+				"EvmSupportBlock":                       fmt.Sprintf("%d", types.EvmSupportBlock()),
 			})
 			if err != nil {
 				return err

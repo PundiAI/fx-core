@@ -3,6 +3,8 @@ package keeper
 import (
 	"math/big"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -18,7 +20,6 @@ func (k Keeper) DeductTxCostsFromUserBalance(
 	ctx sdk.Context,
 	msgEthTx evmtypes.MsgEthereumTx,
 	txData evmtypes.TxData,
-	denom string,
 	homestead, istanbul, london bool,
 ) (sdk.Coins, error) {
 	isContractCreation := txData.GetTo() == nil
@@ -55,8 +56,7 @@ func (k Keeper) DeductTxCostsFromUserBalance(
 
 	var feeAmt *big.Int
 
-	feeMktParams := k.feeMarketKeeper.GetParams(ctx)
-	if london && !feeMktParams.NoBaseFee && txData.TxType() == ethtypes.DynamicFeeTxType {
+	if london && txData.TxType() == ethtypes.DynamicFeeTxType {
 		baseFee := k.feeMarketKeeper.GetBaseFee(ctx)
 		if txData.GetGasFeeCap().Cmp(baseFee) < 0 {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "the tx gasfeecap is lower than the tx baseFee: %s (gasfeecap), %s (basefee) ", txData.GetGasFeeCap(), baseFee)
@@ -71,7 +71,7 @@ func (k Keeper) DeductTxCostsFromUserBalance(
 		return sdk.NewCoins(), nil
 	}
 
-	fees := sdk.Coins{sdk.NewCoin(denom, sdk.NewIntFromBigInt(feeAmt))}
+	fees := sdk.Coins{sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(feeAmt))}
 
 	// deduct the full gas cost from the user balance
 	if err := authante.DeductFees(k.bankKeeper, ctx, signerAcc, fees); err != nil {

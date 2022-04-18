@@ -62,6 +62,7 @@ type KeeperTestSuite struct {
 	signer           keyring.Signer
 	mintFeeCollector bool
 	privateKey       cryptotypes.PrivKey
+	checkTx          bool
 }
 
 var s *KeeperTestSuite
@@ -73,7 +74,6 @@ func TestKeeperTestSuite(t *testing.T) {
 
 // Test helpers
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
-	checkTx := false
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
 	// account key
@@ -90,11 +90,9 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	// setup feemarketGenesis params
 	feemarketGenesis := feemarkettypes.DefaultGenesisState()
-	feemarketGenesis.Params.EnableHeight = 1
-	feemarketGenesis.Params.NoBaseFee = false
 
 	// init app
-	suite.app = app.Setup(checkTx, func(a *app.App, genesisState app.AppGenesisState) app.AppGenesisState {
+	suite.app = app.Setup(suite.checkTx, func(a *app.App, genesisState app.AppGenesisState) app.AppGenesisState {
 		if err := feemarketGenesis.Validate(); err != nil {
 			panic(err)
 		}
@@ -104,7 +102,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	if suite.mintFeeCollector {
 		// mint some coin to fee collector
-		coins := sdk.NewCoins(sdk.NewCoin(evm.DefaultEVMDenom, sdk.NewInt(int64(params.TxGas)-1)))
+		coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(int64(params.TxGas)-1)))
 		genesisState := app.ModuleBasics.DefaultGenesis(suite.app.AppCodec())
 		balances := []banktypes.Balance{
 			{
@@ -113,7 +111,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 			},
 		}
 		// update total supply
-		bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, sdk.NewCoins(sdk.NewCoin(evm.DefaultEVMDenom, sdk.NewInt((int64(params.TxGas)-1)))), []banktypes.Metadata{})
+		bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt((int64(params.TxGas)-1)))), []banktypes.Metadata{})
 		bz := suite.app.AppCodec().MustMarshalJSON(bankGenesis)
 		require.NotNil(t, bz)
 		genesisState[banktypes.ModuleName] = suite.app.AppCodec().MustMarshalJSON(bankGenesis)
@@ -133,8 +131,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		)
 	}
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{
-		Height:          1,
+	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
+		Height:          fxtypes.EvmSupportBlock(),
 		ChainID:         "evmos_9001-1",
 		Time:            time.Now().UTC(),
 		ProposerAddress: suite.consAddress.Bytes(),
@@ -158,7 +156,10 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app, true))
+	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+		suite.app.EvmKeeper, evm.DefaultParams(),
+		suite.app.Erc20Keeper, types.DefaultParams()))
 	queryHelperEvm := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evm.RegisterQueryServer(queryHelperEvm, suite.app.EvmKeeper)
 	suite.queryClientEvm = evm.NewQueryClient(queryHelperEvm)
@@ -297,7 +298,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 
 	// Mint the max gas to the FeeCollector to ensure balance in case of refund
-	suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(evm.DefaultEVMDenom, sdk.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
+	suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
 
 	ercTransferTx := evm.NewTx(
 		chainID,
@@ -356,25 +357,6 @@ func (suite *KeeperTestSuite) TransferERC20Token(contractAddr, from, to common.A
 	transferData, err := erc20Config.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
-}
-
-func InitEvmModuleParams(ctx sdk.Context, fxcore *app.App, dynamicTxFee bool) error {
-	ctx = ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
-	defaultEvmParams := evm.DefaultParams()
-	defaultFeeMarketParams := feemarkettypes.DefaultParams()
-	defaultErc20Params := types.DefaultParams()
-
-	if dynamicTxFee {
-		defaultFeeMarketParams.EnableHeight = fxtypes.EvmSupportBlock()
-		defaultFeeMarketParams.NoBaseFee = false
-	} else {
-		defaultFeeMarketParams.NoBaseFee = true
-	}
-
-	return forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
-		fxcore.FeeMarketKeeper, defaultFeeMarketParams,
-		fxcore.EvmKeeper, defaultEvmParams,
-		fxcore.Erc20Keeper, defaultErc20Params)
 }
 
 func NewPriKey() cryptotypes.PrivKey {

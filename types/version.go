@@ -65,7 +65,7 @@ func Network() string {
 	return network
 }
 
-func NetworkMiannet() string {
+func NetworkMainnet() string {
 	return networkMainnet
 }
 func NetworkTestnet() string {
@@ -75,7 +75,7 @@ func NetworkDevnet() string {
 	return networkDevnet
 }
 
-func GravityPruneValsetsAndAttestationBlock() int64 {
+func GravityPruneValsetAndAttestationBlock() int64 {
 	if networkDevnet == network {
 		return devnetGravityPruneValsetAndAttestationBlock
 	} else if networkTestnet == network {

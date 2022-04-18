@@ -18,7 +18,7 @@ func Test_MigrateGovInactiveFunc(t *testing.T) {
 	alice, bob, _, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
 
 	proposal, err := app.GovKeeper.SubmitProposal(ctx, content)
 	require.NoError(t, err)
@@ -54,7 +54,7 @@ func Test_MigrateGovActiveFunc(t *testing.T) {
 	alice, bob, tom, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
 
 	proposal, err := app.GovKeeper.SubmitProposal(ctx, content)
 	require.NoError(t, err)

@@ -21,19 +21,6 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 	}{
 		{"ok - sufficient funds", 100, 10, func(common.Address) {}, true, false},
 		{"ok - equal funds", 10, 10, func(common.Address) {}, true, false},
-		//{
-		//	"ok - suicided contract",
-		//	10,
-		//	10,
-		//	func(erc20 common.Address) {
-		//		stateDb := suite.StateDB()
-		//		ok := stateDb.Suicide(erc20)
-		//		suite.Require().True(ok)
-		//		suite.Require().NoError(stateDb.Commit())
-		//	},
-		//	true,
-		//	true,
-		//},
 		{"fail - insufficient funds", 0, 10, func(common.Address) {}, false, false},
 		{
 			"fail - minting disabled",
@@ -216,20 +203,6 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			true,
 			false,
 		},
-		//{
-		//	"ok - suicided contract",
-		//	10,
-		//	10,
-		//	func(erc20 common.Address) {
-		//		stateDb := suite.StateDB()
-		//		ok := stateDb.Suicide(erc20)
-		//		suite.Require().True(ok)
-		//		suite.Require().NoError(stateDb.Commit())
-		//	},
-		//	contractMinterBurner,
-		//	true,
-		//	true,
-		//},
 		{
 			"fail - insufficient funds - callEVM",
 			0,
@@ -406,25 +379,3 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 	}
 	suite.mintFeeCollector = false
 }
-
-//func (suite *KeeperTestSuite) TestConvertNativeIBC() {
-//	suite.SetupTest()
-//	base := "ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2"
-//
-//	validMetadata := banktypes.Metadata{
-//		Description: "ATOM IBC voucher (channel 14)",
-//		Base:        base,
-//		// NOTE: Denom units MUST be increasing
-//		DenomUnits: []*banktypes.DenomUnit{
-//			{
-//				Denom:    base,
-//				Exponent: 0,
-//			},
-//		},
-//		Display: base,
-//	}
-//
-//	_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, validMetadata)
-//	suite.Require().NoError(err)
-//	suite.Commit()
-//}

@@ -1,6 +1,11 @@
 package ante_test
 
 import (
+	"github.com/functionx/fx-core/app/forks"
+	fxtypes "github.com/functionx/fx-core/types"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
+	"github.com/stretchr/testify/require"
 	"math/big"
 
 	"github.com/functionx/fx-core/x/evm/statedb"
@@ -305,6 +310,13 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 }
 
 func (suite AnteTestSuite) TestCanTransferDecorator() {
+
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+		suite.app.EvmKeeper, evmtypes.DefaultParams(),
+		suite.app.Erc20Keeper, erc20types.DefaultParams()))
+
 	dec := ante.NewCanTransferDecorator(suite.app.EvmKeeper)
 
 	addr, privKey := tests.NewAddrKey()

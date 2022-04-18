@@ -275,8 +275,7 @@ func (k *Keeper) GetNonce(ctx sdk.Context, addr common.Address) uint64 {
 // GetBalance load account's balance of gas token
 func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 	accAddr := sdk.AccAddress(addr.Bytes())
-	params := k.GetParams(ctx)
-	coin := k.bankKeeper.GetBalance(ctx, accAddr, params.EvmDenom)
+	coin := k.bankKeeper.GetBalance(ctx, accAddr, fxtypes.DefaultDenom)
 	return coin.Amount.BigInt()
 }
 
@@ -285,7 +284,7 @@ func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 // - `0`: london hardfork enabled but feemarket is not enabled.
 // - `n`: both london hardfork and feemarket are enabled.
 func (k Keeper) BaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int {
-	if !types.IsLondon(ethCfg, ctx.BlockHeight()) {
+	if !ethCfg.IsLondon(big.NewInt(ctx.BlockHeight())) {
 		return nil
 	}
 	baseFee := k.feeMarketKeeper.GetBaseFee(ctx)
@@ -327,10 +326,6 @@ func (k Keeper) AddTransientGasUsed(ctx sdk.Context, gasUsed uint64) (uint64, er
 	}
 	k.SetTransientGasUsed(ctx, result)
 	return result, nil
-}
-
-func (k Keeper) HasInit(ctx sdk.Context) bool {
-	return k.paramSpace.Has(ctx, types.ParamStoreKeyEVMDenom)
 }
 
 func (k Keeper) GetAddressCodeHash(ctx sdk.Context, addr common.Address) ([]byte, bool) {

@@ -11,12 +11,12 @@ import (
 
 func TestNewDefaultGenesisByDenom(t *testing.T) {
 	encodingConfig := MakeEncodingConfig()
-	genAppState := NewDefAppGenesisByDenom(fxtypes.MintDenom, encodingConfig.Marshaler)
+	genAppState := NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Marshaler)
 
 	state := gravitytypes.DefaultGenesisState()
 	state.Erc20ToDenoms = []*gravitytypes.ERC20ToDenom{
 		{
-			Denom: fxtypes.MintDenom,                            // token symbol
+			Denom: fxtypes.DefaultDenom,                         // token symbol
 			Erc20: "0x0AD5CE837A789423CC6158053CAd5eB75A6183AC", // token contract address
 		},
 	}

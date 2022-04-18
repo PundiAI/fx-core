@@ -28,9 +28,6 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 // return nil if base fee is not enabled
 func (k Keeper) GetBaseFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
-	if params.NoBaseFee {
-		return nil
-	}
 	return params.BaseFee.BigInt()
 }
 

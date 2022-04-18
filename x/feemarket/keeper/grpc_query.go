@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -16,25 +18,20 @@ var _ types.QueryServer = Keeper{}
 // Params implements the Query/Params gRPC method
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if !k.HasInit(ctx) {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		return nil, status.Error(codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error())
 	}
-	params := k.GetParams(ctx)
 
 	return &types.QueryParamsResponse{
-		Params: params,
+		Params: k.GetParams(ctx),
 	}, nil
 }
 
 // BaseFee implements the Query/BaseFee gRPC method
 func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if !k.HasInit(ctx) {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		return nil, status.Error(codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error())
 	}
 
 	res := &types.QueryBaseFeeResponse{}
@@ -56,9 +53,4 @@ func (k Keeper) BlockGas(c context.Context, _ *types.QueryBlockGasRequest) (*typ
 	return &types.QueryBlockGasResponse{
 		Gas: int64(gas),
 	}, nil
-}
-
-func (k Keeper) ModuleEnable(c context.Context, request *types.QueryModuleEnableRequest) (*types.QueryModuleEnableResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	return &types.QueryModuleEnableResponse{Enable: k.HasInit(ctx)}, nil
 }

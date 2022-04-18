@@ -37,8 +37,7 @@ func GasToRefund(availableRefund, gasConsumed, refundQuotient uint64) uint64 {
 
 // EVMConfig creates the EVMConfig based on current state
 func (k *Keeper) EVMConfig(ctx sdk.Context) (*types.EVMConfig, error) {
-	params := k.GetParams(ctx)
-	ethCfg := params.ChainConfig.EthereumConfig(k.eip155ChainID)
+	ethCfg := types.DefEthereumConfig(k.ChainID())
 
 	// get the coinbase address from the block proposer
 	coinbase, err := k.GetCoinbaseAddress(ctx)
@@ -48,7 +47,7 @@ func (k *Keeper) EVMConfig(ctx sdk.Context) (*types.EVMConfig, error) {
 
 	baseFee := k.BaseFee(ctx, ethCfg)
 	return &types.EVMConfig{
-		Params:      params,
+		Params:      k.GetParams(ctx),
 		ChainConfig: ethCfg,
 		CoinBase:    coinbase,
 		BaseFee:     baseFee,
@@ -98,21 +97,15 @@ func (k *Keeper) NewEVM(
 
 // VMConfig creates an EVM configuration from the debug setting and the extra EIPs enabled on the
 // module parameters. The config generated uses the default JumpTable from the EVM.
-func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig, tracer vm.EVMLogger) vm.Config {
-	noBaseFee := true
-	if types.IsLondon(cfg.ChainConfig, ctx.BlockHeight()) {
-		noBaseFee = k.feeMarketKeeper.GetParams(ctx).NoBaseFee
-	}
-
+func (k Keeper) VMConfig(_ sdk.Context, _ core.Message, cfg *types.EVMConfig, tracer vm.EVMLogger) vm.Config {
 	var debug bool
 	if _, ok := tracer.(types.NoOpTracer); !ok {
 		debug = true
 	}
-
 	return vm.Config{
 		Debug:     debug,
 		Tracer:    tracer,
-		NoBaseFee: noBaseFee,
+		NoBaseFee: false,
 		ExtraEips: cfg.Params.EIPs(),
 	}
 }
@@ -276,7 +269,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	}
 
 	// refund gas in order to match the Ethereum gas consumption instead of the default SDK one.
-	if err = k.RefundGas(ctx, msg, msg.Gas()-res.GasUsed, cfg.Params.EvmDenom); err != nil {
+	if err = k.RefundGas(ctx, msg, msg.Gas()-res.GasUsed, fxtypes.DefaultDenom); err != nil {
 		return nil, sdkerrors.Wrapf(err, "failed to refund gas leftover gas to sender %s", msg.From())
 	}
 

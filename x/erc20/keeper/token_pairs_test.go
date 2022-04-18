@@ -3,11 +3,11 @@ package keeper_test
 import (
 	"fmt"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/tests"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
-
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestGetAllTokenPairs() {
 }
 
 func (suite *KeeperTestSuite) TestGetTokenPairID() {
-	pair := types.NewTokenPair(tests.GenerateAddress(), evmtypes.DefaultEVMDenom, true, types.OWNER_MODULE)
+	pair := types.NewTokenPair(tests.GenerateAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
 	suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
 	testCases := []struct {
@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestGetTokenPairID() {
 }
 
 func (suite *KeeperTestSuite) TestGetTokenPair() {
-	pair := types.NewTokenPair(tests.GenerateAddress(), evmtypes.DefaultEVMDenom, true, types.OWNER_MODULE)
+	pair := types.NewTokenPair(tests.GenerateAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
 	suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
 	testCases := []struct {
@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) TestGetTokenPair() {
 }
 
 func (suite *KeeperTestSuite) TestDeleteTokenPair() {
-	pair := types.NewTokenPair(tests.GenerateAddress(), evmtypes.DefaultEVMDenom, true, types.OWNER_MODULE)
+	pair := types.NewTokenPair(tests.GenerateAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
 	id := pair.GetID()
 	suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 	suite.app.Erc20Keeper.SetERC20Map(suite.ctx, pair.GetERC20Contract(), id)
@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestDeleteTokenPair() {
 }
 
 func (suite *KeeperTestSuite) TestIsTokenPairRegistered() {
-	pair := types.NewTokenPair(tests.GenerateAddress(), evmtypes.DefaultEVMDenom, true, types.OWNER_MODULE)
+	pair := types.NewTokenPair(tests.GenerateAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
 	suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
 	testCases := []struct {

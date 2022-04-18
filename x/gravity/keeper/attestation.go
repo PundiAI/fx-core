@@ -7,7 +7,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtype "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/gravity/types"
 )
@@ -67,7 +67,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 		for _, validator := range validators {
 			val := validator.GetOperator()
 			_, found := k.GetEthAddressByValidator(ctx, val)
-			if !found && ctx.BlockHeight() > fxtype.GravityValsetSlashBlock() {
+			if !found && ctx.BlockHeight() > fxtypes.GravityValsetSlashBlock() {
 				continue
 			}
 			power := uint64(k.StakingKeeper.GetLastValidatorPower(ctx, val))
@@ -96,7 +96,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 				k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
 				err = k.processAttestation(ctx, att, claim)
-				if ctx.BlockHeight() < fxtype.EvmSupportBlock() {
+				if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 					k.GetBridgeChainID(ctx) // gas used
 				}
 				ctx.EventManager().EmitEvent(sdk.NewEvent(

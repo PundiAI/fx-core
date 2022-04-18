@@ -53,11 +53,11 @@ type KeeperTestSuite struct {
 
 	appCodec codec.Codec
 	signer   keyring.Signer
+	checkTx  bool
 }
 
 /// DoSetupTest setup test environment, it uses`require.TestingT` to support both `testing.T` and `testing.B`.
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
-	checkTx := false
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
 	// account key
@@ -71,9 +71,9 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = app.Setup(checkTx, nil)
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{
-		Height:          1,
+	suite.app = app.Setup(suite.checkTx, nil)
+	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
+		Height:          fxtypes.EvmSupportBlock(),
 		ChainID:         "ethermint_9000-1",
 		Time:            time.Now().UTC(),
 		ProposerAddress: suite.consAddress.Bytes(),
@@ -96,7 +96,10 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	require.NoError(suite.T(), InitEvmModuleParams(suite.ctx, suite.app, true))
+	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+		suite.app.FeeMarketKeeper, types.DefaultParams(),
+		suite.app.EvmKeeper, evmtypes.DefaultParams(),
+		suite.app.Erc20Keeper, erc20types.DefaultParams()))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -121,8 +124,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.appCodec = encodingConfig.Marshaler
-
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -176,23 +177,4 @@ func (suite *KeeperTestSuite) TestSetGetGasFee() {
 		fee := suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx)
 		suite.Require().Equal(tc.expFee, fee, tc.name)
 	}
-}
-
-func InitEvmModuleParams(ctx sdk.Context, fxcore *app.App, dynamicTxFee bool) error {
-	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + fxtypes.EvmSupportBlock())
-	defaultEvmParams := evmtypes.DefaultParams()
-	defaultFeeMarketParams := types.DefaultParams()
-	defaultErc20Params := erc20types.DefaultParams()
-
-	if dynamicTxFee {
-		defaultFeeMarketParams.EnableHeight = fxtypes.EvmSupportBlock()
-		defaultFeeMarketParams.NoBaseFee = false
-	} else {
-		defaultFeeMarketParams.NoBaseFee = true
-	}
-
-	return forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
-		fxcore.FeeMarketKeeper, defaultFeeMarketParams,
-		fxcore.EvmKeeper, defaultEvmParams,
-		fxcore.Erc20Keeper, defaultErc20Params)
 }

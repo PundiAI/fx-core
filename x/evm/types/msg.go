@@ -133,7 +133,7 @@ func newMsgEthereumTx(
 	return &MsgEthereumTx{Data: dataAny}
 }
 
-// fromEthereumTx populates the message fields from the given ethereum transaction
+// FromEthereumTx populates the message fields from the given ethereum transaction
 func (msg *MsgEthereumTx) FromEthereumTx(tx *ethtypes.Transaction) error {
 	txData, err := NewTxDataFromTx(tx)
 	if err != nil {

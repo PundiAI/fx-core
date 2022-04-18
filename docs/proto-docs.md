@@ -2156,10 +2156,8 @@ Params defines the EVM module parameters
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `no_base_fee` | [bool](#bool) |  | no base fee forces the EIP-1559 base fee to 0 (needed for 0 price calls) |
 | `base_fee_change_denominator` | [uint32](#uint32) |  | base fee change denominator bounds the amount the base fee can change between blocks. |
 | `elasticity_multiplier` | [uint32](#uint32) |  | elasticity multiplier bounds the maximum gas limit an EIP-1559 block may have. |
-| `enable_height` | [int64](#int64) |  | height at which the base fee calculation is enabled. |
 | `base_fee` | [string](#string) |  | base fee for EIP-1559 blocks. |
 | `min_base_fee` | [string](#string) |  | min base fee for EIP-1559 blocks. |
 | `max_base_fee` | [string](#string) |  | max base fee for EIP-1559 blocks. |
@@ -2266,11 +2264,9 @@ Params defines the EVM module parameters
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `evm_denom` | [string](#string) |  | evm denom represents the token denomination used to run the EVM state transitions. |
 | `enable_create` | [bool](#bool) |  | enable create toggles state transitions that use the vm.Create function |
 | `enable_call` | [bool](#bool) |  | enable call toggles state transitions that use the vm.Call function |
 | `extra_eips` | [int64](#int64) | repeated | extra eips defines the additional EIPs for the vm.Config |
-| `chain_config` | [ChainConfig](#fx.ethereum.evm.v1.ChainConfig) |  | chain config defines the EVM chain configuration parameters |
 
 
 
@@ -3220,7 +3216,6 @@ Query defines the gRPC querier service.
 | `EstimateGas` | [EthCallRequest](#fx.ethereum.evm.v1.EthCallRequest) | [EstimateGasResponse](#fx.ethereum.evm.v1.EstimateGasResponse) | EstimateGas implements the `eth_estimateGas` rpc api | GET|/ethereum/evm/v1/estimate_gas|
 | `TraceTx` | [QueryTraceTxRequest](#fx.ethereum.evm.v1.QueryTraceTxRequest) | [QueryTraceTxResponse](#fx.ethereum.evm.v1.QueryTraceTxResponse) | TraceTx implements the `debug_traceTransaction` rpc api | GET|/ethereum/evm/v1/trace_tx|
 | `TraceBlock` | [QueryTraceBlockRequest](#fx.ethereum.evm.v1.QueryTraceBlockRequest) | [QueryTraceBlockResponse](#fx.ethereum.evm.v1.QueryTraceBlockResponse) | TraceBlock implements the `debug_traceBlockByNumber` and `debug_traceBlockByHash` rpc api | GET|/ethereum/evm/v1/trace_block|
-| `ModuleEnable` | [QueryModuleEnableRequest](#fx.ethereum.evm.v1.QueryModuleEnableRequest) | [QueryModuleEnableResponse](#fx.ethereum.evm.v1.QueryModuleEnableResponse) |  | GET|/ethereum/evm/v1/module_enable|
 
  <!-- end services -->
 
@@ -3383,7 +3378,6 @@ Query defines the gRPC querier service.
 | `Params` | [QueryParamsRequest](#fx.ethereum.feemarket.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ethereum.feemarket.v1.QueryParamsResponse) | Params queries the parameters of x/feemarket module. | GET|/ethereum/feemarket/evm/v1/params|
 | `BaseFee` | [QueryBaseFeeRequest](#fx.ethereum.feemarket.v1.QueryBaseFeeRequest) | [QueryBaseFeeResponse](#fx.ethereum.feemarket.v1.QueryBaseFeeResponse) | BaseFee queries the base fee of the parent block of the current block. | GET|/ethereum/feemarket/evm/v1/base_fee|
 | `BlockGas` | [QueryBlockGasRequest](#fx.ethereum.feemarket.v1.QueryBlockGasRequest) | [QueryBlockGasResponse](#fx.ethereum.feemarket.v1.QueryBlockGasResponse) | BlockGas queries the gas used at a given block height | GET|/ethereum/feemarket/evm/v1/block_gas|
-| `ModuleEnable` | [QueryModuleEnableRequest](#fx.ethereum.feemarket.v1.QueryModuleEnableRequest) | [QueryModuleEnableResponse](#fx.ethereum.feemarket.v1.QueryModuleEnableResponse) |  | GET|/ethereum/feemarket/evm/v1/module_enable|
 
  <!-- end services -->
 

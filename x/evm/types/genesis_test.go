@@ -111,12 +111,12 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 			expPass: true,
 		},
 		{
-			name:     "empty genesis",
+			name:     "valid genesis",
 			genState: &GenesisState{},
-			expPass:  false,
+			expPass:  true,
 		},
 		{
-			name: "invalid genesis",
+			name: "valid genesis",
 			genState: &GenesisState{
 				Accounts: []GenesisAccount{
 					{
@@ -124,7 +124,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 					},
 				},
 			},
-			expPass: false,
+			expPass: true,
 		},
 		{
 			name: "invalid genesis account",
@@ -168,7 +168,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 			expPass: false,
 		},
 		{
-			name: "duplicated tx log",
+			name: "tx log",
 			genState: &GenesisState{
 				Accounts: []GenesisAccount{
 					{
@@ -181,10 +181,10 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 					},
 				},
 			},
-			expPass: false,
+			expPass: true,
 		},
 		{
-			name: "invalid tx log",
+			name: "valid tx log",
 			genState: &GenesisState{
 				Accounts: []GenesisAccount{
 					{
@@ -197,14 +197,14 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 					},
 				},
 			},
-			expPass: false,
+			expPass: true,
 		},
 		{
-			name: "invalid params",
+			name: "valid params",
 			genState: &GenesisState{
 				Params: Params{},
 			},
-			expPass: false,
+			expPass: true,
 		},
 	}
 
