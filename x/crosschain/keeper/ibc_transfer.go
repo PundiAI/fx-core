@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -97,22 +96,4 @@ func (k Keeper) handlerEvmTransfer(ctx sdk.Context, claim *types.MsgSendToFxClai
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
 	))
-}
-
-func covertIbcData(targetIbc string) (prefix, sourcePort, sourceChannel string, isOk bool) {
-	// fx/transfer/channel-0
-	targetIbcBytes, err := hex.DecodeString(targetIbc)
-	if err != nil {
-		return
-	}
-	ibcData := strings.Split(string(targetIbcBytes), "/")
-	if len(ibcData) < 3 {
-		isOk = false
-		return
-	}
-	prefix = ibcData[0]
-	sourcePort = ibcData[1]
-	sourceChannel = ibcData[2]
-	isOk = true
-	return
 }

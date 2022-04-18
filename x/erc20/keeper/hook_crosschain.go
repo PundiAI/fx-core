@@ -15,10 +15,10 @@ import (
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
-func (k Keeper) RelayTransferCrosschainProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {
+func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {
 	fip20ABI := fxtype.GetERC20(ctx.BlockHeight()).ABI
 	for _, log := range receipt.Logs {
-		tc, isOk, err := fxtype.ParseTransferCrosschainEvent(fip20ABI, log)
+		tc, isOk, err := fxtype.ParseTransferCrossChainEvent(fip20ABI, log)
 		if err != nil {
 			return err
 		}
@@ -39,20 +39,20 @@ func (k Keeper) RelayTransferCrosschainProcessing(ctx sdk.Context, from common.A
 		targetType, target := tc.GetTarget()
 		switch targetType {
 		case fxtype.FIP20TargetChain:
-			err = k.TransferChainHandler(ctx, tc.GetFrom(), tc.To, tc.GetAmount(pair.Denom), tc.GetFee(pair.Denom), target, receipt)
+			err = k.TransferChainHandler(ctx, tc.GetFrom(), tc.Recipient, tc.GetAmount(pair.Denom), tc.GetFee(pair.Denom), target, receipt)
 		case fxtype.FIP20TargetIBC:
-			err = k.TransferIBCHandler(ctx, tc.GetFrom(), tc.To, tc.GetAmount(pair.Denom), tc.GetFee(pair.Denom), target, receipt)
+			err = k.TransferIBCHandler(ctx, tc.GetFrom(), tc.Recipient, tc.GetAmount(pair.Denom), tc.GetFee(pair.Denom), target, receipt)
 		default:
 			err = fmt.Errorf("traget unknown %d", targetType)
 		}
 		if err != nil {
-			k.Logger(ctx).Error("failed to transfer cross", "tx-hash", receipt.TxHash.Hex(), "error", err.Error())
+			k.Logger(ctx).Error("failed to transfer cross chain", "tx-hash", receipt.TxHash.Hex(), "error", err.Error())
 			return err
 		}
-		k.Logger(ctx).Info("transfer cross success", "tx-hash", receipt.TxHash.Hex())
+		k.Logger(ctx).Info("transfer cross chain success", "tx-hash", receipt.TxHash.Hex())
 
 		telemetry.IncrCounterWithLabels(
-			[]string{types.ModuleName, "relay_transfer_cross"},
+			[]string{types.ModuleName, "relay_transfer_cross_chain"},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel("erc20", pair.Erc20Address),
@@ -78,31 +78,31 @@ func (k Keeper) TransferChainHandler(ctx sdk.Context, from sdk.AccAddress, to st
 
 func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string, receipt *ethtypes.Receipt) error {
 	k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
-	targatIBC, ok := fxtype.ParseTargetIBC(target)
+	targetIBC, ok := fxtype.ParseTargetIBC(target)
 	if !ok {
 		return fmt.Errorf("invalid target ibc %s", target)
 	}
-	if _, err := sdk.GetFromBech32(to, targatIBC.Prefix); err != nil {
+	if _, err := sdk.GetFromBech32(to, targetIBC.Prefix); err != nil {
 		return fmt.Errorf("invalid to address %s", to)
 	}
-	_, _, err := k.ibcChannelKeeper.GetChannelClientState(ctx, targatIBC.SourcePort, targatIBC.SourceChannel)
+	_, _, err := k.ibcChannelKeeper.GetChannelClientState(ctx, targetIBC.SourcePort, targetIBC.SourceChannel)
 	if err != nil {
 		return err
 	}
 	params := k.GetParams(ctx)
 	ibcTimeoutHeight := ibcclienttypes.ZeroHeight()
 	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(params.IbcTimeout)
-	nextSequenceSend, found := k.ibcChannelKeeper.GetNextSequenceSend(ctx, targatIBC.SourcePort, targatIBC.SourceChannel)
+	nextSequenceSend, found := k.ibcChannelKeeper.GetNextSequenceSend(ctx, targetIBC.SourcePort, targetIBC.SourceChannel)
 	if !found {
-		return fmt.Errorf("ibc channel next sequence send not found, port %s, channel %s", targatIBC.SourcePort, targatIBC.SourceChannel)
+		return fmt.Errorf("ibc channel next sequence send not found, port %s, channel %s", targetIBC.SourcePort, targetIBC.SourceChannel)
 	}
-	ctx.Logger().Info("ibc transfer", "port", targatIBC.SourcePort, "channel", targatIBC.SourceChannel, "sequence", nextSequenceSend, "timeout-height", ibcTimeoutHeight)
+	ctx.Logger().Info("ibc transfer", "port", targetIBC.SourcePort, "channel", targetIBC.SourceChannel, "sequence", nextSequenceSend, "timeout-height", ibcTimeoutHeight)
 	if err := k.ibcTransferKeeper.SendTransfer(
-		ctx, targatIBC.SourcePort, targatIBC.SourceChannel, amount, from.Bytes(),
+		ctx, targetIBC.SourcePort, targetIBC.SourceChannel, amount, from.Bytes(),
 		to, ibcTimeoutHeight, ibcTimeoutTimestamp, "", fee); err != nil {
 		return err
 	}
-	k.setIBCTransferHash(ctx, targatIBC.SourcePort, targatIBC.SourceChannel, nextSequenceSend, receipt.TxHash)
+	k.setIBCTransferHash(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, nextSequenceSend, receipt.TxHash)
 	return nil
 }
 

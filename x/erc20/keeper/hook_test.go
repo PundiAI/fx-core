@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -42,56 +41,7 @@ import (
 	evm "github.com/functionx/fx-core/x/evm/types"
 	"github.com/functionx/fx-core/x/gravity"
 	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
-
-type IBCTransferSimulate struct {
-	T *testing.T
-}
-
-func (it *IBCTransferSimulate) SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
-	receiver string, timeoutHeight ibcclienttypes.Height, timeoutTimestamp uint64, router string, fee sdk.Coin) error {
-	return nil
-}
-
-func (it *IBCTransferSimulate) Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error) {
-	return &ibctransfertypes.MsgTransferResponse{}, nil
-}
-
-func (it *IBCTransferSimulate) GetRouter() *ibctransfertypes.Router {
-	router := ibctransfertypes.NewRouter()
-
-	return router
-}
-
-type IBCChannelSimulate struct {
-}
-
-func (ic *IBCChannelSimulate) GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) {
-	return "", &ibctmtypes.ClientState{
-		ChainId:         "fxcore",
-		TrustLevel:      ibctmtypes.Fraction{},
-		TrustingPeriod:  0,
-		UnbondingPeriod: 0,
-		MaxClockDrift:   0,
-		FrozenHeight: ibcclienttypes.Height{
-			RevisionHeight: 1000,
-			RevisionNumber: 1000,
-		},
-		LatestHeight: ibcclienttypes.Height{
-			RevisionHeight: 10,
-			RevisionNumber: 10,
-		},
-		ProofSpecs:                   nil,
-		UpgradePath:                  nil,
-		AllowUpdateAfterExpiry:       false,
-		AllowUpdateAfterMisbehaviour: false,
-	}, nil
-}
-
-func (ic *IBCChannelSimulate) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
-	return 1, true
-}
 
 var (
 	wfxMetadata = banktypes.Metadata{
@@ -171,7 +121,7 @@ func TestHookChainGravity(t *testing.T) {
 	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferChainData)
 
 	transactions := fxcore.GravityKeeper.GetPoolTransactions(ctx)
-	_ = transactions
+	require.Equal(t, 1, len(transactions))
 }
 
 func TestHookChainBSC(t *testing.T) {
@@ -233,8 +183,50 @@ func TestHookChainBSC(t *testing.T) {
 	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferChainData)
 
 	transactions := fxcore.BscKeeper.GetUnbatchedTransactions(ctx)
-	_ = transactions
+	require.Equal(t, 1, len(transactions))
 }
+
+type IBCTransferSimulate struct {
+	T *testing.T
+}
+
+func (it *IBCTransferSimulate) SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
+	receiver string, timeoutHeight ibcclienttypes.Height, timeoutTimestamp uint64, router string, fee sdk.Coin) error {
+	require.Equal(it.T, token.Amount.BigInt(), ibcTransferAmount)
+	return nil
+}
+
+type IBCChannelSimulate struct {
+}
+
+func (ic *IBCChannelSimulate) GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) {
+	return "", &ibctmtypes.ClientState{
+		ChainId:         "fxcore",
+		TrustLevel:      ibctmtypes.Fraction{},
+		TrustingPeriod:  0,
+		UnbondingPeriod: 0,
+		MaxClockDrift:   0,
+		FrozenHeight: ibcclienttypes.Height{
+			RevisionHeight: 1000,
+			RevisionNumber: 1000,
+		},
+		LatestHeight: ibcclienttypes.Height{
+			RevisionHeight: 10,
+			RevisionNumber: 10,
+		},
+		ProofSpecs:                   nil,
+		UpgradePath:                  nil,
+		AllowUpdateAfterExpiry:       false,
+		AllowUpdateAfterMisbehaviour: false,
+	}, nil
+}
+func (ic *IBCChannelSimulate) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+	return 1, true
+}
+
+var (
+	ibcTransferAmount = big.NewInt(1e18)
+)
 
 func TestHookIBC(t *testing.T) {
 	fxcore, validators, _, delegateAddressArr := initTest(t)
@@ -274,16 +266,16 @@ func TestHookIBC(t *testing.T) {
 	fxcore.EvmKeeper = fxcore.EvmKeeper.SetHooksForTest(evmHooks)
 
 	token := pair.GetERC20Contract()
-	ibcTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, "px/transfer/channel-0")
-	transferIBCData := packTransferCrossData(t, ctx, fxcore.Erc20Keeper, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", big.NewInt(1e18), big.NewInt(0), ibcTarget)
+	ibcTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToIBCPrefix, "px/transfer/channel-0")
+	transferIBCData := packTransferCrossData(t, ctx, fxcore.Erc20Keeper, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", ibcTransferAmount, big.NewInt(0), ibcTarget)
 	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferIBCData)
+
 }
 
 func packTransferCrossData(t *testing.T, ctx sdk.Context, k keeper.Keeper, to string, amount, fee *big.Int, target string) []byte {
 	fip20 := fxtypes.GetERC20(ctx.BlockHeight())
-	var targetIBCByte32 [32]byte
-	copy(targetIBCByte32[:], target)
-	pack, err := fip20.ABI.Pack("transferCrossChain", to, amount, fee, targetIBCByte32)
+	targetBytes := fxtypes.StringToByte32(target)
+	pack, err := fip20.ABI.Pack("transferCrossChain", to, amount, fee, targetBytes)
 	require.NoError(t, err)
 	return pack
 }

@@ -2,9 +2,10 @@ package transfer_test
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"math"
 	"testing"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/stretchr/testify/require"
 

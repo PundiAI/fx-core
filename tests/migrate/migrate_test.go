@@ -314,15 +314,12 @@ func TestSignature(t *testing.T) {
 
 	to := common.HexToAddress("0x77F2022532009c5EB4c6C70f395DEAaA793481Bc")
 
-	b := []byte{}
+	var b []byte
 	b = append(b, []byte(migratetypes.MigrateAccountSignaturePrefix)...)
 	b = append(b, from.Bytes()...)
 	b = append(b, to.Bytes()...)
 
 	t.Log("data", hex.EncodeToString(b))
-
-	bb := crypto.Keccak256(b)
-	t.Log("hhh", hex.EncodeToString(bb))
 
 	hash := migratetypes.MigrateAccountSignatureHash(from, to.Bytes())
 	t.Log("hash", hex.EncodeToString(hash))

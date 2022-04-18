@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	FIP20EventTransferCrosschain = "TransferCrosschain"
+	FIP20EventTransferCrossChain = "TransferCrossChain"
 )
 
 const (
@@ -39,29 +39,29 @@ func (tt Fip20TargetType) String() string {
 	}
 }
 
-type TransferCrosschainEvent struct {
-	From   common.Address
-	To     string
-	Amount *big.Int
-	Fee    *big.Int
-	Target [32]byte
+type TransferCrossChainEvent struct {
+	From      common.Address
+	Recipient string
+	Amount    *big.Int
+	Fee       *big.Int
+	Target    [32]byte
 }
 
-func ParseTransferCrosschainEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*TransferCrosschainEvent, bool, error) {
+func ParseTransferCrossChainEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*TransferCrossChainEvent, bool, error) {
 	if len(log.Topics) < 2 {
 		return nil, false, nil
 	}
-	tc := new(TransferCrosschainEvent)
-	if log.Topics[0] != fip20ABI.Events[FIP20EventTransferCrosschain].ID {
+	tc := new(TransferCrossChainEvent)
+	if log.Topics[0] != fip20ABI.Events[FIP20EventTransferCrossChain].ID {
 		return nil, false, nil
 	}
 	if len(log.Data) > 0 {
-		if err := fip20ABI.UnpackIntoInterface(tc, FIP20EventTransferCrosschain, log.Data); err != nil {
+		if err := fip20ABI.UnpackIntoInterface(tc, FIP20EventTransferCrossChain, log.Data); err != nil {
 			return nil, false, err
 		}
 	}
 	var indexed abi.Arguments
-	for _, arg := range fip20ABI.Events[FIP20EventTransferCrosschain].Inputs {
+	for _, arg := range fip20ABI.Events[FIP20EventTransferCrossChain].Inputs {
 		if arg.Indexed {
 			indexed = append(indexed, arg)
 		}
@@ -72,28 +72,44 @@ func ParseTransferCrosschainEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*Transfe
 	return tc, true, nil
 }
 
-func (event *TransferCrosschainEvent) GetFrom() sdk.AccAddress {
+func (event *TransferCrossChainEvent) GetFrom() sdk.AccAddress {
 	return event.From.Bytes()
 }
 
-func (event *TransferCrosschainEvent) GetAmount(denom string) sdk.Coin {
+func (event *TransferCrossChainEvent) GetAmount(denom string) sdk.Coin {
 	return sdk.NewCoin(denom, sdk.NewIntFromBigInt(event.Amount))
 }
 
-func (event *TransferCrosschainEvent) GetFee(denom string) sdk.Coin {
+func (event *TransferCrossChainEvent) GetFee(denom string) sdk.Coin {
 	return sdk.NewCoin(denom, sdk.NewIntFromBigInt(event.Fee))
 }
 
-func (event *TransferCrosschainEvent) GetTarget() (Fip20TargetType, string) {
-	if strings.HasPrefix(string(event.Target[:]), FIP20TransferToChainPrefix) {
-		return FIP20TargetChain, strings.TrimPrefix(string(event.Target[:]), FIP20TransferToChainPrefix)
+func (event *TransferCrossChainEvent) GetTarget() (Fip20TargetType, string) {
+	target := Byte32ToString(event.Target)
+	if strings.HasPrefix(target, FIP20TransferToChainPrefix) {
+		return FIP20TargetChain, strings.TrimPrefix(target, FIP20TransferToChainPrefix)
 	}
-	if strings.HasPrefix(string(event.Target[:]), FIP20TransferToIBCPrefix) {
-		return FIP20TargetIBC, strings.TrimPrefix(string(event.Target[:]), FIP20TransferToIBCPrefix)
+	if strings.HasPrefix(target, FIP20TransferToIBCPrefix) {
+		return FIP20TargetIBC, strings.TrimPrefix(target, FIP20TransferToIBCPrefix)
 	}
-	return FIP20TargetUnknown, string(event.Target[:])
+	return FIP20TargetUnknown, target
 }
 
-func (event *TransferCrosschainEvent) TotalAmount(denom string) sdk.Coins {
+func (event *TransferCrossChainEvent) TotalAmount(denom string) sdk.Coins {
 	return sdk.NewCoins(event.GetAmount(denom)).Add(event.GetFee(denom))
+}
+
+func StringToByte32(str string) [32]byte {
+	var bz [32]byte
+	copy(bz[:], str)
+	return bz
+}
+
+func Byte32ToString(bytes [32]byte) string {
+	for i := len(bytes) - 1; i >= 0; i-- {
+		if bytes[i] != 0 {
+			return string(bytes[:i+1])
+		}
+	}
+	return ""
 }
