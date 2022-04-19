@@ -122,5 +122,6 @@ func GetCmdGetParams() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
