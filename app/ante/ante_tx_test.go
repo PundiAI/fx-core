@@ -327,12 +327,11 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 	to := tests.GenerateAddress()
 
 	testCases := []struct {
-		name           string
-		txFn           func() sdk.Tx
-		checkTx        bool
-		reCheckTx      bool
-		expPass        bool
-		enableLondonHF bool
+		name      string
+		txFn      func() sdk.Tx
+		checkTx   bool
+		reCheckTx bool
+		expPass   bool
 	}{
 		{
 			"success - DeliverTx (contract)",
@@ -354,7 +353,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			false, false, true, true,
+			false, false, true,
 		},
 		{
 			"success - CheckTx (contract)",
@@ -376,7 +375,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			true, false, true, true,
+			true, false, true,
 		},
 		{
 			"success - ReCheckTx (contract)",
@@ -398,7 +397,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			false, true, true, true,
+			false, true, true,
 		},
 		{
 			"success - DeliverTx",
@@ -421,7 +420,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			false, false, true, true,
+			false, false, true,
 		},
 		{
 			"success - CheckTx",
@@ -444,7 +443,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			true, false, true, true,
+			true, false, true,
 		},
 		{
 			"success - ReCheckTx",
@@ -467,7 +466,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			false, true, true, true,
+			false, true, true,
 		},
 		{
 			"success - CheckTx (cosmos tx not signed)",
@@ -490,7 +489,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			false, true, true, true,
+			false, true, true,
 		},
 		{
 			"fail - CheckTx (cosmos tx is not valid)",
@@ -515,7 +514,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
 			},
-			true, false, false, true,
+			true, false, false,
 		},
 		{
 			"fail - CheckTx (memo too long)",
@@ -539,29 +538,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				txBuilder.SetMemo(strings.Repeat("*", 257))
 				return txBuilder.GetTx()
 			},
-			true, false, false, true,
-		},
-		{
-			"fail - DynamicFeeTx without london hark fork",
-			func() sdk.Tx {
-				signedContractTx :=
-					evmtypes.NewTxContract(
-						suite.app.EvmKeeper.ChainID(),
-						1,
-						big.NewInt(10),
-						100000,
-						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
-						big.NewInt(1),
-						nil,
-						&types.AccessList{},
-					)
-				signedContractTx.From = addr.Hex()
-
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
-				return tx
-			},
-			true, true, false, false,
+			true, false, false,
 		},
 	}
 
@@ -569,13 +546,12 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			if tc.enableLondonHF {
-				suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
-				require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-					suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-					suite.app.EvmKeeper, evmtypes.DefaultParams(),
-					suite.app.Erc20Keeper, erc20types.DefaultParams()))
-			}
+			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+			require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+				suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+				suite.app.EvmKeeper, evmtypes.DefaultParams(),
+				suite.app.Erc20Keeper, erc20types.DefaultParams()))
+
 			acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 			suite.Require().NoError(acc.SetSequence(1))
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)

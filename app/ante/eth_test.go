@@ -1,12 +1,14 @@
 package ante_test
 
 import (
+	"math/big"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/functionx/fx-core/app/forks"
 	fxtypes "github.com/functionx/fx-core/types"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	"github.com/stretchr/testify/require"
-	"math/big"
 
 	"github.com/functionx/fx-core/x/evm/statedb"
 
