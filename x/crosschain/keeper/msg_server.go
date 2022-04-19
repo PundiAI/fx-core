@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	types2 "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -442,7 +442,7 @@ func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAdd
 }
 
 func GetRequestBatchBaseFee(blockHeight int64, baseFee sdk.Int) (sdk.Int, error) {
-	if !types2.IsRequestBatchBaseFee(blockHeight) {
+	if !fxtypes.IsRequestBatchBaseFee(blockHeight) {
 		return sdk.ZeroInt(), nil
 	}
 	if baseFee.IsNil() {

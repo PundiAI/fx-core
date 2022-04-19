@@ -10,7 +10,6 @@ import (
 	"github.com/functionx/fx-core/app"
 
 	"github.com/functionx/fx-core/crypto/hd"
-	fxserver "github.com/functionx/fx-core/server"
 	"github.com/functionx/fx-core/server/config"
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -127,7 +126,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	)
 
 	appCreator := appCreator{encodingConfig}
-	fxserver.AddCommands(rootCmd, app.DefaultNodeHome, appCreator.newApp, appCreator.appExport, func(startCmd *cobra.Command) {})
+	addTendermintCommands(rootCmd, app.DefaultNodeHome, appCreator.newApp, appCreator.appExport)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rpcStatusCmd := rpc.StatusCommand()

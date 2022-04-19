@@ -121,7 +121,7 @@ import (
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
 	"github.com/functionx/fx-core/app/ante"
-	serverty "github.com/functionx/fx-core/server"
+	"github.com/functionx/fx-core/server"
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/erc20"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
@@ -384,7 +384,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	// this line is used by starport scaffolding # stargate/myApp/keeperDefinition
 
-	tracer := cast.ToString(appOpts.Get(serverty.EVMTracer))
+	tracer := cast.ToString(appOpts.Get(server.EVMTracer))
 	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
 	)
@@ -591,7 +591,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.SetInitChainer(myApp.InitChainer)
 	myApp.SetBeginBlocker(myApp.BeginBlocker)
 
-	maxGasWanted := cast.ToUint64(appOpts.Get(serverty.EVMMaxTxGasWanted))
+	maxGasWanted := cast.ToUint64(appOpts.Get(server.EVMMaxTxGasWanted))
 	options := ante.HandlerOptions{
 		AccountKeeper:   myApp.AccountKeeper,
 		BankKeeper:      myApp.BankKeeper,

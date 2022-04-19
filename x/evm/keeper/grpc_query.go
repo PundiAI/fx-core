@@ -381,8 +381,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 			}
 
 			receipt := &ethtypes.Receipt{
-				//TODO Unable to determine the type
-				//Type:
+				//Type: //TODO Unable to determine the type
 				PostState:         nil,
 				Status:            ethtypes.ReceiptStatusSuccessful,
 				CumulativeGasUsed: cumulativeGasUsed,
