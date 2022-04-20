@@ -64,17 +64,17 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 	},
 }
 
-func setup(withGenesis bool, invCheckPeriod uint) (*App, AppGenesisState) {
+func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeEncodingConfig()
 	app := New(appLog, db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
 	if withGenesis {
 		return app, DefaultTestGenesis(app.AppCodec())
 	}
-	return app, AppGenesisState{}
+	return app, GenesisState{}
 }
 
-func DefaultTestGenesis(cdc codec.JSONCodec) AppGenesisState {
+func DefaultTestGenesis(cdc codec.JSONCodec) GenesisState {
 	genesisState := NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cdc)
 	var bankGenesis banktypes.GenesisState
 	cdc.MustUnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenesis)
@@ -90,7 +90,7 @@ func DefaultTestGenesis(cdc codec.JSONCodec) AppGenesisState {
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
-func Setup(isCheckTx bool, patchGenesis func(*App, AppGenesisState) AppGenesisState) *App {
+func Setup(isCheckTx bool, patchGenesis func(*App, GenesisState) GenesisState) *App {
 	app, genesisState := setup(!isCheckTx, 5)
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
@@ -303,7 +303,7 @@ func AddTestAddrs(app *App, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.A
 	return addTestAddrs(app, ctx, accNum, accAmt, createRandomAccounts)
 }
 
-// AddTestAddrs constructs and returns accNum amount of accounts with an
+// AddTestAddrsIncremental constructs and returns accNum amount of accounts with an
 // initial balance of accAmt in random order
 func AddTestAddrsIncremental(app *App, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, CreateIncrementalAccounts)

@@ -80,7 +80,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
-	suite.app = app.Setup(suite.checkTx, func(fxcore *app.App, genesis app.AppGenesisState) app.AppGenesisState {
+	suite.app = app.Setup(suite.checkTx, func(fxcore *app.App, genesis app.GenesisState) app.GenesisState {
 		return genesis
 	})
 

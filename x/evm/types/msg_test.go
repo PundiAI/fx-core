@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"testing"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/suite"
@@ -73,13 +75,13 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_BuildTx() {
 	err := msg.ValidateBasic()
 	suite.Require().NoError(err)
 
-	tx, err := msg.BuildTx(suite.clientCtx.TxConfig.NewTxBuilder(), "FX")
+	tx, err := msg.BuildTx(suite.clientCtx.TxConfig.NewTxBuilder(), fxtypes.DefaultDenom)
 	suite.Require().NoError(err)
 
 	suite.Require().Empty(tx.GetMemo())
 	suite.Require().Empty(tx.GetTimeoutHeight())
 	suite.Require().Equal(uint64(100000), tx.GetGas())
-	suite.Require().Equal(sdk.NewCoins(sdk.NewCoin("FX", sdk.NewInt(100000))), tx.GetFee())
+	suite.Require().Equal(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000))), tx.GetFee())
 }
 
 func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {

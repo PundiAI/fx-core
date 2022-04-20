@@ -188,7 +188,7 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 		externalPrivKey:       externalPrivateKey,
 		externalAddress:       externalAddress,
 		mutex:                 &sync.Mutex{},
-		gasFee:                sdk.NewCoin("FX", sdk.NewInt(4000000000000)),
+		gasFee:                sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4*1e12)),
 		chainName:             chainName,
 	}
 	for _, opt := range opts {

@@ -1,6 +1,8 @@
 package app
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/app/forks"
@@ -13,6 +15,10 @@ import (
 func BeginBlockForks(ctx sdk.Context, fxcore *App) {
 	switch ctx.BlockHeight() {
 	case fxtypes.EvmSupportBlock():
+		// update FX meta data
+		fxcore.BankKeeper.DeleteDenomMetaData(ctx, strings.ToLower(fxtypes.DefaultDenom))
+		fxcore.BankKeeper.SetDenomMetaData(ctx, GetFxBankMetaData(fxtypes.DefaultDenom))
+		// init evm module
 		if err := forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
 			fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),
 			fxcore.EvmKeeper, evmtypes.DefaultParams(),

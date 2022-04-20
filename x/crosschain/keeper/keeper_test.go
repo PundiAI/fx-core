@@ -26,7 +26,7 @@ func defaultModuleParams(oracles []string) types.Params {
 		IbcTransferTimeoutHeight:          10000,
 		OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
 		Oracles:                           oracles,
-		DepositThreshold:                  sdk.NewCoin("FX", sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
+		DepositThreshold:                  sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
 	}
 }
 

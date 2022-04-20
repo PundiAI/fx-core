@@ -82,7 +82,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = app.Setup(suite.checkTx, func(app *app.App, genesis app.AppGenesisState) app.AppGenesisState {
+	suite.app = app.Setup(suite.checkTx, func(app *app.App, genesis app.GenesisState) app.GenesisState {
 		return genesis
 	})
 

@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -91,11 +93,11 @@ func sendInitModuleParamsGov(c *Client) uint64 {
 			OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
 			IbcTransferTimeoutHeight:          20000,
 			Oracles:                           []string{c.FxAddress().String()},
-			DepositThreshold:                  sdk.NewCoin("FX", oneInt.Mul(sdk.NewInt(10000))),
+			DepositThreshold:                  sdk.NewCoin(fxtypes.DefaultDenom, oneInt.Mul(sdk.NewInt(10000))),
 		},
 		ChainName: chainName,
 	}
-	minDeposit := sdk.NewCoin("FX", oneInt.Mul(sdk.NewInt(10000)))
+	minDeposit := sdk.NewCoin(fxtypes.DefaultDenom, oneInt.Mul(sdk.NewInt(10000)))
 	msg, err := govtypes.NewMsgSubmitProposal(proposal, sdk.NewCoins(minDeposit), c.FxAddress())
 	require.NoError(c.t, err)
 	c.t.Logf("send init module params proposal:%v", proposal)

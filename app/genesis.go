@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"strings"
 	"time"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -32,14 +31,14 @@ const (
 	GravityModuleInitAmount = "378600525462891000000000000"
 )
 
-// AppGenesisState The genesis state of the blockchain is represented here as a map of raw json
+// GenesisState The genesis state of the blockchain is represented here as a map of raw json
 // messages key'd by a identifier string.
 // The identifier is used to determine which module genesis information belongs
 // to so it may be appropriately routed during init chain.
 // Within this application default genesis information is retrieved from
 // the ModuleBasicManager which populates json from each BasicModule
 // object provided to it during init.
-type AppGenesisState map[string]json.RawMessage
+type GenesisState map[string]json.RawMessage
 
 func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) map[string]json.RawMessage {
 	genesis := make(map[string]json.RawMessage)
@@ -129,17 +128,12 @@ func GetFxBankMetaData(denom string) banktypes.Metadata {
 		Description: "Function X",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    strings.ToLower(denom),
-				Exponent: 0,
-				Aliases:  nil,
-			},
-			{
 				Denom:    denom,
 				Exponent: 18,
 				Aliases:  nil,
 			},
 		},
-		Base:    strings.ToLower(denom),
+		Base:    denom,
 		Display: denom,
 	}
 }

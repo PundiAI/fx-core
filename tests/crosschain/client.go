@@ -176,7 +176,7 @@ func NewClient(t *testing.T, opts ...ClientOption) *Client {
 		ethPrivKey:            ethPrivateKey,
 		ethAddress:            ethAddress,
 		mutex:                 &sync.Mutex{},
-		gasFee:                sdk.NewCoin("FX", sdk.NewInt(4000000000000)),
+		gasFee:                sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4*1e12)),
 		chainName:             chainName,
 		chainId:               status.NodeInfo.Network,
 	}

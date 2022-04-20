@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	feemarketGenesis := feemarkettypes.DefaultGenesisState()
 
 	// init app
-	suite.app = app.Setup(suite.checkTx, func(a *app.App, genesisState app.AppGenesisState) app.AppGenesisState {
+	suite.app = app.Setup(suite.checkTx, func(a *app.App, genesisState app.GenesisState) app.GenesisState {
 		if err := feemarketGenesis.Validate(); err != nil {
 			panic(err)
 		}

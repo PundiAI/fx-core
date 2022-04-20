@@ -56,7 +56,7 @@ func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
 
 func (suite *AnteTestSuite) SetupTest() {
 
-	suite.app = app.Setup(suite.checkTx, func(app *app.App, genesis app.AppGenesisState) app.AppGenesisState {
+	suite.app = app.Setup(suite.checkTx, func(app *app.App, genesis app.GenesisState) app.GenesisState {
 		return genesis
 	})
 
