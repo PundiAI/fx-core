@@ -46,7 +46,7 @@ file. The following default parameters are included:
     %s
 
 Example:
-$ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=os --chain-id=test-chain-1 \
+$ %s gentx my-key-name 100000000000000000000Fx --home=/path/to/home/dir --keyring-backend=os --chain-id=test-chain-1 \
     --moniker="myvalidator" \
     --commission-max-change-rate=0.01 \
     --commission-max-rate=1.0 \
@@ -77,10 +77,9 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			}
 
 			// read --pubkey, if empty take it from priv_validator.json
-			if valPubKeyString, _ := cmd.Flags().GetString(cli.FlagPubKey); valPubKeyString != "" {
-				valPubKey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valPubKeyString)
-				if err != nil {
-					return errors.Wrap(err, "failed to get consensus node public key")
+			if pkStr, _ := cmd.Flags().GetString(cli.FlagPubKey); pkStr != "" {
+				if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(pkStr), &valPubKey); err != nil {
+					return errors.Wrap(err, "failed to unmarshal validator public key")
 				}
 			}
 
@@ -256,12 +255,6 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValida
 	}
 
 	valAddr := clientCtx.GetFromAddress()
-	pkStr := config.PubKey
-
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
 
 	description := types2.NewDescription(
 		config.Moniker,
@@ -290,7 +283,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValida
 	}
 
 	msg, err := types2.NewMsgCreateValidator(
-		sdk.ValAddress(valAddr), pk, amount, description, commissionRates, minSelfDelegation,
+		sdk.ValAddress(valAddr), config.PubKey, amount, description, commissionRates, minSelfDelegation,
 	)
 	if err != nil {
 		return txBldr, msg, err

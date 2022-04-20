@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
+
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/tendermint/tendermint/privval"
@@ -176,9 +178,9 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 				}
 			}
 			if err = clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &pubkey); err != nil {
-				if pubkey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0]); err == nil {
-				} else if pubkey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, args[0]); err == nil {
-				} else if pubkey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeValPub, args[0]); err == nil {
+				if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ConsPK, args[0]); err == nil {
+				} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.AccPK, args[0]); err == nil {
+				} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ValPK, args[0]); err == nil {
 				} else {
 					return fmt.Errorf("pubkey '%s' invalid", args[0])
 				}
@@ -186,19 +188,20 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 			var data []byte
 			switch pubkey.Type() {
 			case "ed25519":
-				data, err = json.Marshal(map[string]interface{}{
-					"Address":      strings.ToUpper(hex.EncodeToString(pubkey.Address().Bytes())),
-					"ValConsPub":   sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, pubkey),
-					"PubKeyHex":    hex.EncodeToString(pubkey.Bytes()),
-					"PubKeyBase64": base64.StdEncoding.EncodeToString(pubkey.Bytes()),
-				})
+				data, err = json.MarshalIndent(map[string]interface{}{
+					"address":        strings.ToUpper(hex.EncodeToString(pubkey.Address().Bytes())),
+					"val_cons_pub":   pubkey,
+					"pub_key_hex":    hex.EncodeToString(pubkey.Bytes()),
+					"pub_key_base64": base64.StdEncoding.EncodeToString(pubkey.Bytes()),
+				}, "", "  ")
 			case "secp256k1":
-				data, err = json.Marshal(map[string]interface{}{
-					"EIP55Address": common.BytesToAddress(pubkey.Address()).String(),
-					"AccAddress":   sdk.AccAddress(pubkey.Address().Bytes()).String(),
-					"PubKeyHex":    hex.EncodeToString(pubkey.Bytes()),
-					"PubKeyBase64": base64.StdEncoding.EncodeToString(pubkey.Bytes()),
-				})
+				data, err = json.MarshalIndent(map[string]interface{}{
+					"eip55_address":  common.BytesToAddress(pubkey.Address()).String(),
+					"acc_address":    sdk.AccAddress(pubkey.Address().Bytes()).String(),
+					"val_address":    sdk.ValAddress(pubkey.Address().Bytes()).String(),
+					"pub_key_hex":    hex.EncodeToString(pubkey.Bytes()),
+					"pub_key_base64": base64.StdEncoding.EncodeToString(pubkey.Bytes()),
+				}, "", "  ")
 			default:
 				return fmt.Errorf("invalied public key type")
 			}

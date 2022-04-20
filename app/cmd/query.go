@@ -34,8 +34,8 @@ func QueryStoreCmd() *cobra.Command {
 				return err
 			}
 			bts, err := json.Marshal(map[string]interface{}{
-				"BlockHeight": height,
-				"Data":        hex.EncodeToString(data),
+				"block_height": height,
+				"data":         hex.EncodeToString(data),
 			})
 			if err != nil {
 				return err

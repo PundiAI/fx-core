@@ -38,7 +38,6 @@ require (
 	google.golang.org/genproto v0.0.0-20211223182754-3ac035c7e7cb
 	google.golang.org/grpc v1.45.0
 	google.golang.org/protobuf v1.27.1
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.33.2
@@ -51,4 +50,4 @@ replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.
 
 replace github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
 
-replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.10-0.20220419071932-aacc40e2bede
+replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.10-0.20220420064445-fbb8e9483233
