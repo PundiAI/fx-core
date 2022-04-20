@@ -55,7 +55,7 @@ func UnsafeRestPrivValidatorCmd() *cobra.Command {
 			if len(args) > 0 {
 				secret = args[0]
 			} else if !unsafe || !resetKey {
-				return fmt.Errorf("invalid params")
+				return fmt.Errorf("invalid params, please use reset-priv-key --unsafe")
 			}
 			if len(secret) < 32 {
 				return fmt.Errorf("secret contains less than 32 characters")
@@ -89,8 +89,8 @@ func UnsafeRestPrivValidatorCmd() *cobra.Command {
 
 func UnsafeResetNodeKeyCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reset-node-key [secret]",
-		Short: "reset node key file (~/.fxcore/config/node_key.json)",
+		Use:   "unsafe-reset-node-key [secret]",
+		Short: "(unsafe) reset node key file (~/.fxcore/config/node_key.json)",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
@@ -115,7 +115,7 @@ func UnsafeResetNodeKeyCmd() *cobra.Command {
 			if len(args) > 0 {
 				secret = args[0]
 			} else if !unsafe || !resetKey {
-				return fmt.Errorf("invalid params")
+				return fmt.Errorf("invalid params. please use --reset-node-key --unsafe")
 			}
 			if len(secret) < 32 {
 				return fmt.Errorf("secret contains less than 32 characters")
