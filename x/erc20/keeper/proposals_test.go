@@ -114,7 +114,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 						{
 							Denom:    cosmosTokenDisplay,
 							Exponent: uint32(18),
-							Aliases:  []string{cosmosTokenBase},
+							Aliases:  []string{"coin2"},
 						},
 					},
 					Base:    cosmosTokenDisplay,
@@ -122,7 +122,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 				}
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, validMetadata)
 			},
-			true,
+			false,
 		},
 		{
 			"evm denom registration - evm",
