@@ -1,6 +1,8 @@
 package ante_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"testing"
 	"time"
 
@@ -48,6 +50,11 @@ type AnteTestSuite struct {
 	anteHandler sdk.AnteHandler
 	ethSigner   ethtypes.Signer
 	checkTx     bool
+
+	privateKey  cryptotypes.PrivKey
+	address     sdk.AccAddress
+	consAddress sdk.ConsAddress
+	signer      keyring.Signer
 }
 
 func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
@@ -60,12 +67,29 @@ func (suite *AnteTestSuite) SetupTest() {
 		return genesis
 	})
 
-	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "ethermint_9000-1", Time: time.Now().UTC()})
+	// account key
+	priv := secp256k1.GenPrivKey()
+	suite.address = priv.PubKey().Address().Bytes()
+	suite.signer = tests.NewSigner(priv)
+	suite.privateKey = priv
+
+	// consensus key
+	priv = secp256k1.GenPrivKey()
+	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
+
+	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: suite.consAddress, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
 	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
+
+	valAddr := sdk.ValAddress(suite.address.Bytes())
+	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
+	suite.Require().NoError(err)
+	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
+	suite.Require().NoError(err)
+	suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
 
 	encodingConfig := app.MakeEncodingConfig()
 

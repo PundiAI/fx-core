@@ -142,6 +142,12 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 		Height:  1,
 		Time:    globalStartTime,
 	}
+	ctx := fxcore.BaseApp.NewContext(false, header)
+	validators := fxcore.StakingKeeper.GetAllValidators(ctx)
+	require.True(t, len(validators) > 0)
+	consAddr, err := validators[0].GetConsAddr()
+	require.NoError(t, err)
+	header.ProposerAddress = consAddr.Bytes()
 
 	txConfig := simapp.MakeTestEncodingConfig().TxConfig
 
@@ -268,6 +274,7 @@ func (chain *TestChain) NextBlock() {
 		Time:               chain.CurrentHeader.Time,
 		ValidatorsHash:     chain.Vals.Hash(),
 		NextValidatorsHash: chain.Vals.Hash(),
+		ProposerAddress:    chain.CurrentHeader.ProposerAddress,
 	}
 
 	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})

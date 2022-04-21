@@ -48,20 +48,15 @@ import (
 
 var (
 	wfxMetadata = banktypes.Metadata{
-		Description: "Wrap Function X",
+		Description: "Wrapped Function X",
 		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "FX",
-				Exponent: 0,
-				Aliases:  nil,
-			},
 			{
 				Denom:    "WFX",
 				Exponent: 18,
-				Aliases:  nil,
+				Aliases:  []string{"FX"},
 			},
 		},
-		Base:    "FX",
+		Base:    "WFX",
 		Display: "WFX",
 	}
 
@@ -69,17 +64,12 @@ var (
 		Description: "Pundi X Purse Token",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    purseDenom,
-				Exponent: 0,
-				Aliases:  nil,
-			},
-			{
 				Denom:    "PURSE",
 				Exponent: 18,
-				Aliases:  nil,
+				Aliases:  []string{purseDenom},
 			},
 		},
-		Base:    purseDenom,
+		Base:    "PURSE",
 		Display: "PURSE",
 	}
 
@@ -88,29 +78,35 @@ var (
 
 func TestHookChainGravity(t *testing.T) {
 	fxcore, validators, _, delegateAddressArr := initTest(t)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
-
-	require.NoError(t, forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
-		fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-		fxcore.EvmKeeper, evm.DefaultParams(),
-		fxcore.Erc20Keeper, types.DefaultParams()))
-
-	pair, err := fxcore.Erc20Keeper.RegisterCoin(ctx, wfxMetadata)
-	require.NoError(t, err)
+	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
 
 	val := validators[0]
 	validator := GetValidator(t, fxcore, val)[0]
 	del := delegateAddressArr[0]
 
-	ctx = ctx.WithBlockHeight(504000)
-
 	signer1, addr1 := privateSigner()
 	_, addr2 := privateSigner()
-	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err = fxcore.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
-	require.NoError(t, err)
 
 	ctx = testInitGravity(t, ctx, fxcore, validator.GetOperator(), addr1.Bytes(), addr2)
+
+	ctx = initEvmErc20(t, ctx, fxcore)
+
+	pairId := fxcore.Erc20Keeper.GetDenomMap(ctx, "FX")
+	require.True(t, len(pairId) > 0)
+
+	pair, found := fxcore.Erc20Keeper.GetTokenPair(ctx, pairId)
+	require.True(t, found)
+
+	require.Equal(t, types.TokenPair{
+		Erc20Address:  pair.Erc20Address,
+		Denom:         "FX",
+		Enabled:       true,
+		ContractOwner: types.OWNER_MODULE,
+	}, pair)
+
+	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
+	err := fxcore.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
+	require.NoError(t, err)
 
 	balances := fxcore.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
 	_ = balances
@@ -133,19 +129,23 @@ func TestHookChainGravity(t *testing.T) {
 
 func TestHookChainBSC(t *testing.T) {
 	fxcore, validators, genesisAccount, delegateAddressArr := initTest(t)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
-	// 1. init evm + erc20 module params
-	ctx = ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
-	require.NoError(t, forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
-		fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-		fxcore.EvmKeeper, evm.DefaultParams(),
-		fxcore.Erc20Keeper, types.DefaultParams()))
+	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
+
+	del := delegateAddressArr[0]
+	ga := genesisAccount[0]
+
+	signer1, addr1 := privateSigner()
+	_, addr2 := privateSigner()
+
+	ctx = testInitBscCrossChain(t, ctx, fxcore, del, addr1.Bytes(), addr2)
+
+	ctx = initEvmErc20(t, ctx, fxcore)
 
 	// 2. register erc20 module coin
 	pair, err := fxcore.Erc20Keeper.RegisterCoin(ctx, purseMetadata)
 	require.NoError(t, err)
 
-	purseID := fxcore.Erc20Keeper.GetDenomMap(ctx, purseMetadata.Base)
+	purseID := fxcore.Erc20Keeper.GetDenomMap(ctx, purseDenom)
 	require.NotEmpty(t, purseID)
 	purseTokenPair, found := fxcore.Erc20Keeper.GetTokenPair(ctx, purseID)
 	require.True(t, found)
@@ -154,7 +154,7 @@ func TestHookChainBSC(t *testing.T) {
 
 	require.Equal(t, types.TokenPair{
 		Erc20Address:  purseTokenPair.GetErc20Address(),
-		Denom:         purseMetadata.GetBase(),
+		Denom:         purseDenom,
 		Enabled:       true,
 		ContractOwner: types.OWNER_MODULE,
 	}, purseTokenPair)
@@ -164,19 +164,10 @@ func TestHookChainBSC(t *testing.T) {
 	_ = fip20
 	//t.Log("fip20", fip20.Name, fip20.Symbol, fip20.Decimals)
 
-	del := delegateAddressArr[0]
-	ga := genesisAccount[0]
-
-	ctx = ctx.WithBlockHeight(504000)
-
-	signer1, addr1 := privateSigner()
-	_, addr2 := privateSigner()
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
 
 	err = fxcore.BankKeeper.SendCoins(ctx, ga.GetAddress(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(purseDenom, amt)))
 	require.NoError(t, err)
-
-	ctx = testInitBscCrossChain(t, ctx, fxcore, del, addr1.Bytes(), addr2)
 
 	balances := fxcore.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
 	_ = balances
@@ -241,15 +232,15 @@ var (
 
 func TestHookIBC(t *testing.T) {
 	fxcore, validators, _, delegateAddressArr := initTest(t)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: fxtypes.EvmSupportBlock()})
-	ctx = ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
-	require.NoError(t, forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
-		fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-		fxcore.EvmKeeper, evm.DefaultParams(),
-		fxcore.Erc20Keeper, types.DefaultParams()))
+	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
 
-	pair, err := fxcore.Erc20Keeper.RegisterCoin(ctx, wfxMetadata)
-	require.NoError(t, err)
+	ctx = initEvmErc20(t, ctx, fxcore)
+
+	pairId := fxcore.Erc20Keeper.GetDenomMap(ctx, "FX")
+	require.True(t, len(pairId) > 0)
+
+	pair, found := fxcore.Erc20Keeper.GetTokenPair(ctx, pairId)
+	require.True(t, found)
 
 	//validator := GetValidator(t, app, val)[0]
 	//val := validators[0]
@@ -260,7 +251,7 @@ func TestHookIBC(t *testing.T) {
 	signer1, addr1 := privateSigner()
 	//_, addr2 := privateSigner()
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err = fxcore.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
+	err := fxcore.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
 	require.NoError(t, err)
 
 	balances := fxcore.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
@@ -372,6 +363,17 @@ func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, authtypes.GenesisAc
 
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 	return fxcore, validator.Validators, genesisAccounts, delegateAddressArr
+}
+
+func initEvmErc20(t *testing.T, ctx sdk.Context, fxcore *app.App) sdk.Context {
+	ctx = ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+	forks.UpdateMetadata(ctx, fxcore.BankKeeper)
+	require.NoError(t, forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
+		fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+		fxcore.EvmKeeper, evm.DefaultParams(),
+		fxcore.Erc20Keeper, types.DefaultParams()))
+
+	return ctx
 }
 
 func GetValidator(t *testing.T, fxcore *app.App, vals ...*tmtypes.Validator) []stakingtypes.Validator {

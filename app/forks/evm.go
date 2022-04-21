@@ -2,6 +2,7 @@ package forks
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/params"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -65,4 +66,17 @@ func InitSupportEvm(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper,
 		))
 	}
 	return nil
+}
+
+func DefaultFeeMarket() feemarkettypes.Params {
+	var (
+		initialBaseFee           = 500000000000                            //500,000,000,000
+		baseFeeChangeDenominator = uint32(params.BaseFeeChangeDenominator) //8
+		elasticityMultiplier     = uint32(params.ElasticityMultiplier)     //2
+		baseFee                  = uint64(initialBaseFee)                  //500Gwei
+		minBaseFee               = sdk.NewInt(int64(initialBaseFee))       //500Gwei
+		maxBaseFee               = feemarkettypes.MaxBaseFee               //MaxUint64 - 1
+		maxGas                   = uint64(3e7)                             //30,000,000
+	)
+	return feemarkettypes.NewParams(baseFeeChangeDenominator, elasticityMultiplier, baseFee, minBaseFee, maxBaseFee, maxGas)
 }

@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			expRes := &types.MsgConvertCoinResponse{}
 			//suite.Commit()
 			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.address)
-			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, metadata.Base)
+			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
@@ -126,7 +126,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			suite.Require().NoError(err, tc.name)
 			//suite.Commit()
 			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.address)
-			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, metadata.Base)
+			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 

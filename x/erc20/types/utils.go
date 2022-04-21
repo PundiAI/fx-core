@@ -26,7 +26,7 @@ func EqualMetadata(a, b banktypes.Metadata) error {
 		}
 
 		for i, v := range a.DenomUnits {
-			if v != b.DenomUnits[i] {
+			if v.String() != b.DenomUnits[i].String() {
 				return fmt.Errorf("metadata provided has different denom unit from stored, %s ≠ %s", a.DenomUnits[i], b.DenomUnits[i])
 			}
 		}

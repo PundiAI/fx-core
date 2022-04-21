@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -54,7 +55,11 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 		}
 
 		// Check if denom exists
-		metadata := a.keeper.bankKeeper.GetDenomMetaData(ctx, strings.ToLower(claim.Symbol))
+		baseDenom := claim.Symbol
+		if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+			baseDenom = strings.ToLower(baseDenom)
+		}
+		metadata := a.keeper.bankKeeper.GetDenomMetaData(ctx, baseDenom)
 		if metadata.Base == "" {
 			return sdkerrors.Wrap(types.ErrUnknown, fmt.Sprintf("denom not found %s", claim.Symbol))
 		}

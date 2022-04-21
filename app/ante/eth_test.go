@@ -312,6 +312,7 @@ func (suite AnteTestSuite) TestEthGasConsumeDecorator() {
 }
 
 func (suite AnteTestSuite) TestCanTransferDecorator() {
+	suite.SetupTest()
 
 	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
 	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,

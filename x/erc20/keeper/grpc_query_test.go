@@ -13,8 +13,14 @@ import (
 
 func (suite *KeeperTestSuite) TestTokenPairs() {
 	var (
-		req    *types.QueryTokenPairsRequest
-		expRes *types.QueryTokenPairsResponse
+		req         *types.QueryTokenPairsRequest
+		expRes      *types.QueryTokenPairsResponse
+		fxTokenPair = types.TokenPair{
+			Erc20Address:  "0x80b5a32E4F032B2a058b4F29EC95EEfEEB87aDcd",
+			Denom:         "FX",
+			Enabled:       true,
+			ContractOwner: 1,
+		}
 	)
 
 	testCases := []struct {
@@ -23,15 +29,19 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 		expPass  bool
 	}{
 		{
-			"no pairs registered",
+			"1 pairs registered",
 			func() {
 				req = &types.QueryTokenPairsRequest{}
 				expRes = &types.QueryTokenPairsResponse{Pagination: &query.PageResponse{}}
+				expRes = &types.QueryTokenPairsResponse{
+					Pagination: &query.PageResponse{Total: 1},
+					TokenPairs: []types.TokenPair{fxTokenPair},
+				}
 			},
 			true,
 		},
 		{
-			"1 pair registered w/pagination",
+			"2 pair registered w/pagination",
 			func() {
 				req = &types.QueryTokenPairsRequest{
 					Pagination: &query.PageRequest{Limit: 10, CountTotal: true},
@@ -40,14 +50,14 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 1},
-					TokenPairs: []types.TokenPair{pair},
+					Pagination: &query.PageResponse{Total: 2},
+					TokenPairs: []types.TokenPair{pair, fxTokenPair},
 				}
 			},
 			true,
 		},
 		{
-			"2 pairs registered wo/pagination",
+			"3 pairs registered wo/pagination",
 			func() {
 				req = &types.QueryTokenPairsRequest{}
 				pair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
@@ -56,8 +66,8 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 2},
-					TokenPairs: []types.TokenPair{pair, pair2},
+					Pagination: &query.PageResponse{Total: 3},
+					TokenPairs: []types.TokenPair{pair, pair2, fxTokenPair},
 				}
 			},
 			true,

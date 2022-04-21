@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -85,8 +86,29 @@ func DefaultTestGenesis(cdc codec.JSONCodec) GenesisState {
 		}
 		bankGenesis.Supply = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, gravityModuleInitAmount))
 	}
+	bankGenesis.DenomMetadata = []banktypes.Metadata{DefaultOldFxBankMetaData(fxtypes.DefaultDenom)}
 	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(&bankGenesis)
 	return genesisState
+}
+
+func DefaultOldFxBankMetaData(denom string) banktypes.Metadata {
+	return banktypes.Metadata{
+		Description: "Function X",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    strings.ToLower(denom),
+				Exponent: 0,
+				Aliases:  nil,
+			},
+			{
+				Denom:    denom,
+				Exponent: 18,
+				Aliases:  nil,
+			},
+		},
+		Base:    strings.ToLower(denom),
+		Display: denom,
+	}
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.

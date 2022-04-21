@@ -1,26 +1,22 @@
 package app
 
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/app/forks"
 	fxtypes "github.com/functionx/fx-core/types"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 )
 
 func BeginBlockForks(ctx sdk.Context, fxcore *App) {
 	switch ctx.BlockHeight() {
 	case fxtypes.EvmSupportBlock():
 		// update FX meta data
-		fxcore.BankKeeper.DeleteDenomMetaData(ctx, strings.ToLower(fxtypes.DefaultDenom))
-		fxcore.BankKeeper.SetDenomMetaData(ctx, GetFxBankMetaData(fxtypes.DefaultDenom))
+		forks.UpdateMetadata(ctx, fxcore.BankKeeper)
 		// init evm module
 		if err := forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
-			fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+			fxcore.FeeMarketKeeper, forks.DefaultFeeMarket(),
 			fxcore.EvmKeeper, evmtypes.DefaultParams(),
 			fxcore.Erc20Keeper, erc20types.DefaultParams(),
 		); err != nil {

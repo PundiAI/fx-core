@@ -3,11 +3,10 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/functionx/fx-core/app/forks"
 	"math/big"
 	"testing"
 	"time"
-
-	"github.com/functionx/fx-core/app/forks"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
@@ -123,7 +122,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		// Initialize the chain
 		suite.app.InitChain(
 			abci.RequestInitChain{
-				ChainId:         "evmos_9001-1",
+				ChainId:         "fxcore",
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: simapp.DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
@@ -133,7 +132,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
 		Height:          fxtypes.EvmSupportBlock(),
-		ChainID:         "evmos_9001-1",
+		ChainID:         "fxcore",
 		Time:            time.Now().UTC(),
 		ProposerAddress: suite.consAddress.Bytes(),
 
@@ -156,10 +155,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-		suite.app.EvmKeeper, evm.DefaultParams(),
-		suite.app.Erc20Keeper, types.DefaultParams()))
 	queryHelperEvm := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evm.RegisterQueryServer(queryHelperEvm, suite.app.EvmKeeper)
 	suite.queryClientEvm = evm.NewQueryClient(queryHelperEvm)
@@ -185,7 +180,13 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock() + 1)
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+
+	forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
+	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+		suite.app.EvmKeeper, evm.DefaultParams(),
+		suite.app.Erc20Keeper, types.DefaultParams()))
 }
 
 func (suite *KeeperTestSuite) SetupTest() {

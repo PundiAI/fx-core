@@ -2,17 +2,15 @@ package keeper_test
 
 import (
 	_ "embed"
+	"github.com/functionx/fx-core/app/forks"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"math/big"
 	"testing"
 	"time"
 
-	"github.com/functionx/fx-core/app/forks"
-
 	app "github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
-
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -74,7 +72,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.app = app.Setup(suite.checkTx, nil)
 	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
 		Height:          fxtypes.EvmSupportBlock(),
-		ChainID:         "ethermint_9000-1",
+		ChainID:         "fxcore",
 		Time:            time.Now().UTC(),
 		ProposerAddress: suite.consAddress.Bytes(),
 		Version: tmversion.Consensus{
@@ -95,11 +93,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		ConsensusHash:      tmhash.Sum([]byte("consensus")),
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
-
-	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-		suite.app.FeeMarketKeeper, types.DefaultParams(),
-		suite.app.EvmKeeper, evmtypes.DefaultParams(),
-		suite.app.Erc20Keeper, erc20types.DefaultParams()))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -124,6 +117,13 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.appCodec = encodingConfig.Marshaler
+
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+	forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
+	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+		suite.app.FeeMarketKeeper, types.DefaultParams(),
+		suite.app.EvmKeeper, evmtypes.DefaultParams(),
+		suite.app.Erc20Keeper, erc20types.DefaultParams()))
 }
 
 func (suite *KeeperTestSuite) SetupTest() {

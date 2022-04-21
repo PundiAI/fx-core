@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 	"time"
 
@@ -90,7 +91,7 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) map[string]json.
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case banktypes.ModuleName:
 			state := banktypes.DefaultGenesisState()
-			state.DenomMetadata = []banktypes.Metadata{GetFxBankMetaData(denom)}
+			state.DenomMetadata = []banktypes.Metadata{fxtypes.GetFxBankMetaData(denom)}
 			fxTotalSupply, ok := sdk.NewIntFromString(BankModuleTotalSupply)
 			if !ok {
 				panic("invalid fx total supply")
@@ -121,21 +122,6 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) map[string]json.
 		}
 	}
 	return genesis
-}
-
-func GetFxBankMetaData(denom string) banktypes.Metadata {
-	return banktypes.Metadata{
-		Description: "Function X",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    denom,
-				Exponent: 18,
-				Aliases:  nil,
-			},
-		},
-		Base:    denom,
-		Display: denom,
-	}
 }
 
 func CustomConsensusParams() *tmproto.ConsensusParams {

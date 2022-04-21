@@ -47,18 +47,14 @@ func (suite *KeeperTestSuite) setupRegisterCoin() (banktypes.Metadata, *types.To
 	suite.SetupTest()
 	validMetadata := banktypes.Metadata{
 		Description: "description of the token",
-		Base:        cosmosTokenBase,
-		// NOTE: Denom units MUST be increasing
 		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    cosmosTokenBase,
-				Exponent: 0,
-			},
 			{
 				Denom:    cosmosTokenDisplay,
 				Exponent: uint32(18),
+				Aliases:  []string{cosmosTokenBase},
 			},
 		},
+		Base:    cosmosTokenDisplay,
 		Display: cosmosTokenDisplay,
 	}
 
@@ -72,18 +68,15 @@ func (suite *KeeperTestSuite) setupRegisterCoin() (banktypes.Metadata, *types.To
 func (suite KeeperTestSuite) TestRegisterCoin() {
 	metadata := banktypes.Metadata{
 		Description: "description",
-		Base:        cosmosTokenBase,
 		// NOTE: Denom units MUST be increasing
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    cosmosTokenBase,
-				Exponent: 0,
-			},
-			{
 				Denom:    cosmosTokenDisplay,
 				Exponent: defaultExponent,
+				Aliases:  []string{cosmosTokenBase},
 			},
 		},
+		Base:    cosmosTokenDisplay,
 		Display: cosmosTokenDisplay,
 	}
 
@@ -110,35 +103,26 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 			},
 			false,
 		},
-		//{
-		//	"token doesn't have supply",
-		//	func() {
-		//	},
-		//	false,
-		//},
 		{
 			"metadata different that stored",
 			func() {
-				metadata.Base = cosmosTokenBase
+				metadata.Base = cosmosTokenDisplay
 				validMetadata := banktypes.Metadata{
 					Description: "description",
-					Base:        cosmosTokenBase,
 					// NOTE: Denom units MUST be increasing
 					DenomUnits: []*banktypes.DenomUnit{
 						{
-							Denom:    cosmosTokenBase,
-							Exponent: 0,
-						},
-						{
 							Denom:    cosmosTokenDisplay,
 							Exponent: uint32(18),
+							Aliases:  []string{cosmosTokenBase},
 						},
 					},
+					Base:    cosmosTokenDisplay,
 					Display: cosmosTokenDisplay,
 				}
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, validMetadata)
 			},
-			false,
+			true,
 		},
 		{
 			"evm denom registration - evm",
@@ -171,7 +155,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 		{
 			"ok",
 			func() {
-				metadata.Base = cosmosTokenBase
+				metadata.Base = cosmosTokenDisplay
 			},
 			true,
 		},
@@ -186,8 +170,8 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 			//suite.Commit()
 
 			expPair := &types.TokenPair{
-				Erc20Address:  "0x80b5a32E4F032B2a058b4F29EC95EEfEEB87aDcd",
-				Denom:         "acoin",
+				Erc20Address:  "0xd567B3d7B8FE3C79a1AD8dA978812cfC4Fa05e75",
+				Denom:         cosmosTokenBase,
 				Enabled:       true,
 				ContractOwner: 1,
 			}

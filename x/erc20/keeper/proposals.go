@@ -36,14 +36,21 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	symbol := coinMetadata.Display
 	//decimals
 	decimals := uint8(0)
+	pairBase := ""
 	for _, du := range coinMetadata.DenomUnits {
 		if du.Denom == symbol {
 			decimals = uint8(du.Exponent)
+			if len(du.Aliases) > 0 {
+				pairBase = du.Aliases[0]
+			}
 			break
 		}
 	}
 	if decimals == 0 {
 		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid display denom exponent")
+	}
+	if len(pairBase) == 0 {
+		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid mapping token of aliases denom")
 	}
 
 	// check if the denomination already registered
@@ -60,12 +67,12 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		k.bankKeeper.SetDenomMetaData(ctx, coinMetadata)
 	}
 
-	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == fxtypes.DefaultDenom)
+	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, name, symbol, decimals, pairBase == fxtypes.DefaultDenom)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
 	}
 
-	pair := types.NewTokenPair(addr, coinMetadata.Base, true, types.OWNER_MODULE)
+	pair := types.NewTokenPair(addr, pairBase, true, types.OWNER_MODULE)
 	k.SetTokenPair(ctx, pair)
 	k.SetDenomMap(ctx, pair.Denom, pair.GetID())
 	k.SetERC20Map(ctx, common.HexToAddress(pair.Erc20Address), pair.GetID())

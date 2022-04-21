@@ -11,6 +11,13 @@ import (
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
+var fxTokenPair = types.TokenPair{
+	Erc20Address:  "0x80b5a32E4F032B2a058b4F29EC95EEfEEB87aDcd",
+	Denom:         "FX",
+	Enabled:       true,
+	ContractOwner: 1,
+}
+
 func (suite *KeeperTestSuite) TestGetAllTokenPairs() {
 	var expRes []types.TokenPair
 
@@ -19,26 +26,28 @@ func (suite *KeeperTestSuite) TestGetAllTokenPairs() {
 		malleate func()
 	}{
 		{
-			"no pair registered", func() { expRes = []types.TokenPair{} },
+			"1 pair registered", func() {
+				expRes = []types.TokenPair{fxTokenPair}
+			},
 		},
 		{
-			"1 pair registered",
+			"2 pair registered",
 			func() {
 				pair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
-				expRes = []types.TokenPair{pair}
+				expRes = []types.TokenPair{pair, fxTokenPair}
 			},
 		},
 		{
-			"2 pairs registered",
+			"3 pairs registered",
 			func() {
 				pair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				pair2 := types.NewTokenPair(tests.GenerateAddress(), "coin2", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
-				expRes = []types.TokenPair{pair, pair2}
+				expRes = []types.TokenPair{pair, pair2, fxTokenPair}
 			},
 		},
 	}

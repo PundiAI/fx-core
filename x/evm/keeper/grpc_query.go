@@ -325,7 +325,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 
 	cfg, err := k.EVMConfig(ctx)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to load evm config")
+		return nil, status.Errorf(codes.Internal, "failed to load evm config, %s", err.Error())
 	}
 
 	// ApplyMessageWithConfig expect correct nonce set in msg

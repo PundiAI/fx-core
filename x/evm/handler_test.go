@@ -2,16 +2,16 @@ package evm_test
 
 import (
 	"errors"
+	"github.com/functionx/fx-core/app/forks"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"math/big"
 	"testing"
 	"time"
 
-	"github.com/functionx/fx-core/app/forks"
-
 	"github.com/ethereum/go-ethereum/core"
 
 	fxtypes "github.com/functionx/fx-core/types"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
 
 	"github.com/gogo/protobuf/proto"
@@ -22,8 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -142,11 +140,6 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + fxtypes.EvmSupportBlock())
-	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-		suite.app.EvmKeeper, types.DefaultParams(),
-		suite.app.Erc20Keeper, erc20types.DefaultParams()))
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 
@@ -168,7 +161,12 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.handler = evm.NewHandler(suite.app.EvmKeeper)
 
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock() + 1)
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+	forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
+	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+		suite.app.EvmKeeper, types.DefaultParams(),
+		suite.app.Erc20Keeper, erc20types.DefaultParams()))
 }
 
 func (suite *EvmTestSuite) SetupTest() {
