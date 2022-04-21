@@ -445,7 +445,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 					time.Sleep(30 * time.Second)
 					continue
 				}
-				if block.Block.Height < fxtypes.EvmSupportBlock() {
+				if block == nil || block.Block == nil || block.Block.Height < fxtypes.EvmSupportBlock() {
 					web3Logger.Debug("Evm Module not enable sleep 30s")
 					time.Sleep(30 * time.Second)
 					continue
