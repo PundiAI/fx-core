@@ -5,7 +5,7 @@ option go_package = "github.com/functionx/fx-core/x/migrate/types";
 
 // Msg defines the state transitions possible within gravity
 service Msg {
-  rpc MigrateAccount (MsgMigrateAccount) returns (MsgMigrateAccountResponse);
+  rpc MigrateAccount(MsgMigrateAccount) returns (MsgMigrateAccountResponse);
 }
 
 message MsgMigrateAccount {
@@ -13,6 +13,4 @@ message MsgMigrateAccount {
   string to = 2;
   string signature = 3;
 }
-message MsgMigrateAccountResponse {
-}
-
+message MsgMigrateAccountResponse {}

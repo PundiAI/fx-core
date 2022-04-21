@@ -9,10 +9,12 @@ option go_package = "github.com/functionx/fx-core/x/feemarket/types";
 message Params {
   // base fee change denominator bounds the amount the base fee can change
   // between blocks.
-  uint32 base_fee_change_denominator = 1 [ (gogoproto.moretags) = "yaml:\"base_fee_change_denominator\"" ];
+  uint32 base_fee_change_denominator = 1
+      [ (gogoproto.moretags) = "yaml:\"base_fee_change_denominator\"" ];
   // elasticity multiplier bounds the maximum gas limit an EIP-1559 block may
   // have.
-  uint32 elasticity_multiplier = 2 [ (gogoproto.moretags) = "yaml:\"elasticity_multiplier\"" ];
+  uint32 elasticity_multiplier = 2
+      [ (gogoproto.moretags) = "yaml:\"elasticity_multiplier\"" ];
   // base fee for EIP-1559 blocks.
   string base_fee = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",

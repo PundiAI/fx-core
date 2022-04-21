@@ -187,7 +187,7 @@ run-local: install
 
 draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
-	@goviz -i github.com/functionx/fx-core/cmd/fxcored -d 2 | dot -Tpng -o dependency-graph.png
+	@goviz -i github.com/functionx/fx-core/app -d 2 | dot -Tpng -o dependency-graph.png
 
 .PHONY: build build-linux install go.sum
 
@@ -224,7 +224,7 @@ test-cover:
 	@go test -mod=readonly -timeout 30m -race -short -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
 
 benchmark:
-	@go test -mod=readonly -bench=. ./...
+	@go test -mod=readonly -short -bench=. ./...
 
 .PHONY: test test-cover test-unit test-race benchmark
 
@@ -251,10 +251,10 @@ proto-swagger-gen:
 proto-format:
 	@echo "Formatting Protobuf files"
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
-		find ./ -not -path "./third_party/*" -name "*.proto" -exec clang-format -i {} \; ; fi
+		find ./ -name "*.proto" -exec clang-format -i {} \; ; fi
 
 proto-lint:
-	@docker run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf:1.0.0-rc8 lint --error-format=json
+	@docker run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf lint --error-format=json
 
 # Install the runsim binary with a temporary workaround of entering an outside
 # directory as the "go get" command ignores the -mod option and will polute the

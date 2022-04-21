@@ -2,6 +2,7 @@ package app
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	"github.com/functionx/fx-core/app/forks"
 	fxtypes "github.com/functionx/fx-core/types"
@@ -16,7 +17,7 @@ func BeginBlockForks(ctx sdk.Context, fxcore *App) {
 		forks.UpdateMetadata(ctx, fxcore.BankKeeper)
 		// init evm module
 		if err := forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
-			fxcore.FeeMarketKeeper, forks.DefaultFeeMarket(),
+			fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),
 			fxcore.EvmKeeper, evmtypes.DefaultParams(),
 			fxcore.Erc20Keeper, erc20types.DefaultParams(),
 		); err != nil {

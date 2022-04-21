@@ -9,11 +9,9 @@ import "migrate/v1/migrate.proto";
 // Query provides defines the gRPC querier service.
 service Query {
   // DenomTrace queries a denomination trace information.
-  rpc QueryMigrateRecord (QueryMigrateRecordRequest) returns (MigrateRecord) {
+  rpc QueryMigrateRecord(QueryMigrateRecordRequest) returns (MigrateRecord) {
     option (google.api.http).get = "/migrate/v1/record/{address}";
   }
 }
 
-message QueryMigrateRecordRequest {
-  string address = 1;
-}
+message QueryMigrateRecordRequest { string address = 1; }

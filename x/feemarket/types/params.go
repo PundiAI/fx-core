@@ -2,11 +2,10 @@ package types
 
 import (
 	"fmt"
-	"math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/params"
+	"math"
 )
 
 var _ paramtypes.ParamSet = &Params{}
@@ -22,8 +21,8 @@ var (
 )
 
 var (
-	MinBaseFee = sdk.NewInt(0)
-	MaxBaseFee = sdk.NewIntFromUint64(math.MaxUint64 - 1).Mul(sdk.NewInt(1000000000))
+	MinBaseFee = sdk.NewInt(500 * 1e9)
+	MaxBaseFee = sdk.NewIntFromUint64(math.MaxUint64 - 1).Mul(sdk.NewInt(1e9))
 )
 
 // ParamKeyTable returns the parameter key table.
@@ -49,10 +48,10 @@ func DefaultParams() Params {
 	return Params{
 		BaseFeeChangeDenominator: params.BaseFeeChangeDenominator,
 		ElasticityMultiplier:     params.ElasticityMultiplier,
-		BaseFee:                  sdk.NewIntFromUint64(params.InitialBaseFee),
+		BaseFee:                  MinBaseFee,
 		MinBaseFee:               MinBaseFee,
 		MaxBaseFee:               MaxBaseFee,
-		MaxGas:                   sdk.NewIntFromUint64(0), //default use block max gas
+		MaxGas:                   sdk.NewIntFromUint64(3 * 1e7), //default use block max gas
 	}
 }
 

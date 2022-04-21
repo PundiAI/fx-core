@@ -4,5 +4,4 @@ package fx.gravity.crosschain.v1;
 option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 
 // GenesisState struct
-message GenesisState {
-}
+message GenesisState {}
