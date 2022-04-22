@@ -29,6 +29,7 @@ func appTomlCmd() *cobra.Command {
 		Short: "Create or query an `~/.fxcore/config/apptoml` file",
 		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			config.SetConfigTemplate(fxconfig.DefaultConfigTemplate())
 			return runConfigCmd(cmd, append([]string{appFileName}, args...))
 		},
 	}

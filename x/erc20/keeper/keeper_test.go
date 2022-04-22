@@ -3,10 +3,11 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/functionx/fx-core/app/forks"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/functionx/fx-core/app/forks"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 

@@ -2,10 +2,11 @@ package types
 
 import (
 	"fmt"
+	"math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/params"
-	"math"
 )
 
 var _ paramtypes.ParamSet = &Params{}

@@ -2,12 +2,13 @@ package evm_test
 
 import (
 	"errors"
-	"github.com/functionx/fx-core/app/forks"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/functionx/fx-core/app/forks"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	"github.com/ethereum/go-ethereum/core"
 

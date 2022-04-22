@@ -56,8 +56,8 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
 		return sdkerrors.Wrap(err, "invalid source channel ID")
 	}
-	if !msg.Token.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Token.String())
+	if msg.Token.Amount.IsNil() || !msg.Token.IsValid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "token")
 	}
 	if !msg.Token.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, msg.Token.String())
@@ -70,16 +70,11 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if strings.TrimSpace(msg.Receiver) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing recipient address")
 	}
-	if msg.Router != "" {
-		if !msg.Fee.IsValid() {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Fee.String())
-		}
-		if !msg.Fee.IsValid() {
-			return sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, msg.Fee.String())
-		}
-		if msg.Fee.Denom != msg.Token.Denom {
-			return sdkerrors.Wrap(ErrFeeDenomNotMatchTokenDenom, fmt.Sprintf("token denom:%s, fee denom:%s", msg.Token.Denom, msg.Fee.Denom))
-		}
+	if msg.Fee.Amount.IsNil() || !msg.Fee.IsValid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "fees")
+	}
+	if msg.Fee.Denom != msg.Token.Denom {
+		return sdkerrors.Wrap(ErrFeeDenomNotMatchTokenDenom, fmt.Sprintf("token denom:%s, fee denom:%s", msg.Token.Denom, msg.Fee.Denom))
 	}
 	return ValidateIBCDenom(msg.Token.Denom)
 }

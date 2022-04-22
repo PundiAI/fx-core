@@ -3,9 +3,10 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 	"time"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"

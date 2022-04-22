@@ -2,17 +2,19 @@ package keeper_test
 
 import (
 	_ "embed"
-	"github.com/functionx/fx-core/app/forks"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
 	"math/big"
 	"testing"
 	"time"
 
-	app "github.com/functionx/fx-core/app"
-	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/app/forks"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	app "github.com/functionx/fx-core/app"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"

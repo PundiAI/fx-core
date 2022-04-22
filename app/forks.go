@@ -2,6 +2,7 @@ package app
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	"github.com/functionx/fx-core/app/forks"
