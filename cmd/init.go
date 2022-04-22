@@ -24,7 +24,6 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
 	tmos "github.com/tendermint/tendermint/libs/os"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"github.com/tendermint/tendermint/types"
 	bip39 "github.com/tyler-smith/go-bip39"
 )
@@ -42,10 +41,10 @@ const (
 
 // initCmd returns a command that initializes all files needed for Tendermint
 // and the respective application.
-func initCmd() *cobra.Command {
+func initCmd(nodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init [moniker]",
-		Short: "Initialize private validator, p2p, genesis, and application configuration files",
+		Short: "Initialize private validator, p2p, genesis, application and client configuration files",
 		Long:  `Initialize validators's and node's configuration files.`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -53,12 +52,11 @@ func initCmd() *cobra.Command {
 
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
-
 			config.SetRoot(clientCtx.HomeDir)
 
-			chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
-			if chainID == "" {
-				chainID = fmt.Sprintf("test-chain-%v", tmrand.Str(6))
+			chainID, err := cmd.Flags().GetString(flags.FlagChainID)
+			if err != nil {
+				return err
 			}
 
 			// Get bip39 mnemonic
@@ -69,7 +67,7 @@ func initCmd() *cobra.Command {
 			}
 			if flagRecover {
 				inBuf := bufio.NewReader(cmd.InOrStdin())
-				mnemonic, err := input.GetString("Enter your bip39 mnemonic", inBuf)
+				mnemonic, err = input.GetString("Enter your bip39 mnemonic", inBuf)
 				if err != nil {
 					return err
 				}
@@ -133,7 +131,7 @@ func initCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(cli.HomeFlag, app.DefaultNodeHome, "node's home directory")
+	cmd.Flags().String(cli.HomeFlag, nodeHome, "node's home directory")
 	cmd.Flags().Bool(FlagOverwrite, false, "overwrite the genesis.json file")
 	cmd.Flags().Bool(FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")

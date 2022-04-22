@@ -27,14 +27,10 @@ func appTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app.toml [key] [value]",
 		Short: "Create or query an `~/.fxcore/config/apptoml` file",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			config.SetConfigTemplate(fxconfig.DefaultConfigTemplate())
-			return nil
-		},
+		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runConfigCmd(cmd, append([]string{appFileName}, args...))
 		},
-		Args: cobra.RangeArgs(0, 2),
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
 	return cmd
@@ -44,10 +40,10 @@ func configTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config.toml [key] [value]",
 		Short: "Create or query an `~/.fxcore/config/config.toml` file",
+		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runConfigCmd(cmd, append([]string{configFileName}, args...))
 		},
-		Args: cobra.RangeArgs(0, 2),
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
 	return cmd

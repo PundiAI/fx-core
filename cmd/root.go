@@ -95,14 +95,9 @@ func newRootCmd() *cobra.Command {
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxtypes.ChainID,
-		flags.FlagKeyringBackend: keyring.BackendTest,
+		flags.FlagKeyringBackend: keyring.BackendOS,
 		flags.FlagGasPrices:      "4000000000000" + fxtypes.DefaultDenom,
 	})
-	for _, command := range rootCmd.Commands() {
-		if command.Use == "" {
-			rootCmd.RemoveCommand(command)
-		}
-	}
 	return rootCmd
 }
 
@@ -111,7 +106,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	sdkCfgCmd.AddCommand(appTomlCmd(), configTomlCmd())
 
 	rootCmd.AddCommand(
-		initCmd(),
+		initCmd(app.DefaultNodeHome),
 		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.MigrateGenesisCmd(),
 		appCmd.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
