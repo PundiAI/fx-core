@@ -74,7 +74,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 			[]string{types.ModuleName, msg.Type()},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("result", strconv.FormatBool(response.Failed())),
+				telemetry.NewLabel("result", strconv.FormatBool(!response.Failed())),
 			},
 		)
 	}()
