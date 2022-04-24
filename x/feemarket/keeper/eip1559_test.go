@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 
 				suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 			},
-			big.NewInt(1125000000),
+			big.NewInt(562500000000),
 		},
 		{
 			"with BaseFee - Parent gas used smaller than parent gas target",
@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 
 				suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 			},
-			big.NewInt(937500000),
+			big.NewInt(500000000000),
 		},
 	}
 	for _, tc := range testCases {

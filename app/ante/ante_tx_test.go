@@ -15,7 +15,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	ethparams "github.com/ethereum/go-ethereum/params"
 
 	"github.com/functionx/fx-core/tests"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
@@ -343,7 +342,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 						big.NewInt(10),
 						100000,
 						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(feemarkettypes.MinBaseFee.Int64()+1),
 						big.NewInt(1),
 						nil,
 						&types.AccessList{},
@@ -365,7 +364,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 						big.NewInt(10),
 						100000,
 						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(feemarkettypes.MinBaseFee.Int64()+1),
 						big.NewInt(1),
 						nil,
 						&types.AccessList{},
@@ -387,7 +386,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 						big.NewInt(10),
 						100000,
 						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(feemarkettypes.MinBaseFee.Int64()+1),
 						big.NewInt(1),
 						nil,
 						&types.AccessList{},
@@ -410,7 +409,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 						big.NewInt(10),
 						100000,
 						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(feemarkettypes.MinBaseFee.Int64()+1),
 						big.NewInt(1),
 						nil,
 						&types.AccessList{},
@@ -433,7 +432,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 						big.NewInt(10),
 						100000,
 						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(feemarkettypes.MinBaseFee.Int64()+1),
 						big.NewInt(1),
 						nil,
 						&types.AccessList{},
@@ -456,7 +455,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 						big.NewInt(10),
 						100000,
 						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(feemarkettypes.MinBaseFee.Int64()+1),
 						big.NewInt(1),
 						nil,
 						&types.AccessList{},
@@ -479,7 +478,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 						big.NewInt(10),
 						100000,
 						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(feemarkettypes.MinBaseFee.Int64()+1),
 						big.NewInt(1),
 						nil,
 						&types.AccessList{},
@@ -502,7 +501,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 						big.NewInt(10),
 						100000,
 						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(feemarkettypes.MinBaseFee.Int64()+1),
 						big.NewInt(1),
 						nil,
 						&types.AccessList{},
@@ -527,7 +526,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 						big.NewInt(10),
 						100000,
 						nil,
-						big.NewInt(ethparams.InitialBaseFee+1),
+						big.NewInt(feemarkettypes.MinBaseFee.Int64()+1),
 						big.NewInt(1),
 						nil,
 						&types.AccessList{},
@@ -557,7 +556,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 			suite.ctx = suite.ctx.WithIsCheckTx(tc.checkTx).WithIsReCheckTx(tc.reCheckTx)
-			suite.Require().NoError(suite.app.EvmKeeper.SetBalance(suite.ctx, addr, big.NewInt((ethparams.InitialBaseFee+10)*100000)))
+			suite.Require().NoError(suite.app.EvmKeeper.SetBalance(suite.ctx, addr, big.NewInt((feemarkettypes.MinBaseFee.Int64()+10)*100000)))
 			_, err := suite.anteHandler(suite.ctx, tc.txFn(), false)
 			if tc.expPass {
 				suite.Require().NoError(err)
