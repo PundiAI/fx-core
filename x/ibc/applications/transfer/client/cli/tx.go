@@ -100,16 +100,14 @@ to the counterparty channel. Any timeout set to 0 is disabled.`),
 				return err
 			}
 			var ibcFee sdk.Coin
-			if router != "" {
-				ibcFeeString, err := cmd.Flags().GetString(flagIbcFee)
-				if err != nil {
-					return err
-				}
-				if ibcFeeAmount, ok := sdk.NewIntFromString(ibcFeeString); !ok {
-					return fmt.Errorf("ibc-fee invalid!!!input:%v", ibcFeeString)
-				} else {
-					ibcFee = sdk.NewCoin(coin.Denom, ibcFeeAmount)
-				}
+			ibcFeeString, err := cmd.Flags().GetString(flagIbcFee)
+			if err != nil {
+				return err
+			}
+			if ibcFeeAmount, ok := sdk.NewIntFromString(ibcFeeString); !ok {
+				return fmt.Errorf("ibc-fee invalid!!!input:%v", ibcFeeString)
+			} else {
+				ibcFee = sdk.NewCoin(coin.Denom, ibcFeeAmount)
 			}
 
 			msg := types.NewMsgTransfer(
@@ -122,7 +120,7 @@ to the counterparty channel. Any timeout set to 0 is disabled.`),
 	cmd.Flags().String(flagPacketTimeoutHeight, "0-0", "Packet timeout block height. Example: 0-20000, The timeout is disabled when set to 0-0.")
 	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, types.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds. Default is 24 hours. The timeout is disabled when set to 0.")
 	cmd.Flags().String(flagIbcRouter, "", "Ibc transfer after router module, Default is nothing")
-	cmd.Flags().String(flagIbcFee, "", "Ibc transfer after crosschain chain fee, Default is nothing")
+	cmd.Flags().String(flagIbcFee, "0", "Ibc transfer after crosschain chain fee, Default is nothing")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	flags.AddTxFlagsToCmd(cmd)
 
