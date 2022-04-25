@@ -125,34 +125,6 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 			false,
 		},
 		{
-			"evm denom registration - evm",
-			func() {
-				metadata.Base = "evm"
-			},
-			false,
-		},
-		{
-			"evm denom registration - evmos",
-			func() {
-				metadata.Base = "evmos"
-			},
-			false,
-		},
-		{
-			"evm denom registration - aevmos",
-			func() {
-				metadata.Base = "aevmos"
-			},
-			false,
-		},
-		{
-			"evm denom registration - wevmos",
-			func() {
-				metadata.Base = "wevmos"
-			},
-			false,
-		},
-		{
 			"ok",
 			func() {
 				metadata.Base = cosmosTokenDisplay

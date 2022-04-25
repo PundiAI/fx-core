@@ -70,7 +70,7 @@ func TestMsgTransferValidation(t *testing.T) {
 		expPass bool
 	}{
 		{"valid msg with base denom", NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), true},
-		{"valid msg with trace hash", NewMsgTransfer(validPort, validChannel, ibcCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), true},
+		{"valid msg with trace hash", NewMsgTransfer(validPort, validChannel, ibcCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, ibcCoin), true},
 		{"invalid ibc denom", NewMsgTransfer(validPort, validChannel, invalidIBCCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
 		{"too short port id", NewMsgTransfer(invalidShortPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
 		{"too long port id", NewMsgTransfer(invalidLongPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},

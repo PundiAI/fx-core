@@ -69,24 +69,6 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 			false,
 		},
 		{
-			"Pair is disabled",
-			func(contractAddr common.Address) {
-				pair, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
-				suite.Require().NoError(err)
-
-				pair.Enabled = false
-				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, *pair)
-				// Mint 10 tokens to suite.address (owner)
-				_ = suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
-				//suite.Commit()
-
-				// Burn the 10 tokens of suite.address (owner)
-				_ = suite.BurnERC20Token(contractAddr, suite.address, big.NewInt(10))
-
-			},
-			false,
-		},
-		{
 			"Pair is incorrectly loaded",
 			func(contractAddr common.Address) {
 				pair, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)

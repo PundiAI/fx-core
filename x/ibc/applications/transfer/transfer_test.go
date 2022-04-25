@@ -80,7 +80,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	channelOnBForC, channelOnCForB := suite.coordinator.CreateTransferChannels(suite.chainB, suite.chainC, connOnBForC, connOnCForB, channeltypes.UNORDERED)
 
 	// send from chainB to chainC
-	msg = types.NewMsgTransfer(channelOnBForC.PortID, channelOnBForC.ID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, noRouter, zeroFee)
+	msg = types.NewMsgTransfer(channelOnBForC.PortID, channelOnBForC.ID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, noRouter, sdk.NewCoin(coinSentFromAToB.Denom, sdk.ZeroInt()))
 
 	err = suite.coordinator.SendMsg(suite.chainB, suite.chainC, clientOnCForB, msg)
 	suite.Require().NoError(err) // message committed
@@ -104,7 +104,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().Zero(balance.Amount.Int64())
 
 	// send from chainC back to chainB
-	msg = types.NewMsgTransfer(channelOnCForB.PortID, channelOnCForB.ID, coinSentFromBToC, suite.chainC.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, noRouter, zeroFee)
+	msg = types.NewMsgTransfer(channelOnCForB.PortID, channelOnCForB.ID, coinSentFromBToC, suite.chainC.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, noRouter, sdk.NewCoin(coinSentFromBToC.Denom, sdk.ZeroInt()))
 
 	err = suite.coordinator.SendMsg(suite.chainC, suite.chainB, clientOnBForC, msg)
 	suite.Require().NoError(err) // message committed
@@ -137,7 +137,9 @@ func (suite *TransferTestSuite) TestTransferForwardPacket() {
 	clientA, clientB, connA, connB := suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
 	channelA, channelB := suite.coordinator.CreateTransferChannels(suite.chainA, suite.chainB, connA, connB, channeltypes.UNORDERED)
 
-	suite.coordinator.CommitNBlocks(suite.chainB, uint64(fxtypes.EvmSupportBlock()-suite.chainB.CurrentHeader.GetHeight())+1)
+	if suite.chainB.CurrentHeader.GetHeight() < fxtypes.EvmSupportBlock() {
+		suite.coordinator.CommitNBlocks(suite.chainB, uint64(fxtypes.EvmSupportBlock()-suite.chainB.CurrentHeader.GetHeight())+1)
+	}
 	// setup between chainB to chainC
 	clientOnBForC, clientOnCForB, connOnBForC, connOnCForB := suite.coordinator.SetupClientConnections(suite.chainB, suite.chainC, exported.Tendermint)
 	channelOnBForC, channelOnCForB := suite.coordinator.CreateTransferChannels(suite.chainB, suite.chainC, connOnBForC, connOnCForB, channeltypes.UNORDERED)
