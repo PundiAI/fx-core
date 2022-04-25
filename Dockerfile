@@ -4,10 +4,18 @@ FROM golang:1.16.15-alpine3.15 as builder
 # default mainnet
 ARG NETWORK=mainnet
 
-COPY . /app
+RUN apk add --no-cache git build-base linux-headers
 
-RUN apk add --no-cache git build-base linux-headers && \
-    export GOPROXY=goproxy.cn && cd /app && FX_BUILD_OPTIONS=${NETWORK} make go-build
+WORKDIR /app
+
+# download and cache go mod
+COPY ./go.* .
+RUN go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && go mod download
+
+COPY . .
+
+ENV GOCACHE /root/.cache/go-build
+RUN --mount=type=cache,target=/root/.cache/go-build FX_BUILD_OPTIONS=${NETWORK} make build
 
 # build fx-core
 FROM alpine:3.15

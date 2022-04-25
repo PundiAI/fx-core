@@ -134,43 +134,23 @@ go.sum: go.mod
 	@echo "--> Download go modules to local cache"
 	@go mod download
 
-go-build: go.mod
+build: go.mod
+	@echo "--> build $(FX_BUILD_OPTIONS) <--"
 	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd
 
-build: go.mod
-	@echo "--> build mainnet <--"
-	@FX_BUILD_OPTIONS=mainnet make go-build
-
-build-devnet: go.mod
-	@echo "--> build devnet <--"
-	@FX_BUILD_OPTIONS=devnet make go-build
-
-build-testnet: go.mod
-	@echo "--> build testnet <--"
-	@FX_BUILD_OPTIONS=testnet make go-build
-
-build-linux:
-	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build
-
-build-linux-devnet:
-	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-devnet
-
-build-linux-testnet:
-	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-testnet
-
 build-win:
-	@make go-build
+	@$(MAKE) build
 
 install:
-	@$(MAKE) build
+	@FX_BUILD_OPTIONS=mainnet $(MAKE) build
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 install-devnet:
-	@$(MAKE) build-devnet
+	@FX_BUILD_OPTIONS=mainnet $(MAKE) build-devnet
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 install-testnet:
-	@$(MAKE) build-testnet
+	@FX_BUILD_OPTIONS=mainnet $(MAKE) build-testnet
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 docker:
@@ -189,7 +169,7 @@ draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
 	@goviz -i github.com/functionx/fx-core/app -d 2 | dot -Tpng -o dependency-graph.png
 
-.PHONY: build build-linux install go.sum
+.PHONY: build build-win install docker go.sum
 
 ###############################################################################
 ###                                Linting                                  ###
