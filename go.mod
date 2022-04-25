@@ -6,7 +6,7 @@ require (
 	github.com/armon/go-metrics v0.3.10
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
-	github.com/cosmos/cosmos-sdk v0.42.10
+	github.com/cosmos/cosmos-sdk v0.42.11
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/ethereum/go-ethereum v1.10.16
@@ -50,4 +50,4 @@ replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.
 
 replace github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
 
-replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.10-0.20220420102406-19d4f383b7e4
+replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.10-0.20220424064530-793a11280f8b
