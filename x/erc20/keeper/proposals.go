@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"encoding/hex"
-	"strings"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -23,11 +22,6 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	params := k.GetParams(ctx)
 	if !params.EnableErc20 {
 		return nil, sdkerrors.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
-	}
-
-	// prohibit denominations that contain the evm denom
-	if strings.Contains(coinMetadata.Base, "evm") {
-		return nil, sdkerrors.Wrapf(types.ErrEVMDenom, "cannot register the EVM denomination %s", coinMetadata.Base)
 	}
 
 	//description use for name
@@ -105,7 +99,7 @@ func (k Keeper) DeployERC20Contract(ctx sdk.Context, coinMetadata banktypes.Meta
 	}
 
 	contractAddr := crypto.CreateAddress(types.ModuleAddress, nonce)
-	_, err = k.CallEVMWithData(ctx, types.ModuleAddress, nil, data)
+	_, err = k.CallEVMWithData(ctx, types.ModuleAddress, nil, data, true)
 	if err != nil {
 		return common.Address{}, sdkerrors.Wrapf(err, "failed to deploy contract for %s", coinMetadata.Description)
 	}
@@ -243,7 +237,7 @@ func (k Keeper) DeployERC1967Proxy(ctx sdk.Context, from, logicAddr common.Addre
 
 func (k Keeper) InitializeUpgradable(ctx sdk.Context, from, contract common.Address, abi abi.ABI, data ...interface{}) error {
 	k.Logger(ctx).Info("initialize upgradable", "contract", contract.Hex())
-	_, err := k.CallEVM(ctx, abi, from, contract, "initialize", data...)
+	_, err := k.CallEVM(ctx, abi, from, contract, true, "initialize", data...)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to initialize contract")
 	}
@@ -265,7 +259,7 @@ func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI
 	}
 
 	contractAddr := crypto.CreateAddress(from, nonce)
-	_, err = k.CallEVMWithData(ctx, from, nil, data)
+	_, err = k.CallEVMWithData(ctx, from, nil, data, true)
 	if err != nil {
 		return common.Address{}, sdkerrors.Wrap(err, "failed to deploy contract")
 	}

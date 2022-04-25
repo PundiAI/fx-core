@@ -103,7 +103,7 @@ func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 	}
 
 	// Mint Tokens and send to receiver
-	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "mint", receiver, msg.Coin.Amount.BigInt())
+	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "mint", receiver, msg.Coin.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 	balanceToken := k.balanceOf(ctx, erc20, contract, sender)
 
 	// Burn escrowed tokens
-	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "burn", sender, msg.Amount.BigInt())
+	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "burn", sender, msg.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +258,7 @@ func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 		return nil, err
 	}
 
-	res, err := k.CallEVMWithData(ctx, sender, &contract, transferData)
+	res, err := k.CallEVMWithData(ctx, sender, &contract, transferData, true)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	}
 
 	// Unescrow Tokens and send to receiver
-	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "transfer", receiver, msg.Coin.Amount.BigInt())
+	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "transfer", receiver, msg.Coin.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}
@@ -430,7 +430,7 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 
 // balanceOf queries an account's balance for a given ERC20 contract
 func (k Keeper) balanceOf(ctx sdk.Context, abi abi.ABI, contract, account common.Address) *big.Int {
-	res, err := k.CallEVM(ctx, abi, types.ModuleAddress, contract, "balanceOf", account)
+	res, err := k.CallEVM(ctx, abi, types.ModuleAddress, contract, false, "balanceOf", account)
 	if err != nil {
 		return nil
 	}

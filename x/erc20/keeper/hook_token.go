@@ -78,7 +78,7 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash comm
 	switch pair.ContractOwner {
 	case types.OWNER_MODULE:
 		if _, err = k.CallEVM(ctx, fip20ABI, types.ModuleAddress, pair.GetERC20Contract(),
-			"burn", types.ModuleAddress, amount); err != nil {
+			true, "burn", types.ModuleAddress, amount); err != nil {
 			return err
 		}
 

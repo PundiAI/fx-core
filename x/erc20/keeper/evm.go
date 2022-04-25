@@ -30,7 +30,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 
 	// Name
-	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "name")
+	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "name")
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
@@ -40,7 +40,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	}
 
 	// Symbol
-	res, err = k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "symbol")
+	res, err = k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "symbol")
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
@@ -50,7 +50,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	}
 
 	// Decimals
-	res, err = k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "decimals")
+	res, err = k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "decimals")
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
@@ -66,7 +66,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 func (k Keeper) BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.Int, error) {
 	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
 
-	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, "balanceOf", addr)
+	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "balanceOf", addr)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,14 @@ func (k Keeper) BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.
 }
 
 // CallEVM performs a smart contract method call using given args
-func (k Keeper) CallEVM(ctx sdk.Context, abi abi.ABI, from, contract common.Address, method string, args ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
+func (k Keeper) CallEVM(
+	ctx sdk.Context,
+	abi abi.ABI,
+	from, contract common.Address,
+	commit bool,
+	method string,
+	args ...interface{},
+) (*evmtypes.MsgEthereumTxResponse, error) {
 	data, err := abi.Pack(method, args...)
 	if err != nil {
 		return nil, sdkerrors.Wrap(
@@ -88,7 +95,7 @@ func (k Keeper) CallEVM(ctx sdk.Context, abi abi.ABI, from, contract common.Addr
 		)
 	}
 
-	resp, err := k.CallEVMWithData(ctx, from, &contract, data)
+	resp, err := k.CallEVMWithData(ctx, from, &contract, data, commit)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(err, "contract call failed: method '%s', contract '%s'", method, contract)
 	}
@@ -96,27 +103,37 @@ func (k Keeper) CallEVM(ctx sdk.Context, abi abi.ABI, from, contract common.Addr
 }
 
 // CallEVMWithData performs a smart contract method call using contract data
-func (k Keeper) CallEVMWithData(ctx sdk.Context, from common.Address, contract *common.Address, data []byte) (*evmtypes.MsgEthereumTxResponse, error) {
+func (k Keeper) CallEVMWithData(
+	ctx sdk.Context,
+	from common.Address,
+	contract *common.Address,
+	data []byte,
+	commit bool,
+) (*evmtypes.MsgEthereumTxResponse, error) {
 	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	args, err := json.Marshal(evmtypes.TransactionArgs{
-		From: &from,
-		To:   contract,
-		Data: (*hexutil.Bytes)(&data),
-	})
-	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "failed to marshal tx args: %s", err.Error())
-	}
+	gasCap := config.DefaultGasCap
+	if commit {
+		args, err := json.Marshal(evmtypes.TransactionArgs{
+			From: &from,
+			To:   contract,
+			Data: (*hexutil.Bytes)(&data),
+		})
+		if err != nil {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "failed to marshal tx args: %s", err.Error())
+		}
 
-	gasRes, err := k.evmKeeper.EstimateGas(sdk.WrapSDKContext(ctx), &evmtypes.EthCallRequest{
-		Args:   args,
-		GasCap: config.DefaultGasCap,
-	})
-	if err != nil {
-		return nil, err
+		gasRes, err := k.evmKeeper.EstimateGas(sdk.WrapSDKContext(ctx), &evmtypes.EthCallRequest{
+			Args:   args,
+			GasCap: config.DefaultGasCap,
+		})
+		if err != nil {
+			return nil, err
+		}
+		gasCap = gasRes.Gas
 	}
 
 	msg := ethtypes.NewMessage(
@@ -124,16 +141,16 @@ func (k Keeper) CallEVMWithData(ctx sdk.Context, from common.Address, contract *
 		contract,
 		nonce,
 		big.NewInt(0), // amount
-		gasRes.Gas,    // gasLimit
+		gasCap,        // gasLimit
 		big.NewInt(0), // gasFeeCap
 		big.NewInt(0), // gasTipCap
 		big.NewInt(0), // gasPrice
 		data,
 		ethtypes.AccessList{}, // AccessList
-		true,                  // checkNonce
+		!commit,               // isFake
 	)
 
-	res, err := k.evmKeeper.ApplyMessage(ctx, msg, evmtypes.NewNoOpTracer(), true)
+	res, err := k.evmKeeper.ApplyMessage(ctx, msg, evmtypes.NewNoOpTracer(), commit)
 	if err != nil {
 		return nil, err
 	}

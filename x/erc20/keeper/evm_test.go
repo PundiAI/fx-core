@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/types"
@@ -72,12 +74,107 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 		suite.Require().NoError(err)
 		account := tests.GenerateAddress()
 
-		res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, tc.method, account)
+		res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, true, tc.method, account)
 		if tc.expPass {
 			suite.Require().IsTypef(&evmtypes.MsgEthereumTxResponse{}, res, tc.name)
 			suite.Require().NoError(err)
 		} else {
 			suite.Require().Error(err)
 		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestCallEVMWithData() {
+	erc20 := fxtypes.GetERC20(fxtypes.EvmSupportBlock())
+	testCases := []struct {
+		name     string
+		from     common.Address
+		malleate func() ([]byte, *common.Address)
+		expPass  bool
+	}{
+		{
+			"unknown method",
+			types.ModuleAddress,
+			func() ([]byte, *common.Address) {
+				contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
+				suite.Require().NoError(err)
+				account := tests.GenerateAddress()
+				data, _ := erc20.ABI.Pack("", account)
+				return data, &contract
+			},
+			false,
+		},
+		{
+			"pass",
+			types.ModuleAddress,
+			func() ([]byte, *common.Address) {
+				contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
+				suite.Require().NoError(err)
+				account := tests.GenerateAddress()
+				data, _ := erc20.ABI.Pack("balanceOf", account)
+				return data, &contract
+			},
+			true,
+		},
+		{
+			"fail empty data",
+			types.ModuleAddress,
+			func() ([]byte, *common.Address) {
+				contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
+				suite.Require().NoError(err)
+				return []byte{}, &contract
+			},
+			false,
+		},
+
+		{
+			"fail empty sender",
+			common.Address{},
+			func() ([]byte, *common.Address) {
+				contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
+				suite.Require().NoError(err)
+				return []byte{}, &contract
+			},
+			false,
+		},
+		{
+			"deploy",
+			types.ModuleAddress,
+			func() ([]byte, *common.Address) {
+				ctorArgs, _ := erc20.ABI.Pack("", "test", "test", uint8(18))
+				data := append(erc20.Bin, ctorArgs...)
+				return data, nil
+			},
+			true,
+		},
+		{
+			"fail deploy",
+			types.ModuleAddress,
+			func() ([]byte, *common.Address) {
+				params := suite.app.EvmKeeper.GetParams(suite.ctx)
+				params.EnableCreate = false
+				suite.app.EvmKeeper.SetParams(suite.ctx, params)
+				ctorArgs, _ := erc20.ABI.Pack("", "test", "test", uint8(18))
+				data := append(erc20.Bin, ctorArgs...)
+				return data, nil
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest() // reset
+
+			data, contract := tc.malleate()
+
+			res, err := suite.app.Erc20Keeper.CallEVMWithData(suite.ctx, tc.from, contract, data, true)
+			if tc.expPass {
+				suite.Require().IsTypef(&evmtypes.MsgEthereumTxResponse{}, res, tc.name)
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
