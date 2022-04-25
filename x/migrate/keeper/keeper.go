@@ -115,10 +115,10 @@ func (k Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtype
 	}
 	fromPubKey := fromAccount.GetPubKey()
 	if fromPubKey == nil {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidAddress, "empty public key: %s", addr.String())
+		return nil, sdkerrors.Wrapf(types.ErrInvalidPublicKey, "empty public key: %s", addr.String())
 	}
 	if fromPubKey.Type() != new(secp256k1.PubKey).Type() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidAddress, "account type not support: %s(%s)", addr.String(), fromPubKey.Type())
+		return nil, sdkerrors.Wrapf(types.ErrInvalidPublicKey, "account type not support: %s(%s)", addr.String(), fromPubKey.Type())
 	}
 	return fromAccount, nil
 }

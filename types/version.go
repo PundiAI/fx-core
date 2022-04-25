@@ -27,6 +27,10 @@ const (
 	mainnetSupportEvmV1Block = math.MaxInt64
 )
 
+var (
+	mainnetEvmV0ClearKVStores []string
+)
+
 // testnet constant
 const (
 	testnetCrossChainSupportBscBlock            = 1
@@ -40,6 +44,10 @@ const (
 	testnetSupportEvmV1Block = math.MaxInt64
 )
 
+var (
+	testnetEvmV0ClearKVStores = []string{"evm", "feemarket"}
+)
+
 // devnet constant
 const (
 	devnetCrossChainSupportBscBlock            = 1
@@ -51,6 +59,10 @@ const (
 	devnetEvmChainID        = 221
 	devnetSupportEvmV0Block = math.MaxInt64
 	devnetSupportEvmV1Block = 10
+)
+
+var (
+	devnetEvmV0ClearKVStores []string
 )
 
 var (
@@ -147,6 +159,15 @@ func RequestBatchBaseFeeBlock() int64 {
 
 func IsRequestBatchBaseFee(height int64) bool {
 	return height >= RequestBatchBaseFeeBlock()
+}
+
+func EvmV0ClearKVStores() []string {
+	if networkDevnet == network {
+		return devnetEvmV0ClearKVStores
+	} else if networkTestnet == network {
+		return testnetEvmV0ClearKVStores
+	}
+	return mainnetEvmV0ClearKVStores
 }
 
 // ChangeNetworkForTest change network for test

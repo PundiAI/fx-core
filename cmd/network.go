@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -30,6 +31,7 @@ func networkCmd() *cobra.Command {
 				"CrossChainSupportPolygonAndTronBlock":  fmt.Sprintf("%d", types.CrossChainSupportPolygonAndTronBlock()),
 				"EIP155ChainID":                         fmt.Sprintf("%d", types.EIP155ChainID()),
 				"EvmV0SupportBlock":                     fmt.Sprintf("%d", types.EvmV0SupportBlock()),
+				"EvmV0ClearKVStores":                    fmt.Sprintf("%s", strings.Join(types.EvmV0ClearKVStores(), ",")),
 				"EvmV1SupportBlock":                     fmt.Sprintf("%d", types.EvmV1SupportBlock()),
 			})
 			if err != nil {

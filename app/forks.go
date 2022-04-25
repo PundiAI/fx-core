@@ -16,6 +16,8 @@ func BeginBlockForks(ctx sdk.Context, fxcore *App) {
 	case fxtypes.EvmV1SupportBlock():
 		// update FX meta data
 		forks.UpdateMetadata(ctx, fxcore.BankKeeper)
+		// clear evm v0 kv stores
+		forks.ClearEvmV0KVStores(ctx, fxcore.keys)
 		// init evm module
 		if err := forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
 			fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),

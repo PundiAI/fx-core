@@ -535,7 +535,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	require.EqualValues(t, sdk.NewCoin(depositToken, sdk.ZeroInt()), totalDepositBefore)
 
 	endBlock := func() {
-		ctx = ctx.WithBlockHeight(fxtypes.CrossChainSupportBscBlock() + 1)
+		//ctx = ctx.WithBlockHeight(fxtypes.CrossChainSupportBscBlock() + 1)
 		crosschain.EndBlocker(ctx, keep)
 	}
 
@@ -733,12 +733,14 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 }
 
 func createTestEnv(t *testing.T) (fxcore *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
+
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	fxcore = app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx = fxcore.BaseApp.NewContext(false, tmproto.Header{})
-	ctx = ctx.WithBlockHeight(2000000)
+	ctx = ctx.WithBlockHeight(fxtypes.CrossChainSupportBscBlock())
 	oracleAddressList = app.AddTestAddrsIncremental(fxcore, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
 	orchestratorAddressList = app.AddTestAddrs(fxcore, ctx, GenerateAccountNum, sdk.ZeroInt())
 	ethKeys = genEthKey(GenerateAccountNum)
