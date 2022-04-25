@@ -447,7 +447,13 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		)
 	}
 
-	ctx = ctx.WithBlockHeight(req.BlockNumber)
+	// minus one to get the context of block beginning
+	contextHeight := req.BlockNumber - 1
+	if contextHeight < 1 {
+		// 0 is a special value in `ContextWithHeight`
+		contextHeight = 1
+	}
+	ctx = ctx.WithBlockHeight(contextHeight)
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 
@@ -510,7 +516,15 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
 	}
-	ctx = ctx.WithBlockHeight(req.BlockNumber)
+
+	// minus one to get the context of block beginning
+	contextHeight := req.BlockNumber - 1
+	if contextHeight < 1 {
+		// 0 is a special value in `ContextWithHeight`
+		contextHeight = 1
+	}
+
+	ctx = ctx.WithBlockHeight(contextHeight)
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 

@@ -46,17 +46,25 @@ func (e *EVMBackend) processBlock(
 	// set basefee
 	targetOneFeeHistory.BaseFee = blockBaseFee
 
-	// set gasused ratio
-	gasLimitUint64 := (*ethBlock)["gasLimit"].(hexutil.Uint64)
-	gasUsedBig := (*ethBlock)["gasUsed"].(*hexutil.Big)
-	gasusedfloat, _ := new(big.Float).SetInt(gasUsedBig.ToInt()).Float64()
+	// set gas used ratio
+	gasLimitUint64, ok := (*ethBlock)["gasLimit"].(hexutil.Uint64)
+	if !ok {
+		return fmt.Errorf("invalid gas limit type: %T", (*ethBlock)["gasLimit"])
+	}
+
+	gasUsedBig, ok := (*ethBlock)["gasUsed"].(*hexutil.Big)
+	if !ok {
+		return fmt.Errorf("invalid gas used type: %T", (*ethBlock)["gasUsed"])
+	}
+
+	gasUsedFloat, _ := new(big.Float).SetInt(gasUsedBig.ToInt()).Float64()
 
 	if gasLimitUint64 <= 0 {
 		return fmt.Errorf("gasLimit of block height %d should be bigger than 0 , current gaslimit %d", blockHeight, gasLimitUint64)
 	}
 
-	gasUsedRatio := gasusedfloat / float64(gasLimitUint64)
-	blockGasUsed := gasusedfloat
+	gasUsedRatio := gasUsedFloat / float64(gasLimitUint64)
+	blockGasUsed := gasUsedFloat
 	targetOneFeeHistory.GasUsedRatio = gasUsedRatio
 
 	rewardCount := len(rewardPercentiles)

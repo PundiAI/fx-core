@@ -385,18 +385,18 @@
 Attestation is an aggregate of `claims` that eventually becomes `observed` by
 all orchestrators
 EVENT_NONCE:
-EventNonce a nonce provided by the gravity contract that is unique per event fired
-These event nonces must be relayed in order. This is a correctness issue,
-if relaying out of order transaction replay attacks become possible
+EventNonce a nonce provided by the gravity contract that is unique per event
+fired These event nonces must be relayed in order. This is a correctness
+issue, if relaying out of order transaction replay attacks become possible
 OBSERVED:
 Observed indicates that >67% of validators have attested to the event,
 and that the event should be executed by the gravity state machine
 
-The actual content of the claims is passed in with the transaction making the claim
-and then passed through the call stack alongside the attestation while it is processed
-the key in which the attestation is stored is keyed on the exact details of the claim
-but there is no reason to store those exact details becuause the next message sender
-will kindly provide you with them.
+The actual content of the claims is passed in with the transaction making the
+claim and then passed through the call stack alongside the attestation while
+it is processed the key in which the attestation is stored is keyed on the
+exact details of the claim but there is no reason to store those exact
+details becuause the next message sender will kindly provide you with them.
 
 
 | Field | Type | Label | Description |
@@ -586,9 +586,9 @@ even if no Ethereum block height has been relayed for a long time
 <a name="fx.gravity.crosschain.v1.OracleSet"></a>
 
 ### OracleSet
-OracleSet is the external Chain Bridge Multsig Set, each gravity validator also
-maintains an external key to sign messages, these are used to check signatures on
-external because of the significant gas savings
+OracleSet is the external Chain Bridge Multsig Set, each gravity validator
+also maintains an external key to sign messages, these are used to check
+signatures on external because of the significant gas savings
 
 
 | Field | Type | Label | Description |
@@ -646,7 +646,8 @@ OutgoingTxBatch represents a batch of transactions going from gravity to ETH
 ### Params
 oracle_set_update_power_change_percent
 
-If power change between validators of CurrentOracleSet and latest oracle set request is > 10%
+If power change between validators of CurrentOracleSet and latest oracle set
+request is > 10%
 
 
 | Field | Type | Label | Description |
@@ -2977,7 +2978,8 @@ RPC method.
 <a name="fx.ethereum.evm.v1.QueryModuleEnableRequest"></a>
 
 ### QueryModuleEnableRequest
-QueryModuleEnableRequest defines the request type for querying the module is enable.
+QueryModuleEnableRequest defines the request type for querying the module is
+enable.
 
 
 
@@ -3099,7 +3101,6 @@ QueryTraceTxRequest defines TraceTx request
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `msg` | [MsgEthereumTx](#fx.ethereum.evm.v1.MsgEthereumTx) |  | msgEthereumTx for the requested transaction |
-| `tx_index` | [uint64](#uint64) |  | transaction index |
 | `trace_config` | [TraceConfig](#fx.ethereum.evm.v1.TraceConfig) |  | TraceConfig holds extra parameters to trace functions. |
 | `predecessors` | [MsgEthereumTx](#fx.ethereum.evm.v1.MsgEthereumTx) | repeated | the predecessor transactions included in the same block need to be replayed first to get correct context for tracing. |
 | `block_number` | [int64](#int64) |  | block number of requested transaction |
@@ -3315,7 +3316,8 @@ QueryBlockGasResponse returns block gas used for a given height.
 <a name="fx.ethereum.feemarket.v1.QueryModuleEnableRequest"></a>
 
 ### QueryModuleEnableRequest
-QueryModuleEnableRequest defines the request type for querying the module is enable.
+QueryModuleEnableRequest defines the request type for querying the module is
+enable.
 
 
 
@@ -3462,18 +3464,18 @@ authtypes.BaseAccount type. It is compatible with the auth AccountKeeper.
 Attestation is an aggregate of `claims` that eventually becomes `observed` by
 all orchestrators
 EVENT_NONCE:
-EventNonce a nonce provided by the gravity contract that is unique per event fired
-These event nonces must be relayed in order. This is a correctness issue,
-if relaying out of order transaction replay attacks become possible
+EventNonce a nonce provided by the gravity contract that is unique per event
+fired These event nonces must be relayed in order. This is a correctness
+issue, if relaying out of order transaction replay attacks become possible
 OBSERVED:
 Observed indicates that >67% of validators have attested to the event,
 and that the event should be executed by the gravity state machine
 
-The actual content of the claims is passed in with the transaction making the claim
-and then passed through the call stack alongside the attestation while it is processed
-the key in which the attestation is stored is keyed on the exact details of the claim
-but there is no reason to store those exact details becuause the next message sender
-will kindly provide you with them.
+The actual content of the claims is passed in with the transaction making the
+claim and then passed through the call stack alongside the attestation while
+it is processed the key in which the attestation is stored is keyed on the
+exact details of the claim but there is no reason to store those exact
+details becuause the next message sender will kindly provide you with them.
 
 
 | Field | Type | Label | Description |
@@ -3495,7 +3497,8 @@ ERC20Token unique identifier for an Ethereum ERC20 token.
 CONTRACT:
 The contract address on ETH of the token, this could be a Cosmos
 originated token, if so it will be the ERC20 address of the representation
-(note: developers should look up the token symbol using the address on ETH to display for UI)
+(note: developers should look up the token symbol using the address on ETH to
+display for UI)
 
 
 | Field | Type | Label | Description |
@@ -3925,8 +3928,8 @@ ORCHESTRATOR
 The orchestrator field is a cosmos1... string  (i.e. sdk.AccAddress) that
 references the key that is being delegated to
 ETH_ADDRESS
-This is a hex encoded 0x Ethereum public key that will be used by this validator
-on Ethereum
+This is a hex encoded 0x Ethereum public key that will be used by this
+validator on Ethereum
 
 
 | Field | Type | Label | Description |
@@ -4117,7 +4120,8 @@ GenesisState struct
 ### Params
 valset_update_power_change_percent
 
-If power change between validators of CurrentValset and latest valset request is > 10%
+If power change between validators of CurrentValset and latest valset request
+is > 10%
 
 
 | Field | Type | Label | Description |

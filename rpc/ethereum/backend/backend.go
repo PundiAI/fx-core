@@ -338,6 +338,7 @@ func (e *EVMBackend) EthBlockFromTendermint(
 	}
 
 	txResults := resBlockResult.TxsResults
+	txIndex := uint64(0)
 
 	for i, txBz := range block.Txs {
 		tx, err := e.clientCtx.TxConfig.TxDecoder()(txBz)
@@ -370,7 +371,7 @@ func (e *EVMBackend) EthBlockFromTendermint(
 				tx,
 				common.BytesToHash(block.Hash()),
 				uint64(block.Height),
-				uint64(i),
+				txIndex,
 				baseFee,
 			)
 			if err != nil {
@@ -378,6 +379,7 @@ func (e *EVMBackend) EthBlockFromTendermint(
 				continue
 			}
 			ethRPCTxs = append(ethRPCTxs, rpcTx)
+			txIndex++
 		}
 	}
 

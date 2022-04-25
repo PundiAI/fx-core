@@ -608,7 +608,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 	var (
 		txMsg        *types.MsgEthereumTx
 		traceConfig  *types.TraceConfig
-		txIndex      uint64
 		predecessors []*types.MsgEthereumTx
 	)
 
@@ -622,7 +621,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 		{
 			msg: "default trace",
 			malleate: func() {
-				txIndex = 0
 				traceConfig = nil
 				predecessors = []*types.MsgEthereumTx{}
 			},
@@ -632,7 +630,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 		{
 			msg: "default trace with filtered response",
 			malleate: func() {
-				txIndex = 0
 				traceConfig = &types.TraceConfig{
 					DisableStack:   true,
 					DisableStorage: true,
@@ -647,7 +644,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 		{
 			msg: "javascript tracer",
 			malleate: func() {
-				txIndex = 0
 				traceConfig = &types.TraceConfig{
 					Tracer: "{data: [], fault: function(log) {}, step: function(log) { if(log.op.toString() == \"CALL\") this.data.push(log.stack.peek(0)); }, result: function() { return this.data; }}",
 				}
@@ -659,7 +655,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 		{
 			msg: "default trace with enableFeemarket",
 			malleate: func() {
-				txIndex = 0
 				traceConfig = &types.TraceConfig{
 					DisableStack:   true,
 					DisableStorage: true,
@@ -674,7 +669,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 		{
 			msg: "javascript tracer with enableFeemarket",
 			malleate: func() {
-				txIndex = 0
 				traceConfig = &types.TraceConfig{
 					Tracer: "{data: [], fault: function(log) {}, step: function(log) { if(log.op.toString() == \"CALL\") this.data.push(log.stack.peek(0)); }, result: function() { return this.data; }}",
 				}
@@ -687,7 +681,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 		{
 			msg: "default tracer with predecessors",
 			malleate: func() {
-				txIndex = 1
 				traceConfig = nil
 
 				// increase nonce to avoid address collision
@@ -725,7 +718,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			traceReq := types.QueryTraceTxRequest{
 				Msg:          txMsg,
 				TraceConfig:  traceConfig,
-				TxIndex:      txIndex,
 				Predecessors: predecessors,
 			}
 			res, err := suite.queryClient.TraceTx(sdk.WrapSDKContext(suite.ctx), &traceReq)

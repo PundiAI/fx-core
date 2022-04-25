@@ -40,6 +40,18 @@ func ValidateAddress(address string) error {
 	return nil
 }
 
+// ValidateNonZeroAddress returns an error if the provided string is not a hex
+// formatted string address or is equal to zero
+func ValidateNonZeroAddress(address string) error {
+	if IsZeroAddress(address) {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidAddress, "address '%s' must not be zero",
+			address,
+		)
+	}
+	return ValidateAddress(address)
+}
+
 func ValidateAddressIgnoreChecksum(address string) error {
 	if address == "" {
 		return fmt.Errorf("empty")
