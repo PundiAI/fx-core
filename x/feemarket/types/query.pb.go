@@ -272,7 +272,8 @@ func (m *QueryBlockGasResponse) GetGas() int64 {
 	return 0
 }
 
-// QueryModuleEnableRequest defines the request type for querying the module is enable.
+// QueryModuleEnableRequest defines the request type for querying the module is
+// enable.
 type QueryModuleEnableRequest struct {
 }
 

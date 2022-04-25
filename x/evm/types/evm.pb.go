@@ -122,7 +122,8 @@ type ChainConfig struct {
 	LondonBlock *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,17,opt,name=london_block,json=londonBlock,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"london_block,omitempty" yaml:"london_block"`
 	// Eip-4345 (bomb delay) switch block (nil = no fork, 0 = already activated)
 	ArrowGlacierBlock *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,18,opt,name=arrow_glacier_block,json=arrowGlacierBlock,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"arrow_glacier_block,omitempty" yaml:"arrow_glacier_block"`
-	// EIP-3675 (TheMerge) switch block (nil = no fork, 0 = already in merge proceedings)
+	// EIP-3675 (TheMerge) switch block (nil = no fork, 0 = already in merge
+	// proceedings)
 	MergeForkBlock *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,19,opt,name=merge_fork_block,json=mergeForkBlock,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"merge_fork_block,omitempty" yaml:"merge_fork_block"`
 }
 
