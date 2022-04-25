@@ -4,11 +4,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
-	cryptocodec "github.com/functionx/fx-core/crypto/codec"
-	enccodec "github.com/functionx/fx-core/types"
+	ethcryptocodec "github.com/functionx/fx-core/crypto/codec"
+	fxtypes "github.com/functionx/fx-core/types"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
@@ -44,9 +45,12 @@ func makeEncodingConfig() EncodingConfig {
 		Amino:             amino,
 	}
 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	enccodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	cryptocodec.RegisterCrypto(amino)
-	cryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	keyring.RegisterLegacyAminoCodec(amino)
+
+	fxtypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	ethcryptocodec.RegisterCrypto(amino)
+	ethcryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+
 	return encodingConfig
 }

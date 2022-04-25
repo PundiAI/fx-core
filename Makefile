@@ -146,11 +146,11 @@ install:
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 install-devnet:
-	@FX_BUILD_OPTIONS=mainnet $(MAKE) build-devnet
+	@FX_BUILD_OPTIONS=devnet $(MAKE) build
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 install-testnet:
-	@FX_BUILD_OPTIONS=mainnet $(MAKE) build-testnet
+	@FX_BUILD_OPTIONS=testnet $(MAKE) build
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 docker:
