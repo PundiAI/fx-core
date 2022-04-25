@@ -1,15 +1,16 @@
 # compile fx-core
-FROM functionx/fx-core-builder:latest as builder
+FROM golang:1.16.15-alpine3.15 as builder
 
 # default mainnet
 ARG NETWORK=mainnet
 
 COPY . /app
 
-RUN export GOPROXY=goproxy.cn && cd /app && FX_BUILD_OPTIONS=${NETWORK} make go-build
+RUN apk add --no-cache git build-base linux-headers && \
+    export GOPROXY=goproxy.cn && cd /app && FX_BUILD_OPTIONS=${NETWORK} make go-build
 
 # build fx-core
-FROM alpine:latest
+FROM alpine:3.15
 
 WORKDIR root
 
