@@ -92,7 +92,7 @@ func DefaultSigVerificationGasConsumer(
 	// support for ethereum ECDSA secp256k1 keys
 	_, ok := sig.PubKey.(*ethsecp256k1.PubKey)
 	if ok {
-		meter.ConsumeGas(secp256k1VerifyCost, "ante verify: eth_secp256k1")
+		meter.ConsumeGas(params.SigVerifyCostSecp256k1, "ante verify: eth_secp256k1")
 		return nil
 	}
 
