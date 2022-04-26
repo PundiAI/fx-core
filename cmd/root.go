@@ -36,8 +36,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	appCmd "github.com/functionx/fx-core/app/cmd"
-	// this line is u by starport scaffolding # stargate/root/import
+	appCmd "github.com/functionx/fx-core/app/cli"
 )
 
 const envPrefix = "FX"
@@ -156,8 +155,8 @@ func queryCommand() *cobra.Command {
 		authcmd.GetAccountCmd(),
 		rpc.ValidatorCommand(),
 		rpc.BlockCommand(),
-		authcmd.QueryTxsByEventsCmd(),
-		authcmd.QueryTxCmd(),
+		appCmd.QueryTxsByEventsCmd(),
+		appCmd.QueryTxCmd(),
 		appCmd.QueryStoreCmd(),
 		appCmd.QueryValidatorByConsAddr(),
 		appCmd.QueryBlockResultsCmd(),

@@ -12,7 +12,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	appCmd "github.com/functionx/fx-core/app/cmd"
+	appCmd "github.com/functionx/fx-core/app/cli"
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"

@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"context"
@@ -49,7 +49,7 @@ func QueryStoreCmd() *cobra.Command {
 
 func QueryValidatorByConsAddr() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validator-by-cons [validator-consAddr]",
+		Use:   "validator [validator-consAddr]",
 		Short: "Query details about an individual validator cons address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

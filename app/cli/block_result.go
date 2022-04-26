@@ -1,8 +1,12 @@
-package cmd
+package cli
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gogo/protobuf/proto"
+	"github.com/tendermint/tendermint/abci/types"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -63,61 +67,21 @@ func ParseBlockResults(cdc codec.JSONCodec, blockResults *coretypes.ResultBlockR
 	}
 	var beginBlockEvents []map[string]interface{}
 	for _, event := range blockResults.BeginBlockEvents {
-		var attributes []map[string]interface{}
-		for _, attribute := range event.Attributes {
-			attributes = append(attributes, map[string]interface{}{
-				"index": attribute.Index,
-				"key":   string(attribute.Key),
-				"value": string(attribute.Value),
-			})
-		}
 		beginBlockEvents = append(beginBlockEvents, map[string]interface{}{
 			"type":       event.Type,
-			"attributes": attributes,
+			"attributes": AttributesToMap(event.Attributes),
 		})
 	}
 	var endBlockEvents []map[string]interface{}
 	for _, event := range blockResults.EndBlockEvents {
-		var attributes []map[string]interface{}
-		for _, attribute := range event.Attributes {
-			attributes = append(attributes, map[string]interface{}{
-				"index": attribute.Index,
-				"key":   string(attribute.Key),
-				"value": string(attribute.Value),
-			})
-		}
 		endBlockEvents = append(endBlockEvents, map[string]interface{}{
 			"type":       event.Type,
-			"attributes": attributes,
+			"attributes": AttributesToMap(event.Attributes),
 		})
 	}
 	var txsResults []map[string]interface{}
 	for _, txResult := range blockResults.TxsResults {
-		var txResultEvents []map[string]interface{}
-		for _, event := range txResult.Events {
-			var attributes []map[string]interface{}
-			for _, attribute := range event.Attributes {
-				attributes = append(attributes, map[string]interface{}{
-					"index": attribute.Index,
-					"key":   string(attribute.Key),
-					"value": string(attribute.Value),
-				})
-			}
-			txResultEvents = append(txResultEvents, map[string]interface{}{
-				"type":       event.Type,
-				"attributes": attributes,
-			})
-		}
-		txsResults = append(txsResults, map[string]interface{}{
-			"code":       txResult.Code,
-			"data":       string(txResult.Data),
-			"log":        txResult.Log,
-			"info":       txResult.Info,
-			"gas_wanted": txResult.GasWanted,
-			"gas_used":   txResult.GasUsed,
-			"events":     txResultEvents,
-			"codespace":  txResult.Codespace,
-		})
+		txsResults = append(txsResults, TxResultToMap(txResult))
 	}
 	var validatorUpdates []json.RawMessage
 	for _, valUp := range blockResults.ValidatorUpdates {
@@ -139,4 +103,87 @@ func ParseBlockResults(cdc codec.JSONCodec, blockResults *coretypes.ResultBlockR
 		return "", err
 	}
 	return string(output), nil
+}
+
+func TxResponseToMap(cdc codec.JSONCodec, txResponse *sdk.TxResponse) map[string]interface{} {
+	if txResponse == nil {
+		return map[string]interface{}{}
+	}
+	var txResultEvents []map[string]interface{}
+	for _, event := range txResponse.Events {
+		txResultEvents = append(txResultEvents, map[string]interface{}{
+			"type":       event.Type,
+			"attributes": AttributesToMap(event.Attributes),
+		})
+	}
+	tx, err := cdc.MarshalJSON(txResponse.Tx)
+	if err != nil {
+		return nil
+	}
+	txData, err := hex.DecodeString(txResponse.Data)
+	if err != nil {
+		return nil
+	}
+	var txMsgData = sdk.TxMsgData{
+		Data: make([]*sdk.MsgData, 0),
+	}
+	if err := proto.Unmarshal(txData, &txMsgData); err != nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"height":     txResponse.Height,
+		"txhash":     txResponse.TxHash,
+		"codespace":  txResponse.Codespace,
+		"code":       txResponse.Code,
+		"data":       txMsgData,
+		"raw_log":    txResponse.RawLog,
+		"logs":       txResponse.Logs,
+		"info":       txResponse.Info,
+		"gas_wanted": txResponse.GasWanted,
+		"gas_used":   txResponse.GasUsed,
+		"tx":         json.RawMessage(tx),
+		"timestamp":  txResponse.Timestamp,
+		"events":     txResultEvents,
+	}
+}
+
+func TxResultToMap(txResult *types.ResponseDeliverTx) map[string]interface{} {
+	if txResult == nil {
+		return map[string]interface{}{}
+	}
+	var txResultEvents []map[string]interface{}
+	for _, event := range txResult.Events {
+		txResultEvents = append(txResultEvents, map[string]interface{}{
+			"type":       event.Type,
+			"attributes": AttributesToMap(event.Attributes),
+		})
+	}
+	var txMsgData = sdk.TxMsgData{
+		Data: make([]*sdk.MsgData, 0),
+	}
+	if err := proto.Unmarshal(txResult.Data, &txMsgData); err != nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"code":       txResult.Code,
+		"data":       txMsgData,
+		"log":        txResult.Log,
+		"info":       txResult.Info,
+		"gas_wanted": txResult.GasWanted,
+		"gas_used":   txResult.GasUsed,
+		"events":     txResultEvents,
+		"codespace":  txResult.Codespace,
+	}
+}
+
+func AttributesToMap(attrs []types.EventAttribute) []map[string]interface{} {
+	var attributes []map[string]interface{}
+	for _, attribute := range attrs {
+		attributes = append(attributes, map[string]interface{}{
+			"index": attribute.Index,
+			"key":   string(attribute.Key),
+			"value": string(attribute.Value),
+		})
+	}
+	return attributes
 }
