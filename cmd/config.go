@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
+
 	fxconfig "github.com/functionx/fx-core/server/config"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -71,7 +73,7 @@ func runConfigCmd(cmd *cobra.Command, args []string) error {
 
 	serverCtx.Viper.Set(args[1], args[2])
 	configPath := filepath.Join(serverCtx.Viper.GetString(flags.FlagHome), "config")
-	if err = operatorConfig.save(serverCtx, configPath); err != nil {
+	if err = operatorConfig.save(configPath); err != nil {
 		return err
 	}
 	return nil
@@ -79,24 +81,25 @@ func runConfigCmd(cmd *cobra.Command, args []string) error {
 
 type cmdConfig interface {
 	output(clientCtx client.Context) error
-	save(clientCtx *server.Context, configPath string) error
+	save(configPath string) error
 }
 
 var (
-	_ cmdConfig = appTomlConfig{}
-	_ cmdConfig = configTomlConfig{}
+	_ cmdConfig = &appTomlConfig{}
+	_ cmdConfig = &configTomlConfig{}
 )
 
 type appTomlConfig struct {
-	config *fxconfig.Config
+	clientCtx *server.Context
+	config    *fxconfig.Config
 }
 
-func (a appTomlConfig) output(clientCtx client.Context) error {
+func (a *appTomlConfig) output(clientCtx client.Context) error {
 	return output(clientCtx, a.config)
 }
 
-func (a appTomlConfig) save(clientCtx *server.Context, configPath string) error {
-	if err := clientCtx.Viper.Unmarshal(a.config); err != nil {
+func (a *appTomlConfig) save(configPath string) error {
+	if err := a.clientCtx.Viper.Unmarshal(a.config); err != nil {
 		return err
 	}
 	configPath = filepath.Join(configPath, appFileName)
@@ -105,15 +108,16 @@ func (a appTomlConfig) save(clientCtx *server.Context, configPath string) error 
 }
 
 type configTomlConfig struct {
-	config *tmcfg.Config
+	clientCtx *server.Context
+	config    *tmcfg.Config
 }
 
-func (c configTomlConfig) output(clientCtx client.Context) error {
+func (c *configTomlConfig) output(clientCtx client.Context) error {
 	return output(clientCtx, c.config)
 }
 
-func (c configTomlConfig) save(clientCtx *server.Context, configPath string) error {
-	if err := clientCtx.Viper.Unmarshal(c.config); err != nil {
+func (c *configTomlConfig) save(configPath string) error {
+	if err := c.clientCtx.Viper.Unmarshal(c.config); err != nil {
 		return err
 	}
 	configPath = filepath.Join(configPath, configFileName)
@@ -128,20 +132,24 @@ func newConfig(configName string, clientCtx *server.Context) (cmdConfig, error) 
 		if err := clientCtx.Viper.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
-		return &appTomlConfig{config: &configData}, nil
+		return &appTomlConfig{config: &configData, clientCtx: clientCtx}, nil
 	case configFileName:
 		var configData = tmcfg.Config{}
 		if err := clientCtx.Viper.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
-		return &configTomlConfig{config: &configData}, nil
+		return &configTomlConfig{config: &configData, clientCtx: clientCtx}, nil
 	default:
-		return nil, fmt.Errorf("invalid config file:%s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/"))
+		return nil, fmt.Errorf("invalid config file: %s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/"))
 	}
 }
 
 func output(clientCtx client.Context, content interface{}) error {
-	data, err := json.MarshalIndent(content, "", "  ")
+	var mapData interface{}
+	if err := mapstructure.Decode(content, &mapData); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(mapData, "", "  ")
 	if err != nil {
 		return err
 	}

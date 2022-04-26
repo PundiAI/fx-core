@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -34,7 +35,7 @@ func NewFxZeroLogWrapper(logger server.ZeroLogWrapper, logTypes []string) FxZero
 		filterLogMap[logType] = true
 	}
 	fmt.Printf(" ---------- filter log wrapper -------------")
-	fmt.Printf("filter log type:%v\n", logTypes)
+	fmt.Printf("filter log type:%v\n", strings.Join(logTypes, ","))
 	return FxZeroLogWrapper{ZeroLogWrapper: logger, filterLogs: filterLogMap}
 }
 
