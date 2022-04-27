@@ -20,5 +20,8 @@ func (m *BankMigrate) Validate(_ sdk.Context, _ Keeper, _, _ sdk.AccAddress) err
 
 func (m *BankMigrate) Execute(ctx sdk.Context, _ Keeper, from, to sdk.AccAddress) error {
 	balances := m.bankKeeper.GetAllBalances(ctx, from)
+	if balances.IsZero() {
+		return nil
+	}
 	return m.bankKeeper.SendCoins(ctx, from, to, balances)
 }

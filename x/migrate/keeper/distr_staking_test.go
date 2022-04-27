@@ -3,6 +3,14 @@ package keeper_test
 import (
 	"context"
 	"testing"
+	"time"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,6 +19,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
@@ -212,4 +222,48 @@ func commitUnbonding(t *testing.T, ctx sdk.Context, fxcore *app.App) sdk.Context
 		i++
 	}
 	return ctx
+}
+
+func commitBlock(t *testing.T, ctx sdk.Context, fxcore *app.App) sdk.Context {
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(5 * time.Second))
+
+	staking.EndBlocker(ctx, fxcore.StakingKeeper)
+	mint.BeginBlocker(ctx, fxcore.MintKeeper)
+
+	distribution.BeginBlocker(ctx, abcitypes.RequestBeginBlock{
+		Hash:   nil,
+		Header: tmproto.Header{},
+		LastCommitInfo: abcitypes.LastCommitInfo{
+			Round: 0,
+			Votes: buildCommitVotes(t, ctx, fxcore.StakingKeeper, fxcore.AppCodec()),
+		},
+		ByzantineValidators: nil,
+	}, fxcore.DistrKeeper)
+
+	return ctx
+}
+
+func buildCommitVotes(t *testing.T, ctx sdk.Context, stakingKeeper stakingkeeper.Keeper, codec codec.Codec) []abcitypes.VoteInfo {
+	t.Helper()
+	validators := stakingKeeper.GetAllValidators(ctx)
+
+	var result []abcitypes.VoteInfo
+	for _, validator := range validators {
+		if !validator.IsBonded() {
+			continue
+		}
+
+		var pubkey cryptotypes.PubKey
+		err := codec.UnpackAny(validator.ConsensusPubkey, &pubkey)
+		require.NoError(t, err)
+		result = append(result, abcitypes.VoteInfo{
+			Validator: abcitypes.Validator{
+				Address: pubkey.Address(),
+				Power:   validator.GetConsensusPower(),
+			},
+			SignedLastBlock: true,
+		})
+	}
+	return result
 }

@@ -26,6 +26,11 @@ const (
 	AttributeKeyTo   = "to"
 )
 
+var (
+	PrefixMigrateFromFlag = []byte{0x1}
+	PrefixMigrateToFlag   = []byte{0x2}
+)
+
 // GetMigratedRecordKey returns the following key format
 func GetMigratedRecordKey(addr sdk.AccAddress) []byte {
 	return append([]byte{prefixMigratedRecord}, addr.Bytes()...)
