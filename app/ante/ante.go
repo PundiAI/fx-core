@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"runtime/debug"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
+
 	"github.com/gogo/protobuf/proto"
 
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
@@ -16,10 +20,6 @@ import (
 	tmlog "github.com/tendermint/tendermint/libs/log"
 
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
-)
-
-const (
-	secp256k1VerifyCost uint64 = 21000
 )
 
 func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
@@ -89,12 +89,33 @@ var _ ante.SignatureVerificationGasConsumer = DefaultSigVerificationGasConsumer
 func DefaultSigVerificationGasConsumer(
 	meter sdk.GasMeter, sig txsigning.SignatureV2, params types.Params,
 ) error {
-	// support for ethereum ECDSA secp256k1 keys
-	_, ok := sig.PubKey.(*ethsecp256k1.PubKey)
-	if ok {
+	pubkey := sig.PubKey
+	switch pubkey := pubkey.(type) {
+	case *ethsecp256k1.PubKey: // support for ethereum ECDSA secp256k1 keys
 		meter.ConsumeGas(params.SigVerifyCostSecp256k1, "ante verify: eth_secp256k1")
 		return nil
-	}
 
-	return ante.DefaultSigVerificationGasConsumer(meter, sig, params)
+	case *ed25519.PubKey:
+		meter.ConsumeGas(params.SigVerifyCostED25519, "ante verify: ed25519")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "ED25519 public keys are unsupported")
+
+	case *secp256k1.PubKey:
+		meter.ConsumeGas(params.SigVerifyCostSecp256k1, "ante verify: secp256k1")
+		return nil
+
+	case multisig.PubKey:
+		multisignature, ok := sig.Data.(*txsigning.MultiSignatureData)
+		if !ok {
+			return fmt.Errorf("expected %T, got, %T", &txsigning.MultiSignatureData{}, sig.Data)
+		}
+		err := ante.ConsumeMultisignatureVerificationGas(meter, multisignature, pubkey, params, sig.Sequence)
+		if err != nil {
+			return err
+		}
+		return nil
+
+	default:
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "unrecognized public key type: %T", pubkey)
+	}
+	//return ante.DefaultSigVerificationGasConsumer(meter, sig, params)
 }

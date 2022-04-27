@@ -95,6 +95,7 @@ func newRootCmd() *cobra.Command {
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxtypes.ChainID,
 		flags.FlagKeyringBackend: keyring.BackendOS,
+		flags.FlagGas:            "80000",
 		flags.FlagGasPrices:      "4000000000000" + fxtypes.DefaultDenom,
 	})
 	return rootCmd

@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/abci/types"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
