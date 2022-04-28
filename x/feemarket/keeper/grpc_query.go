@@ -48,6 +48,10 @@ func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types
 // BlockGas implements the Query/BlockGas gRPC method
 func (k Keeper) BlockGas(c context.Context, _ *types.QueryBlockGasRequest) (*types.QueryBlockGasResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		return nil, status.Error(codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error())
+	}
+
 	gas := k.GetBlockGasUsed(ctx)
 
 	return &types.QueryBlockGasResponse{

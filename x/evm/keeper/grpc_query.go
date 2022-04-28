@@ -81,6 +81,11 @@ func (k Keeper) CosmosAccount(c context.Context, req *types.QueryCosmosAccountRe
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		return nil, status.Error(
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
+		)
+	}
 
 	ethAddr := common.HexToAddress(req.Address)
 	cosmosAddr := sdk.AccAddress(ethAddr.Bytes())
@@ -111,6 +116,11 @@ func (k Keeper) ValidatorAccount(c context.Context, req *types.QueryValidatorAcc
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		return nil, status.Error(
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
+		)
+	}
 
 	validator, found := k.stakingKeeper.GetValidatorByConsAddr(ctx, consAddr)
 	if !found {
@@ -173,6 +183,11 @@ func (k Keeper) Storage(c context.Context, req *types.QueryStorageRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		return nil, status.Error(
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
+		)
+	}
 
 	address := common.HexToAddress(req.Address)
 	key := common.HexToHash(req.Key)
@@ -199,6 +214,11 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		return nil, status.Error(
+			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
+		)
+	}
 
 	address := common.HexToAddress(req.Address)
 	acct := k.GetAccountWithoutBalance(ctx, address)
@@ -278,7 +298,6 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-
 	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
