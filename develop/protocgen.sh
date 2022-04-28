@@ -16,13 +16,13 @@ protoc_gen_gocosmos
 if [ ! -f ./build/cosmos-sdk/README.md ]; then
   mkdir -p build
   cosmos_sdk_commit_hash=$(go list -m -f '{{.Replace.Version}}' github.com/cosmos/cosmos-sdk | awk -F- '{print $3}')
-  if [ ! -f "./build/cosmos-sdk-$cosmos_sdk_commit_hash.zip" ]; then
-    wget -c "https://github.com/functionx/cosmos-sdk/archive/$cosmos_sdk_commit_hash.zip" -O "./build/cosmos-sdk-$cosmos_sdk_commit_hash.zip"
+  if [ ! -f "./build/cosmos-proto.zip" ]; then
+    wget -c "https://github.com/functionx/cosmos-sdk/archive/$cosmos_sdk_commit_hash.zip" -O "./build/cosmos-proto.zip"
   fi
   (
     cd build
-    unzip -o "./cosmos-sdk-$cosmos_sdk_commit_hash.zip"
-    for dir in */; do
+    unzip -o "./cosmos-proto.zip"
+    for dir in *; do
       if [[ -d $dir && "$dir" == "cosmos-sdk-$cosmos_sdk_commit_hash"* ]]; then
         mv "./$dir" cosmos-sdk
       fi
