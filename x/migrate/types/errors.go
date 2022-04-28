@@ -9,4 +9,5 @@ var (
 	InvalidRequest      = sdkerrors.Register(ModuleName, 5, "invalid request")
 	ErrMigrateValidate  = sdkerrors.Register(ModuleName, 6, "migrate validate error")
 	ErrMigrateExecute   = sdkerrors.Register(ModuleName, 7, "migrate execute error")
+	ErrSameAccount      = sdkerrors.Register(ModuleName, 8, "same account")
 )

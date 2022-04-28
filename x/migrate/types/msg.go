@@ -31,15 +31,21 @@ func (m *MsgMigrateAccount) Route() string { return RouterKey }
 func (m *MsgMigrateAccount) Type() string { return TypeMsgMigrateAccount }
 
 // ValidateBasic performs stateless checks
-func (m *MsgMigrateAccount) ValidateBasic() (err error) {
-	from, err := sdk.AccAddressFromBech32(m.From)
+func (m *MsgMigrateAccount) ValidateBasic() error {
+	fromAddress, err := sdk.AccAddressFromBech32(m.From)
 	if err != nil {
-		return err
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
-	to, err := sdk.AccAddressFromBech32(m.To)
+
+	toAddress, err := sdk.AccAddressFromBech32(m.To)
 	if err != nil {
-		return err
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address (%s)", err)
 	}
+
+	if fromAddress.Equals(toAddress) {
+		return sdkerrors.Wrap(ErrSameAccount, m.From)
+	}
+
 	if len(m.Signature) == 0 {
 		return sdkerrors.Wrap(ErrInvalidSignature, "signature is empty")
 	}
@@ -47,13 +53,13 @@ func (m *MsgMigrateAccount) ValidateBasic() (err error) {
 	if err != nil {
 		return sdkerrors.Wrapf(ErrInvalidSignature, "could not hex decode signature: %s", m.Signature)
 	}
-	pubKey, err := crypto.SigToPub(MigrateAccountSignatureHash(from, to), sig)
+	pubKey, err := crypto.SigToPub(MigrateAccountSignatureHash(fromAddress, toAddress), sig)
 	if err != nil {
-		return sdkerrors.Wrapf(ErrInvalidSignature, "unmarshal pub key error: %v", err)
+		return sdkerrors.Wrapf(ErrInvalidSignature, "sig to pub key error: %s", err)
 	}
 	address := crypto.PubkeyToAddress(*pubKey)
-	if !bytes.Equal(address.Bytes(), to.Bytes()) { //fx address byte not equal recover address byte
-		return sdkerrors.Wrap(ErrInvalidAddress, "signature key not equal to address")
+	if !bytes.Equal(address.Bytes(), toAddress.Bytes()) {
+		return sdkerrors.Wrapf(ErrInvalidSignature, "signature key not equal to address, expected %s, got %s", m.To, sdk.AccAddress(address.Bytes()).String())
 	}
 	return nil
 }
