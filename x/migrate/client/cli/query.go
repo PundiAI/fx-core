@@ -38,7 +38,7 @@ func CmdGetMigrateRecord() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			res, err := queryClient.QueryMigrateRecord(cmd.Context(), &types.QueryMigrateRecordRequest{Address: addr.String()})
+			res, err := queryClient.MigrateRecord(cmd.Context(), &types.QueryMigrateRecordRequest{Address: addr.String()})
 			if err != nil {
 				return err
 			}

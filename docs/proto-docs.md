@@ -108,10 +108,6 @@
   
     - [Query](#fx.gravity.crosschain.v1.Query)
   
-- [ethereum/crypto/v1/ethsecp256k1/keys.proto](#ethereum/crypto/v1/ethsecp256k1/keys.proto)
-    - [PrivKey](#fx.ethereum.crypto.v1.ethsecp256k1.PrivKey)
-    - [PubKey](#fx.ethereum.crypto.v1.ethsecp256k1.PubKey)
-  
 - [ethereum/erc20/v1/erc20.proto](#ethereum/erc20/v1/erc20.proto)
     - [RegisterCoinProposal](#fx.ethereum.erc20.v1.RegisterCoinProposal)
     - [RegisterERC20Proposal](#fx.ethereum.erc20.v1.RegisterERC20Proposal)
@@ -211,9 +207,6 @@
     - [QueryParamsResponse](#fx.ethereum.feemarket.v1.QueryParamsResponse)
   
     - [Query](#fx.ethereum.feemarket.v1.Query)
-  
-- [ethereum/types/v1/account.proto](#ethereum/types/v1/account.proto)
-    - [EthAccount](#fx.ethereum.types.v1.EthAccount)
   
 - [ethereum/types/v1/web3.proto](#ethereum/types/v1/web3.proto)
     - [ExtensionOptionsWeb3Tx](#fx.ethereum.types.v1.ExtensionOptionsWeb3Tx)
@@ -353,6 +346,7 @@
   
 - [migrate/v1/query.proto](#migrate/v1/query.proto)
     - [QueryMigrateRecordRequest](#fx.migrate.v1.QueryMigrateRecordRequest)
+    - [QueryMigrateRecordResponse](#fx.migrate.v1.QueryMigrateRecordResponse)
   
     - [Query](#fx.migrate.v1.Query)
   
@@ -1993,55 +1987,6 @@ Query defines the gRPC querier service
 
 
 
-<a name="ethereum/crypto/v1/ethsecp256k1/keys.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ethereum/crypto/v1/ethsecp256k1/keys.proto
-
-
-
-<a name="fx.ethereum.crypto.v1.ethsecp256k1.PrivKey"></a>
-
-### PrivKey
-PrivKey defines a type alias for an ecdsa.PrivateKey that implements
-Tendermint's PrivateKey interface.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `key` | [bytes](#bytes) |  |  |
-
-
-
-
-
-
-<a name="fx.ethereum.crypto.v1.ethsecp256k1.PubKey"></a>
-
-### PubKey
-PubKey defines a type alias for an ecdsa.PublicKey that implements
-Tendermint's PubKey interface. It represents the 33-byte compressed public
-key format.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `key` | [bytes](#bytes) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="ethereum/erc20/v1/erc20.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -3380,39 +3325,6 @@ Query defines the gRPC querier service.
 | `Params` | [QueryParamsRequest](#fx.ethereum.feemarket.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ethereum.feemarket.v1.QueryParamsResponse) | Params queries the parameters of x/feemarket module. | GET|/ethereum/feemarket/evm/v1/params|
 | `BaseFee` | [QueryBaseFeeRequest](#fx.ethereum.feemarket.v1.QueryBaseFeeRequest) | [QueryBaseFeeResponse](#fx.ethereum.feemarket.v1.QueryBaseFeeResponse) | BaseFee queries the base fee of the parent block of the current block. | GET|/ethereum/feemarket/evm/v1/base_fee|
 | `BlockGas` | [QueryBlockGasRequest](#fx.ethereum.feemarket.v1.QueryBlockGasRequest) | [QueryBlockGasResponse](#fx.ethereum.feemarket.v1.QueryBlockGasResponse) | BlockGas queries the gas used at a given block height | GET|/ethereum/feemarket/evm/v1/block_gas|
-
- <!-- end services -->
-
-
-
-<a name="ethereum/types/v1/account.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ethereum/types/v1/account.proto
-
-
-
-<a name="fx.ethereum.types.v1.EthAccount"></a>
-
-### EthAccount
-EthAccount implements the authtypes.AccountI interface and embeds an
-authtypes.BaseAccount type. It is compatible with the auth AccountKeeper.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `base_account` | [cosmos.auth.v1beta1.BaseAccount](#cosmos.auth.v1beta1.BaseAccount) |  |  |
-| `code_hash` | [string](#string) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
 
  <!-- end services -->
 
@@ -5343,6 +5255,22 @@ Msg defines the ibc/transfer Msg service.
 
 
 
+
+<a name="fx.migrate.v1.QueryMigrateRecordResponse"></a>
+
+### QueryMigrateRecordResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `found` | [bool](#bool) |  | has migrate true-> migrated, false-> not migrated. |
+| `migrateRecord` | [MigrateRecord](#fx.migrate.v1.MigrateRecord) |  | migrateRecord defines the the migrate record. |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -5357,7 +5285,7 @@ Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `QueryMigrateRecord` | [QueryMigrateRecordRequest](#fx.migrate.v1.QueryMigrateRecordRequest) | [MigrateRecord](#fx.migrate.v1.MigrateRecord) | DenomTrace queries a denomination trace information. | GET|/migrate/v1/record/{address}|
+| `MigrateRecord` | [QueryMigrateRecordRequest](#fx.migrate.v1.QueryMigrateRecordRequest) | [QueryMigrateRecordResponse](#fx.migrate.v1.QueryMigrateRecordResponse) | DenomTrace queries a denomination trace information. | GET|/migrate/v1/record/{address}|
 
  <!-- end services -->
 

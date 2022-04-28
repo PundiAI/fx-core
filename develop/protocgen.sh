@@ -21,7 +21,7 @@ if [ ! -f ./build/cosmos-sdk/README.md ]; then
   fi
   (
     cd build
-    unzip -o "./cosmos-proto.zip"
+    unzip -q -o "./cosmos-proto.zip"
     for dir in *; do
       if [[ -d $dir && "$dir" == "cosmos-sdk-$cosmos_sdk_commit_hash"* ]]; then
         mv "./$dir" cosmos-sdk
