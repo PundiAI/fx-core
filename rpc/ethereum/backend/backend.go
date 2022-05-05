@@ -323,7 +323,7 @@ func (e *EVMBackend) EthBlockFromTendermint(
 	block *tmtypes.Block,
 	fullTx bool,
 ) (map[string]interface{}, error) {
-	var ethRPCTxs []interface{}
+	var ethRPCTxs = make([]interface{}, 0)
 
 	ctx := types.ContextWithHeight(block.Height)
 
@@ -534,7 +534,7 @@ func (e *EVMBackend) GetLogsByHeight(height *int64) ([][]*ethtypes.Log, error) {
 		return nil, err
 	}
 
-	var blockLogs [][]*ethtypes.Log
+	var blockLogs = make([][]*ethtypes.Log, 0)
 	for _, txResult := range blockRes.TxsResults {
 		logs, err := AllTxLogsFromEvents(txResult.Events)
 		if err != nil {
