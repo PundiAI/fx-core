@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	ibcchanneltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -79,6 +80,7 @@ type Client struct {
 	erc20Query      erc20types.QueryClient
 	gravityQuery    gravitytypes.QueryClient
 	crossChainQuery crosschaintypes.QueryClient
+	ibcChannelQuery ibcchanneltypes.QueryClient
 }
 
 func NewClient(t *testing.T, grpcUrl, nodeUrl, ethUrl, mnemonic, hdPath string) *Client {
@@ -120,6 +122,7 @@ func NewClient(t *testing.T, grpcUrl, nodeUrl, ethUrl, mnemonic, hdPath string) 
 		erc20Query:      erc20types.NewQueryClient(grpcClient),
 		gravityQuery:    gravitytypes.NewQueryClient(grpcClient),
 		crossChainQuery: crosschaintypes.NewQueryClient(grpcClient),
+		ibcChannelQuery: ibcchanneltypes.NewQueryClient(grpcClient),
 	}
 }
 
@@ -482,6 +485,11 @@ func (c *Client) GravitySendToTx(recipient sdk.AccAddress, token common.Address,
 		sdk.NewIntFromBigInt(value), c.HexAddress().String(), recipient.String(), targetIBC, c.AccAddress().String())
 	txRaw := c.BuildTx([]sdk.Msg{depositClaimMsg})
 	broadcastTx(c.t, c.ctx, c.txClient, txRaw)
+}
+
+func (c *Client) CheckIBCChannelState(portId, channelId string) {
+	_, err := c.ibcChannelQuery.ChannelClientState(c.ctx, &ibcchanneltypes.QueryChannelClientStateRequest{PortId: portId, ChannelId: channelId})
+	require.NoError(c.t, err)
 }
 
 func grpcNewClient(grpcUrl string) (*grpc.ClientConn, error) {

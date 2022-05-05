@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
+	"time"
 )
 
 var (
@@ -208,7 +209,37 @@ func TestFIP20IBCTransfer(t *testing.T) {
 
 	token := client.Token("FX")
 	t.Log("wfx token", token.Hex())
+	wfx, err := NewERC20Token(token, client.ethClient)
+	require.NoError(t, err)
 
+	client.CheckIBCChannelState("transfer", "channel-0")
+
+	amount := big.NewInt(100)
+
+	t.Log("convert FX to addr")
+	client.ConvertCoin(client.HexAddress(), sdk.NewCoin("FX", sdk.NewIntFromBigInt(amount)))
+
+	b1, err := wfx.BalanceOf(nil, client.HexAddress())
+	require.NoError(t, err)
+	t.Log("wfx addr balance", b1.String())
+	client.TransferCrossChain(token, "px13rvykxlacsvpa0564pg6v8vf9xxeknrzg9xugy", amount, big.NewInt(0), "ibc/px/transfer/channel-0")
+
+	b2, err := wfx.BalanceOf(nil, client.HexAddress())
+	require.NoError(t, err)
+	t.Log("wfx addr balance", b2.String())
+
+	t.Logf("run command ===> pundixd tx ibc-transfer transfer transfer channel-0 %s %sibc/37CA072246C3BCBB445AEC196645F5AAB7876C456D76BC96141D3A0D6E615D2E --ibc-fee=0 --ibc-router=\"erc20\" --from fx1 --node tcp://0.0.0.0:27757\n", client.HexAddress(), amount)
+
+	ticker := time.NewTicker(1 * time.Second)
+	for range ticker.C {
+		b3, err := wfx.BalanceOf(nil, client.HexAddress())
+		require.NoError(t, err)
+		if b3.Cmp(b2) == 0 {
+			continue
+		}
+		t.Log("wfx addr balance", b3.String())
+		break
+	}
 }
 
 func TestWFX(t *testing.T) {
