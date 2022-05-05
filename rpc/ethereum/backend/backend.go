@@ -410,7 +410,8 @@ func (e *EVMBackend) EthBlockFromTendermint(
 
 	validatorAddr := common.BytesToAddress(addr)
 
-	gasLimit, err := types.BlockMaxGasFromConsensusParams(ctx, e.clientCtx, block.Height)
+	//gasLimit, err := types.BlockMaxGasFromConsensusParams(ctx, e.clientCtx, block.Height)
+	gasLimit, err := e.BlockGas(ctx, block.Height)
 	if err != nil {
 		e.logger.Error("failed to query consensus params", "error", err.Error())
 	}
@@ -975,6 +976,21 @@ func (e *EVMBackend) BaseFee(height int64) (*big.Int, error) {
 	}
 
 	return nil, nil
+}
+
+// BlockGas returns the block gas limit e tracked by the Fee Market module.
+func (e *EVMBackend) BlockGas(ctx context.Context, height int64) (int64, error) {
+	res, err := e.queryClient.FeeMarket.Params(types.ContextWithHeight(height), &feemarkettypes.QueryParamsRequest{})
+	if err != nil {
+		return int64(^uint32(0)), err
+	}
+	if res.Params.MaxGas.IsNil() || res.Params.MaxGas.IsZero() {
+		return types.BlockMaxGasFromConsensusParams(ctx, e.clientCtx, height)
+	}
+	if res.Params.MaxGas.IsInt64() {
+		return res.Params.MaxGas.Int64(), nil
+	}
+	return int64(^uint32(0)), err
 }
 
 // GetEthereumMsgsFromTendermintBlock returns all real MsgEthereumTxs from a Tendermint block.

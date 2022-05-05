@@ -7,9 +7,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/require"
+
 	_ "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/migrate/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMsgMigrateAccountRoute(t *testing.T) {
