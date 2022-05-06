@@ -16,6 +16,8 @@ if [[ "$1" == "init" ]]; then
 
   # set mini gas price
   fxcored config app.toml minimum-gas-prices 1000000000FX
+  # open prometheus
+  fxcored config config.toml instrumentation.prometheus true
   # consensus
   fxcored config config.toml consensus.timeout_commit 1s
   # open rest and swagger
