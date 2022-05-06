@@ -65,17 +65,15 @@ func (esvd EthSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, s
 
 // EthAccountVerificationDecorator validates an account balance checks
 type EthAccountVerificationDecorator struct {
-	ak         evmtypes.AccountKeeper
-	bankKeeper evmtypes.BankKeeper
-	evmKeeper  EVMKeeper
+	ak        evmtypes.AccountKeeper
+	evmKeeper EVMKeeper
 }
 
 // NewEthAccountVerificationDecorator creates a new EthAccountVerificationDecorator
-func NewEthAccountVerificationDecorator(ak evmtypes.AccountKeeper, bankKeeper evmtypes.BankKeeper, ek EVMKeeper) EthAccountVerificationDecorator {
+func NewEthAccountVerificationDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper) EthAccountVerificationDecorator {
 	return EthAccountVerificationDecorator{
-		ak:         ak,
-		bankKeeper: bankKeeper,
-		evmKeeper:  ek,
+		ak:        ak,
+		evmKeeper: ek,
 	}
 }
 
@@ -407,7 +405,9 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 		txFee := sdk.Coins{}
 		txGasLimit := uint64(0)
 
+		params := vbd.evmKeeper.GetParams(ctx)
 		ethCfg := evmtypes.DefEthereumConfig(vbd.evmKeeper.ChainID())
+		baseFee := vbd.evmKeeper.BaseFee(ctx, ethCfg)
 
 		for _, msg := range protoTx.GetMsgs() {
 			msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
@@ -421,7 +421,13 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 				return ctx, sdkerrors.Wrap(err, "failed to unpack MsgEthereumTx Data")
 			}
 
-			baseFee := vbd.evmKeeper.BaseFee(ctx, ethCfg)
+			// return error if contract creation or call are disabled through governance
+			if !params.EnableCreate && txData.GetTo() == nil {
+				return ctx, sdkerrors.Wrap(evmtypes.ErrCreateDisabled, "failed to create new contract")
+			} else if !params.EnableCall && txData.GetTo() != nil {
+				return ctx, sdkerrors.Wrap(evmtypes.ErrCallDisabled, "failed to call contract")
+			}
+
 			if baseFee == nil && txData.TxType() == ethtypes.DynamicFeeTxType {
 				return ctx, sdkerrors.Wrap(ethtypes.ErrTxTypeNotSupported, "dynamic fee tx not supported")
 			}

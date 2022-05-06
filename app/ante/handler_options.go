@@ -42,7 +42,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		NewEthMempoolFeeDecorator(options.EvmKeeper),
 		NewEthValidateBasicDecorator(options.EvmKeeper),
 		NewEthSigVerificationDecorator(options.EvmKeeper),
-		NewEthAccountVerificationDecorator(options.AccountKeeper, options.BankKeeper, options.EvmKeeper),
+		NewEthAccountVerificationDecorator(options.AccountKeeper, options.EvmKeeper),
 		NewEthGasConsumeDecorator(options.EvmKeeper, options.MaxTxGasWanted),
 		NewCanTransferDecorator(options.EvmKeeper),
 		NewEthIncrementSenderSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator.

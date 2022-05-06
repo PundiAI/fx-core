@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -150,6 +149,52 @@ func TestFIP20(t *testing.T) {
 	t.Log("allowance recipient", allowance.String())
 }
 
+func TestWFX(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
+	client := NewClient(t, DefaultGRPCUrl, DefaultNodeRPCUrl, DefaultEthUrl, DefaultMnemonic, EthHDPath)
+
+	token := client.Token("FX")
+	t.Log("wfx token", token.Hex())
+
+	recipient := client.HexAddress(recipientMnemonic)
+	t.Log("recipient", recipient.String())
+	client.Transfer(recipient, initAmount)
+
+	wfx, err := NewERC20Token(token, client.ethClient)
+	require.NoError(t, err)
+
+	b1, err := wfx.BalanceOf(nil, client.HexAddress())
+	require.NoError(t, err)
+	client.ConvertERC20(token, sdk.NewIntFromBigInt(b1), client.HexAddress().Bytes())
+
+	b2, err := wfx.BalanceOf(nil, recipient)
+	require.NoError(t, err)
+	client.SetKey(recipientMnemonic, EthHDPath).ConvertERC20(token, sdk.NewIntFromBigInt(b2), recipient.Bytes())
+
+	client = client.SetKey(DefaultMnemonic, EthHDPath)
+
+	client.Deposit(token, big.NewInt(10))
+
+	b3, err := wfx.BalanceOf(nil, client.HexAddress())
+	require.NoError(t, err)
+	t.Log("wfx balance", b3.String())
+
+	b4 := client.Balance(recipient)
+	t.Log("recipient balance", b4.String())
+
+	client.Withdraw(token, recipient, big.NewInt(1))
+
+	b5, err := wfx.BalanceOf(nil, client.HexAddress())
+	require.NoError(t, err)
+	t.Log("wfx addr balance", b5.String())
+
+	b6 := client.Balance(recipient)
+	t.Log("wfx recipient balance", b6.String())
+}
+
 func TestFIP20CrossChain(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
@@ -231,62 +276,16 @@ func TestFIP20IBCTransfer(t *testing.T) {
 
 	t.Logf("run command ===> pundixd tx ibc-transfer transfer transfer channel-0 %s %sibc/37CA072246C3BCBB445AEC196645F5AAB7876C456D76BC96141D3A0D6E615D2E --ibc-fee=0 --ibc-router=\"erc20\" --from fx1 --node tcp://0.0.0.0:27757\n", client.HexAddress(), amount)
 
-	ticker := time.NewTicker(1 * time.Second)
-	for range ticker.C {
-		b3, err := wfx.BalanceOf(nil, client.HexAddress())
-		require.NoError(t, err)
-		if b3.Cmp(b2) == 0 {
-			continue
-		}
-		t.Log("wfx addr balance", b3.String())
-		break
-	}
-}
-
-func TestWFX(t *testing.T) {
-	if testing.Short() {
-		t.SkipNow()
-	}
-
-	client := NewClient(t, DefaultGRPCUrl, DefaultNodeRPCUrl, DefaultEthUrl, DefaultMnemonic, EthHDPath)
-
-	token := client.Token("FX")
-	t.Log("wfx token", token.Hex())
-
-	recipient := client.HexAddress(recipientMnemonic)
-	t.Log("recipient", recipient.String())
-	client.Transfer(recipient, initAmount)
-
-	wfx, err := NewERC20Token(token, client.ethClient)
-	require.NoError(t, err)
-
-	b1, err := wfx.BalanceOf(nil, client.HexAddress())
-	require.NoError(t, err)
-	client.ConvertERC20(token, sdk.NewIntFromBigInt(b1), client.HexAddress().Bytes())
-
-	b2, err := wfx.BalanceOf(nil, recipient)
-	require.NoError(t, err)
-	client.SetKey(recipientMnemonic, EthHDPath).ConvertERC20(token, sdk.NewIntFromBigInt(b2), recipient.Bytes())
-
-	client = client.SetKey(DefaultMnemonic, EthHDPath)
-
-	client.Deposit(token, big.NewInt(10))
-
-	b3, err := wfx.BalanceOf(nil, client.HexAddress())
-	require.NoError(t, err)
-	t.Log("wfx balance", b3.String())
-
-	b4 := client.Balance(recipient)
-	t.Log("recipient balance", b4.String())
-
-	client.Withdraw(token, recipient, big.NewInt(1))
-
-	b5, err := wfx.BalanceOf(nil, client.HexAddress())
-	require.NoError(t, err)
-	t.Log("wfx addr balance", b5.String())
-
-	b6 := client.Balance(recipient)
-	t.Log("wfx recipient balance", b6.String())
+	//ticker := time.NewTicker(1 * time.Second)
+	//for range ticker.C {
+	//	b3, err := wfx.BalanceOf(nil, client.HexAddress())
+	//	require.NoError(t, err)
+	//	if b3.Cmp(b2) == 0 {
+	//		continue
+	//	}
+	//	t.Log("wfx addr balance", b3.String())
+	//	break
+	//}
 }
 
 func queryBalance(c *Client, token common.Address, addrs ...common.Address) {

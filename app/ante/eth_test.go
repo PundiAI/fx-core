@@ -67,9 +67,7 @@ func (suite AnteTestSuite) TestEthSigVerificationDecorator() {
 }
 
 func (suite AnteTestSuite) TestNewEthAccountVerificationDecorator() {
-	dec := ante.NewEthAccountVerificationDecorator(
-		suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.EvmKeeper,
-	)
+	dec := ante.NewEthAccountVerificationDecorator(suite.app.AccountKeeper, suite.app.EvmKeeper)
 
 	addr := tests.GenerateAddress()
 
