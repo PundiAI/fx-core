@@ -122,7 +122,8 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash comm
 //transfer event ---> event Transfer(address indexed from, address indexed to, uint256 value);
 //address to must be equal ModuleAddress
 func isRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) bool {
-	if len(log.Topics) < 3 {
+	// Note: the `Transfer` event contains 3 topics (id, from, to)
+	if len(log.Topics) != 3 {
 		return false
 	}
 	eventID := log.Topics[0] // event ID
