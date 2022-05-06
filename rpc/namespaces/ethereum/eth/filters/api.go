@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/functionx/fx-core/rpc/ethereum/types"
+	"github.com/functionx/fx-core/rpc/types"
 
 	"github.com/tendermint/tendermint/libs/log"
 

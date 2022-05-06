@@ -37,7 +37,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ethdebug "github.com/functionx/fx-core/rpc/ethereum/namespaces/debug"
+	ethdebug "github.com/functionx/fx-core/rpc/namespaces/ethereum/debug"
 	"github.com/functionx/fx-core/server/config"
 )
 

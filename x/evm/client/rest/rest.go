@@ -16,7 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 
-	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
+	rpctypes "github.com/functionx/fx-core/rpc/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	"github.com/ethereum/go-ethereum/common"

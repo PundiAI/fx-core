@@ -35,8 +35,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/functionx/fx-core/crypto/hd"
-	"github.com/functionx/fx-core/rpc/ethereum/backend"
-	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
+	"github.com/functionx/fx-core/rpc/backend"
+	rpctypes "github.com/functionx/fx-core/rpc/types"
 	fxtypes "github.com/functionx/fx-core/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 )
@@ -48,7 +48,7 @@ type PublicAPI struct {
 	queryClient  *rpctypes.QueryClient
 	chainIDEpoch *big.Int
 	logger       log.Logger
-	backend      backend.Backend
+	backend      backend.EVMBackend
 	nonceLock    *rpctypes.AddrLocker
 	signer       ethtypes.Signer
 }
@@ -57,7 +57,7 @@ type PublicAPI struct {
 func NewPublicAPI(
 	logger log.Logger,
 	clientCtx client.Context,
-	backend backend.Backend,
+	backend backend.EVMBackend,
 	nonceLock *rpctypes.AddrLocker,
 ) *PublicAPI {
 	algos, _ := clientCtx.Keyring.SupportedAlgorithms()

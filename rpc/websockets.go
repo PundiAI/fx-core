@@ -29,8 +29,8 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	rpcfilters "github.com/functionx/fx-core/rpc/ethereum/namespaces/eth/filters"
-	"github.com/functionx/fx-core/rpc/ethereum/types"
+	rpcfilters "github.com/functionx/fx-core/rpc/namespaces/ethereum/eth/filters"
+	"github.com/functionx/fx-core/rpc/types"
 	"github.com/functionx/fx-core/server/config"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
 )

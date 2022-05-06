@@ -3,7 +3,7 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	rpctypes "github.com/functionx/fx-core/rpc/ethereum/types"
+	rpctypes "github.com/functionx/fx-core/rpc/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
