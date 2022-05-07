@@ -85,7 +85,7 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 }
 
 func (suite *KeeperTestSuite) TestCallEVMWithData() {
-	erc20 := fxtypes.GetERC20(fxtypes.EvmSupportBlock())
+	erc20 := fxtypes.GetERC20(fxtypes.EvmV1SupportBlock())
 	testCases := []struct {
 		name     string
 		from     common.Address

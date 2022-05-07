@@ -12,7 +12,7 @@ import (
 // NewHandler returns a handler for Ethermint type messages.
 func NewHandler(k *keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (result *sdk.Result, err error) {
-		if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "evm module not enable")
 		}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())

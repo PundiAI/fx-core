@@ -57,7 +57,7 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 
 		// Check if denom exists
 		baseDenom := claim.Symbol
-		if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 			baseDenom = strings.ToLower(baseDenom)
 		}
 		metadata := a.keeper.bankKeeper.GetDenomMetaData(ctx, baseDenom)

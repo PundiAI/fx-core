@@ -24,7 +24,7 @@ import (
 func (suite AnteTestSuite) TestAnteHandler() {
 	suite.SetupTest() // reset
 
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
 	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
 		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
 		suite.app.EvmKeeper, evmtypes.DefaultParams(),
@@ -546,7 +546,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
 			require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
 				suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
 				suite.app.EvmKeeper, evmtypes.DefaultParams(),
@@ -679,7 +679,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
 			require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
 				suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
 				suite.app.EvmKeeper, evmtypes.DefaultParams(),

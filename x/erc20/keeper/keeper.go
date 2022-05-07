@@ -66,7 +66,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, receiver string, amount sdk.Coin) error {
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		ctx.Logger().Info("ignore refund, module not enable", "module", types.ModuleName)
 		return nil
 	}
@@ -90,7 +90,7 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee
 }
 
 func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return errors.New("erc20 module not enable")
 	}
 	if !k.IsDenomRegistered(ctx, coin.Denom) {

@@ -366,7 +366,7 @@ func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, authtypes.GenesisAc
 }
 
 func initEvmErc20(t *testing.T, ctx sdk.Context, fxcore *app.App) sdk.Context {
-	ctx = ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+	ctx = ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
 	forks.UpdateMetadata(ctx, fxcore.BankKeeper)
 	require.NoError(t, forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
 		fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),

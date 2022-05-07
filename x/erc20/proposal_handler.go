@@ -16,7 +16,7 @@ import (
 // It enables RegisterTokenPairProposal to propose a registration of token mapping
 func NewErc20ProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
-		if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 			return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "erc20 module not enable")
 		}
 		switch c := content.(type) {

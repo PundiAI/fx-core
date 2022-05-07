@@ -16,7 +16,7 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, amount, f
 	}
 
 	// verify receive address 2022-04-12
-	if ctx.BlockHeight() >= fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() {
 		if err = types.ValidateEthAddressAndValidateChecksum(receive); err != nil {
 			return err
 		}

@@ -96,7 +96,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 				k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
 				err = k.processAttestation(ctx, att, claim)
-				if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+				if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 					k.GetBridgeChainID(ctx) // gas used
 				}
 				ctx.EventManager().EmitEvent(sdk.NewEvent(

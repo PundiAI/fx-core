@@ -16,7 +16,7 @@ import (
 
 // BeginBlock updates base fee
 func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return
 	}
 	baseFee := k.CalculateBaseFee(ctx)
@@ -45,7 +45,7 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // The EVM end block logic doesn't update the validator set, thus it returns
 // an empty slice.
 func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) {
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return
 	}
 

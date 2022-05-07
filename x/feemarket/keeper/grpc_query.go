@@ -18,7 +18,7 @@ var _ types.QueryServer = Keeper{}
 // Params implements the Query/Params gRPC method
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error())
 	}
 
@@ -30,7 +30,7 @@ func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 // BaseFee implements the Query/BaseFee gRPC method
 func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error())
 	}
 
@@ -48,7 +48,7 @@ func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types
 // BlockGas implements the Query/BlockGas gRPC method
 func (k Keeper) BlockGas(c context.Context, _ *types.QueryBlockGasRequest) (*types.QueryBlockGasResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error())
 	}
 

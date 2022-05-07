@@ -22,8 +22,9 @@ const (
 	// gravity not slash no set eth address validator
 	mainnetGravityValsetSlashBlock = 1685000
 
-	mainnetEvmChainID      = 1
-	mainnetSupportEvmBlock = math.MaxInt64
+	mainnetEvmChainID        = 1
+	mainnetSupportEvmV0Block = math.MaxInt64
+	mainnetSupportEvmV1Block = math.MaxInt64
 )
 
 // testnet constant
@@ -34,8 +35,9 @@ const (
 	testnetGravityPruneValsetAndAttestationBlock = 1
 	testnetGravityValsetSlashBlock               = 1
 
-	testnetEvmChainID      = 90001
-	testnetSupportEvmBlock = 408000
+	testnetEvmChainID        = 90001
+	testnetSupportEvmV0Block = 408000
+	testnetSupportEvmV1Block = math.MaxInt64
 )
 
 // devnet constant
@@ -46,8 +48,9 @@ const (
 	devnetGravityPruneValsetAndAttestationBlock = 1
 	devnetGravityValsetSlashBlock               = 1
 
-	devnetEvmChainID      = 221
-	devnetSupportEvmBlock = 10
+	devnetEvmChainID        = 221
+	devnetSupportEvmV0Block = math.MaxInt64
+	devnetSupportEvmV1Block = 10
 )
 
 var (
@@ -120,17 +123,26 @@ func EIP155ChainID() *big.Int {
 	return big.NewInt(mainnetEvmChainID)
 }
 
-func EvmSupportBlock() int64 {
+func EvmV0SupportBlock() int64 {
 	if networkDevnet == network {
-		return devnetSupportEvmBlock
+		return devnetSupportEvmV0Block
 	} else if networkTestnet == network {
-		return testnetSupportEvmBlock
+		return testnetSupportEvmV0Block
 	}
-	return mainnetSupportEvmBlock
+	return mainnetSupportEvmV0Block
+}
+
+func EvmV1SupportBlock() int64 {
+	if networkDevnet == network {
+		return devnetSupportEvmV1Block
+	} else if networkTestnet == network {
+		return testnetSupportEvmV1Block
+	}
+	return mainnetSupportEvmV1Block
 }
 
 func RequestBatchBaseFeeBlock() int64 {
-	return EvmSupportBlock()
+	return EvmV1SupportBlock()
 }
 
 func IsRequestBatchBaseFee(height int64) bool {

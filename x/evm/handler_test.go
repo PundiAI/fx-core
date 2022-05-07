@@ -162,7 +162,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.handler = evm.NewHandler(suite.app.EvmKeeper)
 
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
 	forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
 	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
 		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),

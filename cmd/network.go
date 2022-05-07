@@ -29,7 +29,8 @@ func networkCmd() *cobra.Command {
 				"CrossChainSupportBscBlock":             fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
 				"CrossChainSupportPolygonAndTronBlock":  fmt.Sprintf("%d", types.CrossChainSupportPolygonAndTronBlock()),
 				"EIP155ChainID":                         fmt.Sprintf("%d", types.EIP155ChainID()),
-				"EvmSupportBlock":                       fmt.Sprintf("%d", types.EvmSupportBlock()),
+				"EvmV0SupportBlock":                     fmt.Sprintf("%d", types.EvmV0SupportBlock()),
+				"EvmV1SupportBlock":                     fmt.Sprintf("%d", types.EvmV1SupportBlock()),
 			})
 			if err != nil {
 				return err

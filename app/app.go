@@ -110,8 +110,12 @@ import (
 	"github.com/functionx/fx-core/x/evm"
 	evmrest "github.com/functionx/fx-core/x/evm/client/rest"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	evmv0 "github.com/functionx/fx-core/x/evm/v0"
+	evmtypesv0 "github.com/functionx/fx-core/x/evm/v0/types"
 	"github.com/functionx/fx-core/x/feemarket"
 	feemarketkeeper "github.com/functionx/fx-core/x/feemarket/keeper"
+	feemarketv0 "github.com/functionx/fx-core/x/feemarket/v0"
+	feemarketkeeperv0 "github.com/functionx/fx-core/x/feemarket/v0/keeper"
 
 	erc20client "github.com/functionx/fx-core/x/erc20/client"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
@@ -125,7 +129,9 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/erc20"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	evmkeeperv0 "github.com/functionx/fx-core/x/evm/v0/keeper"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
+	feemarkettypesv0 "github.com/functionx/fx-core/x/feemarket/v0/types"
 	"github.com/functionx/fx-core/x/migrate"
 
 	_ "github.com/functionx/fx-core/docs/statik"
@@ -178,6 +184,8 @@ var (
 		bsc.AppModuleBasic{},
 		polygon.AppModuleBasic{},
 		tron.AppModuleBasic{},
+		evmv0.AppModuleBasic{},
+		feemarketv0.AppModuleBasic{},
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
 		erc20.AppModuleBasic{},
@@ -198,6 +206,7 @@ var (
 		polygontypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
 		trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 		// used for secure addition and subtraction of balance using module account
+		evmtypesv0.ModuleName: {authtypes.Minter, authtypes.Burner},
 		evmtypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 		erc20types.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
@@ -271,9 +280,13 @@ type App struct {
 	TronKeeper       crosschainkeeper.Keeper
 
 	// Ethermint keepers
-	EvmKeeper       *evmkeeper.Keeper
-	FeeMarketKeeper feemarketkeeper.Keeper
-	Erc20Keeper     erc20keeper.Keeper
+	EvmKeeperV0 *evmkeeperv0.Keeper
+	EvmKeeper   *evmkeeper.Keeper
+
+	FeeMarketKeeperV0 feemarketkeeperv0.Keeper
+	FeeMarketKeeper   feemarketkeeper.Keeper
+
+	Erc20Keeper erc20keeper.Keeper
 
 	MigrateKeeper migratekeeper.Keeper
 
@@ -306,12 +319,13 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		polygontypes.StoreKey,
 		trontypes.StoreKey,
 		// ethermint keys
+		evmtypesv0.StoreKey, feemarkettypesv0.StoreKey,
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		// erc20 keys
 		erc20types.StoreKey,
 		migratetypes.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypesv0.TransientKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	myApp := &App{
@@ -385,9 +399,18 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// this line is used by starport scaffolding # stargate/myApp/keeperDefinition
 
 	tracer := cast.ToString(appOpts.Get(server.EVMTracer))
+	myApp.FeeMarketKeeperV0 = feemarketkeeperv0.NewKeeper(
+		appCodec, keys[feemarkettypesv0.StoreKey], myApp.GetSubspace(feemarkettypesv0.ModuleName),
+	)
+
 	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
 	)
+
+	myApp.EvmKeeperV0 = evmkeeperv0.NewKeeper(
+		appCodec, keys[evmtypesv0.StoreKey], tkeys[evmtypesv0.TransientKey], myApp.GetSubspace(evmtypesv0.ModuleName),
+		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeperV0, tracer)
+
 	myApp.EvmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
 		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeper, tracer)
@@ -439,6 +462,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(myApp.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientUpdateProposalHandler(myApp.IBCKeeper.ClientKeeper)).
 		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)).
+		AddRoute(evmtypesv0.RouterKey, evmv0.NewEvmProposalHandler(*myApp.EvmKeeperV0)).
 		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(&myApp.Erc20Keeper))
 
 	myApp.GovKeeper = govkeeper.NewKeeper(
@@ -522,8 +546,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper),
 		tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper),
 		// Ethermint app modules
+		evmv0.NewAppModule(myApp.EvmKeeperV0, myApp.AccountKeeper),
 		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		feemarket.NewAppModule(myApp.FeeMarketKeeper),
+		feemarketv0.NewAppModule(myApp.FeeMarketKeeperV0),
 		erc20.NewAppModule(myApp.Erc20Keeper, myApp.AccountKeeper),
 		migrate.NewAppModule(myApp.MigrateKeeper),
 	)
@@ -551,6 +577,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		polygontypes.ModuleName,
 		trontypes.ModuleName,
+		evmtypesv0.ModuleName,
+		feemarkettypesv0.ModuleName,
 		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
 	)
@@ -593,12 +621,14 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(server.EVMMaxTxGasWanted))
 	options := ante.HandlerOptions{
-		AccountKeeper:   myApp.AccountKeeper,
-		BankKeeper:      myApp.BankKeeper,
-		EvmKeeper:       myApp.EvmKeeper,
-		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
-		MaxTxGasWanted:  maxGasWanted,
+		AccountKeeper:     myApp.AccountKeeper,
+		BankKeeper:        myApp.BankKeeper,
+		EvmKeeper:         myApp.EvmKeeper,
+		EvmKeeperV0:       myApp.EvmKeeperV0,
+		FeeMarketKeeperV0: myApp.FeeMarketKeeperV0,
+		SignModeHandler:   encodingConfig.TxConfig.SignModeHandler(),
+		SigGasConsumer:    ante.DefaultSigVerificationGasConsumer,
+		MaxTxGasWanted:    maxGasWanted,
 	}
 
 	if err := options.Validate(); err != nil {
@@ -611,8 +641,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportBscBlock(), bsctypes.StoreKey)
 	rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportPolygonAndTronBlock(), polygontypes.StoreKey, trontypes.StoreKey)
 
-	rootmulti.AddIgnoreCommitKey(fxtypes.EvmSupportBlock(), evmtypes.StoreKey, feemarkettypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey)
-	govtypes.SetEGFProposalSupportBlock(fxtypes.EvmSupportBlock())
+	rootmulti.AddIgnoreCommitKey(fxtypes.EvmV0SupportBlock(), evmtypesv0.StoreKey, feemarkettypesv0.StoreKey)
+	rootmulti.AddIgnoreCommitKey(fxtypes.EvmV1SupportBlock(), evmtypes.StoreKey, feemarkettypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey)
+	govtypes.SetEGFProposalSupportBlock(fxtypes.EvmV1SupportBlock())
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
@@ -773,6 +804,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(trontypes.ModuleName)
 
 	// ethermint subspaces
+	paramsKeeper.Subspace(evmtypesv0.ModuleName)
+	paramsKeeper.Subspace(feemarkettypesv0.ModuleName)
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	paramsKeeper.Subspace(erc20types.ModuleName)

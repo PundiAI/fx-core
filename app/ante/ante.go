@@ -7,10 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
-
-	"github.com/gogo/protobuf/proto"
-
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -34,16 +31,33 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		if ok {
 			opts := txWithExtensions.GetExtensionOptions()
 			if len(opts) > 0 {
-				switch typeURL := opts[0].GetTypeUrl(); typeURL {
-				case "/" + proto.MessageName(&evmtypes.ExtensionOptionsEthereumTx{}):
-					// handle as *evmtypes.MsgEthereumTx
-					anteHandler = newEthAnteHandler(options)
-				//case "/fx.ethereum.types.v1.ExtensionOptionsWeb3Tx":
-				//	// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
-				//	anteHandler = NewNormalTxAnteHandlerEip712(options)
-				default:
+				typeURL := opts[0].GetTypeUrl()
+				if ctx.BlockHeight() >= fxtypes.EvmV0SupportBlock() &&
+					ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() &&
+					typeURL == "/ethermint.evm.v1.ExtensionOptionsEthereumTx" {
+					//evm v0
+					anteHandler = newEthV0AnteHandler(options)
+				} else if ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() &&
+					typeURL == "/fx.ethereum.evm.v1.ExtensionOptionsEthereumTx" {
+					//evm v1
+					anteHandler = newEthV1AnteHandler(options)
+				} else {
+					//unsupported
 					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownExtensionOptions, "rejecting tx with unsupported extension option: %s", typeURL)
 				}
+
+				//switch typeURL := opts[0].GetTypeUrl(); typeURL {
+				//case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
+				//	anteHandler = newEthV0AnteHandler(options)
+				//case "/" + proto.MessageName(&evmtypes.ExtensionOptionsEthereumTx{}):
+				//	// handle as *evmtypes.MsgEthereumTx
+				//	anteHandler = newEthAnteHandler(options)
+				////case "/fx.ethereum.types.v1.ExtensionOptionsWeb3Tx":
+				////	// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
+				////	anteHandler = NewNormalTxAnteHandlerEip712(options)
+				//default:
+				//	return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownExtensionOptions, "rejecting tx with unsupported extension option: %s", typeURL)
+				//}
 
 				return anteHandler(ctx, tx, sim)
 			}
@@ -81,6 +95,10 @@ func Recover(logger tmlog.Logger, err *error) {
 	}
 }
 
+const (
+	secp256k1VerifyCost uint64 = 21000
+)
+
 var _ ante.SignatureVerificationGasConsumer = DefaultSigVerificationGasConsumer
 
 // DefaultSigVerificationGasConsumer is the default implementation of SignatureVerificationGasConsumer. It consumes gas
@@ -92,7 +110,7 @@ func DefaultSigVerificationGasConsumer(
 	pubkey := sig.PubKey
 	switch pubkey := pubkey.(type) {
 	case *ethsecp256k1.PubKey: // support for ethereum ECDSA secp256k1 keys
-		meter.ConsumeGas(params.SigVerifyCostSecp256k1, "ante verify: eth_secp256k1")
+		meter.ConsumeGas(secp256k1VerifyCost, "ante verify: eth_secp256k1")
 		return nil
 
 	case *ed25519.PubKey:

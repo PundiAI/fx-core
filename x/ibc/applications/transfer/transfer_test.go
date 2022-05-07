@@ -137,8 +137,8 @@ func (suite *TransferTestSuite) TestTransferForwardPacket() {
 	clientA, clientB, connA, connB := suite.coordinator.SetupClientConnections(suite.chainA, suite.chainB, exported.Tendermint)
 	channelA, channelB := suite.coordinator.CreateTransferChannels(suite.chainA, suite.chainB, connA, connB, channeltypes.UNORDERED)
 
-	if suite.chainB.CurrentHeader.GetHeight() < fxtypes.EvmSupportBlock() {
-		suite.coordinator.CommitNBlocks(suite.chainB, uint64(fxtypes.EvmSupportBlock()-suite.chainB.CurrentHeader.GetHeight())+1)
+	if suite.chainB.CurrentHeader.GetHeight() < fxtypes.EvmV1SupportBlock() {
+		suite.coordinator.CommitNBlocks(suite.chainB, uint64(fxtypes.EvmV1SupportBlock()-suite.chainB.CurrentHeader.GetHeight())+1)
 	}
 	// setup between chainB to chainC
 	clientOnBForC, clientOnCForB, connOnBForC, connOnCForB := suite.coordinator.SetupClientConnections(suite.chainB, suite.chainC, exported.Tendermint)

@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	suite.app = app.Setup(suite.checkTx, nil)
 	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
-		Height:          fxtypes.EvmSupportBlock(),
+		Height:          fxtypes.EvmV1SupportBlock(),
 		ChainID:         "fxcore",
 		Time:            time.Now().UTC(),
 		ProposerAddress: suite.consAddress.Bytes(),
@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.appCodec = encodingConfig.Marshaler
 
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmSupportBlock())
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
 	forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
 	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
 		suite.app.FeeMarketKeeper, types.DefaultParams(),

@@ -192,7 +192,7 @@ func (im IBCModule) OnRecvPacket(
 
 	var err error
 	// if router set, route packet
-	if ctx.BlockHeight() <= fxtypes.EvmSupportBlock() || data.Router != "" {
+	if ctx.BlockHeight() <= fxtypes.EvmV1SupportBlock() || data.Router != "" {
 		err = im.keeper.OnRecvPacket(ctx, packet, data)
 	} else {
 		err = handlerForwardTransferPacket(ctx, im, packet, data)

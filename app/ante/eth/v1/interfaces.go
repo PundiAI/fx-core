@@ -1,4 +1,4 @@
-package ante
+package v1
 
 import (
 	"math/big"

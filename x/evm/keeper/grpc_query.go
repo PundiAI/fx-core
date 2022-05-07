@@ -49,7 +49,7 @@ func (k Keeper) Account(c context.Context, req *types.QueryAccountRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -81,7 +81,7 @@ func (k Keeper) CosmosAccount(c context.Context, req *types.QueryCosmosAccountRe
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -116,7 +116,7 @@ func (k Keeper) ValidatorAccount(c context.Context, req *types.QueryValidatorAcc
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -156,7 +156,7 @@ func (k Keeper) Balance(c context.Context, req *types.QueryBalanceRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -183,7 +183,7 @@ func (k Keeper) Storage(c context.Context, req *types.QueryStorageRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -214,7 +214,7 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -236,7 +236,7 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 // Params implements the Query/Params gRPC method
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -254,7 +254,7 @@ func (k Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.Ms
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -298,7 +298,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -460,7 +460,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)
@@ -530,7 +530,7 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil, status.Error(
 			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
 		)

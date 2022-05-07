@@ -14,7 +14,7 @@ import (
 func NewHandler(server types.MsgServer) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		//check module enable
-		if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+		if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 			return nil, sdkerrors.Wrap(types.InvalidRequest, "migrate module not enable")
 		}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())

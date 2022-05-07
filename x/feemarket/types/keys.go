@@ -2,7 +2,7 @@ package types
 
 const (
 	// ModuleName string name of module
-	ModuleName = "feemarket"
+	ModuleName = "feemarketv1"
 
 	// StoreKey key for base fee and block gas used.
 	// The Fee Market module should use a prefix store.

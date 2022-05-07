@@ -203,7 +203,7 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 
 	transferData := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 	transferData[31] = uint8(10)
-	erc20 := fxtypes.GetERC20(fxtypes.EvmSupportBlock()).ABI
+	erc20 := fxtypes.GetERC20(fxtypes.EvmV1SupportBlock()).ABI
 
 	transferEvent := erc20.Events["Transfer"]
 

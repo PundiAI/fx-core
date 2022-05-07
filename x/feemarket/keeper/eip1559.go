@@ -21,7 +21,7 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
 
 	// If the current block is the first EIP-1559 block, return the InitialBaseFee.
-	if ctx.BlockHeight() == fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() == fxtypes.EvmV1SupportBlock() {
 		return params.BaseFee.BigInt()
 	}
 

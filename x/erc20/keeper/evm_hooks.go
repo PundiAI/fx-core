@@ -20,7 +20,7 @@ func (k Keeper) Hooks() Hooks {
 
 // PostTxProcessing implements EvmHooks.PostTxProcessing
 func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return nil
 	}
 	params := h.k.GetParams(ctx)

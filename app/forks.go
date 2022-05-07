@@ -13,7 +13,7 @@ import (
 
 func BeginBlockForks(ctx sdk.Context, fxcore *App) {
 	switch ctx.BlockHeight() {
-	case fxtypes.EvmSupportBlock():
+	case fxtypes.EvmV1SupportBlock():
 		// update FX meta data
 		forks.UpdateMetadata(ctx, fxcore.BankKeeper)
 		// init evm module

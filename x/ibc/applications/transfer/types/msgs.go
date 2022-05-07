@@ -70,11 +70,16 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if strings.TrimSpace(msg.Receiver) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing recipient address")
 	}
-	if msg.Fee.Amount.IsNil() || !msg.Fee.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "fees")
-	}
-	if msg.Fee.Denom != msg.Token.Denom {
-		return sdkerrors.Wrap(ErrFeeDenomNotMatchTokenDenom, fmt.Sprintf("token denom:%s, fee denom:%s", msg.Token.Denom, msg.Fee.Denom))
+	if msg.Router != "" {
+		if !msg.Fee.IsValid() {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Fee.String())
+		}
+		if !msg.Fee.IsValid() {
+			return sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, msg.Fee.String())
+		}
+		if msg.Fee.Denom != msg.Token.Denom {
+			return sdkerrors.Wrap(ErrFeeDenomNotMatchTokenDenom, fmt.Sprintf("token denom:%s, fee denom:%s", msg.Token.Denom, msg.Fee.Denom))
+		}
 	}
 	return ValidateIBCDenom(msg.Token.Denom)
 }

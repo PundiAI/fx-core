@@ -24,8 +24,8 @@ type Contract struct {
 
 func GetInitContracts() []Contract {
 	return []Contract{
-		GetERC20(EvmSupportBlock()),
-		GetWFX(EvmSupportBlock()),
+		GetERC20(EvmV1SupportBlock()),
+		GetWFX(EvmV1SupportBlock()),
 	}
 }
 
@@ -40,7 +40,7 @@ var (
 )
 
 func GetERC20(height int64) Contract {
-	if height >= EvmSupportBlock() {
+	if height >= EvmV1SupportBlock() {
 		return Contract{
 			Address: common.HexToAddress(FIP20LogicAddress),
 			ABI:     initERC20ABI,
@@ -59,7 +59,7 @@ var (
 )
 
 func GetWFX(height int64) Contract {
-	if height >= EvmSupportBlock() {
+	if height >= EvmV1SupportBlock() {
 		return Contract{
 			Address: common.HexToAddress(WFXLogicAddress),
 			ABI:     initWFXABI,
@@ -78,7 +78,7 @@ var (
 )
 
 func GetERC1967Proxy(height int64) Contract {
-	if height >= EvmSupportBlock() {
+	if height >= EvmV1SupportBlock() {
 		return Contract{
 			Address: common.Address{},
 			ABI:     initERC1967ProxyABI,

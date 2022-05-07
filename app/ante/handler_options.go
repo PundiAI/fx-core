@@ -7,17 +7,22 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
+
+	ethv0 "github.com/functionx/fx-core/app/ante/eth/v0"
+	ethv1 "github.com/functionx/fx-core/app/ante/eth/v1"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
 // channel keeper, EVM Keeper and Fee Market Keeper.
 type HandlerOptions struct {
-	AccountKeeper   evmtypes.AccountKeeper
-	BankKeeper      evmtypes.BankKeeper
-	EvmKeeper       EVMKeeper
-	SignModeHandler authsigning.SignModeHandler
-	SigGasConsumer  ante.SignatureVerificationGasConsumer
-	MaxTxGasWanted  uint64
+	AccountKeeper     evmtypes.AccountKeeper
+	BankKeeper        evmtypes.BankKeeper
+	EvmKeeper         ethv1.EVMKeeper
+	EvmKeeperV0       ethv0.EVMKeeper
+	FeeMarketKeeperV0 ethv0.FeeMarketKeeper
+	SignModeHandler   authsigning.SignModeHandler
+	SigGasConsumer    ante.SignatureVerificationGasConsumer
+	MaxTxGasWanted    uint64
 }
 
 func (options HandlerOptions) Validate() error {
@@ -36,16 +41,32 @@ func (options HandlerOptions) Validate() error {
 	return nil
 }
 
-func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
+func newEthV0AnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
-		NewEthSetUpContextDecorator(options.EvmKeeper), // outermost AnteDecorator. SetUpContext must be called first
-		NewEthMempoolFeeDecorator(options.EvmKeeper),
-		NewEthValidateBasicDecorator(options.EvmKeeper),
-		NewEthSigVerificationDecorator(options.EvmKeeper),
-		NewEthAccountVerificationDecorator(options.AccountKeeper, options.EvmKeeper),
-		NewEthGasConsumeDecorator(options.EvmKeeper, options.MaxTxGasWanted),
-		NewCanTransferDecorator(options.EvmKeeper),
-		NewEthIncrementSenderSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator.
+		ethv0.NewEthSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		ante.NewMempoolFeeDecorator(),
+		ante.TxTimeoutHeightDecorator{},
+		ante.NewValidateMemoDecorator(options.AccountKeeper),
+		ethv0.NewEthValidateBasicDecorator(options.EvmKeeperV0),
+		ethv0.NewEthSigVerificationDecorator(options.EvmKeeperV0),
+		ethv0.NewEthAccountVerificationDecorator(options.AccountKeeper, options.BankKeeper, options.EvmKeeperV0),
+		ethv0.NewEthNonceVerificationDecorator(options.AccountKeeper),
+		ethv0.NewEthGasConsumeDecorator(options.EvmKeeperV0),
+		ethv0.NewCanTransferDecorator(options.EvmKeeperV0, options.FeeMarketKeeperV0),
+		ethv0.NewEthIncrementSenderSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator.
+	)
+}
+
+func newEthV1AnteHandler(options HandlerOptions) sdk.AnteHandler {
+	return sdk.ChainAnteDecorators(
+		ethv1.NewEthSetUpContextDecorator(options.EvmKeeper), // outermost AnteDecorator. SetUpContext must be called first
+		ethv1.NewEthMempoolFeeDecorator(options.EvmKeeper),
+		ethv1.NewEthValidateBasicDecorator(options.EvmKeeper),
+		ethv1.NewEthSigVerificationDecorator(options.EvmKeeper),
+		ethv1.NewEthAccountVerificationDecorator(options.AccountKeeper, options.EvmKeeper),
+		ethv1.NewEthGasConsumeDecorator(options.EvmKeeper, options.MaxTxGasWanted),
+		ethv1.NewCanTransferDecorator(options.EvmKeeper),
+		ethv1.NewEthIncrementSenderSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator.
 	)
 }
 
@@ -70,7 +91,7 @@ func newNormalTxAnteHandler(options HandlerOptions) sdk.AnteHandler {
 
 func NewNormalTxAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
-		RejectMessagesDecorator{},       // reject MsgEthereumTxs
+		ethv1.RejectMessagesDecorator{}, // reject MsgEthereumTxs
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		// NOTE: extensions option decorator removed
 		//NewRejectExtensionOptionsDecorator(),

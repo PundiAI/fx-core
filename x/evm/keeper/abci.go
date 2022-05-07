@@ -13,7 +13,7 @@ import (
 // KVStore. The EVM end block logic doesn't update the validator set, thus it returns
 // an empty slice.
 func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	if ctx.BlockHeight() < fxtypes.EvmSupportBlock() {
+	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 		return []abci.ValidatorUpdate{}
 	}
 
