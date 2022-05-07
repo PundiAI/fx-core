@@ -223,7 +223,7 @@ func importKeyCommand() *cobra.Command {
 
 func parseAddressCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "parse [address]",
+		Use:   "parse [address or name]",
 		Short: "Parse address from hex to bech32 and vice versa",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -231,23 +231,22 @@ func parseAddressCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			addrString := args[0]
+			addrStr := args[0]
 
-			// try hex, then bech32
 			var addr []byte
-			addr, err = hex.DecodeString(addrString)
+			keyInfo, err := clientCtx.Keyring.Key(addrStr)
 			if err != nil {
-				var err2 error
-				addr, err2 = sdk.AccAddressFromBech32(addrString)
-				if err2 != nil {
-					var err3 error
-					addr, err3 = sdk.ValAddressFromBech32(addrString)
-
-					if err3 != nil {
-						return fmt.Errorf("expected hex or bech32. Got errors: hex: %v, bech32 acc: %v, bech32 val: %v", err, err2, err3)
-
+				// try hex, then bech32
+				addr, err = hex.DecodeString(addrStr)
+				if err != nil {
+					_, addr, err = bech32.DecodeAndConvert(addrStr)
+					if err != nil {
+						return err
 					}
 				}
+				keyInfo, _ = clientCtx.Keyring.KeyByAddress(sdk.AccAddress(addr))
+			} else {
+				addr = keyInfo.GetAddress().Bytes()
 			}
 			prefix, err := cmd.Flags().GetString("prefix")
 			if err != nil {
@@ -262,17 +261,29 @@ func parseAddressCommand() *cobra.Command {
 				return err
 			}
 
-			data, err := json.Marshal(map[string]interface{}{
+			outputMap := map[string]interface{}{
 				"base64_address": addr,
 				"hex_address":    hex.EncodeToString(addr),
 				"eip55_address":  common.BytesToAddress(addr).String(),
 				"acc_address":    accAddress,
 				"val_address":    valAddress,
-			})
+			}
+			if keyInfo != nil {
+				outputMap["name"] = keyInfo.GetName()
+				outputMap["algo"] = keyInfo.GetAlgo()
+				outputMap["pubkey"] = keyInfo.GetPubKey()
+				outputMap["type"] = keyInfo.GetType()
+				path, err := keyInfo.GetPath()
+				if err == nil {
+					outputMap["path"] = path
+				}
+			}
+
+			outputData, err := json.Marshal(outputMap)
 			if err != nil {
 				return err
 			}
-			return clientCtx.PrintOutput(data)
+			return clientCtx.PrintOutput(outputData)
 		},
 	}
 	cmd.Flags().String("prefix", "fx", "custom address prefix")
