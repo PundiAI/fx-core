@@ -441,15 +441,15 @@ func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAdd
 	return oracle.GetOracle(), nil
 }
 
-func GetRequestBatchBaseFee(blockHeight int64, baseFee sdk.Int) (sdk.Int, error) {
+func GetRequestBatchBaseFee(blockHeight int64, baseFee *sdk.Int) (sdk.Int, error) {
 	if !fxtypes.IsRequestBatchBaseFee(blockHeight) {
 		return sdk.ZeroInt(), nil
 	}
-	if baseFee.IsNil() {
+	if baseFee != nil || baseFee.IsNil() {
 		return sdk.ZeroInt(), nil
 	}
 	if baseFee.IsNegative() {
 		return sdk.ZeroInt(), types.ErrInvalidRequestBatchBaseFee
 	}
-	return baseFee, nil
+	return *baseFee, nil
 }

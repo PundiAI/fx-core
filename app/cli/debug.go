@@ -5,7 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
@@ -39,6 +43,7 @@ func Debug() *cobra.Command {
 		ParseTx(),
 		ChecksumEthAddress(),
 		PubkeyCmd(),
+		VerifyTx(),
 	)
 	return cmd
 }
@@ -112,6 +117,89 @@ func ParseTx() *cobra.Command {
 				return err
 			}
 			return clientCtx.PrintBytes(jsonMarshal)
+		},
+	}
+	return cmd
+}
+
+func VerifyTx() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "verify-tx [base64TxData]",
+		Short:   "verify tx",
+		Example: "fxcored debug verify-tx CucHC===...",
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			txBytes, err := base64.StdEncoding.DecodeString(args[0])
+			if err != nil {
+				return err
+			}
+			tx, err := clientCtx.TxConfig.TxDecoder()(txBytes)
+			if err != nil {
+				return err
+			}
+
+			builder, err := clientCtx.TxConfig.WrapTxBuilder(tx)
+			if err != nil {
+				return err
+			}
+			stdTx := builder.GetTx()
+
+			sigTx, ok := tx.(authsigning.SigVerifiableTx)
+			if !ok {
+				return errors.New("invalid transaction type")
+			}
+			// stdSigs contains the sequence number, account number, and signatures.
+			// When simulating, this would just be a 0-length slice.
+			sigs, err := sigTx.GetSignaturesV2()
+			if err != nil {
+				return fmt.Errorf("get signature error %s", err.Error())
+			}
+			signerAddrs := sigTx.GetSigners()
+
+			// check that signer length and signature length are the same
+			if len(sigs) != len(signerAddrs) {
+				return fmt.Errorf("invalid number of signer;  expected: %d, got %d", len(signerAddrs), len(sigs))
+			}
+			status, err := clientCtx.Client.Status(cmd.Context())
+			if err != nil {
+				return err
+			}
+			chainId := status.NodeInfo.Network
+			queryClient := authtypes.NewQueryClient(clientCtx)
+			for i, sig := range sigs {
+				accountResponse, err := queryClient.Account(cmd.Context(), &authtypes.QueryAccountRequest{Address: sdk.AccAddress(signerAddrs[i]).String()})
+				if err != nil {
+					return err
+				}
+				var acc authtypes.AccountI
+				err = clientCtx.InterfaceRegistry.UnpackAny(accountResponse.GetAccount(), &acc)
+				if err != nil {
+					return err
+				}
+				// retrieve pubkey
+				pubKey := acc.GetPubKey()
+				sequence := sig.Sequence
+				signerData := authsigning.SignerData{
+					ChainID:       chainId,
+					AccountNumber: acc.GetAccountNumber(),
+					Sequence:      sequence,
+				}
+
+				bz := legacytx.StdSignBytes(
+					chainId, acc.GetAccountNumber(), sequence, stdTx.GetTimeoutHeight(),
+					legacytx.StdFee{Amount: stdTx.GetFee(), Gas: stdTx.GetGas()},
+					tx.GetMsgs(), stdTx.GetMemo(),
+				)
+				clientCtx.PrintBytes(bz)
+
+				err = authsigning.VerifySignature(pubKey, signerData, sig.Data, clientCtx.TxConfig.SignModeHandler(), tx)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
 		},
 	}
 	return cmd

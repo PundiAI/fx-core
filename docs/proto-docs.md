@@ -971,7 +971,7 @@ feeReceive:
 | `sender` | [string](#string) |  |  |
 | `denom` | [string](#string) |  |  |
 | `minimum_fee` | [string](#string) |  |  |
-| `fee_receive` | [string](#string) |  |  |
+| `feeReceive` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
 | `base_fee` | [string](#string) |  |  |
 
