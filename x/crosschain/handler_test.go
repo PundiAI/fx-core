@@ -654,10 +654,14 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	require.EqualValues(t, 3, usdtBatchFee.TotalTxs)
 	require.EqualValues(t, sdk.NewInt(6), usdtBatchFee.TotalFees)
 
+	fn := func(i sdk.Int) *sdk.Int {
+		return &i
+	}
+
 	testCases := []struct {
 		testName       string
 		height         int64
-		baseFee        sdk.Int
+		baseFee        *sdk.Int
 		pass           bool
 		expectTotalTxs uint64
 		err            error
@@ -665,21 +669,21 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 		{
 			testName:       "Not Support - no baseFee",
 			height:         ctx.BlockHeight(),
-			baseFee:        sdk.Int{},
+			baseFee:        nil,
 			pass:           true,
 			expectTotalTxs: 0,
 		},
 		{
 			testName:       "Not Support - baseFee 1000",
 			height:         ctx.BlockHeight(),
-			baseFee:        sdk.NewInt(1000),
+			baseFee:        fn(sdk.NewInt(1000)),
 			pass:           true,
 			expectTotalTxs: 0,
 		},
 		{
 			testName:       "Support - baseFee 1000",
 			height:         fxtypes.RequestBatchBaseFeeBlock(),
-			baseFee:        sdk.NewInt(1000),
+			baseFee:        fn(sdk.NewInt(1000)),
 			pass:           false,
 			expectTotalTxs: 3,
 			err:            types.ErrEmpty,
@@ -687,7 +691,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 		{
 			testName:       "Support - baseFee 2",
 			height:         fxtypes.RequestBatchBaseFeeBlock(),
-			baseFee:        sdk.NewInt(2),
+			baseFee:        fn(sdk.NewInt(2)),
 			pass:           true,
 			expectTotalTxs: 1,
 			err:            nil,
@@ -695,7 +699,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 		{
 			testName:       "Support - baseFee 0",
 			height:         fxtypes.RequestBatchBaseFeeBlock(),
-			baseFee:        sdk.NewInt(0),
+			baseFee:        fn(sdk.NewInt(0)),
 			pass:           true,
 			expectTotalTxs: 0,
 			err:            nil,

@@ -12,10 +12,13 @@ import (
 )
 
 func TestGetRequestBatchBaseFee(t *testing.T) {
+	fn := func(i sdk.Int) *sdk.Int {
+		return &i
+	}
 	testCases := []struct {
 		testName      string
 		height        int64
-		baseFee       sdk.Int
+		baseFee       *sdk.Int
 		expectBaseFee sdk.Int
 		expectPass    bool
 		err           error
@@ -24,7 +27,7 @@ func TestGetRequestBatchBaseFee(t *testing.T) {
 		{
 			testName:      "No Support - nil baseFee",
 			height:        1,
-			baseFee:       sdk.ZeroInt(),
+			baseFee:       fn(sdk.ZeroInt()),
 			expectBaseFee: sdk.ZeroInt(),
 			expectPass:    true,
 			err:           nil,
@@ -32,7 +35,7 @@ func TestGetRequestBatchBaseFee(t *testing.T) {
 		{
 			testName:      "No Support - has baseFee",
 			height:        1,
-			baseFee:       sdk.NewInt(1000),
+			baseFee:       fn(sdk.NewInt(1000)),
 			expectBaseFee: sdk.ZeroInt(),
 			expectPass:    true,
 			err:           nil,
@@ -40,7 +43,7 @@ func TestGetRequestBatchBaseFee(t *testing.T) {
 		{
 			testName:      "Support - no baseFee",
 			height:        fxtypes.RequestBatchBaseFeeBlock(),
-			baseFee:       sdk.ZeroInt(),
+			baseFee:       fn(sdk.ZeroInt()),
 			expectBaseFee: sdk.ZeroInt(),
 			expectPass:    true,
 			err:           nil,
@@ -48,7 +51,7 @@ func TestGetRequestBatchBaseFee(t *testing.T) {
 		{
 			testName:      "Support - negative baseFee",
 			height:        fxtypes.RequestBatchBaseFeeBlock(),
-			baseFee:       sdk.NewInt(-1),
+			baseFee:       fn(sdk.NewInt(-1)),
 			expectBaseFee: sdk.ZeroInt(),
 			expectPass:    false,
 			err:           crosstypes.ErrInvalidRequestBatchBaseFee,
@@ -56,7 +59,7 @@ func TestGetRequestBatchBaseFee(t *testing.T) {
 		{
 			testName:      "Support - has baseFee",
 			height:        fxtypes.RequestBatchBaseFeeBlock(),
-			baseFee:       sdk.NewInt(101),
+			baseFee:       fn(sdk.NewInt(101)),
 			expectBaseFee: sdk.NewInt(101),
 			expectPass:    true,
 			err:           nil,

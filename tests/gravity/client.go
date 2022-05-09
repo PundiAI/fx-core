@@ -4,10 +4,12 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	cryptohd "github.com/functionx/fx-core/crypto/hd"
 	"sync"
 	"testing"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+
+	cryptohd "github.com/functionx/fx-core/crypto/hd"
 
 	"github.com/stretchr/testify/require"
 

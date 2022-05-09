@@ -445,7 +445,7 @@ func GetRequestBatchBaseFee(blockHeight int64, baseFee *sdk.Int) (sdk.Int, error
 	if !fxtypes.IsRequestBatchBaseFee(blockHeight) {
 		return sdk.ZeroInt(), nil
 	}
-	if baseFee != nil || baseFee.IsNil() {
+	if baseFee == nil || baseFee.IsNil() {
 		return sdk.ZeroInt(), nil
 	}
 	if baseFee.IsNegative() {

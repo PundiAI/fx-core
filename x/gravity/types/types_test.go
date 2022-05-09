@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	_ "github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/gravity/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCovertIbcPacketReceiveAddressByPrefix(t *testing.T) {
@@ -22,7 +23,7 @@ func TestCovertIbcPacketReceiveAddressByPrefix(t *testing.T) {
 	}{
 		{
 			name:    "normal: not support 0x prefix, expect px prefix",
-			height:  fxtypes.EvmSupportBlock() - 1,
+			height:  fxtypes.EvmV1SupportBlock() - 1,
 			prefix:  "px",
 			address: sdk.AccAddress("____________________"),
 			expect:  "px1ta047h6lta047h6lta047h6lta047h6l0zfr4s",
@@ -30,7 +31,7 @@ func TestCovertIbcPacketReceiveAddressByPrefix(t *testing.T) {
 		},
 		{
 			name:    "normal: support 0x prefix, expect px prefix",
-			height:  fxtypes.EvmSupportBlock(),
+			height:  fxtypes.EvmV1SupportBlock(),
 			prefix:  "px",
 			address: sdk.AccAddress("____________________"),
 			expect:  "px1ta047h6lta047h6lta047h6lta047h6l0zfr4s",
@@ -38,7 +39,7 @@ func TestCovertIbcPacketReceiveAddressByPrefix(t *testing.T) {
 		},
 		{
 			name:    "normal: support 0x prefix after, expect px prefix",
-			height:  fxtypes.EvmSupportBlock() + 1,
+			height:  fxtypes.EvmV1SupportBlock() + 1,
 			prefix:  "px",
 			address: sdk.AccAddress("____________________"),
 			expect:  "px1ta047h6lta047h6lta047h6lta047h6l0zfr4s",
@@ -46,7 +47,7 @@ func TestCovertIbcPacketReceiveAddressByPrefix(t *testing.T) {
 		},
 		{
 			name:    "normal: not support 0x prefix, expect 0x prefix",
-			height:  fxtypes.EvmSupportBlock() - 1,
+			height:  fxtypes.EvmV1SupportBlock() - 1,
 			prefix:  "0x",
 			address: sdk.AccAddress("____________________"),
 			expect:  "0x1ta047h6lta047h6lta047h6lta047h6lvx3jz6",
@@ -54,7 +55,7 @@ func TestCovertIbcPacketReceiveAddressByPrefix(t *testing.T) {
 		},
 		{
 			name:    "normal: support 0x prefix, expect eth address",
-			height:  fxtypes.EvmSupportBlock(),
+			height:  fxtypes.EvmV1SupportBlock(),
 			prefix:  "0x",
 			address: sdk.AccAddress("____________________"),
 			expect:  "0x5f5f5f5f5f5F5f5F5F5F5F5f5F5f5f5F5F5F5F5f",
@@ -62,7 +63,7 @@ func TestCovertIbcPacketReceiveAddressByPrefix(t *testing.T) {
 		},
 		{
 			name:    "normal: support 0x prefix after, expect eth address",
-			height:  fxtypes.EvmSupportBlock() + 1,
+			height:  fxtypes.EvmV1SupportBlock() + 1,
 			prefix:  "0x",
 			address: sdk.AccAddress("____________________"),
 			expect:  "0x5f5f5f5f5f5F5f5F5F5F5F5f5F5f5f5F5F5F5F5f",
@@ -70,7 +71,7 @@ func TestCovertIbcPacketReceiveAddressByPrefix(t *testing.T) {
 		},
 		{
 			name:    "normal: support 0x prefix after, lower prefix, expect eth address",
-			height:  fxtypes.EvmSupportBlock() + 1,
+			height:  fxtypes.EvmV1SupportBlock() + 1,
 			prefix:  "0x",
 			address: sdk.AccAddress("____________________"),
 			expect:  "0x5f5f5f5f5f5F5f5F5F5F5F5f5F5f5f5F5F5F5F5f",
@@ -78,7 +79,7 @@ func TestCovertIbcPacketReceiveAddressByPrefix(t *testing.T) {
 		},
 		{
 			name:    "normal: support 0x prefix after, upper prefix, expect eth address",
-			height:  fxtypes.EvmSupportBlock() + 1,
+			height:  fxtypes.EvmV1SupportBlock() + 1,
 			prefix:  "0X",
 			address: sdk.AccAddress("____________________"),
 			expect:  "0x5f5f5f5f5f5F5f5F5F5F5F5f5F5f5f5F5F5F5F5f",

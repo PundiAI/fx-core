@@ -108,10 +108,10 @@ message MsgRequestBatch {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  string fee_receive = 4;
+  string feeReceive = 4;
   string base_fee = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = true
   ];
 }
 

@@ -407,15 +407,15 @@ func (k msgServer) ValsetUpdateClaim(c context.Context, msg *types.MsgValsetUpda
 	return &types.MsgValsetUpdatedClaimResponse{}, nil
 }
 
-func GetRequestBatchBaseFee(height int64, baseFee sdk.Int) (sdk.Int, error) {
+func GetRequestBatchBaseFee(height int64, baseFee *sdk.Int) (sdk.Int, error) {
 	if !fxtypes.IsRequestBatchBaseFee(height) {
 		return sdk.ZeroInt(), nil
 	}
-	if baseFee.IsNil() {
+	if baseFee == nil || baseFee.IsNil() {
 		return sdk.ZeroInt(), nil
 	}
 	if baseFee.IsNegative() {
 		return sdk.ZeroInt(), types.ErrInvalidRequestBatchBaseFee
 	}
-	return baseFee, nil
+	return *baseFee, nil
 }

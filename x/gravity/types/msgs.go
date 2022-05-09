@@ -184,7 +184,7 @@ func NewMsgRequestBatch(orchestrator sdk.AccAddress, denom string, minimumFee sd
 		Denom:      denom,
 		MinimumFee: minimumFee,
 		FeeReceive: feeReceive,
-		BaseFee:    baseFee,
+		BaseFee:    &baseFee,
 	}
 }
 
