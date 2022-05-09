@@ -245,7 +245,7 @@ func ethToFxAndIbcTransfer(c *Client) {
 	// pundixAddr: px1u66dz4r6yg4xugz3ej27ejpd73helayz09l7gx
 	depositClaimMsg := gravitytypes.NewMsgDepositClaim(c.QueryFxLastEventNonce(), 5, ethTokenContract,
 		sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)), c.ethAddress.Hex(),
-		"fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2", hex.EncodeToString([]byte("px/transfer/channel-0")), c.FxAddress().String())
+		"fx1vx7jqvys34jcm4dzzwwjcya02ku38rhmjm2kch", hex.EncodeToString([]byte("0x/transfer/channel-0")), c.FxAddress().String())
 	c.BroadcastTx(&[]sdk.Msg{depositClaimMsg})
 	c.t.Logf("\n")
 }

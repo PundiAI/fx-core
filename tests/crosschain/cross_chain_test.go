@@ -23,7 +23,7 @@ import (
 )
 
 // TestOrchestratorChain init operator.
-// 1. fxcored tx crosschain init-crosschain-params bsc 10000000000000000000000FX --title="Init Bsc chain params", --desc="about bsc chain description" --gravity-id="bsc" --oracles="fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2" --from fx1 -y --gas=auto --gas-adjustment=1.3
+// 1. fxcored tx crosschain init-crosschain-params bsc 10000000000000000000000FX --title="Init Bsc chain params", --desc="about bsc chain description" --gravity-id="bsc" --oracles="fx1vx7jqvys34jcm4dzzwwjcya02ku38rhmjm2kch" --from fx1 -y --gas=auto --gas-adjustment=1.3
 // 2. fxcored tx gov vote 1 yes --from fx1 -y --gas=auto --gas-adjustment=1.3
 func TestOrchestratorChain(t *testing.T) {
 	if testing.Short() {
@@ -386,7 +386,7 @@ func externalToFxAndIbcTransfer(c *Client) {
 		Amount:        sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)),
 		Sender:        c.ethAddress.Hex(),
 		Receiver:      c.FxAddress().String(),
-		TargetIbc:     hex.EncodeToString([]byte("px/transfer/channel-0")),
+		TargetIbc:     hex.EncodeToString([]byte("0x/transfer/channel-0")),
 		Orchestrator:  c.FxAddress().String(),
 		ChainName:     c.chainName,
 	}})
@@ -412,7 +412,7 @@ func setOrchestratorAddress(c *Client) {
 	}
 
 	if err != nil {
-		if !strings.Contains(err.Error(), "No Orchestrator: invalid: invalid request") {
+		if !strings.Contains(err.Error(), "No Orchestrator: invalid") {
 			c.t.Fatal(err)
 		}
 		c.t.Logf("not found validator!!error msg:%v\n", err.Error())

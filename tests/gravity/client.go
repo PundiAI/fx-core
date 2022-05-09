@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	cryptohd "github.com/functionx/fx-core/crypto/hd"
 	"sync"
 	"testing"
 
@@ -12,8 +14,6 @@ import (
 	othertypes "github.com/functionx/fx-core/x/other/types"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -36,7 +36,7 @@ const (
 
 	// Fx wallet data
 	defaultFxMnemonic = "dune antenna hood magic kit blouse film video another pioneer dilemma hobby message rug sail gas culture upgrade twin flag joke people general aunt"
-	hdPath            = "m/44'/118'/0'/0/0"
+	hdPath            = "m/44'/60'/0'/0/0"
 
 	// Eth data
 	ethTokenContract           = "0x30dA8589BFa1E509A319489E014d384b87815D89"
@@ -61,7 +61,7 @@ type Client struct {
 	bankQueryClient    banktypes.QueryClient
 	otherQueryClient   othertypes.QueryClient
 	gasPrice           sdk.Coin
-	fxPrivKey          *secp256k1.PrivKey
+	fxPrivKey          cryptotypes.PrivKey
 	encodingConfig     app.EncodingConfig
 	ethPrivKey         *ecdsa.PrivateKey
 	ethAddress         gethCommon.Address
@@ -137,18 +137,13 @@ func grpcNewClient(grpcUrl string) (*grpc.ClientConn, error) {
 	return grpc.Dial(grpcUrl, opts...)
 }
 
-func mnemonicToFxPrivKey(mnemonic string) (*secp256k1.PrivKey, error) {
-	algo := hd.Secp256k1
+func mnemonicToFxPrivKey(mnemonic string) (cryptotypes.PrivKey, error) {
+	algo := cryptohd.EthSecp256k1
 	bytes, err := algo.Derive()(mnemonic, "", hdPath)
 	if err != nil {
 		return nil, err
 	}
-	privKey := algo.Generate()(bytes)
-	priv, ok := privKey.(*secp256k1.PrivKey)
-	if !ok {
-		return nil, fmt.Errorf("not secp256k1.PrivKey")
-	}
-	return priv, nil
+	return algo.Generate()(bytes), nil
 }
 
 func ethPrivateHexKeyToPrivate(privateKeyHex string) (*ecdsa.PrivateKey, gethCommon.Address, error) {
@@ -222,7 +217,7 @@ func buildTxBodyAndTxAuthInfo(c *Client, msgList *[]sdk.Msg, accountNumber, acco
 		Amount:   sdk.Coins{},
 		GasLimit: gasLimit,
 	}
-	if !c.gasPrice.IsZero() {
+	if !c.gasPrice.IsNil() && !c.gasPrice.IsZero() {
 		gasFeeAmount := c.gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit)))
 		authInfo.Fee.Amount = sdk.NewCoins(sdk.NewCoin(c.gasPrice.Denom, gasFeeAmount))
 	}
@@ -230,7 +225,7 @@ func buildTxBodyAndTxAuthInfo(c *Client, msgList *[]sdk.Msg, accountNumber, acco
 	return
 }
 
-func sign(t *testing.T, fxPrivKey *secp256k1.PrivKey, signDoc *tx.SignDoc) []byte {
+func sign(t *testing.T, fxPrivKey cryptotypes.PrivKey, signDoc *tx.SignDoc) []byte {
 	t.Helper()
 	signDataBytes := mustProtoMarshal(t, signDoc)
 	signResultBytes, err := fxPrivKey.Sign(signDataBytes)

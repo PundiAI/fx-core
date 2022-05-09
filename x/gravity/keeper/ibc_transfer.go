@@ -3,13 +3,11 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 
 	"github.com/functionx/fx-core/x/gravity/types"
@@ -32,7 +30,7 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 		logger.Error("convert target ibc data error!!!", "targetIbc", claim.GetTargetIbc())
 		return
 	}
-	ibcReceiveAddress, err := bech32.ConvertAndEncode(targetIBC.Prefix, receiveAddr)
+	ibcReceiveAddress, err := types.CovertIbcPacketReceiveAddressByPrefix(ctx.BlockHeight(), targetIBC.Prefix, receiveAddr)
 	if err != nil {
 		logger.Error("convert ibc transfer receive address error!!!", "fxReceive", claim.FxReceiver,
 			"ibcPrefix", targetIBC.Prefix, "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel, "error", err)
