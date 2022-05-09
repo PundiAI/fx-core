@@ -18,6 +18,7 @@
 ### Features
 
 * add gRPC swagger-ui
+* gravity/crosschain module support targetIbc `0x` prefix
 
 ### Bug Fixes
 
