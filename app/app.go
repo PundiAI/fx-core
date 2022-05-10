@@ -566,6 +566,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibchost.ModuleName,
+		evmtypesv0.ModuleName, //Note:deprecated after evm1 support
 		feemarkettypes.ModuleName,
 	)
 
@@ -577,8 +578,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		polygontypes.ModuleName,
 		trontypes.ModuleName,
-		evmtypesv0.ModuleName,
-		feemarkettypesv0.ModuleName,
+		evmtypesv0.ModuleName,       //Note:deprecated after evm1 support
+		feemarkettypesv0.ModuleName, //Note:deprecated after evm1 support
 		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
 	)

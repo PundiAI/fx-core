@@ -53,6 +53,22 @@ func TestQueryTransaction(t *testing.T) {
 	t.Logf("transactionReceipt:%+#v", transactionReceipt)
 }
 
+func TestQueryTransactionRaw(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+	client, err := ethclient.Dial("http://0.0.0.0:8545")
+	require.NoError(t, err)
+
+	tx, _, err := client.TransactionByHash(context.Background(), common.HexToHash("0x815fced350c7d84ab36e1aa2ff392d55c4b810876f8b6bbf01312b5148f8f543"))
+	require.NoError(t, err)
+
+	bz, err := tx.MarshalBinary()
+	require.NoError(t, err)
+
+	t.Logf("raw hex %x", bz)
+}
+
 func TestQueryFxTxByEvmHash(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()

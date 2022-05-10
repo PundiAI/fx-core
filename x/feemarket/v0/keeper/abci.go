@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -14,6 +15,11 @@ import (
 // KVStore. The EVM end block logic doesn't update the validator set, thus it returns
 // an empty slice.
 func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) {
+	if ctx.BlockHeight() < fxtypes.EvmV0SupportBlock() ||
+		ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() {
+		return
+	}
+
 	if !k.HasInit(ctx) {
 		return
 	}
