@@ -46,5 +46,6 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 		tendermintCmd,
 		sdkserver.ExportCmd(appExport, defaultNodeHome),
 		version.NewVersionCommand(),
+		sdkserver.NewRollbackCmd(defaultNodeHome),
 	)
 }
