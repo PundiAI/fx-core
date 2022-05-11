@@ -5,6 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	fxtypes "github.com/functionx/fx-core/types"
 )
 
 func (suite *KeeperTestSuite) TestEndBlock() {
@@ -47,6 +49,7 @@ func (suite *KeeperTestSuite) TestEndBlock() {
 			tc.malleate()
 
 			req := abci.RequestEndBlock{Height: 1}
+			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV0SupportBlock() + 1)
 			suite.app.FeeMarketKeeperV0.EndBlock(suite.ctx, req)
 			gasUsed := suite.app.FeeMarketKeeperV0.GetBlockGasUsed(suite.ctx)
 			suite.Require().Equal(tc.expGasUsed, gasUsed, tc.name)

@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	app "github.com/functionx/fx-core/app"
 	evmkeeper "github.com/functionx/fx-core/x/evm/v0/keeper"
 	evmtypes "github.com/functionx/fx-core/x/evm/v0/types"
@@ -67,6 +69,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	priv, err = ethsecp256k1.GenerateKey()
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
+
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkTestnet())
 
 	suite.app = app.Setup(checkTx, nil)
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{

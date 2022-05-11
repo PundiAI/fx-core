@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	fxtypes "github.com/functionx/fx-core/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
