@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
 	ibctmtypes "github.com/cosmos/cosmos-sdk/x/ibc/light-clients/07-tendermint/types"
@@ -47,33 +46,7 @@ import (
 )
 
 var (
-	wfxMetadata = banktypes.Metadata{
-		Description: "Wrapped Function X",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "WFX",
-				Exponent: 18,
-				Aliases:  []string{"FX"},
-			},
-		},
-		Base:    "WFX",
-		Display: "WFX",
-	}
-
-	purseMetadata = banktypes.Metadata{
-		Description: "Pundi X Purse Token",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "PURSE",
-				Exponent: 18,
-				Aliases:  []string{purseDenom},
-			},
-		},
-		Base:    "PURSE",
-		Display: "PURSE",
-	}
-
-	purseDenom = "ibc/5BAB702195E8411500FC0256EBC717AB9C7DC039D7FFC6E1A471022AA939E600"
+	devnetPurseDenom = "ibc/B1861D0C2E4BAFA42A61739291975B7663F278FFAF579F83C9C4AD3890D09CA0"
 )
 
 func TestHookChainGravity(t *testing.T) {
@@ -141,11 +114,7 @@ func TestHookChainBSC(t *testing.T) {
 
 	ctx = initEvmErc20(t, ctx, fxcore)
 
-	// 2. register erc20 module coin
-	pair, err := fxcore.Erc20Keeper.RegisterCoin(ctx, purseMetadata)
-	require.NoError(t, err)
-
-	purseID := fxcore.Erc20Keeper.GetDenomMap(ctx, purseDenom)
+	purseID := fxcore.Erc20Keeper.GetDenomMap(ctx, devnetPurseDenom)
 	require.NotEmpty(t, purseID)
 	purseTokenPair, found := fxcore.Erc20Keeper.GetTokenPair(ctx, purseID)
 	require.True(t, found)
@@ -154,32 +123,32 @@ func TestHookChainBSC(t *testing.T) {
 
 	require.Equal(t, types.TokenPair{
 		Erc20Address:  purseTokenPair.GetErc20Address(),
-		Denom:         purseDenom,
+		Denom:         devnetPurseDenom,
 		Enabled:       true,
 		ContractOwner: types.OWNER_MODULE,
 	}, purseTokenPair)
 
-	fip20, err := fxcore.Erc20Keeper.QueryERC20(ctx, pair.GetERC20Contract())
+	fip20, err := fxcore.Erc20Keeper.QueryERC20(ctx, purseTokenPair.GetERC20Contract())
 	require.NoError(t, err)
 	_ = fip20
 	//t.Log("fip20", fip20.Name, fip20.Symbol, fip20.Decimals)
 
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
 
-	err = fxcore.BankKeeper.SendCoins(ctx, ga.GetAddress(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(purseDenom, amt)))
+	err = fxcore.BankKeeper.SendCoins(ctx, ga.GetAddress(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(devnetPurseDenom, amt)))
 	require.NoError(t, err)
 
 	balances := fxcore.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
 	_ = balances
 
-	err = fxcore.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(purseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	err = fxcore.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(devnetPurseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
-	balanceOf, err := fxcore.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
+	balanceOf, err := fxcore.Erc20Keeper.BalanceOf(ctx, purseTokenPair.GetERC20Contract(), addr1)
 	require.NoError(t, err)
 	_ = balanceOf
 
-	token := pair.GetERC20Contract()
+	token := purseTokenPair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, bsctypes.ModuleName)
 	transferChainData := packTransferCrossData(t, ctx, fxcore.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
 	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferChainData)
@@ -355,7 +324,7 @@ func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, authtypes.GenesisAc
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances),
 			sdk.NewCoin("eth0xd9EEd31F5731DfC3Ca18f09B487e200F50a6343B", initBalances),
 			sdk.NewCoin("ibc/4757BC3AA2C696F7083C825BD3951AE3D1631F2A272EA7AFB9B3E1CCCA8560D4", initBalances),
-			sdk.NewCoin(purseDenom, initBalances)))
+			sdk.NewCoin(devnetPurseDenom, initBalances)))
 
 	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
@@ -389,7 +358,7 @@ func GetValidator(t *testing.T, fxcore *app.App, vals ...*tmtypes.Validator) []s
 
 var (
 	FxOriginatedTokenContract = common.HexToAddress("0x0000000000000000000000000000000000000000")
-	BSCBridgeTokenContract    = common.HexToAddress("0x0000000000000000000000000000000000000001")
+	BSCBridgeTokenContract    = common.HexToAddress("0xFBBbB4f7B1e5bCb0345c5A5a61584B2547d5D582")
 )
 
 func testInitGravity(t *testing.T, ctx sdk.Context, fxcore *app.App, val sdk.ValAddress, orch sdk.AccAddress, addr common.Address) sdk.Context {

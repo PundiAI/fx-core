@@ -384,10 +384,10 @@ func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 // CommitNBlocks commits n blocks to state and updates the block height by 1 for each commit.
 func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 	for i := uint64(0); i < n; i++ {
-		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
+		//chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
 		chain.App.Commit()
 		chain.NextBlock()
-		coord.IncrementTime()
+		//coord.IncrementTime()
 	}
 }
 

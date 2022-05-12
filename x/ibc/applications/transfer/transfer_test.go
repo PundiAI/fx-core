@@ -42,6 +42,10 @@ func (suite *TransferTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+
+	suite.coordinator.CommitNBlocks(suite.chainA, uint64(fxtypes.EvmV1SupportBlock()-suite.chainA.CurrentHeader.GetHeight())+1)
+	suite.coordinator.CommitNBlocks(suite.chainB, uint64(fxtypes.EvmV1SupportBlock()-suite.chainB.CurrentHeader.GetHeight())+1)
+	suite.coordinator.CommitNBlocks(suite.chainC, uint64(fxtypes.EvmV1SupportBlock()-suite.chainC.CurrentHeader.GetHeight())+1)
 }
 
 // constructs a send from chainA to chainB on the established channel/connection

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -27,24 +28,20 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	//description use for name
 	name := coinMetadata.Description
 	//display use for symbol
-	symbol := coinMetadata.Display
+	symbol := coinMetadata.Base
 	//decimals
 	decimals := uint8(0)
-	pairBase := ""
 	for _, du := range coinMetadata.DenomUnits {
 		if du.Denom == symbol {
 			decimals = uint8(du.Exponent)
 			if len(du.Aliases) > 0 {
-				pairBase = du.Aliases[0]
+				symbol = du.Aliases[0]
 			}
 			break
 		}
 	}
 	if decimals == 0 {
 		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid display denom exponent")
-	}
-	if len(pairBase) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid mapping token of aliases denom")
 	}
 
 	// check if the denomination already registered
@@ -61,12 +58,12 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		k.bankKeeper.SetDenomMetaData(ctx, coinMetadata)
 	}
 
-	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, name, symbol, decimals, pairBase == fxtypes.DefaultDenom)
+	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == fxtypes.DefaultDenom)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
 	}
 
-	pair := types.NewTokenPair(addr, pairBase, true, types.OWNER_MODULE)
+	pair := types.NewTokenPair(addr, coinMetadata.Base, true, types.OWNER_MODULE)
 	k.SetTokenPair(ctx, pair)
 	k.SetDenomMap(ctx, pair.Denom, pair.GetID())
 	k.SetERC20Map(ctx, common.HexToAddress(pair.Erc20Address), pair.GetID())
@@ -209,13 +206,11 @@ func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, err
 }
 
 func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8, origin bool) (common.Address, error) {
-	k.Logger(ctx).Info("deploy token", "name", name, "symbol", symbol, "decimals", decimals)
-
 	tokenContract := fxtypes.GetERC20(ctx.BlockHeight())
 	if origin {
-		tokenContract = fxtypes.GetWFX(ctx.BlockHeight())
+		tokenContract, name, symbol = WrappedDenom(ctx.BlockHeight(), name, symbol)
 	}
-
+	k.Logger(ctx).Info("deploy token", "name", name, "symbol", symbol, "decimals", decimals, "origin", origin)
 	//deploy proxy
 	proxy, err := k.DeployERC1967Proxy(ctx, from, tokenContract.Address)
 	if err != nil {
@@ -264,4 +259,12 @@ func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI
 		return common.Address{}, sdkerrors.Wrap(err, "failed to deploy contract")
 	}
 	return contractAddr, nil
+}
+
+func WrappedDenom(height int64, name, symbol string) (fxtypes.Contract, string, string) {
+	contract := fxtypes.GetWFX(height)
+	wrappedName := fmt.Sprintf("Wrapped %s", name)
+	wrappedSymbol := fmt.Sprintf("W%s", symbol)
+
+	return contract, wrappedName, wrappedSymbol
 }

@@ -49,13 +49,13 @@ func (suite *KeeperTestSuite) setupRegisterCoin() (banktypes.Metadata, *types.To
 		Description: "description of the token",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    cosmosTokenDisplay,
+				Denom:    cosmosTokenBase,
 				Exponent: uint32(18),
 				Aliases:  []string{cosmosTokenBase},
 			},
 		},
-		Base:    cosmosTokenDisplay,
-		Display: cosmosTokenDisplay,
+		Base:    cosmosTokenBase,
+		Display: cosmosTokenBase,
 	}
 
 	// pair := types.NewTokenPair(contractAddr, cosmosTokenBase, true, types.OWNER_MODULE)
@@ -71,13 +71,13 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 		// NOTE: Denom units MUST be increasing
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    cosmosTokenDisplay,
+				Denom:    cosmosTokenBase,
 				Exponent: defaultExponent,
-				Aliases:  []string{cosmosTokenBase},
+				Aliases:  []string{cosmosTokenDisplay},
 			},
 		},
-		Base:    cosmosTokenDisplay,
-		Display: cosmosTokenDisplay,
+		Base:    cosmosTokenBase,
+		Display: cosmosTokenBase,
 	}
 
 	testCases := []struct {
@@ -106,19 +106,19 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 		{
 			"metadata different that stored",
 			func() {
-				metadata.Base = cosmosTokenDisplay
+				metadata.Base = cosmosTokenBase
 				validMetadata := banktypes.Metadata{
 					Description: "description",
 					// NOTE: Denom units MUST be increasing
 					DenomUnits: []*banktypes.DenomUnit{
 						{
-							Denom:    cosmosTokenDisplay,
+							Denom:    cosmosTokenBase,
 							Exponent: uint32(18),
 							Aliases:  []string{"coin2"},
 						},
 					},
-					Base:    cosmosTokenDisplay,
-					Display: cosmosTokenDisplay,
+					Base:    cosmosTokenBase,
+					Display: cosmosTokenBase,
 				}
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, validMetadata)
 			},
@@ -127,7 +127,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 		{
 			"ok",
 			func() {
-				metadata.Base = cosmosTokenDisplay
+				metadata.Base = cosmosTokenBase
 			},
 			true,
 		},
@@ -142,7 +142,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 			//suite.Commit()
 
 			expPair := &types.TokenPair{
-				Erc20Address:  "0xd567B3d7B8FE3C79a1AD8dA978812cfC4Fa05e75",
+				Erc20Address:  "0x1D54EcB8583Ca25895c512A8308389fFD581F9c9",
 				Denom:         cosmosTokenBase,
 				Enabled:       true,
 				ContractOwner: 1,
