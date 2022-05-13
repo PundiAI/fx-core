@@ -39,10 +39,8 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 		tmcmd.ResetStateCmd,
 	)
 
-	startCmd := server.StartCmd(appCreator, defaultNodeHome)
-
 	rootCmd.AddCommand(
-		startCmd,
+		server.StartCmd(appCreator, defaultNodeHome),
 		tendermintCmd,
 		sdkserver.ExportCmd(appExport, defaultNodeHome),
 		version.NewVersionCommand(),

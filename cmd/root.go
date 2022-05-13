@@ -124,11 +124,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	addTendermintCommands(rootCmd, app.DefaultNodeHome, appCreator.newApp, appCreator.appExport)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
-	rpcStatusCmd := rpc.StatusCommand()
-	rpcStatusCmd.SetOut(os.Stdout)
 	rootCmd.AddCommand(
 		keyCommands(app.DefaultNodeHome),
-		rpcStatusCmd,
+		rpc.StatusCommand(),
 		queryCommand(),
 		txCommand(),
 	)
