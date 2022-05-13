@@ -10,6 +10,7 @@
 * `fxcored tendermint update-node-key` command has been rename to the `fxcored tendermint unsafe-reset-node-key`
 * Remove bech32 PubKey support, Use pubkey in JSON format
 * `fxcored keys add` command flags `--algo` the default is eth_secp256k1; `--coin-type` the default is 60
+* `fxcored keys add` command output add the EIP55 address
 
 ### API Breaking Changes
 
@@ -17,6 +18,9 @@
 
 ### Features
 
+* support evm, enable ethereum compatibility
+* support EIP1559, the initial gas price is 500Gwei
+* account migrate, migrate fx address to 0x address, validator is not supported
 * add gRPC swagger-ui
 * gravity/crosschain module support targetIbc `0x` prefix
 
