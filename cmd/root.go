@@ -67,20 +67,20 @@ func newRootCmd() *cobra.Command {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
-			// read flags to clientCtx
-			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
-			if err != nil {
-				return err
+			// read flag home
+			if initClientCtx.HomeDir == "" || cmd.Flags().Changed(flags.FlagHome) {
+				homeDir, _ := cmd.Flags().GetString(flags.FlagHome)
+				initClientCtx.WithHomeDir(homeDir)
 			}
 
 			// read client.toml
-			initClientCtx, err = sdkCfg.ReadFromClientConfig(initClientCtx)
+			initClientCtx, err := sdkCfg.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
 			}
 
 			// set clientCtx
-			if err := client.SetCmdClientContext(cmd, initClientCtx); err != nil {
+			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
 
