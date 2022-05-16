@@ -45,7 +45,7 @@ func (options HandlerOptions) Validate() error {
 func newEthV0AnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ethv0.NewEthSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
-		NewMempoolFeeDecorator(options.BypassMinFeeMsgTypes),
+		ante.NewMempoolFeeDecorator(),
 		ante.TxTimeoutHeightDecorator{},
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ethv0.NewEthValidateBasicDecorator(options.EvmKeeperV0),
@@ -75,7 +75,7 @@ func newNormalTxAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		NewRejectExtensionOptionsDecorator(),
-		ante.NewMempoolFeeDecorator(),
+		NewMempoolFeeDecorator(options.BypassMinFeeMsgTypes),
 		ante.NewValidateBasicDecorator(),
 		ante.TxTimeoutHeightDecorator{},
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
