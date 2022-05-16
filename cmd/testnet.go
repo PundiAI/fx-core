@@ -133,10 +133,12 @@ func initTestnet(
 	fxAppConfig.Telemetry.PrometheusRetentionTime = 60
 	fxAppConfig.Telemetry.EnableHostnameLabel = false
 	fxAppConfig.Telemetry.GlobalLabels = [][]string{{"chain_id", chainID}}
-	fxAppConfig.BypassMinFeeMsgTypes = []string{
-		sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
-		sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
-		sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
+	fxAppConfig.BypassMinFee = serverconfig.BypassMinFee{
+		MsgTypes: []string{
+			sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
+			sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
+			sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
+		},
 	}
 
 	var (

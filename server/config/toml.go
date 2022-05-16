@@ -3,20 +3,21 @@ package config
 import "github.com/cosmos/cosmos-sdk/server/config"
 
 func DefaultConfigTemplate() string {
-	return config.DefaultConfigTemplate + DefaultEvmConfigTemplate
+	return config.DefaultConfigTemplate + CustomConfigTemplate
 }
 
-// DefaultEvmConfigTemplate defines the configuration template for the EVM RPC configuration
-const DefaultEvmConfigTemplate = `
+// CustomConfigTemplate defines the configuration template for the EVM RPC configuration
+const CustomConfigTemplate = `
 ###############################################################################
 ###                        Custom Fx Configuration                        ###
 ###############################################################################
-# bypass-min-fee-msg-types defines custom message types the operator may set that
-# will bypass minimum fee checks during CheckTx.
-#
+
+[bypass-min-fee]
+
+# MsgTypes defines custom message types the operator may set that will bypass minimum fee checks during CheckTx.
 # Example:
 # ["/ibc.core.channel.v1.MsgRecvPacket", "/ibc.core.channel.v1.MsgAcknowledgement", ...]
-bypass-min-fee-msg-types = [{{ range .BypassMinFeeMsgTypes }}{{ printf "%q, " . }}{{end}}]
+msg-types = [{{ range .BypassMinFee.MsgTypes }}{{ printf "%q, " . }}{{end}}]
 
 ###############################################################################
 ###                             EVM Configuration                           ###
@@ -95,5 +96,5 @@ var (
 	// BypassMinFeeMsgTypesKey defines the configuration key for the
 	// BypassMinFeeMsgTypes value.
 	// nolint: gosec
-	BypassMinFeeMsgTypesKey = "bypass-min-fee-msg-types"
+	BypassMinFeeMsgTypesKey = "bypass-min-fee.msg-types"
 )

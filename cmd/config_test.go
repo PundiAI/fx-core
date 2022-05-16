@@ -176,7 +176,9 @@ const appConfigJson = `{
     "rpc-write-timeout": 0,
     "swagger": false
   },
-  "bypass-min-fee-msg-types": [],
+  "bypass-min-fee": {
+    "msg-types": []
+  },
   "evm": {
     "max-tx-gas-wanted": 500000,
     "tracer": ""

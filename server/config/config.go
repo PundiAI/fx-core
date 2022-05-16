@@ -56,13 +56,19 @@ var evmTracers = []string{"json", "markdown", "struct", "access_list"}
 type Config struct {
 	config.Config `mapstructure:",squash"`
 
-	// BypassMinFeeMsgTypes defines custom message types the operator may set that
-	// will bypass minimum fee checks during CheckTx.
-	BypassMinFeeMsgTypes []string `mapstructure:"bypass-min-fee-msg-types"`
+	// BypassMinFeeMsgTypes defines custom that will bypass minimum fee checks during CheckTx.
+	BypassMinFee BypassMinFee `mapstructure:"bypass-min-fee"`
 
 	EVM     EVMConfig     `mapstructure:"evm"`
 	JSONRPC JSONRPCConfig `mapstructure:"json-rpc"`
 	TLS     TLSConfig     `mapstructure:"tls"`
+}
+
+// BypassMinFee defines custom that will bypass minimum fee checks during CheckTx.
+type BypassMinFee struct {
+	// MsgTypes defines custom message types the operator may set that
+	// will bypass minimum fee checks during CheckTx.
+	MsgTypes []string `mapstructure:"msg-types"`
 }
 
 // EVMConfig defines the application configuration values for the EVM.
@@ -141,11 +147,18 @@ func AppConfig(denom string) (string, interface{}) {
 // DefaultConfig returns server's default configuration.
 func DefaultConfig() *Config {
 	return &Config{
-		Config:               *config.DefaultConfig(),
-		BypassMinFeeMsgTypes: []string{},
-		EVM:                  DefaultEVMConfig(),
-		JSONRPC:              DefaultJSONRPCConfig(),
-		TLS:                  DefaultTLSConfig(),
+		Config:       *config.DefaultConfig(),
+		BypassMinFee: DefaultBypassMinFee(),
+		EVM:          DefaultEVMConfig(),
+		JSONRPC:      DefaultJSONRPCConfig(),
+		TLS:          DefaultTLSConfig(),
+	}
+}
+
+// DefaultBypassMinFee returns the default BypassMinFee configuration
+func DefaultBypassMinFee() BypassMinFee {
+	return BypassMinFee{
+		MsgTypes: []string{},
 	}
 }
 
