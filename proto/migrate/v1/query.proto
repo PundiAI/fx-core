@@ -13,6 +13,10 @@ service Query {
   rpc MigrateRecord(QueryMigrateRecordRequest) returns (QueryMigrateRecordResponse) {
     option (google.api.http).get = "/migrate/v1/record/{address}";
   }
+
+  rpc MigrateCheckAccount(QueryMigrateCheckAccountRequest) returns (QueryMigrateCheckAccountResponse) {
+    option (google.api.http).get = "/migrate/v1/check/account";
+  }
 }
 
 message QueryMigrateRecordRequest {string address = 1;}
@@ -23,3 +27,12 @@ message QueryMigrateRecordResponse {
   // migrateRecord defines the the migrate record.
   MigrateRecord migrateRecord = 2 [(gogoproto.nullable) = false];
 }
+
+message QueryMigrateCheckAccountRequest {
+  // migrate from address
+  string from = 1;
+  // migrate to address
+  string to = 2;
+}
+
+message QueryMigrateCheckAccountResponse {}

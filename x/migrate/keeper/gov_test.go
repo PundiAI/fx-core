@@ -93,5 +93,69 @@ func Test_MigrateGovActiveFunc(t *testing.T) {
 	deposit4, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, tom)
 	require.True(t, found)
 	require.Equal(t, amount, deposit4.Amount)
+}
+
+func Test_MigrateGovActiveAndVoteFunc(t *testing.T) {
+	app, _, delegateAddressArr := initTest(t)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	alice, bob, tom, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
+
+	content := govtypes.ContentFromProposalType("title", "description", "Text")
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
+
+	proposal, err := app.GovKeeper.SubmitProposal(ctx, content)
+	require.NoError(t, err)
+
+	_, err = app.GovKeeper.AddDeposit(ctx, proposal.ProposalId, alice, amount)
+	require.NoError(t, err)
+
+	_, err = app.GovKeeper.AddDeposit(ctx, proposal.ProposalId, bob, amount)
+	require.NoError(t, err)
+
+	err = app.GovKeeper.AddVote(ctx, proposal.ProposalId, alice, govtypes.OptionYes)
+	require.NoError(t, err)
+
+	deposit1, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, alice)
+	require.True(t, found)
+	require.Equal(t, amount, deposit1.Amount)
+
+	deposit2, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, bob)
+	require.True(t, found)
+	require.Equal(t, amount, deposit2.Amount)
+
+	vote, found := app.GovKeeper.GetVote(ctx, proposal.ProposalId, alice)
+	require.True(t, found)
+	require.Equal(t, vote.Option, govtypes.OptionYes)
+
+	_, found = app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, tom)
+	require.False(t, found)
+
+	_, found = app.GovKeeper.GetVote(ctx, proposal.ProposalId, tom)
+	require.False(t, found)
+
+	migrateKeeper := app.MigrateKeeper
+	m := migratekeeper.NewGovMigrate(app.GetKey(govtypes.StoreKey), app.GovKeeper)
+	err = m.Validate(ctx, migrateKeeper, alice, tom)
+	require.NoError(t, err)
+	err = m.Execute(ctx, migrateKeeper, alice, tom)
+	require.NoError(t, err)
+
+	_, found = app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, alice)
+	require.False(t, found)
+
+	deposit3, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, bob)
+	require.True(t, found)
+	require.Equal(t, amount, deposit3.Amount)
+
+	deposit4, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, tom)
+	require.True(t, found)
+	require.Equal(t, amount, deposit4.Amount)
+
+	_, found = app.GovKeeper.GetVote(ctx, proposal.ProposalId, alice)
+	require.False(t, found)
+
+	vote, found = app.GovKeeper.GetVote(ctx, proposal.ProposalId, tom)
+	require.True(t, found)
+	require.Equal(t, vote.Option, govtypes.OptionYes)
 
 }

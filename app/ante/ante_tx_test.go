@@ -7,12 +7,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/forks"
+	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -703,6 +707,79 @@ func (suite AnteTestSuite) TestAnteHandlerWithParams() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().True(errors.Is(err, tc.expErr))
+			}
+		})
+	}
+}
+
+func (suite AnteTestSuite) TestAnteHandlerWithMigrate() {
+	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
+	app.BeginBlockForks(suite.ctx, suite.app)
+
+	fromKeyFn := func(setPubKey bool) cryptotypes.PrivKey {
+		fromKey := secp256k1.GenPrivKey()
+		fromAccount := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, fromKey.PubKey().Address().Bytes())
+		if setPubKey {
+			err := fromAccount.SetPubKey(fromKey.PubKey())
+			suite.Require().NoError(err)
+		}
+		suite.app.AccountKeeper.SetAccount(suite.ctx, fromAccount)
+		suite.app.BankKeeper.SetBalance(suite.ctx, fromKey.PubKey().Address().Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e18).Mul(sdk.NewInt(10000))))
+		return fromKey
+	}
+	toKeyFn := func() cryptotypes.PrivKey {
+		toKey, err := ethsecp256k1.GenerateKey()
+		suite.Require().NoError(err)
+
+		toAccount := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, toKey.PubKey().Address().Bytes())
+		err = toAccount.SetPubKey(toKey.PubKey())
+		suite.Require().NoError(err)
+		suite.app.AccountKeeper.SetAccount(suite.ctx, toAccount)
+		return toKey
+	}
+
+	coinAmount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4000000000000))
+	amount := sdk.NewCoins(coinAmount)
+	gas := uint64(2000000)
+
+	testCases := []struct {
+		name      string
+		txFn      func() sdk.Tx
+		checkTx   bool
+		reCheckTx bool
+		expPass   bool
+	}{
+		{
+			"success - migrate account",
+			func() sdk.Tx {
+				tx := suite.CreateMigrateTx(fromKeyFn(true), toKeyFn(), gas, amount)
+				return tx
+			},
+			false,
+			false,
+			true,
+		},
+		{
+			name: "failed - migrate account, public key nil",
+			txFn: func() sdk.Tx {
+				tx := suite.CreateMigrateTx(fromKeyFn(false), toKeyFn(), gas, amount)
+				return tx
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.ctx = suite.ctx.WithIsCheckTx(tc.checkTx).WithIsReCheckTx(tc.reCheckTx)
+
+			_, err := suite.anteHandler(suite.ctx, tc.txFn(), false)
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
 			}
 		})
 	}

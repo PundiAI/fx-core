@@ -47,19 +47,6 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownExtensionOptions, "rejecting tx with unsupported extension option: %s", typeURL)
 				}
 
-				//switch typeURL := opts[0].GetTypeUrl(); typeURL {
-				//case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
-				//	anteHandler = newEthV0AnteHandler(options)
-				//case "/" + proto.MessageName(&evmtypes.ExtensionOptionsEthereumTx{}):
-				//	// handle as *evmtypes.MsgEthereumTx
-				//	anteHandler = newEthAnteHandler(options)
-				////case "/fx.ethereum.types.v1.ExtensionOptionsWeb3Tx":
-				////	// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
-				////	anteHandler = NewNormalTxAnteHandlerEip712(options)
-				//default:
-				//	return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownExtensionOptions, "rejecting tx with unsupported extension option: %s", typeURL)
-				//}
-
 				return anteHandler(ctx, tx, sim)
 			}
 		}
@@ -100,18 +87,21 @@ const (
 	secp256k1VerifyCost uint64 = 21000
 )
 
-var _ ante.SignatureVerificationGasConsumer = DefaultSigVerificationGasConsumer
+var _ SignatureVerificationGasConsumer = DefaultSigVerificationGasConsumer
 
 // DefaultSigVerificationGasConsumer is the default implementation of SignatureVerificationGasConsumer. It consumes gas
 // for signature verification based upon the public key type. The cost is fetched from the given params and is matched
 // by the concrete type.
-func DefaultSigVerificationGasConsumer(
-	meter sdk.GasMeter, sig txsigning.SignatureV2, params types.Params,
-) error {
+func DefaultSigVerificationGasConsumer(ctx sdk.Context, sig txsigning.SignatureV2, params types.Params) error {
 	pubkey := sig.PubKey
+	meter := ctx.GasMeter()
 	switch pubkey := pubkey.(type) {
 	case *ethsecp256k1.PubKey: // support for ethereum ECDSA secp256k1 keys
-		meter.ConsumeGas(secp256k1VerifyCost, "ante verify: eth_secp256k1")
+		ethsecp256k1VerifyCost := params.SigVerifyCostSecp256k1
+		if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
+			ethsecp256k1VerifyCost = secp256k1VerifyCost
+		}
+		meter.ConsumeGas(ethsecp256k1VerifyCost, "ante verify: eth_secp256k1")
 		return nil
 
 	case *ed25519.PubKey:
@@ -136,5 +126,4 @@ func DefaultSigVerificationGasConsumer(
 	default:
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "unrecognized public key type: %T", pubkey)
 	}
-	//return ante.DefaultSigVerificationGasConsumer(meter, sig, params)
 }

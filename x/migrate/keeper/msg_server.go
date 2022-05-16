@@ -26,12 +26,19 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 	if err != nil {
 		return nil, err
 	}
-	//migrated
+
+	//check migrated
 	if k.HasMigrateRecord(ctx, fromAddress) {
 		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.From)
 	}
 	if k.HasMigrateRecord(ctx, toAddress) {
 		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.To)
+	}
+
+	//check from address
+	fromAccount, err := k.checkMigrateFrom(ctx, fromAddress)
+	if err != nil {
+		return nil, err
 	}
 
 	//migrate Validate
@@ -47,8 +54,14 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 			return nil, sdkerrors.Wrap(types.ErrMigrateExecute, err.Error())
 		}
 	}
+
 	//set record
 	k.SetMigrateRecord(ctx, fromAddress, toAddress)
+
+	//deprecated from account
+	if err := k.deprecatedSecp256k1(ctx, fromAccount); err != nil {
+		return nil, err
+	}
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(

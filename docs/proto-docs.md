@@ -345,6 +345,8 @@
     - [MigrateRecord](#fx.migrate.v1.MigrateRecord)
   
 - [migrate/v1/query.proto](#migrate/v1/query.proto)
+    - [QueryMigrateCheckAccountRequest](#fx.migrate.v1.QueryMigrateCheckAccountRequest)
+    - [QueryMigrateCheckAccountResponse](#fx.migrate.v1.QueryMigrateCheckAccountResponse)
     - [QueryMigrateRecordRequest](#fx.migrate.v1.QueryMigrateRecordRequest)
     - [QueryMigrateRecordResponse](#fx.migrate.v1.QueryMigrateRecordResponse)
   
@@ -5241,6 +5243,32 @@ Msg defines the ibc/transfer Msg service.
 
 
 
+<a name="fx.migrate.v1.QueryMigrateCheckAccountRequest"></a>
+
+### QueryMigrateCheckAccountRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | migrate from address |
+| `to` | [string](#string) |  | migrate to address |
+
+
+
+
+
+
+<a name="fx.migrate.v1.QueryMigrateCheckAccountResponse"></a>
+
+### QueryMigrateCheckAccountResponse
+
+
+
+
+
+
+
 <a name="fx.migrate.v1.QueryMigrateRecordRequest"></a>
 
 ### QueryMigrateRecordRequest
@@ -5286,6 +5314,7 @@ Query provides defines the gRPC querier service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `MigrateRecord` | [QueryMigrateRecordRequest](#fx.migrate.v1.QueryMigrateRecordRequest) | [QueryMigrateRecordResponse](#fx.migrate.v1.QueryMigrateRecordResponse) | DenomTrace queries a denomination trace information. | GET|/migrate/v1/record/{address}|
+| `MigrateCheckAccount` | [QueryMigrateCheckAccountRequest](#fx.migrate.v1.QueryMigrateCheckAccountRequest) | [QueryMigrateCheckAccountResponse](#fx.migrate.v1.QueryMigrateCheckAccountResponse) |  | GET|/migrate/v1/check/account|
 
  <!-- end services -->
 

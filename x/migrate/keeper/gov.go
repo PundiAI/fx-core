@@ -20,7 +20,19 @@ func NewGovMigrate(govKey sdk.StoreKey, govKeeper types.GovKeeper) MigrateI {
 	}
 }
 
-func (m *GovMigrate) Validate(_ sdk.Context, _ Keeper, _, _ sdk.AccAddress) error {
+func (m *GovMigrate) Validate(ctx sdk.Context, _ Keeper, from, to sdk.AccAddress) error {
+	votingParams := m.govKeeper.GetVotingParams(ctx)
+	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(votingParams.VotingPeriod))
+	defer activeIter.Close()
+	for ; activeIter.Valid(); activeIter.Next() {
+		//check vote
+		proposalID, _ := govtypes.SplitActiveProposalQueueKey(activeIter.Key())
+		_, fromVoteFound := m.govKeeper.GetVote(ctx, proposalID, from)
+		_, toVoteFound := m.govKeeper.GetVote(ctx, proposalID, to)
+		if fromVoteFound && toVoteFound {
+			return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s has voted proposal %d", to.String(), proposalID)
+		}
+	}
 	return nil
 }
 
@@ -32,9 +44,8 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.AccAddress)
 	defer inactiveIter.Close()
 	for ; inactiveIter.Valid(); inactiveIter.Next() {
 		proposalID, _ := govtypes.SplitInactiveProposalQueueKey(inactiveIter.Key())
-		//migrate vote
-		fromDeposit, fromFound := m.govKeeper.GetDeposit(ctx, proposalID, from)
-		if fromFound {
+		//migrate deposit
+		if fromDeposit, fromFound := m.govKeeper.GetDeposit(ctx, proposalID, from); fromFound {
 			amount := fromDeposit.Amount
 			toDeposit, toFound := m.govKeeper.GetDeposit(ctx, proposalID, to)
 			if toFound {
@@ -53,8 +64,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.AccAddress)
 	for ; activeIter.Valid(); activeIter.Next() {
 		proposalID, _ := govtypes.SplitActiveProposalQueueKey(activeIter.Key())
 		//migrate deposit
-		fromDeposit, depositFound := m.govKeeper.GetDeposit(ctx, proposalID, from)
-		if depositFound {
+		if fromDeposit, depositFound := m.govKeeper.GetDeposit(ctx, proposalID, from); depositFound {
 			amount := fromDeposit.Amount
 			toDeposit, toFound := m.govKeeper.GetDeposit(ctx, proposalID, to)
 			if toFound {
@@ -66,8 +76,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.AccAddress)
 			govStore.Set(govtypes.DepositKey(proposalID, to), k.cdc.MustMarshal(&fromDeposit))
 		}
 		//migrate vote
-		fromVote, voteFound := m.govKeeper.GetVote(ctx, proposalID, from)
-		if voteFound {
+		if fromVote, voteFound := m.govKeeper.GetVote(ctx, proposalID, from); voteFound {
 			_, toFound := m.govKeeper.GetVote(ctx, proposalID, to)
 			if toFound {
 				return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s has voted proposal %d", to.String(), proposalID)

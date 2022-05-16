@@ -3,6 +3,10 @@ package keeper
 import (
 	"bytes"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -15,15 +19,18 @@ type Keeper struct {
 	cdc codec.BinaryCodec
 	// Store key required for the Fee Market Prefix KVStore.
 	storeKey sdk.StoreKey
+	//account keeper
+	accountKeeper types.AccountKeeper
 	// Migrate handlers
 	migrateI []MigrateI
 }
 
 // NewKeeper generates new fee market module keeper
-func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, ak types.AccountKeeper) Keeper {
 	return Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
+		cdc:           cdc,
+		storeKey:      storeKey,
+		accountKeeper: ak,
 	}
 }
 
@@ -85,4 +92,35 @@ func (k *Keeper) GetMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) (mr type
 func (k *Keeper) HasMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetMigratedRecordKey(addr))
+}
+
+// checkMigrateFrom check migrate from address
+func (k *Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtypes.AccountI, error) {
+	fromAccount := k.accountKeeper.GetAccount(ctx, addr)
+	if fromAccount == nil {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidAddress, "empty account: %s", addr.String())
+	}
+	fromPubKey := fromAccount.GetPubKey()
+	if fromPubKey == nil {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidAddress, "empty public key: %s", addr.String())
+	}
+	if fromPubKey.Type() != new(secp256k1.PubKey).Type() {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidAddress, "account type not support: %s(%s)", addr.String(), fromPubKey.Type())
+	}
+	return fromAccount, nil
+}
+
+// deprecatedAccount deprecated migrate from account
+func (k *Keeper) deprecatedSecp256k1(ctx sdk.Context, acct authtypes.AccountI) error {
+	if acct.GetPubKey() == nil {
+		return sdkerrors.Wrapf(types.ErrDeprecatedAccount, "invalid account")
+	}
+	if acct.GetPubKey().Type() != new(secp256k1.PubKey).Type() {
+		return sdkerrors.Wrapf(types.ErrDeprecatedAccount, "invalid account type")
+	}
+	if err := acct.SetPubKey(nil); err != nil {
+		return sdkerrors.Wrap(types.ErrDeprecatedAccount, err.Error())
+	}
+	k.accountKeeper.SetAccount(ctx, acct)
+	return nil
 }

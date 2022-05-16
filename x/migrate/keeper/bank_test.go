@@ -4,6 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+
+	"github.com/functionx/fx-core/crypto/ethsecp256k1"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
@@ -51,6 +55,21 @@ func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, []sdk.AccAddress) {
 	fxcore.StakingKeeper.SetParams(ctx, stakingParams)
 
 	delegateAddressArr := app.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000)))
+
+	//Note: address not matching pubKey, use for test
+	for i, addr := range delegateAddressArr {
+		account := fxcore.AccountKeeper.GetAccount(ctx, addr)
+		if i%2 == 0 {
+			err := account.SetPubKey(secp256k1.GenPrivKey().PubKey())
+			require.NoError(t, err)
+		} else {
+			key, _ := ethsecp256k1.GenerateKey()
+			err := account.SetPubKey(key.PubKey())
+			require.NoError(t, err)
+		}
+		fxcore.AccountKeeper.SetAccount(ctx, account)
+	}
+
 	return fxcore, validator.Validators, delegateAddressArr
 }
 
