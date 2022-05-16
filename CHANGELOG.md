@@ -23,6 +23,7 @@
 * account migrate, migrate fx address to 0x address, validator is not supported
 * add gRPC swagger-ui
 * gravity/crosschain module support targetIbc `0x` prefix
+* add `fxcored config update` command, only missing parts are added
 
 ### Bug Fixes
 

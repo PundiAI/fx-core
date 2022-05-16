@@ -67,17 +67,20 @@ func newRootCmd() *cobra.Command {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
+			// read flags to clientCtx
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
+			// read client.toml
 			initClientCtx, err = sdkCfg.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
 			}
 
-			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
+			// set clientCtx
+			if err := client.SetCmdClientContext(cmd, initClientCtx); err != nil {
 				return err
 			}
 
@@ -103,7 +106,7 @@ func newRootCmd() *cobra.Command {
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	sdkCfgCmd := sdkCfg.Cmd()
-	sdkCfgCmd.AddCommand(appTomlCmd(), configTomlCmd())
+	sdkCfgCmd.AddCommand(updateCmd(), appTomlCmd(), configTomlCmd())
 
 	rootCmd.AddCommand(
 		initCmd(app.DefaultNodeHome),

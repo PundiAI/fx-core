@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/spf13/viper"
 	"path/filepath"
 	"strings"
 
@@ -11,10 +13,8 @@ import (
 	fxconfig "github.com/functionx/fx-core/server/config"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
@@ -24,6 +24,32 @@ const (
 	configFileName = "config.toml"
 	appFileName    = "app.toml"
 )
+
+func updateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update",
+		Short: "Update app.toml and config.toml files to the latest version, default only missing parts are added",
+		Args:  cobra.RangeArgs(0, 2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			rootDir := serverCtx.Config.RootDir
+			fileName := filepath.Join(rootDir, "config", configFileName)
+			tmcfg.WriteConfigFile(fileName, serverCtx.Config)
+			serverCtx.Logger.Info("Update config.toml is successful", "fileName", fileName)
+
+			config.SetConfigTemplate(fxconfig.DefaultConfigTemplate())
+			appConfig := fxconfig.DefaultConfig()
+			if err := serverCtx.Viper.Unmarshal(appConfig); err != nil {
+				return err
+			}
+			fileName = filepath.Join(rootDir, "config", appFileName)
+			config.WriteConfigFile(fileName, appConfig)
+			serverCtx.Logger.Info("Update app.toml is successful", "fileName", fileName)
+			return nil
+		},
+	}
+	return cmd
+}
 
 func appTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -56,14 +82,15 @@ func runConfigCmd(cmd *cobra.Command, args []string) error {
 	serverCtx := server.GetServerContextFromCmd(cmd)
 	clientCtx := client.GetClientContextFromCmd(cmd)
 
-	operatorConfig, err := newConfig(args[0], serverCtx)
+	configName := filepath.Join(serverCtx.Config.RootDir, "config", args[0])
+	cfg, err := newConfig(serverCtx.Viper, configName)
 	if err != nil {
 		return err
 	}
 
 	// is len(args) == 1, get config file content
 	if len(args) == 1 {
-		return operatorConfig.output(clientCtx.PrintOutput)
+		return cfg.output(clientCtx.PrintOutput)
 	}
 
 	// 2. is len(args) == 2, get config key value
@@ -72,15 +99,11 @@ func runConfigCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	serverCtx.Viper.Set(args[1], args[2])
-	configPath := filepath.Join(serverCtx.Viper.GetString(flags.FlagHome), "config")
-	if err = operatorConfig.save(configPath); err != nil {
-		return err
-	}
-	return nil
+	return cfg.save()
 }
 
 type cmdConfig interface {
-	save(configPath string) error
+	save() error
 	output(printOutput func(out []byte) error) error
 }
 
@@ -90,26 +113,27 @@ var (
 )
 
 type appTomlConfig struct {
-	ctx    *server.Context
-	config *fxconfig.Config
+	v          *viper.Viper
+	config     *fxconfig.Config
+	configName string
 }
 
 func (a *appTomlConfig) output(printOutput func(out []byte) error) error {
 	return output(printOutput, a.config)
 }
 
-func (a *appTomlConfig) save(configPath string) error {
-	if err := a.ctx.Viper.Unmarshal(a.config); err != nil {
+func (a *appTomlConfig) save() error {
+	if err := a.v.Unmarshal(a.config); err != nil {
 		return err
 	}
-	configPath = filepath.Join(configPath, appFileName)
-	config.WriteConfigFile(configPath, a.config)
+	config.WriteConfigFile(a.configName, a.config)
 	return nil
 }
 
 type configTomlConfig struct {
-	ctx    *server.Context
-	config *tmcfg.Config
+	v          *viper.Viper
+	config     *tmcfg.Config
+	configName string
 }
 
 func (c *configTomlConfig) output(printOutput func(out []byte) error) error {
@@ -137,30 +161,28 @@ func (c *configTomlConfig) output(printOutput func(out []byte) error) error {
 	})
 }
 
-func (c *configTomlConfig) save(configPath string) error {
-	if err := c.ctx.Viper.Unmarshal(c.config); err != nil {
+func (c *configTomlConfig) save() error {
+	if err := c.v.Unmarshal(c.config); err != nil {
 		return err
 	}
-	configPath = filepath.Join(configPath, configFileName)
-	tmcfg.WriteConfigFile(configPath, c.config)
+	tmcfg.WriteConfigFile(c.configName, c.config)
 	return nil
 }
 
-func newConfig(configName string, ctx *server.Context) (cmdConfig, error) {
-	switch configName {
-	case appFileName:
+func newConfig(v *viper.Viper, configName string) (cmdConfig, error) {
+	if strings.HasSuffix(configName, appFileName) {
 		var configData = fxconfig.Config{}
-		if err := ctx.Viper.Unmarshal(&configData); err != nil {
+		if err := v.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
-		return &appTomlConfig{config: &configData, ctx: ctx}, nil
-	case configFileName:
+		return &appTomlConfig{config: &configData, v: v, configName: configName}, nil
+	} else if strings.HasSuffix(configName, configFileName) {
 		var configData = tmcfg.Config{}
-		if err := ctx.Viper.Unmarshal(&configData); err != nil {
+		if err := v.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
-		return &configTomlConfig{config: &configData, ctx: ctx}, nil
-	default:
+		return &configTomlConfig{config: &configData, v: v, configName: configName}, nil
+	} else {
 		return nil, fmt.Errorf("invalid config file: %s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/"))
 	}
 }

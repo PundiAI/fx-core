@@ -41,7 +41,7 @@ const (
 	DefaultBlockRangeCap int32 = 10000
 
 	DefaultEVMTimeout = 5 * time.Second
-	// default 1.0 eth
+	// DefaultTxFeeCap default 1.0 eth
 	DefaultTxFeeCap float64 = 1.0
 
 	DefaultHTTPTimeout = 30 * time.Second
@@ -138,15 +138,15 @@ func AppConfig(denom string) (string, interface{}) {
 func DefaultConfig() *Config {
 	return &Config{
 		Config:  *config.DefaultConfig(),
-		EVM:     *DefaultEVMConfig(),
-		JSONRPC: *DefaultJSONRPCConfig(),
-		TLS:     *DefaultTLSConfig(),
+		EVM:     DefaultEVMConfig(),
+		JSONRPC: DefaultJSONRPCConfig(),
+		TLS:     DefaultTLSConfig(),
 	}
 }
 
 // DefaultEVMConfig returns the default EVM configuration
-func DefaultEVMConfig() *EVMConfig {
-	return &EVMConfig{
+func DefaultEVMConfig() EVMConfig {
+	return EVMConfig{
 		Tracer:         DefaultEVMTracer,
 		MaxTxGasWanted: DefaultMaxTxGasWanted,
 	}
@@ -172,8 +172,8 @@ func GetAPINamespaces() []string {
 }
 
 // DefaultJSONRPCConfig returns an EVM config with the JSON-RPC API enabled by default
-func DefaultJSONRPCConfig() *JSONRPCConfig {
-	return &JSONRPCConfig{
+func DefaultJSONRPCConfig() JSONRPCConfig {
+	return JSONRPCConfig{
 		Enable:          true,
 		API:             GetDefaultAPINamespaces(),
 		Address:         DefaultJSONRPCAddress,
@@ -200,7 +200,7 @@ func (c JSONRPCConfig) Validate() error {
 		return errors.New("JSON-RPC filter-cap cannot be negative")
 	}
 
-	if c.FeeHistoryCap <= 0 {
+	if c.Enable && c.FeeHistoryCap <= 0 {
 		return errors.New("JSON-RPC feehistory-cap cannot be negative or 0")
 	}
 
@@ -242,8 +242,8 @@ func (c JSONRPCConfig) Validate() error {
 }
 
 // DefaultTLSConfig returns the default TLS configuration
-func DefaultTLSConfig() *TLSConfig {
-	return &TLSConfig{
+func DefaultTLSConfig() TLSConfig {
+	return TLSConfig{
 		CertificatePath: "",
 		KeyPath:         "",
 	}
