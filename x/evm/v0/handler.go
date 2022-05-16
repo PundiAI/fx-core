@@ -1,8 +1,6 @@
 package evm
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -36,7 +34,7 @@ func NewEvmProposalHandler(k keeper.Keeper) govtypes.Handler {
 		switch c := content.(type) {
 		case *types.InitEvmParamsProposal:
 			if ctx.BlockHeight() < fxtype.EvmV0SupportBlock() {
-				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("evm module not enable"))
+				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "evm module not enable")
 			}
 			return k.HandleInitEvmParamsProposal(ctx, c)
 		default:

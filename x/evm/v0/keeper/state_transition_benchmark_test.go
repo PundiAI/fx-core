@@ -127,7 +127,10 @@ func newNativeMessage(
 	}
 
 	msg := &evmtypes.MsgEthereumTx{}
-	msg.FromEthereumTx(ethTx)
+	err := msg.FromEthereumTx(ethTx)
+	if err != nil {
+		return nil, err
+	}
 	msg.From = address.Hex()
 
 	if err := msg.Sign(ethSigner, krSigner); err != nil {

@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/spf13/viper"
 	"path/filepath"
 	"strings"
+
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/spf13/viper"
 
 	"github.com/mitchellh/mapstructure"
 

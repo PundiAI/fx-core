@@ -26,7 +26,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -49,7 +48,6 @@ type EvmTestSuite struct {
 	ctx     sdk.Context
 	handler sdk.Handler
 	app     *fxcore.App
-	codec   codec.Codec
 	chainID *big.Int
 
 	signer    keyring.Signer

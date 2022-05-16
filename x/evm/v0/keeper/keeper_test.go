@@ -44,8 +44,6 @@ import (
 	"github.com/tendermint/tendermint/version"
 )
 
-var testTokens = sdk.NewIntWithDecimal(1000, 18)
-
 type KeeperTestSuite struct {
 	suite.Suite
 
@@ -157,10 +155,11 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	valAddr := sdk.ValAddress(suite.address.Bytes())
 	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
+	suite.Require().NoError(err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
 
 	encodingConfig := app.MakeEncodingConfig()

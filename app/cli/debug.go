@@ -193,7 +193,10 @@ func VerifyTx() *cobra.Command {
 					legacytx.StdFee{Amount: stdTx.GetFee(), Gas: stdTx.GetGas()},
 					tx.GetMsgs(), stdTx.GetMemo(),
 				)
-				clientCtx.PrintBytes(bz)
+				err = clientCtx.PrintBytes(bz)
+				if err != nil {
+					return err
+				}
 
 				err = authsigning.VerifySignature(pubKey, signerData, sig.Data, clientCtx.TxConfig.SignModeHandler(), tx)
 				if err != nil {

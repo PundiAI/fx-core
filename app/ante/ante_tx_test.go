@@ -695,8 +695,9 @@ func (suite AnteTestSuite) TestAnteHandlerWithParams() {
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 			suite.ctx = suite.ctx.WithIsCheckTx(true)
-			suite.app.EvmKeeper.SetBalance(suite.ctx, addr, feemarkettypes.MinBaseFee.Mul(sdk.NewInt(1000000)).BigInt())
-			_, err := suite.anteHandler(suite.ctx, tc.txFn(), false)
+			err := suite.app.EvmKeeper.SetBalance(suite.ctx, addr, feemarkettypes.MinBaseFee.Mul(sdk.NewInt(1000000)).BigInt())
+			suite.Require().NoError(err)
+			_, err = suite.anteHandler(suite.ctx, tc.txFn(), false)
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {

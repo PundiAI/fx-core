@@ -48,6 +48,7 @@ type AnteTestSuite struct {
 	ctx         sdk.Context
 	app         *app.App
 	clientCtx   client.Context
+	txBuilder   client.TxBuilder
 	anteHandler sdk.AnteHandler
 	ethSigner   ethtypes.Signer
 	checkTx     bool
@@ -276,6 +277,54 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	suite.Require().NoError(err)
 
 	return builder
+}
+
+func (s *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNums []uint64, accSeqs []uint64, chainID string) (authsigning.Tx, error) {
+	var sigsV2 []signing.SignatureV2
+	for i, priv := range privs {
+		sigV2 := signing.SignatureV2{
+			PubKey: priv.PubKey(),
+			Data: &signing.SingleSignatureData{
+				SignMode:  s.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+				Signature: nil,
+			},
+			Sequence: accSeqs[i],
+		}
+
+		sigsV2 = append(sigsV2, sigV2)
+	}
+
+	if err := s.txBuilder.SetSignatures(sigsV2...); err != nil {
+		return nil, err
+	}
+
+	sigsV2 = []signing.SignatureV2{}
+	for i, priv := range privs {
+		signerData := authsigning.SignerData{
+			ChainID:       chainID,
+			AccountNumber: accNums[i],
+			Sequence:      accSeqs[i],
+		}
+		sigV2, err := tx.SignWithPrivKey(
+			s.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+			signerData,
+			s.txBuilder,
+			priv,
+			s.clientCtx.TxConfig,
+			accSeqs[i],
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		sigsV2 = append(sigsV2, sigV2)
+	}
+
+	if err := s.txBuilder.SetSignatures(sigsV2...); err != nil {
+		return nil, err
+	}
+
+	return s.txBuilder.GetTx(), nil
 }
 
 var _ sdk.Tx = &invalidTx{}

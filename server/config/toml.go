@@ -9,6 +9,16 @@ func DefaultConfigTemplate() string {
 // DefaultEvmConfigTemplate defines the configuration template for the EVM RPC configuration
 const DefaultEvmConfigTemplate = `
 ###############################################################################
+###                        Custom Fx Configuration                        ###
+###############################################################################
+# bypass-min-fee-msg-types defines custom message types the operator may set that
+# will bypass minimum fee checks during CheckTx.
+#
+# Example:
+# ["/ibc.core.channel.v1.MsgRecvPacket", "/ibc.core.channel.v1.MsgAcknowledgement", ...]
+bypass-min-fee-msg-types = [{{ range .BypassMinFeeMsgTypes }}{{ printf "%q, " . }}{{end}}]
+
+###############################################################################
 ###                             EVM Configuration                           ###
 ###############################################################################
 
@@ -80,3 +90,10 @@ certificate-path = "{{ .TLS.CertificatePath }}"
 # Key path defines the key.pem file path for the TLS configuration.
 key-path = "{{ .TLS.KeyPath }}"
 `
+
+var (
+	// BypassMinFeeMsgTypesKey defines the configuration key for the
+	// BypassMinFeeMsgTypes value.
+	// nolint: gosec
+	BypassMinFeeMsgTypesKey = "bypass-min-fee-msg-types"
+)

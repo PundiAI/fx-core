@@ -9,6 +9,11 @@ import (
 	"os"
 	"path/filepath"
 
+	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
+
+	serverconfig "github.com/functionx/fx-core/server/config"
+
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 
 	"github.com/functionx/fx-core/app"
@@ -119,13 +124,20 @@ func initTestnet(
 	denom string,
 	valNum int,
 ) error {
-	appToml := srvconfig.DefaultConfig()
-	appToml.MinGasPrices = minGasPrices
-	appToml.API.Enable = true
-	appToml.Telemetry.Enabled = true
-	appToml.Telemetry.PrometheusRetentionTime = 60
-	appToml.Telemetry.EnableHostnameLabel = false
-	appToml.Telemetry.GlobalLabels = [][]string{{"chain_id", chainID}}
+	fxAppConfig := serverconfig.Config{
+		Config: *srvconfig.DefaultConfig(),
+	}
+	fxAppConfig.MinGasPrices = minGasPrices
+	fxAppConfig.API.Enable = true
+	fxAppConfig.Telemetry.Enabled = true
+	fxAppConfig.Telemetry.PrometheusRetentionTime = 60
+	fxAppConfig.Telemetry.EnableHostnameLabel = false
+	fxAppConfig.Telemetry.GlobalLabels = [][]string{{"chain_id", chainID}}
+	fxAppConfig.BypassMinFeeMsgTypes = []string{
+		sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
+		sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
+		sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
+	}
 
 	var (
 		genAccounts []authtypes.GenesisAccount
@@ -230,7 +242,7 @@ func initTestnet(
 			return err
 		}
 
-		srvconfig.WriteConfigFile(filepath.Join(nodeDir, "config/app.toml"), appToml)
+		srvconfig.WriteConfigFile(filepath.Join(nodeDir, "config/app.toml"), fxAppConfig)
 	}
 
 	appGenState := app.NewDefAppGenesisByDenom(denom, clientCtx.Codec)

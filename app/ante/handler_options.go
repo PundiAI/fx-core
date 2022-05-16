@@ -15,14 +15,15 @@ import (
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
 // channel keeper, EVM Keeper and Fee Market Keeper.
 type HandlerOptions struct {
-	AccountKeeper     evmtypes.AccountKeeper
-	BankKeeper        evmtypes.BankKeeper
-	EvmKeeper         ethv1.EVMKeeper
-	EvmKeeperV0       ethv0.EVMKeeper
-	FeeMarketKeeperV0 ethv0.FeeMarketKeeper
-	SignModeHandler   authsigning.SignModeHandler
-	SigGasConsumer    ante.SignatureVerificationGasConsumer
-	MaxTxGasWanted    uint64
+	AccountKeeper        evmtypes.AccountKeeper
+	BankKeeper           evmtypes.BankKeeper
+	EvmKeeper            ethv1.EVMKeeper
+	EvmKeeperV0          ethv0.EVMKeeper
+	FeeMarketKeeperV0    ethv0.FeeMarketKeeper
+	SignModeHandler      authsigning.SignModeHandler
+	SigGasConsumer       ante.SignatureVerificationGasConsumer
+	MaxTxGasWanted       uint64
+	BypassMinFeeMsgTypes []string
 }
 
 func (options HandlerOptions) Validate() error {
@@ -44,7 +45,7 @@ func (options HandlerOptions) Validate() error {
 func newEthV0AnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ethv0.NewEthSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
-		ante.NewMempoolFeeDecorator(),
+		NewMempoolFeeDecorator(options.BypassMinFeeMsgTypes),
 		ante.TxTimeoutHeightDecorator{},
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ethv0.NewEthValidateBasicDecorator(options.EvmKeeperV0),

@@ -6,6 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cosmos/cosmos-sdk/server/config"
+
+	serverconfig "github.com/functionx/fx-core/server/config"
+
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
@@ -24,7 +28,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
-	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -622,14 +625,15 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(server.EVMMaxTxGasWanted))
 	options := ante.HandlerOptions{
-		AccountKeeper:     myApp.AccountKeeper,
-		BankKeeper:        myApp.BankKeeper,
-		EvmKeeper:         myApp.EvmKeeper,
-		EvmKeeperV0:       myApp.EvmKeeperV0,
-		FeeMarketKeeperV0: myApp.FeeMarketKeeperV0,
-		SignModeHandler:   encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:    ante.DefaultSigVerificationGasConsumer,
-		MaxTxGasWanted:    maxGasWanted,
+		AccountKeeper:        myApp.AccountKeeper,
+		BankKeeper:           myApp.BankKeeper,
+		EvmKeeper:            myApp.EvmKeeper,
+		EvmKeeperV0:          myApp.EvmKeeperV0,
+		FeeMarketKeeperV0:    myApp.FeeMarketKeeperV0,
+		SignModeHandler:      encodingConfig.TxConfig.SignModeHandler(),
+		SigGasConsumer:       ante.DefaultSigVerificationGasConsumer,
+		MaxTxGasWanted:       maxGasWanted,
+		BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(serverconfig.BypassMinFeeMsgTypesKey)),
 	}
 
 	if err := options.Validate(); err != nil {

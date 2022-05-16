@@ -354,7 +354,7 @@ func (suite *MsgsTestSuite) TestTransactionCoding() {
 		if err != nil {
 			suite.T().Fatal(err)
 		}
-		assertEqual(parsedTx.AsTransaction(), tx)
+		suite.Require().NoError(assertEqual(parsedTx.AsTransaction(), tx))
 	}
 }
 

@@ -56,6 +56,10 @@ var evmTracers = []string{"json", "markdown", "struct", "access_list"}
 type Config struct {
 	config.Config `mapstructure:",squash"`
 
+	// BypassMinFeeMsgTypes defines custom message types the operator may set that
+	// will bypass minimum fee checks during CheckTx.
+	BypassMinFeeMsgTypes []string `mapstructure:"bypass-min-fee-msg-types"`
+
 	EVM     EVMConfig     `mapstructure:"evm"`
 	JSONRPC JSONRPCConfig `mapstructure:"json-rpc"`
 	TLS     TLSConfig     `mapstructure:"tls"`
@@ -137,10 +141,11 @@ func AppConfig(denom string) (string, interface{}) {
 // DefaultConfig returns server's default configuration.
 func DefaultConfig() *Config {
 	return &Config{
-		Config:  *config.DefaultConfig(),
-		EVM:     DefaultEVMConfig(),
-		JSONRPC: DefaultJSONRPCConfig(),
-		TLS:     DefaultTLSConfig(),
+		Config:               *config.DefaultConfig(),
+		BypassMinFeeMsgTypes: []string{},
+		EVM:                  DefaultEVMConfig(),
+		JSONRPC:              DefaultJSONRPCConfig(),
+		TLS:                  DefaultTLSConfig(),
 	}
 }
 
