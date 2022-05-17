@@ -1,11 +1,8 @@
 package ante_test
 
 import (
-	"encoding/hex"
 	"testing"
 	"time"
-
-	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -328,53 +325,6 @@ func (s *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNums [
 	}
 
 	return s.txBuilder.GetTx(), nil
-}
-
-func (suite *AnteTestSuite) CreateMigrateTx(fromKey, toKey cryptotypes.PrivKey, gas uint64, gasAmount sdk.Coins) authsigning.Tx {
-	nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, fromKey.PubKey().Address().Bytes())
-	suite.Require().NoError(err)
-	accNumber := suite.app.AccountKeeper.GetAccount(suite.ctx, fromKey.PubKey().Address().Bytes()).GetAccountNumber()
-
-	hash := migratetypes.MigrateAccountSignatureHash(fromKey.PubKey().Address().Bytes(), toKey.PubKey().Address().Bytes())
-	hashSign, err := toKey.Sign(hash)
-	suite.Require().NoError(err)
-
-	msg := migratetypes.NewMsgMigrateAccount(sdk.AccAddress(fromKey.PubKey().Address().Bytes()), sdk.AccAddress(toKey.PubKey().Address().Bytes()), hex.EncodeToString(hashSign))
-	err = msg.ValidateBasic()
-	suite.Require().NoError(err)
-
-	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
-	builder, ok := txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok)
-
-	err = builder.SetMsgs(msg)
-	suite.Require().NoError(err)
-
-	builder.SetFeeAmount(gasAmount)
-	builder.SetGasLimit(gas)
-
-	// First round: we gather all the signer infos. We use the "set empty
-	// signature" hack to do that.
-	sigV2 := signing.SignatureV2{
-		PubKey:   fromKey.PubKey(),
-		Data:     &signing.SingleSignatureData{SignMode: suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(), Signature: nil},
-		Sequence: nonce,
-	}
-	sigsV2 := []signing.SignatureV2{sigV2}
-	err = txBuilder.SetSignatures(sigsV2...)
-	suite.Require().NoError(err)
-
-	// Second round: all signer infos are set, so each signer can sign.
-	signerData := authsigning.SignerData{ChainID: suite.ctx.ChainID(), AccountNumber: accNumber, Sequence: nonce}
-	sigV2, err = tx.SignWithPrivKey(suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(), signerData, txBuilder, fromKey, suite.clientCtx.TxConfig, nonce)
-	suite.Require().NoError(err)
-
-	sigsV2 = []signing.SignatureV2{sigV2}
-
-	err = txBuilder.SetSignatures(sigsV2...)
-	suite.Require().NoError(err)
-
-	return txBuilder.GetTx()
 }
 
 var _ sdk.Tx = &invalidTx{}

@@ -36,7 +36,7 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 	}
 
 	//check from address
-	fromAccount, err := k.checkMigrateFrom(ctx, fromAddress)
+	_, err = k.checkMigrateFrom(ctx, fromAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +57,6 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 
 	//set record
 	k.SetMigrateRecord(ctx, fromAddress, toAddress)
-
-	//deprecated from account
-	if err := k.deprecatedSecp256k1(ctx, fromAccount); err != nil {
-		return nil, err
-	}
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(

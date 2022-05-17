@@ -6,8 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -81,11 +79,6 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 		// account already has pubkey set,no need to reset
 		if acc.GetPubKey() != nil {
 			continue
-		}
-		//Note: after evm v1 support, can not create a new secp256k1 address
-		// migrate account tx will delete from account pub key, make it like a new secp256k1 address
-		if ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() && pk.Type() == new(secp256k1.PubKey).Type() {
-			return ctx, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "address type not support(new or migrate account), please use eth_secp256k1")
 		}
 
 		err = acc.SetPubKey(pk)
