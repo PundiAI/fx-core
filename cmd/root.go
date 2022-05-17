@@ -67,14 +67,14 @@ func newRootCmd() *cobra.Command {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
-			// read flag home
-			if initClientCtx.HomeDir == "" || cmd.Flags().Changed(flags.FlagHome) {
-				homeDir, _ := cmd.Flags().GetString(flags.FlagHome)
-				initClientCtx.WithHomeDir(homeDir)
+			// read flag
+			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
+			if err != nil {
+				return err
 			}
 
 			// read client.toml
-			initClientCtx, err := sdkCfg.ReadFromClientConfig(initClientCtx)
+			initClientCtx, err = sdkCfg.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
 			}
@@ -99,7 +99,6 @@ func newRootCmd() *cobra.Command {
 		flags.FlagChainID:        fxtypes.ChainID,
 		flags.FlagKeyringBackend: keyring.BackendOS,
 		flags.FlagGas:            "80000",
-		flags.FlagGasPrices:      "4000000000000" + fxtypes.DefaultDenom,
 	})
 	return rootCmd
 }
