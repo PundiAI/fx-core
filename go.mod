@@ -51,4 +51,4 @@ replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.
 
 replace github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
 
-replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.10-0.20220517064754-d4f845ab4151
+replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.10-0.20220518080902-0ac1d6756df6
