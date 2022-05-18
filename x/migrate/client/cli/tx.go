@@ -34,7 +34,7 @@ func GetTxCmd() *cobra.Command {
 
 func GetMigrateAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "account [to-address]",
+		Use:   "account [hex-address]",
 		Short: "migrate account to new address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,8 +43,13 @@ func GetMigrateAccountCmd() *cobra.Command {
 				return err
 			}
 			fromAddress := cliCtx.GetFromAddress()
-			toAddress, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
+
+			if !common.IsHexAddress(args[0]) {
+				return fmt.Errorf("invalid hex address %s", args[0])
+			}
+			hexAddress := common.HexToAddress(args[0])
+			toAddress := sdk.AccAddress(hexAddress.Bytes())
+			if _, err := cliCtx.Keyring.KeyByAddress(toAddress); err != nil {
 				return err
 			}
 
