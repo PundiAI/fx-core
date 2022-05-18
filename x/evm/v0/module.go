@@ -1,7 +1,6 @@
 package evm
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -67,9 +66,9 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 }
 
 func (b AppModuleBasic) RegisterGRPCGatewayRoutes(c client.Context, serveMux *runtime.ServeMux) {
-	if err := types.RegisterQueryHandlerClient(context.Background(), serveMux, types.NewQueryClient(c)); err != nil {
-		panic(err)
-	}
+	//if err := types.RegisterQueryHandlerClient(context.Background(), serveMux, types.NewQueryClient(c)); err != nil {
+	//	panic(err)
+	//}
 }
 
 // GetTxCmd returns the root tx command for the evm module.
@@ -118,10 +117,10 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 // RegisterQueryService registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	//types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	//types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	_ = keeper.NewMigrator(*am.keeper)
+	//_ = keeper.NewMigrator(*am.keeper)
 }
 
 // Route returns the message routing key for the evm module.
@@ -163,8 +162,9 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 // ExportGenesis returns the exported genesis state as raw bytes for the evm
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := ExportGenesis(ctx, am.keeper, am.ak)
-	return cdc.MustMarshalJSON(gs)
+	//gs := ExportGenesis(ctx, am.keeper, am.ak)
+	//return cdc.MustMarshalJSON(gs)
+	return nil
 }
 
 // RandomizedParams creates randomized evm param changes for the simulator.
