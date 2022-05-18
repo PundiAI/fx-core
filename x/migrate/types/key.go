@@ -18,7 +18,11 @@ const (
 
 const (
 	prefixMigratedRecord = iota + 1
+	prefixMigratedDirectionFrom
+	prefixMigratedDirectionTo
+)
 
+const (
 	MigrateAccountSignaturePrefix = "MigrateAccount:"
 
 	EventTypeMigrate = "migrate"
@@ -27,11 +31,23 @@ const (
 )
 
 var (
-	PrefixMigrateFromFlag = []byte{0x1}
-	PrefixMigrateToFlag   = []byte{0x2}
+	KeyPrefixMigratedRecord        = []byte{prefixMigratedRecord}
+	KeyPrefixMigratedDirectionFrom = []byte{prefixMigratedDirectionFrom}
+	KeyPrefixMigratedDirectionTo   = []byte{prefixMigratedDirectionTo}
+
+	ValuePrefixMigrateFromFlag = []byte{0x1}
+	ValuePrefixMigrateToFlag   = []byte{0x2}
 )
 
 // GetMigratedRecordKey returns the following key format
 func GetMigratedRecordKey(addr sdk.AccAddress) []byte {
-	return append([]byte{prefixMigratedRecord}, addr.Bytes()...)
+	return append(KeyPrefixMigratedRecord, addr.Bytes()...)
+}
+
+func GetMigratedDirectionFrom(addr sdk.AccAddress) []byte {
+	return append(KeyPrefixMigratedDirectionFrom, addr.Bytes()...)
+}
+
+func GetMigratedDirectionTo(addr sdk.AccAddress) []byte {
+	return append(KeyPrefixMigratedDirectionTo, addr.Bytes()...)
 }

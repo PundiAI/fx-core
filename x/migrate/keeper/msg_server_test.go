@@ -26,6 +26,12 @@ func TestKeeper_MigrateAccount(t *testing.T) {
 	_, found = fxcore.MigrateKeeper.GetMigrateRecord(ctx, bob)
 	require.False(t, found)
 
+	found = fxcore.MigrateKeeper.HasMigratedDirectionFrom(ctx, alice)
+	require.False(t, found)
+
+	found = fxcore.MigrateKeeper.HasMigratedDirectionTo(ctx, bob)
+	require.False(t, found)
+
 	_, err := fxcore.MigrateKeeper.MigrateAccount(sdk.WrapSDKContext(ctx), &types.MsgMigrateAccount{
 		From:      alice.String(),
 		To:        bob.String(),
@@ -40,6 +46,12 @@ func TestKeeper_MigrateAccount(t *testing.T) {
 	record, found = fxcore.MigrateKeeper.GetMigrateRecord(ctx, bob)
 	require.True(t, found)
 	require.Equal(t, record.To, bob.String())
+
+	found = fxcore.MigrateKeeper.HasMigratedDirectionFrom(ctx, alice)
+	require.True(t, found)
+
+	found = fxcore.MigrateKeeper.HasMigratedDirectionTo(ctx, bob)
+	require.True(t, found)
 
 	bb1 := fxcore.BankKeeper.GetAllBalances(ctx, alice)
 	require.True(t, bb1.Empty())

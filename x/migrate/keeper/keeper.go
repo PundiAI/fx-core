@@ -51,7 +51,7 @@ func (k *Keeper) GetMigrateI() []MigrateI {
 }
 
 // SetMigrateRecord set from and to migrate record
-func (k *Keeper) SetMigrateRecord(ctx sdk.Context, from, to sdk.AccAddress) {
+func (k Keeper) SetMigrateRecord(ctx sdk.Context, from, to sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 
 	bzFrom := make([]byte, 1+sdk.AddrLen+8)
@@ -59,27 +59,30 @@ func (k *Keeper) SetMigrateRecord(ctx sdk.Context, from, to sdk.AccAddress) {
 
 	height := sdk.Uint64ToBigEndian(uint64(ctx.BlockHeight()))
 
-	copy(bzFrom[:], types.PrefixMigrateFromFlag)
+	copy(bzFrom[:], types.ValuePrefixMigrateFromFlag)
 	copy(bzFrom[1:], to.Bytes())
 	copy(bzFrom[1+sdk.AddrLen:], height)
 
-	copy(bzTo[:], types.PrefixMigrateToFlag)
+	copy(bzTo[:], types.ValuePrefixMigrateToFlag)
 	copy(bzTo[1:], from.Bytes())
 	copy(bzTo[1+sdk.AddrLen:], height)
 
 	store.Set(types.GetMigratedRecordKey(from), bzFrom)
 	store.Set(types.GetMigratedRecordKey(to), bzTo)
+
+	store.Set(types.GetMigratedDirectionFrom(from), []byte{1})
+	store.Set(types.GetMigratedDirectionTo(to), []byte{1})
 }
 
 // GetMigrateRecord get address migrate record
-func (k *Keeper) GetMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) (mr types.MigrateRecord, found bool) {
+func (k Keeper) GetMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) (mr types.MigrateRecord, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetMigratedRecordKey(addr))
 	if len(bz) < sdk.AddrLen+9 {
 		return mr, false
 	}
 	mr.Height = int64(sdk.BigEndianToUint64(bz[sdk.AddrLen+1:]))
-	if bytes.Equal(bz[:1], types.PrefixMigrateFromFlag) {
+	if bytes.Equal(bz[:1], types.ValuePrefixMigrateFromFlag) {
 		mr.From = addr.String()
 		mr.To = sdk.AccAddress(bz[1 : sdk.AddrLen+1]).String()
 	} else {
@@ -89,13 +92,23 @@ func (k *Keeper) GetMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) (mr type
 	return mr, true
 }
 
-func (k *Keeper) HasMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) bool {
+func (k Keeper) HasMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetMigratedRecordKey(addr))
 }
 
+func (k Keeper) HasMigratedDirectionFrom(ctx sdk.Context, addr sdk.AccAddress) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.GetMigratedDirectionFrom(addr))
+}
+
+func (k Keeper) HasMigratedDirectionTo(ctx sdk.Context, addr sdk.AccAddress) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.GetMigratedDirectionTo(addr))
+}
+
 // checkMigrateFrom check migrate from address
-func (k *Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtypes.AccountI, error) {
+func (k Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtypes.AccountI, error) {
 	fromAccount := k.accountKeeper.GetAccount(ctx, addr)
 	if fromAccount == nil {
 		return nil, sdkerrors.Wrapf(types.ErrInvalidAddress, "empty account: %s", addr.String())
@@ -108,19 +121,4 @@ func (k *Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtyp
 		return nil, sdkerrors.Wrapf(types.ErrInvalidAddress, "account type not support: %s(%s)", addr.String(), fromPubKey.Type())
 	}
 	return fromAccount, nil
-}
-
-// deprecatedAccount deprecated migrate from account
-func (k *Keeper) deprecatedSecp256k1(ctx sdk.Context, acct authtypes.AccountI) error {
-	if acct.GetPubKey() == nil {
-		return sdkerrors.Wrapf(types.ErrDeprecatedAccount, "invalid account")
-	}
-	if acct.GetPubKey().Type() != new(secp256k1.PubKey).Type() {
-		return sdkerrors.Wrapf(types.ErrDeprecatedAccount, "invalid account type")
-	}
-	if err := acct.SetPubKey(nil); err != nil {
-		return sdkerrors.Wrap(types.ErrDeprecatedAccount, err.Error())
-	}
-	k.accountKeeper.SetAccount(ctx, acct)
-	return nil
 }
