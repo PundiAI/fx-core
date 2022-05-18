@@ -14,7 +14,7 @@ import (
 // GetQueryCmd returns the parent command for all x/bank CLi query commands.
 func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        types.ModuleName,
+		Use:                        "evm",
 		Short:                      "Querying commands for the evm module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,

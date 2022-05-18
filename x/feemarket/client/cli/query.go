@@ -18,7 +18,7 @@ import (
 // GetQueryCmd returns the parent command for all x/feemarket CLI query commands.
 func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        types.ModuleName,
+		Use:                        "feemarket",
 		Short:                      "Querying commands for the fee market module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
