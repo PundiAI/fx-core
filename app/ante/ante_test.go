@@ -79,6 +79,8 @@ func (suite *AnteTestSuite) SetupTest() {
 	priv = secp256k1.GenPrivKey()
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
+
 	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: suite.consAddress, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))

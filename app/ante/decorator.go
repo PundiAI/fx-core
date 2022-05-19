@@ -8,6 +8,9 @@ import (
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	"github.com/functionx/fx-core/crypto/ethsecp256k1"
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,9 +25,9 @@ type SignatureVerificationGasConsumer = func(ctx sdk.Context, sig signing.Signat
 
 var (
 	// simulation signature values used to estimate gas consumption
-	key                = make([]byte, secp256k1.PubKeySize)
-	simSecp256k1Pubkey = &secp256k1.PubKey{Key: key}
-	simSecp256k1Sig    [64]byte
+	key                   = make([]byte, secp256k1.PubKeySize)
+	simSecp256k1Pubkey    = &secp256k1.PubKey{Key: key}
+	simEthSecp256k1Pubkey = &ethsecp256k1.PubKey{Key: key}
 
 	_ authsigning.SigVerifiableTx = (*legacytx.StdTx)(nil) // assert StdTx implements SigVerifiableTx
 )
@@ -34,6 +37,7 @@ func init() {
 	bz, _ := hex.DecodeString("035AD6810A47F073553FF30D2FCC7E0D3B1C0B74B61A1AAA2582344037151E143A")
 	copy(key, bz)
 	simSecp256k1Pubkey.Key = key
+	simEthSecp256k1Pubkey.Key = key
 }
 
 // SetPubKeyDecorator sets PubKeys in context for any signer which does not already have pubkey set
@@ -58,13 +62,20 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 	pubkeys := sigTx.GetPubKeys()
 	signers := sigTx.GetSigners()
 
+	supportEthSecp256k1 := ctx.BlockHeight() == 0 || //Note: use for genesis account
+		ctx.BlockHeight() >= fxtypes.EvmV0SupportBlock() || //Note: use for testnet
+		ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() //Note: use for devnet and mainnet
+
 	for i, pk := range pubkeys {
 		// PublicKey was omitted from slice since it has already been set in context
 		if pk == nil {
 			if !simulate {
 				continue
 			}
-			pk = simSecp256k1Pubkey
+			pk = simEthSecp256k1Pubkey
+			if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
+				pk = simSecp256k1Pubkey
+			}
 		}
 		// Only make check if simulate=false
 		if !simulate && !bytes.Equal(pk.Address(), signers[i]) {
@@ -79,6 +90,10 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 		// account already has pubkey set,no need to reset
 		if acc.GetPubKey() != nil {
 			continue
+		}
+
+		if pk.Type() == ethsecp256k1.KeyType && !supportEthSecp256k1 {
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "eth_secp256k1 is not currently supported")
 		}
 
 		err = acc.SetPubKey(pk)
