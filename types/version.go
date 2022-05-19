@@ -41,7 +41,7 @@ const (
 
 	testnetEvmChainID        = 90001
 	testnetSupportEvmV0Block = 408000
-	testnetSupportEvmV1Block = math.MaxInt64
+	testnetSupportEvmV1Block = 2940000
 )
 
 var (
