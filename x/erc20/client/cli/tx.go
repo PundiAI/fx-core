@@ -202,7 +202,7 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		Short:   "Submit a proposal to register an ERC20 token",
 		Long:    "Submit a proposal to register an ERC20 token to the erc20 along with an initial deposit.",
-		Example: fmt.Sprintf("$ %s tx gov submit-proposal register-erc20 <path/to/proposal.json> --from=<key_or_address>", version.AppName),
+		Example: fmt.Sprintf("$ %s tx gov submit-proposal register-erc20 <erc20-address> --from=<key_or_address>", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

@@ -159,23 +159,13 @@ func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*b
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    base,
-				Exponent: 0,
+				Exponent: uint32(erc20Data.Decimals),
+				Aliases:  []string{erc20Data.Symbol},
 			},
 		},
-		Display: erc20Data.Symbol,
+		Display: base,
 	}
 
-	// only append metadata if decimals > 0, otherwise validation fails
-	if erc20Data.Decimals > 0 {
-		metadata.DenomUnits = append(
-			metadata.DenomUnits,
-			&banktypes.DenomUnit{
-				Denom:    erc20Data.Symbol,
-				Exponent: uint32(erc20Data.Decimals),
-			},
-		)
-		metadata.Display = erc20Data.Symbol
-	}
 	symbol := erc20Data.Symbol
 
 	if err := metadata.Validate(); err != nil {
