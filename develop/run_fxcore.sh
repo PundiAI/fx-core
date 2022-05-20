@@ -15,11 +15,11 @@ if [[ "$1" == "init" ]]; then
   fxcored init local --chain-id fxcore
 
   # set mini gas price
-  fxcored config app.toml minimum-gas-prices 1000000000FX
+  fxcored config app.toml minimum-gas-prices 4000000000000FX
   # open prometheus
   fxcored config config.toml instrumentation.prometheus true
   # consensus
-  fxcored config config.toml consensus.timeout_commit 1s
+  # fxcored config config.toml consensus.timeout_commit 1s
   # open rest and swagger
   fxcored config app.toml api.enable true
   fxcored config app.toml api.swagger true
