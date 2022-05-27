@@ -25,6 +25,8 @@ const (
 	mainnetEvmChainID        = 1
 	mainnetSupportEvmV0Block = math.MaxInt64
 	mainnetSupportEvmV1Block = math.MaxInt64
+
+	mainnetSupportEthSecp256k1Multisign = math.MaxInt64
 )
 
 var (
@@ -42,6 +44,8 @@ const (
 	testnetEvmChainID        = 90001
 	testnetSupportEvmV0Block = 408000
 	testnetSupportEvmV1Block = 2940000
+
+	testnetSupportEthSecp256k1Multisign = math.MaxInt64
 )
 
 var (
@@ -59,6 +63,8 @@ const (
 	devnetEvmChainID        = 221
 	devnetSupportEvmV0Block = math.MaxInt64
 	devnetSupportEvmV1Block = 10
+
+	devnetSupportEthSecp256k1Multisign = 10
 )
 
 var (
@@ -151,6 +157,16 @@ func EvmV1SupportBlock() int64 {
 		return testnetSupportEvmV1Block
 	}
 	return mainnetSupportEvmV1Block
+}
+
+func EthSecp256k1MultisignSupportBlock() int64 {
+	if networkDevnet == network {
+		return devnetSupportEthSecp256k1Multisign
+	} else if networkTestnet == network {
+		return testnetSupportEthSecp256k1Multisign
+	} else {
+		return mainnetSupportEthSecp256k1Multisign
+	}
 }
 
 func RequestBatchBaseFeeBlock() int64 {

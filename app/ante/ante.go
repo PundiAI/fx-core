@@ -117,13 +117,39 @@ func DefaultSigVerificationGasConsumer(ctx sdk.Context, sig txsigning.SignatureV
 		if !ok {
 			return fmt.Errorf("expected %T, got, %T", &txsigning.MultiSignatureData{}, sig.Data)
 		}
-		err := ante.ConsumeMultisignatureVerificationGas(meter, multisignature, pubkey, params, sig.Sequence)
-		if err != nil {
-			return err
+		if ctx.BlockHeight() < fxtypes.EthSecp256k1MultisignSupportBlock() {
+			return ante.ConsumeMultisignatureVerificationGas(meter, multisignature, pubkey, params, sig.Sequence)
 		}
-		return nil
+		return ConsumeMultisignatureVerificationGas(ctx, multisignature, pubkey, params, sig.Sequence)
 
 	default:
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "unrecognized public key type: %T", pubkey)
 	}
+}
+
+// ConsumeMultisignatureVerificationGas consumes gas from a GasMeter for verifying a multisig pubkey signature
+func ConsumeMultisignatureVerificationGas(
+	ctx sdk.Context, sig *txsigning.MultiSignatureData, pubkey multisig.PubKey,
+	params types.Params, accSeq uint64,
+) error {
+
+	size := sig.BitArray.Count()
+	sigIndex := 0
+
+	for i := 0; i < size; i++ {
+		if !sig.BitArray.GetIndex(i) {
+			continue
+		}
+		sigV2 := txsigning.SignatureV2{
+			PubKey:   pubkey.GetPubKeys()[i],
+			Data:     sig.Signatures[sigIndex],
+			Sequence: accSeq,
+		}
+		err := DefaultSigVerificationGasConsumer(ctx, sigV2, params)
+		if err != nil {
+			return err
+		}
+		sigIndex++
+	}
+	return nil
 }
