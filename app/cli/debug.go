@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"strings"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -38,6 +40,7 @@ func Debug() *cobra.Command {
 	}
 	cmd.AddCommand(
 		HexToString(),
+		StringToBytes32(),
 		Base64ToString(),
 		ModuleAddressCmd(),
 		CovertTxDataToHash(),
@@ -61,6 +64,20 @@ func HexToString() *cobra.Command {
 				return err
 			}
 			cmd.Println(string(decodeString))
+			return nil
+		},
+	}
+	return cmd
+}
+
+func StringToBytes32() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "str-to-bytes32",
+		Short: "string to bytes32 hex",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			byte32 := fxtypes.StringToByte32(args[0])
+			cmd.Println(hex.EncodeToString(byte32[:]))
 			return nil
 		},
 	}
