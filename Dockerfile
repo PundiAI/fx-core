@@ -1,5 +1,5 @@
 # compile fx-core
-FROM golang:1.16.15-alpine3.15 as builder
+FROM golang:1.18.2-alpine3.16 as builder
 
 # default mainnet
 ARG NETWORK=mainnet
@@ -17,7 +17,7 @@ COPY . .
 RUN FX_BUILD_OPTIONS=${NETWORK} make build
 
 # build fx-core
-FROM alpine:3.15
+FROM alpine:3.16
 
 WORKDIR root
 
