@@ -141,6 +141,9 @@ build: go.mod
 build-win:
 	@$(MAKE) build
 
+build-linux:
+	@GOOS=linux GOARCH=amd64 $(MAKE) build
+
 install:
 	@FX_BUILD_OPTIONS=mainnet $(MAKE) build
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
