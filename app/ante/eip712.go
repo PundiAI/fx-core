@@ -14,7 +14,6 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/ethereum/eip712"
@@ -231,7 +230,7 @@ func VerifySignature(
 			feePayerSig[ethcrypto.RecoveryIDOffset] -= 27
 		}
 
-		feePayerPubkey, err := secp256k1.RecoverPubkey(sigHash, feePayerSig)
+		feePayerPubkey, err := ethcrypto.Ecrecover(sigHash, feePayerSig)
 		if err != nil {
 			return sdkerrors.Wrap(err, "failed to recover delegated fee payer from sig")
 		}
@@ -257,7 +256,7 @@ func VerifySignature(
 
 		// VerifySignature of ethsecp256k1 accepts 64 byte signature [R||S]
 		// WARNING! Under NO CIRCUMSTANCES try to use pubKey.VerifySignature there
-		if !secp256k1.VerifySignature(pubKey.Bytes(), sigHash, feePayerSig[:len(feePayerSig)-1]) {
+		if !ethcrypto.VerifySignature(pubKey.Bytes(), sigHash, feePayerSig[:len(feePayerSig)-1]) {
 			return sdkerrors.Wrap(sdkerrors.ErrorInvalidSigner, "unable to verify signer signature of EIP712 typed data")
 		}
 
