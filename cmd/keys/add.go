@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
-	"gopkg.in/yaml.v2"
 	"sort"
+
+	"gopkg.in/yaml.v2"
+
+	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 
 	bip39 "github.com/cosmos/go-bip39"
 	"github.com/spf13/cobra"

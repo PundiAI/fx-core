@@ -3,6 +3,7 @@ package keys
 import (
 	"encoding/hex"
 	"encoding/json"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"

@@ -5,8 +5,9 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	fxkeys "github.com/functionx/fx-core/cmd/keys"
 	"github.com/spf13/cobra"
+
+	fxkeys "github.com/functionx/fx-core/cmd/keys"
 )
 
 // Commands registers a sub-tree of commands to interact with

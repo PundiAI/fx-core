@@ -3,15 +3,17 @@ package keys
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/spf13/cobra"
-	"io/ioutil"
+
+	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 )
 
 const (
