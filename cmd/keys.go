@@ -1,28 +1,11 @@
 package main
 
 import (
-	"bufio"
-	"encoding/hex"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-
-	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/crypto"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/libs/cli"
 
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
-
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+	fxkeys "github.com/functionx/fx-core/cmd/keys"
 	"github.com/spf13/cobra"
 )
 
@@ -56,21 +39,16 @@ The pass backend requires GnuPG: https://gnupg.org/
 `,
 	}
 
-	addKeyCmd := keys.AddKeyCommand()
-	algoFlag := addKeyCmd.Flag(flags.FlagKeyAlgorithm)
-	algoFlag.DefValue = ethsecp256k1.KeyType
-	_ = algoFlag.Value.Set(algoFlag.DefValue)
-
 	cmd.AddCommand(
-		keys.MnemonicKeyCommand(),
-		addKeyCmd,
-		exportKeyCommand(),
-		importKeyCommand(),
-		keys.ListKeysCmd(),
-		keys.ShowKeysCmd(),
+		fxkeys.AddKeyCommand(),
+		fxkeys.ExportKeyCommand(),
+		fxkeys.ImportKeyCommand(),
+		fxkeys.ListKeysCmd(),
+		fxkeys.ShowKeysCmd(),
+		fxkeys.ParseAddressCommand(),
 		keys.DeleteKeyCommand(),
 		keys.MigrateCommand(),
-		parseAddressCommand(),
+		keys.MnemonicKeyCommand(),
 	)
 
 	cmd.PersistentFlags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
@@ -78,214 +56,5 @@ The pass backend requires GnuPG: https://gnupg.org/
 	cmd.PersistentFlags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
 	cmd.PersistentFlags().StringP(cli.OutputFlag, "o", "text", "Output format (text|json)")
 
-	return cmd
-}
-
-const (
-	flagUnarmoredHex = "unarmored-hex"
-	flagUnsafe       = "unsafe"
-	flagASCIIArmored = "ascii-armor"
-)
-
-// exportKeyCommand exports private keys from the key store.
-func exportKeyCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "export <name>",
-		Short: "Export private keys",
-		Long: `Export a private key from the local keyring in encrypted format.
-
-When both the --unarmored-hex and --unsafe flags are selected, cryptographic
-private key material is exported in an INSECURE fashion that is designed to
-allow users to import their keys in hot wallets. This feature is for advanced
-users only that are confident about how to handle private keys work and are
-FULLY AWARE OF THE RISKS. If you are unsure, you may want to do some research
-and export your keys in encrypted format.`,
-		Args: cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			buf := bufio.NewReader(clientCtx.Input)
-			unarmored, _ := cmd.Flags().GetBool(flagUnarmoredHex)
-			unsafe, _ := cmd.Flags().GetBool(flagUnsafe)
-
-			if unarmored && unsafe {
-				return exportUnsafeUnarmored(cmd, args[0], buf, clientCtx.Keyring)
-			} else if unarmored || unsafe {
-				return fmt.Errorf("the flags %s and %s must be used together", flagUnsafe, flagUnarmoredHex)
-			}
-
-			encryptPassword, err := input.GetPassword("Enter passphrase to encrypt the exported key:", buf)
-			if err != nil {
-				return err
-			}
-
-			asciiArmored, _ := cmd.Flags().GetBool(flagASCIIArmored)
-			if asciiArmored {
-				armored, err := clientCtx.Keyring.ExportPrivKeyArmor(args[0], encryptPassword)
-				if err != nil {
-					return err
-				}
-
-				cmd.Println(armored)
-
-				return nil
-			}
-
-			hexPrivKey, err := keyring.NewUnsafe(clientCtx.Keyring).UnsafeExportPrivKeyHex(args[0])
-			if err != nil {
-				return err
-			}
-			priv, err := ethcrypto.HexToECDSA(hexPrivKey)
-			if err != nil {
-				return err
-			}
-			key := &keystore.Key{
-				PrivateKey: priv,
-				Address:    ethcrypto.PubkeyToAddress(priv.PublicKey),
-			}
-			keyjson, err := keystore.EncryptKey(key, encryptPassword, keystore.StandardScryptN, keystore.StandardScryptP)
-			if err != nil {
-				return err
-			}
-
-			cmd.Println(string(keyjson))
-
-			return nil
-		},
-	}
-
-	cmd.Flags().Bool(flagUnarmoredHex, false, "Export unarmored hex privkey. Requires --unsafe.")
-	cmd.Flags().Bool(flagUnsafe, false, "Enable unsafe operations. This flag must be switched on along with all unsafe operation-specific options.")
-	cmd.Flags().Bool(flagASCIIArmored, false, "Enable ASCII-armored encrypted format")
-	return cmd
-}
-
-func exportUnsafeUnarmored(cmd *cobra.Command, uid string, buf *bufio.Reader, kr keyring.Keyring) error {
-	// confirm deletion, unless -y is passed
-	if yes, err := input.GetConfirmation("WARNING: The private key will be exported as an unarmored hexadecimal string. USE AT YOUR OWN RISK. Continue?", buf, cmd.ErrOrStderr()); err != nil {
-		return err
-	} else if !yes {
-		return nil
-	}
-
-	hexPrivKey, err := keyring.NewUnsafe(kr).UnsafeExportPrivKeyHex(uid)
-	if err != nil {
-		return err
-	}
-
-	cmd.Print(hexPrivKey)
-
-	return nil
-}
-
-func importKeyCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "import <name> <keyfile>",
-		Short: "Import private keys into the local keybase",
-		Long:  "Import a ASCII armored or ethereum keystore or unencrypted private key into the local keybase.",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			buf := bufio.NewReader(clientCtx.Input)
-
-			bz, err := ioutil.ReadFile(args[1])
-			if err != nil {
-				return err
-			}
-			if len(bz) == 64 {
-				priv, err := ethcrypto.HexToECDSA(string(bz))
-				if err != nil {
-					return err
-				}
-				armoPrivKey := crypto.EncryptArmorPrivKey(&ethsecp256k1.PrivKey{Key: ethcrypto.FromECDSA(priv)}, "", ethsecp256k1.KeyType)
-				return clientCtx.Keyring.ImportPrivKey(args[0], armoPrivKey, "")
-			}
-			passphrase, err := input.GetPassword("Enter passphrase to decrypt your key:", buf)
-			if err != nil {
-				return err
-			}
-			key, err := keystore.DecryptKey(bz, passphrase)
-			if err == nil {
-				armoPrivKey := crypto.EncryptArmorPrivKey(&ethsecp256k1.PrivKey{Key: ethcrypto.FromECDSA(key.PrivateKey)}, "", ethsecp256k1.KeyType)
-				return clientCtx.Keyring.ImportPrivKey(args[0], armoPrivKey, "")
-			}
-
-			return clientCtx.Keyring.ImportPrivKey(args[0], string(bz), passphrase)
-		},
-	}
-	return cmd
-}
-
-func parseAddressCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "parse [address or name]",
-		Short: "Parse address from hex to bech32 and vice versa",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			addrStr := args[0]
-
-			var addr []byte
-			keyInfo, err := clientCtx.Keyring.Key(addrStr)
-			if err != nil {
-				// try hex, then bech32
-				addr, err = hex.DecodeString(addrStr)
-				if err != nil {
-					_, addr, err = bech32.DecodeAndConvert(addrStr)
-					if err != nil {
-						return err
-					}
-				}
-				keyInfo, _ = clientCtx.Keyring.KeyByAddress(sdk.AccAddress(addr))
-			} else {
-				addr = keyInfo.GetAddress().Bytes()
-			}
-			prefix, err := cmd.Flags().GetString("prefix")
-			if err != nil {
-				return err
-			}
-			accAddress, err := bech32.ConvertAndEncode(prefix, addr)
-			if err != nil {
-				return err
-			}
-			valAddress, err := bech32.ConvertAndEncode(prefix+sdk.PrefixValidator+sdk.PrefixOperator, addr)
-			if err != nil {
-				return err
-			}
-
-			outputMap := map[string]interface{}{
-				"base64_address": addr,
-				"hex_address":    hex.EncodeToString(addr),
-				"eip55_address":  common.BytesToAddress(addr).String(),
-				"acc_address":    accAddress,
-				"val_address":    valAddress,
-			}
-			if keyInfo != nil {
-				outputMap["name"] = keyInfo.GetName()
-				outputMap["algo"] = keyInfo.GetAlgo()
-				outputMap["pubkey"] = keyInfo.GetPubKey()
-				outputMap["type"] = keyInfo.GetType()
-				path, err := keyInfo.GetPath()
-				if err == nil {
-					outputMap["path"] = path
-				}
-			}
-
-			outputData, err := json.Marshal(outputMap)
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintOutput(outputData)
-		},
-	}
-	cmd.Flags().String("prefix", "fx", "custom address prefix")
 	return cmd
 }
