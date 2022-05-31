@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/functionx/fx-core/app/cli"
+
 	"github.com/functionx/fx-core/server"
 
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
@@ -42,7 +44,7 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 	rootCmd.AddCommand(
 		server.StartCmd(appCreator, defaultNodeHome),
 		tendermintCmd,
-		sdkserver.ExportCmd(appExport, defaultNodeHome),
+		cli.ExportSateCmd(appExport, defaultNodeHome),
 		version.NewVersionCommand(),
 		sdkserver.NewRollbackCmd(defaultNodeHome),
 	)

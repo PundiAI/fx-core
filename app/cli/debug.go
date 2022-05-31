@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client/debug"
+
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
@@ -48,6 +50,7 @@ func Debug() *cobra.Command {
 		ChecksumEthAddress(),
 		PubkeyCmd(),
 		VerifyTx(),
+		debug.RawBytesCmd(),
 	)
 	return cmd
 }

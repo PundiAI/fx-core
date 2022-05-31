@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -128,7 +127,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		keyCommands(app.DefaultNodeHome),
-		rpc.StatusCommand(),
+		appCmd.StatusCommand(),
 		queryCommand(),
 		txCommand(),
 	)
@@ -154,8 +153,8 @@ func queryCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		authcmd.GetAccountCmd(),
-		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		appCmd.ValidatorCommand(),
+		appCmd.BlockCommand(),
 		appCmd.QueryTxsByEventsCmd(),
 		appCmd.QueryTxCmd(),
 		appCmd.QueryStoreCmd(),
