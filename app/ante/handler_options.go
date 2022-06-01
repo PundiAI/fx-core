@@ -5,6 +5,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	ibcante "github.com/cosmos/ibc-go/v3/modules/core/ante"
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
@@ -14,6 +16,7 @@ type HandlerOptions struct {
 	BankKeeper           BankKeeper
 	FeegrantKeeper       FeegrantKeeper
 	EvmKeeper            EVMKeeper
+	IbcKeeper            *ibckeeper.Keeper
 	SignModeHandler      authsigning.SignModeHandler
 	SigGasConsumer       SignatureVerificationGasConsumer
 	MaxTxGasWanted       uint64
@@ -64,6 +67,7 @@ func newNormalTxAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		ibcante.NewAnteDecorator(options.IbcKeeper),
 	)
 }
 
