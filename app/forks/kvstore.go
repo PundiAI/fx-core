@@ -11,10 +11,10 @@ import (
 
 func ClearEvmV0KVStores(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 	logger := ctx.Logger()
-	logger.Info("clear evm v0 kv store", "stores", fxtypes.EvmV0ClearKVStores())
+	logger.Info("clear evm v0 kv store", "stores", fxtypes.ClearKVStores())
 
 	multiStore := ctx.MultiStore()
-	for _, storeName := range fxtypes.EvmV0ClearKVStores() {
+	for _, storeName := range fxtypes.ClearKVStores() {
 		if kvStoreKey, ok := keys[storeName]; ok {
 			kvStore := multiStore.GetKVStore(kvStoreKey)
 			if err := deleteKVStore(kvStore); err != nil {

@@ -18,7 +18,7 @@ type HandlerOptions struct {
 	EvmKeeper            EVMKeeper
 	IbcKeeper            *ibckeeper.Keeper
 	SignModeHandler      authsigning.SignModeHandler
-	SigGasConsumer       SignatureVerificationGasConsumer
+	SigGasConsumer       ante.SignatureVerificationGasConsumer
 	MaxTxGasWanted       uint64
 	BypassMinFeeMsgTypes []string
 }

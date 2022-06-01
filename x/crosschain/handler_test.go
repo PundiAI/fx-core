@@ -740,7 +740,7 @@ func createTestEnv(t *testing.T) (fxcore *app.App, ctx sdk.Context, oracleAddres
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	fxcore = app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx = fxcore.BaseApp.NewContext(false, tmproto.Header{})
-	ctx = ctx.WithBlockHeight(fxtypes.CrossChainSupportBscBlock())
+	//ctx = ctx.WithBlockHeight(fxtypes.CrossChainSupportBscBlock())
 	oracleAddressList = app.AddTestAddrsIncremental(fxcore, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
 	orchestratorAddressList = app.AddTestAddrs(fxcore, ctx, GenerateAccountNum, sdk.ZeroInt())
 	ethKeys = genEthKey(GenerateAccountNum)

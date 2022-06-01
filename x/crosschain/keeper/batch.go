@@ -5,8 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -169,12 +167,11 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch types.OutgoingTxBatch) {
 
 // pickUnBatchedTX find TX in pool and remove from "available" second index
 func (k Keeper) pickUnBatchedTX(ctx sdk.Context, contractAddress string, maxElements uint, baseFee sdk.Int) ([]*types.OutgoingTransferTx, error) {
-	isSupportBaseFee := fxtypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
 	k.IterateUnbatchedTransactionsByContract(ctx, contractAddress, func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		if tx != nil && tx.Fee != nil {
-			if isSupportBaseFee && tx.Fee.Amount.LT(baseFee) {
+			if tx.Fee.Amount.LT(baseFee) {
 				return true
 			}
 			selectedTx = append(selectedTx, tx)

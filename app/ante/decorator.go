@@ -6,11 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,9 +14,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 )
-
-type SignatureVerificationGasConsumer = func(ctx sdk.Context, sig signing.SignatureV2, params authtypes.Params) error
 
 var (
 	// simulation signature values used to estimate gas consumption
@@ -65,8 +59,7 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 	}
 	signers := sigTx.GetSigners()
 
-	supportEthSecp256k1 := ctx.BlockHeight() == 0 || //Note: use for genesis account
-		ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() //Note: use for devnet and mainnet
+	supportEthSecp256k1 := ctx.BlockHeight() == 0 //Note: use for genesis account
 
 	for i, pk := range pubkeys {
 		// PublicKey was omitted from slice since it has already been set in context
@@ -75,9 +68,6 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 				continue
 			}
 			pk = simEthSecp256k1Pubkey
-			if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-				pk = simSecp256k1Pubkey
-			}
 		}
 		// Only make check if simulate=false
 		if !simulate && !bytes.Equal(pk.Address(), signers[i]) {
@@ -181,10 +171,10 @@ func signatureDataToBz(data signing.SignatureData) ([][]byte, error) {
 // CONTRACT: Tx must implement SigVerifiableTx interface
 type SigGasConsumeDecorator struct {
 	ak             ante.AccountKeeper
-	sigGasConsumer SignatureVerificationGasConsumer
+	sigGasConsumer ante.SignatureVerificationGasConsumer
 }
 
-func NewSigGasConsumeDecorator(ak ante.AccountKeeper, sigGasConsumer SignatureVerificationGasConsumer) SigGasConsumeDecorator {
+func NewSigGasConsumeDecorator(ak ante.AccountKeeper, sigGasConsumer ante.SignatureVerificationGasConsumer) SigGasConsumeDecorator {
 	return SigGasConsumeDecorator{
 		ak:             ak,
 		sigGasConsumer: sigGasConsumer,
@@ -230,7 +220,7 @@ func (sgcd SigGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			Sequence: sig.Sequence,
 		}
 
-		if err = sgcd.sigGasConsumer(ctx, sig, params); err != nil {
+		if err = sgcd.sigGasConsumer(ctx.GasMeter(), sig, params); err != nil {
 			return ctx, err
 		}
 	}

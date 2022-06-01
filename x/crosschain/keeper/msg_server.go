@@ -5,8 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -197,7 +195,7 @@ func (s EthereumMsgServer) CancelSendToExternal(c context.Context, msg *types.Ms
 func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	baseFee, err := GetRequestBatchBaseFee(ctx.BlockHeight(), msg.BaseFee)
+	baseFee, err := GetRequestBatchBaseFee(msg.BaseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -441,10 +439,7 @@ func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAdd
 	return oracle.GetOracle(), nil
 }
 
-func GetRequestBatchBaseFee(blockHeight int64, baseFee *sdk.Int) (sdk.Int, error) {
-	if !fxtypes.IsRequestBatchBaseFee(blockHeight) {
-		return sdk.ZeroInt(), nil
-	}
+func GetRequestBatchBaseFee(baseFee *sdk.Int) (sdk.Int, error) {
 	if baseFee == nil || baseFee.IsNil() {
 		return sdk.ZeroInt(), nil
 	}

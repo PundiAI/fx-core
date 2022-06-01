@@ -3,8 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -26,13 +24,11 @@ func (s EthereumMsgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p
 	s.SetParams(ctx, *p.Params)
 
 	// FIP: slash fraction cannot greater than one 100%  2021-10-26.
-	if ctx.BlockHeight() >= fxtypes.CrossChainSupportPolygonAndTronBlock() {
-		if p.Params.SlashFraction.GT(sdk.OneDec()) {
-			return sdkerrors.Wrapf(types.ErrInvalid, "slash fraction too large: %s", p.Params.SlashFraction)
-		}
-		if p.Params.OracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
-			return sdkerrors.Wrapf(types.ErrInvalid, "oracle set update power change percent too large: %s", p.Params.OracleSetUpdatePowerChangePercent)
-		}
+	if p.Params.SlashFraction.GT(sdk.OneDec()) {
+		return sdkerrors.Wrapf(types.ErrInvalid, "slash fraction too large: %s", p.Params.SlashFraction)
+	}
+	if p.Params.OracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
+		return sdkerrors.Wrapf(types.ErrInvalid, "oracle set update power change percent too large: %s", p.Params.OracleSetUpdatePowerChangePercent)
 	}
 
 	// save chain oracle

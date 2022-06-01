@@ -19,7 +19,7 @@ import (
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
 func (a Keeper) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
-	if ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() && claim.TargetIbc == targetEvmPrefix {
+	if claim.TargetIbc == targetEvmPrefix {
 		a.handlerEvmTransfer(ctx, claim, receiver, coin)
 		return
 	}

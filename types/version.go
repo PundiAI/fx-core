@@ -16,59 +16,25 @@ const (
 const (
 	mainnetCrossChainSupportBscBlock            = 1354000
 	mainnetCrossChainSupportTronAndPolygonBlock = 2062000
-
 	// gravity prune validator set
 	mainnetGravityPruneValsetAndAttestationBlock = 610000
 	// gravity not slash no set eth address validator
 	mainnetGravityValsetSlashBlock = 1685000
 
-	mainnetEvmChainID        = 1
-	mainnetSupportEvmV0Block = math.MaxInt64
-	mainnetSupportEvmV1Block = math.MaxInt64
-
-	mainnetSupportEthSecp256k1Multisign = math.MaxInt64
-)
-
-var (
-	mainnetEvmV0ClearKVStores []string
+	mainnetEvmChainID      = 1
+	mainnetSupportEvmBlock = math.MaxInt64
 )
 
 // testnet constant
 const (
-	testnetCrossChainSupportBscBlock            = 1
-	testnetCrossChainSupportTronAndPolygonBlock = 1
-
-	testnetGravityPruneValsetAndAttestationBlock = 1
-	testnetGravityValsetSlashBlock               = 1
-
-	testnetEvmChainID        = 90001
-	testnetSupportEvmV0Block = 408000
-	testnetSupportEvmV1Block = 2940000
-
-	testnetSupportEthSecp256k1Multisign = math.MaxInt64
-)
-
-var (
-	testnetEvmV0ClearKVStores = []string{"evm", "feemarket"}
+	testnetEvmChainID      = 90001
+	testnetSupportEvmBlock = 2940000
 )
 
 // devnet constant
 const (
-	devnetCrossChainSupportBscBlock            = 1
-	devnetCrossChainSupportTronAndPolygonBlock = 1
-
-	devnetGravityPruneValsetAndAttestationBlock = 1
-	devnetGravityValsetSlashBlock               = 1
-
-	devnetEvmChainID        = 221
-	devnetSupportEvmV0Block = math.MaxInt64
-	devnetSupportEvmV1Block = 10
-
-	devnetSupportEthSecp256k1Multisign = 10
-)
-
-var (
-	devnetEvmV0ClearKVStores []string
+	devnetEvmChainID      = 221
+	devnetSupportEvmBlock = 10
 )
 
 var (
@@ -96,41 +62,41 @@ func NetworkDevnet() string {
 	return networkDevnet
 }
 
-func GravityPruneValsetAndAttestationBlock() int64 {
-	if networkDevnet == network {
-		return devnetGravityPruneValsetAndAttestationBlock
-	} else if networkTestnet == network {
-		return testnetGravityPruneValsetAndAttestationBlock
-	}
-	return mainnetGravityPruneValsetAndAttestationBlock
-}
-
-func GravityValsetSlashBlock() int64 {
-	if networkDevnet == network {
-		return devnetGravityValsetSlashBlock
-	} else if networkTestnet == network {
-		return testnetGravityValsetSlashBlock
-	}
-	return mainnetGravityValsetSlashBlock
-}
-
-func CrossChainSupportBscBlock() int64 {
-	if networkDevnet == network {
-		return devnetCrossChainSupportBscBlock
-	} else if networkTestnet == network {
-		return testnetCrossChainSupportBscBlock
-	}
-	return mainnetCrossChainSupportBscBlock
-}
-
-func CrossChainSupportPolygonAndTronBlock() int64 {
-	if networkDevnet == network {
-		return devnetCrossChainSupportTronAndPolygonBlock
-	} else if networkTestnet == network {
-		return testnetCrossChainSupportTronAndPolygonBlock
-	}
-	return mainnetCrossChainSupportTronAndPolygonBlock
-}
+//func GravityPruneValsetAndAttestationBlock() int64 {
+//	if networkDevnet == network {
+//		return devnetGravityPruneValsetAndAttestationBlock
+//	} else if networkTestnet == network {
+//		return testnetGravityPruneValsetAndAttestationBlock
+//	}
+//	return mainnetGravityPruneValsetAndAttestationBlock
+//}
+//
+//func GravityValsetSlashBlock() int64 {
+//	if networkDevnet == network {
+//		return devnetGravityValsetSlashBlock
+//	} else if networkTestnet == network {
+//		return testnetGravityValsetSlashBlock
+//	}
+//	return mainnetGravityValsetSlashBlock
+//}
+//
+//func CrossChainSupportBscBlock() int64 {
+//	if networkDevnet == network {
+//		return devnetCrossChainSupportBscBlock
+//	} else if networkTestnet == network {
+//		return testnetCrossChainSupportBscBlock
+//	}
+//	return mainnetCrossChainSupportBscBlock
+//}
+//
+//func CrossChainSupportPolygonAndTronBlock() int64 {
+//	if networkDevnet == network {
+//		return devnetCrossChainSupportTronAndPolygonBlock
+//	} else if networkTestnet == network {
+//		return testnetCrossChainSupportTronAndPolygonBlock
+//	}
+//	return mainnetCrossChainSupportTronAndPolygonBlock
+//}
 
 func EIP155ChainID() *big.Int {
 	if networkDevnet == network {
@@ -141,49 +107,49 @@ func EIP155ChainID() *big.Int {
 	return big.NewInt(mainnetEvmChainID)
 }
 
-func EvmV0SupportBlock() int64 {
-	if networkDevnet == network {
-		return devnetSupportEvmV0Block
-	} else if networkTestnet == network {
-		return testnetSupportEvmV0Block
-	}
-	return mainnetSupportEvmV0Block
-}
+//func EvmV0SupportBlock() int64 {
+//	//if networkDevnet == network {
+//	//	return devnetSupportEvmV0Block
+//	//} else if networkTestnet == network {
+//	//	return testnetSupportEvmV0Block
+//	//}
+//	//return mainnetSupportEvmV0Block
+//}
 
 func EvmV1SupportBlock() int64 {
 	if networkDevnet == network {
-		return devnetSupportEvmV1Block
+		return devnetSupportEvmBlock
 	} else if networkTestnet == network {
-		return testnetSupportEvmV1Block
+		return testnetSupportEvmBlock
 	}
-	return mainnetSupportEvmV1Block
+	return mainnetSupportEvmBlock
 }
 
-func EthSecp256k1MultisignSupportBlock() int64 {
+//func EthSecp256k1MultisignSupportBlock() int64 {
+//	if networkDevnet == network {
+//		return devnetSupportEthSecp256k1Multisign
+//	} else if networkTestnet == network {
+//		return testnetSupportEthSecp256k1Multisign
+//	} else {
+//		return mainnetSupportEthSecp256k1Multisign
+//	}
+//}
+
+//func RequestBatchBaseFeeBlock() int64 {
+//	return EvmV1SupportBlock()
+//}
+//
+//func IsRequestBatchBaseFee(height int64) bool {
+//	return height >= RequestBatchBaseFeeBlock()
+//}
+
+func ClearKVStores() []string {
 	if networkDevnet == network {
-		return devnetSupportEthSecp256k1Multisign
+		return []string{}
 	} else if networkTestnet == network {
-		return testnetSupportEthSecp256k1Multisign
-	} else {
-		return mainnetSupportEthSecp256k1Multisign
+		return []string{"evm", "feemarket"}
 	}
-}
-
-func RequestBatchBaseFeeBlock() int64 {
-	return EvmV1SupportBlock()
-}
-
-func IsRequestBatchBaseFee(height int64) bool {
-	return height >= RequestBatchBaseFeeBlock()
-}
-
-func EvmV0ClearKVStores() []string {
-	if networkDevnet == network {
-		return devnetEvmV0ClearKVStores
-	} else if networkTestnet == network {
-		return testnetEvmV0ClearKVStores
-	}
-	return mainnetEvmV0ClearKVStores
+	return []string{}
 }
 
 // ChangeNetworkForTest change network for test

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"sort"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/x/gravity/keeper"
@@ -19,10 +17,8 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	attestationTally(ctx, k)
 	cleanupTimedOutBatches(ctx, k)
 	createValsets(ctx, k)
-	if ctx.BlockHeight() > fxtypes.GravityPruneValsetAndAttestationBlock() {
-		pruneValsets(ctx, k, params)
-		pruneAttestations(ctx, k)
-	}
+	pruneValsets(ctx, k, params)
+	pruneAttestations(ctx, k)
 }
 
 func createValsets(ctx sdk.Context, k keeper.Keeper) {
@@ -178,7 +174,7 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 		currentBondedSet := k.StakingKeeper.GetBondedValidatorsByPower(ctx)
 		for _, val := range currentBondedSet {
 			ethAddress, foundEthAddress := k.GetEthAddressByValidator(ctx, val.GetOperator())
-			if !foundEthAddress && ctx.BlockHeight() > fxtypes.GravityValsetSlashBlock() {
+			if !foundEthAddress {
 				continue
 			}
 			consAddr, _ := val.GetConsAddr()
@@ -222,7 +218,7 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 					panic(err)
 				}
 				ethAddress, foundValidator := k.GetEthAddressByValidator(ctx, addr)
-				if !foundValidator && ctx.BlockHeight() > fxtypes.GravityValsetSlashBlock() {
+				if !foundValidator {
 					continue
 				}
 
@@ -278,7 +274,7 @@ func BatchSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 		confirms := k.GetBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract)
 		for _, val := range currentBondedSet {
 			ethAddress, foundValidator := k.GetEthAddressByValidator(ctx, val.GetOperator())
-			if !foundValidator && ctx.BlockHeight() > fxtypes.GravityValsetSlashBlock() {
+			if !foundValidator {
 				continue
 			}
 			// Don't slash validators who joined after batch is created

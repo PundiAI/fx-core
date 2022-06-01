@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"sort"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -248,14 +246,13 @@ func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, prefixKey []byte, 
 func (k Keeper) GetBatchFeeByTokenType(ctx sdk.Context, tokenContractAddr string, maxElements uint, baseFee sdk.Int) *types.BatchFees {
 	batchFee := types.BatchFees{TokenContract: tokenContractAddr, TotalFees: sdk.NewInt(0)}
 	txCount := 0
-	isSupportBaseFee := fxtypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 
 	k.IterateUnbatchedTransactions(ctx, types.GetOutgoingTxPoolContractPrefix(tokenContractAddr), func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		fee := tx.Fee
 		if fee.Contract != tokenContractAddr {
 			panic(fmt.Errorf("unexpected fee contract %s when getting batch fees for contract %s", fee.Contract, tokenContractAddr))
 		}
-		if isSupportBaseFee && fee.Amount.LT(baseFee) {
+		if fee.Amount.LT(baseFee) {
 			// sort by fee and use ReverseIterator, so the fee behind is less than base fee
 			return true
 		}
@@ -292,13 +289,12 @@ func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees 
 	batchFeesMap := make(map[string]*types.BatchFees)
 	txCountMap := make(map[string]int)
 	baseFees := types.MinBatchFeeToBaseFees(minBatchFees)
-	isSupportBaseFee := fxtypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 
 	k.IterateUnbatchedTransactions(ctx, types.OutgoingTXPoolKey, func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		fee := tx.Fee
 
 		baseFee, ok := baseFees[fee.Contract]
-		if isSupportBaseFee && ok && fee.Amount.LT(baseFee) {
+		if ok && fee.Amount.LT(baseFee) {
 			return false //sort by token address and fee, behind have other token
 		}
 

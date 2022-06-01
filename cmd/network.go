@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/functionx/fx-core/app/cli"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -24,16 +23,16 @@ func networkCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			output := map[string]interface{}{
-				"ChainId":                               types.ChainID,
-				"Network":                               types.Network(),
-				"GravityPruneValsetAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetAndAttestationBlock()),
-				"GravityValsetSlashBlock":               fmt.Sprintf("%d", types.GravityValsetSlashBlock()),
-				"CrossChainSupportBscBlock":             fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
-				"CrossChainSupportPolygonAndTronBlock":  fmt.Sprintf("%d", types.CrossChainSupportPolygonAndTronBlock()),
-				"EIP155ChainID":                         fmt.Sprintf("%d", types.EIP155ChainID()),
-				"EvmV0SupportBlock":                     fmt.Sprintf("%d", types.EvmV0SupportBlock()),
-				"EvmV0ClearKVStores":                    fmt.Sprintf("%s", strings.Join(types.EvmV0ClearKVStores(), ",")),
-				"EvmV1SupportBlock":                     fmt.Sprintf("%d", types.EvmV1SupportBlock()),
+				"ChainId":       types.ChainID,
+				"Network":       types.Network(),
+				"ClearKVStores": fmt.Sprintf("%s", strings.Join(types.ClearKVStores(), ",")),
+				"EIP155ChainID": fmt.Sprintf("%d", types.EIP155ChainID()),
+				//"GravityPruneValsetAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetAndAttestationBlock()),
+				//"GravityValsetSlashBlock":               fmt.Sprintf("%d", types.GravityValsetSlashBlock()),
+				//"CrossChainSupportBscBlock":             fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
+				//"CrossChainSupportPolygonAndTronBlock":  fmt.Sprintf("%d", types.CrossChainSupportPolygonAndTronBlock()),
+				//"EvmV0SupportBlock":                     fmt.Sprintf("%d", types.EvmV0SupportBlock()),
+				//"EvmV1SupportBlock": fmt.Sprintf("%d", types.EvmV1SupportBlock()),
 			}
 			return cli.PrintOutput(clientCtx, output)
 		},

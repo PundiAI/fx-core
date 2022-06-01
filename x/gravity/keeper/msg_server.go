@@ -10,8 +10,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/functionx/fx-core/x/gravity/types"
 )
 
@@ -408,9 +406,6 @@ func (k msgServer) ValsetUpdateClaim(c context.Context, msg *types.MsgValsetUpda
 }
 
 func GetRequestBatchBaseFee(height int64, baseFee *sdk.Int) (sdk.Int, error) {
-	if !fxtypes.IsRequestBatchBaseFee(height) {
-		return sdk.ZeroInt(), nil
-	}
 	if baseFee == nil || baseFee.IsNil() {
 		return sdk.ZeroInt(), nil
 	}

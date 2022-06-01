@@ -67,7 +67,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 		for _, validator := range validators {
 			val := validator.GetOperator()
 			_, found := k.GetEthAddressByValidator(ctx, val)
-			if !found && ctx.BlockHeight() > fxtypes.GravityValsetSlashBlock() {
+			if !found {
 				continue
 			}
 			power := uint64(k.StakingKeeper.GetLastValidatorPower(ctx, val))

@@ -172,12 +172,11 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch types.OutgoingTxBatch) {
 
 // pickUnbatchedTX find TX in pool and remove from "available" second index
 func (k Keeper) pickUnbatchedTX(ctx sdk.Context, contractAddress string, maxElements int, baseFee sdk.Int) ([]*types.OutgoingTransferTx, error) {
-	isSupportBaseFee := fxtypes.IsRequestBatchBaseFee(ctx.BlockHeight())
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
 	k.IterateOutgoingPoolByFee(ctx, contractAddress, func(txID uint64, tx *types.OutgoingTransferTx) bool {
 		if tx != nil && tx.Erc20Fee != nil {
-			if isSupportBaseFee && tx.Erc20Fee.Amount.LT(baseFee) {
+			if tx.Erc20Fee.Amount.LT(baseFee) {
 				return true
 			}
 			selectedTx = append(selectedTx, tx)
