@@ -2,10 +2,11 @@ package app
 
 import (
 	"encoding/json"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"math/big"
 	"time"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	fxtypes "github.com/functionx/fx-core/types"
 

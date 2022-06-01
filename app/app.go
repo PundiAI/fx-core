@@ -2,13 +2,14 @@ package app
 
 import (
 	"fmt"
-	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	"io"
 	stdlog "log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
