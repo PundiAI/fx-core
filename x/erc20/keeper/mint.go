@@ -37,11 +37,12 @@ func (k Keeper) MintingEnabled(ctx sdk.Context, sender, receiver sdk.AccAddress,
 		return types.TokenPair{}, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive transactions", receiver)
 	}
 
+	// TODO need fix
 	// NOTE: ignore amount as only denom is checked on IsSendEnabledCoin
-	coin := sdk.Coin{Denom: pair.Denom}
+	//coin := sdk.Coin{Denom: pair.Denom}
 
 	// check if minting to a recipient address other than the sender is enabled for for the given coin denom
-	if !sender.Equals(receiver) && !k.bankKeeper.SendEnabledCoin(ctx, coin) {
+	if !sender.Equals(receiver) /*&& !k.bankKeeper.SendEnabledCoin(ctx, coin)*/ {
 		return types.TokenPair{}, sdkerrors.Wrapf(banktypes.ErrSendDisabled, "minting '%s' coins to an external address is currently disabled", token)
 	}
 

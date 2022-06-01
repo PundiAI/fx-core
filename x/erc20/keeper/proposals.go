@@ -49,8 +49,8 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Description)
 	}
 
-	meta := k.bankKeeper.GetDenomMetaData(ctx, coinMetadata.Base)
-	if len(meta.Base) > 0 {
+	meta, isExist := k.bankKeeper.GetDenomMetaData(ctx, coinMetadata.Base)
+	if isExist {
 		if err := types.EqualMetadata(meta, coinMetadata); err != nil {
 			return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, err.Error())
 		}
@@ -136,8 +136,8 @@ func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*b
 		return nil, "", "", err
 	}
 
-	meta := k.bankKeeper.GetDenomMetaData(ctx, types.CreateDenom(strContract))
-	if len(meta.Base) > 0 {
+	_, isExist := k.bankKeeper.GetDenomMetaData(ctx, types.CreateDenom(strContract))
+	if isExist {
 		// metadata already exists; exit
 		return nil, "", "", sdkerrors.Wrap(types.ErrInternalTokenPair, "denom metadata already registered")
 	}

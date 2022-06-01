@@ -14,6 +14,8 @@ import (
 	"github.com/functionx/fx-core/x/migrate/types"
 )
 
+const addressLen = 20
+
 type Keeper struct {
 	// Protobuf codec
 	cdc codec.BinaryCodec
@@ -54,18 +56,18 @@ func (k *Keeper) GetMigrateI() []MigrateI {
 func (k Keeper) SetMigrateRecord(ctx sdk.Context, from, to sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 
-	bzFrom := make([]byte, 1+sdk.AddrLen+8)
-	bzTo := make([]byte, 1+sdk.AddrLen+8)
+	bzFrom := make([]byte, 1+addressLen+8)
+	bzTo := make([]byte, 1+addressLen+8)
 
 	height := sdk.Uint64ToBigEndian(uint64(ctx.BlockHeight()))
 
 	copy(bzFrom[:], types.ValuePrefixMigrateFromFlag)
 	copy(bzFrom[1:], to.Bytes())
-	copy(bzFrom[1+sdk.AddrLen:], height)
+	copy(bzFrom[1+addressLen:], height)
 
 	copy(bzTo[:], types.ValuePrefixMigrateToFlag)
 	copy(bzTo[1:], from.Bytes())
-	copy(bzTo[1+sdk.AddrLen:], height)
+	copy(bzTo[1+addressLen:], height)
 
 	store.Set(types.GetMigratedRecordKey(from), bzFrom)
 	store.Set(types.GetMigratedRecordKey(to), bzTo)
@@ -78,15 +80,15 @@ func (k Keeper) SetMigrateRecord(ctx sdk.Context, from, to sdk.AccAddress) {
 func (k Keeper) GetMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) (mr types.MigrateRecord, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetMigratedRecordKey(addr))
-	if len(bz) < sdk.AddrLen+9 {
+	if len(bz) < addressLen+9 {
 		return mr, false
 	}
-	mr.Height = int64(sdk.BigEndianToUint64(bz[sdk.AddrLen+1:]))
+	mr.Height = int64(sdk.BigEndianToUint64(bz[addressLen+1:]))
 	if bytes.Equal(bz[:1], types.ValuePrefixMigrateFromFlag) {
 		mr.From = addr.String()
-		mr.To = sdk.AccAddress(bz[1 : sdk.AddrLen+1]).String()
+		mr.To = sdk.AccAddress(bz[1 : addressLen+1]).String()
 	} else {
-		mr.From = sdk.AccAddress(bz[1 : sdk.AddrLen+1]).String()
+		mr.From = sdk.AccAddress(bz[1 : addressLen+1]).String()
 		mr.To = addr.String()
 	}
 	return mr, true

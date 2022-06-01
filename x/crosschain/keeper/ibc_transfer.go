@@ -11,7 +11,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
@@ -73,7 +73,7 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeIbcTransfer,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
 		sdk.NewAttribute(types.AttributeKeyIbcSendSequence, fmt.Sprint(nextSequenceSend)),
 		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, targetIBC.SourcePort),
@@ -93,7 +93,7 @@ func (k Keeper) handlerEvmTransfer(ctx sdk.Context, claim *types.MsgSendToFxClai
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeEvmTransfer,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
 	))
 }

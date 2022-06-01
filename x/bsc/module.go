@@ -3,6 +3,8 @@ package bsc
 import (
 	"encoding/json"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"
@@ -27,6 +29,10 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
+// ----------------------------------------------------------------------------
+// AppModuleBasic
+// ----------------------------------------------------------------------------
+
 // AppModuleBasic object for module implementation
 type AppModuleBasic struct{}
 
@@ -35,13 +41,9 @@ func (AppModuleBasic) Name() string {
 	return bsctypes.ModuleName
 }
 
-// RegisterLegacyAminoCodec implements app module basic
-func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
-}
-
 // DefaultGenesis implements app module basic
 func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
 }
 
 // ValidateGenesis implements app module basic
@@ -49,8 +51,15 @@ func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConf
 	return nil
 }
 
+// RegisterLegacyAminoCodec implements app module basic
+func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {}
+
 // RegisterRESTRoutes implements app module basic
 func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
+// also implements app modeul basic
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // GetQueryCmd implements app module basic
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
@@ -62,17 +71,14 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return nil
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
-// also implements app modeul basic
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {
-}
-
 // RegisterInterfaces implements app bmodule basic
-func (b AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
+func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
 	types.RegisterValidatorBasic(bsctypes.ModuleName, types.EthereumMsgValidateBasic{})
 }
 
-//____________________________________________________________________________
+// ----------------------------------------------------------------------------
+// AppModule
+// ----------------------------------------------------------------------------
 
 // AppModule object for module implementation
 type AppModule struct {
@@ -90,14 +96,12 @@ func NewAppModule(keeper keeper.Keeper, bankKeeper bankkeeper.Keeper) AppModule 
 	}
 }
 
+// RegisterInvariants implements app module
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
 // Name implements app module
 func (AppModule) Name() string {
 	return bsctypes.ModuleName
-}
-
-// RegisterInvariants implements app module
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-	//  make some invariants in the gravity module to ensure that coins aren't being fraudlently minted etc...
 }
 
 // Route implements app module
@@ -125,12 +129,16 @@ func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMess
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
 func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 {
+	return fxtypes.CurrentConsensusVersion
 }
 
 // BeginBlock implements app module
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
-}
+func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock implements app module
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {

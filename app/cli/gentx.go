@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -279,7 +281,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValida
 	minSelfDelegation, ok := sdk.NewIntFromString(msbStr)
 
 	if !ok {
-		return txBldr, nil, types2.ErrMinSelfDelegationInvalid
+		return txBldr, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
 	msg, err := types2.NewMsgCreateValidator(

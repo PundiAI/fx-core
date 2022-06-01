@@ -7,8 +7,8 @@ import (
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
-	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
@@ -39,9 +39,9 @@ type BankKeeper interface {
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 	BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
-	SendEnabledCoin(ctx sdk.Context, coin sdk.Coin) bool
+	//SendEnabledCoin(ctx sdk.Context, coin sdk.Coin) bool
 	BlockedAddr(addr sdk.AccAddress) bool
-	GetDenomMetaData(ctx sdk.Context, denom string) banktypes.Metadata
+	GetDenomMetaData(ctx sdk.Context, denom string) (banktypes.Metadata, bool)
 	SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata)
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins

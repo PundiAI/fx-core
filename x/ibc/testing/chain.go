@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 
+	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/x/ibc/testing/mock"
+
 	"github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -28,18 +31,19 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	ibctransfertypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
-	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
-	connectiontypes "github.com/cosmos/cosmos-sdk/x/ibc/core/03-connection/types"
-	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/23-commitment/types"
-	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
-	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
-	"github.com/cosmos/cosmos-sdk/x/ibc/core/types"
-	ibctmtypes "github.com/cosmos/cosmos-sdk/x/ibc/light-clients/07-tendermint/types"
-	"github.com/cosmos/cosmos-sdk/x/ibc/testing/mock"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	//ibctransfertypes "github.com/cosmos/ibc-go/v3/modules"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v3/modules/core/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	//"github.com/cosmos/ibc-go/v3/modules/testing/mock"
 )
 
 const (

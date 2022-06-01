@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -48,6 +49,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			}
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
+			var pubKey cryptotypes.PubKey
 			if err != nil {
 				info, err := clientCtx.Keyring.Key(args[0])
 				if err != nil {
@@ -55,6 +57,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				}
 
 				addr = info.GetAddress()
+				pubKey = info.GetPubKey()
 			}
 
 			vestingStart, err := cmd.Flags().GetInt64(flagVestingStart)
@@ -79,7 +82,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			var genAccount authtypes.GenesisAccount
 
 			balances := banktypes.Balance{Address: addr.String(), Coins: coins.Sort()}
-			baseAccount := authtypes.NewBaseAccount(addr, nil, 0, 0)
+			baseAccount := authtypes.NewBaseAccount(addr, pubKey, 0, 0)
 
 			if !vestingAmt.IsZero() {
 				baseVestingAccount := authvesting.NewBaseVestingAccount(baseAccount, vestingAmt.Sort(), vestingEnd)

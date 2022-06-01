@@ -1,16 +1,16 @@
-package types
+package ante
 
 import (
-	"math/big"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/v0/types"
-
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/ethereum/go-ethereum/params"
+	"github.com/functionx/fx-core/x/evm/statedb"
+	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	"math/big"
 )
 
 // AccountKeeper defines the expected account keeper interface
@@ -30,32 +30,35 @@ type AccountKeeper interface {
 type BankKeeper interface {
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	// SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 	BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 }
 
-// StakingKeeper returns the historical headers kept in store.
-type StakingKeeper interface {
-	GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool)
-	GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool)
+// FeegrantKeeper defines the expected feegrant keeper.
+type FeegrantKeeper interface {
+	UseGrantedFees(ctx sdk.Context, granter, grantee sdk.AccAddress, fee sdk.Coins, msgs []sdk.Msg) error
 }
 
-// FeeMarketKeeper
 type FeeMarketKeeper interface {
 	GetBaseFee(ctx sdk.Context) *big.Int
-	GetParams(ctx sdk.Context) feemarkettypes.Params
-	SetParams(ctx sdk.Context, params feemarkettypes.Params)
 	SetBaseFee(ctx sdk.Context, baseFee *big.Int)
 	SetBlockGasUsed(ctx sdk.Context, gas uint64)
 }
 
-// Event Hooks
-// These can be utilized to customize evm transaction processing.
+// EVMKeeper defines the expected keeper interface used on the Eth AnteHandler
+type EVMKeeper interface {
+	statedb.Keeper
 
-// EvmHooks event hooks for evm tx processing
-type EvmHooks interface {
-	// Must be called after tx is processed successfully, if return an error, the whole transaction is reverted.
-	PostTxProcessing(ctx sdk.Context, txHash common.Hash, logs []*ethtypes.Log) error
+	ChainID() *big.Int
+	GetParams(ctx sdk.Context) evmtypes.Params
+	NewEVM(ctx sdk.Context, msg core.Message, cfg *evmtypes.EVMConfig, tracer vm.EVMLogger, stateDB vm.StateDB) *vm.EVM
+	DeductTxCostsFromUserBalance(ctx sdk.Context, msgEthTx evmtypes.MsgEthereumTx, txData evmtypes.TxData, homestead, istanbul, london bool) (sdk.Coins, error)
+	BaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
+	GetBalance(ctx sdk.Context, addr common.Address) *big.Int
+	ResetTransientGasUsed(ctx sdk.Context)
+}
+
+type protoTxProvider interface {
+	GetProtoTx() *tx.Tx
 }

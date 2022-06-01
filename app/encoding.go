@@ -13,15 +13,6 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
-// MakeEncodingConfig creates an EncodingConfig for testing
-func MakeEncodingConfig() EncodingConfig {
-	encodingConfig := makeEncodingConfig()
-	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	crosschaintypes.InitMsgValidatorBasicRouter()
-	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	return encodingConfig
-}
-
 // EncodingConfig specifies the concrete encoding types to use for a given app.
 // This is provided for compatibility between protobuf and amino implementations.
 type EncodingConfig struct {
@@ -29,6 +20,15 @@ type EncodingConfig struct {
 	Marshaler         codec.Codec
 	TxConfig          client.TxConfig
 	Amino             *codec.LegacyAmino
+}
+
+// MakeEncodingConfig creates an EncodingConfig for testing
+func MakeEncodingConfig() EncodingConfig {
+	encodingConfig := makeEncodingConfig()
+	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	crosschaintypes.InitMsgValidatorBasicRouter()
+	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	return encodingConfig
 }
 
 // MakeEncodingConfig creates an EncodingConfig for an amino based test configuration.

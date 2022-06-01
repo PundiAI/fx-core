@@ -48,7 +48,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.ValsetUpdateClaim(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized Gravity Msg type: %v", msg.Type()))
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized %s Msg type: %T", types.ModuleName, msg))
 		}
 	}
 }

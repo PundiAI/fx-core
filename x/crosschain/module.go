@@ -3,10 +3,13 @@ package crosschain
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -34,14 +37,9 @@ func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterLegacyAminoCodec implements app module basic
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterCodec(cdc)
-}
-
 // DefaultGenesis implements app module basic
 func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
 }
 
 // ValidateGenesis implements app module basic
@@ -49,8 +47,22 @@ func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConf
 	return nil
 }
 
+// RegisterLegacyAminoCodec implements app module basic
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterCodec(cdc)
+}
+
 // RegisterRESTRoutes implements app module basic
 func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
+// also implements app modeul basic
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err != nil {
+		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", types.ModuleName, err.Error()))
+	}
+}
 
 // GetQueryCmd implements app module basic
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
@@ -62,18 +74,14 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
-// also implements app modeul basic
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	_ = types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
-}
-
 // RegisterInterfaces implements app bmodule basic
-func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 }
 
-//____________________________________________________________________________
+// ----------------------------------------------------------------------------
+// AppModule
+// ----------------------------------------------------------------------------
 
 // AppModule object for module implementation
 type AppModule struct {
@@ -82,10 +90,10 @@ type AppModule struct {
 }
 
 // NewAppModuleByRouter creates a new AppModule Object
-func NewAppModuleByRouter(k keeper.RouterKeeper) AppModule {
+func NewAppModuleByRouter(keeper keeper.RouterKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         k,
+		keeper:         keeper,
 	}
 }
 
@@ -95,9 +103,7 @@ func (AppModule) Name() string {
 }
 
 // RegisterInvariants implements app module
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-	//  make some invariants in the gravity module to ensure that coins aren't being fraudlently minted etc...
-}
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route implements app module
 func (am AppModule) Route() sdk.Route {
@@ -126,7 +132,12 @@ func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMess
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
 func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 {
+	return fxtypes.CurrentConsensusVersion
 }
 
 // BeginBlock implements app module

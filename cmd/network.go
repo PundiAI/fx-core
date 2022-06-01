@@ -1,9 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/functionx/fx-core/app/cli"
 
 	"github.com/spf13/cobra"
 
@@ -22,7 +23,7 @@ func networkCmd() *cobra.Command {
 		Example: "fxcored network",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			outputBytes, err := json.Marshal(map[string]interface{}{
+			output := map[string]interface{}{
 				"ChainId":                               types.ChainID,
 				"Network":                               types.Network(),
 				"GravityPruneValsetAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetAndAttestationBlock()),
@@ -33,11 +34,8 @@ func networkCmd() *cobra.Command {
 				"EvmV0SupportBlock":                     fmt.Sprintf("%d", types.EvmV0SupportBlock()),
 				"EvmV0ClearKVStores":                    fmt.Sprintf("%s", strings.Join(types.EvmV0ClearKVStores(), ",")),
 				"EvmV1SupportBlock":                     fmt.Sprintf("%d", types.EvmV1SupportBlock()),
-			})
-			if err != nil {
-				return err
 			}
-			return clientCtx.PrintOutput(outputBytes)
+			return cli.PrintOutput(clientCtx, output)
 		},
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")

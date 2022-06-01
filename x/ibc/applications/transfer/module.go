@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
-	cli2 "github.com/functionx/fx-core/x/ibc/applications/transfer/client/cli"
-	keeper2 "github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/client/cli"
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/gorilla/mux"
@@ -23,6 +25,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
+// type check to ensure the interface is properly implemented
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
@@ -63,34 +66,34 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingCo
 }
 
 // RegisterRESTRoutes implements AppModuleBasic interface
-func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
-}
+func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
-		panic(err)
+	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err != nil {
+		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", types.ModuleName, err.Error()))
 	}
 }
 
 // GetTxCmd implements AppModuleBasic interface
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli2.NewTxCmd()
+	return cli.NewTxCmd()
 }
 
 // GetQueryCmd implements AppModuleBasic interface
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli2.GetQueryCmd()
+	return cli.GetQueryCmd()
 }
 
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper2.Keeper
+	keeper keeper.Keeper
 }
 
 // NewAppModule creates a new 20-transfer module
-func NewAppModule(k keeper2.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
 	}
@@ -136,9 +139,13 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	return cdc.MustMarshalJSON(gs)
 }
 
-// BeginBlock implements the AppModule interface
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 {
+	return fxtypes.CurrentConsensusVersion
 }
+
+// BeginBlock implements the AppModule interface
+func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock implements the AppModule interface
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {

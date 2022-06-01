@@ -1,13 +1,23 @@
 package types
 
-import banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+import (
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"strings"
+)
 
 func GetFxBankMetaData(denom string) banktypes.Metadata {
 	return banktypes.Metadata{
+		Name:        denom,
+		Symbol:      denom,
 		Description: "Function X",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    denom,
+				Exponent: 0,
+				Aliases:  nil,
+			},
+			{
+				Denom:    strings.ToLower(denom),
 				Exponent: 18,
 				Aliases:  nil,
 			},

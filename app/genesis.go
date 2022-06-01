@@ -2,7 +2,8 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"math/big"
 	"time"
 
@@ -12,10 +13,10 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
-	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
-	"github.com/cosmos/cosmos-sdk/x/ibc/core/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/cosmos/ibc-go/v3/modules/core/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -43,6 +44,15 @@ const (
 type GenesisState map[string]json.RawMessage
 
 func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) map[string]json.RawMessage {
+	fxTotalSupply, ok := sdk.NewIntFromString(BankModuleTotalSupply)
+	if !ok {
+		panic("invalid fx total supply")
+	}
+	gravityInitAmount, ok := sdk.NewIntFromString(GravityModuleInitAmount)
+	if !ok {
+		panic("invalid gravity module init amount")
+	}
+
 	genesis := make(map[string]json.RawMessage)
 	for _, b := range ModuleBasics {
 		switch b.Name() {
@@ -93,11 +103,12 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) map[string]json.
 		case banktypes.ModuleName:
 			state := banktypes.DefaultGenesisState()
 			state.DenomMetadata = []banktypes.Metadata{fxtypes.GetFxBankMetaData(denom)}
-			fxTotalSupply, ok := sdk.NewIntFromString(BankModuleTotalSupply)
-			if !ok {
-				panic("invalid fx total supply")
-			}
+
 			state.Supply = sdk.NewCoins(sdk.NewCoin(denom, fxTotalSupply))
+			state.Balances = append(state.Balances, banktypes.Balance{
+				Address: authtypes.NewModuleAddress(gravitytypes.ModuleName).String(),
+				Coins:   sdk.NewCoins(sdk.NewCoin(denom, gravityInitAmount)),
+			})
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case gravitytypes.ModuleName:
 			state := gravitytypes.DefaultGenesisState()
@@ -107,17 +118,20 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) map[string]json.
 			state.Params.UnbondSlashingValsetsWindow = 20000
 			state.Params.IbcTransferTimeoutHeight = 20000
 
-			initAmount, ok := sdk.NewIntFromString(GravityModuleInitAmount)
-			if !ok {
-				panic(fmt.Errorf("gravity module init amount err!!!amount:[%v]", GravityModuleInitAmount))
-			}
-			state.ModuleCoins = sdk.NewCoins(sdk.NewCoin(denom, initAmount))
+			state.ModuleCoins = sdk.NewCoins(sdk.NewCoin(denom, gravityInitAmount))
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case ibchost.ModuleName:
 			state := types.DefaultGenesisState()
 			// only allowedClients tendermint
 			state.ClientGenesis.Params.AllowedClients = []string{exported.Tendermint}
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+		case paramstypes.ModuleName:
+			if state := b.DefaultGenesis(cdc); state == nil {
+				genesis[b.Name()] = json.RawMessage("{}")
+			} else {
+				genesis[b.Name()] = state
+			}
+
 		default:
 			genesis[b.Name()] = b.DefaultGenesis(cdc)
 		}

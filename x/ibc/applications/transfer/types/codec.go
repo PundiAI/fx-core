@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/ibc transfer interfaces and concrete types
@@ -46,5 +46,5 @@ func init() {
 	RegisterLegacyAminoCodec(amino)
 	amino.Seal()
 
-	govtypes.RegisterProposalType(clienttypes.ProposalTypeClientUpdate)
+	//govtypes.RegisterProposalType(clienttypes.ProposalTypeClientUpdate)
 }

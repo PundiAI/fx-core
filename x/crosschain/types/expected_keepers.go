@@ -4,9 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
-	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
-	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/common"
 
 	tranfsertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
@@ -19,8 +19,7 @@ type BankKeeper interface {
 	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
-	GetDenomMetaData(ctx sdk.Context, denom string) bank.Metadata
-	SetBalances(ctx sdk.Context, addr sdk.AccAddress, balances sdk.Coins) error
+	GetDenomMetaData(ctx sdk.Context, denom string) (bank.Metadata, bool)
 }
 
 type SlashingKeeper interface {

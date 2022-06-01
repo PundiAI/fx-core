@@ -3,6 +3,9 @@ package migrate
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,6 +20,12 @@ import (
 	"github.com/functionx/fx-core/x/migrate/client/cli"
 	"github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/functionx/fx-core/x/migrate/types"
+)
+
+// type check to ensure the interface is properly implemented
+var (
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
 // AppModuleBasic object for module implementation
@@ -34,7 +43,7 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // DefaultGenesis implements app module basic
 func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
 }
 
 // ValidateGenesis implements app module basic
@@ -58,15 +67,20 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
 // also implements app modeul basic
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	_ = types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err != nil {
+		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", types.ModuleName, err.Error()))
+	}
 }
 
 // RegisterInterfaces implements app bmodule basic
-func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 }
 
-//____________________________________________________________________________
+// ----------------------------------------------------------------------------
+// AppModule
+// ----------------------------------------------------------------------------
 
 // AppModule object for module implementation
 type AppModule struct {
@@ -75,21 +89,19 @@ type AppModule struct {
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(keeper keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         k,
+		keeper:         keeper,
 	}
 }
+
+// RegisterInvariants implements app module
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Name implements app module
 func (AppModule) Name() string {
 	return types.ModuleName
-}
-
-// RegisterInvariants implements app module
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-	//  make some invariants in the gravity module to ensure that coins aren't being fraudlently minted etc...
 }
 
 // Route implements app module
@@ -120,7 +132,12 @@ func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMess
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
 func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 {
+	return fxtypes.CurrentConsensusVersion
 }
 
 // BeginBlock implements app module

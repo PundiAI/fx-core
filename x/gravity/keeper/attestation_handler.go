@@ -60,8 +60,8 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 		if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
 			baseDenom = strings.ToLower(baseDenom)
 		}
-		metadata := a.keeper.bankKeeper.GetDenomMetaData(ctx, baseDenom)
-		if metadata.Base == "" {
+		metadata, isExist := a.keeper.bankKeeper.GetDenomMetaData(ctx, baseDenom)
+		if !isExist {
 			return sdkerrors.Wrap(types.ErrUnknown, fmt.Sprintf("denom not found %s", claim.Symbol))
 		}
 

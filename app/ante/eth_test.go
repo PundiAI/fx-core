@@ -1,9 +1,8 @@
 package ante_test
 
 import (
+	ethv1 "github.com/functionx/fx-core/app/ante"
 	"math/big"
-
-	ethv1 "github.com/functionx/fx-core/app/ante/eth/v1"
 
 	"github.com/stretchr/testify/require"
 

@@ -8,8 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/tendermint/tendermint/libs/json"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -33,14 +31,10 @@ func QueryStoreCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			bts, err := json.Marshal(map[string]interface{}{
+			return PrintOutput(clientCtx, map[string]interface{}{
 				"block_height": height,
 				"data":         hex.EncodeToString(data),
 			})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintOutput(bts)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)

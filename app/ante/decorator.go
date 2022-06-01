@@ -59,11 +59,13 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "invalid tx type")
 	}
 
-	pubkeys := sigTx.GetPubKeys()
+	pubkeys, err := sigTx.GetPubKeys()
+	if err != nil {
+		return ctx, err
+	}
 	signers := sigTx.GetSigners()
 
 	supportEthSecp256k1 := ctx.BlockHeight() == 0 || //Note: use for genesis account
-		ctx.BlockHeight() >= fxtypes.EvmV0SupportBlock() || //Note: use for testnet
 		ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() //Note: use for devnet and mainnet
 
 	for i, pk := range pubkeys {
@@ -228,8 +230,7 @@ func (sgcd SigGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			Sequence: sig.Sequence,
 		}
 
-		err = sgcd.sigGasConsumer(ctx, sig, params)
-		if err != nil {
+		if err = sgcd.sigGasConsumer(ctx, sig, params); err != nil {
 			return ctx, err
 		}
 	}

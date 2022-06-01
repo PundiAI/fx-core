@@ -79,8 +79,8 @@ func (s EthereumMsgServer) HandleUpdateChainOraclesProposal(ctx sdk.Context, p *
 		}
 	}
 
-	maxPowerChangeThreshold := types.AttestationProposalOracleChangePowerThreshold.Mul(totalDepositAmount).Quo(sdk.PowerReduction).Quo(sdk.NewInt(100))
-	deleteOraclePower := totalDeleteDepositAmount.Quo(sdk.PowerReduction)
+	maxPowerChangeThreshold := types.AttestationProposalOracleChangePowerThreshold.Mul(totalDepositAmount).Quo(sdk.DefaultPowerReduction).Quo(sdk.NewInt(100))
+	deleteOraclePower := totalDeleteDepositAmount.Quo(sdk.DefaultPowerReduction)
 	//maxPowerChangeThreshold := sdk.NewDecFromInt(totalDepositAmount.Quo(sdk.PowerReduction)).Mul(sdk.NewDecFromInt(types.AttestationProposalOracleChangePowerThreshold)).Quo(sdk.NewDec(100))
 	//deleteOraclePower := sdk.NewDecFromInt(totalDeleteDepositAmount.Quo(sdk.PowerReduction))
 	logger.Info("UpdateChainOraclesProposal", "maxChangePower", maxPowerChangeThreshold.String(), "deleteOraclePower", deleteOraclePower.String())

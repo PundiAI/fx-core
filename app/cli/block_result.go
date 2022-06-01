@@ -54,17 +54,17 @@ func QueryBlockResultsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return clientCtx.PrintOutput([]byte(output))
+			return PrintOutput(clientCtx, output)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
-func ParseBlockResults(cdc codec.JSONCodec, blockResults *coretypes.ResultBlockResults) (string, error) {
+func ParseBlockResults(cdc codec.JSONCodec, blockResults *coretypes.ResultBlockResults) (interface{}, error) {
 	consensusParamUpdates, err := cdc.MarshalJSON(blockResults.ConsensusParamUpdates)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	var beginBlockEvents []map[string]interface{}
 	for _, event := range blockResults.BeginBlockEvents {
@@ -88,22 +88,18 @@ func ParseBlockResults(cdc codec.JSONCodec, blockResults *coretypes.ResultBlockR
 	for _, valUp := range blockResults.ValidatorUpdates {
 		valUpData, err := cdc.MarshalJSON(&valUp)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		validatorUpdates = append(validatorUpdates, valUpData)
 	}
-	output, err := json.Marshal(map[string]interface{}{
+	return map[string]interface{}{
 		"height":                  blockResults.Height,
 		"txs_results":             txsResults,
 		"begin_block_events":      beginBlockEvents,
 		"end_block_events":        endBlockEvents,
 		"validator_updates":       validatorUpdates,
 		"consensus_param_updates": json.RawMessage(consensusParamUpdates),
-	})
-	if err != nil {
-		return "", err
-	}
-	return string(output), nil
+	}, nil
 }
 
 func TxResponseToMap(cdc codec.JSONCodec, txResponse *sdk.TxResponse) map[string]interface{} {

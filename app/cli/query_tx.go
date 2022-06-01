@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -90,7 +89,7 @@ $ %s query txs --%s 'message.sender=cosmos1...&message.action=withdraw_delegator
 			for i := 0; i < len(txsResult.Txs); i++ {
 				txsArray = append(txsArray, TxResponseToMap(clientCtx.Codec, txsResult.Txs[i]))
 			}
-			data, err := json.Marshal(map[string]interface{}{
+			return PrintOutput(clientCtx, map[string]interface{}{
 				"total_count": txsResult.TotalCount,
 				"count":       txsResult.Count,
 				"page_number": txsResult.PageNumber,
@@ -98,10 +97,6 @@ $ %s query txs --%s 'message.sender=cosmos1...&message.action=withdraw_delegator
 				"limit":       txsResult.Limit,
 				"txs":         txsArray,
 			})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintOutput(data)
 		},
 	}
 
@@ -153,11 +148,7 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 					if output.Empty() {
 						return fmt.Errorf("no transaction found with hash %s", args[0])
 					}
-					data, err := json.Marshal(TxResponseToMap(clientCtx.Codec, output))
-					if err != nil {
-						return err
-					}
-					return clientCtx.PrintOutput(data)
+					return PrintOutput(clientCtx, TxResponseToMap(clientCtx.Codec, output))
 				}
 			case typeSig:
 				{
@@ -181,11 +172,7 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 						// This case means there's a bug somewhere else in the code. Should not happen.
 						return errors.ErrLogic.Wrapf("found %d txs matching given signatures", len(txs.Txs))
 					}
-					data, err := json.Marshal(TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
-					if err != nil {
-						return err
-					}
-					return clientCtx.PrintOutput(data)
+					return PrintOutput(clientCtx, TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
 				}
 			case typeAccSeq:
 				{
@@ -208,11 +195,7 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 						return fmt.Errorf("found %d txs matching given address and sequence combination", len(txs.Txs))
 					}
 
-					data, err := json.Marshal(TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
-					if err != nil {
-						return err
-					}
-					return clientCtx.PrintOutput(data)
+					return PrintOutput(clientCtx, TxResponseToMap(clientCtx.Codec, txs.Txs[0]))
 				}
 			default:
 				return fmt.Errorf("unknown --%s value %s", flagType, typ)

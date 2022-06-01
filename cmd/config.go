@@ -1,10 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/functionx/fx-core/app/cli"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/viper"
@@ -91,12 +92,12 @@ func runConfigCmd(cmd *cobra.Command, args []string) error {
 
 	// is len(args) == 1, get config file content
 	if len(args) == 1 {
-		return cfg.output(clientCtx.PrintOutput)
+		return cfg.output(clientCtx)
 	}
 
 	// 2. is len(args) == 2, get config key value
 	if len(args) == 2 {
-		return output(clientCtx.PrintOutput, serverCtx.Viper.Get(args[1]))
+		return output(clientCtx, serverCtx.Viper.Get(args[1]))
 	}
 
 	serverCtx.Viper.Set(args[1], args[2])
@@ -105,7 +106,7 @@ func runConfigCmd(cmd *cobra.Command, args []string) error {
 
 type cmdConfig interface {
 	save() error
-	output(printOutput func(out []byte) error) error
+	output(ctx client.Context) error
 }
 
 var (
@@ -119,8 +120,8 @@ type appTomlConfig struct {
 	configName string
 }
 
-func (a *appTomlConfig) output(printOutput func(out []byte) error) error {
-	return output(printOutput, a.config)
+func (a *appTomlConfig) output(ctx client.Context) error {
+	return output(ctx, a.config)
 }
 
 func (a *appTomlConfig) save() error {
@@ -137,7 +138,7 @@ type configTomlConfig struct {
 	configName string
 }
 
-func (c *configTomlConfig) output(printOutput func(out []byte) error) error {
+func (c *configTomlConfig) output(ctx client.Context) error {
 	type outputConfig struct {
 		tmcfg.BaseConfig `mapstructure:",squash"`
 		RPC              tmcfg.RPCConfig             `mapstructure:"rpc"`
@@ -149,7 +150,7 @@ func (c *configTomlConfig) output(printOutput func(out []byte) error) error {
 		TxIndex          tmcfg.TxIndexConfig         `mapstructure:"tx_index"`
 		Instrumentation  tmcfg.InstrumentationConfig `mapstructure:"instrumentation"`
 	}
-	return output(printOutput, outputConfig{
+	return output(ctx, outputConfig{
 		BaseConfig:      c.config.BaseConfig,
 		RPC:             *c.config.RPC,
 		P2P:             *c.config.P2P,
@@ -188,14 +189,10 @@ func newConfig(v *viper.Viper, configName string) (cmdConfig, error) {
 	}
 }
 
-func output(printOutput func(out []byte) error, content interface{}) error {
+func output(ctx client.Context, content interface{}) error {
 	var mapData map[string]interface{}
 	if err := mapstructure.Decode(content, &mapData); err != nil {
 		return err
 	}
-	data, err := json.MarshalIndent(mapData, "", "  ")
-	if err != nil {
-		return err
-	}
-	return printOutput(data)
+	return cli.PrintOutput(ctx, mapData)
 }

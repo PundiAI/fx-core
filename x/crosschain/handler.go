@@ -3,7 +3,6 @@ package crosschain
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,10 +32,12 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "not cross chain msg")
 		}
-		ignoreCommitKeyNameMapByHeight := rootmulti.GetIgnoreCommitKeyNameMapByHeight(ctx.BlockHeight())
-		if _, ok := ignoreCommitKeyNameMapByHeight[chainName]; ok {
-			panic(sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "module not enable"))
-		}
+		_ = chainName
+		// TODO need fix
+		//ignoreCommitKeyNameMapByHeight := rootmulti.GetIgnoreCommitKeyNameMapByHeight(ctx.BlockHeight())
+		//if _, ok := ignoreCommitKeyNameMapByHeight[chainName]; ok {
+		//	panic(sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "module not enable"))
+		//}
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		var res proto.Message
 		var err error
@@ -68,7 +69,7 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 		case *types.MsgConfirmBatch:
 			res, err = msgServer.ConfirmBatch(sdkCtx, msg)
 		default:
-			err = sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized bsc Msg type: %v", msg.Type()))
+			err = sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized %s Msg type: %T", chainName, msg))
 		}
 		return sdk.WrapServiceResult(ctx, res, err)
 	}
@@ -77,26 +78,27 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 func NewCrossChainProposalHandler(k keeper.RouterKeeper) govtypes.Handler {
 	moduleHandlerRouter := k.Router()
 	return func(ctx sdk.Context, content govtypes.Content) error {
-		ignoreCommitKeyNameMapByHeight := rootmulti.GetIgnoreCommitKeyNameMapByHeight(ctx.BlockHeight())
+		// TODO need fix
+		//ignoreCommitKeyNameMapByHeight := rootmulti.GetIgnoreCommitKeyNameMapByHeight(ctx.BlockHeight())
 		switch c := content.(type) {
 		case *types.InitCrossChainParamsProposal:
 			if !moduleHandlerRouter.HasRoute(c.ChainName) {
 				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", c.ChainName))
 			}
-			if _, ok := ignoreCommitKeyNameMapByHeight[c.ChainName]; ok {
-				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "module not enable")
-			}
+			//if _, ok := ignoreCommitKeyNameMapByHeight[c.ChainName]; ok {
+			//	return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "module not enable")
+			//}
 			return k.Router().GetRoute(c.ChainName).MsgServer.HandleInitCrossChainParamsProposal(ctx, c)
 		case *types.UpdateChainOraclesProposal:
 			if !moduleHandlerRouter.HasRoute(c.ChainName) {
 				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", c.ChainName))
 			}
-			if _, ok := ignoreCommitKeyNameMapByHeight[c.ChainName]; ok {
-				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "module not enable")
-			}
+			//if _, ok := ignoreCommitKeyNameMapByHeight[c.ChainName]; ok {
+			//	return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "module not enable")
+			//}
 			return k.Router().GetRoute(c.ChainName).MsgServer.HandleUpdateChainOraclesProposal(ctx, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized distr proposal content type: %T", c)
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized %s proposal content type: %T", types.ModuleName, c)
 		}
 	}
 }

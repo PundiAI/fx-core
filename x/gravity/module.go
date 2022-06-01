@@ -9,6 +9,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -72,15 +74,21 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
 // also implements app modeul basic
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	_ = types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err != nil {
+		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", types.ModuleName, err.Error()))
+	}
+
 }
 
 // RegisterInterfaces implements app bmodule basic
-func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 }
 
-//____________________________________________________________________________
+// ----------------------------------------------------------------------------
+// AppModule
+// ----------------------------------------------------------------------------
 
 // AppModule object for module implementation
 type AppModule struct {
@@ -98,14 +106,12 @@ func NewAppModule(k keeper.Keeper, bankKeeper bankkeeper.Keeper) AppModule {
 	}
 }
 
+// RegisterInvariants implements app module
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
 // Name implements app module
 func (AppModule) Name() string {
 	return types.ModuleName
-}
-
-// RegisterInvariants implements app module
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-	//  make some invariants in the gravity module to ensure that coins aren't being fraudlently minted etc...
 }
 
 // Route implements app module
@@ -141,6 +147,11 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := keeper.ExportGenesis(ctx, am.keeper)
 	return cdc.MustMarshalJSON(&gs)
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 {
+	return fxtypes.CurrentConsensusVersion
 }
 
 // BeginBlock implements app module

@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"testing"
+
+	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/config"
@@ -13,20 +16,25 @@ func Test_configTomlConfig_output(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.BaseConfig.Moniker = "anonymous"
 	c := configTomlConfig{config: cfg}
-	err := c.output(func(out []byte) error {
-		assert.Equal(t, tmConfigJson, string(out))
-		return nil
-	})
-	assert.NoError(t, err)
+	buf := new(bytes.Buffer)
+	clientCtx := client.Context{
+		Output:       buf,
+		OutputFormat: "json",
+	}
+	assert.NoError(t, c.output(clientCtx))
+	assert.Equal(t, tmConfigJson, buf.String())
+
 }
 
 func Test_appTomlConfig_output(t *testing.T) {
 	c := appTomlConfig{config: fxconfig.DefaultConfig()}
-	err := c.output(func(out []byte) error {
-		assert.Equal(t, appConfigJson, string(out))
-		return nil
-	})
-	assert.NoError(t, err)
+	buf := new(bytes.Buffer)
+	clientCtx := client.Context{
+		Output:       buf,
+		OutputFormat: "json",
+	}
+	assert.NoError(t, c.output(clientCtx))
+	assert.Equal(t, appConfigJson, buf.String())
 }
 
 const tmConfigJson = `{
@@ -163,7 +171,8 @@ const tmConfigJson = `{
     "indexer": "kv",
     "psql-conn": ""
   }
-}`
+}
+`
 
 const appConfigJson = `{
   "api": {
@@ -186,6 +195,11 @@ const appConfigJson = `{
   "grpc": {
     "address": "0.0.0.0:9090",
     "enable": true
+  },
+  "grpc-web": {
+    "address": "0.0.0.0:9091",
+    "enable": true,
+    "enable-unsafe-cors": false
   },
   "halt-height": 0,
   "halt-time": 0,
@@ -217,6 +231,14 @@ const appConfigJson = `{
   "pruning-interval": "0",
   "pruning-keep-every": "0",
   "pruning-keep-recent": "0",
+  "rosetta": {
+    "address": ":8080",
+    "blockchain": "app",
+    "enable": false,
+    "network": "network",
+    "offline": false,
+    "retries": 3
+  },
   "state-sync": {
     "snapshot-interval": 0,
     "snapshot-keep-recent": 2
@@ -234,4 +256,5 @@ const appConfigJson = `{
     "certificate-path": "",
     "key-path": ""
   }
-}`
+}
+`

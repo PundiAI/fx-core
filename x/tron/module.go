@@ -3,6 +3,8 @@ package tron
 import (
 	"encoding/json"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
@@ -36,12 +38,11 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterLegacyAminoCodec implements app module basic
-func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
-}
+func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {}
 
 // DefaultGenesis implements app module basic
 func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
 }
 
 // ValidateGenesis implements app module basic
@@ -64,15 +65,16 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
 // also implements app modeul basic
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {
-}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // RegisterInterfaces implements app bmodule basic
-func (b AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
+func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
 	types.RegisterValidatorBasic(trontypes.ModuleName, trontypes.MsgValidateBasic{})
 }
 
-//____________________________________________________________________________
+// ----------------------------------------------------------------------------
+// AppModule
+// ----------------------------------------------------------------------------
 
 // AppModule object for module implementation
 type AppModule struct {
@@ -90,14 +92,12 @@ func NewAppModule(keeper keeper.Keeper, bankKeeper bankkeeper.Keeper) AppModule 
 	}
 }
 
+// RegisterInvariants implements app module
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
 // Name implements app module
 func (AppModule) Name() string {
 	return trontypes.ModuleName
-}
-
-// RegisterInvariants implements app module
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-	//  make some invariants in the gravity module to ensure that coins aren't being fraudlently minted etc...
 }
 
 // Route implements app module
@@ -125,7 +125,12 @@ func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMess
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
 func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 {
+	return fxtypes.CurrentConsensusVersion
 }
 
 // BeginBlock implements app module

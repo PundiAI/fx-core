@@ -63,7 +63,7 @@ func StatusCommand() *cobra.Command {
 				},
 			}
 			//nolint
-			return clientCtx.PrintObjectLegacy(statusWithPk)
+			return PrintOutput(clientCtx, statusWithPk)
 		},
 	}
 

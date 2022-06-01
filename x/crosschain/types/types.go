@@ -264,7 +264,7 @@ func (m Oracle) GetOracle() sdk.AccAddress {
 }
 
 func (m Oracle) GetPower() sdk.Int {
-	return m.DepositAmount.Amount.Quo(sdk.PowerReduction)
+	return m.DepositAmount.Amount.Quo(sdk.DefaultPowerReduction)
 }
 
 type Oracles []Oracle

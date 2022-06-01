@@ -6,8 +6,9 @@ require (
 	github.com/armon/go-metrics v0.3.10
 	github.com/btcsuite/btcd v0.22.1
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
-	github.com/cosmos/cosmos-sdk v0.42.11
+	github.com/cosmos/cosmos-sdk v0.45.4
 	github.com/cosmos/go-bip39 v1.0.0
+	github.com/cosmos/ibc-go/v3 v3.0.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/ethereum/go-ethereum v1.10.18
 	github.com/fbsobreira/gotron-sdk v0.0.0-20211012084317-763989224068
@@ -40,9 +41,10 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.0.0-beta.2 // indirect
 	github.com/99designs/keyring v1.1.6 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
-	github.com/DataDog/zstd v1.4.1 // indirect
+	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/VictoriaMetrics/fastcache v1.6.0 // indirect
 	github.com/Workiva/go-datastructures v1.0.53 // indirect
@@ -52,7 +54,8 @@ require (
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/confio/ics23/go v0.6.6 // indirect
+	github.com/coinbase/rosetta-sdk-go v0.7.0 // indirect
+	github.com/confio/ics23/go v0.7.0 // indirect
 	github.com/cosmos/btcutil v1.0.4 // indirect
 	github.com/cosmos/iavl v0.17.3 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.11.1 // indirect
@@ -60,9 +63,10 @@ require (
 	github.com/danieljoos/wincred v1.0.2 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
+	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.2 // indirect
-	github.com/dgraph-io/ristretto v0.0.3-0.20200630154024-f66de99634de // indirect
-	github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2 // indirect
+	github.com/dgraph-io/ristretto v0.0.3 // indirect
+	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91 // indirect
 	github.com/dop251/goja v0.0.0-20220405120441-9037c2b61cbf // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
@@ -91,12 +95,15 @@ require (
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hdevalence/ed25519consensus v0.0.0-20210204194344-59a8610d2b87 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/huin/goupnp v1.0.3 // indirect
+	github.com/improbable-eng/grpc-web v0.14.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d // indirect
+	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/lib/pq v1.10.4 // indirect
 	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
@@ -143,6 +150,7 @@ require (
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	nhooyr.io/websocket v1.8.6 // indirect
 )
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.33.2
@@ -154,5 +162,3 @@ replace github.com/zondax/hid => github.com/zondax/hid v0.9.1-0.20220302062450-5
 replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4
 
 replace github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
-
-replace github.com/cosmos/cosmos-sdk => github.com/functionx/cosmos-sdk v0.42.10-0.20220518080902-0ac1d6756df6

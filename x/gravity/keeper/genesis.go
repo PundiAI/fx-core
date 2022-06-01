@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/x/gravity/types"
@@ -100,15 +98,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) {
 	// populate state with cosmos originated denom-erc20 mapping
 	for _, item := range data.Erc20ToDenoms {
 		k.setFxOriginatedDenomToERC20(ctx, item.Denom, item.Erc20)
-	}
-
-	moduleAcc := k.ak.GetModuleAccount(ctx, types.ModuleName)
-	balances := k.bankKeeper.GetAllBalances(ctx, moduleAcc.GetAddress())
-	if balances.IsZero() {
-		if err := k.bankKeeper.SetBalances(ctx, moduleAcc.GetAddress(), data.ModuleCoins); err != nil {
-			panic(fmt.Errorf("mint module coins err!!!module:%v, coins:%v,err:%v", types.ModuleName, data.ModuleCoins, err))
-		}
-		k.ak.SetModuleAccount(ctx, moduleAcc)
 	}
 }
 

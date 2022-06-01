@@ -4,8 +4,8 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -46,7 +46,7 @@ func (s *AnteTestSuite) TestMempoolFeeDecorator() {
 
 	// ensure no fees for certain IBC msgs
 	s.Require().NoError(s.txBuilder.SetMsgs(
-		ibcchanneltypes.NewMsgRecvPacket(ibcchanneltypes.Packet{}, nil, ibcclienttypes.Height{}, sdk.AccAddress{}),
+		ibcchanneltypes.NewMsgRecvPacket(ibcchanneltypes.Packet{}, nil, ibcclienttypes.Height{}, sdk.AccAddress{}.String()),
 	))
 
 	oracleTx, err := s.CreateEmptyTestTx(privs, accNums, accSeqs, s.ctx.ChainID())

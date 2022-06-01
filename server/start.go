@@ -38,7 +38,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ethdebug "github.com/functionx/fx-core/rpc/namespaces/ethereum/debug"
-	serverconfig "github.com/functionx/fx-core/server/config"
+	fxconfig "github.com/functionx/fx-core/server/config"
 )
 
 const (
@@ -209,26 +209,26 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune Tendermint blocks")
 
 	cmd.Flags().Bool(flagGRPCEnable, true, "Define if the gRPC server should be enabled")
-	cmd.Flags().String(flagGRPCAddress, serverconfig.DefaultGRPCAddress, "the gRPC server address to listen on")
+	cmd.Flags().String(flagGRPCAddress, fxconfig.DefaultGRPCAddress, "the gRPC server address to listen on")
 
 	cmd.Flags().Bool(flagRPCEnable, false, "Defines if Cosmos-sdk REST server should be enabled")
 	cmd.Flags().Bool(flagEnabledUnsafeCors, false, "Defines if CORS should be enabled (unsafe - use it at your own risk)")
 
 	cmd.Flags().Bool(JSONRPCEnable, true, "Define if the gRPC server should be enabled")
-	cmd.Flags().StringSlice(JSONRPCAPI, serverconfig.GetDefaultAPINamespaces(), "Defines a list of JSON-RPC namespaces that should be enabled")
-	cmd.Flags().String(JSONRPCAddress, serverconfig.DefaultJSONRPCAddress, "the JSON-RPC server address to listen on")
-	cmd.Flags().String(JSONWsAddress, serverconfig.DefaultJSONRPCWsAddress, "the JSON-RPC WS server address to listen on")
-	cmd.Flags().Uint64(JSONRPCGasCap, serverconfig.DefaultGasCap, "Sets a cap on gas that can be used in eth_call/estimateGas unit is FX (0=infinite)")
-	cmd.Flags().Float64(JSONRPCTxFeeCap, serverconfig.DefaultTxFeeCap, "Sets a cap on transaction fee that can be sent via the RPC APIs (1 = default 1 photon)")
-	cmd.Flags().Int32(JSONRPCFilterCap, serverconfig.DefaultFilterCap, "Sets the global cap for total number of filters that can be created")
-	cmd.Flags().Duration(JSONRPCEVMTimeout, serverconfig.DefaultEVMTimeout, "Sets a timeout used for eth_call (0=infinite)")
-	cmd.Flags().Duration(JSONRPCHTTPTimeout, serverconfig.DefaultHTTPTimeout, "Sets a read/write timeout for json-rpc http server (0=infinite)")
-	cmd.Flags().Duration(JSONRPCHTTPIdleTimeout, serverconfig.DefaultHTTPIdleTimeout, "Sets a idle timeout for json-rpc http server (0=infinite)")
-	cmd.Flags().Int32(JSONRPCLogsCap, serverconfig.DefaultLogsCap, "Sets the max number of results can be returned from single `eth_getLogs` query")
-	cmd.Flags().Int32(JSONRPCBlockRangeCap, serverconfig.DefaultBlockRangeCap, "Sets the max block range allowed for `eth_getLogs` query")
+	cmd.Flags().StringSlice(JSONRPCAPI, fxconfig.GetDefaultAPINamespaces(), "Defines a list of JSON-RPC namespaces that should be enabled")
+	cmd.Flags().String(JSONRPCAddress, fxconfig.DefaultJSONRPCAddress, "the JSON-RPC server address to listen on")
+	cmd.Flags().String(JSONWsAddress, fxconfig.DefaultJSONRPCWsAddress, "the JSON-RPC WS server address to listen on")
+	cmd.Flags().Uint64(JSONRPCGasCap, fxconfig.DefaultGasCap, "Sets a cap on gas that can be used in eth_call/estimateGas unit is FX (0=infinite)")
+	cmd.Flags().Float64(JSONRPCTxFeeCap, fxconfig.DefaultTxFeeCap, "Sets a cap on transaction fee that can be sent via the RPC APIs (1 = default 1 photon)")
+	cmd.Flags().Int32(JSONRPCFilterCap, fxconfig.DefaultFilterCap, "Sets the global cap for total number of filters that can be created")
+	cmd.Flags().Duration(JSONRPCEVMTimeout, fxconfig.DefaultEVMTimeout, "Sets a timeout used for eth_call (0=infinite)")
+	cmd.Flags().Duration(JSONRPCHTTPTimeout, fxconfig.DefaultHTTPTimeout, "Sets a read/write timeout for json-rpc http server (0=infinite)")
+	cmd.Flags().Duration(JSONRPCHTTPIdleTimeout, fxconfig.DefaultHTTPIdleTimeout, "Sets a idle timeout for json-rpc http server (0=infinite)")
+	cmd.Flags().Int32(JSONRPCLogsCap, fxconfig.DefaultLogsCap, "Sets the max number of results can be returned from single `eth_getLogs` query")
+	cmd.Flags().Int32(JSONRPCBlockRangeCap, fxconfig.DefaultBlockRangeCap, "Sets the max block range allowed for `eth_getLogs` query")
 
-	cmd.Flags().String(EVMTracer, serverconfig.DefaultEVMTracer, "the EVM tracer type to collect execution traces from the EVM transaction execution (json|struct|access_list|markdown)")
-	cmd.Flags().Uint64(EVMMaxTxGasWanted, serverconfig.DefaultMaxTxGasWanted, "the gas wanted for each eth tx returned in ante handler in check tx mode")
+	cmd.Flags().String(EVMTracer, fxconfig.DefaultEVMTracer, "the EVM tracer type to collect execution traces from the EVM transaction execution (json|struct|access_list|markdown)")
+	cmd.Flags().Uint64(EVMMaxTxGasWanted, fxconfig.DefaultMaxTxGasWanted, "the gas wanted for each eth tx returned in ante handler in check tx mode")
 
 	cmd.Flags().String(TLSCertPath, "", "the cert.pem file path for the server TLS configuration")
 	cmd.Flags().String(TLSKeyPath, "", "the key.pem file path for the server TLS configuration")
@@ -338,7 +338,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		return err
 	}
 
-	config := serverconfig.GetConfig(ctx.Viper)
+	config := fxconfig.GetConfig(ctx.Viper)
 
 	if err := config.ValidateBasic(); err != nil {
 		if strings.Contains(err.Error(), "set min gas price in app.toml or flag or env variable") {

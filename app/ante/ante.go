@@ -33,15 +33,8 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 			opts := txWithExtensions.GetExtensionOptions()
 			if len(opts) > 0 {
 				typeURL := opts[0].GetTypeUrl()
-				if ctx.BlockHeight() >= fxtypes.EvmV0SupportBlock() &&
-					ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() &&
-					typeURL == "/ethermint.evm.v1.ExtensionOptionsEthereumTx" {
-					//evm v0
-					anteHandler = newEthV0AnteHandler(options)
-				} else if ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() &&
-					typeURL == "/fx.ethereum.evm.v1.ExtensionOptionsEthereumTx" {
-					//evm v1
-					anteHandler = newEthV1AnteHandler(options)
+				if typeURL == "/fx.ethereum.evm.v1.ExtensionOptionsEthereumTx" {
+					anteHandler = newEthAnteHandler(options)
 				} else {
 					//unsupported
 					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownExtensionOptions, "rejecting tx with unsupported extension option: %s", typeURL)

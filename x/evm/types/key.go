@@ -6,7 +6,7 @@ import (
 
 const (
 	// ModuleName string name of module
-	ModuleName = "evm1"
+	ModuleName = "evm"
 
 	// StoreKey key for ethereum storage data, account code (StateDB) or block
 	// related data for Web3.

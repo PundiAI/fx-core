@@ -15,7 +15,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	"github.com/cosmos/cosmos-sdk/x/ibc/testing/mock"
+	//"github.com/cosmos/ibc-go/v3/modules/testing/mock"
 
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -314,9 +314,9 @@ func AddTestAddrsFromPubKeys(app *App, ctx sdk.Context, pubKeys []cryptotypes.Pu
 
 // setTotalSupply provides the total supply based on accAmt * totalAccounts.
 func setTotalSupply(app *App, ctx sdk.Context, accAmt sdk.Int, totalAccounts int) {
-	totalSupply := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt.MulRaw(int64(totalAccounts))))
-	prevSupply := app.BankKeeper.GetSupply(ctx)
-	app.BankKeeper.SetSupply(ctx, banktypes.NewSupply(prevSupply.GetTotal().Add(totalSupply...)))
+	//totalSupply := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt.MulRaw(int64(totalAccounts))))
+	//prevSupply := app.BankKeeper.GetSupply(ctx)
+	//app.BankKeeper.SetSupply(ctx, banktypes.NewSupply(prevSupply.GetTotal().Add(totalSupply...)))
 }
 
 // AddTestAddrs constructs and returns accNum amount of accounts with an
@@ -349,10 +349,10 @@ func addTestAddrs(app *App, ctx sdk.Context, accNum int, accAmt sdk.Int, strateg
 func saveAccount(app *App, ctx sdk.Context, addr sdk.AccAddress, initCoins sdk.Coins) {
 	acc := app.AccountKeeper.NewAccountWithAddress(ctx, addr)
 	app.AccountKeeper.SetAccount(ctx, acc)
-	err := app.BankKeeper.AddCoins(ctx, addr, initCoins)
-	if err != nil {
-		panic(err)
-	}
+	//err := app.BankKeeper.AddCoins(ctx, addr, initCoins)
+	//if err != nil {
+	//	panic(err)
+	//}
 }
 
 // ConvertAddrsToValAddrs converts the provided addresses to ValAddress.
@@ -523,14 +523,14 @@ func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (*tmtypes.V
 	var genesisAccounts authtypes.GenesisAccounts
 	balances := make([]banktypes.Balance, 0, validatorNum)
 	for i := 0; i < validatorNum; i++ {
-		privVal := mock.NewPV()
-		pubKey, err := privVal.GetPubKey()
-		if err != nil {
-			panic(err)
-		}
+		//privVal := mock.NewPV()
+		//pubKey, err := privVal.GetPubKey()
+		//if err != nil {
+		//	panic(err)
+		//}
 
-		validator := tmtypes.NewValidator(pubKey, 1)
-		valSets = append(valSets, validator)
+		//validator := tmtypes.NewValidator(pubKey, 1)
+		//valSets = append(valSets, validator)
 
 		senderPrivKey := secp256k1.GenPrivKey()
 		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)

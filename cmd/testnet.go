@@ -9,10 +9,10 @@ import (
 	"os"
 	"path/filepath"
 
-	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 
-	serverconfig "github.com/functionx/fx-core/server/config"
+	fxconfig "github.com/functionx/fx-core/server/config"
 
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 
@@ -124,7 +124,7 @@ func initTestnet(
 	denom string,
 	valNum int,
 ) error {
-	fxAppConfig := serverconfig.Config{
+	fxAppConfig := fxconfig.Config{
 		Config: *srvconfig.DefaultConfig(),
 	}
 	fxAppConfig.MinGasPrices = minGasPrices
@@ -133,7 +133,7 @@ func initTestnet(
 	fxAppConfig.Telemetry.PrometheusRetentionTime = 60
 	fxAppConfig.Telemetry.EnableHostnameLabel = false
 	fxAppConfig.Telemetry.GlobalLabels = [][]string{{"chain_id", chainID}}
-	fxAppConfig.BypassMinFee = serverconfig.BypassMinFee{
+	fxAppConfig.BypassMinFee = fxconfig.BypassMinFee{
 		MsgTypes: []string{
 			sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
 			sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
@@ -195,9 +195,9 @@ func initTestnet(
 			return err
 		}
 
-		amount := sdk.TokensFromConsensusPower(int64(40 / valNum))
+		amount := sdk.TokensFromConsensusPower(int64(40/valNum), sdk.DefaultPowerReduction)
 		if i == 0 && 40%valNum != 0 {
-			amount = sdk.TokensFromConsensusPower(int64(40/valNum + 40%valNum))
+			amount = sdk.TokensFromConsensusPower(int64(40/valNum+40%valNum), sdk.DefaultPowerReduction)
 		}
 
 		coins := sdk.Coins{sdk.NewCoin(denom, amount)}
@@ -207,7 +207,7 @@ func initTestnet(
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
 			sdk.ValAddress(valAddr),
 			valPubKeys[i],
-			sdk.NewCoin(denom, sdk.TokensFromConsensusPower(1)),
+			sdk.NewCoin(denom, sdk.TokensFromConsensusPower(1, sdk.DefaultPowerReduction)),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
 			stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
 			sdk.OneInt(),

@@ -1,14 +1,23 @@
 package app
 
 import (
+	"fmt"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	"io"
+	stdlog "log"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
+
+	othertypes "github.com/functionx/fx-core/x/other/types"
+
 	"github.com/cosmos/cosmos-sdk/server/config"
 
-	serverconfig "github.com/functionx/fx-core/server/config"
+	fxconfig "github.com/functionx/fx-core/server/config"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -18,7 +27,6 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -29,58 +37,76 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+
+	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
+
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+
+	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
+
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	ibc "github.com/cosmos/cosmos-sdk/x/ibc/core"
-	ibcclient "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client"
-	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
-	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/05-port/types"
-	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
-	ibckeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/keeper"
+
+	ibc "github.com/cosmos/ibc-go/v3/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
@@ -114,12 +140,8 @@ import (
 	"github.com/functionx/fx-core/x/evm"
 	evmrest "github.com/functionx/fx-core/x/evm/client/rest"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	evmv0 "github.com/functionx/fx-core/x/evm/v0"
-	evmtypesv0 "github.com/functionx/fx-core/x/evm/v0/types"
 	"github.com/functionx/fx-core/x/feemarket"
 	feemarketkeeper "github.com/functionx/fx-core/x/feemarket/keeper"
-	feemarketv0 "github.com/functionx/fx-core/x/feemarket/v0"
-	feemarketkeeperv0 "github.com/functionx/fx-core/x/feemarket/v0/keeper"
 
 	erc20client "github.com/functionx/fx-core/x/erc20/client"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
@@ -133,9 +155,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/erc20"
 	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
-	evmkeeperv0 "github.com/functionx/fx-core/x/evm/v0/keeper"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-	feemarkettypesv0 "github.com/functionx/fx-core/x/feemarket/v0/types"
 	"github.com/functionx/fx-core/x/migrate"
 
 	_ "github.com/functionx/fx-core/docs/statik"
@@ -176,20 +196,20 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		feegrantmodule.AppModuleBasic{},
+		authzmodule.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
-		gravity.AppModuleBasic{},
 		other.AppModuleBasic{},
+		gravity.AppModuleBasic{},
 		crosschain.AppModuleBasic{},
 		bsc.AppModuleBasic{},
 		polygon.AppModuleBasic{},
 		tron.AppModuleBasic{},
-		evmv0.AppModuleBasic{},
-		feemarketv0.AppModuleBasic{},
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
 		erc20.AppModuleBasic{},
@@ -205,19 +225,14 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		gravitytypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
-		bsctypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
-		polygontypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
-		trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 		// used for secure addition and subtraction of balance using module account
-		evmtypesv0.ModuleName: {authtypes.Minter, authtypes.Burner},
-		evmtypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
-		erc20types.ModuleName: {authtypes.Minter, authtypes.Burner},
+		gravitytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		bsctypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
+		polygontypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		trontypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
+		erc20types.ModuleName:   {authtypes.Minter, authtypes.Burner},
 	}
-	// module accounts that are allowed to receive tokens
-	//allowedReceivingModAcc = map[string]bool{
-	//	distrtypes.ModuleName: true,
-	//}
 )
 
 var (
@@ -225,27 +240,13 @@ var (
 	_ servertypes.Application = (*App)(nil)
 )
 
-func init() {
-	fxHome := os.ExpandEnv("$FX_HOME")
-	if len(fxHome) > 0 {
-		DefaultNodeHome = fxHome
-		return
-	}
-	userHomeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	DefaultNodeHome = filepath.Join(userHomeDir, "."+fxtypes.Name)
-}
-
 // App extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
 type App struct {
 	*baseapp.BaseApp
 
-	cdc               *codec.LegacyAmino
+	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
 
@@ -268,34 +269,52 @@ type App struct {
 	CrisisKeeper     crisiskeeper.Keeper
 	UpgradeKeeper    upgradekeeper.Keeper
 	ParamsKeeper     paramskeeper.Keeper
-	IBCKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	EvidenceKeeper   evidencekeeper.Keeper
-	TransferKeeper   ibctransferkeeper.Keeper
+
+	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	IBCKeeper      *ibckeeper.Keeper
+	EvidenceKeeper evidencekeeper.Keeper
+	TransferKeeper ibctransferkeeper.Keeper
+	FeeGrantKeeper feegrantkeeper.Keeper
+	AuthzKeeper    authzkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
+	// gravity keepers
 	GravityKeeper    gravitykeeper.Keeper
 	CrosschainKeeper crosschainkeeper.RouterKeeper
 	BscKeeper        crosschainkeeper.Keeper
 	PolygonKeeper    crosschainkeeper.Keeper
 	TronKeeper       crosschainkeeper.Keeper
 
-	// Ethermint keepers
-	EvmKeeperV0 *evmkeeperv0.Keeper
-	EvmKeeper   *evmkeeper.Keeper
+	// ethermint keepers
+	EvmKeeper       *evmkeeper.Keeper
+	FeeMarketKeeper feemarketkeeper.Keeper
+	Erc20Keeper     erc20keeper.Keeper
+	MigrateKeeper   migratekeeper.Keeper
 
-	FeeMarketKeeperV0 feemarketkeeperv0.Keeper
-	FeeMarketKeeper   feemarketkeeper.Keeper
-
-	Erc20Keeper erc20keeper.Keeper
-
-	MigrateKeeper migratekeeper.Keeper
+	configurator module.Configurator
 
 	// the module manager
 	mm *module.Manager
+
+	// simulation manager
+	sm *module.SimulationManager
+}
+
+func init() {
+	fxHome := os.ExpandEnv("$FX_HOME")
+	if len(fxHome) > 0 {
+		DefaultNodeHome = fxHome
+		return
+	}
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		stdlog.Println("Failed to get home dir %2", err)
+	}
+
+	DefaultNodeHome = filepath.Join(userHomeDir, "."+fxtypes.Name)
 }
 
 func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
@@ -304,12 +323,12 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 ) *App {
 
 	appCodec := encodingConfig.Marshaler
-	cdc := encodingConfig.Amino
+	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
 	bApp := baseapp.NewBaseApp(fxtypes.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
-	bApp.SetAppVersion(version.Version)
+	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	keys := sdk.NewKVStoreKeys(
@@ -317,24 +336,20 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
+		feegrant.StoreKey, authzkeeper.StoreKey,
 		// this line is used by starport scaffolding # stargate/myApp/storeKey
-		gravitytypes.StoreKey,
-		bsctypes.StoreKey,
-		polygontypes.StoreKey,
-		trontypes.StoreKey,
+		gravitytypes.StoreKey, bsctypes.StoreKey, polygontypes.StoreKey, trontypes.StoreKey,
 		// ethermint keys
-		evmtypesv0.StoreKey, feemarkettypesv0.StoreKey,
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		// erc20 keys
-		erc20types.StoreKey,
-		migratetypes.StoreKey,
+		erc20types.StoreKey, migratetypes.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypesv0.TransientKey, evmtypes.TransientKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	myApp := &App{
 		BaseApp:           bApp,
-		cdc:               cdc,
+		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
 		invCheckPeriod:    invCheckPeriod,
@@ -343,10 +358,14 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		memKeys:           memKeys,
 	}
 
-	myApp.ParamsKeeper = initParamsKeeper(appCodec, cdc, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
+	myApp.ParamsKeeper = initParamsKeeper(
+		appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey],
+	)
 
 	// set the BaseApp's parameter store
-	bApp.SetParamStore(myApp.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()))
+	bApp.SetParamStore(
+		myApp.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
+	)
 
 	// add capability keeper and ScopeToModule for ibc module
 	myApp.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
@@ -354,10 +373,21 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// grant capabilities for the ibc and ibc-transfer modules
 	scopedIBCKeeper := myApp.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
 	scopedTransferKeeper := myApp.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+	myApp.CapabilityKeeper.Seal()
 
 	// add keepers
 	myApp.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
+	)
+	myApp.AuthzKeeper = authzkeeper.NewKeeper(
+		keys[authzkeeper.StoreKey],
+		appCodec,
+		myApp.BaseApp.MsgServiceRouter(),
+	)
+	myApp.FeeGrantKeeper = feegrantkeeper.NewKeeper(
+		appCodec,
+		keys[feegrant.StoreKey],
+		myApp.AccountKeeper,
 	)
 	myApp.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], myApp.AccountKeeper, myApp.GetSubspace(banktypes.ModuleName), myApp.ModuleAccountAddrs(),
@@ -379,11 +409,11 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.CrisisKeeper = crisiskeeper.NewKeeper(
 		myApp.GetSubspace(crisistypes.ModuleName), invCheckPeriod, myApp.BankKeeper, authtypes.FeeCollectorName,
 	)
-	myApp.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, keys[upgradetypes.StoreKey], appCodec, homePath)
+	myApp.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, keys[upgradetypes.StoreKey], appCodec, homePath, myApp.BaseApp)
 
 	// Create IBC Keeper
 	myApp.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, keys[ibchost.StoreKey], myApp.GetSubspace(ibchost.ModuleName), stakingKeeper, scopedIBCKeeper,
+		appCodec, keys[ibchost.StoreKey], myApp.GetSubspace(ibchost.ModuleName), stakingKeeper, myApp.UpgradeKeeper, scopedIBCKeeper,
 	)
 
 	// Create Transfer Keepers
@@ -403,17 +433,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// this line is used by starport scaffolding # stargate/myApp/keeperDefinition
 
 	tracer := cast.ToString(appOpts.Get(server.EVMTracer))
-	myApp.FeeMarketKeeperV0 = feemarketkeeperv0.NewKeeper(
-		appCodec, keys[feemarkettypesv0.StoreKey], myApp.GetSubspace(feemarkettypesv0.ModuleName),
-	)
 
 	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
 	)
-
-	myApp.EvmKeeperV0 = evmkeeperv0.NewKeeper(
-		appCodec, keys[evmtypesv0.StoreKey], tkeys[evmtypesv0.TransientKey], myApp.GetSubspace(evmtypesv0.ModuleName),
-		myApp.AccountKeeper, myApp.BankKeeper, stakingKeeper, myApp.FeeMarketKeeperV0, tracer)
 
 	myApp.EvmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], myApp.GetSubspace(evmtypes.ModuleName),
@@ -431,13 +454,16 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	)
 
 	// init cross chain module
-	myApp.BscKeeper = crosschainkeeper.NewKeeper(appCodec, bsctypes.ModuleName, keys[bsctypes.StoreKey], myApp.GetSubspace(bsctypes.ModuleName),
+	myApp.BscKeeper = crosschainkeeper.NewKeeper(
+		appCodec, bsctypes.ModuleName, keys[bsctypes.StoreKey], myApp.GetSubspace(bsctypes.ModuleName),
 		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
-	myApp.PolygonKeeper = crosschainkeeper.NewKeeper(appCodec, polygontypes.ModuleName, keys[polygontypes.StoreKey], myApp.GetSubspace(polygontypes.ModuleName),
+	myApp.PolygonKeeper = crosschainkeeper.NewKeeper(
+		appCodec, polygontypes.ModuleName, keys[polygontypes.StoreKey], myApp.GetSubspace(polygontypes.ModuleName),
 		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
-	myApp.TronKeeper = crosschainkeeper.NewKeeper(appCodec, trontypes.ModuleName, keys[trontypes.StoreKey], myApp.GetSubspace(trontypes.ModuleName),
+	myApp.TronKeeper = crosschainkeeper.NewKeeper(
+		appCodec, trontypes.ModuleName, keys[trontypes.StoreKey], myApp.GetSubspace(trontypes.ModuleName),
 		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
 	// add cross-chain router
@@ -464,14 +490,12 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(myApp.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(myApp.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(myApp.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientUpdateProposalHandler(myApp.IBCKeeper.ClientKeeper)).
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(myApp.IBCKeeper.ClientKeeper)).
 		AddRoute(crosschaintypes.RouterKey, crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)).
-		AddRoute(evmtypesv0.RouterKey, evmv0.NewEvmProposalHandler(*myApp.EvmKeeperV0)).
 		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(&myApp.Erc20Keeper))
 
 	myApp.GovKeeper = govkeeper.NewKeeper(
-		appCodec, keys[govtypes.StoreKey], myApp.GetSubspace(govtypes.ModuleName), myApp.AccountKeeper, myApp.BankKeeper,
-		&stakingKeeper, govRouter,
+		appCodec, keys[govtypes.StoreKey], myApp.GetSubspace(govtypes.ModuleName), myApp.AccountKeeper, myApp.BankKeeper, &stakingKeeper, govRouter,
 	)
 
 	erc20TransferRouter := erc20types.NewRouter()
@@ -524,8 +548,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	myApp.mm = module.NewManager(
 		genutil.NewAppModule(
-			myApp.AccountKeeper, myApp.StakingKeeper, myApp.BaseApp.DeliverTx,
-			encodingConfig.TxConfig,
+			myApp.AccountKeeper, myApp.StakingKeeper, myApp.BaseApp.DeliverTx, encodingConfig.TxConfig,
 		),
 		auth.NewAppModule(appCodec, myApp.AccountKeeper, nil),
 		vesting.NewAppModule(myApp.AccountKeeper, myApp.BankKeeper),
@@ -539,9 +562,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		staking.NewAppModule(appCodec, myApp.StakingKeeper, myApp.AccountKeeper, myApp.BankKeeper),
 		upgrade.NewAppModule(myApp.UpgradeKeeper),
 		evidence.NewAppModule(myApp.EvidenceKeeper),
+		feegrantmodule.NewAppModule(appCodec, myApp.AccountKeeper, myApp.BankKeeper, myApp.FeeGrantKeeper, myApp.interfaceRegistry),
+		authzmodule.NewAppModule(appCodec, myApp.AuthzKeeper, myApp.AccountKeeper, myApp.BankKeeper, myApp.interfaceRegistry),
 		ibc.NewAppModule(myApp.IBCKeeper),
 		params.NewAppModule(myApp.ParamsKeeper),
-		transferModule,
 		// this line is used by starport scaffolding # stargate/myApp/appModule
 		gravity.NewAppModule(myApp.GravityKeeper, myApp.BankKeeper),
 		other.NewAppModule(appCodec),
@@ -550,134 +574,187 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper),
 		tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper),
 		// Ethermint app modules
-		evmv0.NewAppModule(myApp.EvmKeeperV0, myApp.AccountKeeper),
 		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		feemarket.NewAppModule(myApp.FeeMarketKeeper),
-		feemarketv0.NewAppModule(myApp.FeeMarketKeeperV0),
 		erc20.NewAppModule(myApp.Erc20Keeper, myApp.AccountKeeper),
 		migrate.NewAppModule(myApp.MigrateKeeper),
+		transferModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
+	// NOTE: capability module's beginblocker must come before any modules using capabilities (e.g. IBC)
 	myApp.mm.SetOrderBeginBlockers(
+		// upgrades should be run first
 		upgradetypes.ModuleName,
-		minttypes.ModuleName,
+		capabilitytypes.ModuleName,
+		crisistypes.ModuleName,
+		govtypes.ModuleName,
+		stakingtypes.ModuleName,
+		//liquiditytypes.ModuleName,
+		ibctransfertypes.ModuleName,
+		ibchost.ModuleName,
+		//icatypes.ModuleName,
+		//routertypes.ModuleName,
+		authtypes.ModuleName,
+		banktypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
+		minttypes.ModuleName,
+		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
-		stakingtypes.ModuleName,
-		ibchost.ModuleName,
-		evmtypesv0.ModuleName, //Note:deprecated after evm1 support
+		authz.ModuleName,
+		feegrant.ModuleName,
+		paramstypes.ModuleName,
+		vestingtypes.ModuleName,
+
+		othertypes.ModuleName,
+		gravitytypes.ModuleName,
+		crosschaintypes.ModuleName,
+		bsctypes.ModuleName,
+		trontypes.ModuleName,
+		polygontypes.ModuleName,
+		migratetypes.ModuleName,
+		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
+		erc20types.ModuleName,
 	)
 
 	myApp.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
+		//liquiditytypes.ModuleName,
+		ibctransfertypes.ModuleName,
+		ibchost.ModuleName,
+		//icatypes.ModuleName,
+		//routertypes.ModuleName,
+		feegrant.ModuleName,
+		authz.ModuleName,
+		capabilitytypes.ModuleName,
+		authtypes.ModuleName,
+		banktypes.ModuleName,
+		distrtypes.ModuleName,
+		slashingtypes.ModuleName,
+		minttypes.ModuleName,
+		genutiltypes.ModuleName,
+		evidencetypes.ModuleName,
+		paramstypes.ModuleName,
+		upgradetypes.ModuleName,
+		vestingtypes.ModuleName,
+
+		othertypes.ModuleName,
 		gravitytypes.ModuleName,
+		crosschaintypes.ModuleName,
 		bsctypes.ModuleName,
-		polygontypes.ModuleName,
 		trontypes.ModuleName,
-		evmtypesv0.ModuleName,       //Note:deprecated after evm1 support
-		feemarkettypesv0.ModuleName, //Note:deprecated after evm1 support
+		polygontypes.ModuleName,
+		migratetypes.ModuleName,
 		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
+		erc20types.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
+	// NOTE: The genutils module must also occur after auth so that it can access the params from auth.
 	// NOTE: Capability module must occur first so that it can initialize any capabilities
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
 	myApp.mm.SetOrderInitGenesis(
 		capabilitytypes.ModuleName,
-		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
-		gravitytypes.ModuleName,
 		crisistypes.ModuleName,
-		ibchost.ModuleName,
-		genutiltypes.ModuleName,
-		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/myApp/initGenesis
+		ibchost.ModuleName,
+		//icatypes.ModuleName,
+		evidencetypes.ModuleName,
+		//liquiditytypes.ModuleName,
+		feegrant.ModuleName,
+		authz.ModuleName,
+		authtypes.ModuleName,
+		genutiltypes.ModuleName,
+		//routertypes.ModuleName,
+		paramstypes.ModuleName,
+		upgradetypes.ModuleName,
+		vestingtypes.ModuleName,
+
+		othertypes.ModuleName,
+		gravitytypes.ModuleName,
+		crosschaintypes.ModuleName,
+		bsctypes.ModuleName,
+		trontypes.ModuleName,
+		polygontypes.ModuleName,
+		migratetypes.ModuleName,
+		evmtypes.ModuleName,
+		feemarkettypes.ModuleName,
+		erc20types.ModuleName,
 	)
 
 	myApp.mm.RegisterInvariants(&myApp.CrisisKeeper)
 	myApp.mm.RegisterRoutes(myApp.Router(), myApp.QueryRouter(), encodingConfig.Amino)
-	myApp.mm.RegisterServices(module.NewConfigurator(myApp.MsgServiceRouter(), myApp.GRPCQueryRouter()))
+
+	myApp.configurator = module.NewConfigurator(myApp.appCodec, myApp.MsgServiceRouter(), myApp.GRPCQueryRouter())
+	myApp.mm.RegisterServices(myApp.configurator)
 
 	// initialize stores
 	myApp.MountKVStores(keys)
 	myApp.MountTransientStores(tkeys)
 	myApp.MountMemoryStores(memKeys)
 
-	// initialize BaseApp
-	myApp.SetInitChainer(myApp.InitChainer)
-	myApp.SetBeginBlocker(myApp.BeginBlocker)
-
 	maxGasWanted := cast.ToUint64(appOpts.Get(server.EVMMaxTxGasWanted))
-	options := ante.HandlerOptions{
+	anteOptions := ante.HandlerOptions{
 		AccountKeeper:        myApp.AccountKeeper,
 		BankKeeper:           myApp.BankKeeper,
 		EvmKeeper:            myApp.EvmKeeper,
-		EvmKeeperV0:          myApp.EvmKeeperV0,
-		FeeMarketKeeperV0:    myApp.FeeMarketKeeperV0,
 		SignModeHandler:      encodingConfig.TxConfig.SignModeHandler(),
 		SigGasConsumer:       ante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:       maxGasWanted,
-		BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(serverconfig.BypassMinFeeMsgTypesKey)),
+		BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(fxconfig.BypassMinFeeMsgTypesKey)),
 	}
 
-	if err := options.Validate(); err != nil {
-		panic(err)
+	if err := anteOptions.Validate(); err != nil {
+		panic(fmt.Errorf("failed to ante options validate: %s", err))
 	}
 
-	myApp.SetAnteHandler(ante.NewAnteHandler(options))
+	myApp.SetAnteHandler(ante.NewAnteHandler(anteOptions))
+	myApp.SetInitChainer(myApp.InitChainer)
+	myApp.SetBeginBlocker(myApp.BeginBlocker)
 	myApp.SetEndBlocker(myApp.EndBlocker)
 
-	rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportBscBlock(), bsctypes.StoreKey)
-	rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportPolygonAndTronBlock(), polygontypes.StoreKey, trontypes.StoreKey)
-
-	rootmulti.AddIgnoreCommitKey(fxtypes.EvmV0SupportBlock(), evmtypesv0.StoreKey, feemarkettypesv0.StoreKey)
-	rootmulti.AddIgnoreCommitKey(fxtypes.EvmV1SupportBlock(), evmtypes.StoreKey, feemarkettypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey)
-	govtypes.SetEGFProposalSupportBlock(fxtypes.EvmV1SupportBlock())
+	// TODO need fix
+	//rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportBscBlock(), bsctypes.StoreKey)
+	//rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportPolygonAndTronBlock(), polygontypes.StoreKey, trontypes.StoreKey)
+	//rootmulti.AddIgnoreCommitKey(fxtypes.EvmV0SupportBlock(), evmtypesv0.StoreKey, feemarkettypesv0.StoreKey)
+	//rootmulti.AddIgnoreCommitKey(fxtypes.EvmV1SupportBlock(), evmtypes.StoreKey, feemarkettypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey)
+	//govtypes.SetEGFProposalSupportBlock(fxtypes.EvmV1SupportBlock())
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
 		}
-
-		// Initialize and seal the capability keeper so all persistent capabilities
-		// are loaded in-memory and prevent any further modules from creating scoped
-		// sub-keepers.
-		// This must be done during creation of baseapp rather than in InitChain so
-		// that in-memory capabilities get regenerated on myApp restart.
-		// Note that since this reads from the store, we can only perform it when
-		// `loadLatest` is set to true.
-		ctx := myApp.BaseApp.NewUncachedContext(true, tmproto.Header{})
-		myApp.CapabilityKeeper.InitializeAndSeal(ctx)
 	}
 
 	myApp.ScopedIBCKeeper = scopedIBCKeeper
 	myApp.ScopedTransferKeeper = scopedTransferKeeper
+
 	return myApp
 }
 
 // Name returns the name of the App
-func (app *App) Name() string { return app.BaseApp.Name() }
+func (app *App) Name() string {
+	return app.BaseApp.Name()
+}
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	BeginBlockForks(ctx, app)
 	return app.mm.BeginBlock(ctx, req)
 }
 
@@ -692,6 +769,9 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
+
+	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
@@ -713,7 +793,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 // LegacyAmino NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
-	return app.cdc
+	return app.legacyAmino
 }
 
 // AppCodec NOTE: This is solely to be used for testing purposes as it may be desirable
@@ -756,6 +836,11 @@ func (app *App) GetSubspace(moduleName string) paramstypes.Subspace {
 	return subspace
 }
 
+// SimulationManager implements the SimulationApp interface
+func (app *App) SimulationManager() *module.SimulationManager {
+	return app.sm
+}
+
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
@@ -790,6 +875,17 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
 }
 
+// RegisterSwaggerAPI registers swagger route with API Server
+func RegisterSwaggerAPI(rtr *mux.Router) {
+	statikFS, err := fs.New()
+	if err != nil {
+		panic(err)
+	}
+
+	staticServer := http.FileServer(statikFS)
+	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+}
+
 // initParamsKeeper init params keeper and its subspaces
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
@@ -811,21 +907,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(trontypes.ModuleName)
 
 	// ethermint subspaces
-	paramsKeeper.Subspace(evmtypesv0.ModuleName)
-	paramsKeeper.Subspace(feemarkettypesv0.ModuleName)
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	paramsKeeper.Subspace(erc20types.ModuleName)
 	return paramsKeeper
-}
-
-// RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(rtr *mux.Router) {
-	statikFS, err := fs.New()
-	if err != nil {
-		panic(err)
-	}
-
-	staticServer := http.FileServer(statikFS)
-	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
 }

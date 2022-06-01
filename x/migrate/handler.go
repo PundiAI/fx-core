@@ -23,7 +23,7 @@ func NewHandler(server types.MsgServer) sdk.Handler {
 			res, err := server.MigrateAccount(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized migrate msg type: %v", msg.Type()))
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized %s msg type: %T", types.ModuleName, msg))
 		}
 	}
 }

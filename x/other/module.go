@@ -3,6 +3,9 @@ package other
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/other/client/cli"
 
@@ -23,10 +26,10 @@ import (
 	// this line is used by starport scaffolding # ibc/module/import
 )
 
+// type check to ensure the interface is properly implemented
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
-	// this line is used by starport scaffolding # ibc/module/interface
 )
 
 // ----------------------------------------------------------------------------
@@ -38,28 +41,14 @@ type AppModuleBasic struct {
 	cdc codec.Codec
 }
 
-func NewAppModuleBasic(cdc codec.Codec) AppModuleBasic {
-	return AppModuleBasic{cdc: cdc}
-}
-
 // Name returns the capability module's name.
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-func (AppModuleBasic) RegisterCodec(_ *codec.LegacyAmino) {
-}
-
-func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
-}
-
-// RegisterInterfaces registers the module's interface types
-func (a AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {
-}
-
 // DefaultGenesis returns the capability module's default genesis state.
 func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
 }
 
 // ValidateGenesis performs genesis state validation for the capability module.
@@ -67,17 +56,21 @@ func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConf
 	return nil
 }
 
+func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {}
+
 // RegisterRESTRoutes registers the capability module's REST service handlers.
-func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
-}
+func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	_ = types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err != nil {
+		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", types.ModuleName, err.Error()))
+	}
 }
 
 // GetTxCmd returns the capability module's root tx command.
-func (a AppModuleBasic) GetTxCmd() *cobra.Command {
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return nil
 }
 
@@ -85,6 +78,9 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
+
+// RegisterInterfaces registers the module's interface types
+func (AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // ----------------------------------------------------------------------------
 // AppModule
@@ -97,9 +93,12 @@ type AppModule struct {
 
 func NewAppModule(cdc codec.Codec) AppModule {
 	return AppModule{
-		AppModuleBasic: NewAppModuleBasic(cdc),
+		AppModuleBasic: AppModuleBasic{cdc: cdc},
 	}
 }
+
+// RegisterInvariants registers the capability module's invariants.
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Name returns the capability module's name.
 func (am AppModule) Name() string {
@@ -126,18 +125,20 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), querier)
 }
 
-// RegisterInvariants registers the capability module's invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
-
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
 func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {
-	return nil
+	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the capability module's exported genesis state as raw JSON bytes.
 func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMessage {
-	return nil
+	return []byte("{}")
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 {
+	return fxtypes.CurrentConsensusVersion
 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
@@ -146,5 +147,5 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return nil
+	return []abci.ValidatorUpdate{}
 }

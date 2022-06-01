@@ -3,11 +3,12 @@ package mock_test
 import (
 	"testing"
 
+	"github.com/functionx/fx-core/x/ibc/testing/mock"
+
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-
-	"github.com/cosmos/cosmos-sdk/x/ibc/testing/mock"
+	//"github.com/cosmos/ibc-go/v3/modules/testing/mock"
 )
 
 const chainID = "testChain"

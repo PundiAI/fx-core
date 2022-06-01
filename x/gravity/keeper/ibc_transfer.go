@@ -9,7 +9,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 
 	"github.com/functionx/fx-core/x/gravity/types"
 )

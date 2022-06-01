@@ -197,7 +197,7 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 				// slash validators for not confirming valsets
 				if !found {
 					cons, _ := val.GetConsAddr()
-					k.StakingKeeper.Slash(ctx, cons, ctx.BlockHeight(), val.ConsensusPower(), params.SlashFractionValset)
+					k.StakingKeeper.Slash(ctx, cons, ctx.BlockHeight(), val.ConsensusPower(sdk.DefaultPowerReduction), params.SlashFractionValset)
 					logger.Info("validator set slash bonded validators", "height", ctx.BlockHeight(), "operator", val.OperatorAddress)
 					if !val.IsJailed() {
 						k.StakingKeeper.Jail(ctx, cons)
@@ -243,7 +243,7 @@ func ValsetSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 
 					// slash validators for not confirming valsets
 					if !found {
-						k.StakingKeeper.Slash(ctx, valConsAddr, ctx.BlockHeight(), validator.ConsensusPower(), params.SlashFractionValset)
+						k.StakingKeeper.Slash(ctx, valConsAddr, ctx.BlockHeight(), validator.ConsensusPower(sdk.DefaultPowerReduction), params.SlashFractionValset)
 						logger.Info("validator set slash unbonding validators", "height", ctx.BlockHeight(), "operator", validator.OperatorAddress)
 						if !validator.IsJailed() {
 							k.StakingKeeper.Jail(ctx, valConsAddr)
@@ -298,7 +298,7 @@ func BatchSlashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 			if !found {
 				cons, _ := val.GetConsAddr()
 				logger.Info("batch slash bonded validator", "height", ctx.BlockHeight(), "operator", val.OperatorAddress, "cons", cons, "slashFraction", params.SlashFractionBatch)
-				k.StakingKeeper.Slash(ctx, cons, ctx.BlockHeight(), val.ConsensusPower(), params.SlashFractionBatch)
+				k.StakingKeeper.Slash(ctx, cons, ctx.BlockHeight(), val.ConsensusPower(sdk.DefaultPowerReduction), params.SlashFractionBatch)
 				if !val.IsJailed() {
 					logger.Info("batch jail bonded validators", "height", ctx.BlockHeight(), "consensus", cons.String())
 					k.StakingKeeper.Jail(ctx, cons)

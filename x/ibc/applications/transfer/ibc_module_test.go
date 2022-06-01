@@ -12,9 +12,9 @@ import (
 	"github.com/functionx/fx-core/x/ibc/applications/transfer"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
-	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
-	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 
 	ibctesting "github.com/functionx/fx-core/x/ibc/testing"
 )
@@ -186,7 +186,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
 				testChannel.PortID, testChannel.ID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
 			)
 
