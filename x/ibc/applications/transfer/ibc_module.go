@@ -196,7 +196,7 @@ func (im IBCModule) OnRecvPacket(
 	if ack.Success() {
 		err := handlerForwardTransferPacket(ctx, im, packet, data)
 		if err != nil {
-			ack = channeltypes.NewErrorAcknowledgement(err.Error())
+			ack = types.NewErrorAcknowledgement(err)
 		}
 	}
 

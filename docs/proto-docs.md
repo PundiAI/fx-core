@@ -397,6 +397,8 @@
     - [GenesisState](#fx.ibc.applications.transfer.v1.GenesisState)
   
 - [ibc/applications/transfer/v1/query.proto](#ibc/applications/transfer/v1/query.proto)
+    - [QueryDenomHashRequest](#fx.ibc.applications.transfer.v1.QueryDenomHashRequest)
+    - [QueryDenomHashResponse](#fx.ibc.applications.transfer.v1.QueryDenomHashResponse)
     - [QueryDenomTraceRequest](#fx.ibc.applications.transfer.v1.QueryDenomTraceRequest)
     - [QueryDenomTraceResponse](#fx.ibc.applications.transfer.v1.QueryDenomTraceResponse)
     - [QueryDenomTracesRequest](#fx.ibc.applications.transfer.v1.QueryDenomTracesRequest)
@@ -6115,6 +6117,38 @@ GenesisState defines the ibc-transfer genesis state
 
 
 
+<a name="fx.ibc.applications.transfer.v1.QueryDenomHashRequest"></a>
+
+### QueryDenomHashRequest
+QueryDenomHashRequest is the request type for the Query/DenomHash RPC
+method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `trace` | [string](#string) |  | The denomination trace ([port_id]/[channel_id])+/[denom] |
+
+
+
+
+
+
+<a name="fx.ibc.applications.transfer.v1.QueryDenomHashResponse"></a>
+
+### QueryDenomHashResponse
+QueryDenomHashResponse is the response type for the Query/DenomHash RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+
+
+
+
+
+
 <a name="fx.ibc.applications.transfer.v1.QueryDenomTraceRequest"></a>
 
 ### QueryDenomTraceRequest
@@ -6221,6 +6255,7 @@ Query provides defines the gRPC querier service.
 | `DenomTrace` | [QueryDenomTraceRequest](#fx.ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#fx.ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/applications/transfer/v1beta1/denom_traces/{hash}|
 | `DenomTraces` | [QueryDenomTracesRequest](#fx.ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#fx.ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/applications/transfer/v1beta1/denom_traces|
 | `Params` | [QueryParamsRequest](#fx.ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/applications/transfer/v1beta1/params|
+| `DenomHash` | [QueryDenomHashRequest](#fx.ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#fx.ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/applications/transfer/v1beta1/denom_hashes/{trace}|
 
  <!-- end services -->
 

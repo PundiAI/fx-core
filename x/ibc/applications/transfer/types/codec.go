@@ -5,8 +5,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/ibc transfer interfaces and concrete types
@@ -19,11 +17,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgTransfer{})
-
-	registry.RegisterImplementations(
-		(*govtypes.Content)(nil),
-		&clienttypes.ClientUpdateProposal{},
-	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
@@ -45,6 +38,4 @@ var (
 func init() {
 	RegisterLegacyAminoCodec(amino)
 	amino.Seal()
-
-	//govtypes.RegisterProposalType(clienttypes.ProposalTypeClientUpdate)
 }

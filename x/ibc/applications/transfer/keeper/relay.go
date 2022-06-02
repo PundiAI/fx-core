@@ -108,8 +108,8 @@ func (k Keeper) SendTransfer(
 	}
 
 	labels := []metrics.Label{
-		telemetry.NewLabel("destination_port", destinationPort),
-		telemetry.NewLabel("destination_channel", destinationChannel),
+		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
+		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
 	}
 
 	packetData := types.NewFungibleTokenPacketData(
@@ -124,29 +124,29 @@ func (k Keeper) SendTransfer(
 	// chain inside the packet data. The receiving chain will perform denom
 	// prefixing as necessary.
 	if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
-		labels = append(labels, telemetry.NewLabel("source", "true"))
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 
 		// create the escrow address for the tokens
 		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
 
 		// escrow source tokens. It fails if balance insufficient.
-		if err := k.bankKeeper.SendCoins(
+		if err = k.bankKeeper.SendCoins(
 			ctx, sender, escrowAddress, sdk.NewCoins(token),
 		); err != nil {
 			return err
 		}
 
 	} else {
-		labels = append(labels, telemetry.NewLabel("source", "false"))
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
 		// transfer the coins to the module account and burn them
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(
+		if err = k.bankKeeper.SendCoinsFromAccountToModule(
 			ctx, sender, types.ModuleName, sdk.NewCoins(token),
 		); err != nil {
 			return err
 		}
 
-		if err := k.bankKeeper.BurnCoins(
+		if err = k.bankKeeper.BurnCoins(
 			ctx, types.ModuleName, sdk.NewCoins(token),
 		); err != nil {
 			// NOTE: should not happen as the module account was
@@ -167,17 +167,11 @@ func (k Keeper) SendTransfer(
 		timeoutTimestamp,
 	)
 
-	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
+	if err = k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
 		return err
 	}
 
 	defer func() {
-		//telemetry.SetGaugeWithLabels(
-		//	[]string{"tx", "msg", "ibc", "transfer"},
-		//	float32(token.Amount.Int64()),
-		//	[]metrics.Label{telemetry.NewLabel("denom", fullDenomPath)},
-		//)
-
 		telemetry.IncrCounterWithLabels(
 			[]string{"ibc", types.ModuleName, "send"},
 			1,
@@ -433,26 +427,19 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 			// escrow address by allowing more tokens to be sent back then were escrowed.
 			return sdkerrors.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 		}
-		if k.RefundHook != nil {
-			ctx.Logger().Info("ibc refund hook, sender chain is source", "sourcePort", packet.SourcePort, "sourceChannel",
-				packet.SourceChannel, "sequence", fmt.Sprintf("%d", packet.Sequence), "sender", sender.String(), "token", token.String())
-			if err := k.RefundHook.RefundAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence, sender, data.Receiver, token); err != nil {
-				ctx.Logger().Error("refundPacketToken", "refund hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
-			}
+	} else {
+		// mint vouchers back to sender
+		if err = k.bankKeeper.MintCoins(
+			ctx, types.ModuleName, sdk.NewCoins(token),
+		); err != nil {
+			return err
 		}
-		return nil
+
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(token)); err != nil {
+			panic(fmt.Sprintf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+		}
 	}
 
-	// mint vouchers back to sender
-	if err = k.bankKeeper.MintCoins(
-		ctx, types.ModuleName, sdk.NewCoins(token),
-	); err != nil {
-		return err
-	}
-
-	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(token)); err != nil {
-		panic(fmt.Sprintf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
-	}
 	if k.RefundHook != nil {
 		ctx.Logger().Info("ibc refund hook", "sourcePort", packet.SourcePort, "sourceChannel",
 			packet.SourceChannel, "sequence", fmt.Sprintf("%d", packet.Sequence), "sender", sender.String(), "token", token.String())

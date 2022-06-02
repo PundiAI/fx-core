@@ -3,12 +3,11 @@ package mock_test
 import (
 	"testing"
 
-	"github.com/functionx/fx-core/x/ibc/testing/mock"
-
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	//"github.com/cosmos/ibc-go/v3/modules/testing/mock"
+
+	"github.com/functionx/fx-core/x/ibc/testing/mock"
 )
 
 const chainID = "testChain"
@@ -25,7 +24,7 @@ func TestSignVote(t *testing.T) {
 	pk, _ := pv.GetPubKey()
 
 	vote := &tmproto.Vote{Height: 2}
-	require.NoError(t, pv.SignVote(chainID, vote))
+	pv.SignVote(chainID, vote)
 
 	msg := tmtypes.VoteSignBytes(chainID, vote)
 	ok := pk.VerifySignature(msg, vote.Signature)
@@ -37,7 +36,7 @@ func TestSignProposal(t *testing.T) {
 	pk, _ := pv.GetPubKey()
 
 	proposal := &tmproto.Proposal{Round: 2}
-	require.NoError(t, pv.SignProposal(chainID, proposal))
+	pv.SignProposal(chainID, proposal)
 
 	msg := tmtypes.ProposalSignBytes(chainID, proposal)
 	ok := pk.VerifySignature(msg, proposal.Signature)

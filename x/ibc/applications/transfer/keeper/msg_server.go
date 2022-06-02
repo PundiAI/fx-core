@@ -2,11 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
-
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
@@ -21,20 +16,11 @@ var _ types.MsgServer = Keeper{}
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() {
-		if msg.Fee.Amount.IsNil() || !msg.Fee.IsValid() {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "fees")
-		}
-		if msg.Fee.Denom != msg.Token.Denom {
-			return nil, sdkerrors.Wrap(types.ErrFeeDenomNotMatchTokenDenom, fmt.Sprintf("token denom:%s, fee denom:%s", msg.Token.Denom, msg.Fee.Denom))
-		}
-	}
-
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
-	if err := k.SendTransfer(
+	if err = k.SendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Router, sdk.NewCoin(msg.Token.Denom, msg.Fee.Amount),
 	); err != nil {
 		return nil, err

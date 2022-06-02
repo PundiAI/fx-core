@@ -4,8 +4,7 @@ import (
 	"math/rand"
 	"testing"
 
-	simulation2 "github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
-
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +22,7 @@ func TestParamChanges(t *testing.T) {
 		{"transfer/ReceiveEnabled", "ReceiveEnabled", "true", "transfer"},
 	}
 
-	paramChanges := simulation2.ParamChanges(r)
+	paramChanges := simulation.ParamChanges(r)
 
 	require.Len(t, paramChanges, 2)
 

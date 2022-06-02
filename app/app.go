@@ -423,7 +423,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// Create Transfer Keepers
 	myApp.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], myApp.GetSubspace(ibctransfertypes.ModuleName),
-		myApp.IBCKeeper.ChannelKeeper, &myApp.IBCKeeper.PortKeeper,
+		myApp.IBCKeeper.ChannelKeeper, myApp.IBCKeeper.ChannelKeeper, &myApp.IBCKeeper.PortKeeper,
 		myApp.AccountKeeper, myApp.BankKeeper, scopedTransferKeeper,
 	)
 

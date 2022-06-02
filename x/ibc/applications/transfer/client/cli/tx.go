@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
@@ -42,7 +44,7 @@ to the counterparty channel. Any timeout set to 0 is disabled.`),
 			if err != nil {
 				return err
 			}
-			sender := clientCtx.GetFromAddress()
+			sender := clientCtx.GetFromAddress().String()
 			srcPort := args[0]
 			srcChannel := args[1]
 			receiver := args[2]
@@ -92,7 +94,21 @@ to the counterparty channel. Any timeout set to 0 is disabled.`),
 				}
 
 				if timeoutTimestamp != 0 {
-					timeoutTimestamp = consensusState.GetTimestamp() + timeoutTimestamp
+					// use local clock time as reference time if it is later than the
+					// consensus state timestamp of the counter party chain, otherwise
+					// still use consensus state timestamp as reference
+					now := time.Now().UnixNano()
+					consensusStateTimestamp := consensusState.GetTimestamp()
+					if now > 0 {
+						now := uint64(now)
+						if now > consensusStateTimestamp {
+							timeoutTimestamp = now + timeoutTimestamp
+						} else {
+							timeoutTimestamp = consensusStateTimestamp + timeoutTimestamp
+						}
+					} else {
+						return errors.New("local clock time is not greater than Jan 1st, 1970 12:00 AM")
+					}
 				}
 			}
 			router, err := cmd.Flags().GetString(flagIbcRouter)

@@ -9,12 +9,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
@@ -24,6 +22,7 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
+	ics4Wrapper   types.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	portKeeper    types.PortKeeper
 	authKeeper    types.AccountKeeper
@@ -36,7 +35,7 @@ type Keeper struct {
 // NewKeeper creates a new IBC transfer Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
+	ics4Wrapper types.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 
@@ -54,6 +53,7 @@ func NewKeeper(
 		cdc:           cdc,
 		storeKey:      key,
 		paramSpace:    paramSpace,
+		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
 		authKeeper:    authKeeper,
@@ -88,17 +88,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // GetTransferAccount returns the ICS20 - transfers ModuleAccount
 func (k Keeper) GetTransferAccount(ctx sdk.Context) authtypes.ModuleAccountI {
 	return k.authKeeper.GetModuleAccount(ctx, types.ModuleName)
-}
-
-// ChanCloseInit defines a wrapper function for the channel Keeper's function
-// in order to expose it to the ICS20 transfer handler.
-func (k Keeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
-	capName := host.ChannelCapabilityPath(portID, channelID)
-	chanCap, ok := k.scopedKeeper.GetCapability(ctx, capName)
-	if !ok {
-		return sdkerrors.Wrapf(channeltypes.ErrChannelCapabilityNotFound, "could not retrieve channel capability at: %s", capName)
-	}
-	return k.channelKeeper.ChanCloseInit(ctx, portID, channelID, chanCap)
 }
 
 // IsBound checks if the transfer module is already bound to the desired port

@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	simulation2 "github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/stretchr/testify/require"
@@ -35,7 +35,7 @@ func TestRandomizedGenState(t *testing.T) {
 		GenState:     make(map[string]json.RawMessage),
 	}
 
-	simulation2.RandomizedGenState(&simState)
+	simulation.RandomizedGenState(&simState)
 
 	var ibcTransferGenesis types.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[types.ModuleName], &ibcTransferGenesis)
@@ -70,6 +70,6 @@ func TestRandomizedGenState1(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		require.Panicsf(t, func() { simulation2.RandomizedGenState(&tt.simState) }, tt.panicMsg)
+		require.Panicsf(t, func() { simulation.RandomizedGenState(&tt.simState) }, tt.panicMsg)
 	}
 }
