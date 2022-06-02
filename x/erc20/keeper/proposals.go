@@ -26,22 +26,28 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	}
 
 	//description use for name
-	name := coinMetadata.Description
+	name := coinMetadata.Name
 	//display use for symbol
-	symbol := coinMetadata.Base
+	symbol := coinMetadata.Symbol
 	//decimals
 	decimals := uint8(0)
 	for _, du := range coinMetadata.DenomUnits {
 		if du.Denom == symbol {
 			decimals = uint8(du.Exponent)
-			if len(du.Aliases) > 0 {
-				symbol = du.Aliases[0]
-			}
 			break
 		}
 	}
+	if coinMetadata.Base == fxtypes.DefaultDenom {
+		decimals = fxtypes.BaseDenomUnit
+	}
+	if len(name) == 0 {
+		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid name")
+	}
+	if len(symbol) == 0 {
+		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid symbol")
+	}
 	if decimals == 0 {
-		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid display denom exponent")
+		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid symbol denom exponent")
 	}
 
 	// check if the denomination already registered
@@ -153,20 +159,29 @@ func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*b
 	// metadata name is should always be the contract since it's the key
 	// to the bank store
 	metadata := banktypes.Metadata{
-		Description: erc20Data.Name,
-		Base:        base,
-		// NOTE: Denom units MUST be increasing
+		Description: types.CreateDenomDescription(strContract),
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    base,
-				Exponent: uint32(erc20Data.Decimals),
-				Aliases:  []string{erc20Data.Symbol},
+				Exponent: 0,
 			},
 		},
+		Base:    base,
 		Display: base,
+		Name:    erc20Data.Name,
+		Symbol:  erc20Data.Symbol,
 	}
 
-	symbol := erc20Data.Symbol
+	// only append metadata if decimals > 0, otherwise validation fails
+	if erc20Data.Decimals > 0 {
+		metadata.DenomUnits = append(
+			metadata.DenomUnits,
+			&banktypes.DenomUnit{
+				Denom:    erc20Data.Symbol,
+				Exponent: uint32(erc20Data.Decimals),
+			},
+		)
+	}
 
 	if err := metadata.Validate(); err != nil {
 		return nil, "", "", sdkerrors.Wrapf(err, "FIP20 token data is invalid for contract %s", strContract)
@@ -174,7 +189,7 @@ func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*b
 
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 
-	return &metadata, base, symbol, nil
+	return &metadata, base, metadata.Symbol, nil
 }
 
 // ToggleRelay toggles relaying for a given token pair

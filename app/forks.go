@@ -2,6 +2,7 @@ package app
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
@@ -15,7 +16,7 @@ func BeginBlockForks(ctx sdk.Context, fxcore *App) {
 	switch ctx.BlockHeight() {
 	case fxtypes.EvmV1SupportBlock():
 		// update FX meta data
-		forks.UpdateMetadata(ctx, fxcore.BankKeeper)
+		forks.UpdateFXMetadata(ctx, fxcore.BankKeeper, fxcore.keys[banktypes.StoreKey])
 		// clear evm v0 kv stores
 		forks.ClearEvmV0KVStores(ctx, fxcore.keys)
 		// init evm module

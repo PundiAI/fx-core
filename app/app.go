@@ -2,12 +2,13 @@ package app
 
 import (
 	"fmt"
-	store "github.com/cosmos/cosmos-sdk/store/types"
 	"io"
 	stdlog "log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	store "github.com/cosmos/cosmos-sdk/store/types"
 
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
