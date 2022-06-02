@@ -219,7 +219,7 @@ func (suite KeeperTestSuite) TestRegisterERC20() {
 			tc.malleate()
 
 			_, err = suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
-			metadata := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, coinName)
+			metadata, _ := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, coinName)
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 				// Metadata variables

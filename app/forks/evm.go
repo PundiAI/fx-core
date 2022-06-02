@@ -16,7 +16,7 @@ import (
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 )
 
-func InitSupportEvm(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper,
+func InitSupportEvmX(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper,
 	feeMarketKeeper feemarketkeeper.Keeper, feemarketParams feemarkettypes.Params,
 	evmKeeper *evmkeeper.Keeper, evmParams evmtypes.Params,
 	erc20Keeper erc20keeper.Keeper, erc20Params erc20types.Params,

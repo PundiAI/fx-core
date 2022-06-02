@@ -2,16 +2,13 @@ package ante_test
 
 import (
 	"errors"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"math/big"
 	"strings"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/functionx/fx-core/app/forks"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
@@ -26,12 +23,6 @@ import (
 
 func (suite AnteTestSuite) TestAnteHandler() {
 	suite.SetupTest() // reset
-
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
-	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-		suite.app.EvmKeeper, evmtypes.DefaultParams(),
-		suite.app.Erc20Keeper, erc20types.DefaultParams()))
 
 	addr, privKey := tests.NewAddrKey()
 	to := tests.GenerateAddress()
@@ -549,12 +540,6 @@ func (suite AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
-			require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-				suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-				suite.app.EvmKeeper, evmtypes.DefaultParams(),
-				suite.app.Erc20Keeper, erc20types.DefaultParams()))
-
 			acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 			suite.Require().NoError(acc.SetSequence(1))
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
@@ -682,12 +667,6 @@ func (suite AnteTestSuite) TestAnteHandlerWithParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
-			require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-				suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-				suite.app.EvmKeeper, evmtypes.DefaultParams(),
-				suite.app.Erc20Keeper, erc20types.DefaultParams()))
-
 			params := suite.app.EvmKeeper.GetParams(suite.ctx)
 			params.EnableCreate = tc.enableCreate
 			params.EnableCall = tc.enableCall
@@ -723,7 +702,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithEthSecp256k1() {
 		expFlag bool
 	}{
 		{
-			"success - before evm1 block tx with secp256k1",
+			"success - evm tx with secp256k1",
 			func() sdk.Tx {
 
 				msg := testdata.NewTestMsg(secp256k1Key.PubKey().Address().Bytes())
@@ -739,25 +718,8 @@ func (suite AnteTestSuite) TestAnteHandlerWithEthSecp256k1() {
 			true,
 		},
 		{
-			"failed - before evm1 block tx with eth_secp256k1",
+			"success - evm tx with secp256k1",
 			func() sdk.Tx {
-				msg := testdata.NewTestMsg(ethSecp256k1Key.PubKey().Address().Bytes())
-				suite.Require().NoError(suite.txBuilder.SetMsgs(msg))
-
-				account := suite.app.AccountKeeper.GetAccount(suite.ctx, ethSecp256k1Key.PubKey().Address().Bytes())
-
-				privs, accNums, accSeqs := []cryptotypes.PrivKey{ethSecp256k1Key}, []uint64{account.GetAccountNumber()}, []uint64{account.GetSequence()}
-				tx, err := suite.CreateEmptyTestTx(privs, accNums, accSeqs, suite.ctx.ChainID())
-				suite.Require().NoError(err)
-				return tx
-			},
-			false,
-		},
-		{
-			"success - after evm1 block tx with secp256k1",
-			func() sdk.Tx {
-				suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock() + 1)
-
 				msg := testdata.NewTestMsg(secp256k1Key.PubKey().Address().Bytes())
 				suite.Require().NoError(suite.txBuilder.SetMsgs(msg))
 
@@ -771,10 +733,8 @@ func (suite AnteTestSuite) TestAnteHandlerWithEthSecp256k1() {
 			true,
 		},
 		{
-			"success - after evm1 block tx with eth_secp256k1",
+			"success - evm tx with eth_secp256k1",
 			func() sdk.Tx {
-				suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock() + 1)
-
 				msg := testdata.NewTestMsg(ethSecp256k1Key.PubKey().Address().Bytes())
 				suite.Require().NoError(suite.txBuilder.SetMsgs(msg))
 
@@ -798,16 +758,17 @@ func (suite AnteTestSuite) TestAnteHandlerWithEthSecp256k1() {
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 			suite.ctx = suite.ctx.WithIsCheckTx(true)
-			err := suite.app.BankKeeper.SetBalance(suite.ctx, secp256k1Key.PubKey().Address().Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e18).Mul(sdk.NewInt(1000))))
-			suite.Require().NoError(err)
+			amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e18).Mul(sdk.NewInt(1000))))
+			suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, amount))
+			suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, secp256k1Key.PubKey().Address().Bytes(), amount))
 
 			acc = suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, ethSecp256k1Key.PubKey().Address().Bytes())
 			suite.Require().NoError(acc.SetSequence(0))
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 			suite.ctx = suite.ctx.WithIsCheckTx(true)
-			err = suite.app.BankKeeper.SetBalance(suite.ctx, ethSecp256k1Key.PubKey().Address().Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e18).Mul(sdk.NewInt(1000))))
-			suite.Require().NoError(err)
+			suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, amount))
+			suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, ethSecp256k1Key.PubKey().Address().Bytes(), amount))
 
 			suite.txBuilder = suite.clientCtx.TxConfig.NewTxBuilder()
 			suite.txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewInt64Coin(fxtypes.DefaultDenom, 400)))
@@ -818,7 +779,7 @@ func (suite AnteTestSuite) TestAnteHandlerWithEthSecp256k1() {
 			minGasPrice := []sdk.DecCoin{feeAmt}
 			suite.ctx = suite.ctx.WithMinGasPrices(minGasPrice).WithIsCheckTx(true)
 
-			_, err = suite.anteHandler(suite.ctx, tc.txFn(), false)
+			_, err := suite.anteHandler(suite.ctx, tc.txFn(), false)
 			if tc.expFlag {
 				suite.Require().NoError(err)
 			} else {

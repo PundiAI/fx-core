@@ -5,10 +5,9 @@ import (
 
 	"github.com/functionx/fx-core/x/ibc/testing/mock"
 
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/stretchr/testify/require"
 	tmtypes "github.com/tendermint/tendermint/types"
-	//ibctesting "github.com/cosmos/ibc-go/v3/modules/testing"
-	//"github.com/cosmos/ibc-go/v3/modules/testing/mock"
 )
 
 func TestCreateSortedSignerArray(t *testing.T) {

@@ -3,49 +3,34 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/functionx/fx-core/app/helpers"
 	"math/big"
 	"testing"
-	"time"
-
-	"github.com/functionx/fx-core/app/forks"
-
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/params"
+	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	"github.com/tendermint/tendermint/version"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-
+	app "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"
+	"github.com/functionx/fx-core/x/erc20/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
 	evm "github.com/functionx/fx-core/x/evm/types"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-
-	app "github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/x/erc20/types"
 )
 
 type KeeperTestSuite struct {
@@ -89,72 +74,10 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
 	// setup feemarketGenesis params
-	feemarketGenesis := feemarkettypes.DefaultGenesisState()
+	//feemarketGenesis := feemarkettypes.DefaultGenesisState()
 
 	// init app
-	suite.app = app.Setup(suite.checkTx, func(a *app.App, genesisState app.GenesisState) app.GenesisState {
-		if err := feemarketGenesis.Validate(); err != nil {
-			panic(err)
-		}
-		genesisState[feemarkettypes.ModuleName] = app.MakeEncodingConfig().Marshaler.MustMarshalJSON(feemarketGenesis)
-		return genesisState
-	})
-
-	if suite.mintFeeCollector {
-		// mint some coin to fee collector
-		coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(int64(params.TxGas)-1)))
-		genesisState := app.ModuleBasics.DefaultGenesis(suite.app.AppCodec())
-		balances := []banktypes.Balance{
-			{
-				Address: suite.app.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName).String(),
-				Coins:   coins,
-			},
-		}
-		// update total supply
-		bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt((int64(params.TxGas)-1)))), []banktypes.Metadata{})
-		bz := suite.app.AppCodec().MustMarshalJSON(bankGenesis)
-		require.NotNil(t, bz)
-		genesisState[banktypes.ModuleName] = suite.app.AppCodec().MustMarshalJSON(bankGenesis)
-
-		// we marshal the genesisState of all module to a byte array
-		stateBytes, err := tmjson.MarshalIndent(genesisState, "", " ")
-		require.NoError(t, err)
-
-		// Initialize the chain
-		suite.app.InitChain(
-			abci.RequestInitChain{
-				ChainId:         "fxcore",
-				Validators:      []abci.ValidatorUpdate{},
-				ConsensusParams: simapp.DefaultConsensusParams,
-				AppStateBytes:   stateBytes,
-			},
-		)
-	}
-
-	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
-		Height:          fxtypes.EvmV1SupportBlock(),
-		ChainID:         "fxcore",
-		Time:            time.Now().UTC(),
-		ProposerAddress: suite.consAddress.Bytes(),
-
-		Version: tmversion.Consensus{
-			Block: version.BlockProtocol,
-		},
-		LastBlockId: tmproto.BlockID{
-			Hash: tmhash.Sum([]byte("block_id")),
-			PartSetHeader: tmproto.PartSetHeader{
-				Total: 11,
-				Hash:  tmhash.Sum([]byte("partset_header")),
-			},
-		},
-		AppHash:            tmhash.Sum([]byte("app")),
-		DataHash:           tmhash.Sum([]byte("data")),
-		EvidenceHash:       tmhash.Sum([]byte("evidence")),
-		ValidatorsHash:     tmhash.Sum([]byte("validators")),
-		NextValidatorsHash: tmhash.Sum([]byte("next_validators")),
-		ConsensusHash:      tmhash.Sum([]byte("consensus")),
-		LastResultsHash:    tmhash.Sum([]byte("last_result")),
-	})
+	suite.app = helpers.Setup(suite.T(), false, 0)
 
 	queryHelperEvm := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evm.RegisterQueryServer(queryHelperEvm, suite.app.EvmKeeper)
@@ -183,11 +106,11 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
 
-	forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
-	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-		suite.app.EvmKeeper, evm.DefaultParams(),
-		suite.app.Erc20Keeper, types.DefaultParams()))
+	//forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
+	//require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+	//	suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+	//	suite.app.EvmKeeper, evm.DefaultParams(),
+	//	suite.app.Erc20Keeper, types.DefaultParams()))
 }
 
 func (suite *KeeperTestSuite) SetupTest() {

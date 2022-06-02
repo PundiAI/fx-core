@@ -112,7 +112,7 @@ func Test_MigrateGovActiveAndVoteFunc(t *testing.T) {
 	_, err = app.GovKeeper.AddDeposit(ctx, proposal.ProposalId, bob, amount)
 	require.NoError(t, err)
 
-	err = app.GovKeeper.AddVote(ctx, proposal.ProposalId, alice, govtypes.OptionYes)
+	err = app.GovKeeper.AddVote(ctx, proposal.ProposalId, alice, govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
 	require.NoError(t, err)
 
 	deposit1, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, alice)

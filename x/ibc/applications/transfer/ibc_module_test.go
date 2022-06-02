@@ -187,7 +187,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				testChannel.PortID, testChannel.ID, chanCap, channel.Counterparty, channel.GetVersion(), counterpartyVersion,
+				testChannel.PortID, testChannel.ID, chanCap, channel.Counterparty, counterpartyVersion,
 			)
 
 			if tc.expPass {
@@ -241,7 +241,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), testChannel.PortID, testChannel.ID, counterpartyVersion)
+			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), testChannel.PortID, testChannel.ID, testChannel.CounterpartyClientID, counterpartyVersion)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

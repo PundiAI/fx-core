@@ -245,7 +245,7 @@ func (coord *Coordinator) RecvPacket(
 	coord.IncrementTime()
 	coord.CommitBlock(source, counterparty)
 
-	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, counterparty.SenderAccount.GetAddress())
+	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, counterparty.SenderAccount.GetAddress().String())
 
 	counterparty.LastRecvPacketHeader = counterparty.CurrentHeader
 	// receive on counterparty and update source client
@@ -289,7 +289,7 @@ func (coord *Coordinator) AcknowledgePacket(
 	coord.IncrementTime()
 	coord.CommitBlock(source, counterparty)
 
-	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, source.SenderAccount.GetAddress())
+	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, source.SenderAccount.GetAddress().String())
 	return coord.SendMsgs(source, counterparty, counterpartyClient, []sdk.Msg{ackMsg})
 }
 

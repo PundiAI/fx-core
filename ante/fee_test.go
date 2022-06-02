@@ -6,15 +6,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/functionx/fx-core/ante"
 
 	fxtypes "github.com/functionx/fx-core/types"
-
-	"github.com/functionx/fx-core/app/ante"
 )
 
-func (s *AnteTestSuite) TestMempoolFeeDecorator() {
-	s.SetupTest()
-	s.txBuilder = s.clientCtx.TxConfig.NewTxBuilder()
+func (suite *AnteTestSuite) TestMempoolFeeDecorator() {
+	suite.SetupTest()
+	suite.txBuilder = suite.clientCtx.TxConfig.NewTxBuilder()
 
 	mfd := ante.NewMempoolFeeDecorator([]string{
 		sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
@@ -27,36 +26,36 @@ func (s *AnteTestSuite) TestMempoolFeeDecorator() {
 	msg := testdata.NewTestMsg(addr1)
 	feeAmount := testdata.NewTestFeeAmount()
 	gasLimit := testdata.NewTestGasLimit()
-	s.Require().NoError(s.txBuilder.SetMsgs(msg))
-	s.txBuilder.SetFeeAmount(feeAmount)
-	s.txBuilder.SetGasLimit(gasLimit)
+	suite.Require().NoError(suite.txBuilder.SetMsgs(msg))
+	suite.txBuilder.SetFeeAmount(feeAmount)
+	suite.txBuilder.SetGasLimit(gasLimit)
 
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
-	tx, err := s.CreateEmptyTestTx(privs, accNums, accSeqs, s.ctx.ChainID())
-	s.Require().NoError(err)
+	tx, err := suite.CreateEmptyTestTx(privs, accNums, accSeqs, suite.ctx.ChainID())
+	suite.Require().NoError(err)
 
 	// Set high gas price so standard test fee fails
 	feeAmt := sdk.NewDecCoinFromDec(fxtypes.DefaultDenom, sdk.NewDec(200).Quo(sdk.NewDec(100000)))
 	minGasPrice := []sdk.DecCoin{feeAmt}
-	s.ctx = s.ctx.WithMinGasPrices(minGasPrice).WithIsCheckTx(true)
+	suite.ctx = suite.ctx.WithMinGasPrices(minGasPrice).WithIsCheckTx(true)
 
 	// antehandler errors with insufficient fees
-	_, err = antehandler(s.ctx, tx, false)
-	s.Require().Error(err, "expected error due to low fee")
+	_, err = antehandler(suite.ctx, tx, false)
+	suite.Require().Error(err, "expected error due to low fee")
 
 	// ensure no fees for certain IBC msgs
-	s.Require().NoError(s.txBuilder.SetMsgs(
+	suite.Require().NoError(suite.txBuilder.SetMsgs(
 		ibcchanneltypes.NewMsgRecvPacket(ibcchanneltypes.Packet{}, nil, ibcclienttypes.Height{}, sdk.AccAddress{}.String()),
 	))
 
-	oracleTx, err := s.CreateEmptyTestTx(privs, accNums, accSeqs, s.ctx.ChainID())
-	s.Require().NoError(err)
-	_, err = antehandler(s.ctx, oracleTx, false)
-	s.Require().NoError(err, "expected min fee bypass for IBC messages")
+	oracleTx, err := suite.CreateEmptyTestTx(privs, accNums, accSeqs, suite.ctx.ChainID())
+	suite.Require().NoError(err)
+	_, err = antehandler(suite.ctx, oracleTx, false)
+	suite.Require().NoError(err, "expected min fee bypass for IBC messages")
 
-	s.ctx = s.ctx.WithIsCheckTx(false)
+	suite.ctx = suite.ctx.WithIsCheckTx(false)
 
 	// antehandler should not error since we do not check min gas prices in DeliverTx
-	_, err = antehandler(s.ctx, tx, false)
-	s.Require().NoError(err, "unexpected error during DeliverTx")
+	_, err = antehandler(suite.ctx, tx, false)
+	suite.Require().NoError(err, "unexpected error during DeliverTx")
 }

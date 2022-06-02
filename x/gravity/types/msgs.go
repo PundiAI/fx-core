@@ -3,7 +3,6 @@ package types
 import (
 	"encoding/hex"
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -207,6 +206,9 @@ func (m MsgRequestBatch) ValidateBasic() error {
 	}
 	if err := ValidateEthAddressAndValidateChecksum(m.FeeReceive); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "fee receive: %s, err: %s", m.FeeReceive, err.Error())
+	}
+	if m.BaseFee == nil || m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
+		return sdkerrors.Wrap(ErrInvalidRequestBatchBaseFee, m.BaseFee.String())
 	}
 	return nil
 }

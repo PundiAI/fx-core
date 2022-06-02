@@ -1,4 +1,4 @@
-package crosschain
+package test_crosschain
 
 import (
 	"context"
@@ -101,7 +101,7 @@ func (c *Client) QueryObserver() *crosschaintypes.QueryLastObservedBlockHeightRe
 	return height
 }
 
-func (c *Client) BroadcastTx(msgList *[]sdk.Msg) string {
+func (c *Client) BroadcastTx(msgList []sdk.Msg) string {
 	c.t.Helper()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -117,12 +117,12 @@ func (c *Client) BroadcastTx(msgList *[]sdk.Msg) string {
 	}
 	c.t.Logf("BroadcastTx address:%v, number:%v, sequence:%v\n", fxAddress.String(), account.GetAccountNumber(), account.GetSequence())
 	c.t.Logf("msgs")
-	for i, msg := range *msgList {
+	for i, msg := range msgList {
 		marshalIndent, err := c.encodingConfig.Amino.MarshalJSONIndent(msg, "", "\t")
 		if err != nil {
 			c.t.Fatal(err)
 		}
-		c.t.Logf("msg index:[%d], type:[%s], data:[%+v]", i, fmt.Sprintf("%s/%s", msg.Route(), msg.Type()), string(marshalIndent))
+		c.t.Logf("msg index:[%d], type:[%s], data:[%+v]", i, fmt.Sprintf("%s", sdk.MsgTypeURL(msg)), string(marshalIndent))
 	}
 
 	txBodyBytes, txAuthInfoBytes := buildTxBodyAndTxAuthInfo(c, msgList, account.GetAccountNumber(), account.GetSequence())
@@ -224,11 +224,11 @@ func newHttpClient(rpcUrl string) (*http.HTTP, error) {
 	return http.New(rpcUrl, "/websocket")
 }
 
-func buildTxBodyAndTxAuthInfo(c *Client, msgList *[]sdk.Msg, accountNumber, accountSequence uint64) (txBodyBytes, txAuthInfoBytes []byte) {
+func buildTxBodyAndTxAuthInfo(c *Client, msgList []sdk.Msg, accountNumber, accountSequence uint64) (txBodyBytes, txAuthInfoBytes []byte) {
 	c.t.Helper()
 	txBodyMessage := make([]*types.Any, 0)
-	for i := 0; i < len(*msgList); i++ {
-		msgAnyValue, err := types.NewAnyWithValue((*msgList)[i])
+	for i := 0; i < len(msgList); i++ {
+		msgAnyValue, err := types.NewAnyWithValue((msgList)[i])
 		if err != nil {
 			c.t.Fatal(err)
 		}

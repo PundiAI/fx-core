@@ -69,7 +69,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	fungibleTokenPacket := types.NewFungibleTokenPacketData(coinToSendToB.Denom, coinToSendToB.Amount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), noRouter, noFeeStr)
 	packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	err = suite.coordinator.RelayPacket(suite.chainA, suite.chainB, clientA, clientB, packet, ack.GetBytes())
+	err = suite.coordinator.RelayPacket(suite.chainA, suite.chainB, clientA, clientB, packet, ack.GetResult())
 	suite.Require().NoError(err) // relay committed
 
 	// check that voucher exists on chain B
@@ -94,7 +94,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	fullDenomPath := types.GetPrefixedDenom(channelOnCForB.PortID, channelOnCForB.ID, voucherDenomTrace.GetFullDenomPath())
 	fungibleTokenPacket = types.NewFungibleTokenPacketData(voucherDenomTrace.GetFullDenomPath(), coinSentFromAToB.Amount.String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), noRouter, noFeeStr)
 	packet = channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelOnBForC.PortID, channelOnBForC.ID, channelOnCForB.PortID, channelOnCForB.ID, timeoutHeight, 0)
-	err = suite.coordinator.RelayPacket(suite.chainB, suite.chainC, clientOnBForC, clientOnCForB, packet, ack.GetBytes())
+	err = suite.coordinator.RelayPacket(suite.chainB, suite.chainC, clientOnBForC, clientOnCForB, packet, ack.GetResult())
 	suite.Require().NoError(err) // relay committed
 
 	coinSentFromBToC := sdk.NewInt64Coin(types.ParseDenomTrace(fullDenomPath).IBCDenom(), 100)
@@ -117,7 +117,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// NOTE: fungible token is prefixed with the full trace in order to verify the packet commitment
 	fungibleTokenPacket = types.NewFungibleTokenPacketData(fullDenomPath, coinSentFromBToC.Amount.String(), suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), noRouter, noFeeStr)
 	packet = channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelOnCForB.PortID, channelOnCForB.ID, channelOnBForC.PortID, channelOnBForC.ID, timeoutHeight, 0)
-	err = suite.coordinator.RelayPacket(suite.chainC, suite.chainB, clientOnCForB, clientOnBForC, packet, ack.GetBytes())
+	err = suite.coordinator.RelayPacket(suite.chainC, suite.chainB, clientOnCForB, clientOnBForC, packet, ack.GetResult())
 	suite.Require().NoError(err) // relay committed
 
 	balance = suite.chainB.App.BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), coinSentFromAToB.Denom)
@@ -163,7 +163,7 @@ func (suite *TransferTestSuite) TestTransferForwardPacket() {
 	fungibleTokenPacket := types.NewFungibleTokenPacketData(coinToSendToC.Denom, coinToSendToC.Amount.String(), suite.chainA.SenderAccount.GetAddress().String(), forwardPacketReceiverAddress, noRouter, noFeeStr)
 	packet := channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	err = suite.coordinator.RelayPacket(suite.chainA, suite.chainB, clientA, clientB, packet, ack.GetBytes())
+	err = suite.coordinator.RelayPacket(suite.chainA, suite.chainB, clientA, clientB, packet, ack.GetResult())
 	suite.Require().NoError(err)
 
 	// update chainC clientOnCForB state
@@ -178,7 +178,7 @@ func (suite *TransferTestSuite) TestTransferForwardPacket() {
 	chainCTimeoutTimestamp := uint64(suite.chainB.LastRecvPacketHeader.Time.Add(transfer.ForwardPacketTimeHour * time.Hour).UnixNano())
 	packet = channeltypes.NewPacket(fungibleTokenPacket.GetBytes(), 1, channelOnBForC.PortID, channelOnBForC.ID, channelOnCForB.PortID, channelOnCForB.ID, chainCTimeoutHeight, chainCTimeoutTimestamp)
 	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	err = suite.coordinator.RelayPacket(suite.chainB, suite.chainC, clientOnBForC, clientOnCForB, packet, ack.GetBytes())
+	err = suite.coordinator.RelayPacket(suite.chainB, suite.chainC, clientOnBForC, clientOnCForB, packet, ack.GetResult())
 	suite.Require().NoError(err) // relay committed
 
 	// check chainC receive address balance

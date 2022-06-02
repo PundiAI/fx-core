@@ -2,6 +2,7 @@ package evm_test
 
 import (
 	"encoding/hex"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
@@ -56,6 +57,6 @@ func Test_FxAddress(t *testing.T) {
 
 func Test_Erc20ModuleAddress(t *testing.T) {
 	address := erc20types.ModuleAddress
-	t.Log("hex", address.Hex())                           //0xa64Ca24E8d45ca9e1D4EC5e0fd4b5C5bbb37989e
-	t.Log("fx", sdk.AccAddress(address.Bytes()).String()) //fx15ex2yn5dgh9fu82wchs06j6utwan0xy76syjjz
+	assert.Equal(t, address.Hex(), "0x47EeB2eac350E1923b8CBDfA4396A077b36E62a0")
+	assert.Equal(t, sdk.AccAddress(address.Bytes()).String(), "fx1glht96kr2rseywuvhhay894qw7ekuc4qs5z0yh")
 }

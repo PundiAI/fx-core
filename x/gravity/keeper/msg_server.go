@@ -136,11 +136,6 @@ func (k msgServer) SendToEth(c context.Context, msg *types.MsgSendToEth) (*types
 func (k msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	baseFee, err := GetRequestBatchBaseFee(ctx.BlockHeight(), msg.BaseFee)
-	if err != nil {
-		return nil, err
-	}
-
 	// Check if the denom is a gravity coin, if not, check if there is a deployed ERC20 representing it.
 	// If not, error out
 	_, tokenContract, err := k.DenomToERC20Lookup(ctx, msg.Denom)
@@ -158,7 +153,7 @@ func (k msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 		}
 	}
 
-	batch, err := k.BuildOutgoingTXBatch(ctx, tokenContract, OutgoingTxBatchSize, msg.MinimumFee, msg.FeeReceive, baseFee)
+	batch, err := k.BuildOutgoingTXBatch(ctx, tokenContract, OutgoingTxBatchSize, msg.MinimumFee, msg.FeeReceive, *msg.BaseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -403,14 +398,4 @@ func (k msgServer) ValsetUpdateClaim(c context.Context, msg *types.MsgValsetUpda
 	))
 
 	return &types.MsgValsetUpdatedClaimResponse{}, nil
-}
-
-func GetRequestBatchBaseFee(height int64, baseFee *sdk.Int) (sdk.Int, error) {
-	if baseFee == nil || baseFee.IsNil() {
-		return sdk.ZeroInt(), nil
-	}
-	if baseFee.IsNegative() {
-		return sdk.ZeroInt(), types.ErrInvalidRequestBatchBaseFee
-	}
-	return *baseFee, nil
 }

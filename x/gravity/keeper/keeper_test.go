@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/functionx/fx-core/app/helpers"
 	"testing"
 
 	fxtypes "github.com/functionx/fx-core/types"
@@ -9,40 +10,39 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/gravity/types"
 )
 
 func TestSetOrchestratorValidator(t *testing.T) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
-	accAddressList := app.AddTestAddrsIncremental(fxcore, ctx, 2, sdk.ZeroInt())
+	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
+	accAddressList := helpers.AddTestAddrsIncremental(myApp, ctx, 2, sdk.ZeroInt())
 
 	val1OrchestratorAddr, val2OrchestratorAddr := accAddressList[0], accAddressList[1]
-	val1Addr, found := fxcore.GravityKeeper.GetOrchestratorValidator(ctx, val1OrchestratorAddr)
+	val1Addr, found := myApp.GravityKeeper.GetOrchestratorValidator(ctx, val1OrchestratorAddr)
 	require.False(t, found)
 	require.Empty(t, val1Addr)
 
-	fxcore.GravityKeeper.SetOrchestratorValidator(ctx, sdk.ValAddress(val1OrchestratorAddr), val1OrchestratorAddr)
+	myApp.GravityKeeper.SetOrchestratorValidator(ctx, sdk.ValAddress(val1OrchestratorAddr), val1OrchestratorAddr)
 
-	val1Addr, found = fxcore.GravityKeeper.GetOrchestratorValidator(ctx, val1OrchestratorAddr)
+	val1Addr, found = myApp.GravityKeeper.GetOrchestratorValidator(ctx, val1OrchestratorAddr)
 	require.True(t, found)
 	require.EqualValues(t, sdk.ValAddress(val1OrchestratorAddr), val1Addr)
 
-	val2Addr, found := fxcore.GravityKeeper.GetOrchestratorValidator(ctx, val2OrchestratorAddr)
+	val2Addr, found := myApp.GravityKeeper.GetOrchestratorValidator(ctx, val2OrchestratorAddr)
 	require.False(t, found)
 	require.Empty(t, val2Addr)
 }
 
 func TestStoreValset(t *testing.T) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
 
 	valset := &types.Valset{
 		Nonce: 234,
@@ -54,34 +54,34 @@ func TestStoreValset(t *testing.T) {
 		Height: 234,
 	}
 	// store new valset
-	fxcore.GravityKeeper.StoreValset(ctx, valset)
+	myApp.GravityKeeper.StoreValset(ctx, valset)
 	// checkout nonce has exists
-	require.True(t, fxcore.GravityKeeper.HasValsetRequest(ctx, valset.Nonce))
+	require.True(t, myApp.GravityKeeper.HasValsetRequest(ctx, valset.Nonce))
 	// check not exists nonce
-	require.False(t, fxcore.GravityKeeper.HasValsetRequest(ctx, valset.Nonce-1))
+	require.False(t, myApp.GravityKeeper.HasValsetRequest(ctx, valset.Nonce-1))
 	// check latest valset nonce
-	require.EqualValues(t, valset.Nonce, fxcore.GravityKeeper.GetLatestValsetNonce(ctx))
+	require.EqualValues(t, valset.Nonce, myApp.GravityKeeper.GetLatestValsetNonce(ctx))
 	// check store valset
-	storeValset := fxcore.GravityKeeper.GetValset(ctx, valset.Nonce)
+	storeValset := myApp.GravityKeeper.GetValset(ctx, valset.Nonce)
 	require.NotNil(t, storeValset)
 	require.EqualValues(t, valset, storeValset)
 
-	storeLatestValset := fxcore.GravityKeeper.GetLatestValset(ctx)
+	storeLatestValset := myApp.GravityKeeper.GetLatestValset(ctx)
 	require.NotNil(t, storeLatestValset)
 	require.EqualValues(t, valset, storeLatestValset)
 }
 
 func TestSetLatestValsetNonce(t *testing.T) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
 
 	require.NotPanics(t, func() {
-		fxcore.GravityKeeper.SetLatestValsetNonce(ctx, 1)
+		myApp.GravityKeeper.SetLatestValsetNonce(ctx, 1)
 	})
-	require.EqualValues(t, 1, fxcore.GravityKeeper.GetLatestValsetNonce(ctx))
+	require.EqualValues(t, 1, myApp.GravityKeeper.GetLatestValsetNonce(ctx))
 
 	type testCaseData struct {
 		name           string
@@ -108,19 +108,19 @@ func TestSetLatestValsetNonce(t *testing.T) {
 
 	for _, testData := range testDatas {
 		t.Run(testData.name, func(t *testing.T) {
-			fxcore.GravityKeeper.SetLatestValsetNonce(ctx, testData.newValsetNonce)
-			require.EqualValues(t, testData.expect, fxcore.GravityKeeper.GetLatestValsetNonce(ctx))
+			myApp.GravityKeeper.SetLatestValsetNonce(ctx, testData.newValsetNonce)
+			require.EqualValues(t, testData.expect, myApp.GravityKeeper.GetLatestValsetNonce(ctx))
 		})
 	}
 }
 func TestLastSlashedValsetNonce(t *testing.T) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
 
-	keeper := fxcore.GravityKeeper
+	keeper := myApp.GravityKeeper
 	// check no data
 	require.EqualValues(t, 0, keeper.GetLastSlashedValsetNonce(ctx))
 	type testCaseData struct {
@@ -144,12 +144,12 @@ func TestLastSlashedValsetNonce(t *testing.T) {
 
 func TestLastUnBondingBlockHeight(t *testing.T) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
 
-	keeper := fxcore.GravityKeeper
+	keeper := myApp.GravityKeeper
 	// check no data
 	require.EqualValues(t, 0, keeper.GetLastUnBondingBlockHeight(ctx))
 	type testCaseData struct {

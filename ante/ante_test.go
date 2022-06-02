@@ -1,6 +1,8 @@
 package ante_test
 
 import (
+	ante2 "github.com/functionx/fx-core/ante"
+	"github.com/functionx/fx-core/app/helpers"
 	"testing"
 	"time"
 
@@ -17,7 +19,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/app/ante"
 	"github.com/functionx/fx-core/ethereum/eip712"
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
@@ -59,15 +60,17 @@ type AnteTestSuite struct {
 	signer      keyring.Signer
 }
 
+func TestAnteTestSuite(t *testing.T) {
+	suite.Run(t, &AnteTestSuite{})
+}
+
 func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
 	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes())))
 }
 
 func (suite *AnteTestSuite) SetupTest() {
 
-	suite.app = app.Setup(suite.checkTx, func(app *app.App, genesis app.GenesisState) app.GenesisState {
-		return genesis
-	})
+	suite.app = helpers.Setup(suite.T(), false, 0)
 
 	// account key
 	priv := secp256k1.GenPrivKey()
@@ -102,20 +105,16 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 
-	options := ante.HandlerOptions{
+	options := ante2.HandlerOptions{
 		AccountKeeper:   suite.app.AccountKeeper,
 		BankKeeper:      suite.app.BankKeeper,
 		EvmKeeper:       suite.app.EvmKeeper,
 		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+		SigGasConsumer:  ante2.DefaultSigVerificationGasConsumer,
 	}
 	suite.Require().NoError(options.Validate())
-	suite.anteHandler = ante.NewAnteHandler(options)
+	suite.anteHandler = ante2.NewAnteHandler(options)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
-}
-
-func TestAnteTestSuite(t *testing.T) {
-	suite.Run(t, &AnteTestSuite{})
 }
 
 // CreateTestTx is a helper function to create a tx given multiple inputs.
@@ -281,13 +280,13 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	return builder
 }
 
-func (s *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNums []uint64, accSeqs []uint64, chainID string) (authsigning.Tx, error) {
+func (suite *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNums []uint64, accSeqs []uint64, chainID string) (authsigning.Tx, error) {
 	var sigsV2 []signing.SignatureV2
 	for i, priv := range privs {
 		sigV2 := signing.SignatureV2{
 			PubKey: priv.PubKey(),
 			Data: &signing.SingleSignatureData{
-				SignMode:  s.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+				SignMode:  suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
 				Signature: nil,
 			},
 			Sequence: accSeqs[i],
@@ -296,7 +295,7 @@ func (s *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNums [
 		sigsV2 = append(sigsV2, sigV2)
 	}
 
-	if err := s.txBuilder.SetSignatures(sigsV2...); err != nil {
+	if err := suite.txBuilder.SetSignatures(sigsV2...); err != nil {
 		return nil, err
 	}
 
@@ -308,11 +307,11 @@ func (s *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNums [
 			Sequence:      accSeqs[i],
 		}
 		sigV2, err := tx.SignWithPrivKey(
-			s.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+			suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
 			signerData,
-			s.txBuilder,
+			suite.txBuilder,
 			priv,
-			s.clientCtx.TxConfig,
+			suite.clientCtx.TxConfig,
 			accSeqs[i],
 		)
 		if err != nil {
@@ -322,11 +321,11 @@ func (s *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNums [
 		sigsV2 = append(sigsV2, sigV2)
 	}
 
-	if err := s.txBuilder.SetSignatures(sigsV2...); err != nil {
+	if err := suite.txBuilder.SetSignatures(sigsV2...); err != nil {
 		return nil, err
 	}
 
-	return s.txBuilder.GetTx(), nil
+	return suite.txBuilder.GetTx(), nil
 }
 
 var _ sdk.Tx = &invalidTx{}

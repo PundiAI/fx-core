@@ -4,12 +4,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	ante2 "github.com/functionx/fx-core/ante"
+	"github.com/functionx/fx-core/app/helpers"
 	"math"
 	"math/big"
 	"testing"
-
-	"github.com/functionx/fx-core/app/forks"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -28,7 +27,6 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/app/ante"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"
@@ -50,24 +48,24 @@ var (
 )
 
 func TestHookChainGravity(t *testing.T) {
-	fxcore, validators, _, delegateAddressArr := initTest(t)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
+	myApp, validators, _, delegateAddressArr := initTest(t)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
 
 	val := validators[0]
-	validator := GetValidator(t, fxcore, val)[0]
+	validator := GetValidator(t, myApp, val)[0]
 	del := delegateAddressArr[0]
 
 	signer1, addr1 := privateSigner()
 	_, addr2 := privateSigner()
 
-	ctx = testInitGravity(t, ctx, fxcore, validator.GetOperator(), addr1.Bytes(), addr2)
+	ctx = testInitGravity(t, ctx, myApp, validator.GetOperator(), addr1.Bytes(), addr2)
 
-	ctx = initEvmErc20(t, ctx, fxcore)
+	ctx = initEvmErc20(t, ctx, myApp)
 
-	pairId := fxcore.Erc20Keeper.GetDenomMap(ctx, "FX")
+	pairId := myApp.Erc20Keeper.GetDenomMap(ctx, "FX")
 	require.True(t, len(pairId) > 0)
 
-	pair, found := fxcore.Erc20Keeper.GetTokenPair(ctx, pairId)
+	pair, found := myApp.Erc20Keeper.GetTokenPair(ctx, pairId)
 	require.True(t, found)
 
 	require.Equal(t, types.TokenPair{
@@ -78,31 +76,31 @@ func TestHookChainGravity(t *testing.T) {
 	}, pair)
 
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err := fxcore.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
+	err := myApp.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
 	require.NoError(t, err)
 
-	balances := fxcore.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
+	balances := myApp.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
 	_ = balances
 
-	err = fxcore.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	err = myApp.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
-	balanceOf, err := fxcore.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
+	balanceOf, err := myApp.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
 	require.NoError(t, err)
 	_ = balanceOf
 
 	token := pair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, gravitytypes.ModuleName)
-	transferChainData := packTransferCrossData(t, ctx, fxcore.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
-	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferChainData)
+	transferChainData := packTransferCrossData(t, ctx, myApp.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
+	sendEthTx(t, ctx, myApp, signer1, addr1, token, transferChainData)
 
-	transactions := fxcore.GravityKeeper.GetPoolTransactions(ctx)
+	transactions := myApp.GravityKeeper.GetPoolTransactions(ctx)
 	require.Equal(t, 1, len(transactions))
 }
 
 func TestHookChainBSC(t *testing.T) {
-	fxcore, validators, genesisAccount, delegateAddressArr := initTest(t)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
+	myApp, validators, genesisAccount, delegateAddressArr := initTest(t)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
 
 	del := delegateAddressArr[0]
 	ga := genesisAccount[0]
@@ -110,13 +108,13 @@ func TestHookChainBSC(t *testing.T) {
 	signer1, addr1 := privateSigner()
 	_, addr2 := privateSigner()
 
-	ctx = testInitBscCrossChain(t, ctx, fxcore, del, addr1.Bytes(), addr2)
+	ctx = testInitBscCrossChain(t, ctx, myApp, del, addr1.Bytes(), addr2)
 
-	ctx = initEvmErc20(t, ctx, fxcore)
+	ctx = initEvmErc20(t, ctx, myApp)
 
-	purseID := fxcore.Erc20Keeper.GetDenomMap(ctx, devnetPurseDenom)
+	purseID := myApp.Erc20Keeper.GetDenomMap(ctx, devnetPurseDenom)
 	require.NotEmpty(t, purseID)
-	purseTokenPair, found := fxcore.Erc20Keeper.GetTokenPair(ctx, purseID)
+	purseTokenPair, found := myApp.Erc20Keeper.GetTokenPair(ctx, purseID)
 	require.True(t, found)
 	require.NotNil(t, purseTokenPair)
 	require.NotEmpty(t, purseTokenPair.GetErc20Address())
@@ -128,32 +126,32 @@ func TestHookChainBSC(t *testing.T) {
 		ContractOwner: types.OWNER_MODULE,
 	}, purseTokenPair)
 
-	fip20, err := fxcore.Erc20Keeper.QueryERC20(ctx, purseTokenPair.GetERC20Contract())
+	fip20, err := myApp.Erc20Keeper.QueryERC20(ctx, purseTokenPair.GetERC20Contract())
 	require.NoError(t, err)
 	_ = fip20
 	//t.Log("fip20", fip20.Name, fip20.Symbol, fip20.Decimals)
 
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
 
-	err = fxcore.BankKeeper.SendCoins(ctx, ga.GetAddress(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(devnetPurseDenom, amt)))
+	err = myApp.BankKeeper.SendCoins(ctx, ga.GetAddress(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(devnetPurseDenom, amt)))
 	require.NoError(t, err)
 
-	balances := fxcore.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
+	balances := myApp.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
 	_ = balances
 
-	err = fxcore.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(devnetPurseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	err = myApp.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(devnetPurseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
-	balanceOf, err := fxcore.Erc20Keeper.BalanceOf(ctx, purseTokenPair.GetERC20Contract(), addr1)
+	balanceOf, err := myApp.Erc20Keeper.BalanceOf(ctx, purseTokenPair.GetERC20Contract(), addr1)
 	require.NoError(t, err)
 	_ = balanceOf
 
 	token := purseTokenPair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, bsctypes.ModuleName)
-	transferChainData := packTransferCrossData(t, ctx, fxcore.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
-	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferChainData)
+	transferChainData := packTransferCrossData(t, ctx, myApp.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
+	sendEthTx(t, ctx, myApp, signer1, addr1, token, transferChainData)
 
-	transactions := fxcore.BscKeeper.GetUnbatchedTransactions(ctx)
+	transactions := myApp.BscKeeper.GetUnbatchedTransactions(ctx)
 	require.Equal(t, 1, len(transactions))
 }
 
@@ -200,15 +198,15 @@ var (
 )
 
 func TestHookIBC(t *testing.T) {
-	fxcore, validators, _, delegateAddressArr := initTest(t)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
+	myApp, validators, _, delegateAddressArr := initTest(t)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
 
-	ctx = initEvmErc20(t, ctx, fxcore)
+	ctx = initEvmErc20(t, ctx, myApp)
 
-	pairId := fxcore.Erc20Keeper.GetDenomMap(ctx, "FX")
+	pairId := myApp.Erc20Keeper.GetDenomMap(ctx, "FX")
 	require.True(t, len(pairId) > 0)
 
-	pair, found := fxcore.Erc20Keeper.GetTokenPair(ctx, pairId)
+	pair, found := myApp.Erc20Keeper.GetTokenPair(ctx, pairId)
 	require.True(t, found)
 
 	//validator := GetValidator(t, app, val)[0]
@@ -220,30 +218,30 @@ func TestHookIBC(t *testing.T) {
 	signer1, addr1 := privateSigner()
 	//_, addr2 := privateSigner()
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err := fxcore.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
+	err := myApp.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
 	require.NoError(t, err)
 
-	balances := fxcore.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
+	balances := myApp.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
 	_ = balances
 
-	err = fxcore.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	err = myApp.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	require.NoError(t, err)
 
-	balanceOf, err := fxcore.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
+	balanceOf, err := myApp.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
 	require.NoError(t, err)
 	_ = balanceOf
 
 	//reset ibc
-	fxcore.Erc20Keeper.SetIBCTransferKeeperForTest(&IBCTransferSimulate{T: t})
-	fxcore.Erc20Keeper.SetIBCChannelKeeperForTest(&IBCChannelSimulate{})
+	myApp.Erc20Keeper.SetIBCTransferKeeperForTest(&IBCTransferSimulate{T: t})
+	myApp.Erc20Keeper.SetIBCChannelKeeperForTest(&IBCChannelSimulate{})
 
-	evmHooks := evmkeeper.NewMultiEvmHooks(fxcore.Erc20Keeper.Hooks())
-	fxcore.EvmKeeper = fxcore.EvmKeeper.SetHooksForTest(evmHooks)
+	evmHooks := evmkeeper.NewMultiEvmHooks(myApp.Erc20Keeper.Hooks())
+	myApp.EvmKeeper = myApp.EvmKeeper.SetHooksForTest(evmHooks)
 
 	token := pair.GetERC20Contract()
 	ibcTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToIBCPrefix, "px/transfer/channel-0")
-	transferIBCData := packTransferCrossData(t, ctx, fxcore.Erc20Keeper, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", ibcTransferAmount, big.NewInt(0), ibcTarget)
-	sendEthTx(t, ctx, fxcore, signer1, addr1, token, transferIBCData)
+	transferIBCData := packTransferCrossData(t, ctx, myApp.Erc20Keeper, "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", ibcTransferAmount, big.NewInt(0), ibcTarget)
+	sendEthTx(t, ctx, myApp, signer1, addr1, token, transferIBCData)
 
 }
 
@@ -255,20 +253,20 @@ func packTransferCrossData(t *testing.T, ctx sdk.Context, k keeper.Keeper, to st
 	return pack
 }
 
-func sendEthTx(t *testing.T, ctx sdk.Context, fxcore *app.App,
+func sendEthTx(t *testing.T, ctx sdk.Context, myApp *app.App,
 	signer keyring.Signer, from, contract common.Address, data []byte) {
 
-	chainID := fxcore.EvmKeeper.ChainID()
+	chainID := myApp.EvmKeeper.ChainID()
 
 	args, err := json.Marshal(&evm.TransactionArgs{To: &contract, From: &from, Data: (*hexutil.Bytes)(&data)})
 	require.NoError(t, err)
-	res, err := fxcore.EvmKeeper.EstimateGas(sdk.WrapSDKContext(ctx), &evm.EthCallRequest{
+	res, err := myApp.EvmKeeper.EstimateGas(sdk.WrapSDKContext(ctx), &evm.EthCallRequest{
 		Args:   args,
 		GasCap: uint64(config.DefaultGasCap),
 	})
 	require.NoError(t, err)
 
-	nonce, err := fxcore.AccountKeeper.GetSequence(ctx, from.Bytes())
+	nonce, err := myApp.AccountKeeper.GetSequence(ctx, from.Bytes())
 	require.NoError(t, err)
 
 	ercTransferTx := evm.NewTx(
@@ -278,7 +276,7 @@ func sendEthTx(t *testing.T, ctx sdk.Context, fxcore *app.App,
 		nil,
 		res.Gas,
 		nil,
-		fxcore.FeeMarketKeeper.GetBaseFee(ctx),
+		myApp.FeeMarketKeeper.GetBaseFee(ctx),
 		big.NewInt(1),
 		data,
 		&ethtypes.AccessList{}, // accesses
@@ -288,15 +286,15 @@ func sendEthTx(t *testing.T, ctx sdk.Context, fxcore *app.App,
 	err = ercTransferTx.Sign(ethtypes.LatestSignerForChainID(chainID), signer)
 	require.NoError(t, err)
 
-	options := ante.HandlerOptions{
-		AccountKeeper:   fxcore.AccountKeeper,
-		BankKeeper:      fxcore.BankKeeper,
-		EvmKeeper:       fxcore.EvmKeeper,
+	options := ante2.HandlerOptions{
+		AccountKeeper:   myApp.AccountKeeper,
+		BankKeeper:      myApp.BankKeeper,
+		EvmKeeper:       myApp.EvmKeeper,
 		SignModeHandler: app.MakeEncodingConfig().TxConfig.SignModeHandler(),
-		SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+		SigGasConsumer:  ante2.DefaultSigVerificationGasConsumer,
 	}
 	require.NoError(t, options.Validate())
-	handler := ante.NewAnteHandler(options)
+	handler := ante2.NewAnteHandler(options)
 
 	clientCtx := client.Context{}.WithTxConfig(app.MakeEncodingConfig().TxConfig)
 	tx, err := ercTransferTx.BuildTx(clientCtx.TxConfig.NewTxBuilder(), fxtypes.DefaultDenom)
@@ -304,7 +302,7 @@ func sendEthTx(t *testing.T, ctx sdk.Context, fxcore *app.App,
 	ctx, err = handler(ctx, tx, false)
 	require.NoError(t, err)
 
-	rsp, err := fxcore.EvmKeeper.EthereumTx(sdk.WrapSDKContext(ctx), ercTransferTx)
+	rsp, err := myApp.EvmKeeper.EthereumTx(sdk.WrapSDKContext(ctx), ercTransferTx)
 	require.NoError(t, err)
 	require.Empty(t, rsp.VmError)
 }
@@ -320,36 +318,36 @@ func privateSigner() (keyring.Signer, common.Address) {
 
 func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, authtypes.GenesisAccounts, []sdk.AccAddress) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := app.GenerateGenesisValidator(1,
+	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 1,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances),
 			sdk.NewCoin("eth0xd9EEd31F5731DfC3Ca18f09B487e200F50a6343B", initBalances),
 			sdk.NewCoin("ibc/4757BC3AA2C696F7083C825BD3951AE3D1631F2A272EA7AFB9B3E1CCCA8560D4", initBalances),
 			sdk.NewCoin(devnetPurseDenom, initBalances)))
 
-	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
-	delegateAddressArr := app.AddTestAddrsIncremental(fxcore, ctx, 1, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000000000)))
+	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
+	delegateAddressArr := helpers.AddTestAddrsIncremental(myApp, ctx, 1, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000000000)))
 
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
-	return fxcore, validator.Validators, genesisAccounts, delegateAddressArr
+	return myApp, validator.Validators, genesisAccounts, delegateAddressArr
 }
 
-func initEvmErc20(t *testing.T, ctx sdk.Context, fxcore *app.App) sdk.Context {
+func initEvmErc20(t *testing.T, ctx sdk.Context, myApp *app.App) sdk.Context {
 	ctx = ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
-	forks.UpdateMetadata(ctx, fxcore.BankKeeper)
-	require.NoError(t, forks.InitSupportEvm(ctx, fxcore.AccountKeeper,
-		fxcore.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-		fxcore.EvmKeeper, evm.DefaultParams(),
-		fxcore.Erc20Keeper, types.DefaultParams()))
+	//forks.UpdateMetadata(ctx, myApp.BankKeeper)
+	//require.NoError(t, forks.InitSupportEvm(ctx, myApp.AccountKeeper,
+	//	myApp.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+	//	myApp.EvmKeeper, evm.DefaultParams(),
+	//	myApp.Erc20Keeper, types.DefaultParams()))
 
 	return ctx
 }
 
-func GetValidator(t *testing.T, fxcore *app.App, vals ...*tmtypes.Validator) []stakingtypes.Validator {
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+func GetValidator(t *testing.T, myApp *app.App, vals ...*tmtypes.Validator) []stakingtypes.Validator {
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
 	validators := make([]stakingtypes.Validator, 0, len(vals))
 	for _, val := range vals {
-		validator, found := fxcore.StakingKeeper.GetValidator(ctx, val.Address.Bytes())
+		validator, found := myApp.StakingKeeper.GetValidator(ctx, val.Address.Bytes())
 		require.True(t, found)
 		validators = append(validators, validator)
 	}
@@ -361,22 +359,22 @@ var (
 	BSCBridgeTokenContract    = common.HexToAddress("0xFBBbB4f7B1e5bCb0345c5A5a61584B2547d5D582")
 )
 
-func testInitGravity(t *testing.T, ctx sdk.Context, fxcore *app.App, val sdk.ValAddress, orch sdk.AccAddress, addr common.Address) sdk.Context {
-	fxcore.GravityKeeper.SetOrchestratorValidator(ctx, val, orch)
-	fxcore.GravityKeeper.SetEthAddressForValidator(ctx, val, addr.String())
+func testInitGravity(t *testing.T, ctx sdk.Context, myApp *app.App, val sdk.ValAddress, orch sdk.AccAddress, addr common.Address) sdk.Context {
+	myApp.GravityKeeper.SetOrchestratorValidator(ctx, val, orch)
+	myApp.GravityKeeper.SetEthAddressForValidator(ctx, val, addr.String())
 
-	testValSetUpdateClaim(t, ctx, fxcore, orch, addr)
+	testValSetUpdateClaim(t, ctx, myApp, orch, addr)
 
-	testFxOriginatedTokenClaim(t, ctx, fxcore, orch)
+	testFxOriginatedTokenClaim(t, ctx, myApp, orch)
 
-	gravity.EndBlocker(ctx, fxcore.GravityKeeper)
+	gravity.EndBlocker(ctx, myApp.GravityKeeper)
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 
 	return ctx
 }
 
-func testFxOriginatedTokenClaim(t *testing.T, ctx sdk.Context, fxcore *app.App, orch sdk.AccAddress) {
+func testFxOriginatedTokenClaim(t *testing.T, ctx sdk.Context, myApp *app.App, orch sdk.AccAddress) {
 	msg := &gravitytypes.MsgFxOriginatedTokenClaim{
 		EventNonce:    2,
 		BlockHeight:   uint64(ctx.BlockHeight()),
@@ -391,11 +389,11 @@ func testFxOriginatedTokenClaim(t *testing.T, ctx sdk.Context, fxcore *app.App, 
 	require.NoError(t, err)
 
 	// Add the claim to the store
-	_, err = fxcore.GravityKeeper.Attest(ctx, msg, any)
+	_, err = myApp.GravityKeeper.Attest(ctx, msg, any)
 	require.NoError(t, err)
 }
 
-func testValSetUpdateClaim(t *testing.T, ctx sdk.Context, fxcore *app.App, orch sdk.AccAddress, addr common.Address) {
+func testValSetUpdateClaim(t *testing.T, ctx sdk.Context, myApp *app.App, orch sdk.AccAddress, addr common.Address) {
 	msg := &gravitytypes.MsgValsetUpdatedClaim{
 		EventNonce:  1,
 		BlockHeight: uint64(ctx.BlockHeight()),
@@ -410,7 +408,7 @@ func testValSetUpdateClaim(t *testing.T, ctx sdk.Context, fxcore *app.App, orch 
 	}
 
 	for _, member := range msg.Members {
-		memberVal := fxcore.GravityKeeper.GetValidatorByEthAddress(ctx, member.EthAddress)
+		memberVal := myApp.GravityKeeper.GetValidatorByEthAddress(ctx, member.EthAddress)
 		require.NotEmpty(t, memberVal)
 	}
 
@@ -418,16 +416,16 @@ func testValSetUpdateClaim(t *testing.T, ctx sdk.Context, fxcore *app.App, orch 
 	require.NoError(t, err)
 
 	// Add the claim to the store
-	_, err = fxcore.GravityKeeper.Attest(ctx, msg, any)
+	_, err = myApp.GravityKeeper.Attest(ctx, msg, any)
 	require.NoError(t, err)
 }
 
-func testInitBscCrossChain(t *testing.T, ctx sdk.Context, fxcore *app.App, oracleAddress, orchestratorAddr sdk.AccAddress, externalAddress common.Address) sdk.Context {
+func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracleAddress, orchestratorAddr sdk.AccAddress, externalAddress common.Address) sdk.Context {
 	deposit := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), big.NewInt(1e18))))
-	err := fxcore.BankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddress, fxcore.BscKeeper.GetModuleName(), sdk.NewCoins(deposit))
+	err := myApp.BankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddress, myApp.BscKeeper.GetModuleName(), sdk.NewCoins(deposit))
 	require.NoError(t, err)
 
-	testBSCParamsProposal(t, ctx, fxcore, oracleAddress)
+	testBSCParamsProposal(t, ctx, myApp, oracleAddress)
 
 	oracle := crosschaintypes.Oracle{
 		OracleAddress:       oracleAddress.String(),
@@ -439,29 +437,29 @@ func testInitBscCrossChain(t *testing.T, ctx sdk.Context, fxcore *app.App, oracl
 		JailedHeight:        0,
 	}
 	// save oracle
-	fxcore.BscKeeper.SetOracle(ctx, oracle)
+	myApp.BscKeeper.SetOracle(ctx, oracle)
 
-	fxcore.BscKeeper.SetOracleByOrchestrator(ctx, oracleAddress, orchestratorAddr)
+	myApp.BscKeeper.SetOracleByOrchestrator(ctx, oracleAddress, orchestratorAddr)
 	// set the ethereum address
-	fxcore.BscKeeper.SetExternalAddressForOracle(ctx, oracleAddress, externalAddress.String())
+	myApp.BscKeeper.SetExternalAddressForOracle(ctx, oracleAddress, externalAddress.String())
 	// save total deposit amount
-	totalDeposit := fxcore.BscKeeper.GetTotalDeposit(ctx)
-	fxcore.BscKeeper.SetTotalDeposit(ctx, totalDeposit.Add(deposit))
+	totalDeposit := myApp.BscKeeper.GetTotalDeposit(ctx)
+	myApp.BscKeeper.SetTotalDeposit(ctx, totalDeposit.Add(deposit))
 
-	fxcore.BscKeeper.CommonSetOracleTotalPower(ctx)
+	myApp.BscKeeper.CommonSetOracleTotalPower(ctx)
 
-	testBSCOracleSetUpdateClaim(t, ctx, fxcore, orchestratorAddr, externalAddress)
+	testBSCOracleSetUpdateClaim(t, ctx, myApp, orchestratorAddr, externalAddress)
 
-	testBSCBridgeTokenClaim(t, ctx, fxcore, orchestratorAddr)
+	testBSCBridgeTokenClaim(t, ctx, myApp, orchestratorAddr)
 
-	crosschain.EndBlocker(ctx, fxcore.BscKeeper)
+	crosschain.EndBlocker(ctx, myApp.BscKeeper)
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 
 	return ctx
 }
 
-func testBSCParamsProposal(t *testing.T, ctx sdk.Context, fxcore *app.App, oracles sdk.AccAddress) {
+func testBSCParamsProposal(t *testing.T, ctx sdk.Context, myApp *app.App, oracles sdk.AccAddress) {
 	slashFraction, _ := sdk.NewDecFromStr("0.001")
 	oracleSetUpdatePowerChangePercent, _ := sdk.NewDecFromStr("0.1")
 	proposal := &crosschaintypes.InitCrossChainParamsProposal{
@@ -479,15 +477,15 @@ func testBSCParamsProposal(t *testing.T, ctx sdk.Context, fxcore *app.App, oracl
 			Oracles:                           []string{oracles.String()},
 			DepositThreshold:                  sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), big.NewInt(1e18)))),
 		},
-		ChainName: fxcore.BscKeeper.GetModuleName(),
+		ChainName: myApp.BscKeeper.GetModuleName(),
 	}
 
-	k := crosschainkeeper.EthereumMsgServer{Keeper: fxcore.BscKeeper}
+	k := crosschainkeeper.EthereumMsgServer{Keeper: myApp.BscKeeper}
 	err := k.HandleInitCrossChainParamsProposal(ctx, proposal)
 	require.NoError(t, err)
 }
 
-func testBSCBridgeTokenClaim(t *testing.T, ctx sdk.Context, fxcore *app.App, orchAddr sdk.AccAddress) {
+func testBSCBridgeTokenClaim(t *testing.T, ctx sdk.Context, myApp *app.App, orchAddr sdk.AccAddress) {
 	msg := &crosschaintypes.MsgBridgeTokenClaim{
 		EventNonce:    2,
 		BlockHeight:   uint64(ctx.BlockHeight()),
@@ -497,18 +495,18 @@ func testBSCBridgeTokenClaim(t *testing.T, ctx sdk.Context, fxcore *app.App, orc
 		Decimals:      18,
 		Orchestrator:  orchAddr.String(),
 		ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-		ChainName:     fxcore.BscKeeper.GetModuleName(),
+		ChainName:     myApp.BscKeeper.GetModuleName(),
 	}
 
 	any, err := codectypes.NewAnyWithValue(msg)
 	require.NoError(t, err)
 
 	// Add the claim to the store
-	_, err = fxcore.BscKeeper.Attest(ctx, msg, any)
+	_, err = myApp.BscKeeper.Attest(ctx, msg, any)
 	require.NoError(t, err)
 }
 
-func testBSCOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, fxcore *app.App, orch sdk.AccAddress, addr common.Address) {
+func testBSCOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, myApp *app.App, orch sdk.AccAddress, addr common.Address) {
 	msg := &crosschaintypes.MsgOracleSetUpdatedClaim{
 		EventNonce:     1,
 		BlockHeight:    uint64(ctx.BlockHeight()),
@@ -520,10 +518,10 @@ func testBSCOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, fxcore *app.App,
 			},
 		},
 		Orchestrator: orch.String(),
-		ChainName:    fxcore.BscKeeper.GetModuleName(),
+		ChainName:    myApp.BscKeeper.GetModuleName(),
 	}
 	for _, member := range msg.Members {
-		_, found := fxcore.BscKeeper.GetOracleByExternalAddress(ctx, member.ExternalAddress)
+		_, found := myApp.BscKeeper.GetOracleByExternalAddress(ctx, member.ExternalAddress)
 		require.True(t, found)
 	}
 
@@ -531,6 +529,6 @@ func testBSCOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, fxcore *app.App,
 	require.NoError(t, err)
 
 	// Add the claim to the store
-	_, err = fxcore.BscKeeper.Attest(ctx, msg, any)
+	_, err = myApp.BscKeeper.Attest(ctx, msg, any)
 	require.NoError(t, err)
 }

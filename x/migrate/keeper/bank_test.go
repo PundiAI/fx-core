@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/functionx/fx-core/app/helpers"
 	"testing"
 	"time"
 
@@ -20,45 +21,46 @@ import (
 )
 
 func TestMigrateBankFunc(t *testing.T) {
-	fxcore, _, delegateAddressArr := initTest(t)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	myApp, _, delegateAddressArr := initTest(t)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
 	alice, bob, _, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
 
-	b1 := fxcore.BankKeeper.GetAllBalances(ctx, alice)
+	b1 := myApp.BankKeeper.GetAllBalances(ctx, alice)
 	require.False(t, b1.Empty())
-	b2 := fxcore.BankKeeper.GetAllBalances(ctx, bob)
+	b2 := myApp.BankKeeper.GetAllBalances(ctx, bob)
 	require.False(t, b1.Empty())
 
-	migrateKeeper := fxcore.MigrateKeeper
-	m := migratekeeper.NewBankMigrate(fxcore.BankKeeper)
+	migrateKeeper := myApp.MigrateKeeper
+	m := migratekeeper.NewBankMigrate(myApp.BankKeeper)
 	err := m.Validate(ctx, migrateKeeper, alice, bob)
 	require.NoError(t, err)
 	err = m.Execute(ctx, migrateKeeper, alice, bob)
 	require.NoError(t, err)
 
-	bb1 := fxcore.BankKeeper.GetAllBalances(ctx, alice)
+	bb1 := myApp.BankKeeper.GetAllBalances(ctx, alice)
 	require.True(t, bb1.Empty())
-	bb2 := fxcore.BankKeeper.GetAllBalances(ctx, bob)
+	bb2 := myApp.BankKeeper.GetAllBalances(ctx, bob)
 	require.Equal(t, b1, bb2.Sub(b2))
 }
 
 func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, []sdk.AccAddress) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := app.GenerateGenesisValidator(3,
-		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	fxcore := app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 3, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
+	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
+	//378664 825 462891000000000000FX,
+	//378664 525 462891000000000000FX
 
 	//update staking unbonding time
-	stakingParams := fxcore.StakingKeeper.GetParams(ctx)
+	stakingParams := myApp.StakingKeeper.GetParams(ctx)
 	stakingParams.UnbondingTime = 5 * time.Minute
-	fxcore.StakingKeeper.SetParams(ctx, stakingParams)
+	myApp.StakingKeeper.SetParams(ctx, stakingParams)
 
-	delegateAddressArr := app.AddTestAddrsIncremental(fxcore, ctx, 4, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000)))
+	delegateAddressArr := helpers.AddTestAddrsIncremental(myApp, ctx, 4, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000)))
 
 	//Note: address not matching pubKey, use for test
 	for i, addr := range delegateAddressArr {
-		account := fxcore.AccountKeeper.GetAccount(ctx, addr)
+		account := myApp.AccountKeeper.GetAccount(ctx, addr)
 		if i%2 == 0 {
 			err := account.SetPubKey(secp256k1.GenPrivKey().PubKey())
 			require.NoError(t, err)
@@ -67,10 +69,10 @@ func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, []sdk.AccAddress) {
 			err := account.SetPubKey(key.PubKey())
 			require.NoError(t, err)
 		}
-		fxcore.AccountKeeper.SetAccount(ctx, account)
+		myApp.AccountKeeper.SetAccount(ctx, account)
 	}
 
-	return fxcore, validator.Validators, delegateAddressArr
+	return myApp, validator.Validators, delegateAddressArr
 }
 
 func GetValidator(t *testing.T, app *app.App, vals ...*tmtypes.Validator) []stakingtypes.Validator {

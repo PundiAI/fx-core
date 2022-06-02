@@ -59,8 +59,6 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 	}
 	signers := sigTx.GetSigners()
 
-	supportEthSecp256k1 := ctx.BlockHeight() == 0 //Note: use for genesis account
-
 	for i, pk := range pubkeys {
 		// PublicKey was omitted from slice since it has already been set in context
 		if pk == nil {
@@ -82,10 +80,6 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 		// account already has pubkey set,no need to reset
 		if acc.GetPubKey() != nil {
 			continue
-		}
-
-		if pk.Type() == ethsecp256k1.KeyType && !supportEthSecp256k1 {
-			return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "eth_secp256k1 is not currently supported")
 		}
 
 		err = acc.SetPubKey(pk)

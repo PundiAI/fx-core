@@ -1,4 +1,4 @@
-package gravity
+package test_gravity
 
 import (
 	"encoding/hex"
@@ -82,7 +82,7 @@ func signPendingValsetRequest(c *Client) {
 				if err != nil {
 					c.t.Fatal(signature)
 				}
-				c.BroadcastTx(&[]sdk.Msg{
+				c.BroadcastTx([]sdk.Msg{
 					&gravitytypes.MsgValsetConfirm{
 						Nonce:        valset.Nonce,
 						Orchestrator: c.FxAddress().String(),
@@ -146,7 +146,7 @@ func confirmBatch(c *Client) {
 		if err != nil {
 			c.t.Fatal(err)
 		}
-		c.BroadcastTx(&[]sdk.Msg{
+		c.BroadcastTx([]sdk.Msg{
 			&gravitytypes.MsgConfirmBatch{
 				Nonce:         outgoingTxBatch.BatchNonce,
 				TokenContract: outgoingTxBatch.TokenContract,
@@ -189,7 +189,7 @@ func batchRequest(c *Client) {
 	if len(msgList) <= 0 {
 		return
 	}
-	c.BroadcastTx(&msgList)
+	c.BroadcastTx(msgList)
 	c.t.Logf("\n")
 }
 
@@ -205,7 +205,7 @@ func fxToEth(c *Client, count int) {
 			sdk.NewCoin(denom, sdk.NewInt(10001)))
 		msgList = append(msgList, msgSendToEth)
 	}
-	c.BroadcastTx(&msgList)
+	c.BroadcastTx(msgList)
 }
 
 func showAllBalance(c *Client, address sdk.AccAddress) {
@@ -233,7 +233,7 @@ func ethToFx(c *Client) {
 	c.t.Logf("\n####################      ETH to FX      ####################\n")
 	depositClaimMsg := gravitytypes.NewMsgDepositClaim(c.QueryFxLastEventNonce(), 3, ethTokenContract,
 		sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)), c.ethAddress.Hex(), c.FxAddress().String(), "", c.FxAddress().String())
-	c.BroadcastTx(&[]sdk.Msg{depositClaimMsg})
+	c.BroadcastTx([]sdk.Msg{depositClaimMsg})
 	c.t.Logf("\n")
 }
 
@@ -246,7 +246,7 @@ func ethToFxAndIbcTransfer(c *Client) {
 	depositClaimMsg := gravitytypes.NewMsgDepositClaim(c.QueryFxLastEventNonce(), 5, ethTokenContract,
 		sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)), c.ethAddress.Hex(),
 		"fx1vx7jqvys34jcm4dzzwwjcya02ku38rhmjm2kch", hex.EncodeToString([]byte("0x/transfer/channel-0")), c.FxAddress().String())
-	c.BroadcastTx(&[]sdk.Msg{depositClaimMsg})
+	c.BroadcastTx([]sdk.Msg{depositClaimMsg})
 	c.t.Logf("\n")
 }
 
@@ -273,6 +273,6 @@ func setOrchestratorAddress(c *Client) {
 		c.t.Logf("not found validator!!error msg:%v\n", err.Error())
 	}
 	msgSetOrchestratorAddress := gravitytypes.NewMsgSetOrchestratorAddress(sdk.ValAddress(fxAddress), fxAddress, c.ethAddress.Hex())
-	c.BroadcastTx(&[]sdk.Msg{msgSetOrchestratorAddress})
+	c.BroadcastTx([]sdk.Msg{msgSetOrchestratorAddress})
 	c.t.Logf("\n")
 }

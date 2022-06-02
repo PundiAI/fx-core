@@ -3,6 +3,8 @@ package crosschain_test
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/functionx/fx-core/app/helpers"
 	"math/big"
 	"testing"
 
@@ -22,7 +24,7 @@ import (
 func TestUpdateOracleProposal(t *testing.T) {
 	minDepositAmount = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
 	// get test env
-	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h, gh := createProposalTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h, gh := createProposalTestEnv(t)
 	var err error
 
 	normalMsg := &types.MsgSetOrchestratorAddress{
@@ -35,7 +37,7 @@ func TestUpdateOracleProposal(t *testing.T) {
 	_, err = h(ctx, normalMsg)
 	require.NoError(t, err)
 
-	keeper := fxcore.BscKeeper
+	keeper := myApp.BscKeeper
 
 	addTwoOracleProposal := &types.UpdateChainOraclesProposal{
 		Title:       "zzz",
@@ -61,9 +63,8 @@ func TestUpdateOracleProposal(t *testing.T) {
 	require.EqualValues(t, fmt.Sprintf("max change power!maxChangePower:%v,deletePower:%v: %v", "0", "1", types.ErrInvalid), err.Error())
 
 	var oracles []string
-	accounts := app.CreateIncrementalAccounts(types.MaxOracleSize + 1)
-	for i := 0; i < len(accounts); i++ {
-		oracles = append(oracles, accounts[i].String())
+	for i := 0; i < types.MaxOracleSize+1; i++ {
+		oracles = append(oracles, sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String())
 	}
 	addMaxOracleSizePlusOneProposal := &types.UpdateChainOraclesProposal{
 		Title:       "zzz",
@@ -76,15 +77,15 @@ func TestUpdateOracleProposal(t *testing.T) {
 	require.EqualValues(t, fmt.Sprintf("oracle length must be less than or equal : %d: %v", types.MaxOracleSize, types.ErrInvalid), err.Error())
 }
 
-func createProposalTestEnv(t *testing.T) (fxcore *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler, govHandler govtypes.Handler) {
+func createProposalTestEnv(t *testing.T) (myApp *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler, govHandler govtypes.Handler) {
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := app.GenerateGenesisValidator(2,
+	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
 		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	fxcore = app.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx = fxcore.BaseApp.NewContext(false, tmproto.Header{})
+	myApp = helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{})
 	ctx = ctx.WithBlockHeight(2000000)
-	oracleAddressList = app.AddTestAddrsIncremental(fxcore, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
-	orchestratorAddressList = app.AddTestAddrs(fxcore, ctx, GenerateAccountNum, sdk.ZeroInt())
+	oracleAddressList = helpers.AddTestAddrsIncremental(myApp, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
+	orchestratorAddressList = helpers.AddTestAddrs(myApp, ctx, GenerateAccountNum, sdk.ZeroInt())
 	ethKeys = genEthKey(GenerateAccountNum)
 	// chain module oracle list
 	var oracles []string
@@ -94,7 +95,7 @@ func createProposalTestEnv(t *testing.T) (fxcore *app.App, ctx sdk.Context, orac
 
 	var err error
 	// init bsc params by proposal
-	proposalHandler := crosschain.NewCrossChainProposalHandler(fxcore.CrosschainKeeper)
+	proposalHandler := crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)
 	err = proposalHandler(ctx, &types.InitCrossChainParamsProposal{
 		Title:       "init bsc chain params",
 		Description: "init fx chain <-> bsc chain params",
@@ -103,11 +104,11 @@ func createProposalTestEnv(t *testing.T) (fxcore *app.App, ctx sdk.Context, orac
 	})
 	require.NoError(t, err)
 
-	crosschianHandler := crosschain.NewHandler(fxcore.CrosschainKeeper)
+	crosschianHandler := crosschain.NewHandler(myApp.CrosschainKeeper)
 	// To add a proxy handler, execute msg validateBasic
 	proxyHandler := func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		require.NoError(t, msg.ValidateBasic(), fmt.Sprintf("msg %s/%s validate basic error", msg.Route(), msg.Type()))
+		require.NoError(t, msg.ValidateBasic(), fmt.Sprintf("msg %s validate basic error", sdk.MsgTypeURL(msg)))
 		return crosschianHandler(ctx, msg)
 	}
-	return fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, proxyHandler, proposalHandler
+	return myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, proxyHandler, proposalHandler
 }

@@ -2,8 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/functionx/fx-core/x/gravity/types"
+	trontypes "github.com/functionx/fx-core/x/tron/types"
 )
 
 // TransferAfter Hook operation after transfer transaction triggered by IBC module
@@ -13,12 +12,10 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, amount, f
 	if err != nil {
 		return err
 	}
-
-	// verify receive address 2022-04-12
-	if err = types.ValidateEthAddressAndValidateChecksum(receive); err != nil {
+	if err = trontypes.ValidateExternalAddress(receive); err != nil {
 		return err
 	}
 
-	_, err = k.AddToOutgoingPool(ctx, sendAddr, receive, amount, fee)
+	_, err = k.keeper.AddToOutgoingPool(ctx, sendAddr, receive, amount, fee)
 	return err
 }

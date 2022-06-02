@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	ante2 "github.com/functionx/fx-core/ante"
 	"io"
 	stdlog "log"
 	"net/http"
@@ -154,7 +155,6 @@ import (
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
-	"github.com/functionx/fx-core/app/ante"
 	"github.com/functionx/fx-core/server"
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/erc20"
@@ -290,7 +290,7 @@ type App struct {
 	CrosschainKeeper crosschainkeeper.RouterKeeper
 	BscKeeper        crosschainkeeper.Keeper
 	PolygonKeeper    crosschainkeeper.Keeper
-	TronKeeper       crosschainkeeper.Keeper
+	TronKeeper       tronkeeper.Keeper
 
 	// ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
@@ -466,9 +466,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		appCodec, polygontypes.ModuleName, keys[polygontypes.StoreKey], myApp.GetSubspace(polygontypes.ModuleName),
 		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
-	myApp.TronKeeper = crosschainkeeper.NewKeeper(
+	myApp.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
 		appCodec, trontypes.ModuleName, keys[trontypes.StoreKey], myApp.GetSubspace(trontypes.ModuleName),
-		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
+		myApp.BankKeeper, myApp.AccountKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper))
 
 	// add cross-chain router
 	crosschainRouter := crosschainkeeper.NewRouter()
@@ -482,8 +482,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 			MsgServer:   crosschainkeeper.NewMsgServerImpl(myApp.PolygonKeeper),
 		}).
 		AddRoute(trontypes.ModuleName, &crosschainkeeper.ModuleHandler{
-			QueryServer: myApp.TronKeeper,
-			MsgServer:   tronkeeper.NewMsgServerImpl(myApp.TronKeeper),
+			QueryServer: myApp.TronKeeper.GetCrosschainKeeper(),
+			MsgServer:   tronkeeper.NewMsgServerImpl(myApp.TronKeeper.GetCrosschainKeeper()),
 		})
 
 	myApp.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
@@ -576,7 +576,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		crosschain.NewAppModuleByRouter(myApp.CrosschainKeeper),
 		bsc.NewAppModule(myApp.BscKeeper, myApp.BankKeeper),
 		polygon.NewAppModule(myApp.PolygonKeeper, myApp.BankKeeper),
-		tron.NewAppModule(myApp.TronKeeper, myApp.BankKeeper),
+		tron.NewAppModule(myApp.TronKeeper.GetCrosschainKeeper(), myApp.BankKeeper),
 		// Ethermint app modules
 		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		feemarket.NewAppModule(myApp.FeeMarketKeeper),
@@ -715,13 +715,13 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.MountMemoryStores(memKeys)
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(server.EVMMaxTxGasWanted))
-	anteOptions := ante.HandlerOptions{
+	anteOptions := ante2.HandlerOptions{
 		AccountKeeper:        myApp.AccountKeeper,
 		BankKeeper:           myApp.BankKeeper,
 		EvmKeeper:            myApp.EvmKeeper,
 		IbcKeeper:            myApp.IBCKeeper,
 		SignModeHandler:      encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:       ante.DefaultSigVerificationGasConsumer,
+		SigGasConsumer:       ante2.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:       maxGasWanted,
 		BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(fxconfig.BypassMinFeeMsgTypesKey)),
 	}
@@ -730,7 +730,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		panic(fmt.Errorf("failed to ante options validate: %s", err))
 	}
 
-	myApp.SetAnteHandler(ante.NewAnteHandler(anteOptions))
+	myApp.SetAnteHandler(ante2.NewAnteHandler(anteOptions))
 	myApp.SetInitChainer(myApp.InitChainer)
 	myApp.SetBeginBlocker(myApp.BeginBlocker)
 	myApp.SetEndBlocker(myApp.EndBlocker)

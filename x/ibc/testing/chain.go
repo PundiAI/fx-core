@@ -3,6 +3,7 @@ package ibctesting
 import (
 	"bytes"
 	"fmt"
+	"github.com/functionx/fx-core/app/helpers"
 	"strconv"
 	"testing"
 	"time"
@@ -138,7 +139,7 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 		Coins:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000000000000))),
 	}
 
-	fxcore := app.SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	myApp := helpers.SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
 
 	// create current header and call begin block
 	header := tmproto.Header{
@@ -146,8 +147,8 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 		Height:  1,
 		Time:    globalStartTime,
 	}
-	ctx := fxcore.BaseApp.NewContext(false, header)
-	validators := fxcore.StakingKeeper.GetAllValidators(ctx)
+	ctx := myApp.BaseApp.NewContext(false, header)
+	validators := myApp.StakingKeeper.GetAllValidators(ctx)
 	require.True(t, len(validators) > 0)
 	consAddr, err := validators[0].GetConsAddr()
 	require.NoError(t, err)
@@ -159,11 +160,11 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 	chain := &TestChain{
 		t:             t,
 		ChainID:       chainID,
-		App:           fxcore,
+		App:           myApp,
 		CurrentHeader: header,
-		QueryServer:   fxcore.IBCKeeper,
+		QueryServer:   myApp.IBCKeeper,
 		TxConfig:      txConfig,
-		Codec:         fxcore.AppCodec(),
+		Codec:         myApp.AppCodec(),
 		Vals:          valSet,
 		Signers:       signers,
 		senderPrivKey: senderPrivKey,
@@ -344,7 +345,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 
 	valSet := stakingtypes.Validators(histInfo.Valset)
 
-	tmValidators, err := teststaking.ToTmValidators(valSet)
+	tmValidators, err := teststaking.ToTmValidators(valSet, sdk.NewInt(1))
 	if err != nil {
 		panic(err)
 	}
@@ -476,7 +477,7 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, client
 	}
 
 	msg, err := clienttypes.NewMsgCreateClient(
-		clientState, consensusState, chain.SenderAccount.GetAddress(),
+		clientState, consensusState, chain.SenderAccount.GetAddress().String(),
 	)
 	require.NoError(chain.t, err)
 	return msg
@@ -499,7 +500,7 @@ func (chain *TestChain) UpdateTMClient(counterparty *TestChain, clientID string)
 
 	msg, err := clienttypes.NewMsgUpdateClient(
 		clientID, header,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	require.NoError(chain.t, err)
 
@@ -653,7 +654,7 @@ func (chain *TestChain) ConnectionOpenInit(
 		connection.ClientID,
 		connection.CounterpartyClientID,
 		counterparty.GetPrefix(), DefaultOpenInitVersion, DefaultDelayPeriod,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -676,7 +677,7 @@ func (chain *TestChain) ConnectionOpenTry(
 		counterpartyClient, counterparty.GetPrefix(), []*connectiontypes.Version{ConnectionVersion}, DefaultDelayPeriod,
 		proofInit, proofClient, proofConsensus,
 		proofHeight, consensusHeight,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -698,7 +699,7 @@ func (chain *TestChain) ConnectionOpenAck(
 		proofTry, proofClient, proofConsensus,
 		proofHeight, consensusHeight,
 		ConnectionVersion,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -714,7 +715,7 @@ func (chain *TestChain) ConnectionOpenConfirm(
 	msg := connectiontypes.NewMsgConnectionOpenConfirm(
 		connection.ID,
 		proof, height,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -796,7 +797,7 @@ func (chain *TestChain) ChanOpenInit(
 		ch.PortID,
 		ch.Version, order, []string{connectionID},
 		counterparty.PortID,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -815,7 +816,7 @@ func (chain *TestChain) ChanOpenTry(
 		ch.Version, order, []string{connectionID},
 		counterpartyCh.PortID, counterpartyCh.ID, counterpartyCh.Version,
 		proof, height,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -831,7 +832,7 @@ func (chain *TestChain) ChanOpenAck(
 		ch.PortID, ch.ID,
 		counterpartyCh.ID, counterpartyCh.Version, // testing doesn't use flexible selection
 		proof, height,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -846,7 +847,7 @@ func (chain *TestChain) ChanOpenConfirm(
 	msg := channeltypes.NewMsgChannelOpenConfirm(
 		ch.PortID, ch.ID,
 		proof, height,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -860,7 +861,7 @@ func (chain *TestChain) ChanCloseInit(
 ) error {
 	msg := channeltypes.NewMsgChannelCloseInit(
 		channel.PortID, channel.ID,
-		chain.SenderAccount.GetAddress(),
+		chain.SenderAccount.GetAddress().String(),
 	)
 	return chain.sendMsgs(msg)
 }
@@ -870,7 +871,7 @@ func (chain *TestChain) ChanCloseInit(
 func (chain *TestChain) GetPacketData(counterparty *TestChain) []byte {
 	packet := ibctransfertypes.FungibleTokenPacketData{
 		Denom:    TestCoin.Denom,
-		Amount:   TestCoin.Amount.Uint64(),
+		Amount:   TestCoin.Amount.String(),
 		Sender:   chain.SenderAccount.GetAddress().String(),
 		Receiver: counterparty.SenderAccount.GetAddress().String(),
 	}
@@ -905,7 +906,7 @@ func (chain *TestChain) WriteAcknowledgement(
 	channelCap := chain.GetChannelCapability(packet.GetDestPort(), packet.GetDestChannel())
 
 	// no need to send message, acting as a handler
-	err := chain.App.IBCKeeper.ChannelKeeper.WriteAcknowledgement(chain.GetContext(), channelCap, packet, TestHash)
+	err := chain.App.IBCKeeper.ChannelKeeper.WriteAcknowledgement(chain.GetContext(), channelCap, packet, nil)
 	if err != nil {
 		return err
 	}

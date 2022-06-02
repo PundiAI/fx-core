@@ -162,11 +162,11 @@ func TestTraverseBlockERC20(t *testing.T) {
 
 func mnemonicToFxPrivKey(mnemonic string) (*secp256k1.PrivKey, error) {
 	algo := hd.Secp256k1
-	bytes, err := algo.Derive()(mnemonic, "", "m/44'/118'/0'/0/0")
+	bts, err := algo.Derive()(mnemonic, "", "m/44'/118'/0'/0/0")
 	if err != nil {
 		return nil, err
 	}
-	privKey := algo.Generate()(bytes)
+	privKey := algo.Generate()(bts)
 	priv, ok := privKey.(*secp256k1.PrivKey)
 	if !ok {
 		return nil, fmt.Errorf("not secp256k1.PrivKey")

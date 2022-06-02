@@ -17,10 +17,10 @@ import (
 )
 
 func TestABCIEndBlockDepositClaim(t *testing.T) {
-	//fxcore.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
+	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keep := fxcore.BscKeeper
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keep := myApp.BscKeeper
 	var err error
 
 	totalDepositBefore := keep.GetTotalDeposit(ctx)
@@ -38,7 +38,7 @@ func TestABCIEndBlockDepositClaim(t *testing.T) {
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 
-	fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 		EventNonce:    1,
@@ -55,7 +55,7 @@ func TestABCIEndBlockDepositClaim(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-	fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 	sendToFxClaim := &types.MsgSendToFxClaim{
 		EventNonce:    2,
@@ -72,11 +72,11 @@ func TestABCIEndBlockDepositClaim(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-	fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 	receiveAddr, err := sdk.AccAddressFromBech32(sendToFxClaim.Receiver)
 	require.NoError(t, err)
-	allBalances := fxcore.BankKeeper.GetAllBalances(ctx, receiveAddr)
+	allBalances := myApp.BankKeeper.GetAllBalances(ctx, receiveAddr)
 	//t.Logf("%s allBalances:%s", receiveAddr.String(), allBalances)
 	tokenContract := common.HexToAddress(addBridgeTokenClaim.TokenContract).Hex()
 	// transfer/channel-0/bscPURES
@@ -94,10 +94,10 @@ func TestABCIEndBlockDepositClaim(t *testing.T) {
 
 func TestOracleUpdate(t *testing.T) {
 	GenerateAccountNum = 25
-	//fxcore.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
+	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keeper := fxcore.BscKeeper
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keeper := myApp.BscKeeper
 	var err error
 
 	for i := 0; i < 10; i++ {
@@ -109,14 +109,14 @@ func TestOracleUpdate(t *testing.T) {
 			ChainName:       chainName,
 		})
 		require.NoError(t, err)
-		fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 		oracleSets := keeper.GetOracleSets(ctx)
 		require.NotNil(t, oracleSets)
 		require.EqualValues(t, i+1, len(oracleSets))
 
 		power := keeper.GetLastTotalPower(ctx)
-		expectPower := minDepositAmount.Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.PowerReduction)
+		expectPower := minDepositAmount.Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
 		require.True(t, expectPower.Equal(power))
 	}
 
@@ -140,7 +140,7 @@ func TestOracleUpdate(t *testing.T) {
 		require.NotNil(t, endBlockBeforeAttestation.Votes)
 		require.EqualValues(t, i+1, len(endBlockBeforeAttestation.Votes))
 
-		fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 		endBlockAfterAttestation := keeper.GetAttestation(ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
 		require.NotNil(t, endBlockAfterAttestation)
@@ -160,7 +160,7 @@ func TestOracleUpdate(t *testing.T) {
 	}
 	_, err = h(ctx, addBridgeTokenClaim)
 	require.NoError(t, err)
-	fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	attestation := keeper.GetAttestation(ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
 
@@ -169,7 +169,7 @@ func TestOracleUpdate(t *testing.T) {
 	require.True(t, attestation.Observed)
 	//t.Logf("attestation votes:%s", attestation.Votes)
 
-	proposalHandler := crosschain.NewCrossChainProposalHandler(fxcore.CrosschainKeeper)
+	proposalHandler := crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)
 
 	var newOralceList []string
 	for i := 0; i < 7; i++ {
@@ -183,13 +183,13 @@ func TestOracleUpdate(t *testing.T) {
 	})
 	require.ErrorIs(t, types.ErrInvalid, err)
 
-	expectTotalPower := minDepositAmount.Mul(sdk.NewInt(10)).Quo(sdk.PowerReduction)
+	expectTotalPower := minDepositAmount.Mul(sdk.NewInt(10)).Quo(sdk.DefaultPowerReduction)
 	actualTotalPower := keeper.GetLastTotalPower(ctx)
 	require.True(t, expectTotalPower.Equal(actualTotalPower))
 
 	expectMaxChangePower := types.AttestationProposalOracleChangePowerThreshold.Mul(expectTotalPower).Quo(sdk.NewInt(100))
 
-	expectDeletePower := minDepositAmount.Mul(sdk.NewInt(3)).Quo(sdk.PowerReduction)
+	expectDeletePower := minDepositAmount.Mul(sdk.NewInt(3)).Quo(sdk.DefaultPowerReduction)
 	require.EqualValues(t, fmt.Sprintf("max change power!maxChangePower:%s,deletePower:%s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrInvalid), err.Error())
 
 	var newOracleList2 []string
@@ -207,10 +207,10 @@ func TestOracleUpdate(t *testing.T) {
 
 func TestAttestationAfterOracleUpdate(t *testing.T) {
 	GenerateAccountNum = 25
-	//fxcore.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
+	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keeper := fxcore.BscKeeper
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keeper := myApp.BscKeeper
 	var err error
 
 	for i := 0; i < 20; i++ {
@@ -222,14 +222,14 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 			ChainName:       chainName,
 		})
 		require.NoError(t, err)
-		fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 		oracleSets := keeper.GetOracleSets(ctx)
 		require.NotNil(t, oracleSets)
 		require.EqualValues(t, i+1, len(oracleSets))
 
 		power := keeper.GetLastTotalPower(ctx)
-		expectPower := minDepositAmount.Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.PowerReduction)
+		expectPower := minDepositAmount.Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
 		require.True(t, expectPower.Equal(power))
 	}
 
@@ -256,7 +256,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 			require.NotNil(t, endBlockBeforeAttestation.Votes)
 			require.EqualValues(t, i+1, len(endBlockBeforeAttestation.Votes))
 
-			fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+			myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 			ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 			endBlockAfterAttestation := keeper.GetAttestation(ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
 			require.NotNil(t, endBlockAfterAttestation)
@@ -266,7 +266,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 		firstBridgeTokenClaim.Orchestrator = orchestratorAddressList[13].String()
 		_, err = h(ctx, firstBridgeTokenClaim)
 		require.NoError(t, err)
-		fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 		attestation := keeper.GetAttestation(ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
 
@@ -299,7 +299,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 			require.NotNil(t, endBlockBeforeAttestation.Votes)
 			require.EqualValues(t, i+1, len(endBlockBeforeAttestation.Votes))
 
-			fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+			myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 			ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 			endBlockAfterAttestation := keeper.GetAttestation(ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 			require.NotNil(t, endBlockAfterAttestation)
@@ -312,7 +312,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 		require.NotNil(t, secondClaimAttestation.Votes)
 		require.EqualValues(t, 6, len(secondClaimAttestation.Votes))
 
-		proposalHandler := crosschain.NewCrossChainProposalHandler(fxcore.CrosschainKeeper)
+		proposalHandler := crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)
 
 		var newOralceList []string
 		for i := 0; i < 15; i++ {
@@ -326,7 +326,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 		})
 		require.NoError(t, err)
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-		fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 		secondClaimAttestation = keeper.GetAttestation(ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		require.NotNil(t, secondClaimAttestation)
@@ -353,7 +353,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 		})
 		require.NoError(t, err)
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-		fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 		secondClaimAttestation = keeper.GetAttestation(ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		require.NotNil(t, secondClaimAttestation)
@@ -380,7 +380,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 		})
 		require.NoError(t, err)
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-		fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 		secondClaimAttestation = keeper.GetAttestation(ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		require.NotNil(t, secondClaimAttestation)
@@ -400,7 +400,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-		fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 		secondClaimAttestation = keeper.GetAttestation(ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		require.NotNil(t, secondClaimAttestation)
@@ -412,10 +412,10 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 
 func TestOracleDelete(t *testing.T) {
 	GenerateAccountNum = 10
-	//fxcore.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
+	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	fxcore, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keeper := fxcore.BscKeeper
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keeper := myApp.BscKeeper
 	var err error
 
 	for i := 0; i < 10; i++ {
@@ -428,7 +428,7 @@ func TestOracleDelete(t *testing.T) {
 		})
 		require.NoError(t, err)
 	}
-	fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	allOracles := keeper.GetAllOracles(ctx)
 	require.NotNil(t, allOracles)
@@ -464,7 +464,7 @@ func TestOracleDelete(t *testing.T) {
 	require.EqualValues(t, depositToken, oracleData.DepositAmount.Denom)
 	require.True(t, minDepositAmount.Equal(oracleData.DepositAmount.Amount))
 
-	proposalHandler := crosschain.NewCrossChainProposalHandler(fxcore.CrosschainKeeper)
+	proposalHandler := crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)
 
 	var newOracleAddressList []string
 	for _, address := range oracleAddressList[1:] {
@@ -479,7 +479,7 @@ func TestOracleDelete(t *testing.T) {
 	})
 	require.NoError(t, err)
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-	fxcore.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 	oracleAddr, found = keeper.GetOracleAddressByOrchestratorKey(ctx, orchestrator)
 	require.False(t, found)
@@ -499,10 +499,10 @@ func TestOracleDelete(t *testing.T) {
 
 func TestOracleSetSlash(t *testing.T) {
 	GenerateAccountNum = 10
-	//fxcore.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
+	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keeper := app.BscKeeper
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keeper := myApp.BscKeeper
 	var err error
 
 	for i := 0; i < 10; i++ {
@@ -541,7 +541,7 @@ func TestOracleSetSlash(t *testing.T) {
 	crosschain.EndBlocker(ctx, keeper)
 	oracleSetHeight := int64(oracleSets[0].Height)
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-	app.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 	oracle, found := keeper.GetOracle(ctx, oracleAddressList[9])
 	require.True(t, found)
 	require.False(t, oracle.Jailed)
@@ -555,10 +555,10 @@ func TestOracleSetSlash(t *testing.T) {
 
 func TestSlashFactoryGreat1(t *testing.T) {
 	GenerateAccountNum = 10
-	//fxcore.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
+	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
-	keeper := app.BscKeeper
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	keeper := myApp.BscKeeper
 	minDepositAmount, _ := sdk.NewIntFromString("11111111111111111111111")
 	var err error
 

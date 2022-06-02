@@ -3,9 +3,9 @@ package types
 import (
 	"encoding/hex"
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/functionx/fx-core/x/gravity/types"
 )
 
 var _ MsgValidateBasic = &EthereumMsgValidateBasic{}
@@ -192,6 +192,9 @@ func (b EthereumMsgValidateBasic) MsgRequestBatchValidate(m MsgRequestBatch) (er
 	}
 	if err = ValidateExternalAddress(m.FeeReceive); err != nil {
 		return sdkerrors.Wrap(ErrExternalAddress, m.FeeReceive)
+	}
+	if m.BaseFee == nil || m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
+		return types.ErrInvalidRequestBatchBaseFee
 	}
 	return nil
 }

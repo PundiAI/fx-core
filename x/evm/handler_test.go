@@ -2,28 +2,17 @@ package evm_test
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/functionx/fx-core/app/helpers"
 	"math/big"
 	"testing"
-	"time"
-
-	"github.com/functionx/fx-core/app/forks"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
-
-	"github.com/ethereum/go-ethereum/core"
 
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
 
 	"github.com/gogo/protobuf/proto"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-
-	"github.com/cosmos/cosmos-sdk/simapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -40,12 +29,6 @@ import (
 	"github.com/functionx/fx-core/tests"
 	"github.com/functionx/fx-core/x/evm"
 	"github.com/functionx/fx-core/x/evm/types"
-
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
-
-	"github.com/tendermint/tendermint/version"
 )
 
 type EvmTestSuite struct {
@@ -65,81 +48,17 @@ type EvmTestSuite struct {
 
 /// DoSetupTest setup test environment, it uses`require.TestingT` to support both `testing.T` and `testing.B`.
 func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
+	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
 	require.NoError(t, err)
+
 	address := common.BytesToAddress(priv.PubKey().Address().Bytes())
 	suite.signer = tests.NewSigner(priv)
 	suite.from = address
-	// consensus key
-	priv, err = ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
-	consAddress := sdk.ConsAddress(priv.PubKey().Address())
 
-	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
-
-	suite.app = app.Setup(suite.checkTx, func(fxcore *app.App, genesis app.GenesisState) app.GenesisState {
-		return genesis
-	})
-
-	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000000000000)))
-	genesisState := app.DefaultTestGenesis(suite.app.AppCodec())
-	b32address := sdk.MustBech32ifyAddressBytes(sdk.GetConfig().GetBech32AccountAddrPrefix(), priv.PubKey().Address().Bytes())
-	balances := []banktypes.Balance{
-		{
-			Address: b32address,
-			Coins:   coins,
-		},
-		{
-			Address: suite.app.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName).String(),
-			Coins:   coins,
-		},
-	}
-	var bankGenesis banktypes.GenesisState
-	suite.app.AppCodec().MustUnmarshalJSON(genesisState[banktypes.ModuleName], &bankGenesis)
-
-	// Update total supply
-	bankGenesis.Balances = append(bankGenesis.Balances, balances...)
-	bankGenesis.Supply = bankGenesis.Supply.Add(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(200000000000000)))...)
-	genesisState[banktypes.ModuleName] = suite.app.AppCodec().MustMarshalJSON(&bankGenesis)
-
-	stateBytes, err := tmjson.MarshalIndent(genesisState, "", " ")
-	require.NoError(t, err)
-
-	// Initialize the chain
-	suite.app.InitChain(
-		abci.RequestInitChain{
-			ChainId:         "fxcore",
-			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: simapp.DefaultConsensusParams,
-			AppStateBytes:   stateBytes,
-		},
-	)
-
-	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
-		Height:          1,
-		ChainID:         "fxcore",
-		Time:            time.Now().UTC(),
-		ProposerAddress: consAddress.Bytes(),
-		Version: tmversion.Consensus{
-			Block: version.BlockProtocol,
-		},
-		LastBlockId: tmproto.BlockID{
-			Hash: tmhash.Sum([]byte("block_id")),
-			PartSetHeader: tmproto.PartSetHeader{
-				Total: 11,
-				Hash:  tmhash.Sum([]byte("partset_header")),
-			},
-		},
-		AppHash:            tmhash.Sum([]byte("app")),
-		DataHash:           tmhash.Sum([]byte("data")),
-		EvidenceHash:       tmhash.Sum([]byte("evidence")),
-		ValidatorsHash:     tmhash.Sum([]byte("validators")),
-		NextValidatorsHash: tmhash.Sum([]byte("next_validators")),
-		ConsensusHash:      tmhash.Sum([]byte("consensus")),
-		LastResultsHash:    tmhash.Sum([]byte("last_result")),
-	})
+	suite.app = helpers.Setup(suite.T(), false, 0)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
@@ -163,11 +82,11 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	suite.handler = evm.NewHandler(suite.app.EvmKeeper)
 
 	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
-	forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
-	require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-		suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-		suite.app.EvmKeeper, types.DefaultParams(),
-		suite.app.Erc20Keeper, erc20types.DefaultParams()))
+	//forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
+	//require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
+	//	suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
+	//	suite.app.EvmKeeper, types.DefaultParams(),
+	//	suite.app.Erc20Keeper, erc20types.DefaultParams()))
 }
 
 func (suite *EvmTestSuite) SetupTest() {

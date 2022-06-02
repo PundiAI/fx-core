@@ -195,11 +195,6 @@ func (s EthereumMsgServer) CancelSendToExternal(c context.Context, msg *types.Ms
 func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	baseFee, err := GetRequestBatchBaseFee(msg.BaseFee)
-	if err != nil {
-		return nil, err
-	}
-
 	bridgeToken := s.GetDenomByBridgeToken(ctx, msg.Denom)
 	if bridgeToken == nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridge token is not exist")
@@ -216,7 +211,7 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 		}
 	}
 
-	batch, err := s.BuildOutgoingTXBatch(ctx, bridgeToken.Token, msg.FeeReceive, OutgoingTxBatchSize, msg.MinimumFee, baseFee)
+	batch, err := s.BuildOutgoingTXBatch(ctx, bridgeToken.Token, msg.FeeReceive, OutgoingTxBatchSize, msg.MinimumFee, *msg.BaseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -437,14 +432,4 @@ func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAdd
 		return nil, sdkerrors.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 	}
 	return oracle.GetOracle(), nil
-}
-
-func GetRequestBatchBaseFee(baseFee *sdk.Int) (sdk.Int, error) {
-	if baseFee == nil || baseFee.IsNil() {
-		return sdk.ZeroInt(), nil
-	}
-	if baseFee.IsNegative() {
-		return sdk.ZeroInt(), types.ErrInvalidRequestBatchBaseFee
-	}
-	return *baseFee, nil
 }
