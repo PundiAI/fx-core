@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	coretypes "github.com/cosmos/ibc-go/v3/modules/core/types"
+
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
@@ -222,9 +224,15 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		receiver = receiverAddr
 	}
 
+	// parse the transfer amount
+	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	if !ok {
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
+	}
+
 	labels := []metrics.Label{
-		telemetry.NewLabel("source_port", packet.GetSourcePort()),
-		telemetry.NewLabel("source_channel", packet.GetSourceChannel()),
+		telemetry.NewLabel(coretypes.LabelSourcePort, packet.GetSourcePort()),
+		telemetry.NewLabel(coretypes.LabelSourceChannel, packet.GetSourceChannel()),
 	}
 
 	// This is the prefix that would have been prefixed to the denomination
@@ -252,11 +260,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		if denomTrace.Path != "" {
 			denom = denomTrace.IBCDenom()
 		}
-		amount, ok := sdk.NewIntFromString(data.Amount)
-		if !ok {
-			return sdkerrors.Wrap(types.ErrInvalidAmount, fmt.Sprintf("input amount:%vs", data.Amount))
+
+		token := sdk.NewCoin(denom, transferAmount)
+
+		if k.bankKeeper.BlockedAddr(receiver) {
+			return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 		}
-		token := sdk.NewCoin(denom, amount)
+
 		ibcCoin = token
 		// The money sent to the address increases the IBC cross-chain increases the handling fee
 		token = token.Add(sdk.NewCoin(token.Denom, feeAmount))
@@ -276,7 +286,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				[]string{"ibc", types.ModuleName, "receive"},
 				1,
 				append(
-					labels, telemetry.NewLabel("source", "true"),
+					labels, telemetry.NewLabel(coretypes.LabelSource, "true"),
 				),
 			)
 		}()
@@ -305,26 +315,34 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			),
 		)
 
-		amount, ok := sdk.NewIntFromString(data.Amount)
-		if !ok {
-			return sdkerrors.Wrap(types.ErrInvalidAmount, fmt.Sprintf("input amount:%vs", data.Amount))
-		}
-		voucher := sdk.NewCoin(voucherDenom, amount)
+		voucher := sdk.NewCoin(voucherDenom, transferAmount)
 		ibcCoin = voucher
 		// ibc Increase handling charges across chains
 		voucher = voucher.Add(sdk.NewCoin(voucher.Denom, feeAmount))
+
 		// mint new tokens if the source of the transfer is the same chain
 		if err := k.bankKeeper.MintCoins(
 			ctx, types.ModuleName, sdk.NewCoins(voucher),
 		); err != nil {
 			return err
 		}
+
 		// send to receiver
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 			ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
 		); err != nil {
-			panic(fmt.Sprintf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+			return err
 		}
+
+		defer func() {
+			telemetry.IncrCounterWithLabels(
+				[]string{"ibc", types.ModuleName, "receive"},
+				1,
+				append(
+					labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
+				),
+			)
+		}()
 	}
 
 	if data.Router == "" || !k.Router.HasRoute(data.Router) {
@@ -340,21 +358,17 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		ctx.Logger().Info("IBCTransfer", "transfer route sourceChannel", packet.GetSourceChannel(),
 			"destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "sender", sdk.AccAddress(sendAddrBytes).String(),
 			"receive", data.Receiver, "amount", ibcCoin, "fee", sdk.NewCoin(ibcCoin.Denom, feeAmount), "router", data.Router)
-		if err = route.TransferAfter(ctx, sdk.AccAddress(sendAddrBytes).String(), data.Receiver, ibcCoin, sdk.NewCoin(ibcCoin.Denom, feeAmount)); err != nil {
+		cacheCtx, writeFn := ctx.CacheContext()
+		err = route.TransferAfter(cacheCtx, sdk.AccAddress(sendAddrBytes).String(), data.Receiver, ibcCoin, sdk.NewCoin(ibcCoin.Denom, feeAmount))
+		switch err {
+		case nil:
+			writeFn()
+			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+		default:
 			ctx.Logger().Error("IBCTransfer", "transfer after route err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
 		}
 		return nil
 	}
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", types.ModuleName, "receive"},
-			1,
-			append(
-				labels, telemetry.NewLabel("source", "false"),
-			),
-		)
-	}()
-
 	return nil
 }
 
@@ -391,13 +405,13 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 
 	amount, ok := sdk.NewIntFromString(data.Amount)
 	if !ok {
-		return sdkerrors.Wrap(types.ErrInvalidAmount, fmt.Sprintf("input amount:%vs", data.Amount))
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
 	}
 	// If the IBC router is not empty, the feeAmount refund is added.
 	if data.Router != "" {
 		feeAmount, ok := sdk.NewIntFromString(data.Fee)
 		if !ok {
-			return sdkerrors.Wrapf(types.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
+			return sdkerrors.Wrapf(types.ErrInvalidAmount, "unable to parse transfer fee (%s) into sdk.Int", data.Amount)
 		}
 		amount = amount.Add(feeAmount)
 	}
@@ -412,7 +426,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	if types.SenderChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
 		// unescrow tokens back to sender
 		escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-		if err := k.bankKeeper.SendCoins(ctx, escrowAddress, sender, sdk.NewCoins(token)); err != nil {
+		if err = k.bankKeeper.SendCoins(ctx, escrowAddress, sender, sdk.NewCoins(token)); err != nil {
 			// NOTE: this error is only expected to occur given an unexpected bug or a malicious
 			// counterparty module. The bug may occur in bank or any part of the code that allows
 			// the escrow address to be drained. A malicious counterparty module could drain the
@@ -430,19 +444,19 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	}
 
 	// mint vouchers back to sender
-	if err := k.bankKeeper.MintCoins(
+	if err = k.bankKeeper.MintCoins(
 		ctx, types.ModuleName, sdk.NewCoins(token),
 	); err != nil {
 		return err
 	}
 
-	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(token)); err != nil {
+	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(token)); err != nil {
 		panic(fmt.Sprintf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 	}
 	if k.RefundHook != nil {
 		ctx.Logger().Info("ibc refund hook", "sourcePort", packet.SourcePort, "sourceChannel",
 			packet.SourceChannel, "sequence", fmt.Sprintf("%d", packet.Sequence), "sender", sender.String(), "token", token.String())
-		if err := k.RefundHook.RefundAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence, sender, data.Receiver, token); err != nil {
+		if err = k.RefundHook.RefundAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence, sender, data.Receiver, token); err != nil {
 			ctx.Logger().Error("refundPacketToken", "refund hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
 		}
 	}
