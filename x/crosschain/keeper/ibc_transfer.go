@@ -18,12 +18,12 @@ import (
 
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
-func (a Keeper) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
+func (k Keeper) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
 	if claim.TargetIbc == targetEvmPrefix {
-		a.handlerEvmTransfer(ctx, claim, receiver, coin)
+		k.handlerEvmTransfer(ctx, claim, receiver, coin)
 		return
 	}
-	a.handleIbcTransfer(ctx, claim, receiver, coin)
+	k.handleIbcTransfer(ctx, claim, receiver, coin)
 }
 
 func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiveAddr sdk.AccAddress, coin sdk.Coin) {

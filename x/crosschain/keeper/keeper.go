@@ -22,7 +22,6 @@ type Keeper struct {
 	paramSpace paramtypes.Subspace
 
 	bankKeeper        types.BankKeeper
-	accountKeeper     types.AccountKeeper
 	ibcTransferKeeper types.IBCTransferKeeper
 	ibcChannelKeeper  types.IBCChannelKeeper
 	erc20Keeper       types.Erc20Keeper
@@ -30,8 +29,7 @@ type Keeper struct {
 
 // NewKeeper returns a new instance of the gravity keeper
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
-	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper,
-	ibcTransferKeeper types.IBCTransferKeeper, channelKeeper types.IBCChannelKeeper, erc20Keeper types.Erc20Keeper) Keeper {
+	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, channelKeeper types.IBCChannelKeeper, erc20Keeper types.Erc20Keeper) Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
@@ -41,7 +39,6 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, 
 		cdc:               cdc,
 		storeKey:          storeKey,
 		paramSpace:        paramSpace,
-		accountKeeper:     accountKeeper,
 		bankKeeper:        bankKeeper,
 		ibcTransferKeeper: ibcTransferKeeper,
 		ibcChannelKeeper:  channelKeeper,
