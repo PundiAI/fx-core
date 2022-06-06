@@ -305,6 +305,13 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 				}, "", "  ")
 			case "secp256k1":
 				data, err = json.MarshalIndent(map[string]interface{}{
+					"acc_address":    sdk.AccAddress(pubkey.Address().Bytes()).String(),
+					"val_address":    sdk.ValAddress(pubkey.Address().Bytes()).String(),
+					"pub_key_hex":    hex.EncodeToString(pubkey.Bytes()),
+					"pub_key_base64": base64.StdEncoding.EncodeToString(pubkey.Bytes()),
+				}, "", "  ")
+			case "eth_secp256k1":
+				data, err = json.MarshalIndent(map[string]interface{}{
 					"eip55_address":  common.BytesToAddress(pubkey.Address()).String(),
 					"acc_address":    sdk.AccAddress(pubkey.Address().Bytes()).String(),
 					"val_address":    sdk.ValAddress(pubkey.Address().Bytes()).String(),
@@ -312,7 +319,7 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 					"pub_key_base64": base64.StdEncoding.EncodeToString(pubkey.Bytes()),
 				}, "", "  ")
 			default:
-				return fmt.Errorf("invalied public key type")
+				return fmt.Errorf("invalied public key type: %s", pubkey.Type())
 			}
 			if err != nil {
 				return err
