@@ -78,7 +78,7 @@ Example:
 	f.Uint32(flagCoinType, sdk.GetConfig().GetCoinType(), "coin type number for HD derivation")
 	f.Uint32(flagAccount, 0, "Account number for HD derivation")
 	f.Uint32(flagIndex, 0, "Address index number for HD derivation")
-	f.String(flags.FlagKeyAlgorithm, string(ethsecp256k1.KeyType), "Key signing algorithm to generate keys for")
+	f.String(flags.FlagKeyAlgorithm, ethsecp256k1.KeyType, "Key signing algorithm to generate keys for")
 
 	return cmd
 }
@@ -182,7 +182,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 			return err
 		}
 
-		info, err := kb.SavePubKey(name, pk, algo.Name())
+		info, err := kb.SavePubKey(name, pk, hd.PubKeyType(pk.Type()))
 		if err != nil {
 			return err
 		}
