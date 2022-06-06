@@ -49,11 +49,6 @@ func (k Keeper) Account(c context.Context, req *types.QueryAccountRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	addr := common.HexToAddress(req.Address)
 	acct := k.GetAccountOrEmpty(ctx, addr)
@@ -81,11 +76,6 @@ func (k Keeper) CosmosAccount(c context.Context, req *types.QueryCosmosAccountRe
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	ethAddr := common.HexToAddress(req.Address)
 	cosmosAddr := sdk.AccAddress(ethAddr.Bytes())
@@ -116,11 +106,6 @@ func (k Keeper) ValidatorAccount(c context.Context, req *types.QueryValidatorAcc
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	validator, found := k.stakingKeeper.GetValidatorByConsAddr(ctx, consAddr)
 	if !found {
@@ -156,11 +141,6 @@ func (k Keeper) Balance(c context.Context, req *types.QueryBalanceRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	balanceInt := k.GetBalance(ctx, common.HexToAddress(req.Address))
 
@@ -183,11 +163,6 @@ func (k Keeper) Storage(c context.Context, req *types.QueryStorageRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	address := common.HexToAddress(req.Address)
 	key := common.HexToHash(req.Key)
@@ -214,11 +189,6 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	address := common.HexToAddress(req.Address)
 	acct := k.GetAccountWithoutBalance(ctx, address)
@@ -236,11 +206,6 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 // Params implements the Query/Params gRPC method
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	return &types.QueryParamsResponse{
 		Params: k.GetParams(ctx),
@@ -254,11 +219,6 @@ func (k Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.Ms
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	var args types.TransactionArgs
 	err := json.Unmarshal(req.Args, &args)
@@ -298,11 +258,6 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	if req.GasCap < ethparams.TxGas {
 		return nil, status.Error(codes.InvalidArgument, "gas cap cannot be lower than 21,000")
@@ -460,11 +415,6 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	// minus one to get the context of block beginning
 	contextHeight := req.BlockNumber - 1
@@ -530,11 +480,6 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return nil, status.Error(
-			codes.InvalidArgument, types.ErrNotInitializedOrUnknownBlock.Error(),
-		)
-	}
 
 	// minus one to get the context of block beginning
 	contextHeight := req.BlockNumber - 1

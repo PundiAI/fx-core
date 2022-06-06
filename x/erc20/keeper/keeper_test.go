@@ -3,10 +3,16 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/functionx/fx-core/app/helpers"
 	"math/big"
 	"testing"
+	"time"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/functionx/fx-core/app/helpers"
+	upgradesv2 "github.com/functionx/fx-core/app/upgrades/v2"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -18,12 +24,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
 	app "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"
@@ -73,11 +81,16 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	// setup feemarketGenesis params
-	//feemarketGenesis := feemarkettypes.DefaultGenesisState()
+	priv, err = ethsecp256k1.GenerateKey()
+	require.NoError(t, err)
+	consAddress := sdk.ConsAddress(priv.PubKey().Address())
 
 	// init app
 	suite.app = helpers.Setup(suite.T(), false, 0)
+
+	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: consAddress, Time: time.Now().UTC()})
+	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
+	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
 	queryHelperEvm := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evm.RegisterQueryServer(queryHelperEvm, suite.app.EvmKeeper)
@@ -104,13 +117,20 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
+	upgradesv2.UpdateFXMetadata(suite.ctx, suite.app.BankKeeper, suite.app.GetKey(banktypes.StoreKey))
+	// init logic contract
+	for _, contract := range fxtypes.GetInitContracts() {
+		require.True(t, len(contract.Code) > 0)
+		require.True(t, contract.Address != common.HexToAddress(fxtypes.EmptyEvmAddress))
+		err := suite.app.EvmKeeper.CreateContractWithCode(suite.ctx, contract.Address, contract.Code)
+		require.NoError(t, err)
+	}
 
-	//forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
-	//require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-	//	suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-	//	suite.app.EvmKeeper, evm.DefaultParams(),
-	//	suite.app.Erc20Keeper, types.DefaultParams()))
+	// register coin
+	for _, metadata := range fxtypes.GetMetadata() {
+		_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
+		require.NoError(t, err)
+	}
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -137,7 +157,7 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation(name strin
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	chainID := suite.app.EvmKeeper.ChainID()
 
-	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20()
 
 	ctorArgs, err := erc20Config.ABI.Pack("", big.NewInt(1000000000000000000))
 	suite.Require().NoError(err)
@@ -195,14 +215,14 @@ func (suite *KeeperTestSuite) Commit() {
 }
 
 func (suite *KeeperTestSuite) MintERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20()
 	transferData, err := erc20Config.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
 }
 
 func (suite *KeeperTestSuite) BurnERC20Token(contractAddr, from common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20()
 	transferData, err := erc20Config.ABI.Pack("transfer", types.ModuleAddress, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)
@@ -248,7 +268,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 }
 
 func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interface{} {
-	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20()
 	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, false, "balanceOf", account)
 	if err != nil {
 		return nil
@@ -264,7 +284,7 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 }
 
 func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
-	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20()
 
 	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, false, "name")
 	suite.Require().NoError(err)
@@ -278,7 +298,7 @@ func (suite *KeeperTestSuite) NameOf(contract common.Address) string {
 }
 
 func (suite *KeeperTestSuite) TransferERC20Token(contractAddr, from, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
-	erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
+	erc20Config := fxtypes.GetERC20()
 	transferData, err := erc20Config.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendTx(contractAddr, from, transferData)

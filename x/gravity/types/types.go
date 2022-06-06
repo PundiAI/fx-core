@@ -11,8 +11,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -258,8 +256,8 @@ const (
 	AddressPrefix0x = "0x"
 )
 
-func CovertIbcPacketReceiveAddressByPrefix(height int64, targetIbcPrefix string, receiver sdk.AccAddress) (ibcReceiveAddr string, err error) {
-	if height >= fxtypes.EvmV1SupportBlock() && strings.ToLower(targetIbcPrefix) == AddressPrefix0x {
+func CovertIbcPacketReceiveAddressByPrefix(targetIbcPrefix string, receiver sdk.AccAddress) (ibcReceiveAddr string, err error) {
+	if strings.ToLower(targetIbcPrefix) == AddressPrefix0x {
 		return gethcommon.BytesToAddress(receiver.Bytes()).String(), nil
 	}
 	return bech32.ConvertAndEncode(targetIbcPrefix, receiver)

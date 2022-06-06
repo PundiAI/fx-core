@@ -27,7 +27,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 		decimalRes types.ERC20Uint8Response
 	)
 
-	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20().ABI
 
 	// Name
 	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "name")
@@ -64,7 +64,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 
 // BalanceOf returns the balance of an address for ERC20 contract
 func (k Keeper) BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.Int, error) {
-	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20().ABI
 
 	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "balanceOf", addr)
 	if err != nil {

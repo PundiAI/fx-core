@@ -1207,6 +1207,7 @@ func TestMsgRequestBatch(t *testing.T) {
 	normalExternalAddress := crypto.PubkeyToAddress(key.PublicKey).Hex()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalFxAddress := addressBytes.String()
+	basefee := sdk.OneInt()
 	var err error
 	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
 	require.NoError(t, err)
@@ -1294,20 +1295,23 @@ func TestMsgRequestBatch(t *testing.T) {
 				Denom:      "demo",
 				MinimumFee: sdk.NewInt(1),
 				FeeReceive: normalExternalAddress,
+				BaseFee:    &basefee,
 			},
 			expectPass: true,
 		},
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.ErrorIs(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 

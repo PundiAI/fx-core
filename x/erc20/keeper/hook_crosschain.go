@@ -16,7 +16,7 @@ import (
 )
 
 func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {
-	fip20ABI := fxtypes.GetERC20(ctx.BlockHeight()).ABI
+	fip20ABI := fxtypes.GetERC20().ABI
 	for _, log := range receipt.Logs {
 		tc, isOk, err := fxtypes.ParseTransferCrossChainEvent(fip20ABI, log)
 		if err != nil {

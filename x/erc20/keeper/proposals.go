@@ -81,7 +81,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 // erc20 module account as owner.
 func (k Keeper) DeployERC20Contract(ctx sdk.Context, coinMetadata banktypes.Metadata) (common.Address, error) {
 	decimals := uint8(coinMetadata.DenomUnits[0].Exponent)
-	erc20 := fxtypes.GetERC20(ctx.BlockHeight())
+	erc20 := fxtypes.GetERC20()
 	ctorArgs, err := erc20.ABI.Pack(
 		"",
 		coinMetadata.Description,
@@ -211,9 +211,9 @@ func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, err
 }
 
 func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8, origin bool) (common.Address, error) {
-	tokenContract := fxtypes.GetERC20(ctx.BlockHeight())
+	tokenContract := fxtypes.GetERC20()
 	if origin {
-		tokenContract, name, symbol = WrappedDenom(ctx.BlockHeight(), name, symbol)
+		tokenContract, name, symbol = WrappedOriginDenom(name, symbol)
 	}
 	k.Logger(ctx).Info("deploy token", "name", name, "symbol", symbol, "decimals", decimals, "origin", origin)
 	//deploy proxy
@@ -227,7 +227,7 @@ func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name
 
 func (k Keeper) DeployERC1967Proxy(ctx sdk.Context, from, logicAddr common.Address, logicData ...byte) (common.Address, error) {
 	k.Logger(ctx).Info("deploy erc1967 proxy", "logic", logicAddr.String(), "data", hex.EncodeToString(logicData))
-	erc1967Proxy := fxtypes.GetERC1967Proxy(ctx.BlockHeight())
+	erc1967Proxy := fxtypes.GetERC1967Proxy()
 
 	if len(logicData) == 0 {
 		logicData = []byte{}
@@ -266,8 +266,8 @@ func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI
 	return contractAddr, nil
 }
 
-func WrappedDenom(height int64, name, symbol string) (fxtypes.Contract, string, string) {
-	contract := fxtypes.GetWFX(height)
+func WrappedOriginDenom(name, symbol string) (fxtypes.Contract, string, string) {
+	contract := fxtypes.GetWFX()
 	wrappedName := fmt.Sprintf("Wrapped %s", name)
 	wrappedSymbol := fmt.Sprintf("W%s", symbol)
 

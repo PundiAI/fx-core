@@ -11,8 +11,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/libs/math"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/functionx/fx-core/x/gravity/types"
 )
 
@@ -76,9 +74,6 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, counte
 	// add a second index with the fee
 	k.appendToUnbatchedTXIndex(ctx, tokenContract, *erc20Fee, nextID)
 
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		k.GetBridgeChainID(ctx) // gas used
-	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToEth,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
@@ -158,9 +153,6 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		}
 	}
 
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		k.GetBridgeChainID(ctx) // gas used
-	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToEthCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),

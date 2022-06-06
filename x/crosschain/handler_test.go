@@ -5,10 +5,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/functionx/fx-core/app/helpers"
 	"math"
 	"math/big"
 	"testing"
+
+	"github.com/functionx/fx-core/app/helpers"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -720,7 +721,7 @@ func createTestEnv(t *testing.T) (myApp *app.App, ctx sdk.Context, oracleAddress
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	myApp = helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{})
+	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{Height: 1})
 	oracleAddressList = helpers.AddTestAddrsIncremental(myApp, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
 	orchestratorAddressList = helpers.AddTestAddrs(myApp, ctx, GenerateAccountNum, sdk.ZeroInt())
 	ethKeys = genEthKey(GenerateAccountNum)

@@ -2,8 +2,9 @@ package evm_test
 
 import (
 	"encoding/hex"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
 

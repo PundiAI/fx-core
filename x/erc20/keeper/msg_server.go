@@ -92,7 +92,7 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg *types.MsgConvertCoin, receiver common.Address, sender sdk.AccAddress) (*types.MsgConvertCoinResponse, error) {
 	// NOTE: ignore validation from NewCoin constructor
 	coins := sdk.Coins{msg.Coin}
-	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20().ABI
 	contract := pair.GetERC20Contract()
 	balanceToken, err := k.BalanceOf(ctx, contract, receiver)
 	if err != nil {
@@ -168,7 +168,7 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 	// NOTE: coin fields already validated
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: msg.Amount}}
 
-	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20().ABI
 	contract := pair.GetERC20Contract()
 	balanceCoin := k.bankKeeper.GetBalance(ctx, receiver, pair.Denom)
 	balanceToken, err := k.BalanceOf(ctx, contract, sender)
@@ -258,7 +258,7 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, msg *types.MsgConvertERC20, receiver sdk.AccAddress, sender common.Address) (*types.MsgConvertERC20Response, error) {
 	// NOTE: coin fields already validated
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: msg.Amount}}
-	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20().ABI
 	contract := pair.GetERC20Contract()
 	balanceCoin := k.bankKeeper.GetBalance(ctx, receiver, pair.Denom)
 	balanceToken, err := k.BalanceOf(ctx, contract, types.ModuleAddress)
@@ -369,7 +369,7 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	// NOTE: ignore validation from NewCoin constructor
 	coins := sdk.Coins{msg.Coin}
 
-	erc20 := fxtypes.GetERC20(ctx.BlockHeight()).ABI
+	erc20 := fxtypes.GetERC20().ABI
 	contract := pair.GetERC20Contract()
 	balanceToken, err := k.BalanceOf(ctx, contract, receiver)
 	if err != nil {

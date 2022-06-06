@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/app/cli"
-	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/functionx/fx-core/app/cli"
 
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
@@ -25,14 +25,7 @@ func networkCmd() *cobra.Command {
 			output := map[string]interface{}{
 				"ChainId":       types.ChainID,
 				"Network":       types.Network(),
-				"ClearKVStores": fmt.Sprintf("%s", strings.Join(types.ClearKVStores(), ",")),
 				"EIP155ChainID": fmt.Sprintf("%d", types.EIP155ChainID()),
-				//"GravityPruneValsetAndAttestationBlock": fmt.Sprintf("%d", types.GravityPruneValsetAndAttestationBlock()),
-				//"GravityValsetSlashBlock":               fmt.Sprintf("%d", types.GravityValsetSlashBlock()),
-				//"CrossChainSupportBscBlock":             fmt.Sprintf("%d", types.CrossChainSupportBscBlock()),
-				//"CrossChainSupportPolygonAndTronBlock":  fmt.Sprintf("%d", types.CrossChainSupportPolygonAndTronBlock()),
-				//"EvmV0SupportBlock":                     fmt.Sprintf("%d", types.EvmV0SupportBlock()),
-				//"EvmV1SupportBlock": fmt.Sprintf("%d", types.EvmV1SupportBlock()),
 			}
 			return cli.PrintOutput(clientCtx, output)
 		},

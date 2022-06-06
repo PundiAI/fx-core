@@ -2,10 +2,11 @@ package simulation_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
 	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"github.com/functionx/fx-core/x/ibc/testing/simapp"
-	"testing"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"

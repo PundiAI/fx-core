@@ -3,9 +3,10 @@ package keeper_test
 import (
 	_ "embed"
 	"encoding/json"
+	"math/big"
+
 	"github.com/functionx/fx-core/app/helpers"
 	"github.com/functionx/fx-core/x/evm/statedb"
-	"math/big"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -17,6 +18,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	app "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/crypto/ethsecp256k1"
 	"github.com/functionx/fx-core/server/config"

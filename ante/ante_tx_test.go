@@ -2,9 +2,10 @@ package ante_test
 
 import (
 	"errors"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"math/big"
 	"strings"
+
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"

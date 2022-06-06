@@ -30,7 +30,7 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 	addr2 := sdk.AccAddress(toAddressByte.Bytes())
 	addrTo := sdk.AccAddress("to__________________")
 	addrEmpty := sdk.AccAddress("")
-	addrTooLong := sdk.AccAddress("Accidentally used 33 bytes pubkey")
+	addrTooLong := sdk.AccAddress("Accidentally used 268 bytes pubkey test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content")
 
 	sign, err := crypto.Sign(types.MigrateAccountSignatureHash(addr1, addr2), privateKey)
 	require.NoError(t, err)
@@ -48,10 +48,10 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 		{"valid migrate", "", types.NewMsgMigrateAccount(addr1, addr2, validSignHex)},
 
 		{"empty from address", "invalid sender address (empty address string is not allowed): invalid address", types.NewMsgMigrateAccount(addrEmpty, addr2, emptySign)},
-		{"invalid from address", "invalid sender address (incorrect address length (expected: 20, actual: 33)): invalid address", types.NewMsgMigrateAccount(addrTooLong, addr2, emptySign)},
+		{"invalid from address", "invalid sender address (address max length is 255, got 268: unknown address): invalid address", types.NewMsgMigrateAccount(addrTooLong, addr2, emptySign)},
 
 		{"empty to address", "invalid to address (empty address string is not allowed): invalid address", types.NewMsgMigrateAccount(addr1, addrEmpty, emptySign)},
-		{"invalid to address", "invalid to address (incorrect address length (expected: 20, actual: 33)): invalid address", types.NewMsgMigrateAccount(addr1, addrTooLong, emptySign)},
+		{"invalid to address", "invalid to address (address max length is 255, got 268: unknown address): invalid address", types.NewMsgMigrateAccount(addr1, addrTooLong, emptySign)},
 
 		{"same from address to address", fmt.Sprintf("%s: same account", addr1.String()), types.NewMsgMigrateAccount(addr1, addr1, emptySign)},
 

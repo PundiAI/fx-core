@@ -20,7 +20,7 @@ import (
 
 // RelayTokenProcessing relay token from evm contract to chain address
 func (k Keeper) RelayTokenProcessing(ctx sdk.Context, _ common.Address, _ *common.Address, receipt *ethtypes.Receipt) error {
-	erc20ABI := fxtypes.GetERC20(ctx.BlockHeight()).ABI
+	erc20ABI := fxtypes.GetERC20().ABI
 	for _, log := range receipt.Logs {
 		if !isRelayTokenEvent(erc20ABI, log) {
 			continue

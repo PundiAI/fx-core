@@ -1,9 +1,11 @@
 package types_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/stretchr/testify/require"
 )

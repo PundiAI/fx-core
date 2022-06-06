@@ -2,14 +2,13 @@ package app
 
 import (
 	"fmt"
-	ante2 "github.com/functionx/fx-core/ante"
 	"io"
 	stdlog "log"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	store "github.com/cosmos/cosmos-sdk/store/types"
+	ante2 "github.com/functionx/fx-core/ante"
 
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
@@ -89,7 +88,6 @@ import (
 	ibc "github.com/cosmos/ibc-go/v3/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
@@ -621,10 +619,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
-		migratetypes.ModuleName,
-		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
 		erc20types.ModuleName,
+		migratetypes.ModuleName,
 	)
 
 	myApp.mm.SetOrderEndBlockers(
@@ -656,10 +654,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
-		migratetypes.ModuleName,
-		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
 		erc20types.ModuleName,
+		migratetypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -697,10 +695,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
-		migratetypes.ModuleName,
-		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
 		erc20types.ModuleName,
+		migratetypes.ModuleName,
 	)
 
 	myApp.mm.RegisterInvariants(&myApp.CrisisKeeper)
@@ -735,50 +733,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.SetBeginBlocker(myApp.BeginBlocker)
 	myApp.SetEndBlocker(myApp.EndBlocker)
 
-	myApp.UpgradeKeeper.SetUpgradeHandler("v2", func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		// set max expected block time parameter. Replace the default with your expected value
-		// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
-		myApp.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
-
-		fromVM = map[string]uint64{
-			// other modules
-			ibchost.ModuleName:        1,
-			evmtypes.ModuleName:       1,
-			feemarkettypes.ModuleName: 1,
-			erc20types.ModuleName:     1,
-			migratetypes.ModuleName:   1,
-		}
-
-		ctx.Logger().Info("start to run module migrations...")
-
-		return myApp.mm.RunMigrations(ctx, myApp.configurator, fromVM)
-	})
-
-	// TODO need fix
-	//rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportBscBlock(), bsctypes.StoreKey)
-	//rootmulti.AddIgnoreCommitKey(fxtypes.CrossChainSupportPolygonAndTronBlock(), polygontypes.StoreKey, trontypes.StoreKey)
-	//rootmulti.AddIgnoreCommitKey(fxtypes.EvmV0SupportBlock(), evmtypesv0.StoreKey, feemarkettypesv0.StoreKey)
-	//rootmulti.AddIgnoreCommitKey(fxtypes.EvmV1SupportBlock(), evmtypes.StoreKey, feemarkettypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey)
-	//govtypes.SetEGFProposalSupportBlock(fxtypes.EvmV1SupportBlock())
-
-	upgradeInfo, err := myApp.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if upgradeInfo.Name == "v2" && !myApp.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := store.StoreUpgrades{
-			Added: []string{
-				evmtypes.StoreKey,
-				feemarkettypes.StoreKey,
-				erc20types.StoreKey,
-				migratetypes.StoreKey,
-			},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
+	myApp.setUpgradeHandler()
 
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {

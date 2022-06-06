@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -72,9 +70,6 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress string, ma
 	eventBatchNonceTxIds.WriteString(fmt.Sprintf("%d", selectedTx[0].Id))
 	for _, tx := range selectedTx[1:] {
 		_, _ = eventBatchNonceTxIds.WriteString(fmt.Sprintf(",%d", tx.Id))
-	}
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		k.GetBridgeChainID(ctx) // gas used
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatch,
@@ -221,9 +216,6 @@ func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, bat
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, *batch)
 
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		k.GetBridgeChainID(ctx) // gas used
-	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),

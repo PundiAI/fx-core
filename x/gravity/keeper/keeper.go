@@ -5,8 +5,6 @@ import (
 	"math"
 	"sort"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -86,9 +84,6 @@ func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) *types.V
 	}
 	k.StoreValset(ctx, valset)
 
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		k.GetBridgeChainID(ctx) //used gas
-	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeValsetUpdate,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),

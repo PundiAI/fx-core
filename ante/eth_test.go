@@ -1,8 +1,9 @@
 package ante_test
 
 import (
-	ethv1 "github.com/functionx/fx-core/ante"
 	"math/big"
+
+	ethv1 "github.com/functionx/fx-core/ante"
 
 	"github.com/functionx/fx-core/x/evm/statedb"
 

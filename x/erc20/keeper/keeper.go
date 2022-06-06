@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -66,10 +65,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, receiver string, amount sdk.Coin) error {
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		ctx.Logger().Info("ignore refund, module not enable", "module", types.ModuleName)
-		return nil
-	}
 	//check tx
 	if !k.HashIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
 		ctx.Logger().Info("ignore refund, transaction not belong to evm ibc transfer", "module", types.ModuleName)
@@ -90,9 +85,6 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee
 }
 
 func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return errors.New("erc20 module not enable")
-	}
 	if !k.IsDenomRegistered(ctx, coin.Denom) {
 		return fmt.Errorf("denom(%s) not registered", coin.Denom)
 	}

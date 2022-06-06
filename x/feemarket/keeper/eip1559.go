@@ -3,8 +3,6 @@ package keeper
 import (
 	"math/big"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/functionx/fx-core/x/feemarket/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,11 +17,6 @@ import (
 // chains. For the canonical code refer to: https://github.com/ethereum/go-ethereum/blob/master/consensus/misc/eip1559.go
 func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
-
-	// If the current block is the first EIP-1559 block, return the InitialBaseFee.
-	if ctx.BlockHeight() == fxtypes.EvmV1SupportBlock() {
-		return params.BaseFee.BigInt()
-	}
 
 	// get the block gas used and the base fee values for the parent block.
 	parentBaseFee := params.BaseFee.BigInt()

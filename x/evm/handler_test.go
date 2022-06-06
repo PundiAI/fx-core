@@ -2,10 +2,15 @@ package evm_test
 
 import (
 	"errors"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/functionx/fx-core/app/helpers"
 	"math/big"
 	"testing"
+	"time"
+
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/ethereum/go-ethereum/core"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/functionx/fx-core/app/helpers"
 
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/evm/statedb"
@@ -54,16 +59,30 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	priv, err := ethsecp256k1.GenerateKey()
 	require.NoError(t, err)
 
+	priv, err = ethsecp256k1.GenerateKey()
+	require.NoError(t, err)
+	consAddress := sdk.ConsAddress(priv.PubKey().Address())
+
 	address := common.BytesToAddress(priv.PubKey().Address().Bytes())
 	suite.signer = tests.NewSigner(priv)
 	suite.from = address
 
 	suite.app = helpers.Setup(suite.T(), false, 0)
 
+	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: consAddress, Time: time.Now().UTC()})
+	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
+	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
+
+	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000000000000)))
+	err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, coins)
+	require.NoError(suite.T(), err)
+	err = suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx, minttypes.ModuleName, authtypes.FeeCollectorName, coins)
+	require.NoError(suite.T(), err)
+
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 
-	acc := authtypes.NewBaseAccount(address.Bytes(), nil, 0, 0)
+	acc := authtypes.NewBaseAccount(address.Bytes(), priv.PubKey(), 0, 0)
 
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 	suite.app.EvmKeeper.SetAddressCode(suite.ctx, address, common.BytesToHash(crypto.Keccak256(nil)).Bytes())
@@ -80,13 +99,6 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.handler = evm.NewHandler(suite.app.EvmKeeper)
-
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
-	//forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
-	//require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-	//	suite.app.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-	//	suite.app.EvmKeeper, types.DefaultParams(),
-	//	suite.app.Erc20Keeper, erc20types.DefaultParams()))
 }
 
 func (suite *EvmTestSuite) SetupTest() {

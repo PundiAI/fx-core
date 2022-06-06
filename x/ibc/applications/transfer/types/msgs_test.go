@@ -2,8 +2,9 @@ package types_test
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 	"testing"
+
+	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	_ "github.com/functionx/fx-core/app"
 

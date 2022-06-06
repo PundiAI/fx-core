@@ -33,7 +33,7 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 		logger.Error("convert target ibc data error!!!", "targetIbc", claim.GetTargetIbc())
 		return
 	}
-	ibcReceiveAddress, err := gravitytypes.CovertIbcPacketReceiveAddressByPrefix(ctx.BlockHeight(), targetIBC.Prefix, receiveAddr)
+	ibcReceiveAddress, err := gravitytypes.CovertIbcPacketReceiveAddressByPrefix(targetIBC.Prefix, receiveAddr)
 	if err != nil {
 		logger.Error("convert ibc transfer receive address error!!!", "fxReceive", claim.Receiver,
 			"ibcPrefix", targetIBC.Prefix, "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel, "error", err)

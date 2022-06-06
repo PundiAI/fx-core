@@ -14,5 +14,5 @@ const (
 	// DefaultGasPrice is default gas price for evm transactions 500Gwei
 	DefaultGasPrice = 500000000000
 
-	CurrentConsensusVersion = 2
+	CurrentConsensusVersion = 1
 )

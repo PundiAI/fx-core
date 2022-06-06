@@ -4,8 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -13,10 +11,6 @@ import (
 // KVStore. The EVM end block logic doesn't update the validator set, thus it returns
 // an empty slice.
 func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-		return []abci.ValidatorUpdate{}
-	}
-
 	// Gas costs are handled within msg handler so costs should be ignored
 	infCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 

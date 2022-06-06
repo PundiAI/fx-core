@@ -2,10 +2,11 @@ package keeper_test
 
 import (
 	_ "embed"
-	"github.com/functionx/fx-core/app/helpers"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/functionx/fx-core/app/helpers"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -70,7 +71,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	suite.app = helpers.Setup(suite.T(), false, 1)
 	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{
-		Height:          fxtypes.EvmV1SupportBlock(),
+		Height:          1,
 		ChainID:         "fxcore",
 		Time:            time.Now().UTC(),
 		ProposerAddress: suite.consAddress.Bytes(),
@@ -116,13 +117,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.appCodec = encodingConfig.Marshaler
-
-	suite.ctx = suite.ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
-	//forks.UpdateMetadata(suite.ctx, suite.app.BankKeeper)
-	//require.NoError(suite.T(), forks.InitSupportEvm(suite.ctx, suite.app.AccountKeeper,
-	//	suite.app.FeeMarketKeeper, types.DefaultParams(),
-	//	suite.app.EvmKeeper, evmtypes.DefaultParams(),
-	//	suite.app.Erc20Keeper, erc20types.DefaultParams()))
 }
 
 func (suite *KeeperTestSuite) SetupTest() {

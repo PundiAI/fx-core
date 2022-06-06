@@ -17,7 +17,7 @@ import (
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
 func (a AttestationHandler) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgDepositClaim, receiver sdk.AccAddress, coin sdk.Coin) {
-	if ctx.BlockHeight() >= fxtypes.EvmV1SupportBlock() && claim.TargetIbc == targetEvmPrefix {
+	if claim.TargetIbc == targetEvmPrefix {
 		a.handlerEvmTransfer(ctx, claim, receiver, coin)
 		return
 	}
@@ -31,7 +31,7 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 		logger.Error("convert target ibc data error!!!", "targetIbc", claim.GetTargetIbc())
 		return
 	}
-	ibcReceiveAddress, err := types.CovertIbcPacketReceiveAddressByPrefix(ctx.BlockHeight(), targetIBC.Prefix, receiveAddr)
+	ibcReceiveAddress, err := types.CovertIbcPacketReceiveAddressByPrefix(targetIBC.Prefix, receiveAddr)
 	if err != nil {
 		logger.Error("convert ibc transfer receive address error!!!", "fxReceive", claim.FxReceiver,
 			"ibcPrefix", targetIBC.Prefix, "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel, "error", err)

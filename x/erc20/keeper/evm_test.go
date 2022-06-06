@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 	for _, tc := range testCases {
 		suite.SetupTest() // reset
 
-		erc20Config := fxtypes.GetERC20(suite.ctx.BlockHeight())
+		erc20Config := fxtypes.GetERC20()
 		contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
 		suite.Require().NoError(err)
 		account := tests.GenerateAddress()
@@ -85,7 +85,7 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 }
 
 func (suite *KeeperTestSuite) TestCallEVMWithData() {
-	erc20 := fxtypes.GetERC20(fxtypes.EvmV1SupportBlock())
+	erc20 := fxtypes.GetERC20()
 	testCases := []struct {
 		name     string
 		from     common.Address

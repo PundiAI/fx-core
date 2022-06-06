@@ -4,11 +4,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	ante2 "github.com/functionx/fx-core/ante"
-	"github.com/functionx/fx-core/app/helpers"
 	"math"
 	"math/big"
 	"testing"
+
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	ante2 "github.com/functionx/fx-core/ante"
+	"github.com/functionx/fx-core/app/helpers"
+	upgradev2 "github.com/functionx/fx-core/app/upgrades/v2"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -60,7 +64,7 @@ func TestHookChainGravity(t *testing.T) {
 
 	ctx = testInitGravity(t, ctx, myApp, validator.GetOperator(), addr1.Bytes(), addr2)
 
-	ctx = initEvmErc20(t, ctx, myApp)
+	ctx = upgradeV2(t, ctx, myApp)
 
 	pairId := myApp.Erc20Keeper.GetDenomMap(ctx, "FX")
 	require.True(t, len(pairId) > 0)
@@ -110,7 +114,7 @@ func TestHookChainBSC(t *testing.T) {
 
 	ctx = testInitBscCrossChain(t, ctx, myApp, del, addr1.Bytes(), addr2)
 
-	ctx = initEvmErc20(t, ctx, myApp)
+	ctx = upgradeV2(t, ctx, myApp)
 
 	purseID := myApp.Erc20Keeper.GetDenomMap(ctx, devnetPurseDenom)
 	require.NotEmpty(t, purseID)
@@ -201,7 +205,7 @@ func TestHookIBC(t *testing.T) {
 	myApp, validators, _, delegateAddressArr := initTest(t)
 	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
 
-	ctx = initEvmErc20(t, ctx, myApp)
+	ctx = upgradeV2(t, ctx, myApp)
 
 	pairId := myApp.Erc20Keeper.GetDenomMap(ctx, "FX")
 	require.True(t, len(pairId) > 0)
@@ -246,7 +250,7 @@ func TestHookIBC(t *testing.T) {
 }
 
 func packTransferCrossData(t *testing.T, ctx sdk.Context, k keeper.Keeper, to string, amount, fee *big.Int, target string) []byte {
-	fip20 := fxtypes.GetERC20(ctx.BlockHeight())
+	fip20 := fxtypes.GetERC20()
 	targetBytes := fxtypes.StringToByte32(target)
 	pack, err := fip20.ABI.Pack("transferCrossChain", to, amount, fee, targetBytes)
 	require.NoError(t, err)
@@ -329,16 +333,28 @@ func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, authtypes.GenesisAc
 	delegateAddressArr := helpers.AddTestAddrsIncremental(myApp, ctx, 1, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000000000)))
 
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
+	upgradev2.UpdateFXMetadata(ctx, myApp.BankKeeper, myApp.GetKey(banktypes.StoreKey))
 	return myApp, validator.Validators, genesisAccounts, delegateAddressArr
 }
 
-func initEvmErc20(t *testing.T, ctx sdk.Context, myApp *app.App) sdk.Context {
-	ctx = ctx.WithBlockHeight(fxtypes.EvmV1SupportBlock())
-	//forks.UpdateMetadata(ctx, myApp.BankKeeper)
-	//require.NoError(t, forks.InitSupportEvm(ctx, myApp.AccountKeeper,
-	//	myApp.FeeMarketKeeper, feemarkettypes.DefaultParams(),
-	//	myApp.EvmKeeper, evm.DefaultParams(),
-	//	myApp.Erc20Keeper, types.DefaultParams()))
+func upgradeV2(t *testing.T, ctx sdk.Context, myApp *app.App) sdk.Context {
+	upgradev2.UpdateFXMetadata(ctx, myApp.BankKeeper, myApp.GetKey(banktypes.StoreKey))
+
+	// init logic contract
+	for _, contract := range fxtypes.GetInitContracts() {
+		require.True(t, len(contract.Code) > 0)
+		require.True(t, contract.Address != common.HexToAddress(fxtypes.EmptyEvmAddress))
+		err := myApp.EvmKeeper.CreateContractWithCode(ctx, contract.Address, contract.Code)
+		require.NoError(t, err)
+	}
+
+	// register coin
+	for _, metadata := range fxtypes.GetMetadata() {
+		ctx.Logger().Info("add metadata", "coin", metadata.String())
+		pair, err := myApp.Erc20Keeper.RegisterCoin(ctx, metadata)
+		require.NoError(t, err)
+		t.Log(pair.Denom, pair.Erc20Address)
+	}
 
 	return ctx
 }
@@ -379,7 +395,7 @@ func testFxOriginatedTokenClaim(t *testing.T, ctx sdk.Context, myApp *app.App, o
 		EventNonce:    2,
 		BlockHeight:   uint64(ctx.BlockHeight()),
 		TokenContract: FxOriginatedTokenContract.String(),
-		Name:          "Function X",
+		Name:          "The native staking token of the Function X",
 		Symbol:        "FX",
 		Decimals:      18,
 		Orchestrator:  orch.String(),

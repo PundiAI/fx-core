@@ -2,9 +2,10 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/functionx/fx-core/app/helpers"
 	"math/big"
 	"testing"
+
+	"github.com/functionx/fx-core/app/helpers"
 
 	fxtypes "github.com/functionx/fx-core/types"
 

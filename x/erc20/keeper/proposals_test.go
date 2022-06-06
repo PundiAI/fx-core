@@ -50,12 +50,16 @@ func (suite *KeeperTestSuite) setupRegisterCoin() (banktypes.Metadata, *types.To
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    cosmosTokenBase,
+				Exponent: uint32(0),
+			}, {
+				Denom:    erc20Symbol,
 				Exponent: uint32(18),
-				Aliases:  []string{cosmosTokenBase},
 			},
 		},
 		Base:    cosmosTokenBase,
 		Display: cosmosTokenBase,
+		Name:    erc20Name,
+		Symbol:  erc20Symbol,
 	}
 
 	// pair := types.NewTokenPair(contractAddr, cosmosTokenBase, true, types.OWNER_MODULE)
@@ -72,12 +76,17 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    cosmosTokenBase,
-				Exponent: defaultExponent,
-				Aliases:  []string{cosmosTokenDisplay},
+				Exponent: uint32(0),
+			},
+			{
+				Denom:    erc20Symbol,
+				Exponent: uint32(defaultExponent),
 			},
 		},
 		Base:    cosmosTokenBase,
 		Display: cosmosTokenBase,
+		Name:    erc20Name,
+		Symbol:  erc20Symbol,
 	}
 
 	testCases := []struct {
@@ -113,12 +122,17 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 					DenomUnits: []*banktypes.DenomUnit{
 						{
 							Denom:    cosmosTokenBase,
-							Exponent: uint32(18),
-							Aliases:  []string{"coin2"},
+							Exponent: uint32(0),
+						},
+						{
+							Denom:    "coin2",
+							Exponent: defaultExponent,
 						},
 					},
 					Base:    cosmosTokenBase,
 					Display: cosmosTokenBase,
+					Name:    erc20Name,
+					Symbol:  erc20Symbol,
 				}
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, validMetadata)
 			},
@@ -226,10 +240,10 @@ func (suite KeeperTestSuite) TestRegisterERC20() {
 				suite.Require().Equal(coinName, metadata.Base)
 				suite.Require().Equal(coinName, metadata.Display)
 				// Denom units
-				suite.Require().Equal(len(metadata.DenomUnits), 1)
+				suite.Require().Equal(len(metadata.DenomUnits), 2)
 				suite.Require().Equal(coinName, metadata.DenomUnits[0].Denom)
-				suite.Require().Equal(uint32(erc20Decimals), metadata.DenomUnits[0].Exponent)
-				suite.Require().Equal(erc20Symbol, metadata.DenomUnits[0].Aliases[0])
+				suite.Require().Equal(uint32(erc20Decimals), metadata.DenomUnits[1].Exponent)
+				suite.Require().Equal(erc20Symbol, metadata.DenomUnits[1].Denom)
 			} else {
 				suite.Require().Error(err, tc.name)
 			}

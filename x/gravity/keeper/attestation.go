@@ -7,8 +7,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/functionx/fx-core/x/gravity/types"
 )
 
@@ -96,9 +94,6 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 				k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
 				err = k.processAttestation(ctx, att, claim)
-				if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-					k.GetBridgeChainID(ctx) // gas used
-				}
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeContractEvnet,
 					sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),

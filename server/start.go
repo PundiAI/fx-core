@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/spf13/cobra"
 
 	"google.golang.org/grpc"
@@ -435,36 +433,19 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		httpSrvDone chan struct{}
 	)
 	if config.JSONRPC.Enable {
-		go func() {
+		genDoc, err := genDocProvider()
+		if err != nil {
+			return err
+		}
 
-			web3Logger := ctx.Logger.With("Web3JsonRpc")
-			for {
-				block, err := clientCtx.Client.Block(context.Background(), nil)
-				if err != nil {
-					web3Logger.Error(fmt.Sprintf("Query block failed!err:%s", err.Error()))
-					time.Sleep(30 * time.Second)
-					continue
-				}
-				if block == nil || block.Block == nil || block.Block.Height < fxtypes.EvmV1SupportBlock() {
-					web3Logger.Debug("Evm Module not enable sleep 30s")
-					time.Sleep(30 * time.Second)
-					continue
-				}
-				genDoc, err := genDocProvider()
-				if err != nil {
-					web3Logger.Error("load genesis err!!!err", err)
-					panic(fmt.Sprintf("load genesis err!!err:%v", err))
-				}
-				startJsonRpcClientCtx := clientCtx.WithChainID(genDoc.ChainID)
-				tmRPCAddr := cfg.RPC.ListenAddress
-				web3Logger.Info("Evm module enable!start json rpc server", "chainId", genDoc.ChainID, "rpcAddr", tmRPCAddr)
-				httpSrv, httpSrvDone, err = StartJSONRPC(ctx, startJsonRpcClientCtx, tmRPCAddr, "/websocket", config)
-				if err != nil {
-					panic(fmt.Sprintf("start json rpc server !!tmRpcAddr:%v, err:%v", tmRPCAddr, err))
-				}
-				break
-			}
-		}()
+		clientCtx := clientCtx.WithChainID(genDoc.ChainID)
+
+		tmEndpoint := "/websocket"
+		tmRPCAddr := cfg.RPC.ListenAddress
+		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, config)
+		if err != nil {
+			return err
+		}
 	}
 
 	defer func() {

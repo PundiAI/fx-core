@@ -2,12 +2,11 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
-
-	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/gravity/types"
 )
@@ -57,9 +56,6 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 
 		// Check if denom exists
 		baseDenom := claim.Symbol
-		if ctx.BlockHeight() < fxtypes.EvmV1SupportBlock() {
-			baseDenom = strings.ToLower(baseDenom)
-		}
 		metadata, isExist := a.keeper.bankKeeper.GetDenomMetaData(ctx, baseDenom)
 		if !isExist {
 			return sdkerrors.Wrap(types.ErrUnknown, fmt.Sprintf("denom not found %s", claim.Symbol))
@@ -78,14 +74,7 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 				fmt.Sprintf("ERC20 symbol %s does not match denom display %s", claim.Symbol, metadata.Display))
 		}
 
-		decimals := uint32(0)
-		for _, denomUnit := range metadata.DenomUnits {
-			if denomUnit.Denom == metadata.Display {
-				decimals = denomUnit.Exponent
-				break
-			}
-		}
-
+		decimals := uint32(fxtypes.BaseDenomUnit)
 		if decimals != uint32(claim.Decimals) {
 			return sdkerrors.Wrap(
 				types.ErrInvalid,
