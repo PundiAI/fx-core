@@ -4,10 +4,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/tendermint/tendermint/libs/cli"
 
+	keys2 "github.com/functionx/fx-core/app/cli/keys"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
-
-	fxkeys "github.com/functionx/fx-core/cmd/keys"
 )
 
 // Commands registers a sub-tree of commands to interact with
@@ -41,12 +41,12 @@ The pass backend requires GnuPG: https://gnupg.org/
 	}
 
 	cmd.AddCommand(
-		fxkeys.AddKeyCommand(),
-		fxkeys.ExportKeyCommand(),
-		fxkeys.ImportKeyCommand(),
-		fxkeys.ListKeysCmd(),
-		fxkeys.ShowKeysCmd(),
-		fxkeys.ParseAddressCommand(),
+		keys2.AddKeyCommand(),
+		keys2.ExportKeyCommand(),
+		keys2.ImportKeyCommand(),
+		keys2.ListKeysCmd(),
+		keys2.ShowKeysCmd(),
+		keys2.ParseAddressCommand(),
 		keys.DeleteKeyCommand(),
 		keys.MigrateCommand(),
 		keys.MnemonicKeyCommand(),

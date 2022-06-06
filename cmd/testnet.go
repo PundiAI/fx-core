@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/functionx/fx-core/app/cli"
+
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 
@@ -83,7 +85,7 @@ Example:
 				startingIPAddress,
 				serverCtx.Viper.GetString(flags.FlagKeyringBackend),
 				serverCtx.Viper.GetString(flags.FlagKeyAlgorithm),
-				serverCtx.Viper.GetString(FlagDenom),
+				serverCtx.Viper.GetString(cli.FlagDenom),
 				serverCtx.Viper.GetInt(flagValidatorNum),
 			)
 			if err != nil {
@@ -105,7 +107,7 @@ Example:
 	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("4000000000000%s", fxtypes.DefaultDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum")
 	cmd.Flags().String(flags.FlagKeyringBackend, "", "Select keyring's backend (os|file|test)")
 	cmd.Flags().String(flags.FlagKeyAlgorithm, ethsecp256k1.KeyType, "Key signing algorithm to generate keys for")
-	cmd.Flags().String(FlagDenom, fxtypes.DefaultDenom, "set the default coin denomination")
+	cmd.Flags().String(cli.FlagDenom, fxtypes.DefaultDenom, "set the default coin denomination")
 
 	return cmd
 }

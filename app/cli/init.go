@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"bufio"
@@ -8,22 +8,17 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/functionx/fx-core/app"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	appCmd "github.com/functionx/fx-core/app/cli"
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/server"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/spf13/cobra"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
 	tmos "github.com/tendermint/tendermint/libs/os"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
 	bip39 "github.com/tyler-smith/go-bip39"
 )
@@ -39,9 +34,27 @@ const (
 	FlagDenom = "denom"
 )
 
-// initCmd returns a command that initializes all files needed for Tendermint
+type PrintInfo struct {
+	Moniker    string          `json:"moniker" yaml:"moniker"`
+	ChainID    string          `json:"chain_id" yaml:"chain_id"`
+	NodeID     string          `json:"node_id" yaml:"node_id"`
+	GenTxsDir  string          `json:"gentxs_dir" yaml:"gentxs_dir"`
+	AppMessage json.RawMessage `json:"app_message" yaml:"app_message"`
+}
+
+func NewPrintInfo(moniker, chainID, nodeID, genTxsDir string, appMessage json.RawMessage) PrintInfo {
+	return PrintInfo{
+		Moniker:    moniker,
+		ChainID:    chainID,
+		NodeID:     nodeID,
+		GenTxsDir:  genTxsDir,
+		AppMessage: appMessage,
+	}
+}
+
+// InitCmd returns a command that initializes all files needed for Tendermint
 // and the respective application.
-func initCmd(nodeHome string) *cobra.Command {
+func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensusParams *tmproto.ConsensusParams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init [moniker]",
 		Short: "Initialize private validator, p2p, genesis, application and client configuration files",
@@ -90,11 +103,7 @@ func initCmd(nodeHome string) *cobra.Command {
 			if !overwrite && tmos.FileExists(genFile) {
 				return fmt.Errorf("genesis.json file already exists: %v", genFile)
 			}
-			flagDenom, err := cmd.Flags().GetString(FlagDenom)
-			if err != nil || flagDenom == "" {
-				return fmt.Errorf("invalid staking denom: %v", err)
-			}
-			appState, err := json.MarshalIndent(app.NewDefAppGenesisByDenom(flagDenom, clientCtx.Codec), "", " ")
+			appState, err := json.MarshalIndent(genesisState, "", " ")
 			if err != nil {
 				return fmt.Errorf("failed to marshall default genesis state: %s", err.Error())
 			}
@@ -104,7 +113,7 @@ func initCmd(nodeHome string) *cobra.Command {
 				if !os.IsNotExist(err) {
 					return err
 				}
-				genDoc.ConsensusParams = app.CustomConsensusParams()
+				genDoc.ConsensusParams = consensusParams
 			} else {
 				genDoc, err = types.GenesisDocFromFile(genFile)
 				if err != nil {
@@ -119,7 +128,7 @@ func initCmd(nodeHome string) *cobra.Command {
 				return fmt.Errorf("failed to export gensis file: %s", err.Error())
 			}
 
-			toPrint := appCmd.NewPrintInfo(config.Moniker, chainID, nodeID, "", appState)
+			toPrint := NewPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
@@ -135,7 +144,6 @@ func initCmd(nodeHome string) *cobra.Command {
 	cmd.Flags().Bool(FlagOverwrite, false, "overwrite the genesis.json file")
 	cmd.Flags().Bool(FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
-	cmd.Flags().String(FlagDenom, fxtypes.DefaultDenom, "set the default coin denomination")
 	cmd.Flags().StringP(cli.OutputFlag, "o", "json", "Output format (text|json)")
 	return cmd
 }

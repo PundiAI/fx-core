@@ -5,8 +5,9 @@ import (
 	"math/big"
 	"time"
 
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -111,28 +112,17 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) map[string]json.
 				Coins:   sdk.NewCoins(sdk.NewCoin(denom, gravityInitAmount)),
 			})
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
-		case gravitytypes.ModuleName:
-			state := gravitytypes.DefaultGenesisState()
-			state.Params.SignedValsetsWindow = 20000
-			state.Params.SignedBatchesWindow = 20000
-			state.Params.SignedClaimsWindow = 20000
-			state.Params.UnbondSlashingValsetsWindow = 20000
-			state.Params.IbcTransferTimeoutHeight = 20000
-
-			state.ModuleCoins = sdk.NewCoins(sdk.NewCoin(denom, gravityInitAmount))
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
-		case ibchost.ModuleName:
-			state := types.DefaultGenesisState()
-			// only allowedClients tendermint
-			state.ClientGenesis.Params.AllowedClients = []string{exported.Tendermint}
-			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case paramstypes.ModuleName:
 			if state := b.DefaultGenesis(cdc); state == nil {
 				genesis[b.Name()] = json.RawMessage("{}")
 			} else {
 				genesis[b.Name()] = state
 			}
-
+		case ibchost.ModuleName:
+			state := types.DefaultGenesisState()
+			// only allowedClients tendermint
+			state.ClientGenesis.Params.AllowedClients = []string{exported.Tendermint}
+			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		default:
 			genesis[b.Name()] = b.DefaultGenesis(cdc)
 		}
