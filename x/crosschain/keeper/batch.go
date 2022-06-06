@@ -231,7 +231,7 @@ func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, bat
 
 // IterateOutgoingTXBatches iterates through all outgoing batches in DESC order.
 func (k Keeper) IterateOutgoingTXBatches(ctx sdk.Context, cb func(key []byte, batch *types.OutgoingTxBatch) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTXBatchKey)
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTxBatchKey)
 	iter := prefixStore.ReverseIterator(nil, nil)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
@@ -270,7 +270,7 @@ func (k Keeper) GetLastOutgoingBatchByTokenType(ctx sdk.Context, token string) *
 // SetLastSlashedBatchBlock sets the latest slashed Batch block height
 func (k Keeper) SetLastSlashedBatchBlock(ctx sdk.Context, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastSlashedBatchBlock, types.UInt64Bytes(blockHeight))
+	store.Set(types.LastSlashedBatchBlock, sdk.Uint64ToBigEndian(blockHeight))
 }
 
 // GetLastSlashedBatchBlock returns the latest slashed Batch block
@@ -281,7 +281,7 @@ func (k Keeper) GetLastSlashedBatchBlock(ctx sdk.Context) uint64 {
 	if len(bytes) == 0 {
 		return 0
 	}
-	return types.UInt64FromBytes(bytes)
+	return sdk.BigEndianToUint64(bytes)
 }
 
 // GetUnSlashedBatches returns all the unSlashed batches in state
@@ -299,8 +299,8 @@ func (k Keeper) GetUnSlashedBatches(ctx sdk.Context, maxHeight uint64) (outgoing
 
 // IterateBatchBySlashedBatchBlock iterates through all Batch by last slashed Batch block in ASC order
 func (k Keeper) IterateBatchBySlashedBatchBlock(ctx sdk.Context, lastSlashedBatchBlock uint64, maxHeight uint64, cb func([]byte, *types.OutgoingTxBatch) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTXBatchBlockKey)
-	iter := prefixStore.Iterator(types.UInt64Bytes(lastSlashedBatchBlock), types.UInt64Bytes(maxHeight))
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTxBatchBlockKey)
+	iter := prefixStore.Iterator(sdk.Uint64ToBigEndian(lastSlashedBatchBlock), sdk.Uint64ToBigEndian(maxHeight))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

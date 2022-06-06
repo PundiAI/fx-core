@@ -289,7 +289,7 @@ func CmdGetOracleSetRequest() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				nonce = types.UInt64FromBytes(queryAbciResp.Value)
+				nonce = sdk.BigEndianToUint64(queryAbciResp.Value)
 				if err = clientCtx.PrintString(fmt.Sprintf("latest oracle-set nonce:[%d]\n", nonce)); err != nil {
 					return err
 				}

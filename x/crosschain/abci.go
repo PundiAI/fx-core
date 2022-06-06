@@ -28,7 +28,7 @@ func createOracleSets(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 	// Auto OracleSetRequest Creation.
 	// WARNING: do not use k.GetLastObservedOracleSet in this function, it *will* result in losing control of the bridge
 	if currentOracleSet, isNeed := isNeedOracleSetRequest(ctx, k, params.OracleSetUpdatePowerChangePercent); isNeed {
-		k.SetOracleSetRequest(ctx, currentOracleSet, params.GravityId)
+		k.AddOracleSetRequest(ctx, currentOracleSet, params.GravityId)
 	}
 }
 

@@ -160,7 +160,7 @@ func (k Keeper) DeleteAttestation(ctx sdk.Context, att types.Attestation) {
 		panic("Bad Attestation in DeleteAttestation")
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetAttestationKeyWithHash(claim.GetEventNonce(), claim.ClaimHash()))
+	store.Delete(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash()))
 }
 
 // GetAttestationMapping returns a mapping of eventNonce -> attestations at that nonce
@@ -207,7 +207,7 @@ func (k Keeper) GetLastObservedEventNonce(ctx sdk.Context) uint64 {
 	if len(bytes) == 0 {
 		return 0
 	}
-	return types.UInt64FromBytes(bytes)
+	return sdk.BigEndianToUint64(bytes)
 }
 
 // GetLastObservedBlockHeight height gets the block height to of the last observed attestation from
@@ -262,7 +262,7 @@ func (k Keeper) SetLastObservedOracleSet(ctx sdk.Context, valset types.OracleSet
 // SetLastObservedEventNonce sets the latest observed event nonce
 func (k Keeper) SetLastObservedEventNonce(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastObservedEventNonceKey, types.UInt64Bytes(nonce))
+	store.Set(types.LastObservedEventNonceKey, sdk.Uint64ToBigEndian(nonce))
 }
 
 // GetLastEventNonceByOracle returns the latest event nonce for a given oracle
@@ -282,7 +282,7 @@ func (k Keeper) GetLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress
 			return 0
 		}
 	}
-	return types.UInt64FromBytes(bytes)
+	return sdk.BigEndianToUint64(bytes)
 }
 
 // DelLastEventNonceByOracle delete the latest event nonce for a given oracle
@@ -298,5 +298,5 @@ func (k Keeper) DelLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress
 // SetLastEventNonceByOracle sets the latest event nonce for a give oracle
 func (k Keeper) SetLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetLastEventNonceByOracleKey(oracle), types.UInt64Bytes(nonce))
+	store.Set(types.GetLastEventNonceByOracleKey(oracle), sdk.Uint64ToBigEndian(nonce))
 }

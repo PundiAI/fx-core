@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"strconv"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
@@ -124,7 +125,7 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 }
 
 func queryOracleSetRequest(ctx sdk.Context, path []string, keeper Keeper) ([]byte, error) {
-	nonce, err := types.UInt64FromString(path[0])
+	nonce, err := uint64FromString(path[0])
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +145,7 @@ func queryOracleSetRequest(ctx sdk.Context, path []string, keeper Keeper) ([]byt
 // allOracleSetConfirmsByNonce returns all the confirm messages for a given nonce
 // When nothing found an empty json array is returned. No pagination.
 func queryAllOracleSetConfirms(ctx sdk.Context, nonceStr string, keeper Keeper) ([]byte, error) {
-	nonce, err := types.UInt64FromString(nonceStr)
+	nonce, err := uint64FromString(nonceStr)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -168,7 +169,7 @@ func queryAllOracleSetConfirms(ctx sdk.Context, nonceStr string, keeper Keeper) 
 // allBatchConfirms returns all the confirm messages for a given nonce
 // When nothing found an empty json array is returned. No pagination.
 func queryAllBatchConfirms(ctx sdk.Context, nonceStr string, tokenContract string, keeper Keeper) ([]byte, error) {
-	nonce, err := types.UInt64FromString(nonceStr)
+	nonce, err := uint64FromString(nonceStr)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -258,7 +259,7 @@ func queryCurrentOracleSet(ctx sdk.Context, keeper Keeper) ([]byte, error) {
 // queryOracleSetConfirm returns the confirm msg for single orchestrator address and nonce
 // When nothing found a nil value is returned
 func queryOracleSetConfirm(ctx sdk.Context, path []string, keeper Keeper) ([]byte, error) {
-	nonce, err := types.UInt64FromString(path[0])
+	nonce, err := uint64FromString(path[0])
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -346,7 +347,7 @@ func queryBatchFees(ctx sdk.Context, keeper Keeper, req abci.RequestQuery, legac
 
 // queryBatch gets a batch by tokenContract and nonce
 func queryBatch(ctx sdk.Context, nonce string, tokenContract string, keeper Keeper) ([]byte, error) {
-	parsedNonce, err := types.UInt64FromString(nonce)
+	parsedNonce, err := uint64FromString(nonce)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
 	}
@@ -429,4 +430,9 @@ func queryPendingSendToExternal(ctx sdk.Context, senderAddr string, k Keeper) ([
 	} else {
 		return bytes, nil
 	}
+}
+
+// uint64FromString to parse out a uint64 for a nonce
+func uint64FromString(s string) (uint64, error) {
+	return strconv.ParseUint(s, 10, 64)
 }

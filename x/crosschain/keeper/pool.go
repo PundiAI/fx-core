@@ -183,7 +183,7 @@ func (k Keeper) GetUnbatchedTxByFeeAndId(ctx sdk.Context, fee types.ExternalToke
 // note that due to the way unbatched txs are indexed, the GetUnbatchedTxByFeeAndId method is much faster
 func (k Keeper) GetUnbatchedTxById(ctx sdk.Context, txID uint64) (*types.OutgoingTransferTx, error) {
 	var r *types.OutgoingTransferTx = nil
-	k.IterateUnbatchedTransactions(ctx, types.OutgoingTXPoolKey, func(_ []byte, tx *types.OutgoingTransferTx) bool {
+	k.IterateUnbatchedTransactions(ctx, types.OutgoingTxPoolKey, func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		if tx.Id == txID {
 			r = tx
 			return true
@@ -206,7 +206,7 @@ func (k Keeper) GetUnbatchedTransactionsByContract(ctx sdk.Context, contractAddr
 
 // GetUnbatchedTransactions grabs all transactions from the tx pool, useful for queries or genesis save/load
 func (k Keeper) GetUnbatchedTransactions(ctx sdk.Context) []*types.OutgoingTransferTx {
-	return k.collectUnbatchedTransactions(ctx, types.OutgoingTXPoolKey)
+	return k.collectUnbatchedTransactions(ctx, types.OutgoingTxPoolKey)
 }
 
 // Aggregates all unbatched transactions in the store with a given prefix
@@ -290,7 +290,7 @@ func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees 
 	txCountMap := make(map[string]int)
 	baseFees := types.MinBatchFeeToBaseFees(minBatchFees)
 
-	k.IterateUnbatchedTransactions(ctx, types.OutgoingTXPoolKey, func(_ []byte, tx *types.OutgoingTransferTx) bool {
+	k.IterateUnbatchedTransactions(ctx, types.OutgoingTxPoolKey, func(_ []byte, tx *types.OutgoingTransferTx) bool {
 		fee := tx.Fee
 
 		baseFee, ok := baseFees[fee.Contract]

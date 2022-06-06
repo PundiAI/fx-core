@@ -12,7 +12,7 @@ import (
 const (
 	// ProposalTypeInitCrossChainParams defines the type for a InitCrossChainParamsProposal
 	ProposalTypeInitCrossChainParams = "InitCrossChainParams"
-	// ProposalTypeUpdateChainOracles defiens the type for a UpdateChainOraclesProposal
+	// ProposalTypeUpdateChainOracles defines the type for a UpdateChainOraclesProposal
 	ProposalTypeUpdateChainOracles = "UpdateChainOracles"
 )
 

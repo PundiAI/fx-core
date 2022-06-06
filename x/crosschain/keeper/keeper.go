@@ -142,7 +142,7 @@ func (k Keeper) DelOracle(ctx sdk.Context, oracle sdk.AccAddress) {
 // GetAllOracles
 func (k Keeper) GetAllOracles(ctx sdk.Context) (oracles types.Oracles) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.OraclesKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -156,7 +156,7 @@ func (k Keeper) GetAllOracles(ctx sdk.Context) (oracles types.Oracles) {
 
 func (k Keeper) GetAllActiveOracles(ctx sdk.Context) (oracles types.Oracles) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.OraclesKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -267,8 +267,8 @@ func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 	return types.NewOracleSet(oracleSetNonce, uint64(ctx.BlockHeight()), bridgeValidators)
 }
 
-// SetOracleSetRequest returns a new instance of the Gravity BridgeValidatorSet
-func (k Keeper) SetOracleSetRequest(ctx sdk.Context, currentOracleSet *types.OracleSet, gravityId string) *types.OracleSet {
+// AddOracleSetRequest returns a new instance of the Gravity BridgeValidatorSet
+func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.OracleSet, gravityId string) *types.OracleSet {
 	// if currentOracleSet member is empty, not store OracleSet.
 	if len(currentOracleSet.Members) <= 0 {
 		return currentOracleSet
@@ -311,7 +311,7 @@ func (k Keeper) DeleteOracleSet(ctx sdk.Context, nonce uint64) {
 // SetLatestOracleSetNonce sets the latest oracleSet nonce
 func (k Keeper) SetLatestOracleSetNonce(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LatestOracleSetNonce, types.UInt64Bytes(nonce))
+	store.Set(types.LatestOracleSetNonce, sdk.Uint64ToBigEndian(nonce))
 }
 
 // GetLatestOracleSetNonce returns the latest oracleSet nonce
@@ -321,7 +321,7 @@ func (k Keeper) GetLatestOracleSetNonce(ctx sdk.Context) uint64 {
 	if len(data) == 0 {
 		return 0
 	}
-	return types.UInt64FromBytes(data)
+	return sdk.BigEndianToUint64(data)
 }
 
 // GetOracleSet returns a oracleSet by nonce
@@ -370,7 +370,7 @@ func (k Keeper) GetLatestOracleSet(ctx sdk.Context) *types.OracleSet {
 // SetLastSlashedOracleSetNonce sets the latest slashed oracleSet nonce
 func (k Keeper) SetLastSlashedOracleSetNonce(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastSlashedOracleSetNonce, types.UInt64Bytes(nonce))
+	store.Set(types.LastSlashedOracleSetNonce, sdk.Uint64ToBigEndian(nonce))
 }
 
 // GetLastSlashedOracleSetNonce returns the latest slashed oracleSet nonce
@@ -380,13 +380,13 @@ func (k Keeper) GetLastSlashedOracleSetNonce(ctx sdk.Context) uint64 {
 	if len(data) == 0 {
 		return 0
 	}
-	return types.UInt64FromBytes(data)
+	return sdk.BigEndianToUint64(data)
 }
 
 // SetLastProposalBlockHeight sets the last proposal block height
 func (k Keeper) SetLastProposalBlockHeight(ctx sdk.Context, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastProposalBlockHeight, types.UInt64Bytes(blockHeight))
+	store.Set(types.LastProposalBlockHeight, sdk.Uint64ToBigEndian(blockHeight))
 }
 
 // GetLastProposalBlockHeight returns the last proposal block height
@@ -396,13 +396,13 @@ func (k Keeper) GetLastProposalBlockHeight(ctx sdk.Context) uint64 {
 	if len(data) == 0 {
 		return 0
 	}
-	return types.UInt64FromBytes(data)
+	return sdk.BigEndianToUint64(data)
 }
 
 // SetLastOracleSlashBlockHeight sets the last proposal block height
 func (k Keeper) SetLastOracleSlashBlockHeight(ctx sdk.Context, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastOracleSlashBlockHeight, types.UInt64Bytes(blockHeight))
+	store.Set(types.LastOracleSlashBlockHeight, sdk.Uint64ToBigEndian(blockHeight))
 }
 
 // GetLastOracleSlashBlockHeight returns the last proposal block height
@@ -412,7 +412,7 @@ func (k Keeper) GetLastOracleSlashBlockHeight(ctx sdk.Context) uint64 {
 	if len(data) == 0 {
 		return 0
 	}
-	return types.UInt64FromBytes(data)
+	return sdk.BigEndianToUint64(data)
 }
 
 /////////////////////////////
@@ -435,7 +435,7 @@ func (k Keeper) GetUnSlashedOracleSets(ctx sdk.Context, maxHeight uint64) (oracl
 // IterateOracleSetBySlashedOracleSetNonce iterates through all oracleSet by last slashed oracleSet nonce in ASC order
 func (k Keeper) IterateOracleSetBySlashedOracleSetNonce(ctx sdk.Context, lastSlashedOracleSetNonce uint64, maxHeight uint64, cb func([]byte, *types.OracleSet) bool) {
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OracleSetRequestKey)
-	iter := prefixStore.Iterator(types.UInt64Bytes(lastSlashedOracleSetNonce), types.UInt64Bytes(maxHeight))
+	iter := prefixStore.Iterator(sdk.Uint64ToBigEndian(lastSlashedOracleSetNonce), sdk.Uint64ToBigEndian(maxHeight))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -471,7 +471,7 @@ func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, 
 // GetOracleSetConfirms returns all oracle set confirmations by nonce
 func (k Keeper) GetOracleSetConfirms(ctx sdk.Context, nonce uint64) (confirms []*types.MsgOracleSetConfirm) {
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OracleSetConfirmKey)
-	start, end := prefixRange(types.UInt64Bytes(nonce))
+	start, end := prefixRange(sdk.Uint64ToBigEndian(nonce))
 	iterator := prefixStore.Iterator(start, end)
 
 	defer iterator.Close()
@@ -493,7 +493,7 @@ func (k Keeper) GetOracleSetConfirms(ctx sdk.Context, nonce uint64) (confirms []
 // MARK finish-batches: this is where the key is iterated in the old (presumed working) code
 func (k Keeper) IterateOracleSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb func([]byte, types.MsgOracleSetConfirm) bool) {
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OracleSetConfirmKey)
-	iter := prefixStore.Iterator(prefixRange(types.UInt64Bytes(nonce)))
+	iter := prefixStore.Iterator(prefixRange(sdk.Uint64ToBigEndian(nonce)))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -530,7 +530,7 @@ func (k Keeper) SetBatchConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, batc
 // MARK finish-batches: this is where the key is iterated in the old (presumed working) code
 func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce uint64, tokenContract string, cb func([]byte, types.MsgConfirmBatch) bool) {
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.BatchConfirmKey)
-	prefixKey := append([]byte(tokenContract), types.UInt64Bytes(nonce)...)
+	prefixKey := append([]byte(tokenContract), sdk.Uint64ToBigEndian(nonce)...)
 	iter := prefixStore.Iterator(prefixRange(prefixKey))
 	defer iter.Close()
 
@@ -664,7 +664,7 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 //SetIbcSequenceHeight set gravity -> ibc sequence block height.
 func (k Keeper) SetIbcSequenceHeight(ctx sdk.Context, sourcePort, sourceChannel string, sequence, height uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, sequence), types.UInt64Bytes(height))
+	store.Set(types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, sequence), sdk.Uint64ToBigEndian(height))
 }
 
 //GetIbcSequenceHeight get gravity -> ibc sequence block height.
@@ -675,13 +675,13 @@ func (k Keeper) GetIbcSequenceHeight(ctx sdk.Context, sourcePort, sourceChannel 
 		return 0, false
 	}
 	value := store.Get(key)
-	return types.UInt64FromBytes(value), true
+	return sdk.BigEndianToUint64(value), true
 }
 
 //setLastEventBlockHeightByOracle set the latest event blockHeight for a give oracle
 func (k Keeper) setLastEventBlockHeightByOracle(ctx sdk.Context, oracle sdk.AccAddress, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetLastEventBlockHeightByOracleKey(oracle), types.UInt64Bytes(blockHeight))
+	store.Set(types.GetLastEventBlockHeightByOracleKey(oracle), sdk.Uint64ToBigEndian(blockHeight))
 }
 
 //getLastEventBlockHeightByOracle get the latest event blockHeight for a give oracle
