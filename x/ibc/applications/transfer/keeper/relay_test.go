@@ -51,19 +51,19 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				path.EndpointA.ChannelID = ibctesting.InvalidID
 				amount = sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))
 			}, true, false},
-		{"next seq send not found",
-			func() {
-				path.EndpointA.ChannelID = "channel-0"
-				path.EndpointB.ChannelID = "channel-0"
-				// manually create channel so next seq send is never set
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
-					suite.chainA.GetContext(),
-					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-					channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, ibctesting.DefaultChannelVersion),
-				)
-				suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				amount = sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))
-			}, true, false},
+		//{"next seq send not found",
+		//	func() {
+		//		path.EndpointA.ChannelID = "channel-0"
+		//		path.EndpointB.ChannelID = "channel-0"
+		//		// manually create channel so next seq send is never set
+		//		suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(
+		//			suite.chainA.GetContext(),
+		//			path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+		//			channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, ibctesting.DefaultChannelVersion),
+		//		)
+		//		suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+		//		amount = sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))
+		//	}, true, false},
 
 		// createOutgoingPacket tests
 		// - source chain

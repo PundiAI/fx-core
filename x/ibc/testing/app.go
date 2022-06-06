@@ -2,6 +2,11 @@ package ibctesting
 
 import (
 	"encoding/json"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	fxapp "github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/app/helpers"
+	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/x/ibc/testing/simapp"
 	"testing"
 	"time"
 
@@ -16,15 +21,11 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
-
-	"github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	"github.com/functionx/fx-core/x/ibc/testing/simapp"
 )
 
 var DefaultTestingAppInit func() (TestingApp, map[string]json.RawMessage) = SetupTestingApp
@@ -35,6 +36,7 @@ type TestingApp interface {
 	// ibc-go additions
 	GetBaseApp() *baseapp.BaseApp
 	GetStakingKeeper() stakingkeeper.Keeper
+	GetAccountKeeper() authkeeper.AccountKeeper
 	GetIBCKeeper() *keeper.Keeper
 	GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
 	GetTxConfig() client.TxConfig
@@ -48,10 +50,9 @@ type TestingApp interface {
 }
 
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
-	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, simapp.DefaultNodeHome, 5, encCdc, simapp.EmptyAppOptions{})
-	return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+	app := simapp.NewSimApp()
+	encCdc := fxapp.MakeEncodingConfig()
+	return app, fxapp.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encCdc.Marshaler)
 }
 
 // SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts
@@ -123,7 +124,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 		abci.RequestInitChain{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: simapp.DefaultConsensusParams,
+			ConsensusParams: helpers.DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)

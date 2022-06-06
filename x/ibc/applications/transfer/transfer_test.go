@@ -14,7 +14,6 @@ import (
 
 var (
 	defaultMsgRouter = ""
-	defaultMsgFee    = sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())
 )
 
 type TransferTestSuite struct {

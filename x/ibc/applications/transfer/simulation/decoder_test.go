@@ -12,8 +12,8 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
-	dec := simulation.NewDecodeStore(app.TransferKeeper)
+	transferKeeper := simapp.NewSimApp().TransferKeeper
+	dec := simulation.NewDecodeStore(transferKeeper)
 
 	trace := types.DenomTrace{
 		BaseDenom: "uatom",
@@ -28,7 +28,7 @@ func TestDecodeStore(t *testing.T) {
 			},
 			{
 				Key:   types.DenomTraceKey,
-				Value: app.TransferKeeper.MustMarshalDenomTrace(trace),
+				Value: transferKeeper.MustMarshalDenomTrace(trace),
 			},
 			{
 				Key:   []byte{0x99},

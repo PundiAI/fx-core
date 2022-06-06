@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/x/ibc/testing/simapp"
 	"testing"
 	"time"
 
@@ -34,7 +35,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	"github.com/functionx/fx-core/x/ibc/testing/mock"
-	"github.com/functionx/fx-core/x/ibc/testing/simapp"
 )
 
 var MaxAccounts = 10
@@ -124,6 +124,14 @@ func NewTestChainWithValSet(t *testing.T, coord *Coordinator, chainID string, va
 	}
 
 	txConfig := app.GetTxConfig()
+
+	accountKeeper := app.GetAccountKeeper()
+	ctx := app.GetBaseApp().NewContext(false, header)
+	for i, acc := range senderAccs {
+		accountI := accountKeeper.GetAccount(ctx, acc.SenderAccount.GetAddress())
+		err := senderAccs[i].SenderAccount.SetAccountNumber(accountI.GetAccountNumber())
+		require.NoError(t, err)
+	}
 
 	// create an account to send transactions from
 	chain := &TestChain{
