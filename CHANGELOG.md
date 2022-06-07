@@ -20,7 +20,7 @@
 * Updated Tendermint to v0.34.19;
 * Updated Cosmos-sdk to v0.42.x;
 * `MsgRequestBatch` add the field BaseFee
-* delete gravity and crosschain module ibc sequence key
+* Delete gravity and crosschain module ibc sequence key 
       
 ### API Breaking Changes
 
