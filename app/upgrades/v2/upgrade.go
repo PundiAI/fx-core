@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"fmt"
 	"strings"
 
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
@@ -28,7 +29,9 @@ func CreateUpgradeHandler(
 		cacheCtx, commit := ctx.CacheContext()
 
 		// update FX metadata
-		UpdateFXMetadata(cacheCtx, bankKeeper, bankStoreKey)
+		if err := UpdateFXMetadata(cacheCtx, bankKeeper, bankStoreKey); err != nil {
+			return nil, err
+		}
 
 		// set max expected block time parameter. Replace the default with your expected value
 		// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
@@ -48,7 +51,7 @@ func CreateUpgradeHandler(
 		cacheCtx.Logger().Info("start to run module v2 migrations...")
 		toVersion, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("run migrations error %s", err.Error())
 		}
 
 		// register coin
@@ -56,7 +59,7 @@ func CreateUpgradeHandler(
 			cacheCtx.Logger().Info("add metadata", "coin", metadata.String())
 			pair, err := erc20Keeper.RegisterCoin(cacheCtx, metadata)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("register %s error %s", metadata.Base, err.Error())
 			}
 			cacheCtx.EventManager().EmitEvent(sdk.NewEvent(
 				erc20types.EventTypeRegisterCoin,
@@ -64,6 +67,7 @@ func CreateUpgradeHandler(
 				sdk.NewAttribute(erc20types.AttributeKeyTokenAddress, pair.Erc20Address),
 			))
 		}
+
 		//commit upgrade
 		commit()
 
@@ -71,15 +75,17 @@ func CreateUpgradeHandler(
 	}
 }
 
-func UpdateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, key *types.KVStoreKey) {
+func UpdateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, key *types.KVStoreKey) error {
+	md := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
+	if err := md.Validate(); err != nil {
+		return fmt.Errorf("invalid %s metadata", fxtypes.DefaultDenom)
+	}
+	ctx.Logger().Info("update metadata", "metadata", md.String())
 	//delete fx
 	deleteMetadata(ctx, key, strings.ToLower(fxtypes.DefaultDenom))
 	//set FX
-	md := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
-	if err := md.Validate(); err != nil {
-		panic("invalid FX metadata")
-	}
 	bankKeeper.SetDenomMetaData(ctx, md)
+	return nil
 }
 
 func deleteMetadata(ctx sdk.Context, key *types.KVStoreKey, base ...string) {

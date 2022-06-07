@@ -333,12 +333,14 @@ func initTest(t *testing.T) (*app.App, []*tmtypes.Validator, authtypes.GenesisAc
 	delegateAddressArr := helpers.AddTestAddrsIncremental(myApp, ctx, 1, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000000000)))
 
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
-	upgradev2.UpdateFXMetadata(ctx, myApp.BankKeeper, myApp.GetKey(banktypes.StoreKey))
+	err := upgradev2.UpdateFXMetadata(ctx, myApp.BankKeeper, myApp.GetKey(banktypes.StoreKey))
+	require.NoError(t, err)
 	return myApp, validator.Validators, genesisAccounts, delegateAddressArr
 }
 
 func upgradeV2(t *testing.T, ctx sdk.Context, myApp *app.App) sdk.Context {
-	upgradev2.UpdateFXMetadata(ctx, myApp.BankKeeper, myApp.GetKey(banktypes.StoreKey))
+	err := upgradev2.UpdateFXMetadata(ctx, myApp.BankKeeper, myApp.GetKey(banktypes.StoreKey))
+	require.NoError(t, err)
 
 	// init logic contract
 	for _, contract := range fxtypes.GetInitContracts() {
