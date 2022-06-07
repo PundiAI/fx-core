@@ -2,13 +2,15 @@ package ibctesting
 
 import (
 	"encoding/json"
+	"testing"
+	"time"
+
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+
 	fxapp "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/helpers"
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/ibc/testing/simapp"
-	"testing"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"

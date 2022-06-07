@@ -7,10 +7,11 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	fxapp "github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/app/helpers"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
+
+	fxapp "github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/app/helpers"
 )
 
 var (

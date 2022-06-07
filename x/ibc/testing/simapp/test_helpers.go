@@ -1,17 +1,19 @@
 package simapp
 
 import (
+	"testing"
+
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	fxtypes "github.com/functionx/fx-core/types"
-	"github.com/functionx/fx-core/x/ibc/testing/simapp/helpers"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
+
+	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/x/ibc/testing/simapp/helpers"
 )
 
 // SignAndDeliver signs and delivers a transaction. No simulation occurs as the

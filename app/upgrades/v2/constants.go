@@ -8,6 +8,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	evmtypes "github.com/functionx/fx-core/x/evm/types"
@@ -34,6 +35,7 @@ var (
 		govtypes.ModuleName:          1,
 		slashingtypes.ModuleName:     1,
 		stakingtypes.ModuleName:      1,
+		ibchost.ModuleName:           1,
 	}
 
 	storeUpgrades = &store.StoreUpgrades{
