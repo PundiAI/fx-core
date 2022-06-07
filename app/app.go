@@ -578,7 +578,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		// Ethermint app modules
 		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		feemarket.NewAppModule(myApp.FeeMarketKeeper),
-		erc20.NewAppModule(myApp.Erc20Keeper, myApp.AccountKeeper),
+		erc20.NewAppModule(myApp.Erc20Keeper, myApp.AccountKeeper, *myApp.EvmKeeper),
 		migrate.NewAppModule(myApp.MigrateKeeper),
 		transferModule,
 	)

@@ -13,9 +13,8 @@ import (
 func (myApp *App) setUpgradeHandler() {
 	// set upgrade handler v2
 	myApp.UpgradeKeeper.SetUpgradeHandler(
-		upgradev2.UpgradeName, upgradev2.CreateUpgradeHandler(
-			myApp.mm, myApp.configurator, myApp.GetKey(banktypes.StoreKey), myApp.BankKeeper,
-			myApp.IBCKeeper, myApp.EvmKeeper, myApp.Erc20Keeper,
+		upgradev2.UpgradeName, upgradev2.CreateUpgradeHandler(myApp.mm, myApp.configurator,
+			myApp.GetKey(banktypes.StoreKey), myApp.BankKeeper, myApp.IBCKeeper, myApp.Erc20Keeper,
 		),
 	)
 

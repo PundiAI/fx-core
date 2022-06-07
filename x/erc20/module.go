@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -86,14 +88,16 @@ type AppModule struct {
 	AppModuleBasic
 	keeper keeper.Keeper
 	ak     authkeeper.AccountKeeper
+	ek     evmkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(kepper keeper.Keeper, ak authkeeper.AccountKeeper) AppModule {
+func NewAppModule(kepper keeper.Keeper, ak authkeeper.AccountKeeper, ek evmkeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         kepper,
 		ak:             ak,
+		ek:             ek,
 	}
 }
 
@@ -137,7 +141,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	var genesisState types.GenesisState
 
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.ak, genesisState)
+	InitGenesis(ctx, am.keeper, am.ak, am.ek, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
