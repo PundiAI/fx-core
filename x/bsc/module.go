@@ -2,7 +2,6 @@ package bsc
 
 import (
 	"encoding/json"
-
 	fxtypes "github.com/functionx/fx-core/types"
 
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
@@ -120,7 +119,10 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 }
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(_ module.Configurator) {}
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	m := keeper.NewMigrator(am.keeper)
+	cfg.RegisterMigration(bsctypes.ModuleName, 1, m.Migrate1to2)
+}
 
 // InitGenesis initializes the genesis state for this module and implements app module.
 func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {

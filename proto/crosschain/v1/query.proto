@@ -100,10 +100,6 @@ service Query {
     option (google.api.http).get =
         "/crosschain/v1beta/pending_send_to_external";
   }
-  rpc GetIbcSequenceHeightByChannel(QueryIbcSequenceHeightRequest)
-      returns (QueryIbcSequenceHeightResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/ibc_sequence_height";
-  }
   // Validators queries all oracle that match the given status.
   rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
     option (google.api.http).get = "/crosschain/v1beta1/oracles";
@@ -248,18 +244,6 @@ message QueryPendingSendToExternalRequest {
 message QueryPendingSendToExternalResponse {
   repeated OutgoingTransferTx transfers_in_batches = 1;
   repeated OutgoingTransferTx unbatched_transfers = 2;
-}
-
-message QueryIbcSequenceHeightRequest {
-  string source_port = 1;
-  string source_channel = 2;
-  uint64 sequence = 3;
-  string chain_name = 4;
-}
-
-message QueryIbcSequenceHeightResponse {
-  bool found = 1;
-  uint64 block_height = 2;
 }
 
 message QueryLastObservedBlockHeightRequest { string chain_name = 1; }

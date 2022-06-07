@@ -65,8 +65,6 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 		return
 	}
 
-	a.keeper.SetIbcSequenceHeight(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, nextSequenceSend, uint64(ctx.BlockHeight()))
-
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeIbcTransfer,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),

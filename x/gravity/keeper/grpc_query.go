@@ -271,12 +271,6 @@ func (k Keeper) GetPendingSendToEth(c context.Context, req *types.QueryPendingSe
 	return res, nil
 }
 
-func (k Keeper) GetIbcSequenceHeightByChannel(c context.Context, req *types.QueryIbcSequenceHeightRequest) (*types.QueryIbcSequenceHeightResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	height, found := k.GetIbcSequenceHeight(ctx, req.GetSourcePort(), req.GetSourceChannel(), req.GetSequence())
-	return &types.QueryIbcSequenceHeightResponse{Found: found, Height: height}, nil
-}
-
 func (k Keeper) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
 	blockHeight := k.GetLastObservedEthBlockHeight(sdk.UnwrapSDKContext(c))
 	return &types.QueryLastObservedBlockHeightResponse{BlockHeight: blockHeight.FxBlockHeight, EthBlockHeight: blockHeight.EthBlockHeight}, nil

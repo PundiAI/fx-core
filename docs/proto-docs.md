@@ -69,8 +69,6 @@
     - [QueryCurrentOracleSetResponse](#fx.gravity.crosschain.v1.QueryCurrentOracleSetResponse)
     - [QueryDenomToTokenRequest](#fx.gravity.crosschain.v1.QueryDenomToTokenRequest)
     - [QueryDenomToTokenResponse](#fx.gravity.crosschain.v1.QueryDenomToTokenResponse)
-    - [QueryIbcSequenceHeightRequest](#fx.gravity.crosschain.v1.QueryIbcSequenceHeightRequest)
-    - [QueryIbcSequenceHeightResponse](#fx.gravity.crosschain.v1.QueryIbcSequenceHeightResponse)
     - [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrRequest)
     - [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrResponse)
     - [QueryLastEventNonceByAddrRequest](#fx.gravity.crosschain.v1.QueryLastEventNonceByAddrRequest)
@@ -357,8 +355,6 @@
     - [QueryDenomToERC20Response](#fx.gravity.v1.QueryDenomToERC20Response)
     - [QueryERC20ToDenomRequest](#fx.gravity.v1.QueryERC20ToDenomRequest)
     - [QueryERC20ToDenomResponse](#fx.gravity.v1.QueryERC20ToDenomResponse)
-    - [QueryIbcSequenceHeightRequest](#fx.gravity.v1.QueryIbcSequenceHeightRequest)
-    - [QueryIbcSequenceHeightResponse](#fx.gravity.v1.QueryIbcSequenceHeightResponse)
     - [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.v1.QueryLastEventBlockHeightByAddrRequest)
     - [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.v1.QueryLastEventBlockHeightByAddrResponse)
     - [QueryLastEventNonceByAddrRequest](#fx.gravity.v1.QueryLastEventNonceByAddrRequest)
@@ -1458,40 +1454,6 @@ Msg defines the state transitions possible within gravity
 
 
 
-<a name="fx.gravity.crosschain.v1.QueryIbcSequenceHeightRequest"></a>
-
-### QueryIbcSequenceHeightRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `source_port` | [string](#string) |  |  |
-| `source_channel` | [string](#string) |  |  |
-| `sequence` | [uint64](#uint64) |  |  |
-| `chain_name` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="fx.gravity.crosschain.v1.QueryIbcSequenceHeightResponse"></a>
-
-### QueryIbcSequenceHeightResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `found` | [bool](#bool) |  |  |
-| `block_height` | [uint64](#uint64) |  |  |
-
-
-
-
-
-
 <a name="fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrRequest"></a>
 
 ### QueryLastEventBlockHeightByAddrRequest
@@ -2053,7 +2015,6 @@ Query defines the gRPC querier service
 | `GetOracleByExternalAddr` | [QueryOracleByExternalAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByExternalAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_external_addr|
 | `GetOracleByOrchestrator` | [QueryOracleByOrchestratorRequest](#fx.gravity.crosschain.v1.QueryOracleByOrchestratorRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_orchestrator|
 | `GetPendingSendToExternal` | [QueryPendingSendToExternalRequest](#fx.gravity.crosschain.v1.QueryPendingSendToExternalRequest) | [QueryPendingSendToExternalResponse](#fx.gravity.crosschain.v1.QueryPendingSendToExternalResponse) |  | GET|/crosschain/v1beta/pending_send_to_external|
-| `GetIbcSequenceHeightByChannel` | [QueryIbcSequenceHeightRequest](#fx.gravity.crosschain.v1.QueryIbcSequenceHeightRequest) | [QueryIbcSequenceHeightResponse](#fx.gravity.crosschain.v1.QueryIbcSequenceHeightResponse) |  | GET|/crosschain/v1beta/ibc_sequence_height|
 | `Oracles` | [QueryOraclesRequest](#fx.gravity.crosschain.v1.QueryOraclesRequest) | [QueryOraclesResponse](#fx.gravity.crosschain.v1.QueryOraclesResponse) | Validators queries all oracle that match the given status. | GET|/crosschain/v1beta1/oracles|
 | `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/crosschain/v1beta1/projected_batch_timeout|
 | `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.crosschain.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.crosschain.v1.QueryBridgeTokensResponse) |  | GET|/gravity/v1beta1/bridge_tokens|
@@ -5559,39 +5520,6 @@ IDSet represents a set of IDs
 
 
 
-<a name="fx.gravity.v1.QueryIbcSequenceHeightRequest"></a>
-
-### QueryIbcSequenceHeightRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `sourcePort` | [string](#string) |  |  |
-| `sourceChannel` | [string](#string) |  |  |
-| `sequence` | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="fx.gravity.v1.QueryIbcSequenceHeightResponse"></a>
-
-### QueryIbcSequenceHeightResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `found` | [bool](#bool) |  |  |
-| `height` | [uint64](#uint64) |  |  |
-
-
-
-
-
-
 <a name="fx.gravity.v1.QueryLastEventBlockHeightByAddrRequest"></a>
 
 ### QueryLastEventBlockHeightByAddrRequest
@@ -5995,7 +5923,6 @@ Query defines the gRPC querier service
 | `GetDelegateKeyByEth` | [QueryDelegateKeyByEthRequest](#fx.gravity.v1.QueryDelegateKeyByEthRequest) | [QueryDelegateKeyByEthResponse](#fx.gravity.v1.QueryDelegateKeyByEthResponse) |  | GET|/gravity/v1beta/delegate_key_by_eth|
 | `GetDelegateKeyByOrchestrator` | [QueryDelegateKeyByOrchestratorRequest](#fx.gravity.v1.QueryDelegateKeyByOrchestratorRequest) | [QueryDelegateKeyByOrchestratorResponse](#fx.gravity.v1.QueryDelegateKeyByOrchestratorResponse) |  | GET|/gravity/v1beta/delegate_key_by_orchestrator|
 | `GetPendingSendToEth` | [QueryPendingSendToEthRequest](#fx.gravity.v1.QueryPendingSendToEthRequest) | [QueryPendingSendToEthResponse](#fx.gravity.v1.QueryPendingSendToEthResponse) |  | GET|/gravity/v1beta/pending_send_to_eth|
-| `GetIbcSequenceHeightByChannel` | [QueryIbcSequenceHeightRequest](#fx.gravity.v1.QueryIbcSequenceHeightRequest) | [QueryIbcSequenceHeightResponse](#fx.gravity.v1.QueryIbcSequenceHeightResponse) |  | GET|/gravity/v1beta/ibc_sequence_height|
 | `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/gravity/v1beta1/projected_batch_timeout|
 | `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.v1.QueryBridgeTokensResponse) |  | GET|/gravity/v1beta1/bridge_tokens|
 

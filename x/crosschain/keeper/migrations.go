@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v2 "github.com/functionx/fx-core/x/gravity/legacy/v2"
+	v2 "github.com/functionx/fx-core/x/crosschain/legacy/v2"
 )
 
 // Migrator is a struct for handling in-place store migrations.

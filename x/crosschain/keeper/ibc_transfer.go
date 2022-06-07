@@ -69,7 +69,6 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 		logger.Error("CrossChain ibc transfer fail", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "err", err)
 		return
 	}
-	k.SetIbcSequenceHeight(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, nextSequenceSend, uint64(ctx.BlockHeight()))
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeIbcTransfer,

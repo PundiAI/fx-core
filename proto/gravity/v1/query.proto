@@ -103,10 +103,6 @@ service Query {
       returns (QueryPendingSendToEthResponse) {
     option (google.api.http).get = "/gravity/v1beta/pending_send_to_eth";
   }
-  rpc GetIbcSequenceHeightByChannel(QueryIbcSequenceHeightRequest)
-      returns (QueryIbcSequenceHeightResponse) {
-    option (google.api.http).get = "/gravity/v1beta/ibc_sequence_height";
-  }
   rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest)
       returns (QueryProjectedBatchTimeoutHeightResponse) {
     option (google.api.http).get = "/gravity/v1beta1/projected_batch_timeout";
@@ -219,17 +215,6 @@ message QueryPendingSendToEthRequest { string sender_address = 1; }
 message QueryPendingSendToEthResponse {
   repeated OutgoingTransferTx transfers_in_batches = 1;
   repeated OutgoingTransferTx unbatched_transfers = 2;
-}
-
-message QueryIbcSequenceHeightRequest {
-  string sourcePort = 1;
-  string sourceChannel = 2;
-  uint64 sequence = 3;
-}
-
-message QueryIbcSequenceHeightResponse {
-  bool found = 1;
-  uint64 height = 2;
 }
 
 message QueryLastObservedBlockHeightRequest {}

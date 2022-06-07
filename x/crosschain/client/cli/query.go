@@ -76,9 +76,6 @@ func GetQueryCmd() *cobra.Command {
 		// 2. event nonce block height
 		CmdGetOracleEventBlockHeight(),
 
-		// 1. query external -> fx -> ibc transfer sequence block height
-		CmdIbcSequenceHeight(),
-
 		// help cmd.
 		CmdCovertBridgeToken(),
 	}...)
@@ -806,34 +803,6 @@ func CmdGetOracleEventBlockHeight() *cobra.Command {
 				return err
 			}
 
-			return clientCtx.PrintProto(res)
-		},
-	}
-	return cmd
-}
-
-func CmdIbcSequenceHeight() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "ibc-sequence-height [chain-name] [sourcePort] [sourceChannel] [sequence]",
-		Short: "Query ibc sequence block height",
-		Args:  cobra.ExactArgs(4),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			sequence, err := strconv.ParseUint(args[3], 10, 64)
-			if err != nil {
-				return err
-			}
-			res, err := queryClient.GetIbcSequenceHeightByChannel(cmd.Context(), &types.QueryIbcSequenceHeightRequest{
-				ChainName:     args[0],
-				SourcePort:    args[1],
-				SourceChannel: args[2],
-				Sequence:      sequence,
-			})
-			if err != nil {
-				return err
-			}
 			return clientCtx.PrintProto(res)
 		},
 	}

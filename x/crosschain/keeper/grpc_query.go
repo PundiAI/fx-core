@@ -302,15 +302,6 @@ func (k Keeper) GetPendingSendToExternal(c context.Context, req *types.QueryPend
 	return res, nil
 }
 
-func (k Keeper) GetIbcSequenceHeightByChannel(c context.Context, req *types.QueryIbcSequenceHeightRequest) (*types.QueryIbcSequenceHeightResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	height, found := k.GetIbcSequenceHeight(ctx, req.GetSourcePort(), req.GetSourceChannel(), req.GetSequence())
-	return &types.QueryIbcSequenceHeightResponse{
-		Found:       found,
-		BlockHeight: height,
-	}, nil
-}
-
 func (k Keeper) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
 	blockHeight := k.GetLastObservedBlockHeight(sdk.UnwrapSDKContext(c))
 	return &types.QueryLastObservedBlockHeightResponse{

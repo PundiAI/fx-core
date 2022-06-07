@@ -68,10 +68,6 @@ func GetQueryCmd() *cobra.Command {
 		CmdGetValidatorEventNonce(),
 		// 2. eth event nonce block height
 		CmdGetValidatorEventBlockHeight(),
-
-		// eth -> fxcore -> ibc
-		// 1. query eth -> fxcore -> ibc transfer sequence block height
-		CmdIbcSequenceHeight(),
 	}...)
 
 	for _, command := range cmd.Commands() {
@@ -702,34 +698,5 @@ func CmdGetValidatorEventBlockHeight() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
-	return cmd
-}
-
-func CmdIbcSequenceHeight() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "ibc-sequence-height [sourcePort] [sourceChannel] [sequence]",
-		Short:   "Query eth -> ibc sequence block height",
-		Example: "fxcored q gravity ibc-sequence-height transfer channel-0 1",
-		Args:    cobra.ExactArgs(3),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
-			sequence, err := strconv.ParseUint(args[2], 10, 64)
-			if err != nil {
-				return err
-			}
-			res, err := queryClient.GetIbcSequenceHeightByChannel(cmd.Context(), &types.QueryIbcSequenceHeightRequest{
-				SourcePort:    args[0],
-				SourceChannel: args[1],
-				Sequence:      sequence,
-			})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-
 	return cmd
 }

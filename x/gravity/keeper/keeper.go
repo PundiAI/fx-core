@@ -634,32 +634,6 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 	return prefix, end
 }
 
-func (k Keeper) HandlerIbcTransactionAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error {
-	sendAddress, err := sdk.AccAddressFromBech32(sender)
-	if err != nil {
-		return err
-	}
-	_, err = k.AddToOutgoingPool(ctx, sendAddress, receive, coin, fee)
-	return err
-}
-
-//SetIbcSequenceHeight set gravity -> ibc sequence block height.
-func (k Keeper) SetIbcSequenceHeight(ctx sdk.Context, sourcePort, sourceChannel string, sequence, height uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, sequence), types.UInt64Bytes(height))
-}
-
-//GetIbcSequenceHeight get gravity -> ibc sequence block height.
-func (k Keeper) GetIbcSequenceHeight(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) (uint64, bool) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, sequence)
-	if !store.Has(key) {
-		return 0, false
-	}
-	value := store.Get(key)
-	return types.UInt64FromBytes(value), true
-}
-
 //setLastEventBlockHeightByValidator set the latest event blockHeight for a give validator
 func (k Keeper) setLastEventBlockHeightByValidator(ctx sdk.Context, validator sdk.ValAddress, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)

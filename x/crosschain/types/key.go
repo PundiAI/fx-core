@@ -101,6 +101,7 @@ var (
 	LastObservedOracleSetKey = []byte{0x33}
 
 	// KeyIbcSequenceHeight  indexes the gravity -> ibc sequence block height
+	// DEPRECATED: delete by v2
 	KeyIbcSequenceHeight = []byte{0x34}
 
 	// LastEventBlockHeightByValidatorKey indexes latest event blockHeight by validator
@@ -187,6 +188,7 @@ func GetLastEventNonceByOracleKey(validator sdk.AccAddress) []byte {
 }
 
 //GetIbcSequenceHeightKey returns the following key format
+// DEPRECATED: delete by v2
 func GetIbcSequenceHeightKey(sourcePort, sourceChannel string, sequence uint64) []byte {
 	key := fmt.Sprintf("%s/%s/%d", sourcePort, sourceChannel, sequence)
 	return append(KeyIbcSequenceHeight, []byte(key)...)

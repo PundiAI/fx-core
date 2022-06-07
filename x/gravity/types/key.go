@@ -98,6 +98,7 @@ var (
 	LastObservedValsetKey = []byte{0x16}
 
 	// KeyIbcSequenceHeight  indexes the gravity -> ibc sequence block height
+	// DEPRECATED: delete by v2
 	KeyIbcSequenceHeight = []byte{0x17}
 
 	// LastEventBlockHeightByValidatorKey indexes lateset event blockHeight by validator
@@ -215,6 +216,7 @@ func GetERC20ToDenomKey(erc20 string) []byte {
 }
 
 //GetIbcSequenceHeightKey [0xc1][sourcePort/sourceChannel/sequence]
+// DEPRECATED: delete by v2
 func GetIbcSequenceHeightKey(sourcePort, sourceChannel string, sequence uint64) []byte {
 	key := fmt.Sprintf("%s/%s/%d", sourcePort, sourceChannel, sequence)
 	return append(KeyIbcSequenceHeight, []byte(key)...)
