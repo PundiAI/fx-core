@@ -10,19 +10,19 @@ import (
 	upgradev2 "github.com/functionx/fx-core/app/upgrades/v2"
 )
 
-func (myApp *App) setUpgradeHandler() {
+func (app *App) setUpgradeHandler() {
 	// set upgrade handler v2
-	myApp.UpgradeKeeper.SetUpgradeHandler(
-		upgradev2.UpgradeName, upgradev2.CreateUpgradeHandler(myApp.mm, myApp.configurator,
-			myApp.GetKey(banktypes.StoreKey), myApp.BankKeeper, myApp.IBCKeeper, myApp.Erc20Keeper,
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgradev2.UpgradeName, upgradev2.CreateUpgradeHandler(app.mm, app.configurator,
+			app.GetKey(banktypes.StoreKey), app.BankKeeper, app.IBCKeeper, app.Erc20Keeper,
 		),
 	)
 
-	upgradeInfo, err := myApp.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
-	if myApp.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		return
 	}
 	var storeUpgrades *store.StoreUpgrades
@@ -31,6 +31,6 @@ func (myApp *App) setUpgradeHandler() {
 		storeUpgrades = upgradev2.GetStoreUpgrades()
 	}
 	if storeUpgrades != nil {
-		myApp.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, storeUpgrades))
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, storeUpgrades))
 	}
 }

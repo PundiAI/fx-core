@@ -33,7 +33,7 @@ message MsgTransfer {
   string receiver = 5;
   // Timeout height relative to the current block height.
   // The timeout is disabled when set to 0.
-  .ibc.core.client.v1.Height timeout_height = 6 [
+  ibc.core.client.v1.Height timeout_height = 6 [
     (gogoproto.moretags) = "yaml:\"timeout_height\"",
     (gogoproto.nullable) = false
   ];
