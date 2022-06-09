@@ -182,7 +182,7 @@ func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequ
 	if req.GetNonce() <= 0 {
 		return nil, sdkerrors.Wrap(types.ErrUnknown, "nonce")
 	}
-	foundBatch := k.GetOutgoingTXBatch(sdk.UnwrapSDKContext(c), req.TokenContract, req.Nonce)
+	foundBatch := k.GetOutgoingTxBatch(sdk.UnwrapSDKContext(c), req.TokenContract, req.Nonce)
 	if foundBatch == nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "can not find tx batch")
 	}

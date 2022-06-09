@@ -50,9 +50,7 @@ type PortKeeper interface {
 type AppModuleBasic struct{}
 
 // Name implements AppModuleBasic interface.
-func (AppModuleBasic) Name() string {
-	return ModuleName
-}
+func (AppModuleBasic) Name() string { return ModuleName }
 
 // RegisterLegacyAminoCodec implements AppModuleBasic interface.
 func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
@@ -109,9 +107,7 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute implements the AppModule interface.
-func (AppModule) QuerierRoute() string {
-	return ""
-}
+func (AppModule) QuerierRoute() string { return "" }
 
 // LegacyQuerierHandler implements the AppModule interface.
 func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {

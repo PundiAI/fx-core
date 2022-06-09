@@ -40,9 +40,7 @@ type AppModuleBasic struct {
 }
 
 // Name returns the capability module's name.
-func (AppModuleBasic) Name() string {
-	return types.ModuleName
-}
+func (AppModuleBasic) Name() string { return types.ModuleName }
 
 // DefaultGenesis returns the capability module's default genesis state.
 func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {

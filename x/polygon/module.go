@@ -31,9 +31,7 @@ var (
 type AppModuleBasic struct{}
 
 // Name implements app module basic
-func (AppModuleBasic) Name() string {
-	return types.ModuleName
-}
+func (AppModuleBasic) Name() string { return types.ModuleName }
 
 // RegisterLegacyAminoCodec implements app module basic
 func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {}
@@ -93,20 +91,13 @@ func NewAppModule(keeper crosschainkeeper.Keeper, stakingKeeper crosschainv54.St
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Name implements app module
-func (AppModule) Name() string {
-	return types.ModuleName
-}
-
 // Route implements app module
 func (am AppModule) Route() sdk.Route {
 	return sdk.Route{}
 }
 
 // QuerierRoute implements app module
-func (am AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
+func (am AppModule) QuerierRoute() string { return types.QuerierRoute }
 
 // LegacyQuerierHandler returns the distribution module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {

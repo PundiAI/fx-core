@@ -143,13 +143,9 @@ func RegisterValidatorBasic(chainName string, validate MsgValidateBasic) {
 
 // MsgCreateOracleBridger
 
-func (m MsgCreateOracleBridger) Route() string {
-	return RouterKey
-}
+func (m MsgCreateOracleBridger) Route() string { return RouterKey }
 
-func (m MsgCreateOracleBridger) Type() string {
-	return TypeMsgCreateOracleBridger
-}
+func (m MsgCreateOracleBridger) Type() string { return TypeMsgCreateOracleBridger }
 
 func (m MsgCreateOracleBridger) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
@@ -176,9 +172,7 @@ func (m MsgCreateOracleBridger) GetSigners() []sdk.AccAddress {
 
 // MsgAddOracleDelegate
 
-func (m *MsgAddOracleDelegate) Route() string {
-	return RouterKey
-}
+func (m *MsgAddOracleDelegate) Route() string { return RouterKey }
 
 func (m *MsgAddOracleDelegate) Type() string {
 	return TypeMsgAddOracleDelegate
@@ -209,13 +203,9 @@ func (m *MsgAddOracleDelegate) GetSigners() []sdk.AccAddress {
 
 // MsgEditOracle
 
-func (m MsgEditOracle) Route() string {
-	return RouterKey
-}
+func (m MsgEditOracle) Route() string { return RouterKey }
 
-func (m MsgEditOracle) Type() string {
-	return TypeMsgEditOracle
-}
+func (m MsgEditOracle) Type() string { return TypeMsgEditOracle }
 
 func (m MsgEditOracle) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
@@ -242,13 +232,9 @@ func (m MsgEditOracle) GetSigners() []sdk.AccAddress {
 
 // MsgWithdrawReward
 
-func (m MsgWithdrawReward) Route() string {
-	return RouterKey
-}
+func (m MsgWithdrawReward) Route() string { return RouterKey }
 
-func (m MsgWithdrawReward) Type() string {
-	return TypeMsgWithdrawReward
-}
+func (m MsgWithdrawReward) Type() string { return TypeMsgWithdrawReward }
 
 func (m MsgWithdrawReward) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
@@ -276,14 +262,10 @@ func (m MsgWithdrawReward) GetSigners() []sdk.AccAddress {
 // MsgOracleSetConfirm
 
 // Route should return the name of the module
-func (m MsgOracleSetConfirm) Route() string {
-	return RouterKey
-}
+func (m MsgOracleSetConfirm) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgOracleSetConfirm) Type() string {
-	return TypeMsgOracleSetConfirm
-}
+func (m MsgOracleSetConfirm) Type() string { return TypeMsgOracleSetConfirm }
 
 // ValidateBasic performs stateless checks
 func (m MsgOracleSetConfirm) ValidateBasic() (err error) {
@@ -314,14 +296,10 @@ func (m MsgOracleSetConfirm) GetSigners() []sdk.AccAddress {
 // MsgSendToExternal
 
 // Route should return the name of the module
-func (m MsgSendToExternal) Route() string {
-	return RouterKey
-}
+func (m MsgSendToExternal) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgSendToExternal) Type() string {
-	return TypeMsgSendToExternal
-}
+func (m MsgSendToExternal) Type() string { return TypeMsgSendToExternal }
 
 // ValidateBasic runs stateless checks on the message
 // Checks if the Eth address is valid
@@ -353,14 +331,10 @@ func (m MsgSendToExternal) GetSigners() []sdk.AccAddress {
 // MsgRequestBatch
 
 // Route should return the name of the module
-func (m MsgRequestBatch) Route() string {
-	return RouterKey
-}
+func (m MsgRequestBatch) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgRequestBatch) Type() string {
-	return TypeMsgRequestBatch
-}
+func (m MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
 
 // ValidateBasic performs stateless checks
 func (m MsgRequestBatch) ValidateBasic() (err error) {
@@ -425,14 +399,10 @@ func (m MsgConfirmBatch) GetSigners() []sdk.AccAddress {
 // MsgCancelSendToExternal
 
 // Route should return the name of the module
-func (m MsgCancelSendToExternal) Route() string {
-	return RouterKey
-}
+func (m MsgCancelSendToExternal) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgCancelSendToExternal) Type() string {
-	return TypeMsgCancelSendToExternal
-}
+func (m MsgCancelSendToExternal) Type() string { return TypeMsgCancelSendToExternal }
 
 // ValidateBasic performs stateless checks
 func (m MsgCancelSendToExternal) ValidateBasic() (err error) {
@@ -535,14 +505,10 @@ func (m MsgSendToFxClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Type should return the action
-func (m MsgSendToFxClaim) Type() string {
-	return TypeMsgSendToFxClaim
-}
+func (m MsgSendToFxClaim) Type() string { return TypeMsgSendToFxClaim }
 
 // Route should return the name of the module
-func (m MsgSendToFxClaim) Route() string {
-	return RouterKey
-}
+func (m MsgSendToFxClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m MsgSendToFxClaim) ClaimHash() []byte {
@@ -602,24 +568,16 @@ func (m MsgSendToExternalClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Route should return the name of the module
-func (m MsgSendToExternalClaim) Route() string {
-	return RouterKey
-}
+func (m MsgSendToExternalClaim) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgSendToExternalClaim) Type() string {
-	return TypeMsgSendToExternalClaim
-}
+func (m MsgSendToExternalClaim) Type() string { return TypeMsgSendToExternalClaim }
 
 // MsgBridgeTokenClaim
 
-func (m MsgBridgeTokenClaim) Route() string {
-	return RouterKey
-}
+func (m MsgBridgeTokenClaim) Route() string { return RouterKey }
 
-func (m MsgBridgeTokenClaim) Type() string {
-	return TypeMsgBridgeTokenClaim
-}
+func (m MsgBridgeTokenClaim) Type() string { return TypeMsgBridgeTokenClaim }
 
 func (m MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
@@ -711,14 +669,10 @@ func (m MsgOracleSetUpdatedClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Type should return the action
-func (m MsgOracleSetUpdatedClaim) Type() string {
-	return TypeMsgOracleSetUpdatedClaim
-}
+func (m MsgOracleSetUpdatedClaim) Type() string { return TypeMsgOracleSetUpdatedClaim }
 
 // Route should return the name of the module
-func (m MsgOracleSetUpdatedClaim) Route() string {
-	return RouterKey
-}
+func (m MsgOracleSetUpdatedClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m MsgOracleSetUpdatedClaim) ClaimHash() []byte {

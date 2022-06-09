@@ -105,7 +105,7 @@ func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
 // OutgoingTxBatchExecuted is run when the Cosmos chain detects that a batch has been executed on Ethereum
 // It frees all the transactions in the batch, then cancels all earlier batches
 func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, nonce uint64) {
-	batch := k.GetOutgoingTXBatch(ctx, tokenContract, nonce)
+	batch := k.GetOutgoingTxBatch(ctx, tokenContract, nonce)
 	if batch == nil {
 		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", tokenContract, nonce))
 	}
@@ -176,8 +176,8 @@ func (k Keeper) pickUnBatchedTX(ctx sdk.Context, contractAddress string, maxElem
 	return selectedTx, err
 }
 
-// GetOutgoingTXBatch loads a batch object. Returns nil when not exists.
-func (k Keeper) GetOutgoingTXBatch(ctx sdk.Context, tokenContract string, nonce uint64) *types.OutgoingTxBatch {
+// GetOutgoingTxBatch loads a batch object. Returns nil when not exists.
+func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, tokenContract string, nonce uint64) *types.OutgoingTxBatch {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOutgoingTxBatchKey(tokenContract, nonce)
 	bz := store.Get(key)
@@ -195,7 +195,7 @@ func (k Keeper) GetOutgoingTXBatch(ctx sdk.Context, tokenContract string, nonce 
 
 // CancelOutgoingTXBatch releases all TX in the batch and deletes the batch
 func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, batchNonce uint64) error {
-	batch := k.GetOutgoingTXBatch(ctx, tokenContract, batchNonce)
+	batch := k.GetOutgoingTxBatch(ctx, tokenContract, batchNonce)
 	if batch == nil {
 		return types.ErrUnknown
 	}

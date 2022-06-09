@@ -130,13 +130,15 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 			continue
 		}
 		oracle := crosschaintypes.Oracle{
-			OracleAddress:   oracleAddress.String(),
-			BridgerAddress:  bridgerAddr.String(),
-			ExternalAddress: externalAddress.String(),
-			DelegateAmount:  sdk.NewCoin(fxtypes.DefaultDenom, validator.Tokens),
-			StartHeight:     0,
-			Jailed:          validator.Jailed,
-			JailedHeight:    validator.UnbondingHeight,
+			OracleAddress:     oracleAddress.String(),
+			BridgerAddress:    bridgerAddr.String(),
+			ExternalAddress:   externalAddress.String(),
+			DelegateAmount:    sdk.NewCoin(fxtypes.DefaultDenom, validator.Tokens),
+			StartHeight:       0,
+			Jailed:            validator.Jailed,
+			JailedHeight:      validator.UnbondingHeight,
+			DelegateValidator: oracleAddress.String(),
+			OracleIsValidator: true,
 		}
 		// SetOracle
 		ethStore.Set(crosschaintypes.GetOracleKey(oracle.GetOracle()), cdc.MustMarshal(&oracle))

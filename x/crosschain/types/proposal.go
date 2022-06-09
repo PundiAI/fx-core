@@ -36,13 +36,9 @@ func (m *InitCrossChainParamsProposal) GetDescription() string {
 	return m.Description
 }
 
-func (m *InitCrossChainParamsProposal) ProposalRoute() string {
-	return RouterKey
-}
+func (m *InitCrossChainParamsProposal) ProposalRoute() string { return RouterKey }
 
-func (m *InitCrossChainParamsProposal) ProposalType() string {
-	return ProposalTypeInitCrossChainParams
-}
+func (m *InitCrossChainParamsProposal) ProposalType() string { return ProposalTypeInitCrossChainParams }
 
 func (m *InitCrossChainParamsProposal) ValidateBasic() error {
 	if err := ValidateModuleName(m.ChainName); err != nil {
@@ -79,13 +75,9 @@ func (m *UpdateChainOraclesProposal) GetDescription() string {
 	return m.Description
 }
 
-func (m *UpdateChainOraclesProposal) ProposalRoute() string {
-	return RouterKey
-}
+func (m *UpdateChainOraclesProposal) ProposalRoute() string { return RouterKey }
 
-func (m *UpdateChainOraclesProposal) ProposalType() string {
-	return ProposalTypeUpdateChainOracles
-}
+func (m *UpdateChainOraclesProposal) ProposalType() string { return ProposalTypeUpdateChainOracles }
 
 func (m *UpdateChainOraclesProposal) ValidateBasic() error {
 	if err := ValidateModuleName(m.ChainName); err != nil {

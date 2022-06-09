@@ -16,6 +16,9 @@ const (
 // NewQuerier is the module level router for state queries
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
+		if len(path) <= 0 {
+			return nil, sdkerrors.ErrInvalidRequest
+		}
 		switch path[0] {
 		case QueryMigrateRecord:
 			return queryMigrateRecord(ctx, path[1], keeper)

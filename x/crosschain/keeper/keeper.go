@@ -83,10 +83,16 @@ func (k Keeper) GetGravityID(ctx sdk.Context) string {
 	return gravityId
 }
 
-func (k Keeper) GetOracleStakeThreshold(ctx sdk.Context) sdk.Coin {
+func (k Keeper) GetOracleDelegateThreshold(ctx sdk.Context) sdk.Coin {
 	var threshold sdk.Coin
 	k.paramSpace.Get(ctx, types.ParamOracleDelegateThreshold, &threshold)
 	return threshold
+}
+
+func (k Keeper) GetOracleDelegateMultiple(ctx sdk.Context) int64 {
+	var multiple int64
+	k.paramSpace.Get(ctx, types.ParamOracleDelegateMultiple, &multiple)
+	return multiple
 }
 
 /////////////////////////////

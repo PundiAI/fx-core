@@ -21,7 +21,7 @@ func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, extern
 
 		receiveAddr, err := sdk.AccAddressFromBech32(claim.Receiver)
 		if err != nil {
-			return sdkerrors.Wrap(err, "invalid receiver address")
+			return sdkerrors.Wrap(types.ErrInvalid, "receiver address")
 		}
 		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, coins); err != nil {
 			return sdkerrors.Wrapf(err, "mint vouchers coins")

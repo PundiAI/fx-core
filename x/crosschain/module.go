@@ -31,9 +31,7 @@ var (
 type AppModuleBasic struct{}
 
 // Name implements app module basic
-func (AppModuleBasic) Name() string {
-	return types.ModuleName
-}
+func (AppModuleBasic) Name() string { return types.ModuleName }
 
 // DefaultGenesis implements app module basic
 func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
@@ -95,11 +93,6 @@ func NewAppModuleByRouter(keeper keeper.RouterKeeper) AppModule {
 	}
 }
 
-// Name implements app module
-func (AppModule) Name() string {
-	return types.ModuleName
-}
-
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
@@ -109,9 +102,7 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute implements app module
-func (am AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
+func (am AppModule) QuerierRoute() string { return types.QuerierRoute }
 
 // LegacyQuerierHandler returns the distribution module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {

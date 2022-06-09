@@ -9,7 +9,7 @@ const (
 	ModuleName = "crosschain"
 
 	// StoreKey to be used when creating the KVStore
-	StoreKey = ModuleName
+	//StoreKey = ModuleName
 
 	// RouterKey is the module name router key
 	RouterKey = ModuleName

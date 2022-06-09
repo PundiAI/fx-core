@@ -20,6 +20,7 @@ func MigrateParams(ctx sdk.Context, gravityParams gravitytypes.Params, ethKeeper
 		IbcTransferTimeoutHeight:          gravityParams.IbcTransferTimeoutHeight,
 		Oracles:                           oracles,
 		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.DefaultPowerReduction)),
+		DelegateMultiple:                  crosschaintypes.DefaultOracleDelegateThreshold,
 	}
 
 	if err := params.ValidateBasic(); err != nil {

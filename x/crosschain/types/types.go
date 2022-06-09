@@ -277,3 +277,8 @@ func CovertIbcPacketReceiveAddressByPrefix(targetIbcPrefix string, receiver sdk.
 	}
 	return bech32.ConvertAndEncode(targetIbcPrefix, receiver)
 }
+
+func GetOracleDelegateAddress(moduleName string, oracleAddr sdk.AccAddress) sdk.AccAddress {
+	data := append(oracleAddr, []byte(moduleName)...)
+	return crypto.Keccak256(data)[12:]
+}

@@ -34,9 +34,7 @@ var (
 // AppModuleBasic Basics object
 type AppModuleBasic struct{}
 
-func (AppModuleBasic) Name() string {
-	return types.ModuleName
-}
+func (AppModuleBasic) Name() string { return types.ModuleName }
 
 // RegisterLegacyAminoCodec performs a no-op as the erc20 doesn't support Amino encoding
 func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {}
@@ -107,11 +105,6 @@ func (am AppModule) NewHandler() sdk.Handler {
 
 // RegisterInvariants registers the capability module's invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
-
-// Name returns the capability module's name.
-func (AppModule) Name() string {
-	return types.ModuleName
-}
 
 // Route returns the capability module's message routing key.
 func (am AppModule) Route() sdk.Route {

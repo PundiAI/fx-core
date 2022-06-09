@@ -13,6 +13,9 @@ import (
 
 func NewQuerier(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
+		if len(path) <= 0 {
+			return nil, sdkerrors.ErrInvalidRequest
+		}
 		switch path[0] {
 		case types.QueryGasPrice:
 			var gasPrices sdk.Coins

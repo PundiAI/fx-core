@@ -78,28 +78,51 @@ const (
 // NewQuerier is the module level router for state queries
 func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
+		if len(path) <= 0 {
+			return nil, sdkerrors.ErrInvalidRequest
+		}
 		switch path[0] {
-
 		// OracleSets
 		case QueryCurrentOracleSet:
 			return queryCurrentOracleSet(ctx, keeper)
 		case QueryOracleSetRequest:
-			return queryOracleSetRequest(ctx, path[1:], keeper)
+			if len(path) != 2 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
+			return queryOracleSetRequest(ctx, path[1], keeper)
 		case QueryOracleSetConfirm:
-			return queryOracleSetConfirm(ctx, path[1:], keeper)
+			if len(path) != 3 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
+			return queryOracleSetConfirm(ctx, path[1], path[2], keeper)
 		case QueryOracleSetConfirmsByNonce:
+			if len(path) != 2 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
 			return queryAllOracleSetConfirms(ctx, path[1], keeper)
 		case QueryLastOracleSetRequests:
 			return lastOracleSetRequests(ctx, keeper)
 		case QueryLastPendingOracleSetRequestByAddr:
+			if len(path) != 2 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
 			return lastPendingOracleSetRequest(ctx, path[1], keeper)
 
 		// Batches
 		case QueryBatch:
+			if len(path) != 3 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
 			return queryBatch(ctx, path[1], path[2], keeper)
 		case QueryBatchConfirms:
+			if len(path) != 3 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
 			return queryAllBatchConfirms(ctx, path[1], path[2], keeper)
 		case QueryLastPendingBatchRequestByAddr:
+			if len(path) != 2 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
 			return lastPendingBatchRequest(ctx, path[1], keeper)
 		case QueryOutgoingTxBatches:
 			return lastBatchesRequest(ctx, keeper)
@@ -111,12 +134,21 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 
 		// Token mappings
 		case QueryDenomToToken:
+			if len(path) != 2 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
 			return queryDenomToToken(ctx, path[1], keeper)
 		case QueryTokenToDenom:
+			if len(path) != 2 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
 			return queryTokenToDenom(ctx, path[1], keeper)
 
 		// Pending transactions
 		case QueryPendingSendToExternal:
+			if len(path) != 2 {
+				return nil, sdkerrors.ErrInvalidRequest
+			}
 			return queryPendingSendToExternal(ctx, path[1], keeper)
 
 		default:
@@ -125,10 +157,10 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 	}
 }
 
-func queryOracleSetRequest(ctx sdk.Context, path []string, keeper Keeper) ([]byte, error) {
-	nonce, err := uint64FromString(path[0])
+func queryOracleSetRequest(ctx sdk.Context, nonceStr string, keeper Keeper) ([]byte, error) {
+	nonce, err := uint64FromString(nonceStr)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "nonce")
 	}
 
 	oracleSet := keeper.GetOracleSet(ctx, nonce)
@@ -148,7 +180,7 @@ func queryOracleSetRequest(ctx sdk.Context, path []string, keeper Keeper) ([]byt
 func queryAllOracleSetConfirms(ctx sdk.Context, nonceStr string, keeper Keeper) ([]byte, error) {
 	nonce, err := uint64FromString(nonceStr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "nonce")
 	}
 
 	var confirms []*types.MsgOracleSetConfirm
@@ -172,7 +204,10 @@ func queryAllOracleSetConfirms(ctx sdk.Context, nonceStr string, keeper Keeper) 
 func queryAllBatchConfirms(ctx sdk.Context, nonceStr string, tokenContract string, keeper Keeper) ([]byte, error) {
 	nonce, err := uint64FromString(nonceStr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "nonce")
+	}
+	if len(tokenContract) <= 0 {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "token contract")
 	}
 
 	var confirms []types.MsgConfirmBatch
@@ -214,16 +249,16 @@ func lastOracleSetRequests(ctx sdk.Context, keeper Keeper) ([]byte, error) {
 
 // lastPendingOracleSetRequest gets a list of validator sets that this validator has not signed
 // limited by 100 sets per request.
-func lastPendingOracleSetRequest(ctx sdk.Context, operatorAddr string, keeper Keeper) ([]byte, error) {
-	addr, err := sdk.AccAddressFromBech32(operatorAddr)
+func lastPendingOracleSetRequest(ctx sdk.Context, bridgerAddr string, keeper Keeper) ([]byte, error) {
+	bridger, err := sdk.AccAddressFromBech32(bridgerAddr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "address invalid")
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address")
 	}
 
 	var pendingOracleSetReq []*types.OracleSet
 	keeper.IterateOracleSets(ctx, func(_ []byte, val *types.OracleSet) bool {
 		// foundConfirm is true if the operatorAddr has signed the oracleSet we are currently looking at
-		foundConfirm := keeper.GetOracleSetConfirm(ctx, val.Nonce, addr) != nil
+		foundConfirm := keeper.GetOracleSetConfirm(ctx, val.Nonce, bridger) != nil
 		// if this oracleSet has NOT been signed by operatorAddr, store it in pendingOracleSetReq
 		// and exit the loop
 		if !foundConfirm {
@@ -259,18 +294,18 @@ func queryCurrentOracleSet(ctx sdk.Context, keeper Keeper) ([]byte, error) {
 
 // queryOracleSetConfirm returns the confirm msg for single orchestrator address and nonce
 // When nothing found a nil value is returned
-func queryOracleSetConfirm(ctx sdk.Context, path []string, keeper Keeper) ([]byte, error) {
-	nonce, err := uint64FromString(path[0])
+func queryOracleSetConfirm(ctx sdk.Context, nonceStr, bridgerAddr string, keeper Keeper) ([]byte, error) {
+	nonce, err := uint64FromString(nonceStr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "nonce")
 	}
 
-	accAddress, err := sdk.AccAddressFromBech32(path[1])
+	bridger, err := sdk.AccAddressFromBech32(bridgerAddr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address")
 	}
 
-	oracleSet := keeper.GetOracleSetConfirm(ctx, nonce, accAddress)
+	oracleSet := keeper.GetOracleSetConfirm(ctx, nonce, bridger)
 	if oracleSet == nil {
 		return nil, nil
 	}
@@ -288,15 +323,15 @@ type MultiSigUpdateResponse struct {
 }
 
 // lastPendingBatchRequest gets the latest batch that has NOT been signed by operatorAddr
-func lastPendingBatchRequest(ctx sdk.Context, operatorAddr string, keeper Keeper) ([]byte, error) {
-	addr, err := sdk.AccAddressFromBech32(operatorAddr)
+func lastPendingBatchRequest(ctx sdk.Context, bridgerAddr string, keeper Keeper) ([]byte, error) {
+	bridger, err := sdk.AccAddressFromBech32(bridgerAddr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "address invalid")
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address")
 	}
 
 	var pendingBatchReq *types.OutgoingTxBatch
 	keeper.IterateOutgoingTXBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
-		foundConfirm := keeper.GetBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract, addr) != nil
+		foundConfirm := keeper.GetBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract, bridger) != nil
 		if !foundConfirm {
 			pendingBatchReq = batch
 			return true
@@ -347,15 +382,15 @@ func queryBatchFees(ctx sdk.Context, keeper Keeper, req abci.RequestQuery, legac
 }
 
 // queryBatch gets a batch by tokenContract and nonce
-func queryBatch(ctx sdk.Context, nonce string, tokenContract string, keeper Keeper) ([]byte, error) {
-	parsedNonce, err := uint64FromString(nonce)
+func queryBatch(ctx sdk.Context, nonceStr string, tokenContract string, keeper Keeper) ([]byte, error) {
+	nonce, err := uint64FromString(nonceStr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "nonce")
 	}
 	if types.ValidateEthereumAddress(tokenContract) != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "token contract")
 	}
-	foundBatch := keeper.GetOutgoingTXBatch(ctx, tokenContract, parsedNonce)
+	foundBatch := keeper.GetOutgoingTxBatch(ctx, tokenContract, nonce)
 	if foundBatch == nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "Can not find tx batch")
 	}
@@ -371,12 +406,14 @@ func queryGravityID(ctx sdk.Context, keeper Keeper) ([]byte, error) {
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, gravityID)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	} else {
-		return res, nil
 	}
+	return res, nil
 }
 
 func queryDenomToToken(ctx sdk.Context, denom string, keeper Keeper) ([]byte, error) {
+	if len(denom) <= 0 {
+		return nil, sdkerrors.Wrap(types.ErrUnknown, "denom")
+	}
 	bridgeToken := keeper.GetDenomByBridgeToken(ctx, denom)
 	if bridgeToken == nil {
 		return nil, sdkerrors.Wrap(types.ErrEmpty, "bridge token is not exist")
@@ -387,12 +424,14 @@ func queryDenomToToken(ctx sdk.Context, denom string, keeper Keeper) ([]byte, er
 	})
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	} else {
-		return bytes, nil
 	}
+	return bytes, nil
 }
 
 func queryTokenToDenom(ctx sdk.Context, token string, keeper Keeper) ([]byte, error) {
+	if types.ValidateEthereumAddress(token) != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "token")
+	}
 	bridgeToken := keeper.GetBridgeTokenDenom(ctx, token)
 	if bridgeToken == nil {
 		return nil, sdkerrors.Wrap(types.ErrEmpty, "bridge token is not exist")
@@ -403,12 +442,14 @@ func queryTokenToDenom(ctx sdk.Context, token string, keeper Keeper) ([]byte, er
 	})
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	} else {
-		return bytes, nil
 	}
+	return bytes, nil
 }
 
 func queryPendingSendToExternal(ctx sdk.Context, senderAddr string, k Keeper) ([]byte, error) {
+	if _, err := sdk.AccAddressFromBech32(senderAddr); err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "sender address")
+	}
 	batches := k.GetOutgoingTxBatches(ctx)
 	unbatchedTx := k.GetUnbatchedTransactions(ctx)
 	senderAddress := senderAddr
@@ -428,9 +469,8 @@ func queryPendingSendToExternal(ctx sdk.Context, senderAddr string, k Keeper) ([
 	bytes, err := codec.MarshalJSONIndent(types.ModuleCdc, res)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	} else {
-		return bytes, nil
 	}
+	return bytes, nil
 }
 
 // uint64FromString to parse out a uint64 for a nonce

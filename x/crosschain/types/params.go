@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	MaxOracleSize = 150
+	MaxOracleSize                  = 150
+	DefaultOracleDelegateThreshold = 10
 )
 
 var (
@@ -50,6 +51,9 @@ var (
 
 	// ParamOracleDelegateThreshold stores the oracle delegate threshold
 	ParamOracleDelegateThreshold = []byte("OracleDelegateThreshold")
+
+	// ParamOracleDelegateMultiple stores the oracle delegate multiple
+	ParamOracleDelegateMultiple = []byte("OracleDelegateMultiple")
 )
 
 var (
@@ -89,6 +93,9 @@ func (m Params) ValidateBasic() error {
 	if err := validateOracleDelegateThreshold(m.DelegateThreshold); err != nil {
 		return sdkerrors.Wrap(err, "oracle delegate threshold")
 	}
+	if err := validateOracleDelegateMultiple(m.DelegateMultiple); err != nil {
+		return sdkerrors.Wrap(err, "delegate multiple")
+	}
 	return nil
 }
 
@@ -111,6 +118,7 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamStoreIbcTransferTimeoutHeight, &m.IbcTransferTimeoutHeight, validateIbcTransferTimeoutHeight),
 		paramtypes.NewParamSetPair(ParamStoreOracles, &m.Oracles, validateOracles),
 		paramtypes.NewParamSetPair(ParamOracleDelegateThreshold, &m.DelegateThreshold, validateOracleDelegateThreshold),
+		paramtypes.NewParamSetPair(ParamOracleDelegateMultiple, &m.DelegateMultiple, validateOracleDelegateMultiple),
 	}
 }
 
@@ -199,6 +207,17 @@ func validateIbcTransferTimeoutHeight(i interface{}) error {
 	}
 	if timeout <= 1 {
 		return fmt.Errorf("invalid ibc transfer timeout too short")
+	}
+	return nil
+}
+
+func validateOracleDelegateMultiple(i interface{}) error {
+	multiple, ok := i.(int64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if multiple <= 0 {
+		return fmt.Errorf("invalid delegate multiple")
 	}
 	return nil
 }

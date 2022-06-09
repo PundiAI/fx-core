@@ -497,6 +497,7 @@ request is > 10%
 | `ibc_transfer_timeout_height` | [uint64](#uint64) |  |  |
 | `oracles` | [string](#string) | repeated |  |
 | `delegate_threshold` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `delegate_multiple` | [int64](#int64) |  |  |
 
 
 

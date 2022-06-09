@@ -23,8 +23,8 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(k crosschainkeeper.Keeper) crosschainkeeper.ProposalMsgServer {
-	return &msgServer{crosschainkeeper.EthereumMsgServer{Keeper: k}}
+func NewMsgServerImpl(keeper Keeper) crosschainkeeper.ProposalMsgServer {
+	return &msgServer{crosschainkeeper.EthereumMsgServer{Keeper: keeper.Keeper}}
 }
 
 // ConfirmBatch handles MsgConfirmBatch
@@ -37,7 +37,7 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// fetch the outgoing batch given the nonce
-	batch := s.GetOutgoingTXBatch(ctx, msg.TokenContract, msg.Nonce)
+	batch := s.GetOutgoingTxBatch(ctx, msg.TokenContract, msg.Nonce)
 	if batch == nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "couldn't find batch")
 	}
@@ -117,7 +117,7 @@ func (s msgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAddr sdk.Ac
 
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, crosschaintypes.ErrNoFoundOracle
+		return nil, sdkerrors.Wrap(crosschaintypes.ErrNoFoundOracle, oracleAddr.String())
 	}
 
 	if oracle.ExternalAddress != signatureAddr {
