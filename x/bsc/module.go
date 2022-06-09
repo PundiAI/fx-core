@@ -6,8 +6,6 @@ import (
 
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
@@ -88,10 +86,11 @@ type AppModule struct {
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper crosschainkeeper.Keeper) AppModule {
+func NewAppModule(keeper crosschainkeeper.Keeper, stakingKeeper crosschainv54.StakingKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
+		stakingKeeper:  stakingKeeper,
 	}
 }
 
@@ -121,7 +120,9 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	m := crosschainkeeper.NewMigrator(am.keeper, am.stakingKeeper)
-	cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis initializes the genesis state for this module and implements app module.
@@ -136,7 +137,7 @@ func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMess
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return fxtypes.CurrentConsensusVersion
+	return 2
 }
 
 // BeginBlock implements app module

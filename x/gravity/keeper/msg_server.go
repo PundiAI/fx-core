@@ -23,7 +23,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (k msgServer) SendToEth(ctx context.Context, msg *types.MsgSendToEth) (*types.MsgSendToEthResponse, error) {
-	_, err := k.ethMsgServer.SendToExternal(ctx, &crosschaintypes.MsgSendToExternal{
+	_, err := k.ethereumMsgServer.SendToExternal(ctx, &crosschaintypes.MsgSendToExternal{
 		Sender:    msg.Sender,
 		Dest:      msg.EthDest,
 		Amount:    msg.Amount,

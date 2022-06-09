@@ -2,8 +2,6 @@ package gravity
 
 import (
 	"encoding/json"
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -77,14 +75,16 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper  keeper.Keeper
+	migrate keeper.Migrator
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, migrate keeper.Migrator) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         k,
+		keeper:         keeper,
+		migrate:        migrate,
 	}
 }
 
@@ -116,6 +116,9 @@ func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	if err := cfg.RegisterMigration(types.ModuleName, 1, am.migrate.Migrate1to2); err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis initializes the genesis state for this module and implements app module.
@@ -130,7 +133,7 @@ func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMess
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return fxtypes.CurrentConsensusVersion
+	return 2
 }
 
 // BeginBlock implements app module

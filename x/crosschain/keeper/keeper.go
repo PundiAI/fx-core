@@ -35,7 +35,7 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, 
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 	// set KeyTable if it has not already been set
-	k := Keeper{
+	return Keeper{
 		moduleName:        moduleName,
 		cdc:               cdc,
 		storeKey:          storeKey,
@@ -45,7 +45,6 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, 
 		ibcChannelKeeper:  channelKeeper,
 		erc20Keeper:       erc20Keeper,
 	}
-	return k
 }
 
 // Logger returns a module-specific logger.

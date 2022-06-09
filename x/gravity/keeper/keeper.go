@@ -10,9 +10,8 @@ import (
 
 // Keeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	ethMsgServer ethereumMsgServer
-
-	paramSpace paramtypes.Subspace
+	ethereumMsgServer ethereumMsgServer
+	paramSpace        paramtypes.Subspace
 }
 
 // NewKeeper returns a new instance of the gravity keeper
@@ -22,12 +21,10 @@ func NewKeeper(paramSpace paramtypes.Subspace, ethMsgServer ethereumMsgServer) K
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 
-	k := Keeper{
-		ethMsgServer: ethMsgServer,
-		paramSpace:   paramSpace,
+	return Keeper{
+		ethereumMsgServer: ethMsgServer,
+		paramSpace:        paramSpace,
 	}
-
-	return k
 }
 
 // Logger returns a module-specific logger.

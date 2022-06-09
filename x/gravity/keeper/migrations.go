@@ -21,16 +21,16 @@ type Migrator struct {
 
 // NewMigrator returns a new Migrator.
 func NewMigrator(cdc codec.BinaryCodec, keeper Keeper, sk v045.StakingKeeper, ak v045.AccountKeeper, bk v045.BankKeeper,
-	gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey, ethKeeper v045.EthKeeper) Migrator {
+	ethKeeper v045.EthKeeper, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey) Migrator {
 	return Migrator{
 		keeper:          keeper,
 		cdc:             cdc,
 		sk:              sk,
 		ak:              ak,
 		bk:              bk,
+		ethKeeper:       ethKeeper,
 		gravityStoreKey: gravityStoreKey,
 		ethStoreKey:     ethStoreKey,
-		ethKeeper:       ethKeeper,
 	}
 }
 

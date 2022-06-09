@@ -560,6 +560,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 
+	gravityMigrate := gravitykeeper.NewMigrator(myApp.appCodec, myApp.GravityKeeper, myApp.StakingKeeper, myApp.AccountKeeper,
+		myApp.BankKeeper, myApp.EthKeeper, keys[gravitytypes.ModuleName], keys[ethtypes.ModuleName])
+
 	myApp.mm = module.NewManager(
 		genutil.NewAppModule(
 			myApp.AccountKeeper, myApp.StakingKeeper, myApp.BaseApp.DeliverTx, encodingConfig.TxConfig,
@@ -583,12 +586,12 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		// this line is used by starport scaffolding # stargate/myApp/appModule
 		other.NewAppModule(appCodec),
 		// cross chain modules
-		gravity.NewAppModule(myApp.GravityKeeper),
+		gravity.NewAppModule(myApp.GravityKeeper, gravityMigrate),
 		crosschain.NewAppModuleByRouter(myApp.CrosschainKeeper),
 		eth.NewAppModule(myApp.EthKeeper.Keeper),
-		bsc.NewAppModule(myApp.BscKeeper),
-		polygon.NewAppModule(myApp.PolygonKeeper),
-		tron.NewAppModule(myApp.TronKeeper.Keeper),
+		bsc.NewAppModule(myApp.BscKeeper, myApp.StakingKeeper),
+		polygon.NewAppModule(myApp.PolygonKeeper, myApp.StakingKeeper),
+		tron.NewAppModule(myApp.TronKeeper.Keeper, myApp.StakingKeeper),
 		// Ethermint app modules
 		evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		feemarket.NewAppModule(myApp.FeeMarketKeeper),
