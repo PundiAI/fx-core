@@ -24,7 +24,7 @@ import (
 )
 
 func TestUpdateOracleProposal(t *testing.T) {
-	minDepositAmount = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
+	minStakeAmount = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
 	// get test env
 	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h, gh := createProposalTestEnv(t)
 	var err error
@@ -33,7 +33,7 @@ func TestUpdateOracleProposal(t *testing.T) {
 		Oracle:          oracleAddressList[0].String(),
 		Orchestrator:    orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+		StakeAmount:     sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, normalMsg)
@@ -86,9 +86,9 @@ func createProposalTestEnv(t *testing.T) (myApp *app.App, ctx sdk.Context, oracl
 	myApp = helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{})
 	ctx = ctx.WithBlockHeight(2000000)
-	oracleAddressList = helpers.AddTestAddrsIncremental(myApp, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
-	orchestratorAddressList = helpers.AddTestAddrs(myApp, ctx, GenerateAccountNum, sdk.ZeroInt())
-	ethKeys = genEthKey(GenerateAccountNum)
+	oracleAddressList = helpers.AddTestAddrsIncremental(myApp, ctx, generateAccountNum, minStakeAmount.Mul(sdk.NewInt(1000)))
+	orchestratorAddressList = helpers.AddTestAddrs(myApp, ctx, generateAccountNum, sdk.ZeroInt())
+	ethKeys = genEthKey(generateAccountNum)
 	// chain module oracle list
 	var oracles []string
 	for _, account := range oracleAddressList {

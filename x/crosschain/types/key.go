@@ -21,8 +21,8 @@ const (
 )
 
 var (
-	// OracleTotalDepositKey
-	OracleTotalDepositKey = []byte{0x11}
+	// OracleTotalStakeKey
+	OracleTotalStakeKey = []byte{0x11}
 
 	// OracleKey key oracle address -> Oracle
 	OracleKey = []byte{0x12}
@@ -161,7 +161,7 @@ func GetOutgoingTxPoolContractPrefix(tokenContract string) []byte {
 }
 
 // GetOutgoingTxPoolKey returns the following key format
-func GetOutgoingTxPoolKey(fee ExternalToken, id uint64) []byte {
+func GetOutgoingTxPoolKey(fee ERC20Token, id uint64) []byte {
 	amount := make([]byte, 32)
 	amount = fee.Amount.BigInt().FillBytes(amount)
 	return append(OutgoingTxPoolKey, append([]byte(fee.Contract), append(amount, sdk.Uint64ToBigEndian(id)...)...)...)

@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -43,10 +44,11 @@ var (
 	// ParamStoreIbcTransferTimeoutHeight gravity and ibc transfer timeout height
 	ParamStoreIbcTransferTimeoutHeight = []byte("IbcTransferTimeoutHeight")
 
-	// ParamStoreOracles module owner.
+	// ParamStoreOracles stores the module oracles.
 	ParamStoreOracles = []byte("Oracles")
 
-	ParamOracleDepositThreshold = []byte("OracleDepositThreshold")
+	// ParamOracleStakeThreshold stores the oracle stake threshold
+	ParamOracleStakeThreshold = []byte("OracleStakeThreshold")
 )
 
 var (
@@ -60,7 +62,7 @@ func (m Params) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "gravity id")
 	}
 	if err := validateAverageBlockTime(m.AverageBlockTime); err != nil {
-		return sdkerrors.Wrap(err, "block time")
+		return sdkerrors.Wrap(err, "average block time")
 	}
 	if err := validateExternalBatchTimeout(m.ExternalBatchTimeout); err != nil {
 		return sdkerrors.Wrap(err, "external batch timeout")
@@ -83,8 +85,8 @@ func (m Params) ValidateBasic() error {
 	if err := validateOracles(m.Oracles); err != nil {
 		return sdkerrors.Wrap(err, "oracles")
 	}
-	if err := validateOracleDepositThreshold(m.DepositThreshold); err != nil {
-		return sdkerrors.Wrap(err, "oracle deposit threshold")
+	if err := validateOracleStakeThreshold(m.DelegateThreshold); err != nil {
+		return sdkerrors.Wrap(err, "oracle delegate threshold")
 	}
 	return nil
 }
@@ -107,7 +109,7 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamStoreOracleSetUpdatePowerChangePercent, &m.OracleSetUpdatePowerChangePercent, validateOracleSetUpdatePowerChangePercent),
 		paramtypes.NewParamSetPair(ParamStoreIbcTransferTimeoutHeight, &m.IbcTransferTimeoutHeight, validateIbcTransferTimeoutHeight),
 		paramtypes.NewParamSetPair(ParamStoreOracles, &m.Oracles, validateOracles),
-		paramtypes.NewParamSetPair(ParamOracleDepositThreshold, &m.DepositThreshold, validateOracleDepositThreshold),
+		paramtypes.NewParamSetPair(ParamOracleStakeThreshold, &m.DelegateThreshold, validateOracleStakeThreshold),
 	}
 }
 
@@ -176,12 +178,15 @@ func validateSignedWindow(i interface{}) error {
 	return nil
 }
 
-func validateOracleDepositThreshold(i interface{}) error {
+func validateOracleStakeThreshold(i interface{}) error {
 	c, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	} else if !c.IsValid() || !c.IsPositive() {
-		return fmt.Errorf("invalid deposit threshold")
+		return fmt.Errorf("invalid stake threshold")
+	}
+	if c.Denom != fxtypes.DefaultDenom {
+		return fmt.Errorf("")
 	}
 	return nil
 }

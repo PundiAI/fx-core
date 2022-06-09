@@ -25,26 +25,24 @@ import (
 )
 
 var (
-	minDepositAmount   = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))
-	GenerateAccountNum = 4
+	minStakeAmount = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))
 )
 
 const (
-	chainName      = "bsc"
-	depositToken   = "FX"
-	chainGravityId = "bsc"
+	chainName      = "xxx"
+	chainGravityId = "local-test-xxx"
 )
 
-// 1. Test MsgSetOrchestratorAddress
+// 1. Test MsgCreateOracleBridger
 func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 	// get test env
-	_, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	_, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 4)
 	// 1. sender not in chain oracle
-	notOracleMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          orchestratorAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	notOracleMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   orchestratorAddressList[0].String(),
+		BridgeAddress:   orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: sdk.NewInt(100000)},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
 		ChainName:       chainName,
 	}
 	var err error
@@ -52,47 +50,47 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 	require.ErrorIs(t, types.ErrNotOracle, err)
 	require.EqualValues(t, types.ErrNotOracle.Error(), err.Error())
 
-	// 2. deposit denom not match chain params deposit denom
-	notMatchDepositDenomMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	// 2. stake denom not match chain params stake denom
+	notMatchStakeDenomMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[0].String(),
+		BridgerAddress:  orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: "abctoken", Amount: sdk.NewInt(100000)},
+		DelegateAmount:  sdk.Coin{Denom: "abctoken", Amount: sdk.NewInt(100000)},
 		ChainName:       chainName,
 	}
-	_, err = h(ctx, notMatchDepositDenomMsg)
-	require.ErrorIs(t, err, types.ErrBadDepositDenom)
-	require.EqualValues(t, fmt.Sprintf("got %s, expected %s: %s", notMatchDepositDenomMsg.Deposit.Denom, depositToken, types.ErrBadDepositDenom), err.Error())
+	_, err = h(ctx, notMatchStakeDenomMsg)
+	require.ErrorIs(t, err, types.ErrBadStakeDenom)
+	require.EqualValues(t, fmt.Sprintf("got %s, expected %s: %s", notMatchStakeDenomMsg.DelegateAmount.Denom, fxtypes.DefaultDenom, types.ErrBadStakeDenom), err.Error())
 
-	// 3. insufficient deposit amount msg.
-	belowMinimumDepositAmountMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	// 3. insufficient stake amount msg.
+	belowMinimumStakeAmountMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[0].String(),
+		BridgerAddress:  orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: sdk.NewInt(100000)},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
 		ChainName:       chainName,
 	}
-	_, err = h(ctx, belowMinimumDepositAmountMsg)
-	require.ErrorIs(t, types.ErrDepositAmountBelowMinimum, err)
-	require.EqualValues(t, types.ErrDepositAmountBelowMinimum.Error(), err.Error())
+	_, err = h(ctx, belowMinimumStakeAmountMsg)
+	require.ErrorIs(t, types.ErrStakeAmountBelowMinimum, err)
+	require.EqualValues(t, types.ErrStakeAmountBelowMinimum.Error(), err.Error())
 
 	// 4. success msg
-	normalMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	normalMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[0].String(),
+		BridgerAddress:  orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, normalMsg)
 	require.NoError(t, err)
 
 	// 5. oracle duplicate set orchestrator
-	oracleDuplicateSetOrchestratorMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	oracleDuplicateSetOrchestratorMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[0].String(),
+		BridgerAddress:  orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: sdk.NewInt(100000)},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, oracleDuplicateSetOrchestratorMsg)
@@ -100,11 +98,11 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 	require.EqualValues(t, fmt.Sprintf("oracle existed orchestrator address: %s", types.ErrInvalid.Error()), err.Error())
 
 	// 6. Set the same orchestrator address for different Oracle databases
-	duplicateSetOrchestratorMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[1].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	duplicateSetOrchestratorMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[1].String(),
+		BridgerAddress:  orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: sdk.NewInt(100000)},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, duplicateSetOrchestratorMsg)
@@ -112,11 +110,11 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 	require.EqualValues(t, fmt.Sprintf("orchestrator address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
 
 	// 7. Set the same external address for different Oracle databases
-	duplicateSetExternalAddressMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[1].String(),
-		Orchestrator:    orchestratorAddressList[1].String(),
+	duplicateSetExternalAddressMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[1].String(),
+		BridgerAddress:  orchestratorAddressList[1].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: sdk.NewInt(100000)},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, duplicateSetExternalAddressMsg)
@@ -124,72 +122,72 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 	require.EqualValues(t, fmt.Sprintf("external address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
 
 	// 8. Margin is not allowed to be submitted more than ten times the threshold
-	depositAmountBelowMaximumMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[1].String(),
-		Orchestrator:    orchestratorAddressList[1].String(),
+	depositAmountBelowMaximumMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[1].String(),
+		BridgerAddress:  orchestratorAddressList[1].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[1].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount.Mul(sdk.NewInt(10).Add(sdk.NewInt(1)))},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount.Mul(sdk.NewInt(10).Add(sdk.NewInt(1)))},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, depositAmountBelowMaximumMsg)
-	require.ErrorIs(t, types.ErrDepositAmountBelowMaximum, err)
-	require.EqualValues(t, types.ErrDepositAmountBelowMaximum.Error(), err.Error())
+	require.ErrorIs(t, types.ErrStakeAmountBelowMaximum, err)
+	require.EqualValues(t, types.ErrStakeAmountBelowMaximum.Error(), err.Error())
 
 	// 9. success msg
-	normalMsgOracle2 := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[1].String(),
-		Orchestrator:    orchestratorAddressList[1].String(),
+	normalMsgOracle2 := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[1].String(),
+		BridgerAddress:  orchestratorAddressList[1].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[1].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, normalMsgOracle2)
 	require.NoError(t, err)
 }
 
-// 2. Test MsgAddOracleDeposit
-func TestMsgAddOracleDeposit(t *testing.T) {
+// 2. Test MsgAddOracleStake
+func TestMsgAddOracleStake(t *testing.T) {
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 4)
 	keep := myApp.BscKeeper
 	var err error
 
 	// Query the status before the configuration
-	totalDepositBefore := keep.GetTotalDeposit(ctx)
-	require.EqualValues(t, sdk.NewCoin(depositToken, sdk.ZeroInt()), totalDepositBefore)
+	totalStakeBefore := keep.GetTotalStake(ctx)
+	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
 
 	// 1. First sets up a valid validator
-	normalMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	normalMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[0].String(),
+		BridgerAddress:  orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, normalMsg)
 	require.NoError(t, err)
 
-	// Query the totalDeposit after the address is set
-	totalDepositAfter := keep.GetTotalDeposit(ctx)
-	require.True(t, normalMsg.Deposit.IsEqual(totalDepositAfter))
+	// Query the totalStake after the address is set
+	totalStakeAfter := keep.GetTotalStake(ctx)
+	require.True(t, normalMsg.DelegateAmount.IsEqual(totalStakeAfter))
 
-	denomNotMatchMsg := &types.MsgAddOracleDeposit{
-		Oracle: oracleAddressList[0].String(),
+	denomNotMatchMsg := &types.MsgAddOracleStake{
+		OracleAddress: oracleAddressList[0].String(),
 		Amount: sdk.Coin{
 			Denom:  "abc",
-			Amount: minDepositAmount,
+			Amount: minStakeAmount,
 		},
 		ChainName: chainName,
 	}
 	_, err = h(ctx, denomNotMatchMsg)
-	require.ErrorIs(t, err, types.ErrBadDepositDenom)
-	require.EqualValues(t, fmt.Sprintf("got %s, expected %s: %s", denomNotMatchMsg.Amount.Denom, depositToken, types.ErrBadDepositDenom), err.Error())
+	require.ErrorIs(t, err, types.ErrBadStakeDenom)
+	require.EqualValues(t, fmt.Sprintf("got %s, expected %s: %s", denomNotMatchMsg.Amount.Denom, fxtypes.DefaultDenom, types.ErrBadStakeDenom), err.Error())
 
-	notOracleMsg := &types.MsgAddOracleDeposit{
-		Oracle: orchestratorAddressList[0].String(),
+	notOracleMsg := &types.MsgAddOracleStake{
+		OracleAddress: orchestratorAddressList[0].String(),
 		Amount: sdk.Coin{
-			Denom:  depositToken,
-			Amount: minDepositAmount,
+			Denom:  fxtypes.DefaultDenom,
+			Amount: minStakeAmount,
 		},
 		ChainName: chainName,
 	}
@@ -197,11 +195,11 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 	require.ErrorIs(t, types.ErrNotOracle, err)
 	require.EqualValues(t, types.ErrNotOracle.Error(), err.Error())
 
-	notSetOrchestratorOracleMsg := &types.MsgAddOracleDeposit{
-		Oracle: oracleAddressList[1].String(),
+	notSetOrchestratorOracleMsg := &types.MsgAddOracleStake{
+		OracleAddress: oracleAddressList[1].String(),
 		Amount: sdk.Coin{
-			Denom:  depositToken,
-			Amount: minDepositAmount,
+			Denom:  fxtypes.DefaultDenom,
+			Amount: minStakeAmount,
 		},
 		ChainName: chainName,
 	}
@@ -209,42 +207,42 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 	require.ErrorIs(t, types.ErrNoOracleFound, err)
 	require.EqualValues(t, types.ErrNoOracleFound.Error(), err.Error())
 
-	depositAmountBelowMaximumMsg := &types.MsgAddOracleDeposit{
-		Oracle:    oracleAddressList[0].String(),
-		Amount:    sdk.Coin{Denom: depositToken, Amount: minDepositAmount.Mul(sdk.NewInt(9)).Add(sdk.NewInt(1))},
-		ChainName: chainName,
+	depositAmountBelowMaximumMsg := &types.MsgAddOracleStake{
+		OracleAddress: oracleAddressList[0].String(),
+		Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount.Mul(sdk.NewInt(9)).Add(sdk.NewInt(1))},
+		ChainName:     chainName,
 	}
 	_, err = h(ctx, depositAmountBelowMaximumMsg)
-	require.ErrorIs(t, types.ErrDepositAmountBelowMaximum, err)
-	require.EqualValues(t, types.ErrDepositAmountBelowMaximum.Error(), err.Error())
+	require.ErrorIs(t, types.ErrStakeAmountBelowMaximum, err)
+	require.EqualValues(t, types.ErrStakeAmountBelowMaximum.Error(), err.Error())
 
-	normalAddDepositMsg := &types.MsgAddOracleDeposit{
-		Oracle:    oracleAddressList[0].String(),
-		Amount:    sdk.NewCoin(depositToken, minDepositAmount),
-		ChainName: chainName,
+	normalAddStakeMsg := &types.MsgAddOracleStake{
+		OracleAddress: oracleAddressList[0].String(),
+		Amount:        sdk.NewCoin(fxtypes.DefaultDenom, minStakeAmount),
+		ChainName:     chainName,
 	}
 
-	addDeposit1Before := keep.GetTotalDeposit(ctx)
-	_, err = h(ctx, normalAddDepositMsg)
+	addStake1Before := keep.GetTotalStake(ctx)
+	_, err = h(ctx, normalAddStakeMsg)
 	require.NoError(t, err)
-	addDeposit1After := keep.GetTotalDeposit(ctx)
-	require.True(t, addDeposit1Before.Add(normalAddDepositMsg.Amount).IsEqual(addDeposit1After))
+	addStake1After := keep.GetTotalStake(ctx)
+	require.True(t, addStake1Before.Add(normalAddStakeMsg.Amount).IsEqual(addStake1After))
 }
 
 func TestMsgSetOracleSetConfirm(t *testing.T) {
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 4)
 	keep := myApp.BscKeeper
 	var err error
 
-	totalDepositBefore := keep.GetTotalDeposit(ctx)
-	require.EqualValues(t, sdk.NewCoin(depositToken, sdk.ZeroInt()), totalDepositBefore)
+	totalStakeBefore := keep.GetTotalStake(ctx)
+	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
 
-	normalMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	normalMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[0].String(),
+		BridgerAddress:  orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, normalMsg)
@@ -355,18 +353,18 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 }
 
 func TestClaimWithOracleJailed(t *testing.T) {
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 10)
 	keeper := myApp.BscKeeper
 	var err error
 
-	totalDepositBefore := keeper.GetTotalDeposit(ctx)
-	require.EqualValues(t, sdk.NewCoin(depositToken, sdk.ZeroInt()), totalDepositBefore)
+	totalStakeBefore := keeper.GetTotalStake(ctx)
+	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
 
-	normalMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	normalMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[0].String(),
+		BridgerAddress:  orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, normalMsg)
@@ -409,14 +407,14 @@ func TestClaimWithOracleJailed(t *testing.T) {
 
 func TestClaimTest(t *testing.T) {
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 10)
 	var err error
 
-	normalMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	normalMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[0].String(),
+		BridgerAddress:  orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, normalMsg)
@@ -434,15 +432,15 @@ func TestClaimTest(t *testing.T) {
 		{
 			name: "error oracleSet nonce: 2",
 			msg: &types.MsgBridgeTokenClaim{
-				EventNonce:    2,
-				BlockHeight:   1,
-				TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:          "Pundix Token Purse",
-				Symbol:        "PURSE",
-				Decimals:      18,
-				Orchestrator:  orchestratorAddressList[0].String(),
-				ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:     chainName,
+				EventNonce:     2,
+				BlockHeight:    1,
+				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+				Name:           "Pundix Token Purse",
+				Symbol:         "PURSE",
+				Decimals:       18,
+				BridgerAddress: orchestratorAddressList[0].String(),
+				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+				ChainName:      chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
 			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 2, 1, types.ErrNonContiguousEventNonce),
@@ -450,15 +448,15 @@ func TestClaimTest(t *testing.T) {
 		{
 			name: "error oracleSet nonce: 3",
 			msg: &types.MsgBridgeTokenClaim{
-				EventNonce:    3,
-				BlockHeight:   1,
-				TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:          "Pundix Token Purse",
-				Symbol:        "PURSE",
-				Decimals:      18,
-				Orchestrator:  orchestratorAddressList[0].String(),
-				ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:     chainName,
+				EventNonce:     3,
+				BlockHeight:    1,
+				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+				Name:           "Pundix Token Purse",
+				Symbol:         "PURSE",
+				Decimals:       18,
+				BridgerAddress: orchestratorAddressList[0].String(),
+				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+				ChainName:      chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
 			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 3, 1, types.ErrNonContiguousEventNonce),
@@ -466,15 +464,15 @@ func TestClaimTest(t *testing.T) {
 		{
 			name: "Normal claim msg: 1",
 			msg: &types.MsgBridgeTokenClaim{
-				EventNonce:    1,
-				BlockHeight:   1,
-				TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:          "Pundix Token Purse",
-				Symbol:        "PURSE",
-				Decimals:      18,
-				Orchestrator:  orchestratorAddressList[0].String(),
-				ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:     chainName,
+				EventNonce:     1,
+				BlockHeight:    1,
+				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+				Name:           "Pundix Token Purse",
+				Symbol:         "PURSE",
+				Decimals:       18,
+				BridgerAddress: orchestratorAddressList[0].String(),
+				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+				ChainName:      chainName,
 			},
 			err:       nil,
 			errReason: "",
@@ -482,15 +480,15 @@ func TestClaimTest(t *testing.T) {
 		{
 			name: "error oracleSet nonce: 1",
 			msg: &types.MsgBridgeTokenClaim{
-				EventNonce:    1,
-				BlockHeight:   2,
-				TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:          "Pundix Token Purse",
-				Symbol:        "PURSE",
-				Decimals:      18,
-				Orchestrator:  orchestratorAddressList[0].String(),
-				ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:     chainName,
+				EventNonce:     1,
+				BlockHeight:    2,
+				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+				Name:           "Pundix Token Purse",
+				Symbol:         "PURSE",
+				Decimals:       18,
+				BridgerAddress: orchestratorAddressList[0].String(),
+				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+				ChainName:      chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
 			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 1, 2, types.ErrNonContiguousEventNonce),
@@ -498,15 +496,15 @@ func TestClaimTest(t *testing.T) {
 		{
 			name: "error oracleSet nonce: 3",
 			msg: &types.MsgBridgeTokenClaim{
-				EventNonce:    3,
-				BlockHeight:   2,
-				TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:          "Pundix Token Purse",
-				Symbol:        "PURSE",
-				Decimals:      18,
-				Orchestrator:  orchestratorAddressList[0].String(),
-				ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:     chainName,
+				EventNonce:     3,
+				BlockHeight:    2,
+				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+				Name:           "Pundix Token Purse",
+				Symbol:         "PURSE",
+				Decimals:       18,
+				BridgerAddress: orchestratorAddressList[0].String(),
+				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+				ChainName:      chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
 			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 3, 2, types.ErrNonContiguousEventNonce),
@@ -528,13 +526,13 @@ func TestClaimTest(t *testing.T) {
 func TestSupportRequestBatchBaseFee(t *testing.T) {
 	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 10)
 	keep := myApp.BscKeeper
 	var err error
 
 	// Query the status before the configuration
-	totalDepositBefore := keep.GetTotalDeposit(ctx)
-	require.EqualValues(t, sdk.NewCoin(depositToken, sdk.ZeroInt()), totalDepositBefore)
+	totalStakeBefore := keep.GetTotalStake(ctx)
+	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
 
 	endBlock := func() {
 		//ctx = ctx.WithBlockHeight(fxtypes.CrossChainSupportBscBlock() + 1)
@@ -543,11 +541,11 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 
 	// 1. First sets up a valid validator
 	for i, oracle := range oracleAddressList {
-		normalMsg := &types.MsgSetOrchestratorAddress{
-			Oracle:          oracle.String(),
-			Orchestrator:    orchestratorAddressList[i].String(),
+		normalMsg := &types.MsgCreateOracleBridger{
+			OracleAddress:   oracle.String(),
+			BridgeAddress:   orchestratorAddressList[i].String(),
 			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
-			Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+			DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 			ChainName:       chainName,
 		}
 		_, err = h(ctx, normalMsg)
@@ -571,7 +569,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 			BlockHeight:    1,
 			OracleSetNonce: 1,
 			Members:        externalOracleMembers,
-			Orchestrator:   orchestratorAddressList[i].String(),
+			BridgerAddress: orchestratorAddressList[i].String(),
 			ChainName:      chainName,
 		}
 		_, err = h(ctx, normalMsg)
@@ -588,15 +586,15 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 
 	for i, oracle := range oracleAddressList {
 		normalMsg := &types.MsgBridgeTokenClaim{
-			EventNonce:    keep.GetLastEventNonceByOracle(ctx, oracle) + 1,
-			BlockHeight:   1,
-			TokenContract: sendToFxToken,
-			Name:          "BSC USDT",
-			Symbol:        "USDT",
-			Decimals:      18,
-			Orchestrator:  orchestratorAddressList[i].String(),
-			ChannelIbc:    "",
-			ChainName:     chainName,
+			EventNonce:     keep.GetLastEventNonceByOracle(ctx, oracle) + 1,
+			BlockHeight:    1,
+			TokenContract:  sendToFxToken,
+			Name:           "BSC USDT",
+			Symbol:         "USDT",
+			Decimals:       18,
+			BridgerAddress: orchestratorAddressList[i].String(),
+			ChannelIbc:     "",
+			ChainName:      chainName,
 		}
 		_, err = h(ctx, normalMsg)
 		require.NoError(t, err)
@@ -615,15 +613,15 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	// 4. sendToFx.
 	for i, oracle := range oracleAddressList {
 		normalMsg := &types.MsgSendToFxClaim{
-			EventNonce:    keep.GetLastEventNonceByOracle(ctx, oracle) + 1,
-			BlockHeight:   1,
-			TokenContract: sendToFxToken,
-			Amount:        sendToFxAmount,
-			Sender:        sendToFxSendAddr,
-			Receiver:      sendToFxReceiveAddr.String(),
-			TargetIbc:     "",
-			Orchestrator:  orchestratorAddressList[i].String(),
-			ChainName:     chainName,
+			EventNonce:     keep.GetLastEventNonceByOracle(ctx, oracle) + 1,
+			BlockHeight:    1,
+			TokenContract:  sendToFxToken,
+			Amount:         sendToFxAmount,
+			Sender:         sendToFxSendAddr,
+			Receiver:       sendToFxReceiveAddr.String(),
+			TargetIbc:      "",
+			BridgerAddress: orchestratorAddressList[i].String(),
+			ChainName:      chainName,
 		}
 		_, err = h(ctx, normalMsg)
 		require.NoError(t, err)
@@ -651,7 +649,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	}
 
 	sendToExternal([]sdk.Int{sdk.NewInt(1), sdk.NewInt(2), sdk.NewInt(3)})
-	usdtBatchFee := keep.GetBatchFeeByTokenType(ctx, sendToFxToken, 100, sdk.NewInt(0))
+	usdtBatchFee := keep.GetBatchFeesByTokenType(ctx, sendToFxToken, 100, sdk.NewInt(0))
 	require.EqualValues(t, sendToFxToken, usdtBatchFee.TokenContract)
 	require.EqualValues(t, 3, usdtBatchFee.TotalTxs)
 	require.EqualValues(t, sdk.NewInt(6), usdtBatchFee.TotalFees)
@@ -703,7 +701,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 			})
 			if testCase.pass {
 				require.NoError(t, err)
-				usdtBatchFee = keep.GetBatchFeeByTokenType(cacheCtx, sendToFxToken, 100, sdk.NewInt(0))
+				usdtBatchFee = keep.GetBatchFeesByTokenType(cacheCtx, sendToFxToken, 100, sdk.NewInt(0))
 				require.EqualValues(t, testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
 				return
 			}
@@ -715,16 +713,16 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	}
 }
 
-func createTestEnv(t *testing.T) (myApp *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {
+func createTestEnv(t *testing.T, generateAccountNum int) (myApp *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {
 	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	myApp = helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{Height: 1})
-	oracleAddressList = helpers.AddTestAddrsIncremental(myApp, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
-	orchestratorAddressList = helpers.AddTestAddrs(myApp, ctx, GenerateAccountNum, sdk.ZeroInt())
-	ethKeys = genEthKey(GenerateAccountNum)
+	oracleAddressList = helpers.AddTestAddrsIncremental(myApp, ctx, generateAccountNum, minStakeAmount.Mul(sdk.NewInt(1000)))
+	orchestratorAddressList = helpers.AddTestAddrs(myApp, ctx, generateAccountNum, sdk.ZeroInt())
+	ethKeys = genEthKey(generateAccountNum)
 	// chain module oracle list
 	var oracles []string
 	for _, account := range oracleAddressList {
@@ -762,7 +760,7 @@ func defaultModuleParams(oracles []string) *types.Params {
 		IbcTransferTimeoutHeight:          10000,
 		OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
 		Oracles:                           oracles,
-		DepositThreshold:                  sdk.NewCoin(depositToken, minDepositAmount),
+		StakeThreshold:                    sdk.NewCoin(fxtypes.DefaultDenom, minStakeAmount),
 	}
 }
 

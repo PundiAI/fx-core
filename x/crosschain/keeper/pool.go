@@ -43,7 +43,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	nextTxID := k.autoIncrementID(ctx, types.KeyLastTXPoolID)
 
 	tokenContract := bridgeToken.Token
-	bridgeTokenFee := types.NewExternalTokenBySdkInt(fee.Amount, tokenContract)
+	bridgeTokenFee := types.NewERC20Token(fee.Amount, tokenContract)
 
 	// construct outgoing tx, as part of this process we represent
 	// the token as an ERC20 token since it is preparing to go to ETH
@@ -52,7 +52,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		Id:          nextTxID,
 		Sender:      sender.String(),
 		DestAddress: receiver,
-		Token:       types.NewExternalTokenBySdkInt(amount.Amount, tokenContract),
+		Token:       types.NewERC20Token(amount.Amount, tokenContract),
 		Fee:         bridgeTokenFee,
 	}
 
@@ -100,12 +100,12 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	}
 
 	// delete this tx from the pool
-	err = k.removeUnbatchedTX(ctx, *tx.Fee, txId)
+	err = k.removeUnbatchedTX(ctx, tx.Fee, txId)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
 	}
 	// Make sure the tx was removed
-	oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, *tx.Fee, tx.Id)
+	oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, tx.Fee, tx.Id)
 	if oldTx != nil || oldTxErr == nil {
 		return sdkerrors.Wrapf(types.ErrInvalid, "tx with id %d was not fully removed from the pool, a duplicate must exist", txId)
 	}
@@ -141,7 +141,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 // WARNING: Do not make this function public
 func (k Keeper) addUnbatchedTX(ctx sdk.Context, val *types.OutgoingTransferTx) error {
 	store := ctx.KVStore(k.storeKey)
-	idxKey := types.GetOutgoingTxPoolKey(*val.Fee, val.Id)
+	idxKey := types.GetOutgoingTxPoolKey(val.Fee, val.Id)
 	if store.Has(idxKey) {
 		return sdkerrors.Wrap(types.ErrDuplicate, "transaction already in pool")
 	}
@@ -157,7 +157,7 @@ func (k Keeper) addUnbatchedTX(ctx sdk.Context, val *types.OutgoingTransferTx) e
 
 // removeUnbatchedTXIndex removes the tx from the pool
 // WARNING: Do not make this function public
-func (k Keeper) removeUnbatchedTX(ctx sdk.Context, fee types.ExternalToken, txID uint64) error {
+func (k Keeper) removeUnbatchedTX(ctx sdk.Context, fee types.ERC20Token, txID uint64) error {
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingTxPoolKey(fee, txID)
 	if !store.Has(idxKey) {
@@ -168,7 +168,7 @@ func (k Keeper) removeUnbatchedTX(ctx sdk.Context, fee types.ExternalToken, txID
 }
 
 // GetUnbatchedTxByFeeAndId grabs a tx from the pool given its fee and txID
-func (k Keeper) GetUnbatchedTxByFeeAndId(ctx sdk.Context, fee types.ExternalToken, txID uint64) (*types.OutgoingTransferTx, error) {
+func (k Keeper) GetUnbatchedTxByFeeAndId(ctx sdk.Context, fee types.ERC20Token, txID uint64) (*types.OutgoingTransferTx, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetOutgoingTxPoolKey(fee, txID))
 	if bz == nil {
@@ -239,29 +239,27 @@ func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, prefixKey []byte, 
 	}
 }
 
-// GetBatchFeeByTokenType gets the fee the next batch of a given token type would
+// GetBatchFeesByTokenType gets the fee the next batch of a given token type would
 // have if created right now. This info is both presented to relayers for the purpose of determining
 // when to request batches and also used by the batch creation process to decide not to create
 // a new batch (fees must be increasing)
-func (k Keeper) GetBatchFeeByTokenType(ctx sdk.Context, tokenContractAddr string, maxElements uint, baseFee sdk.Int) *types.BatchFees {
-	batchFee := types.BatchFees{TokenContract: tokenContractAddr, TotalFees: sdk.NewInt(0)}
-	txCount := 0
+func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContractAddr string, maxElements uint, baseFee sdk.Int) *types.BatchFees {
+	batchFee := &types.BatchFees{TokenContract: tokenContractAddr, TotalFees: sdk.NewInt(0), TotalAmount: sdk.NewInt(0)}
 
 	k.IterateUnbatchedTransactions(ctx, types.GetOutgoingTxPoolContractPrefix(tokenContractAddr), func(_ []byte, tx *types.OutgoingTransferTx) bool {
-		fee := tx.Fee
-		if fee.Contract != tokenContractAddr {
-			panic(fmt.Errorf("unexpected fee contract %s when getting batch fees for contract %s", fee.Contract, tokenContractAddr))
+		if tx.Fee.Contract != tokenContractAddr {
+			panic(fmt.Errorf("unexpected fee contract %s when getting batch fees for contract %s", tx.Fee.Contract, tokenContractAddr))
 		}
-		if fee.Amount.LT(baseFee) {
+		if tx.Fee.Amount.LT(baseFee) {
 			// sort by fee and use ReverseIterator, so the fee behind is less than base fee
 			return true
 		}
-		batchFee.TotalFees = batchFee.TotalFees.Add(fee.Amount)
-		txCount += 1
-		return txCount == int(maxElements)
+		batchFee.TotalFees = batchFee.TotalFees.Add(tx.Fee.Amount)
+		batchFee.TotalAmount = batchFee.TotalAmount.Add(tx.Token.Amount)
+		batchFee.TotalTxs += 1
+		return batchFee.TotalTxs == uint64(maxElements)
 	})
-	batchFee.TotalTxs = uint64(txCount)
-	return &batchFee
+	return batchFee
 }
 
 // GetAllBatchFees creates a fee entry for every batch type currently in the store
@@ -308,7 +306,7 @@ func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees 
 }
 
 // Helper method for creating batch fees
-func addFeeToMap(amt, fee *types.ExternalToken, batchFeesMap map[string]*types.BatchFees, txCountMap map[string]int) {
+func addFeeToMap(amt, fee types.ERC20Token, batchFeesMap map[string]*types.BatchFees, txCountMap map[string]int) {
 	txCountMap[fee.Contract] = txCountMap[fee.Contract] + 1
 
 	// add fee amount

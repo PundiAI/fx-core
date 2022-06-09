@@ -3,6 +3,7 @@ package crosschain_test
 import (
 	"encoding/hex"
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,18 +20,18 @@ import (
 func TestABCIEndBlockDepositClaim(t *testing.T) {
 	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 4)
 	keep := myApp.BscKeeper
 	var err error
 
-	totalDepositBefore := keep.GetTotalDeposit(ctx)
-	require.EqualValues(t, sdk.NewCoin(depositToken, sdk.ZeroInt()), totalDepositBefore)
+	totalDepositBefore := keep.GetTotalStake(ctx)
+	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalDepositBefore)
 
-	normalMsg := &types.MsgSetOrchestratorAddress{
-		Oracle:          oracleAddressList[0].String(),
-		Orchestrator:    orchestratorAddressList[0].String(),
+	normalMsg := &types.MsgCreateOracleBridger{
+		OracleAddress:   oracleAddressList[0].String(),
+		BridgeAddress:   orchestratorAddressList[0].String(),
 		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, normalMsg)
@@ -41,15 +42,15 @@ func TestABCIEndBlockDepositClaim(t *testing.T) {
 	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
-		EventNonce:    1,
-		BlockHeight:   1000,
-		TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-		Name:          "Pundix Reward Token",
-		Symbol:        "PURES",
-		Decimals:      18,
-		Orchestrator:  orchestratorAddressList[0].String(),
-		ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-		ChainName:     chainName,
+		EventNonce:     1,
+		BlockHeight:    1000,
+		TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+		Name:           "Pundix Reward Token",
+		Symbol:         "PURES",
+		Decimals:       18,
+		BridgerAddress: orchestratorAddressList[0].String(),
+		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+		ChainName:      chainName,
 	}
 	_, err = h(ctx, addBridgeTokenClaim)
 	require.NoError(t, err)
@@ -58,15 +59,15 @@ func TestABCIEndBlockDepositClaim(t *testing.T) {
 	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
 	sendToFxClaim := &types.MsgSendToFxClaim{
-		EventNonce:    2,
-		BlockHeight:   1001,
-		TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-		Amount:        sdk.NewInt(1234),
-		Sender:        "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-		Receiver:      "fx16wvwsmpp4y4ttgzknyr6kqla877jud6u04lqey",
-		TargetIbc:     hex.EncodeToString([]byte("px/transfer/channel-0")),
-		Orchestrator:  orchestratorAddressList[0].String(),
-		ChainName:     chainName,
+		EventNonce:     2,
+		BlockHeight:    1001,
+		TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+		Amount:         sdk.NewInt(1234),
+		Sender:         "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+		Receiver:       "fx16wvwsmpp4y4ttgzknyr6kqla877jud6u04lqey",
+		TargetIbc:      hex.EncodeToString([]byte("px/transfer/channel-0")),
+		BridgerAddress: orchestratorAddressList[0].String(),
+		ChainName:      chainName,
 	}
 	_, err = h(ctx, sendToFxClaim)
 	require.NoError(t, err)
@@ -93,19 +94,17 @@ func TestABCIEndBlockDepositClaim(t *testing.T) {
 }
 
 func TestOracleUpdate(t *testing.T) {
-	GenerateAccountNum = 25
-	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 25)
 	keeper := myApp.BscKeeper
 	var err error
 
 	for i := 0; i < 10; i++ {
-		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
-			Oracle:          oracleAddressList[i].String(),
-			Orchestrator:    orchestratorAddressList[i].String(),
+		_, err = h(ctx, &types.MsgCreateOracleBridger{
+			OracleAddress:   oracleAddressList[i].String(),
+			BridgeAddress:   orchestratorAddressList[i].String(),
 			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
-			Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+			DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 			ChainName:       chainName,
 		})
 		require.NoError(t, err)
@@ -116,21 +115,21 @@ func TestOracleUpdate(t *testing.T) {
 		require.EqualValues(t, i+1, len(oracleSets))
 
 		power := keeper.GetLastTotalPower(ctx)
-		expectPower := minDepositAmount.Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
+		expectPower := minStakeAmount.Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
 		require.True(t, expectPower.Equal(power))
 	}
 
 	for i := 0; i < 6; i++ {
 		addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
-			EventNonce:    1,
-			BlockHeight:   1000,
-			TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-			Name:          "Pundix Reward Token",
-			Symbol:        "PURES",
-			Decimals:      18,
-			Orchestrator:  orchestratorAddressList[i].String(),
-			ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-			ChainName:     chainName,
+			EventNonce:     1,
+			BlockHeight:    1000,
+			TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+			Name:           "Pundix Reward Token",
+			Symbol:         "PURES",
+			Decimals:       18,
+			BridgerAddress: orchestratorAddressList[i].String(),
+			ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+			ChainName:      chainName,
 		}
 		_, err = h(ctx, addBridgeTokenClaim)
 		require.NoError(t, err)
@@ -148,15 +147,15 @@ func TestOracleUpdate(t *testing.T) {
 	}
 
 	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
-		EventNonce:    1,
-		BlockHeight:   1000,
-		TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-		Name:          "Pundix Reward Token",
-		Symbol:        "PURES",
-		Decimals:      18,
-		Orchestrator:  orchestratorAddressList[6].String(),
-		ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-		ChainName:     chainName,
+		EventNonce:     1,
+		BlockHeight:    1000,
+		TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+		Name:           "Pundix Reward Token",
+		Symbol:         "PURES",
+		Decimals:       18,
+		BridgerAddress: orchestratorAddressList[6].String(),
+		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+		ChainName:      chainName,
 	}
 	_, err = h(ctx, addBridgeTokenClaim)
 	require.NoError(t, err)
@@ -183,13 +182,13 @@ func TestOracleUpdate(t *testing.T) {
 	})
 	require.ErrorIs(t, types.ErrInvalid, err)
 
-	expectTotalPower := minDepositAmount.Mul(sdk.NewInt(10)).Quo(sdk.DefaultPowerReduction)
+	expectTotalPower := minStakeAmount.Mul(sdk.NewInt(10)).Quo(sdk.DefaultPowerReduction)
 	actualTotalPower := keeper.GetLastTotalPower(ctx)
 	require.True(t, expectTotalPower.Equal(actualTotalPower))
 
 	expectMaxChangePower := types.AttestationProposalOracleChangePowerThreshold.Mul(expectTotalPower).Quo(sdk.NewInt(100))
 
-	expectDeletePower := minDepositAmount.Mul(sdk.NewInt(3)).Quo(sdk.DefaultPowerReduction)
+	expectDeletePower := minStakeAmount.Mul(sdk.NewInt(3)).Quo(sdk.DefaultPowerReduction)
 	require.EqualValues(t, fmt.Sprintf("max change power!maxChangePower:%s,deletePower:%s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrInvalid), err.Error())
 
 	var newOracleList2 []string
@@ -206,19 +205,17 @@ func TestOracleUpdate(t *testing.T) {
 }
 
 func TestAttestationAfterOracleUpdate(t *testing.T) {
-	GenerateAccountNum = 25
-	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 25)
 	keeper := myApp.BscKeeper
 	var err error
 
 	for i := 0; i < 20; i++ {
-		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
-			Oracle:          oracleAddressList[i].String(),
-			Orchestrator:    orchestratorAddressList[i].String(),
+		_, err = h(ctx, &types.MsgCreateOracleBridger{
+			OracleAddress:   oracleAddressList[i].String(),
+			BridgeAddress:   orchestratorAddressList[i].String(),
 			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
-			Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+			DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 			ChainName:       chainName,
 		})
 		require.NoError(t, err)
@@ -229,25 +226,25 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 		require.EqualValues(t, i+1, len(oracleSets))
 
 		power := keeper.GetLastTotalPower(ctx)
-		expectPower := minDepositAmount.Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
+		expectPower := minStakeAmount.Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
 		require.True(t, expectPower.Equal(power))
 	}
 
 	{
 		firstBridgeTokenClaim := &types.MsgBridgeTokenClaim{
-			EventNonce:    1,
-			BlockHeight:   1000,
-			TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-			Name:          "Pundix Reward Token",
-			Symbol:        "PURES",
-			Decimals:      18,
-			Orchestrator:  "",
-			ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-			ChainName:     chainName,
+			EventNonce:     1,
+			BlockHeight:    1000,
+			TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+			Name:           "Pundix Reward Token",
+			Symbol:         "PURES",
+			Decimals:       18,
+			BridgerAddress: "",
+			ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+			ChainName:      chainName,
 		}
 
 		for i := 0; i < 13; i++ {
-			firstBridgeTokenClaim.Orchestrator = orchestratorAddressList[i].String()
+			firstBridgeTokenClaim.BridgerAddress = orchestratorAddressList[i].String()
 			_, err = h(ctx, firstBridgeTokenClaim)
 			require.NoError(t, err)
 			endBlockBeforeAttestation := keeper.GetAttestation(ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
@@ -263,7 +260,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 			require.False(t, endBlockAfterAttestation.Observed)
 		}
 
-		firstBridgeTokenClaim.Orchestrator = orchestratorAddressList[13].String()
+		firstBridgeTokenClaim.BridgerAddress = orchestratorAddressList[13].String()
 		_, err = h(ctx, firstBridgeTokenClaim)
 		require.NoError(t, err)
 		myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
@@ -278,19 +275,19 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 
 	{
 		secondBridgeTokenClaim := &types.MsgBridgeTokenClaim{
-			EventNonce:    2,
-			BlockHeight:   1001,
-			TokenContract: "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-			Name:          "Pundix Reward Token2",
-			Symbol:        "PURES2",
-			Decimals:      18,
-			Orchestrator:  "",
-			ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-			ChainName:     chainName,
+			EventNonce:     2,
+			BlockHeight:    1001,
+			TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+			Name:           "Pundix Reward Token2",
+			Symbol:         "PURES2",
+			Decimals:       18,
+			BridgerAddress: "",
+			ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+			ChainName:      chainName,
 		}
 
 		for i := 0; i < 6; i++ {
-			secondBridgeTokenClaim.Orchestrator = orchestratorAddressList[i].String()
+			secondBridgeTokenClaim.BridgerAddress = orchestratorAddressList[i].String()
 			_, err = h(ctx, secondBridgeTokenClaim)
 			require.NoError(t, err)
 			endBlockBeforeAttestation := keeper.GetAttestation(ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
@@ -395,7 +392,7 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 			require.NotNil(t, newOracleList3[i], activeOracles[i].OracleAddress)
 		}
 
-		secondBridgeTokenClaim.Orchestrator = orchestratorAddressList[6].String()
+		secondBridgeTokenClaim.BridgerAddress = orchestratorAddressList[6].String()
 		_, err = h(ctx, secondBridgeTokenClaim)
 		require.NoError(t, err)
 
@@ -411,19 +408,17 @@ func TestAttestationAfterOracleUpdate(t *testing.T) {
 }
 
 func TestOracleDelete(t *testing.T) {
-	GenerateAccountNum = 10
-	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 25)
 	keeper := myApp.BscKeeper
 	var err error
 
 	for i := 0; i < 10; i++ {
-		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
-			Oracle:          oracleAddressList[i].String(),
-			Orchestrator:    orchestratorAddressList[i].String(),
+		_, err = h(ctx, &types.MsgCreateOracleBridger{
+			OracleAddress:   oracleAddressList[i].String(),
+			BridgeAddress:   orchestratorAddressList[i].String(),
 			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
-			Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+			DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 			ChainName:       chainName,
 		})
 		require.NoError(t, err)
@@ -433,14 +428,6 @@ func TestOracleDelete(t *testing.T) {
 	allOracles := keeper.GetAllOracles(ctx)
 	require.NotNil(t, allOracles)
 	require.EqualValues(t, 10, len(allOracles))
-
-	/**
-
-
-
-
-
-	 */
 
 	oracle := oracleAddressList[0]
 	orchestrator := orchestratorAddressList[0]
@@ -458,11 +445,11 @@ func TestOracleDelete(t *testing.T) {
 	require.True(t, found)
 	require.NotNil(t, oracleData)
 	require.EqualValues(t, oracle.String(), oracleData.OracleAddress)
-	require.EqualValues(t, orchestrator.String(), oracleData.OrchestratorAddress)
+	require.EqualValues(t, orchestrator.String(), oracleData.BridgerAddress)
 	require.EqualValues(t, externalAddress, oracleData.ExternalAddress)
 
-	require.EqualValues(t, depositToken, oracleData.DepositAmount.Denom)
-	require.True(t, minDepositAmount.Equal(oracleData.DepositAmount.Amount))
+	require.EqualValues(t, fxtypes.DefaultDenom, oracleData.DelegateAmount.Denom)
+	require.True(t, minStakeAmount.Equal(oracleData.DelegateAmount.Amount))
 
 	proposalHandler := crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)
 
@@ -493,24 +480,23 @@ func TestOracleDelete(t *testing.T) {
 	require.False(t, found)
 	require.EqualValues(t, types.Oracle{}, oracleData)
 	require.EqualValues(t, "", oracleData.OracleAddress)
-	require.EqualValues(t, "", oracleData.DepositAmount.Denom)
-	require.True(t, oracleData.DepositAmount.Amount.IsNil())
+	require.EqualValues(t, "", oracleData.DelegateAmount.Denom)
+	require.True(t, oracleData.DelegateAmount.Amount.IsNil())
 }
 
 func TestOracleSetSlash(t *testing.T) {
-	GenerateAccountNum = 10
 	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 10)
 	keeper := myApp.BscKeeper
 	var err error
 
 	for i := 0; i < 10; i++ {
-		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
-			Oracle:          oracleAddressList[i].String(),
-			Orchestrator:    orchestratorAddressList[i].String(),
+		_, err = h(ctx, &types.MsgCreateOracleBridger{
+			OracleAddress:   oracleAddressList[i].String(),
+			BridgeAddress:   orchestratorAddressList[i].String(),
 			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
-			Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+			DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 			ChainName:       chainName,
 		})
 		require.NoError(t, err)
@@ -530,11 +516,11 @@ func TestOracleSetSlash(t *testing.T) {
 		signature, err := types.NewEthereumSignature(checkpoint, ethKeys[i])
 		require.NoError(t, err)
 		_, err = h(ctx, &types.MsgOracleSetConfirm{
-			Nonce:               oracleSets[0].Nonce,
-			OrchestratorAddress: orchestratorAddressList[i].String(),
-			ExternalAddress:     crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
-			Signature:           hex.EncodeToString(signature),
-			ChainName:           chainName,
+			Nonce:           oracleSets[0].Nonce,
+			BridgerAddress:  orchestratorAddressList[i].String(),
+			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
+			Signature:       hex.EncodeToString(signature),
+			ChainName:       chainName,
 		})
 		require.NoError(t, err)
 	}
@@ -554,20 +540,19 @@ func TestOracleSetSlash(t *testing.T) {
 }
 
 func TestSlashFactoryGreat1(t *testing.T) {
-	GenerateAccountNum = 10
 	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
 	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t)
+	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 10)
 	keeper := myApp.BscKeeper
-	minDepositAmount, _ := sdk.NewIntFromString("11111111111111111111111")
+	minStakeAmount, _ := sdk.NewIntFromString("11111111111111111111111")
 	var err error
 
 	for i := 0; i < 10; i++ {
-		_, err = h(ctx, &types.MsgSetOrchestratorAddress{
-			Oracle:          oracleAddressList[i].String(),
-			Orchestrator:    orchestratorAddressList[i].String(),
+		_, err = h(ctx, &types.MsgCreateOracleBridger{
+			OracleAddress:   oracleAddressList[i].String(),
+			BridgeAddress:   orchestratorAddressList[i].String(),
 			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
-			Deposit:         sdk.Coin{Denom: depositToken, Amount: minDepositAmount},
+			DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
 			ChainName:       chainName,
 		})
 		require.NoError(t, err)
@@ -575,10 +560,10 @@ func TestSlashFactoryGreat1(t *testing.T) {
 	params := keeper.GetParams(ctx)
 	params.SlashFraction, _ = sdk.NewDecFromStr("1.1")
 
-	expectSlashAfterDepositAmount := sdk.MaxInt(
+	expectSlashAfterStakeAmount := sdk.MaxInt(
 		// remainAmount = max (0, (depositAmount - slashAmount))
-		minDepositAmount.Sub(
-			sdk.MinInt(minDepositAmount, minDepositAmount.ToDec().Mul(params.SlashFraction).TruncateInt()),
+		minStakeAmount.Sub(
+			sdk.MinInt(minStakeAmount, minStakeAmount.ToDec().Mul(params.SlashFraction).TruncateInt()),
 		),
 		sdk.ZeroInt())
 	require.NotPanics(t, func() {
@@ -590,14 +575,14 @@ func TestSlashFactoryGreat1(t *testing.T) {
 			oracle, found := keeper.GetOracle(ctx, oracleAddressList[i])
 			require.True(t, found)
 			require.False(t, oracle.Jailed)
-			require.True(t, oracle.DepositAmount.IsEqual(sdk.Coin{Denom: depositToken, Amount: minDepositAmount}))
+			require.True(t, oracle.DelegateAmount.IsEqual(sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount}))
 
-			keeper.SlashOracle(ctx, oracleAddressList[i].String(), params)
+			keeper.SlashOracle(ctx, oracle, params.SlashFraction)
 
 			oracle, found = keeper.GetOracle(ctx, oracleAddressList[i])
 			require.True(t, found)
 			require.True(t, oracle.Jailed)
-			require.True(t, oracle.DepositAmount.IsEqual(sdk.Coin{Denom: depositToken, Amount: expectSlashAfterDepositAmount}))
+			require.True(t, oracle.DelegateAmount.IsEqual(sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: expectSlashAfterStakeAmount}))
 		}
 
 		// repeat slash test.
@@ -605,14 +590,14 @@ func TestSlashFactoryGreat1(t *testing.T) {
 			oracle, found := keeper.GetOracle(ctx, oracleAddressList[i])
 			require.True(t, found)
 			require.True(t, oracle.Jailed)
-			require.True(t, oracle.DepositAmount.IsEqual(sdk.Coin{Denom: depositToken, Amount: expectSlashAfterDepositAmount}))
+			require.True(t, oracle.DelegateAmount.IsEqual(sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: expectSlashAfterStakeAmount}))
 
-			keeper.SlashOracle(ctx, oracleAddressList[i].String(), params)
+			keeper.SlashOracle(ctx, oracle, params.SlashFraction)
 
 			oracle, found = keeper.GetOracle(ctx, oracleAddressList[i])
 			require.True(t, found)
 			require.True(t, oracle.Jailed)
-			require.True(t, oracle.DepositAmount.IsEqual(sdk.Coin{Denom: depositToken, Amount: expectSlashAfterDepositAmount}))
+			require.True(t, oracle.DelegateAmount.IsEqual(sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: expectSlashAfterStakeAmount}))
 		}
 	})
 }

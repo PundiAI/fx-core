@@ -1,8 +1,7 @@
 syntax = "proto3";
 package fx.gravity.crosschain.v1;
 
-// import "crosschain/v1/genesis.proto";
-import "crosschain/v1/crosschain.proto";
+import "crosschain/v1/types.proto";
 import "crosschain/v1/tx.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
@@ -131,7 +130,7 @@ message QueryOracleSetRequestResponse { OracleSet oracle_set = 1; }
 
 message QueryOracleSetConfirmRequest {
   uint64 nonce = 1;
-  string orchestrator_address = 2;
+  string bridger_address = 2;
   string chain_name = 3;
 }
 message QueryOracleSetConfirmResponse { MsgOracleSetConfirm confirm = 1; }
@@ -150,7 +149,7 @@ message QueryLastOracleSetRequestsResponse {
 }
 
 message QueryLastPendingOracleSetRequestByAddrRequest {
-  string orchestrator_address = 1;
+  string bridger_address = 1;
   string chain_name = 2;
 }
 message QueryLastPendingOracleSetRequestByAddrResponse {
@@ -164,7 +163,7 @@ message QueryBatchFeeRequest {
 message QueryBatchFeeResponse { repeated BatchFees batch_fees = 1; }
 
 message QueryLastPendingBatchRequestByAddrRequest {
-  string orchestrator_address = 1;
+  string bridger_address = 1;
   string chain_name = 2;
 }
 message QueryLastPendingBatchRequestByAddrResponse {
@@ -184,7 +183,7 @@ message QueryBatchRequestByNonceResponse { OutgoingTxBatch batch = 1; }
 message QueryBatchConfirmRequest {
   uint64 nonce = 1;
   string token_contract = 2;
-  string orchestrator_address = 3;
+  string bridger_address = 3;
   string chain_name = 4;
 }
 
@@ -198,7 +197,7 @@ message QueryBatchConfirmsRequest {
 message QueryBatchConfirmsResponse { repeated MsgConfirmBatch confirms = 1; }
 
 message QueryLastEventNonceByAddrRequest {
-  string orchestrator_address = 1;
+  string bridger_address = 1;
   string chain_name = 2;
 }
 message QueryLastEventNonceByAddrResponse { uint64 event_nonce = 1; }
@@ -233,7 +232,7 @@ message QueryOracleByExternalAddrRequest {
 }
 
 message QueryOracleByOrchestratorRequest {
-  string orchestrator_address = 1;
+  string bridger_address = 1;
   string chain_name = 2;
 }
 
@@ -254,7 +253,7 @@ message QueryLastObservedBlockHeightResponse {
 }
 
 message QueryLastEventBlockHeightByAddrRequest {
-  string orchestrator_address = 1;
+  string bridger_address = 1;
   string chain_name = 2;
 }
 message QueryLastEventBlockHeightByAddrResponse { uint64 block_height = 1; }

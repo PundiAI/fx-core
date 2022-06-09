@@ -14,7 +14,7 @@ var (
 	ErrInvalidCoin      = sdkerrors.Register(ModuleName, 7, "invalid coin")
 
 	ErrOracleAddress        = sdkerrors.Register(ModuleName, 10, "invalid oracles address ")
-	ErrOrchestratorAddress  = sdkerrors.Register(ModuleName, 11, "invalid orchestrator address")
+	ErrBridgerAddress       = sdkerrors.Register(ModuleName, 11, "invalid bridger address")
 	ErrExternalAddress      = sdkerrors.Register(ModuleName, 12, "invalid external address")
 	ErrTokenContractAddress = sdkerrors.Register(ModuleName, 13, "invalid token contract")
 
@@ -23,9 +23,9 @@ var (
 	ErrNoOracleFound           = sdkerrors.Register(ModuleName, 22, "oracle does not exist")
 	ErrOracleJailed            = sdkerrors.Register(ModuleName, 23, "oracle for this address is currently jailed")
 
-	ErrBadDepositDenom           = sdkerrors.Register(ModuleName, 24, "invalid coin denomination")
-	ErrDepositAmountBelowMinimum = sdkerrors.Register(ModuleName, 25, "deposit amount must be greater than oracle deposit threshold")
-	ErrDepositAmountBelowMaximum = sdkerrors.Register(ModuleName, 26, "deposit amount must be less than double oracle deposit threshold")
+	ErrBadStakeDenom           = sdkerrors.Register(ModuleName, 24, "invalid coin denomination")
+	ErrStakeAmountBelowMinimum = sdkerrors.Register(ModuleName, 25, "stake amount must be greater than oracle stake threshold")
+	ErrStakeAmountBelowMaximum = sdkerrors.Register(ModuleName, 26, "stake amount must be less than double oracle stake threshold")
 
 	ErrInvalidRequestBatchBaseFee = sdkerrors.Register(ModuleName, 27, "baseFee is invalid")
 )

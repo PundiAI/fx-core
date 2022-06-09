@@ -14,15 +14,17 @@ import (
 var ModuleCdc = codec.NewLegacyAmino()
 
 func init() {
-	RegisterCodec(ModuleCdc)
+	RegisterLegacyAminoCodec(ModuleCdc)
 }
 
 // RegisterInterfaces registers the interfaces for the proto stuff
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgCreateOracleBridger{},
+		&MsgAddOracleDelegate{},
+		&MsgEditOracle{},
+		&MsgWithdrawReward{},
 
-		&MsgSetOrchestratorAddress{},
-		&MsgAddOracleDeposit{},
 		&MsgOracleSetConfirm{},
 		&MsgOracleSetUpdatedClaim{},
 
@@ -56,12 +58,15 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
-// RegisterCodec registers concrete types on the Amino codec
-func RegisterCodec(cdc *codec.LegacyAmino) {
+// RegisterLegacyAminoCodec registers concrete types on the Amino codec
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*ExternalClaim)(nil), nil)
 
-	cdc.RegisterConcrete(&MsgSetOrchestratorAddress{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSetOrchestratorAddress"), nil)
-	cdc.RegisterConcrete(&MsgAddOracleDeposit{}, fmt.Sprintf("%s/%s", ModuleName, "MsgAddOracleDeposit"), nil)
+	cdc.RegisterConcrete(&MsgCreateOracleBridger{}, fmt.Sprintf("%s/%s", ModuleName, "MsgCreateOracleBridger"), nil)
+	cdc.RegisterConcrete(&MsgAddOracleDelegate{}, fmt.Sprintf("%s/%s", ModuleName, "MsgAddOracleDelegate"), nil)
+	cdc.RegisterConcrete(&MsgEditOracle{}, fmt.Sprintf("%s/%s", ModuleName, "MsgEditOracle"), nil)
+	cdc.RegisterConcrete(&MsgWithdrawReward{}, fmt.Sprintf("%s/%s", ModuleName, "MsgWithdrawReward"), nil)
+
 	cdc.RegisterConcrete(&MsgOracleSetConfirm{}, fmt.Sprintf("%s/%s", ModuleName, "MsgOracleSetConfirm"), nil)
 	cdc.RegisterConcrete(&MsgOracleSetUpdatedClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgOracleSetUpdatedClaim"), nil)
 
@@ -75,13 +80,6 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 
 	cdc.RegisterConcrete(&MsgRequestBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRequestBatch"), nil)
 	cdc.RegisterConcrete(&MsgConfirmBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmBatch"), nil)
-
-	cdc.RegisterConcrete(&OracleSet{}, fmt.Sprintf("%s/%s", ModuleName, "OracleSet"), nil)
-	cdc.RegisterConcrete(&OutgoingTxBatch{}, fmt.Sprintf("%s/%s", ModuleName, "OutgoingTxBatch"), nil)
-	cdc.RegisterConcrete(&OutgoingTransferTx{}, fmt.Sprintf("%s/%s", ModuleName, "OutgoingTransferTx"), nil)
-	cdc.RegisterConcrete(&ExternalToken{}, fmt.Sprintf("%s/%s", ModuleName, "ExternalToken"), nil)
-	cdc.RegisterConcrete(&IDSet{}, fmt.Sprintf("%s/%s", ModuleName, "IDSet"), nil)
-	cdc.RegisterConcrete(&Attestation{}, fmt.Sprintf("%s/%s", ModuleName, "Attestation"), nil)
 
 	// register Proposal
 	cdc.RegisterConcrete(&InitCrossChainParamsProposal{}, fmt.Sprintf("%s/%s", ModuleName, "InitCrossChainParamsProposal"), nil)

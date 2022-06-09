@@ -27,7 +27,7 @@ func defaultModuleParams(oracles []string) types.Params {
 		IbcTransferTimeoutHeight:          10000,
 		OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
 		Oracles:                           oracles,
-		DepositThreshold:                  sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
+		StakeThreshold:                    sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
 	}
 }
 
@@ -94,27 +94,27 @@ func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
 	keeper := myApp.BscKeeper
 
 	testCases := []struct {
-		OracleAddress       sdk.AccAddress
-		OrchestratorAddress sdk.AccAddress
-		StartHeight         int64
+		OracleAddress  sdk.AccAddress
+		BridgerAddress sdk.AccAddress
+		StartHeight    int64
 
 		ExpectOracleSetSize int
 	}{
 		{
 			OracleAddress:       oracleAddressList[0],
-			OrchestratorAddress: orchestratorAddressList[0],
+			BridgerAddress:      orchestratorAddressList[0],
 			StartHeight:         1,
 			ExpectOracleSetSize: 3,
 		},
 		{
 			OracleAddress:       oracleAddressList[1],
-			OrchestratorAddress: orchestratorAddressList[1],
+			BridgerAddress:      orchestratorAddressList[1],
 			StartHeight:         2,
 			ExpectOracleSetSize: 2,
 		},
 		{
 			OracleAddress:       oracleAddressList[2],
-			OrchestratorAddress: orchestratorAddressList[2],
+			BridgerAddress:      orchestratorAddressList[2],
 			StartHeight:         3,
 			ExpectOracleSetSize: 1,
 		},
@@ -134,16 +134,16 @@ func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
 	wrapSDKContext := sdk.WrapSDKContext(ctx)
 	for _, testCase := range testCases {
 		oracle := types.Oracle{
-			OracleAddress:       testCase.OracleAddress.String(),
-			OrchestratorAddress: testCase.OrchestratorAddress.String(),
-			StartHeight:         testCase.StartHeight,
+			OracleAddress:  testCase.OracleAddress.String(),
+			BridgerAddress: testCase.BridgerAddress.String(),
+			StartHeight:    testCase.StartHeight,
 		}
 		// save oracle
 		keeper.SetOracle(ctx, oracle)
-		keeper.SetOracleByOrchestrator(ctx, oracle.GetOracle(), testCase.OrchestratorAddress)
+		keeper.SetOracleByOrchestrator(ctx, oracle.GetOracle(), testCase.BridgerAddress)
 
 		pendingOracleSetRequestByAddr, err := keeper.LastPendingOracleSetRequestByAddr(wrapSDKContext, &types.QueryLastPendingOracleSetRequestByAddrRequest{
-			OrchestratorAddress: testCase.OrchestratorAddress.String(),
+			BridgerAddress: testCase.BridgerAddress.String(),
 		})
 		require.NoError(t, err)
 		require.EqualValues(t, testCase.ExpectOracleSetSize, len(pendingOracleSetRequestByAddr.OracleSets))
@@ -163,32 +163,32 @@ func TestLastPendingBatchRequestByAddr(t *testing.T) {
 	keeper := myApp.BscKeeper
 
 	testCases := []struct {
-		Name                string
-		OracleAddress       sdk.AccAddress
-		OrchestratorAddress sdk.AccAddress
-		StartHeight         int64
-		ExpectStartHeight   uint64
+		Name              string
+		OracleAddress     sdk.AccAddress
+		BridgerAddress    sdk.AccAddress
+		StartHeight       int64
+		ExpectStartHeight uint64
 	}{
 		{
-			Name:                "oracle start height with 1, expect oracle set block 3",
-			OracleAddress:       oracleAddressList[0],
-			OrchestratorAddress: orchestratorAddressList[0],
-			StartHeight:         1,
-			ExpectStartHeight:   3,
+			Name:              "oracle start height with 1, expect oracle set block 3",
+			OracleAddress:     oracleAddressList[0],
+			BridgerAddress:    orchestratorAddressList[0],
+			StartHeight:       1,
+			ExpectStartHeight: 3,
 		},
 		{
-			Name:                "oracle start height with 2, expect oracle set block 2",
-			OracleAddress:       oracleAddressList[1],
-			OrchestratorAddress: orchestratorAddressList[1],
-			StartHeight:         2,
-			ExpectStartHeight:   3,
+			Name:              "oracle start height with 2, expect oracle set block 2",
+			OracleAddress:     oracleAddressList[1],
+			BridgerAddress:    orchestratorAddressList[1],
+			StartHeight:       2,
+			ExpectStartHeight: 3,
 		},
 		{
-			Name:                "oracle start height with 3, expect oracle set block 1",
-			OracleAddress:       oracleAddressList[2],
-			OrchestratorAddress: orchestratorAddressList[2],
-			StartHeight:         3,
-			ExpectStartHeight:   3,
+			Name:              "oracle start height with 3, expect oracle set block 1",
+			OracleAddress:     oracleAddressList[2],
+			BridgerAddress:    orchestratorAddressList[2],
+			StartHeight:       3,
+			ExpectStartHeight: 3,
 		},
 	}
 	for i := uint64(1); i <= 3; i++ {
@@ -208,16 +208,16 @@ func TestLastPendingBatchRequestByAddr(t *testing.T) {
 	wrapSDKContext := sdk.WrapSDKContext(ctx)
 	for _, testCase := range testCases {
 		oracle := types.Oracle{
-			OracleAddress:       testCase.OracleAddress.String(),
-			OrchestratorAddress: testCase.OrchestratorAddress.String(),
-			StartHeight:         testCase.StartHeight,
+			OracleAddress:  testCase.OracleAddress.String(),
+			BridgerAddress: testCase.BridgerAddress.String(),
+			StartHeight:    testCase.StartHeight,
 		}
 		// save oracle
 		keeper.SetOracle(ctx, oracle)
-		keeper.SetOracleByOrchestrator(ctx, oracle.GetOracle(), testCase.OrchestratorAddress)
+		keeper.SetOracleByOrchestrator(ctx, oracle.GetOracle(), testCase.BridgerAddress)
 
 		pendingLastPendingBatchRequestByAddr, err := keeper.LastPendingBatchRequestByAddr(wrapSDKContext, &types.QueryLastPendingBatchRequestByAddrRequest{
-			OrchestratorAddress: testCase.OrchestratorAddress.String(),
+			BridgerAddress: testCase.BridgerAddress.String(),
 		})
 		require.NoError(t, err, testCase.Name)
 		require.NotNil(t, pendingLastPendingBatchRequestByAddr, testCase.Name)

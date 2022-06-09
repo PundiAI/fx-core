@@ -1,11 +1,12 @@
 package keeper
 
 import (
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"strconv"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
@@ -351,7 +352,7 @@ func queryBatch(ctx sdk.Context, nonce string, tokenContract string, keeper Keep
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
 	}
-	if types.ValidateExternalAddress(tokenContract) != nil {
+	if types.ValidateEthereumAddress(tokenContract) != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
 	}
 	foundBatch := keeper.GetOutgoingTXBatch(ctx, tokenContract, parsedNonce)

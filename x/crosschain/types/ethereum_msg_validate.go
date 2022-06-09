@@ -6,34 +6,32 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	"github.com/functionx/fx-core/x/gravity/types"
 )
 
-var _ MsgValidateBasic = &EthereumMsgValidateBasic{}
+var _ MsgValidateBasic = &EthereumMsgValidate{}
 
-// EthereumMsgValidateBasic
-type EthereumMsgValidateBasic struct{}
+// EthereumMsgValidate
+type EthereumMsgValidate struct{}
 
-func (b EthereumMsgValidateBasic) MsgSetOrchestratorAddressValidate(m MsgSetOrchestratorAddress) (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.Oracle); err != nil {
-		return sdkerrors.Wrap(ErrOracleAddress, m.Oracle)
+func (b EthereumMsgValidate) MsgCreateOracleBridgerValidate(m MsgCreateOracleBridger) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
+		return sdkerrors.Wrap(ErrOracleAddress, m.OracleAddress)
 	}
-	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrOrchestratorAddress, m.Orchestrator)
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return sdkerrors.Wrap(ErrBridgerAddress, m.BridgerAddress)
 	}
-	if err = ValidateExternalAddress(m.ExternalAddress); err != nil {
+	if err = ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return sdkerrors.Wrap(ErrExternalAddress, m.ExternalAddress)
 	}
-	if !m.Deposit.IsValid() || !m.Deposit.IsPositive() {
-		return sdkerrors.Wrap(ErrInvalidCoin, m.Deposit.String())
+	if !m.DelegateAmount.IsValid() || !m.DelegateAmount.IsPositive() {
+		return sdkerrors.Wrap(ErrInvalidCoin, m.DelegateAmount.String())
 	}
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgAddOracleDepositValidate(m MsgAddOracleDeposit) (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.Oracle); err != nil {
-		return sdkerrors.Wrap(ErrOracleAddress, m.Oracle)
+func (b EthereumMsgValidate) MsgAddOracleDelegateValidate(m MsgAddOracleDelegate) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
+		return sdkerrors.Wrap(ErrOracleAddress, m.OracleAddress)
 	}
 	if !m.Amount.IsValid() || !m.Amount.IsPositive() {
 		return sdkerrors.Wrap(ErrInvalidCoin, m.Amount.String())
@@ -41,11 +39,21 @@ func (b EthereumMsgValidateBasic) MsgAddOracleDepositValidate(m MsgAddOracleDepo
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgOracleSetConfirmValidate(m MsgOracleSetConfirm) (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
-		return sdkerrors.Wrap(ErrOrchestratorAddress, m.OrchestratorAddress)
+func (b EthereumMsgValidate) MsgEditOracleValidate(m MsgEditOracle) (err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b EthereumMsgValidate) MsgWithdrawRewardValidate(m MsgWithdrawReward) (err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b EthereumMsgValidate) MsgOracleSetConfirmValidate(m MsgOracleSetConfirm) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return sdkerrors.Wrap(ErrBridgerAddress, m.BridgerAddress)
 	}
-	if err = ValidateExternalAddress(m.ExternalAddress); err != nil {
+	if err = ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return sdkerrors.Wrap(ErrExternalAddress, m.ExternalAddress)
 	}
 	if len(m.Signature) == 0 {
@@ -57,15 +65,15 @@ func (b EthereumMsgValidateBasic) MsgOracleSetConfirmValidate(m MsgOracleSetConf
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgOracleSetUpdatedClaimValidate(m MsgOracleSetUpdatedClaim) (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrOrchestratorAddress, m.Orchestrator)
+func (b EthereumMsgValidate) MsgOracleSetUpdatedClaimValidate(m MsgOracleSetUpdatedClaim) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return sdkerrors.Wrap(ErrBridgerAddress, m.BridgerAddress)
 	}
 	if len(m.Members) == 0 {
 		return sdkerrors.Wrap(ErrInvalid, "members len == 0")
 	}
 	for _, member := range m.Members {
-		if err = ValidateExternalAddress(member.ExternalAddress); err != nil {
+		if err = ValidateEthereumAddress(member.ExternalAddress); err != nil {
 			return sdkerrors.Wrap(ErrExternalAddress, member.ExternalAddress)
 		}
 		if member.Power == 0 {
@@ -81,11 +89,11 @@ func (b EthereumMsgValidateBasic) MsgOracleSetUpdatedClaimValidate(m MsgOracleSe
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgBridgeTokenClaimValidate(m MsgBridgeTokenClaim) (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrOrchestratorAddress, m.Orchestrator)
+func (b EthereumMsgValidate) MsgBridgeTokenClaimValidate(m MsgBridgeTokenClaim) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return sdkerrors.Wrap(ErrBridgerAddress, m.BridgerAddress)
 	}
-	if err = ValidateExternalAddress(m.TokenContract); err != nil {
+	if err = ValidateEthereumAddress(m.TokenContract); err != nil {
 		return sdkerrors.Wrap(ErrTokenContractAddress, m.TokenContract)
 	}
 	if _, err = hex.DecodeString(m.ChannelIbc); len(m.ChannelIbc) > 0 && err != nil {
@@ -106,11 +114,11 @@ func (b EthereumMsgValidateBasic) MsgBridgeTokenClaimValidate(m MsgBridgeTokenCl
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgSendToExternalClaimValidate(m MsgSendToExternalClaim) (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrOrchestratorAddress, m.Orchestrator)
+func (b EthereumMsgValidate) MsgSendToExternalClaimValidate(m MsgSendToExternalClaim) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return sdkerrors.Wrap(ErrBridgerAddress, m.BridgerAddress)
 	}
-	if err = ValidateExternalAddress(m.TokenContract); err != nil {
+	if err = ValidateEthereumAddress(m.TokenContract); err != nil {
 		return sdkerrors.Wrap(ErrTokenContractAddress, m.TokenContract)
 	}
 	if m.EventNonce == 0 {
@@ -125,14 +133,14 @@ func (b EthereumMsgValidateBasic) MsgSendToExternalClaimValidate(m MsgSendToExte
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgSendToFxClaimValidate(m MsgSendToFxClaim) (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrOrchestratorAddress, m.Orchestrator)
+func (b EthereumMsgValidate) MsgSendToFxClaimValidate(m MsgSendToFxClaim) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return sdkerrors.Wrap(ErrBridgerAddress, m.BridgerAddress)
 	}
-	if err = ValidateExternalAddress(m.Sender); err != nil {
+	if err = ValidateEthereumAddress(m.Sender); err != nil {
 		return sdkerrors.Wrap(ErrExternalAddress, m.Sender)
 	}
-	if err = ValidateExternalAddress(m.TokenContract); err != nil {
+	if err = ValidateEthereumAddress(m.TokenContract); err != nil {
 		return sdkerrors.Wrap(ErrTokenContractAddress, m.TokenContract)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Receiver); err != nil {
@@ -153,11 +161,11 @@ func (b EthereumMsgValidateBasic) MsgSendToFxClaimValidate(m MsgSendToFxClaim) (
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgSendToExternalValidate(m MsgSendToExternal) (err error) {
+func (b EthereumMsgValidate) MsgSendToExternalValidate(m MsgSendToExternal) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Sender)
 	}
-	if err = ValidateExternalAddress(m.Dest); err != nil {
+	if err = ValidateEthereumAddress(m.Dest); err != nil {
 		return sdkerrors.Wrap(ErrExternalAddress, m.Dest)
 	}
 	if !m.Amount.IsValid() || !m.Amount.IsPositive() {
@@ -172,7 +180,7 @@ func (b EthereumMsgValidateBasic) MsgSendToExternalValidate(m MsgSendToExternal)
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgCancelSendToExternalValidate(m MsgCancelSendToExternal) (err error) {
+func (b EthereumMsgValidate) MsgCancelSendToExternalValidate(m MsgCancelSendToExternal) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Sender)
 	}
@@ -182,7 +190,7 @@ func (b EthereumMsgValidateBasic) MsgCancelSendToExternalValidate(m MsgCancelSen
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgRequestBatchValidate(m MsgRequestBatch) (err error) {
+func (b EthereumMsgValidate) MsgRequestBatchValidate(m MsgRequestBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, m.Sender)
 	}
@@ -192,23 +200,23 @@ func (b EthereumMsgValidateBasic) MsgRequestBatchValidate(m MsgRequestBatch) (er
 	if !m.MinimumFee.IsPositive() {
 		return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("minimum fee is positive:%s", m.MinimumFee.String()))
 	}
-	if err = ValidateExternalAddress(m.FeeReceive); err != nil {
+	if err = ValidateEthereumAddress(m.FeeReceive); err != nil {
 		return sdkerrors.Wrap(ErrExternalAddress, m.FeeReceive)
 	}
 	if m.BaseFee == nil || m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
-		return types.ErrInvalidRequestBatchBaseFee
+		return ErrInvalidRequestBatchBaseFee
 	}
 	return nil
 }
 
-func (b EthereumMsgValidateBasic) MsgConfirmBatchValidate(m MsgConfirmBatch) (err error) {
-	if _, err = sdk.AccAddressFromBech32(m.OrchestratorAddress); err != nil {
-		return sdkerrors.Wrap(ErrOrchestratorAddress, m.OrchestratorAddress)
+func (b EthereumMsgValidate) MsgConfirmBatchValidate(m MsgConfirmBatch) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
+		return sdkerrors.Wrap(ErrBridgerAddress, m.BridgerAddress)
 	}
-	if err = ValidateExternalAddress(m.ExternalAddress); err != nil {
+	if err = ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return sdkerrors.Wrap(ErrExternalAddress, m.ExternalAddress)
 	}
-	if err = ValidateExternalAddress(m.TokenContract); err != nil {
+	if err = ValidateEthereumAddress(m.TokenContract); err != nil {
 		return sdkerrors.Wrap(ErrTokenContractAddress, m.TokenContract)
 	}
 	if len(m.Signature) == 0 {

@@ -194,14 +194,14 @@ func CmdGetOracleByOrchestrator() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			orchestratorAddress, err := sdk.AccAddressFromBech32(args[1])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
 
 			req := &types.QueryOracleByOrchestratorRequest{
-				OrchestratorAddress: orchestratorAddress.String(),
-				ChainName:           args[0],
+				BridgerAddress: bridgerAddr.String(),
+				ChainName:      args[0],
 			}
 			res, err := queryClient.GetOracleByOrchestrator(cmd.Context(), req)
 			if err != nil {
@@ -345,14 +345,14 @@ func CmdGetPendingOracleSetRequest() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			orchestratorAddress, err := sdk.AccAddressFromBech32(args[1])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
 
 			req := &types.QueryLastPendingOracleSetRequestByAddrRequest{
-				OrchestratorAddress: orchestratorAddress.String(),
-				ChainName:           args[0],
+				BridgerAddress: bridgerAddr.String(),
+				ChainName:      args[0],
 			}
 
 			res, err := queryClient.LastPendingOracleSetRequestByAddr(cmd.Context(), req)
@@ -380,14 +380,14 @@ func CmdGetOracleSetConfirm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			orchestratorAddress, err := sdk.AccAddressFromBech32(args[2])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[2])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.OracleSetConfirm(cmd.Context(), &types.QueryOracleSetConfirmRequest{
-				Nonce:               nonce,
-				OrchestratorAddress: orchestratorAddress.String(),
-				ChainName:           args[0],
+				Nonce:          nonce,
+				BridgerAddress: bridgerAddr.String(),
+				ChainName:      args[0],
 			})
 			if err != nil {
 				return err
@@ -437,14 +437,14 @@ func CmdGetPendingOutgoingTXBatchRequest() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			orchestratorAddress, err := sdk.AccAddressFromBech32(args[1])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
 
 			res, err := queryClient.LastPendingBatchRequestByAddr(cmd.Context(), &types.QueryLastPendingBatchRequestByAddrRequest{
-				OrchestratorAddress: orchestratorAddress.String(),
-				ChainName:           args[0],
+				BridgerAddress: bridgerAddr.String(),
+				ChainName:      args[0],
 			})
 			if err != nil {
 				return err
@@ -476,15 +476,15 @@ func CmdBatchConfirm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			orchestratorAddress, err := sdk.AccAddressFromBech32(args[3])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[3])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.BatchConfirm(cmd.Context(), &types.QueryBatchConfirmRequest{
-				ChainName:           args[0],
-				TokenContract:       tokenContract,
-				Nonce:               nonce,
-				OrchestratorAddress: orchestratorAddress.String(),
+				ChainName:      args[0],
+				TokenContract:  tokenContract,
+				Nonce:          nonce,
+				BridgerAddress: bridgerAddr.String(),
 			})
 			if err != nil {
 				return err
@@ -763,13 +763,13 @@ func CmdGetOracleEventNonce() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			orchestratorAddress, err := sdk.AccAddressFromBech32(args[1])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.LastEventNonceByAddr(cmd.Context(), &types.QueryLastEventNonceByAddrRequest{
-				ChainName:           args[0],
-				OrchestratorAddress: orchestratorAddress.String(),
+				ChainName:      args[0],
+				BridgerAddress: bridgerAddr.String(),
 			})
 			if err != nil {
 				return err
@@ -791,13 +791,13 @@ func CmdGetOracleEventBlockHeight() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			orchestratorAddress, err := sdk.AccAddressFromBech32(args[1])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.LastEventBlockHeightByAddr(cmd.Context(), &types.QueryLastEventBlockHeightByAddrRequest{
-				OrchestratorAddress: orchestratorAddress.String(),
-				ChainName:           args[0],
+				BridgerAddress: bridgerAddr.String(),
+				ChainName:      args[0],
 			})
 			if err != nil {
 				return err
@@ -823,7 +823,7 @@ func CmdCovertBridgeToken() *cobra.Command {
 				return err
 			}
 			tokenContract := args[1]
-			if err := types.ValidateExternalAddress(tokenContract); err != nil {
+			if err := types.ValidateEthereumAddress(tokenContract); err != nil {
 				return err
 			}
 			channelIbc, err := cmd.Flags().GetString(flagChannelIBC)

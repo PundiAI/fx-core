@@ -4,8 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
-
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/types"
@@ -33,7 +31,7 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 		logger.Error("convert target ibc data error!!!", "targetIbc", claim.GetTargetIbc())
 		return
 	}
-	ibcReceiveAddress, err := gravitytypes.CovertIbcPacketReceiveAddressByPrefix(targetIBC.Prefix, receiveAddr)
+	ibcReceiveAddress, err := types.CovertIbcPacketReceiveAddressByPrefix(targetIBC.Prefix, receiveAddr)
 	if err != nil {
 		logger.Error("convert ibc transfer receive address error!!!", "fxReceive", claim.Receiver,
 			"ibcPrefix", targetIBC.Prefix, "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel, "error", err)

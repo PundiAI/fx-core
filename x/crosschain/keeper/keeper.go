@@ -21,6 +21,7 @@ type Keeper struct {
 	storeKey   sdk.StoreKey      // Unexposed key to access store from sdk.Context
 	paramSpace paramtypes.Subspace
 
+	stakingKeeper     types.StakingKeeper
 	bankKeeper        types.BankKeeper
 	ibcTransferKeeper types.IBCTransferKeeper
 	ibcChannelKeeper  types.IBCChannelKeeper
@@ -67,11 +68,7 @@ func (k Keeper) SetParams(ctx sdk.Context, ps types.Params) {
 	k.paramSpace.SetParamSet(ctx, &ps)
 }
 
-func (k Keeper) ChainHasInit(ctx sdk.Context) bool {
-	return k.paramSpace.Has(ctx, types.ParamsStoreKeyGravityID)
-}
-
-// GetGravityID returns the GravityID the GravityID is essentially a salt value
+// GetGravityID returns the GravityID is essentially a salt value
 // for bridge signatures, provided each chain running Gravity has a unique ID
 // it won't be possible to play back signatures from one bridge onto another
 // even if they share a oracle set.
@@ -87,11 +84,15 @@ func (k Keeper) GetGravityID(ctx sdk.Context) string {
 	return gravityId
 }
 
-func (k Keeper) GetOracleDepositThreshold(ctx sdk.Context) sdk.Coin {
-	var depositThreshold sdk.Coin
-	k.paramSpace.Get(ctx, types.ParamOracleDepositThreshold, &depositThreshold)
-	return depositThreshold
+func (k Keeper) GetOracleStakeThreshold(ctx sdk.Context) sdk.Coin {
+	var threshold sdk.Coin
+	k.paramSpace.Get(ctx, types.ParamOracleStakeThreshold, &threshold)
+	return threshold
 }
+
+/////////////////////////////
+//      CHAIN ORACLES      //
+/////////////////////////////
 
 func (k Keeper) SetChainOracles(ctx sdk.Context, chainOracle *types.ChainOracle) {
 	store := ctx.KVStore(k.storeKey)
@@ -109,70 +110,7 @@ func (k Keeper) GetChainOracles(ctx sdk.Context) (chainOracle types.ChainOracle,
 }
 
 /////////////////////////////
-//        Oracle           //
-/////////////////////////////
-
-// SetOracle save Oracle data
-func (k Keeper) SetOracle(ctx sdk.Context, oracle types.Oracle) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&oracle)
-	store.Set(types.GetOracleKey(oracle.GetOracle()), bz)
-}
-
-// GetOracle get Oracle data
-func (k Keeper) GetOracle(ctx sdk.Context, addr sdk.AccAddress) (oracle types.Oracle, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	value := store.Get(types.GetOracleKey(addr))
-	if value == nil {
-		return oracle, false
-	}
-	k.cdc.MustUnmarshal(value, &oracle)
-	return oracle, true
-}
-
-func (k Keeper) DelOracle(ctx sdk.Context, oracle sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetOracleKey(oracle)
-	if !store.Has(key) {
-		return
-	}
-	store.Delete(key)
-}
-
-// GetAllOracles
-func (k Keeper) GetAllOracles(ctx sdk.Context) (oracles types.Oracles) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		var oracle types.Oracle
-		k.cdc.MustUnmarshal(iterator.Value(), &oracle)
-		oracles = append(oracles, oracle)
-	}
-	sort.Sort(oracles)
-	return oracles
-}
-
-func (k Keeper) GetAllActiveOracles(ctx sdk.Context) (oracles types.Oracles) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		var oracle types.Oracle
-		k.cdc.MustUnmarshal(iterator.Value(), &oracle)
-		if oracle.Jailed {
-			continue
-		}
-		oracles = append(oracles, oracle)
-	}
-	sort.Sort(oracles)
-	return oracles
-}
-
-/////////////////////////////
-//    ADDRESS DELEGATION   //
+//   ADDRESS ORCHESTRATOR  //
 /////////////////////////////
 
 // SetOracleByOrchestrator sets the Orchestrator key for a given oracle
@@ -244,7 +182,7 @@ func (k Keeper) DelExternalAddressForOracle(ctk sdk.Context, externalAddress str
 // implementations are involved.
 func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 	allOracles := k.GetAllActiveOracles(ctx)
-	var bridgeValidators []*types.BridgeValidator
+	var bridgeValidators []types.BridgeValidator
 	var totalPower uint64
 
 	for _, oracle := range allOracles {
@@ -253,7 +191,7 @@ func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 			continue
 		}
 		totalPower += power.Uint64()
-		bridgeValidators = append(bridgeValidators, &types.BridgeValidator{
+		bridgeValidators = append(bridgeValidators, types.BridgeValidator{
 			Power:           power.Uint64(),
 			ExternalAddress: oracle.ExternalAddress,
 		})
@@ -336,7 +274,7 @@ func (k Keeper) GetOracleSet(ctx sdk.Context, nonce uint64) *types.OracleSet {
 	return &oracleSet
 }
 
-// IterateOracleSets retruns all oracleSetRequests
+// IterateOracleSets returns all oracleSetRequests
 func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(key []byte, val *types.OracleSet) bool) {
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OracleSetRequestKey)
 	iter := prefixStore.ReverseIterator(nil, nil)
@@ -554,25 +492,25 @@ func (k Keeper) GetBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce ui
 }
 
 /////////////////////////////
-//     ORACLE DEPOSIT      //
+//     ORACLE STAKE      //
 /////////////////////////////
 
-func (k Keeper) SetTotalDeposit(ctx sdk.Context, totalDeposit sdk.Coin) {
+func (k Keeper) SetTotalStake(ctx sdk.Context, total sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.OracleTotalDepositKey, []byte(totalDeposit.String()))
+	store.Set(types.OracleTotalStakeKey, []byte(total.String()))
 }
 
-func (k Keeper) GetTotalDeposit(ctx sdk.Context) sdk.Coin {
+func (k Keeper) GetTotalStake(ctx sdk.Context) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
-	deposit := store.Get(types.OracleTotalDepositKey)
-	if deposit == nil {
+	bz := store.Get(types.OracleTotalStakeKey)
+	if bz == nil {
 		return sdk.Coin{}
 	}
-	depositCoin, err := sdk.ParseCoinNormalized(string(deposit))
+	total, err := sdk.ParseCoinNormalized(string(bz))
 	if err != nil {
-		panic("invalid oracle total deposit" + err.Error())
+		panic("invalid oracle total stake" + err.Error())
 	}
-	return depositCoin
+	return total
 }
 
 // GetLastTotalPower Load the last total oracle power.

@@ -461,8 +461,8 @@ func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracle
 	// set the ethereum address
 	myApp.BscKeeper.SetExternalAddressForOracle(ctx, oracleAddress, externalAddress.String())
 	// save total deposit amount
-	totalDeposit := myApp.BscKeeper.GetTotalDeposit(ctx)
-	myApp.BscKeeper.SetTotalDeposit(ctx, totalDeposit.Add(deposit))
+	totalDeposit := myApp.BscKeeper.GetTotalStake(ctx)
+	myApp.BscKeeper.SetTotalStake(ctx, totalDeposit.Add(deposit))
 
 	myApp.BscKeeper.CommonSetOracleTotalPower(ctx)
 

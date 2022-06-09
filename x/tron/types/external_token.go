@@ -6,16 +6,16 @@ import (
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
 )
 
-// ExternalContractAddressLen is the length of contract address strings
-const ExternalContractAddressLen = 34
+// TronContractAddressLen is the length of contract address strings
+const TronContractAddressLen = 34
 
-// ValidateExternalAddress validates the ethereum address strings
-func ValidateExternalAddress(addr string) error {
+// ValidateTronAddress validates the ethereum address strings
+func ValidateTronAddress(addr string) error {
 	if addr == "" {
 		return fmt.Errorf("empty")
 	}
-	if len(addr) != ExternalContractAddressLen {
-		return fmt.Errorf("address(%s) of the wrong length exp(%d) actual(%d)", addr, len(addr), ExternalContractAddressLen)
+	if len(addr) != TronContractAddressLen {
+		return fmt.Errorf("address(%s) of the wrong length exp(%d) actual(%d)", addr, len(addr), TronContractAddressLen)
 	}
 
 	tronAddress, err := common.DecodeCheck(addr)

@@ -30,26 +30,27 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type MsgSetOrchestratorAddress struct {
-	Oracle          string     `protobuf:"bytes,1,opt,name=oracle,proto3" json:"oracle,omitempty"`
-	Orchestrator    string     `protobuf:"bytes,2,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
-	ExternalAddress string     `protobuf:"bytes,3,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
-	Deposit         types.Coin `protobuf:"bytes,4,opt,name=deposit,proto3" json:"deposit"`
-	ChainName       string     `protobuf:"bytes,5,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+type MsgCreateOracleBridger struct {
+	OracleAddress    string     `protobuf:"bytes,1,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
+	BridgerAddress   string     `protobuf:"bytes,2,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
+	ExternalAddress  string     `protobuf:"bytes,3,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
+	ValidatorAddress string     `protobuf:"bytes,4,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
+	DelegateAmount   types.Coin `protobuf:"bytes,5,opt,name=delegate_amount,json=delegateAmount,proto3" json:"delegate_amount"`
+	ChainName        string     `protobuf:"bytes,6,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
-func (m *MsgSetOrchestratorAddress) Reset()         { *m = MsgSetOrchestratorAddress{} }
-func (m *MsgSetOrchestratorAddress) String() string { return proto.CompactTextString(m) }
-func (*MsgSetOrchestratorAddress) ProtoMessage()    {}
-func (*MsgSetOrchestratorAddress) Descriptor() ([]byte, []int) {
+func (m *MsgCreateOracleBridger) Reset()         { *m = MsgCreateOracleBridger{} }
+func (m *MsgCreateOracleBridger) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateOracleBridger) ProtoMessage()    {}
+func (*MsgCreateOracleBridger) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0f25e0a13815164b, []int{0}
 }
-func (m *MsgSetOrchestratorAddress) XXX_Unmarshal(b []byte) error {
+func (m *MsgCreateOracleBridger) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgSetOrchestratorAddress) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCreateOracleBridger) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgSetOrchestratorAddress.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCreateOracleBridger.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -59,68 +60,75 @@ func (m *MsgSetOrchestratorAddress) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *MsgSetOrchestratorAddress) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgSetOrchestratorAddress.Merge(m, src)
+func (m *MsgCreateOracleBridger) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateOracleBridger.Merge(m, src)
 }
-func (m *MsgSetOrchestratorAddress) XXX_Size() int {
+func (m *MsgCreateOracleBridger) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgSetOrchestratorAddress) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgSetOrchestratorAddress.DiscardUnknown(m)
+func (m *MsgCreateOracleBridger) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateOracleBridger.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgSetOrchestratorAddress proto.InternalMessageInfo
+var xxx_messageInfo_MsgCreateOracleBridger proto.InternalMessageInfo
 
-func (m *MsgSetOrchestratorAddress) GetOracle() string {
+func (m *MsgCreateOracleBridger) GetOracleAddress() string {
 	if m != nil {
-		return m.Oracle
+		return m.OracleAddress
 	}
 	return ""
 }
 
-func (m *MsgSetOrchestratorAddress) GetOrchestrator() string {
+func (m *MsgCreateOracleBridger) GetBridgerAddress() string {
 	if m != nil {
-		return m.Orchestrator
+		return m.BridgerAddress
 	}
 	return ""
 }
 
-func (m *MsgSetOrchestratorAddress) GetExternalAddress() string {
+func (m *MsgCreateOracleBridger) GetExternalAddress() string {
 	if m != nil {
 		return m.ExternalAddress
 	}
 	return ""
 }
 
-func (m *MsgSetOrchestratorAddress) GetDeposit() types.Coin {
+func (m *MsgCreateOracleBridger) GetValidatorAddress() string {
 	if m != nil {
-		return m.Deposit
+		return m.ValidatorAddress
+	}
+	return ""
+}
+
+func (m *MsgCreateOracleBridger) GetDelegateAmount() types.Coin {
+	if m != nil {
+		return m.DelegateAmount
 	}
 	return types.Coin{}
 }
 
-func (m *MsgSetOrchestratorAddress) GetChainName() string {
+func (m *MsgCreateOracleBridger) GetChainName() string {
 	if m != nil {
 		return m.ChainName
 	}
 	return ""
 }
 
-type MsgSetOrchestratorAddressResponse struct {
+type MsgCreateOracleBridgerResponse struct {
 }
 
-func (m *MsgSetOrchestratorAddressResponse) Reset()         { *m = MsgSetOrchestratorAddressResponse{} }
-func (m *MsgSetOrchestratorAddressResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgSetOrchestratorAddressResponse) ProtoMessage()    {}
-func (*MsgSetOrchestratorAddressResponse) Descriptor() ([]byte, []int) {
+func (m *MsgCreateOracleBridgerResponse) Reset()         { *m = MsgCreateOracleBridgerResponse{} }
+func (m *MsgCreateOracleBridgerResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateOracleBridgerResponse) ProtoMessage()    {}
+func (*MsgCreateOracleBridgerResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0f25e0a13815164b, []int{1}
 }
-func (m *MsgSetOrchestratorAddressResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgCreateOracleBridgerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgSetOrchestratorAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCreateOracleBridgerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgSetOrchestratorAddressResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCreateOracleBridgerResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -130,36 +138,36 @@ func (m *MsgSetOrchestratorAddressResponse) XXX_Marshal(b []byte, deterministic 
 		return b[:n], nil
 	}
 }
-func (m *MsgSetOrchestratorAddressResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgSetOrchestratorAddressResponse.Merge(m, src)
+func (m *MsgCreateOracleBridgerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateOracleBridgerResponse.Merge(m, src)
 }
-func (m *MsgSetOrchestratorAddressResponse) XXX_Size() int {
+func (m *MsgCreateOracleBridgerResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgSetOrchestratorAddressResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgSetOrchestratorAddressResponse.DiscardUnknown(m)
+func (m *MsgCreateOracleBridgerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateOracleBridgerResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgSetOrchestratorAddressResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgCreateOracleBridgerResponse proto.InternalMessageInfo
 
-type MsgAddOracleDeposit struct {
-	Oracle    string     `protobuf:"bytes,1,opt,name=oracle,proto3" json:"oracle,omitempty"`
-	Amount    types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
-	ChainName string     `protobuf:"bytes,3,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+type MsgAddOracleDelegate struct {
+	OracleAddress string     `protobuf:"bytes,1,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
+	Amount        types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
+	ChainName     string     `protobuf:"bytes,3,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
-func (m *MsgAddOracleDeposit) Reset()         { *m = MsgAddOracleDeposit{} }
-func (m *MsgAddOracleDeposit) String() string { return proto.CompactTextString(m) }
-func (*MsgAddOracleDeposit) ProtoMessage()    {}
-func (*MsgAddOracleDeposit) Descriptor() ([]byte, []int) {
+func (m *MsgAddOracleDelegate) Reset()         { *m = MsgAddOracleDelegate{} }
+func (m *MsgAddOracleDelegate) String() string { return proto.CompactTextString(m) }
+func (*MsgAddOracleDelegate) ProtoMessage()    {}
+func (*MsgAddOracleDelegate) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0f25e0a13815164b, []int{2}
 }
-func (m *MsgAddOracleDeposit) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddOracleDelegate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAddOracleDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddOracleDelegate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAddOracleDeposit.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddOracleDelegate.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -169,54 +177,54 @@ func (m *MsgAddOracleDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *MsgAddOracleDeposit) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAddOracleDeposit.Merge(m, src)
+func (m *MsgAddOracleDelegate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddOracleDelegate.Merge(m, src)
 }
-func (m *MsgAddOracleDeposit) XXX_Size() int {
+func (m *MsgAddOracleDelegate) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAddOracleDeposit) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAddOracleDeposit.DiscardUnknown(m)
+func (m *MsgAddOracleDelegate) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddOracleDelegate.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAddOracleDeposit proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddOracleDelegate proto.InternalMessageInfo
 
-func (m *MsgAddOracleDeposit) GetOracle() string {
+func (m *MsgAddOracleDelegate) GetOracleAddress() string {
 	if m != nil {
-		return m.Oracle
+		return m.OracleAddress
 	}
 	return ""
 }
 
-func (m *MsgAddOracleDeposit) GetAmount() types.Coin {
+func (m *MsgAddOracleDelegate) GetAmount() types.Coin {
 	if m != nil {
 		return m.Amount
 	}
 	return types.Coin{}
 }
 
-func (m *MsgAddOracleDeposit) GetChainName() string {
+func (m *MsgAddOracleDelegate) GetChainName() string {
 	if m != nil {
 		return m.ChainName
 	}
 	return ""
 }
 
-type MsgAddOracleDepositResponse struct {
+type MsgAddOracleDelegateResponse struct {
 }
 
-func (m *MsgAddOracleDepositResponse) Reset()         { *m = MsgAddOracleDepositResponse{} }
-func (m *MsgAddOracleDepositResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgAddOracleDepositResponse) ProtoMessage()    {}
-func (*MsgAddOracleDepositResponse) Descriptor() ([]byte, []int) {
+func (m *MsgAddOracleDelegateResponse) Reset()         { *m = MsgAddOracleDelegateResponse{} }
+func (m *MsgAddOracleDelegateResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAddOracleDelegateResponse) ProtoMessage()    {}
+func (*MsgAddOracleDelegateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0f25e0a13815164b, []int{3}
 }
-func (m *MsgAddOracleDepositResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddOracleDelegateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAddOracleDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddOracleDelegateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAddOracleDepositResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddOracleDelegateResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -226,17 +234,217 @@ func (m *MsgAddOracleDepositResponse) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *MsgAddOracleDepositResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAddOracleDepositResponse.Merge(m, src)
+func (m *MsgAddOracleDelegateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddOracleDelegateResponse.Merge(m, src)
 }
-func (m *MsgAddOracleDepositResponse) XXX_Size() int {
+func (m *MsgAddOracleDelegateResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAddOracleDepositResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAddOracleDepositResponse.DiscardUnknown(m)
+func (m *MsgAddOracleDelegateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddOracleDelegateResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAddOracleDepositResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddOracleDelegateResponse proto.InternalMessageInfo
+
+type MsgEditOracle struct {
+	OracleAddress    string `protobuf:"bytes,1,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
+	BridgeAddress    string `protobuf:"bytes,2,opt,name=bridge_address,json=bridgeAddress,proto3" json:"bridge_address,omitempty"`
+	ExternalAddress  string `protobuf:"bytes,3,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
+	ValidatorAddress string `protobuf:"bytes,4,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
+	ChainName        string `protobuf:"bytes,5,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+}
+
+func (m *MsgEditOracle) Reset()         { *m = MsgEditOracle{} }
+func (m *MsgEditOracle) String() string { return proto.CompactTextString(m) }
+func (*MsgEditOracle) ProtoMessage()    {}
+func (*MsgEditOracle) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0f25e0a13815164b, []int{4}
+}
+func (m *MsgEditOracle) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEditOracle) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEditOracle.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEditOracle) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEditOracle.Merge(m, src)
+}
+func (m *MsgEditOracle) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEditOracle) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEditOracle.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEditOracle proto.InternalMessageInfo
+
+func (m *MsgEditOracle) GetOracleAddress() string {
+	if m != nil {
+		return m.OracleAddress
+	}
+	return ""
+}
+
+func (m *MsgEditOracle) GetBridgeAddress() string {
+	if m != nil {
+		return m.BridgeAddress
+	}
+	return ""
+}
+
+func (m *MsgEditOracle) GetExternalAddress() string {
+	if m != nil {
+		return m.ExternalAddress
+	}
+	return ""
+}
+
+func (m *MsgEditOracle) GetValidatorAddress() string {
+	if m != nil {
+		return m.ValidatorAddress
+	}
+	return ""
+}
+
+func (m *MsgEditOracle) GetChainName() string {
+	if m != nil {
+		return m.ChainName
+	}
+	return ""
+}
+
+type MsgEditOracleResponse struct {
+}
+
+func (m *MsgEditOracleResponse) Reset()         { *m = MsgEditOracleResponse{} }
+func (m *MsgEditOracleResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgEditOracleResponse) ProtoMessage()    {}
+func (*MsgEditOracleResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0f25e0a13815164b, []int{5}
+}
+func (m *MsgEditOracleResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEditOracleResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEditOracleResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEditOracleResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEditOracleResponse.Merge(m, src)
+}
+func (m *MsgEditOracleResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEditOracleResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEditOracleResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEditOracleResponse proto.InternalMessageInfo
+
+type MsgWithdrawReward struct {
+	OracleAddress string `protobuf:"bytes,1,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
+	ChainName     string `protobuf:"bytes,5,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+}
+
+func (m *MsgWithdrawReward) Reset()         { *m = MsgWithdrawReward{} }
+func (m *MsgWithdrawReward) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawReward) ProtoMessage()    {}
+func (*MsgWithdrawReward) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0f25e0a13815164b, []int{6}
+}
+func (m *MsgWithdrawReward) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawReward) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawReward.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawReward) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawReward.Merge(m, src)
+}
+func (m *MsgWithdrawReward) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawReward) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawReward.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawReward proto.InternalMessageInfo
+
+func (m *MsgWithdrawReward) GetOracleAddress() string {
+	if m != nil {
+		return m.OracleAddress
+	}
+	return ""
+}
+
+func (m *MsgWithdrawReward) GetChainName() string {
+	if m != nil {
+		return m.ChainName
+	}
+	return ""
+}
+
+type MsgWithdrawRewardResponse struct {
+}
+
+func (m *MsgWithdrawRewardResponse) Reset()         { *m = MsgWithdrawRewardResponse{} }
+func (m *MsgWithdrawRewardResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawRewardResponse) ProtoMessage()    {}
+func (*MsgWithdrawRewardResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0f25e0a13815164b, []int{7}
+}
+func (m *MsgWithdrawRewardResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawRewardResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawRewardResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawRewardResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawRewardResponse.Merge(m, src)
+}
+func (m *MsgWithdrawRewardResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawRewardResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawRewardResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawRewardResponse proto.InternalMessageInfo
 
 // MsgOracleSetConfirm
 // this is the message sent by the validators when they wish to submit their
@@ -254,18 +462,18 @@ var xxx_messageInfo_MsgAddOracleDepositResponse proto.InternalMessageInfo
 // chain store and submit them to Ethereum to update the validator set
 // -------------
 type MsgOracleSetConfirm struct {
-	Nonce               uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	OrchestratorAddress string `protobuf:"bytes,2,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
-	ExternalAddress     string `protobuf:"bytes,3,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
-	Signature           string `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
-	ChainName           string `protobuf:"bytes,5,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	Nonce           uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	BridgerAddress  string `protobuf:"bytes,2,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
+	ExternalAddress string `protobuf:"bytes,3,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
+	Signature       string `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
+	ChainName       string `protobuf:"bytes,5,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *MsgOracleSetConfirm) Reset()         { *m = MsgOracleSetConfirm{} }
 func (m *MsgOracleSetConfirm) String() string { return proto.CompactTextString(m) }
 func (*MsgOracleSetConfirm) ProtoMessage()    {}
 func (*MsgOracleSetConfirm) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{4}
+	return fileDescriptor_0f25e0a13815164b, []int{8}
 }
 func (m *MsgOracleSetConfirm) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -301,9 +509,9 @@ func (m *MsgOracleSetConfirm) GetNonce() uint64 {
 	return 0
 }
 
-func (m *MsgOracleSetConfirm) GetOrchestratorAddress() string {
+func (m *MsgOracleSetConfirm) GetBridgerAddress() string {
 	if m != nil {
-		return m.OrchestratorAddress
+		return m.BridgerAddress
 	}
 	return ""
 }
@@ -336,7 +544,7 @@ func (m *MsgOracleSetConfirmResponse) Reset()         { *m = MsgOracleSetConfirm
 func (m *MsgOracleSetConfirmResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgOracleSetConfirmResponse) ProtoMessage()    {}
 func (*MsgOracleSetConfirmResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{5}
+	return fileDescriptor_0f25e0a13815164b, []int{9}
 }
 func (m *MsgOracleSetConfirmResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -368,19 +576,19 @@ var xxx_messageInfo_MsgOracleSetConfirmResponse proto.InternalMessageInfo
 // This informs the Cosmos module that a validator
 // set has been updated.
 type MsgOracleSetUpdatedClaim struct {
-	EventNonce     uint64             `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
-	BlockHeight    uint64             `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
-	OracleSetNonce uint64             `protobuf:"varint,3,opt,name=oracle_set_nonce,json=oracleSetNonce,proto3" json:"oracle_set_nonce,omitempty"`
-	Members        []*BridgeValidator `protobuf:"bytes,4,rep,name=members,proto3" json:"members,omitempty"`
-	Orchestrator   string             `protobuf:"bytes,6,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
-	ChainName      string             `protobuf:"bytes,7,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	EventNonce     uint64            `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
+	BlockHeight    uint64            `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
+	OracleSetNonce uint64            `protobuf:"varint,3,opt,name=oracle_set_nonce,json=oracleSetNonce,proto3" json:"oracle_set_nonce,omitempty"`
+	Members        []BridgeValidator `protobuf:"bytes,4,rep,name=members,proto3" json:"members"`
+	BridgerAddress string            `protobuf:"bytes,6,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
+	ChainName      string            `protobuf:"bytes,7,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *MsgOracleSetUpdatedClaim) Reset()         { *m = MsgOracleSetUpdatedClaim{} }
 func (m *MsgOracleSetUpdatedClaim) String() string { return proto.CompactTextString(m) }
 func (*MsgOracleSetUpdatedClaim) ProtoMessage()    {}
 func (*MsgOracleSetUpdatedClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{6}
+	return fileDescriptor_0f25e0a13815164b, []int{10}
 }
 func (m *MsgOracleSetUpdatedClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -430,16 +638,16 @@ func (m *MsgOracleSetUpdatedClaim) GetOracleSetNonce() uint64 {
 	return 0
 }
 
-func (m *MsgOracleSetUpdatedClaim) GetMembers() []*BridgeValidator {
+func (m *MsgOracleSetUpdatedClaim) GetMembers() []BridgeValidator {
 	if m != nil {
 		return m.Members
 	}
 	return nil
 }
 
-func (m *MsgOracleSetUpdatedClaim) GetOrchestrator() string {
+func (m *MsgOracleSetUpdatedClaim) GetBridgerAddress() string {
 	if m != nil {
-		return m.Orchestrator
+		return m.BridgerAddress
 	}
 	return ""
 }
@@ -458,7 +666,7 @@ func (m *MsgOracleSetUpdatedClaimResponse) Reset()         { *m = MsgOracleSetUp
 func (m *MsgOracleSetUpdatedClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgOracleSetUpdatedClaimResponse) ProtoMessage()    {}
 func (*MsgOracleSetUpdatedClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{7}
+	return fileDescriptor_0f25e0a13815164b, []int{11}
 }
 func (m *MsgOracleSetUpdatedClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -493,22 +701,22 @@ var xxx_messageInfo_MsgOracleSetUpdatedClaimResponse proto.InternalMessageInfo
 // issued to the Payment address in question
 // -------------
 type MsgSendToFxClaim struct {
-	EventNonce    uint64                                 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
-	BlockHeight   uint64                                 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
-	TokenContract string                                 `protobuf:"bytes,3,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
-	Amount        github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
-	Sender        string                                 `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
-	Receiver      string                                 `protobuf:"bytes,6,opt,name=receiver,proto3" json:"receiver,omitempty"`
-	TargetIbc     string                                 `protobuf:"bytes,7,opt,name=target_ibc,json=targetIbc,proto3" json:"target_ibc,omitempty"`
-	Orchestrator  string                                 `protobuf:"bytes,8,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
-	ChainName     string                                 `protobuf:"bytes,9,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	EventNonce     uint64                                 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
+	BlockHeight    uint64                                 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
+	TokenContract  string                                 `protobuf:"bytes,3,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	Amount         github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
+	Sender         string                                 `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
+	Receiver       string                                 `protobuf:"bytes,6,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	TargetIbc      string                                 `protobuf:"bytes,7,opt,name=target_ibc,json=targetIbc,proto3" json:"target_ibc,omitempty"`
+	BridgerAddress string                                 `protobuf:"bytes,8,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
+	ChainName      string                                 `protobuf:"bytes,9,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *MsgSendToFxClaim) Reset()         { *m = MsgSendToFxClaim{} }
 func (m *MsgSendToFxClaim) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToFxClaim) ProtoMessage()    {}
 func (*MsgSendToFxClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{8}
+	return fileDescriptor_0f25e0a13815164b, []int{12}
 }
 func (m *MsgSendToFxClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -579,9 +787,9 @@ func (m *MsgSendToFxClaim) GetTargetIbc() string {
 	return ""
 }
 
-func (m *MsgSendToFxClaim) GetOrchestrator() string {
+func (m *MsgSendToFxClaim) GetBridgerAddress() string {
 	if m != nil {
-		return m.Orchestrator
+		return m.BridgerAddress
 	}
 	return ""
 }
@@ -600,7 +808,7 @@ func (m *MsgSendToFxClaimResponse) Reset()         { *m = MsgSendToFxClaimRespon
 func (m *MsgSendToFxClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToFxClaimResponse) ProtoMessage()    {}
 func (*MsgSendToFxClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{9}
+	return fileDescriptor_0f25e0a13815164b, []int{13}
 }
 func (m *MsgSendToFxClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -653,7 +861,7 @@ func (m *MsgSendToExternal) Reset()         { *m = MsgSendToExternal{} }
 func (m *MsgSendToExternal) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToExternal) ProtoMessage()    {}
 func (*MsgSendToExternal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{10}
+	return fileDescriptor_0f25e0a13815164b, []int{14}
 }
 func (m *MsgSendToExternal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -724,7 +932,7 @@ func (m *MsgSendToExternalResponse) Reset()         { *m = MsgSendToExternalResp
 func (m *MsgSendToExternalResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToExternalResponse) ProtoMessage()    {}
 func (*MsgSendToExternalResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{11}
+	return fileDescriptor_0f25e0a13815164b, []int{15}
 }
 func (m *MsgSendToExternalResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -766,7 +974,7 @@ func (m *MsgCancelSendToExternal) Reset()         { *m = MsgCancelSendToExternal
 func (m *MsgCancelSendToExternal) String() string { return proto.CompactTextString(m) }
 func (*MsgCancelSendToExternal) ProtoMessage()    {}
 func (*MsgCancelSendToExternal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{12}
+	return fileDescriptor_0f25e0a13815164b, []int{16}
 }
 func (m *MsgCancelSendToExternal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -823,7 +1031,7 @@ func (m *MsgCancelSendToExternalResponse) Reset()         { *m = MsgCancelSendTo
 func (m *MsgCancelSendToExternalResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgCancelSendToExternalResponse) ProtoMessage()    {}
 func (*MsgCancelSendToExternalResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{13}
+	return fileDescriptor_0f25e0a13815164b, []int{17}
 }
 func (m *MsgCancelSendToExternalResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -866,7 +1074,7 @@ type MsgRequestBatch struct {
 	Sender     string                                  `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	Denom      string                                  `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
 	MinimumFee github_com_cosmos_cosmos_sdk_types.Int  `protobuf:"bytes,3,opt,name=minimum_fee,json=minimumFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"minimum_fee"`
-	FeeReceive string                                  `protobuf:"bytes,4,opt,name=feeReceive,proto3" json:"feeReceive,omitempty"`
+	FeeReceive string                                  `protobuf:"bytes,4,opt,name=fee_receive,json=feeReceive,proto3" json:"fee_receive,omitempty"`
 	ChainName  string                                  `protobuf:"bytes,5,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 	BaseFee    *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=base_fee,json=baseFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"base_fee,omitempty"`
 }
@@ -875,7 +1083,7 @@ func (m *MsgRequestBatch) Reset()         { *m = MsgRequestBatch{} }
 func (m *MsgRequestBatch) String() string { return proto.CompactTextString(m) }
 func (*MsgRequestBatch) ProtoMessage()    {}
 func (*MsgRequestBatch) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{14}
+	return fileDescriptor_0f25e0a13815164b, []int{18}
 }
 func (m *MsgRequestBatch) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -939,7 +1147,7 @@ func (m *MsgRequestBatchResponse) Reset()         { *m = MsgRequestBatchResponse
 func (m *MsgRequestBatchResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgRequestBatchResponse) ProtoMessage()    {}
 func (*MsgRequestBatchResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{15}
+	return fileDescriptor_0f25e0a13815164b, []int{19}
 }
 func (m *MsgRequestBatchResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -977,19 +1185,19 @@ var xxx_messageInfo_MsgRequestBatchResponse proto.InternalMessageInfo
 // as well as an Bsc signature over this batch by the validator
 // -------------
 type MsgConfirmBatch struct {
-	Nonce               uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	TokenContract       string `protobuf:"bytes,2,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
-	OrchestratorAddress string `protobuf:"bytes,3,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
-	ExternalAddress     string `protobuf:"bytes,4,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
-	Signature           string `protobuf:"bytes,5,opt,name=signature,proto3" json:"signature,omitempty"`
-	ChainName           string `protobuf:"bytes,6,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	Nonce           uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	TokenContract   string `protobuf:"bytes,2,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	BridgerAddress  string `protobuf:"bytes,3,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
+	ExternalAddress string `protobuf:"bytes,4,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
+	Signature       string `protobuf:"bytes,5,opt,name=signature,proto3" json:"signature,omitempty"`
+	ChainName       string `protobuf:"bytes,6,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *MsgConfirmBatch) Reset()         { *m = MsgConfirmBatch{} }
 func (m *MsgConfirmBatch) String() string { return proto.CompactTextString(m) }
 func (*MsgConfirmBatch) ProtoMessage()    {}
 func (*MsgConfirmBatch) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{16}
+	return fileDescriptor_0f25e0a13815164b, []int{20}
 }
 func (m *MsgConfirmBatch) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1032,9 +1240,9 @@ func (m *MsgConfirmBatch) GetTokenContract() string {
 	return ""
 }
 
-func (m *MsgConfirmBatch) GetOrchestratorAddress() string {
+func (m *MsgConfirmBatch) GetBridgerAddress() string {
 	if m != nil {
-		return m.OrchestratorAddress
+		return m.BridgerAddress
 	}
 	return ""
 }
@@ -1067,7 +1275,7 @@ func (m *MsgConfirmBatchResponse) Reset()         { *m = MsgConfirmBatchResponse
 func (m *MsgConfirmBatchResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgConfirmBatchResponse) ProtoMessage()    {}
 func (*MsgConfirmBatchResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{17}
+	return fileDescriptor_0f25e0a13815164b, []int{21}
 }
 func (m *MsgConfirmBatchResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1099,19 +1307,19 @@ var xxx_messageInfo_MsgConfirmBatchResponse proto.InternalMessageInfo
 // SendToExternalClaim claims that a batch of withdrawal
 // operations on the bridge contract was executed.
 type MsgSendToExternalClaim struct {
-	EventNonce    uint64 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
-	BlockHeight   uint64 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
-	BatchNonce    uint64 `protobuf:"varint,3,opt,name=batch_nonce,json=batchNonce,proto3" json:"batch_nonce,omitempty"`
-	TokenContract string `protobuf:"bytes,4,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
-	Orchestrator  string `protobuf:"bytes,5,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
-	ChainName     string `protobuf:"bytes,6,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	EventNonce     uint64 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
+	BlockHeight    uint64 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
+	BatchNonce     uint64 `protobuf:"varint,3,opt,name=batch_nonce,json=batchNonce,proto3" json:"batch_nonce,omitempty"`
+	TokenContract  string `protobuf:"bytes,4,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	BridgerAddress string `protobuf:"bytes,5,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
+	ChainName      string `protobuf:"bytes,6,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *MsgSendToExternalClaim) Reset()         { *m = MsgSendToExternalClaim{} }
 func (m *MsgSendToExternalClaim) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToExternalClaim) ProtoMessage()    {}
 func (*MsgSendToExternalClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{18}
+	return fileDescriptor_0f25e0a13815164b, []int{22}
 }
 func (m *MsgSendToExternalClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1168,9 +1376,9 @@ func (m *MsgSendToExternalClaim) GetTokenContract() string {
 	return ""
 }
 
-func (m *MsgSendToExternalClaim) GetOrchestrator() string {
+func (m *MsgSendToExternalClaim) GetBridgerAddress() string {
 	if m != nil {
-		return m.Orchestrator
+		return m.BridgerAddress
 	}
 	return ""
 }
@@ -1189,7 +1397,7 @@ func (m *MsgSendToExternalClaimResponse) Reset()         { *m = MsgSendToExterna
 func (m *MsgSendToExternalClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToExternalClaimResponse) ProtoMessage()    {}
 func (*MsgSendToExternalClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{19}
+	return fileDescriptor_0f25e0a13815164b, []int{23}
 }
 func (m *MsgSendToExternalClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1219,22 +1427,22 @@ func (m *MsgSendToExternalClaimResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgSendToExternalClaimResponse proto.InternalMessageInfo
 
 type MsgBridgeTokenClaim struct {
-	EventNonce    uint64 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
-	BlockHeight   uint64 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
-	TokenContract string `protobuf:"bytes,3,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
-	Name          string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	Symbol        string `protobuf:"bytes,5,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	Decimals      uint64 `protobuf:"varint,6,opt,name=decimals,proto3" json:"decimals,omitempty"`
-	Orchestrator  string `protobuf:"bytes,7,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
-	ChannelIbc    string `protobuf:"bytes,8,opt,name=channel_ibc,json=channelIbc,proto3" json:"channel_ibc,omitempty"`
-	ChainName     string `protobuf:"bytes,9,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	EventNonce     uint64 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
+	BlockHeight    uint64 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
+	TokenContract  string `protobuf:"bytes,3,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	Name           string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Symbol         string `protobuf:"bytes,5,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	Decimals       uint64 `protobuf:"varint,6,opt,name=decimals,proto3" json:"decimals,omitempty"`
+	BridgerAddress string `protobuf:"bytes,7,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
+	ChannelIbc     string `protobuf:"bytes,8,opt,name=channel_ibc,json=channelIbc,proto3" json:"channel_ibc,omitempty"`
+	ChainName      string `protobuf:"bytes,9,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *MsgBridgeTokenClaim) Reset()         { *m = MsgBridgeTokenClaim{} }
 func (m *MsgBridgeTokenClaim) String() string { return proto.CompactTextString(m) }
 func (*MsgBridgeTokenClaim) ProtoMessage()    {}
 func (*MsgBridgeTokenClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{20}
+	return fileDescriptor_0f25e0a13815164b, []int{24}
 }
 func (m *MsgBridgeTokenClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1305,9 +1513,9 @@ func (m *MsgBridgeTokenClaim) GetDecimals() uint64 {
 	return 0
 }
 
-func (m *MsgBridgeTokenClaim) GetOrchestrator() string {
+func (m *MsgBridgeTokenClaim) GetBridgerAddress() string {
 	if m != nil {
-		return m.Orchestrator
+		return m.BridgerAddress
 	}
 	return ""
 }
@@ -1333,7 +1541,7 @@ func (m *MsgBridgeTokenClaimResponse) Reset()         { *m = MsgBridgeTokenClaim
 func (m *MsgBridgeTokenClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgBridgeTokenClaimResponse) ProtoMessage()    {}
 func (*MsgBridgeTokenClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{21}
+	return fileDescriptor_0f25e0a13815164b, []int{25}
 }
 func (m *MsgBridgeTokenClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1363,10 +1571,14 @@ func (m *MsgBridgeTokenClaimResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgBridgeTokenClaimResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgSetOrchestratorAddress)(nil), "fx.gravity.crosschain.v1.MsgSetOrchestratorAddress")
-	proto.RegisterType((*MsgSetOrchestratorAddressResponse)(nil), "fx.gravity.crosschain.v1.MsgSetOrchestratorAddressResponse")
-	proto.RegisterType((*MsgAddOracleDeposit)(nil), "fx.gravity.crosschain.v1.MsgAddOracleDeposit")
-	proto.RegisterType((*MsgAddOracleDepositResponse)(nil), "fx.gravity.crosschain.v1.MsgAddOracleDepositResponse")
+	proto.RegisterType((*MsgCreateOracleBridger)(nil), "fx.gravity.crosschain.v1.MsgCreateOracleBridger")
+	proto.RegisterType((*MsgCreateOracleBridgerResponse)(nil), "fx.gravity.crosschain.v1.MsgCreateOracleBridgerResponse")
+	proto.RegisterType((*MsgAddOracleDelegate)(nil), "fx.gravity.crosschain.v1.MsgAddOracleDelegate")
+	proto.RegisterType((*MsgAddOracleDelegateResponse)(nil), "fx.gravity.crosschain.v1.MsgAddOracleDelegateResponse")
+	proto.RegisterType((*MsgEditOracle)(nil), "fx.gravity.crosschain.v1.MsgEditOracle")
+	proto.RegisterType((*MsgEditOracleResponse)(nil), "fx.gravity.crosschain.v1.MsgEditOracleResponse")
+	proto.RegisterType((*MsgWithdrawReward)(nil), "fx.gravity.crosschain.v1.MsgWithdrawReward")
+	proto.RegisterType((*MsgWithdrawRewardResponse)(nil), "fx.gravity.crosschain.v1.MsgWithdrawRewardResponse")
 	proto.RegisterType((*MsgOracleSetConfirm)(nil), "fx.gravity.crosschain.v1.MsgOracleSetConfirm")
 	proto.RegisterType((*MsgOracleSetConfirmResponse)(nil), "fx.gravity.crosschain.v1.MsgOracleSetConfirmResponse")
 	proto.RegisterType((*MsgOracleSetUpdatedClaim)(nil), "fx.gravity.crosschain.v1.MsgOracleSetUpdatedClaim")
@@ -1390,86 +1602,93 @@ func init() {
 func init() { proto.RegisterFile("crosschain/v1/tx.proto", fileDescriptor_0f25e0a13815164b) }
 
 var fileDescriptor_0f25e0a13815164b = []byte{
-	// 1251 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x58, 0x4f, 0x6f, 0xe3, 0x54,
-	0x10, 0xaf, 0x93, 0x34, 0xdd, 0x4c, 0xda, 0x6e, 0x71, 0xa3, 0x92, 0x66, 0xd9, 0xa4, 0x0d, 0x02,
-	0xb5, 0xa0, 0x3a, 0xa4, 0x15, 0x82, 0x05, 0x09, 0x69, 0x1b, 0xa8, 0xe8, 0xa1, 0xad, 0x94, 0x5d,
-	0x38, 0x70, 0x89, 0x1c, 0x7b, 0xe2, 0x58, 0x8d, 0xdf, 0x2b, 0x7e, 0x2f, 0x21, 0x3d, 0x22, 0x01,
-	0x07, 0x4e, 0x7b, 0xe6, 0x33, 0xf0, 0x39, 0xd0, 0x1e, 0xf7, 0x82, 0x40, 0x80, 0x56, 0xa8, 0x3d,
-	0x20, 0xbe, 0x05, 0xf2, 0x7b, 0x8e, 0xd7, 0x71, 0xec, 0xfc, 0x59, 0xad, 0x38, 0x35, 0x6f, 0x3c,
-	0x6f, 0x66, 0x7e, 0xbf, 0x99, 0x37, 0x33, 0x2a, 0x6c, 0x19, 0x2e, 0x65, 0xcc, 0xe8, 0xea, 0x36,
-	0xa9, 0x0d, 0xea, 0x35, 0x3e, 0xd4, 0xae, 0x5c, 0xca, 0xa9, 0x5a, 0xec, 0x0c, 0x35, 0xcb, 0xd5,
-	0x07, 0x36, 0xbf, 0xd6, 0x5e, 0xa8, 0x68, 0x83, 0x7a, 0xa9, 0x6c, 0x50, 0xe6, 0x50, 0x56, 0x6b,
-	0xeb, 0x0c, 0x6b, 0x83, 0x7a, 0x1b, 0xb9, 0x5e, 0xaf, 0x19, 0xd4, 0x26, 0xf2, 0x66, 0xa9, 0x60,
-	0x51, 0x8b, 0x8a, 0x9f, 0x35, 0xef, 0x97, 0x2f, 0x2d, 0x8f, 0xfb, 0x09, 0x99, 0x14, 0xdf, 0xab,
-	0x7f, 0x29, 0xb0, 0x7d, 0xc6, 0xac, 0x47, 0xc8, 0x2f, 0x5c, 0xa3, 0x8b, 0x8c, 0xbb, 0x3a, 0xa7,
-	0xee, 0x43, 0xd3, 0x74, 0x91, 0x31, 0x75, 0x0b, 0xb2, 0xd4, 0xd5, 0x8d, 0x1e, 0x16, 0x95, 0x1d,
-	0x65, 0x2f, 0xd7, 0xf4, 0x4f, 0x6a, 0x15, 0x56, 0x69, 0x48, 0xbd, 0x98, 0x12, 0x5f, 0xc7, 0x64,
-	0xea, 0x3e, 0x6c, 0xe0, 0x90, 0xa3, 0x4b, 0xf4, 0x5e, 0x4b, 0x97, 0xf6, 0x8a, 0x69, 0xa1, 0x77,
-	0x77, 0x24, 0x1f, 0xb9, 0x79, 0x00, 0x2b, 0x26, 0x5e, 0x51, 0x66, 0xf3, 0x62, 0x66, 0x47, 0xd9,
-	0xcb, 0x1f, 0x6e, 0x6b, 0x12, 0xac, 0xe6, 0x81, 0xd5, 0x7c, 0xb0, 0x5a, 0x83, 0xda, 0xe4, 0x38,
-	0xf3, 0xf4, 0x79, 0x65, 0xa9, 0x39, 0xd2, 0x57, 0xef, 0x03, 0x08, 0x38, 0x2d, 0xa2, 0x3b, 0x58,
-	0x5c, 0x16, 0xf6, 0x73, 0x42, 0x72, 0xae, 0x3b, 0x58, 0x7d, 0x13, 0x76, 0x13, 0xd1, 0x35, 0x91,
-	0x5d, 0x51, 0xc2, 0xb0, 0xfa, 0xbd, 0x02, 0x9b, 0x67, 0xcc, 0x7a, 0x68, 0x9a, 0x17, 0x02, 0xde,
-	0xa7, 0xbe, 0xed, 0x24, 0xf4, 0x1f, 0x40, 0x56, 0x77, 0x68, 0x9f, 0x70, 0x81, 0x7b, 0x8e, 0x68,
-	0x7d, 0xf5, 0x48, 0xb0, 0xe9, 0x68, 0xb0, 0xf7, 0xe1, 0x5e, 0x4c, 0x18, 0x41, 0x98, 0xbf, 0xc8,
-	0x30, 0xe5, 0xc7, 0x47, 0xc8, 0x1b, 0x94, 0x74, 0x6c, 0xd7, 0x51, 0x0b, 0xb0, 0x4c, 0x28, 0x31,
-	0x64, 0x94, 0x99, 0xa6, 0x3c, 0xa8, 0x75, 0x28, 0x84, 0xd3, 0x11, 0xa4, 0x40, 0xa6, 0x6a, 0x93,
-	0xc6, 0x64, 0x7b, 0x81, 0x8c, 0xbd, 0x01, 0x39, 0x66, 0x5b, 0x44, 0xe7, 0x7d, 0x17, 0x45, 0xce,
-	0x72, 0xcd, 0x17, 0x82, 0x59, 0x49, 0x91, 0x38, 0xa3, 0x38, 0x02, 0x9c, 0x4f, 0x52, 0x50, 0x0c,
-	0x7f, 0xff, 0xe2, 0xca, 0xd4, 0x39, 0x9a, 0x8d, 0x9e, 0x6e, 0x3b, 0x6a, 0x05, 0xf2, 0x38, 0x40,
-	0xc2, 0x5b, 0x61, 0xc8, 0x20, 0x44, 0xe7, 0x02, 0xf7, 0x2e, 0xac, 0xb6, 0x7b, 0xd4, 0xb8, 0x6c,
-	0x75, 0xd1, 0xb6, 0xba, 0x32, 0x45, 0x99, 0x66, 0x5e, 0xc8, 0x3e, 0x17, 0x22, 0x75, 0x0f, 0x36,
-	0x64, 0x26, 0x5b, 0x0c, 0x47, 0x86, 0xd2, 0x42, 0x6d, 0x9d, 0x8e, 0x9c, 0x4a, 0x63, 0x0d, 0x58,
-	0x71, 0xd0, 0x69, 0xa3, 0xcb, 0x8a, 0x99, 0x9d, 0xf4, 0x5e, 0xfe, 0x70, 0x5f, 0x4b, 0x7a, 0x9f,
-	0xda, 0xb1, 0x6b, 0x9b, 0x16, 0x7e, 0xa9, 0xf7, 0x6c, 0xd3, 0x23, 0xb5, 0x39, 0xba, 0x39, 0xf1,
-	0x58, 0xb2, 0x31, 0x8f, 0x65, 0x9c, 0xb1, 0x95, 0x28, 0x63, 0x55, 0xd8, 0x49, 0x62, 0x24, 0xa0,
-	0xed, 0xcf, 0x14, 0x6c, 0x88, 0x5a, 0x27, 0xe6, 0x63, 0x7a, 0x32, 0x7c, 0x75, 0x74, 0xbd, 0x05,
-	0xeb, 0x9c, 0x5e, 0x22, 0x69, 0x19, 0x94, 0x70, 0x57, 0x37, 0xb8, 0x5f, 0x14, 0x6b, 0x42, 0xda,
-	0xf0, 0x85, 0xea, 0x49, 0xf0, 0x2a, 0x44, 0x3d, 0x1c, 0x6b, 0x5e, 0xe9, 0xff, 0xf1, 0xbc, 0xf2,
-	0xb6, 0x65, 0xf3, 0x6e, 0xbf, 0xad, 0x19, 0xd4, 0xa9, 0xf9, 0x2d, 0x4c, 0xfe, 0x39, 0x60, 0xe6,
-	0x65, 0x8d, 0x5f, 0x5f, 0x21, 0xd3, 0x4e, 0x09, 0x0f, 0x1e, 0xc9, 0x16, 0x64, 0x19, 0x12, 0x13,
-	0x5d, 0xbf, 0x70, 0xfc, 0x93, 0x5a, 0x82, 0x3b, 0x2e, 0x1a, 0x68, 0x0f, 0x70, 0x44, 0x61, 0x70,
-	0xf6, 0xe8, 0xe3, 0xba, 0x6b, 0x21, 0x6f, 0xd9, 0x6d, 0x63, 0x44, 0x9f, 0x94, 0x9c, 0xb6, 0x8d,
-	0x89, 0x0c, 0xdc, 0x99, 0x99, 0x81, 0x5c, 0x34, 0x03, 0x25, 0x51, 0x93, 0x63, 0xe4, 0x06, 0xcc,
-	0xff, 0xa6, 0xc0, 0x6b, 0xc1, 0xc7, 0xcf, 0xfc, 0x97, 0x12, 0xc2, 0xa1, 0x8c, 0xe1, 0x50, 0x21,
-	0x63, 0x22, 0xe3, 0xfe, 0x43, 0x14, 0xbf, 0x43, 0x1d, 0x25, 0xbd, 0x58, 0x47, 0xf9, 0x04, 0xa0,
-	0x2d, 0xea, 0xae, 0xd5, 0x41, 0x9c, 0xb7, 0x79, 0xe6, 0xe4, 0x95, 0x13, 0x9c, 0xf9, 0x52, 0xef,
-	0xf9, 0xc3, 0x21, 0x0c, 0x2c, 0x80, 0xfd, 0x0d, 0xbc, 0x7e, 0xc6, 0xac, 0x86, 0x4e, 0x0c, 0xec,
-	0x45, 0xb0, 0x7b, 0x25, 0xe3, 0xea, 0x84, 0xe9, 0x06, 0xb7, 0x29, 0x69, 0xd9, 0xa6, 0x5f, 0x79,
-	0x6b, 0x21, 0xe9, 0xa9, 0x19, 0xa2, 0x28, 0x35, 0x46, 0xd1, 0x8c, 0x3e, 0xb9, 0x0b, 0x95, 0x04,
-	0xc7, 0x41, 0x6c, 0x3f, 0xa5, 0xe0, 0xee, 0x19, 0xb3, 0x9a, 0xf8, 0x75, 0x1f, 0x19, 0x3f, 0xd6,
-	0xb9, 0xd1, 0x4d, 0x4c, 0x48, 0x01, 0x96, 0x4d, 0x24, 0xd4, 0xf1, 0x83, 0x90, 0x07, 0xf5, 0x02,
-	0xf2, 0x8e, 0x4d, 0x6c, 0xa7, 0xef, 0x08, 0x6a, 0xd3, 0x2f, 0x55, 0xd3, 0xe0, 0x9b, 0xf0, 0xa8,
-	0x2e, 0x03, 0x74, 0x10, 0x9b, 0xb2, 0x64, 0xfd, 0x9e, 0x19, 0x92, 0xcc, 0x48, 0x85, 0x7a, 0x0a,
-	0x77, 0xbc, 0x7c, 0x8a, 0x60, 0xb2, 0x41, 0x30, 0xca, 0x02, 0xc1, 0xac, 0x78, 0xf7, 0x4f, 0x10,
-	0xab, 0xdb, 0x22, 0x71, 0x61, 0x6e, 0x02, 0xde, 0xfe, 0x55, 0x04, 0x6f, 0x7e, 0x4b, 0x96, 0xbc,
-	0xc5, 0xcf, 0x97, 0xc9, 0xae, 0x90, 0x8a, 0xeb, 0x0a, 0x49, 0x63, 0x28, 0xbd, 0xd8, 0x18, 0xca,
-	0xcc, 0x31, 0x86, 0x96, 0xa7, 0x8f, 0xa1, 0x6c, 0xb4, 0x8c, 0x24, 0x0d, 0x61, 0xa8, 0x01, 0x0d,
-	0xff, 0x28, 0xb0, 0x35, 0x51, 0xf8, 0xaf, 0xae, 0xa3, 0x56, 0x20, 0xdf, 0xf6, 0xfc, 0x8d, 0xcd,
-	0x1e, 0x10, 0xa2, 0xf3, 0x04, 0x72, 0x33, 0x71, 0xe4, 0x46, 0xfb, 0xda, 0xf2, 0xcc, 0xbe, 0x36,
-	0x41, 0xc2, 0x0e, 0x94, 0xe3, 0x81, 0x06, 0x5c, 0xfc, 0x9c, 0x12, 0x6b, 0x87, 0x1c, 0x6f, 0x8f,
-	0x85, 0xff, 0xff, 0x7b, 0xb4, 0xa8, 0x90, 0x11, 0xd1, 0x4b, 0x12, 0xc4, 0x6f, 0xf1, 0x9a, 0xaf,
-	0x9d, 0x36, 0xed, 0x05, 0x63, 0x42, 0x9c, 0xbc, 0x31, 0x61, 0xa2, 0x61, 0x3b, 0x7a, 0x8f, 0x09,
-	0xb4, 0x99, 0x66, 0x70, 0x9e, 0xe0, 0x6b, 0x25, 0x86, 0xaf, 0x0a, 0xe4, 0x8d, 0xae, 0x4e, 0x08,
-	0xf6, 0xc4, 0x2c, 0x91, 0xa3, 0x02, 0x7c, 0x91, 0x37, 0x4c, 0x66, 0x0c, 0x0a, 0xb9, 0xdc, 0x44,
-	0xd9, 0x1a, 0xb1, 0x79, 0xf8, 0x2b, 0x40, 0xfa, 0x8c, 0x59, 0xea, 0x8f, 0x0a, 0x6c, 0x25, 0x2c,
-	0xdd, 0x47, 0xc9, 0x3b, 0x46, 0xe2, 0x2e, 0x5b, 0xfa, 0xf8, 0x25, 0x2e, 0x8d, 0x82, 0x52, 0x87,
-	0xb0, 0x31, 0xb1, 0xfc, 0x1e, 0x4c, 0x35, 0x18, 0x55, 0x2f, 0xbd, 0xbf, 0x90, 0x7a, 0xd8, 0xf3,
-	0xc4, 0x3e, 0x3b, 0xdd, 0x73, 0x54, 0x7d, 0x86, 0xe7, 0xa4, 0x2d, 0x53, 0xfd, 0x41, 0x81, 0x42,
-	0x64, 0xa1, 0x92, 0x75, 0x7d, 0x38, 0x9f, 0xbd, 0xf0, 0x0e, 0x56, 0xfa, 0x68, 0xf1, 0x3b, 0x61,
-	0x0a, 0x26, 0xde, 0xd6, 0x74, 0x0a, 0xa2, 0xea, 0x33, 0x28, 0x48, 0xaa, 0x45, 0x95, 0xc2, 0xda,
-	0xf8, 0xb6, 0xf8, 0xce, 0x8c, 0x22, 0x0a, 0xe9, 0x96, 0x0e, 0xe7, 0xd7, 0x0d, 0x1c, 0xba, 0xb0,
-	0x1e, 0x59, 0x14, 0xde, 0x9d, 0xc3, 0xca, 0x48, 0xb9, 0x74, 0xb4, 0x80, 0x72, 0xe0, 0xf3, 0x3b,
-	0x05, 0x0a, 0xb1, 0x3b, 0x4a, 0x7d, 0xaa, 0xb5, 0xb8, 0x2b, 0xa5, 0x07, 0x0b, 0x5f, 0x09, 0xc2,
-	0xf8, 0x56, 0x81, 0xcd, 0xb8, 0x71, 0xf2, 0xde, 0x02, 0x98, 0x24, 0xf1, 0x1f, 0x2e, 0x7a, 0x23,
-	0x88, 0xa1, 0x07, 0xab, 0x63, 0x0b, 0xd1, 0xfe, 0x54, 0x4b, 0x61, 0xd5, 0x52, 0x7d, 0x6e, 0xd5,
-	0xb0, 0xb7, 0xb1, 0x35, 0x62, 0xba, 0xb7, 0xb0, 0xea, 0x0c, 0x6f, 0x71, 0x13, 0xfb, 0xf8, 0xf4,
-	0xe9, 0x4d, 0x59, 0x79, 0x76, 0x53, 0x56, 0xfe, 0xbe, 0x29, 0x2b, 0x4f, 0x6e, 0xcb, 0x4b, 0xcf,
-	0x6e, 0xcb, 0x4b, 0xbf, 0xdf, 0x96, 0x97, 0xbe, 0xaa, 0x85, 0xd6, 0xa3, 0x4e, 0x9f, 0x88, 0xdd,
-	0x73, 0x58, 0xeb, 0x0c, 0x0f, 0x0c, 0xea, 0x62, 0x6d, 0x18, 0xfa, 0x97, 0x88, 0xdc, 0x95, 0xda,
-	0x59, 0xf1, 0x9f, 0x91, 0xa3, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0xe5, 0x9a, 0x33, 0x71, 0xa3,
-	0x11, 0x00, 0x00,
+	// 1362 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x58, 0xcd, 0x6e, 0xdb, 0x46,
+	0x10, 0x36, 0x25, 0xd9, 0x8e, 0x47, 0xf1, 0x4f, 0x18, 0x37, 0xb1, 0x99, 0x44, 0x72, 0x0c, 0xa4,
+	0x71, 0x1a, 0x84, 0x8a, 0x1d, 0xb4, 0x4d, 0x7b, 0x28, 0x10, 0xbb, 0x31, 0xe2, 0x83, 0x12, 0x40,
+	0x49, 0x5b, 0xb4, 0x17, 0x61, 0x45, 0x8e, 0x28, 0x22, 0x22, 0xe9, 0x72, 0x57, 0x8a, 0x82, 0x9e,
+	0x0a, 0x14, 0x3d, 0xf7, 0xd2, 0x53, 0x9f, 0xa0, 0xe8, 0xa9, 0xf7, 0x3e, 0x40, 0x8e, 0x39, 0x14,
+	0x68, 0xd1, 0x43, 0x1a, 0x24, 0xd7, 0x3e, 0x44, 0xc1, 0xdd, 0xd5, 0x9a, 0xa4, 0x28, 0x89, 0x2a,
+	0x92, 0x9e, 0x2c, 0x0e, 0xbf, 0x9d, 0x9f, 0x6f, 0x66, 0x67, 0x86, 0x86, 0x73, 0x56, 0x18, 0x50,
+	0x6a, 0x75, 0x88, 0xeb, 0xd7, 0xfa, 0xbb, 0x35, 0x36, 0x30, 0x8f, 0xc3, 0x80, 0x05, 0xfa, 0x46,
+	0x7b, 0x60, 0x3a, 0x21, 0xe9, 0xbb, 0xec, 0xa9, 0x79, 0x02, 0x31, 0xfb, 0xbb, 0x46, 0xc5, 0x0a,
+	0xa8, 0x17, 0xd0, 0x5a, 0x8b, 0x50, 0xac, 0xf5, 0x77, 0x5b, 0xc8, 0xc8, 0x6e, 0xcd, 0x0a, 0x5c,
+	0x5f, 0x9c, 0x34, 0xd6, 0x9d, 0xc0, 0x09, 0xf8, 0xcf, 0x5a, 0xf4, 0x4b, 0x4a, 0x37, 0x53, 0x76,
+	0x9e, 0x1e, 0x23, 0x15, 0xaf, 0xb6, 0x7f, 0x2e, 0xc0, 0xb9, 0x3a, 0x75, 0x0e, 0x42, 0x24, 0x0c,
+	0x1f, 0x84, 0xc4, 0xea, 0xe2, 0x7e, 0xe8, 0xda, 0x0e, 0x86, 0xfa, 0x15, 0x58, 0x09, 0xb8, 0xa0,
+	0x49, 0x6c, 0x3b, 0x44, 0x4a, 0x37, 0xb4, 0x2d, 0x6d, 0x67, 0xa9, 0xb1, 0x2c, 0xa4, 0x77, 0x84,
+	0x50, 0xbf, 0x0a, 0xab, 0x2d, 0x71, 0x42, 0xe1, 0x0a, 0x1c, 0xb7, 0x22, 0xc5, 0x43, 0xe0, 0x35,
+	0x58, 0xc3, 0x01, 0xc3, 0xd0, 0x27, 0x5d, 0x85, 0x2c, 0x72, 0xe4, 0xea, 0x50, 0x3e, 0x84, 0x5e,
+	0x87, 0x33, 0x7d, 0xd2, 0x75, 0x6d, 0xc2, 0x82, 0x13, 0xad, 0x25, 0x8e, 0x5d, 0x53, 0x2f, 0x86,
+	0xe0, 0x7b, 0xb0, 0x6a, 0x63, 0x17, 0x1d, 0xc2, 0xb0, 0x49, 0xbc, 0xa0, 0xe7, 0xb3, 0x8d, 0xf9,
+	0x2d, 0x6d, 0xa7, 0xbc, 0xb7, 0x69, 0x0a, 0xb6, 0xcc, 0x88, 0x2d, 0x53, 0xb2, 0x65, 0x1e, 0x04,
+	0xae, 0xbf, 0x5f, 0x7a, 0xf6, 0xa2, 0x3a, 0xd7, 0x58, 0x19, 0x9e, 0xbb, 0xc3, 0x8f, 0xe9, 0x97,
+	0x00, 0x38, 0x49, 0x4d, 0x9f, 0x78, 0xb8, 0xb1, 0xc0, 0xed, 0x2d, 0x71, 0xc9, 0x7d, 0xe2, 0xe1,
+	0xf6, 0x16, 0x54, 0xb2, 0xa9, 0x6a, 0x20, 0x3d, 0x0e, 0x7c, 0x8a, 0xdb, 0x3f, 0x6a, 0xb0, 0x5e,
+	0xa7, 0xce, 0x1d, 0xdb, 0x16, 0xef, 0x3f, 0x95, 0xfa, 0xf3, 0x72, 0xf9, 0x21, 0x2c, 0xc8, 0x08,
+	0x0a, 0xf9, 0x22, 0x90, 0xf0, 0x94, 0xe7, 0xc5, 0xb4, 0xe7, 0x15, 0xb8, 0x98, 0xe5, 0x96, 0xf2,
+	0xfb, 0x77, 0x0d, 0x96, 0xeb, 0xd4, 0xb9, 0x6b, 0xbb, 0x4c, 0x20, 0xf2, 0x3a, 0x7c, 0x05, 0x64,
+	0x96, 0x53, 0xb9, 0x5f, 0x16, 0xd2, 0xb7, 0x9d, 0xfa, 0x64, 0xd8, 0xf3, 0xe9, 0xb0, 0xcf, 0xc3,
+	0x3b, 0x89, 0xa8, 0x54, 0xbc, 0x5f, 0xc2, 0x99, 0x3a, 0x75, 0xbe, 0x70, 0x59, 0xc7, 0x0e, 0xc9,
+	0x93, 0x06, 0x3e, 0x21, 0xa1, 0x9d, 0x37, 0xe4, 0x29, 0x36, 0x2f, 0xc0, 0xe6, 0x88, 0x6a, 0x65,
+	0xf7, 0x37, 0x0d, 0xce, 0xd6, 0xa9, 0x23, 0xbc, 0x79, 0x88, 0xec, 0x20, 0xf0, 0xdb, 0x6e, 0xe8,
+	0xe9, 0xeb, 0x30, 0xef, 0x07, 0xbe, 0x85, 0xdc, 0x62, 0xa9, 0x21, 0x1e, 0xde, 0xca, 0xcd, 0xba,
+	0x08, 0x4b, 0xd4, 0x75, 0x7c, 0xc2, 0x7a, 0x21, 0x4a, 0x5a, 0x4f, 0x04, 0xd3, 0x62, 0xbb, 0x04,
+	0x17, 0x32, 0xbc, 0x57, 0xd1, 0xfd, 0x54, 0x80, 0x8d, 0xf8, 0xfb, 0xcf, 0x8e, 0x6d, 0xc2, 0xd0,
+	0x3e, 0xe8, 0x12, 0xd7, 0xd3, 0xab, 0x50, 0xc6, 0x3e, 0xfa, 0xac, 0x19, 0x0f, 0x14, 0xb8, 0xe8,
+	0x3e, 0x8f, 0xf6, 0x32, 0x9c, 0x6e, 0x75, 0x03, 0xeb, 0x71, 0xb3, 0x83, 0xae, 0xd3, 0x11, 0x37,
+	0xa0, 0xd4, 0x28, 0x73, 0xd9, 0x3d, 0x2e, 0xd2, 0x77, 0x60, 0x4d, 0x66, 0x88, 0xe2, 0x50, 0x51,
+	0x91, 0xc3, 0x64, 0xe6, 0x1e, 0xa2, 0x54, 0x76, 0x04, 0x8b, 0x1e, 0x7a, 0x2d, 0x0c, 0xa3, 0xda,
+	0x29, 0xee, 0x94, 0xf7, 0xae, 0x99, 0xe3, 0x7a, 0xaa, 0x29, 0x2e, 0xf1, 0xe7, 0xc3, 0xda, 0x92,
+	0x37, 0x6b, 0x78, 0x3e, 0x2b, 0x0b, 0x0b, 0x99, 0x59, 0x48, 0x92, 0xb7, 0x98, 0x26, 0x6f, 0x1b,
+	0xb6, 0xc6, 0x91, 0xa3, 0x18, 0x7c, 0x59, 0x80, 0xb5, 0x3a, 0x75, 0x1e, 0xa2, 0x6f, 0x3f, 0x0a,
+	0x0e, 0x07, 0x6f, 0x8e, 0xb9, 0x2b, 0xb0, 0xc2, 0x82, 0xc7, 0xe8, 0x37, 0xad, 0xc0, 0x67, 0x21,
+	0xb1, 0x98, 0xac, 0x8f, 0x65, 0x2e, 0x3d, 0x90, 0x42, 0xfd, 0x50, 0xf5, 0x1f, 0x5e, 0x1a, 0xfb,
+	0x66, 0x44, 0xc5, 0x5f, 0x2f, 0xaa, 0xef, 0x3a, 0x2e, 0xeb, 0xf4, 0x5a, 0xa6, 0x15, 0x78, 0x35,
+	0x39, 0x81, 0xc4, 0x9f, 0x1b, 0xd4, 0x7e, 0x2c, 0xe7, 0xc9, 0x91, 0xcf, 0x54, 0x3b, 0x3a, 0x07,
+	0x0b, 0x14, 0x7d, 0x1b, 0x43, 0x59, 0x43, 0xf2, 0x49, 0x37, 0xe0, 0x54, 0x88, 0x16, 0xba, 0x7d,
+	0x0c, 0x25, 0x89, 0xea, 0x39, 0xa2, 0x8f, 0x91, 0xd0, 0x41, 0xd6, 0x74, 0x5b, 0xd6, 0x90, 0x3e,
+	0x21, 0x39, 0x6a, 0x59, 0x59, 0x69, 0x38, 0x95, 0x23, 0x0d, 0x4b, 0xe9, 0x34, 0x18, 0xbc, 0x46,
+	0x13, 0x0c, 0x2b, 0xfa, 0xff, 0xd0, 0x78, 0x5f, 0x10, 0x2f, 0xef, 0xca, 0x9b, 0x13, 0x0b, 0x46,
+	0x4b, 0x04, 0xa3, 0x43, 0xc9, 0x46, 0xca, 0xe4, 0x9d, 0xe4, 0xbf, 0x63, 0x0d, 0xbc, 0x38, 0x5b,
+	0x03, 0xff, 0x04, 0x40, 0x36, 0xd2, 0x36, 0x8a, 0x8b, 0x99, 0xe3, 0xf0, 0x92, 0x38, 0x72, 0x88,
+	0x98, 0xaf, 0x2b, 0x25, 0x03, 0x53, 0x61, 0x3f, 0x81, 0xf3, 0xd1, 0x5c, 0x23, 0xbe, 0x85, 0xdd,
+	0x54, 0xec, 0x51, 0xdd, 0x84, 0xc4, 0xa7, 0xc4, 0x62, 0x6e, 0xe0, 0x37, 0x5d, 0x5b, 0x96, 0xdf,
+	0x72, 0x4c, 0x7a, 0x64, 0xc7, 0x28, 0x2a, 0x24, 0x28, 0x9a, 0x32, 0x96, 0x2e, 0x43, 0x75, 0x8c,
+	0xe1, 0x78, 0x4f, 0x59, 0xad, 0x53, 0xa7, 0x81, 0x5f, 0xf7, 0x90, 0xb2, 0x7d, 0xc2, 0xac, 0xce,
+	0xd8, 0x84, 0xac, 0xc3, 0xbc, 0x8d, 0x7e, 0xe0, 0x49, 0x27, 0xc4, 0x83, 0xfe, 0x00, 0xca, 0x9e,
+	0xeb, 0xbb, 0x5e, 0xcf, 0xe3, 0xd4, 0x16, 0xff, 0x53, 0x61, 0x83, 0x54, 0x11, 0x51, 0x5d, 0x85,
+	0x72, 0x1b, 0xb1, 0x29, 0x0b, 0x57, 0x36, 0x51, 0x68, 0x23, 0x36, 0x84, 0x64, 0x4a, 0x2e, 0xf4,
+	0x23, 0x38, 0x15, 0x25, 0x94, 0x7b, 0xb3, 0xa0, 0xbc, 0xd1, 0x66, 0xf0, 0x66, 0x31, 0x3a, 0x7f,
+	0x88, 0xb8, 0xbd, 0xc9, 0x33, 0x17, 0x27, 0x47, 0x11, 0xf7, 0xb7, 0xc6, 0x89, 0x93, 0x3d, 0x5a,
+	0x10, 0x97, 0x3d, 0x66, 0x46, 0x7b, 0x43, 0x21, 0xab, 0x37, 0x64, 0x5c, 0xc0, 0x62, 0xee, 0x69,
+	0x54, 0xca, 0x31, 0x8d, 0xe6, 0x27, 0x4f, 0xa3, 0x91, 0x75, 0x4c, 0x04, 0x1f, 0x0f, 0x50, 0x05,
+	0xff, 0x8f, 0xc6, 0xb7, 0xda, 0x64, 0x4d, 0xbd, 0xb9, 0x6e, 0x5a, 0x85, 0x72, 0x2b, 0xb2, 0x97,
+	0x18, 0x41, 0xc0, 0x45, 0xf7, 0xc7, 0x50, 0x5a, 0xca, 0x49, 0xe9, 0x7c, 0x8e, 0x9e, 0x36, 0x66,
+	0x31, 0xcd, 0x88, 0x56, 0x11, 0xf2, 0x6b, 0x81, 0x2f, 0x1e, 0x62, 0xd4, 0x3d, 0xe2, 0x4e, 0xfc,
+	0xdf, 0xb3, 0x45, 0x87, 0x12, 0xf7, 0x5e, 0x30, 0xc1, 0x7f, 0xf3, 0x9b, 0xfc, 0xd4, 0x6b, 0x05,
+	0x5d, 0x35, 0x27, 0xf8, 0x53, 0x34, 0x27, 0x6c, 0xb4, 0x5c, 0x8f, 0x74, 0xc5, 0xb0, 0x2d, 0x35,
+	0xd4, 0x73, 0x16, 0x69, 0x8b, 0x99, 0xa4, 0x55, 0xa1, 0x6c, 0x75, 0x88, 0xef, 0x63, 0x97, 0x4f,
+	0x14, 0x31, 0x2d, 0x40, 0x8a, 0xa2, 0x91, 0x32, 0x65, 0x52, 0x88, 0x6d, 0x27, 0x4d, 0xd9, 0x90,
+	0xd2, 0xbd, 0x5f, 0x4e, 0x43, 0xb1, 0x4e, 0x1d, 0xfd, 0x5b, 0x0d, 0xce, 0x66, 0x7d, 0x3e, 0xdd,
+	0x1c, 0xbf, 0x71, 0x64, 0x7f, 0x45, 0x18, 0xb7, 0x67, 0x3d, 0x31, 0xf4, 0x45, 0xff, 0x06, 0xce,
+	0x8c, 0x7e, 0x73, 0x98, 0x13, 0xd5, 0x8d, 0xe0, 0x8d, 0x0f, 0x66, 0xc3, 0x2b, 0xe3, 0x6d, 0x80,
+	0xd8, 0x87, 0xc3, 0xd5, 0x89, 0x5a, 0x4e, 0x80, 0x46, 0x2d, 0x27, 0x50, 0xd9, 0x09, 0x61, 0x25,
+	0xb5, 0xb1, 0x5f, 0x9f, 0xa8, 0x22, 0x09, 0x36, 0x6e, 0xcd, 0x00, 0x56, 0x36, 0x07, 0xb0, 0x36,
+	0xb2, 0xac, 0xdf, 0x98, 0xa8, 0x28, 0x0d, 0x37, 0xde, 0x9f, 0x09, 0xae, 0x2c, 0x7f, 0xaf, 0xc1,
+	0x7a, 0x6a, 0x59, 0x14, 0x57, 0x76, 0x2f, 0x9f, 0xbe, 0xf8, 0x7e, 0x69, 0x7c, 0x3c, 0xfb, 0x99,
+	0x38, 0x05, 0x23, 0x6d, 0x63, 0x32, 0x05, 0x69, 0xf8, 0x14, 0x0a, 0xc6, 0xdd, 0x30, 0x3d, 0x80,
+	0xe5, 0xe4, 0x26, 0xfc, 0xde, 0x44, 0x3d, 0x09, 0xac, 0xb1, 0x97, 0x1f, 0x1b, 0xaf, 0xb0, 0xd4,
+	0xfe, 0x73, 0x3d, 0x87, 0x96, 0x21, 0x78, 0x4a, 0x85, 0x65, 0x2f, 0x38, 0xfa, 0x77, 0x1a, 0xac,
+	0x67, 0xae, 0x5e, 0xbb, 0x93, 0xbb, 0x41, 0xc6, 0x11, 0xe3, 0xa3, 0x99, 0x8f, 0x28, 0x37, 0xa2,
+	0x2e, 0x96, 0x35, 0x2e, 0x6f, 0xce, 0x10, 0x93, 0x20, 0xfe, 0xf6, 0xac, 0x27, 0x94, 0x0f, 0x5d,
+	0x38, 0x9d, 0xd8, 0xf3, 0xae, 0x4d, 0xd4, 0x14, 0x87, 0x1a, 0xbb, 0xb9, 0xa1, 0x71, 0x6b, 0x89,
+	0xe5, 0x68, 0xb2, 0xb5, 0x38, 0x74, 0x8a, 0xb5, 0xac, 0x8d, 0x64, 0xff, 0xe8, 0xd9, 0xab, 0x8a,
+	0xf6, 0xfc, 0x55, 0x45, 0x7b, 0xf9, 0xaa, 0xa2, 0xfd, 0xf0, 0xba, 0x32, 0xf7, 0xfc, 0x75, 0x65,
+	0xee, 0xcf, 0xd7, 0x95, 0xb9, 0xaf, 0x6a, 0xb1, 0xa5, 0xaf, 0xdd, 0xf3, 0xf9, 0x4a, 0x3d, 0xa8,
+	0xb5, 0x07, 0x37, 0xac, 0x20, 0xc4, 0xda, 0xa0, 0x16, 0xfb, 0xdf, 0x1d, 0xdf, 0x00, 0x5b, 0x0b,
+	0xfc, 0x3f, 0x77, 0xb7, 0xfe, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x39, 0x09, 0xb2, 0xca, 0x3e, 0x14,
+	0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1484,8 +1703,10 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	SetOrchestratorAddress(ctx context.Context, in *MsgSetOrchestratorAddress, opts ...grpc.CallOption) (*MsgSetOrchestratorAddressResponse, error)
-	AddOracleDeposit(ctx context.Context, in *MsgAddOracleDeposit, opts ...grpc.CallOption) (*MsgAddOracleDepositResponse, error)
+	CreateOracleBridger(ctx context.Context, in *MsgCreateOracleBridger, opts ...grpc.CallOption) (*MsgCreateOracleBridgerResponse, error)
+	AddOracleDelegate(ctx context.Context, in *MsgAddOracleDelegate, opts ...grpc.CallOption) (*MsgAddOracleDelegateResponse, error)
+	EditOracle(ctx context.Context, in *MsgEditOracle, opts ...grpc.CallOption) (*MsgEditOracleResponse, error)
+	WithdrawReward(ctx context.Context, in *MsgWithdrawReward, opts ...grpc.CallOption) (*MsgWithdrawRewardResponse, error)
 	OracleSetConfirm(ctx context.Context, in *MsgOracleSetConfirm, opts ...grpc.CallOption) (*MsgOracleSetConfirmResponse, error)
 	OracleSetUpdateClaim(ctx context.Context, in *MsgOracleSetUpdatedClaim, opts ...grpc.CallOption) (*MsgOracleSetUpdatedClaimResponse, error)
 	BridgeTokenClaim(ctx context.Context, in *MsgBridgeTokenClaim, opts ...grpc.CallOption) (*MsgBridgeTokenClaimResponse, error)
@@ -1505,18 +1726,36 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) SetOrchestratorAddress(ctx context.Context, in *MsgSetOrchestratorAddress, opts ...grpc.CallOption) (*MsgSetOrchestratorAddressResponse, error) {
-	out := new(MsgSetOrchestratorAddressResponse)
-	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/SetOrchestratorAddress", in, out, opts...)
+func (c *msgClient) CreateOracleBridger(ctx context.Context, in *MsgCreateOracleBridger, opts ...grpc.CallOption) (*MsgCreateOracleBridgerResponse, error) {
+	out := new(MsgCreateOracleBridgerResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/CreateOracleBridger", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) AddOracleDeposit(ctx context.Context, in *MsgAddOracleDeposit, opts ...grpc.CallOption) (*MsgAddOracleDepositResponse, error) {
-	out := new(MsgAddOracleDepositResponse)
-	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/AddOracleDeposit", in, out, opts...)
+func (c *msgClient) AddOracleDelegate(ctx context.Context, in *MsgAddOracleDelegate, opts ...grpc.CallOption) (*MsgAddOracleDelegateResponse, error) {
+	out := new(MsgAddOracleDelegateResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/AddOracleDelegate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) EditOracle(ctx context.Context, in *MsgEditOracle, opts ...grpc.CallOption) (*MsgEditOracleResponse, error) {
+	out := new(MsgEditOracleResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/EditOracle", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) WithdrawReward(ctx context.Context, in *MsgWithdrawReward, opts ...grpc.CallOption) (*MsgWithdrawRewardResponse, error) {
+	out := new(MsgWithdrawRewardResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/WithdrawReward", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1606,8 +1845,10 @@ func (c *msgClient) ConfirmBatch(ctx context.Context, in *MsgConfirmBatch, opts 
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	SetOrchestratorAddress(context.Context, *MsgSetOrchestratorAddress) (*MsgSetOrchestratorAddressResponse, error)
-	AddOracleDeposit(context.Context, *MsgAddOracleDeposit) (*MsgAddOracleDepositResponse, error)
+	CreateOracleBridger(context.Context, *MsgCreateOracleBridger) (*MsgCreateOracleBridgerResponse, error)
+	AddOracleDelegate(context.Context, *MsgAddOracleDelegate) (*MsgAddOracleDelegateResponse, error)
+	EditOracle(context.Context, *MsgEditOracle) (*MsgEditOracleResponse, error)
+	WithdrawReward(context.Context, *MsgWithdrawReward) (*MsgWithdrawRewardResponse, error)
 	OracleSetConfirm(context.Context, *MsgOracleSetConfirm) (*MsgOracleSetConfirmResponse, error)
 	OracleSetUpdateClaim(context.Context, *MsgOracleSetUpdatedClaim) (*MsgOracleSetUpdatedClaimResponse, error)
 	BridgeTokenClaim(context.Context, *MsgBridgeTokenClaim) (*MsgBridgeTokenClaimResponse, error)
@@ -1623,11 +1864,17 @@ type MsgServer interface {
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) SetOrchestratorAddress(ctx context.Context, req *MsgSetOrchestratorAddress) (*MsgSetOrchestratorAddressResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetOrchestratorAddress not implemented")
+func (*UnimplementedMsgServer) CreateOracleBridger(ctx context.Context, req *MsgCreateOracleBridger) (*MsgCreateOracleBridgerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateOracleBridger not implemented")
 }
-func (*UnimplementedMsgServer) AddOracleDeposit(ctx context.Context, req *MsgAddOracleDeposit) (*MsgAddOracleDepositResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddOracleDeposit not implemented")
+func (*UnimplementedMsgServer) AddOracleDelegate(ctx context.Context, req *MsgAddOracleDelegate) (*MsgAddOracleDelegateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddOracleDelegate not implemented")
+}
+func (*UnimplementedMsgServer) EditOracle(ctx context.Context, req *MsgEditOracle) (*MsgEditOracleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EditOracle not implemented")
+}
+func (*UnimplementedMsgServer) WithdrawReward(ctx context.Context, req *MsgWithdrawReward) (*MsgWithdrawRewardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawReward not implemented")
 }
 func (*UnimplementedMsgServer) OracleSetConfirm(ctx context.Context, req *MsgOracleSetConfirm) (*MsgOracleSetConfirmResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OracleSetConfirm not implemented")
@@ -1661,38 +1908,74 @@ func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_SetOrchestratorAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgSetOrchestratorAddress)
+func _Msg_CreateOracleBridger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCreateOracleBridger)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).SetOrchestratorAddress(ctx, in)
+		return srv.(MsgServer).CreateOracleBridger(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fx.gravity.crosschain.v1.Msg/SetOrchestratorAddress",
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/CreateOracleBridger",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).SetOrchestratorAddress(ctx, req.(*MsgSetOrchestratorAddress))
+		return srv.(MsgServer).CreateOracleBridger(ctx, req.(*MsgCreateOracleBridger))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_AddOracleDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgAddOracleDeposit)
+func _Msg_AddOracleDelegate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddOracleDelegate)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).AddOracleDeposit(ctx, in)
+		return srv.(MsgServer).AddOracleDelegate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fx.gravity.crosschain.v1.Msg/AddOracleDeposit",
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/AddOracleDelegate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).AddOracleDeposit(ctx, req.(*MsgAddOracleDeposit))
+		return srv.(MsgServer).AddOracleDelegate(ctx, req.(*MsgAddOracleDelegate))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_EditOracle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgEditOracle)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).EditOracle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/EditOracle",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).EditOracle(ctx, req.(*MsgEditOracle))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_WithdrawReward_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgWithdrawReward)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).WithdrawReward(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/WithdrawReward",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).WithdrawReward(ctx, req.(*MsgWithdrawReward))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1864,12 +2147,20 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SetOrchestratorAddress",
-			Handler:    _Msg_SetOrchestratorAddress_Handler,
+			MethodName: "CreateOracleBridger",
+			Handler:    _Msg_CreateOracleBridger_Handler,
 		},
 		{
-			MethodName: "AddOracleDeposit",
-			Handler:    _Msg_AddOracleDeposit_Handler,
+			MethodName: "AddOracleDelegate",
+			Handler:    _Msg_AddOracleDelegate_Handler,
+		},
+		{
+			MethodName: "EditOracle",
+			Handler:    _Msg_EditOracle_Handler,
+		},
+		{
+			MethodName: "WithdrawReward",
+			Handler:    _Msg_WithdrawReward_Handler,
 		},
 		{
 			MethodName: "OracleSetConfirm",
@@ -1912,7 +2203,7 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	Metadata: "crosschain/v1/tx.proto",
 }
 
-func (m *MsgSetOrchestratorAddress) Marshal() (dAtA []byte, err error) {
+func (m *MsgCreateOracleBridger) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1922,12 +2213,12 @@ func (m *MsgSetOrchestratorAddress) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgSetOrchestratorAddress) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCreateOracleBridger) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgSetOrchestratorAddress) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCreateOracleBridger) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1937,10 +2228,10 @@ func (m *MsgSetOrchestratorAddress) MarshalToSizedBuffer(dAtA []byte) (int, erro
 		copy(dAtA[i:], m.ChainName)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.ChainName)))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x32
 	}
 	{
-		size, err := m.Deposit.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.DelegateAmount.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -1948,7 +2239,14 @@ func (m *MsgSetOrchestratorAddress) MarshalToSizedBuffer(dAtA []byte) (int, erro
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x22
+	dAtA[i] = 0x2a
+	if len(m.ValidatorAddress) > 0 {
+		i -= len(m.ValidatorAddress)
+		copy(dAtA[i:], m.ValidatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ValidatorAddress)))
+		i--
+		dAtA[i] = 0x22
+	}
 	if len(m.ExternalAddress) > 0 {
 		i -= len(m.ExternalAddress)
 		copy(dAtA[i:], m.ExternalAddress)
@@ -1956,24 +2254,24 @@ func (m *MsgSetOrchestratorAddress) MarshalToSizedBuffer(dAtA []byte) (int, erro
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.Orchestrator) > 0 {
-		i -= len(m.Orchestrator)
-		copy(dAtA[i:], m.Orchestrator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Orchestrator)))
+	if len(m.BridgerAddress) > 0 {
+		i -= len(m.BridgerAddress)
+		copy(dAtA[i:], m.BridgerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BridgerAddress)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Oracle) > 0 {
-		i -= len(m.Oracle)
-		copy(dAtA[i:], m.Oracle)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Oracle)))
+	if len(m.OracleAddress) > 0 {
+		i -= len(m.OracleAddress)
+		copy(dAtA[i:], m.OracleAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OracleAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgSetOrchestratorAddressResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgCreateOracleBridgerResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1983,12 +2281,12 @@ func (m *MsgSetOrchestratorAddressResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgSetOrchestratorAddressResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCreateOracleBridgerResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgSetOrchestratorAddressResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCreateOracleBridgerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1996,7 +2294,7 @@ func (m *MsgSetOrchestratorAddressResponse) MarshalToSizedBuffer(dAtA []byte) (i
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAddOracleDeposit) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddOracleDelegate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2006,12 +2304,12 @@ func (m *MsgAddOracleDeposit) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAddOracleDeposit) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddOracleDelegate) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAddOracleDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddOracleDelegate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2033,17 +2331,17 @@ func (m *MsgAddOracleDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	if len(m.Oracle) > 0 {
-		i -= len(m.Oracle)
-		copy(dAtA[i:], m.Oracle)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Oracle)))
+	if len(m.OracleAddress) > 0 {
+		i -= len(m.OracleAddress)
+		copy(dAtA[i:], m.OracleAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OracleAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAddOracleDepositResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddOracleDelegateResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2053,12 +2351,153 @@ func (m *MsgAddOracleDepositResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAddOracleDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddOracleDelegateResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAddOracleDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddOracleDelegateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgEditOracle) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEditOracle) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEditOracle) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ChainName) > 0 {
+		i -= len(m.ChainName)
+		copy(dAtA[i:], m.ChainName)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ChainName)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.ValidatorAddress) > 0 {
+		i -= len(m.ValidatorAddress)
+		copy(dAtA[i:], m.ValidatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ValidatorAddress)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.ExternalAddress) > 0 {
+		i -= len(m.ExternalAddress)
+		copy(dAtA[i:], m.ExternalAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ExternalAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.BridgeAddress) > 0 {
+		i -= len(m.BridgeAddress)
+		copy(dAtA[i:], m.BridgeAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BridgeAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.OracleAddress) > 0 {
+		i -= len(m.OracleAddress)
+		copy(dAtA[i:], m.OracleAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OracleAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgEditOracleResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEditOracleResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEditOracleResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawReward) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawReward) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawReward) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ChainName) > 0 {
+		i -= len(m.ChainName)
+		copy(dAtA[i:], m.ChainName)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ChainName)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.OracleAddress) > 0 {
+		i -= len(m.OracleAddress)
+		copy(dAtA[i:], m.OracleAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OracleAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawRewardResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawRewardResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawRewardResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2107,10 +2546,10 @@ func (m *MsgOracleSetConfirm) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.OrchestratorAddress) > 0 {
-		i -= len(m.OrchestratorAddress)
-		copy(dAtA[i:], m.OrchestratorAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.OrchestratorAddress)))
+	if len(m.BridgerAddress) > 0 {
+		i -= len(m.BridgerAddress)
+		copy(dAtA[i:], m.BridgerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BridgerAddress)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -2172,10 +2611,10 @@ func (m *MsgOracleSetUpdatedClaim) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i--
 		dAtA[i] = 0x3a
 	}
-	if len(m.Orchestrator) > 0 {
-		i -= len(m.Orchestrator)
-		copy(dAtA[i:], m.Orchestrator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Orchestrator)))
+	if len(m.BridgerAddress) > 0 {
+		i -= len(m.BridgerAddress)
+		copy(dAtA[i:], m.BridgerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BridgerAddress)))
 		i--
 		dAtA[i] = 0x32
 	}
@@ -2261,10 +2700,10 @@ func (m *MsgSendToFxClaim) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x4a
 	}
-	if len(m.Orchestrator) > 0 {
-		i -= len(m.Orchestrator)
-		copy(dAtA[i:], m.Orchestrator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Orchestrator)))
+	if len(m.BridgerAddress) > 0 {
+		i -= len(m.BridgerAddress)
+		copy(dAtA[i:], m.BridgerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BridgerAddress)))
 		i--
 		dAtA[i] = 0x42
 	}
@@ -2631,10 +3070,10 @@ func (m *MsgConfirmBatch) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x22
 	}
-	if len(m.OrchestratorAddress) > 0 {
-		i -= len(m.OrchestratorAddress)
-		copy(dAtA[i:], m.OrchestratorAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.OrchestratorAddress)))
+	if len(m.BridgerAddress) > 0 {
+		i -= len(m.BridgerAddress)
+		copy(dAtA[i:], m.BridgerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BridgerAddress)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -2703,10 +3142,10 @@ func (m *MsgSendToExternalClaim) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i--
 		dAtA[i] = 0x32
 	}
-	if len(m.Orchestrator) > 0 {
-		i -= len(m.Orchestrator)
-		copy(dAtA[i:], m.Orchestrator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Orchestrator)))
+	if len(m.BridgerAddress) > 0 {
+		i -= len(m.BridgerAddress)
+		copy(dAtA[i:], m.BridgerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BridgerAddress)))
 		i--
 		dAtA[i] = 0x2a
 	}
@@ -2792,10 +3231,10 @@ func (m *MsgBridgeTokenClaim) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x42
 	}
-	if len(m.Orchestrator) > 0 {
-		i -= len(m.Orchestrator)
-		copy(dAtA[i:], m.Orchestrator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Orchestrator)))
+	if len(m.BridgerAddress) > 0 {
+		i -= len(m.BridgerAddress)
+		copy(dAtA[i:], m.BridgerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BridgerAddress)))
 		i--
 		dAtA[i] = 0x3a
 	}
@@ -2872,17 +3311,17 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgSetOrchestratorAddress) Size() (n int) {
+func (m *MsgCreateOracleBridger) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Oracle)
+	l = len(m.OracleAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.Orchestrator)
+	l = len(m.BridgerAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2890,7 +3329,11 @@ func (m *MsgSetOrchestratorAddress) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = m.Deposit.Size()
+	l = len(m.ValidatorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.DelegateAmount.Size()
 	n += 1 + l + sovTx(uint64(l))
 	l = len(m.ChainName)
 	if l > 0 {
@@ -2899,7 +3342,7 @@ func (m *MsgSetOrchestratorAddress) Size() (n int) {
 	return n
 }
 
-func (m *MsgSetOrchestratorAddressResponse) Size() (n int) {
+func (m *MsgCreateOracleBridgerResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2908,13 +3351,13 @@ func (m *MsgSetOrchestratorAddressResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgAddOracleDeposit) Size() (n int) {
+func (m *MsgAddOracleDelegate) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Oracle)
+	l = len(m.OracleAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2927,7 +3370,71 @@ func (m *MsgAddOracleDeposit) Size() (n int) {
 	return n
 }
 
-func (m *MsgAddOracleDepositResponse) Size() (n int) {
+func (m *MsgAddOracleDelegateResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgEditOracle) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.OracleAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.BridgeAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ExternalAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ValidatorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ChainName)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgEditOracleResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgWithdrawReward) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.OracleAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ChainName)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgWithdrawRewardResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2945,7 +3452,7 @@ func (m *MsgOracleSetConfirm) Size() (n int) {
 	if m.Nonce != 0 {
 		n += 1 + sovTx(uint64(m.Nonce))
 	}
-	l = len(m.OrchestratorAddress)
+	l = len(m.BridgerAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2994,7 +3501,7 @@ func (m *MsgOracleSetUpdatedClaim) Size() (n int) {
 			n += 1 + l + sovTx(uint64(l))
 		}
 	}
-	l = len(m.Orchestrator)
+	l = len(m.BridgerAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -3044,7 +3551,7 @@ func (m *MsgSendToFxClaim) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.Orchestrator)
+	l = len(m.BridgerAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -3180,7 +3687,7 @@ func (m *MsgConfirmBatch) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.OrchestratorAddress)
+	l = len(m.BridgerAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -3227,7 +3734,7 @@ func (m *MsgSendToExternalClaim) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.Orchestrator)
+	l = len(m.BridgerAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -3274,7 +3781,7 @@ func (m *MsgBridgeTokenClaim) Size() (n int) {
 	if m.Decimals != 0 {
 		n += 1 + sovTx(uint64(m.Decimals))
 	}
-	l = len(m.Orchestrator)
+	l = len(m.BridgerAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -3304,7 +3811,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgSetOrchestratorAddress) Unmarshal(dAtA []byte) error {
+func (m *MsgCreateOracleBridger) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3327,15 +3834,15 @@ func (m *MsgSetOrchestratorAddress) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgSetOrchestratorAddress: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCreateOracleBridger: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgSetOrchestratorAddress: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCreateOracleBridger: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Oracle", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OracleAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3363,11 +3870,11 @@ func (m *MsgSetOrchestratorAddress) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Oracle = string(dAtA[iNdEx:postIndex])
+			m.OracleAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Orchestrator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgerAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3395,7 +3902,7 @@ func (m *MsgSetOrchestratorAddress) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Orchestrator = string(dAtA[iNdEx:postIndex])
+			m.BridgerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -3431,7 +3938,39 @@ func (m *MsgSetOrchestratorAddress) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Deposit", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ValidatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DelegateAmount", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3458,11 +3997,11 @@ func (m *MsgSetOrchestratorAddress) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Deposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.DelegateAmount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ChainName", wireType)
 			}
@@ -3515,7 +4054,7 @@ func (m *MsgSetOrchestratorAddress) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgSetOrchestratorAddressResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgCreateOracleBridgerResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3538,10 +4077,10 @@ func (m *MsgSetOrchestratorAddressResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgSetOrchestratorAddressResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCreateOracleBridgerResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgSetOrchestratorAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCreateOracleBridgerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3565,7 +4104,7 @@ func (m *MsgSetOrchestratorAddressResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAddOracleDeposit) Unmarshal(dAtA []byte) error {
+func (m *MsgAddOracleDelegate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3588,15 +4127,15 @@ func (m *MsgAddOracleDeposit) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAddOracleDeposit: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddOracleDelegate: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAddOracleDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddOracleDelegate: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Oracle", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OracleAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3624,7 +4163,7 @@ func (m *MsgAddOracleDeposit) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Oracle = string(dAtA[iNdEx:postIndex])
+			m.OracleAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -3712,7 +4251,7 @@ func (m *MsgAddOracleDeposit) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAddOracleDepositResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgAddOracleDelegateResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3735,10 +4274,434 @@ func (m *MsgAddOracleDepositResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAddOracleDepositResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddOracleDelegateResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAddOracleDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddOracleDelegateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEditOracle) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEditOracle: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEditOracle: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OracleAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OracleAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgeAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BridgeAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ValidatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChainName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEditOracleResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEditOracleResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEditOracleResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawReward) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawReward: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawReward: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OracleAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OracleAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChainName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawRewardResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawRewardResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawRewardResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3812,7 +4775,7 @@ func (m *MsgOracleSetConfirm) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgerAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3840,7 +4803,7 @@ func (m *MsgOracleSetConfirm) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OrchestratorAddress = string(dAtA[iNdEx:postIndex])
+			m.BridgerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -4124,14 +5087,14 @@ func (m *MsgOracleSetUpdatedClaim) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Members = append(m.Members, &BridgeValidator{})
+			m.Members = append(m.Members, BridgeValidator{})
 			if err := m.Members[len(m.Members)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Orchestrator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgerAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4159,7 +5122,7 @@ func (m *MsgOracleSetUpdatedClaim) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Orchestrator = string(dAtA[iNdEx:postIndex])
+			m.BridgerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 7:
 			if wireType != 2 {
@@ -4495,7 +5458,7 @@ func (m *MsgSendToFxClaim) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 8:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Orchestrator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgerAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4523,7 +5486,7 @@ func (m *MsgSendToFxClaim) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Orchestrator = string(dAtA[iNdEx:postIndex])
+			m.BridgerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 9:
 			if wireType != 2 {
@@ -5453,7 +6416,7 @@ func (m *MsgConfirmBatch) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrchestratorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgerAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5481,7 +6444,7 @@ func (m *MsgConfirmBatch) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OrchestratorAddress = string(dAtA[iNdEx:postIndex])
+			m.BridgerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -5770,7 +6733,7 @@ func (m *MsgSendToExternalClaim) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Orchestrator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgerAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5798,7 +6761,7 @@ func (m *MsgSendToExternalClaim) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Orchestrator = string(dAtA[iNdEx:postIndex])
+			m.BridgerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
@@ -6087,7 +7050,7 @@ func (m *MsgBridgeTokenClaim) Unmarshal(dAtA []byte) error {
 			}
 		case 7:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Orchestrator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgerAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6115,7 +7078,7 @@ func (m *MsgBridgeTokenClaim) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Orchestrator = string(dAtA[iNdEx:postIndex])
+			m.BridgerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 8:
 			if wireType != 2 {

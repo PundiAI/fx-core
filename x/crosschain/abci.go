@@ -12,9 +12,6 @@ import (
 
 // EndBlocker is called at the end of every block
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
-	if !k.ChainHasInit(ctx) {
-		return
-	}
 	params := k.GetParams(ctx)
 	slashing(ctx, k, params)
 	attestationTally(ctx, k)
@@ -93,7 +90,7 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
 				logger.Info("CrossChain", "slash oracle by oracle set slashing oracle", oracle.OracleAddress,
 					"oracleSetNonce", oracleSet.Nonce, "oracleSetHeight", oracleSet.Height, "blockHeight", ctx.BlockHeight(), "slashFraction", params.SlashFraction.String())
-				k.SlashOracle(ctx, oracle.OracleAddress, params)
+				k.SlashOracle(ctx, oracle, params.SlashFraction)
 				hasSlash = true
 			}
 		}
@@ -120,7 +117,7 @@ func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, para
 			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
 				logger.Info("CrossChain", "slash oracle by oracle set slashing oracle", oracle.OracleAddress,
 					"batchNonce", batch.BatchNonce, "batchHeight", batch.Block, "blockHeight", ctx.BlockHeight(), "slashFraction", params.SlashFraction.String())
-				k.SlashOracle(ctx, oracle.OracleAddress, params)
+				k.SlashOracle(ctx, oracle, params.SlashFraction)
 				hasSlash = true
 			}
 		}

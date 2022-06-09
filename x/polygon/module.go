@@ -5,21 +5,20 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/crosschain"
-	"github.com/functionx/fx-core/x/crosschain/types"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
+	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	types "github.com/functionx/fx-core/x/polygon/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/x/crosschain/keeper"
+	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 )
 
 // type check to ensure the interface is properly implemented
@@ -33,7 +32,7 @@ type AppModuleBasic struct{}
 
 // Name implements app module basic
 func (AppModuleBasic) Name() string {
-	return polygontypes.ModuleName
+	return types.ModuleName
 }
 
 // RegisterLegacyAminoCodec implements app module basic
@@ -68,7 +67,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.Ser
 
 // RegisterInterfaces implements app bmodule basic
 func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
-	types.RegisterValidatorBasic(polygontypes.ModuleName, types.EthereumMsgValidateBasic{})
+	crosschaintypes.RegisterValidatorBasic(types.ModuleName, crosschaintypes.EthereumMsgValidate{})
 }
 
 // ----------------------------------------------------------------------------
@@ -78,16 +77,14 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper     keeper.Keeper
-	bankKeeper bankkeeper.Keeper
+	keeper crosschainkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper, bankKeeper bankkeeper.Keeper) AppModule {
+func NewAppModule(keeper crosschainkeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		bankKeeper:     bankKeeper,
 	}
 }
 
@@ -96,7 +93,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Name implements app module
 func (AppModule) Name() string {
-	return polygontypes.ModuleName
+	return types.ModuleName
 }
 
 // Route implements app module
@@ -106,12 +103,12 @@ func (am AppModule) Route() sdk.Route {
 
 // QuerierRoute implements app module
 func (am AppModule) QuerierRoute() string {
-	return polygontypes.QuerierRoute
+	return types.QuerierRoute
 }
 
 // LegacyQuerierHandler returns the distribution module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
+	return crosschainkeeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers module services.

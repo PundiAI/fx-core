@@ -24,13 +24,13 @@ func TestValidateExternalAddress(t *testing.T) {
 			testName:   "address length not match",
 			value:      "abcdddddd",
 			expectPass: false,
-			err:        fmt.Errorf("address(%s) of the wrong length exp(%d) actual(%d)", "abcdddddd", len("abcdddddd"), ExternalContractAddressLen),
+			err:        fmt.Errorf("address(%s) of the wrong length exp(%d) actual(%d)", "abcdddddd", len("abcdddddd"), TronContractAddressLen),
 		},
 		{
 			testName:   "address length great than tron address",
 			value:      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666",
 			expectPass: false,
-			err:        fmt.Errorf("address(%s) of the wrong length exp(%d) actual(%d)", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666", len("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666"), ExternalContractAddressLen),
+			err:        fmt.Errorf("address(%s) of the wrong length exp(%d) actual(%d)", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666", len("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666"), TronContractAddressLen),
 		},
 		{
 			testName:   "lowercase address",
@@ -54,7 +54,7 @@ func TestValidateExternalAddress(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.testName, func(t *testing.T) {
-			err := ValidateExternalAddress(testCase.value)
+			err := ValidateTronAddress(testCase.value)
 			if testCase.expectPass {
 				require.NoError(t, err)
 				return

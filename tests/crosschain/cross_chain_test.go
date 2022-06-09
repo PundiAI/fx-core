@@ -58,15 +58,15 @@ func sendToExternalAndCancel(c *Client) {
 	sendToEthAmount, _ := sdk.NewIntFromString("20000000000000000000")
 	sendToEthFee, _ := sdk.NewIntFromString("30000000000000000000")
 	c.BroadcastTx([]sdk.Msg{&crosschaintypes.MsgSendToFxClaim{
-		EventNonce:    c.QueryFxLastEventNonce(),
-		BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-		TokenContract: purseTokenContract,
-		Amount:        sendToEthAmount.Add(sendToEthFee),
-		Sender:        c.ethAddress.Hex(),
-		Receiver:      c.FxAddress().String(),
-		TargetIbc:     "",
-		Orchestrator:  c.FxAddress().String(),
-		ChainName:     c.chainName,
+		EventNonce:     c.QueryFxLastEventNonce(),
+		BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+		TokenContract:  purseTokenContract,
+		Amount:         sendToEthAmount.Add(sendToEthFee),
+		Sender:         c.ethAddress.Hex(),
+		Receiver:       c.FxAddress().String(),
+		TargetIbc:      "",
+		BridgerAddress: c.FxAddress().String(),
+		ChainName:      c.chainName,
 	}})
 
 	fxAddress := c.FxAddress()
@@ -144,15 +144,15 @@ func addBridgeTokenClaim(c *Client) {
 		return
 	}
 	fxOriginatedTokenClaimMsg := &crosschaintypes.MsgBridgeTokenClaim{
-		EventNonce:    c.QueryFxLastEventNonce(),
-		BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-		TokenContract: purseTokenContract,
-		Name:          "Pundix Pruse",
-		Symbol:        purseTokenSymbol,
-		Decimals:      18,
-		Orchestrator:  c.FxAddress().String(),
-		ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-		ChainName:     c.chainName,
+		EventNonce:     c.QueryFxLastEventNonce(),
+		BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+		TokenContract:  purseTokenContract,
+		Name:           "Pundix Pruse",
+		Symbol:         purseTokenSymbol,
+		Decimals:       18,
+		BridgerAddress: c.FxAddress().String(),
+		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+		ChainName:      c.chainName,
 	}
 	c.BroadcastTx([]sdk.Msg{fxOriginatedTokenClaimMsg})
 	c.t.Logf("\n")
@@ -193,11 +193,11 @@ func signPendingValsetRequest(c *Client) {
 			}
 			c.BroadcastTx([]sdk.Msg{
 				&crosschaintypes.MsgOracleSetConfirm{
-					Nonce:               valset.Nonce,
-					OrchestratorAddress: c.FxAddress().String(),
-					ExternalAddress:     c.ethAddress.Hex(),
-					Signature:           hex.EncodeToString(signature),
-					ChainName:           c.chainName,
+					Nonce:           valset.Nonce,
+					BridgerAddress:  c.FxAddress().String(),
+					ExternalAddress: c.ethAddress.Hex(),
+					Signature:       hex.EncodeToString(signature),
+					ChainName:       c.chainName,
 				},
 			})
 		}
@@ -229,7 +229,7 @@ func confirmBatch(c *Client) {
 	orchestrator := c.FxAddress()
 	for {
 		lastPendingBatchRequestResponse, err := c.crosschainQueryClient.LastPendingBatchRequestByAddr(c.ctx,
-			&crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{OrchestratorAddress: orchestrator.String(), ChainName: c.chainName})
+			&crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{BridgerAddress: orchestrator.String(), ChainName: c.chainName})
 		if err != nil {
 			c.t.Fatal(err)
 		}
@@ -252,12 +252,12 @@ func confirmBatch(c *Client) {
 		}
 		c.BroadcastTx([]sdk.Msg{
 			&crosschaintypes.MsgConfirmBatch{
-				Nonce:               outgoingTxBatch.BatchNonce,
-				TokenContract:       outgoingTxBatch.TokenContract,
-				OrchestratorAddress: c.FxAddress().String(),
-				ExternalAddress:     c.ethAddress.Hex(),
-				Signature:           hex.EncodeToString(signatureBytes),
-				ChainName:           c.chainName,
+				Nonce:           outgoingTxBatch.BatchNonce,
+				TokenContract:   outgoingTxBatch.TokenContract,
+				BridgerAddress:  c.FxAddress().String(),
+				ExternalAddress: c.ethAddress.Hex(),
+				Signature:       hex.EncodeToString(signatureBytes),
+				ChainName:       c.chainName,
 			},
 		})
 		c.t.Logf("\n")
@@ -359,15 +359,15 @@ func externalToFx(c *Client) {
 	c.t.Helper()
 	c.t.Logf("\n####################      External to FX      ####################\n")
 	c.BroadcastTx([]sdk.Msg{&crosschaintypes.MsgSendToFxClaim{
-		EventNonce:    c.QueryFxLastEventNonce(),
-		BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-		TokenContract: purseTokenContract,
-		Amount:        sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)),
-		Sender:        c.ethAddress.Hex(),
-		Receiver:      c.FxAddress().String(),
-		TargetIbc:     "",
-		Orchestrator:  c.FxAddress().String(),
-		ChainName:     c.chainName,
+		EventNonce:     c.QueryFxLastEventNonce(),
+		BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+		TokenContract:  purseTokenContract,
+		Amount:         sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)),
+		Sender:         c.ethAddress.Hex(),
+		Receiver:       c.FxAddress().String(),
+		TargetIbc:      "",
+		BridgerAddress: c.FxAddress().String(),
+		ChainName:      c.chainName,
 	}})
 	c.t.Logf("\n")
 }
@@ -377,15 +377,15 @@ func externalToFxAndIbcTransfer(c *Client) {
 	c.t.Logf("\n####################      External to FX to Pundix      ####################\n")
 
 	c.BroadcastTx([]sdk.Msg{&crosschaintypes.MsgSendToFxClaim{
-		EventNonce:    c.QueryFxLastEventNonce(),
-		BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-		TokenContract: purseTokenContract,
-		Amount:        sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)),
-		Sender:        c.ethAddress.Hex(),
-		Receiver:      c.FxAddress().String(),
-		TargetIbc:     hex.EncodeToString([]byte("0x/transfer/channel-0")),
-		Orchestrator:  c.FxAddress().String(),
-		ChainName:     c.chainName,
+		EventNonce:     c.QueryFxLastEventNonce(),
+		BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+		TokenContract:  purseTokenContract,
+		Amount:         sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)),
+		Sender:         c.ethAddress.Hex(),
+		Receiver:       c.FxAddress().String(),
+		TargetIbc:      hex.EncodeToString([]byte("0x/transfer/channel-0")),
+		BridgerAddress: c.FxAddress().String(),
+		ChainName:      c.chainName,
 	}})
 	c.t.Logf("\n")
 }
@@ -399,12 +399,12 @@ func setOrchestratorAddress(c *Client) {
 		c.t.Fatal("eth address is invalid")
 	}
 	queryOrchestratorResponse, err := c.crosschainQueryClient.GetOracleByOrchestrator(c.ctx, &crosschaintypes.QueryOracleByOrchestratorRequest{
-		OrchestratorAddress: fxAddress.String(),
-		ChainName:           c.chainName,
+		BridgerAddress: fxAddress.String(),
+		ChainName:      c.chainName,
 	})
 	if queryOrchestratorResponse != nil && queryOrchestratorResponse.GetOracle() != nil {
 		oracle := queryOrchestratorResponse.GetOracle()
-		c.t.Logf("already set orchestrator address! oracle:[%v], orchestrator:[%v], externalAddress:[%v]\n", oracle.OracleAddress, oracle.OrchestratorAddress, oracle.ExternalAddress)
+		c.t.Logf("already set orchestrator address! oracle:[%v], orchestrator:[%v], externalAddress:[%v]\n", oracle.OracleAddress, oracle.BridgerAddress, oracle.ExternalAddress)
 		return
 	}
 

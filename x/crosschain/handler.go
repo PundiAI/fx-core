@@ -37,10 +37,10 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 		var err error
 		sdkCtx := sdk.WrapSDKContext(ctx)
 		switch msg := msg.(type) {
-		case *types.MsgSetOrchestratorAddress:
-			res, err = msgServer.SetOrchestratorAddress(sdkCtx, msg)
-		case *types.MsgAddOracleDeposit:
-			res, err = msgServer.AddOracleDeposit(sdkCtx, msg)
+		case *types.MsgCreateOracleBridger:
+			res, err = msgServer.CreateOracleBridger(sdkCtx, msg)
+		case *types.MsgAddOracleDelegate:
+			res, err = msgServer.AddOracleDelegate(sdkCtx, msg)
 		case *types.MsgOracleSetConfirm:
 			res, err = msgServer.OracleSetConfirm(sdkCtx, msg)
 		case *types.MsgOracleSetUpdatedClaim:

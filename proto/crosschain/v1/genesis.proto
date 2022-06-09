@@ -1,7 +1,18 @@
 syntax = "proto3";
+
+import "crosschain/v1/types.proto";
+import "crosschain/v1/tx.proto";
 package fx.gravity.crosschain.v1;
 
 option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 
 // GenesisState struct
-message GenesisState {}
+message GenesisState {
+  Params params = 1;
+  LastObservedBlockHeight last_observed_block_height = 2;
+  repeated OracleSet OracleSet = 3;
+  repeated Oracle oracle = 4;
+  repeated OutgoingTransferTx unbatched_transfers = 5;
+  repeated OutgoingTxBatch batches = 6;
+  repeated BridgeToken bridge_token = 7;
+}

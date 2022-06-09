@@ -13,10 +13,10 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, amount, f
 	if err != nil {
 		return err
 	}
-	if err = trontypes.ValidateExternalAddress(receive); err != nil {
+	if err = trontypes.ValidateTronAddress(receive); err != nil {
 		return err
 	}
 
-	_, err = k.keeper.AddToOutgoingPool(ctx, sendAddr, receive, amount, fee)
+	_, err = k.Keeper.AddToOutgoingPool(ctx, sendAddr, receive, amount, fee)
 	return err
 }

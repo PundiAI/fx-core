@@ -14,29 +14,21 @@ import (
 
 const OutgoingTxBatchSize = 100
 
-// BuildOutgoingTXBatch starts the following process chain:
+// BuildOutgoingTxBatch starts the following process chain:
 // - find bridged denominator for given voucher type
 // - determine if a an unExecuted batch is already waiting for this token type, if so confirm the new batch would
 //   have a higher total fees. If not exit without creating a batch
 // - select available transactions from the outgoing transaction pool sorted by fee desc
 // - persist an outgoing batch object with an incrementing ID = nonce
 // - emit an event
-func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceive string, maxElements uint, minimumFee, baseFee sdk.Int) (*types.OutgoingTxBatch, error) {
+func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceive string, maxElements uint, minimumFee, baseFee sdk.Int) (*types.OutgoingTxBatch, error) {
 	if maxElements == 0 {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "max elements value")
 	}
-	lastBatch := k.GetLastOutgoingBatchByTokenType(ctx, contractAddress)
 
-	// lastBatch may be nil if there are no existing batches, we only need
-	// to perform this check if a previous batch exists
-	if lastBatch != nil {
-		// this traverses the current tx pool for this token type and determines what
-		// fees a hypothetical batch would have if created
-		currentFees := k.GetBatchFeeByTokenType(ctx, contractAddress, maxElements, baseFee)
-		if currentFees == nil {
-			return nil, sdkerrors.Wrap(types.ErrInvalid, "error getting fees from tx pool")
-		}
-
+	// if there is a more profitable batch for this token type do not create a new batch
+	if lastBatch := k.GetLastOutgoingBatchByTokenType(ctx, contractAddress); lastBatch != nil {
+		currentFees := k.GetBatchFeesByTokenType(ctx, contractAddress, maxElements, baseFee)
 		if lastBatch.GetFees().GT(currentFees.TotalFees) {
 			return nil, sdkerrors.Wrap(types.ErrInvalid, "new batch would not be more profitable")
 		}
@@ -170,20 +162,16 @@ func (k Keeper) pickUnBatchedTX(ctx sdk.Context, contractAddress string, maxElem
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
 	k.IterateUnbatchedTransactionsByContract(ctx, contractAddress, func(_ []byte, tx *types.OutgoingTransferTx) bool {
-		if tx != nil && tx.Fee != nil {
-			if tx.Fee.Amount.LT(baseFee) {
-				return true
-			}
-			selectedTx = append(selectedTx, tx)
-			err = k.removeUnbatchedTX(ctx, *tx.Fee, tx.Id)
-			oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, *tx.Fee, tx.Id)
-			if oldTx != nil || oldTxErr == nil {
-				panic("picked a duplicate transaction from the pool, duplicates should never exist!")
-			}
-			return err != nil || uint(len(selectedTx)) == maxElements
-		} else {
-			panic("tx and fee should never be nil!")
+		if tx.Fee.Amount.LT(baseFee) {
+			return true
 		}
+		selectedTx = append(selectedTx, tx)
+		err = k.removeUnbatchedTX(ctx, tx.Fee, tx.Id)
+		oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, tx.Fee, tx.Id)
+		if oldTx != nil || oldTxErr == nil {
+			panic("picked a duplicate transaction from the pool, duplicates should never exist!")
+		}
+		return err != nil || uint(len(selectedTx)) == maxElements
 	})
 	return selectedTx, err
 }

@@ -14,7 +14,7 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, amount, f
 		return err
 	}
 
-	if err = types.ValidateExternalAddress(receive); err != nil {
+	if err = types.ValidateEthereumAddress(receive); err != nil {
 		return err
 	}
 

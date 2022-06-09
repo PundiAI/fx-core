@@ -35,7 +35,7 @@ const (
 	flagInitParamsAverageBlockTime         = "average_block_time"
 	flagInitParamsSlashFraction            = "slash-fraction"
 	flagInitParamsOracleChangePercent      = "oracle-change-percent"
-	flagInitParamsDepositThreshold         = "deposit-threshold"
+	flagInitParamsDelegateThreshold        = "delegate-threshold"
 	flagInitParamsOracles                  = "oracles"
 )
 
@@ -55,8 +55,8 @@ func GetTxCmd() *cobra.Command {
 
 		// set orchestrator address
 		CmdSetOrchestratorAddress(),
-		// add oracle deposit
-		CmdAddOracleDeposit(),
+		// add oracle stake
+		CmdAddOracleStake(),
 		// send to external chain
 		CmdSendToExternal(),
 		CmdCancelSendToExternal(),
@@ -72,7 +72,7 @@ func GetTxCmd() *cobra.Command {
 
 func CmdInitCrossChainParamsProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "init-crosschain-params [chain-name] [initial proposal deposit]",
+		Use:     "init-crosschain-params [chain-name] [initial proposal stake]",
 		Short:   "init chian params",
 		Example: "fxcored tx crosschain init-crosschian-params bsc 100000000000000000000FX --title=\"Init Bsc chain params\", --desc=\"about bsc chain description\" --gravity-id=\"bsc\" --oracles <oracles>",
 		Args:    cobra.ExactArgs(2),
@@ -125,11 +125,11 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 				}
 				oracles[i] = oracleAddr.String()
 			}
-			depositThreshold, err := cmd.Flags().GetString(flagInitParamsDepositThreshold)
+			depositThreshold, err := cmd.Flags().GetString(flagInitParamsDelegateThreshold)
 			if err != nil {
 				return err
 			}
-			depositThresholdCoin, err := sdk.ParseCoinNormalized(depositThreshold)
+			delegateThreshold, err := sdk.ParseCoinNormalized(depositThreshold)
 			if err != nil {
 				return err
 			}
@@ -164,7 +164,7 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 					OracleSetUpdatePowerChangePercent: oracleChanagePercent,
 					IbcTransferTimeoutHeight:          20000,
 					Oracles:                           oracles,
-					DepositThreshold:                  depositThresholdCoin,
+					DelegateThreshold:                 delegateThreshold,
 				},
 				ChainName: chainName,
 			}
@@ -181,19 +181,19 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 	cmd.Flags().String(flagProposalDescription, "", "proposal desc")
 	cmd.Flags().String(flagInitParamsGravityId, "", "signature checkpoint id, prevent replay attacks")
 	cmd.Flags().Uint64(flagInitParamsSignedWindows, 20000, "consensus signature penalizes waiting blocks")
-	cmd.Flags().Uint64(flagInitParamsBatchTimeout, 43200000, "batch Withdrawal timeout (ms)(43200000=12h)")
+	cmd.Flags().Uint64(flagInitParamsBatchTimeout, 43200000, "batch withdrawal timeout (ms)(43200000=12h)")
 	cmd.Flags().Uint64(flagInitParamsAverageExternalBlockTime, 3000, "average block output time of the other chain (ms)")
 	cmd.Flags().Uint64(flagInitParamsAverageBlockTime, 5000, "average block output time of f(x)Chain (ms)")
 	cmd.Flags().String(flagInitParamsSlashFraction, "0.001", "Penalty ratio for not participating in consensus signature")
 	cmd.Flags().String(flagInitParamsOracleChangePercent, "0.1", "consensus Oracle Power change threshold percentage(0.1=10%)")
-	cmd.Flags().String(flagInitParamsDepositThreshold, "100000000000000000000FX", "consensus Oracle minimum Collateral token")
+	cmd.Flags().String(flagInitParamsDelegateThreshold, "100000000000000000000FX", "consensus Oracle minimum collateral token")
 	cmd.Flags().StringSlice(flagInitParamsOracles, nil, "list of Oracles that have permission to participate in consensus, using comma split")
 	return cmd
 }
 
 func CmdUpdateChainOraclesProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "update-chain-oracles [chain-name] [initial proposal deposit]",
+		Use:     "update-chain-oracles [chain-name] [initial proposal stake]",
 		Short:   "init chian params",
 		Example: "fxcored tx crosschain update-chain-oracles bsc 100000000000000000000FX --title=\"Update Bsc chain oracles\", --desc=\"oracles description\" --oracles <oracles>",
 		Args:    cobra.ExactArgs(2),
@@ -250,7 +250,7 @@ func CmdUpdateChainOraclesProposal() *cobra.Command {
 
 func CmdSetOrchestratorAddress() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set-orchestrator-address [chain-name] [orchestrator-address] [external-address] [deposit-amount]",
+		Use:   "set-orchestrator-address [chain-name] [orchestrator-address] [external-address] [stake-amount]",
 		Short: "Allows oracle to delegate their voting responsibilities to a given key.",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -259,20 +259,20 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 				return err
 			}
 
-			orchestratorAddress, err := sdk.AccAddressFromBech32(args[1])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
 			externalAddress := args[2]
-			deposit, err := sdk.ParseCoinNormalized(args[3])
+			amount, err := sdk.ParseCoinNormalized(args[3])
 			if err != nil {
 				return err
 			}
-			msg := types.MsgSetOrchestratorAddress{
-				Oracle:          cliCtx.GetFromAddress().String(),
-				Orchestrator:    orchestratorAddress.String(),
+			msg := types.MsgCreateOracleBridger{
+				OracleAddress:   cliCtx.GetFromAddress().String(),
+				BridgerAddress:  bridgerAddr.String(),
 				ExternalAddress: externalAddress,
-				Deposit:         deposit,
+				DelegateAmount:  amount,
 				ChainName:       args[0],
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
@@ -282,10 +282,10 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 	return cmd
 }
 
-func CmdAddOracleDeposit() *cobra.Command {
+func CmdAddOracleStake() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-oracle-deposit [chain-name] [deposit-amount]",
-		Short: "Allows oracle add deposit.",
+		Use:   "add-oracle-stake [chain-name] [stake-amount]",
+		Short: "Allows oracle add stake.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
@@ -293,14 +293,14 @@ func CmdAddOracleDeposit() *cobra.Command {
 				return err
 			}
 
-			deposit, err := sdk.ParseCoinNormalized(args[1])
+			amount, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
-			msg := types.MsgAddOracleDeposit{
-				Oracle:    cliCtx.GetFromAddress().String(),
-				Amount:    deposit,
-				ChainName: args[0],
+			msg := types.MsgAddOracleDelegate{
+				OracleAddress: cliCtx.GetFromAddress().String(),
+				Amount:        amount,
+				ChainName:     args[0],
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
@@ -484,10 +484,10 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			}
 			// Determine whether it has been confirmed
 			batchConfirmResp, err := queryClient.BatchConfirm(cmd.Context(), &types.QueryBatchConfirmRequest{
-				Nonce:               nonce,
-				TokenContract:       tokenContract,
-				OrchestratorAddress: fromAddress.String(),
-				ChainName:           args[0],
+				Nonce:          nonce,
+				TokenContract:  tokenContract,
+				BridgerAddress: fromAddress.String(),
+				ChainName:      args[0],
 			})
 			if err != nil {
 				return err
@@ -495,7 +495,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			if batchConfirmResp.GetConfirm() != nil {
 				confirm := batchConfirmResp.GetConfirm()
 				return clientCtx.PrintString(fmt.Sprintf("already confirm requestBatch!!!\n\tnonce:[%v]\n\ttokenContract:[%v]\n\torchestrator:[%v]\n\texternalAddress:[%v]\n\tsignature:[%v]\n",
-					confirm.Nonce, confirm.TokenContract, confirm.OrchestratorAddress, confirm.ExternalAddress, confirm.Signature))
+					confirm.Nonce, confirm.TokenContract, confirm.BridgerAddress, confirm.ExternalAddress, confirm.Signature))
 			}
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{ChainName: args[0]})
 			if err != nil {
@@ -510,12 +510,12 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				return err
 			}
 			msg := &types.MsgConfirmBatch{
-				Nonce:               nonce,
-				TokenContract:       tokenContract,
-				ExternalAddress:     externalAddress.String(),
-				OrchestratorAddress: fromAddress.String(),
-				Signature:           hex.EncodeToString(signature),
-				ChainName:           args[0],
+				Nonce:           nonce,
+				TokenContract:   tokenContract,
+				ExternalAddress: externalAddress.String(),
+				BridgerAddress:  fromAddress.String(),
+				Signature:       hex.EncodeToString(signature),
+				ChainName:       args[0],
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -553,16 +553,16 @@ func CmdOracleSetConfirm() *cobra.Command {
 			}
 			// Determine whether it has been confirmed
 			oracleSetConfirmResp, err := queryClient.OracleSetConfirm(cmd.Context(), &types.QueryOracleSetConfirmRequest{
-				Nonce:               nonce,
-				OrchestratorAddress: fromAddress.String(),
-				ChainName:           args[0],
+				Nonce:          nonce,
+				BridgerAddress: fromAddress.String(),
+				ChainName:      args[0],
 			})
 			if err != nil {
 				return err
 			}
 			if oracleSetConfirmResp.GetConfirm() != nil {
 				confirm := oracleSetConfirmResp.GetConfirm()
-				return fmt.Errorf("already confirm oracleSet!!!\n\tnonce:[%v]\n\torchestrator:[%v]\n\texternalAddress:[%v]\n\tsignature:[%v]\n", confirm.Nonce, confirm.OrchestratorAddress, confirm.ExternalAddress, confirm.Signature)
+				return fmt.Errorf("already confirm oracleSet!!!\n\tnonce:[%v]\n\torchestrator:[%v]\n\texternalAddress:[%v]\n\tsignature:[%v]\n", confirm.Nonce, confirm.BridgerAddress, confirm.ExternalAddress, confirm.Signature)
 			}
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{
 				ChainName: args[0],
@@ -576,11 +576,11 @@ func CmdOracleSetConfirm() *cobra.Command {
 				return err
 			}
 			msg := &types.MsgOracleSetConfirm{
-				Nonce:               nonce,
-				OrchestratorAddress: fromAddress.String(),
-				ExternalAddress:     externalAddress.String(),
-				Signature:           hex.EncodeToString(signature),
-				ChainName:           args[0],
+				Nonce:           nonce,
+				BridgerAddress:  fromAddress.String(),
+				ExternalAddress: externalAddress.String(),
+				Signature:       hex.EncodeToString(signature),
+				ChainName:       args[0],
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -19,28 +21,25 @@ import (
 //////////////////////////////////////
 
 // ValidateBasic performs stateless checks on validity
-func (m *BridgeValidator) ValidateBasic() error {
+func (m BridgeValidator) ValidateBasic() error {
 	if m.Power == 0 {
 		return sdkerrors.Wrap(ErrEmpty, "power")
 	}
-	if err := ValidateExternalAddress(m.ExternalAddress); err != nil {
-		return sdkerrors.Wrap(err, "ethereum address")
-	}
-	if m.ExternalAddress == "" {
-		return sdkerrors.Wrap(ErrEmpty, "external address")
+	if err := ValidateEthereumAddress(m.ExternalAddress); err != nil {
+		return sdkerrors.Wrap(err, "external address")
 	}
 	return nil
 }
 
 // BridgeValidators is the sorted set of validator data for Ethereum bridge MultiSig set
-type BridgeValidators []*BridgeValidator
+type BridgeValidators []BridgeValidator
 
 // Sort sorts the validators by power
 func (b BridgeValidators) Sort() {
 	sort.Slice(b, func(i, j int) bool {
 		if b[i].Power == b[j].Power {
 			// Secondary sort on eth address in case powers are equal
-			return ExternalAddrLessThan(b[i].ExternalAddress, b[j].ExternalAddress)
+			return ethereumAddrLessThan(b[i].ExternalAddress, b[j].ExternalAddress)
 		}
 		return b[i].Power > b[j].Power
 	})
@@ -135,7 +134,7 @@ func (b BridgeValidators) ValidateBasic() error {
 // NewOracleSet returns a new OracleSet
 func NewOracleSet(nonce, height uint64, members BridgeValidators) *OracleSet {
 	members.Sort()
-	var mem []*BridgeValidator
+	var mem []BridgeValidator
 	for _, val := range members {
 		mem = append(mem, val)
 	}
@@ -226,7 +225,10 @@ func (v OutgoingTxBatches) Swap(i, j int) {
 func (m OutgoingTxBatch) GetFees() sdk.Int {
 	sum := sdk.ZeroInt()
 	for _, t := range m.Transactions {
-		sum.Add(t.Fee.Amount)
+		//if t.Fee == nil {
+		//	continue
+		//}
+		sum = sum.Add(t.Fee.Amount)
 	}
 	return sum
 }
@@ -236,9 +238,7 @@ func (m OutgoingTxBatch) GetFees() sdk.Int {
 //////////////////////////////////////
 
 func (m Oracle) GetOracle() sdk.AccAddress {
-	if m.OracleAddress == "" {
-		return nil
-	}
+	// oracle address can't be empty
 	addr, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
 		panic(err)
@@ -247,7 +247,7 @@ func (m Oracle) GetOracle() sdk.AccAddress {
 }
 
 func (m Oracle) GetPower() sdk.Int {
-	return m.DepositAmount.Amount.Quo(sdk.DefaultPowerReduction)
+	return m.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction)
 }
 
 type Oracles []Oracle
@@ -257,7 +257,7 @@ func (v Oracles) Len() int {
 }
 
 func (v Oracles) Less(i, j int) bool {
-	return v[i].DepositAmount.Amount.Sub(v[j].DepositAmount.Amount).IsPositive()
+	return v[i].DelegateAmount.Amount.Sub(v[j].DelegateAmount.Amount).IsPositive()
 }
 
 func (v Oracles) Swap(i, j int) {
@@ -273,4 +273,11 @@ func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdk.Int {
 		kv[m.TokenContract] = m.BaseFee
 	}
 	return kv
+}
+
+func CovertIbcPacketReceiveAddressByPrefix(targetIbcPrefix string, receiver sdk.AccAddress) (ibcReceiveAddr string, err error) {
+	if strings.ToLower(targetIbcPrefix) == "0x" {
+		return gethcommon.BytesToAddress(receiver.Bytes()).String(), nil
+	}
+	return bech32.ConvertAndEncode(targetIbcPrefix, receiver)
 }

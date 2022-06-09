@@ -172,15 +172,15 @@ func sendToExternalAndCancel(c *Client) {
 	sendToExternalFee := sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(2000))
 
 	c.BroadcastTx([]sdk.Msg{&types.MsgSendToFxClaim{
-		EventNonce:    c.QueryFxLastEventNonce(),
-		BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-		TokenContract: tusdTokenContract,
-		Amount:        sendToExternalAmount.Add(sendToExternalFee),
-		Sender:        c.externalAddress.String(),
-		Receiver:      c.FxAddress().String(),
-		TargetIbc:     "",
-		Orchestrator:  c.FxAddress().String(),
-		ChainName:     c.chainName,
+		EventNonce:     c.QueryFxLastEventNonce(),
+		BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+		TokenContract:  tusdTokenContract,
+		Amount:         sendToExternalAmount.Add(sendToExternalFee),
+		Sender:         c.externalAddress.String(),
+		Receiver:       c.FxAddress().String(),
+		TargetIbc:      "",
+		BridgerAddress: c.FxAddress().String(),
+		ChainName:      c.chainName,
 	}})
 
 	fxAddress := c.FxAddress()
@@ -568,7 +568,7 @@ func setOrchestratorAddress(c *Client) {
 	c.t.Helper()
 
 	fxAddress := c.FxAddress()
-	if err := trontypes.ValidateExternalAddress(c.externalAddress.String()); err != nil {
+	if err := trontypes.ValidateTronAddress(c.externalAddress.String()); err != nil {
 		c.t.Fatal(err, "external address is invalid", c.externalAddress.String())
 	}
 	queryOracleResponse, err := c.crosschainQueryClient.GetOracleByAddr(c.ctx, &types.QueryOracleByAddrRequest{

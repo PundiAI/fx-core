@@ -28,7 +28,7 @@ var (
 
 func init() {
 	types.InitMsgValidatorBasicRouter()
-	types.RegisterValidatorBasic(chainName, types.EthereumMsgValidateBasic{})
+	types.RegisterValidatorBasic(chainName, types.EthereumMsgValidate{})
 }
 
 func TestMsgSetOrchestrator(t *testing.T) {
@@ -93,8 +93,8 @@ func TestMsgSetOrchestrator(t *testing.T) {
 				Orchestrator: "",
 			},
 			expectPass: false,
-			err:        types.ErrOrchestratorAddress,
-			errReason:  fmt.Sprintf("%s: %s", "", types.ErrOrchestratorAddress),
+			err:        types.ErrBridgerAddress,
+			errReason:  fmt.Sprintf("%s: %s", "", types.ErrBridgerAddress),
 		},
 		{
 			testName: "err orchestrator address - err prefix",
@@ -104,8 +104,8 @@ func TestMsgSetOrchestrator(t *testing.T) {
 				Orchestrator: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrOrchestratorAddress,
-			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrOrchestratorAddress),
+			err:        types.ErrBridgerAddress,
+			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrBridgerAddress),
 		},
 		{
 			testName: "err externalAddress address - empty",
@@ -132,13 +132,13 @@ func TestMsgSetOrchestrator(t *testing.T) {
 			errReason:  fmt.Sprintf("%s: %s", "err external address", types.ErrExternalAddress),
 		},
 		{
-			testName: "err deposit amount - amount is not positive",
+			testName: "err stake amount - amount is not positive",
 			msg: &types.MsgSetOrchestratorAddress{
 				ChainName:       chainName,
 				Oracle:          normalOracleAddress,
 				Orchestrator:    normalOrchestratorAddress,
 				ExternalAddress: normalExternalAddress,
-				Deposit:         sdk.NewCoin("demo", sdk.NewInt(0)),
+				StakeAmount:     sdk.NewCoin("demo", sdk.NewInt(0)),
 			},
 			expectPass: false,
 			err:        types.ErrInvalidCoin,
@@ -151,7 +151,7 @@ func TestMsgSetOrchestrator(t *testing.T) {
 				Oracle:          normalOracleAddress,
 				Orchestrator:    normalOrchestratorAddress,
 				ExternalAddress: normalExternalAddress,
-				Deposit:         sdk.NewCoin(depositDenom, depositAmount),
+				StakeAmount:     sdk.NewCoin(depositDenom, depositAmount),
 			},
 			expectPass: true,
 			err:        nil,
@@ -179,14 +179,14 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
-		msg        *types.MsgAddOracleDeposit
+		msg        *types.MsgAddOracleStake
 		expectPass bool
 		err        error
 		errReason  string
 	}{
 		{
 			testName: "err chain name - empty",
-			msg: &types.MsgAddOracleDeposit{
+			msg: &types.MsgAddOracleStake{
 				ChainName: "",
 			},
 			expectPass: false,
@@ -195,7 +195,7 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 		},
 		{
 			testName: "err oracle address - err prefix",
-			msg: &types.MsgAddOracleDeposit{
+			msg: &types.MsgAddOracleStake{
 				ChainName: chainName,
 				Oracle:    errPrefixAddress,
 				Amount:    sdk.Coin{Denom: depositDenom, Amount: depositAmount},
@@ -206,7 +206,7 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 		},
 		{
 			testName: "err amount - value:0",
-			msg: &types.MsgAddOracleDeposit{
+			msg: &types.MsgAddOracleStake{
 				ChainName: chainName,
 				Oracle:    normalOracleAddress,
 				Amount:    sdk.Coin{Denom: depositDenom, Amount: sdk.NewInt(0)},
@@ -217,7 +217,7 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 		},
 		{
 			testName: "err amount - value:-1",
-			msg: &types.MsgAddOracleDeposit{
+			msg: &types.MsgAddOracleStake{
 				ChainName: chainName,
 				Oracle:    normalOracleAddress,
 				Amount:    sdk.Coin{Denom: depositDenom, Amount: sdk.NewInt(-1)},
@@ -228,7 +228,7 @@ func TestMsgAddOracleDeposit(t *testing.T) {
 		},
 		{
 			testName: "success",
-			msg: &types.MsgAddOracleDeposit{
+			msg: &types.MsgAddOracleStake{
 				ChainName: chainName,
 				Oracle:    normalOracleAddress,
 				Amount:    sdk.Coin{Denom: depositDenom, Amount: depositAmount},
@@ -282,8 +282,8 @@ func TestMsgOracleSetConfirm(t *testing.T) {
 				OrchestratorAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrOrchestratorAddress,
-			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrOrchestratorAddress),
+			err:        types.ErrBridgerAddress,
+			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrBridgerAddress),
 		},
 		{
 			testName: "err external address: empty",
@@ -400,8 +400,8 @@ func TestMsgOracleSetUpdatedClaim(t *testing.T) {
 				Orchestrator: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrOrchestratorAddress,
-			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrOrchestratorAddress),
+			err:        types.ErrBridgerAddress,
+			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrBridgerAddress),
 		},
 		{
 			testName: "err members: members len == 0",
@@ -559,8 +559,8 @@ func TestMsgBridgeTokenClaim(t *testing.T) {
 				Orchestrator: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrOrchestratorAddress,
-			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrOrchestratorAddress),
+			err:        types.ErrBridgerAddress,
+			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrBridgerAddress),
 		},
 		{
 			testName: "err tokenContract address - empty",
@@ -729,8 +729,8 @@ func TestMsgSendToFxClaim(t *testing.T) {
 				Orchestrator: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrOrchestratorAddress,
-			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrOrchestratorAddress),
+			err:        types.ErrBridgerAddress,
+			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrBridgerAddress),
 		},
 		{
 			testName: "err sender address - empty",
@@ -1112,8 +1112,8 @@ func TestMsgSendToExternalClaim(t *testing.T) {
 				Orchestrator: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrOrchestratorAddress,
-			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrOrchestratorAddress),
+			err:        types.ErrBridgerAddress,
+			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrBridgerAddress),
 		},
 		{
 			testName: "err tokenContract address - empty",
@@ -1346,8 +1346,8 @@ func TestMsgConfirmBatch(t *testing.T) {
 				OrchestratorAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrOrchestratorAddress,
-			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrOrchestratorAddress),
+			err:        types.ErrBridgerAddress,
+			errReason:  fmt.Sprintf("%s: %s", errPrefixAddress, types.ErrBridgerAddress),
 		},
 		{
 			testName: "err external address: empty",
