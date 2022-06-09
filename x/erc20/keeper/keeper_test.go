@@ -32,13 +32,16 @@ import (
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
+	"github.com/tharsis/ethermint/server/config"
+	"github.com/tharsis/ethermint/x/evm/statedb"
+	evm "github.com/tharsis/ethermint/x/evm/types"
+
 	app "github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
-	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"
 	"github.com/functionx/fx-core/x/erc20/types"
-	"github.com/functionx/fx-core/x/evm/statedb"
-	evm "github.com/functionx/fx-core/x/evm/types"
+
+	ethermint "github.com/tharsis/ethermint/types"
 )
 
 type KeeperTestSuite struct {
@@ -100,9 +103,11 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	types.RegisterQueryServer(queryHelper, suite.app.Erc20Keeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	acc := authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0)
+	acc := &ethermint.EthAccount{
+		BaseAccount: authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0),
+		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
+	}
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-	suite.app.EvmKeeper.SetAddressCode(suite.ctx, suite.address, common.BytesToHash(crypto.Keccak256(nil)).Bytes())
 
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
@@ -123,7 +128,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	for _, contract := range fxtypes.GetInitContracts() {
 		require.True(t, len(contract.Code) > 0)
 		require.True(t, contract.Address != common.HexToAddress(fxtypes.EmptyEvmAddress))
-		err := suite.app.EvmKeeper.CreateContractWithCode(suite.ctx, contract.Address, contract.Code)
+		err := suite.app.Erc20Keeper.CreateContractWithCode(suite.ctx, contract.Address, contract.Code)
 		require.NoError(t, err)
 	}
 

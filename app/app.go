@@ -11,6 +11,10 @@ import (
 	ethkeeper "github.com/functionx/fx-core/x/eth/keeper"
 	ethtypes "github.com/functionx/fx-core/x/eth/types"
 
+	ethermint "github.com/tharsis/ethermint/types"
+
+	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
+
 	ante2 "github.com/functionx/fx-core/ante"
 
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -22,8 +26,6 @@ import (
 	othertypes "github.com/functionx/fx-core/x/other/types"
 
 	"github.com/cosmos/cosmos-sdk/server/config"
-
-	fxconfig "github.com/functionx/fx-core/server/config"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -144,24 +146,24 @@ import (
 	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 
-	"github.com/functionx/fx-core/x/evm"
-	evmrest "github.com/functionx/fx-core/x/evm/client/rest"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	"github.com/functionx/fx-core/x/feemarket"
-	feemarketkeeper "github.com/functionx/fx-core/x/feemarket/keeper"
+	"github.com/tharsis/ethermint/x/evm"
+	evmrest "github.com/tharsis/ethermint/x/evm/client/rest"
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	"github.com/tharsis/ethermint/x/feemarket"
+	feemarketkeeper "github.com/tharsis/ethermint/x/feemarket/keeper"
 
 	erc20client "github.com/functionx/fx-core/x/erc20/client"
-	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
-	"github.com/functionx/fx-core/server"
+	srvflags "github.com/tharsis/ethermint/server/flags"
+	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
+	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
+
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/erc20"
-	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	"github.com/functionx/fx-core/x/migrate"
 
 	_ "github.com/functionx/fx-core/docs/statik"
@@ -354,7 +356,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		// erc20 keys
 		erc20types.StoreKey, migratetypes.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	myApp := &App{
@@ -387,7 +389,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	// add keepers
 	myApp.AccountKeeper = authkeeper.NewAccountKeeper(
-		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
+		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), ethermint.ProtoAccount, maccPerms,
 	)
 	myApp.AuthzKeeper = authzkeeper.NewKeeper(
 		keys[authzkeeper.StoreKey],
@@ -442,10 +444,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	// this line is used by starport scaffolding # stargate/myApp/keeperDefinition
 
-	tracer := cast.ToString(appOpts.Get(server.EVMTracer))
+	tracer := cast.ToString(appOpts.Get(srvflags.EVMTracer))
 
 	myApp.FeeMarketKeeper = feemarketkeeper.NewKeeper(
-		appCodec, keys[feemarkettypes.StoreKey], myApp.GetSubspace(feemarkettypes.ModuleName),
+		appCodec, myApp.GetSubspace(feemarkettypes.ModuleName), keys[feemarkettypes.StoreKey], tkeys[feemarkettypes.TransientKey],
 	)
 
 	myApp.EvmKeeper = evmkeeper.NewKeeper(
@@ -609,6 +611,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		// upgrades should be run first
 		upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
+		feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
@@ -637,8 +641,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
-		feemarkettypes.ModuleName,
-		evmtypes.ModuleName,
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 	)
@@ -647,6 +649,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
+		evmtypes.ModuleName,
+		feemarkettypes.ModuleName,
 		//liquiditytypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibchost.ModuleName,
@@ -673,8 +677,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
-		feemarkettypes.ModuleName,
-		evmtypes.ModuleName,
+
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 	)
@@ -707,6 +710,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		// Ethermint modules
+		evmtypes.ModuleName, feemarkettypes.ModuleName,
 
 		othertypes.ModuleName,
 		gravitytypes.ModuleName,
@@ -715,8 +720,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
-		feemarkettypes.ModuleName,
-		evmtypes.ModuleName,
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 	)
@@ -732,16 +735,17 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.MountTransientStores(tkeys)
 	myApp.MountMemoryStores(memKeys)
 
-	maxGasWanted := cast.ToUint64(appOpts.Get(server.EVMMaxTxGasWanted))
+	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
 	anteOptions := ante2.HandlerOptions{
 		AccountKeeper:        myApp.AccountKeeper,
 		BankKeeper:           myApp.BankKeeper,
 		EvmKeeper:            myApp.EvmKeeper,
+		FeeMarketKeeper:      myApp.FeeMarketKeeper,
 		IbcKeeper:            myApp.IBCKeeper,
 		SignModeHandler:      encodingConfig.TxConfig.SignModeHandler(),
 		SigGasConsumer:       ante2.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:       maxGasWanted,
-		BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(fxconfig.BypassMinFeeMsgTypesKey)),
+		BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(fxtypes.BypassMinFeeMsgTypesKey)),
 	}
 
 	if err := anteOptions.Validate(); err != nil {

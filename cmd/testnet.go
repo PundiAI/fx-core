@@ -14,9 +14,7 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 
-	fxconfig "github.com/functionx/fx-core/server/config"
-
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
 
 	"github.com/functionx/fx-core/app"
 
@@ -126,7 +124,7 @@ func initTestnet(
 	denom string,
 	valNum int,
 ) error {
-	fxAppConfig := fxconfig.Config{
+	fxAppConfig := Config{
 		Config: *srvconfig.DefaultConfig(),
 	}
 	fxAppConfig.MinGasPrices = minGasPrices
@@ -135,7 +133,7 @@ func initTestnet(
 	fxAppConfig.Telemetry.PrometheusRetentionTime = 60
 	fxAppConfig.Telemetry.EnableHostnameLabel = false
 	fxAppConfig.Telemetry.GlobalLabels = [][]string{{"chain_id", chainID}}
-	fxAppConfig.BypassMinFee = fxconfig.BypassMinFee{
+	fxAppConfig.BypassMinFee = BypassMinFee{
 		MsgTypes: []string{
 			sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
 			sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),

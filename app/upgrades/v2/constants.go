@@ -10,9 +10,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
+
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 )
 

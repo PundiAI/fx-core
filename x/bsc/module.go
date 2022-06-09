@@ -2,6 +2,7 @@ package bsc
 
 import (
 	"encoding/json"
+
 	crosschainv54 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
 
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"

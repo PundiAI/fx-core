@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
+	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -133,6 +133,8 @@ func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+
+	_ = keeper.NewMigrator(am.keeper)
 }
 
 // InitGenesis performs the capability module's genesis initialization It returns

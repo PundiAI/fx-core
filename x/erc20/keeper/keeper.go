@@ -1,7 +1,11 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,6 +16,9 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/x/erc20/types"
+
+	"github.com/tharsis/ethermint/x/evm/statedb"
+	etherminttypes "github.com/tharsis/ethermint/x/evm/types"
 )
 
 // Keeper of this module maintains collections of erc20.
@@ -117,4 +124,23 @@ func (k *Keeper) SetIBCTransferKeeperForTest(t types.IBCTransferKeeper) {
 
 func (k *Keeper) SetIBCChannelKeeperForTest(t types.IBCChannelKeeper) {
 	k.ibcChannelKeeper = t
+}
+
+func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error {
+	codeHash := crypto.Keccak256Hash(code)
+	acc := k.evmKeeper.GetAccount(ctx, addr)
+	if acc == nil {
+		k.Logger(ctx).Info("create contract with code", "address", addr.String(), "code", hex.EncodeToString(code))
+		acc = statedb.NewEmptyAccount()
+		acc.CodeHash = codeHash.Bytes()
+		k.evmKeeper.SetCode(ctx, acc.CodeHash, code)
+		return k.evmKeeper.SetAccount(ctx, addr, *acc)
+	}
+	if !acc.IsContract() {
+		return sdkerrors.Wrapf(etherminttypes.ErrInvalidAccount, "address %s not contract, can not update code", addr.Hex())
+	}
+	k.Logger(ctx).Info("create contract with code", "address", addr.String(), "code", hex.EncodeToString(code))
+	acc.CodeHash = codeHash.Bytes()
+	k.evmKeeper.SetCode(ctx, acc.CodeHash, code)
+	return k.evmKeeper.SetAccount(ctx, addr, *acc)
 }

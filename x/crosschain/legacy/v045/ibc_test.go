@@ -1,9 +1,10 @@
 package v045_test
 
 import (
+	"testing"
+
 	v042 "github.com/functionx/fx-core/x/crosschain/legacy/v042"
 	v045 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
-	"testing"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -2,14 +2,17 @@ package app
 
 import (
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	cryptocodec "github.com/tharsis/ethermint/crypto/codec"
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
+	ethermint "github.com/tharsis/ethermint/types"
 
-	ethcryptocodec "github.com/functionx/fx-core/crypto/codec"
-	fxtypes "github.com/functionx/fx-core/types"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
@@ -48,9 +51,21 @@ func makeEncodingConfig() EncodingConfig {
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	keyring.RegisterLegacyAminoCodec(amino)
 
-	fxtypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	ethcryptocodec.RegisterCrypto(amino)
-	ethcryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	RegisterCryptoEthSecp256k1(amino)
+	cryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	ethermint.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	return encodingConfig
+}
+
+func RegisterCryptoEthSecp256k1(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&ethsecp256k1.PubKey{},
+		ethsecp256k1.PubKeyName, nil)
+	cdc.RegisterConcrete(&ethsecp256k1.PrivKey{},
+		ethsecp256k1.PrivKeyName, nil)
+
+	// NOTE: update SDK's amino codec to include the ethsecp256k1 keys.
+	// DO NOT REMOVE unless deprecated on the SDK.
+	legacy.Cdc = cdc
+	keys.KeysCdc = cdc
 }

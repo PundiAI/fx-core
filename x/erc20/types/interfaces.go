@@ -10,7 +10,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 
-	feemarkettypes "github.com/functionx/fx-core/x/feemarket/types"
+	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -19,8 +19,8 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/functionx/fx-core/x/evm/statedb"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	"github.com/tharsis/ethermint/x/evm/statedb"
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 )
 
 // AccountKeeper defines the expected interface needed to retrieve account info.
@@ -54,7 +54,10 @@ type EVMKeeper interface {
 	GetAccountWithoutBalance(ctx sdk.Context, addr common.Address) *statedb.Account
 	EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*evmtypes.EstimateGasResponse, error)
 	ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error)
-	CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error
+
+	GetAccount(ctx sdk.Context, addr common.Address) *statedb.Account
+	SetCode(ctx sdk.Context, codeHash, code []byte)
+	SetAccount(ctx sdk.Context, addr common.Address, account statedb.Account) error
 }
 
 type FeeMarketKeeper interface {

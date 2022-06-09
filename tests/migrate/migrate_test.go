@@ -16,7 +16,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
+
 	fxtypes "github.com/functionx/fx-core/types"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 )

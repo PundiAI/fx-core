@@ -3,10 +3,11 @@ package ante_test
 import (
 	"math/big"
 
-	"github.com/functionx/fx-core/x/evm/statedb"
+	"github.com/tharsis/ethermint/x/evm/statedb"
+
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/tests"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
 )
 
 func (suite AnteTestSuite) TestSignatures() {

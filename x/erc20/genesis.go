@@ -7,10 +7,11 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/ethereum/go-ethereum/common"
 
+	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
+
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/erc20/keeper"
 	"github.com/functionx/fx-core/x/erc20/types"
-	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
 )
 
 // InitGenesis import module genesis
@@ -36,7 +37,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper authkeeper.Acco
 		if len(contract.Code) <= 0 || contract.Address == common.HexToAddress(fxtypes.EmptyEvmAddress) {
 			panic(fmt.Sprintf("invalid contract: %s/%s", contract.Address.String(), contract.Version))
 		}
-		if err := evmKeeper.CreateContractWithCode(ctx, contract.Address, contract.Code); err != nil {
+		if err := k.CreateContractWithCode(ctx, contract.Address, contract.Code); err != nil {
 			panic(fmt.Sprintf("create contract %s/%s with code error %s", contract.Address.String(), contract.Version, err.Error()))
 		}
 	}

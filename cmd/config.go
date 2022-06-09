@@ -12,14 +12,14 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	fxconfig "github.com/functionx/fx-core/server/config"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
+
+	ethermintconfig "github.com/tharsis/ethermint/server/config"
 )
 
 const (
@@ -39,8 +39,8 @@ func updateCmd() *cobra.Command {
 			tmcfg.WriteConfigFile(fileName, serverCtx.Config)
 			serverCtx.Logger.Info("Update config.toml is successful", "fileName", fileName)
 
-			config.SetConfigTemplate(fxconfig.DefaultConfigTemplate())
-			appConfig := fxconfig.DefaultConfig()
+			config.SetConfigTemplate(DefaultConfigTemplate())
+			appConfig := DefaultConfig()
 			if err := serverCtx.Viper.Unmarshal(appConfig); err != nil {
 				return err
 			}
@@ -59,7 +59,7 @@ func appTomlCmd() *cobra.Command {
 		Short: "Create or query an `~/.fxcore/config/apptoml` file",
 		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config.SetConfigTemplate(fxconfig.DefaultConfigTemplate())
+			config.SetConfigTemplate(DefaultConfigTemplate())
 			return runConfigCmd(cmd, append([]string{appFileName}, args...))
 		},
 	}
@@ -116,7 +116,7 @@ var (
 
 type appTomlConfig struct {
 	v          *viper.Viper
-	config     *fxconfig.Config
+	config     *Config
 	configName string
 }
 
@@ -173,7 +173,7 @@ func (c *configTomlConfig) save() error {
 
 func newConfig(v *viper.Viper, configName string) (cmdConfig, error) {
 	if strings.HasSuffix(configName, appFileName) {
-		var configData = fxconfig.Config{}
+		var configData = Config{}
 		if err := v.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
@@ -196,3 +196,55 @@ func output(ctx client.Context, content interface{}) error {
 	}
 	return cli.PrintOutput(ctx, mapData)
 }
+
+// BypassMinFee defines custom that will bypass minimum fee checks during CheckTx.
+type BypassMinFee struct {
+	// MsgTypes defines custom message types the operator may set that
+	// will bypass minimum fee checks during CheckTx.
+	MsgTypes []string `mapstructure:"msg-types"`
+}
+
+// DefaultBypassMinFee returns the default BypassMinFee configuration
+func DefaultBypassMinFee() BypassMinFee {
+	return BypassMinFee{
+		MsgTypes: []string{},
+	}
+}
+
+type Config struct {
+	config.Config `mapstructure:",squash"`
+
+	// BypassMinFeeMsgTypes defines custom that will bypass minimum fee checks during CheckTx.
+	BypassMinFee BypassMinFee `mapstructure:"bypass-min-fee"`
+
+	EVM     *ethermintconfig.EVMConfig     `mapstructure:"evm"`
+	JSONRPC *ethermintconfig.JSONRPCConfig `mapstructure:"json-rpc"`
+	TLS     *ethermintconfig.TLSConfig     `mapstructure:"tls"`
+}
+
+// DefaultConfig returns server's default configuration.
+func DefaultConfig() *Config {
+	return &Config{
+		Config:       *config.DefaultConfig(),
+		BypassMinFee: DefaultBypassMinFee(),
+		EVM:          ethermintconfig.DefaultEVMConfig(),
+		JSONRPC:      ethermintconfig.DefaultJSONRPCConfig(),
+		TLS:          ethermintconfig.DefaultTLSConfig(),
+	}
+}
+
+func DefaultConfigTemplate() string {
+	return config.DefaultConfigTemplate + CustomConfigTemplate + ethermintconfig.DefaultConfigTemplate
+}
+
+const CustomConfigTemplate = `
+###############################################################################
+###                        Custom Fx Configuration                        ###
+###############################################################################
+[bypass-min-fee]
+# MsgTypes defines custom message types the operator may set that will bypass minimum fee checks during CheckTx.
+# Example:
+# ["/ibc.core.channel.v1.MsgRecvPacket", "/ibc.core.channel.v1.MsgAcknowledgement", ...]
+msg-types = [{{ range .BypassMinFee.MsgTypes }}{{ printf "%q, " . }}{{end}}]
+
+`

@@ -30,9 +30,11 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
+	"github.com/tharsis/ethermint/server/config"
+	evm "github.com/tharsis/ethermint/x/evm/types"
+
 	"github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
-	"github.com/functionx/fx-core/server/config"
 	"github.com/functionx/fx-core/tests"
 	fxtypes "github.com/functionx/fx-core/types"
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
@@ -41,8 +43,6 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	"github.com/functionx/fx-core/x/erc20/keeper"
 	"github.com/functionx/fx-core/x/erc20/types"
-	evmkeeper "github.com/functionx/fx-core/x/evm/keeper"
-	evm "github.com/functionx/fx-core/x/evm/types"
 	"github.com/functionx/fx-core/x/gravity"
 	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
 )
@@ -239,8 +239,9 @@ func TestHookIBC(t *testing.T) {
 	myApp.Erc20Keeper.SetIBCTransferKeeperForTest(&IBCTransferSimulate{T: t})
 	myApp.Erc20Keeper.SetIBCChannelKeeperForTest(&IBCChannelSimulate{})
 
-	evmHooks := evmkeeper.NewMultiEvmHooks(myApp.Erc20Keeper.Hooks())
-	myApp.EvmKeeper = myApp.EvmKeeper.SetHooksForTest(evmHooks)
+	//TODO ethermint can not set hooks again
+	//evmHooks := evmkeeper.NewMultiEvmHooks(myApp.Erc20Keeper.Hooks())
+	//myApp.EvmKeeper = myApp.EvmKeeper.SetHooksForTest(evmHooks)
 
 	token := pair.GetERC20Contract()
 	ibcTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToIBCPrefix, "px/transfer/channel-0")
@@ -293,6 +294,7 @@ func sendEthTx(t *testing.T, ctx sdk.Context, myApp *app.App,
 	options := ante2.HandlerOptions{
 		AccountKeeper:   myApp.AccountKeeper,
 		BankKeeper:      myApp.BankKeeper,
+		FeeMarketKeeper: myApp.FeeMarketKeeper,
 		EvmKeeper:       myApp.EvmKeeper,
 		SignModeHandler: app.MakeEncodingConfig().TxConfig.SignModeHandler(),
 		SigGasConsumer:  ante2.DefaultSigVerificationGasConsumer,
@@ -346,7 +348,7 @@ func upgradeV2(t *testing.T, ctx sdk.Context, myApp *app.App) sdk.Context {
 	for _, contract := range fxtypes.GetInitContracts() {
 		require.True(t, len(contract.Code) > 0)
 		require.True(t, contract.Address != common.HexToAddress(fxtypes.EmptyEvmAddress))
-		err := myApp.EvmKeeper.CreateContractWithCode(ctx, contract.Address, contract.Code)
+		err := myApp.Erc20Keeper.CreateContractWithCode(ctx, contract.Address, contract.Code)
 		require.NoError(t, err)
 	}
 

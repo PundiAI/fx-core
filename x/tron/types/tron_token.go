@@ -2,7 +2,9 @@ package types
 
 import (
 	"fmt"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 
 	"github.com/fbsobreira/gotron-sdk/pkg/common"

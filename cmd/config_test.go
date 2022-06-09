@@ -8,8 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/config"
-
-	fxconfig "github.com/functionx/fx-core/server/config"
 )
 
 func Test_configTomlConfig_output(t *testing.T) {
@@ -27,7 +25,7 @@ func Test_configTomlConfig_output(t *testing.T) {
 }
 
 func Test_appTomlConfig_output(t *testing.T) {
-	c := appTomlConfig{config: fxconfig.DefaultConfig()}
+	c := appTomlConfig{config: DefaultConfig()}
 	buf := new(bytes.Buffer)
 	clientCtx := client.Context{
 		Output:       buf,

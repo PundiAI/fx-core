@@ -2,7 +2,10 @@ package v2
 
 import (
 	"fmt"
+	"sort"
 	"strings"
+
+	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 
@@ -48,6 +51,9 @@ func CreateUpgradeHandler(
 			fromVM[n] = m.ConsensusVersion()
 		}
 
+		if mm.OrderMigrations == nil {
+			mm.OrderMigrations = migrationsOrder(mm.ModuleNames())
+		}
 		cacheCtx.Logger().Info("start to run module v2 migrations...")
 		toVersion, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
@@ -93,4 +99,25 @@ func deleteMetadata(ctx sdk.Context, key *types.KVStoreKey, base ...string) {
 	for _, b := range base {
 		store.Delete(banktypes.DenomMetadataKey(b))
 	}
+}
+
+func migrationsOrder(modules []string) []string {
+	modules = module.DefaultMigrationsOrder(modules)
+	out := make([]string, 0, len(modules))
+	var hasMigrage bool
+	for _, m := range modules {
+		switch m {
+		case migratetypes.ModuleName:
+			hasMigrage = true
+		default:
+			out = append(out, m)
+		}
+	}
+
+	sort.Strings(out)
+
+	if hasMigrage {
+		out = append(out, migratetypes.ModuleName)
+	}
+	return out
 }

@@ -8,11 +8,11 @@ import (
 
 	"github.com/functionx/fx-core/app/cli"
 
-	"github.com/functionx/fx-core/server"
-
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 
 	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
+
+	"github.com/tharsis/ethermint/server"
 )
 
 func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCreator types.AppCreator, appExport types.AppExporter) {

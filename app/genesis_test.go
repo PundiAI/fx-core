@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	evmtyeps "github.com/functionx/fx-core/x/evm/types"
+	evmtyeps "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/stretchr/testify/assert"
 

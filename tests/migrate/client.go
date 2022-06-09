@@ -23,9 +23,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
+	cryptohd "github.com/tharsis/ethermint/crypto/hd"
+
 	"github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
-	cryptohd "github.com/functionx/fx-core/crypto/hd"
 	othertypes "github.com/functionx/fx-core/x/other/types"
 )
 

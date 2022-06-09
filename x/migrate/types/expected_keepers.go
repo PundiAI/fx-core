@@ -24,6 +24,7 @@ type StakingKeeper interface {
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
+	IterateAccounts(ctx sdk.Context, cb func(account authtypes.AccountI) (stop bool))
 }
 
 // BankKeeper defines the expected bank keeper methods

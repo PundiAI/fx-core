@@ -9,8 +9,9 @@ import (
 
 	"github.com/functionx/fx-core/app"
 
-	"github.com/functionx/fx-core/crypto/hd"
-	"github.com/functionx/fx-core/server/config"
+	"github.com/tharsis/ethermint/crypto/hd"
+	"github.com/tharsis/ethermint/server/config"
+
 	fxtypes "github.com/functionx/fx-core/types"
 
 	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"

@@ -8,11 +8,11 @@ import (
 
 // Hooks wrapper struct for erc20 keeper
 type Hooks struct {
-	k Keeper
+	k *Keeper
 }
 
 // Hooks Return the wrapper struct
-func (k Keeper) Hooks() Hooks {
+func (k *Keeper) Hooks() Hooks {
 	return Hooks{k}
 }
 

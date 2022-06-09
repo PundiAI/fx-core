@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"runtime/debug"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256r1"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	txsigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -15,7 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 
-	"github.com/functionx/fx-core/crypto/ethsecp256k1"
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
 )
 
 func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
@@ -30,14 +31,16 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		if ok {
 			opts := txWithExtensions.GetExtensionOptions()
 			if len(opts) > 0 {
-				typeURL := opts[0].GetTypeUrl()
-				if typeURL == "/fx.ethereum.evm.v1.ExtensionOptionsEthereumTx" {
+				switch typeURL := opts[0].GetTypeUrl(); typeURL {
+				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
+					// handle as *evmtypes.MsgEthereumTx
 					anteHandler = newEthAnteHandler(options)
-				} else {
-					//unsupported
-					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownExtensionOptions, "rejecting tx with unsupported extension option: %s", typeURL)
+				default:
+					return ctx, sdkerrors.Wrapf(
+						sdkerrors.ErrUnknownExtensionOptions,
+						"rejecting tx with unsupported extension option: %s", typeURL,
+					)
 				}
-
 				return anteHandler(ctx, tx, sim)
 			}
 		}
@@ -79,7 +82,9 @@ var _ ante.SignatureVerificationGasConsumer = DefaultSigVerificationGasConsumer
 // DefaultSigVerificationGasConsumer is the default implementation of SignatureVerificationGasConsumer. It consumes gas
 // for signature verification based upon the public key type. The cost is fetched from the given params and is matched
 // by the concrete type.
-func DefaultSigVerificationGasConsumer(meter sdk.GasMeter, sig txsigning.SignatureV2, params types.Params) error {
+func DefaultSigVerificationGasConsumer(
+	meter sdk.GasMeter, sig txsigning.SignatureV2, params types.Params,
+) error {
 	pubkey := sig.PubKey
 	switch pubkey := pubkey.(type) {
 	case *ethsecp256k1.PubKey: // support for ethereum ECDSA secp256k1 keys
@@ -94,12 +99,20 @@ func DefaultSigVerificationGasConsumer(meter sdk.GasMeter, sig txsigning.Signatu
 		meter.ConsumeGas(params.SigVerifyCostSecp256k1, "ante verify: secp256k1")
 		return nil
 
+	case *secp256r1.PubKey:
+		meter.ConsumeGas(params.SigVerifyCostSecp256r1(), "ante verify: secp256r1")
+		return nil
+
 	case multisig.PubKey:
 		multisignature, ok := sig.Data.(*txsigning.MultiSignatureData)
 		if !ok {
 			return fmt.Errorf("expected %T, got, %T", &txsigning.MultiSignatureData{}, sig.Data)
 		}
-		return ConsumeMultisignatureVerificationGas(meter, multisignature, pubkey, params, sig.Sequence)
+		err := ConsumeMultisignatureVerificationGas(meter, multisignature, pubkey, params, sig.Sequence)
+		if err != nil {
+			return err
+		}
+		return nil
 
 	default:
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "unrecognized public key type: %T", pubkey)
@@ -107,7 +120,10 @@ func DefaultSigVerificationGasConsumer(meter sdk.GasMeter, sig txsigning.Signatu
 }
 
 // ConsumeMultisignatureVerificationGas consumes gas from a GasMeter for verifying a multisig pubkey signature
-func ConsumeMultisignatureVerificationGas(meter sdk.GasMeter, sig *txsigning.MultiSignatureData, pubkey multisig.PubKey, params types.Params, accSeq uint64) error {
+func ConsumeMultisignatureVerificationGas(
+	meter sdk.GasMeter, sig *txsigning.MultiSignatureData, pubkey multisig.PubKey,
+	params types.Params, accSeq uint64,
+) error {
 
 	size := sig.BitArray.Count()
 	sigIndex := 0

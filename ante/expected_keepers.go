@@ -11,8 +11,10 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
 
-	"github.com/functionx/fx-core/x/evm/statedb"
-	evmtypes "github.com/functionx/fx-core/x/evm/types"
+	"github.com/tharsis/ethermint/x/evm/statedb"
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+
+	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 )
 
 // AccountKeeper defines the expected account keeper interface
@@ -42,12 +44,6 @@ type FeegrantKeeper interface {
 	UseGrantedFees(ctx sdk.Context, granter, grantee sdk.AccAddress, fee sdk.Coins, msgs []sdk.Msg) error
 }
 
-type FeeMarketKeeper interface {
-	GetBaseFee(ctx sdk.Context) *big.Int
-	SetBaseFee(ctx sdk.Context, baseFee *big.Int)
-	SetBlockGasUsed(ctx sdk.Context, gas uint64)
-}
-
 // EVMKeeper defines the expected keeper interface used on the Eth AnteHandler
 type EVMKeeper interface {
 	statedb.Keeper
@@ -55,12 +51,21 @@ type EVMKeeper interface {
 	ChainID() *big.Int
 	GetParams(ctx sdk.Context) evmtypes.Params
 	NewEVM(ctx sdk.Context, msg core.Message, cfg *evmtypes.EVMConfig, tracer vm.EVMLogger, stateDB vm.StateDB) *vm.EVM
-	DeductTxCostsFromUserBalance(ctx sdk.Context, msgEthTx evmtypes.MsgEthereumTx, txData evmtypes.TxData, homestead, istanbul, london bool) (sdk.Coins, error)
-	BaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
+	DeductTxCostsFromUserBalance(
+		ctx sdk.Context, msgEthTx evmtypes.MsgEthereumTx, txData evmtypes.TxData, denom string, homestead, istanbul, london bool,
+	) (sdk.Coins, error)
+	GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
 	GetBalance(ctx sdk.Context, addr common.Address) *big.Int
 	ResetTransientGasUsed(ctx sdk.Context)
+	GetTxIndexTransient(ctx sdk.Context) uint64
 }
 
 type protoTxProvider interface {
 	GetProtoTx() *tx.Tx
+}
+
+// FeeMarketKeeper defines the expected keeper interface used on the AnteHandler
+type FeeMarketKeeper interface {
+	GetParams(ctx sdk.Context) (params feemarkettypes.Params)
+	AddTransientGasWanted(ctx sdk.Context, gasWanted uint64) (uint64, error)
 }
