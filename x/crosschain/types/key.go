@@ -30,8 +30,8 @@ var (
 	// OracleAddressByExternalKey key external address -> value oracle address
 	OracleAddressByExternalKey = []byte{0x13}
 
-	// OracleAddressByOrchestratorKey key orchestrator address -> value oracle address
-	OracleAddressByOrchestratorKey = []byte{0x14}
+	// OracleAddressByBridgerKey key bridger address -> value oracle address
+	OracleAddressByBridgerKey = []byte{0x14}
 
 	// OracleSetRequestKey indexes valset requests by nonce
 	OracleSetRequestKey = []byte{0x15}
@@ -125,9 +125,9 @@ func GetOracleKey(oracle sdk.AccAddress) []byte {
 	return append(OracleKey, oracle.Bytes()...)
 }
 
-// GetOracleAddressByOrchestratorKey returns the following key format
-func GetOracleAddressByOrchestratorKey(orchestrator sdk.AccAddress) []byte {
-	return append(OracleAddressByOrchestratorKey, orchestrator.Bytes()...)
+// GetOracleAddressByBridgerKey returns the following key format
+func GetOracleAddressByBridgerKey(orchestrator sdk.AccAddress) []byte {
+	return append(OracleAddressByBridgerKey, orchestrator.Bytes()...)
 }
 
 // GetOracleAddressByExternalKey returns the following key format

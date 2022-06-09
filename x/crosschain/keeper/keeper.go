@@ -112,24 +112,23 @@ func (k Keeper) GetChainOracles(ctx sdk.Context) (chainOracle types.ChainOracle,
 //   ADDRESS ORCHESTRATOR  //
 /////////////////////////////
 
-// SetOracleByOrchestrator sets the Orchestrator key for a given oracle
-func (k Keeper) SetOracleByOrchestrator(ctx sdk.Context, oracleAddr sdk.AccAddress, orchestratorAddr sdk.AccAddress) {
+// SetOracleByBridger sets the bridger key for a given oracle
+func (k Keeper) SetOracleByBridger(ctx sdk.Context, oracleAddr sdk.AccAddress, bridgerAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	// save  oracle -> orchestrator
-	store.Set(types.GetOracleAddressByOrchestratorKey(orchestratorAddr), oracleAddr.Bytes())
+	store.Set(types.GetOracleAddressByBridgerKey(bridgerAddr), oracleAddr.Bytes())
 }
 
-// GetOracleAddressByOrchestratorKey returns the oracle key associated with an orchestrator key
-func (k Keeper) GetOracleAddressByOrchestratorKey(ctx sdk.Context, orchestratorAddr sdk.AccAddress) (sdk.AccAddress, bool) {
+// GetOracleAddressByBridgerKey returns the oracle key associated with an bridger key
+func (k Keeper) GetOracleAddressByBridgerKey(ctx sdk.Context, bridgerAddr sdk.AccAddress) (sdk.AccAddress, bool) {
 	store := ctx.KVStore(k.storeKey)
-	oracle := store.Get(types.GetOracleAddressByOrchestratorKey(orchestratorAddr))
+	oracle := store.Get(types.GetOracleAddressByBridgerKey(bridgerAddr))
 	return oracle, oracle != nil
 }
 
-// DelOracleByOrchestrator delete the Orchestrator key for a given oracle
-func (k Keeper) DelOracleByOrchestrator(ctx sdk.Context, orchestratorAddr sdk.AccAddress) {
+// DelOracleByBridger delete the bridger key for a given oracle
+func (k Keeper) DelOracleByBridger(ctx sdk.Context, bridgerAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetOracleAddressByOrchestratorKey(orchestratorAddr)
+	key := types.GetOracleAddressByBridgerKey(bridgerAddr)
 	if !store.Has(key) {
 		return
 	}

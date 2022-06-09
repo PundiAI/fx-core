@@ -38,7 +38,7 @@ func GetQueryCmd() *cobra.Command {
 		CmdGetOracles(),
 		CmdGetChainOracles(),
 		CmdGetOracleByAddr(),
-		CmdGetOracleByOrchestrator(),
+		CmdGetOracleByBridgerAddr(),
 		CmdGetOracleByExternalAddr(),
 
 		// query oracle set
@@ -185,10 +185,10 @@ func CmdGetOracleByAddr() *cobra.Command {
 	return cmd
 }
 
-func CmdGetOracleByOrchestrator() *cobra.Command {
+func CmdGetOracleByBridgerAddr() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "oracle-by-orchestrator [chain-name] [orchestrator]",
-		Short: "Query Oracle for a given orchestrator",
+		Use:   "oracle-by-bridger [chain-name] [bridger-address]",
+		Short: "Query Oracle for a given bridger address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -199,11 +199,11 @@ func CmdGetOracleByOrchestrator() *cobra.Command {
 				return err
 			}
 
-			req := &types.QueryOracleByOrchestratorRequest{
+			req := &types.QueryOracleByBridgerAddrRequest{
 				BridgerAddress: bridgerAddr.String(),
 				ChainName:      args[0],
 			}
-			res, err := queryClient.GetOracleByOrchestrator(cmd.Context(), req)
+			res, err := queryClient.GetOracleByBridgerAddr(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
@@ -369,7 +369,7 @@ func CmdGetPendingOracleSetRequest() *cobra.Command {
 
 func CmdGetOracleSetConfirm() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "oracle-set-confirm [chain-name] [nonce] [orchestrator]",
+		Use:   "oracle-set-confirm [chain-name] [nonce] [bridger-address]",
 		Short: "Query oracle-set confirmation with a particular nonce from a particular oracle orchestrator",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -430,8 +430,8 @@ func CmdGetOracleSetConfirms() *cobra.Command {
 
 func CmdGetPendingOutgoingTXBatchRequest() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pending-batch-request [chain-name] [orchestrator]",
-		Short: "Query the latest outgoing TX batch request which has not been signed by a particular oracle orchestrator",
+		Use:   "pending-batch-request [chain-name] [bridger-address]",
+		Short: "Query the latest outgoing TX batch request which has not been signed by a particular oracle bridger address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -457,8 +457,8 @@ func CmdGetPendingOutgoingTXBatchRequest() *cobra.Command {
 
 func CmdBatchConfirm() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "batch-confirm [chain-name] [token-contract] [nonce] [orchestrator]",
-		Short: "Query outgoing tx batches confirm by oracle orchestrator",
+		Use:   "batch-confirm [chain-name] [token-contract] [nonce] [bridger-address]",
+		Short: "Query outgoing tx batches confirm by oracle bridger address",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -756,8 +756,8 @@ func CmdGetBridgeTokens() *cobra.Command {
 
 func CmdGetOracleEventNonce() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "event-nonce [chain-name] [orchestrator]",
-		Short: "Query last event nonce by oracle orchestratorAddress",
+		Use:   "event-nonce [chain-name] [bridger-address]",
+		Short: "Query last event nonce by oracle bridger address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -784,8 +784,8 @@ func CmdGetOracleEventNonce() *cobra.Command {
 
 func CmdGetOracleEventBlockHeight() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "event-block-height [chain-name] [orchestrator]",
-		Short: "Query last event block height by oracle orchestrator",
+		Use:   "event-block-height [chain-name] [bridger-address]",
+		Short: "Query last event block height by oracle bridger address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)

@@ -51,15 +51,15 @@ func TestSetOracle(t *testing.T) {
 	orchestratorAddr1, orchestratorAddr2 := orchestratorAddressList[0], orchestratorAddressList[1]
 	var dbOracleAddr1 sdk.AccAddress
 	var found bool
-	dbOracleAddr1, found = myApp.BscKeeper.GetOracleAddressByOrchestratorKey(ctx, orchestratorAddr1)
+	dbOracleAddr1, found = myApp.BscKeeper.GetOracleAddressByBridgerKey(ctx, orchestratorAddr1)
 	require.False(t, found)
 	require.Empty(t, dbOracleAddr1)
 
 	// 1. set oracle -> orchestrator  and  orchestrator -> oracle
-	myApp.BscKeeper.SetOracleByOrchestrator(ctx, oracleAddr1, orchestratorAddr1)
+	myApp.BscKeeper.SetOracleByBridger(ctx, oracleAddr1, orchestratorAddr1)
 
 	// 2. find oracle by orchestrator
-	dbOracleAddr1, found = myApp.BscKeeper.GetOracleAddressByOrchestratorKey(ctx, orchestratorAddr1)
+	dbOracleAddr1, found = myApp.BscKeeper.GetOracleAddressByBridgerKey(ctx, orchestratorAddr1)
 	require.True(t, found)
 	require.EqualValues(t, oracleAddr1, dbOracleAddr1)
 
@@ -74,10 +74,10 @@ func TestSetOracle(t *testing.T) {
 	//require.Nil(t, dbOrchestratorAddr2)
 
 	// 3.1 set oracle2 -> orchestrator2
-	myApp.BscKeeper.SetOracleByOrchestrator(ctx, oracleAddr2, orchestratorAddr2)
+	myApp.BscKeeper.SetOracleByBridger(ctx, oracleAddr2, orchestratorAddr2)
 
 	// 3.2 find oracle2 by orchestrator2
-	dbOrchestratorAddr2, found := myApp.BscKeeper.GetOracleAddressByOrchestratorKey(ctx, oracleAddr2)
+	dbOrchestratorAddr2, found := myApp.BscKeeper.GetOracleAddressByBridgerKey(ctx, oracleAddr2)
 	require.True(t, found)
 	require.EqualValues(t, orchestratorAddr2, dbOrchestratorAddr2)
 }
@@ -140,7 +140,7 @@ func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
 		}
 		// save oracle
 		keeper.SetOracle(ctx, oracle)
-		keeper.SetOracleByOrchestrator(ctx, oracle.GetOracle(), testCase.BridgerAddress)
+		keeper.SetOracleByBridger(ctx, oracle.GetOracle(), testCase.BridgerAddress)
 
 		pendingOracleSetRequestByAddr, err := keeper.LastPendingOracleSetRequestByAddr(wrapSDKContext, &types.QueryLastPendingOracleSetRequestByAddrRequest{
 			BridgerAddress: testCase.BridgerAddress.String(),
@@ -214,7 +214,7 @@ func TestLastPendingBatchRequestByAddr(t *testing.T) {
 		}
 		// save oracle
 		keeper.SetOracle(ctx, oracle)
-		keeper.SetOracleByOrchestrator(ctx, oracle.GetOracle(), testCase.BridgerAddress)
+		keeper.SetOracleByBridger(ctx, oracle.GetOracle(), testCase.BridgerAddress)
 
 		pendingLastPendingBatchRequestByAddr, err := keeper.LastPendingBatchRequestByAddr(wrapSDKContext, &types.QueryLastPendingBatchRequestByAddrRequest{
 			BridgerAddress: testCase.BridgerAddress.String(),

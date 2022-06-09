@@ -29,7 +29,7 @@ A transaction batch is a set of Ethereum transactions to be sent from the Gravit
 
 ### Gravity Batch Pool
 
-Is a transaction pool like structure that exists in the chains to store, separate from the `Gravity Tx Pool` it stores transactions that have been placed in batches that are in the process of being signed or being submitted by the `Orchestrator Set`
+Is a transaction pool like structure that exists in the chains to store, separate from the `Gravity Tx Pool` it stores transactions that have been placed in batches that are in the process of being signed or being submitted by the `Bridger Set`
 
 ### Observed 
 
@@ -41,7 +41,7 @@ This is a term for the difference between the validator set currently in the Gra
 
 ### Claim
 
-An Ethereum event signed and submitted to cosmos by a single `Orchestrator` instance.
+An Ethereum event signed and submitted to cosmos by a single `Bridger` instance.
 
 ### Attestation
 

@@ -87,7 +87,7 @@ func (s EthereumMsgServer) HandleUpdateChainOraclesProposal(ctx sdk.Context, pro
 		if err != nil {
 			panic(err)
 		}
-		s.DelOracleByOrchestrator(ctx, bridgerAddr)
+		s.DelOracleByBridger(ctx, bridgerAddr)
 		oracleAddr := deleteOracle.GetOracle()
 		s.DelOracle(ctx, oracleAddr)
 

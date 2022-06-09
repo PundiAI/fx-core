@@ -53,10 +53,10 @@ func GetTxCmd() *cobra.Command {
 		CmdInitCrossChainParamsProposal(),
 		CmdUpdateChainOraclesProposal(),
 
-		// set orchestrator address
-		CmdSetOrchestratorAddress(),
+		// set bridger address
+		CmdCreateOracleBridger(),
 		// add oracle stake
-		CmdAddOracleStake(),
+		CmdAddOracleDelegate(),
 		// send to external chain
 		CmdSendToExternal(),
 		CmdCancelSendToExternal(),
@@ -73,8 +73,8 @@ func GetTxCmd() *cobra.Command {
 func CmdInitCrossChainParamsProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "init-crosschain-params [chain-name] [initial proposal stake]",
-		Short:   "init chian params",
-		Example: "fxcored tx crosschain init-crosschian-params bsc 100000000000000000000FX --title=\"Init Bsc chain params\", --desc=\"about bsc chain description\" --gravity-id=\"bsc\" --oracles <oracles>",
+		Short:   "init chain params",
+		Example: "fxcored tx crosschain init-crosschain-params bsc 100000000000000000000FX --title=\"Init Bsc chain params\", --desc=\"about bsc chain description\" --gravity-id=\"bsc\" --oracles <oracles>",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
@@ -143,11 +143,11 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 				return err
 			}
 
-			oracleChanagePercentStr, err := cmd.Flags().GetString(flagInitParamsOracleChangePercent)
+			oracleChangePercentStr, err := cmd.Flags().GetString(flagInitParamsOracleChangePercent)
 			if err != nil {
 				return err
 			}
-			oracleChanagePercent, err := sdk.NewDecFromStr(oracleChanagePercentStr)
+			oracleChangePercent, err := sdk.NewDecFromStr(oracleChangePercentStr)
 			if err != nil {
 				return err
 			}
@@ -161,7 +161,7 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 					AverageBlockTime:                  averageBlockTime,
 					AverageExternalBlockTime:          averageExternalBlockTime,
 					SlashFraction:                     slashFraction,
-					OracleSetUpdatePowerChangePercent: oracleChanagePercent,
+					OracleSetUpdatePowerChangePercent: oracleChangePercent,
 					IbcTransferTimeoutHeight:          20000,
 					Oracles:                           oracles,
 					DelegateThreshold:                 delegateThreshold,
@@ -194,7 +194,7 @@ func CmdInitCrossChainParamsProposal() *cobra.Command {
 func CmdUpdateChainOraclesProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-chain-oracles [chain-name] [initial proposal stake]",
-		Short:   "init chian params",
+		Short:   "init chain params",
 		Example: "fxcored tx crosschain update-chain-oracles bsc 100000000000000000000FX --title=\"Update Bsc chain oracles\", --desc=\"oracles description\" --oracles <oracles>",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -248,9 +248,9 @@ func CmdUpdateChainOraclesProposal() *cobra.Command {
 	return cmd
 }
 
-func CmdSetOrchestratorAddress() *cobra.Command {
+func CmdCreateOracleBridger() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set-orchestrator-address [chain-name] [orchestrator-address] [external-address] [stake-amount]",
+		Use:   "create-oracle-bridger [chain-name] [bridger-address] [external-address] [delegate-amount]",
 		Short: "Allows oracle to delegate their voting responsibilities to a given key.",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -282,10 +282,10 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 	return cmd
 }
 
-func CmdAddOracleStake() *cobra.Command {
+func CmdAddOracleDelegate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-oracle-stake [chain-name] [stake-amount]",
-		Short: "Allows oracle add stake.",
+		Use:   "add-oracle-delegate [chain-name] [delegate-amount]",
+		Short: "Allows oracle add delegate.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
@@ -494,7 +494,13 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			}
 			if batchConfirmResp.GetConfirm() != nil {
 				confirm := batchConfirmResp.GetConfirm()
-				return clientCtx.PrintString(fmt.Sprintf("already confirm requestBatch!!!\n\tnonce:[%v]\n\ttokenContract:[%v]\n\torchestrator:[%v]\n\texternalAddress:[%v]\n\tsignature:[%v]\n",
+				return clientCtx.PrintString(fmt.Sprintf(`already confirm requestBatch:
+	nonce:[%v]
+	tokenContract:[%v]
+	bridgerAddress:[%v]
+	externalAddress:[%v]
+	signature:[%v]
+`,
 					confirm.Nonce, confirm.TokenContract, confirm.BridgerAddress, confirm.ExternalAddress, confirm.Signature))
 			}
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{ChainName: args[0]})
@@ -562,7 +568,12 @@ func CmdOracleSetConfirm() *cobra.Command {
 			}
 			if oracleSetConfirmResp.GetConfirm() != nil {
 				confirm := oracleSetConfirmResp.GetConfirm()
-				return fmt.Errorf("already confirm oracleSet!!!\n\tnonce:[%v]\n\torchestrator:[%v]\n\texternalAddress:[%v]\n\tsignature:[%v]\n", confirm.Nonce, confirm.BridgerAddress, confirm.ExternalAddress, confirm.Signature)
+				return fmt.Errorf(`already confirm oracleSet:
+	nonce:[%v]
+	bridgerAddress:[%v]
+	externalAddress:[%v]
+	signature:[%v]
+`, confirm.Nonce, confirm.BridgerAddress, confirm.ExternalAddress, confirm.Signature)
 			}
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{
 				ChainName: args[0],

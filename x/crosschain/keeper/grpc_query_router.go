@@ -166,11 +166,11 @@ func (k RouterKeeper) GetOracleByAddr(c context.Context, req *types.QueryOracleB
 	}
 }
 
-func (k RouterKeeper) GetOracleByOrchestrator(c context.Context, req *types.QueryOracleByOrchestratorRequest) (*types.QueryOracleResponse, error) {
+func (k RouterKeeper) GetOracleByBridgerAddr(c context.Context, req *types.QueryOracleByBridgerAddrRequest) (*types.QueryOracleResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
 	} else {
-		return queryServer.GetOracleByOrchestrator(c, req)
+		return queryServer.GetOracleByBridgerAddr(c, req)
 	}
 }
 

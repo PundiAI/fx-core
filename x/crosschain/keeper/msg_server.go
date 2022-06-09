@@ -55,7 +55,7 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 	}
 
 	// check orchestrator address is bound to oracle
-	if _, found := s.GetOracleAddressByOrchestratorKey(ctx, bridgerAddr); found {
+	if _, found := s.GetOracleAddressByBridgerKey(ctx, bridgerAddr); found {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "orchestrator address is bound to oracle")
 	}
 	// check external address is bound to oracle
@@ -91,7 +91,7 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 	// save oracle
 	s.SetOracle(ctx, oracle)
 	// set the orchestrator address
-	s.SetOracleByOrchestrator(ctx, oracleAddr, bridgerAddr)
+	s.SetOracleByBridger(ctx, oracleAddr, bridgerAddr)
 	// set the ethereum address
 	s.SetExternalAddressForOracle(ctx, oracleAddr, msg.ExternalAddress)
 	// save total stake amount
@@ -255,7 +255,7 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 	if err != nil {
 		return nil, err
 	}
-	_, found := s.GetOracleAddressByOrchestratorKey(ctx, sender)
+	_, found := s.GetOracleAddressByBridgerKey(ctx, sender)
 	if !found {
 		if !s.IsOracle(ctx, msg.Sender) {
 			return nil, sdkerrors.Wrap(types.ErrEmpty, "oracle or orchestrator")
@@ -423,7 +423,7 @@ func checkOrchestratorIsOracle(ctx sdk.Context, keeper Keeper, orchestrator stri
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "orchestrator")
 	}
-	oracleAddr, found := keeper.GetOracleAddressByOrchestratorKey(ctx, orcAddr)
+	oracleAddr, found := keeper.GetOracleAddressByBridgerKey(ctx, orcAddr)
 	if !found {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "oracle")
 	}

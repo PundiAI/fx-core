@@ -12,7 +12,7 @@ import (
 )
 
 func (k Keeper) Attest(ctx sdk.Context, claim types.ExternalClaim, anyClaim *codectypes.Any) (*types.Attestation, error) {
-	oracle, found := k.GetOracleAddressByOrchestratorKey(ctx, claim.GetClaimer())
+	oracle, found := k.GetOracleAddressByBridgerKey(ctx, claim.GetClaimer())
 	if !found {
 		panic("Could not find Oracle for delegate key, should be checked by now")
 	}

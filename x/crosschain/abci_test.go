@@ -434,7 +434,7 @@ func TestOracleDelete(t *testing.T) {
 	orchestrator := orchestratorAddressList[0]
 	externalAddress := crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex()
 
-	oracleAddr, found := keeper.GetOracleAddressByOrchestratorKey(ctx, orchestrator)
+	oracleAddr, found := keeper.GetOracleAddressByBridgerKey(ctx, orchestrator)
 	require.True(t, found)
 	require.EqualValues(t, oracle.String(), oracleAddr.String())
 
@@ -469,7 +469,7 @@ func TestOracleDelete(t *testing.T) {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
 
-	oracleAddr, found = keeper.GetOracleAddressByOrchestratorKey(ctx, orchestrator)
+	oracleAddr, found = keeper.GetOracleAddressByBridgerKey(ctx, orchestrator)
 	require.False(t, found)
 	require.Nil(t, oracleAddr)
 

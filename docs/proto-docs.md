@@ -86,8 +86,8 @@
     - [QueryLastPendingOracleSetRequestByAddrRequest](#fx.gravity.crosschain.v1.QueryLastPendingOracleSetRequestByAddrRequest)
     - [QueryLastPendingOracleSetRequestByAddrResponse](#fx.gravity.crosschain.v1.QueryLastPendingOracleSetRequestByAddrResponse)
     - [QueryOracleByAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByAddrRequest)
+    - [QueryOracleByBridgerAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByBridgerAddrRequest)
     - [QueryOracleByExternalAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByExternalAddrRequest)
-    - [QueryOracleByOrchestratorRequest](#fx.gravity.crosschain.v1.QueryOracleByOrchestratorRequest)
     - [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse)
     - [QueryOracleSetConfirmRequest](#fx.gravity.crosschain.v1.QueryOracleSetConfirmRequest)
     - [QueryOracleSetConfirmResponse](#fx.gravity.crosschain.v1.QueryOracleSetConfirmResponse)
@@ -930,6 +930,11 @@ feeReceive:
 
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `batch_nonce` | [uint64](#uint64) |  |  |
+
+
 
 
 
@@ -999,6 +1004,11 @@ operations on the bridge contract was executed.
 
 ### MsgSendToExternalResponse
 
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `outgoing_tx_id` | [uint64](#uint64) |  |  |
 
 
 
@@ -1151,10 +1161,10 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `nonce` | [uint64](#uint64) |  |  |
+| `chain_name` | [string](#string) |  |  |
 | `token_contract` | [string](#string) |  |  |
 | `bridger_address` | [string](#string) |  |  |
-| `chain_name` | [string](#string) |  |  |
+| `nonce` | [uint64](#uint64) |  |  |
 
 
 
@@ -1184,9 +1194,9 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `nonce` | [uint64](#uint64) |  |  |
-| `token_contract` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `token_contract` | [string](#string) |  |  |
+| `nonce` | [uint64](#uint64) |  |  |
 
 
 
@@ -1247,9 +1257,9 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `nonce` | [uint64](#uint64) |  |  |
-| `token_contract` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `token_contract` | [string](#string) |  |  |
+| `nonce` | [uint64](#uint64) |  |  |
 
 
 
@@ -1339,8 +1349,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `denom` | [string](#string) |  |  |
 
 
 
@@ -1371,8 +1381,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `bridger_address` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
 
 
 
@@ -1402,8 +1412,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `bridger_address` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
 
 
 
@@ -1494,8 +1504,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `bridger_address` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
 
 
 
@@ -1525,8 +1535,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `bridger_address` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
 
 
 
@@ -1556,8 +1566,24 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `oracle_address` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `oracle_address` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.QueryOracleByBridgerAddrRequest"></a>
+
+### QueryOracleByBridgerAddrRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_name` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
 
 
 
@@ -1572,24 +1598,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| `chain_name` | [string](#string) |  |  |
 | `external_address` | [string](#string) |  |  |
-| `chain_name` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="fx.gravity.crosschain.v1.QueryOracleByOrchestratorRequest"></a>
-
-### QueryOracleByOrchestratorRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `bridger_address` | [string](#string) |  |  |
-| `chain_name` | [string](#string) |  |  |
 
 
 
@@ -1619,9 +1629,9 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `nonce` | [uint64](#uint64) |  |  |
-| `bridger_address` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
+| `nonce` | [uint64](#uint64) |  |  |
 
 
 
@@ -1651,8 +1661,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `nonce` | [uint64](#uint64) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `nonce` | [uint64](#uint64) |  |  |
 
 
 
@@ -1682,8 +1692,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `nonce` | [uint64](#uint64) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `nonce` | [uint64](#uint64) |  |  |
 
 
 
@@ -1803,8 +1813,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `sender_address` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `sender_address` | [string](#string) |  |  |
 
 
 
@@ -1865,8 +1875,8 @@ GenesisState struct
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `token` | [string](#string) |  |  |
 | `chain_name` | [string](#string) |  |  |
+| `token` | [string](#string) |  |  |
 
 
 
@@ -1922,7 +1932,7 @@ Query defines the gRPC querier service
 | `DenomToToken` | [QueryDenomToTokenRequest](#fx.gravity.crosschain.v1.QueryDenomToTokenRequest) | [QueryDenomToTokenResponse](#fx.gravity.crosschain.v1.QueryDenomToTokenResponse) |  | GET|/crosschain/v1beta/token|
 | `GetOracleByAddr` | [QueryOracleByAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_addr|
 | `GetOracleByExternalAddr` | [QueryOracleByExternalAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByExternalAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_external_addr|
-| `GetOracleByOrchestrator` | [QueryOracleByOrchestratorRequest](#fx.gravity.crosschain.v1.QueryOracleByOrchestratorRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_orchestrator|
+| `GetOracleByBridgerAddr` | [QueryOracleByBridgerAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByBridgerAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_bridger_addr|
 | `GetPendingSendToExternal` | [QueryPendingSendToExternalRequest](#fx.gravity.crosschain.v1.QueryPendingSendToExternalRequest) | [QueryPendingSendToExternalResponse](#fx.gravity.crosschain.v1.QueryPendingSendToExternalResponse) |  | GET|/crosschain/v1beta/pending_send_to_external|
 | `Oracles` | [QueryOraclesRequest](#fx.gravity.crosschain.v1.QueryOraclesRequest) | [QueryOraclesResponse](#fx.gravity.crosschain.v1.QueryOraclesResponse) | Validators queries all oracle that match the given status. | GET|/crosschain/v1beta1/oracles|
 | `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/crosschain/v1beta1/projected_batch_timeout|
