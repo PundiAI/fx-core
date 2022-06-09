@@ -1,0 +1,148 @@
+package keeper
+
+import (
+	"context"
+	"fmt"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/functionx/fx-core/x/crosschain/types"
+)
+
+type msgServer struct {
+	routerKeeper RouterKeeper
+}
+
+// NewMsgServerRouterImpl returns an implementation of the crosschain router MsgServer interface
+// for the provided Keeper.
+func NewMsgServerRouterImpl(routerKeeper RouterKeeper) types.MsgServer {
+	return &msgServer{routerKeeper: routerKeeper}
+}
+
+var _ types.MsgServer = msgServer{}
+
+func (k msgServer) CreateOracleBridger(ctx context.Context, msg *types.MsgCreateOracleBridger) (*types.MsgCreateOracleBridgerResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.CreateOracleBridger(ctx, msg)
+	}
+}
+
+func (k msgServer) AddOracleDelegate(ctx context.Context, msg *types.MsgAddOracleDelegate) (*types.MsgAddOracleDelegateResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.AddOracleDelegate(ctx, msg)
+	}
+}
+
+func (k msgServer) EditOracle(ctx context.Context, msg *types.MsgEditOracle) (*types.MsgEditOracleResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.EditOracle(ctx, msg)
+	}
+}
+
+func (k msgServer) WithdrawReward(ctx context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.WithdrawReward(ctx, msg)
+	}
+}
+
+func (k msgServer) OracleSetConfirm(ctx context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.OracleSetConfirm(ctx, msg)
+	}
+}
+
+func (k msgServer) OracleSetUpdateClaim(ctx context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.OracleSetUpdateClaim(ctx, msg)
+	}
+}
+
+func (k msgServer) BridgeTokenClaim(ctx context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BridgeTokenClaim(ctx, msg)
+	}
+}
+
+func (k msgServer) SendToFxClaim(ctx context.Context, msg *types.MsgSendToFxClaim) (*types.MsgSendToFxClaimResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.SendToFxClaim(ctx, msg)
+	}
+}
+
+func (k msgServer) SendToExternal(ctx context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.SendToExternal(ctx, msg)
+	}
+}
+
+func (k msgServer) CancelSendToExternal(ctx context.Context, msg *types.MsgCancelSendToExternal) (*types.MsgCancelSendToExternalResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.CancelSendToExternal(ctx, msg)
+	}
+}
+
+func (k msgServer) SendToExternalClaim(ctx context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.SendToExternalClaim(ctx, msg)
+	}
+}
+
+func (k msgServer) RequestBatch(ctx context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.RequestBatch(ctx, msg)
+	}
+}
+
+func (k msgServer) ConfirmBatch(ctx context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.ConfirmBatch(ctx, msg)
+	}
+}
+
+//func (k msgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p *types.InitCrossChainParamsProposal) error {
+//	if queryServer, err := k.getMsgServerByChainName(p.ChainName); err != nil {
+//		return err
+//	} else {
+//		return queryServer.HandleInitCrossChainParamsProposal(ctx, p)
+//	}
+//}
+//
+//func (k msgServer) HandleUpdateChainOraclesProposal(ctx sdk.Context, p *types.UpdateChainOraclesProposal) error {
+//	if queryServer, err := k.getMsgServerByChainName(p.ChainName); err != nil {
+//		return err
+//	} else {
+//		return queryServer.HandleUpdateChainOraclesProposal(ctx, p)
+//	}
+//}
+
+func (k msgServer) getMsgServerByChainName(chainName string) (ProposalMsgServer, error) {
+	msgServerRouter := k.routerKeeper.Router()
+	if !msgServerRouter.HasRoute(chainName) {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", chainName))
+	}
+	return msgServerRouter.GetRoute(chainName).MsgServer, nil
+}
