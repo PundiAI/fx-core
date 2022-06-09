@@ -133,10 +133,10 @@ func InitMsgValidatorBasicRouter() {
 
 func RegisterValidatorBasic(chainName string, validate MsgValidateBasic) {
 	if err := ValidateModuleName(chainName); err != nil {
-		panic(sdkerrors.Wrap(ErrInvalidChainName, chainName))
+		panic(sdkerrors.Wrap(ErrInvalid, "chain name"))
 	}
 	if _, ok := msgValidatorBasicRouter[chainName]; ok {
-		panic(fmt.Sprintf("duplicate registry msg validateBasic! chainName:%s", chainName))
+		panic(fmt.Sprintf("duplicate registry msg validateBasic! chainName: %s", chainName))
 	}
 	msgValidatorBasicRouter[chainName] = validate
 }
@@ -153,7 +153,7 @@ func (m MsgCreateOracleBridger) Type() string {
 
 func (m MsgCreateOracleBridger) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -186,7 +186,7 @@ func (m *MsgAddOracleDelegate) Type() string {
 
 func (m MsgAddOracleDelegate) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -219,7 +219,7 @@ func (m MsgEditOracle) Type() string {
 
 func (m MsgEditOracle) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -252,7 +252,7 @@ func (m MsgWithdrawReward) Type() string {
 
 func (m MsgWithdrawReward) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -288,7 +288,7 @@ func (m MsgOracleSetConfirm) Type() string {
 // ValidateBasic performs stateless checks
 func (m MsgOracleSetConfirm) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -327,7 +327,7 @@ func (m MsgSendToExternal) Type() string {
 // Checks if the Eth address is valid
 func (m MsgSendToExternal) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -365,7 +365,7 @@ func (m MsgRequestBatch) Type() string {
 // ValidateBasic performs stateless checks
 func (m MsgRequestBatch) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -399,7 +399,7 @@ func (m MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
 // ValidateBasic performs stateless checks
 func (m MsgConfirmBatch) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -437,7 +437,7 @@ func (m MsgCancelSendToExternal) Type() string {
 // ValidateBasic performs stateless checks
 func (m MsgCancelSendToExternal) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -499,7 +499,7 @@ func (m MsgSendToFxClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m MsgSendToFxClaim) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -560,7 +560,7 @@ func (m MsgSendToExternalClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m MsgSendToExternalClaim) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -623,7 +623,7 @@ func (m MsgBridgeTokenClaim) Type() string {
 
 func (m MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))
@@ -675,7 +675,7 @@ func (m MsgOracleSetUpdatedClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m MsgOracleSetUpdatedClaim) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", m.ChainName))

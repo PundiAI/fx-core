@@ -37,7 +37,7 @@ func (s EthereumMsgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p
 	s.SetLastProposalBlockHeight(ctx, uint64(ctx.BlockHeight()))
 
 	// init total stake
-	s.SetTotalStake(ctx, sdk.NewCoin(proposal.Params.DelegateThreshold.Denom, sdk.ZeroInt()))
+	s.SetTotalDelegate(ctx, sdk.NewCoin(proposal.Params.DelegateThreshold.Denom, sdk.ZeroInt()))
 	return nil
 }
 

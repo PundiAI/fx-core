@@ -29,34 +29,34 @@ func NewMsgServerImpl(keeper Keeper) ProposalMsgServer {
 }
 
 func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.MsgCreateOracleBridger) (*types.MsgCreateOracleBridgerResponse, error) {
-	var err error
-	var oracleAddr, bridgerAddr sdk.AccAddress
-	if oracleAddr, err = sdk.AccAddressFromBech32(msg.OracleAddress); err != nil {
-		return nil, sdkerrors.Wrap(types.ErrOracleAddress, msg.OracleAddress)
+	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
 	}
-	if bridgerAddr, err = sdk.AccAddressFromBech32(msg.BridgerAddress); err != nil {
-		return nil, sdkerrors.Wrap(types.ErrBridgerAddress, msg.BridgerAddress)
+	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address")
 	}
 	valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if !s.IsOracle(ctx, msg.OracleAddress) {
-		return nil, types.ErrNotOracle
+		return nil, types.ErrNoFoundOracle
 	}
-	// check oracle has set orchestrator address
+	// check oracle has set bridger address
 	if _, found := s.GetOracle(ctx, oracleAddr); found {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle existed orchestrator address")
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle existed bridger address")
 	}
 	validator, found := s.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
 
-	// check orchestrator address is bound to oracle
+	// check bridger address is bound to oracle
 	if _, found := s.GetOracleAddressByBridgerKey(ctx, bridgerAddr); found {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "orchestrator address is bound to oracle")
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
 	}
 	// check external address is bound to oracle
 	if _, found := s.GetOracleByExternalAddress(ctx, msg.ExternalAddress); found {
@@ -65,13 +65,13 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 
 	threshold := s.GetOracleStakeThreshold(ctx)
 	if threshold.Denom != msg.DelegateAmount.Denom {
-		return nil, sdkerrors.Wrapf(types.ErrBadStakeDenom, "got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
+		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom, got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
 	}
 	if msg.DelegateAmount.IsLT(threshold) {
-		return nil, types.ErrStakeAmountBelowMinimum
+		return nil, types.ErrDelegateAmountBelowMinimum
 	}
 	if msg.DelegateAmount.Amount.GT(threshold.Amount.Mul(sdk.NewInt(depositMultiple))) {
-		return nil, types.ErrStakeAmountBelowMaximum
+		return nil, types.ErrDelegateAmountBelowMaximum
 	}
 
 	newShares, err := s.stakingKeeper.Delegate(ctx, oracleAddr, msg.DelegateAmount.Amount, stakingtypes.Unbonded, validator, true)
@@ -90,13 +90,13 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 	}
 	// save oracle
 	s.SetOracle(ctx, oracle)
-	// set the orchestrator address
+	// set the bridger address
 	s.SetOracleByBridger(ctx, oracleAddr, bridgerAddr)
 	// set the ethereum address
 	s.SetExternalAddressForOracle(ctx, oracleAddr, msg.ExternalAddress)
 	// save total stake amount
-	totalStake := s.GetTotalStake(ctx)
-	s.SetTotalStake(ctx, totalStake.Add(msg.DelegateAmount))
+	totalStake := s.GetTotalDelegate(ctx)
+	s.SetTotalDelegate(ctx, totalStake.Add(msg.DelegateAmount))
 
 	s.CommonSetOracleTotalPower(ctx)
 
@@ -123,17 +123,13 @@ func (s EthereumMsgServer) AddOracleDelegate(c context.Context, msg *types.MsgAd
 		return nil, err
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	// ensure that the oracle exists
-	if !s.IsOracle(ctx, oracleAddr.String()) {
-		return nil, types.ErrNotOracle
-	}
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, types.ErrNoOracleFound
+		return nil, types.ErrNoFoundOracle
 	}
 	valAddr, err := sdk.ValAddressFromBech32(oracle.DelegateValidator)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
 	}
 	validator, found := s.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
@@ -143,32 +139,32 @@ func (s EthereumMsgServer) AddOracleDelegate(c context.Context, msg *types.MsgAd
 	threshold := s.GetOracleStakeThreshold(ctx)
 	// check stake denom
 	if threshold.Denom != msg.Amount.Denom {
-		return nil, sdkerrors.Wrapf(types.ErrBadStakeDenom, "got %s, expected %s", msg.Amount.Denom, threshold.Denom)
+		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom, got %s, expected %s", msg.Amount.Denom, threshold.Denom)
 	}
-	// check oracle total stakeAmount grate then minimum stakeAmount amount
-	stakeAmount := oracle.DelegateAmount.Add(msg.Amount)
-	if stakeAmount.Amount.Sub(threshold.Amount).IsNegative() {
-		return nil, types.ErrStakeAmountBelowMinimum
+	// check oracle total delegateAmount grate then minimum delegateAmount amount
+	delegateAmount := oracle.DelegateAmount.Add(msg.Amount)
+	if delegateAmount.Amount.Sub(threshold.Amount).IsNegative() {
+		return nil, types.ErrDelegateAmountBelowMinimum
 	}
-	if stakeAmount.Amount.GT(threshold.Amount.Mul(sdk.NewInt(depositMultiple))) {
-		return nil, types.ErrStakeAmountBelowMaximum
+	if delegateAmount.Amount.GT(threshold.Amount.Mul(sdk.NewInt(depositMultiple))) {
+		return nil, types.ErrDelegateAmountBelowMaximum
 	}
 
-	totalStake := s.GetTotalStake(ctx)
-	totalStake = totalStake.Add(msg.Amount)
+	totalDelegateAmount := s.GetTotalDelegate(ctx)
+	totalDelegateAmount = totalDelegateAmount.Add(msg.Amount)
 
 	newShares, err := s.stakingKeeper.Delegate(ctx, oracleAddr, msg.Amount.Amount, stakingtypes.Unbonded, validator, true)
 	if err != nil {
 		return nil, err
 	}
-	// save new total stakeAmount
-	s.SetTotalStake(ctx, totalStake)
+	// save new total delegateAmount
+	s.SetTotalDelegate(ctx, totalDelegateAmount)
 	if oracle.Jailed {
 		oracle.Jailed = false
 		oracle.StartHeight = ctx.BlockHeight()
 	}
-	// save oracle new stakeAmount
-	oracle.DelegateAmount = stakeAmount
+	// save oracle new delegateAmount
+	oracle.DelegateAmount = delegateAmount
 	s.SetOracle(ctx, oracle)
 
 	s.CommonSetOracleTotalPower(ctx)
@@ -202,34 +198,38 @@ func (s EthereumMsgServer) WithdrawReward(ctx context.Context, reward *types.Msg
 
 // SendToExternal handles MsgSendToExternal
 func (s EthereumMsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "sender address")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	txID, err := s.AddToOutgoingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
 	if err != nil {
 		return nil, err
 	}
-	txID, err := s.AddToOutgoingPool(ctx, sender, msg.Dest, msg.Amount, msg.BridgeFee)
-	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, err.Error())
-	}
 
-	_ = txID
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 	))
 
-	return &types.MsgSendToExternalResponse{}, nil
+	return &types.MsgSendToExternalResponse{
+		OutgoingTxId: txID,
+	}, nil
 }
 
 func (s EthereumMsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelSendToExternal) (*types.MsgCancelSendToExternalResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "sender address")
 	}
-	err = s.RemoveFromOutgoingPoolAndRefund(ctx, msg.TransactionId, sender)
-	if err != nil {
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	if err = s.RemoveFromOutgoingPoolAndRefund(ctx, msg.TransactionId, sender); err != nil {
 		return nil, err
 	}
 
@@ -244,6 +244,11 @@ func (s EthereumMsgServer) CancelSendToExternal(c context.Context, msg *types.Ms
 
 // RequestBatch handles MsgRequestBatch
 func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "sender address")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
 	bridgeToken := s.GetDenomByBridgeToken(ctx, msg.Denom)
@@ -251,14 +256,10 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return nil, err
-	}
 	_, found := s.GetOracleAddressByBridgerKey(ctx, sender)
 	if !found {
 		if !s.IsOracle(ctx, msg.Sender) {
-			return nil, sdkerrors.Wrap(types.ErrEmpty, "oracle or orchestrator")
+			return nil, sdkerrors.Wrap(types.ErrEmpty, "sender must be oracle or bridger")
 		}
 	}
 
@@ -267,18 +268,24 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 		return nil, err
 	}
 
-	_ = batch
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 	))
 
-	return &types.MsgRequestBatchResponse{}, nil
+	return &types.MsgRequestBatchResponse{
+		BatchNonce: batch.BatchNonce,
+	}, nil
 }
 
 // ConfirmBatch handles MsgConfirmBatch
 func (s EthereumMsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
+	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// fetch the outgoing batch given the nonce
@@ -286,13 +293,10 @@ func (s EthereumMsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirm
 	if batch == nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "couldn't find batch")
 	}
-	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
-	if err != nil {
-		return nil, types.ErrBridgerAddress
-	}
+
 	checkpoint, err := batch.GetCheckpoint(s.GetGravityID(ctx))
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "checkpoint generation")
+		return nil, sdkerrors.Wrap(types.ErrInvalid, err.Error())
 	}
 
 	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
@@ -301,7 +305,7 @@ func (s EthereumMsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirm
 	}
 	// check if we already have this confirm
 	if s.GetBatchConfirm(ctx, msg.Nonce, msg.TokenContract, oracleAddr) != nil {
-		return nil, sdkerrors.Wrap(types.ErrDuplicate, "duplicate signature")
+		return nil, sdkerrors.Wrap(types.ErrDuplicate, "signature")
 	}
 	key := s.SetBatchConfirm(ctx, oracleAddr, msg)
 
@@ -317,25 +321,30 @@ func (s EthereumMsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirm
 
 // OracleSetConfirm handles MsgOracleSetConfirm
 func (s EthereumMsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
+	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleSet := s.GetOracleSet(ctx, msg.Nonce)
 	if oracleSet == nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "couldn't find oracleSet")
 	}
-	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
+
+	checkpoint, err := oracleSet.GetCheckpoint(s.GetGravityID(ctx))
 	if err != nil {
-		return nil, types.ErrBridgerAddress
+		return nil, sdkerrors.Wrap(types.ErrInvalid, err.Error())
 	}
-	checkpoint := oracleSet.GetCheckpoint(s.GetGravityID(ctx))
 	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
 		return nil, err
 	}
 	// check if we already have this confirm
 	if s.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
-		return nil, sdkerrors.Wrap(types.ErrDuplicate, "duplicate signature")
+		return nil, sdkerrors.Wrap(types.ErrDuplicate, "signature")
 	}
-	key := s.SetOracleSetConfirm(ctx, oracleAddr, *msg)
+	key := s.SetOracleSetConfirm(ctx, oracleAddr, msg)
 
 	_ = key
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -418,19 +427,18 @@ func (s EthereumMsgServer) OracleSetUpdateClaim(c context.Context, msg *types.Ms
 	return &types.MsgOracleSetUpdatedClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg, msg.Type())
 }
 
-func checkOrchestratorIsOracle(ctx sdk.Context, keeper Keeper, orchestrator string) error {
-	orcAddr, err := sdk.AccAddressFromBech32(orchestrator)
+func checkOrchestratorIsOracle(ctx sdk.Context, keeper Keeper, bridgerAddress string) error {
+	bridgerAddr, err := sdk.AccAddressFromBech32(bridgerAddress)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "orchestrator")
+		return sdkerrors.Wrap(types.ErrInvalid, "bridger address")
 	}
-	oracleAddr, found := keeper.GetOracleAddressByBridgerKey(ctx, orcAddr)
+	oracleAddr, found := keeper.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
 	if !found {
-		return sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "oracle")
+		return sdkerrors.Wrap(types.ErrNoFoundOracle, "by bridger address")
 	}
-
 	oracle, found := keeper.GetOracle(ctx, oracleAddr)
 	if !found {
-		return types.ErrNoOracleFound
+		return types.ErrNoFoundOracle
 	}
 	if oracle.Jailed {
 		return sdkerrors.Wrapf(types.ErrOracleJailed, oracle.OracleAddress)
@@ -465,12 +473,12 @@ func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk
 
 	oracleAddr, found := s.GetOracleByExternalAddress(ctx, signatureAddr)
 	if !found {
-		return nil, types.ErrNotOracle
+		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, "by bridger address")
 	}
 
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, types.ErrNoOracleFound
+		return nil, types.ErrNoFoundOracle
 	}
 
 	if oracle.ExternalAddress != signatureAddr {

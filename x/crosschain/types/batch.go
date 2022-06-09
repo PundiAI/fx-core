@@ -36,7 +36,7 @@ func (m OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	// will panic if gravityId is too long to fit in 32 bytes
 	gravityID, err := StrToFixByteArray(gravityIDString)
 	if err != nil {
-		return nil, sdkerrors.Wrap(ErrInvalid, "gravity id")
+		return nil, sdkerrors.Wrap(err, "parse gravity id")
 	}
 
 	// Create the methodName argument which salts the signature

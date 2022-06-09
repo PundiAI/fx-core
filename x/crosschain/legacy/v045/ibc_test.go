@@ -1,14 +1,13 @@
-package v2_test
+package v045_test
 
 import (
+	v042 "github.com/functionx/fx-core/x/crosschain/legacy/v042"
+	v045 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-
-	v2 "github.com/functionx/fx-core/x/crosschain/legacy/v2"
-	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
 func TestIbcSequenceMigration(t *testing.T) {
@@ -18,18 +17,17 @@ func TestIbcSequenceMigration(t *testing.T) {
 
 	sourcePort, sourceChannel := "a", "b"
 	for i := 1; i < 100; i++ {
-		store.Set(types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, uint64(i)), sdk.Uint64ToBigEndian(uint64(i)))
+		store.Set(v042.GetIbcSequenceHeightKey(sourcePort, sourceChannel, uint64(i)), sdk.Uint64ToBigEndian(uint64(i)))
 	}
 
 	// migrate before check key exists
 	for i := 1; i < 100; i++ {
-		require.True(t, store.Has(types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, uint64(i))))
+		require.True(t, store.Has(v042.GetIbcSequenceHeightKey(sourcePort, sourceChannel, uint64(i))))
 	}
-	err := v2.MigrateStore(ctx, gravityKey)
-	require.NoError(t, err)
+	require.NoError(t, v045.MigratePruneIbcSequenceKey(ctx, gravityKey))
 
 	// migrate after check key not exists
 	for i := 1; i < 100; i++ {
-		require.False(t, store.Has(types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, uint64(i))))
+		require.False(t, store.Has(v042.GetIbcSequenceHeightKey(sourcePort, sourceChannel, uint64(i))))
 	}
 }

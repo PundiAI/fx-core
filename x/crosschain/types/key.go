@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -21,8 +19,8 @@ const (
 )
 
 var (
-	// OracleTotalStakeKey
-	OracleTotalStakeKey = []byte{0x11}
+	// OracleTotalDelegateKey
+	OracleTotalDelegateKey = []byte{0x11}
 
 	// OracleKey key oracle address -> Oracle
 	OracleKey = []byte{0x12}
@@ -99,10 +97,6 @@ var (
 
 	// LastObservedOracleSetKey indexes the latest observed OracleSet nonce
 	LastObservedOracleSetKey = []byte{0x33}
-
-	// KeyIbcSequenceHeight  indexes the gravity -> ibc sequence block height
-	// DEPRECATED: delete by v2
-	KeyIbcSequenceHeight = []byte{0x34}
 
 	// LastEventBlockHeightByValidatorKey indexes latest event blockHeight by validator
 	LastEventBlockHeightByValidatorKey = []byte{0x35}
@@ -185,13 +179,6 @@ func GetBatchConfirmKey(tokenContract string, batchNonce uint64, oracleAddr sdk.
 // GetLastEventNonceByOracleKey returns the following key format
 func GetLastEventNonceByOracleKey(validator sdk.AccAddress) []byte {
 	return append(LastEventNonceByValidatorKey, validator.Bytes()...)
-}
-
-//GetIbcSequenceHeightKey returns the following key format
-// DEPRECATED: delete by v2
-func GetIbcSequenceHeightKey(sourcePort, sourceChannel string, sequence uint64) []byte {
-	key := fmt.Sprintf("%s/%s/%d", sourcePort, sourceChannel, sequence)
-	return append(KeyIbcSequenceHeight, []byte(key)...)
 }
 
 // GetLastEventBlockHeightByOracleKey returns the following key format

@@ -46,7 +46,7 @@ func (m *InitCrossChainParamsProposal) ProposalType() string {
 
 func (m *InitCrossChainParamsProposal) ValidateBasic() error {
 	if err := ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if err := govtypes.ValidateAbstract(m); err != nil {
 		return err
@@ -55,7 +55,7 @@ func (m *InitCrossChainParamsProposal) ValidateBasic() error {
 		return err
 	}
 	if len(m.Params.Oracles) == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "oracles cannot be empty")
+		return sdkerrors.Wrap(ErrEmpty, "oracles")
 	}
 	return nil
 }
@@ -89,23 +89,23 @@ func (m *UpdateChainOraclesProposal) ProposalType() string {
 
 func (m *UpdateChainOraclesProposal) ValidateBasic() error {
 	if err := ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalidChainName, m.ChainName)
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if err := govtypes.ValidateAbstract(m); err != nil {
 		return err
 	}
 
 	if len(m.Oracles) == 0 {
-		return sdkerrors.Wrap(ErrInvalid, "oracles cannot be empty")
+		return sdkerrors.Wrap(ErrEmpty, "oracles")
 	}
 
 	oraclesMap := make(map[string]bool)
 	for _, addr := range m.Oracles {
 		if _, err := sdk.AccAddressFromBech32(addr); err != nil {
-			return sdkerrors.Wrap(ErrOracleAddress, addr)
+			return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("oracle address: %s", addr))
 		}
 		if oraclesMap[addr] {
-			return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("duplicate oracle %s", addr))
+			return sdkerrors.Wrap(ErrDuplicate, fmt.Sprintf("oracle address: %s", addr))
 		}
 		oraclesMap[addr] = true
 	}

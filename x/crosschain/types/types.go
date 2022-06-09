@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	math "math"
 	"math/big"
 	"sort"
@@ -26,7 +25,7 @@ func (m BridgeValidator) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrEmpty, "power")
 	}
 	if err := ValidateEthereumAddress(m.ExternalAddress); err != nil {
-		return sdkerrors.Wrap(err, "external address")
+		return sdkerrors.Wrap(ErrInvalid, "external address")
 	}
 	return nil
 }
@@ -122,7 +121,7 @@ func (b BridgeValidators) ValidateBasic() error {
 		}
 	}
 	if b.HasDuplicates() {
-		return sdkerrors.Wrap(ErrInvalid, "addresses")
+		return sdkerrors.Wrap(ErrDuplicate, "address")
 	}
 	return nil
 }
@@ -146,11 +145,11 @@ func NewOracleSet(nonce, height uint64, members BridgeValidators) *OracleSet {
 }
 
 // GetCheckpoint returns the checkpoint
-func (m OracleSet) GetCheckpoint(gravityIDStr string) []byte {
+func (m OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// error case here should not occur outside of testing since the above is a constant
-	contractAbi, abiErr := abi.JSON(strings.NewReader(OracleSetCheckpointABIJSON))
-	if abiErr != nil {
-		panic("Bad ABI constant!")
+	contractAbi, err := abi.JSON(strings.NewReader(OracleSetCheckpointABIJSON))
+	if err != nil {
+		return nil, sdkerrors.Wrap(err, "bad ABI definition in code")
 	}
 
 	// the contract argument is not a arbitrary length array but a fixed length 32 byte
@@ -159,7 +158,7 @@ func (m OracleSet) GetCheckpoint(gravityIDStr string) []byte {
 	// will panic if gravityId is too long to fit in 32 bytes
 	gravityID, err := StrToFixByteArray(gravityIDStr)
 	if err != nil {
-		panic(err)
+		return nil, sdkerrors.Wrap(err, "parse gravity id")
 	}
 	checkpointBytes := []uint8("checkpoint")
 	var checkpoint [32]uint8
@@ -179,14 +178,14 @@ func (m OracleSet) GetCheckpoint(gravityIDStr string) []byte {
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
 	if packErr != nil {
-		panic(fmt.Sprintf("Error packing checkpoint! %s/n", packErr))
+		return nil, sdkerrors.Wrap(err, "packing checkpoint")
 	}
 
 	// we hash the resulting encoded bytes discarding the first 4 bytes these 4 bytes are the constant
 	// method name 'checkpoint'. If you where to replace the checkpoint constant in this code you would
 	// then need to adjust how many bytes you truncate off the front to get the output of abi.encode()
 	hash := crypto.Keccak256Hash(bytes[4:])
-	return hash.Bytes()
+	return hash.Bytes(), nil
 }
 
 type OracleSets []*OracleSet
@@ -225,9 +224,6 @@ func (v OutgoingTxBatches) Swap(i, j int) {
 func (m OutgoingTxBatch) GetFees() sdk.Int {
 	sum := sdk.ZeroInt()
 	for _, t := range m.Transactions {
-		//if t.Fee == nil {
-		//	continue
-		//}
 		sum = sum.Add(t.Fee.Amount)
 	}
 	return sum

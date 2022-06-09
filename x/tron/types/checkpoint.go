@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -20,11 +21,11 @@ func GetCheckpointOracleSet(oracleSet *types.OracleSet, gravityIDStr string) ([]
 
 	gravityID, err := types.StrToFixByteArray(gravityIDStr)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "parse gravity id")
 	}
 	checkpoint, err := types.StrToFixByteArray("checkpoint")
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "parse checkpoint")
 	}
 
 	params := []abi.Param{
@@ -54,11 +55,11 @@ func GetCheckpointConfirmBatch(txBatch *types.OutgoingTxBatch, gravityIDStr stri
 
 	gravityID, err := types.StrToFixByteArray(gravityIDStr)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "parse gravity id")
 	}
 	transactionBatch, err := types.StrToFixByteArray("transactionBatch")
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(err, "parse checkpoint")
 	}
 
 	params := []abi.Param{

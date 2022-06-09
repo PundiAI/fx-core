@@ -87,7 +87,7 @@ func MigrateStore(ctx sdk.Context, gravityStoreKey sdk.StoreKey, ethStoreKey sdk
 	migratePrefix(gravityStore, ethStore, v042gravity.LastObservedValsetKey, crosschaintypes.LastObservedOracleSetKey)
 
 	// gravity 0x17 -> eth 0x34
-	migratePrefix(gravityStore, ethStore, v042gravity.IbcSequenceHeightKey, crosschaintypes.KeyIbcSequenceHeight)
+	//migratePrefix(gravityStore, ethStore, v042gravity.IbcSequenceHeightKey, crosschaintypes.KeyIbcSequenceHeight)
 
 	// gravity 0x18 -> eth 0x35
 	migratePrefix(gravityStore, ethStore, v042gravity.LastEventBlockHeightByValidatorKey, crosschaintypes.LastEventBlockHeightByValidatorKey)

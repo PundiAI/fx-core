@@ -48,8 +48,8 @@ var (
 	// ParamStoreOracles stores the module oracles.
 	ParamStoreOracles = []byte("Oracles")
 
-	// ParamOracleStakeThreshold stores the oracle stake threshold
-	ParamOracleStakeThreshold = []byte("OracleStakeThreshold")
+	// ParamOracleDelegateThreshold stores the oracle delegate threshold
+	ParamOracleDelegateThreshold = []byte("OracleDelegateThreshold")
 )
 
 var (
@@ -86,7 +86,7 @@ func (m Params) ValidateBasic() error {
 	if err := validateOracles(m.Oracles); err != nil {
 		return sdkerrors.Wrap(err, "oracles")
 	}
-	if err := validateOracleStakeThreshold(m.DelegateThreshold); err != nil {
+	if err := validateOracleDelegateThreshold(m.DelegateThreshold); err != nil {
 		return sdkerrors.Wrap(err, "oracle delegate threshold")
 	}
 	return nil
@@ -110,7 +110,7 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamStoreOracleSetUpdatePowerChangePercent, &m.OracleSetUpdatePowerChangePercent, validateOracleSetUpdatePowerChangePercent),
 		paramtypes.NewParamSetPair(ParamStoreIbcTransferTimeoutHeight, &m.IbcTransferTimeoutHeight, validateIbcTransferTimeoutHeight),
 		paramtypes.NewParamSetPair(ParamStoreOracles, &m.Oracles, validateOracles),
-		paramtypes.NewParamSetPair(ParamOracleStakeThreshold, &m.DelegateThreshold, validateOracleStakeThreshold),
+		paramtypes.NewParamSetPair(ParamOracleDelegateThreshold, &m.DelegateThreshold, validateOracleDelegateThreshold),
 	}
 }
 
@@ -179,12 +179,12 @@ func validateSignedWindow(i interface{}) error {
 	return nil
 }
 
-func validateOracleStakeThreshold(i interface{}) error {
+func validateOracleDelegateThreshold(i interface{}) error {
 	c, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	} else if !c.IsValid() || !c.IsPositive() {
-		return fmt.Errorf("invalid stake threshold")
+		return fmt.Errorf("invalid delegate threshold")
 	}
 	if c.Denom != fxtypes.DefaultDenom {
 		return fmt.Errorf("")
@@ -222,7 +222,7 @@ func validateOracles(i interface{}) error {
 			return fmt.Errorf("oracles cannot be empty")
 		}
 		if len(oracles) > MaxOracleSize {
-			return fmt.Errorf("oracle length must be less than or equal : %d", MaxOracleSize)
+			return fmt.Errorf("oracle length must be less than or equal: %d", MaxOracleSize)
 		}
 		oraclesMap := make(map[string]bool)
 		for _, addr := range oracles {
@@ -230,7 +230,7 @@ func validateOracles(i interface{}) error {
 				return err
 			}
 			if oraclesMap[addr] {
-				return fmt.Errorf("duplicate oracle %s", addr)
+				return fmt.Errorf("duplicate oracle: %s", addr)
 			}
 			oraclesMap[addr] = true
 		}

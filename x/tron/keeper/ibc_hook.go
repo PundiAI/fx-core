@@ -2,6 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 )
@@ -11,10 +13,10 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, amount, f
 	// Claim channel capability passed back by IBC module
 	sendAddr, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
-		return err
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "sender address")
 	}
 	if err = trontypes.ValidateTronAddress(receive); err != nil {
-		return err
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "receive address")
 	}
 
 	_, err = k.Keeper.AddToOutgoingPool(ctx, sendAddr, receive, amount, fee)

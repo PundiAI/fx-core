@@ -29,6 +29,11 @@ func NewMsgServerImpl(k crosschainkeeper.Keeper) crosschainkeeper.ProposalMsgSer
 
 // ConfirmBatch handles MsgConfirmBatch
 func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfirmBatch) (*crosschaintypes.MsgConfirmBatchResponse, error) {
+	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// fetch the outgoing batch given the nonce
@@ -36,22 +41,19 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 	if batch == nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "couldn't find batch")
 	}
-	orchestratorAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
-	if err != nil {
-		return nil, crosschaintypes.ErrBridgerAddress
-	}
+
 	checkpoint, err := trontypes.GetCheckpointConfirmBatch(batch, s.GetGravityID(ctx))
 	if err != nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "checkpoint generation")
 	}
 
-	oracleAddr, err := s.confirmHandlerCommon(ctx, orchestratorAddr, msg.ExternalAddress, msg.Signature, checkpoint)
+	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
 		return nil, err
 	}
 	// check if we already have this confirm
 	if s.GetBatchConfirm(ctx, msg.Nonce, msg.TokenContract, oracleAddr) != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrDuplicate, "duplicate signature")
+		return nil, sdkerrors.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
 	key := s.SetBatchConfirm(ctx, oracleAddr, msg)
 
@@ -62,33 +64,35 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
 	))
 
-	return nil, nil
+	return &crosschaintypes.MsgConfirmBatchResponse{}, nil
 }
 
 // OracleSetConfirm handles MsgOracleSetConfirm
 func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgOracleSetConfirm) (*crosschaintypes.MsgOracleSetConfirmResponse, error) {
+	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleSet := s.GetOracleSet(ctx, msg.Nonce)
 	if oracleSet == nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "couldn't find oracleSet")
 	}
-	orchestratorAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
-	if err != nil {
-		return nil, crosschaintypes.ErrBridgerAddress
-	}
+
 	checkpoint, err := trontypes.GetCheckpointOracleSet(oracleSet, s.GetGravityID(ctx))
 	if err != nil {
 		return nil, err
 	}
-	oracleAddr, err := s.confirmHandlerCommon(ctx, orchestratorAddr, msg.ExternalAddress, msg.Signature, checkpoint)
+	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
 		return nil, err
 	}
 	// check if we already have this confirm
 	if s.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrDuplicate, "duplicate signature")
+		return nil, sdkerrors.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
-	key := s.SetOracleSetConfirm(ctx, oracleAddr, *msg)
+	key := s.SetOracleSetConfirm(ctx, oracleAddr, msg)
 
 	_ = key
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -108,12 +112,12 @@ func (s msgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAddr sdk.Ac
 
 	oracleAddr, found := s.GetOracleByExternalAddress(ctx, signatureAddr)
 	if !found {
-		return nil, crosschaintypes.ErrNotOracle
+		return nil, sdkerrors.Wrap(crosschaintypes.ErrNoFoundOracle, "by bridger address")
 	}
 
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, crosschaintypes.ErrNoOracleFound
+		return nil, crosschaintypes.ErrNoFoundOracle
 	}
 
 	if oracle.ExternalAddress != signatureAddr {

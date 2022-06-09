@@ -25,5 +25,6 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	if err := v045.MigrateDepositToStaking(ctx, m.keeper.GetAllOracles(ctx), m.sk); err != nil {
 		return err
 	}
+	v045.MigratePruneIbcSequenceKey(ctx, m.keeper.storeKey)
 	return nil
 }

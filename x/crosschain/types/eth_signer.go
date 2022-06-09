@@ -12,7 +12,7 @@ const signaturePrefix = "\x19Ethereum Signed Message:\n32"
 // NewEthereumSignature creates a new signuature over a given byte array
 func NewEthereumSignature(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, error) {
 	if privateKey == nil {
-		return nil, sdkerrors.Wrap(ErrInvalid, "private key")
+		return nil, sdkerrors.Wrap(ErrEmpty, "private key")
 	}
 	protectedHash := crypto.Keccak256Hash(append([]uint8(signaturePrefix), hash...))
 	return crypto.Sign(protectedHash.Bytes(), privateKey)
@@ -55,7 +55,7 @@ func EthAddressFromSignature(hash []byte, signature []byte) (string, error) {
 func ValidateEthereumSignature(hash []byte, signature []byte, ethAddress string) error {
 	addr, err := EthAddressFromSignature(hash, signature)
 	if err != nil {
-		return sdkerrors.Wrap(err, "")
+		return err
 	}
 	if addr != ethAddress {
 		return sdkerrors.Wrap(ErrInvalid, "signature not matching")

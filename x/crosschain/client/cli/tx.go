@@ -581,7 +581,10 @@ func CmdOracleSetConfirm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			checkpoint := oracleSetRequestResp.GetOracleSet().GetCheckpoint(paramsResp.Params.GetGravityId())
+			checkpoint, err := oracleSetRequestResp.GetOracleSet().GetCheckpoint(paramsResp.Params.GetGravityId())
+			if err != nil {
+				return err
+			}
 			signature, err := types.NewEthereumSignature(checkpoint, privateKey)
 			if err != nil {
 				return err

@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"regexp"
 
@@ -29,18 +28,18 @@ func ValidateEthereumAddress(addr string) error {
 		return ErrEmpty
 	}
 	if len(addr) != ethereumContractAddressLen {
-		return sdkerrors.Wrap(ErrExternalAddress, fmt.Sprintf("address(%s) of the wrong length exp(%d) actual(%d)", addr, len(addr), ethereumContractAddressLen))
+		return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("address (%s) of the wrong length exp (%d) actual (%d)", addr, len(addr), ethereumContractAddressLen))
 	}
 	if !ethereumAddressRegular.MatchString(addr) {
-		return sdkerrors.Wrap(ErrExternalAddress, fmt.Sprintf("address(%s) doesn't pass regex", addr))
+		return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("address (%s) doesn't pass regex", addr))
 	}
 	// add ethereum address checksum check 2021-09-02.
 	if !common.IsHexAddress(addr) {
-		return sdkerrors.Wrap(ErrExternalAddress, fmt.Sprintf("invalid address: %s", addr))
+		return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("address: %s", addr))
 	}
 	expectAddress := common.HexToAddress(addr).Hex()
 	if expectAddress != addr {
-		return sdkerrors.Wrap(ErrExternalAddress, fmt.Sprintf("invalid address got:%s, expected:%s", addr, expectAddress))
+		return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("address got: %s, expected: %s", addr, expectAddress))
 	}
 	return nil
 }
@@ -59,7 +58,7 @@ func (m ERC20Token) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "invalid contract address")
 	}
 	if !m.Amount.IsPositive() {
-		return errors.New("invalid amount")
+		return sdkerrors.Wrap(ErrInvalid, "amount")
 	}
 	return nil
 }

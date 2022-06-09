@@ -25,7 +25,7 @@ func TestABCIEndBlockDepositClaim(t *testing.T) {
 	keep := myApp.BscKeeper
 	var err error
 
-	totalDepositBefore := keep.GetTotalStake(ctx)
+	totalDepositBefore := keep.GetTotalDelegate(ctx)
 	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalDepositBefore)
 
 	normalMsg := &types.MsgCreateOracleBridger{

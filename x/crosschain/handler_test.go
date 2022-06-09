@@ -47,8 +47,8 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 	}
 	var err error
 	_, err = h(ctx, notOracleMsg)
-	require.ErrorIs(t, types.ErrNotOracle, err)
-	require.EqualValues(t, types.ErrNotOracle.Error(), err.Error())
+	require.ErrorIs(t, types.ErrNoFoundOracle, err)
+	require.EqualValues(t, types.ErrNoFoundOracle.Error(), err.Error())
 
 	// 2. stake denom not match chain params stake denom
 	notMatchStakeDenomMsg := &types.MsgCreateOracleBridger{
@@ -71,8 +71,8 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, belowMinimumStakeAmountMsg)
-	require.ErrorIs(t, types.ErrStakeAmountBelowMinimum, err)
-	require.EqualValues(t, types.ErrStakeAmountBelowMinimum.Error(), err.Error())
+	require.ErrorIs(t, types.ErrDelegateAmountBelowMinimum, err)
+	require.EqualValues(t, types.ErrDelegateAmountBelowMinimum.Error(), err.Error())
 
 	// 4. success msg
 	normalMsg := &types.MsgCreateOracleBridger{
@@ -130,8 +130,8 @@ func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
 		ChainName:       chainName,
 	}
 	_, err = h(ctx, depositAmountBelowMaximumMsg)
-	require.ErrorIs(t, types.ErrStakeAmountBelowMaximum, err)
-	require.EqualValues(t, types.ErrStakeAmountBelowMaximum.Error(), err.Error())
+	require.ErrorIs(t, types.ErrDelegateAmountBelowMaximum, err)
+	require.EqualValues(t, types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
 
 	// 9. success msg
 	normalMsgOracle2 := &types.MsgCreateOracleBridger{
@@ -153,7 +153,7 @@ func TestMsgAddOracleStake(t *testing.T) {
 	var err error
 
 	// Query the status before the configuration
-	totalStakeBefore := keep.GetTotalStake(ctx)
+	totalStakeBefore := keep.GetTotalDelegate(ctx)
 	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
 
 	// 1. First sets up a valid validator
@@ -168,7 +168,7 @@ func TestMsgAddOracleStake(t *testing.T) {
 	require.NoError(t, err)
 
 	// Query the totalStake after the address is set
-	totalStakeAfter := keep.GetTotalStake(ctx)
+	totalStakeAfter := keep.GetTotalDelegate(ctx)
 	require.True(t, normalMsg.DelegateAmount.IsEqual(totalStakeAfter))
 
 	denomNotMatchMsg := &types.MsgAddOracleStake{
@@ -192,8 +192,8 @@ func TestMsgAddOracleStake(t *testing.T) {
 		ChainName: chainName,
 	}
 	_, err = h(ctx, notOracleMsg)
-	require.ErrorIs(t, types.ErrNotOracle, err)
-	require.EqualValues(t, types.ErrNotOracle.Error(), err.Error())
+	require.ErrorIs(t, types.ErrNoFoundOracle, err)
+	require.EqualValues(t, types.ErrNoFoundOracle.Error(), err.Error())
 
 	notSetOrchestratorOracleMsg := &types.MsgAddOracleStake{
 		OracleAddress: oracleAddressList[1].String(),
@@ -213,8 +213,8 @@ func TestMsgAddOracleStake(t *testing.T) {
 		ChainName:     chainName,
 	}
 	_, err = h(ctx, depositAmountBelowMaximumMsg)
-	require.ErrorIs(t, types.ErrStakeAmountBelowMaximum, err)
-	require.EqualValues(t, types.ErrStakeAmountBelowMaximum.Error(), err.Error())
+	require.ErrorIs(t, types.ErrDelegateAmountBelowMaximum, err)
+	require.EqualValues(t, types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
 
 	normalAddStakeMsg := &types.MsgAddOracleStake{
 		OracleAddress: oracleAddressList[0].String(),
@@ -222,10 +222,10 @@ func TestMsgAddOracleStake(t *testing.T) {
 		ChainName:     chainName,
 	}
 
-	addStake1Before := keep.GetTotalStake(ctx)
+	addStake1Before := keep.GetTotalDelegate(ctx)
 	_, err = h(ctx, normalAddStakeMsg)
 	require.NoError(t, err)
-	addStake1After := keep.GetTotalStake(ctx)
+	addStake1After := keep.GetTotalDelegate(ctx)
 	require.True(t, addStake1Before.Add(normalAddStakeMsg.Amount).IsEqual(addStake1After))
 }
 
@@ -235,7 +235,7 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 	keep := myApp.BscKeeper
 	var err error
 
-	totalStakeBefore := keep.GetTotalStake(ctx)
+	totalStakeBefore := keep.GetTotalDelegate(ctx)
 	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
 
 	normalMsg := &types.MsgCreateOracleBridger{
@@ -303,8 +303,8 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 				Signature:           hex.EncodeToString(external1Signature),
 				ChainName:           chainName,
 			},
-			err:       types.ErrNotOracle,
-			errReason: fmt.Sprintf("%s", types.ErrNotOracle),
+			err:       types.ErrNoFoundOracle,
+			errReason: fmt.Sprintf("%s", types.ErrNoFoundOracle),
 		},
 		{
 			name: "sign not match external-1  external-sign-2",
@@ -357,7 +357,7 @@ func TestClaimWithOracleJailed(t *testing.T) {
 	keeper := myApp.BscKeeper
 	var err error
 
-	totalStakeBefore := keeper.GetTotalStake(ctx)
+	totalStakeBefore := keeper.GetTotalDelegate(ctx)
 	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
 
 	normalMsg := &types.MsgCreateOracleBridger{
@@ -531,7 +531,7 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	var err error
 
 	// Query the status before the configuration
-	totalStakeBefore := keep.GetTotalStake(ctx)
+	totalStakeBefore := keep.GetTotalDelegate(ctx)
 	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
 
 	endBlock := func() {

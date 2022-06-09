@@ -85,7 +85,7 @@ func (k Keeper) GetGravityID(ctx sdk.Context) string {
 
 func (k Keeper) GetOracleStakeThreshold(ctx sdk.Context) sdk.Coin {
 	var threshold sdk.Coin
-	k.paramSpace.Get(ctx, types.ParamOracleStakeThreshold, &threshold)
+	k.paramSpace.Get(ctx, types.ParamOracleDelegateThreshold, &threshold)
 	return threshold
 }
 
@@ -213,7 +213,10 @@ func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 
 	k.CommonSetOracleTotalPower(ctx)
 
-	checkpoint := currentOracleSet.GetCheckpoint(gravityId)
+	checkpoint, err := currentOracleSet.GetCheckpoint(gravityId)
+	if err != nil {
+		panic(err)
+	}
 	k.SetPastExternalSignatureCheckpoint(ctx, checkpoint)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -397,10 +400,10 @@ func (k Keeper) GetOracleSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sd
 }
 
 // SetOracleSetConfirm sets a oracleSet confirmation
-func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, oracleSetConfirm types.MsgOracleSetConfirm) []byte {
+func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, oracleSetConfirm *types.MsgOracleSetConfirm) []byte {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOracleSetConfirmKey(oracleSetConfirm.Nonce, oracleAddr)
-	store.Set(key, k.cdc.MustMarshal(&oracleSetConfirm))
+	store.Set(key, k.cdc.MustMarshal(oracleSetConfirm))
 	return key
 }
 
@@ -490,23 +493,23 @@ func (k Keeper) GetBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce ui
 }
 
 /////////////////////////////
-//     ORACLE STAKE      //
+//    ORACLE Delegate      //
 /////////////////////////////
 
-func (k Keeper) SetTotalStake(ctx sdk.Context, total sdk.Coin) {
+func (k Keeper) SetTotalDelegate(ctx sdk.Context, total sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.OracleTotalStakeKey, []byte(total.String()))
+	store.Set(types.OracleTotalDelegateKey, []byte(total.String()))
 }
 
-func (k Keeper) GetTotalStake(ctx sdk.Context) sdk.Coin {
+func (k Keeper) GetTotalDelegate(ctx sdk.Context) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.OracleTotalStakeKey)
+	bz := store.Get(types.OracleTotalDelegateKey)
 	if bz == nil {
 		return sdk.Coin{}
 	}
 	total, err := sdk.ParseCoinNormalized(string(bz))
 	if err != nil {
-		panic("invalid oracle total stake" + err.Error())
+		panic("invalid oracle total delegate" + err.Error())
 	}
 	return total
 }
@@ -595,23 +598,6 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 		end = nil
 	}
 	return prefix, end
-}
-
-//SetIbcSequenceHeight set gravity -> ibc sequence block height.
-func (k Keeper) SetIbcSequenceHeight(ctx sdk.Context, sourcePort, sourceChannel string, sequence, height uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, sequence), sdk.Uint64ToBigEndian(height))
-}
-
-//GetIbcSequenceHeight get gravity -> ibc sequence block height.
-func (k Keeper) GetIbcSequenceHeight(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) (uint64, bool) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, sequence)
-	if !store.Has(key) {
-		return 0, false
-	}
-	value := store.Get(key)
-	return sdk.BigEndianToUint64(value), true
 }
 
 //setLastEventBlockHeightByOracle set the latest event blockHeight for a give oracle

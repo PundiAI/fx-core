@@ -59,7 +59,7 @@ func TronAddressFromSignature(hash []byte, signature []byte) (string, error) {
 func ValidateTronSignature(hash []byte, signature []byte, ethAddress string) error {
 	addr, err := TronAddressFromSignature(hash, signature)
 	if err != nil {
-		return sdkerrors.Wrap(err, "")
+		return err
 	}
 	if addr != ethAddress {
 		return sdkerrors.Wrap(types.ErrInvalid, "signature not matching")
