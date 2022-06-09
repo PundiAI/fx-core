@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/functionx/fx-core/x/other/client/cli"
 
 	"github.com/gorilla/mux"
@@ -138,7 +136,7 @@ func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMess
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return fxtypes.CurrentConsensusVersion
+	return 1
 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.

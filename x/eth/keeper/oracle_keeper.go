@@ -2,11 +2,13 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	"github.com/functionx/fx-core/x/eth/types"
-	"sort"
 )
 
 type ValOracleKeeper struct {

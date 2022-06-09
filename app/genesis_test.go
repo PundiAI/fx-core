@@ -2,8 +2,9 @@ package app
 
 import (
 	"encoding/json"
-	evmtyeps "github.com/functionx/fx-core/x/evm/types"
 	"testing"
+
+	evmtyeps "github.com/functionx/fx-core/x/evm/types"
 
 	"github.com/stretchr/testify/assert"
 

@@ -1,12 +1,14 @@
 package v2_test
 
 import (
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	v2 "github.com/functionx/fx-core/x/gravity/legacy/v2"
 	"github.com/functionx/fx-core/x/gravity/types"
-	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestIbcSequenceMigration(t *testing.T) {

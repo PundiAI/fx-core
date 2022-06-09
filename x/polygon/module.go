@@ -19,6 +19,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
+	crosschainv54 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
 )
 
 // type check to ensure the interface is properly implemented
@@ -77,7 +78,8 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper crosschainkeeper.Keeper
+	keeper        crosschainkeeper.Keeper
+	stakingKeeper crosschainv54.StakingKeeper
 }
 
 // NewAppModule creates a new AppModule Object
@@ -113,8 +115,8 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	m := keeper.NewMigrator(am.keeper)
-	cfg.RegisterMigration(polygontypes.ModuleName, 1, m.Migrate1to2)
+	m := crosschainkeeper.NewMigrator(am.keeper, am.stakingKeeper)
+	cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
 }
 
 // InitGenesis initializes the genesis state for this module and implements app module.

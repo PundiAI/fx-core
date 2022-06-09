@@ -2,6 +2,8 @@ package tron
 
 import (
 	"encoding/json"
+	fxtypes "github.com/functionx/fx-core/types"
+	crosschainv54 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
 
 	"github.com/functionx/fx-core/x/crosschain"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
@@ -76,7 +78,8 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper crosschainkeeper.Keeper
+	keeper        crosschainkeeper.Keeper
+	stakingKeeper crosschainv54.StakingKeeper
 }
 
 // NewAppModule creates a new AppModule Object
@@ -112,8 +115,8 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	m := keeper.NewMigrator(am.keeper)
-	cfg.RegisterMigration(trontypes.ModuleName, 1, m.Migrate1to2)
+	m := crosschainkeeper.NewMigrator(am.keeper, am.stakingKeeper)
+	cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
 }
 
 // InitGenesis initializes the genesis state for this module and implements app module.
@@ -128,7 +131,7 @@ func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMess
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 1
+	return fxtypes.CurrentConsensusVersion
 }
 
 // BeginBlock implements app module

@@ -2,6 +2,7 @@ package gravity
 
 import (
 	"encoding/json"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -129,7 +130,7 @@ func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMess
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 2
+	return fxtypes.CurrentConsensusVersion
 }
 
 // BeginBlock implements app module

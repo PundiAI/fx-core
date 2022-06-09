@@ -73,8 +73,6 @@
     - [QueryCurrentOracleSetResponse](#fx.gravity.crosschain.v1.QueryCurrentOracleSetResponse)
     - [QueryDenomToTokenRequest](#fx.gravity.crosschain.v1.QueryDenomToTokenRequest)
     - [QueryDenomToTokenResponse](#fx.gravity.crosschain.v1.QueryDenomToTokenResponse)
-    - [QueryIbcSequenceHeightRequest](#fx.gravity.crosschain.v1.QueryIbcSequenceHeightRequest)
-    - [QueryIbcSequenceHeightResponse](#fx.gravity.crosschain.v1.QueryIbcSequenceHeightResponse)
     - [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrRequest)
     - [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrResponse)
     - [QueryLastEventNonceByAddrRequest](#fx.gravity.crosschain.v1.QueryLastEventNonceByAddrRequest)
@@ -1365,40 +1363,6 @@ GenesisState struct
 
 
 
-<a name="fx.gravity.crosschain.v1.QueryIbcSequenceHeightRequest"></a>
-
-### QueryIbcSequenceHeightRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `source_port` | [string](#string) |  |  |
-| `source_channel` | [string](#string) |  |  |
-| `sequence` | [uint64](#uint64) |  |  |
-| `chain_name` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="fx.gravity.crosschain.v1.QueryIbcSequenceHeightResponse"></a>
-
-### QueryIbcSequenceHeightResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `found` | [bool](#bool) |  |  |
-| `block_height` | [uint64](#uint64) |  |  |
-
-
-
-
-
-
 <a name="fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrRequest"></a>
 
 ### QueryLastEventBlockHeightByAddrRequest
@@ -1960,7 +1924,6 @@ Query defines the gRPC querier service
 | `GetOracleByExternalAddr` | [QueryOracleByExternalAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByExternalAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_external_addr|
 | `GetOracleByOrchestrator` | [QueryOracleByOrchestratorRequest](#fx.gravity.crosschain.v1.QueryOracleByOrchestratorRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_orchestrator|
 | `GetPendingSendToExternal` | [QueryPendingSendToExternalRequest](#fx.gravity.crosschain.v1.QueryPendingSendToExternalRequest) | [QueryPendingSendToExternalResponse](#fx.gravity.crosschain.v1.QueryPendingSendToExternalResponse) |  | GET|/crosschain/v1beta/pending_send_to_external|
-| `GetIbcSequenceHeightByChannel` | [QueryIbcSequenceHeightRequest](#fx.gravity.crosschain.v1.QueryIbcSequenceHeightRequest) | [QueryIbcSequenceHeightResponse](#fx.gravity.crosschain.v1.QueryIbcSequenceHeightResponse) |  | GET|/crosschain/v1beta/ibc_sequence_height|
 | `Oracles` | [QueryOraclesRequest](#fx.gravity.crosschain.v1.QueryOraclesRequest) | [QueryOraclesResponse](#fx.gravity.crosschain.v1.QueryOraclesResponse) | Validators queries all oracle that match the given status. | GET|/crosschain/v1beta1/oracles|
 | `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/crosschain/v1beta1/projected_batch_timeout|
 | `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.crosschain.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.crosschain.v1.QueryBridgeTokensResponse) |  | GET|/gravity/v1beta1/bridge_tokens|

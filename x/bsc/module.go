@@ -2,6 +2,7 @@ package bsc
 
 import (
 	"encoding/json"
+	crosschainv54 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
 
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 
@@ -82,7 +83,8 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper crosschainkeeper.Keeper
+	keeper        crosschainkeeper.Keeper
+	stakingKeeper crosschainv54.StakingKeeper
 }
 
 // NewAppModule creates a new AppModule Object
@@ -117,7 +119,10 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 }
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(_ module.Configurator) {}
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	m := crosschainkeeper.NewMigrator(am.keeper, am.stakingKeeper)
+	cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+}
 
 // InitGenesis initializes the genesis state for this module and implements app module.
 func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {

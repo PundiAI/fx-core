@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -137,7 +135,7 @@ func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMess
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return fxtypes.CurrentConsensusVersion
+	return 1
 }
 
 // BeginBlock implements app module
