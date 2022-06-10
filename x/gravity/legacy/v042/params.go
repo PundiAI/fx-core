@@ -1,4 +1,4 @@
-package types
+package v042
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/functionx/fx-core/x/crosschain/types"
+	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
 var (
@@ -165,7 +165,7 @@ func validateContractHash(i interface{}) error {
 	if _, ok := i.(string); !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if err := types.ValidateEthereumAddress(i.(string)); err != nil {
+	if err := crosschaintypes.ValidateEthereumAddress(i.(string)); err != nil {
 		if err.Error() != "empty" {
 			return err
 		}
@@ -215,7 +215,7 @@ func validateBridgeContractAddress(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if err := types.ValidateEthereumAddress(v); err != nil {
+	if err := crosschaintypes.ValidateEthereumAddress(v); err != nil {
 		if err.Error() != "empty" {
 			return err
 		}

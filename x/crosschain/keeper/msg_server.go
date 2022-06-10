@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,7 +22,7 @@ type EthereumMsgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) ProposalMsgServer {
+func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &EthereumMsgServer{Keeper: keeper}
 }
 
@@ -46,11 +47,6 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 	if _, found := s.GetOracle(ctx, oracleAddr); found {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle existed bridger address")
 	}
-	validator, found := s.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
-		return nil, stakingtypes.ErrNoValidatorFound
-	}
-
 	// check bridger address is bound to oracle
 	if _, found := s.GetOracleAddressByBridgerKey(ctx, bridgerAddr); found {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
@@ -59,54 +55,71 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 	if _, found := s.GetOracleByExternalAddress(ctx, msg.ExternalAddress); found {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "external address is bound to oracle")
 	}
-
 	threshold := s.GetOracleDelegateThreshold(ctx)
-	if threshold.Denom != msg.DelegateAmount.Denom {
-		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom, got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
-	}
-	if msg.DelegateAmount.IsLT(threshold) {
-		return nil, types.ErrDelegateAmountBelowMinimum
-	}
-	if msg.DelegateAmount.Amount.GT(threshold.Amount.Mul(sdk.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
-		return nil, types.ErrDelegateAmountBelowMaximum
-	}
-
-	deleteAddr := types.GetOracleDelegateAddress(msg.ChainName, oracleAddr)
-	newShares, err := s.stakingKeeper.Delegate(ctx, deleteAddr, msg.DelegateAmount.Amount, stakingtypes.Unbonded, validator, true)
-	if err != nil {
-		return nil, err
-	}
-
 	oracle := types.Oracle{
 		OracleAddress:     oracleAddr.String(),
 		BridgerAddress:    bridgerAddr.String(),
 		ExternalAddress:   msg.ExternalAddress,
-		DelegateAmount:    msg.DelegateAmount,
+		DelegateAmount:    msg.DelegateAmount.Amount,
 		StartHeight:       ctx.BlockHeight(),
 		Jailed:            false,
 		JailedHeight:      0,
 		DelegateValidator: msg.ValidatorAddress,
-		OracleIsValidator: false,
+		IsValidator:       false,
 	}
-	// save oracle
-	s.SetOracle(ctx, oracle)
-	// set the bridger address
-	s.SetOracleByBridger(ctx, oracleAddr, bridgerAddr)
-	// set the ethereum address
-	s.SetExternalAddressForOracle(ctx, oracleAddr, msg.ExternalAddress)
-	// save total stake amount
-	totalStake := s.GetTotalDelegate(ctx)
-	s.SetTotalDelegate(ctx, totalStake.Add(msg.DelegateAmount))
+	oravleVal, found := s.stakingKeeper.GetValidator(ctx, oracleAddr.Bytes())
+	if found {
+		if msg.OracleAddress != msg.ValidatorAddress {
+			return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle is a validator but validator address is not itself")
+		}
+		if msg.DelegateAmount.IsPositive() {
+			return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle is a validator, cannot delegate here")
+		}
+		if msg.DelegateAmount.Denom != "" && msg.DelegateAmount.Denom != threshold.Denom {
+			return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom, got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
+		}
+		oracle.IsValidator = true
+		oracle.Jailed = oravleVal.Jailed
+		oracle.JailedHeight = ctx.BlockHeight()
+		oracle.DelegateAmount = sdk.NewInt(oravleVal.ConsensusPower(sdk.DefaultPowerReduction))
+	} else {
+		validator, found := s.stakingKeeper.GetValidator(ctx, valAddr)
+		if !found {
+			return nil, stakingtypes.ErrNoValidatorFound
+		}
+		if threshold.Denom != msg.DelegateAmount.Denom {
+			return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom, got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
+		}
+		if msg.DelegateAmount.IsLT(threshold) {
+			return nil, types.ErrDelegateAmountBelowMinimum
+		}
+		if msg.DelegateAmount.Amount.GT(threshold.Amount.Mul(sdk.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
+			return nil, types.ErrDelegateAmountBelowMaximum
+		}
 
-	s.CommonSetOracleTotalPower(ctx)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
+		deleteAddr := types.GetOracleDelegateAddress(msg.ChainName, oracleAddr)
+		newShares, err := s.stakingKeeper.Delegate(ctx, deleteAddr, msg.DelegateAmount.Amount, stakingtypes.Unbonded, validator, true)
+		if err != nil {
+			return nil, err
+		}
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			stakingtypes.EventTypeDelegate,
 			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, msg.ValidatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.DelegateAmount.String()),
 			sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
-		),
+		))
+	}
+
+	// save oracle
+	s.SetOracle(ctx, oracle)
+	// set the bridger address
+	s.SetOracleByBridger(ctx, oracleAddr, bridgerAddr)
+	// set the external address
+	s.SetExternalAddressForOracle(ctx, oracleAddr, msg.ExternalAddress)
+	// update oracle total power
+	s.CommonSetOracleTotalPower(ctx)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
@@ -127,6 +140,9 @@ func (s EthereumMsgServer) AddOracleDelegate(c context.Context, msg *types.MsgAd
 	if !found {
 		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, msg.OracleAddress)
 	}
+	if oracle.IsValidator {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle is a validator, cannot delegate here")
+	}
 	valAddr, err := sdk.ValAddressFromBech32(oracle.DelegateValidator)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
@@ -137,29 +153,25 @@ func (s EthereumMsgServer) AddOracleDelegate(c context.Context, msg *types.MsgAd
 	}
 
 	threshold := s.GetOracleDelegateThreshold(ctx)
-	// check stake denom
+	// check delegate denom
 	if threshold.Denom != msg.Amount.Denom {
 		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom, got %s, expected %s", msg.Amount.Denom, threshold.Denom)
 	}
 	// check oracle total delegateAmount grate then minimum delegateAmount amount
-	delegateAmount := oracle.DelegateAmount.Add(msg.Amount)
-	if delegateAmount.Amount.Sub(threshold.Amount).IsNegative() {
+	delegateAmount := oracle.DelegateAmount.Add(msg.Amount.Amount)
+	if delegateAmount.Sub(threshold.Amount).IsNegative() {
 		return nil, types.ErrDelegateAmountBelowMinimum
 	}
-	if delegateAmount.Amount.GT(threshold.Amount.Mul(sdk.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
+	if delegateAmount.GT(threshold.Amount.Mul(sdk.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
 		return nil, types.ErrDelegateAmountBelowMaximum
 	}
-
-	totalDelegateAmount := s.GetTotalDelegate(ctx)
-	totalDelegateAmount = totalDelegateAmount.Add(msg.Amount)
 
 	deleteAddr := types.GetOracleDelegateAddress(msg.ChainName, oracleAddr)
 	newShares, err := s.stakingKeeper.Delegate(ctx, deleteAddr, msg.Amount.Amount, stakingtypes.Unbonded, validator, true)
 	if err != nil {
 		return nil, err
 	}
-	// save new total delegateAmount
-	s.SetTotalDelegate(ctx, totalDelegateAmount)
+
 	if oracle.Jailed {
 		oracle.Jailed = false
 		oracle.StartHeight = ctx.BlockHeight()
@@ -187,14 +199,92 @@ func (s EthereumMsgServer) AddOracleDelegate(c context.Context, msg *types.MsgAd
 	return &types.MsgAddOracleDelegateResponse{}, nil
 }
 
-func (s EthereumMsgServer) EditOracle(ctx context.Context, oracle *types.MsgEditOracle) (*types.MsgEditOracleResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (s EthereumMsgServer) EditOracle(c context.Context, msg *types.MsgEditOracle) (*types.MsgEditOracleResponse, error) {
+	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	oracle, found := s.GetOracle(ctx, oracleAddr)
+	if !found {
+		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, msg.OracleAddress)
+	}
+	if oracle.Jailed {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle jailed")
+	}
+	if oracle.IsValidator {
+		if msg.ValidatorAddress != "" && msg.ValidatorAddress != msg.OracleAddress {
+			return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle is a validator, cannot edit validator address")
+		}
+	} else {
+		if msg.ValidatorAddress != "" && msg.ValidatorAddress != msg.OracleAddress {
+			delegateAddress := types.GetOracleDelegateAddress(msg.ChainName, oracleAddr)
+			valSrcAddress, err := sdk.ValAddressFromBech32(oracle.DelegateValidator)
+			if err != nil {
+				return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
+			}
+			valDestAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+			if err != nil {
+				return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
+			}
+			sharesAmount, err := s.stakingKeeper.ValidateUnbondAmount(ctx, delegateAddress, valSrcAddress, oracle.DelegateAmount)
+			if err != nil {
+				return nil, err
+			}
+			completionTime, err := s.stakingKeeper.BeginRedelegation(ctx, delegateAddress, valSrcAddress, valDestAddress, sharesAmount)
+			if err != nil {
+				return nil, err
+			}
+			ctx.EventManager().EmitEvent(sdk.NewEvent(
+				stakingtypes.EventTypeRedelegate,
+				sdk.NewAttribute(stakingtypes.AttributeKeySrcValidator, oracle.DelegateValidator),
+				sdk.NewAttribute(stakingtypes.AttributeKeyDstValidator, msg.ValidatorAddress),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
+				sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+			))
+		}
+	}
+	//TODO implement me edit bridger and external address
+	return &types.MsgEditOracleResponse{}, err
 }
 
-func (s EthereumMsgServer) WithdrawReward(ctx context.Context, reward *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (s EthereumMsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
+	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	oracle, found := s.GetOracle(ctx, oracleAddr)
+	if !found {
+		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, msg.OracleAddress)
+	}
+	if oracle.Jailed {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle jailed")
+	}
+	if oracle.IsValidator {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle is a validator, cannot withdraw reward here")
+	}
+	validatorAddr, err := sdk.ValAddressFromBech32(oracle.DelegateValidator)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
+	}
+
+	deleteAddr := types.GetOracleDelegateAddress(msg.ChainName, oracleAddr)
+	rewards, err := s.distributionKeeper.WithdrawDelegationRewards(ctx, deleteAddr, validatorAddr)
+	if err != nil {
+		return nil, err
+	}
+	if err = s.bankKeeper.SendCoins(ctx, deleteAddr, oracleAddr, rewards); err != nil {
+		return nil, err
+	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OracleAddress),
+		),
+	)
+	return &types.MsgWithdrawRewardResponse{}, nil
 }
 
 // SendToExternal handles MsgSendToExternal

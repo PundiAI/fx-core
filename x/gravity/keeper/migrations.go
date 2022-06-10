@@ -17,11 +17,15 @@ type Migrator struct {
 	gravityStoreKey sdk.StoreKey
 	ethStoreKey     sdk.StoreKey
 	ethKeeper       v045.EthKeeper
+
+	legacyAmino *codec.LegacyAmino
+	paramsKey   sdk.StoreKey
 }
 
 // NewMigrator returns a new Migrator.
 func NewMigrator(cdc codec.BinaryCodec, keeper Keeper, sk v045.StakingKeeper, ak v045.AccountKeeper, bk v045.BankKeeper,
-	ethKeeper v045.EthKeeper, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey) Migrator {
+	ethKeeper v045.EthKeeper, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey,
+	legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) Migrator {
 	return Migrator{
 		keeper:          keeper,
 		cdc:             cdc,
@@ -31,6 +35,9 @@ func NewMigrator(cdc codec.BinaryCodec, keeper Keeper, sk v045.StakingKeeper, ak
 		ethKeeper:       ethKeeper,
 		gravityStoreKey: gravityStoreKey,
 		ethStoreKey:     ethStoreKey,
+
+		legacyAmino: legacyAmino,
+		paramsKey:   paramsKey,
 	}
 }
 
@@ -40,7 +47,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		return err
 	}
 	oracles := v045.MigrateValidatorToOracle(ctx, m.cdc, m.gravityStoreKey, m.ethStoreKey, m.sk)
-	if err := v045.MigrateParams(ctx, m.keeper.GetParams(ctx), m.ethKeeper, oracles.Oracles); err != nil {
+	if err := v045.MigrateParams(ctx, m.cdc, m.legacyAmino, m.paramsKey, m.ethKeeper, oracles.Oracles); err != nil {
 		return err
 	}
 	v045.MigrateStore(ctx, m.gravityStoreKey, m.ethStoreKey)

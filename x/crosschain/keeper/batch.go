@@ -300,3 +300,54 @@ func (k Keeper) IterateBatchBySlashedBatchBlock(ctx sdk.Context, lastSlashedBatc
 		}
 	}
 }
+
+/////////////////////////////
+//      BATCH CONFIRMS     //
+/////////////////////////////
+
+// GetBatchConfirm returns a batch confirmation given its nonce, the token contract, and a oracle address
+func (k Keeper) GetBatchConfirm(ctx sdk.Context, nonce uint64, tokenContract string, oracleAddr sdk.AccAddress) *types.MsgConfirmBatch {
+	store := ctx.KVStore(k.storeKey)
+	entity := store.Get(types.GetBatchConfirmKey(tokenContract, nonce, oracleAddr))
+	if entity == nil {
+		return nil
+	}
+	confirm := types.MsgConfirmBatch{}
+	k.cdc.MustUnmarshal(entity, &confirm)
+	return &confirm
+}
+
+// SetBatchConfirm sets a batch confirmation by a oracle
+func (k Keeper) SetBatchConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, batch *types.MsgConfirmBatch) []byte {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetBatchConfirmKey(batch.TokenContract, batch.Nonce, oracleAddr)
+	store.Set(key, k.cdc.MustMarshal(batch))
+	return key
+}
+
+// IterateBatchConfirmByNonceAndTokenContract iterates through all batch confirmations
+// MARK finish-batches: this is where the key is iterated in the old (presumed working) code
+func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce uint64, tokenContract string, cb func([]byte, types.MsgConfirmBatch) bool) {
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.BatchConfirmKey)
+	prefixKey := append([]byte(tokenContract), sdk.Uint64ToBigEndian(nonce)...)
+	iter := prefixStore.Iterator(prefixRange(prefixKey))
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		confirm := types.MsgConfirmBatch{}
+		k.cdc.MustUnmarshal(iter.Value(), &confirm)
+		// cb returns true to stop early
+		if cb(iter.Key(), confirm) {
+			break
+		}
+	}
+}
+
+// GetBatchConfirmByNonceAndTokenContract returns the batch confirms
+func (k Keeper) GetBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce uint64, tokenContract string) (out []types.MsgConfirmBatch) {
+	k.IterateBatchConfirmByNonceAndTokenContract(ctx, nonce, tokenContract, func(_ []byte, msg types.MsgConfirmBatch) bool {
+		out = append(out, msg)
+		return false
+	})
+	return
+}

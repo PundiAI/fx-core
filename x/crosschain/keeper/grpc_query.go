@@ -367,7 +367,7 @@ func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLa
 }
 
 func (k Keeper) Oracles(c context.Context, _ *types.QueryOraclesRequest) (*types.QueryOraclesResponse, error) {
-	oracles := k.GetAllOracles(sdk.UnwrapSDKContext(c))
+	oracles := k.GetAllOracles(sdk.UnwrapSDKContext(c), false)
 	return &types.QueryOraclesResponse{Oracles: oracles}, nil
 }
 

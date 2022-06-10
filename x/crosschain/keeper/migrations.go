@@ -22,7 +22,14 @@ func NewMigrator(keeper Keeper, sk v045.StakingKeeper) Migrator {
 
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	if err := v045.MigrateDepositToStaking(ctx, m.keeper.GetAllOracles(ctx), m.sk); err != nil {
+	if err := v045.MigrateParams(ctx, &m.keeper.paramSpace); err != nil {
+		return err
+	}
+	oracles, err := v045.MigrateOracle(ctx, m.keeper.cdc, m.keeper.storeKey, m.sk)
+	if err != nil {
+		return err
+	}
+	if err := v045.MigrateDepositToStaking(ctx, oracles, m.sk); err != nil {
 		return err
 	}
 	v045.MigratePruneIbcSequenceKey(ctx, m.keeper.storeKey)

@@ -57,14 +57,14 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 		logger.Error("ibc channel next sequence send not found!!!", "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel)
 		return
 	}
-	logger.Info("CrossChain start ibc transfer", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "destCurrentHeight", clientStateHeight.GetRevisionHeight(), "destTimeoutHeight", destTimeoutHeight, "nextSequenceSend", nextSequenceSend)
+	logger.Info("crosschain start ibc transfer", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "destCurrentHeight", clientStateHeight.GetRevisionHeight(), "destTimeoutHeight", destTimeoutHeight, "nextSequenceSend", nextSequenceSend)
 
 	if err = k.ibcTransferKeeper.SendTransfer(ctx,
 		targetIBC.SourcePort, targetIBC.SourceChannel,
 		coin, receiveAddr, ibcReceiveAddress,
 		ibcTimeoutHeight, 0,
 		"", sdk.NewCoin(coin.Denom, sdk.ZeroInt())); err != nil {
-		logger.Error("CrossChain ibc transfer fail", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "err", err)
+		logger.Error("crosschain ibc transfer fail", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "err", err)
 		return
 	}
 

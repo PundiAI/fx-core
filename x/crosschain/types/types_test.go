@@ -1,11 +1,10 @@
 package types
 
 import (
-	"reflect"
-	"testing"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
 )
 
 func TestOutgoingTxBatch_GetFees(t *testing.T) {

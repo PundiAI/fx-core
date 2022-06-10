@@ -26,7 +26,7 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 		case types.CrossChainMsg:
 			chainName = msg.GetChainName()
 			if !moduleHandlerRouter.HasRoute(chainName) {
-				return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", chainName))
+				return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", chainName))
 			}
 			msgServer = k.Router().GetRoute(chainName).MsgServer
 		default:
@@ -75,14 +75,14 @@ func NewCrossChainProposalHandler(k keeper.RouterKeeper) govtypes.Handler {
 		switch c := content.(type) {
 		case *types.InitCrossChainParamsProposal:
 			if !moduleHandlerRouter.HasRoute(c.ChainName) {
-				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", c.ChainName))
+				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", c.ChainName))
 			}
-			return k.Router().GetRoute(c.ChainName).MsgServer.HandleInitCrossChainParamsProposal(ctx, c)
+			return keeper.HandleInitCrossChainParamsProposal(ctx, k.Router().GetRoute(c.ChainName).MsgServer, c)
 		case *types.UpdateChainOraclesProposal:
 			if !moduleHandlerRouter.HasRoute(c.ChainName) {
-				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", c.ChainName))
+				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", c.ChainName))
 			}
-			return k.Router().GetRoute(c.ChainName).MsgServer.HandleUpdateChainOraclesProposal(ctx, c)
+			return keeper.HandleUpdateChainOraclesProposal(ctx, k.Router().GetRoute(c.ChainName).MsgServer, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized %s proposal content type: %T", types.ModuleName, c)
 		}

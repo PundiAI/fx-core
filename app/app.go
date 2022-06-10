@@ -479,7 +479,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		myApp.BankKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
 	ethMsgServer := crosschainkeeper.NewMsgServerImpl(myApp.EthKeeper.Keeper)
-	myApp.GravityKeeper = gravitykeeper.NewKeeper(myApp.GetSubspace(gravitytypes.ModuleName), ethMsgServer)
+	myApp.GravityKeeper = gravitykeeper.NewKeeper(ethMsgServer)
 
 	// add cross-chain router
 	crosschainRouter := crosschainkeeper.NewRouter()
@@ -498,7 +498,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		}).
 		AddRoute(trontypes.ModuleName, &crosschainkeeper.ModuleHandler{
 			QueryServer: myApp.TronKeeper,
-			MsgServer:   tronkeeper.NewMsgServerImpl(myApp.TronKeeper.Keeper),
+			MsgServer:   tronkeeper.NewMsgServerImpl(myApp.TronKeeper),
 		})
 
 	myApp.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
@@ -565,7 +565,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// must be passed by reference here.
 
 	gravityMigrate := gravitykeeper.NewMigrator(myApp.appCodec, myApp.GravityKeeper, myApp.StakingKeeper, myApp.AccountKeeper,
-		myApp.BankKeeper, myApp.EthKeeper, keys[gravitytypes.ModuleName], keys[ethtypes.ModuleName])
+		myApp.BankKeeper, myApp.EthKeeper, keys[gravitytypes.ModuleName], keys[ethtypes.ModuleName],
+		legacyAmino, keys[paramstypes.StoreKey])
 
 	myApp.mm = module.NewManager(
 		genutil.NewAppModule(

@@ -16,12 +16,12 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	slashing(ctx, k, params)
 	attestationTally(ctx, k)
 	cleanupTimedOutBatches(ctx, k)
-	createOracleSets(ctx, k, params)
-	pruneOracleSets(ctx, k, params.SignedWindow)
+	createOracleSetRequest(ctx, k, params)
+	pruneOracleSet(ctx, k, params.SignedWindow)
 	pruneAttestations(ctx, k)
 }
 
-func createOracleSets(ctx sdk.Context, k keeper.Keeper, params types.Params) {
+func createOracleSetRequest(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 	// Auto OracleSetRequest Creation.
 	// WARNING: do not use k.GetLastObservedOracleSet in this function, it *will* result in losing control of the bridge
 	if currentOracleSet, isNeed := isNeedOracleSetRequest(ctx, k, params.OracleSetUpdatePowerChangePercent); isNeed {
@@ -38,7 +38,7 @@ func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper, oracleSetUpdatePow
 	}
 	// 2. Oracle slash
 	if k.GetLastOracleSlashBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
-		ctx.Logger().Info("CrossChain", "oracle set change, has oracle slash in block", ctx.BlockHeight())
+		ctx.Logger().Info("oracle set change", "has oracle slash in block", ctx.BlockHeight())
 		return currentOracleSet, true
 	}
 	// 3. Power diff
@@ -53,7 +53,7 @@ func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper, oracleSetUpdatePow
 		oracleSetUpdatePowerChangePercent = sdk.OneDec()
 	}
 	if powerDiffDec.GTE(oracleSetUpdatePowerChangePercent) {
-		ctx.Logger().Info("CrossChain", "oracleSet power change, change threshold", oracleSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
+		ctx.Logger().Info("oracle set change", "change threshold", oracleSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
 		return currentOracleSet, true
 	}
 	return currentOracleSet, false
@@ -64,7 +64,7 @@ func slashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 		return
 	}
 	// Slash oracle for not confirming oracle set requests, batch requests
-	oracles := k.GetAllActiveOracles(ctx)
+	oracles := k.GetAllOracles(ctx, true)
 	oracleSetHasSlash := oracleSetSlashing(ctx, k, oracles, params)
 	batchHasSlash := batchSlashing(ctx, k, oracles, params)
 	if oracleSetHasSlash || batchHasSlash {
@@ -88,7 +88,7 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 				continue
 			}
 			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
-				logger.Info("CrossChain", "slash oracle by oracle set slashing oracle", oracle.OracleAddress,
+				logger.Info("slash oracle by oracle set", "oracleAddress", oracle.OracleAddress,
 					"oracleSetNonce", oracleSet.Nonce, "oracleSetHeight", oracleSet.Height, "blockHeight", ctx.BlockHeight(), "slashFraction", params.SlashFraction.String())
 				k.SlashOracle(ctx, oracle, params.SlashFraction)
 				hasSlash = true
@@ -115,7 +115,7 @@ func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, para
 				continue
 			}
 			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
-				logger.Info("CrossChain", "slash oracle by oracle set slashing oracle", oracle.OracleAddress,
+				logger.Info("slash oracle by batch", "oracleAddress", oracle.OracleAddress,
 					"batchNonce", batch.BatchNonce, "batchHeight", batch.Block, "blockHeight", ctx.BlockHeight(), "slashFraction", params.SlashFraction.String())
 				k.SlashOracle(ctx, oracle, params.SlashFraction)
 				hasSlash = true
@@ -194,8 +194,8 @@ func cleanupTimedOutBatches(ctx sdk.Context, k keeper.Keeper) {
 	}
 }
 
-// pruneOracleSets
-func pruneOracleSets(ctx sdk.Context, k keeper.Keeper, signedOracleSetsWindow uint64) {
+// pruneOracleSet
+func pruneOracleSet(ctx sdk.Context, k keeper.Keeper, signedOracleSetsWindow uint64) {
 	// Validator set pruning
 	// prune all validator sets with a nonce less than the
 	// last observed nonce, they can't be submitted any longer

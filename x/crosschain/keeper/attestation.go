@@ -75,7 +75,6 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 		}
 		oracle, found := k.GetOracle(ctx, oracleAddr)
 		if !found {
-			//panic(fmt.Sprintf("not found oracle:%s", oracleAddr.String()))
 			logger.Error("TryAttestation", "not found oracle", oracleAddr.String(), "claimEventNonce",
 				claim.GetEventNonce(), "claimType", claim.GetEventNonce(), "claimHeight", claim.GetBlockHeight())
 			continue
@@ -210,6 +209,12 @@ func (k Keeper) GetLastObservedEventNonce(ctx sdk.Context) uint64 {
 	return sdk.BigEndianToUint64(bytes)
 }
 
+// SetLastObservedEventNonce sets the latest observed event nonce
+func (k Keeper) SetLastObservedEventNonce(ctx sdk.Context, nonce uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.LastObservedEventNonceKey, sdk.Uint64ToBigEndian(nonce))
+}
+
 // GetLastObservedBlockHeight height gets the block height to of the last observed attestation from
 // the store
 func (k Keeper) GetLastObservedBlockHeight(ctx sdk.Context) types.LastObservedBlockHeight {
@@ -235,34 +240,6 @@ func (k Keeper) SetLastObservedBlockHeight(ctx sdk.Context, externalBlockHeight 
 		BlockHeight:         uint64(ctx.BlockHeight()),
 	}
 	store.Set(types.LastObservedBlockHeightKey, k.cdc.MustMarshal(&height))
-}
-
-// GetLastObservedOracleSet retrieves the last observed oracle set from the store
-// WARNING: This value is not an up to date oracle set on Ethereum, it is a oracle set
-// that AT ONE POINT was the one in the bridge on Ethereum. If you assume that it's up
-// to date you may break the bridge
-func (k Keeper) GetLastObservedOracleSet(ctx sdk.Context) *types.OracleSet {
-	store := ctx.KVStore(k.storeKey)
-	bytes := store.Get(types.LastObservedOracleSetKey)
-
-	if len(bytes) == 0 {
-		return nil
-	}
-	valset := types.OracleSet{}
-	k.cdc.MustUnmarshal(bytes, &valset)
-	return &valset
-}
-
-// SetLastObservedOracleSet updates the last observed oracle set in the store
-func (k Keeper) SetLastObservedOracleSet(ctx sdk.Context, valset types.OracleSet) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastObservedOracleSetKey, k.cdc.MustMarshal(&valset))
-}
-
-// SetLastObservedEventNonce sets the latest observed event nonce
-func (k Keeper) SetLastObservedEventNonce(ctx sdk.Context, nonce uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastObservedEventNonceKey, sdk.Uint64ToBigEndian(nonce))
 }
 
 // GetLastEventNonceByOracle returns the latest event nonce for a given oracle
@@ -299,4 +276,10 @@ func (k Keeper) DelLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress
 func (k Keeper) SetLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetLastEventNonceByOracleKey(oracle), sdk.Uint64ToBigEndian(nonce))
+}
+
+func (k Keeper) UnpackAttestationClaim(att *types.Attestation) (types.ExternalClaim, error) {
+	var msg types.ExternalClaim
+	err := k.cdc.UnpackAny(att.Claim, &msg)
+	return msg, err
 }

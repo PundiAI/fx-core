@@ -58,6 +58,9 @@
 - [crosschain/v1/genesis.proto](#crosschain/v1/genesis.proto)
     - [GenesisState](#fx.gravity.crosschain.v1.GenesisState)
   
+- [crosschain/v1/legacy_oracle.proto](#crosschain/v1/legacy_oracle.proto)
+    - [LegacyOracle](#fx.gravity.crosschain.v1.LegacyOracle)
+  
 - [crosschain/v1/query.proto](#crosschain/v1/query.proto)
     - [QueryBatchConfirmRequest](#fx.gravity.crosschain.v1.QueryBatchConfirmRequest)
     - [QueryBatchConfirmResponse](#fx.gravity.crosschain.v1.QueryBatchConfirmResponse)
@@ -406,12 +409,12 @@ even if no Ethereum block height has been relayed for a long time
 | `oracle_address` | [string](#string) |  |  |
 | `bridger_address` | [string](#string) |  |  |
 | `external_address` | [string](#string) |  |  |
-| `delegate_amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `delegate_amount` | [string](#string) |  |  |
 | `start_height` | [int64](#int64) |  | start oracle height |
 | `jailed` | [bool](#bool) |  |  |
 | `jailed_height` | [int64](#int64) |  |  |
 | `delegate_validator` | [string](#string) |  |  |
-| `oracle_is_validator` | [bool](#bool) |  |  |
+| `is_validator` | [bool](#bool) |  |  |
 
 
 
@@ -1062,6 +1065,43 @@ GenesisState struct
 | `unbatched_transfers` | [OutgoingTransferTx](#fx.gravity.crosschain.v1.OutgoingTransferTx) | repeated |  |
 | `batches` | [OutgoingTxBatch](#fx.gravity.crosschain.v1.OutgoingTxBatch) | repeated |  |
 | `bridge_token` | [BridgeToken](#fx.gravity.crosschain.v1.BridgeToken) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="crosschain/v1/legacy_oracle.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## crosschain/v1/legacy_oracle.proto
+
+
+
+<a name="fx.gravity.crosschain.v1.LegacyOracle"></a>
+
+### LegacyOracle
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `oracle_address` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
+| `external_address` | [string](#string) |  |  |
+| `delegate_amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `start_height` | [int64](#int64) |  | start oracle height |
+| `jailed` | [bool](#bool) |  |  |
+| `jailed_height` | [int64](#int64) |  |  |
 
 
 

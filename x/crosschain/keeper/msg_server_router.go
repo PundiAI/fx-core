@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
@@ -125,23 +124,7 @@ func (k msgServer) ConfirmBatch(ctx context.Context, msg *types.MsgConfirmBatch)
 	}
 }
 
-//func (k msgServer) HandleInitCrossChainParamsProposal(ctx sdk.Context, p *types.InitCrossChainParamsProposal) error {
-//	if queryServer, err := k.getMsgServerByChainName(p.ChainName); err != nil {
-//		return err
-//	} else {
-//		return queryServer.HandleInitCrossChainParamsProposal(ctx, p)
-//	}
-//}
-//
-//func (k msgServer) HandleUpdateChainOraclesProposal(ctx sdk.Context, p *types.UpdateChainOraclesProposal) error {
-//	if queryServer, err := k.getMsgServerByChainName(p.ChainName); err != nil {
-//		return err
-//	} else {
-//		return queryServer.HandleUpdateChainOraclesProposal(ctx, p)
-//	}
-//}
-
-func (k msgServer) getMsgServerByChainName(chainName string) (ProposalMsgServer, error) {
+func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, error) {
 	msgServerRouter := k.routerKeeper.Router()
 	if !msgServerRouter.HasRoute(chainName) {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", chainName))

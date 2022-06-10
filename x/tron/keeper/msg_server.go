@@ -23,7 +23,7 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) crosschainkeeper.ProposalMsgServer {
+func NewMsgServerImpl(keeper Keeper) crosschaintypes.MsgServer {
 	return &msgServer{crosschainkeeper.EthereumMsgServer{Keeper: keeper.Keeper}}
 }
 
@@ -60,7 +60,7 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 	_ = key
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, s.GetModuleName()),
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
 	))
 
@@ -97,7 +97,7 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgO
 	_ = key
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, s.GetModuleName()),
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.BridgerAddress),
 	))
 

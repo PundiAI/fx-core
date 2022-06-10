@@ -19,9 +19,6 @@ const (
 )
 
 var (
-	// OracleTotalDelegateKey
-	OracleTotalDelegateKey = []byte{0x11}
-
 	// OracleKey key oracle address -> Oracle
 	OracleKey = []byte{0x12}
 

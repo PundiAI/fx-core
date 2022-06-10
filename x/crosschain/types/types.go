@@ -243,7 +243,7 @@ func (m Oracle) GetOracle() sdk.AccAddress {
 }
 
 func (m Oracle) GetPower() sdk.Int {
-	return m.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction)
+	return m.DelegateAmount.Quo(sdk.DefaultPowerReduction)
 }
 
 type Oracles []Oracle
@@ -253,7 +253,7 @@ func (v Oracles) Len() int {
 }
 
 func (v Oracles) Less(i, j int) bool {
-	return v[i].DelegateAmount.Amount.Sub(v[j].DelegateAmount.Amount).IsPositive()
+	return v[i].DelegateAmount.Sub(v[j].DelegateAmount).IsPositive()
 }
 
 func (v Oracles) Swap(i, j int) {

@@ -25,7 +25,7 @@ func TestIbcSequenceMigration(t *testing.T) {
 	for i := 1; i < 100; i++ {
 		require.True(t, store.Has(v042.GetIbcSequenceHeightKey(sourcePort, sourceChannel, uint64(i))))
 	}
-	require.NoError(t, v045.MigratePruneIbcSequenceKey(ctx, gravityKey))
+	v045.MigratePruneIbcSequenceKey(ctx, gravityKey)
 
 	// migrate after check key not exists
 	for i := 1; i < 100; i++ {

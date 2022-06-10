@@ -13,13 +13,16 @@ message Oracle {
   string oracle_address = 1;
   string bridger_address = 2;
   string external_address = 3;
-  cosmos.base.v1beta1.Coin delegate_amount = 4 [(gogoproto.nullable) = false];
+  string delegate_amount = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
   // start oracle height
   int64 start_height = 5;
   bool jailed = 6;
   int64 jailed_height = 7;
   string delegate_validator = 8;
-  bool  oracle_is_validator = 9;
+  bool  is_validator = 9;
 }
 // BridgeValidator represents a validator's external address and its power
 message BridgeValidator {

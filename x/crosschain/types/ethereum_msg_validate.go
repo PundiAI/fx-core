@@ -23,7 +23,7 @@ func (b EthereumMsgValidate) MsgCreateOracleBridgerValidate(m MsgCreateOracleBri
 	if err = ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "external address")
 	}
-	if !m.DelegateAmount.IsValid() || !m.DelegateAmount.IsPositive() {
+	if m.DelegateAmount.IsNegative() {
 		return sdkerrors.Wrap(ErrInvalid, "delegate amount")
 	}
 	return nil
@@ -40,13 +40,21 @@ func (b EthereumMsgValidate) MsgAddOracleDelegateValidate(m MsgAddOracleDelegate
 }
 
 func (b EthereumMsgValidate) MsgEditOracleValidate(m MsgEditOracle) (err error) {
-	//TODO implement me
-	panic("implement me")
+	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
+		return sdkerrors.Wrap(ErrInvalid, "oracle address")
+	}
+	// TODO need fix
+	if m.ValidatorAddress == "" && m.BridgeAddress == "" && m.ExternalAddress == "" {
+		return sdkerrors.Wrap(ErrUnknown, "address")
+	}
+	return nil
 }
 
 func (b EthereumMsgValidate) MsgWithdrawRewardValidate(m MsgWithdrawReward) (err error) {
-	//TODO implement me
-	panic("implement me")
+	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
+		return sdkerrors.Wrap(ErrInvalid, "oracle address")
+	}
+	return nil
 }
 
 func (b EthereumMsgValidate) MsgOracleSetConfirmValidate(m MsgOracleSetConfirm) (err error) {

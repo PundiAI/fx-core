@@ -305,6 +305,18 @@ func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees 
 	return batchFeesMap
 }
 
+func (k Keeper) autoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(idKey)
+	var id uint64 = 1
+	if bz != nil {
+		id = binary.BigEndian.Uint64(bz)
+	}
+	bz = sdk.Uint64ToBigEndian(id + 1)
+	store.Set(idKey, bz)
+	return id
+}
+
 // Helper method for creating batch fees
 func addFeeToMap(amt, fee types.ERC20Token, batchFeesMap map[string]*types.BatchFees, txCountMap map[string]int) {
 	txCountMap[fee.Contract] = txCountMap[fee.Contract] + 1
@@ -324,16 +336,4 @@ func addFeeToMap(amt, fee types.ERC20Token, batchFeesMap map[string]*types.Batch
 			TotalAmount:   amt.Amount,
 		}
 	}
-}
-
-func (k Keeper) autoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(idKey)
-	var id uint64 = 1
-	if bz != nil {
-		id = binary.BigEndian.Uint64(bz)
-	}
-	bz = sdk.Uint64ToBigEndian(id + 1)
-	store.Set(idKey, bz)
-	return id
 }

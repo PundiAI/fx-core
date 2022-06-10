@@ -35,15 +35,7 @@ func (k RouterKeeper) Logger(ctx sdk.Context) log.Logger {
 
 type ModuleHandler struct {
 	QueryServer types.QueryServer
-	MsgServer   ProposalMsgServer
-}
-
-type ProposalMsgServer interface {
-	types.MsgServer
-
-	HandleInitCrossChainParamsProposal(sdk.Context, *types.InitCrossChainParamsProposal) error
-
-	HandleUpdateChainOraclesProposal(sdk.Context, *types.UpdateChainOraclesProposal) error
+	MsgServer   types.MsgServer
 }
 
 var _ Router = (*router)(nil)

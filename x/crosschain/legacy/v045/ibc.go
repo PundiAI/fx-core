@@ -8,7 +8,7 @@ import (
 )
 
 // pruneIbcSequenceKey removes the zero balance addresses from balances store.
-func MigratePruneIbcSequenceKey(ctx sdk.Context, storeKey sdk.StoreKey) error {
+func MigratePruneIbcSequenceKey(ctx sdk.Context, storeKey sdk.StoreKey) {
 	store := ctx.KVStore(storeKey)
 	ibcSequenceStore := prefix.NewStore(store, v042.KeyIbcSequenceHeight)
 	iterator := ibcSequenceStore.Iterator(nil, nil)
@@ -17,5 +17,4 @@ func MigratePruneIbcSequenceKey(ctx sdk.Context, storeKey sdk.StoreKey) error {
 	for ; iterator.Valid(); iterator.Next() {
 		ibcSequenceStore.Delete(iterator.Key())
 	}
-	return nil
 }

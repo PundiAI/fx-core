@@ -5,8 +5,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 
 	v042gravity "github.com/functionx/fx-core/x/gravity/legacy/v042"
@@ -133,12 +131,12 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 			OracleAddress:     oracleAddress.String(),
 			BridgerAddress:    bridgerAddr.String(),
 			ExternalAddress:   externalAddress.String(),
-			DelegateAmount:    sdk.NewCoin(fxtypes.DefaultDenom, validator.Tokens),
+			DelegateAmount:    sdk.NewInt(validator.ConsensusPower(sdk.DefaultPowerReduction)),
 			StartHeight:       0,
 			Jailed:            validator.Jailed,
 			JailedHeight:      validator.UnbondingHeight,
 			DelegateValidator: oracleAddress.String(),
-			OracleIsValidator: true,
+			IsValidator:       true,
 		}
 		// SetOracle
 		ethStore.Set(crosschaintypes.GetOracleKey(oracle.GetOracle()), cdc.MustMarshal(&oracle))
