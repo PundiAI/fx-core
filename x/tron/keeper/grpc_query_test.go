@@ -19,22 +19,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 		expPass  bool
 	}{
 		{
-			"batch fee BaseFee is negative",
-			func() {
-				request = &types.QueryBatchFeeRequest{
-					ChainName: "tron",
-					MinBatchFees: []types.MinBatchFee{
-						{
-							TokenContract: suite.bridgeTokens[0].token,
-							BaseFee:       sdk.NewInt(-1),
-						},
-					},
-				}
-				response = &types.QueryBatchFeeResponse{}
-			},
-			false,
-		},
-		{
 			"batch fee BaseFee is Negative",
 			func() {
 				request = &types.QueryBatchFeeRequest{
@@ -46,7 +30,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 						},
 					},
 				}
-				response = &types.QueryBatchFeeResponse{}
 			},
 			false,
 		},
@@ -162,7 +145,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 						},
 					},
 				}
-				response = &types.QueryBatchFeeResponse{BatchFees: nil}
 			},
 			false,
 		},
@@ -254,7 +236,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 					TokenContract: suite.bridgeTokens[0].token,
 					Nonce:         0,
 				}
-				response = &types.QueryBatchRequestByNonceResponse{Batch: nil}
 			},
 			expPass: false,
 		},
@@ -266,7 +247,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 					TokenContract: "0xaD6D458402F60fD3Bd25163575031ACDce07538D",
 					Nonce:         8,
 				}
-				response = &types.QueryBatchRequestByNonceResponse{Batch: nil}
 			},
 			expPass: false,
 		},
@@ -278,7 +258,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 					TokenContract: suite.bridgeTokens[0].token,
 					Nonce:         8,
 				}
-				response = &types.QueryBatchRequestByNonceResponse{Batch: nil}
 			},
 			expPass: false,
 		},
@@ -290,7 +269,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 					TokenContract: GenTronContractAddress(),
 					Nonce:         8,
 				}
-				response = &types.QueryBatchRequestByNonceResponse{Batch: nil}
 			},
 			expPass: false,
 		},
@@ -327,7 +305,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 					ChainName:     "tron",
 					TokenContract: "0xaD6D458402F60fD3Bd25163575031ACDce07538D",
 				}
-				response = &types.QueryBatchConfirmsResponse{}
 			},
 			false,
 		},
@@ -339,7 +316,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchConfirms() {
 					TokenContract: GenTronContractAddress(),
 					Nonce:         0,
 				}
-				response = &types.QueryBatchConfirmsResponse{}
 			},
 			false,
 		},
