@@ -12,6 +12,9 @@ import (
 
 // EndBlocker is called at the end of every block
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
+	if len(k.GetGravityID(ctx)) <= 0 {
+		return
+	}
 	params := k.GetParams(ctx)
 	slashing(ctx, k, params)
 	attestationTally(ctx, k)

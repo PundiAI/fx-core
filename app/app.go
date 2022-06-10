@@ -565,7 +565,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// must be passed by reference here.
 
 	gravityMigrate := gravitykeeper.NewMigrator(myApp.appCodec, myApp.GravityKeeper, myApp.StakingKeeper, myApp.AccountKeeper,
-		myApp.BankKeeper, myApp.EthKeeper, keys[gravitytypes.ModuleName], keys[ethtypes.ModuleName],
+		myApp.BankKeeper, keys[gravitytypes.ModuleName], keys[ethtypes.ModuleName],
 		legacyAmino, keys[paramstypes.StoreKey])
 
 	myApp.mm = module.NewManager(
@@ -593,10 +593,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		// cross chain modules
 		gravity.NewAppModule(myApp.GravityKeeper, gravityMigrate),
 		crosschain.NewAppModuleByRouter(myApp.CrosschainKeeper),
-		eth.NewAppModule(myApp.EthKeeper.Keeper),
+		eth.NewAppModule(myApp.EthKeeper),
 		bsc.NewAppModule(myApp.BscKeeper, myApp.StakingKeeper),
 		polygon.NewAppModule(myApp.PolygonKeeper, myApp.StakingKeeper),
-		tron.NewAppModule(myApp.TronKeeper.Keeper, myApp.StakingKeeper),
+		tron.NewAppModule(myApp.TronKeeper, myApp.StakingKeeper),
 		// Ethermint app modules
 		//evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
 		//feemarket.NewAppModule(myApp.FeeMarketKeeper),

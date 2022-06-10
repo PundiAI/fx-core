@@ -2,6 +2,7 @@ package bsc
 
 import (
 	"encoding/json"
+	fmt "fmt"
 
 	crosschainv54 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
 
@@ -39,13 +40,17 @@ type AppModuleBasic struct{}
 func (AppModuleBasic) Name() string { return types.ModuleName }
 
 // DefaultGenesis implements app module basic
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return []byte("{}")
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 // ValidateGenesis implements app module basic
-func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConfig, _ json.RawMessage) error {
-	return nil
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, data json.RawMessage) error {
+	var state crosschaintypes.GenesisState
+	if err := cdc.UnmarshalJSON(data, &state); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+	}
+	return state.ValidateBasic()
 }
 
 // RegisterLegacyAminoCodec implements app module basic
@@ -118,13 +123,18 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // InitGenesis initializes the genesis state for this module and implements app module.
-func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState crosschaintypes.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+
+	crosschain.InitGenesis(ctx, am.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
-func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMessage {
-	return []byte("{}")
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	state := crosschain.ExportGenesis(ctx, am.keeper)
+	return cdc.MustMarshalJSON(state)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

@@ -146,6 +146,8 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 	}
 
 	// SetChainOracles
-	ethStore.Set(crosschaintypes.KeyChainOracles, cdc.MustMarshal(chainOracle))
+	if len(chainOracle.Oracles) > 0 {
+		ethStore.Set(crosschaintypes.KeyChainOracles, cdc.MustMarshal(chainOracle))
+	}
 	return chainOracle
 }

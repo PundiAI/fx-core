@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ethtypes "github.com/functionx/fx-core/x/eth/types"
 	v042 "github.com/functionx/fx-core/x/gravity/legacy/v042"
 	"github.com/functionx/fx-core/x/gravity/types"
 
@@ -11,16 +12,23 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
-func MigrateParams(ctx sdk.Context, cdc codec.BinaryCodec, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey, ethKeeper EthKeeper, oracles []string) error {
-
+func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey, oracles []string) error {
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(types.ModuleName), '/'))
 	gravityParams := &v042.Params{}
+	isExist := false
 	for _, pair := range gravityParams.ParamSetPairs() {
 		bz := paramsStore.Get(pair.Key)
+		if len(bz) <= 0 {
+			continue
+		}
+		isExist = true
 		if err := legacyAmino.UnmarshalJSON(bz, pair.Value); err != nil {
 			panic(err)
 		}
 		paramsStore.Delete(pair.Key)
+	}
+	if !isExist {
+		return nil
 	}
 	if err := gravityParams.ValidateBasic(); err != nil {
 		return err
@@ -43,7 +51,13 @@ func MigrateParams(ctx sdk.Context, cdc codec.BinaryCodec, legacyAmino *codec.Le
 		return err
 	}
 
-	ethKeeper.SetParams(ctx, params)
-	// remove gravity params
+	store := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(ethtypes.ModuleName), '/'))
+	for _, pair := range params.ParamSetPairs() {
+		bz, err := legacyAmino.MarshalJSON(pair.Value)
+		if err != nil {
+			panic(err)
+		}
+		store.Set(pair.Key, bz)
+	}
 	return nil
 }

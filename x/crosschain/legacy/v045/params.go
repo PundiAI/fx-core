@@ -8,11 +8,6 @@ import (
 )
 
 func MigrateParams(ctx sdk.Context, paramStore *paramtypes.Subspace) error {
-	if !paramStore.HasKeyTable() {
-		ps := paramStore.WithKeyTable(types.ParamKeyTable())
-		paramStore = &ps
-	}
-
 	params := types.Params{}
 	paramSetPairs := v042.GetParamSetPairs(&params)
 	for _, pair := range paramSetPairs {

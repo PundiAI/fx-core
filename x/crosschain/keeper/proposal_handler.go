@@ -24,7 +24,7 @@ func HandleInitCrossChainParamsProposal(ctx sdk.Context, msgServer types.MsgServ
 
 	keeper.Logger(ctx).Info("handle init cross chain params...", "proposal", proposal.String())
 	// init chain params
-	keeper.SetParams(ctx, *proposal.Params)
+	keeper.SetParams(ctx, proposal.Params)
 
 	// FIP: slash fraction cannot greater than one 100%  2021-10-26.
 	if proposal.Params.SlashFraction.GT(sdk.OneDec()) {

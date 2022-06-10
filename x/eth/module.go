@@ -2,6 +2,8 @@ package eth
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/functionx/fx-core/x/eth/keeper"
 
 	"github.com/functionx/fx-core/x/crosschain"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
@@ -37,13 +39,17 @@ type AppModuleBasic struct{}
 func (AppModuleBasic) Name() string { return types.ModuleName }
 
 // DefaultGenesis implements app module basic
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return []byte("{}")
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 // ValidateGenesis implements app module basic
-func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConfig, _ json.RawMessage) error {
-	return nil
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, data json.RawMessage) error {
+	var state crosschaintypes.GenesisState
+	if err := cdc.UnmarshalJSON(data, &state); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+	}
+	return state.ValidateBasic()
 }
 
 // RegisterLegacyAminoCodec implements app module basic
@@ -78,11 +84,11 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper crosschainkeeper.Keeper
+	keeper keeper.Keeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper crosschainkeeper.Keeper) AppModule {
+func NewAppModule(keeper keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
@@ -102,20 +108,25 @@ func (am AppModule) QuerierRoute() string { return types.QuerierRoute }
 
 // LegacyQuerierHandler returns the distribution module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return crosschainkeeper.NewQuerier(am.keeper, legacyQuerierCdc)
+	return crosschainkeeper.NewQuerier(am.keeper.Keeper, legacyQuerierCdc)
 }
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(_ module.Configurator) {}
 
 // InitGenesis initializes the genesis state for this module and implements app module.
-func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState crosschaintypes.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+
+	crosschain.InitGenesis(ctx, am.keeper.Keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
-func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMessage {
-	return []byte("{}")
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	state := crosschain.ExportGenesis(ctx, am.keeper.Keeper)
+	return cdc.MustMarshalJSON(state)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
@@ -128,6 +139,6 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock implements app module
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	crosschain.EndBlocker(ctx, am.keeper)
+	crosschain.EndBlocker(ctx, am.keeper.Keeper)
 	return []abci.ValidatorUpdate{}
 }

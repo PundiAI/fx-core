@@ -123,8 +123,9 @@ func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONCodec, _ json.RawMe
 }
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
-func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMessage {
-	return []byte("{}")
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	state := ExportGenesis(ctx, am.keeper)
+	return cdc.MustMarshalJSON(state)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

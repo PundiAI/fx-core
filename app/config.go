@@ -11,10 +11,6 @@ import (
 )
 
 func init() {
-	sdk.SetCoinDenomRegex(func() string {
-		return `[a-zA-Z][a-zA-Z0-9/-]{1,127}`
-	})
-
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(fxtypes.AddressPrefix, fxtypes.AddressPrefix+sdk.PrefixPublic)
 	config.SetBech32PrefixForValidator(fxtypes.AddressPrefix+sdk.PrefixValidator+sdk.PrefixOperator, fxtypes.AddressPrefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic)

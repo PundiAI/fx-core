@@ -237,9 +237,9 @@ func validateOracles(i interface{}) error {
 	if oracles, ok := i.([]string); !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	} else {
-		if len(oracles) <= 0 {
-			return fmt.Errorf("oracles cannot be empty")
-		}
+		//if len(oracles) <= 0 {
+		//	return fmt.Errorf("oracles cannot be empty")
+		//}
 		if len(oracles) > MaxOracleSize {
 			return fmt.Errorf("oracle length must be less than or equal: %d", MaxOracleSize)
 		}

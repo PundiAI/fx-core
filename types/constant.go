@@ -1,5 +1,7 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 var ChainID = "fxcore"
 
 const (
@@ -16,3 +18,9 @@ const (
 
 	CurrentConsensusVersion = 1
 )
+
+func init() {
+	sdk.SetCoinDenomRegex(func() string {
+		return `[a-zA-Z][a-zA-Z0-9/-]{1,127}`
+	})
+}

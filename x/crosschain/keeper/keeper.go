@@ -59,8 +59,8 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 }
 
 // SetParams sets the parameters in the store
-func (k Keeper) SetParams(ctx sdk.Context, ps types.Params) {
-	k.paramSpace.SetParamSet(ctx, &ps)
+func (k Keeper) SetParams(ctx sdk.Context, ps *types.Params) {
+	k.paramSpace.SetParamSet(ctx, ps)
 }
 
 // GetGravityID returns the GravityID is essentially a salt value
