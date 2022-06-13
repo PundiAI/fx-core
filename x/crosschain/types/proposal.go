@@ -10,76 +10,29 @@ import (
 )
 
 const (
-	// ProposalTypeInitCrossChainParams defines the type for a InitCrossChainParamsProposal
-	ProposalTypeInitCrossChainParams = "InitCrossChainParams"
-	// ProposalTypeUpdateChainOracles defines the type for a UpdateChainOraclesProposal
-	ProposalTypeUpdateChainOracles = "UpdateChainOracles"
+	// ProposalTypeUpdateCrossChainOracles defines the type for a UpdateCrossChainOraclesProposal
+	ProposalTypeUpdateCrossChainOracles = "UpdateCrossChainOracles"
 )
 
 var (
-	_ govtypes.Content = &InitCrossChainParamsProposal{}
-	_ govtypes.Content = &UpdateChainOraclesProposal{}
+	_ govtypes.Content = &UpdateCrossChainOraclesProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeInitCrossChainParams)
-	govtypes.RegisterProposalType(ProposalTypeUpdateChainOracles)
+	govtypes.RegisterProposalType(ProposalTypeUpdateCrossChainOracles)
 }
 
-// Proposal handler
+func (m *UpdateCrossChainOraclesProposal) GetTitle() string { return m.Title }
 
-func (m *InitCrossChainParamsProposal) GetTitle() string {
-	return m.Title
+func (m *UpdateCrossChainOraclesProposal) GetDescription() string { return m.Description }
+
+func (m *UpdateCrossChainOraclesProposal) ProposalRoute() string { return RouterKey }
+
+func (m *UpdateCrossChainOraclesProposal) ProposalType() string {
+	return ProposalTypeUpdateCrossChainOracles
 }
 
-func (m *InitCrossChainParamsProposal) GetDescription() string {
-	return m.Description
-}
-
-func (m *InitCrossChainParamsProposal) ProposalRoute() string { return RouterKey }
-
-func (m *InitCrossChainParamsProposal) ProposalType() string { return ProposalTypeInitCrossChainParams }
-
-func (m *InitCrossChainParamsProposal) ValidateBasic() error {
-	if err := ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "chain name")
-	}
-	if err := govtypes.ValidateAbstract(m); err != nil {
-		return err
-	}
-	if err := m.Params.ValidateBasic(); err != nil {
-		return err
-	}
-	if len(m.Params.Oracles) == 0 {
-		return sdkerrors.Wrap(ErrEmpty, "oracles")
-	}
-	return nil
-}
-
-func (m *InitCrossChainParamsProposal) String() string {
-	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`Init CrossChain Params Proposal:
-  Title:       %s
-  Description: %s
-  ChainName: %s
-  Params: %v
-`, m.Title, m.Description, m.ChainName, m.Params))
-	return b.String()
-}
-
-func (m *UpdateChainOraclesProposal) GetTitle() string {
-	return m.Title
-}
-
-func (m *UpdateChainOraclesProposal) GetDescription() string {
-	return m.Description
-}
-
-func (m *UpdateChainOraclesProposal) ProposalRoute() string { return RouterKey }
-
-func (m *UpdateChainOraclesProposal) ProposalType() string { return ProposalTypeUpdateChainOracles }
-
-func (m *UpdateChainOraclesProposal) ValidateBasic() error {
+func (m *UpdateCrossChainOraclesProposal) ValidateBasic() error {
 	if err := ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -104,7 +57,7 @@ func (m *UpdateChainOraclesProposal) ValidateBasic() error {
 	return nil
 }
 
-func (m *UpdateChainOraclesProposal) String() string {
+func (m *UpdateCrossChainOraclesProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Update Chain Oracles Proposal:
   Title:       %s

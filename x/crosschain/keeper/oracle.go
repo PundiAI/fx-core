@@ -11,30 +11,30 @@ import (
 )
 
 /////////////////////////////
-//      CHAIN ORACLES      //
+//    PROPOSAL ORACLE      //
 /////////////////////////////
 
-func (k Keeper) SetChainOracles(ctx sdk.Context, chainOracle *types.ChainOracle) {
+func (k Keeper) SetProposalOracle(ctx sdk.Context, proposalOracle *types.ProposalOracle) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyChainOracles, k.cdc.MustMarshal(chainOracle))
+	store.Set(types.ProposalOracleKey, k.cdc.MustMarshal(proposalOracle))
 }
 
-func (k Keeper) GetChainOracles(ctx sdk.Context) (chainOracle types.ChainOracle, found bool) {
+func (k Keeper) GetProposalOracle(ctx sdk.Context) (proposalOracle types.ProposalOracle, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.KeyChainOracles)
+	bz := store.Get(types.ProposalOracleKey)
 	if bz == nil {
-		return chainOracle, false
+		return proposalOracle, false
 	}
-	k.cdc.MustUnmarshal(bz, &chainOracle)
-	return chainOracle, true
+	k.cdc.MustUnmarshal(bz, &proposalOracle)
+	return proposalOracle, true
 }
 
-func (k Keeper) IsOracle(ctx sdk.Context, oracleAddr string) bool {
-	chainOracle, found := k.GetChainOracles(ctx)
+func (k Keeper) IsProposalOracle(ctx sdk.Context, oracleAddr string) bool {
+	proposalOracle, found := k.GetProposalOracle(ctx)
 	if !found {
 		return false
 	}
-	for _, oracle := range chainOracle.Oracles {
+	for _, oracle := range proposalOracle.Oracles {
 		if oracle == oracleAddr {
 			return true
 		}
@@ -49,6 +49,7 @@ func (k Keeper) IsOracle(ctx sdk.Context, oracleAddr string) bool {
 // SetOracleByBridger sets the bridger key for a given oracle
 func (k Keeper) SetOracleByBridger(ctx sdk.Context, oracleAddr sdk.AccAddress, bridgerAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
+	// save external oracleAddr -> bridgerAddr
 	store.Set(types.GetOracleAddressByBridgerKey(bridgerAddr), oracleAddr.Bytes())
 }
 
@@ -74,10 +75,10 @@ func (k Keeper) DelOracleByBridger(ctx sdk.Context, bridgerAddr sdk.AccAddress) 
 /////////////////////////////
 
 // SetExternalAddressForOracle sets the external address for a given oracle
-func (k Keeper) SetExternalAddressForOracle(ctx sdk.Context, oracle sdk.AccAddress, externalAddress string) {
+func (k Keeper) SetExternalAddressForOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, externalAddress string) {
 	store := ctx.KVStore(k.storeKey)
-	// save external address -> oracle
-	store.Set(types.GetOracleAddressByExternalKey(externalAddress), oracle.Bytes())
+	// save external address -> oracleAddr
+	store.Set(types.GetOracleAddressByExternalKey(externalAddress), oracleAddr.Bytes())
 }
 
 // GetOracleByExternalAddress returns the external address for a given gravity oracle

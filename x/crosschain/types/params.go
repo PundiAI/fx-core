@@ -46,9 +46,6 @@ var (
 	// ParamStoreIbcTransferTimeoutHeight gravity and ibc transfer timeout height
 	ParamStoreIbcTransferTimeoutHeight = []byte("IbcTransferTimeoutHeight")
 
-	// ParamStoreOracles stores the module oracles.
-	ParamStoreOracles = []byte("Oracles")
-
 	// ParamOracleDelegateThreshold stores the oracle delegate threshold
 	ParamOracleDelegateThreshold = []byte("OracleDelegateThreshold")
 
@@ -87,9 +84,6 @@ func (m Params) ValidateBasic() error {
 	if err := validateOracleSetUpdatePowerChangePercent(m.OracleSetUpdatePowerChangePercent); err != nil {
 		return sdkerrors.Wrap(err, "power changer update oracle set percent")
 	}
-	if err := validateOracles(m.Oracles); err != nil {
-		return sdkerrors.Wrap(err, "oracles")
-	}
 	if err := validateOracleDelegateThreshold(m.DelegateThreshold); err != nil {
 		return sdkerrors.Wrap(err, "oracle delegate threshold")
 	}
@@ -116,7 +110,6 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamsStoreSlashFraction, &m.SlashFraction, validateSlashFraction),
 		paramtypes.NewParamSetPair(ParamStoreOracleSetUpdatePowerChangePercent, &m.OracleSetUpdatePowerChangePercent, validateOracleSetUpdatePowerChangePercent),
 		paramtypes.NewParamSetPair(ParamStoreIbcTransferTimeoutHeight, &m.IbcTransferTimeoutHeight, validateIbcTransferTimeoutHeight),
-		paramtypes.NewParamSetPair(ParamStoreOracles, &m.Oracles, validateOracles),
 		paramtypes.NewParamSetPair(ParamOracleDelegateThreshold, &m.DelegateThreshold, validateOracleDelegateThreshold),
 		paramtypes.NewParamSetPair(ParamOracleDelegateMultiple, &m.DelegateMultiple, validateOracleDelegateMultiple),
 	}
@@ -229,30 +222,6 @@ func validateOracleSetUpdatePowerChangePercent(i interface{}) error {
 	}
 	if percent.IsNegative() {
 		return fmt.Errorf("attempted to powet change percent with a negative: %v", percent)
-	}
-	return nil
-}
-
-func validateOracles(i interface{}) error {
-	if oracles, ok := i.([]string); !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	} else {
-		//if len(oracles) <= 0 {
-		//	return fmt.Errorf("oracles cannot be empty")
-		//}
-		if len(oracles) > MaxOracleSize {
-			return fmt.Errorf("oracle length must be less than or equal: %d", MaxOracleSize)
-		}
-		oraclesMap := make(map[string]bool)
-		for _, addr := range oracles {
-			if _, err := sdk.AccAddressFromBech32(addr); err != nil {
-				return err
-			}
-			if oraclesMap[addr] {
-				return fmt.Errorf("duplicate oracle: %s", addr)
-			}
-			oraclesMap[addr] = true
-		}
 	}
 	return nil
 }

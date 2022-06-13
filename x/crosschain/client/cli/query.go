@@ -136,7 +136,7 @@ func CmdGetChainOracles() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			req := abcitype.RequestQuery{
-				Data: types.KeyChainOracles,
+				Data: types.ProposalOracleKey,
 				Path: fmt.Sprintf("/store/%s/key", args[0]),
 			}
 			abciResp, err := clientCtx.QueryABCI(req)
@@ -144,11 +144,11 @@ func CmdGetChainOracles() *cobra.Command {
 				return err
 			}
 
-			var chainOracle types.ChainOracle
-			if err := clientCtx.LegacyAmino.Unmarshal(abciResp.Value, &chainOracle); err != nil {
+			var proposalOracle types.ProposalOracle
+			if err := clientCtx.LegacyAmino.Unmarshal(abciResp.Value, &proposalOracle); err != nil {
 				return err
 			}
-			return clientCtx.PrintProto(&chainOracle)
+			return clientCtx.PrintProto(&proposalOracle)
 		},
 	}
 

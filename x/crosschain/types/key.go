@@ -65,8 +65,8 @@ var (
 	// SequenceKeyPrefix indexes different txIds
 	SequenceKeyPrefix = []byte{0x25}
 
-	// KeyLastTXPoolID indexes the lastTxPoolID
-	KeyLastTXPoolID = append(SequenceKeyPrefix, []byte("lastTxPoolId")...)
+	// KeyLastTxPoolID indexes the lastTxPoolID
+	KeyLastTxPoolID = append(SequenceKeyPrefix, []byte("lastTxPoolId")...)
 
 	// KeyLastOutgoingBatchID indexes the lastBatchID
 	KeyLastOutgoingBatchID = append(SequenceKeyPrefix, []byte("lastBatchId")...)
@@ -95,8 +95,8 @@ var (
 	// LastObservedOracleSetKey indexes the latest observed OracleSet nonce
 	LastObservedOracleSetKey = []byte{0x33}
 
-	// LastEventBlockHeightByValidatorKey indexes latest event blockHeight by validator
-	LastEventBlockHeightByValidatorKey = []byte{0x35}
+	// LastEventBlockHeightByOracleKey indexes latest event blockHeight by validator
+	LastEventBlockHeightByOracleKey = []byte{0x35}
 
 	// PastExternalSignatureCheckpointKey indexes eth signature checkpoints that have existed
 	PastExternalSignatureCheckpointKey = []byte{0x36}
@@ -104,8 +104,8 @@ var (
 	// LastOracleSlashBlockHeight indexes the last oracle slash block height
 	LastOracleSlashBlockHeight = []byte{0x37}
 
-	// KeyChainOracles -> value ChainOracle
-	KeyChainOracles = []byte{0x38}
+	// ProposalOracleKey -> value ProposalOracle
+	ProposalOracleKey = []byte{0x38}
 
 	// LastTotalPowerKey
 	LastTotalPowerKey = []byte{0x39}
@@ -179,8 +179,8 @@ func GetLastEventNonceByOracleKey(validator sdk.AccAddress) []byte {
 }
 
 // GetLastEventBlockHeightByOracleKey returns the following key format
-func GetLastEventBlockHeightByOracleKey(validator sdk.AccAddress) []byte {
-	return append(LastEventBlockHeightByValidatorKey, validator.Bytes()...)
+func GetLastEventBlockHeightByOracleKey(oracle sdk.AccAddress) []byte {
+	return append(LastEventBlockHeightByOracleKey, oracle.Bytes()...)
 }
 
 // GetDenomToTokenKey returns the following key format

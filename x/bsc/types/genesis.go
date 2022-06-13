@@ -17,7 +17,6 @@ func DefaultGenesisState() *crosschaintypes.GenesisState {
 			SlashFraction:                     sdk.NewDecWithPrec(1, 3),
 			OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
 			IbcTransferTimeoutHeight:          20 * 1e3,
-			Oracles:                           []string{},
 			DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10*1e3)),
 			DelegateMultiple:                  10,
 		},

@@ -44,8 +44,8 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	if err := v045.MigrateBank(ctx, m.ak, m.bk); err != nil {
 		return err
 	}
-	oracles := v045.MigrateValidatorToOracle(ctx, m.cdc, m.gravityStoreKey, m.ethStoreKey, m.sk)
-	if err := v045.MigrateParams(ctx, m.legacyAmino, m.paramsKey, oracles.Oracles); err != nil {
+	v045.MigrateValidatorToOracle(ctx, m.cdc, m.gravityStoreKey, m.ethStoreKey, m.sk)
+	if err := v045.MigrateParams(ctx, m.legacyAmino, m.paramsKey); err != nil {
 		return err
 	}
 	v045.MigrateStore(ctx, m.gravityStoreKey, m.ethStoreKey)

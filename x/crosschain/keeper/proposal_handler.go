@@ -8,43 +8,7 @@ import (
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
-func HandleInitCrossChainParamsProposal(ctx sdk.Context, msgServer types.MsgServer, proposal *types.InitCrossChainParamsProposal) error {
-	ethereumMsgServer, ok := msgServer.(*EthereumMsgServer)
-	if !ok {
-		return sdkerrors.Wrap(types.ErrInvalid, "msg server")
-	}
-	keeper := ethereumMsgServer.Keeper
-
-	// check duplicate init params.
-	var gravityId string
-	keeper.paramSpace.GetIfExists(ctx, types.ParamsStoreKeyGravityID, &gravityId)
-	if len(gravityId) != 0 {
-		return sdkerrors.Wrapf(types.ErrInvalid, "duplicate init params chainName:%keeper", keeper.moduleName)
-	}
-
-	keeper.Logger(ctx).Info("handle init cross chain params...", "proposal", proposal.String())
-	// init chain params
-	keeper.SetParams(ctx, proposal.Params)
-
-	// FIP: slash fraction cannot greater than one 100%  2021-10-26.
-	if proposal.Params.SlashFraction.GT(sdk.OneDec()) {
-		return sdkerrors.Wrapf(types.ErrInvalid, "slash fraction too large: %keeper", proposal.Params.SlashFraction)
-	}
-	if proposal.Params.OracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
-		return sdkerrors.Wrapf(types.ErrInvalid, "oracle set update power change percent too large: %keeper", proposal.Params.OracleSetUpdatePowerChangePercent)
-	}
-
-	// save chain oracle
-	keeper.SetChainOracles(ctx, &types.ChainOracle{Oracles: proposal.Params.Oracles})
-
-	keeper.SetLastProposalBlockHeight(ctx, uint64(ctx.BlockHeight()))
-
-	// init total stake
-	//keeper.SetTotalDelegate(ctx, sdk.NewCoin(proposal.Params.DelegateThreshold.Denom, sdk.ZeroInt()))
-	return nil
-}
-
-func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer, proposal *types.UpdateChainOraclesProposal) error {
+func HandleUpdateCrossChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer, proposal *types.UpdateCrossChainOraclesProposal) error {
 	ethereumMsgServer, ok := msgServer.(*EthereumMsgServer)
 	if !ok {
 		return sdkerrors.Wrap(types.ErrInvalid, "msg server")
@@ -52,12 +16,12 @@ func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer
 	keeper := ethereumMsgServer.Keeper
 
 	logger := keeper.Logger(ctx)
-	logger.Info("handle update cross chain update oracles proposal", "proposal", proposal.String())
+	logger.Info("handle update crosschain oracles proposal", "proposal", proposal.String())
 	if len(proposal.Oracles) > types.MaxOracleSize {
 		return sdkerrors.Wrapf(types.ErrInvalid, fmt.Sprintf("oracle length must be less than or equal: %d", types.MaxOracleSize))
 	}
-	// update chain oracle
-	keeper.SetChainOracles(ctx, &types.ChainOracle{Oracles: proposal.Oracles})
+	// update proposal oracle
+	keeper.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: proposal.Oracles})
 
 	newOracleMap := make(map[string]bool, len(proposal.Oracles))
 	for _, oracle := range proposal.Oracles {
@@ -84,9 +48,9 @@ func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer
 	}
 
 	maxChangePowerThreshold := types.AttestationProposalOracleChangePowerThreshold.Mul(totalPower).Quo(sdk.NewInt(100))
-	logger.Info("update chain oracles proposal", "maxChangePowerThreshold", maxChangePowerThreshold.String(), "deleteTotalPower", deleteTotalPower.String())
+	logger.Info("update crosschain oracles proposal", "maxChangePowerThreshold", maxChangePowerThreshold.String(), "deleteTotalPower", deleteTotalPower.String())
 	if deleteTotalPower.GT(sdk.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
-		return sdkerrors.Wrapf(types.ErrInvalid, "max change power, maxChangePowerThreshold: %keeper, deleteTotalPower: %keeper", maxChangePowerThreshold.String(), deleteTotalPower.String())
+		return sdkerrors.Wrapf(types.ErrInvalid, "max change power, maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
 	}
 
 	for _, deleteOracle := range deleteOracleList {

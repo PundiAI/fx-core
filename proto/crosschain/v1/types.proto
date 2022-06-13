@@ -6,8 +6,7 @@ import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 
-// module oracles
-message ChainOracle {repeated string oracles = 1;}
+message ProposalOracle {repeated string oracles = 1;}
 
 message Oracle {
   string oracle_address = 1;
@@ -214,27 +213,12 @@ message Params {
     (gogoproto.nullable) = false
   ];
   uint64 ibc_transfer_timeout_height = 8;
-  repeated string oracles = 9;
-  cosmos.base.v1beta1.Coin delegate_threshold = 10
+  cosmos.base.v1beta1.Coin delegate_threshold = 9
   [(gogoproto.nullable) = false];
-  int64 delegate_multiple = 11;
+  int64 delegate_multiple = 10;
 }
 
-message InitCrossChainParamsProposal {
-  option (gogoproto.equal) = false;
-  option (gogoproto.goproto_getters) = false;
-  option (gogoproto.goproto_stringer) = false;
-
-  // the title of the update proposal
-  string title = 1;
-  // the description of the proposal
-  string description = 2;
-
-  Params params = 3;
-  string chain_name = 4;
-}
-
-message UpdateChainOraclesProposal {
+message UpdateCrossChainOraclesProposal {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;

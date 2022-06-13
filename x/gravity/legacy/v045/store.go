@@ -88,7 +88,7 @@ func MigrateStore(ctx sdk.Context, gravityStoreKey sdk.StoreKey, ethStoreKey sdk
 	//migratePrefix(gravityStore, ethStore, v042gravity.IbcSequenceHeightKey, crosschaintypes.KeyIbcSequenceHeight)
 
 	// gravity 0x18 -> eth 0x35
-	migratePrefix(gravityStore, ethStore, v042gravity.LastEventBlockHeightByValidatorKey, crosschaintypes.LastEventBlockHeightByValidatorKey)
+	migratePrefix(gravityStore, ethStore, v042gravity.LastEventBlockHeightByValidatorKey, crosschaintypes.LastEventBlockHeightByOracleKey)
 
 	// gravity ? -> eth 0x36 -
 	// gravity ? -> eth 0x37 -
@@ -109,7 +109,7 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 	}
 }
 
-func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey, stakingKeeper StakingKeeper) *crosschaintypes.ChainOracle {
+func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey, stakingKeeper StakingKeeper) {
 	gravityStore := ctx.KVStore(gravityStoreKey)
 	ethStore := ctx.KVStore(ethStoreKey)
 	oldStore := prefix.NewStore(gravityStore, v042gravity.ValidatorAddressByOrchestratorAddress)
@@ -117,7 +117,7 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
 
-	chainOracle := new(crosschaintypes.ChainOracle)
+	chainOracle := new(crosschaintypes.ProposalOracle)
 
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		bridgerAddr := sdk.AccAddress(oldStoreIter.Key()[len(v042gravity.ValidatorAddressByOrchestratorAddress):])
@@ -145,9 +145,8 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 		chainOracle.Oracles = append(chainOracle.Oracles, oracleAddress.String())
 	}
 
-	// SetChainOracles
+	// SetProposalOracle
 	if len(chainOracle.Oracles) > 0 {
-		ethStore.Set(crosschaintypes.KeyChainOracles, cdc.MustMarshal(chainOracle))
+		ethStore.Set(crosschaintypes.ProposalOracleKey, cdc.MustMarshal(chainOracle))
 	}
-	return chainOracle
 }

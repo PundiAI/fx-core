@@ -40,7 +40,7 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	if !s.IsOracle(ctx, msg.OracleAddress) {
+	if !s.IsProposalOracle(ctx, msg.OracleAddress) {
 		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, msg.OracleAddress)
 	}
 	// check oracle has set bridger address
@@ -349,7 +349,7 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 
 	_, found := s.GetOracleAddressByBridgerKey(ctx, sender)
 	if !found {
-		if !s.IsOracle(ctx, msg.Sender) {
+		if !s.IsProposalOracle(ctx, msg.Sender) {
 			return nil, sdkerrors.Wrap(types.ErrEmpty, "sender must be oracle or bridger")
 		}
 	}

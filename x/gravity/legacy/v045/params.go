@@ -12,7 +12,7 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
-func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey, oracles []string) error {
+func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) error {
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(types.ModuleName), '/'))
 	gravityParams := &v042.Params{}
 	isExist := false
@@ -42,7 +42,6 @@ func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sd
 		SlashFraction:                     gravityParams.SlashFractionValset,
 		OracleSetUpdatePowerChangePercent: gravityParams.ValsetUpdatePowerChangePercent,
 		IbcTransferTimeoutHeight:          gravityParams.IbcTransferTimeoutHeight,
-		Oracles:                           oracles,
 		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.DefaultPowerReduction)),
 		DelegateMultiple:                  crosschaintypes.DefaultOracleDelegateThreshold,
 	}

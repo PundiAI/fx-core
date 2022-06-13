@@ -49,10 +49,10 @@ func TestUpdateOracleProposal(t *testing.T) {
 	}
 	err = gh(ctx, addTwoOracleProposal)
 	require.NoError(t, err)
-	require.True(t, keeper.IsOracle(ctx, oracleAddressList[0].String()))
-	require.True(t, keeper.IsOracle(ctx, oracleAddressList[1].String()))
-	require.True(t, keeper.IsOracle(ctx, oracleAddressList[2].String()))
-	require.False(t, keeper.IsOracle(ctx, oracleAddressList[3].String()))
+	require.True(t, keeper.IsProposalOracle(ctx, oracleAddressList[0].String()))
+	require.True(t, keeper.IsProposalOracle(ctx, oracleAddressList[1].String()))
+	require.True(t, keeper.IsProposalOracle(ctx, oracleAddressList[2].String()))
+	require.False(t, keeper.IsProposalOracle(ctx, oracleAddressList[3].String()))
 
 	deleteOneOracleProposal := &types.UpdateChainOraclesProposal{
 		Title:       "zzz",

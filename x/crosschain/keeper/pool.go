@@ -40,7 +40,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	}
 
 	// get next tx id from keeper
-	nextTxID := k.autoIncrementID(ctx, types.KeyLastTXPoolID)
+	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
 
 	tokenContract := bridgeToken.Token
 	bridgeTokenFee := types.NewERC20Token(fee.Amount, tokenContract)

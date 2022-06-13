@@ -6,6 +6,7 @@ import (
 )
 
 var ParamOracleDepositThreshold = []byte("OracleDepositThreshold")
+var ParamStoreOracles = []byte("Oracles")
 
 func GetParamSetPairs(params *types.Params) paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
@@ -17,7 +18,6 @@ func GetParamSetPairs(params *types.Params) paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(types.ParamsStoreSlashFraction, &params.SlashFraction, nil),
 		paramtypes.NewParamSetPair(types.ParamStoreOracleSetUpdatePowerChangePercent, &params.OracleSetUpdatePowerChangePercent, nil),
 		paramtypes.NewParamSetPair(types.ParamStoreIbcTransferTimeoutHeight, &params.IbcTransferTimeoutHeight, nil),
-		paramtypes.NewParamSetPair(types.ParamStoreOracles, &params.Oracles, nil),
 		paramtypes.NewParamSetPair(types.ParamOracleDelegateThreshold, &params.DelegateThreshold, nil),
 		paramtypes.NewParamSetPair(ParamOracleDepositThreshold, &params.DelegateMultiple, nil),
 	}

@@ -13,9 +13,6 @@ import (
 // EndBlocker is called at the end of every block
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	params := k.GetParams(ctx)
-	if len(params.Oracles) <= 0 {
-		return
-	}
 	slashing(ctx, k, params)
 	attestationTally(ctx, k)
 	cleanupTimedOutBatches(ctx, k)

@@ -9,10 +9,8 @@
     - [BatchFees](#fx.gravity.crosschain.v1.BatchFees)
     - [BridgeToken](#fx.gravity.crosschain.v1.BridgeToken)
     - [BridgeValidator](#fx.gravity.crosschain.v1.BridgeValidator)
-    - [ChainOracle](#fx.gravity.crosschain.v1.ChainOracle)
     - [ERC20Token](#fx.gravity.crosschain.v1.ERC20Token)
     - [IDSet](#fx.gravity.crosschain.v1.IDSet)
-    - [InitCrossChainParamsProposal](#fx.gravity.crosschain.v1.InitCrossChainParamsProposal)
     - [LastObservedBlockHeight](#fx.gravity.crosschain.v1.LastObservedBlockHeight)
     - [MinBatchFee](#fx.gravity.crosschain.v1.MinBatchFee)
     - [Oracle](#fx.gravity.crosschain.v1.Oracle)
@@ -20,7 +18,8 @@
     - [OutgoingTransferTx](#fx.gravity.crosschain.v1.OutgoingTransferTx)
     - [OutgoingTxBatch](#fx.gravity.crosschain.v1.OutgoingTxBatch)
     - [Params](#fx.gravity.crosschain.v1.Params)
-    - [UpdateChainOraclesProposal](#fx.gravity.crosschain.v1.UpdateChainOraclesProposal)
+    - [ProposalOracle](#fx.gravity.crosschain.v1.ProposalOracle)
+    - [UpdateCrossChainOraclesProposal](#fx.gravity.crosschain.v1.UpdateCrossChainOraclesProposal)
   
     - [ClaimType](#fx.gravity.crosschain.v1.ClaimType)
     - [SignType](#fx.gravity.crosschain.v1.SignType)
@@ -57,9 +56,6 @@
   
 - [crosschain/v1/genesis.proto](#crosschain/v1/genesis.proto)
     - [GenesisState](#fx.gravity.crosschain.v1.GenesisState)
-  
-- [crosschain/v1/legacy_oracle.proto](#crosschain/v1/legacy_oracle.proto)
-    - [LegacyOracle](#fx.gravity.crosschain.v1.LegacyOracle)
   
 - [crosschain/v1/query.proto](#crosschain/v1/query.proto)
     - [QueryBatchConfirmRequest](#fx.gravity.crosschain.v1.QueryBatchConfirmRequest)
@@ -298,21 +294,6 @@ BridgeValidator represents a validator's external address and its power
 
 
 
-<a name="fx.gravity.crosschain.v1.ChainOracle"></a>
-
-### ChainOracle
-module oracles
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `oracles` | [string](#string) | repeated |  |
-
-
-
-
-
-
 <a name="fx.gravity.crosschain.v1.ERC20Token"></a>
 
 ### ERC20Token
@@ -338,24 +319,6 @@ IDSet represents a set of IDs
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `ids` | [uint64](#uint64) | repeated |  |
-
-
-
-
-
-
-<a name="fx.gravity.crosschain.v1.InitCrossChainParamsProposal"></a>
-
-### InitCrossChainParamsProposal
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  | the title of the update proposal |
-| `description` | [string](#string) |  | the description of the proposal |
-| `params` | [Params](#fx.gravity.crosschain.v1.Params) |  |  |
-| `chain_name` | [string](#string) |  |  |
 
 
 
@@ -498,7 +461,6 @@ request is > 10%
 | `slash_fraction` | [bytes](#bytes) |  |  |
 | `oracle_set_update_power_change_percent` | [bytes](#bytes) |  |  |
 | `ibc_transfer_timeout_height` | [uint64](#uint64) |  |  |
-| `oracles` | [string](#string) | repeated |  |
 | `delegate_threshold` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 | `delegate_multiple` | [int64](#int64) |  |  |
 
@@ -507,9 +469,24 @@ request is > 10%
 
 
 
-<a name="fx.gravity.crosschain.v1.UpdateChainOraclesProposal"></a>
+<a name="fx.gravity.crosschain.v1.ProposalOracle"></a>
 
-### UpdateChainOraclesProposal
+### ProposalOracle
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `oracles` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.UpdateCrossChainOraclesProposal"></a>
+
+### UpdateCrossChainOraclesProposal
 
 
 
@@ -1065,43 +1042,6 @@ GenesisState struct
 | `unbatched_transfers` | [OutgoingTransferTx](#fx.gravity.crosschain.v1.OutgoingTransferTx) | repeated |  |
 | `batches` | [OutgoingTxBatch](#fx.gravity.crosschain.v1.OutgoingTxBatch) | repeated |  |
 | `bridge_token` | [BridgeToken](#fx.gravity.crosschain.v1.BridgeToken) | repeated |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="crosschain/v1/legacy_oracle.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## crosschain/v1/legacy_oracle.proto
-
-
-
-<a name="fx.gravity.crosschain.v1.LegacyOracle"></a>
-
-### LegacyOracle
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `oracle_address` | [string](#string) |  |  |
-| `bridger_address` | [string](#string) |  |  |
-| `external_address` | [string](#string) |  |  |
-| `delegate_amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `start_height` | [int64](#int64) |  | start oracle height |
-| `jailed` | [bool](#bool) |  |  |
-| `jailed_height` | [int64](#int64) |  |  |
 
 
 

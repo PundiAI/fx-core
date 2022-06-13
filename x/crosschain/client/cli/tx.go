@@ -26,17 +26,9 @@ import (
 )
 
 const (
-	flagProposalTitle                      = "title"
-	flagProposalDescription                = "desc"
-	flagInitParamsGravityId                = "gravity-id"
-	flagInitParamsSignedWindows            = "signed-windows"
-	flagInitParamsBatchTimeout             = "batch-timeout"
-	flagInitParamsAverageExternalBlockTime = "average_external_block_time"
-	flagInitParamsAverageBlockTime         = "average_block_time"
-	flagInitParamsSlashFraction            = "slash-fraction"
-	flagInitParamsOracleChangePercent      = "oracle-change-percent"
-	flagInitParamsDelegateThreshold        = "delegate-threshold"
-	flagInitParamsOracles                  = "oracles"
+	flagProposalTitle       = "title"
+	flagProposalDescription = "desc"
+	flagInitParamsOracles   = "oracles"
 )
 
 func GetTxCmd() *cobra.Command {
@@ -49,9 +41,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand([]*cobra.Command{
-
-		CmdInitCrossChainParamsProposal(),
-		CmdUpdateChainOraclesProposal(),
+		CmdUpdateCrossChainOraclesProposal(),
 
 		// set bridger address
 		CmdCreateOracleBridger(),
@@ -70,132 +60,11 @@ func GetTxCmd() *cobra.Command {
 	return cmd
 }
 
-func CmdInitCrossChainParamsProposal() *cobra.Command {
+func CmdUpdateCrossChainOraclesProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "init-crosschain-params [chain-name] [initial proposal stake]",
-		Short:   "init chain params",
-		Example: "fxcored tx crosschain init-crosschain-params bsc 100000000000000000000FX --title=\"Init Bsc chain params\", --desc=\"about bsc chain description\" --gravity-id=\"bsc\" --oracles <oracles>",
-		Args:    cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			chainName := args[0]
-			initProposalAmount, err := sdk.ParseCoinsNormalized(args[1])
-			if err != nil {
-				return err
-			}
-			title, err := cmd.Flags().GetString(flagProposalTitle)
-			if err != nil {
-				return err
-			}
-			description, err := cmd.Flags().GetString(flagProposalDescription)
-			if err != nil {
-				return err
-			}
-			gravityId, err := cmd.Flags().GetString(flagInitParamsGravityId)
-			if err != nil {
-				return err
-			}
-			signedWindows, err := cmd.Flags().GetUint64(flagInitParamsSignedWindows)
-			if err != nil {
-				return err
-			}
-			externalBatchTimeout, err := cmd.Flags().GetUint64(flagInitParamsBatchTimeout)
-			if err != nil {
-				return err
-			}
-			averageBlockTime, err := cmd.Flags().GetUint64(flagInitParamsAverageBlockTime)
-			if err != nil {
-				return err
-			}
-			averageExternalBlockTime, err := cmd.Flags().GetUint64(flagInitParamsAverageExternalBlockTime)
-			if err != nil {
-				return err
-			}
-			oracles, err := cmd.Flags().GetStringSlice(flagInitParamsOracles)
-			if err != nil {
-				return err
-			}
-			for i, oracle := range oracles {
-				oracleAddr, err := sdk.AccAddressFromBech32(oracle)
-				if err != nil {
-					return err
-				}
-				oracles[i] = oracleAddr.String()
-			}
-			depositThreshold, err := cmd.Flags().GetString(flagInitParamsDelegateThreshold)
-			if err != nil {
-				return err
-			}
-			delegateThreshold, err := sdk.ParseCoinNormalized(depositThreshold)
-			if err != nil {
-				return err
-			}
-
-			slashFractionStr, err := cmd.Flags().GetString(flagInitParamsSlashFraction)
-			if err != nil {
-				return err
-			}
-			slashFraction, err := sdk.NewDecFromStr(slashFractionStr)
-			if err != nil {
-				return err
-			}
-
-			oracleChangePercentStr, err := cmd.Flags().GetString(flagInitParamsOracleChangePercent)
-			if err != nil {
-				return err
-			}
-			oracleChangePercent, err := sdk.NewDecFromStr(oracleChangePercentStr)
-			if err != nil {
-				return err
-			}
-			proposal := &types.InitCrossChainParamsProposal{
-				Title:       title,
-				Description: description,
-				Params: &types.Params{
-					GravityId:                         gravityId,
-					SignedWindow:                      signedWindows,
-					ExternalBatchTimeout:              externalBatchTimeout,
-					AverageBlockTime:                  averageBlockTime,
-					AverageExternalBlockTime:          averageExternalBlockTime,
-					SlashFraction:                     slashFraction,
-					OracleSetUpdatePowerChangePercent: oracleChangePercent,
-					IbcTransferTimeoutHeight:          20000,
-					Oracles:                           oracles,
-					DelegateThreshold:                 delegateThreshold,
-				},
-				ChainName: chainName,
-			}
-			fromAddress := cliCtx.GetFromAddress()
-			msg, err := govtypes.NewMsgSubmitProposal(proposal, initProposalAmount, fromAddress)
-			if err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
-		},
-	}
-	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().String(flagProposalTitle, "", "proposal title")
-	cmd.Flags().String(flagProposalDescription, "", "proposal desc")
-	cmd.Flags().String(flagInitParamsGravityId, "", "signature checkpoint id, prevent replay attacks")
-	cmd.Flags().Uint64(flagInitParamsSignedWindows, 20000, "consensus signature penalizes waiting blocks")
-	cmd.Flags().Uint64(flagInitParamsBatchTimeout, 43200000, "batch withdrawal timeout (ms)(43200000=12h)")
-	cmd.Flags().Uint64(flagInitParamsAverageExternalBlockTime, 3000, "average block output time of the other chain (ms)")
-	cmd.Flags().Uint64(flagInitParamsAverageBlockTime, 5000, "average block output time of f(x)Chain (ms)")
-	cmd.Flags().String(flagInitParamsSlashFraction, "0.001", "Penalty ratio for not participating in consensus signature")
-	cmd.Flags().String(flagInitParamsOracleChangePercent, "0.1", "consensus Oracle Power change threshold percentage(0.1=10%)")
-	cmd.Flags().String(flagInitParamsDelegateThreshold, "100000000000000000000FX", "consensus Oracle minimum collateral token")
-	cmd.Flags().StringSlice(flagInitParamsOracles, nil, "list of Oracles that have permission to participate in consensus, using comma split")
-	return cmd
-}
-
-func CmdUpdateChainOraclesProposal() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "update-chain-oracles [chain-name] [initial proposal stake]",
-		Short:   "init chain params",
-		Example: "fxcored tx crosschain update-chain-oracles bsc 100000000000000000000FX --title=\"Update Bsc chain oracles\", --desc=\"oracles description\" --oracles <oracles>",
+		Use:     "update-crosschain-oracles [chain-name] [initial proposal stake]",
+		Short:   "update cross chain oracles",
+		Example: "fxcored tx crosschain update-crosschain-oracles bsc 100000000000000000000FX --title=\"Update Bsc chain oracles\", --desc=\"oracles description\" --oracles <oracles>",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
@@ -227,7 +96,7 @@ func CmdUpdateChainOraclesProposal() *cobra.Command {
 				}
 				oracles[i] = oracleAddr.String()
 			}
-			proposal := &types.UpdateChainOraclesProposal{
+			proposal := &types.UpdateCrossChainOraclesProposal{
 				Title:       title,
 				Description: description,
 				Oracles:     oracles,
