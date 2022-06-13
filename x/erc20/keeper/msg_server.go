@@ -11,9 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/x/erc20/types"
 )
@@ -27,7 +24,7 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 
 	// Error checked during msg validation
 	receiver := common.HexToAddress(msg.Receiver)
-	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
+	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 
 	pair, err := k.MintingEnabled(ctx, sender, receiver.Bytes(), msg.Coin.Denom)
 	if err != nil {
@@ -51,7 +48,7 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Error checked during msg validation
-	receiver, _ := sdk.AccAddressFromBech32(msg.Receiver)
+	receiver := sdk.MustAccAddressFromBech32(msg.Receiver)
 	/* sender have two cases
 	* 1. cosmos - m/44'/118'/0'/0/0
 	* private key ---> cosmos address ---> hex sender
@@ -133,14 +130,24 @@ func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{types.ModuleName, msg.Type()},
+			[]string{"tx", "msg", "convert", "coin", "total"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("erc20", pair.Erc20Address),
 				telemetry.NewLabel("denom", pair.Denom),
-				telemetry.NewLabel("amount", msg.Coin.Amount.String()),
+				telemetry.NewLabel("erc20", pair.Erc20Address),
 			},
 		)
+
+		if msg.Coin.Amount.IsInt64() {
+			telemetry.IncrCounterWithLabels(
+				[]string{"tx", "msg", "convert", "coin", "amount", "total"},
+				float32(msg.Coin.Amount.Int64()),
+				[]metrics.Label{
+					telemetry.NewLabel("denom", pair.Denom),
+					telemetry.NewLabel("erc20", pair.Erc20Address),
+				},
+			)
+		}
 	}()
 
 	ctx.EventManager().EmitEvents(
@@ -222,14 +229,24 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{types.ModuleName, msg.Type()},
+			[]string{"tx", "msg", "convert", "erc20", "total"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("erc20", pair.Erc20Address),
 				telemetry.NewLabel("denom", pair.Denom),
-				telemetry.NewLabel("amount", msg.Amount.String()),
+				telemetry.NewLabel("erc20", pair.Erc20Address),
 			},
 		)
+
+		if msg.Amount.IsInt64() {
+			telemetry.IncrCounterWithLabels(
+				[]string{"tx", "msg", "convert", "erc20", "amount", "total"},
+				float32(msg.Amount.Int64()),
+				[]metrics.Label{
+					telemetry.NewLabel("denom", pair.Denom),
+					telemetry.NewLabel("erc20", pair.Erc20Address),
+				},
+			)
+		}
 	}()
 
 	ctx.EventManager().EmitEvents(
@@ -332,14 +349,24 @@ func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{types.ModuleName, msg.Type()},
+			[]string{"tx", "msg", "convert", "erc20", "total"},
 			1,
 			[]metrics.Label{
+				telemetry.NewLabel("coin", pair.Denom),
 				telemetry.NewLabel("erc20", pair.Erc20Address),
-				telemetry.NewLabel("denom", pair.Denom),
-				telemetry.NewLabel("amount", msg.Amount.String()),
 			},
 		)
+
+		if msg.Amount.IsInt64() {
+			telemetry.IncrCounterWithLabels(
+				[]string{"tx", "msg", "convert", "erc20", "amount", "total"},
+				float32(msg.Amount.Int64()),
+				[]metrics.Label{
+					telemetry.NewLabel("denom", pair.Denom),
+					telemetry.NewLabel("erc20", pair.Erc20Address),
+				},
+			)
+		}
 	}()
 
 	ctx.EventManager().EmitEvents(
@@ -425,14 +452,24 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{types.ModuleName, msg.Type()},
+			[]string{"tx", "msg", "convert", "coin", "total"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("erc20", pair.Erc20Address),
 				telemetry.NewLabel("denom", pair.Denom),
-				telemetry.NewLabel("amount", msg.Coin.Amount.String()),
+				telemetry.NewLabel("erc20", pair.Erc20Address),
 			},
 		)
+
+		if msg.Coin.Amount.IsInt64() {
+			telemetry.IncrCounterWithLabels(
+				[]string{"tx", "msg", "convert", "coin", "amount", "total"},
+				float32(msg.Coin.Amount.Int64()),
+				[]metrics.Label{
+					telemetry.NewLabel("denom", pair.Denom),
+					telemetry.NewLabel("erc20", pair.Erc20Address),
+				},
+			)
+		}
 	}()
 
 	ctx.EventManager().EmitEvents(
@@ -449,25 +486,4 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	)
 
 	return &types.MsgConvertCoinResponse{}, nil
-}
-
-// monitorApprovalEvent returns an error if the given transactions logs include
-// an unexpected `approve` event
-func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error {
-	if res == nil || len(res.Logs) == 0 {
-		return nil
-	}
-
-	logApprovalSig := []byte("Approval(address,address,uint256)")
-	logApprovalSigHash := crypto.Keccak256Hash(logApprovalSig)
-
-	for _, log := range res.Logs {
-		if log.Topics[0] == logApprovalSigHash.Hex() {
-			return sdkerrors.Wrapf(
-				types.ErrUnexpectedEvent, "unexpected Approval event",
-			)
-		}
-	}
-
-	return nil
 }

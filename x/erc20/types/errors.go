@@ -18,4 +18,5 @@ var (
 	ErrEVMDenom               = sdkerrors.Register(ModuleName, 11, "EVM denomination registration")
 	ErrInvalidMetadata        = sdkerrors.Register(ModuleName, 12, "invalid metadata")
 	ErrEVMCall                = sdkerrors.Register(ModuleName, 13, "EVM call unexpected error")
+	ErrERC20TokenPairDisabled = sdkerrors.Register(ModuleName, 14, "erc20 token pair is disabled")
 )

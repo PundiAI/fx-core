@@ -26,7 +26,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/rpc/client/http"
 	"google.golang.org/grpc"
 
@@ -37,7 +36,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
-	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
 )
 
 const (
@@ -81,7 +79,6 @@ type Client struct {
 	authQueryClient authtypes.QueryClient
 	evmQuery        evmtypes.QueryClient
 	erc20Query      erc20types.QueryClient
-	gravityQuery    gravitytypes.QueryClient
 	crossChainQuery crosschaintypes.QueryClient
 	ibcChannelQuery ibcchanneltypes.QueryClient
 }
@@ -123,7 +120,6 @@ func NewClient(t *testing.T, grpcUrl, nodeUrl, ethUrl, mnemonic, hdPath string) 
 		authQueryClient: authtypes.NewQueryClient(grpcClient),
 		evmQuery:        evmtypes.NewQueryClient(grpcClient),
 		erc20Query:      erc20types.NewQueryClient(grpcClient),
-		gravityQuery:    gravitytypes.NewQueryClient(grpcClient),
 		crossChainQuery: crosschaintypes.NewQueryClient(grpcClient),
 		ibcChannelQuery: ibcchanneltypes.NewQueryClient(grpcClient),
 	}
@@ -339,155 +335,6 @@ func (c *Client) EthBlockHeight() uint64 {
 	number, err := c.ethClient.BlockNumber(c.ctx)
 	require.NoError(c.t, err)
 	return number
-}
-
-func (c *Client) GravityInitialize() {
-	c.t.Log("gravity initialize")
-	if c.gravityCheckValset() {
-		return
-	}
-	go c.gravityValsetConfirm()
-
-	c.gravitySetOrchestratorAddress()
-	c.gravityFxOriginatedTokenClaim()
-
-	c.gravityCheckConfirm()
-}
-func (c *Client) gravityId() string {
-	var chainGravityId string
-	abciQuery, err := c.httpClient.ABCIQuery(c.ctx, "/custom/gravity/gravityID", bytes.HexBytes{})
-	require.NoError(c.t, err)
-	require.Equal(c.t, abciQuery.Response.Code, uint32(0))
-	err = c.encodingConfig.Amino.UnmarshalJSON(abciQuery.Response.Value, &chainGravityId)
-	require.NoError(c.t, err)
-	return chainGravityId
-}
-func (c *Client) gravityValsetConfirm() {
-	gravityId := c.gravityId()
-	requestParams := &gravitytypes.QueryLastPendingValsetRequestByAddrRequest{Address: c.AccAddress().String()}
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
-	for range ticker.C {
-		queryResponse, err := c.gravityQuery.LastPendingValsetRequestByAddr(c.ctx, requestParams)
-		require.NoError(c.t, err)
-
-		valsets := queryResponse.Valsets
-		if len(valsets) <= 0 {
-			continue
-		}
-
-		for _, valset := range valsets {
-			checkpoint := valset.GetCheckpoint(gravityId)
-			//c.t.Logf("need confirm valset: nonce:%v EthAddress:%v\n", valset.Nonce, c.HexAddress())
-			ecdsa, _ := crypto.ToECDSA(c.privateKey.Bytes())
-			signature, err := gravitytypes.NewEthereumSignature(checkpoint, ecdsa)
-			require.NoError(c.t, err)
-
-			txRaw := c.BuildTx([]sdk.Msg{
-				&gravitytypes.MsgValsetConfirm{
-					Nonce:        valset.Nonce,
-					Orchestrator: c.AccAddress().String(),
-					EthAddress:   c.HexAddress().String(),
-					Signature:    hex.EncodeToString(signature),
-				},
-			})
-			broadcastTx(c.t, c.ctx, c.txClient, txRaw)
-		}
-	}
-}
-func (c *Client) gravityCheckConfirm() {
-	count := 0
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
-	for range ticker.C {
-		resp, err := c.gravityQuery.LastPendingValsetRequestByAddr(c.ctx, &gravitytypes.QueryLastPendingValsetRequestByAddrRequest{Address: c.AccAddress().String()})
-		require.NoError(c.t, err)
-		if len(resp.Valsets) > 0 {
-			count++
-			require.True(c.t, count <= 3)
-			continue
-		}
-		break
-	}
-}
-func (c *Client) gravityCheckValset() bool {
-	respValset, err := c.gravityQuery.CurrentValset(c.ctx, &gravitytypes.QueryCurrentValsetRequest{})
-	require.NoError(c.t, err)
-	for _, m := range respValset.GetValset().GetMembers() {
-		if strings.EqualFold(m.EthAddress, c.HexAddress().String()) {
-			return true
-		}
-	}
-	return false
-}
-func (c *Client) gravitySetOrchestratorAddress() {
-	c.t.Log("gravity setOrchestratorAddress")
-	queryOrchestratorResponse, err := c.gravityQuery.GetDelegateKeyByOrchestrator(c.ctx,
-		&gravitytypes.QueryDelegateKeyByOrchestratorRequest{OrchestratorAddress: c.AccAddress().String()})
-	if queryOrchestratorResponse != nil && len(queryOrchestratorResponse.EthAddress) > 0 {
-		c.t.Logf("already set orchestrator address! address:[%v], validatorAddress:[%v], ethAddress:[%v]\n",
-			c.AccAddress().String(), queryOrchestratorResponse.ValidatorAddress, queryOrchestratorResponse.EthAddress)
-		return
-	}
-	//require.NoError(c.t, err)
-	if err != nil {
-		if !strings.Contains(err.Error(), "No validator") {
-			c.t.Fatal(err)
-		}
-		c.t.Logf("not found validator!!error msg:%v\n", err.Error())
-	}
-	msgSetOrchestratorAddress := gravitytypes.NewMsgSetOrchestratorAddress(sdk.ValAddress(c.AccAddress()), c.AccAddress(), c.HexAddress().String())
-	txRaw := c.BuildTx([]sdk.Msg{msgSetOrchestratorAddress})
-	broadcastTx(c.t, c.ctx, c.txClient, txRaw)
-}
-func (c *Client) gravityQueryFxLastEventNonce() uint64 {
-	lastEventNonce, err := c.gravityQuery.LastEventNonceByAddr(c.ctx, &gravitytypes.QueryLastEventNonceByAddrRequest{Address: c.AccAddress().String()})
-	if err != nil {
-		c.t.Fatal(err)
-	}
-	return lastEventNonce.EventNonce + 1
-}
-func (c *Client) GravityCheckPoolTx(addr ...string) {
-	sender := c.AccAddress().String()
-	if len(addr) > 0 {
-		sender = addr[0]
-	}
-	resp, err := c.gravityQuery.GetPendingSendToEth(c.ctx, &gravitytypes.QueryPendingSendToEthRequest{SenderAddress: sender})
-	require.NoError(c.t, err)
-	require.True(c.t, len(resp.UnbatchedTransfers) > 0)
-
-	for _, ub := range resp.UnbatchedTransfers {
-		c.t.Log("unBatch id", ub.Id)
-	}
-}
-func (c *Client) gravityFxOriginatedTokenClaim() {
-	c.t.Log("gravity setFxOriginatedTokenClaim")
-	resp, err := c.gravityQuery.LastEventNonceByAddr(c.ctx, &gravitytypes.QueryLastEventNonceByAddrRequest{Address: c.AccAddress().String()})
-	require.NoError(c.t, err)
-
-	msg := &gravitytypes.MsgFxOriginatedTokenClaim{
-		EventNonce:    resp.EventNonce + 1,
-		BlockHeight:   c.EthBlockHeight(),
-		TokenContract: EthFXTokenContract,
-		Name:          "Function X",
-		Symbol:        "FX",
-		Decimals:      18,
-		Orchestrator:  c.AccAddress().String(),
-	}
-	txRaw := c.BuildTx([]sdk.Msg{msg})
-	broadcastTx(c.t, c.ctx, c.txClient, txRaw)
-}
-func (c *Client) GravitySendToTx(recipient sdk.AccAddress, token common.Address, value *big.Int, targetIBC string) {
-	_, err := c.gravityQuery.ERC20ToDenom(c.ctx, &gravitytypes.QueryERC20ToDenomRequest{Erc20: token.String()})
-	require.NoError(c.t, err)
-
-	if len(targetIBC) > 0 {
-		targetIBC = hex.EncodeToString([]byte(targetIBC))
-	}
-	depositClaimMsg := gravitytypes.NewMsgDepositClaim(c.gravityQueryFxLastEventNonce(), c.EthBlockHeight(), token.String(),
-		sdk.NewIntFromBigInt(value), c.HexAddress().String(), recipient.String(), targetIBC, c.AccAddress().String())
-	txRaw := c.BuildTx([]sdk.Msg{depositClaimMsg})
-	broadcastTx(c.t, c.ctx, c.txClient, txRaw)
 }
 
 func (c *Client) CheckIBCChannelState(portId, channelId string) {

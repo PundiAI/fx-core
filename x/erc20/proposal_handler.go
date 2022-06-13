@@ -19,8 +19,8 @@ func NewErc20ProposalHandler(k *keeper.Keeper) govtypes.Handler {
 			return handleRegisterCoinProposal(ctx, k, c)
 		case *types.RegisterERC20Proposal:
 			return handleRegisterERC20Proposal(ctx, k, c)
-		case *types.ToggleTokenRelayProposal:
-			return handleToggleRelayProposal(ctx, k, c)
+		case *types.ToggleTokenConversionProposal:
+			return handleToggleConversionProposal(ctx, k, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s proposal content type: %T", types.ModuleName, c)
 		}
@@ -60,7 +60,7 @@ func handleRegisterERC20Proposal(ctx sdk.Context, k *keeper.Keeper, p *types.Reg
 	return nil
 }
 
-func handleToggleRelayProposal(ctx sdk.Context, k *keeper.Keeper, p *types.ToggleTokenRelayProposal) error {
+func handleToggleConversionProposal(ctx sdk.Context, k *keeper.Keeper, p *types.ToggleTokenConversionProposal) error {
 	pair, err := k.ToggleRelay(ctx, p.Token)
 	if err != nil {
 		return err

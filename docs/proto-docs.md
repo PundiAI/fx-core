@@ -112,7 +112,7 @@
 - [erc20/v1/erc20.proto](#erc20/v1/erc20.proto)
     - [RegisterCoinProposal](#fx.erc20.v1.RegisterCoinProposal)
     - [RegisterERC20Proposal](#fx.erc20.v1.RegisterERC20Proposal)
-    - [ToggleTokenRelayProposal](#fx.erc20.v1.ToggleTokenRelayProposal)
+    - [ToggleTokenConversionProposal](#fx.erc20.v1.ToggleTokenConversionProposal)
     - [TokenPair](#fx.erc20.v1.TokenPair)
   
     - [Owner](#fx.erc20.v1.Owner)
@@ -144,9 +144,6 @@
     - [MsgSendToEthResponse](#fx.gravity.v1.MsgSendToEthResponse)
   
     - [Msg](#fx.gravity.v1.Msg)
-  
-- [gravity/v1/params.proto](#gravity/v1/params.proto)
-    - [Params](#fx.gravity.v1.Params)
   
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#fx.ibc.applications.transfer.v1.DenomTrace)
@@ -1894,11 +1891,11 @@ RegisterCoinProposal is a gov Content type to register a token pair
 
 
 
-<a name="fx.erc20.v1.ToggleTokenRelayProposal"></a>
+<a name="fx.erc20.v1.ToggleTokenConversionProposal"></a>
 
-### ToggleTokenRelayProposal
-ToggleTokenRelayProposal is a gov Content type to toggle
-the internal relaying of a token pair.
+### ToggleTokenConversionProposal
+ToggleTokenConversionProposal is a gov Content type to toggle the conversion
+of a token pair.
 
 
 | Field | Type | Label | Description |
@@ -2262,53 +2259,6 @@ Msg defines the state transitions possible within gravity
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `SendToEth` | [MsgSendToEth](#fx.gravity.v1.MsgSendToEth) | [MsgSendToEthResponse](#fx.gravity.v1.MsgSendToEthResponse) |  | |
-
- <!-- end services -->
-
-
-
-<a name="gravity/v1/params.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## gravity/v1/params.proto
-
-
-
-<a name="fx.gravity.v1.Params"></a>
-
-### Params
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `gravity_id` | [string](#string) |  |  |
-| `contract_source_hash` | [string](#string) |  |  |
-| `bridge_eth_address` | [string](#string) |  |  |
-| `bridge_chain_id` | [uint64](#uint64) |  |  |
-| `signed_valsets_window` | [uint64](#uint64) |  |  |
-| `signed_batches_window` | [uint64](#uint64) |  |  |
-| `signed_claims_window` | [uint64](#uint64) |  |  |
-| `target_batch_timeout` | [uint64](#uint64) |  |  |
-| `average_block_time` | [uint64](#uint64) |  |  |
-| `average_eth_block_time` | [uint64](#uint64) |  |  |
-| `slash_fraction_valset` | [bytes](#bytes) |  |  |
-| `slash_fraction_batch` | [bytes](#bytes) |  |  |
-| `slash_fraction_claim` | [bytes](#bytes) |  |  |
-| `slash_fraction_conflicting_claim` | [bytes](#bytes) |  |  |
-| `unbond_slashing_valsets_window` | [uint64](#uint64) |  |  |
-| `ibc_transfer_timeout_height` | [uint64](#uint64) |  |  |
-| `valset_update_power_change_percent` | [bytes](#bytes) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
 
  <!-- end services -->
 

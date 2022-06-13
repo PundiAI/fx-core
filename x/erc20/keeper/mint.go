@@ -30,7 +30,7 @@ func (k Keeper) MintingEnabled(ctx sdk.Context, sender, receiver sdk.AccAddress,
 	}
 
 	if !pair.Enabled {
-		return types.TokenPair{}, sdkerrors.Wrapf(types.ErrERC20Disabled, "minting token '%s' is not enabled by governance", token)
+		return types.TokenPair{}, sdkerrors.Wrapf(types.ErrERC20TokenPairDisabled, "minting token '%s' is not enabled by governance", token)
 	}
 
 	if k.bankKeeper.BlockedAddr(receiver.Bytes()) {

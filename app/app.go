@@ -180,8 +180,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		upgradeclient.ProposalHandler,
 		upgradeclient.CancelProposalHandler,
 		erc20client.RegisterCoinProposalHandler,
-		erc20client.ToggleTokenRelayProposalHandler,
 		erc20client.RegisterERC20ProposalHandler,
+		erc20client.ToggleTokenConversionProposalHandler,
 	}
 }
 

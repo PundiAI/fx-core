@@ -1,10 +1,7 @@
 package cli
 
 import (
-	"fmt"
-	"io/fs"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,35 +22,4 @@ func ParseMetadata(cdc codec.JSONCodec, metadataFile string) (banktypes.Metadata
 	}
 
 	return metadata, nil
-}
-
-func ReadMetadataFromPath(cdc codec.Codec, path string) ([]banktypes.Metadata, error) {
-	metadatas := make([]banktypes.Metadata, 0, 10)
-	stat, err := os.Stat(path)
-	if err != nil {
-		return nil, fmt.Errorf("path %s error %v", path, err)
-	}
-	if stat.IsDir() {
-		if err := filepath.Walk(path, func(p string, info fs.FileInfo, _ error) error {
-			if info.IsDir() {
-				return nil
-			}
-			metadata, err := ParseMetadata(cdc, p)
-			if err != nil {
-				return fmt.Errorf("parse metadata file %s error %v", p, err)
-			}
-			metadatas = append(metadatas, metadata)
-			return nil
-		}); err != nil {
-			return nil, err
-		}
-	} else {
-		metadata, err := ParseMetadata(cdc, path)
-		if err != nil {
-			return nil, fmt.Errorf("parse metadata file %s error %v", path, err)
-		}
-		metadatas = append(metadatas, metadata)
-	}
-
-	return metadatas, nil
 }

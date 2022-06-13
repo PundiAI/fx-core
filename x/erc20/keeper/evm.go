@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/crypto"
+
 	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -160,4 +162,25 @@ func (k Keeper) CallEVMWithData(
 	}
 
 	return res, nil
+}
+
+// monitorApprovalEvent returns an error if the given transactions logs include
+// an unexpected `approve` event
+func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error {
+	if res == nil || len(res.Logs) == 0 {
+		return nil
+	}
+
+	logApprovalSig := []byte("Approval(address,address,uint256)")
+	logApprovalSigHash := crypto.Keccak256Hash(logApprovalSig)
+
+	for _, log := range res.Logs {
+		if log.Topics[0] == logApprovalSigHash.Hex() {
+			return sdkerrors.Wrapf(
+				types.ErrUnexpectedEvent, "unexpected Approval event",
+			)
+		}
+	}
+
+	return nil
 }

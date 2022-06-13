@@ -48,7 +48,7 @@ type TransferCrossChainEvent struct {
 }
 
 func ParseTransferCrossChainEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*TransferCrossChainEvent, bool, error) {
-	if len(log.Topics) < 2 {
+	if len(log.Topics) != 2 {
 		return nil, false, nil
 	}
 	tc := new(TransferCrossChainEvent)

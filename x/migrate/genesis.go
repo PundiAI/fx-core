@@ -24,7 +24,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, _ types.GenesisState) {
 		}
 		baseAccount, ok := account.(*authtypes.BaseAccount)
 		if !ok {
-			ctx.Logger().Info("ignore account", "address", account.GetAddress(), "type", fmt.Sprintf("%T", account))
+			k.Logger(ctx).Info("ignore account", "address", account.GetAddress(), "type", fmt.Sprintf("%T", account))
 			return false
 		}
 		ethAccount := &ethermint.EthAccount{
@@ -32,7 +32,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, _ types.GenesisState) {
 			CodeHash:    common.BytesToHash(emptyCodeHash).String(),
 		}
 		k.AccountKeeper.SetAccount(ctx, ethAccount)
-		ctx.Logger().Info("migrate account", "address", account.GetAddress())
+		k.Logger(ctx).Info("migrate account", "address", account.GetAddress())
 		return false
 	})
 }

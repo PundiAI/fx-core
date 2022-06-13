@@ -43,64 +43,11 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	"github.com/functionx/fx-core/x/erc20/keeper"
 	"github.com/functionx/fx-core/x/erc20/types"
-	"github.com/functionx/fx-core/x/gravity"
-	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
 )
 
 var (
 	devnetPurseDenom = "ibc/B1861D0C2E4BAFA42A61739291975B7663F278FFAF579F83C9C4AD3890D09CA0"
 )
-
-func TestHookChainGravity(t *testing.T) {
-	myApp, validators, _, delegateAddressArr := initTest(t)
-	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{ProposerAddress: validators[0].Address, Height: 1})
-
-	val := validators[0]
-	validator := GetValidator(t, myApp, val)[0]
-	del := delegateAddressArr[0]
-
-	signer1, addr1 := privateSigner()
-	_, addr2 := privateSigner()
-
-	ctx = testInitGravity(t, ctx, myApp, validator.GetOperator(), addr1.Bytes(), addr2)
-
-	ctx = upgradeV2(t, ctx, myApp)
-
-	pairId := myApp.Erc20Keeper.GetDenomMap(ctx, "FX")
-	require.True(t, len(pairId) > 0)
-
-	pair, found := myApp.Erc20Keeper.GetTokenPair(ctx, pairId)
-	require.True(t, found)
-
-	require.Equal(t, types.TokenPair{
-		Erc20Address:  pair.Erc20Address,
-		Denom:         "FX",
-		Enabled:       true,
-		ContractOwner: types.OWNER_MODULE,
-	}, pair)
-
-	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err := myApp.BankKeeper.SendCoins(ctx, del, sdk.AccAddress(addr1.Bytes()), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
-	require.NoError(t, err)
-
-	balances := myApp.BankKeeper.GetAllBalances(ctx, addr1.Bytes())
-	_ = balances
-
-	err = myApp.Erc20Keeper.RelayConvertCoin(ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
-	require.NoError(t, err)
-
-	balanceOf, err := myApp.Erc20Keeper.BalanceOf(ctx, pair.GetERC20Contract(), addr1)
-	require.NoError(t, err)
-	_ = balanceOf
-
-	token := pair.GetERC20Contract()
-	crossChainTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, gravitytypes.ModuleName)
-	transferChainData := packTransferCrossData(t, ctx, myApp.Erc20Keeper, addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
-	sendEthTx(t, ctx, myApp, signer1, addr1, token, transferChainData)
-
-	transactions := myApp.GravityKeeper.GetPoolTransactions(ctx)
-	require.Equal(t, 1, len(transactions))
-}
 
 func TestHookChainBSC(t *testing.T) {
 	myApp, validators, genesisAccount, delegateAddressArr := initTest(t)
@@ -379,82 +326,21 @@ var (
 	BSCBridgeTokenContract    = common.HexToAddress("0xFBBbB4f7B1e5bCb0345c5A5a61584B2547d5D582")
 )
 
-func testInitGravity(t *testing.T, ctx sdk.Context, myApp *app.App, val sdk.ValAddress, orch sdk.AccAddress, addr common.Address) sdk.Context {
-	myApp.GravityKeeper.SetOrchestratorValidator(ctx, val, orch)
-	myApp.GravityKeeper.SetEthAddressForValidator(ctx, val, addr.String())
-
-	testValSetUpdateClaim(t, ctx, myApp, orch, addr)
-
-	testFxOriginatedTokenClaim(t, ctx, myApp, orch)
-
-	gravity.EndBlocker(ctx, myApp.GravityKeeper)
-
-	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-
-	return ctx
-}
-
-func testFxOriginatedTokenClaim(t *testing.T, ctx sdk.Context, myApp *app.App, orch sdk.AccAddress) {
-	msg := &gravitytypes.MsgFxOriginatedTokenClaim{
-		EventNonce:    2,
-		BlockHeight:   uint64(ctx.BlockHeight()),
-		TokenContract: FxOriginatedTokenContract.String(),
-		Name:          "The native staking token of the Function X",
-		Symbol:        "FX",
-		Decimals:      18,
-		Orchestrator:  orch.String(),
-	}
-
-	any, err := codectypes.NewAnyWithValue(msg)
-	require.NoError(t, err)
-
-	// Add the claim to the store
-	_, err = myApp.GravityKeeper.Attest(ctx, msg, any)
-	require.NoError(t, err)
-}
-
-func testValSetUpdateClaim(t *testing.T, ctx sdk.Context, myApp *app.App, orch sdk.AccAddress, addr common.Address) {
-	msg := &gravitytypes.MsgValsetUpdatedClaim{
-		EventNonce:  1,
-		BlockHeight: uint64(ctx.BlockHeight()),
-		ValsetNonce: 0,
-		Members: []*gravitytypes.BridgeValidator{
-			{
-				Power:      uint64(math.MaxUint32),
-				EthAddress: addr.String(),
-			},
-		},
-		Orchestrator: orch.String(),
-	}
-
-	for _, member := range msg.Members {
-		memberVal := myApp.GravityKeeper.GetValidatorByEthAddress(ctx, member.EthAddress)
-		require.NotEmpty(t, memberVal)
-	}
-
-	any, err := codectypes.NewAnyWithValue(msg)
-	require.NoError(t, err)
-
-	// Add the claim to the store
-	_, err = myApp.GravityKeeper.Attest(ctx, msg, any)
-	require.NoError(t, err)
-}
-
 func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracleAddress, orchestratorAddr sdk.AccAddress, externalAddress common.Address) sdk.Context {
 	deposit := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), big.NewInt(1e18))))
-	err := myApp.BankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddress, myApp.BscKeeper.GetModuleName(), sdk.NewCoins(deposit))
+	err := myApp.BankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddress, bsctypes.ModuleName, sdk.NewCoins(deposit))
 	require.NoError(t, err)
 
 	testBSCParamsProposal(t, ctx, myApp, oracleAddress)
 
 	oracle := crosschaintypes.Oracle{
-		OracleAddress:       oracleAddress.String(),
-		OrchestratorAddress: orchestratorAddr.String(),
-		ExternalAddress:     externalAddress.String(),
-		DepositAmount:       deposit,
-		StartHeight:         ctx.BlockHeight(),
-		Jailed:              false,
-		JailedHeight:        0,
+		OracleAddress:   oracleAddress.String(),
+		BridgerAddress:  orchestratorAddr.String(),
+		ExternalAddress: externalAddress.String(),
+		DelegateAmount:  deposit.Amount,
+		StartHeight:     ctx.BlockHeight(),
+		Jailed:          false,
+		JailedHeight:    0,
 	}
 	// save oracle
 	myApp.BscKeeper.SetOracle(ctx, oracle)
@@ -462,9 +348,6 @@ func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracle
 	myApp.BscKeeper.SetOracleByBridger(ctx, oracleAddress, orchestratorAddr)
 	// set the ethereum address
 	myApp.BscKeeper.SetExternalAddressForOracle(ctx, oracleAddress, externalAddress.String())
-	// save total deposit amount
-	totalDeposit := myApp.BscKeeper.GetTotalDelegate(ctx)
-	myApp.BscKeeper.SetTotalDelegate(ctx, totalDeposit.Add(deposit))
 
 	myApp.BscKeeper.CommonSetOracleTotalPower(ctx)
 
@@ -480,42 +363,29 @@ func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracle
 }
 
 func testBSCParamsProposal(t *testing.T, ctx sdk.Context, myApp *app.App, oracles sdk.AccAddress) {
-	slashFraction, _ := sdk.NewDecFromStr("0.001")
-	oracleSetUpdatePowerChangePercent, _ := sdk.NewDecFromStr("0.1")
-	proposal := &crosschaintypes.InitCrossChainParamsProposal{
+	proposal := &crosschaintypes.UpdateCrossChainOraclesProposal{
 		Title:       "bsc cross chain",
 		Description: "bsc cross chain init",
-		Params: &crosschaintypes.Params{
-			GravityId:                         "fx-bsc-bridge",
-			SignedWindow:                      20000,
-			ExternalBatchTimeout:              86400000,
-			AverageBlockTime:                  1000,
-			AverageExternalBlockTime:          3000,
-			SlashFraction:                     slashFraction,
-			OracleSetUpdatePowerChangePercent: oracleSetUpdatePowerChangePercent,
-			IbcTransferTimeoutHeight:          20000,
-			Oracles:                           []string{oracles.String()},
-			DepositThreshold:                  sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), big.NewInt(1e18)))),
-		},
-		ChainName: myApp.BscKeeper.GetModuleName(),
+		Oracles:     []string{oracles.String()},
+		ChainName:   bsctypes.ModuleName,
 	}
 
-	k := crosschainkeeper.EthereumMsgServer{Keeper: myApp.BscKeeper}
-	err := k.HandleInitCrossChainParamsProposal(ctx, proposal)
+	k := &crosschainkeeper.EthereumMsgServer{Keeper: myApp.BscKeeper}
+	err := crosschainkeeper.HandleUpdateCrossChainOraclesProposal(ctx, k, proposal)
 	require.NoError(t, err)
 }
 
 func testBSCBridgeTokenClaim(t *testing.T, ctx sdk.Context, myApp *app.App, orchAddr sdk.AccAddress) {
 	msg := &crosschaintypes.MsgBridgeTokenClaim{
-		EventNonce:    2,
-		BlockHeight:   uint64(ctx.BlockHeight()),
-		TokenContract: BSCBridgeTokenContract.String(),
-		Name:          "PURSE Token",
-		Symbol:        "PURSE",
-		Decimals:      18,
-		Orchestrator:  orchAddr.String(),
-		ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
-		ChainName:     myApp.BscKeeper.GetModuleName(),
+		EventNonce:     2,
+		BlockHeight:    uint64(ctx.BlockHeight()),
+		TokenContract:  BSCBridgeTokenContract.String(),
+		Name:           "PURSE Token",
+		Symbol:         "PURSE",
+		Decimals:       18,
+		BridgerAddress: orchAddr.String(),
+		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
+		ChainName:      bsctypes.ModuleName,
 	}
 
 	any, err := codectypes.NewAnyWithValue(msg)
@@ -537,8 +407,8 @@ func testBSCOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, myApp *app.App, 
 				ExternalAddress: addr.String(),
 			},
 		},
-		Orchestrator: orch.String(),
-		ChainName:    myApp.BscKeeper.GetModuleName(),
+		BridgerAddress: orch.String(),
+		ChainName:      bsctypes.ModuleName,
 	}
 	for _, member := range msg.Members {
 		_, found := myApp.BscKeeper.GetOracleByExternalAddress(ctx, member.ExternalAddress)

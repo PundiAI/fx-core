@@ -195,54 +195,6 @@ func TestWFX(t *testing.T) {
 	t.Log("wfx recipient balance", b6.String())
 }
 
-func TestFIP20CrossChain(t *testing.T) {
-	if testing.Short() {
-		t.SkipNow()
-	}
-
-	client := NewClient(t, DefaultGRPCUrl, DefaultNodeRPCUrl, DefaultEthUrl, DefaultMnemonic, EthHDPath)
-
-	recipient := client.HexAddress(recipientMnemonic)
-	t.Log("recipient", recipient.String())
-
-	token := client.Token("FX")
-	t.Log("wfx token", token.Hex())
-
-	wfx, err := NewERC20Token(token, client.ethClient)
-	require.NoError(t, err)
-
-	client.GravityInitialize()
-
-	b1 := client.Balance(recipient)
-	t.Log("recipient balance", b1.String())
-
-	client.GravitySendToTx(recipient.Bytes(), common.HexToAddress(EthFXTokenContract), big.NewInt(100), "")
-
-	b2 := client.Balance(recipient)
-	t.Log("recipient balance", b2.String())
-
-	b3, err := wfx.BalanceOf(nil, client.HexAddress())
-	require.NoError(t, err)
-	t.Log("wfx addr balance", b3.String())
-
-	client.GravitySendToTx(client.AccAddress(), common.HexToAddress(EthFXTokenContract), big.NewInt(100), "module/evm")
-
-	b4 := client.Balance(recipient)
-	t.Log("recipient balance", b4.String())
-
-	b5, err := wfx.BalanceOf(nil, client.HexAddress())
-	require.NoError(t, err)
-	t.Log("wfx addr balance", b5.String())
-
-	client.TransferCrossChain(token, client.HexAddress().String(), big.NewInt(10), big.NewInt(10), "chain/gravity")
-
-	b6, err := wfx.BalanceOf(nil, client.HexAddress())
-	require.NoError(t, err)
-	t.Log("wfx addr balance", b6.String())
-
-	client.GravityCheckPoolTx()
-}
-
 func TestFIP20IBCTransfer(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
