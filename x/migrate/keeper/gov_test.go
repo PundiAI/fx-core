@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	fxtypes "github.com/functionx/fx-core/types"
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 )
@@ -19,7 +20,7 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
 
 	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 	suite.Require().NoError(err)

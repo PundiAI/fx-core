@@ -20,19 +20,25 @@ var (
 	}
 	pundixTokenPair = types.TokenPair{
 		Erc20Address:  "0xd567B3d7B8FE3C79a1AD8dA978812cfC4Fa05e75",
-		Denom:         "eth0x338E7A8687AdA7274Dc87C95D94f920d8F4185AE",
+		Denom:         "eth0x0FD10b9899882a6f2fcb5c371E17e70FdEe00C38",
 		Enabled:       true,
 		ContractOwner: 1,
 	}
 	purseTokenPair = types.TokenPair{
 		Erc20Address:  "0x5FD55A1B9FC24967C4dB09C513C3BA0DFa7FF687",
-		Denom:         "ibc/B1861D0C2E4BAFA42A61739291975B7663F278FFAF579F83C9C4AD3890D09CA0",
+		Denom:         "ibc/F08B62C2C1BE9E52942617489CAB1E94537FE3849F8EEC910B142468C340EB0D",
 		Enabled:       true,
 		ContractOwner: 1,
 	}
-	usdtTokenPair = types.TokenPair{
+	tronUsdtTokenPair = types.TokenPair{
 		Erc20Address:  "0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265",
-		Denom:         "eth0x1BE1f78d417B1C4A199bb8ad4c946Ca248f7A83e",
+		Denom:         "tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+		Enabled:       true,
+		ContractOwner: 1,
+	}
+	polygonUsdtTokenPair = types.TokenPair{
+		Erc20Address:  "0x1D54EcB8583Ca25895c512A8308389fFD581F9c9",
+		Denom:         "polygon0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
 		Enabled:       true,
 		ContractOwner: 1,
 	}
@@ -46,28 +52,28 @@ func (suite *KeeperTestSuite) TestGetAllTokenPairs() {
 		malleate func()
 	}{
 		{
-			"4 pair registered", func() {
-				expRes = []types.TokenPair{fxTokenPair, pundixTokenPair, purseTokenPair, usdtTokenPair}
+			"5 pair registered", func() {
+				expRes = []types.TokenPair{fxTokenPair, pundixTokenPair, purseTokenPair, tronUsdtTokenPair, polygonUsdtTokenPair}
 			},
 		},
 		{
-			"5 pair registered",
+			"6 pair registered",
 			func() {
 				pair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
-				expRes = []types.TokenPair{pair, fxTokenPair, pundixTokenPair, purseTokenPair, usdtTokenPair}
+				expRes = []types.TokenPair{pair, fxTokenPair, pundixTokenPair, purseTokenPair, tronUsdtTokenPair, polygonUsdtTokenPair}
 			},
 		},
 		{
-			"6 pairs registered",
+			"7 pairs registered",
 			func() {
 				pair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				pair2 := types.NewTokenPair(tests.GenerateAddress(), "coin2", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
-				expRes = []types.TokenPair{pair, pair2, fxTokenPair, pundixTokenPair, purseTokenPair, usdtTokenPair}
+				expRes = []types.TokenPair{pair, pair2, fxTokenPair, pundixTokenPair, purseTokenPair, tronUsdtTokenPair, polygonUsdtTokenPair}
 			},
 		},
 	}

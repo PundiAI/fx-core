@@ -2,9 +2,10 @@ package keeper_test
 
 import (
 	"context"
-	"github.com/functionx/fx-core/app"
 	"testing"
 	"time"
+
+	"github.com/functionx/fx-core/app"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
@@ -109,14 +110,14 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	_, err := suite.app.StakingKeeper.Delegate(suite.ctx, acc, delegateAmount, stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
 
-	_, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
+	del, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
 	suite.Require().True(found)
 
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc, val1.GetOperator())
-	suite.Require().True(found)
+	suite.Require().False(found)
 
 	//undelegate
-	completionTime, err := suite.app.StakingKeeper.Undelegate(suite.ctx, acc, val1.GetOperator(), sdk.NewDec(1))
+	completionTime, err := suite.app.StakingKeeper.Undelegate(suite.ctx, acc, val1.GetOperator(), del.Shares.Quo(sdk.NewDec(10)))
 	suite.Require().NoError(err)
 
 	delegation2, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
@@ -139,7 +140,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	suite.Require().NoError(err)
 
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
-	suite.Require().True(found)
+	suite.Require().False(found)
 
 	delegation3, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc, val1.GetOperator())
 	suite.Require().True(found)
@@ -166,7 +167,6 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 
 	ethAccBalanceV2 := suite.app.BankKeeper.GetBalance(suite.ctx, ethAcc, fxtypes.DefaultDenom)
 	suite.Require().Equal(ethAccBalanceV2.Sub(ethAccBalanceV1).Amount, delegateAmount.Quo(sdk.NewInt(10)))
-
 }
 
 func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
@@ -194,8 +194,12 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	suite.Require().False(found)
 
 	//redelegate
-	completionTime, err := suite.app.StakingKeeper.BeginRedelegation(suite.ctx, acc, val1.GetOperator(), val2.GetOperator(), sdk.NewDec(1))
-	suite.Require().NoError(err)
+	var completionTime time.Time
+	entries := suite.app.StakingKeeper.MaxEntries(suite.ctx)
+	for i := 0; i < int(entries); i++ {
+		completionTime, err = suite.app.StakingKeeper.BeginRedelegation(suite.ctx, acc, val1.GetOperator(), val2.GetOperator(), sdk.NewDec(1))
+		suite.Require().NoError(err)
+	}
 
 	delegation2, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
 	suite.Require().True(found)
@@ -204,7 +208,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	suite.Require().True(found)
 
 	queue := suite.app.StakingKeeper.GetRedelegationQueueTimeSlice(suite.ctx, completionTime)
-	suite.Require().Equal(1, len(queue))
+	suite.Require().Equal(int(entries), len(queue))
 	suite.Require().Equal(queue[0].DelegatorAddress, acc.String())
 
 	migrateKeeper := suite.app.MigrateKeeper
@@ -226,7 +230,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	suite.Require().Equal(delegation3.Shares, delegation5.Shares)
 
 	queue = suite.app.StakingKeeper.GetRedelegationQueueTimeSlice(suite.ctx, completionTime)
-	suite.Require().Equal(1, len(queue))
+	suite.Require().Equal(int(entries), len(queue))
 	suite.Require().Equal(queue[0].DelegatorAddress, ethAcc.String())
 }
 

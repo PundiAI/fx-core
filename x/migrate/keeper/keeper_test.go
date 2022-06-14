@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -8,9 +11,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
+	ethermint "github.com/tharsis/ethermint/types"
+
 	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/helpers"
 	upgradesv2 "github.com/functionx/fx-core/app/upgrades/v2"
@@ -18,14 +27,6 @@ import (
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	ethtypes "github.com/functionx/fx-core/x/eth/types"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
-	ethermint "github.com/tharsis/ethermint/types"
-	"testing"
-	"time"
 )
 
 var (
@@ -57,18 +58,12 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.ethsecp256k1PrivKey, err = ethsecp256k1.GenerateKey()
 	require.NoError(t, err)
 
-	//val := secp256k1.GenPrivKey()
-
-	priv := secp256k1.GenPrivKey()
-	consAddress := sdk.ConsAddress(priv.PubKey().Address())
-
 	// init app
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(3, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), validator, genesisAccounts, balances...)
-	//suite.app = helpers.Setup(suite.T(), false, 0)
 
-	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: consAddress, Time: time.Now().UTC()})
+	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: validator.Validators[0].Address, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
@@ -81,13 +76,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
 	}
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-
-	valAddr := sdk.ValAddress(validator.Validators[0].PubKey.Address())
-	val, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
-	require.NoError(t, err)
-	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, val)
-	require.NoError(t, err)
-	suite.app.StakingKeeper.SetValidator(suite.ctx, val)
 
 	amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
 	err = suite.app.BankKeeper.MintCoins(suite.ctx, ethtypes.ModuleName, sdk.NewCoins(amount))

@@ -3,12 +3,13 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
-	ante2 "github.com/functionx/fx-core/ante"
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	ethtypes "github.com/functionx/fx-core/x/eth/types"
 	"math/big"
 	"testing"
 	"time"
+
+	ante2 "github.com/functionx/fx-core/ante"
+	bsctypes "github.com/functionx/fx-core/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/x/eth/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -48,7 +49,7 @@ import (
 )
 
 const (
-	DevnetPurseDenom = "ibc/B1861D0C2E4BAFA42A61739291975B7663F278FFAF579F83C9C4AD3890D09CA0"
+	PurseDenom = "ibc/F08B62C2C1BE9E52942617489CAB1E94537FE3849F8EEC910B142468C340EB0D"
 )
 
 type KeeperTestSuite struct {
@@ -127,7 +128,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.Require().NoError(err)
 
 	if !suite.purseBalance.IsNil() {
-		amount := sdk.NewCoin(DevnetPurseDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
+		amount := sdk.NewCoin(PurseDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
 		err = suite.app.BankKeeper.MintCoins(suite.ctx, bsctypes.ModuleName, sdk.NewCoins(amount))
 		suite.Require().NoError(err)
 		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, bsctypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
@@ -297,7 +298,6 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 	}
 
 	unpacked, err := erc20Config.ABI.Unpack("balanceOf", res.Ret)
-	suite.Require().NoError(err)
 	if len(unpacked) == 0 {
 		return nil
 	}

@@ -14,6 +14,9 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/require"
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
+
 	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/tests"
 	fxtypes "github.com/functionx/fx-core/types"
@@ -22,8 +25,6 @@ import (
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	"github.com/functionx/fx-core/x/erc20/types"
-	"github.com/stretchr/testify/require"
-	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
 )
 
 func (suite *KeeperTestSuite) TestHookChainBSC() {
@@ -35,40 +36,40 @@ func (suite *KeeperTestSuite) TestHookChainBSC() {
 
 	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr1.Bytes(), addr2)
 
-	purseID := suite.app.Erc20Keeper.GetDenomMap(suite.ctx, DevnetPurseDenom)
+	purseID := suite.app.Erc20Keeper.GetDenomMap(suite.ctx, PurseDenom)
 	suite.Require().NotEmpty(purseID)
 
-	purseTokenPair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, purseID)
+	tokenPair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, purseID)
 	suite.Require().True(found)
-	suite.Require().NotNil(purseTokenPair)
-	suite.Require().NotEmpty(purseTokenPair.GetERC20Contract())
+	suite.Require().NotNil(tokenPair)
+	suite.Require().NotEmpty(tokenPair.GetERC20Contract())
 
 	require.Equal(suite.T(), types.TokenPair{
-		Erc20Address:  purseTokenPair.GetErc20Address(),
-		Denom:         DevnetPurseDenom,
+		Erc20Address:  tokenPair.GetErc20Address(),
+		Denom:         PurseDenom,
 		Enabled:       true,
 		ContractOwner: types.OWNER_MODULE,
-	}, purseTokenPair)
+	}, tokenPair)
 
-	fip20, err := suite.app.Erc20Keeper.QueryERC20(suite.ctx, purseTokenPair.GetERC20Contract())
+	fip20, err := suite.app.Erc20Keeper.QueryERC20(suite.ctx, tokenPair.GetERC20Contract())
 	suite.Require().NoError(err)
 	suite.Require().Equal("PURSE", fip20.Symbol)
 
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(DevnetPurseDenom, amt)))
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(PurseDenom, amt)))
 	suite.Require().NoError(err)
 
 	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, addr1.Bytes())
 	_ = balances
 
-	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr1.Bytes(), addr1, sdk.NewCoin(DevnetPurseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr1.Bytes(), addr1, sdk.NewCoin(PurseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	suite.Require().NoError(err)
 
-	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, purseTokenPair.GetERC20Contract(), addr1)
+	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, tokenPair.GetERC20Contract(), addr1)
 	suite.Require().NoError(err)
 	_ = balanceOf
 
-	token := purseTokenPair.GetERC20Contract()
+	token := tokenPair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, bsctypes.ModuleName)
 	transferChainData := packTransferCrossData(suite.T(), addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
 	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, addr1, token, transferChainData)
@@ -175,7 +176,7 @@ func privateSigner() (keyring.Signer, common.Address) {
 }
 
 var (
-	BSCBridgeTokenContract = common.HexToAddress("0xFBBbB4f7B1e5bCb0345c5A5a61584B2547d5D582")
+	BSCBridgeTokenContract = common.HexToAddress("0x29a63F4B209C29B4DC47f06FFA896F32667DAD2C")
 )
 
 func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracleAddress, bridgeAddress sdk.AccAddress, externalAddress common.Address) sdk.Context {

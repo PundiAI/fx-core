@@ -30,7 +30,7 @@ func (m *GovMigrate) Validate(ctx sdk.Context, _ Keeper, from, to sdk.AccAddress
 		_, fromVoteFound := m.govKeeper.GetVote(ctx, proposalID, from)
 		_, toVoteFound := m.govKeeper.GetVote(ctx, proposalID, to)
 		if fromVoteFound && toVoteFound {
-			return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s has voted proposal %d", to.String(), proposalID)
+			return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, both from and to have voting proposal %d", proposalID)
 		}
 	}
 	return nil
@@ -79,7 +79,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from, to sdk.AccAddress)
 		if fromVote, voteFound := m.govKeeper.GetVote(ctx, proposalID, from); voteFound {
 			_, toFound := m.govKeeper.GetVote(ctx, proposalID, to)
 			if toFound {
-				return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s has voted proposal %d", to.String(), proposalID)
+				return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, both from and to have voting proposal %d", proposalID)
 			}
 			fromVote.Voter = to.String()
 			govStore.Delete(govtypes.VoteKey(proposalID, from))

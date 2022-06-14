@@ -2,8 +2,9 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	"github.com/stretchr/testify/require"
+
+	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateBank() {

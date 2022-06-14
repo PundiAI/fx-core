@@ -1,6 +1,7 @@
 package types
 
 import (
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,10 +14,13 @@ func TestGetMetadata_Validate(t *testing.T) {
 		return `[a-zA-Z][a-zA-Z0-9/-]{1,127}`
 	})
 
-	for _, _ = range []string{NetworkDevnet(), NetworkTestnet(), NetworkMainnet()} {
-		for _, metadata := range GetMetadata() {
-			err := metadata.Validate()
-			assert.NoError(t, err)
-		}
+	devnetMetadata := []banktypes.Metadata{wfxMetadata, devnetPUNDIXMetadata, devnetPURSEMetadata, devnetUSDTMetadata}
+	testnetMetadata := []banktypes.Metadata{wfxMetadata, testnetPUNDIXMetadata, testnetEthUSDTMetadata, testnetUSDCMetadata, testnetDAIMetadata,
+		testnetPURSEMetadata, testnetUSDJMetadata, testnetUSDFMetadata, testnetTronUSDTMetadata, testnetLINKMetadata}
+	mainnetMetadata := []banktypes.Metadata{wfxMetadata, mainnetPUNDIXMetadata, mainnetPURSEMetadata, mainnetTronUSDTMetadata, mainnetPolygonUSDTMetadata}
+
+	for _, m := range append(append(devnetMetadata, testnetMetadata...), mainnetMetadata...) {
+		err := m.Validate()
+		assert.NoError(t, err)
 	}
 }

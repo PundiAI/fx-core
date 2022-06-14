@@ -17,52 +17,25 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 		expRes *types.QueryTokenPairsResponse
 	)
 
-	var (
-		fxTokenPair = types.TokenPair{
-			Erc20Address:  "0x80b5a32E4F032B2a058b4F29EC95EEfEEB87aDcd",
-			Denom:         "FX",
-			Enabled:       true,
-			ContractOwner: 1,
-		}
-		pundixTokenPair = types.TokenPair{
-			Erc20Address:  "0xd567B3d7B8FE3C79a1AD8dA978812cfC4Fa05e75",
-			Denom:         "eth0x338E7A8687AdA7274Dc87C95D94f920d8F4185AE",
-			Enabled:       true,
-			ContractOwner: 1,
-		}
-		purseTokenPair = types.TokenPair{
-			Erc20Address:  "0x5FD55A1B9FC24967C4dB09C513C3BA0DFa7FF687",
-			Denom:         "ibc/B1861D0C2E4BAFA42A61739291975B7663F278FFAF579F83C9C4AD3890D09CA0",
-			Enabled:       true,
-			ContractOwner: 1,
-		}
-		usdtTokenPair = types.TokenPair{
-			Erc20Address:  "0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265",
-			Denom:         "eth0x1BE1f78d417B1C4A199bb8ad4c946Ca248f7A83e",
-			Enabled:       true,
-			ContractOwner: 1,
-		}
-	)
-
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			"4 pairs registered",
+			"5 pairs registered",
 			func() {
 				req = &types.QueryTokenPairsRequest{}
 				expRes = &types.QueryTokenPairsResponse{Pagination: &query.PageResponse{}}
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 4},
-					TokenPairs: []types.TokenPair{fxTokenPair, pundixTokenPair, purseTokenPair, usdtTokenPair},
+					Pagination: &query.PageResponse{Total: 5},
+					TokenPairs: []types.TokenPair{fxTokenPair, pundixTokenPair, purseTokenPair, tronUsdtTokenPair, polygonUsdtTokenPair},
 				}
 			},
 			true,
 		},
 		{
-			"5 pair registered w/pagination",
+			"6 pair registered w/pagination",
 			func() {
 				req = &types.QueryTokenPairsRequest{
 					Pagination: &query.PageRequest{Limit: 10, CountTotal: true},
@@ -71,14 +44,14 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 5},
-					TokenPairs: []types.TokenPair{pair, fxTokenPair, pundixTokenPair, purseTokenPair, usdtTokenPair},
+					Pagination: &query.PageResponse{Total: 6},
+					TokenPairs: []types.TokenPair{pair, fxTokenPair, pundixTokenPair, purseTokenPair, tronUsdtTokenPair, polygonUsdtTokenPair},
 				}
 			},
 			true,
 		},
 		{
-			"6 pairs registered wo/pagination",
+			"7 pairs registered wo/pagination",
 			func() {
 				req = &types.QueryTokenPairsRequest{}
 				pair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
@@ -87,8 +60,8 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 6},
-					TokenPairs: []types.TokenPair{pair, pair2, fxTokenPair, pundixTokenPair, purseTokenPair, usdtTokenPair},
+					Pagination: &query.PageResponse{Total: 7},
+					TokenPairs: []types.TokenPair{pair, pair2, fxTokenPair, pundixTokenPair, purseTokenPair, tronUsdtTokenPair, polygonUsdtTokenPair},
 				}
 			},
 			true,
