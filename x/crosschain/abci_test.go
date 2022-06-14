@@ -155,13 +155,13 @@ func (suite *MsgHandlerTestSuite) TestOracleUpdate() {
 
 	require.True(suite.T(), attestation.Observed)
 
-	proposalHandler := crosschain.NewCrossChainProposalHandler(suite.app.CrosschainKeeper)
+	proposalHandler := crosschain.NewChainProposalHandler(suite.app.CrosschainKeeper)
 
 	var newOracleList []string
 	for i := 0; i < 7; i++ {
 		newOracleList = append(newOracleList, suite.oracles[i].String())
 	}
-	err = proposalHandler(suite.ctx, &types.UpdateCrossChainOraclesProposal{
+	err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
 		Title:       "proposal 1: try update chain oracle power >= 30%, expect error",
 		Description: "",
 		Oracles:     newOracleList,
@@ -182,7 +182,7 @@ func (suite *MsgHandlerTestSuite) TestOracleUpdate() {
 	for i := 0; i < 8; i++ {
 		newOracleList2 = append(newOracleList2, suite.oracles[i].String())
 	}
-	err = proposalHandler(suite.ctx, &types.UpdateCrossChainOraclesProposal{
+	err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
 		Title:       "proposal 2: try update chain oracle power <= 30%, expect success",
 		Description: "",
 		Oracles:     newOracleList2,
@@ -292,13 +292,13 @@ func (suite *MsgHandlerTestSuite) TestAttestationAfterOracleUpdate() {
 		require.NotNil(suite.T(), secondClaimAttestation.Votes)
 		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
 
-		proposalHandler := crosschain.NewCrossChainProposalHandler(suite.app.CrosschainKeeper)
+		proposalHandler := crosschain.NewChainProposalHandler(suite.app.CrosschainKeeper)
 
 		var newOracleList []string
 		for i := 0; i < 15; i++ {
 			newOracleList = append(newOracleList, suite.oracles[i].String())
 		}
-		err := proposalHandler(suite.ctx, &types.UpdateCrossChainOraclesProposal{
+		err := proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
 			Title:       "proposal 1: try update chain oracle save top 15 oracle, expect success",
 			Description: "",
 			Oracles:     newOracleList,
@@ -325,7 +325,7 @@ func (suite *MsgHandlerTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 11; i++ {
 			newOracleList2 = append(newOracleList2, suite.oracles[i].String())
 		}
-		err = proposalHandler(suite.ctx, &types.UpdateCrossChainOraclesProposal{
+		err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
 			Title:       "proposal 2: try update chain oracle save top 11 oracle, expect success",
 			Description: "",
 			Oracles:     newOracleList2,
@@ -352,7 +352,7 @@ func (suite *MsgHandlerTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 10; i++ {
 			newOracleList3 = append(newOracleList3, suite.oracles[i].String())
 		}
-		err = proposalHandler(suite.ctx, &types.UpdateCrossChainOraclesProposal{
+		err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
 			Title:       "proposal 3: try update chain oracle save top 10 oracle, expect success",
 			Description: "",
 			Oracles:     newOracleList3,
@@ -429,14 +429,14 @@ func (suite *MsgHandlerTestSuite) TestOracleDelete() {
 
 	require.True(suite.T(), suite.delegateAmount.Equal(oracleData.DelegateAmount))
 
-	proposalHandler := crosschain.NewCrossChainProposalHandler(suite.app.CrosschainKeeper)
+	proposalHandler := crosschain.NewChainProposalHandler(suite.app.CrosschainKeeper)
 
 	var newOracleAddressList []string
 	for _, address := range suite.oracles[1:] {
 		newOracleAddressList = append(newOracleAddressList, address.String())
 	}
 
-	err := proposalHandler(suite.ctx, &types.UpdateCrossChainOraclesProposal{
+	err := proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
 		Title:       "proposal 1: try update chain oracle remove first oracle, expect success",
 		Description: "",
 		Oracles:     newOracleAddressList,

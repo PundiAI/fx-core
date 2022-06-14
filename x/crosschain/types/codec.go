@@ -51,7 +51,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
-		&UpdateCrossChainOraclesProposal{},
+		&UpdateChainOraclesProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
@@ -81,5 +81,5 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgConfirmBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmBatch"), nil)
 
 	// register Proposal
-	cdc.RegisterConcrete(&UpdateCrossChainOraclesProposal{}, fmt.Sprintf("%s/%s", ModuleName, "UpdateCrossChainOraclesProposal"), nil)
+	cdc.RegisterConcrete(&UpdateChainOraclesProposal{}, fmt.Sprintf("%s/%s", ModuleName, "UpdateChainOraclesProposal"), nil)
 }

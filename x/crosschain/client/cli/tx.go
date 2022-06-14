@@ -41,7 +41,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand([]*cobra.Command{
-		CmdUpdateCrossChainOraclesProposal(),
+		CmdUpdateChainOraclesProposal(),
 
 		// set bridger address
 		CmdCreateOracleBridger(),
@@ -60,7 +60,7 @@ func GetTxCmd() *cobra.Command {
 	return cmd
 }
 
-func CmdUpdateCrossChainOraclesProposal() *cobra.Command {
+func CmdUpdateChainOraclesProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-crosschain-oracles [chain-name] [initial proposal stake]",
 		Short:   "update cross chain oracles",
@@ -96,7 +96,7 @@ func CmdUpdateCrossChainOraclesProposal() *cobra.Command {
 				}
 				oracles[i] = oracleAddr.String()
 			}
-			proposal := &types.UpdateCrossChainOraclesProposal{
+			proposal := &types.UpdateChainOraclesProposal{
 				Title:       title,
 				Description: description,
 				Oracles:     oracles,

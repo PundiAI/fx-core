@@ -459,7 +459,7 @@ func (s EthereumMsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOra
 // should not be a security risk as 'old' events can never execute but it does store spam in the chain.
 func (s EthereumMsgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if err := checkOrchestratorIsOracle(ctx, s.Keeper, msg.BridgerAddress); err != nil {
+	if err := s.checkOrchestratorIsOracle(ctx, msg.BridgerAddress); err != nil {
 		return nil, err
 	}
 
@@ -476,8 +476,7 @@ func (s EthereumMsgServer) SendToExternalClaim(c context.Context, msg *types.Msg
 // should not be a security risk as 'old' events can never execute but it does store spam in the chain.
 func (s EthereumMsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendToFxClaim) (*types.MsgSendToFxClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-
-	if err := checkOrchestratorIsOracle(ctx, s.Keeper, msg.BridgerAddress); err != nil {
+	if err := s.checkOrchestratorIsOracle(ctx, msg.BridgerAddress); err != nil {
 		return nil, err
 	}
 
@@ -491,7 +490,7 @@ func (s EthereumMsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendTo
 
 func (s EthereumMsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if err := checkOrchestratorIsOracle(ctx, s.Keeper, msg.BridgerAddress); err != nil {
+	if err := s.checkOrchestratorIsOracle(ctx, msg.BridgerAddress); err != nil {
 		return nil, err
 	}
 
@@ -506,8 +505,7 @@ func (s EthereumMsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBri
 // OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
 func (s EthereumMsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-
-	if err := checkOrchestratorIsOracle(ctx, s.Keeper, msg.BridgerAddress); err != nil {
+	if err := s.checkOrchestratorIsOracle(ctx, msg.BridgerAddress); err != nil {
 		return nil, err
 	}
 
@@ -525,16 +523,16 @@ func (s EthereumMsgServer) OracleSetUpdateClaim(c context.Context, msg *types.Ms
 	return &types.MsgOracleSetUpdatedClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg, msg.Type())
 }
 
-func checkOrchestratorIsOracle(ctx sdk.Context, keeper Keeper, bridgerAddress string) error {
+func (s EthereumMsgServer) checkOrchestratorIsOracle(ctx sdk.Context, bridgerAddress string) error {
 	bridgerAddr, err := sdk.AccAddressFromBech32(bridgerAddress)
 	if err != nil {
 		return sdkerrors.Wrap(types.ErrInvalid, "bridger address")
 	}
-	oracleAddr, found := keeper.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
+	oracleAddr, found := s.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
 	if !found {
 		return types.ErrNoFoundOracle
 	}
-	oracle, found := keeper.GetOracle(ctx, oracleAddr)
+	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
 		return types.ErrNoFoundOracle
 	}

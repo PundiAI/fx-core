@@ -69,7 +69,7 @@ func DefaultParams() *Params {
 		OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
 		IbcTransferTimeoutHeight:          20 * 1e3,
 		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10*1e3).MulRaw(1e18)),
-		DelegateMultiple:                  10,
+		DelegateMultiple:                  DefaultOracleDelegateThreshold,
 	}
 }
 

@@ -218,7 +218,7 @@ message Params {
   int64 delegate_multiple = 10;
 }
 
-message UpdateCrossChainOraclesProposal {
+message UpdateChainOraclesProposal {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;

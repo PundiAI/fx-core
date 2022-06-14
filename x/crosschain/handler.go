@@ -69,15 +69,15 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 	}
 }
 
-func NewCrossChainProposalHandler(k keeper.RouterKeeper) govtypes.Handler {
+func NewChainProposalHandler(k keeper.RouterKeeper) govtypes.Handler {
 	moduleHandlerRouter := k.Router()
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
-		case *types.UpdateCrossChainOraclesProposal:
+		case *types.UpdateChainOraclesProposal:
 			if !moduleHandlerRouter.HasRoute(c.ChainName) {
 				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", c.ChainName))
 			}
-			return keeper.HandleUpdateCrossChainOraclesProposal(ctx, k.Router().GetRoute(c.ChainName).MsgServer, c)
+			return keeper.HandleUpdateChainOraclesProposal(ctx, k.Router().GetRoute(c.ChainName).MsgServer, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized %s proposal content type: %T", types.ModuleName, c)
 		}

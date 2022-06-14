@@ -216,15 +216,15 @@ func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracle
 }
 
 func testBSCParamsProposal(t *testing.T, ctx sdk.Context, myApp *app.App, oracles sdk.AccAddress) {
-	proposal := &crosschaintypes.UpdateCrossChainOraclesProposal{
+	proposal := &crosschaintypes.UpdateChainOraclesProposal{
 		Title:       "bsc cross chain",
-		Description: "bsc cross chain init",
+		Description: "bsc cross chain oracles init",
 		Oracles:     []string{oracles.String()},
 		ChainName:   bsctypes.ModuleName,
 	}
 
 	k := &crosschainkeeper.EthereumMsgServer{Keeper: myApp.BscKeeper}
-	err := crosschainkeeper.HandleUpdateCrossChainOraclesProposal(ctx, k, proposal)
+	err := crosschainkeeper.HandleUpdateChainOraclesProposal(ctx, k, proposal)
 	require.NoError(t, err)
 }
 

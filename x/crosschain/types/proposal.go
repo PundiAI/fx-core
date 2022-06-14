@@ -10,29 +10,29 @@ import (
 )
 
 const (
-	// ProposalTypeUpdateCrossChainOracles defines the type for a UpdateCrossChainOraclesProposal
-	ProposalTypeUpdateCrossChainOracles = "UpdateCrossChainOracles"
+	// ProposalTypeUpdateChainOracles defines the type for a UpdateChainOraclesProposal
+	ProposalTypeUpdateChainOracles = "UpdateChainOracles"
 )
 
 var (
-	_ govtypes.Content = &UpdateCrossChainOraclesProposal{}
+	_ govtypes.Content = &UpdateChainOraclesProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeUpdateCrossChainOracles)
+	govtypes.RegisterProposalType(ProposalTypeUpdateChainOracles)
 }
 
-func (m *UpdateCrossChainOraclesProposal) GetTitle() string { return m.Title }
+func (m *UpdateChainOraclesProposal) GetTitle() string { return m.Title }
 
-func (m *UpdateCrossChainOraclesProposal) GetDescription() string { return m.Description }
+func (m *UpdateChainOraclesProposal) GetDescription() string { return m.Description }
 
-func (m *UpdateCrossChainOraclesProposal) ProposalRoute() string { return RouterKey }
+func (m *UpdateChainOraclesProposal) ProposalRoute() string { return RouterKey }
 
-func (m *UpdateCrossChainOraclesProposal) ProposalType() string {
-	return ProposalTypeUpdateCrossChainOracles
+func (m *UpdateChainOraclesProposal) ProposalType() string {
+	return ProposalTypeUpdateChainOracles
 }
 
-func (m *UpdateCrossChainOraclesProposal) ValidateBasic() error {
+func (m *UpdateChainOraclesProposal) ValidateBasic() error {
 	if err := ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -57,7 +57,7 @@ func (m *UpdateCrossChainOraclesProposal) ValidateBasic() error {
 	return nil
 }
 
-func (m *UpdateCrossChainOraclesProposal) String() string {
+func (m *UpdateChainOraclesProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Update Chain Oracles Proposal:
   Title:       %s

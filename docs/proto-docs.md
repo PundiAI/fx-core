@@ -19,7 +19,7 @@
     - [OutgoingTxBatch](#fx.gravity.crosschain.v1.OutgoingTxBatch)
     - [Params](#fx.gravity.crosschain.v1.Params)
     - [ProposalOracle](#fx.gravity.crosschain.v1.ProposalOracle)
-    - [UpdateCrossChainOraclesProposal](#fx.gravity.crosschain.v1.UpdateCrossChainOraclesProposal)
+    - [UpdateChainOraclesProposal](#fx.gravity.crosschain.v1.UpdateChainOraclesProposal)
   
     - [ClaimType](#fx.gravity.crosschain.v1.ClaimType)
     - [SignType](#fx.gravity.crosschain.v1.SignType)
@@ -481,9 +481,9 @@ request is > 10%
 
 
 
-<a name="fx.gravity.crosschain.v1.UpdateCrossChainOraclesProposal"></a>
+<a name="fx.gravity.crosschain.v1.UpdateChainOraclesProposal"></a>
 
-### UpdateCrossChainOraclesProposal
+### UpdateChainOraclesProposal
 
 
 

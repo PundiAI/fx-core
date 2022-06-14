@@ -9,6 +9,11 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	bsctypes "github.com/functionx/fx-core/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/x/eth/types"
+	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
+	polygontypes "github.com/functionx/fx-core/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/x/tron/types"
 
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
@@ -27,6 +32,7 @@ var (
 		evmtypes.ModuleName:       true,
 		erc20types.ModuleName:     true,
 		migratetypes.ModuleName:   true,
+		ethtypes.ModuleName:       true,
 	}
 
 	runMigrates = map[string]uint64{
@@ -37,6 +43,10 @@ var (
 		slashingtypes.ModuleName:     1,
 		stakingtypes.ModuleName:      1,
 		ibchost.ModuleName:           1,
+		gravitytypes.ModuleName:      1,
+		bsctypes.ModuleName:          1,
+		polygontypes.ModuleName:      1,
+		trontypes.ModuleName:         1,
 	}
 
 	storeUpgrades = &store.StoreUpgrades{
@@ -45,6 +55,7 @@ var (
 			evmtypes.StoreKey,
 			erc20types.StoreKey,
 			migratetypes.StoreKey,
+			ethtypes.ModuleName,
 		},
 	}
 )

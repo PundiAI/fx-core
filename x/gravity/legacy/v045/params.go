@@ -43,7 +43,7 @@ func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sd
 		SlashFraction:                     gravityParams.SlashFractionValset,
 		OracleSetUpdatePowerChangePercent: gravityParams.ValsetUpdatePowerChangePercent,
 		IbcTransferTimeoutHeight:          gravityParams.IbcTransferTimeoutHeight,
-		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.DefaultPowerReduction)),
+		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).Mul(sdk.DefaultPowerReduction)),
 		DelegateMultiple:                  crosschaintypes.DefaultOracleDelegateThreshold,
 	}
 

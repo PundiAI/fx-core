@@ -1469,7 +1469,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 	}
 }
 
-func TestUpdateCrossChainOraclesProposal_ValidateBasic(t *testing.T) {
+func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalOracleAddress := addressBytes.String()
 	var err error
@@ -1477,14 +1477,14 @@ func TestUpdateCrossChainOraclesProposal_ValidateBasic(t *testing.T) {
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
-		msg        *types.UpdateCrossChainOraclesProposal
+		msg        *types.UpdateChainOraclesProposal
 		expectPass bool
 		err        error
 		errReason  string
 	}{
 		{
 			testName: "err chain name",
-			msg: &types.UpdateCrossChainOraclesProposal{
+			msg: &types.UpdateChainOraclesProposal{
 				ChainName: "",
 			},
 			expectPass: false,
@@ -1493,7 +1493,7 @@ func TestUpdateCrossChainOraclesProposal_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err oracle",
-			msg: &types.UpdateCrossChainOraclesProposal{
+			msg: &types.UpdateChainOraclesProposal{
 				ChainName:   trontypes.ModuleName,
 				Title:       "test title",
 				Description: "test description",
@@ -1504,7 +1504,7 @@ func TestUpdateCrossChainOraclesProposal_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err external address",
-			msg: &types.UpdateCrossChainOraclesProposal{
+			msg: &types.UpdateChainOraclesProposal{
 				ChainName:   trontypes.ModuleName,
 				Title:       "test title",
 				Description: "test description",
@@ -1518,7 +1518,7 @@ func TestUpdateCrossChainOraclesProposal_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err oracle",
-			msg: &types.UpdateCrossChainOraclesProposal{
+			msg: &types.UpdateChainOraclesProposal{
 				ChainName:   trontypes.ModuleName,
 				Title:       "test title",
 				Description: "test description",
@@ -1533,7 +1533,7 @@ func TestUpdateCrossChainOraclesProposal_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "success",
-			msg: &types.UpdateCrossChainOraclesProposal{
+			msg: &types.UpdateChainOraclesProposal{
 				ChainName:   trontypes.ModuleName,
 				Title:       "test title",
 				Description: "test description",

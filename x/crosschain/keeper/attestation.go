@@ -12,7 +12,7 @@ import (
 )
 
 func (k Keeper) Attest(ctx sdk.Context, claim types.ExternalClaim, anyClaim *codectypes.Any) (*types.Attestation, error) {
-	oracle, found := k.GetOracleAddressByBridgerKey(ctx, claim.GetClaimer())
+	oracleAddr, found := k.GetOracleAddressByBridgerKey(ctx, claim.GetClaimer())
 	if !found {
 		panic("Could not find Oracle for delegate key, should be checked by now")
 	}
@@ -21,7 +21,7 @@ func (k Keeper) Attest(ctx sdk.Context, claim types.ExternalClaim, anyClaim *cod
 	// and prevents validators from submitting two claims with the same nonce.
 	// This prevents there being two attestations with the same nonce that get 2/3s of the votes
 	// in the endBlocker.
-	lastEventNonce := k.GetLastEventNonceByOracle(ctx, oracle)
+	lastEventNonce := k.GetLastEventNonceByOracle(ctx, oracleAddr)
 	if claim.GetEventNonce() != lastEventNonce+1 {
 		return nil, sdkerrors.Wrapf(types.ErrNonContiguousEventNonce, "got %v, expected %v", claim.GetEventNonce(), lastEventNonce+1)
 	}
@@ -39,11 +39,11 @@ func (k Keeper) Attest(ctx sdk.Context, claim types.ExternalClaim, anyClaim *cod
 	}
 
 	// Add the oracle's vote to this attestation
-	att.Votes = append(att.Votes, oracle.String())
+	att.Votes = append(att.Votes, oracleAddr.String())
 
 	k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
-	k.SetLastEventNonceByOracle(ctx, oracle, claim.GetEventNonce())
-	k.setLastEventBlockHeightByOracle(ctx, oracle, claim.GetBlockHeight())
+	k.SetLastEventNonceByOracle(ctx, oracleAddr, claim.GetEventNonce())
+	k.setLastEventBlockHeightByOracle(ctx, oracleAddr, claim.GetBlockHeight())
 
 	return att, nil
 }

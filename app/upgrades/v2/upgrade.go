@@ -2,7 +2,7 @@ package v2
 
 import (
 	"fmt"
-	"sort"
+	ethtypes "github.com/functionx/fx-core/x/eth/types"
 	"strings"
 
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
@@ -39,6 +39,11 @@ func CreateUpgradeHandler(
 		// set max expected block time parameter. Replace the default with your expected value
 		// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
 		ibcKeeper.ConnectionKeeper.SetParams(cacheCtx, ibcconnectiontypes.DefaultParams())
+
+		// cosmos-sdk 0.42.x from version must be empty
+		if len(fromVM) != 0 {
+			panic("invalid from version map")
+		}
 
 		for n, m := range mm.Modules {
 			//NOTE: fromVM empty
@@ -104,21 +109,16 @@ func deleteMetadata(ctx sdk.Context, key *types.KVStoreKey, base ...string) {
 
 func migrationsOrder(modules []string) []string {
 	modules = module.DefaultMigrationsOrder(modules)
-	out := make([]string, 0, len(modules))
-	var hasMigrage bool
-	for _, m := range modules {
-		switch m {
-		case migratetypes.ModuleName:
-			hasMigrage = true
-		default:
-			out = append(out, m)
+	for i, name := range modules {
+		if name == migratetypes.ModuleName {
+			modules = append(append(modules[:i], modules[i+1:]...), name)
+			return modules
+		}
+		// eth module
+		if name == ethtypes.ModuleName {
+			modules = append([]string{name}, append(modules[:i], modules[i+1:]...)...)
+			return modules
 		}
 	}
-
-	sort.Strings(out)
-
-	if hasMigrage {
-		out = append(out, migratetypes.ModuleName)
-	}
-	return out
+	return modules
 }

@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 
-	store "github.com/cosmos/cosmos-sdk/store/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
@@ -25,12 +24,8 @@ func (app *App) setUpgradeHandler() {
 	if app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		return
 	}
-	var storeUpgrades *store.StoreUpgrades
 	switch upgradeInfo.Name {
 	case upgradev2.UpgradeName:
-		storeUpgrades = upgradev2.GetStoreUpgrades()
-	}
-	if storeUpgrades != nil {
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, storeUpgrades))
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, upgradev2.GetStoreUpgrades()))
 	}
 }

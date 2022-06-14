@@ -9,7 +9,7 @@ import (
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
-func HandleUpdateCrossChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer, proposal *types.UpdateCrossChainOraclesProposal) error {
+func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer, proposal *types.UpdateChainOraclesProposal) error {
 	ethereumMsgServer, ok := msgServer.(*EthereumMsgServer)
 	if !ok {
 		return sdkerrors.Wrap(types.ErrInvalid, "msg server")
@@ -17,7 +17,7 @@ func HandleUpdateCrossChainOraclesProposal(ctx sdk.Context, msgServer types.MsgS
 	keeper := ethereumMsgServer.Keeper
 
 	logger := keeper.Logger(ctx)
-	logger.Info("handle update crosschain oracles proposal", "proposal", proposal.String())
+	logger.Info("handle update chain oracles proposal", "proposal", proposal.String())
 	if len(proposal.Oracles) > types.MaxOracleSize {
 		return sdkerrors.Wrapf(types.ErrInvalid, fmt.Sprintf("oracle length must be less than or equal: %d", types.MaxOracleSize))
 	}
@@ -47,7 +47,7 @@ func HandleUpdateCrossChainOraclesProposal(ctx sdk.Context, msgServer types.MsgS
 	}
 
 	maxChangePowerThreshold := types.AttestationProposalOracleChangePowerThreshold.Mul(totalPower).Quo(sdk.NewInt(100))
-	logger.Info("update crosschain oracles proposal", "maxChangePowerThreshold", maxChangePowerThreshold.String(), "deleteTotalPower", deleteTotalPower.String())
+	logger.Info("update chain oracles proposal", "maxChangePowerThreshold", maxChangePowerThreshold.String(), "deleteTotalPower", deleteTotalPower.String())
 	if deleteTotalPower.GT(sdk.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
 		return sdkerrors.Wrapf(types.ErrInvalid, "max change power, maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
 	}
