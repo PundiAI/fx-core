@@ -41,6 +41,7 @@ func CreateUpgradeHandler(
 		ibcKeeper.ConnectionKeeper.SetParams(cacheCtx, ibcconnectiontypes.DefaultParams())
 
 		for n, m := range mm.Modules {
+			//NOTE: fromVM empty
 			if initGenesis[n] {
 				continue
 			}

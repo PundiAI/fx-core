@@ -1,11 +1,13 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	fxtypes "github.com/functionx/fx-core/types"
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 	"reflect"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	fxtypes "github.com/functionx/fx-core/types"
+	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
 func TestDefaultGenesisState(t *testing.T) {
