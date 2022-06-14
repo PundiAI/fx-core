@@ -3,6 +3,9 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
+	ante2 "github.com/functionx/fx-core/ante"
+	bsctypes "github.com/functionx/fx-core/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/x/eth/types"
 	"math/big"
 	"testing"
 	"time"
@@ -30,7 +33,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/types"
 
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
 	"github.com/tharsis/ethermint/server/config"
@@ -44,6 +47,10 @@ import (
 	ethermint "github.com/tharsis/ethermint/types"
 )
 
+const (
+	DevnetPurseDenom = "ibc/B1861D0C2E4BAFA42A61739291975B7663F278FFAF579F83C9C4AD3890D09CA0"
+)
+
 type KeeperTestSuite struct {
 	suite.Suite
 
@@ -54,18 +61,16 @@ type KeeperTestSuite struct {
 	address          common.Address
 	consAddress      sdk.ConsAddress
 	clientCtx        client.Context
-	ethSigner        ethtypes.Signer
+	ethSigner        ethereumtypes.Signer
 	signer           keyring.Signer
 	mintFeeCollector bool
 	privateKey       cryptotypes.PrivKey
 	checkTx          bool
+	purseBalance     sdk.Int
 }
 
-var s *KeeperTestSuite
-
 func TestKeeperTestSuite(t *testing.T) {
-	s = new(KeeperTestSuite)
-	suite.Run(t, s)
+	suite.Run(t, new(KeeperTestSuite))
 }
 
 // Test helpers
@@ -109,8 +114,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	}
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
-	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-
 	valAddr := sdk.ValAddress(suite.address.Bytes())
 	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
 	require.NoError(t, err)
@@ -118,9 +121,23 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
 
+	amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
+	err = suite.app.BankKeeper.MintCoins(suite.ctx, ethtypes.ModuleName, sdk.NewCoins(amount))
+	suite.Require().NoError(err)
+	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, ethtypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
+	suite.Require().NoError(err)
+
+	if !suite.purseBalance.IsNil() {
+		amount := sdk.NewCoin(DevnetPurseDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
+		err = suite.app.BankKeeper.MintCoins(suite.ctx, bsctypes.ModuleName, sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, bsctypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+	}
+
 	encodingConfig := app.MakeEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
-	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	suite.ethSigner = ethereumtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 
 	err = upgradesv2.UpdateFXMetadata(suite.ctx, suite.app.BankKeeper, suite.app.GetKey(banktypes.StoreKey))
 	require.NoError(t, err)
@@ -191,12 +208,12 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation(name strin
 		nil,     // gasPrice
 		suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
 		big.NewInt(1),
-		data,                   // input
-		&ethtypes.AccessList{}, // accesses
+		data,                        // input
+		&ethereumtypes.AccessList{}, // accesses
 	)
 
 	erc20DeployTx.From = suite.address.Hex()
-	err = erc20DeployTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
+	err = erc20DeployTx.Sign(ethereumtypes.LatestSignerForChainID(chainID), suite.signer)
 	suite.Require().NoError(err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, erc20DeployTx)
 	suite.Require().NoError(err)
@@ -261,11 +278,11 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 		suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
 		big.NewInt(1),
 		transferData,
-		&ethtypes.AccessList{}, // accesses
+		&ethereumtypes.AccessList{}, // accesses
 	)
 
 	ercTransferTx.From = suite.address.Hex()
-	err = ercTransferTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
+	err = ercTransferTx.Sign(ethereumtypes.LatestSignerForChainID(chainID), suite.signer)
 	suite.Require().NoError(err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, ercTransferTx)
 	suite.Require().NoError(err)
@@ -312,4 +329,59 @@ func (suite *KeeperTestSuite) TransferERC20Token(contractAddr, from, to common.A
 
 func NewPriKey() cryptotypes.PrivKey {
 	return secp256k1.GenPrivKey()
+}
+
+func sendEthTx(t *testing.T, ctx sdk.Context, myApp *app.App,
+	signer keyring.Signer, from, contract common.Address, data []byte) {
+
+	chainID := myApp.EvmKeeper.ChainID()
+
+	args, err := json.Marshal(&evm.TransactionArgs{To: &contract, From: &from, Data: (*hexutil.Bytes)(&data)})
+	require.NoError(t, err)
+	res, err := myApp.EvmKeeper.EstimateGas(sdk.WrapSDKContext(ctx), &evm.EthCallRequest{
+		Args:   args,
+		GasCap: uint64(config.DefaultGasCap),
+	})
+	require.NoError(t, err)
+
+	nonce, err := myApp.AccountKeeper.GetSequence(ctx, from.Bytes())
+	require.NoError(t, err)
+
+	ercTransferTx := evm.NewTx(
+		chainID,
+		nonce,
+		&contract,
+		nil,
+		res.Gas,
+		nil,
+		myApp.FeeMarketKeeper.GetBaseFee(ctx),
+		big.NewInt(1),
+		data,
+		&ethereumtypes.AccessList{}, // accesses
+	)
+
+	ercTransferTx.From = from.String()
+	err = ercTransferTx.Sign(ethereumtypes.LatestSignerForChainID(chainID), signer)
+	require.NoError(t, err)
+
+	options := ante2.HandlerOptions{
+		AccountKeeper:   myApp.AccountKeeper,
+		BankKeeper:      myApp.BankKeeper,
+		FeeMarketKeeper: myApp.FeeMarketKeeper,
+		EvmKeeper:       myApp.EvmKeeper,
+		SignModeHandler: app.MakeEncodingConfig().TxConfig.SignModeHandler(),
+		SigGasConsumer:  ante2.DefaultSigVerificationGasConsumer,
+	}
+	require.NoError(t, options.Validate())
+	handler := ante2.NewAnteHandler(options)
+
+	clientCtx := client.Context{}.WithTxConfig(app.MakeEncodingConfig().TxConfig)
+	tx, err := ercTransferTx.BuildTx(clientCtx.TxConfig.NewTxBuilder(), fxtypes.DefaultDenom)
+	require.NoError(t, err)
+	ctx, err = handler(ctx, tx, false)
+	require.NoError(t, err)
+
+	rsp, err := myApp.EvmKeeper.EthereumTx(sdk.WrapSDKContext(ctx), ercTransferTx)
+	require.NoError(t, err)
+	require.Empty(t, rsp.VmError)
 }

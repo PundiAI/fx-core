@@ -1,161 +1,182 @@
 package keeper_test
 
 import (
-	"testing"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
 	fxtypes "github.com/functionx/fx-core/types"
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 )
 
-func Test_MigrateGovInactiveFunc(t *testing.T) {
-	app, _, delegateAddressArr := initTest(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	alice, bob, _, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
+func (suite *KeeperTestSuite) TestMigrateGovInactive() {
+	suite.purseBalance = sdk.NewInt(1000)
+	suite.SetupTest()
+
+	keys := suite.GenerateAcc(1)
+	suite.Require().Equal(len(keys), 1)
+	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
+	ethKeys := suite.GenerateEthAcc(1)
+	suite.Require().Equal(len(ethKeys), 1)
+	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
 
-	proposal, err := app.GovKeeper.SubmitProposal(ctx, content)
-	require.NoError(t, err)
+	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+	suite.Require().NoError(err)
 
-	_, err = app.GovKeeper.AddDeposit(ctx, proposal.ProposalId, alice, amount)
-	require.NoError(t, err)
+	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, acc, amount)
+	suite.Require().NoError(err)
 
-	deposit1, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, alice)
-	require.True(t, found)
-	require.Equal(t, amount, deposit1.Amount)
+	deposit1, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit1.Amount)
 
-	_, found = app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, bob)
-	require.False(t, found)
+	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	suite.Require().False(found)
 
-	migrateKeeper := app.MigrateKeeper
-	m := migratekeeper.NewGovMigrate(app.GetKey(govtypes.StoreKey), app.GovKeeper)
-	err = m.Validate(ctx, migrateKeeper, alice, bob)
-	require.NoError(t, err)
-	err = m.Execute(ctx, migrateKeeper, alice, bob)
-	require.NoError(t, err)
+	migrateKeeper := suite.app.MigrateKeeper
+	m := migratekeeper.NewGovMigrate(suite.app.GetKey(govtypes.StoreKey), suite.app.GovKeeper)
+	err = m.Validate(suite.ctx, migrateKeeper, acc, ethAcc)
+	suite.Require().NoError(err)
+	err = m.Execute(suite.ctx, migrateKeeper, acc, ethAcc)
+	suite.Require().NoError(err)
 
-	_, found = app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, alice)
-	require.False(t, found)
+	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
+	suite.Require().False(found)
 
-	deposit2, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, bob)
-	require.True(t, found)
-	require.Equal(t, amount, deposit2.Amount)
+	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit2.Amount)
 }
 
-func Test_MigrateGovActiveFunc(t *testing.T) {
-	app, _, delegateAddressArr := initTest(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	alice, bob, tom, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
+func (suite *KeeperTestSuite) TestMigrateGovActive() {
+	suite.purseBalance = sdk.NewInt(1000)
+	suite.SetupTest()
+
+	keys := suite.GenerateAcc(1)
+	suite.Require().Equal(len(keys), 1)
+	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
+	ethKeys := suite.GenerateEthAcc(2)
+	suite.Require().Equal(len(ethKeys), 2)
+	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
+	toEthAcc := sdk.AccAddress(ethKeys[1].PubKey().Address().Bytes())
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
 
-	proposal, err := app.GovKeeper.SubmitProposal(ctx, content)
-	require.NoError(t, err)
+	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+	suite.Require().NoError(err)
 
-	_, err = app.GovKeeper.AddDeposit(ctx, proposal.ProposalId, alice, amount)
-	require.NoError(t, err)
+	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, acc, amount)
+	suite.Require().NoError(err)
 
-	_, err = app.GovKeeper.AddDeposit(ctx, proposal.ProposalId, bob, amount)
-	require.NoError(t, err)
+	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, ethAcc, amount)
+	suite.Require().NoError(err)
 
-	deposit1, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, alice)
-	require.True(t, found)
-	require.Equal(t, amount, deposit1.Amount)
+	deposit1, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit1.Amount)
 
-	deposit2, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, bob)
-	require.True(t, found)
-	require.Equal(t, amount, deposit2.Amount)
+	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit2.Amount)
 
-	_, found = app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, tom)
-	require.False(t, found)
+	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc)
+	suite.Require().False(found)
 
-	migrateKeeper := app.MigrateKeeper
-	m := migratekeeper.NewGovMigrate(app.GetKey(govtypes.StoreKey), app.GovKeeper)
-	err = m.Validate(ctx, migrateKeeper, alice, tom)
-	require.NoError(t, err)
-	err = m.Execute(ctx, migrateKeeper, alice, tom)
-	require.NoError(t, err)
+	migrateKeeper := suite.app.MigrateKeeper
+	m := migratekeeper.NewGovMigrate(suite.app.GetKey(govtypes.StoreKey), suite.app.GovKeeper)
+	err = m.Validate(suite.ctx, migrateKeeper, acc, toEthAcc)
+	suite.Require().NoError(err)
+	err = m.Execute(suite.ctx, migrateKeeper, acc, toEthAcc)
+	suite.Require().NoError(err)
 
-	_, found = app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, alice)
-	require.False(t, found)
+	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
+	suite.Require().False(found)
 
-	deposit3, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, bob)
-	require.True(t, found)
-	require.Equal(t, amount, deposit3.Amount)
+	deposit3, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit3.Amount)
 
-	deposit4, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, tom)
-	require.True(t, found)
-	require.Equal(t, amount, deposit4.Amount)
+	deposit4, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit4.Amount)
 }
 
-func Test_MigrateGovActiveAndVoteFunc(t *testing.T) {
-	app, _, delegateAddressArr := initTest(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	alice, bob, tom, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
+func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
+	suite.purseBalance = sdk.NewInt(1000)
+	suite.SetupTest()
 
+	keys := suite.GenerateAcc(1)
+	suite.Require().Equal(len(keys), 1)
+	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
+	ethKeys := suite.GenerateEthAcc(2)
+	suite.Require().Equal(len(ethKeys), 2)
+	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
+	toEthAcc := sdk.AccAddress(ethKeys[1].PubKey().Address().Bytes())
+
+	//add proposal
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
+	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+	suite.Require().NoError(err)
 
-	proposal, err := app.GovKeeper.SubmitProposal(ctx, content)
-	require.NoError(t, err)
+	//acc deposit
+	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, acc, amount)
+	suite.Require().NoError(err)
 
-	_, err = app.GovKeeper.AddDeposit(ctx, proposal.ProposalId, alice, amount)
-	require.NoError(t, err)
+	//eth acc deposit
+	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, ethAcc, amount)
+	suite.Require().NoError(err)
 
-	_, err = app.GovKeeper.AddDeposit(ctx, proposal.ProposalId, bob, amount)
-	require.NoError(t, err)
+	// acc vote
+	err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, acc, govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+	suite.Require().NoError(err)
 
-	err = app.GovKeeper.AddVote(ctx, proposal.ProposalId, alice, govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
-	require.NoError(t, err)
+	//check acc deposit
+	deposit1, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit1.Amount)
+	//check eth acc deposit
+	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit2.Amount)
 
-	deposit1, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, alice)
-	require.True(t, found)
-	require.Equal(t, amount, deposit1.Amount)
+	//check acc vote
+	vote, found := suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, acc)
+	suite.Require().True(found)
+	suite.Require().Equal(vote.Option, govtypes.OptionYes)
 
-	deposit2, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, bob)
-	require.True(t, found)
-	require.Equal(t, amount, deposit2.Amount)
+	//check to address deposit vote
+	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc)
+	suite.Require().False(found)
 
-	vote, found := app.GovKeeper.GetVote(ctx, proposal.ProposalId, alice)
-	require.True(t, found)
-	require.Equal(t, vote.Option, govtypes.OptionYes)
+	_, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, toEthAcc)
+	suite.Require().False(found)
 
-	_, found = app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, tom)
-	require.False(t, found)
+	migrateKeeper := suite.app.MigrateKeeper
+	m := migratekeeper.NewGovMigrate(suite.app.GetKey(govtypes.StoreKey), suite.app.GovKeeper)
+	err = m.Validate(suite.ctx, migrateKeeper, acc, toEthAcc)
+	suite.Require().NoError(err)
+	err = m.Execute(suite.ctx, migrateKeeper, acc, toEthAcc)
+	suite.Require().NoError(err)
 
-	_, found = app.GovKeeper.GetVote(ctx, proposal.ProposalId, tom)
-	require.False(t, found)
+	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
+	suite.Require().False(found)
 
-	migrateKeeper := app.MigrateKeeper
-	m := migratekeeper.NewGovMigrate(app.GetKey(govtypes.StoreKey), app.GovKeeper)
-	err = m.Validate(ctx, migrateKeeper, alice, tom)
-	require.NoError(t, err)
-	err = m.Execute(ctx, migrateKeeper, alice, tom)
-	require.NoError(t, err)
+	deposit3, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit3.Amount)
 
-	_, found = app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, alice)
-	require.False(t, found)
+	deposit4, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc)
+	suite.Require().True(found)
+	suite.Require().Equal(amount, deposit4.Amount)
 
-	deposit3, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, bob)
-	require.True(t, found)
-	require.Equal(t, amount, deposit3.Amount)
+	_, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, acc)
+	suite.Require().False(found)
 
-	deposit4, found := app.GovKeeper.GetDeposit(ctx, proposal.ProposalId, tom)
-	require.True(t, found)
-	require.Equal(t, amount, deposit4.Amount)
-
-	_, found = app.GovKeeper.GetVote(ctx, proposal.ProposalId, alice)
-	require.False(t, found)
-
-	vote, found = app.GovKeeper.GetVote(ctx, proposal.ProposalId, tom)
-	require.True(t, found)
-	require.Equal(t, vote.Option, govtypes.OptionYes)
+	vote, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, toEthAcc)
+	suite.Require().True(found)
+	suite.Require().Equal(vote.Option, govtypes.OptionYes)
 
 }

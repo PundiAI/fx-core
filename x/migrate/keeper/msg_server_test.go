@@ -1,60 +1,62 @@
 package keeper_test
 
 import (
-	"testing"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
 	"github.com/functionx/fx-core/x/migrate/types"
 )
 
-func TestKeeper_MigrateAccount(t *testing.T) {
-	myApp, _, delegateAddressArr := initTest(t)
-	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
-	alice, bob, _, _ := delegateAddressArr[0], delegateAddressArr[1], delegateAddressArr[2], delegateAddressArr[3]
+func (suite *KeeperTestSuite) TestMigrateAccount() {
+	suite.purseBalance = sdk.NewInt(1000)
+	suite.SetupTest()
 
-	b1 := myApp.BankKeeper.GetAllBalances(ctx, alice)
-	require.False(t, b1.Empty())
-	b2 := myApp.BankKeeper.GetAllBalances(ctx, bob)
-	require.False(t, b1.Empty())
+	keys := suite.GenerateAcc(1)
+	suite.Require().Equal(len(keys), 1)
+	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
+	ethKeys := suite.GenerateEthAcc(1)
+	suite.Require().Equal(len(ethKeys), 1)
+	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
 
-	_, found := myApp.MigrateKeeper.GetMigrateRecord(ctx, alice)
-	require.False(t, found)
+	b1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)
+	suite.Require().NotEmpty(b1)
 
-	_, found = myApp.MigrateKeeper.GetMigrateRecord(ctx, bob)
-	require.False(t, found)
+	b2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc)
+	suite.Require().NotEmpty(b1)
 
-	found = myApp.MigrateKeeper.HasMigratedDirectionFrom(ctx, alice)
-	require.False(t, found)
+	_, found := suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, acc)
+	suite.Require().False(found)
 
-	found = myApp.MigrateKeeper.HasMigratedDirectionTo(ctx, bob)
-	require.False(t, found)
+	_, found = suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, ethAcc)
+	suite.Require().False(found)
 
-	_, err := myApp.MigrateKeeper.MigrateAccount(sdk.WrapSDKContext(ctx), &types.MsgMigrateAccount{
-		From:      alice.String(),
-		To:        bob.String(),
+	found = suite.app.MigrateKeeper.HasMigratedDirectionFrom(suite.ctx, acc)
+	suite.Require().False(found)
+
+	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc)
+	suite.Require().False(found)
+
+	_, err := suite.app.MigrateKeeper.MigrateAccount(sdk.WrapSDKContext(suite.ctx), &types.MsgMigrateAccount{
+		From:      acc.String(),
+		To:        ethAcc.String(),
 		Signature: "",
 	})
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 
-	record, found := myApp.MigrateKeeper.GetMigrateRecord(ctx, alice)
-	require.True(t, found)
-	require.Equal(t, record.From, alice.String())
+	record, found := suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, acc)
+	suite.Require().True(found)
+	suite.Require().Equal(record.From, acc.String())
 
-	record, found = myApp.MigrateKeeper.GetMigrateRecord(ctx, bob)
-	require.True(t, found)
-	require.Equal(t, record.To, bob.String())
+	record, found = suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, ethAcc)
+	suite.Require().True(found)
+	suite.Require().Equal(record.To, ethAcc.String())
 
-	found = myApp.MigrateKeeper.HasMigratedDirectionFrom(ctx, alice)
-	require.True(t, found)
+	found = suite.app.MigrateKeeper.HasMigratedDirectionFrom(suite.ctx, acc)
+	suite.Require().True(found)
 
-	found = myApp.MigrateKeeper.HasMigratedDirectionTo(ctx, bob)
-	require.True(t, found)
+	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc)
+	suite.Require().True(found)
 
-	bb1 := myApp.BankKeeper.GetAllBalances(ctx, alice)
-	require.True(t, bb1.Empty())
-	bb2 := myApp.BankKeeper.GetAllBalances(ctx, bob)
-	require.Equal(t, b1, bb2.Sub(b2))
+	bb1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)
+	suite.Require().True(bb1.Empty())
+	bb2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc)
+	suite.Require().Equal(b1, bb2.Sub(b2))
 }
