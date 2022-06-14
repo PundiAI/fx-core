@@ -1,24 +1,14 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	fxtypes "github.com/functionx/fx-core/types"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
 func DefaultGenesisState() *crosschaintypes.GenesisState {
+	params := crosschaintypes.DefaultParams()
+	params.GravityId = "fx-bridge-eth"
+	params.AverageExternalBlockTime = 15 * 1e3
 	return &crosschaintypes.GenesisState{
-		Params: &crosschaintypes.Params{
-			GravityId:                         "fx-bridge-eth",
-			AverageBlockTime:                  5 * 1e3,
-			ExternalBatchTimeout:              24 * 3600 * 1e3,
-			AverageExternalBlockTime:          5 * 1e3,
-			SignedWindow:                      20 * 1e3,
-			SlashFraction:                     sdk.NewDecWithPrec(1, 3),
-			OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
-			IbcTransferTimeoutHeight:          20 * 1e3,
-			DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10*1e3)),
-			DelegateMultiple:                  10,
-		},
+		Params: params,
 	}
 }

@@ -44,9 +44,6 @@ var (
 	// OutgoingTxPoolKey indexes the last nonce for the outgoing tx pool
 	OutgoingTxPoolKey = []byte{0x18}
 
-	// SecondIndexOutgoingTxFeeKey indexes fee amounts by token contract address
-	SecondIndexOutgoingTxFeeKey = []byte{0x19}
-
 	// OutgoingTxBatchKey indexes outgoing tx batches under a nonce and token address
 	OutgoingTxBatchKey = []byte{0x20}
 
@@ -85,9 +82,6 @@ var (
 
 	// LastSlashedBatchBlock indexes the latest slashed batch block height
 	LastSlashedBatchBlock = []byte{0x30}
-
-	// LastProposalBlockHeight indexes the last validator update block height
-	LastProposalBlockHeight = []byte{0x31}
 
 	// LastObservedBlockHeightKey indexes the latest observed external block height
 	LastObservedBlockHeightKey = []byte{0x32}

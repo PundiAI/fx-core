@@ -65,7 +65,7 @@ func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
 
 func (suite *AnteTestSuite) SetupTest() {
 
-	suite.app = helpers.Setup(suite.T(), false, 0)
+	suite.app = helpers.Setup(suite.T(), false)
 
 	// account key
 	priv := secp256k1.GenPrivKey()
@@ -76,8 +76,6 @@ func (suite *AnteTestSuite) SetupTest() {
 	// consensus key
 	priv = secp256k1.GenPrivKey()
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
-
-	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
 	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: suite.consAddress, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))

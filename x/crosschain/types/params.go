@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	MaxOracleSize                  = 150
+	MaxOracleSize                  = 100
 	DefaultOracleDelegateThreshold = 10
 )
 
@@ -57,6 +57,21 @@ var (
 	// Ensure that params implements the proper interface
 	_ paramtypes.ParamSet = &Params{}
 )
+
+func DefaultParams() *Params {
+	return &Params{
+		GravityId:                         "fx-gravity-id",
+		AverageBlockTime:                  5 * 1e3,
+		ExternalBatchTimeout:              24 * 3600 * 1e3,
+		AverageExternalBlockTime:          5 * 1e3,
+		SignedWindow:                      20 * 1e3,
+		SlashFraction:                     sdk.NewDecWithPrec(1, 3),
+		OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
+		IbcTransferTimeoutHeight:          20 * 1e3,
+		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10*1e3).MulRaw(1e18)),
+		DelegateMultiple:                  10,
+	}
+}
 
 // ValidateBasic checks that the parameters have valid values.
 func (m Params) ValidateBasic() error {

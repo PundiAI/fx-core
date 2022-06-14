@@ -14,11 +14,13 @@ type Keeper struct {
 }
 
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
-	bankKeeper crosschaintypes.BankKeeper, ibcTransferKeeper crosschaintypes.IBCTransferKeeper,
-	channelKeeper crosschaintypes.IBCChannelKeeper, erc20Keeper crosschaintypes.Erc20Keeper) Keeper {
+	stakingKeeper crosschaintypes.StakingKeeper, distributionKeeper crosschaintypes.DistributionKeeper, bankKeeper crosschaintypes.BankKeeper,
+	ibcTransferKeeper crosschaintypes.IBCTransferKeeper, channelKeeper crosschaintypes.IBCChannelKeeper, erc20Keeper crosschaintypes.Erc20Keeper) Keeper {
 	return Keeper{
 		Keeper: crosschainkeeper.NewKeeper(
-			cdc, moduleName, storeKey, paramSpace, bankKeeper, ibcTransferKeeper, channelKeeper, erc20Keeper,
+			cdc, moduleName, storeKey, paramSpace,
+			stakingKeeper, distributionKeeper, bankKeeper,
+			ibcTransferKeeper, channelKeeper, erc20Keeper,
 		),
 	}
 }

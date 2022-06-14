@@ -41,7 +41,7 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if !s.IsProposalOracle(ctx, msg.OracleAddress) {
-		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, msg.OracleAddress)
+		return nil, types.ErrNoFoundOracle
 	}
 	// check oracle has set bridger address
 	if _, found := s.GetOracle(ctx, oracleAddr); found {
@@ -67,7 +67,7 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 		DelegateValidator: msg.ValidatorAddress,
 		IsValidator:       false,
 	}
-	oravleVal, found := s.stakingKeeper.GetValidator(ctx, oracleAddr.Bytes())
+	oracleVal, found := s.stakingKeeper.GetValidator(ctx, oracleAddr.Bytes())
 	if found {
 		if msg.OracleAddress != msg.ValidatorAddress {
 			return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle is a validator but validator address is not itself")
@@ -79,16 +79,12 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 			return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom, got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
 		}
 		oracle.IsValidator = true
-		oracle.Jailed = oravleVal.Jailed
+		oracle.Jailed = oracleVal.Jailed
 		oracle.JailedHeight = ctx.BlockHeight()
-		oracle.DelegateAmount = sdk.NewInt(oravleVal.ConsensusPower(sdk.DefaultPowerReduction))
+		oracle.DelegateAmount = sdk.NewInt(oracleVal.ConsensusPower(sdk.DefaultPowerReduction))
 	} else {
-		validator, found := s.stakingKeeper.GetValidator(ctx, valAddr)
-		if !found {
-			return nil, stakingtypes.ErrNoValidatorFound
-		}
 		if threshold.Denom != msg.DelegateAmount.Denom {
-			return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom, got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
+			return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
 		}
 		if msg.DelegateAmount.IsLT(threshold) {
 			return nil, types.ErrDelegateAmountBelowMinimum
@@ -96,8 +92,15 @@ func (s EthereumMsgServer) CreateOracleBridger(c context.Context, msg *types.Msg
 		if msg.DelegateAmount.Amount.GT(threshold.Amount.Mul(sdk.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
 			return nil, types.ErrDelegateAmountBelowMaximum
 		}
+		validator, found := s.stakingKeeper.GetValidator(ctx, valAddr)
+		if !found {
+			return nil, stakingtypes.ErrNoValidatorFound
+		}
 
 		deleteAddr := types.GetOracleDelegateAddress(msg.ChainName, oracleAddr)
+		if err := s.bankKeeper.SendCoins(ctx, oracleAddr, deleteAddr, sdk.NewCoins(msg.DelegateAmount)); err != nil {
+			return nil, err
+		}
 		newShares, err := s.stakingKeeper.Delegate(ctx, deleteAddr, msg.DelegateAmount.Amount, stakingtypes.Unbonded, validator, true)
 		if err != nil {
 			return nil, err
@@ -138,7 +141,7 @@ func (s EthereumMsgServer) AddOracleDelegate(c context.Context, msg *types.MsgAd
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, msg.OracleAddress)
+		return nil, types.ErrNoFoundOracle
 	}
 	if oracle.IsValidator {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle is a validator, cannot delegate here")
@@ -155,7 +158,7 @@ func (s EthereumMsgServer) AddOracleDelegate(c context.Context, msg *types.MsgAd
 	threshold := s.GetOracleDelegateThreshold(ctx)
 	// check delegate denom
 	if threshold.Denom != msg.Amount.Denom {
-		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom, got %s, expected %s", msg.Amount.Denom, threshold.Denom)
+		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, threshold.Denom)
 	}
 	// check oracle total delegateAmount grate then minimum delegateAmount amount
 	delegateAmount := oracle.DelegateAmount.Add(msg.Amount.Amount)
@@ -167,6 +170,9 @@ func (s EthereumMsgServer) AddOracleDelegate(c context.Context, msg *types.MsgAd
 	}
 
 	deleteAddr := types.GetOracleDelegateAddress(msg.ChainName, oracleAddr)
+	if err := s.bankKeeper.SendCoins(ctx, oracleAddr, deleteAddr, sdk.NewCoins(msg.Amount)); err != nil {
+		return nil, err
+	}
 	newShares, err := s.stakingKeeper.Delegate(ctx, deleteAddr, msg.Amount.Amount, stakingtypes.Unbonded, validator, true)
 	if err != nil {
 		return nil, err
@@ -207,7 +213,7 @@ func (s EthereumMsgServer) EditOracle(c context.Context, msg *types.MsgEditOracl
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, msg.OracleAddress)
+		return nil, types.ErrNoFoundOracle
 	}
 	if oracle.Jailed {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle jailed")
@@ -256,7 +262,7 @@ func (s EthereumMsgServer) WithdrawReward(c context.Context, msg *types.MsgWithd
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, msg.OracleAddress)
+		return nil, types.ErrNoFoundOracle
 	}
 	if oracle.Jailed {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle jailed")
@@ -525,11 +531,11 @@ func checkOrchestratorIsOracle(ctx sdk.Context, keeper Keeper, bridgerAddress st
 	}
 	oracleAddr, found := keeper.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrNoFoundOracle, "by bridger address: %s", bridgerAddress)
+		return types.ErrNoFoundOracle
 	}
 	oracle, found := keeper.GetOracle(ctx, oracleAddr)
 	if !found {
-		return sdkerrors.Wrap(types.ErrNoFoundOracle, oracleAddr.String())
+		return types.ErrNoFoundOracle
 	}
 	if oracle.Jailed {
 		return sdkerrors.Wrapf(types.ErrOracleJailed, oracle.OracleAddress)
@@ -564,12 +570,12 @@ func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk
 
 	oracleAddr, found := s.GetOracleByExternalAddress(ctx, signatureAddr)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, "by bridger address")
+		return nil, types.ErrNoFoundOracle
 	}
 
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrNoFoundOracle, oracleAddr.String())
+		return nil, types.ErrNoFoundOracle
 	}
 
 	if oracle.ExternalAddress != signatureAddr {

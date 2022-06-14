@@ -51,7 +51,6 @@ func TestKeeperTestSuite(t *testing.T) {
 
 // Test helpers
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
-	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 	var err error
 	// account key
 	suite.secp256k1PrivKey = secp256k1.GenPrivKey()
@@ -65,7 +64,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	// init app
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(suite.T(), 3, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
+	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(3, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), validator, genesisAccounts, balances...)
 	//suite.app = helpers.Setup(suite.T(), false, 0)
 

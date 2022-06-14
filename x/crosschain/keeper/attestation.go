@@ -243,13 +243,13 @@ func (k Keeper) SetLastObservedBlockHeight(ctx sdk.Context, externalBlockHeight 
 }
 
 // GetLastEventNonceByOracle returns the latest event nonce for a given oracle
-func (k Keeper) GetLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress) uint64 {
+func (k Keeper) GetLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	bytes := store.Get(types.GetLastEventNonceByOracleKey(oracle))
+	bytes := store.Get(types.GetLastEventNonceByOracleKey(oracleAddr))
 
 	if len(bytes) == 0 {
 		// in the case that we have no existing value this is the first
-		// time a oracle is submitting a claim. Since we don't want to force
+		// time a oracleAddr is submitting a claim. Since we don't want to force
 		// them to replay the entire history of all events ever we can't start
 		// at zero
 		lastEventNonce := k.GetLastObservedEventNonce(ctx)
@@ -263,9 +263,9 @@ func (k Keeper) GetLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress
 }
 
 // DelLastEventNonceByOracle delete the latest event nonce for a given oracle
-func (k Keeper) DelLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress) {
+func (k Keeper) DelLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetLastEventNonceByOracleKey(oracle)
+	key := types.GetLastEventNonceByOracleKey(oracleAddr)
 	if !store.Has(key) {
 		return
 	}
@@ -273,9 +273,9 @@ func (k Keeper) DelLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress
 }
 
 // SetLastEventNonceByOracle sets the latest event nonce for a give oracle
-func (k Keeper) SetLastEventNonceByOracle(ctx sdk.Context, oracle sdk.AccAddress, nonce uint64) {
+func (k Keeper) SetLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetLastEventNonceByOracleKey(oracle), sdk.Uint64ToBigEndian(nonce))
+	store.Set(types.GetLastEventNonceByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(nonce))
 }
 
 func (k Keeper) UnpackAttestationClaim(att *types.Attestation) (types.ExternalClaim, error) {

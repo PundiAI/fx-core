@@ -93,7 +93,7 @@ func (c *Client) FxAddress() sdk.AccAddress {
 
 func (c *Client) QueryFxLastEventNonce() uint64 {
 	c.t.Helper()
-	lastEventNonce, err := c.crosschainQueryClient.LastEventNonceByAddr(c.ctx, &crosschaintypes.QueryLastEventNonceByAddrRequest{ChainName: c.chainName, OrchestratorAddress: c.FxAddress().String()})
+	lastEventNonce, err := c.crosschainQueryClient.LastEventNonceByAddr(c.ctx, &crosschaintypes.QueryLastEventNonceByAddrRequest{ChainName: c.chainName, BridgerAddress: c.FxAddress().String()})
 	if err != nil {
 		c.t.Fatal(err)
 	}

@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 
@@ -12,13 +13,10 @@ import (
 
 // MigrateStore performs in-place store migrations from v0.42 to v0.45.
 // migrate data from gravity module
-func MigrateStore(ctx sdk.Context, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey) {
-	gravityStore := ctx.KVStore(gravityStoreKey)
-	ethStore := ctx.KVStore(ethStoreKey)
+func MigrateStore(ctx sdk.Context, cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 
 	// gravity 0x1 -> eth ? -
-	// gravity ? -> eth 0x11 -
-	// gravity ? -> eth 0x12 -
+	// gravity ? -> eth 0x12 *
 
 	// gravity 0x2 -> eth 0x13
 	migratePrefix(gravityStore, ethStore, v042gravity.ValidatorByEthAddressKey, crosschaintypes.OracleAddressByExternalKey)
@@ -35,11 +33,8 @@ func MigrateStore(ctx sdk.Context, gravityStoreKey sdk.StoreKey, ethStoreKey sdk
 	// gravity 0x5 -> eth 0x17
 	migratePrefix(gravityStore, ethStore, v042gravity.OracleAttestationKey, crosschaintypes.OracleAttestationKey)
 
-	// gravity 0x6 -> eth 0x18
-	migratePrefix(gravityStore, ethStore, v042gravity.OutgoingTxPoolKey, crosschaintypes.OutgoingTxPoolKey)
-
-	// gravity 0x7 -> eth 0x19
-	migratePrefix(gravityStore, ethStore, v042gravity.SecondIndexOutgoingTxFeeKey, crosschaintypes.SecondIndexOutgoingTxFeeKey)
+	// gravity 0x6 and 0x7 -> eth 0x18
+	migrateOutgoingTxPool(cdc, gravityStore, ethStore)
 
 	// gravity 0x8 -> eth 0x20
 	migratePrefix(gravityStore, ethStore, v042gravity.OutgoingTxBatchKey, crosschaintypes.OutgoingTxBatchKey)
@@ -75,8 +70,7 @@ func MigrateStore(ctx sdk.Context, gravityStoreKey sdk.StoreKey, ethStoreKey sdk
 	// gravity 0x13 -> eth 0x30
 	migratePrefix(gravityStore, ethStore, v042gravity.LastSlashedBatchBlock, crosschaintypes.LastSlashedBatchBlock)
 
-	// gravity 0x14 -> eth 0x31
-	migratePrefix(gravityStore, ethStore, v042gravity.LastUnBondingBlockHeight, crosschaintypes.LastProposalBlockHeight)
+	// gravity 0x14 -> eth 0x31 -
 
 	// gravity 0x15 -> eth 0x32
 	migratePrefix(gravityStore, ethStore, v042gravity.LastObservedEthereumBlockHeightKey, crosschaintypes.LastObservedBlockHeightKey)
@@ -92,8 +86,8 @@ func MigrateStore(ctx sdk.Context, gravityStoreKey sdk.StoreKey, ethStoreKey sdk
 
 	// gravity ? -> eth 0x36 -
 	// gravity ? -> eth 0x37 -
-	// gravity ? -> eth 0x38 -
-	// gravity ? -> eth 0x39
+	// gravity ? -> eth 0x38 *
+	// gravity ? -> eth 0x39 *
 }
 
 func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []byte) {
@@ -101,7 +95,6 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
-
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		newStoreKey := append(newPrefix, oldStoreIter.Key()[len(oldPrefix):]...)
 		ethStore.Set(newStoreKey, oldStoreIter.Value())
@@ -109,16 +102,15 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 	}
 }
 
-func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey, stakingKeeper StakingKeeper) {
-	gravityStore := ctx.KVStore(gravityStoreKey)
-	ethStore := ctx.KVStore(ethStoreKey)
+func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, stakingKeeper StakingKeeper) {
+
+	chainOracle := new(crosschaintypes.ProposalOracle)
+	totalPower := sdk.ZeroInt()
+
 	oldStore := prefix.NewStore(gravityStore, v042gravity.ValidatorAddressByOrchestratorAddress)
 
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
-
-	chainOracle := new(crosschaintypes.ProposalOracle)
-
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		bridgerAddr := sdk.AccAddress(oldStoreIter.Key()[len(v042gravity.ValidatorAddressByOrchestratorAddress):])
 		oracleAddress := sdk.AccAddress(oldStoreIter.Value())
@@ -138,6 +130,9 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 			DelegateValidator: oracleAddress.String(),
 			IsValidator:       true,
 		}
+		if !oracle.Jailed {
+			totalPower = totalPower.Add(oracle.GetPower())
+		}
 		// SetOracle
 		ethStore.Set(crosschaintypes.GetOracleKey(oracle.GetOracle()), cdc.MustMarshal(&oracle))
 		oldStore.Delete(oldStoreIter.Key())
@@ -148,5 +143,31 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 	// SetProposalOracle
 	if len(chainOracle.Oracles) > 0 {
 		ethStore.Set(crosschaintypes.ProposalOracleKey, cdc.MustMarshal(chainOracle))
+	}
+	// setLastTotalPower
+	ethStore.Set(types.LastTotalPowerKey, cdc.MustMarshal(&sdk.IntProto{Int: totalPower}))
+}
+
+func migrateOutgoingTxPool(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
+
+	oldStore := prefix.NewStore(gravityStore, v042gravity.OutgoingTxPoolKey)
+
+	oldStoreIter := oldStore.Iterator(nil, nil)
+	defer oldStoreIter.Close()
+
+	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
+		var transact crosschaintypes.OutgoingTransferTx
+		cdc.MustUnmarshal(oldStoreIter.Value(), &transact)
+
+		ethStore.Set(crosschaintypes.GetOutgoingTxPoolKey(transact.Fee, transact.Id), oldStoreIter.Value())
+		oldStore.Delete(oldStoreIter.Key())
+	}
+
+	oldStore2 := prefix.NewStore(gravityStore, v042gravity.SecondIndexOutgoingTxFeeKey)
+
+	oldStoreIter2 := oldStore2.Iterator(nil, nil)
+	defer oldStoreIter2.Close()
+	for ; oldStoreIter2.Valid(); oldStoreIter2.Next() {
+		oldStore2.Delete(oldStoreIter2.Key())
 	}
 }

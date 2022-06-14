@@ -84,14 +84,16 @@ type AppModule struct {
 	AppModuleBasic
 	keeper        keeper.Keeper
 	stakingKeeper crosschainv54.StakingKeeper
+	paramsKey     sdk.StoreKey
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper, stakingKeeper crosschainv54.StakingKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, stakingKeeper crosschainv54.StakingKeeper, paramsKey sdk.StoreKey) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 		stakingKeeper:  stakingKeeper,
+		paramsKey:      paramsKey,
 	}
 }
 
@@ -113,7 +115,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	m := crosschainkeeper.NewMigrator(am.keeper.Keeper, am.stakingKeeper)
+	m := crosschainkeeper.NewMigrator(am.keeper.Keeper, am.stakingKeeper, am.paramsKey)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(err)
 	}

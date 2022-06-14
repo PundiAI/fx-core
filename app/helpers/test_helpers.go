@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -65,10 +66,10 @@ type EmptyAppOptions struct{}
 
 func (EmptyAppOptions) Get(string) interface{} { return nil }
 
-func Setup(t *testing.T, isCheckTx bool, invCheckPeriod uint) *app.App {
+func Setup(t *testing.T, isCheckTx bool) *app.App {
 	t.Helper()
 
-	myApp, genesisState := setup(!isCheckTx, invCheckPeriod)
+	myApp, genesisState := setup(!isCheckTx, 5)
 	if !isCheckTx {
 		// InitChain must be called to stop deliverState from being nil
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
@@ -89,7 +90,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*app.App, app.GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := app.MakeEncodingConfig()
 	myApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{},
-		app.DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{},
+		os.TempDir(), invCheckPeriod, encCdc, EmptyAppOptions{},
 	)
 	if withGenesis {
 		genesis := app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encCdc.Marshaler)
@@ -106,9 +107,10 @@ func setup(withGenesis bool, invCheckPeriod uint) (*app.App, app.GenesisState) {
 	return myApp, app.GenesisState{}
 }
 
-func GenerateGenesisValidator(t *testing.T, validatorNum int, initCoins sdk.Coins) (*tmtypes.ValidatorSet, authtypes.GenesisAccounts, []banktypes.Balance) {
-	require.Equal(t, true, validatorNum > 0)
-
+func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (*tmtypes.ValidatorSet, authtypes.GenesisAccounts, []banktypes.Balance) {
+	if initCoins == nil || initCoins.Len() <= 0 {
+		initCoins = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10000).MulRaw(1e18)))
+	}
 	valSets := make([]*tmtypes.Validator, 0, validatorNum)
 	var genesisAccounts authtypes.GenesisAccounts
 	balances := make([]banktypes.Balance, 0, validatorNum)
@@ -150,13 +152,13 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 
 	bondAmt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
 
-	for _, val := range valSet.Validators {
+	for i, val := range valSet.Validators {
 		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
 		require.NoError(t, err)
 		pkAny, err := codectypes.NewAnyWithValue(pk)
 		require.NoError(t, err)
 		validator := stakingtypes.Validator{
-			OperatorAddress:   sdk.ValAddress(val.Address).String(),
+			OperatorAddress:   sdk.ValAddress(genAccs[i].GetAddress()).String(),
 			ConsensusPubkey:   pkAny,
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
@@ -169,7 +171,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 			MinSelfDelegation: sdk.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), validator.GetOperator(), sdk.OneDec()))
 	}
 
 	var stakingGenesis stakingtypes.GenesisState
@@ -350,8 +352,8 @@ func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
 	if err != nil {
 		return nil, err
 	}
-	bechexpected := res.String()
-	if bech != bechexpected {
+	bechExpected := res.String()
+	if bech != bechExpected {
 		return nil, fmt.Errorf("bech encoding doesn't match reference")
 	}
 

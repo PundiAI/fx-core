@@ -5,8 +5,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/functionx/fx-core/x/crosschain/keeper"
+	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"math"
-	"math/big"
+	"reflect"
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/functionx/fx-core/app/helpers"
@@ -16,7 +21,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/app"
@@ -24,259 +28,294 @@ import (
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
-var (
-	minStakeAmount = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))
-)
+type MsgHandlerTestSuite struct {
+	suite.Suite
+	sync.Mutex
 
-const (
-	chainName      = "xxx"
-	chainGravityId = "local-test-xxx"
-)
+	app            *app.App
+	ctx            sdk.Context
+	oracles        []sdk.AccAddress
+	bridgers       []sdk.AccAddress
+	externals      []*ecdsa.PrivateKey
+	validator      []sdk.ValAddress
+	chainName      string
+	delegateAmount sdk.Int
+}
+
+func TestMsgHandlerTestSuite(t *testing.T) {
+	methodFinder := reflect.TypeOf(new(MsgHandlerTestSuite))
+	for i := 0; i < methodFinder.NumMethod(); i++ {
+		method := methodFinder.Method(i)
+		if !strings.HasPrefix(method.Name, "Test") {
+			continue
+		}
+		t.Run(method.Name, func(subT *testing.T) {
+			mySuite := new(MsgHandlerTestSuite)
+			mySuite.SetT(t)
+			mySuite.SetupTest()
+			method.Func.Call([]reflect.Value{reflect.ValueOf(mySuite)})
+		})
+	}
+}
+
+func (suite *MsgHandlerTestSuite) Handler() sdk.Handler {
+	return crosschain.NewHandler(suite.app.CrosschainKeeper)
+}
+
+func (suite *MsgHandlerTestSuite) Keeper() keeper.Keeper {
+	return suite.app.BscKeeper
+}
+
+func (suite *MsgHandlerTestSuite) SetupTest() {
+	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(types.MaxOracleSize, sdk.Coins{})
+	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
+	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
+	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
+	suite.externals = genEthKey(types.MaxOracleSize)
+	suite.delegateAmount = sdk.NewInt(10 * 1e3).MulRaw(1e18)
+	for i := 0; i < types.MaxOracleSize; i++ {
+		suite.validator = append(suite.validator, valAccounts[i].GetAddress().Bytes())
+	}
+	suite.chainName = "bsc"
+
+	proposalOracle := &types.ProposalOracle{}
+	for _, oracle := range suite.oracles {
+		proposalOracle.Oracles = append(proposalOracle.Oracles, oracle.String())
+	}
+	suite.Keeper().SetProposalOracle(suite.ctx, proposalOracle)
+}
 
 // 1. Test MsgCreateOracleBridger
-func TestHandlerMsgSetOrchestratorAddress(t *testing.T) {
-	// get test env
-	_, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 4)
+func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
+
 	// 1. sender not in chain oracle
 	notOracleMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   orchestratorAddressList[0].String(),
-		BridgeAddress:   orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
-		ChainName:       chainName,
+		OracleAddress:    suite.bridgers[0].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
+		ChainName:        suite.chainName,
 	}
-	var err error
-	_, err = h(ctx, notOracleMsg)
-	require.ErrorIs(t, types.ErrNoFoundOracle, err)
-	require.EqualValues(t, types.ErrNoFoundOracle.Error(), err.Error())
+	_, err := suite.Handler()(suite.ctx, notOracleMsg)
+	require.ErrorIs(suite.T(), err, types.ErrNoFoundOracle)
 
 	// 2. stake denom not match chain params stake denom
 	notMatchStakeDenomMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[0].String(),
-		BridgerAddress:  orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: "abctoken", Amount: sdk.NewInt(100000)},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[0].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: "abctoken", Amount: sdk.NewInt(100000)},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, notMatchStakeDenomMsg)
-	require.ErrorIs(t, err, types.ErrBadStakeDenom)
-	require.EqualValues(t, fmt.Sprintf("got %s, expected %s: %s", notMatchStakeDenomMsg.DelegateAmount.Denom, fxtypes.DefaultDenom, types.ErrBadStakeDenom), err.Error())
+	_, err = suite.Handler()(suite.ctx, notMatchStakeDenomMsg)
+	require.ErrorIs(suite.T(), err, types.ErrInvalid)
+	require.EqualValues(suite.T(), fmt.Sprintf(
+		"delegate denom got %s, expected %s: %s",
+		notMatchStakeDenomMsg.DelegateAmount.Denom, fxtypes.DefaultDenom, types.ErrInvalid), err.Error())
 
 	// 3. insufficient stake amount msg.
 	belowMinimumStakeAmountMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[0].String(),
-		BridgerAddress:  orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[0].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, belowMinimumStakeAmountMsg)
-	require.ErrorIs(t, types.ErrDelegateAmountBelowMinimum, err)
-	require.EqualValues(t, types.ErrDelegateAmountBelowMinimum.Error(), err.Error())
+	_, err = suite.Handler()(suite.ctx, belowMinimumStakeAmountMsg)
+	require.ErrorIs(suite.T(), types.ErrDelegateAmountBelowMinimum, err)
+	require.EqualValues(suite.T(), types.ErrDelegateAmountBelowMinimum.Error(), err.Error())
 
 	// 4. success msg
 	normalMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[0].String(),
-		BridgerAddress:  orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[0].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[1].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, normalMsg)
-	require.NoError(t, err)
+	_, err = suite.Handler()(suite.ctx, normalMsg)
+	require.NoError(suite.T(), err)
 
-	// 5. oracle duplicate set orchestrator
+	// 5. oracle duplicate set bridger
 	oracleDuplicateSetOrchestratorMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[0].String(),
-		BridgerAddress:  orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[0].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, oracleDuplicateSetOrchestratorMsg)
-	require.ErrorIs(t, types.ErrInvalid, err)
-	require.EqualValues(t, fmt.Sprintf("oracle existed orchestrator address: %s", types.ErrInvalid.Error()), err.Error())
+	_, err = suite.Handler()(suite.ctx, oracleDuplicateSetOrchestratorMsg)
+	require.ErrorIs(suite.T(), types.ErrInvalid, err)
+	require.EqualValues(suite.T(), fmt.Sprintf("oracle existed bridger address: %s", types.ErrInvalid.Error()), err.Error())
 
-	// 6. Set the same orchestrator address for different Oracle databases
+	// 6. Set the same bridger address for different Oracle databases
 	duplicateSetOrchestratorMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[1].String(),
-		BridgerAddress:  orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[1].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, duplicateSetOrchestratorMsg)
-	require.ErrorIs(t, types.ErrInvalid, err)
-	require.EqualValues(t, fmt.Sprintf("orchestrator address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
+	_, err = suite.Handler()(suite.ctx, duplicateSetOrchestratorMsg)
+	require.ErrorIs(suite.T(), types.ErrInvalid, err)
+	require.EqualValues(suite.T(), fmt.Sprintf("bridger address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
 
 	// 7. Set the same external address for different Oracle databases
 	duplicateSetExternalAddressMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[1].String(),
-		BridgerAddress:  orchestratorAddressList[1].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[1].String(),
+		BridgerAddress:   suite.bridgers[1].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, duplicateSetExternalAddressMsg)
-	require.ErrorIs(t, types.ErrInvalid, err)
-	require.EqualValues(t, fmt.Sprintf("external address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
+	_, err = suite.Handler()(suite.ctx, duplicateSetExternalAddressMsg)
+	require.ErrorIs(suite.T(), types.ErrInvalid, err)
+	require.EqualValues(suite.T(), fmt.Sprintf("external address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
 
 	// 8. Margin is not allowed to be submitted more than ten times the threshold
 	depositAmountBelowMaximumMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[1].String(),
-		BridgerAddress:  orchestratorAddressList[1].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[1].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount.Mul(sdk.NewInt(10).Add(sdk.NewInt(1)))},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[1].String(),
+		BridgerAddress:   suite.bridgers[1].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[1].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount.Mul(sdk.NewInt(10).Add(sdk.NewInt(1)))},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, depositAmountBelowMaximumMsg)
-	require.ErrorIs(t, types.ErrDelegateAmountBelowMaximum, err)
-	require.EqualValues(t, types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
+	_, err = suite.Handler()(suite.ctx, depositAmountBelowMaximumMsg)
+	require.ErrorIs(suite.T(), types.ErrDelegateAmountBelowMaximum, err)
+	require.EqualValues(suite.T(), types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
 
 	// 9. success msg
 	normalMsgOracle2 := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[1].String(),
-		BridgerAddress:  orchestratorAddressList[1].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[1].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[1].String(),
+		BridgerAddress:   suite.bridgers[1].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[1].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[1].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, normalMsgOracle2)
-	require.NoError(t, err)
+	_, err = suite.Handler()(suite.ctx, normalMsgOracle2)
+	require.NoError(suite.T(), err)
 }
 
-// 2. Test MsgAddOracleStake
-func TestMsgAddOracleStake(t *testing.T) {
-	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 4)
-	keep := myApp.BscKeeper
-	var err error
+// 2. Test MsgAddOracleDelegate
+func (suite *MsgHandlerTestSuite) TestMsgAddOracleDelegate() {
 
-	// Query the status before the configuration
-	totalStakeBefore := keep.GetTotalDelegate(ctx)
-	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
-
-	// 1. First sets up a valid validator
 	normalMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[0].String(),
-		BridgerAddress:  orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[0].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, normalMsg)
-	require.NoError(t, err)
+	_, err := suite.Handler()(suite.ctx, normalMsg)
+	require.NoError(suite.T(), err)
 
-	// Query the totalStake after the address is set
-	totalStakeAfter := keep.GetTotalDelegate(ctx)
-	require.True(t, normalMsg.DelegateAmount.IsEqual(totalStakeAfter))
-
-	denomNotMatchMsg := &types.MsgAddOracleStake{
-		OracleAddress: oracleAddressList[0].String(),
+	denomNotMatchMsg := &types.MsgAddOracleDelegate{
+		OracleAddress: suite.oracles[0].String(),
 		Amount: sdk.Coin{
 			Denom:  "abc",
-			Amount: minStakeAmount,
+			Amount: suite.delegateAmount,
 		},
-		ChainName: chainName,
+		ChainName: suite.chainName,
 	}
-	_, err = h(ctx, denomNotMatchMsg)
-	require.ErrorIs(t, err, types.ErrBadStakeDenom)
-	require.EqualValues(t, fmt.Sprintf("got %s, expected %s: %s", denomNotMatchMsg.Amount.Denom, fxtypes.DefaultDenom, types.ErrBadStakeDenom), err.Error())
+	_, err = suite.Handler()(suite.ctx, denomNotMatchMsg)
+	require.ErrorIs(suite.T(), err, types.ErrInvalid)
+	require.EqualValues(suite.T(), fmt.Sprintf("delegate denom got %s, expected %s: %s", denomNotMatchMsg.Amount.Denom, fxtypes.DefaultDenom, types.ErrInvalid), err.Error())
 
-	notOracleMsg := &types.MsgAddOracleStake{
-		OracleAddress: orchestratorAddressList[0].String(),
+	notOracleMsg := &types.MsgAddOracleDelegate{
+		OracleAddress: suite.bridgers[0].String(),
 		Amount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
-			Amount: minStakeAmount,
+			Amount: suite.delegateAmount,
 		},
-		ChainName: chainName,
+		ChainName: suite.chainName,
 	}
-	_, err = h(ctx, notOracleMsg)
-	require.ErrorIs(t, types.ErrNoFoundOracle, err)
-	require.EqualValues(t, types.ErrNoFoundOracle.Error(), err.Error())
+	_, err = suite.Handler()(suite.ctx, notOracleMsg)
+	require.ErrorIs(suite.T(), types.ErrNoFoundOracle, err)
+	require.EqualValues(suite.T(), types.ErrNoFoundOracle.Error(), err.Error())
 
-	notSetOrchestratorOracleMsg := &types.MsgAddOracleStake{
-		OracleAddress: oracleAddressList[1].String(),
+	notSetBridgerOracleMsg := &types.MsgAddOracleDelegate{
+		OracleAddress: suite.oracles[2].String(),
 		Amount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
-			Amount: minStakeAmount,
+			Amount: suite.delegateAmount,
 		},
-		ChainName: chainName,
+		ChainName: suite.chainName,
 	}
-	_, err = h(ctx, notSetOrchestratorOracleMsg)
-	require.ErrorIs(t, types.ErrNoOracleFound, err)
-	require.EqualValues(t, types.ErrNoOracleFound.Error(), err.Error())
+	_, err = suite.Handler()(suite.ctx, notSetBridgerOracleMsg)
+	require.ErrorIs(suite.T(), types.ErrNoFoundOracle, err)
+	require.EqualValues(suite.T(), types.ErrNoFoundOracle.Error(), err.Error())
 
-	depositAmountBelowMaximumMsg := &types.MsgAddOracleStake{
-		OracleAddress: oracleAddressList[0].String(),
-		Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount.Mul(sdk.NewInt(9)).Add(sdk.NewInt(1))},
-		ChainName:     chainName,
+	depositAmountBelowMaximumMsg := &types.MsgAddOracleDelegate{
+		OracleAddress: suite.oracles[0].String(),
+		Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount.Mul(sdk.NewInt(9)).Add(sdk.NewInt(1))},
+		ChainName:     suite.chainName,
 	}
-	_, err = h(ctx, depositAmountBelowMaximumMsg)
-	require.ErrorIs(t, types.ErrDelegateAmountBelowMaximum, err)
-	require.EqualValues(t, types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
+	_, err = suite.Handler()(suite.ctx, depositAmountBelowMaximumMsg)
+	require.ErrorIs(suite.T(), types.ErrDelegateAmountBelowMaximum, err)
+	require.EqualValues(suite.T(), types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
 
-	normalAddStakeMsg := &types.MsgAddOracleStake{
-		OracleAddress: oracleAddressList[0].String(),
-		Amount:        sdk.NewCoin(fxtypes.DefaultDenom, minStakeAmount),
-		ChainName:     chainName,
+	normalAddStakeMsg := &types.MsgAddOracleDelegate{
+		OracleAddress: suite.oracles[0].String(),
+		Amount:        sdk.NewCoin(fxtypes.DefaultDenom, suite.delegateAmount),
+		ChainName:     suite.chainName,
 	}
-
-	addStake1Before := keep.GetTotalDelegate(ctx)
-	_, err = h(ctx, normalAddStakeMsg)
-	require.NoError(t, err)
-	addStake1After := keep.GetTotalDelegate(ctx)
-	require.True(t, addStake1Before.Add(normalAddStakeMsg.Amount).IsEqual(addStake1After))
+	_, err = suite.Handler()(suite.ctx, normalAddStakeMsg)
+	require.NoError(suite.T(), err)
 }
 
-func TestMsgSetOracleSetConfirm(t *testing.T) {
-	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 4)
-	keep := myApp.BscKeeper
-	var err error
-
-	totalStakeBefore := keep.GetTotalDelegate(ctx)
-	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
+func (suite *MsgHandlerTestSuite) TestMsgSetOracleSetConfirm() {
 
 	normalMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[0].String(),
-		BridgerAddress:  orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[0].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, normalMsg)
-	require.NoError(t, err)
+	_, err := suite.Handler()(suite.ctx, normalMsg)
+	require.NoError(suite.T(), err)
 
-	latestOracleSetNonce := keep.GetLatestOracleSetNonce(ctx)
-	require.EqualValues(t, 0, latestOracleSetNonce)
-	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
-	latestOracleSetNonce = keep.GetLatestOracleSetNonce(ctx)
-	require.EqualValues(t, 1, latestOracleSetNonce)
+	latestOracleSetNonce := suite.Keeper().GetLatestOracleSetNonce(suite.ctx)
+	require.EqualValues(suite.T(), 0, latestOracleSetNonce)
+	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	latestOracleSetNonce = suite.Keeper().GetLatestOracleSetNonce(suite.ctx)
+	require.EqualValues(suite.T(), 1, latestOracleSetNonce)
 
-	require.True(t, keep.HasOracleSetRequest(ctx, 1))
+	require.True(suite.T(), suite.Keeper().HasOracleSetRequest(suite.ctx, 1))
 
-	require.False(t, keep.HasOracleSetRequest(ctx, 2))
+	require.False(suite.T(), suite.Keeper().HasOracleSetRequest(suite.ctx, 2))
 
-	nonce1OracleSet := keep.GetOracleSet(ctx, 1)
-	require.EqualValues(t, uint64(1), nonce1OracleSet.Nonce)
-	require.EqualValues(t, uint64(2), nonce1OracleSet.Height)
-	require.EqualValues(t, 1, len(nonce1OracleSet.Members))
-	require.EqualValues(t, normalMsg.ExternalAddress, nonce1OracleSet.Members[0].ExternalAddress)
-	require.EqualValues(t, math.MaxUint32, nonce1OracleSet.Members[0].Power)
+	nonce1OracleSet := suite.Keeper().GetOracleSet(suite.ctx, 1)
+	require.EqualValues(suite.T(), uint64(1), nonce1OracleSet.Nonce)
+	require.EqualValues(suite.T(), uint64(2), nonce1OracleSet.Height)
+	require.EqualValues(suite.T(), 1, len(nonce1OracleSet.Members))
+	require.EqualValues(suite.T(), crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(), nonce1OracleSet.Members[0].ExternalAddress)
+	require.EqualValues(suite.T(), math.MaxUint32, nonce1OracleSet.Members[0].Power)
 
 	var gravityId string
-	require.NotPanics(t, func() {
-		gravityId = keep.GetGravityID(ctx)
+	require.NotPanics(suite.T(), func() {
+		gravityId = suite.Keeper().GetGravityID(suite.ctx)
 	})
-	require.EqualValues(t, chainGravityId, gravityId)
-	checkpoint := nonce1OracleSet.GetCheckpoint(gravityId)
+	require.EqualValues(suite.T(), "fx-bridge-bsc", gravityId)
+	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 
-	external1Signature, err := types.NewEthereumSignature(checkpoint, ethKeys[0])
-	require.NoError(t, err)
-	external2Signature, err := types.NewEthereumSignature(checkpoint, ethKeys[1])
-	require.NoError(t, err)
-	errMsgDatas := []struct {
+	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[0])
+	require.NoError(suite.T(), err)
+	external2Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[1])
+	require.NoError(suite.T(), err)
+	errMsgData := []struct {
 		name      string
 		msg       *types.MsgOracleSetConfirm
 		err       error
@@ -285,11 +324,11 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 		{
 			name: "Error oracleSet nonce",
 			msg: &types.MsgOracleSetConfirm{
-				Nonce:               0,
-				OrchestratorAddress: orchestratorAddressList[0].String(),
-				ExternalAddress:     normalMsg.ExternalAddress,
-				Signature:           hex.EncodeToString(external1Signature),
-				ChainName:           chainName,
+				Nonce:           0,
+				BridgerAddress:  suite.bridgers[0].String(),
+				ExternalAddress: crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+				Signature:       hex.EncodeToString(external1Signature),
+				ChainName:       suite.chainName,
 			},
 			err:       types.ErrInvalid,
 			errReason: fmt.Sprintf("couldn't find oracleSet: %s", types.ErrInvalid),
@@ -297,11 +336,11 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 		{
 			name: "not oracle msg",
 			msg: &types.MsgOracleSetConfirm{
-				Nonce:               nonce1OracleSet.Nonce,
-				OrchestratorAddress: orchestratorAddressList[0].String(),
-				ExternalAddress:     crypto.PubkeyToAddress(ethKeys[1].PublicKey).Hex(),
-				Signature:           hex.EncodeToString(external1Signature),
-				ChainName:           chainName,
+				Nonce:           nonce1OracleSet.Nonce,
+				BridgerAddress:  suite.bridgers[0].String(),
+				ExternalAddress: crypto.PubkeyToAddress(suite.externals[1].PublicKey).Hex(),
+				Signature:       hex.EncodeToString(external1Signature),
+				ChainName:       suite.chainName,
 			},
 			err:       types.ErrNoFoundOracle,
 			errReason: fmt.Sprintf("%s", types.ErrNoFoundOracle),
@@ -309,119 +348,110 @@ func TestMsgSetOracleSetConfirm(t *testing.T) {
 		{
 			name: "sign not match external-1  external-sign-2",
 			msg: &types.MsgOracleSetConfirm{
-				Nonce:               nonce1OracleSet.Nonce,
-				OrchestratorAddress: orchestratorAddressList[0].String(),
-				ExternalAddress:     crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-				Signature:           hex.EncodeToString(external2Signature),
-				ChainName:           chainName,
+				Nonce:           nonce1OracleSet.Nonce,
+				BridgerAddress:  suite.bridgers[0].String(),
+				ExternalAddress: crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+				Signature:       hex.EncodeToString(external2Signature),
+				ChainName:       suite.chainName,
 			},
 			err:       types.ErrInvalid,
-			errReason: fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s: %s", crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(), hex.EncodeToString(checkpoint), hex.EncodeToString(external2Signature), types.ErrInvalid),
+			errReason: fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s: %s", crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(), hex.EncodeToString(checkpoint), hex.EncodeToString(external2Signature), types.ErrInvalid),
 		},
 		{
-			name: "orchestrator address not match",
+			name: "bridger address not match",
 			msg: &types.MsgOracleSetConfirm{
-				Nonce:               nonce1OracleSet.Nonce,
-				OrchestratorAddress: orchestratorAddressList[1].String(),
-				ExternalAddress:     crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-				Signature:           hex.EncodeToString(external1Signature),
-				ChainName:           chainName,
+				Nonce:           nonce1OracleSet.Nonce,
+				BridgerAddress:  suite.bridgers[1].String(),
+				ExternalAddress: crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+				Signature:       hex.EncodeToString(external1Signature),
+				ChainName:       suite.chainName,
 			},
 			err:       types.ErrInvalid,
-			errReason: fmt.Sprintf("got %s, expected %s: %s", orchestratorAddressList[1].String(), orchestratorAddressList[0].String(), types.ErrInvalid),
+			errReason: fmt.Sprintf("got %s, expected %s: %s", suite.bridgers[1].String(), suite.bridgers[0].String(), types.ErrInvalid),
 		},
 	}
 
-	for _, testData := range errMsgDatas {
-		_, err = h(ctx, testData.msg)
-		require.ErrorIs(t, err, testData.err, testData.name)
-		require.EqualValues(t, err.Error(), testData.errReason, testData.name)
+	for _, testData := range errMsgData {
+		_, err = suite.Handler()(suite.ctx, testData.msg)
+		require.ErrorIs(suite.T(), err, testData.err, testData.name)
+		require.EqualValues(suite.T(), err.Error(), testData.errReason, testData.name)
 	}
 
 	normalOracleSetConfirmMsg := &types.MsgOracleSetConfirm{
-		Nonce:               nonce1OracleSet.Nonce,
-		OrchestratorAddress: orchestratorAddressList[0].String(),
-		ExternalAddress:     crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Signature:           hex.EncodeToString(external1Signature),
-		ChainName:           chainName,
+		Nonce:           nonce1OracleSet.Nonce,
+		BridgerAddress:  suite.bridgers[0].String(),
+		ExternalAddress: crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		Signature:       hex.EncodeToString(external1Signature),
+		ChainName:       suite.chainName,
 	}
-	_, err = h(ctx, normalOracleSetConfirmMsg)
-	require.NoError(t, err)
+	_, err = suite.Handler()(suite.ctx, normalOracleSetConfirmMsg)
+	require.NoError(suite.T(), err)
 
-	endBlockBeforeLatestOracleSet := keep.GetLatestOracleSet(ctx)
-	require.NotNil(t, endBlockBeforeLatestOracleSet)
+	endBlockBeforeLatestOracleSet := suite.Keeper().GetLatestOracleSet(suite.ctx)
+	require.NotNil(suite.T(), endBlockBeforeLatestOracleSet)
 }
 
-func TestClaimWithOracleJailed(t *testing.T) {
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 10)
-	keeper := myApp.BscKeeper
-	var err error
-
-	totalStakeBefore := keeper.GetTotalDelegate(ctx)
-	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
-
+func (suite *MsgHandlerTestSuite) TestClaimWithOracleJailed() {
 	normalMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[0].String(),
-		BridgerAddress:  orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[0].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, normalMsg)
-	require.NoError(t, err)
-	myApp.EndBlock(abci.RequestEndBlock{Height: ctx.BlockHeight()})
-	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-	latestOracleSetNonce := keeper.GetLatestOracleSetNonce(ctx)
-	require.EqualValues(t, 1, latestOracleSetNonce)
+	_, err := suite.Handler()(suite.ctx, normalMsg)
+	require.NoError(suite.T(), err)
+	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
+	latestOracleSetNonce := suite.Keeper().GetLatestOracleSetNonce(suite.ctx)
+	require.EqualValues(suite.T(), 1, latestOracleSetNonce)
 
-	nonce1OracleSet := keeper.GetOracleSet(ctx, latestOracleSetNonce)
-	require.EqualValues(t, uint64(1), nonce1OracleSet.Nonce)
-	require.EqualValues(t, uint64(2), nonce1OracleSet.Height)
+	nonce1OracleSet := suite.Keeper().GetOracleSet(suite.ctx, latestOracleSetNonce)
+	require.EqualValues(suite.T(), uint64(1), nonce1OracleSet.Nonce)
+	require.EqualValues(suite.T(), uint64(2), nonce1OracleSet.Height)
 
 	var gravityId string
-	require.NotPanics(t, func() {
-		gravityId = keeper.GetGravityID(ctx)
+	require.NotPanics(suite.T(), func() {
+		gravityId = suite.Keeper().GetGravityID(suite.ctx)
 	})
-	require.EqualValues(t, chainGravityId, gravityId)
-	checkpoint := nonce1OracleSet.GetCheckpoint(gravityId)
+	require.EqualValues(suite.T(), "fx-bridge-bsc", gravityId)
+	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 
 	// oracle jailed!!!
-	oracle, found := keeper.GetOracle(ctx, oracleAddressList[0])
-	require.True(t, found)
+	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[0])
+	require.True(suite.T(), found)
 	oracle.Jailed = true
-	keeper.SetOracle(ctx, oracle)
+	suite.Keeper().SetOracle(suite.ctx, oracle)
 
-	external1Signature, err := types.NewEthereumSignature(checkpoint, ethKeys[0])
-	require.NoError(t, err)
+	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[0])
+	require.NoError(suite.T(), err)
 
 	normalOracleSetConfirmMsg := &types.MsgOracleSetConfirm{
-		Nonce:               latestOracleSetNonce,
-		OrchestratorAddress: orchestratorAddressList[0].String(),
-		ExternalAddress:     crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		Signature:           hex.EncodeToString(external1Signature),
-		ChainName:           chainName,
+		Nonce:           latestOracleSetNonce,
+		BridgerAddress:  suite.bridgers[0].String(),
+		ExternalAddress: crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		Signature:       hex.EncodeToString(external1Signature),
+		ChainName:       suite.chainName,
 	}
-	_, err = h(ctx, normalOracleSetConfirmMsg)
-	require.Nil(t, err)
+	_, err = suite.Handler()(suite.ctx, normalOracleSetConfirmMsg)
+	require.Nil(suite.T(), err)
 }
 
-func TestClaimTest(t *testing.T) {
-	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 10)
-	var err error
-
+func (suite *MsgHandlerTestSuite) TestClaimTest() {
 	normalMsg := &types.MsgCreateOracleBridger{
-		OracleAddress:   oracleAddressList[0].String(),
-		BridgerAddress:  orchestratorAddressList[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex(),
-		DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
-		ChainName:       chainName,
+		OracleAddress:    suite.oracles[0].String(),
+		BridgerAddress:   suite.bridgers[0].String(),
+		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ValidatorAddress: suite.validator[0].String(),
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
+		ChainName:        suite.chainName,
 	}
-	_, err = h(ctx, normalMsg)
-	require.NoError(t, err)
+	_, err := suite.Handler()(suite.ctx, normalMsg)
+	require.NoError(suite.T(), err)
 
-	oracleLastEventNonce := myApp.BscKeeper.GetLastEventNonceByOracle(ctx, oracleAddressList[0])
-	require.EqualValues(t, 0, oracleLastEventNonce)
+	oracleLastEventNonce := suite.app.BscKeeper.GetLastEventNonceByOracle(suite.ctx, suite.oracles[0])
+	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
 
 	errMsgDatas := []struct {
 		name      string
@@ -438,9 +468,9 @@ func TestClaimTest(t *testing.T) {
 				Name:           "Pundix Token Purse",
 				Symbol:         "PURSE",
 				Decimals:       18,
-				BridgerAddress: orchestratorAddressList[0].String(),
+				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:      chainName,
+				ChainName:      suite.chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
 			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 2, 1, types.ErrNonContiguousEventNonce),
@@ -454,9 +484,9 @@ func TestClaimTest(t *testing.T) {
 				Name:           "Pundix Token Purse",
 				Symbol:         "PURSE",
 				Decimals:       18,
-				BridgerAddress: orchestratorAddressList[0].String(),
+				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:      chainName,
+				ChainName:      suite.chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
 			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 3, 1, types.ErrNonContiguousEventNonce),
@@ -470,9 +500,9 @@ func TestClaimTest(t *testing.T) {
 				Name:           "Pundix Token Purse",
 				Symbol:         "PURSE",
 				Decimals:       18,
-				BridgerAddress: orchestratorAddressList[0].String(),
+				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:      chainName,
+				ChainName:      suite.chainName,
 			},
 			err:       nil,
 			errReason: "",
@@ -486,9 +516,9 @@ func TestClaimTest(t *testing.T) {
 				Name:           "Pundix Token Purse",
 				Symbol:         "PURSE",
 				Decimals:       18,
-				BridgerAddress: orchestratorAddressList[0].String(),
+				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:      chainName,
+				ChainName:      suite.chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
 			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 1, 2, types.ErrNonContiguousEventNonce),
@@ -502,9 +532,9 @@ func TestClaimTest(t *testing.T) {
 				Name:           "Pundix Token Purse",
 				Symbol:         "PURSE",
 				Decimals:       18,
-				BridgerAddress: orchestratorAddressList[0].String(),
+				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
-				ChainName:      chainName,
+				ChainName:      suite.chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
 			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 3, 2, types.ErrNonContiguousEventNonce),
@@ -512,127 +542,118 @@ func TestClaimTest(t *testing.T) {
 	}
 
 	for _, testData := range errMsgDatas {
-		_, err = h(ctx, testData.msg)
-		require.ErrorIs(t, err, testData.err, testData.name)
+		_, err = suite.Handler()(suite.ctx, testData.msg)
+		require.ErrorIs(suite.T(), err, testData.err, testData.name)
 		if err == nil {
 			continue
 		}
-		require.EqualValues(t, testData.errReason, err.Error(), testData.name)
+		require.EqualValues(suite.T(), testData.errReason, err.Error(), testData.name)
 	}
 
 }
 
-// Test Support RequestBatch baseFee
-func TestSupportRequestBatchBaseFee(t *testing.T) {
-	//myApp.SetAppLog(server.ZeroLogWrapper{Logger: log.Logger.Level(zerolog.DebugLevel)})
-	// get test env
-	myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, h := createTestEnv(t, 10)
-	keep := myApp.BscKeeper
-	var err error
-
-	// Query the status before the configuration
-	totalStakeBefore := keep.GetTotalDelegate(ctx)
-	require.EqualValues(t, sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()), totalStakeBefore)
+// Test RequestBatch baseFee
+func (suite *MsgHandlerTestSuite) TestRequestBatchBaseFee() {
 
 	endBlock := func() {
-		//ctx = ctx.WithBlockHeight(fxtypes.CrossChainSupportBscBlock() + 1)
-		crosschain.EndBlocker(ctx, keep)
+		crosschain.EndBlocker(suite.ctx, suite.Keeper())
 	}
 
 	// 1. First sets up a valid validator
-	for i, oracle := range oracleAddressList {
+	for i, oracle := range suite.oracles {
 		normalMsg := &types.MsgCreateOracleBridger{
-			OracleAddress:   oracle.String(),
-			BridgeAddress:   orchestratorAddressList[i].String(),
-			ExternalAddress: crypto.PubkeyToAddress(ethKeys[i].PublicKey).Hex(),
-			DelegateAmount:  sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: minStakeAmount},
-			ChainName:       chainName,
+			OracleAddress:    oracle.String(),
+			BridgerAddress:   suite.bridgers[i].String(),
+			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
+			ValidatorAddress: suite.validator[i].String(),
+			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
+			ChainName:        suite.chainName,
 		}
-		_, err = h(ctx, normalMsg)
-		require.NoError(t, err)
+		_, err := suite.Handler()(suite.ctx, normalMsg)
+		require.NoError(suite.T(), err)
 	}
 
 	endBlock()
 
-	var externalOracleMembers []*types.BridgeValidator
-	for _, key := range ethKeys {
-		externalOracleMembers = append(externalOracleMembers, &types.BridgeValidator{
+	var externalOracleMembers []types.BridgeValidator
+	for _, key := range suite.externals {
+		externalOracleMembers = append(externalOracleMembers, types.BridgeValidator{
 			Power:           100,
 			ExternalAddress: crypto.PubkeyToAddress(key.PublicKey).Hex(),
 		})
 	}
 
 	// 2. oracle update claim
-	for i := range oracleAddressList {
+	for i := range suite.oracles {
 		normalMsg := &types.MsgOracleSetUpdatedClaim{
 			EventNonce:     1,
 			BlockHeight:    1,
 			OracleSetNonce: 1,
 			Members:        externalOracleMembers,
-			BridgerAddress: orchestratorAddressList[i].String(),
-			ChainName:      chainName,
+			BridgerAddress: suite.bridgers[i].String(),
+			ChainName:      suite.chainName,
 		}
-		_, err = h(ctx, normalMsg)
-		require.NoError(t, err)
+		_, err := suite.Handler()(suite.ctx, normalMsg)
+		require.NoError(suite.T(), err)
 	}
 
 	endBlock()
 
 	// 3. add bridge token.
-	sendToFxSendAddr := crypto.PubkeyToAddress(ethKeys[0].PublicKey).Hex()
-	sendToFxReceiveAddr := orchestratorAddressList[0]
+	sendToFxSendAddr := crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex()
+	sendToFxReceiveAddr := suite.bridgers[0]
 	sendToFxAmount := sdk.NewIntWithDecimal(1000, 18)
 	sendToFxToken := "0x0000000000000000000000000000000000001000"
 
-	for i, oracle := range oracleAddressList {
+	for i, oracle := range suite.oracles {
 		normalMsg := &types.MsgBridgeTokenClaim{
-			EventNonce:     keep.GetLastEventNonceByOracle(ctx, oracle) + 1,
+			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle) + 1,
 			BlockHeight:    1,
 			TokenContract:  sendToFxToken,
 			Name:           "BSC USDT",
 			Symbol:         "USDT",
 			Decimals:       18,
-			BridgerAddress: orchestratorAddressList[i].String(),
+			BridgerAddress: suite.bridgers[i].String(),
 			ChannelIbc:     "",
-			ChainName:      chainName,
+			ChainName:      suite.chainName,
 		}
-		_, err = h(ctx, normalMsg)
-		require.NoError(t, err)
+		_, err := suite.Handler()(suite.ctx, normalMsg)
+		require.NoError(suite.T(), err)
 	}
 
 	endBlock()
 
-	bridgeDenomData := keep.GetBridgeTokenDenom(ctx, sendToFxToken)
-	require.NotNil(t, bridgeDenomData)
-	tokenDenom := fmt.Sprintf("%s%s", chainName, sendToFxToken)
-	require.EqualValues(t, tokenDenom, bridgeDenomData.Denom)
-	bridgeTokenData := keep.GetDenomByBridgeToken(ctx, tokenDenom)
-	require.NotNil(t, bridgeTokenData)
-	require.EqualValues(t, sendToFxToken, bridgeTokenData.Token)
+	bridgeDenomData := suite.Keeper().GetBridgeTokenDenom(suite.ctx, sendToFxToken)
+	require.NotNil(suite.T(), bridgeDenomData)
+	tokenDenom := fmt.Sprintf("%s%s", suite.chainName, sendToFxToken)
+	require.EqualValues(suite.T(), tokenDenom, bridgeDenomData.Denom)
+	bridgeTokenData := suite.Keeper().GetDenomByBridgeToken(suite.ctx, tokenDenom)
+	require.NotNil(suite.T(), bridgeTokenData)
+	require.EqualValues(suite.T(), sendToFxToken, bridgeTokenData.Token)
 
 	// 4. sendToFx.
-	for i, oracle := range oracleAddressList {
+	for i, oracle := range suite.oracles {
 		normalMsg := &types.MsgSendToFxClaim{
-			EventNonce:     keep.GetLastEventNonceByOracle(ctx, oracle) + 1,
+			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle) + 1,
 			BlockHeight:    1,
 			TokenContract:  sendToFxToken,
 			Amount:         sendToFxAmount,
 			Sender:         sendToFxSendAddr,
 			Receiver:       sendToFxReceiveAddr.String(),
 			TargetIbc:      "",
-			BridgerAddress: orchestratorAddressList[i].String(),
-			ChainName:      chainName,
+			BridgerAddress: suite.bridgers[i].String(),
+			ChainName:      suite.chainName,
 		}
-		_, err = h(ctx, normalMsg)
-		require.NoError(t, err)
+		_, err := suite.Handler()(suite.ctx, normalMsg)
+		require.NoError(suite.T(), err)
 	}
 
 	endBlock()
 
-	balance := myApp.BankKeeper.GetBalance(ctx, sendToFxReceiveAddr, tokenDenom)
-	require.NotNil(t, balance)
-	require.EqualValues(t, balance.Denom, tokenDenom)
-	require.True(t, balance.Amount.Equal(sendToFxAmount))
+	balance := suite.app.BankKeeper.GetBalance(suite.ctx, sendToFxReceiveAddr, tokenDenom)
+	require.NotNil(suite.T(), balance)
+	require.EqualValues(suite.T(), balance.Denom, tokenDenom)
+	require.True(suite.T(), balance.Amount.Equal(sendToFxAmount))
 
 	sendToExternal := func(bridgeFees []sdk.Int) {
 		for _, bridgeFee := range bridgeFees {
@@ -641,20 +662,20 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 				Dest:      sendToFxSendAddr,
 				Amount:    sdk.NewCoin(tokenDenom, sdk.NewInt(3)),
 				BridgeFee: sdk.NewCoin(tokenDenom, bridgeFee),
-				ChainName: chainName,
+				ChainName: suite.chainName,
 			}
-			_, err = h(ctx, sendToExternal)
-			require.NoError(t, err)
+			_, err := suite.Handler()(suite.ctx, sendToExternal)
+			require.NoError(suite.T(), err)
 		}
 	}
 
 	sendToExternal([]sdk.Int{sdk.NewInt(1), sdk.NewInt(2), sdk.NewInt(3)})
-	usdtBatchFee := keep.GetBatchFeesByTokenType(ctx, sendToFxToken, 100, sdk.NewInt(0))
-	require.EqualValues(t, sendToFxToken, usdtBatchFee.TokenContract)
-	require.EqualValues(t, 3, usdtBatchFee.TotalTxs)
-	require.EqualValues(t, sdk.NewInt(6), usdtBatchFee.TotalFees)
+	usdtBatchFee := suite.Keeper().GetBatchFeesByTokenType(suite.ctx, sendToFxToken, 100, sdk.NewInt(0))
+	require.EqualValues(suite.T(), sendToFxToken, usdtBatchFee.TokenContract)
+	require.EqualValues(suite.T(), 3, usdtBatchFee.TotalTxs)
+	require.EqualValues(suite.T(), sdk.NewInt(6), usdtBatchFee.TotalFees)
 
-	fn := func(i sdk.Int) *sdk.Int {
+	getPointerInt := func(i sdk.Int) *sdk.Int {
 		return &i
 	}
 
@@ -667,21 +688,21 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	}{
 		{
 			testName:       "Support - baseFee 1000",
-			baseFee:        fn(sdk.NewInt(1000)),
+			baseFee:        getPointerInt(sdk.NewInt(1000)),
 			pass:           false,
 			expectTotalTxs: 3,
 			err:            types.ErrEmpty,
 		},
 		{
 			testName:       "Support - baseFee 2",
-			baseFee:        fn(sdk.NewInt(2)),
+			baseFee:        getPointerInt(sdk.NewInt(2)),
 			pass:           true,
 			expectTotalTxs: 1,
 			err:            nil,
 		},
 		{
 			testName:       "Support - baseFee 0",
-			baseFee:        fn(sdk.NewInt(0)),
+			baseFee:        getPointerInt(sdk.NewInt(0)),
 			pass:           true,
 			expectTotalTxs: 0,
 			err:            nil,
@@ -689,78 +710,27 @@ func TestSupportRequestBatchBaseFee(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		t.Run(testCase.testName, func(t *testing.T) {
-			cacheCtx, _ := ctx.CacheContext()
-			_, err = h(cacheCtx, &types.MsgRequestBatch{
-				Sender:     orchestratorAddressList[0].String(),
+		suite.T().Run(testCase.testName, func(t *testing.T) {
+			cacheCtx, _ := suite.ctx.CacheContext()
+			_, err := suite.Handler()(cacheCtx, &types.MsgRequestBatch{
+				Sender:     suite.bridgers[0].String(),
 				Denom:      tokenDenom,
 				MinimumFee: sdk.NewInt(1),
 				FeeReceive: "0x0000000000000000000000000000000000000000",
-				ChainName:  chainName,
+				ChainName:  suite.chainName,
 				BaseFee:    testCase.baseFee,
 			})
 			if testCase.pass {
-				require.NoError(t, err)
-				usdtBatchFee = keep.GetBatchFeesByTokenType(cacheCtx, sendToFxToken, 100, sdk.NewInt(0))
-				require.EqualValues(t, testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
+				require.NoError(suite.T(), err)
+				usdtBatchFee = suite.Keeper().GetBatchFeesByTokenType(cacheCtx, sendToFxToken, 100, sdk.NewInt(0))
+				require.EqualValues(suite.T(), testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
 				return
 			}
 
-			require.NotNil(t, err)
-			require.True(t, errors.As(err, &testCase.err))
-			require.Equal(t, err, testCase.err)
+			require.NotNil(suite.T(), err)
+			require.True(suite.T(), errors.As(err, &testCase.err))
+			require.Equal(suite.T(), err, testCase.err)
 		})
-	}
-}
-
-func createTestEnv(t *testing.T, generateAccountNum int) (myApp *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {
-	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
-
-	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	myApp = helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{Height: 1})
-	oracleAddressList = helpers.AddTestAddrsIncremental(myApp, ctx, generateAccountNum, minStakeAmount.Mul(sdk.NewInt(1000)))
-	orchestratorAddressList = helpers.AddTestAddrs(myApp, ctx, generateAccountNum, sdk.ZeroInt())
-	ethKeys = genEthKey(generateAccountNum)
-	// chain module oracle list
-	var oracles []string
-	for _, account := range oracleAddressList {
-		oracles = append(oracles, account.String())
-	}
-
-	var err error
-	// init bsc params by proposal
-	proposalHandler := crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)
-	err = proposalHandler(ctx, &types.InitCrossChainParamsProposal{
-		Title:       "init bsc chain params",
-		Description: "init fx chain <-> bsc chain params",
-		Params:      defaultModuleParams(oracles),
-		ChainName:   chainName,
-	})
-	require.NoError(t, err)
-
-	crosschianHandler := crosschain.NewHandler(myApp.CrosschainKeeper)
-
-	proxyHandler := func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		require.NoError(t, msg.ValidateBasic(), fmt.Sprintf("msg %s validate basic error", sdk.MsgTypeURL(msg)))
-		return crosschianHandler(ctx, msg)
-	}
-	return myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, proxyHandler
-}
-
-func defaultModuleParams(oracles []string) *types.Params {
-	return &types.Params{
-		GravityId:                         chainGravityId,
-		SignedWindow:                      20000,
-		ExternalBatchTimeout:              43200000,
-		AverageBlockTime:                  5000,
-		AverageExternalBlockTime:          3000,
-		SlashFraction:                     sdk.NewDec(1).Quo(sdk.NewDec(1000)),
-		IbcTransferTimeoutHeight:          10000,
-		OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
-		Oracles:                           oracles,
-		StakeThreshold:                    sdk.NewCoin(fxtypes.DefaultDenom, minStakeAmount),
 	}
 }
 

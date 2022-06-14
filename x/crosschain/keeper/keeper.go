@@ -26,20 +26,24 @@ type Keeper struct {
 
 // NewKeeper returns a new instance of the gravity keeper
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
-	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, channelKeeper types.IBCChannelKeeper, erc20Keeper types.Erc20Keeper) Keeper {
+	stakingKeeper types.StakingKeeper, distributionKeeper types.DistributionKeeper, bankKeeper types.BankKeeper,
+	ibcTransferKeeper types.IBCTransferKeeper, channelKeeper types.IBCChannelKeeper, erc20Keeper types.Erc20Keeper) Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 	// set KeyTable if it has not already been set
 	return Keeper{
-		moduleName:        moduleName,
-		cdc:               cdc,
-		storeKey:          storeKey,
-		paramSpace:        paramSpace,
-		bankKeeper:        bankKeeper,
-		ibcTransferKeeper: ibcTransferKeeper,
-		ibcChannelKeeper:  channelKeeper,
-		erc20Keeper:       erc20Keeper,
+		moduleName: moduleName,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		paramSpace: paramSpace,
+
+		stakingKeeper:      stakingKeeper,
+		distributionKeeper: distributionKeeper,
+		bankKeeper:         bankKeeper,
+		ibcTransferKeeper:  ibcTransferKeeper,
+		ibcChannelKeeper:   channelKeeper,
+		erc20Keeper:        erc20Keeper,
 	}
 }
 
@@ -91,22 +95,6 @@ func (k Keeper) GetOracleDelegateMultiple(ctx sdk.Context) int64 {
 	return multiple
 }
 
-// SetLastProposalBlockHeight sets the last proposal block height
-func (k Keeper) SetLastProposalBlockHeight(ctx sdk.Context, blockHeight uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastProposalBlockHeight, sdk.Uint64ToBigEndian(blockHeight))
-}
-
-// GetLastProposalBlockHeight returns the last proposal block height
-func (k Keeper) GetLastProposalBlockHeight(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	data := store.Get(types.LastProposalBlockHeight)
-	if len(data) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(data)
-}
-
 // SetLastOracleSlashBlockHeight sets the last proposal block height
 func (k Keeper) SetLastOracleSlashBlockHeight(ctx sdk.Context, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
@@ -124,15 +112,15 @@ func (k Keeper) GetLastOracleSlashBlockHeight(ctx sdk.Context) uint64 {
 }
 
 //setLastEventBlockHeightByOracle set the latest event blockHeight for a give oracle
-func (k Keeper) setLastEventBlockHeightByOracle(ctx sdk.Context, oracle sdk.AccAddress, blockHeight uint64) {
+func (k Keeper) setLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetLastEventBlockHeightByOracleKey(oracle), sdk.Uint64ToBigEndian(blockHeight))
+	store.Set(types.GetLastEventBlockHeightByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(blockHeight))
 }
 
 //getLastEventBlockHeightByOracle get the latest event blockHeight for a give oracle
-func (k Keeper) getLastEventBlockHeightByOracle(ctx sdk.Context, oracle sdk.AccAddress) uint64 {
+func (k Keeper) getLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetLastEventBlockHeightByOracleKey(oracle)
+	key := types.GetLastEventBlockHeightByOracleKey(oracleAddr)
 	if !store.Has(key) {
 		return 0
 	}

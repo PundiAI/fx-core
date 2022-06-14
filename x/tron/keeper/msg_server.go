@@ -112,12 +112,12 @@ func (s msgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAddr sdk.Ac
 
 	oracleAddr, found := s.GetOracleByExternalAddress(ctx, signatureAddr)
 	if !found {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrNoFoundOracle, "by bridger address")
+		return nil, crosschaintypes.ErrNoFoundOracle
 	}
 
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrNoFoundOracle, oracleAddr.String())
+		return nil, crosschaintypes.ErrNoFoundOracle
 	}
 
 	if oracle.ExternalAddress != signatureAddr {

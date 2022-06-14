@@ -187,7 +187,7 @@ func cleanupTimedOutBatches(ctx sdk.Context, k keeper.Keeper) {
 	batches := k.GetOutgoingTxBatches(ctx)
 	for _, batch := range batches {
 		if batch.BatchTimeout < externalBlockHeight {
-			if err := k.CancelOutgoingTXBatch(ctx, batch.TokenContract, batch.BatchNonce); err != nil {
+			if err := k.CancelOutgoingTxBatch(ctx, batch.TokenContract, batch.BatchNonce); err != nil {
 				panic(fmt.Sprintf("Failed cancel out batch %s %d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
 			}
 		}

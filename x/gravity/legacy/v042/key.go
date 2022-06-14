@@ -77,9 +77,6 @@ var (
 	// LastObservedValsetKey indexes the latest observed valset nonce
 	LastObservedValsetKey = []byte{0x16}
 
-	// IbcSequenceHeightKey  indexes the gravity -> ibc sequence block height
-	IbcSequenceHeightKey = []byte{0x17}
-
 	// LastEventBlockHeightByValidatorKey indexes lateset event blockHeight by validator
 	LastEventBlockHeightByValidatorKey = []byte{0x18}
 )

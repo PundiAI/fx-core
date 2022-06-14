@@ -12,8 +12,7 @@ order: 2
 * OracleSetRequestKey                 `0x15  + sdk.Uint64ToBigEndian(nonce)`                                              -> `k.cdc.MustMarshal(&OracleSet)`
 * OracleSetConfirmKey                 `0x16  + sdk.Uint64ToBigEndian(nonce) + validator.Bytes()`                          -> `k.cdc.MustMarshal(&MsgOracleSetConfirm)`
 * OracleAttestationKey                `0x17  + sdk.Uint64ToBigEndian(nonce) + claimHash`                                  -> `k.cdc.MustMarshal(&Attestation)`
-* OutgoingTxPoolKey                   `0x18  + sdk.Uint64ToBigEndian(outgoingTransferTxId)`                               -> `k.cdc.MustMarshal(&OutgoingTransferTx)`
-* ? SecondIndexOutgoingTxFeeKey         `0x19  + []byte(tokenContract) + fee.Amount.BigInt().FillBytes(amount)`             -> `k.cdc.MustMarshal(&idSet)`
+* OutgoingTxPoolKey                   `0x18  + []byte(tokenContract) + fee.amount + sdk.Uint64ToBigEndian(id)`            -> `k.cdc.MustMarshal(&OutgoingTransferTx)`
 * OutgoingTxBatchKey                  `0x20  + []byte(tokenContract) + sdk.Uint64ToBigEndian(nonce)`                      -> `k.cdc.MustMarshal(&OutgoingTxBatch)`
 * OutgoingTxBatchBlockKey             `0x21  + sdk.Uint64ToBigEndian(blockHeight)`                                        -> `k.cdc.MustMarshal(&OutgoingTxBatch)`
 * BatchConfirmKey                     `0x22  + []byte(tokenContract) + sdk.Uint64ToBigEndian(nonce) + oracle.Bytes()`     -> `k.cdc.MustMarshal(&MsgConfirmBatch)`

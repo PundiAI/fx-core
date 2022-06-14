@@ -20,8 +20,6 @@ func HandleUpdateCrossChainOraclesProposal(ctx sdk.Context, msgServer types.MsgS
 	if len(proposal.Oracles) > types.MaxOracleSize {
 		return sdkerrors.Wrapf(types.ErrInvalid, fmt.Sprintf("oracle length must be less than or equal: %d", types.MaxOracleSize))
 	}
-	// update proposal oracle
-	keeper.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: proposal.Oracles})
 
 	newOracleMap := make(map[string]bool, len(proposal.Oracles))
 	for _, oracle := range proposal.Oracles {
@@ -52,6 +50,9 @@ func HandleUpdateCrossChainOraclesProposal(ctx sdk.Context, msgServer types.MsgS
 	if deleteTotalPower.GT(sdk.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
 		return sdkerrors.Wrapf(types.ErrInvalid, "max change power, maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
 	}
+
+	// update proposal oracle
+	keeper.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: proposal.Oracles})
 
 	for _, deleteOracle := range deleteOracleList {
 		keeper.DelExternalAddressForOracle(ctx, deleteOracle.ExternalAddress)

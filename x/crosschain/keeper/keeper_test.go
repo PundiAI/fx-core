@@ -1,7 +1,10 @@
 package keeper_test
 
 import (
-	"fmt"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/x/crosschain/keeper"
+	"github.com/stretchr/testify/suite"
 	"math/big"
 	"testing"
 
@@ -10,15 +13,51 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
-func defaultModuleParams(oracles []string) types.Params {
-	return types.Params{
-		GravityId:                         "bsc",
+type KeeperTestSuite struct {
+	suite.Suite
+
+	app         *app.App
+	ctx         sdk.Context
+	queryClient types.QueryClient
+	oracles     []sdk.AccAddress
+	bridgers    []sdk.AccAddress
+}
+
+func TestKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
+}
+
+func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
+	return suite.app.BscKeeper
+}
+
+func (suite *KeeperTestSuite) SetupTest() {
+	suite.app = helpers.Setup(suite.T(), false)
+	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.app.CrosschainKeeper)
+	queryClient := types.NewQueryClient(queryHelper)
+
+	suite.queryClient = queryClient
+	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, 3, sdk.NewInt(30000000))
+	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, 3, sdk.NewInt(30000000))
+
+	proposalOracle := &types.ProposalOracle{}
+	for _, oracle := range suite.oracles {
+		proposalOracle.Oracles = append(proposalOracle.Oracles, oracle.String())
+	}
+	suite.Keeper().SetProposalOracle(suite.ctx, proposalOracle)
+}
+
+func testModuleParams() *types.Params {
+	return &types.Params{
+		GravityId:                         "test",
 		SignedWindow:                      20000,
 		ExternalBatchTimeout:              43200000,
 		AverageBlockTime:                  5000,
@@ -26,240 +65,6 @@ func defaultModuleParams(oracles []string) types.Params {
 		SlashFraction:                     sdk.NewDec(1).Quo(sdk.NewDec(1000)),
 		IbcTransferTimeoutHeight:          10000,
 		OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
-		Oracles:                           oracles,
-		StakeThreshold:                    sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
+		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
 	}
-}
-
-func TestSetOracle(t *testing.T) {
-	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
-		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
-	oracleAddressList := helpers.AddTestAddrsIncremental(myApp, ctx, 4, sdk.ZeroInt())
-	orchestratorAddressList := helpers.AddTestAddrsIncremental(myApp, ctx, 4, sdk.ZeroInt())
-
-	var oracles []string
-	for _, account := range oracleAddressList {
-		oracles = append(oracles, account.String())
-	}
-	// set chain init params
-	myApp.BscKeeper.SetParams(ctx, defaultModuleParams(oracles))
-
-	oracleAddr1, oracleAddr2 := oracleAddressList[0], oracleAddressList[1]
-	orchestratorAddr1, orchestratorAddr2 := orchestratorAddressList[0], orchestratorAddressList[1]
-	var dbOracleAddr1 sdk.AccAddress
-	var found bool
-	dbOracleAddr1, found = myApp.BscKeeper.GetOracleAddressByBridgerKey(ctx, orchestratorAddr1)
-	require.False(t, found)
-	require.Empty(t, dbOracleAddr1)
-
-	// 1. set oracle -> orchestrator  and  orchestrator -> oracle
-	myApp.BscKeeper.SetOracleByBridger(ctx, oracleAddr1, orchestratorAddr1)
-
-	// 2. find oracle by orchestrator
-	dbOracleAddr1, found = myApp.BscKeeper.GetOracleAddressByBridgerKey(ctx, orchestratorAddr1)
-	require.True(t, found)
-	require.EqualValues(t, oracleAddr1, dbOracleAddr1)
-
-	// 2.1 find orchestrator by oracle
-	//dbOrchestratorAddr1, found := app.BscKeeper.GetOrchestratorAddressByOracle(ctx, oracleAddr1)
-	//require.True(t, found)
-	//require.EqualValues(t, orchestratorAddr1, dbOrchestratorAddr1)
-
-	// 3. find not exist orchestrator by oracle2
-	//dbOrchestratorAddr2, found := app.BscKeeper.GetOrchestratorAddressByOracle(ctx, oracleAddr2)
-	//require.False(t, found)
-	//require.Nil(t, dbOrchestratorAddr2)
-
-	// 3.1 set oracle2 -> orchestrator2
-	myApp.BscKeeper.SetOracleByBridger(ctx, oracleAddr2, orchestratorAddr2)
-
-	// 3.2 find oracle2 by orchestrator2
-	dbOrchestratorAddr2, found := myApp.BscKeeper.GetOracleAddressByBridgerKey(ctx, oracleAddr2)
-	require.True(t, found)
-	require.EqualValues(t, orchestratorAddr2, dbOrchestratorAddr2)
-}
-
-func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
-	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
-		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
-	oracleAddressList := helpers.AddTestAddrsIncremental(myApp, ctx, 4, sdk.ZeroInt())
-	orchestratorAddressList := helpers.AddTestAddrsIncremental(myApp, ctx, 4, sdk.ZeroInt())
-
-	keeper := myApp.BscKeeper
-
-	testCases := []struct {
-		OracleAddress  sdk.AccAddress
-		BridgerAddress sdk.AccAddress
-		StartHeight    int64
-
-		ExpectOracleSetSize int
-	}{
-		{
-			OracleAddress:       oracleAddressList[0],
-			BridgerAddress:      orchestratorAddressList[0],
-			StartHeight:         1,
-			ExpectOracleSetSize: 3,
-		},
-		{
-			OracleAddress:       oracleAddressList[1],
-			BridgerAddress:      orchestratorAddressList[1],
-			StartHeight:         2,
-			ExpectOracleSetSize: 2,
-		},
-		{
-			OracleAddress:       oracleAddressList[2],
-			BridgerAddress:      orchestratorAddressList[2],
-			StartHeight:         3,
-			ExpectOracleSetSize: 1,
-		},
-	}
-
-	for i := 1; i <= 3; i++ {
-		keeper.StoreOracleSet(ctx, &types.OracleSet{
-			Nonce: uint64(i),
-			Members: types.BridgeValidators{{
-				Power:           uint64(i),
-				ExternalAddress: fmt.Sprintf("0x%d", i),
-			}},
-			Height: uint64(i),
-		})
-	}
-
-	wrapSDKContext := sdk.WrapSDKContext(ctx)
-	for _, testCase := range testCases {
-		oracle := types.Oracle{
-			OracleAddress:  testCase.OracleAddress.String(),
-			BridgerAddress: testCase.BridgerAddress.String(),
-			StartHeight:    testCase.StartHeight,
-		}
-		// save oracle
-		keeper.SetOracle(ctx, oracle)
-		keeper.SetOracleByBridger(ctx, oracle.GetOracle(), testCase.BridgerAddress)
-
-		pendingOracleSetRequestByAddr, err := keeper.LastPendingOracleSetRequestByAddr(wrapSDKContext, &types.QueryLastPendingOracleSetRequestByAddrRequest{
-			BridgerAddress: testCase.BridgerAddress.String(),
-		})
-		require.NoError(t, err)
-		require.EqualValues(t, testCase.ExpectOracleSetSize, len(pendingOracleSetRequestByAddr.OracleSets))
-	}
-}
-
-func TestLastPendingBatchRequestByAddr(t *testing.T) {
-
-	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
-		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
-	oracleAddressList := helpers.AddTestAddrsIncremental(myApp, ctx, 4, sdk.ZeroInt())
-	orchestratorAddressList := helpers.AddTestAddrsIncremental(myApp, ctx, 4, sdk.ZeroInt())
-
-	keeper := myApp.BscKeeper
-
-	testCases := []struct {
-		Name              string
-		OracleAddress     sdk.AccAddress
-		BridgerAddress    sdk.AccAddress
-		StartHeight       int64
-		ExpectStartHeight uint64
-	}{
-		{
-			Name:              "oracle start height with 1, expect oracle set block 3",
-			OracleAddress:     oracleAddressList[0],
-			BridgerAddress:    orchestratorAddressList[0],
-			StartHeight:       1,
-			ExpectStartHeight: 3,
-		},
-		{
-			Name:              "oracle start height with 2, expect oracle set block 2",
-			OracleAddress:     oracleAddressList[1],
-			BridgerAddress:    orchestratorAddressList[1],
-			StartHeight:       2,
-			ExpectStartHeight: 3,
-		},
-		{
-			Name:              "oracle start height with 3, expect oracle set block 1",
-			OracleAddress:     oracleAddressList[2],
-			BridgerAddress:    orchestratorAddressList[2],
-			StartHeight:       3,
-			ExpectStartHeight: 3,
-		},
-	}
-	for i := uint64(1); i <= 3; i++ {
-		ctx = ctx.WithBlockHeight(int64(i))
-		err := keeper.StoreBatch(ctx, &types.OutgoingTxBatch{
-			Block:      i,
-			BatchNonce: i,
-			Transactions: types.OutgoingTransferTxs{{
-				Id:          i,
-				Sender:      fmt.Sprintf("0x%d", i),
-				DestAddress: fmt.Sprintf("0x%d", i),
-			}},
-		})
-		require.NoError(t, err)
-	}
-
-	wrapSDKContext := sdk.WrapSDKContext(ctx)
-	for _, testCase := range testCases {
-		oracle := types.Oracle{
-			OracleAddress:  testCase.OracleAddress.String(),
-			BridgerAddress: testCase.BridgerAddress.String(),
-			StartHeight:    testCase.StartHeight,
-		}
-		// save oracle
-		keeper.SetOracle(ctx, oracle)
-		keeper.SetOracleByBridger(ctx, oracle.GetOracle(), testCase.BridgerAddress)
-
-		pendingLastPendingBatchRequestByAddr, err := keeper.LastPendingBatchRequestByAddr(wrapSDKContext, &types.QueryLastPendingBatchRequestByAddrRequest{
-			BridgerAddress: testCase.BridgerAddress.String(),
-		})
-		require.NoError(t, err, testCase.Name)
-		require.NotNil(t, pendingLastPendingBatchRequestByAddr, testCase.Name)
-		require.NotNil(t, pendingLastPendingBatchRequestByAddr.Batch, testCase.Name)
-		require.EqualValues(t, testCase.ExpectStartHeight, pendingLastPendingBatchRequestByAddr.Batch.Block, testCase.Name)
-	}
-}
-
-func TestGetUnSlashedOracleSets(t *testing.T) {
-
-	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(t, 2,
-		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-	myApp := helpers.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx := myApp.BaseApp.NewContext(false, tmproto.Header{})
-
-	keeper := myApp.BscKeeper
-
-	for i := 1; i <= 3; i++ {
-		keeper.StoreOracleSet(ctx, &types.OracleSet{
-			Nonce: uint64(i),
-			Members: types.BridgeValidators{{
-				Power:           uint64(i),
-				ExternalAddress: fmt.Sprintf("0x%d", i),
-			}},
-			Height: uint64(1000 + i),
-		})
-	}
-	slashOracleSetHeight := 1003
-	sets := keeper.GetUnSlashedOracleSets(ctx, uint64(slashOracleSetHeight))
-	require.NotNil(t, sets)
-	require.EqualValues(t, 2, sets.Len())
-
-	keeper.SetLastSlashedOracleSetNonce(ctx, 1)
-	slashOracleSetHeight = 1003
-	sets = keeper.GetUnSlashedOracleSets(ctx, uint64(slashOracleSetHeight))
-	require.NotNil(t, sets)
-	require.EqualValues(t, 1, sets.Len())
-
-	slashOracleSetHeight = 1004
-	sets = keeper.GetUnSlashedOracleSets(ctx, uint64(slashOracleSetHeight))
-	require.NotNil(t, sets)
-	require.EqualValues(t, 2, sets.Len())
-
 }

@@ -12,10 +12,10 @@ import (
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 )
 
-func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, token string) *types.BridgeToken {
+func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *types.BridgeToken {
 	store := ctx.KVStore(k.storeKey)
 
-	data := store.Get(types.GetDenomToTokenKey(token))
+	data := store.Get(types.GetDenomToTokenKey(tokenContract))
 	if len(data) <= 0 {
 		return nil
 	}
@@ -36,9 +36,9 @@ func (k Keeper) GetDenomByBridgeToken(ctx sdk.Context, denom string) *types.Brid
 	return &bridgeToken
 }
 
-func (k Keeper) hasBridgeToken(ctx sdk.Context, token string) bool {
+func (k Keeper) hasBridgeToken(ctx sdk.Context, tokenContract string) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.GetDenomToTokenKey(token))
+	return store.Has(types.GetDenomToTokenKey(tokenContract))
 }
 
 func (k Keeper) addBridgeToken(ctx sdk.Context, token, _, channelIBC string) (string, error) {

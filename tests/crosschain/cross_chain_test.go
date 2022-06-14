@@ -168,8 +168,8 @@ func signPendingValsetRequest(c *Client) {
 	}()
 	gravityId := queryGravityId(c)
 	requestParams := &crosschaintypes.QueryLastPendingOracleSetRequestByAddrRequest{
-		OrchestratorAddress: c.FxAddress().String(),
-		ChainName:           c.chainName,
+		BridgerAddress: c.FxAddress().String(),
+		ChainName:      c.chainName,
 	}
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
@@ -184,7 +184,7 @@ func signPendingValsetRequest(c *Client) {
 			continue
 		}
 		for _, valset := range valsets {
-			checkpoint := valset.GetCheckpoint(gravityId)
+			checkpoint, _ := valset.GetCheckpoint(gravityId)
 			c.t.Logf("need confirm valset: nonce:%v EthAddress:%v\n", valset.Nonce, c.ethAddress.Hex())
 			signature, err := crosschaintypes.NewEthereumSignature(checkpoint, c.ethPrivKey)
 			if err != nil {
@@ -265,12 +265,12 @@ func confirmBatch(c *Client) {
 
 		c.BroadcastTx([]sdk.Msg{
 			&crosschaintypes.MsgSendToExternalClaim{
-				EventNonce:    c.QueryFxLastEventNonce(),
-				BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-				BatchNonce:    outgoingTxBatch.BatchNonce,
-				TokenContract: outgoingTxBatch.TokenContract,
-				Orchestrator:  c.FxAddress().String(),
-				ChainName:     c.chainName,
+				EventNonce:     c.QueryFxLastEventNonce(),
+				BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+				BatchNonce:     outgoingTxBatch.BatchNonce,
+				TokenContract:  outgoingTxBatch.TokenContract,
+				BridgerAddress: c.FxAddress().String(),
+				ChainName:      c.chainName,
 			},
 		})
 	}
@@ -398,7 +398,7 @@ func setOrchestratorAddress(c *Client) {
 	if !gethcommon.IsHexAddress(c.ethAddress.Hex()) {
 		c.t.Fatal("eth address is invalid")
 	}
-	queryOrchestratorResponse, err := c.crosschainQueryClient.GetOracleByOrchestrator(c.ctx, &crosschaintypes.QueryOracleByOrchestratorRequest{
+	queryOrchestratorResponse, err := c.crosschainQueryClient.GetOracleByBridgerAddr(c.ctx, &crosschaintypes.QueryOracleByBridgerAddrRequest{
 		BridgerAddress: fxAddress.String(),
 		ChainName:      c.chainName,
 	})
@@ -418,11 +418,11 @@ func setOrchestratorAddress(c *Client) {
 	if err != nil {
 		c.t.Fatal(err)
 	}
-	c.BroadcastTx([]sdk.Msg{&crosschaintypes.MsgSetOrchestratorAddress{
-		Oracle:          fxAddress.String(),
-		Orchestrator:    fxAddress.String(),
+	c.BroadcastTx([]sdk.Msg{&crosschaintypes.MsgCreateOracleBridger{
+		OracleAddress:   fxAddress.String(),
+		BridgerAddress:  fxAddress.String(),
 		ExternalAddress: c.ethAddress.Hex(),
-		Deposit:         chainParams.Params.DepositThreshold,
+		DelegateAmount:  chainParams.Params.DelegateThreshold,
 		ChainName:       c.chainName,
 	}})
 	c.t.Logf("\n")

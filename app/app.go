@@ -464,19 +464,23 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	// init cross chain module
 	myApp.EthKeeper = ethkeeper.NewKeeper(
 		appCodec, ethtypes.ModuleName, keys[ethtypes.StoreKey], myApp.GetSubspace(ethtypes.ModuleName),
-		myApp.BankKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
+		stakingKeeper, myApp.DistrKeeper, myApp.BankKeeper,
+		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
 	myApp.BscKeeper = crosschainkeeper.NewKeeper(
 		appCodec, bsctypes.ModuleName, keys[bsctypes.StoreKey], myApp.GetSubspace(bsctypes.ModuleName),
-		myApp.BankKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
+		stakingKeeper, myApp.DistrKeeper, myApp.BankKeeper,
+		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
 	myApp.PolygonKeeper = crosschainkeeper.NewKeeper(
 		appCodec, polygontypes.ModuleName, keys[polygontypes.StoreKey], myApp.GetSubspace(polygontypes.ModuleName),
-		myApp.BankKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
+		stakingKeeper, myApp.DistrKeeper, myApp.BankKeeper,
+		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
 	myApp.TronKeeper = tronkeeper.NewKeeper(
 		appCodec, trontypes.ModuleName, keys[trontypes.StoreKey], myApp.GetSubspace(trontypes.ModuleName),
-		myApp.BankKeeper, myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
+		stakingKeeper, myApp.DistrKeeper, myApp.BankKeeper,
+		myApp.TransferKeeper, myApp.IBCKeeper.ChannelKeeper, myApp.Erc20Keeper)
 
 	ethMsgServer := crosschainkeeper.NewMsgServerImpl(myApp.EthKeeper.Keeper)
 	myApp.GravityKeeper = gravitykeeper.NewKeeper(ethMsgServer)
@@ -594,12 +598,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		gravity.NewAppModule(myApp.GravityKeeper, gravityMigrate),
 		crosschain.NewAppModuleByRouter(myApp.CrosschainKeeper),
 		eth.NewAppModule(myApp.EthKeeper),
-		bsc.NewAppModule(myApp.BscKeeper, myApp.StakingKeeper),
-		polygon.NewAppModule(myApp.PolygonKeeper, myApp.StakingKeeper),
-		tron.NewAppModule(myApp.TronKeeper, myApp.StakingKeeper),
+		bsc.NewAppModule(myApp.BscKeeper, myApp.StakingKeeper, keys[paramstypes.StoreKey]),
+		polygon.NewAppModule(myApp.PolygonKeeper, myApp.StakingKeeper, keys[paramstypes.StoreKey]),
+		tron.NewAppModule(myApp.TronKeeper, myApp.StakingKeeper, keys[paramstypes.StoreKey]),
 		// Ethermint app modules
-		//evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper),
-		//feemarket.NewAppModule(myApp.FeeMarketKeeper),
 		EvmAppModule{evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper)},
 		FeeMarketAppModule{feemarket.NewAppModule(myApp.FeeMarketKeeper)},
 		erc20.NewAppModule(myApp.Erc20Keeper, myApp.AccountKeeper, *myApp.EvmKeeper),
@@ -716,7 +718,8 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		// Ethermint modules
-		evmtypes.ModuleName, feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
+		feemarkettypes.ModuleName,
 
 		othertypes.ModuleName,
 		gravitytypes.ModuleName,

@@ -75,7 +75,6 @@ func TestKeeperTestSuite(t *testing.T) {
 
 // Test helpers
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
-	fxtypes.ChangeNetworkForTest(fxtypes.NetworkDevnet())
 
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
@@ -94,7 +93,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	consAddress := sdk.ConsAddress(priv.PubKey().Address())
 
 	// init app
-	suite.app = helpers.Setup(suite.T(), false, 0)
+	suite.app = helpers.Setup(suite.T(), false)
 
 	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: consAddress, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))

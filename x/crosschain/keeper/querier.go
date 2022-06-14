@@ -330,7 +330,7 @@ func lastPendingBatchRequest(ctx sdk.Context, bridgerAddr string, keeper Keeper)
 	}
 
 	var pendingBatchReq *types.OutgoingTxBatch
-	keeper.IterateOutgoingTXBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
+	keeper.IterateOutgoingTxBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
 		foundConfirm := keeper.GetBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract, bridger) != nil
 		if !foundConfirm {
 			pendingBatchReq = batch
@@ -351,7 +351,7 @@ func lastPendingBatchRequest(ctx sdk.Context, bridgerAddr string, keeper Keeper)
 // Gets MaxResults batches from store. Does not select by token type or anything
 func lastBatchesRequest(ctx sdk.Context, keeper Keeper) ([]byte, error) {
 	var batches []*types.OutgoingTxBatch
-	keeper.IterateOutgoingTXBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
+	keeper.IterateOutgoingTxBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
 		batches = append(batches, batch)
 		return len(batches) == MaxResults
 	})

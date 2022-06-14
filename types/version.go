@@ -66,11 +66,3 @@ func EIP155ChainID() *big.Int {
 	}
 	return big.NewInt(mainnetEvmChainID)
 }
-
-// ChangeNetworkForTest change network for test
-func ChangeNetworkForTest(newNetwork string) {
-	if network != networkDevnet && network != networkTestnet && network != networkMainnet {
-		panic("Unsupported network:" + newNetwork)
-	}
-	network = newNetwork
-}

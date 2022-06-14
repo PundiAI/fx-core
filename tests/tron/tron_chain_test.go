@@ -9,11 +9,7 @@ import (
 	"testing"
 	"time"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/cosmos/cosmos-sdk/types/tx"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/stretchr/testify/require"
 
 	trontypes "github.com/functionx/fx-core/x/tron/types"
@@ -30,8 +26,6 @@ func TestOrchestratorChain(t *testing.T) {
 		t.SkipNow()
 	}
 	client := NewClient(t)
-
-	moduleParamsInit(client)
 
 	go signPendingValsetRequest(client)
 
@@ -52,117 +46,6 @@ func TestOrchestratorChain(t *testing.T) {
 	confirmBatch(client)
 
 	sendToExternalAndCancel(client)
-}
-
-func moduleParamsInit(c *Client) {
-	c.t.Helper()
-	queryParamsResponse, err := c.paramsQueryClient.Params(c.ctx, &paramstypes.QueryParamsRequest{
-		Subspace: c.chainName,
-		Key:      string(types.ParamsStoreKeyGravityID),
-	})
-	require.NoError(c.t, err, fmt.Sprintf("query subspace %v params %v err", c.chainName, string(types.ParamsStoreKeyGravityID)))
-
-	if len(queryParamsResponse.Param.Value) == 0 {
-		initParamsProposalId := sendInitModuleParamsGov(c)
-		submitGovVote(c, initParamsProposalId)
-	}
-	params, err := c.crosschainQueryClient.Params(c.ctx, &types.QueryParamsRequest{ChainName: c.chainName})
-	if err != nil {
-		c.t.Errorf("query params err:%v", err)
-		c.t.Fatal()
-	}
-	c.t.Logf("module params:%v", params.Params)
-}
-
-func sendInitModuleParamsGov(c *Client) uint64 {
-	c.t.Helper()
-	votingProposalId, found := findVotingPeriodInitParamsProposal(c)
-	if found {
-		return votingProposalId
-	}
-	proposal := &types.InitCrossChainParamsProposal{
-		Title:       fmt.Sprintf("Init %v module params", c.chainName),
-		Description: "------",
-		Params: &types.Params{
-			GravityId:                         gravityId,
-			SignedWindow:                      20000,
-			ExternalBatchTimeout:              500000000000,
-			AverageBlockTime:                  1000,
-			AverageExternalBlockTime:          3000,
-			SlashFraction:                     sdk.NewDecWithPrec(1, 3),
-			OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
-			IbcTransferTimeoutHeight:          20000,
-			Oracles:                           []string{c.FxAddress().String()},
-			DepositThreshold:                  sdk.NewCoin(fxtypes.DefaultDenom, oneInt.Mul(sdk.NewInt(10000))),
-		},
-		ChainName: chainName,
-	}
-	minDeposit := sdk.NewCoin(fxtypes.DefaultDenom, oneInt.Mul(sdk.NewInt(10000)))
-	msg, err := govtypes.NewMsgSubmitProposal(proposal, sdk.NewCoins(minDeposit), c.FxAddress())
-	require.NoError(c.t, err)
-	c.t.Logf("send init module params proposal:%v", proposal)
-	c.BroadcastTx([]sdk.Msg{msg})
-	time.Sleep(time.Second * 3)
-	votingProposalId, found = findVotingPeriodInitParamsProposal(c)
-	require.True(c.t, found, "not found voting period init module params proposal...")
-	if found {
-		return votingProposalId
-	}
-	return votingProposalId
-}
-
-func findVotingPeriodInitParamsProposal(c *Client) (uint64, bool) {
-	proposals, err := c.govQueryClient.Proposals(c.ctx, &govtypes.QueryProposalsRequest{
-		ProposalStatus: govtypes.StatusVotingPeriod,
-	})
-	require.NoError(c.t, err)
-	var initChainParamsProposalId uint64
-	for _, proposal := range proposals.Proposals {
-		var proposalContent govtypes.Content
-		err = c.encodingConfig.InterfaceRegistry.UnpackAny(proposal.Content, &proposalContent)
-		if err != nil {
-			continue
-		}
-		initChainParamsProposal, ok := proposalContent.(*types.InitCrossChainParamsProposal)
-		if !ok {
-			continue
-		}
-
-		c.t.Logf("found init crosschain module params porposal:%v, title:%v", initChainParamsProposal, initChainParamsProposal.GetTitle())
-		if initChainParamsProposal.Title == fmt.Sprintf("Init %v module params", c.chainName) {
-			initChainParamsProposalId = proposal.ProposalId
-			break
-		}
-	}
-	return initChainParamsProposalId, initChainParamsProposalId != 0
-}
-func submitGovVote(c *Client, initChainParamsProposalId uint64) {
-	c.t.Helper()
-	require.NotEqualValues(c.t, 0, initChainParamsProposalId)
-	_, err := c.govQueryClient.Vote(c.ctx, &govtypes.QueryVoteRequest{
-		ProposalId: initChainParamsProposalId,
-		Voter:      c.FxAddress().String(),
-	})
-	notVoteErr := fmt.Sprintf("voter: %v not found for proposal: %v", c.FxAddress().String(), initChainParamsProposalId)
-	if err != nil && !strings.Contains(err.Error(), notVoteErr) {
-		c.t.Fatal("query proposal vote err", err)
-	}
-	if err != nil {
-		c.t.Logf("vote for init chain params proposal:%v", initChainParamsProposalId)
-		voteTxHash := c.BroadcastTx([]sdk.Msg{govtypes.NewMsgVote(c.FxAddress(), initChainParamsProposalId, govtypes.OptionYes)})
-		c.t.Logf("vote success txhash:%v", voteTxHash)
-	}
-
-	for {
-		time.Sleep(3 * time.Second)
-		proposal, err := c.govQueryClient.Proposal(c.ctx, &govtypes.QueryProposalRequest{ProposalId: initChainParamsProposalId})
-		c.t.Logf("proposal status:%v", proposal.GetProposal().Status.String())
-		require.NoError(c.t, err)
-		if proposal.Proposal.Status == govtypes.StatusPassed {
-			c.t.Logf("init module params proposal success...")
-			break
-		}
-	}
 }
 
 func sendToExternalAndCancel(c *Client) {
@@ -266,15 +149,15 @@ func addBridgeTokenClaim(c *Client) {
 		return
 	}
 	fxOriginatedTokenClaimMsg := &types.MsgBridgeTokenClaim{
-		EventNonce:    c.QueryFxLastEventNonce(),
-		BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-		TokenContract: tusdTokenContract,
-		Name:          tusdTokenName,
-		Symbol:        tusdTokenSymbol,
-		Decimals:      18,
-		Orchestrator:  c.FxAddress().String(),
-		ChannelIbc:    "",
-		ChainName:     c.chainName,
+		EventNonce:     c.QueryFxLastEventNonce(),
+		BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+		TokenContract:  tusdTokenContract,
+		Name:           tusdTokenName,
+		Symbol:         tusdTokenSymbol,
+		Decimals:       18,
+		BridgerAddress: c.FxAddress().String(),
+		ChannelIbc:     "",
+		ChainName:      c.chainName,
 	}
 	c.BroadcastTx([]sdk.Msg{fxOriginatedTokenClaimMsg})
 	c.t.Logf("\n")
@@ -290,8 +173,8 @@ func signPendingValsetRequest(c *Client) {
 	}()
 	gravityId := queryGravityId(c)
 	requestParams := &types.QueryLastPendingOracleSetRequestByAddrRequest{
-		OrchestratorAddress: c.FxAddress().String(),
-		ChainName:           c.chainName,
+		BridgerAddress: c.FxAddress().String(),
+		ChainName:      c.chainName,
 	}
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
@@ -316,11 +199,11 @@ func signPendingValsetRequest(c *Client) {
 			}
 			c.BroadcastTx([]sdk.Msg{
 				&types.MsgOracleSetConfirm{
-					Nonce:               valset.Nonce,
-					OrchestratorAddress: c.FxAddress().String(),
-					ExternalAddress:     c.externalAddress.String(),
-					Signature:           hex.EncodeToString(signature),
-					ChainName:           c.chainName,
+					Nonce:           valset.Nonce,
+					BridgerAddress:  c.FxAddress().String(),
+					ExternalAddress: c.externalAddress.String(),
+					Signature:       hex.EncodeToString(signature),
+					ChainName:       c.chainName,
 				},
 			})
 		}
@@ -352,7 +235,7 @@ func confirmBatch(c *Client) {
 	orchestrator := c.FxAddress()
 	for {
 		lastPendingBatchRequestResponse, err := c.crosschainQueryClient.LastPendingBatchRequestByAddr(c.ctx,
-			&types.QueryLastPendingBatchRequestByAddrRequest{OrchestratorAddress: orchestrator.String(), ChainName: c.chainName})
+			&types.QueryLastPendingBatchRequestByAddrRequest{BridgerAddress: orchestrator.String(), ChainName: c.chainName})
 		if err != nil {
 			c.t.Fatal(err)
 		}
@@ -375,12 +258,12 @@ func confirmBatch(c *Client) {
 		}
 		c.BroadcastTx([]sdk.Msg{
 			&types.MsgConfirmBatch{
-				Nonce:               outgoingTxBatch.BatchNonce,
-				TokenContract:       outgoingTxBatch.TokenContract,
-				OrchestratorAddress: c.FxAddress().String(),
-				ExternalAddress:     c.externalAddress.String(),
-				Signature:           hex.EncodeToString(signatureBytes),
-				ChainName:           c.chainName,
+				Nonce:           outgoingTxBatch.BatchNonce,
+				TokenContract:   outgoingTxBatch.TokenContract,
+				BridgerAddress:  c.FxAddress().String(),
+				ExternalAddress: c.externalAddress.String(),
+				Signature:       hex.EncodeToString(signatureBytes),
+				ChainName:       c.chainName,
 			},
 		})
 		c.t.Logf("\n")
@@ -388,12 +271,12 @@ func confirmBatch(c *Client) {
 
 		c.BroadcastTx([]sdk.Msg{
 			&types.MsgSendToExternalClaim{
-				EventNonce:    c.QueryFxLastEventNonce(),
-				BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-				BatchNonce:    outgoingTxBatch.BatchNonce,
-				TokenContract: outgoingTxBatch.TokenContract,
-				Orchestrator:  c.FxAddress().String(),
-				ChainName:     c.chainName,
+				EventNonce:     c.QueryFxLastEventNonce(),
+				BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+				BatchNonce:     outgoingTxBatch.BatchNonce,
+				TokenContract:  outgoingTxBatch.TokenContract,
+				BridgerAddress: c.FxAddress().String(),
+				ChainName:      c.chainName,
 			},
 		})
 	}
@@ -507,15 +390,15 @@ func externalToFx(c *Client) {
 	require.NoError(c.t, err)
 	sendToFxAmount := sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(10000))
 	c.BroadcastTx([]sdk.Msg{&types.MsgSendToFxClaim{
-		EventNonce:    c.QueryFxLastEventNonce(),
-		BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-		TokenContract: tusdTokenContract,
-		Amount:        sendToFxAmount,
-		Sender:        c.externalAddress.String(),
-		Receiver:      c.FxAddress().String(),
-		TargetIbc:     "",
-		Orchestrator:  c.FxAddress().String(),
-		ChainName:     c.chainName,
+		EventNonce:     c.QueryFxLastEventNonce(),
+		BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+		TokenContract:  tusdTokenContract,
+		Amount:         sendToFxAmount,
+		Sender:         c.externalAddress.String(),
+		Receiver:       c.FxAddress().String(),
+		TargetIbc:      "",
+		BridgerAddress: c.FxAddress().String(),
+		ChainName:      c.chainName,
 	}})
 	sendToFxBeforeAfter, err := c.bankQueryClient.Balance(c.ctx, &banktypes.QueryBalanceRequest{
 		Address: c.FxAddress().String(),
@@ -541,15 +424,15 @@ func externalToFxAndIbcTransfer(c *Client) {
 	require.NoError(c.t, err)
 	sendToFxAmount := sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(10000))
 	c.BroadcastTx([]sdk.Msg{&types.MsgSendToFxClaim{
-		EventNonce:    c.QueryFxLastEventNonce(),
-		BlockHeight:   c.QueryObserver().ExternalBlockHeight + 1,
-		TokenContract: tusdTokenContract,
-		Amount:        sendToFxAmount,
-		Sender:        c.externalAddress.String(),
-		Receiver:      c.FxAddress().String(),
-		TargetIbc:     hex.EncodeToString([]byte("px/transfer/channel-0")),
-		Orchestrator:  c.FxAddress().String(),
-		ChainName:     c.chainName,
+		EventNonce:     c.QueryFxLastEventNonce(),
+		BlockHeight:    c.QueryObserver().ExternalBlockHeight + 1,
+		TokenContract:  tusdTokenContract,
+		Amount:         sendToFxAmount,
+		Sender:         c.externalAddress.String(),
+		Receiver:       c.FxAddress().String(),
+		TargetIbc:      hex.EncodeToString([]byte("px/transfer/channel-0")),
+		BridgerAddress: c.FxAddress().String(),
+		ChainName:      c.chainName,
 	}})
 	sendToFxBeforeAfter, err := c.bankQueryClient.Balance(c.ctx, &banktypes.QueryBalanceRequest{
 		Address: c.FxAddress().String(),
@@ -577,7 +460,7 @@ func setOrchestratorAddress(c *Client) {
 	})
 	if queryOracleResponse != nil && queryOracleResponse.GetOracle() != nil {
 		oracle := queryOracleResponse.GetOracle()
-		c.t.Logf("already set orchestrator address! oracle:[%v], orchestrator:[%v], externalAddress:[%v]\n", oracle.OracleAddress, oracle.OrchestratorAddress, oracle.ExternalAddress)
+		c.t.Logf("already set orchestrator address! oracle:[%v], orchestrator:[%v], externalAddress:[%v]\n", oracle.OracleAddress, oracle.BridgerAddress, oracle.ExternalAddress)
 		return
 	}
 
@@ -591,11 +474,11 @@ func setOrchestratorAddress(c *Client) {
 	if err != nil {
 		c.t.Fatal(err)
 	}
-	c.BroadcastTx([]sdk.Msg{&types.MsgSetOrchestratorAddress{
-		Oracle:          fxAddress.String(),
-		Orchestrator:    fxAddress.String(),
+	c.BroadcastTx([]sdk.Msg{&types.MsgCreateOracleBridger{
+		OracleAddress:   fxAddress.String(),
+		BridgerAddress:  fxAddress.String(),
 		ExternalAddress: c.externalAddress.String(),
-		Deposit:         chainParams.Params.DepositThreshold,
+		DelegateAmount:  chainParams.Params.DelegateThreshold,
 		ChainName:       c.chainName,
 	}})
 	c.t.Logf("\n")

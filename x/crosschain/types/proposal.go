@@ -47,10 +47,10 @@ func (m *UpdateCrossChainOraclesProposal) ValidateBasic() error {
 	oraclesMap := make(map[string]bool)
 	for _, addr := range m.Oracles {
 		if _, err := sdk.AccAddressFromBech32(addr); err != nil {
-			return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("oracle address: %s", addr))
+			return sdkerrors.Wrap(ErrInvalid, "oracle address")
 		}
 		if oraclesMap[addr] {
-			return sdkerrors.Wrap(ErrDuplicate, fmt.Sprintf("oracle address: %s", addr))
+			return sdkerrors.Wrap(ErrDuplicate, "oracle address")
 		}
 		oraclesMap[addr] = true
 	}
