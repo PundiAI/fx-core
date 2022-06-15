@@ -145,6 +145,11 @@ func (k Keeper) SetOracle(ctx sdk.Context, oracle types.Oracle) {
 	store.Set(types.GetOracleKey(oracle.GetOracle()), bz)
 }
 
+func (k Keeper) HaiOracle(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.GetOracleKey(addr))
+}
+
 // GetOracle get Oracle data
 func (k Keeper) GetOracle(ctx sdk.Context, addr sdk.AccAddress) (oracle types.Oracle, found bool) {
 	store := ctx.KVStore(k.storeKey)

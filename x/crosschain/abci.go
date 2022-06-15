@@ -75,7 +75,7 @@ func slashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
 func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, params types.Params) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - params.SignedWindow
 	unSlashedOracleSets := k.GetUnSlashedOracleSets(ctx, maxHeight)
-	logger := k.Logger(ctx)
+
 	// Find all verifiers that meet the penalty to change the signature consensus
 	for _, oracleSet := range unSlashedOracleSets {
 		confirms := k.GetOracleSetConfirms(ctx, oracleSet.Nonce)
@@ -88,7 +88,7 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 				continue
 			}
 			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
-				logger.Info("slash oracle by oracle set", "oracleAddress", oracle.OracleAddress,
+				k.Logger(ctx).Info("slash oracle by oracle set", "oracleAddress", oracle.OracleAddress,
 					"oracleSetNonce", oracleSet.Nonce, "oracleSetHeight", oracleSet.Height, "blockHeight", ctx.BlockHeight(), "slashFraction", params.SlashFraction.String())
 				k.SlashOracle(ctx, oracle, params.SlashFraction)
 				hasSlash = true
@@ -103,7 +103,7 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, params types.Params) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - params.SignedWindow
 	unSlashedBatches := k.GetUnSlashedBatches(ctx, maxHeight)
-	logger := k.Logger(ctx)
+
 	for _, batch := range unSlashedBatches {
 		confirms := k.GetBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract)
 		confirmOracleMap := make(map[string]bool, len(confirms))
@@ -115,7 +115,7 @@ func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, para
 				continue
 			}
 			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
-				logger.Info("slash oracle by batch", "oracleAddress", oracle.OracleAddress,
+				k.Logger(ctx).Info("slash oracle by batch", "oracleAddress", oracle.OracleAddress,
 					"batchNonce", batch.BatchNonce, "batchHeight", batch.Block, "blockHeight", ctx.BlockHeight(), "slashFraction", params.SlashFraction.String())
 				k.SlashOracle(ctx, oracle, params.SlashFraction)
 				hasSlash = true

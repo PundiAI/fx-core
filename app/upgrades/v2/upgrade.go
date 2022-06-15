@@ -2,8 +2,9 @@ package v2
 
 import (
 	"fmt"
-	ethtypes "github.com/functionx/fx-core/x/eth/types"
 	"strings"
+
+	ethtypes "github.com/functionx/fx-core/x/eth/types"
 
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
