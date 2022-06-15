@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cosmos/cosmos-sdk/x/gov"
+
 	ethkeeper "github.com/functionx/fx-core/x/eth/keeper"
 	ethtypes "github.com/functionx/fx-core/x/eth/types"
 
@@ -85,10 +87,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	fxgov "github.com/functionx/fx-core/x/gov"
+	fxgovkeeper "github.com/functionx/fx-core/x/gov/keeper"
 
 	ibc "github.com/cosmos/ibc-go/v3/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
@@ -277,7 +281,7 @@ type App struct {
 	SlashingKeeper   slashingkeeper.Keeper
 	MintKeeper       mintkeeper.Keeper
 	DistrKeeper      distrkeeper.Keeper
-	GovKeeper        govkeeper.Keeper
+	GovKeeper        fxgovkeeper.Keeper
 	CrisisKeeper     crisiskeeper.Keeper
 	UpgradeKeeper    upgradekeeper.Keeper
 	ParamsKeeper     paramskeeper.Keeper
@@ -517,9 +521,10 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		AddRoute(crosschaintypes.RouterKey, crosschain.NewChainProposalHandler(myApp.CrosschainKeeper)).
 		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(&myApp.Erc20Keeper))
 
-	myApp.GovKeeper = govkeeper.NewKeeper(
+	govKeeper := govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], myApp.GetSubspace(govtypes.ModuleName), myApp.AccountKeeper, myApp.BankKeeper, &stakingKeeper, govRouter,
 	)
+	myApp.GovKeeper = fxgovkeeper.NewKeeper(myApp.BankKeeper, govKeeper)
 
 	erc20TransferRouter := erc20types.NewRouter()
 	erc20TransferRouter.AddRoute(ethtypes.ModuleName, myApp.EthKeeper)
@@ -585,7 +590,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		bank.NewAppModule(appCodec, myApp.BankKeeper, myApp.AccountKeeper),
 		capability.NewAppModule(appCodec, *myApp.CapabilityKeeper),
 		crisis.NewAppModule(&myApp.CrisisKeeper, skipGenesisInvariants),
-		gov.NewAppModule(appCodec, myApp.GovKeeper, myApp.AccountKeeper, myApp.BankKeeper),
+		fxgov.NewAppModule(appCodec, myApp.GovKeeper, myApp.AccountKeeper, myApp.BankKeeper),
 		mint.NewAppModule(appCodec, myApp.MintKeeper, myApp.AccountKeeper),
 		slashing.NewAppModule(appCodec, myApp.SlashingKeeper, myApp.AccountKeeper, myApp.BankKeeper, myApp.StakingKeeper),
 		distr.NewAppModule(appCodec, myApp.DistrKeeper, myApp.AccountKeeper, myApp.BankKeeper, myApp.StakingKeeper),
