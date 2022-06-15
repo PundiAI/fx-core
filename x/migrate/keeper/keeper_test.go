@@ -99,8 +99,11 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	encodingConfig := app.MakeEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 
+	//update metadata
 	err = upgradesv2.UpdateFXMetadata(suite.ctx, suite.app.BankKeeper, suite.app.GetKey(banktypes.StoreKey))
 	require.NoError(t, err)
+	//migrate account to eth
+	upgradesv2.MigrateAccountToEth(suite.ctx, suite.app.AccountKeeper)
 	// init logic contract
 	for _, contract := range fxtypes.GetInitContracts() {
 		require.True(t, len(contract.Code) > 0)

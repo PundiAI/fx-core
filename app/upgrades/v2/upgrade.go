@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	ethtypes "github.com/functionx/fx-core/x/eth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/ethereum/go-ethereum/common"
+	ethermint "github.com/tharsis/ethermint/types"
 
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -27,6 +30,7 @@ import (
 func CreateUpgradeHandler(
 	mm *module.Manager, configurator module.Configurator,
 	bankStoreKey *sdk.KVStoreKey, bankKeeper bankKeeper.Keeper,
+	accountKeeper authkeeper.AccountKeeper,
 	ibcKeeper *ibckeeper.Keeper, erc20Keeper erc20keeper.Keeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
@@ -36,6 +40,9 @@ func CreateUpgradeHandler(
 		if err := UpdateFXMetadata(cacheCtx, bankKeeper, bankStoreKey); err != nil {
 			return nil, err
 		}
+
+		// migrate base account to eth account
+		MigrateAccountToEth(cacheCtx, accountKeeper)
 
 		// set max expected block time parameter. Replace the default with your expected value
 		// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
@@ -101,6 +108,28 @@ func UpdateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, key *types.
 	return nil
 }
 
+func MigrateAccountToEth(ctx sdk.Context, ak authkeeper.AccountKeeper) {
+	ctx.Logger().Info("update v2 migrate account to eth")
+	// migrate base account to eth account
+	ak.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
+		if _, ok := account.(ethermint.EthAccountI); ok {
+			return false
+		}
+		baseAccount, ok := account.(*authtypes.BaseAccount)
+		if !ok {
+			ctx.Logger().Info("migrate account", "address", account.GetAddress(), "ignore type", fmt.Sprintf("%T", account))
+			return false
+		}
+		ethAccount := &ethermint.EthAccount{
+			BaseAccount: baseAccount,
+			CodeHash:    common.BytesToHash(emptyCodeHash).String(),
+		}
+		ak.SetAccount(ctx, ethAccount)
+		ctx.Logger().Info("migrate account to eth", "address", account.GetAddress())
+		return false
+	})
+}
+
 func deleteMetadata(ctx sdk.Context, key *types.KVStoreKey, base ...string) {
 	store := ctx.KVStore(key)
 	for _, b := range base {
@@ -110,16 +139,17 @@ func deleteMetadata(ctx sdk.Context, key *types.KVStoreKey, base ...string) {
 
 func migrationsOrder(modules []string) []string {
 	modules = module.DefaultMigrationsOrder(modules)
-	for i, name := range modules {
-		if name == migratetypes.ModuleName {
-			modules = append(append(modules[:i], modules[i+1:]...), name)
-			return modules
+	orders := make([]string, 0, len(modules))
+	for _, name := range modules {
+		if name == erc20types.ModuleName ||
+			name == migratetypes.ModuleName {
+			continue
 		}
-		// eth module
-		if name == ethtypes.ModuleName {
-			modules = append([]string{name}, append(modules[:i], modules[i+1:]...)...)
-			return modules
-		}
+		orders = append(orders, name)
 	}
-	return modules
+	orders = append(orders, []string{
+		erc20types.ModuleName,
+		migratetypes.ModuleName,
+	}...)
+	return orders
 }

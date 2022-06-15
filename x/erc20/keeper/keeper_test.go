@@ -139,8 +139,11 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethereumtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 
+	//update metadata
 	err = upgradesv2.UpdateFXMetadata(suite.ctx, suite.app.BankKeeper, suite.app.GetKey(banktypes.StoreKey))
 	require.NoError(t, err)
+	//migrate account to eth
+	upgradesv2.MigrateAccountToEth(suite.ctx, suite.app.AccountKeeper)
 	// init logic contract
 	for _, contract := range fxtypes.GetInitContracts() {
 		require.True(t, len(contract.Code) > 0)
