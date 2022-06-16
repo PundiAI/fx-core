@@ -17,7 +17,8 @@ import (
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
 func (k Keeper) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
-	if claim.TargetIbc == targetEvmPrefix {
+	//if (target is module/evm) or (target is empty and denom != FX), evm transfer
+	if claim.TargetIbc == targetEvmPrefix || claim.TargetIbc == "" && coin.Denom != fxtypes.DefaultDenom {
 		k.handlerEvmTransfer(ctx, claim, receiver, coin)
 		return
 	}
