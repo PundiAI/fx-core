@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
@@ -40,18 +42,20 @@ func CreateUpgradeHandler(kvStoreKeyMap map[string]*sdk.KVStoreKey, mm *module.M
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := ctx.CacheContext()
 
-		clearKVStores(ctx, kvStoreKeyMap)
-		// update FX metadata
+		// 1. clean testnet data
+		clearTestnetKVStores(cacheCtx, kvStoreKeyMap)
+
+		// 2. update FX metadata
 		if err := UpdateFXMetadata(cacheCtx, bankKeeper, bankStoreKey); err != nil {
 			return nil, err
 		}
 
-		//update block params (max_gas:3000000000)
-		if err := UpdateBlockParams(cacheCtx, paramsKeeper); err != nil {
+		// 3. update block params (max_gas:3000000000)
+		if err := updateBlockParams(cacheCtx, paramsKeeper); err != nil {
 			return nil, err
 		}
 
-		// migrate base account to eth account
+		// 4. migrate base account to eth account
 		MigrateAccountToEth(cacheCtx, accountKeeper)
 
 		// set max expected block time parameter. Replace the default with your expected value
@@ -140,20 +144,16 @@ func MigrateAccountToEth(ctx sdk.Context, ak authkeeper.AccountKeeper) {
 	})
 }
 
-func UpdateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) error {
-	return updateParams(ctx, pk, baseapp.Paramspace, updateBlockParamsKey, updateBlockParamsValue)
-}
+func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) error {
+	baseappSubspace, found := pk.GetSubspace(baseapp.Paramspace)
+	if !found {
+		return sdkerrors.Wrap(paramstypesproposal.ErrUnknownSubspace, baseapp.Paramspace)
+	}
+	var bp abci.BlockParams
+	baseappSubspace.Get(ctx, baseapp.ParamStoreKeyBlockParams, &bp)
 
-func updateParams(ctx sdk.Context, pk paramskeeper.Keeper, name, key, value string) error {
-	ss, ok := pk.GetSubspace(name)
-	if !ok {
-		return sdkerrors.Wrap(paramstypesproposal.ErrUnknownSubspace, name)
-	}
-	ctx.Logger().Info("update params", "subspace", name, "key", key, "value", value)
-	err := ss.Update(ctx, []byte(key), []byte(value))
-	if err != nil {
-		return sdkerrors.Wrapf(paramstypesproposal.ErrSettingParameter, "key: %s, value: %s, err: %s", key, value, err.Error())
-	}
+	bp.MaxGas = blockParamsMaxGas
+	baseappSubspace.Set(ctx, baseapp.ParamStoreKeyBlockParams, bp)
 	return nil
 }
 
@@ -183,7 +183,7 @@ func migrationsOrder(modules []string) []string {
 	return orders
 }
 
-func clearKVStores(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
+func clearTestnetKVStores(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 	logger := ctx.Logger()
 	if fxtypes.NetworkTestnet() != fxtypes.Network() {
 		logger.Info("clear kv store", "ignore clearKVStore network", fxtypes.Network())
