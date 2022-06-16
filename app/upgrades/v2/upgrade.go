@@ -3,6 +3,7 @@ package v2
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
@@ -29,22 +30,17 @@ import (
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 
+	paramstypesproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	fxtypes "github.com/functionx/fx-core/types"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
-
-	paramstypesproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2
-func CreateUpgradeHandler(
-	mm *module.Manager, configurator module.Configurator,
-	bankStoreKey *sdk.KVStoreKey, bankKeeper bankKeeper.Keeper,
-	accountKeeper authkeeper.AccountKeeper, paramsKeeper paramskeeper.Keeper,
-	ibcKeeper *ibckeeper.Keeper, erc20Keeper erc20keeper.Keeper,
-) upgradetypes.UpgradeHandler {
+func CreateUpgradeHandler(kvStoreKeyMap map[string]*sdk.KVStoreKey, mm *module.Manager, configurator module.Configurator, bankStoreKey *sdk.KVStoreKey, bankKeeper bankKeeper.Keeper, accountKeeper authkeeper.AccountKeeper, paramsKeeper paramskeeper.Keeper, ibcKeeper *ibckeeper.Keeper, erc20Keeper erc20keeper.Keeper) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := ctx.CacheContext()
 
+		clearKVStores(ctx, kvStoreKeyMap)
 		// update FX metadata
 		if err := UpdateFXMetadata(cacheCtx, bankKeeper, bankStoreKey); err != nil {
 			return nil, err
@@ -185,4 +181,44 @@ func migrationsOrder(modules []string) []string {
 		erc20types.ModuleName, migratetypes.ModuleName,
 	}...)
 	return orders
+}
+
+func clearKVStores(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
+	logger := ctx.Logger()
+	if fxtypes.NetworkTestnet() != fxtypes.Network() {
+		logger.Info("clear kv store", "ignore clearKVStore network", fxtypes.Network())
+		return
+	}
+	cleanModules := []string{feemarkettypes.StoreKey, evmtypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey}
+	multiStore := ctx.MultiStore()
+	for _, storeName := range cleanModules {
+		logger.Info("clear kv store", "storesName", storeName)
+		startTime := time.Now()
+		storeKey, ok := keys[storeName]
+		if !ok {
+			panic(fmt.Sprintf("%s store not found", storeName))
+		}
+		kvStore := multiStore.GetKVStore(storeKey)
+		if err := deleteKVStore(kvStore); err != nil {
+			panic(fmt.Sprintf("failed to delete store %s: %s", storeName, err.Error()))
+		}
+		logger.Info("clear kv store done", "storesName", storeName, "consumeMs", time.Now().UnixMilli()-startTime.UnixMilli())
+	}
+}
+
+func deleteKVStore(kv types.KVStore) error {
+	// Note that we cannot write while iterating, so load all keys here, delete below
+	var keys [][]byte
+	itr := kv.Iterator(nil, nil)
+	defer itr.Close()
+
+	for itr.Valid() {
+		keys = append(keys, itr.Key())
+		itr.Next()
+	}
+
+	for _, k := range keys {
+		kv.Delete(k)
+	}
+	return nil
 }

@@ -3,13 +3,16 @@ package v2
 import (
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/ethereum/go-ethereum/crypto"
+	fxtypes "github.com/functionx/fx-core/types"
 
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	polygontypes "github.com/functionx/fx-core/x/polygon/types"
@@ -50,12 +53,20 @@ var (
 		trontypes.ModuleName:         1,
 	}
 
-	storeUpgrades = &store.StoreUpgrades{
+	storeUpgradesDefault = &store.StoreUpgrades{
 		Added: []string{
 			feemarkettypes.StoreKey,
 			evmtypes.StoreKey,
 			erc20types.StoreKey,
 			migratetypes.StoreKey,
+			feegrant.StoreKey,
+			authzkeeper.StoreKey,
+		},
+	}
+	storeUpgradesTestnet = &store.StoreUpgrades{
+		Added: []string{
+			feegrant.StoreKey,
+			authzkeeper.StoreKey,
 		},
 	}
 
@@ -63,5 +74,8 @@ var (
 )
 
 func GetStoreUpgrades() *store.StoreUpgrades {
-	return storeUpgrades
+	if fxtypes.Network() == fxtypes.NetworkTestnet() {
+		return storeUpgradesTestnet
+	}
+	return storeUpgradesDefault
 }
