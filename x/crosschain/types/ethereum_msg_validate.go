@@ -43,9 +43,8 @@ func (b EthereumMsgValidate) MsgEditOracleValidate(m MsgEditOracle) (err error) 
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}
-	// TODO need fix
-	if m.ValidatorAddress == "" && m.BridgeAddress == "" && m.ExternalAddress == "" {
-		return sdkerrors.Wrap(ErrUnknown, "address")
+	if _, err = sdk.ValAddressFromBech32(m.ValidatorAddress); err != nil {
+		return sdkerrors.Wrap(ErrUnknown, "validator address")
 	}
 	return nil
 }

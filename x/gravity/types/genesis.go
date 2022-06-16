@@ -1,21 +1,26 @@
-package v042
+package types
 
 import (
+	"bytes"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
 var (
+	// AttestationVotesPowerThreshold threshold of votes power to succeed
+	AttestationVotesPowerThreshold = sdk.NewInt(66)
+
 	// ParamsStoreKeyGravityID stores the gravity id
 	ParamsStoreKeyGravityID = []byte("GravityID")
 
 	// ParamsStoreKeyContractHash stores the contract hash
 	ParamsStoreKeyContractHash = []byte("ContractHash")
+
+	// ParamsStoreKeyStartThreshold stores the start threshold
+	//ParamsStoreKeyStartThreshold = []byte("StartThreshold")
 
 	// ParamsStoreKeyBridgeContractAddress stores the contract address
 	ParamsStoreKeyBridgeContractAddress = []byte("BridgeContractAddress")
@@ -66,6 +71,48 @@ var (
 	_ paramtypes.ParamSet = &Params{}
 )
 
+// ValidateBasic validates genesis state by looping through the params and
+// calling their validation functions
+func (s GenesisState) ValidateBasic() error {
+	if err := s.Params.ValidateBasic(); err != nil {
+		return sdkerrors.Wrap(err, "params")
+	}
+	return nil
+}
+
+// DefaultGenesisState returns empty genesis state
+func DefaultGenesisState() *GenesisState {
+	return &GenesisState{
+		Params:      DefaultParams(),
+		ModuleCoins: DefaultModuleCoins(),
+	}
+}
+
+func DefaultModuleCoins() sdk.Coins {
+	return sdk.NewCoins()
+}
+
+// DefaultParams returns a copy of the default params
+func DefaultParams() *Params {
+	return &Params{
+		GravityId:                      "fx-bridge-eth",
+		BridgeChainId:                  1,
+		SignedValsetsWindow:            10000,
+		SignedBatchesWindow:            10000,
+		SignedClaimsWindow:             10000,
+		TargetBatchTimeout:             43200000,
+		AverageBlockTime:               5000,
+		AverageEthBlockTime:            15000,
+		SlashFractionValset:            sdk.NewDec(1).Quo(sdk.NewDec(1000)),
+		SlashFractionBatch:             sdk.NewDec(1).Quo(sdk.NewDec(1000)),
+		SlashFractionClaim:             sdk.NewDec(1).Quo(sdk.NewDec(1000)),
+		SlashFractionConflictingClaim:  sdk.NewDec(1).Quo(sdk.NewDec(1000)),
+		UnbondSlashingValsetsWindow:    10000,
+		IbcTransferTimeoutHeight:       10000,
+		ValsetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
+	}
+}
+
 // ValidateBasic checks that the parameters have valid values.
 func (p Params) ValidateBasic() error {
 	if err := validateGravityID(p.GravityId); err != nil {
@@ -81,41 +128,41 @@ func (p Params) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "bridge chain id")
 	}
 	if err := validateTargetBatchTimeout(p.TargetBatchTimeout); err != nil {
-		return sdkerrors.Wrap(err, "ethereum batch timeout")
+		return sdkerrors.Wrap(err, "Batch timeout")
 	}
 	if err := validateAverageBlockTime(p.AverageBlockTime); err != nil {
-		return sdkerrors.Wrap(err, "average block time")
+		return sdkerrors.Wrap(err, "Block time")
 	}
 	if err := validateAverageEthereumBlockTime(p.AverageEthBlockTime); err != nil {
-		return sdkerrors.Wrap(err, "average ethereum block time")
+		return sdkerrors.Wrap(err, "Ethereum block time")
 	}
 	if err := validateSignedValsetsWindow(p.SignedValsetsWindow); err != nil {
-		return sdkerrors.Wrap(err, "signed valset window")
+		return sdkerrors.Wrap(err, "signed blocks window")
 	}
 	if err := validateSignedBatchesWindow(p.SignedBatchesWindow); err != nil {
-		return sdkerrors.Wrap(err, "signed batch window")
+		return sdkerrors.Wrap(err, "signed blocks window")
 	}
 	if err := validateSignedClaimsWindow(p.SignedClaimsWindow); err != nil {
-		return sdkerrors.Wrap(err, "signed claim window")
+		return sdkerrors.Wrap(err, "signed blocks window")
 	}
 	if err := validateSlashFractionValset(p.SlashFractionValset); err != nil {
 		return sdkerrors.Wrap(err, "slash fraction valset")
 	}
 	if err := validateSlashFractionBatch(p.SlashFractionBatch); err != nil {
-		return sdkerrors.Wrap(err, "slash fraction batch")
+		return sdkerrors.Wrap(err, "slash fraction valset")
 	}
 	if err := validateSlashFractionClaim(p.SlashFractionClaim); err != nil {
-		return sdkerrors.Wrap(err, "slash fraction claim")
+		return sdkerrors.Wrap(err, "slash fraction valset")
 	}
 	if err := validateSlashFractionConflictingClaim(p.SlashFractionConflictingClaim); err != nil {
-		return sdkerrors.Wrap(err, "slash fraction conflicting claim")
+		return sdkerrors.Wrap(err, "slash fraction valset")
 	}
 	if err := validateUnbondSlashingValsetsWindow(p.UnbondSlashingValsetsWindow); err != nil {
-		return sdkerrors.Wrap(err, "unbond slashing valset window")
+		return sdkerrors.Wrap(err, "unbond Slashing valset window")
 	}
 
 	if err := validateValsetUpdatePowerChangePercent(p.ValsetUpdatePowerChangePercent); err != nil {
-		return sdkerrors.Wrap(err, "valset update power change percent")
+		return sdkerrors.Wrap(err, "unbond Slashing valset window")
 	}
 
 	return nil
@@ -150,6 +197,13 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
+// Equal returns a boolean determining if two Params types are identical.
+func (p Params) Equal(p2 Params) bool {
+	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&p)
+	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&p2)
+	return bytes.Equal(bz1, bz2)
+}
+
 func validateGravityID(i interface{}) error {
 	v, ok := i.(string)
 	if !ok {
@@ -165,7 +219,7 @@ func validateContractHash(i interface{}) error {
 	if _, ok := i.(string); !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if err := crosschaintypes.ValidateEthereumAddress(i.(string)); err != nil {
+	if err := ValidateEthAddressAndValidateChecksum(i.(string)); err != nil {
 		if err.Error() != "empty" {
 			return err
 		}
@@ -195,7 +249,7 @@ func validateAverageBlockTime(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	} else if val < 100 {
-		return fmt.Errorf("invalid average block time, too short for latency limitations")
+		return fmt.Errorf("invalid average Cosmos block time, too short for latency limitations")
 	}
 	return nil
 }
@@ -215,7 +269,7 @@ func validateBridgeContractAddress(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if err := crosschaintypes.ValidateEthereumAddress(v); err != nil {
+	if err := ValidateEthAddressAndValidateChecksum(v); err != nil {
 		if err.Error() != "empty" {
 			return err
 		}

@@ -30,37 +30,37 @@ service Msg {
 }
 
 message MsgCreateOracleBridger {
-  string oracle_address = 1;
-  string bridger_address = 2;
-  string external_address = 3;
-  string validator_address = 4;
-  cosmos.base.v1beta1.Coin delegate_amount = 5 [(gogoproto.nullable) = false];
-  string chain_name = 6;
+  string chain_name = 1;
+  string oracle_address = 2;
+  string bridger_address = 3;
+  string external_address = 4;
+  string validator_address = 5;
+  cosmos.base.v1beta1.Coin delegate_amount = 6 [(gogoproto.nullable) = false];
 }
 
 message MsgCreateOracleBridgerResponse {}
 
 message MsgAddOracleDelegate {
-  string oracle_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-  string chain_name = 3;
+  string chain_name = 1;
+  string oracle_address = 2;
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
 
 message MsgAddOracleDelegateResponse {}
 
 message MsgEditOracle {
-  string oracle_address = 1;
-  string bridge_address = 2;
-  string external_address = 3;
-  string validator_address = 4;
-  string chain_name = 5;
+  string chain_name = 1;
+  string oracle_address = 2;
+  string validator_address = 3;
+//  string bridge_address = 4;
+//  string external_address = 5;
 }
 
 message MsgEditOracleResponse {}
 
 message MsgWithdrawReward {
-  string oracle_address = 1;
-  string chain_name = 5;
+  string chain_name = 1;
+  string oracle_address = 2;
 }
 
 message MsgWithdrawRewardResponse {}

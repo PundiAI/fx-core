@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -25,7 +27,6 @@ import (
 	upgradesv2 "github.com/functionx/fx-core/app/upgrades/v2"
 	fxtypes "github.com/functionx/fx-core/types"
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	ethtypes "github.com/functionx/fx-core/x/eth/types"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 )
 
@@ -78,9 +79,9 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
-	err = suite.app.BankKeeper.MintCoins(suite.ctx, ethtypes.ModuleName, sdk.NewCoins(amount))
+	err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(amount))
 	suite.Require().NoError(err)
-	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, ethtypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
+	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
 	suite.Require().NoError(err)
 
 	if !suite.purseBalance.IsNil() {
@@ -144,9 +145,9 @@ func (suite *KeeperTestSuite) GenerateAcc(num int) []cryptotypes.PrivKey {
 	for i := 0; i < num; i++ {
 		privateKey := secp256k1.GenPrivKey()
 		amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18)))
-		err := suite.app.BankKeeper.MintCoins(suite.ctx, ethtypes.ModuleName, sdk.NewCoins(amount))
+		err := suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(amount))
 		suite.Require().NoError(err)
-		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, ethtypes.ModuleName, privateKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
+		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, privateKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
 		suite.Require().NoError(err)
 
 		if !suite.purseBalance.IsNil() {
@@ -174,9 +175,9 @@ func (suite *KeeperTestSuite) GenerateEthAcc(num int) []cryptotypes.PrivKey {
 		privateKey, err := ethsecp256k1.GenerateKey()
 		suite.Require().NoError(err)
 		amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18)))
-		err = suite.app.BankKeeper.MintCoins(suite.ctx, ethtypes.ModuleName, sdk.NewCoins(amount))
+		err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(amount))
 		suite.Require().NoError(err)
-		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, ethtypes.ModuleName, privateKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
+		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, privateKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
 		suite.Require().NoError(err)
 
 		keys = append(keys, privateKey)

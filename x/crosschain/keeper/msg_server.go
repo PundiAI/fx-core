@@ -220,38 +220,35 @@ func (s EthereumMsgServer) EditOracle(c context.Context, msg *types.MsgEditOracl
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle jailed")
 	}
 	if oracle.IsValidator {
-		if msg.ValidatorAddress != "" && msg.ValidatorAddress != msg.OracleAddress {
-			return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle is a validator, cannot edit validator address")
-		}
-	} else {
-		if msg.ValidatorAddress != "" && msg.ValidatorAddress != msg.OracleAddress {
-			delegateAddress := types.GetOracleDelegateAddress(msg.ChainName, oracleAddr)
-			valSrcAddress, err := sdk.ValAddressFromBech32(oracle.DelegateValidator)
-			if err != nil {
-				return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
-			}
-			valDestAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
-			if err != nil {
-				return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
-			}
-			sharesAmount, err := s.stakingKeeper.ValidateUnbondAmount(ctx, delegateAddress, valSrcAddress, oracle.DelegateAmount)
-			if err != nil {
-				return nil, err
-			}
-			completionTime, err := s.stakingKeeper.BeginRedelegation(ctx, delegateAddress, valSrcAddress, valDestAddress, sharesAmount)
-			if err != nil {
-				return nil, err
-			}
-			ctx.EventManager().EmitEvent(sdk.NewEvent(
-				stakingtypes.EventTypeRedelegate,
-				sdk.NewAttribute(stakingtypes.AttributeKeySrcValidator, oracle.DelegateValidator),
-				sdk.NewAttribute(stakingtypes.AttributeKeyDstValidator, msg.ValidatorAddress),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
-				sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
-			))
-		}
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle is a validator, cannot edit validator address")
 	}
-	//TODO implement me edit bridger and external address
+	if oracle.DelegateValidator == msg.ValidatorAddress {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address is not changed")
+	}
+	delegateAddress := types.GetOracleDelegateAddress(msg.ChainName, oracleAddr)
+	valSrcAddress, err := sdk.ValAddressFromBech32(oracle.DelegateValidator)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
+	}
+	valDestAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
+	}
+	sharesAmount, err := s.stakingKeeper.ValidateUnbondAmount(ctx, delegateAddress, valSrcAddress, oracle.DelegateAmount)
+	if err != nil {
+		return nil, err
+	}
+	completionTime, err := s.stakingKeeper.BeginRedelegation(ctx, delegateAddress, valSrcAddress, valDestAddress, sharesAmount)
+	if err != nil {
+		return nil, err
+	}
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		stakingtypes.EventTypeRedelegate,
+		sdk.NewAttribute(stakingtypes.AttributeKeySrcValidator, oracle.DelegateValidator),
+		sdk.NewAttribute(stakingtypes.AttributeKeyDstValidator, msg.ValidatorAddress),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
+		sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+	))
 	return &types.MsgEditOracleResponse{}, err
 }
 

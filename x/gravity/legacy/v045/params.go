@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ethtypes "github.com/functionx/fx-core/x/eth/types"
-	v042 "github.com/functionx/fx-core/x/gravity/legacy/v042"
 	"github.com/functionx/fx-core/x/gravity/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
@@ -15,7 +14,7 @@ import (
 
 func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) error {
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(types.ModuleName), '/'))
-	gravityParams := &v042.Params{}
+	gravityParams := &types.Params{}
 	isExist := false
 	for _, pair := range gravityParams.ParamSetPairs() {
 		bz := paramsStore.Get(pair.Key)

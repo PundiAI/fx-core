@@ -7,13 +7,14 @@ import (
 	"testing"
 	"time"
 
-	ante2 "github.com/functionx/fx-core/ante"
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	ethtypes "github.com/functionx/fx-core/x/eth/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	ante2 "github.com/functionx/fx-core/ante"
+	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 
 	"github.com/functionx/fx-core/app/helpers"
 	upgradesv2 "github.com/functionx/fx-core/app/upgrades/v2"
@@ -122,9 +123,9 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
 
 	amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
-	err = suite.app.BankKeeper.MintCoins(suite.ctx, ethtypes.ModuleName, sdk.NewCoins(amount))
+	err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(amount))
 	suite.Require().NoError(err)
-	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, ethtypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
+	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
 	suite.Require().NoError(err)
 
 	if !suite.purseBalance.IsNil() {
