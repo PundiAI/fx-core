@@ -578,7 +578,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		tron.NewAppModule(myApp.TronKeeper, myApp.StakingKeeper, keys[paramstypes.StoreKey]),
 		EvmAppModule{evm.NewAppModule(myApp.EvmKeeper, myApp.AccountKeeper)},
 		FeeMarketAppModule{feemarket.NewAppModule(myApp.FeeMarketKeeper)},
-		erc20.NewAppModule(myApp.Erc20Keeper, myApp.AccountKeeper, *myApp.EvmKeeper),
+		erc20.NewAppModule(myApp.Erc20Keeper, myApp.AccountKeeper),
 		migrate.NewAppModule(myApp.MigrateKeeper),
 		transferModule,
 	)

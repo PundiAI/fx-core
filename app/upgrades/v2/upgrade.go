@@ -4,6 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethermint "github.com/tharsis/ethermint/types"
@@ -24,13 +31,15 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/types"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
+
+	paramstypesproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2
 func CreateUpgradeHandler(
 	mm *module.Manager, configurator module.Configurator,
 	bankStoreKey *sdk.KVStoreKey, bankKeeper bankKeeper.Keeper,
-	accountKeeper authkeeper.AccountKeeper,
+	accountKeeper authkeeper.AccountKeeper, paramsKeeper paramskeeper.Keeper,
 	ibcKeeper *ibckeeper.Keeper, erc20Keeper erc20keeper.Keeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
@@ -38,6 +47,11 @@ func CreateUpgradeHandler(
 
 		// update FX metadata
 		if err := UpdateFXMetadata(cacheCtx, bankKeeper, bankStoreKey); err != nil {
+			return nil, err
+		}
+
+		//update block params (max_gas:3000000000)
+		if err := UpdateBlockParams(cacheCtx, paramsKeeper); err != nil {
 			return nil, err
 		}
 
@@ -130,6 +144,23 @@ func MigrateAccountToEth(ctx sdk.Context, ak authkeeper.AccountKeeper) {
 	})
 }
 
+func UpdateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) error {
+	return updateParams(ctx, pk, baseapp.Paramspace, updateBlockParamsKey, updateBlockParamsValue)
+}
+
+func updateParams(ctx sdk.Context, pk paramskeeper.Keeper, name, key, value string) error {
+	ss, ok := pk.GetSubspace(name)
+	if !ok {
+		return sdkerrors.Wrap(paramstypesproposal.ErrUnknownSubspace, name)
+	}
+	ctx.Logger().Info("update params", "subspace", name, "key", key, "value", value)
+	err := ss.Update(ctx, []byte(key), []byte(value))
+	if err != nil {
+		return sdkerrors.Wrapf(paramstypesproposal.ErrSettingParameter, "key: %s, value: %s, err: %s", key, value, err.Error())
+	}
+	return nil
+}
+
 func deleteMetadata(ctx sdk.Context, key *types.KVStoreKey, base ...string) {
 	store := ctx.KVStore(key)
 	for _, b := range base {
@@ -141,15 +172,17 @@ func migrationsOrder(modules []string) []string {
 	modules = module.DefaultMigrationsOrder(modules)
 	orders := make([]string, 0, len(modules))
 	for _, name := range modules {
-		if name == erc20types.ModuleName ||
+		if name == feemarkettypes.ModuleName ||
+			name == evmtypes.ModuleName ||
+			name == erc20types.ModuleName ||
 			name == migratetypes.ModuleName {
 			continue
 		}
 		orders = append(orders, name)
 	}
 	orders = append(orders, []string{
-		erc20types.ModuleName,
-		migratetypes.ModuleName,
+		feemarkettypes.ModuleName, evmtypes.ModuleName,
+		erc20types.ModuleName, migratetypes.ModuleName,
 	}...)
 	return orders
 }

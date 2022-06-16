@@ -350,6 +350,14 @@ func sendEthTx(t *testing.T, ctx sdk.Context, myApp *app.App,
 	nonce, err := myApp.AccountKeeper.GetSequence(ctx, from.Bytes())
 	require.NoError(t, err)
 
+	var feeCap, tipCap sdk.Int
+	baseFee := myApp.FeeMarketKeeper.GetBaseFee(ctx)
+	params := myApp.FeeMarketKeeper.GetParams(ctx)
+	if sdk.NewDecFromBigInt(baseFee).LT(params.MinGasPrice) {
+		feeCap = params.MinGasPrice.TruncateInt()
+		tipCap = feeCap.Sub(sdk.NewIntFromBigInt(baseFee))
+	}
+
 	ercTransferTx := evm.NewTx(
 		chainID,
 		nonce,
@@ -357,8 +365,8 @@ func sendEthTx(t *testing.T, ctx sdk.Context, myApp *app.App,
 		nil,
 		res.Gas,
 		nil,
-		myApp.FeeMarketKeeper.GetBaseFee(ctx),
-		big.NewInt(1),
+		feeCap.BigInt(),
+		tipCap.BigInt(),
 		data,
 		&ethereumtypes.AccessList{}, // accesses
 	)

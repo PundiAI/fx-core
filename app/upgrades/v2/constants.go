@@ -24,6 +24,9 @@ import (
 
 const (
 	UpgradeName = "v2"
+
+	updateBlockParamsKey   = "BlockParams"
+	updateBlockParamsValue = `{"max_bytes":"1048576","max_gas":"3000000000"}`
 )
 
 var (

@@ -7,16 +7,13 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/ethereum/go-ethereum/common"
 
-	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
-
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/erc20/keeper"
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
 // InitGenesis import module genesis
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper authkeeper.AccountKeeper,
-	evmKeeper evmkeeper.Keeper, data types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper authkeeper.AccountKeeper, data types.GenesisState) {
 	k.SetParams(ctx, data.Params)
 
 	// ensure erc20 module account is set on genesis

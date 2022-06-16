@@ -34,5 +34,5 @@ func (FeeMarketAppModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	genesisState := feemarkettypes.DefaultGenesisState()
 	genesisState.Params.MinGasPrice = sdk.NewDec(500 * 1e9)
 	genesisState.Params.MinGasMultiplier = sdk.ZeroDec()
-	return cdc.MustMarshalJSON(feemarkettypes.DefaultGenesisState())
+	return cdc.MustMarshalJSON(genesisState)
 }
