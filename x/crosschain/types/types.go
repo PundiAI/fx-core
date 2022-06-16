@@ -243,6 +243,9 @@ func (m Oracle) GetOracle() sdk.AccAddress {
 }
 
 func (m Oracle) GetPower() sdk.Int {
+	if m.IsValidator {
+		return m.DelegateAmount
+	}
 	return m.DelegateAmount.Quo(sdk.DefaultPowerReduction)
 }
 
