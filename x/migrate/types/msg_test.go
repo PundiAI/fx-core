@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -15,7 +17,7 @@ import (
 
 func TestMsgMigrateAccountRoute(t *testing.T) {
 	addr1 := sdk.AccAddress("from")
-	addr2 := sdk.AccAddress("to")
+	addr2 := common.BytesToAddress([]byte("to"))
 	var msg = types.NewMsgMigrateAccount(addr1, addr2, "empty string")
 
 	require.Equal(t, msg.Route(), types.RouterKey)
@@ -27,18 +29,21 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 	require.NoError(t, err)
 	toAddressByte := crypto.PubkeyToAddress(privateKey.PublicKey)
 	addr1 := sdk.AccAddress("from________________")
-	addr2 := sdk.AccAddress(toAddressByte.Bytes())
-	addrTo := sdk.AccAddress("to__________________")
+	addr2 := toAddressByte
 	addrEmpty := sdk.AccAddress("")
 	addrTooLong := sdk.AccAddress("Accidentally used 268 bytes pubkey test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content")
 
-	sign, err := crypto.Sign(types.MigrateAccountSignatureHash(addr1, addr2), privateKey)
+	sign, err := crypto.Sign(types.MigrateAccountSignatureHash(addr1, addr2.Bytes()), privateKey)
 	require.NoError(t, err)
 	validSignHex := hex.EncodeToString(sign)
 
 	emptySign := ""
 	invalidSign := "xx xxx"
-	errSignStr := hex.EncodeToString(append([]byte("----------------------------------length 64 and latest less than"), []byte{0x1}...))
+	data := append([]byte("----------------------------------length 64 and latest less than"), []byte{0x1}...)
+	errSignStr := hex.EncodeToString(data)
+
+	errPubKey, _ := crypto.SigToPub(types.MigrateAccountSignatureHash(addr1, addr2.Bytes()), data)
+	errAddr := crypto.PubkeyToAddress(*errPubKey)
 
 	cases := []struct {
 		name        string
@@ -50,39 +55,41 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 		{"empty from address", "invalid sender address (empty address string is not allowed): invalid address", types.NewMsgMigrateAccount(addrEmpty, addr2, emptySign)},
 		{"invalid from address", "invalid sender address (address max length is 255, got 268: unknown address): invalid address", types.NewMsgMigrateAccount(addrTooLong, addr2, emptySign)},
 
-		{"empty to address", "invalid to address (empty address string is not allowed): invalid address", types.NewMsgMigrateAccount(addr1, addrEmpty, emptySign)},
-		{"invalid to address", "invalid to address (address max length is 255, got 268: unknown address): invalid address", types.NewMsgMigrateAccount(addr1, addrTooLong, emptySign)},
+		{"empty to address", "invalid to address (empty): invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "", Signature: emptySign}},
+		{"invalid to address", "invalid to address (address(1234567890) of the wrong length exp(10) actual(42)): invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "1234567890", Signature: emptySign}},
 
-		{"same from address to address", fmt.Sprintf("%s: same account", addr1.String()), types.NewMsgMigrateAccount(addr1, addr1, emptySign)},
+		{"same from address to address", fmt.Sprintf("%s: same account", addr1.String()), types.NewMsgMigrateAccount(addr1, common.BytesToAddress(addr1.Bytes()), emptySign)},
 
 		{"empty sign", "signature is empty: invalid signature", types.NewMsgMigrateAccount(addr1, addr2, emptySign)},
 		{"invalid sign", "could not hex decode signature: xx xxx: invalid signature", types.NewMsgMigrateAccount(addr1, addr2, invalidSign)},
-		{"signature key not equal to address", fmt.Sprintf("signature key not equal to address, expected %s, got fx1n3g5mp5y08at0wdkw8uktqgmvj3yzunmyt8qsf: invalid signature", addrTo.String()), types.NewMsgMigrateAccount(addr1, addrTo, errSignStr)},
+		{"signature key not equal to address", fmt.Sprintf("signature key not equal to address, expected %s, got %s: invalid signature", addr2.String(), errAddr.String()), types.NewMsgMigrateAccount(addr1, addr2, errSignStr)},
 	}
 
 	for _, tc := range cases {
-		err = tc.msg.ValidateBasic()
-		if tc.expectedErr == "" {
-			require.Nil(t, err)
-		} else {
-			require.EqualError(t, err, tc.expectedErr)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			err = tc.msg.ValidateBasic()
+			if tc.expectedErr == "" {
+				require.Nil(t, err)
+			} else {
+				require.EqualError(t, err, tc.expectedErr)
+			}
+		})
 	}
 }
 
 func TestMsgMigrateAccountGetSignBytes(t *testing.T) {
 	addr1 := sdk.AccAddress([]byte("input"))
-	addr2 := sdk.AccAddress([]byte("output"))
+	addr2 := common.BytesToAddress([]byte("output"))
 	sign := "0x1"
 	var msg = types.NewMsgMigrateAccount(addr1, addr2, sign)
 	res := msg.GetSignBytes()
 
-	expected := `{"type":"migrate/MsgMigrateAccount","value":{"from":"fx1d9h8qat556rm7q","signature":"0x1","to":"fx1da6hgur4ws9u7g24"}}`
+	expected := `{"type":"migrate/MsgMigrateAccount","value":{"from":"fx1d9h8qat556rm7q","signature":"0x1","to":"0x00000000000000000000000000006F7574707574"}}`
 	require.Equal(t, expected, string(res))
 }
 
 func TestMsgMigrateAccountGetSigners(t *testing.T) {
-	var msg = types.NewMsgMigrateAccount(sdk.AccAddress([]byte("input111111111111111")), sdk.AccAddress{}, "")
+	var msg = types.NewMsgMigrateAccount(sdk.AccAddress([]byte("input111111111111111")), common.Address{}, "")
 	res := msg.GetSigners()
 	require.Equal(t, fmt.Sprintf("%v", res), "[696E707574313131313131313131313131313131]")
 }

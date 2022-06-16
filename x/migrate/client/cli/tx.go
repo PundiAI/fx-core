@@ -44,8 +44,8 @@ func GetMigrateAccountCmd() *cobra.Command {
 			}
 			fromAddress := cliCtx.GetFromAddress()
 
-			if !common.IsHexAddress(args[0]) {
-				return fmt.Errorf("invalid hex address %s", args[0])
+			if err := fxtypes.ValidateAddress(args[0]); err != nil {
+				return err
 			}
 			hexAddress := common.HexToAddress(args[0])
 			toAddress := sdk.AccAddress(hexAddress.Bytes())
@@ -57,7 +57,7 @@ func GetMigrateAccountCmd() *cobra.Command {
 
 			//check migrate
 			queryClient := types.NewQueryClient(cliCtx)
-			if _, err := queryClient.MigrateCheckAccount(ctx, &types.QueryMigrateCheckAccountRequest{From: fromAddress.String(), To: toAddress.String()}); err != nil {
+			if _, err := queryClient.MigrateCheckAccount(ctx, &types.QueryMigrateCheckAccountRequest{From: fromAddress.String(), To: hexAddress.String()}); err != nil {
 				return err
 			}
 
@@ -68,7 +68,7 @@ func GetMigrateAccountCmd() *cobra.Command {
 			}
 
 			//migrate account
-			msg, err := getMigrateAccountMsg(cliCtx, fromAddress, toAddress)
+			msg, err := getMigrateAccountMsg(cliCtx, fromAddress, hexAddress)
 			msgs = append(msgs, msg)
 			//sign and broadcast tx
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msgs...)
@@ -110,11 +110,15 @@ func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.
 	return msgs, nil
 }
 
-func getMigrateAccountMsg(cliCtx client.Context, from, to sdk.AccAddress) (sdk.Msg, error) {
-	toInfo, _ := cliCtx.Keyring.KeyByAddress(to)
-	sign, _, err := cliCtx.Keyring.Sign(toInfo.GetName(), types.MigrateAccountSignatureHash(from, to))
+func getMigrateAccountMsg(cliCtx client.Context, from sdk.AccAddress, to common.Address) (sdk.Msg, error) {
+	toInfo, _ := cliCtx.Keyring.KeyByAddress(sdk.AccAddress(to.Bytes()))
+	sign, _, err := cliCtx.Keyring.Sign(toInfo.GetName(), types.MigrateAccountSignatureHash(from, to.Bytes()))
 	if err != nil {
 		return nil, fmt.Errorf("sign migrate signature error %v", err)
 	}
-	return types.NewMsgMigrateAccount(from, to, hex.EncodeToString(sign)), nil
+	msg := types.NewMsgMigrateAccount(from, to, hex.EncodeToString(sign))
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, fmt.Errorf("validate basic error %v", err)
+	}
+	return msg, nil
 }

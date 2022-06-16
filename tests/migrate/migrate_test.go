@@ -596,9 +596,9 @@ func (cli *Client) testProposalVote(ctx context.Context, privateKey ...cryptotyp
 	cli.t.Log("proposal vote txHash", txHash)
 }
 func (cli *Client) testMigrateAccount(ctx context.Context, toPrivateKey cryptotypes.PrivKey) {
-	toAddress := sdk.AccAddress(toPrivateKey.PubKey().Address())
+	toAddress := common.BytesToAddress(toPrivateKey.PubKey().Address())
 	cli.t.Log("migrate from", cli.FxAddress().String(), "migrate to", toAddress.String())
-	migrateSign, err := toPrivateKey.Sign(migratetypes.MigrateAccountSignatureHash(cli.FxAddress(), toAddress))
+	migrateSign, err := toPrivateKey.Sign(migratetypes.MigrateAccountSignatureHash(cli.FxAddress(), toAddress.Bytes()))
 	require.NoError(cli.t, err)
 
 	msg := migratetypes.NewMsgMigrateAccount(cli.FxAddress(), toAddress, hex.EncodeToString(migrateSign))

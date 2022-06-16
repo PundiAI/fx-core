@@ -3,6 +3,8 @@ package keeper
 import (
 	"bytes"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -53,7 +55,7 @@ func (k *Keeper) GetMigrateI() []MigrateI {
 }
 
 // SetMigrateRecord set from and to migrate record
-func (k Keeper) SetMigrateRecord(ctx sdk.Context, from, to sdk.AccAddress) {
+func (k Keeper) SetMigrateRecord(ctx sdk.Context, from sdk.AccAddress, to common.Address) {
 	store := ctx.KVStore(k.storeKey)
 
 	bzFrom := make([]byte, 1+addressLen+8)
@@ -70,14 +72,14 @@ func (k Keeper) SetMigrateRecord(ctx sdk.Context, from, to sdk.AccAddress) {
 	copy(bzTo[1+addressLen:], height)
 
 	store.Set(types.GetMigratedRecordKey(from), bzFrom)
-	store.Set(types.GetMigratedRecordKey(to), bzTo)
+	store.Set(types.GetMigratedRecordKey(to.Bytes()), bzTo)
 
 	store.Set(types.GetMigratedDirectionFrom(from), []byte{1})
-	store.Set(types.GetMigratedDirectionTo(to), []byte{1})
+	store.Set(types.GetMigratedDirectionTo(to.Bytes()), []byte{1})
 }
 
 // GetMigrateRecord get address migrate record
-func (k Keeper) GetMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) (mr types.MigrateRecord, found bool) {
+func (k Keeper) GetMigrateRecord(ctx sdk.Context, addr []byte) (mr types.MigrateRecord, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetMigratedRecordKey(addr))
 	if len(bz) < addressLen+9 {
@@ -85,26 +87,26 @@ func (k Keeper) GetMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) (mr types
 	}
 	mr.Height = int64(sdk.BigEndianToUint64(bz[addressLen+1:]))
 	if bytes.Equal(bz[:1], types.ValuePrefixMigrateFromFlag) {
-		mr.From = addr.String()
-		mr.To = sdk.AccAddress(bz[1 : addressLen+1]).String()
+		mr.From = sdk.AccAddress(addr).String()
+		mr.To = common.BytesToAddress(bz[1 : addressLen+1]).String()
 	} else {
 		mr.From = sdk.AccAddress(bz[1 : addressLen+1]).String()
-		mr.To = addr.String()
+		mr.To = common.BytesToAddress(addr).String()
 	}
 	return mr, true
 }
 
-func (k Keeper) HasMigrateRecord(ctx sdk.Context, addr sdk.AccAddress) bool {
+func (k Keeper) HasMigrateRecord(ctx sdk.Context, addr []byte) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetMigratedRecordKey(addr))
 }
 
-func (k Keeper) HasMigratedDirectionFrom(ctx sdk.Context, addr sdk.AccAddress) bool {
+func (k Keeper) HasMigratedDirectionFrom(ctx sdk.Context, addr []byte) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetMigratedDirectionFrom(addr))
 }
 
-func (k Keeper) HasMigratedDirectionTo(ctx sdk.Context, addr sdk.AccAddress) bool {
+func (k Keeper) HasMigratedDirectionTo(ctx sdk.Context, addr []byte) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetMigratedDirectionTo(addr))
 }

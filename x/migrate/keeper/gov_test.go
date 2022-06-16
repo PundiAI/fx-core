@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/types"
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
@@ -17,7 +18,7 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(1)
 	suite.Require().Equal(len(ethKeys), 1)
-	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
+	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
@@ -32,7 +33,7 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit1.Amount)
 
-	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes())
 	suite.Require().False(found)
 
 	migrateKeeper := suite.app.MigrateKeeper
@@ -45,7 +46,7 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
 	suite.Require().False(found)
 
-	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit2.Amount)
 }
@@ -59,8 +60,8 @@ func (suite *KeeperTestSuite) TestMigrateGovActive() {
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(2)
 	suite.Require().Equal(len(ethKeys), 2)
-	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
-	toEthAcc := sdk.AccAddress(ethKeys[1].PubKey().Address().Bytes())
+	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
+	toEthAcc := common.BytesToAddress(ethKeys[1].PubKey().Address().Bytes())
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
@@ -71,18 +72,18 @@ func (suite *KeeperTestSuite) TestMigrateGovActive() {
 	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, acc, amount)
 	suite.Require().NoError(err)
 
-	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, ethAcc, amount)
+	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes(), amount)
 	suite.Require().NoError(err)
 
 	deposit1, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit1.Amount)
 
-	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit2.Amount)
 
-	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc)
+	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().False(found)
 
 	migrateKeeper := suite.app.MigrateKeeper
@@ -95,11 +96,11 @@ func (suite *KeeperTestSuite) TestMigrateGovActive() {
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
 	suite.Require().False(found)
 
-	deposit3, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	deposit3, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit3.Amount)
 
-	deposit4, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc)
+	deposit4, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit4.Amount)
 }
@@ -113,8 +114,8 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(2)
 	suite.Require().Equal(len(ethKeys), 2)
-	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
-	toEthAcc := sdk.AccAddress(ethKeys[1].PubKey().Address().Bytes())
+	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
+	toEthAcc := common.BytesToAddress(ethKeys[1].PubKey().Address().Bytes())
 
 	//add proposal
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
@@ -127,7 +128,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	suite.Require().NoError(err)
 
 	//eth acc deposit
-	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, ethAcc, amount)
+	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes(), amount)
 	suite.Require().NoError(err)
 
 	// acc vote
@@ -139,7 +140,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit1.Amount)
 	//check eth acc deposit
-	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit2.Amount)
 
@@ -149,10 +150,10 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	suite.Require().Equal(vote.Option, govtypes.OptionYes)
 
 	//check to address deposit vote
-	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc)
+	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().False(found)
 
-	_, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, toEthAcc)
+	_, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().False(found)
 
 	migrateKeeper := suite.app.MigrateKeeper
@@ -165,18 +166,18 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
 	suite.Require().False(found)
 
-	deposit3, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc)
+	deposit3, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit3.Amount)
 
-	deposit4, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc)
+	deposit4, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit4.Amount)
 
 	_, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, acc)
 	suite.Require().False(found)
 
-	vote, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, toEthAcc)
+	vote, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(vote.Option, govtypes.OptionYes)
 

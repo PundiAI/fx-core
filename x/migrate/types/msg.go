@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"encoding/hex"
 
+	"github.com/ethereum/go-ethereum/common"
+
+	fxtypes "github.com/functionx/fx-core/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -16,7 +20,7 @@ var (
 )
 
 // NewMsgMigrateAccount returns a new MsgMigrateAccount
-func NewMsgMigrateAccount(from, to sdk.AccAddress, signature string) *MsgMigrateAccount {
+func NewMsgMigrateAccount(from sdk.AccAddress, to common.Address, signature string) *MsgMigrateAccount {
 	return &MsgMigrateAccount{
 		From:      from.String(),
 		To:        to.String(),
@@ -36,16 +40,18 @@ func (m *MsgMigrateAccount) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
-
-	toAddress, err := sdk.AccAddressFromBech32(m.To)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address (%s)", err)
+	//check to address
+	if err := fxtypes.ValidateAddress(m.To); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address (%s)", err.Error())
 	}
+	toAddress := common.HexToAddress(m.To)
 
-	if fromAddress.Equals(toAddress) {
+	//check same account
+	if bytes.Equal(fromAddress.Bytes(), toAddress.Bytes()) {
 		return sdkerrors.Wrap(ErrSameAccount, m.From)
 	}
 
+	//check signature
 	if len(m.Signature) == 0 {
 		return sdkerrors.Wrap(ErrInvalidSignature, "signature is empty")
 	}
@@ -53,13 +59,13 @@ func (m *MsgMigrateAccount) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(ErrInvalidSignature, "could not hex decode signature: %s", m.Signature)
 	}
-	pubKey, err := crypto.SigToPub(MigrateAccountSignatureHash(fromAddress, toAddress), sig)
+	pubKey, err := crypto.SigToPub(MigrateAccountSignatureHash(fromAddress, toAddress.Bytes()), sig)
 	if err != nil {
 		return sdkerrors.Wrapf(ErrInvalidSignature, "sig to pub key error: %s", err)
 	}
 	address := crypto.PubkeyToAddress(*pubKey)
 	if !bytes.Equal(address.Bytes(), toAddress.Bytes()) {
-		return sdkerrors.Wrapf(ErrInvalidSignature, "signature key not equal to address, expected %s, got %s", m.To, sdk.AccAddress(address.Bytes()).String())
+		return sdkerrors.Wrapf(ErrInvalidSignature, "signature key not equal to address, expected %s, got %s", m.To, address.String())
 	}
 	return nil
 }
@@ -78,6 +84,6 @@ func (m *MsgMigrateAccount) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-func MigrateAccountSignatureHash(from, to sdk.AccAddress) []byte {
-	return crypto.Keccak256([]byte(MigrateAccountSignaturePrefix), from.Bytes(), to.Bytes())
+func MigrateAccountSignatureHash(from, to []byte) []byte {
+	return crypto.Keccak256([]byte(MigrateAccountSignaturePrefix), from, to)
 }

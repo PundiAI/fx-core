@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -52,7 +54,7 @@ func (suite *KeeperTestSuite) TestMigrateRecord() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				suite.app.MigrateKeeper.SetMigrateRecord(suite.ctx, from, to)
 
@@ -76,7 +78,7 @@ func (suite *KeeperTestSuite) TestMigrateRecord() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				suite.app.MigrateKeeper.SetMigrateRecord(suite.ctx, from, to)
 
@@ -136,7 +138,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 			func() {
 				toKey, err := ethsecp256k1.GenerateKey()
 				suite.Require().NoError(err)
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 				req = &types.QueryMigrateCheckAccountRequest{
 					To: to.String(),
 				}
@@ -162,7 +164,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				suite.Require().NoError(err)
 
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 				req = &types.QueryMigrateCheckAccountRequest{
 					From: from.String(),
 					To:   to.String(),
@@ -176,7 +178,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				suite.app.MigrateKeeper.SetMigrateRecord(suite.ctx, from, to)
 
@@ -193,7 +195,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
@@ -214,12 +216,12 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
 				//delegate
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{
@@ -235,7 +237,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
@@ -259,18 +261,18 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
 				//delegate
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
-				delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, to, val1.GetOperator())
+				delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, to.Bytes(), val1.GetOperator())
 				suite.Require().True(found)
 
-				_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, to, val1.GetOperator(), delegation.Shares)
+				_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, to.Bytes(), val1.GetOperator(), delegation.Shares)
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{
@@ -286,7 +288,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1, val2 := validators[0], validators[1]
@@ -310,18 +312,18 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1, val2 := validators[0], validators[1]
 				//delegate
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
-				delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, to, val1.GetOperator())
+				delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, to.Bytes(), val1.GetOperator())
 				suite.Require().True(found)
 
-				_, err = suite.app.StakingKeeper.BeginRedelegation(suite.ctx, to, val1.GetOperator(), val2.GetOperator(), delegation.Shares)
+				_, err = suite.app.StakingKeeper.BeginRedelegation(suite.ctx, to.Bytes(), val1.GetOperator(), val2.GetOperator(), delegation.Shares)
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{
@@ -337,7 +339,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
@@ -365,7 +367,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
@@ -373,7 +375,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to, amount)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to.Bytes(), amount)
 				suite.Require().NoError(err)
 
 				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
@@ -393,7 +395,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
@@ -421,7 +423,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
@@ -429,7 +431,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to, amount)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to.Bytes(), amount)
 				suite.Require().NoError(err)
 
 				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
@@ -449,7 +451,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
@@ -480,7 +482,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
@@ -488,14 +490,14 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to, amount)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to.Bytes(), amount)
 				suite.Require().NoError(err)
 
 				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
 				suite.Require().True(found)
 				suite.Require().Equal(p.Status, govtypes.StatusVotingPeriod)
 
-				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, to, govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, to.Bytes(), govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{
@@ -511,7 +513,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				fromKey := suite.GenerateAcc(1)[0]
 				toKey := suite.GenerateEthAcc(1)[0]
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
-				to := sdk.AccAddress(toKey.PubKey().Address().Bytes())
+				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
@@ -519,7 +521,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to, amount)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to.Bytes(), amount)
 				suite.Require().NoError(err)
 
 				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
@@ -529,7 +531,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, from, govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
 				suite.Require().NoError(err)
 
-				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, to, govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, to.Bytes(), govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{

@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
@@ -16,11 +17,11 @@ func (suite *KeeperTestSuite) TestMigrateBank() {
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(1)
 	suite.Require().Equal(len(ethKeys), 1)
-	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
+	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	b1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)
 	require.NotEmpty(suite.T(), b1)
-	b2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc)
+	b2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc.Bytes())
 	require.NotEmpty(suite.T(), b2)
 
 	migrateKeeper := suite.app.MigrateKeeper
@@ -32,7 +33,7 @@ func (suite *KeeperTestSuite) TestMigrateBank() {
 
 	bb1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)
 	suite.Require().Empty(bb1)
-	bb2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc)
+	bb2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc.Bytes())
 	suite.Require().Equal(b1, bb2.Sub(b2))
 
 }

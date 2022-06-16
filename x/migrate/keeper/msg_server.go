@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,16 +24,13 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 	if err != nil {
 		return nil, err
 	}
-	toAddress, err := sdk.AccAddressFromBech32(msg.To)
-	if err != nil {
-		return nil, err
-	}
+	toAddress := common.HexToAddress(msg.To)
 
 	//check migrated
 	if k.HasMigrateRecord(ctx, fromAddress) {
 		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.From)
 	}
-	if k.HasMigrateRecord(ctx, toAddress) {
+	if k.HasMigrateRecord(ctx, toAddress.Bytes()) {
 		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.To)
 	}
 

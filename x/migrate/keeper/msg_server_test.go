@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/x/migrate/types"
 )
@@ -15,24 +16,24 @@ func (suite *KeeperTestSuite) TestMigrateAccount() {
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(1)
 	suite.Require().Equal(len(ethKeys), 1)
-	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
+	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	b1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)
 	suite.Require().NotEmpty(b1)
 
-	b2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc)
+	b2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc.Bytes())
 	suite.Require().NotEmpty(b1)
 
 	_, found := suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, acc)
 	suite.Require().False(found)
 
-	_, found = suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, ethAcc)
+	_, found = suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, ethAcc.Bytes())
 	suite.Require().False(found)
 
 	found = suite.app.MigrateKeeper.HasMigratedDirectionFrom(suite.ctx, acc)
 	suite.Require().False(found)
 
-	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc)
+	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc.Bytes())
 	suite.Require().False(found)
 
 	_, err := suite.app.MigrateKeeper.MigrateAccount(sdk.WrapSDKContext(suite.ctx), &types.MsgMigrateAccount{
@@ -46,18 +47,18 @@ func (suite *KeeperTestSuite) TestMigrateAccount() {
 	suite.Require().True(found)
 	suite.Require().Equal(record.From, acc.String())
 
-	record, found = suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, ethAcc)
+	record, found = suite.app.MigrateKeeper.GetMigrateRecord(suite.ctx, ethAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(record.To, ethAcc.String())
 
 	found = suite.app.MigrateKeeper.HasMigratedDirectionFrom(suite.ctx, acc)
 	suite.Require().True(found)
 
-	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc)
+	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc.Bytes())
 	suite.Require().True(found)
 
 	bb1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)
 	suite.Require().True(bb1.Empty())
-	bb2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc)
+	bb2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc.Bytes())
 	suite.Require().Equal(b1, bb2.Sub(b2))
 }

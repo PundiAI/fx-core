@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/functionx/fx-core/app"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -37,7 +39,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(1)
 	suite.Require().Equal(len(ethKeys), 1)
-	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
+	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 	val1 := validators[0]
@@ -52,7 +54,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	shares := delegation.Shares
 
 	//check eth acc delegate
-	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc, val1.GetOperator())
+	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().False(false)
 
 	//commit block
@@ -62,7 +64,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	//check reward
 	rewards1, err := GetDelegateRewards(suite.ctx, suite.app, acc, val1.GetOperator())
 	suite.Require().NoError(err)
-	rewards2, err := GetDelegateRewards(suite.ctx, suite.app, ethAcc, val1.GetOperator())
+	rewards2, err := GetDelegateRewards(suite.ctx, suite.app, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().Equal("delegation does not exist", err.Error())
 
 	//migrate
@@ -74,7 +76,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	suite.Require().NoError(err)
 
 	//check eth acc delegate
-	delegation, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc, val1.GetOperator())
+	delegation, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().True(found)
 	suite.Require().Equal(shares, delegation.Shares)
 
@@ -86,7 +88,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	rewards3, err := GetDelegateRewards(suite.ctx, suite.app, acc, val1.GetOperator())
 	suite.Require().Equal("delegation does not exist", err.Error())
 	suite.Require().Equal(rewards2, rewards3)
-	rewards4, err := GetDelegateRewards(suite.ctx, suite.app, ethAcc, val1.GetOperator())
+	rewards4, err := GetDelegateRewards(suite.ctx, suite.app, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().NoError(err)
 	suite.Require().Equal(rewards1, rewards4)
 }
@@ -100,7 +102,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(1)
 	suite.Require().Equal(len(ethKeys), 1)
-	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
+	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 	val1 := validators[0]
@@ -113,7 +115,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	del, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
 	suite.Require().True(found)
 
-	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc, val1.GetOperator())
+	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().False(found)
 
 	//undelegate
@@ -142,30 +144,30 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
 	suite.Require().False(found)
 
-	delegation3, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc, val1.GetOperator())
+	delegation3, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().True(found)
 	suite.Require().Equal(delegation2.Shares, delegation3.Shares)
 
 	unbondingDelegations = suite.app.StakingKeeper.GetAllUnbondingDelegations(suite.ctx, acc)
 	suite.Require().Equal(0, len(unbondingDelegations))
 
-	unbondingDelegations = suite.app.StakingKeeper.GetAllUnbondingDelegations(suite.ctx, ethAcc)
+	unbondingDelegations = suite.app.StakingKeeper.GetAllUnbondingDelegations(suite.ctx, ethAcc.Bytes())
 	suite.Require().Equal(1, len(unbondingDelegations))
 	suite.Require().Equal(unbondingDelegations[0].Entries[0].CompletionTime, completionTime)
-	suite.Require().Equal(unbondingDelegations[0].DelegatorAddress, ethAcc.String())
+	suite.Require().Equal(unbondingDelegations[0].DelegatorAddress, sdk.AccAddress(ethAcc.Bytes()).String())
 
 	slice = suite.app.StakingKeeper.GetUBDQueueTimeSlice(suite.ctx, completionTime)
 	suite.Require().Equal(1, len(slice))
-	suite.Require().Equal(ethAcc.String(), slice[0].DelegatorAddress)
+	suite.Require().Equal(sdk.AccAddress(ethAcc.Bytes()).String(), slice[0].DelegatorAddress)
 
-	ethAccBalanceV1 := suite.app.BankKeeper.GetBalance(suite.ctx, ethAcc, fxtypes.DefaultDenom)
+	ethAccBalanceV1 := suite.app.BankKeeper.GetBalance(suite.ctx, ethAcc.Bytes(), fxtypes.DefaultDenom)
 	suite.Require().True(ethAccBalanceV1.Amount.GT(sdk.NewInt(0)))
 
 	suite.ctx = commitUnbonding(suite.T(), suite.ctx, suite.app)
 
 	suite.ctx = commitBlock(suite.T(), suite.ctx, suite.app)
 
-	ethAccBalanceV2 := suite.app.BankKeeper.GetBalance(suite.ctx, ethAcc, fxtypes.DefaultDenom)
+	ethAccBalanceV2 := suite.app.BankKeeper.GetBalance(suite.ctx, ethAcc.Bytes(), fxtypes.DefaultDenom)
 	suite.Require().Equal(ethAccBalanceV2.Sub(ethAccBalanceV1).Amount, delegateAmount.Quo(sdk.NewInt(10)))
 }
 
@@ -178,7 +180,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	acc := sdk.AccAddress(keys[0].PubKey().Address().Bytes())
 	ethKeys := suite.GenerateEthAcc(1)
 	suite.Require().Equal(len(ethKeys), 1)
-	ethAcc := sdk.AccAddress(ethKeys[0].PubKey().Address().Bytes())
+	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 	val1, val2 := validators[0], validators[1]
@@ -190,7 +192,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	_, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
 	suite.Require().True(found)
 
-	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc, val1.GetOperator())
+	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().False(found)
 
 	//redelegate
@@ -221,25 +223,25 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
 	suite.Require().False(found)
 
-	delegation4, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc, val1.GetOperator())
+	delegation4, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().True(found)
 	suite.Require().Equal(delegation2.Shares, delegation4.Shares)
 
-	delegation5, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc, val2.GetOperator())
+	delegation5, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val2.GetOperator())
 	suite.Require().True(found)
 	suite.Require().Equal(delegation3.Shares, delegation5.Shares)
 
 	queue = suite.app.StakingKeeper.GetRedelegationQueueTimeSlice(suite.ctx, completionTime)
 	suite.Require().Equal(int(entries), len(queue))
-	suite.Require().Equal(queue[0].DelegatorAddress, ethAcc.String())
+	suite.Require().Equal(queue[0].DelegatorAddress, sdk.AccAddress(ethAcc.Bytes()).String())
 }
 
-func GetDelegateRewards(ctx sdk.Context, app *app.App, delegate sdk.AccAddress, validator sdk.ValAddress) (sdk.DecCoins, error) {
+func GetDelegateRewards(ctx sdk.Context, app *app.App, delegate []byte, validator sdk.ValAddress) (sdk.DecCoins, error) {
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.DistrKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 	rewards, err := queryClient.DelegationRewards(context.Background(), &types.QueryDelegationRewardsRequest{
-		DelegatorAddress: delegate.String(),
+		DelegatorAddress: sdk.AccAddress(delegate).String(),
 		ValidatorAddress: validator.String(),
 	})
 	if err != nil {

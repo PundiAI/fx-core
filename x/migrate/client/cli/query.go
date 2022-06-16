@@ -133,19 +133,27 @@ func CmdGetMigrateAccount() *cobra.Command {
 
 func CmdGetMigrateRecord() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "record [address]",
+		Use:     "record [bech32/hex address]",
 		Short:   "Query the migrate record of address",
-		Example: fmt.Sprintf("%s q migrate record fx1plglgtkj4kj7z2q0jqgyw8exfnahwu8rlu6kzm", version.AppName),
+		Example: fmt.Sprintf("%s q migrate record fx1plg.../0xdf9...", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			addr, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
+			var addr string
+			if common.IsHexAddress(args[0]) {
+				addr = common.HexToAddress(args[0]).String()
+			} else {
+				if acc, err := sdk.AccAddressFromBech32(args[0]); err == nil {
+					addr = acc.String()
+				}
 			}
-			res, err := queryClient.MigrateRecord(cmd.Context(), &types.QueryMigrateRecordRequest{Address: addr.String()})
+			if len(addr) == 0 {
+				return fmt.Errorf("must be bech32 or hex address: %s", args[0])
+			}
+
+			res, err := queryClient.MigrateRecord(cmd.Context(), &types.QueryMigrateRecordRequest{Address: addr})
 			if err != nil {
 				return err
 			}
