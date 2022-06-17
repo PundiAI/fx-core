@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 	require.NoError(suite.T(), err)
 
 	// 5. oracle duplicate set bridger
-	oracleDuplicateSetOrchestratorMsg := &types.MsgBondedOracle{
+	oracleDuplicateBondedMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -83,12 +83,12 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
 		ChainName:        suite.chainName,
 	}
-	_, err = suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), oracleDuplicateSetOrchestratorMsg)
+	_, err = suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), oracleDuplicateBondedMsg)
 	require.ErrorIs(suite.T(), types.ErrInvalid, err)
 	require.EqualValues(suite.T(), fmt.Sprintf("oracle existed bridger address: %s", types.ErrInvalid.Error()), err.Error())
 
 	// 6. Set the same bridger address for different Oracle databases
-	duplicateSetOrchestratorMsg := &types.MsgBondedOracle{
+	duplicateSetBridgerMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[1].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100000)},
 		ChainName:        suite.chainName,
 	}
-	_, err = suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), duplicateSetOrchestratorMsg)
+	_, err = suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), duplicateSetBridgerMsg)
 	require.ErrorIs(suite.T(), types.ErrInvalid, err)
 	require.EqualValues(suite.T(), fmt.Sprintf("bridger address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
 

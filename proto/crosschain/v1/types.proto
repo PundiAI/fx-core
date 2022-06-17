@@ -67,7 +67,7 @@ enum ClaimType {
 }
 
 // Attestation is an aggregate of `claims` that eventually becomes `observed` by
-// all orchestrators
+// all bridger set
 // EVENT_NONCE:
 // EventNonce a nonce provided by the gravity contract that is unique per event
 // fired These event nonces must be relayed in order. This is a correctness
@@ -114,16 +114,6 @@ message ERC20Token {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-}
-
-// SignType defines messages that have been signed by an bridger
-enum SignType {
-  option (gogoproto.goproto_enum_prefix) = false;
-  option (gogoproto.goproto_enum_stringer) = false;
-
-  SIGN_TYPE_UNSPECIFIED = 0;
-  SIGN_TYPE_ORCHESTRATOR_SIGNED_MULTI_SIG_UPDATE = 1;
-  SIGN_TYPE_ORCHESTRATOR_SIGNED_WITHDRAW_BATCH = 2;
 }
 
 // IDSet represents a set of IDs

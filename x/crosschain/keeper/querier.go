@@ -31,7 +31,7 @@ const (
 	// signed requests can be submitted.
 	QueryLastOracleSetRequests = "lastOracleSetRequests"
 	// QueryLastPendingOracleSetRequestByAddr Gets a list of unsigned oracleSets for a given validators delegate
-	// orchestrator address. Up to 100 are sent at a time
+	// bridger address. Up to 100 are sent at a time
 	QueryLastPendingOracleSetRequestByAddr = "lastPendingOracleSetRequest"
 
 	QueryCurrentOracleSet = "currentOracleSet"
@@ -52,7 +52,7 @@ const (
 	// or in the case of a Cosmos originated address it's denom
 	QueryBatch = "batch"
 	// QueryLastPendingBatchRequestByAddr Get the last unsigned batch (of any denom) for the validators
-	// orchestrator to sign
+	// bridger to sign
 	QueryLastPendingBatchRequestByAddr = "lastPendingBatchRequest"
 	// QueryOutgoingTxBatches gets the last 100 outgoing batches, regardless of denom, useful
 	// for a relayed to see what is available to relay
@@ -292,7 +292,7 @@ func queryCurrentOracleSet(ctx sdk.Context, keeper Keeper) ([]byte, error) {
 	return res, nil
 }
 
-// queryOracleSetConfirm returns the confirm msg for single orchestrator address and nonce
+// queryOracleSetConfirm returns the confirm msg for single bridger address and nonce
 // When nothing found a nil value is returned
 func queryOracleSetConfirm(ctx sdk.Context, nonceStr, bridgerAddr string, keeper Keeper) ([]byte, error) {
 	nonce, err := uint64FromString(nonceStr)

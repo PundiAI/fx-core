@@ -111,8 +111,8 @@ func GetOracleKey(oracle sdk.AccAddress) []byte {
 }
 
 // GetOracleAddressByBridgerKey returns the following key format
-func GetOracleAddressByBridgerKey(orchestrator sdk.AccAddress) []byte {
-	return append(OracleAddressByBridgerKey, orchestrator.Bytes()...)
+func GetOracleAddressByBridgerKey(bridger sdk.AccAddress) []byte {
+	return append(OracleAddressByBridgerKey, bridger.Bytes()...)
 }
 
 // GetOracleAddressByExternalKey returns the following key format

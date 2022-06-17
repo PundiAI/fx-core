@@ -22,7 +22,6 @@
     - [UpdateChainOraclesProposal](#fx.gravity.crosschain.v1.UpdateChainOraclesProposal)
   
     - [ClaimType](#fx.gravity.crosschain.v1.ClaimType)
-    - [SignType](#fx.gravity.crosschain.v1.SignType)
   
 - [crosschain/v1/tx.proto](#crosschain/v1/tx.proto)
     - [MsgAddDelegate](#fx.gravity.crosschain.v1.MsgAddDelegate)
@@ -314,7 +313,7 @@
 
 ### Attestation
 Attestation is an aggregate of `claims` that eventually becomes `observed` by
-all orchestrators
+all bridger set
 EVENT_NONCE:
 EventNonce a nonce provided by the gravity contract that is unique per event
 fired These event nonces must be relayed in order. This is a correctness
@@ -615,19 +614,6 @@ be handled
 | CLAIM_TYPE_SEND_TO_EXTERNAL | 2 |  |
 | CLAIM_TYPE_BRIDGE_TOKEN | 3 |  |
 | CLAIM_TYPE_ORACLE_SET_UPDATED | 4 |  |
-
-
-
-<a name="fx.gravity.crosschain.v1.SignType"></a>
-
-### SignType
-SignType defines messages that have been signed by an bridger
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| SIGN_TYPE_UNSPECIFIED | 0 |  |
-| SIGN_TYPE_ORCHESTRATOR_SIGNED_MULTI_SIG_UPDATE | 1 |  |
-| SIGN_TYPE_ORCHESTRATOR_SIGNED_WITHDRAW_BATCH | 2 |  |
 
 
  <!-- end enums -->

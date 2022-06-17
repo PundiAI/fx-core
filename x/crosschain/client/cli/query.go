@@ -338,8 +338,8 @@ func CmdGetLastOracleSetRequests() *cobra.Command {
 
 func CmdGetPendingOracleSetRequest() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pending-oracle-set-request [chain-name] [orchestrator]",
-		Short: "Query the latest oracle-set request which has not been signed by a particular oracle orchestrator",
+		Use:   "pending-oracle-set-request [chain-name] [bridger]",
+		Short: "Query the latest oracle-set request which has not been signed by a particular oracle bridger",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -370,7 +370,7 @@ func CmdGetPendingOracleSetRequest() *cobra.Command {
 func CmdGetOracleSetConfirm() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracle-set-confirm [chain-name] [nonce] [bridger-address]",
-		Short: "Query oracle-set confirmation with a particular nonce from a particular oracle orchestrator",
+		Short: "Query oracle-set confirmation with a particular nonce from a particular oracle bridger",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
