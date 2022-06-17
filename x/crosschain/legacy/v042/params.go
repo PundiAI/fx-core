@@ -19,7 +19,6 @@ func GetParamSetPairs(params *types.Params) paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(types.ParamsStoreSlashFraction, &params.SlashFraction, nil),
 		paramtypes.NewParamSetPair(types.ParamStoreOracleSetUpdatePowerChangePercent, &params.OracleSetUpdatePowerChangePercent, nil),
 		paramtypes.NewParamSetPair(types.ParamStoreIbcTransferTimeoutHeight, &params.IbcTransferTimeoutHeight, nil),
-		paramtypes.NewParamSetPair(types.ParamOracleDelegateThreshold, &params.DelegateThreshold, nil),
-		paramtypes.NewParamSetPair(ParamOracleDepositThreshold, &params.DelegateMultiple, nil),
+		paramtypes.NewParamSetPair(ParamOracleDepositThreshold, &params.DelegateThreshold, nil),
 	}
 }

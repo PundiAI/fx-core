@@ -187,9 +187,9 @@ func migrationsOrder(modules []string) []string {
 func clearTestnetKVStores(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 	logger := ctx.Logger()
 	if fxtypes.NetworkTestnet() != fxtypes.Network() {
-		logger.Info("clear kv store", "ignore clearKVStore network", fxtypes.Network())
 		return
 	}
+	logger.Info("clear kv store", "network", fxtypes.Network())
 	cleanModules := []string{feemarkettypes.StoreKey, evmtypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey}
 	multiStore := ctx.MultiStore()
 	for _, storeName := range cleanModules {

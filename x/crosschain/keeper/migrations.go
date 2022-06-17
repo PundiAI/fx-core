@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v045 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
@@ -8,23 +9,25 @@ import (
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
-	keeper    Keeper
-	sk        v045.StakingKeeper
-	paramsKey sdk.StoreKey
+	keeper      Keeper
+	sk          v045.StakingKeeper
+	paramsKey   sdk.StoreKey
+	legacyAmino *codec.LegacyAmino
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper, sk v045.StakingKeeper, paramsKey sdk.StoreKey) Migrator {
+func NewMigrator(keeper Keeper, sk v045.StakingKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) Migrator {
 	return Migrator{
-		keeper:    keeper,
-		sk:        sk,
-		paramsKey: paramsKey,
+		keeper:      keeper,
+		sk:          sk,
+		paramsKey:   paramsKey,
+		legacyAmino: legacyAmino,
 	}
 }
 
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	if err := v045.MigrateParams(ctx, &m.keeper.paramSpace, m.keeper.moduleName, m.paramsKey); err != nil {
+	if err := v045.MigrateParams(ctx, m.keeper.moduleName, m.legacyAmino, m.paramsKey); err != nil {
 		return err
 	}
 	oracles, delegateValidator, err := v045.MigrateOracle(ctx, m.keeper.cdc, m.keeper.storeKey, m.sk)
