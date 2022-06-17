@@ -203,7 +203,7 @@ func clearTestnetKVStores(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 		if err := deleteKVStore(kvStore); err != nil {
 			panic(fmt.Sprintf("failed to delete store %s: %s", storeName, err.Error()))
 		}
-		logger.Info("clear kv store done", "storesName", storeName, "consumeMs", time.Now().UnixMilli()-startTime.UnixMilli())
+		logger.Info("clear kv store done", "storesName", storeName, "consumeMs", time.Now().UnixNano()-startTime.UnixNano())
 	}
 }
 
