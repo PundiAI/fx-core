@@ -35,8 +35,8 @@ func ParseFunctionXChainID(_ string) (*big.Int, error) {
 }
 
 func ValidFunctionXChainID(chainID string) bool {
-	if len(chainID) > 48 {
-		return false
+	if fxtypes.ChainId() == chainID {
+		return true
 	}
-	return true
+	return false
 }

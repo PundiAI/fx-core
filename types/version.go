@@ -20,16 +20,19 @@ const (
 	// gravity not slash no set eth address validator
 	mainnetGravityValsetSlashBlock = 1685000
 
+	mainnetChainId    = "fxcore"
 	mainnetEvmChainID = 1
 )
 
 // testnet constant
 const (
+	testnetChainId    = "dhobyghaut"
 	testnetEvmChainID = 90001
 )
 
 // devnet constant
 const (
+	devnetChainId    = "boonlay"
 	devnetEvmChainID = 221
 )
 
@@ -58,6 +61,14 @@ func NetworkDevnet() string {
 	return networkDevnet
 }
 
+func ChainId() string {
+	if networkDevnet == network {
+		return devnetChainId
+	} else if networkTestnet == network {
+		return testnetChainId
+	}
+	return mainnetChainId
+}
 func EIP155ChainID() *big.Int {
 	if networkDevnet == network {
 		return big.NewInt(devnetEvmChainID)
