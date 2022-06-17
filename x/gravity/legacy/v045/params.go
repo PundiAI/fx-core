@@ -5,14 +5,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ethtypes "github.com/functionx/fx-core/x/eth/types"
 	"github.com/functionx/fx-core/x/gravity/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
-func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) error {
+func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey, toModuleName string) error {
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(types.ModuleName), '/'))
 	gravityParams := &types.Params{}
 	isExist := false
@@ -50,7 +49,7 @@ func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sd
 		return err
 	}
 
-	store := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(ethtypes.ModuleName), '/'))
+	store := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(toModuleName), '/'))
 	for _, pair := range params.ParamSetPairs() {
 		bz, err := legacyAmino.MarshalJSON(pair.Value)
 		if err != nil {
