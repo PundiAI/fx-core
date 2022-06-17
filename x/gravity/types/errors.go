@@ -5,10 +5,9 @@ import (
 )
 
 var (
-	ErrDuplicate                  = sdkerrors.Register(ModuleName, 2, "duplicate")
-	ErrInvalid                    = sdkerrors.Register(ModuleName, 3, "invalid")
-	ErrUnknown                    = sdkerrors.Register(ModuleName, 5, "unknown")
-	ErrEmpty                      = sdkerrors.Register(ModuleName, 6, "empty")
-	ErrNonContiguousEventNonce    = sdkerrors.Register(ModuleName, 9, "non contiguous event nonce")
-	ErrInvalidRequestBatchBaseFee = sdkerrors.Register(ModuleName, 10, "invalid request batch base fee")
+	ErrInvalid                 = sdkerrors.Register(ModuleName, 2, "invalid")
+	ErrEmpty                   = sdkerrors.Register(ModuleName, 3, "empty")
+	ErrUnknown                 = sdkerrors.Register(ModuleName, 4, "unknown")
+	ErrDuplicate               = sdkerrors.Register(ModuleName, 5, "duplicate")
+	ErrNonContiguousEventNonce = sdkerrors.Register(ModuleName, 6, "non contiguous event nonce")
 )

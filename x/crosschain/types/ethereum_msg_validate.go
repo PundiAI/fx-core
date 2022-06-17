@@ -180,7 +180,7 @@ func (b EthereumMsgValidate) MsgSendToExternalValidate(m MsgSendToExternal) (err
 		return sdkerrors.Wrap(ErrInvalid, "sender address")
 	}
 	if err = ValidateEthereumAddress(m.Dest); err != nil {
-		return sdkerrors.Wrap(ErrEmpty, "dest")
+		return sdkerrors.Wrap(ErrInvalid, "dest")
 	}
 	if !m.Amount.IsValid() || !m.Amount.IsPositive() {
 		return sdkerrors.Wrap(ErrInvalid, "amount")

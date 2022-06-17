@@ -2,15 +2,17 @@ package types_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain/types"
 	polygontypes "github.com/functionx/fx-core/x/polygon/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func init() {
