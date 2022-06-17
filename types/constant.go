@@ -15,8 +15,6 @@ const (
 
 	// DefaultGasPrice is default gas price for evm transactions 500Gwei
 	DefaultGasPrice = 500000000000
-
-	CurrentConsensusVersion = 1
 )
 
 func init() {
