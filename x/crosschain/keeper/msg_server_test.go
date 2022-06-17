@@ -607,34 +607,30 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	require.EqualValues(suite.T(), 3, usdtBatchFee.TotalTxs)
 	require.EqualValues(suite.T(), sdk.NewInt(6), usdtBatchFee.TotalFees)
 
-	getPointerInt := func(i sdk.Int) *sdk.Int {
-		return &i
-	}
-
 	testCases := []struct {
 		testName       string
-		baseFee        *sdk.Int
+		baseFee        sdk.Int
 		pass           bool
 		expectTotalTxs uint64
 		err            error
 	}{
 		{
 			testName:       "Support - baseFee 1000",
-			baseFee:        getPointerInt(sdk.NewInt(1000)),
+			baseFee:        sdk.NewInt(1000),
 			pass:           false,
 			expectTotalTxs: 3,
-			err:            types.ErrEmpty,
+			err:            types.ErrInvalid,
 		},
 		{
 			testName:       "Support - baseFee 2",
-			baseFee:        getPointerInt(sdk.NewInt(2)),
+			baseFee:        sdk.NewInt(2),
 			pass:           true,
 			expectTotalTxs: 1,
 			err:            nil,
 		},
 		{
 			testName:       "Support - baseFee 0",
-			baseFee:        getPointerInt(sdk.NewInt(0)),
+			baseFee:        sdk.NewInt(0),
 			pass:           true,
 			expectTotalTxs: 0,
 			err:            nil,

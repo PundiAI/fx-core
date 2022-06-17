@@ -373,7 +373,7 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 		}
 	}
 
-	batch, err := s.BuildOutgoingTxBatch(ctx, bridgeToken.Token, msg.FeeReceive, OutgoingTxBatchSize, msg.MinimumFee, *msg.BaseFee)
+	batch, err := s.BuildOutgoingTxBatch(ctx, bridgeToken.Token, msg.FeeReceive, OutgoingTxBatchSize, msg.MinimumFee, msg.BaseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -417,9 +417,8 @@ func (s EthereumMsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirm
 	if s.GetBatchConfirm(ctx, msg.Nonce, msg.TokenContract, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(types.ErrDuplicate, "signature")
 	}
-	key := s.SetBatchConfirm(ctx, oracleAddr, msg)
+	s.SetBatchConfirm(ctx, oracleAddr, msg)
 
-	_ = key
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
@@ -454,9 +453,8 @@ func (s EthereumMsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOra
 	if s.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(types.ErrDuplicate, "signature")
 	}
-	key := s.SetOracleSetConfirm(ctx, oracleAddr, msg)
+	s.SetOracleSetConfirm(ctx, oracleAddr, msg)
 
-	_ = key
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),

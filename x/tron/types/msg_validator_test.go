@@ -1255,7 +1255,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("minimum fee is positive:%s: %s", sdk.NewInt(-1).String(), types.ErrInvalid),
+			errReason:  fmt.Sprintf("minimum fee: %s", types.ErrInvalid),
 		},
 		{
 			testName: "err fee receive",
@@ -1292,6 +1292,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 				Denom:      "demo",
 				MinimumFee: sdk.NewInt(1),
 				FeeReceive: normalExternalAddress,
+				BaseFee:    sdk.ZeroInt(),
 			},
 			expectPass: true,
 		},

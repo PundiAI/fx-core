@@ -19,14 +19,14 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 		expPass  bool
 	}{
 		{
-			"batch fee BaseFee is Nil",
+			"batch fee BaseFee is negative",
 			func() {
 				request = &types.QueryBatchFeeRequest{
 					ChainName: "tron",
 					MinBatchFees: []types.MinBatchFee{
 						{
 							TokenContract: suite.bridgeTokens[0].token,
-							BaseFee:       sdk.NewIntFromBigInt(nil),
+							BaseFee:       sdk.NewInt(-1),
 						},
 					},
 				}

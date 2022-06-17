@@ -299,7 +299,7 @@ func CmdRequestBatch() *cobra.Command {
 				MinimumFee: minimumFee,
 				FeeReceive: feeReceive,
 				ChainName:  args[0],
-				BaseFee:    &baseFee,
+				BaseFee:    baseFee,
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

@@ -55,9 +55,8 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 	if s.GetBatchConfirm(ctx, msg.Nonce, msg.TokenContract, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
-	key := s.SetBatchConfirm(ctx, oracleAddr, msg)
+	s.SetBatchConfirm(ctx, oracleAddr, msg)
 
-	_ = key
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
@@ -92,9 +91,8 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgO
 	if s.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
-	key := s.SetOracleSetConfirm(ctx, oracleAddr, msg)
+	s.SetOracleSetConfirm(ctx, oracleAddr, msg)
 
-	_ = key
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),

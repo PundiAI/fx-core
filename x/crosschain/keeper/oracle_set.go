@@ -217,11 +217,10 @@ func (k Keeper) GetOracleSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sd
 }
 
 // SetOracleSetConfirm sets a oracleSet confirmation
-func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, oracleSetConfirm *types.MsgOracleSetConfirm) []byte {
+func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, oracleSetConfirm *types.MsgOracleSetConfirm) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOracleSetConfirmKey(oracleSetConfirm.Nonce, oracleAddr)
 	store.Set(key, k.cdc.MustMarshal(oracleSetConfirm))
-	return key
 }
 
 // GetOracleSetConfirms returns all oracle set confirmations by nonce

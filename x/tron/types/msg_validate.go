@@ -171,11 +171,14 @@ func (b TronMsgValidate) MsgRequestBatchValidate(m crosschaintypes.MsgRequestBat
 	if len(m.Denom) <= 0 {
 		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "denom")
 	}
-	if !m.MinimumFee.IsPositive() {
-		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, fmt.Sprintf("minimum fee is positive:%s", m.MinimumFee.String()))
+	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "minimum fee")
 	}
 	if err = ValidateTronAddress(m.FeeReceive); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "fee receive address")
+	}
+	if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "base fee")
 	}
 	return nil
 }

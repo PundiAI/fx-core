@@ -211,13 +211,13 @@ func (b EthereumMsgValidate) MsgRequestBatchValidate(m MsgRequestBatch) (err err
 	if len(m.Denom) <= 0 {
 		return sdkerrors.Wrap(ErrUnknown, "denom")
 	}
-	if !m.MinimumFee.IsPositive() {
-		return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("minimum fee is positive: %s", m.MinimumFee.String()))
+	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {
+		return sdkerrors.Wrap(ErrInvalid, "minimum fee")
 	}
 	if err = ValidateEthereumAddress(m.FeeReceive); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "fee receive address")
 	}
-	if m.BaseFee == nil || m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
+	if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
 		return sdkerrors.Wrap(ErrInvalid, "base fee")
 	}
 	return nil

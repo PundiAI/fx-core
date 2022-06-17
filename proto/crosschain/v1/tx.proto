@@ -187,7 +187,7 @@ message MsgRequestBatch {
   string chain_name = 5;
   string base_fee = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = true
+    (gogoproto.nullable) = false
   ];
 }
 

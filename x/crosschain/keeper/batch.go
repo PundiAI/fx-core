@@ -318,11 +318,10 @@ func (k Keeper) GetBatchConfirm(ctx sdk.Context, nonce uint64, tokenContract str
 }
 
 // SetBatchConfirm sets a batch confirmation by a oracle
-func (k Keeper) SetBatchConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, batch *types.MsgConfirmBatch) []byte {
+func (k Keeper) SetBatchConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, batch *types.MsgConfirmBatch) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetBatchConfirmKey(batch.TokenContract, batch.Nonce, oracleAddr)
 	store.Set(key, k.cdc.MustMarshal(batch))
-	return key
 }
 
 // IterateBatchConfirmByNonceAndTokenContract iterates through all batch confirmations
