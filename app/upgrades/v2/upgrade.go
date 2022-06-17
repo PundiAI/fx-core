@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	polygontypes "github.com/functionx/fx-core/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
@@ -15,7 +17,6 @@ import (
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -36,32 +37,32 @@ import (
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 
-	paramstypesproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-
 	fxtypes "github.com/functionx/fx-core/types"
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2
-func CreateUpgradeHandler(kvStoreKeyMap map[string]*sdk.KVStoreKey, mm *module.Manager, configurator module.Configurator, bankStoreKey *sdk.KVStoreKey, bankKeeper bankKeeper.Keeper, accountKeeper authkeeper.AccountKeeper, paramsKeeper paramskeeper.Keeper, ibcKeeper *ibckeeper.Keeper, erc20Keeper erc20keeper.Keeper) upgradetypes.UpgradeHandler {
+func CreateUpgradeHandler(
+	kvStoreKeyMap map[string]*sdk.KVStoreKey,
+	mm *module.Manager, configurator module.Configurator,
+	bankKeeper bankKeeper.Keeper, accountKeeper authkeeper.AccountKeeper,
+	paramsKeeper paramskeeper.Keeper, ibcKeeper *ibckeeper.Keeper,
+	erc20Keeper erc20keeper.Keeper,
+) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := ctx.CacheContext()
 
-		// 1. clean testnet data
-		clearTestnetKVStores(cacheCtx, kvStoreKeyMap)
+		// 1. clear testnet module data
+		clearTestnetModule(ctx, kvStoreKeyMap)
 
 		// 2. update FX metadata
-		if err := UpdateFXMetadata(cacheCtx, bankKeeper, bankStoreKey); err != nil {
-			return nil, err
-		}
+		updateFXMetadata(cacheCtx, bankKeeper, kvStoreKeyMap)
 
 		// 3. update block params (max_gas:3000000000)
-		if err := updateBlockParams(cacheCtx, paramsKeeper); err != nil {
-			return nil, err
-		}
+		updateBlockParams(cacheCtx, paramsKeeper)
 
 		// 4. migrate base account to eth account
-		MigrateAccountToEth(cacheCtx, accountKeeper)
+		migrateAccountToEth(cacheCtx, accountKeeper)
 
 		// set max expected block time parameter. Replace the default with your expected value
 		// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
@@ -93,6 +94,9 @@ func CreateUpgradeHandler(kvStoreKeyMap map[string]*sdk.KVStoreKey, mm *module.M
 			return nil, fmt.Errorf("run migrations error %s", err.Error())
 		}
 
+		// clear metadata except FX
+		clearTestnetDenom(ctx, kvStoreKeyMap)
+
 		// register coin
 		for _, metadata := range fxtypes.GetMetadata() {
 			cacheCtx.Logger().Info("add metadata", "coin", metadata.String())
@@ -114,21 +118,28 @@ func CreateUpgradeHandler(kvStoreKeyMap map[string]*sdk.KVStoreKey, mm *module.M
 	}
 }
 
-func UpdateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, key *types.KVStoreKey) error {
+func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, keys map[string]*sdk.KVStoreKey) {
 	md := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
 	if err := md.Validate(); err != nil {
-		return fmt.Errorf("invalid %s metadata", fxtypes.DefaultDenom)
+		panic(fmt.Sprintf("invalid %s metadata", fxtypes.DefaultDenom))
 	}
-	ctx.Logger().Info("update metadata", "metadata", md.String())
+	key, ok := keys[banktypes.StoreKey]
+	if !ok {
+		panic("bank key store not found")
+	}
+	logger := ctx.Logger()
+	logger.Info("update FX metadata", "metadata", md.String())
 	//delete fx
-	deleteMetadata(ctx, key, strings.ToLower(fxtypes.DefaultDenom))
+	fxDenom := strings.ToLower(fxtypes.DefaultDenom)
+	denomMetaDataStore := prefix.NewStore(ctx.KVStore(key), banktypes.DenomMetadataKey(fxDenom))
+	denomMetaDataStore.Delete([]byte(fxDenom))
 	//set FX
 	bankKeeper.SetDenomMetaData(ctx, md)
-	return nil
 }
 
-func MigrateAccountToEth(ctx sdk.Context, ak authkeeper.AccountKeeper) {
-	ctx.Logger().Info("update v2 migrate account to eth")
+func migrateAccountToEth(ctx sdk.Context, ak authkeeper.AccountKeeper) {
+	logger := ctx.Logger()
+	logger.Info("migrate account to eth", "network", fxtypes.Network())
 	// migrate base account to eth account
 	ak.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
 		if _, ok := account.(ethermint.EthAccountI); ok {
@@ -136,7 +147,7 @@ func MigrateAccountToEth(ctx sdk.Context, ak authkeeper.AccountKeeper) {
 		}
 		baseAccount, ok := account.(*authtypes.BaseAccount)
 		if !ok {
-			ctx.Logger().Info("migrate account", "address", account.GetAddress(), "ignore type", fmt.Sprintf("%T", account))
+			logger.Info("ignore account", "address", account.GetAddress(), "type", fmt.Sprintf("%T", account))
 			return false
 		}
 		ethAccount := &ethermint.EthAccount{
@@ -144,29 +155,24 @@ func MigrateAccountToEth(ctx sdk.Context, ak authkeeper.AccountKeeper) {
 			CodeHash:    common.BytesToHash(emptyCodeHash).String(),
 		}
 		ak.SetAccount(ctx, ethAccount)
-		ctx.Logger().Info("migrate account to eth", "address", account.GetAddress())
+		logger.Info("migrate account to eth", "address", account.GetAddress())
 		return false
 	})
 }
 
-func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) error {
+func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) {
+	logger := ctx.Logger()
+	logger.Info("update block params", "network", fxtypes.Network())
 	baseappSubspace, found := pk.GetSubspace(baseapp.Paramspace)
 	if !found {
-		return sdkerrors.Wrap(paramstypesproposal.ErrUnknownSubspace, baseapp.Paramspace)
+		panic(fmt.Sprintf("unknown subspace: %s", baseapp.Paramspace))
 	}
 	var bp abci.BlockParams
 	baseappSubspace.Get(ctx, baseapp.ParamStoreKeyBlockParams, &bp)
-
+	logger.Info("update block params", "before update", bp.String())
 	bp.MaxGas = blockParamsMaxGas
 	baseappSubspace.Set(ctx, baseapp.ParamStoreKeyBlockParams, bp)
-	return nil
-}
-
-func deleteMetadata(ctx sdk.Context, key *types.KVStoreKey, base ...string) {
-	store := ctx.KVStore(key)
-	for _, b := range base {
-		store.Delete(banktypes.DenomMetadataKey(b))
-	}
+	logger.Info("update block params", "after update", bp.String())
 }
 
 func migrationsOrder(modules []string) []string {
@@ -188,7 +194,28 @@ func migrationsOrder(modules []string) []string {
 	return orders
 }
 
-func clearTestnetKVStores(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
+func clearTestnetDenom(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
+	if fxtypes.NetworkTestnet() != fxtypes.Network() {
+		return
+	}
+	key, ok := keys[banktypes.StoreKey]
+	if !ok {
+		panic("bank key store not found")
+	}
+	logger := ctx.Logger()
+	logger.Info("clear testnet metadata", "network", fxtypes.Network())
+	for _, md := range fxtypes.GetMetadata() {
+		//remove denom except FX
+		if md.Base == fxtypes.DefaultDenom {
+			continue
+		}
+		logger.Info("clear testnet metadata", "metadata", md.String())
+		denomMetaDataStore := prefix.NewStore(ctx.KVStore(key), banktypes.DenomMetadataKey(md.Base))
+		denomMetaDataStore.Delete([]byte(md.Base))
+	}
+}
+
+func clearTestnetModule(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 	logger := ctx.Logger()
 	if fxtypes.NetworkTestnet() != fxtypes.Network() {
 		return

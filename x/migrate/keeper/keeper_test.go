@@ -12,7 +12,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -24,7 +23,6 @@ import (
 
 	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/helpers"
-	upgradesv2 "github.com/functionx/fx-core/app/upgrades/v2"
 	fxtypes "github.com/functionx/fx-core/types"
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
@@ -100,11 +98,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	encodingConfig := app.MakeEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 
-	//update metadata
-	err = upgradesv2.UpdateFXMetadata(suite.ctx, suite.app.BankKeeper, suite.app.GetKey(banktypes.StoreKey))
-	require.NoError(t, err)
-	//migrate account to eth
-	upgradesv2.MigrateAccountToEth(suite.ctx, suite.app.AccountKeeper)
 	// init logic contract
 	for _, contract := range fxtypes.GetInitContracts() {
 		require.True(t, len(contract.Code) > 0)

@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	upgradev2 "github.com/functionx/fx-core/app/upgrades/v2"
@@ -13,8 +12,7 @@ func (app *App) setUpgradeHandler() {
 	// set upgrade handler v2
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradev2.UpgradeName, upgradev2.CreateUpgradeHandler(app.keys, app.mm, app.configurator,
-			app.GetKey(banktypes.StoreKey), app.BankKeeper, app.AccountKeeper,
-			app.ParamsKeeper, app.IBCKeeper, app.Erc20Keeper),
+			app.BankKeeper, app.AccountKeeper, app.ParamsKeeper, app.IBCKeeper, app.Erc20Keeper),
 	)
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()

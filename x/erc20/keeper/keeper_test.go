@@ -10,14 +10,10 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	ante2 "github.com/functionx/fx-core/ante"
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-
-	"github.com/functionx/fx-core/app/helpers"
-	upgradesv2 "github.com/functionx/fx-core/app/upgrades/v2"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -32,6 +28,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/functionx/fx-core/app/helpers"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -140,11 +138,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethereumtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 
-	//update metadata
-	err = upgradesv2.UpdateFXMetadata(suite.ctx, suite.app.BankKeeper, suite.app.GetKey(banktypes.StoreKey))
-	require.NoError(t, err)
-	//migrate account to eth
-	upgradesv2.MigrateAccountToEth(suite.ctx, suite.app.AccountKeeper)
 	// init logic contract
 	for _, contract := range fxtypes.GetInitContracts() {
 		require.True(t, len(contract.Code) > 0)
