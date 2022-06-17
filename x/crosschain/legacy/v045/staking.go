@@ -5,6 +5,8 @@ import (
 	sdkerr "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
@@ -14,13 +16,23 @@ type StakingKeeper interface {
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
 }
 
-func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, oracles types.Oracles, delegateValidator stakingtypes.Validator) error {
+type BankKeeper interface {
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+}
+
+func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, bankKeeper BankKeeper, oracles types.Oracles, delegateValidator stakingtypes.Validator) error {
 	for _, oracle := range oracles {
 		if delegateValidator.OperatorAddress != oracle.DelegateValidator {
 			return sdkerr.Wrap(types.ErrInvalid, "delegate validator")
 		}
 
 		delegateAddress := oracle.GetDelegateAddress(moduleName)
+
+		if err := bankKeeper.SendCoinsFromModuleToAccount(ctx,
+			moduleName, delegateAddress, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount))); err != nil {
+			return err
+		}
+
 		newShares, err := stakingKeeper.Delegate(ctx,
 			delegateAddress, oracle.DelegateAmount, stakingtypes.Unbonded, delegateValidator, true)
 		if err != nil {

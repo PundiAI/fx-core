@@ -87,16 +87,18 @@ type AppModule struct {
 	AppModuleBasic
 	keeper        crosschainkeeper.Keeper
 	stakingKeeper crosschainv54.StakingKeeper
+	bankKeeper    crosschainv54.BankKeeper
 	paramsKey     sdk.StoreKey
 	legacyAmino   *codec.LegacyAmino
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper crosschainkeeper.Keeper, stakingKeeper crosschainv54.StakingKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) AppModule {
+func NewAppModule(keeper crosschainkeeper.Keeper, stakingKeeper crosschainv54.StakingKeeper, bankKeeper crosschainv54.BankKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 		stakingKeeper:  stakingKeeper,
+		bankKeeper:     bankKeeper,
 		paramsKey:      paramsKey,
 		legacyAmino:    legacyAmino,
 	}
@@ -120,7 +122,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	m := crosschainkeeper.NewMigrator(am.keeper, am.stakingKeeper, am.legacyAmino, am.paramsKey)
+	m := crosschainkeeper.NewMigrator(am.keeper, am.stakingKeeper, am.bankKeeper, am.legacyAmino, am.paramsKey)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(err)
 	}

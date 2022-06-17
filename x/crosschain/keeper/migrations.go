@@ -11,15 +11,17 @@ import (
 type Migrator struct {
 	keeper      Keeper
 	sk          v045.StakingKeeper
+	bk          v045.BankKeeper
 	paramsKey   sdk.StoreKey
 	legacyAmino *codec.LegacyAmino
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper, sk v045.StakingKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) Migrator {
+func NewMigrator(keeper Keeper, sk v045.StakingKeeper, bk v045.BankKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) Migrator {
 	return Migrator{
 		keeper:      keeper,
 		sk:          sk,
+		bk:          bk,
 		paramsKey:   paramsKey,
 		legacyAmino: legacyAmino,
 	}
@@ -34,7 +36,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := v045.MigrateDepositToStaking(ctx, m.keeper.moduleName, m.sk, oracles, delegateValidator); err != nil {
+	if err := v045.MigrateDepositToStaking(ctx, m.keeper.moduleName, m.sk, m.bk, oracles, delegateValidator); err != nil {
 		return err
 	}
 	v045.MigrateStore(ctx, m.keeper.storeKey)

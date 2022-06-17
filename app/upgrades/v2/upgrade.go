@@ -5,6 +5,10 @@ import (
 	"strings"
 	"time"
 
+	bsctypes "github.com/functionx/fx-core/x/bsc/types"
+	polygontypes "github.com/functionx/fx-core/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/x/tron/types"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
@@ -169,15 +173,15 @@ func migrationsOrder(modules []string) []string {
 	modules = module.DefaultMigrationsOrder(modules)
 	orders := make([]string, 0, len(modules))
 	for _, name := range modules {
-		if name == feemarkettypes.ModuleName ||
-			name == evmtypes.ModuleName ||
-			name == erc20types.ModuleName ||
-			name == migratetypes.ModuleName {
+		if name == bsctypes.ModuleName || name == polygontypes.ModuleName || name == trontypes.ModuleName ||
+			name == feemarkettypes.ModuleName || name == evmtypes.ModuleName ||
+			name == erc20types.ModuleName || name == migratetypes.ModuleName {
 			continue
 		}
 		orders = append(orders, name)
 	}
 	orders = append(orders, []string{
+		bsctypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName,
 		feemarkettypes.ModuleName, evmtypes.ModuleName,
 		erc20types.ModuleName, migratetypes.ModuleName,
 	}...)
