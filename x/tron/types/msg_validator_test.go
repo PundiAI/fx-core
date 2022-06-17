@@ -26,7 +26,7 @@ func init() {
 	types.RegisterValidatorBasic(trontypes.ModuleName, trontypes.TronMsgValidate{})
 }
 
-func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
+func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
 	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
@@ -37,14 +37,14 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
-		msg        *types.MsgCreateOracleBridger
+		msg        *types.MsgBondedOracle
 		expectPass bool
 		err        error
 		errReason  string
 	}{
 		{
 			testName: "err chain name",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName: "",
 			},
 			expectPass: false,
@@ -53,7 +53,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err chain name",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName: "111",
 			},
 			expectPass: false,
@@ -62,7 +62,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err oracle address",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: "",
 			},
@@ -72,7 +72,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err oracle address",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: errPrefixAddress,
 			},
@@ -82,7 +82,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err bridger address",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName:      trontypes.ModuleName,
 				OracleAddress:  normalOracleAddress,
 				BridgerAddress: "",
@@ -93,7 +93,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err bridger address",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName:      trontypes.ModuleName,
 				OracleAddress:  normalOracleAddress,
 				BridgerAddress: errPrefixAddress,
@@ -104,7 +104,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err external address",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName:       trontypes.ModuleName,
 				OracleAddress:   normalOracleAddress,
 				BridgerAddress:  normalOrchestratorAddress,
@@ -116,7 +116,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err external address",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName:       trontypes.ModuleName,
 				OracleAddress:   normalOracleAddress,
 				BridgerAddress:  normalOrchestratorAddress,
@@ -128,7 +128,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err deposit amount",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName:       trontypes.ModuleName,
 				OracleAddress:   normalOracleAddress,
 				BridgerAddress:  normalOrchestratorAddress,
@@ -141,7 +141,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "success",
-			msg: &types.MsgCreateOracleBridger{
+			msg: &types.MsgBondedOracle{
 				ChainName:       trontypes.ModuleName,
 				OracleAddress:   normalOracleAddress,
 				BridgerAddress:  normalOrchestratorAddress,
@@ -166,7 +166,7 @@ func TestMsgCreateOracleBridger_ValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgAddOracleDelegate_ValidateBasic(t *testing.T) {
+func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalOracleAddress := addressBytes.String()
 	var err error
@@ -174,14 +174,14 @@ func TestMsgAddOracleDelegate_ValidateBasic(t *testing.T) {
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
-		msg        *types.MsgAddOracleDelegate
+		msg        *types.MsgAddDelegate
 		expectPass bool
 		err        error
 		errReason  string
 	}{
 		{
 			testName: "err chain name",
-			msg: &types.MsgAddOracleDelegate{
+			msg: &types.MsgAddDelegate{
 				ChainName: "",
 			},
 			expectPass: false,
@@ -190,7 +190,7 @@ func TestMsgAddOracleDelegate_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err oracle address",
-			msg: &types.MsgAddOracleDelegate{
+			msg: &types.MsgAddDelegate{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: errPrefixAddress,
 				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1)},
@@ -201,7 +201,7 @@ func TestMsgAddOracleDelegate_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err amount",
-			msg: &types.MsgAddOracleDelegate{
+			msg: &types.MsgAddDelegate{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: normalOracleAddress,
 				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(0)},
@@ -212,7 +212,7 @@ func TestMsgAddOracleDelegate_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "err amount",
-			msg: &types.MsgAddOracleDelegate{
+			msg: &types.MsgAddDelegate{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: normalOracleAddress,
 				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(-1)},
@@ -223,7 +223,7 @@ func TestMsgAddOracleDelegate_ValidateBasic(t *testing.T) {
 		},
 		{
 			testName: "success",
-			msg: &types.MsgAddOracleDelegate{
+			msg: &types.MsgAddDelegate{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: normalOracleAddress,
 				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1)},

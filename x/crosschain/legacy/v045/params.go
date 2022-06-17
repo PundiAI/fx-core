@@ -15,6 +15,7 @@ func MigrateParams(ctx sdk.Context, paramStore *paramtypes.Subspace, moduleName 
 	for _, pair := range paramSetPairs {
 		paramStore.Get(ctx, pair.Key, pair.Value)
 	}
+	params.DelegateMultiple = types.DefaultOracleDelegateThreshold
 	if err := params.ValidateBasic(); err != nil {
 		return err
 	}

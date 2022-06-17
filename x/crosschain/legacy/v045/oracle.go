@@ -4,19 +4,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
 	v042 "github.com/functionx/fx-core/x/crosschain/legacy/v042"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
-func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey, stakingKeeper StakingKeeper) (types.Oracles, error) {
+func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey, stakingKeeper StakingKeeper) (types.Oracles, stakingtypes.Validator, error) {
 
 	validatorsByPower := stakingKeeper.GetBondedValidatorsByPower(ctx)
 	if len(validatorsByPower) <= 0 {
 		panic("no found bonded validator")
 	}
-	delegateValidator := validatorsByPower[0].OperatorAddress
+	delegateValidator := validatorsByPower[0]
 
 	store := ctx.KVStore(storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)
@@ -27,11 +28,7 @@ func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey
 		var legacyOracle v042.LegacyOracle
 		cdc.MustUnmarshal(iterator.Value(), &legacyOracle)
 		if legacyOracle.DelegateAmount.Denom != fxtypes.DefaultDenom {
-			return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom: %s", legacyOracle.DelegateAmount.Denom)
-		}
-		oracleAddr, err := sdk.AccAddressFromBech32(legacyOracle.OracleAddress)
-		if err != nil {
-			return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+			return nil, delegateValidator, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom: %s", legacyOracle.DelegateAmount.Denom)
 		}
 
 		oracle := types.Oracle{
@@ -40,18 +37,12 @@ func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey
 			ExternalAddress:   legacyOracle.ExternalAddress,
 			DelegateAmount:    legacyOracle.DelegateAmount.Amount,
 			StartHeight:       legacyOracle.StartHeight,
-			Jailed:            legacyOracle.Jailed,
-			JailedHeight:      legacyOracle.JailedHeight,
-			DelegateValidator: delegateValidator,
-			IsValidator:       false,
-		}
-		validator, found := stakingKeeper.GetValidator(ctx, oracleAddr.Bytes())
-		if found {
-			oracle.IsValidator = true
-			oracle.DelegateValidator = validator.OperatorAddress
+			Online:            !legacyOracle.Jailed,
+			DelegateValidator: delegateValidator.OperatorAddress,
+			SlashTimes:        0,
 		}
 		store.Set(types.GetOracleKey(oracle.GetOracle()), cdc.MustMarshal(&oracle))
 		oracles = append(oracles, oracle)
 	}
-	return oracles, nil
+	return oracles, delegateValidator, nil
 }

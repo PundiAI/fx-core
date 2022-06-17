@@ -27,13 +27,13 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	if err := v045.MigrateParams(ctx, &m.keeper.paramSpace, m.keeper.moduleName, m.paramsKey); err != nil {
 		return err
 	}
-	oracles, err := v045.MigrateOracle(ctx, m.keeper.cdc, m.keeper.storeKey, m.sk)
+	oracles, delegateValidator, err := v045.MigrateOracle(ctx, m.keeper.cdc, m.keeper.storeKey, m.sk)
 	if err != nil {
 		return err
 	}
-	if err := v045.MigrateDepositToStaking(ctx, oracles, m.sk); err != nil {
+	if err := v045.MigrateDepositToStaking(ctx, m.keeper.moduleName, m.sk, oracles, delegateValidator); err != nil {
 		return err
 	}
-	v045.MigratePruneIbcSequenceKey(ctx, m.keeper.storeKey)
+	v045.MigrateStore(ctx, m.keeper.storeKey)
 	return nil
 }

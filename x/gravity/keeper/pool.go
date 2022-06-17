@@ -242,7 +242,7 @@ func (k Keeper) GetPoolTransactions(ctx sdk.Context) []*types.OutgoingTransferTx
 	prefixStore := ctx.KVStore(k.storeKey)
 	// we must use the second index key here because transactions are left in the store, but removed
 	// from the tx sorting key, while in batches
-	iter := prefixStore.ReverseIterator(prefixRange([]byte(types.SecondIndexOutgoingTXFeeKey)))
+	iter := prefixStore.ReverseIterator(prefixRange([]byte(types.SecondIndexOutgoingTxFeeKey)))
 	var ret []*types.OutgoingTransferTx
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
@@ -261,7 +261,7 @@ func (k Keeper) GetPoolTransactions(ctx sdk.Context) []*types.OutgoingTransferTx
 
 // IterateOutgoingPoolByFee iterates over the outgoing pool which is sorted by fee
 func (k Keeper) IterateOutgoingPoolByFee(ctx sdk.Context, contract string, cb func(uint64, *types.OutgoingTransferTx) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondIndexOutgoingTXFeeKey)
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondIndexOutgoingTxFeeKey)
 	iter := prefixStore.ReverseIterator(prefixRange([]byte(contract)))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
@@ -318,7 +318,7 @@ func (k Keeper) getBatchFeesMap(ctx sdk.Context, minBatchFees []types.MinBatchFe
 // createBatchFeesWithBaseFee iterates over the outgoing pool and creates batch token fee map with base fee
 func (k Keeper) createBatchFeesWithBaseFee(ctx sdk.Context, minBatchFees []types.MinBatchFee,
 	needTotalAmount bool) map[string]*types.BatchFees {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondIndexOutgoingTXFeeKey)
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondIndexOutgoingTxFeeKey)
 	iter := prefixStore.Iterator(nil, nil)
 	defer iter.Close()
 

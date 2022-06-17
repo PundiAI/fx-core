@@ -19,7 +19,7 @@ import (
 
 func (suite *MsgHandlerTestSuite) TestABCIEndBlockDepositClaim() {
 
-	normalMsg := &types.MsgCreateOracleBridger{
+	normalMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -87,7 +87,7 @@ func (suite *MsgHandlerTestSuite) TestABCIEndBlockDepositClaim() {
 
 func (suite *MsgHandlerTestSuite) TestOracleUpdate() {
 	for i := 0; i < 10; i++ {
-		_, err := suite.Handler()(suite.ctx, &types.MsgCreateOracleBridger{
+		_, err := suite.Handler()(suite.ctx, &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
@@ -194,7 +194,7 @@ func (suite *MsgHandlerTestSuite) TestOracleUpdate() {
 func (suite *MsgHandlerTestSuite) TestAttestationAfterOracleUpdate() {
 
 	for i := 0; i < 20; i++ {
-		_, err := suite.Handler()(suite.ctx, &types.MsgCreateOracleBridger{
+		_, err := suite.Handler()(suite.ctx, &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
@@ -392,7 +392,7 @@ func (suite *MsgHandlerTestSuite) TestAttestationAfterOracleUpdate() {
 
 func (suite *MsgHandlerTestSuite) TestOracleDelete() {
 	for i := 0; i < 10; i++ {
-		_, err := suite.Handler()(suite.ctx, &types.MsgCreateOracleBridger{
+		_, err := suite.Handler()(suite.ctx, &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
@@ -447,23 +447,18 @@ func (suite *MsgHandlerTestSuite) TestOracleDelete() {
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
 	oracleAddr, found = suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
-	require.False(suite.T(), found)
-	require.Nil(suite.T(), oracleAddr)
+	require.True(suite.T(), found)
 
 	oracleAddr, found = suite.Keeper().GetOracleByExternalAddress(suite.ctx, externalAddress)
-	require.False(suite.T(), found)
-	require.Nil(suite.T(), oracleAddr)
+	require.True(suite.T(), found)
 
 	oracleData, found = suite.Keeper().GetOracle(suite.ctx, oracle)
-	require.False(suite.T(), found)
-	require.EqualValues(suite.T(), types.Oracle{}, oracleData)
-	require.EqualValues(suite.T(), "", oracleData.OracleAddress)
-	require.True(suite.T(), oracleData.DelegateAmount.IsNil())
+	require.True(suite.T(), found)
 }
 
 func (suite *MsgHandlerTestSuite) TestOracleSetSlash() {
 	for i := 0; i < 10; i++ {
-		_, err := suite.Handler()(suite.ctx, &types.MsgCreateOracleBridger{
+		_, err := suite.Handler()(suite.ctx, &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
@@ -502,18 +497,18 @@ func (suite *MsgHandlerTestSuite) TestOracleSetSlash() {
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[9])
 	require.True(suite.T(), found)
-	require.False(suite.T(), oracle.Jailed)
+	require.True(suite.T(), oracle.Online)
 
 	suite.ctx = suite.ctx.WithBlockHeight(oracleSetHeight + int64(suite.Keeper().GetParams(suite.ctx).SignedWindow) + 1)
 	crosschain.EndBlocker(suite.ctx, suite.Keeper())
 	oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[9])
 	require.True(suite.T(), found)
-	require.True(suite.T(), oracle.Jailed)
+	require.False(suite.T(), oracle.Online)
 }
 
 func (suite *MsgHandlerTestSuite) TestSlashFactoryGreat1() {
 	for i := 0; i < 10; i++ {
-		_, err := suite.Handler()(suite.ctx, &types.MsgCreateOracleBridger{
+		_, err := suite.Handler()(suite.ctx, &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
@@ -526,11 +521,11 @@ func (suite *MsgHandlerTestSuite) TestSlashFactoryGreat1() {
 	params := suite.Keeper().GetParams(suite.ctx)
 	params.SlashFraction, _ = sdk.NewDecFromStr("1.1")
 
-	expectSlashAfterStakeAmount := sdk.MaxInt(
-		suite.delegateAmount.Sub(
-			sdk.MinInt(suite.delegateAmount, suite.delegateAmount.ToDec().Mul(params.SlashFraction).TruncateInt()),
-		),
-		sdk.ZeroInt())
+	//expectSlashAfterStakeAmount := sdk.MaxInt(
+	//	suite.delegateAmount.Sub(
+	//		sdk.MinInt(suite.delegateAmount, suite.delegateAmount.ToDec().Mul(params.SlashFraction).TruncateInt()),
+	//	),
+	//	sdk.ZeroInt())
 	require.NotPanics(suite.T(), func() {
 		suite.Keeper().SetParams(suite.ctx, &params)
 	})
@@ -539,30 +534,30 @@ func (suite *MsgHandlerTestSuite) TestSlashFactoryGreat1() {
 		for i := 0; i < 10; i++ {
 			oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
 			require.True(suite.T(), found)
-			require.False(suite.T(), oracle.Jailed)
+			require.True(suite.T(), oracle.Online)
 			require.True(suite.T(), oracle.DelegateAmount.Equal(suite.delegateAmount))
 
-			suite.Keeper().SlashOracle(suite.ctx, oracle, params.SlashFraction)
+			suite.Keeper().SlashOracle(suite.ctx, oracle)
 
 			oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
 			require.True(suite.T(), found)
-			require.True(suite.T(), oracle.Jailed)
-			require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
+			require.False(suite.T(), oracle.Online)
+			//require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
 		}
 
 		// repeat slash test.
 		for i := 0; i < 10; i++ {
 			oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
 			require.True(suite.T(), found)
-			require.True(suite.T(), oracle.Jailed)
-			require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
+			require.False(suite.T(), oracle.Online)
+			//require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
 
-			suite.Keeper().SlashOracle(suite.ctx, oracle, params.SlashFraction)
+			suite.Keeper().SlashOracle(suite.ctx, oracle)
 
 			oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
 			require.True(suite.T(), found)
-			require.True(suite.T(), oracle.Jailed)
-			require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
+			//require.True(suite.T(), oracle.Online)
+			//require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
 		}
 	})
 }

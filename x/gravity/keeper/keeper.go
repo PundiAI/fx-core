@@ -550,13 +550,13 @@ func (k Keeper) GetDelegateKeys(ctx sdk.Context) []*types.MsgSetOrchestratorAddr
 	}
 
 	store = ctx.KVStore(k.storeKey)
-	iter = store.Iterator(prefixRange(types.KeyOrchestratorAddress))
+	iter = store.Iterator(prefixRange(types.ValidatorAddressByOrchestratorAddress))
 	defer iter.Close()
 
 	orchAddresses := make(map[string]string)
 
 	for ; iter.Valid(); iter.Next() {
-		key := iter.Key()[len(types.KeyOrchestratorAddress):]
+		key := iter.Key()[len(types.ValidatorAddressByOrchestratorAddress):]
 		value := iter.Value()
 		orchAddress := sdk.AccAddress(key).String()
 		valAddress := sdk.ValAddress(value)

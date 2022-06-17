@@ -88,11 +88,11 @@ func (suite *MsgHandlerTestSuite) SetupTest() {
 	suite.Keeper().SetProposalOracle(suite.ctx, proposalOracle)
 }
 
-// 1. Test MsgCreateOracleBridger
-func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
+// 1. Test MsgBondedOracle
+func (suite *MsgHandlerTestSuite) TestMsgBondedOracle() {
 
 	// 1. sender not in chain oracle
-	notOracleMsg := &types.MsgCreateOracleBridger{
+	notOracleMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.bridgers[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -104,7 +104,7 @@ func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
 	require.ErrorIs(suite.T(), err, types.ErrNoFoundOracle)
 
 	// 2. stake denom not match chain params stake denom
-	notMatchStakeDenomMsg := &types.MsgCreateOracleBridger{
+	notMatchStakeDenomMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -119,7 +119,7 @@ func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
 		notMatchStakeDenomMsg.DelegateAmount.Denom, fxtypes.DefaultDenom, types.ErrInvalid), err.Error())
 
 	// 3. insufficient stake amount msg.
-	belowMinimumStakeAmountMsg := &types.MsgCreateOracleBridger{
+	belowMinimumStakeAmountMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -132,7 +132,7 @@ func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
 	require.EqualValues(suite.T(), types.ErrDelegateAmountBelowMinimum.Error(), err.Error())
 
 	// 4. success msg
-	normalMsg := &types.MsgCreateOracleBridger{
+	normalMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -144,7 +144,7 @@ func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
 	require.NoError(suite.T(), err)
 
 	// 5. oracle duplicate set bridger
-	oracleDuplicateSetOrchestratorMsg := &types.MsgCreateOracleBridger{
+	oracleDuplicateSetOrchestratorMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -157,7 +157,7 @@ func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
 	require.EqualValues(suite.T(), fmt.Sprintf("oracle existed bridger address: %s", types.ErrInvalid.Error()), err.Error())
 
 	// 6. Set the same bridger address for different Oracle databases
-	duplicateSetOrchestratorMsg := &types.MsgCreateOracleBridger{
+	duplicateSetOrchestratorMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[1].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -170,7 +170,7 @@ func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
 	require.EqualValues(suite.T(), fmt.Sprintf("bridger address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
 
 	// 7. Set the same external address for different Oracle databases
-	duplicateSetExternalAddressMsg := &types.MsgCreateOracleBridger{
+	duplicateSetExternalAddressMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[1].String(),
 		BridgerAddress:   suite.bridgers[1].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -183,7 +183,7 @@ func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
 	require.EqualValues(suite.T(), fmt.Sprintf("external address is bound to oracle: %s", types.ErrInvalid.Error()), err.Error())
 
 	// 8. Margin is not allowed to be submitted more than ten times the threshold
-	depositAmountBelowMaximumMsg := &types.MsgCreateOracleBridger{
+	depositAmountBelowMaximumMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[1].String(),
 		BridgerAddress:   suite.bridgers[1].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[1].PublicKey).Hex(),
@@ -196,7 +196,7 @@ func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
 	require.EqualValues(suite.T(), types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
 
 	// 9. success msg
-	normalMsgOracle2 := &types.MsgCreateOracleBridger{
+	normalMsgOracle2 := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[1].String(),
 		BridgerAddress:   suite.bridgers[1].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[1].PublicKey).Hex(),
@@ -208,10 +208,10 @@ func (suite *MsgHandlerTestSuite) TestMsgCreateOracleBridger() {
 	require.NoError(suite.T(), err)
 }
 
-// 2. Test MsgAddOracleDelegate
-func (suite *MsgHandlerTestSuite) TestMsgAddOracleDelegate() {
+// 2. Test MsgAddDelegate
+func (suite *MsgHandlerTestSuite) TestMsgAddDelegate() {
 
-	normalMsg := &types.MsgCreateOracleBridger{
+	normalMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -222,7 +222,7 @@ func (suite *MsgHandlerTestSuite) TestMsgAddOracleDelegate() {
 	_, err := suite.Handler()(suite.ctx, normalMsg)
 	require.NoError(suite.T(), err)
 
-	denomNotMatchMsg := &types.MsgAddOracleDelegate{
+	denomNotMatchMsg := &types.MsgAddDelegate{
 		OracleAddress: suite.oracles[0].String(),
 		Amount: sdk.Coin{
 			Denom:  "abc",
@@ -234,7 +234,7 @@ func (suite *MsgHandlerTestSuite) TestMsgAddOracleDelegate() {
 	require.ErrorIs(suite.T(), err, types.ErrInvalid)
 	require.EqualValues(suite.T(), fmt.Sprintf("delegate denom got %s, expected %s: %s", denomNotMatchMsg.Amount.Denom, fxtypes.DefaultDenom, types.ErrInvalid), err.Error())
 
-	notOracleMsg := &types.MsgAddOracleDelegate{
+	notOracleMsg := &types.MsgAddDelegate{
 		OracleAddress: suite.bridgers[0].String(),
 		Amount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
@@ -246,7 +246,7 @@ func (suite *MsgHandlerTestSuite) TestMsgAddOracleDelegate() {
 	require.ErrorIs(suite.T(), types.ErrNoFoundOracle, err)
 	require.EqualValues(suite.T(), types.ErrNoFoundOracle.Error(), err.Error())
 
-	notSetBridgerOracleMsg := &types.MsgAddOracleDelegate{
+	notSetBridgerOracleMsg := &types.MsgAddDelegate{
 		OracleAddress: suite.oracles[2].String(),
 		Amount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
@@ -258,7 +258,7 @@ func (suite *MsgHandlerTestSuite) TestMsgAddOracleDelegate() {
 	require.ErrorIs(suite.T(), types.ErrNoFoundOracle, err)
 	require.EqualValues(suite.T(), types.ErrNoFoundOracle.Error(), err.Error())
 
-	depositAmountBelowMaximumMsg := &types.MsgAddOracleDelegate{
+	depositAmountBelowMaximumMsg := &types.MsgAddDelegate{
 		OracleAddress: suite.oracles[0].String(),
 		Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount.Mul(sdk.NewInt(9)).Add(sdk.NewInt(1))},
 		ChainName:     suite.chainName,
@@ -267,7 +267,7 @@ func (suite *MsgHandlerTestSuite) TestMsgAddOracleDelegate() {
 	require.ErrorIs(suite.T(), types.ErrDelegateAmountBelowMaximum, err)
 	require.EqualValues(suite.T(), types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
 
-	normalAddStakeMsg := &types.MsgAddOracleDelegate{
+	normalAddStakeMsg := &types.MsgAddDelegate{
 		OracleAddress: suite.oracles[0].String(),
 		Amount:        sdk.NewCoin(fxtypes.DefaultDenom, suite.delegateAmount),
 		ChainName:     suite.chainName,
@@ -278,7 +278,7 @@ func (suite *MsgHandlerTestSuite) TestMsgAddOracleDelegate() {
 
 func (suite *MsgHandlerTestSuite) TestMsgSetOracleSetConfirm() {
 
-	normalMsg := &types.MsgCreateOracleBridger{
+	normalMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -394,7 +394,7 @@ func (suite *MsgHandlerTestSuite) TestMsgSetOracleSetConfirm() {
 }
 
 func (suite *MsgHandlerTestSuite) TestClaimWithOracleJailed() {
-	normalMsg := &types.MsgCreateOracleBridger{
+	normalMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -420,10 +420,9 @@ func (suite *MsgHandlerTestSuite) TestClaimWithOracleJailed() {
 	require.EqualValues(suite.T(), "fx-bridge-bsc", gravityId)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 
-	// oracle jailed!!!
 	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[0])
 	require.True(suite.T(), found)
-	oracle.Jailed = true
+	oracle.Online = false
 	suite.Keeper().SetOracle(suite.ctx, oracle)
 
 	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[0])
@@ -441,7 +440,7 @@ func (suite *MsgHandlerTestSuite) TestClaimWithOracleJailed() {
 }
 
 func (suite *MsgHandlerTestSuite) TestClaimTest() {
-	normalMsg := &types.MsgCreateOracleBridger{
+	normalMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
 		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
@@ -563,7 +562,7 @@ func (suite *MsgHandlerTestSuite) TestRequestBatchBaseFee() {
 
 	// 1. First sets up a valid validator
 	for i, oracle := range suite.oracles {
-		normalMsg := &types.MsgCreateOracleBridger{
+		normalMsg := &types.MsgBondedOracle{
 			OracleAddress:    oracle.String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),

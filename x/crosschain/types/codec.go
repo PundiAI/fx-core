@@ -20,8 +20,8 @@ func init() {
 // RegisterInterfaces registers the interfaces for the proto stuff
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgCreateOracleBridger{},
-		&MsgAddOracleDelegate{},
+		&MsgBondedOracle{},
+		&MsgAddDelegate{},
 		&MsgEditOracle{},
 		&MsgWithdrawReward{},
 
@@ -61,8 +61,8 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*ExternalClaim)(nil), nil)
 
-	cdc.RegisterConcrete(&MsgCreateOracleBridger{}, fmt.Sprintf("%s/%s", ModuleName, "MsgCreateOracleBridger"), nil)
-	cdc.RegisterConcrete(&MsgAddOracleDelegate{}, fmt.Sprintf("%s/%s", ModuleName, "MsgAddOracleDelegate"), nil)
+	cdc.RegisterConcrete(&MsgBondedOracle{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBondedOracle"), nil)
+	cdc.RegisterConcrete(&MsgAddDelegate{}, fmt.Sprintf("%s/%s", ModuleName, "MsgAddDelegate"), nil)
 	cdc.RegisterConcrete(&MsgEditOracle{}, fmt.Sprintf("%s/%s", ModuleName, "MsgEditOracle"), nil)
 	cdc.RegisterConcrete(&MsgWithdrawReward{}, fmt.Sprintf("%s/%s", ModuleName, "MsgWithdrawReward"), nil)
 

@@ -12,7 +12,7 @@ var (
 
 	ErrNonContiguousEventNonce = sdkerrors.Register(ModuleName, 6, "non contiguous event nonce")
 	ErrNoFoundOracle           = sdkerrors.Register(ModuleName, 7, "no found oracle")
-	ErrOracleJailed            = sdkerrors.Register(ModuleName, 8, "oracle for this address is currently jailed")
+	ErrOracleNotOnLine         = sdkerrors.Register(ModuleName, 8, "oracle not on line")
 
 	ErrDelegateAmountBelowMinimum = sdkerrors.Register(ModuleName, 9, "delegate amount must be greater than oracle stake threshold")
 	ErrDelegateAmountBelowMaximum = sdkerrors.Register(ModuleName, 10, "delegate amount must be less than double oracle stake threshold")

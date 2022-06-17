@@ -30,7 +30,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type MsgCreateOracleBridger struct {
+type MsgBondedOracle struct {
 	ChainName        string     `protobuf:"bytes,1,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 	OracleAddress    string     `protobuf:"bytes,2,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
 	BridgerAddress   string     `protobuf:"bytes,3,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
@@ -39,18 +39,18 @@ type MsgCreateOracleBridger struct {
 	DelegateAmount   types.Coin `protobuf:"bytes,6,opt,name=delegate_amount,json=delegateAmount,proto3" json:"delegate_amount"`
 }
 
-func (m *MsgCreateOracleBridger) Reset()         { *m = MsgCreateOracleBridger{} }
-func (m *MsgCreateOracleBridger) String() string { return proto.CompactTextString(m) }
-func (*MsgCreateOracleBridger) ProtoMessage()    {}
-func (*MsgCreateOracleBridger) Descriptor() ([]byte, []int) {
+func (m *MsgBondedOracle) Reset()         { *m = MsgBondedOracle{} }
+func (m *MsgBondedOracle) String() string { return proto.CompactTextString(m) }
+func (*MsgBondedOracle) ProtoMessage()    {}
+func (*MsgBondedOracle) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0f25e0a13815164b, []int{0}
 }
-func (m *MsgCreateOracleBridger) XXX_Unmarshal(b []byte) error {
+func (m *MsgBondedOracle) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCreateOracleBridger) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgBondedOracle) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCreateOracleBridger.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgBondedOracle.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -60,75 +60,75 @@ func (m *MsgCreateOracleBridger) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *MsgCreateOracleBridger) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCreateOracleBridger.Merge(m, src)
+func (m *MsgBondedOracle) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgBondedOracle.Merge(m, src)
 }
-func (m *MsgCreateOracleBridger) XXX_Size() int {
+func (m *MsgBondedOracle) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCreateOracleBridger) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCreateOracleBridger.DiscardUnknown(m)
+func (m *MsgBondedOracle) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgBondedOracle.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCreateOracleBridger proto.InternalMessageInfo
+var xxx_messageInfo_MsgBondedOracle proto.InternalMessageInfo
 
-func (m *MsgCreateOracleBridger) GetChainName() string {
+func (m *MsgBondedOracle) GetChainName() string {
 	if m != nil {
 		return m.ChainName
 	}
 	return ""
 }
 
-func (m *MsgCreateOracleBridger) GetOracleAddress() string {
+func (m *MsgBondedOracle) GetOracleAddress() string {
 	if m != nil {
 		return m.OracleAddress
 	}
 	return ""
 }
 
-func (m *MsgCreateOracleBridger) GetBridgerAddress() string {
+func (m *MsgBondedOracle) GetBridgerAddress() string {
 	if m != nil {
 		return m.BridgerAddress
 	}
 	return ""
 }
 
-func (m *MsgCreateOracleBridger) GetExternalAddress() string {
+func (m *MsgBondedOracle) GetExternalAddress() string {
 	if m != nil {
 		return m.ExternalAddress
 	}
 	return ""
 }
 
-func (m *MsgCreateOracleBridger) GetValidatorAddress() string {
+func (m *MsgBondedOracle) GetValidatorAddress() string {
 	if m != nil {
 		return m.ValidatorAddress
 	}
 	return ""
 }
 
-func (m *MsgCreateOracleBridger) GetDelegateAmount() types.Coin {
+func (m *MsgBondedOracle) GetDelegateAmount() types.Coin {
 	if m != nil {
 		return m.DelegateAmount
 	}
 	return types.Coin{}
 }
 
-type MsgCreateOracleBridgerResponse struct {
+type MsgBondedOracleResponse struct {
 }
 
-func (m *MsgCreateOracleBridgerResponse) Reset()         { *m = MsgCreateOracleBridgerResponse{} }
-func (m *MsgCreateOracleBridgerResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCreateOracleBridgerResponse) ProtoMessage()    {}
-func (*MsgCreateOracleBridgerResponse) Descriptor() ([]byte, []int) {
+func (m *MsgBondedOracleResponse) Reset()         { *m = MsgBondedOracleResponse{} }
+func (m *MsgBondedOracleResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgBondedOracleResponse) ProtoMessage()    {}
+func (*MsgBondedOracleResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0f25e0a13815164b, []int{1}
 }
-func (m *MsgCreateOracleBridgerResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgBondedOracleResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCreateOracleBridgerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgBondedOracleResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCreateOracleBridgerResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgBondedOracleResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -138,36 +138,36 @@ func (m *MsgCreateOracleBridgerResponse) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *MsgCreateOracleBridgerResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCreateOracleBridgerResponse.Merge(m, src)
+func (m *MsgBondedOracleResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgBondedOracleResponse.Merge(m, src)
 }
-func (m *MsgCreateOracleBridgerResponse) XXX_Size() int {
+func (m *MsgBondedOracleResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCreateOracleBridgerResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCreateOracleBridgerResponse.DiscardUnknown(m)
+func (m *MsgBondedOracleResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgBondedOracleResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCreateOracleBridgerResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgBondedOracleResponse proto.InternalMessageInfo
 
-type MsgAddOracleDelegate struct {
+type MsgAddDelegate struct {
 	ChainName     string     `protobuf:"bytes,1,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 	OracleAddress string     `protobuf:"bytes,2,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
 	Amount        types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount"`
 }
 
-func (m *MsgAddOracleDelegate) Reset()         { *m = MsgAddOracleDelegate{} }
-func (m *MsgAddOracleDelegate) String() string { return proto.CompactTextString(m) }
-func (*MsgAddOracleDelegate) ProtoMessage()    {}
-func (*MsgAddOracleDelegate) Descriptor() ([]byte, []int) {
+func (m *MsgAddDelegate) Reset()         { *m = MsgAddDelegate{} }
+func (m *MsgAddDelegate) String() string { return proto.CompactTextString(m) }
+func (*MsgAddDelegate) ProtoMessage()    {}
+func (*MsgAddDelegate) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0f25e0a13815164b, []int{2}
 }
-func (m *MsgAddOracleDelegate) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddDelegate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAddOracleDelegate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddDelegate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAddOracleDelegate.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddDelegate.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -177,54 +177,54 @@ func (m *MsgAddOracleDelegate) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *MsgAddOracleDelegate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAddOracleDelegate.Merge(m, src)
+func (m *MsgAddDelegate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddDelegate.Merge(m, src)
 }
-func (m *MsgAddOracleDelegate) XXX_Size() int {
+func (m *MsgAddDelegate) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAddOracleDelegate) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAddOracleDelegate.DiscardUnknown(m)
+func (m *MsgAddDelegate) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddDelegate.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAddOracleDelegate proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddDelegate proto.InternalMessageInfo
 
-func (m *MsgAddOracleDelegate) GetChainName() string {
+func (m *MsgAddDelegate) GetChainName() string {
 	if m != nil {
 		return m.ChainName
 	}
 	return ""
 }
 
-func (m *MsgAddOracleDelegate) GetOracleAddress() string {
+func (m *MsgAddDelegate) GetOracleAddress() string {
 	if m != nil {
 		return m.OracleAddress
 	}
 	return ""
 }
 
-func (m *MsgAddOracleDelegate) GetAmount() types.Coin {
+func (m *MsgAddDelegate) GetAmount() types.Coin {
 	if m != nil {
 		return m.Amount
 	}
 	return types.Coin{}
 }
 
-type MsgAddOracleDelegateResponse struct {
+type MsgAddDelegateResponse struct {
 }
 
-func (m *MsgAddOracleDelegateResponse) Reset()         { *m = MsgAddOracleDelegateResponse{} }
-func (m *MsgAddOracleDelegateResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgAddOracleDelegateResponse) ProtoMessage()    {}
-func (*MsgAddOracleDelegateResponse) Descriptor() ([]byte, []int) {
+func (m *MsgAddDelegateResponse) Reset()         { *m = MsgAddDelegateResponse{} }
+func (m *MsgAddDelegateResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAddDelegateResponse) ProtoMessage()    {}
+func (*MsgAddDelegateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0f25e0a13815164b, []int{3}
 }
-func (m *MsgAddOracleDelegateResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddDelegateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAddOracleDelegateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddDelegateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAddOracleDelegateResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddDelegateResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -234,17 +234,17 @@ func (m *MsgAddOracleDelegateResponse) XXX_Marshal(b []byte, deterministic bool)
 		return b[:n], nil
 	}
 }
-func (m *MsgAddOracleDelegateResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAddOracleDelegateResponse.Merge(m, src)
+func (m *MsgAddDelegateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddDelegateResponse.Merge(m, src)
 }
-func (m *MsgAddOracleDelegateResponse) XXX_Size() int {
+func (m *MsgAddDelegateResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAddOracleDelegateResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAddOracleDelegateResponse.DiscardUnknown(m)
+func (m *MsgAddDelegateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddDelegateResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAddOracleDelegateResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddDelegateResponse proto.InternalMessageInfo
 
 type MsgEditOracle struct {
 	ChainName        string `protobuf:"bytes,1,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
@@ -342,6 +342,94 @@ func (m *MsgEditOracleResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgEditOracleResponse proto.InternalMessageInfo
 
+type MsgUnbondedOracle struct {
+	ChainName     string `protobuf:"bytes,1,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	OracleAddress string `protobuf:"bytes,2,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
+}
+
+func (m *MsgUnbondedOracle) Reset()         { *m = MsgUnbondedOracle{} }
+func (m *MsgUnbondedOracle) String() string { return proto.CompactTextString(m) }
+func (*MsgUnbondedOracle) ProtoMessage()    {}
+func (*MsgUnbondedOracle) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0f25e0a13815164b, []int{6}
+}
+func (m *MsgUnbondedOracle) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUnbondedOracle) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUnbondedOracle.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUnbondedOracle) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUnbondedOracle.Merge(m, src)
+}
+func (m *MsgUnbondedOracle) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUnbondedOracle) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUnbondedOracle.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUnbondedOracle proto.InternalMessageInfo
+
+func (m *MsgUnbondedOracle) GetChainName() string {
+	if m != nil {
+		return m.ChainName
+	}
+	return ""
+}
+
+func (m *MsgUnbondedOracle) GetOracleAddress() string {
+	if m != nil {
+		return m.OracleAddress
+	}
+	return ""
+}
+
+type MsgUnbondedOracleResponse struct {
+}
+
+func (m *MsgUnbondedOracleResponse) Reset()         { *m = MsgUnbondedOracleResponse{} }
+func (m *MsgUnbondedOracleResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUnbondedOracleResponse) ProtoMessage()    {}
+func (*MsgUnbondedOracleResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0f25e0a13815164b, []int{7}
+}
+func (m *MsgUnbondedOracleResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUnbondedOracleResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUnbondedOracleResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUnbondedOracleResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUnbondedOracleResponse.Merge(m, src)
+}
+func (m *MsgUnbondedOracleResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUnbondedOracleResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUnbondedOracleResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUnbondedOracleResponse proto.InternalMessageInfo
+
 type MsgWithdrawReward struct {
 	ChainName     string `protobuf:"bytes,1,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 	OracleAddress string `protobuf:"bytes,2,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
@@ -351,7 +439,7 @@ func (m *MsgWithdrawReward) Reset()         { *m = MsgWithdrawReward{} }
 func (m *MsgWithdrawReward) String() string { return proto.CompactTextString(m) }
 func (*MsgWithdrawReward) ProtoMessage()    {}
 func (*MsgWithdrawReward) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{6}
+	return fileDescriptor_0f25e0a13815164b, []int{8}
 }
 func (m *MsgWithdrawReward) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -401,7 +489,7 @@ func (m *MsgWithdrawRewardResponse) Reset()         { *m = MsgWithdrawRewardResp
 func (m *MsgWithdrawRewardResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgWithdrawRewardResponse) ProtoMessage()    {}
 func (*MsgWithdrawRewardResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{7}
+	return fileDescriptor_0f25e0a13815164b, []int{9}
 }
 func (m *MsgWithdrawRewardResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -457,7 +545,7 @@ func (m *MsgOracleSetConfirm) Reset()         { *m = MsgOracleSetConfirm{} }
 func (m *MsgOracleSetConfirm) String() string { return proto.CompactTextString(m) }
 func (*MsgOracleSetConfirm) ProtoMessage()    {}
 func (*MsgOracleSetConfirm) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{8}
+	return fileDescriptor_0f25e0a13815164b, []int{10}
 }
 func (m *MsgOracleSetConfirm) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -528,7 +616,7 @@ func (m *MsgOracleSetConfirmResponse) Reset()         { *m = MsgOracleSetConfirm
 func (m *MsgOracleSetConfirmResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgOracleSetConfirmResponse) ProtoMessage()    {}
 func (*MsgOracleSetConfirmResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{9}
+	return fileDescriptor_0f25e0a13815164b, []int{11}
 }
 func (m *MsgOracleSetConfirmResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -572,7 +660,7 @@ func (m *MsgOracleSetUpdatedClaim) Reset()         { *m = MsgOracleSetUpdatedCla
 func (m *MsgOracleSetUpdatedClaim) String() string { return proto.CompactTextString(m) }
 func (*MsgOracleSetUpdatedClaim) ProtoMessage()    {}
 func (*MsgOracleSetUpdatedClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{10}
+	return fileDescriptor_0f25e0a13815164b, []int{12}
 }
 func (m *MsgOracleSetUpdatedClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -650,7 +738,7 @@ func (m *MsgOracleSetUpdatedClaimResponse) Reset()         { *m = MsgOracleSetUp
 func (m *MsgOracleSetUpdatedClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgOracleSetUpdatedClaimResponse) ProtoMessage()    {}
 func (*MsgOracleSetUpdatedClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{11}
+	return fileDescriptor_0f25e0a13815164b, []int{13}
 }
 func (m *MsgOracleSetUpdatedClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -700,7 +788,7 @@ func (m *MsgSendToFxClaim) Reset()         { *m = MsgSendToFxClaim{} }
 func (m *MsgSendToFxClaim) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToFxClaim) ProtoMessage()    {}
 func (*MsgSendToFxClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{12}
+	return fileDescriptor_0f25e0a13815164b, []int{14}
 }
 func (m *MsgSendToFxClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -792,7 +880,7 @@ func (m *MsgSendToFxClaimResponse) Reset()         { *m = MsgSendToFxClaimRespon
 func (m *MsgSendToFxClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToFxClaimResponse) ProtoMessage()    {}
 func (*MsgSendToFxClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{13}
+	return fileDescriptor_0f25e0a13815164b, []int{15}
 }
 func (m *MsgSendToFxClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -845,7 +933,7 @@ func (m *MsgSendToExternal) Reset()         { *m = MsgSendToExternal{} }
 func (m *MsgSendToExternal) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToExternal) ProtoMessage()    {}
 func (*MsgSendToExternal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{14}
+	return fileDescriptor_0f25e0a13815164b, []int{16}
 }
 func (m *MsgSendToExternal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -917,7 +1005,7 @@ func (m *MsgSendToExternalResponse) Reset()         { *m = MsgSendToExternalResp
 func (m *MsgSendToExternalResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToExternalResponse) ProtoMessage()    {}
 func (*MsgSendToExternalResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{15}
+	return fileDescriptor_0f25e0a13815164b, []int{17}
 }
 func (m *MsgSendToExternalResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -966,7 +1054,7 @@ func (m *MsgCancelSendToExternal) Reset()         { *m = MsgCancelSendToExternal
 func (m *MsgCancelSendToExternal) String() string { return proto.CompactTextString(m) }
 func (*MsgCancelSendToExternal) ProtoMessage()    {}
 func (*MsgCancelSendToExternal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{16}
+	return fileDescriptor_0f25e0a13815164b, []int{18}
 }
 func (m *MsgCancelSendToExternal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1023,7 +1111,7 @@ func (m *MsgCancelSendToExternalResponse) Reset()         { *m = MsgCancelSendTo
 func (m *MsgCancelSendToExternalResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgCancelSendToExternalResponse) ProtoMessage()    {}
 func (*MsgCancelSendToExternalResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{17}
+	return fileDescriptor_0f25e0a13815164b, []int{19}
 }
 func (m *MsgCancelSendToExternalResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1075,7 +1163,7 @@ func (m *MsgRequestBatch) Reset()         { *m = MsgRequestBatch{} }
 func (m *MsgRequestBatch) String() string { return proto.CompactTextString(m) }
 func (*MsgRequestBatch) ProtoMessage()    {}
 func (*MsgRequestBatch) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{18}
+	return fileDescriptor_0f25e0a13815164b, []int{20}
 }
 func (m *MsgRequestBatch) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1140,7 +1228,7 @@ func (m *MsgRequestBatchResponse) Reset()         { *m = MsgRequestBatchResponse
 func (m *MsgRequestBatchResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgRequestBatchResponse) ProtoMessage()    {}
 func (*MsgRequestBatchResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{19}
+	return fileDescriptor_0f25e0a13815164b, []int{21}
 }
 func (m *MsgRequestBatchResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1197,7 +1285,7 @@ func (m *MsgConfirmBatch) Reset()         { *m = MsgConfirmBatch{} }
 func (m *MsgConfirmBatch) String() string { return proto.CompactTextString(m) }
 func (*MsgConfirmBatch) ProtoMessage()    {}
 func (*MsgConfirmBatch) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{20}
+	return fileDescriptor_0f25e0a13815164b, []int{22}
 }
 func (m *MsgConfirmBatch) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1275,7 +1363,7 @@ func (m *MsgConfirmBatchResponse) Reset()         { *m = MsgConfirmBatchResponse
 func (m *MsgConfirmBatchResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgConfirmBatchResponse) ProtoMessage()    {}
 func (*MsgConfirmBatchResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{21}
+	return fileDescriptor_0f25e0a13815164b, []int{23}
 }
 func (m *MsgConfirmBatchResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1319,7 +1407,7 @@ func (m *MsgSendToExternalClaim) Reset()         { *m = MsgSendToExternalClaim{}
 func (m *MsgSendToExternalClaim) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToExternalClaim) ProtoMessage()    {}
 func (*MsgSendToExternalClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{22}
+	return fileDescriptor_0f25e0a13815164b, []int{24}
 }
 func (m *MsgSendToExternalClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1397,7 +1485,7 @@ func (m *MsgSendToExternalClaimResponse) Reset()         { *m = MsgSendToExterna
 func (m *MsgSendToExternalClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSendToExternalClaimResponse) ProtoMessage()    {}
 func (*MsgSendToExternalClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{23}
+	return fileDescriptor_0f25e0a13815164b, []int{25}
 }
 func (m *MsgSendToExternalClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1442,7 +1530,7 @@ func (m *MsgBridgeTokenClaim) Reset()         { *m = MsgBridgeTokenClaim{} }
 func (m *MsgBridgeTokenClaim) String() string { return proto.CompactTextString(m) }
 func (*MsgBridgeTokenClaim) ProtoMessage()    {}
 func (*MsgBridgeTokenClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{24}
+	return fileDescriptor_0f25e0a13815164b, []int{26}
 }
 func (m *MsgBridgeTokenClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1541,7 +1629,7 @@ func (m *MsgBridgeTokenClaimResponse) Reset()         { *m = MsgBridgeTokenClaim
 func (m *MsgBridgeTokenClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgBridgeTokenClaimResponse) ProtoMessage()    {}
 func (*MsgBridgeTokenClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f25e0a13815164b, []int{25}
+	return fileDescriptor_0f25e0a13815164b, []int{27}
 }
 func (m *MsgBridgeTokenClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1571,12 +1659,14 @@ func (m *MsgBridgeTokenClaimResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgBridgeTokenClaimResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgCreateOracleBridger)(nil), "fx.gravity.crosschain.v1.MsgCreateOracleBridger")
-	proto.RegisterType((*MsgCreateOracleBridgerResponse)(nil), "fx.gravity.crosschain.v1.MsgCreateOracleBridgerResponse")
-	proto.RegisterType((*MsgAddOracleDelegate)(nil), "fx.gravity.crosschain.v1.MsgAddOracleDelegate")
-	proto.RegisterType((*MsgAddOracleDelegateResponse)(nil), "fx.gravity.crosschain.v1.MsgAddOracleDelegateResponse")
+	proto.RegisterType((*MsgBondedOracle)(nil), "fx.gravity.crosschain.v1.MsgBondedOracle")
+	proto.RegisterType((*MsgBondedOracleResponse)(nil), "fx.gravity.crosschain.v1.MsgBondedOracleResponse")
+	proto.RegisterType((*MsgAddDelegate)(nil), "fx.gravity.crosschain.v1.MsgAddDelegate")
+	proto.RegisterType((*MsgAddDelegateResponse)(nil), "fx.gravity.crosschain.v1.MsgAddDelegateResponse")
 	proto.RegisterType((*MsgEditOracle)(nil), "fx.gravity.crosschain.v1.MsgEditOracle")
 	proto.RegisterType((*MsgEditOracleResponse)(nil), "fx.gravity.crosschain.v1.MsgEditOracleResponse")
+	proto.RegisterType((*MsgUnbondedOracle)(nil), "fx.gravity.crosschain.v1.MsgUnbondedOracle")
+	proto.RegisterType((*MsgUnbondedOracleResponse)(nil), "fx.gravity.crosschain.v1.MsgUnbondedOracleResponse")
 	proto.RegisterType((*MsgWithdrawReward)(nil), "fx.gravity.crosschain.v1.MsgWithdrawReward")
 	proto.RegisterType((*MsgWithdrawRewardResponse)(nil), "fx.gravity.crosschain.v1.MsgWithdrawRewardResponse")
 	proto.RegisterType((*MsgOracleSetConfirm)(nil), "fx.gravity.crosschain.v1.MsgOracleSetConfirm")
@@ -1602,94 +1692,95 @@ func init() {
 func init() { proto.RegisterFile("crosschain/v1/tx.proto", fileDescriptor_0f25e0a13815164b) }
 
 var fileDescriptor_0f25e0a13815164b = []byte{
-	// 1387 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x58, 0x4f, 0x73, 0xdb, 0x54,
-	0x10, 0x8f, 0x6c, 0xc7, 0x69, 0xd6, 0xf9, 0x57, 0x35, 0xb4, 0x89, 0xdb, 0xda, 0xa9, 0x87, 0xd2,
-	0x94, 0x4e, 0xed, 0x26, 0x1d, 0xa0, 0xf4, 0xc0, 0x4c, 0x12, 0x9a, 0xa9, 0x0f, 0x6e, 0x67, 0xdc,
-	0x02, 0x03, 0x17, 0xcf, 0xb3, 0xb4, 0x96, 0x35, 0xb5, 0xde, 0x0b, 0xd2, 0xb3, 0xeb, 0x0e, 0x27,
-	0x18, 0x86, 0x33, 0x17, 0x4e, 0x7c, 0x02, 0x86, 0x13, 0x77, 0x3e, 0x40, 0x8f, 0xbd, 0xc1, 0x70,
-	0x28, 0x9d, 0xf6, 0xca, 0x87, 0x60, 0xf4, 0xde, 0x93, 0x22, 0xc9, 0xb2, 0x63, 0x77, 0x02, 0xa7,
-	0x58, 0xab, 0xdf, 0xee, 0xdb, 0xfd, 0xed, 0xbe, 0xdd, 0x55, 0xe0, 0xbc, 0xe1, 0x32, 0xcf, 0x33,
-	0xba, 0xc4, 0xa6, 0xb5, 0xc1, 0x4e, 0x8d, 0x0f, 0xab, 0x47, 0x2e, 0xe3, 0x4c, 0xdf, 0xe8, 0x0c,
-	0xab, 0x96, 0x4b, 0x06, 0x36, 0x7f, 0x56, 0x3d, 0x86, 0x54, 0x07, 0x3b, 0xc5, 0x92, 0xc1, 0x3c,
-	0x87, 0x79, 0xb5, 0x36, 0xf1, 0xb0, 0x36, 0xd8, 0x69, 0x23, 0x27, 0x3b, 0x35, 0x83, 0xd9, 0x54,
-	0x6a, 0x16, 0xd7, 0x2d, 0x66, 0x31, 0xf1, 0xb3, 0xe6, 0xff, 0x52, 0xd2, 0xcd, 0xc4, 0x39, 0xcf,
-	0x8e, 0xd0, 0x93, 0xaf, 0x2a, 0xbf, 0x64, 0xe0, 0x7c, 0xc3, 0xb3, 0x0e, 0x5c, 0x24, 0x1c, 0x1f,
-	0xba, 0xc4, 0xe8, 0xe1, 0xbe, 0x6b, 0x9b, 0x16, 0xba, 0xfa, 0x65, 0x00, 0xa1, 0xd2, 0xa2, 0xc4,
-	0xc1, 0x0d, 0x6d, 0x4b, 0xdb, 0x5e, 0x6c, 0x2e, 0x0a, 0xc9, 0x03, 0xe2, 0xa0, 0x7e, 0x15, 0x56,
-	0x98, 0xc0, 0xb7, 0x88, 0x69, 0xba, 0xe8, 0x79, 0x1b, 0x19, 0x01, 0x59, 0x96, 0xd2, 0x3d, 0x29,
-	0xd4, 0xaf, 0xc1, 0x6a, 0x5b, 0x1a, 0x0c, 0x71, 0x59, 0x81, 0x5b, 0x51, 0xe2, 0x00, 0x78, 0x1d,
-	0xd6, 0x70, 0xc8, 0xd1, 0xa5, 0xa4, 0x17, 0x22, 0x73, 0x02, 0xb9, 0x1a, 0xc8, 0x03, 0xe8, 0x0d,
-	0x38, 0x3b, 0x20, 0x3d, 0xdb, 0x24, 0x9c, 0x1d, 0x5b, 0x9d, 0x17, 0xd8, 0xb5, 0xf0, 0x45, 0x00,
-	0xbe, 0x0f, 0xab, 0x26, 0xf6, 0xd0, 0x22, 0x1c, 0x5b, 0xc4, 0x61, 0x7d, 0xca, 0x37, 0xf2, 0x5b,
-	0xda, 0x76, 0x61, 0x77, 0xb3, 0x2a, 0xc9, 0xac, 0xfa, 0x64, 0x56, 0x15, 0x99, 0xd5, 0x03, 0x66,
-	0xd3, 0xfd, 0xdc, 0xf3, 0x97, 0xe5, 0xb9, 0xe6, 0x4a, 0xa0, 0xb7, 0x27, 0xd4, 0x2a, 0x5b, 0x50,
-	0x4a, 0xa7, 0xaa, 0x89, 0xde, 0x11, 0xa3, 0x1e, 0x56, 0x7e, 0xd2, 0x60, 0xbd, 0xe1, 0x59, 0x7b,
-	0xa6, 0x29, 0xdf, 0x7f, 0xaa, 0x0c, 0x9c, 0x12, 0x97, 0x1f, 0x41, 0x5e, 0x45, 0x90, 0x9d, 0x2e,
-	0x02, 0x05, 0xaf, 0x94, 0xe0, 0x52, 0x9a, 0x5b, 0xa1, 0xdf, 0xdf, 0x69, 0xb0, 0xdc, 0xf0, 0xac,
-	0x7b, 0xa6, 0xcd, 0x25, 0xe2, 0x94, 0x1c, 0x4e, 0x4d, 0x54, 0x36, 0x3d, 0x51, 0x95, 0x0b, 0xf0,
-	0x4e, 0xcc, 0x87, 0xd0, 0xbb, 0x2f, 0xe1, 0x6c, 0xc3, 0xb3, 0xbe, 0xb0, 0x79, 0xd7, 0x74, 0xc9,
-	0xd3, 0x26, 0x3e, 0x25, 0xae, 0x79, 0x3a, 0x0e, 0x56, 0x2e, 0xc2, 0xe6, 0x88, 0xe9, 0xf0, 0xdc,
-	0xdf, 0x35, 0x38, 0xd7, 0xf0, 0x2c, 0xe9, 0xcd, 0x23, 0xe4, 0x07, 0x8c, 0x76, 0x6c, 0xd7, 0xd1,
-	0xd7, 0x61, 0x9e, 0x32, 0x6a, 0xc8, 0x53, 0x73, 0x4d, 0xf9, 0x90, 0x56, 0xe8, 0x99, 0xa9, 0x0b,
-	0x3d, 0x9b, 0x5e, 0xe8, 0x97, 0x60, 0xd1, 0xb3, 0x2d, 0x4a, 0x78, 0xdf, 0x45, 0x75, 0x19, 0x8e,
-	0x05, 0x09, 0x0a, 0xe6, 0x13, 0x14, 0x54, 0x2e, 0xc3, 0xc5, 0x14, 0xef, 0xc3, 0xe8, 0x7e, 0xce,
-	0xc0, 0x46, 0xf4, 0xfd, 0x67, 0x47, 0x26, 0xe1, 0x68, 0x1e, 0xf4, 0x88, 0xed, 0xe8, 0x65, 0x28,
-	0xe0, 0x00, 0x29, 0x6f, 0x45, 0x03, 0x05, 0x21, 0x7a, 0x20, 0xa2, 0xbd, 0x02, 0x4b, 0xed, 0x1e,
-	0x33, 0x9e, 0xb4, 0xba, 0x68, 0x5b, 0x5d, 0x2e, 0x42, 0xcd, 0x35, 0x0b, 0x42, 0x76, 0x5f, 0x88,
-	0xf4, 0x6d, 0x58, 0x53, 0x29, 0xf0, 0x30, 0x30, 0x94, 0x15, 0x30, 0x95, 0x9a, 0x47, 0xa8, 0x8c,
-	0xd5, 0x61, 0xc1, 0x41, 0xa7, 0x8d, 0xae, 0x7f, 0xe3, 0xb3, 0xdb, 0x85, 0xdd, 0xeb, 0xd5, 0x71,
-	0x1d, 0xb0, 0x2a, 0xaf, 0xdc, 0xe7, 0x41, 0xf1, 0xa8, 0x42, 0x0f, 0xf4, 0xd3, 0xb2, 0x90, 0x4f,
-	0xcd, 0x42, 0x9c, 0xbc, 0x85, 0x24, 0x79, 0x15, 0xd8, 0x1a, 0x47, 0x4e, 0xc8, 0xe0, 0xab, 0x0c,
-	0xac, 0x35, 0x3c, 0xeb, 0x11, 0x52, 0xf3, 0x31, 0x3b, 0x1c, 0x9e, 0x1e, 0x73, 0x57, 0x61, 0x85,
-	0xb3, 0x27, 0x48, 0x5b, 0x06, 0xa3, 0xdc, 0x25, 0x06, 0x57, 0xf5, 0xb1, 0x2c, 0xa4, 0x07, 0x4a,
-	0xa8, 0x1f, 0x86, 0xed, 0x40, 0x94, 0xc6, 0x7e, 0xd5, 0xa7, 0xe2, 0xaf, 0x97, 0xe5, 0xf7, 0x2c,
-	0x9b, 0x77, 0xfb, 0xed, 0xaa, 0xc1, 0x9c, 0x9a, 0x9a, 0x17, 0xf2, 0xcf, 0x4d, 0xcf, 0x7c, 0xa2,
-	0xba, 0x7f, 0x9d, 0xf2, 0xa0, 0x3b, 0xe8, 0xe7, 0x21, 0xef, 0x21, 0x35, 0xd1, 0x55, 0x35, 0xa4,
-	0x9e, 0xf4, 0x22, 0x9c, 0x71, 0xd1, 0x40, 0x7b, 0x80, 0xae, 0x22, 0x31, 0x7c, 0xf6, 0xe9, 0xe3,
-	0xc4, 0xb5, 0x90, 0xb7, 0xec, 0xb6, 0x11, 0xd0, 0x27, 0x25, 0xf5, 0xb6, 0x91, 0x96, 0x86, 0x33,
-	0x53, 0xa4, 0x61, 0x31, 0x99, 0x86, 0xa2, 0xa8, 0xd1, 0x18, 0xc3, 0x21, 0xfd, 0x7f, 0x68, 0xa2,
-	0x2f, 0xc8, 0x97, 0xf7, 0xd4, 0xcd, 0x89, 0x04, 0xa3, 0xc5, 0x82, 0xd1, 0x21, 0x67, 0xa2, 0xc7,
-	0xd5, 0x9d, 0x14, 0xbf, 0xdf, 0xba, 0x9f, 0xea, 0x9f, 0x00, 0xc8, 0x38, 0x5a, 0x1d, 0x94, 0x17,
-	0x73, 0x0a, 0xe5, 0x45, 0xa9, 0x72, 0x88, 0x27, 0xde, 0xdc, 0x3d, 0xd1, 0x95, 0xe2, 0x81, 0x05,
-	0x61, 0xeb, 0xef, 0xc2, 0x0a, 0xeb, 0x73, 0x8b, 0xd9, 0xd4, 0x6a, 0xf1, 0x61, 0xcb, 0x36, 0x55,
-	0x8d, 0x2d, 0x05, 0xd2, 0xc7, 0xc3, 0xba, 0x59, 0x79, 0x0a, 0x17, 0xfc, 0x59, 0x45, 0xa8, 0x81,
-	0xbd, 0x04, 0x43, 0x7e, 0x75, 0xb9, 0x84, 0x7a, 0xc4, 0xe0, 0x36, 0xa3, 0xc7, 0x06, 0x96, 0x23,
-	0xd2, 0xba, 0x19, 0x21, 0x32, 0x13, 0x23, 0x32, 0xee, 0x7b, 0x36, 0xe9, 0xfb, 0x15, 0x28, 0x8f,
-	0x39, 0x38, 0xda, 0x79, 0x56, 0x1b, 0x9e, 0xd5, 0xc4, 0xaf, 0xfb, 0xe8, 0xf1, 0x7d, 0xc2, 0x8d,
-	0xee, 0xd8, 0xb4, 0xad, 0xc3, 0xbc, 0x89, 0x94, 0x39, 0xca, 0x09, 0xf9, 0xa0, 0x3f, 0x84, 0x82,
-	0x63, 0x53, 0xdb, 0xe9, 0x3b, 0x22, 0x01, 0xd9, 0xb7, 0x2a, 0x7f, 0x50, 0x26, 0xfc, 0x84, 0x94,
-	0xa1, 0xd0, 0x41, 0x6c, 0xa9, 0xf2, 0x56, 0xad, 0x16, 0x3a, 0x88, 0x4d, 0x29, 0x39, 0x21, 0x63,
-	0x7a, 0x1d, 0xce, 0xf8, 0x69, 0x17, 0xde, 0xe4, 0x43, 0x6f, 0xb4, 0x19, 0xbc, 0x59, 0xf0, 0xf5,
-	0x0f, 0x11, 0x2b, 0x77, 0x45, 0xe6, 0xa2, 0xe4, 0x84, 0xa9, 0x2f, 0x43, 0xa1, 0xed, 0x0b, 0xe2,
-	0xbd, 0x45, 0x88, 0x44, 0x6f, 0xa9, 0xfc, 0xad, 0x09, 0x66, 0x55, 0xab, 0x97, 0xcc, 0xa6, 0x4f,
-	0xab, 0xd1, 0x16, 0x93, 0x49, 0x6b, 0x31, 0xff, 0xc5, 0xf6, 0x16, 0x1b, 0x6a, 0xf3, 0x93, 0x87,
-	0x5a, 0x3e, 0x59, 0x5e, 0x9b, 0xb2, 0xae, 0x23, 0x01, 0x86, 0x65, 0xf5, 0x8f, 0x26, 0x56, 0xd9,
-	0x78, 0xd1, 0x9d, 0x5e, 0x53, 0x4e, 0x90, 0x9f, 0x4d, 0x92, 0x9f, 0x42, 0x69, 0x6e, 0x4a, 0x4a,
-	0xe7, 0xa7, 0x68, 0x8d, 0x23, 0x4c, 0xc8, 0x6d, 0x34, 0x25, 0xda, 0x90, 0x90, 0xdf, 0x32, 0x62,
-	0x7f, 0x91, 0x13, 0xf3, 0xb1, 0x70, 0xe2, 0xff, 0x1e, 0x51, 0x3a, 0xe4, 0x84, 0xf7, 0x92, 0x09,
-	0xf1, 0x5b, 0x5c, 0xf5, 0x67, 0x4e, 0x9b, 0xf5, 0xc2, 0x71, 0x23, 0x9e, 0xfc, 0x71, 0x63, 0xa2,
-	0x61, 0x3b, 0xa4, 0x27, 0x67, 0x76, 0xae, 0x19, 0x3e, 0xa7, 0x91, 0xb6, 0x90, 0x4a, 0x5a, 0x19,
-	0x0a, 0x46, 0x97, 0x50, 0x8a, 0x3d, 0x31, 0x98, 0xe4, 0xd0, 0x01, 0x25, 0xf2, 0x27, 0xd3, 0x09,
-	0x03, 0x47, 0x2e, 0x4d, 0x49, 0xca, 0x02, 0x4a, 0x77, 0x7f, 0x5d, 0x82, 0x6c, 0xc3, 0xb3, 0xf4,
-	0x6f, 0x35, 0x38, 0x97, 0xf6, 0xcd, 0x74, 0x6b, 0xfc, 0xe2, 0x92, 0xfe, 0xe9, 0x50, 0xbc, 0x33,
-	0xab, 0x46, 0xd8, 0x0d, 0xbe, 0x81, 0xb3, 0xa3, 0x1f, 0x1a, 0xd5, 0x89, 0xe6, 0x46, 0xf0, 0xc5,
-	0x0f, 0x67, 0xc3, 0x87, 0x87, 0x77, 0x00, 0x22, 0x5f, 0x0b, 0xd7, 0x26, 0x5a, 0x39, 0x06, 0x16,
-	0x6b, 0x53, 0x02, 0xc3, 0x73, 0x5c, 0x58, 0x49, 0x2c, 0xfe, 0x37, 0x26, 0x9a, 0x88, 0x83, 0x8b,
-	0xb7, 0x67, 0x00, 0x87, 0x67, 0x0e, 0x61, 0x6d, 0x64, 0xe7, 0xbf, 0x39, 0xd1, 0x50, 0x12, 0x5e,
-	0xfc, 0x60, 0x26, 0x78, 0x78, 0xf2, 0x0f, 0x1a, 0xac, 0x27, 0x76, 0x4e, 0x79, 0x65, 0x77, 0xa7,
-	0xb3, 0x17, 0x5d, 0x53, 0x8b, 0x77, 0x67, 0xd7, 0x89, 0x52, 0x30, 0xd2, 0x36, 0x26, 0x53, 0x90,
-	0x84, 0x9f, 0x40, 0xc1, 0xb8, 0x1b, 0xa6, 0x33, 0x58, 0x8e, 0x2f, 0xd4, 0xef, 0x4f, 0xb4, 0x13,
-	0xc3, 0x16, 0x77, 0xa7, 0xc7, 0x46, 0x2b, 0x2c, 0xb1, 0x20, 0xdd, 0x98, 0xc2, 0x4a, 0x00, 0x3e,
-	0xa1, 0xc2, 0xc6, 0xec, 0x70, 0xdf, 0x6b, 0xb0, 0x9e, 0xba, 0x9b, 0xed, 0x4c, 0xee, 0x06, 0x29,
-	0x2a, 0xc5, 0x8f, 0x67, 0x56, 0x09, 0xdd, 0xf0, 0xbb, 0x58, 0xda, 0xb8, 0xbc, 0x35, 0x43, 0x4c,
-	0x92, 0xf8, 0x3b, 0xb3, 0x6a, 0x84, 0x3e, 0xf4, 0x60, 0x29, 0xb6, 0x08, 0x5e, 0x9f, 0x68, 0x29,
-	0x0a, 0x2d, 0xee, 0x4c, 0x0d, 0x8d, 0x9e, 0x16, 0x5b, 0x8e, 0x26, 0x9f, 0x16, 0x85, 0x9e, 0x70,
-	0x5a, 0xda, 0x46, 0xb2, 0x5f, 0x7f, 0xfe, 0xba, 0xa4, 0xbd, 0x78, 0x5d, 0xd2, 0x5e, 0xbd, 0x2e,
-	0x69, 0x3f, 0xbe, 0x29, 0xcd, 0xbd, 0x78, 0x53, 0x9a, 0xfb, 0xf3, 0x4d, 0x69, 0xee, 0xab, 0x5a,
-	0x64, 0x2b, 0xec, 0xf4, 0xa9, 0xd8, 0xb9, 0x87, 0xb5, 0xce, 0xf0, 0xa6, 0xc1, 0x5c, 0xac, 0x0d,
-	0x6b, 0x91, 0x7f, 0xd8, 0x89, 0x15, 0xb1, 0x9d, 0x17, 0xff, 0xae, 0xbb, 0xfd, 0x6f, 0x00, 0x00,
-	0x00, 0xff, 0xff, 0xad, 0x1c, 0x6f, 0xe2, 0x33, 0x14, 0x00, 0x00,
+	// 1397 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x58, 0xcf, 0x73, 0xdb, 0xc4,
+	0x17, 0x8f, 0x6c, 0x27, 0x69, 0x9e, 0x13, 0x27, 0x55, 0xf3, 0x6d, 0x13, 0xf7, 0x5b, 0x3b, 0xf5,
+	0x50, 0x9a, 0xd2, 0xa9, 0xdd, 0xa4, 0xc3, 0x00, 0x3d, 0x30, 0x93, 0x84, 0x66, 0xea, 0x83, 0xdb,
+	0x19, 0xb7, 0x85, 0x81, 0x8b, 0x67, 0x2d, 0x3d, 0xcb, 0x9a, 0x4a, 0xbb, 0x41, 0x5a, 0xbb, 0xee,
+	0x11, 0x86, 0xe1, 0x0a, 0x77, 0x6e, 0xfc, 0x07, 0xdc, 0xf9, 0x03, 0x7a, 0xec, 0x0d, 0x86, 0x43,
+	0xe9, 0xb4, 0x57, 0xee, 0x5c, 0x19, 0xed, 0xae, 0x14, 0x49, 0x51, 0xfc, 0xa3, 0x13, 0x38, 0x59,
+	0x7a, 0xfa, 0xec, 0xbe, 0xb7, 0x9f, 0xf7, 0x73, 0x0d, 0x17, 0x0d, 0x8f, 0xf9, 0xbe, 0xd1, 0x27,
+	0x36, 0x6d, 0x0c, 0x77, 0x1a, 0x7c, 0x54, 0x3f, 0xf2, 0x18, 0x67, 0xfa, 0x46, 0x6f, 0x54, 0xb7,
+	0x3c, 0x32, 0xb4, 0xf9, 0xf3, 0xfa, 0x31, 0xa4, 0x3e, 0xdc, 0x29, 0x57, 0x0c, 0xe6, 0xbb, 0xcc,
+	0x6f, 0x74, 0x89, 0x8f, 0x8d, 0xe1, 0x4e, 0x17, 0x39, 0xd9, 0x69, 0x18, 0xcc, 0xa6, 0x72, 0x65,
+	0x79, 0xdd, 0x62, 0x16, 0x13, 0x8f, 0x8d, 0xe0, 0x49, 0x49, 0x37, 0x53, 0x7a, 0x9e, 0x1f, 0xa1,
+	0x2f, 0x3f, 0xd5, 0x7e, 0xce, 0xc1, 0x6a, 0xcb, 0xb7, 0xf6, 0x19, 0x35, 0xd1, 0x7c, 0xe8, 0x11,
+	0xc3, 0x41, 0xfd, 0x0a, 0x80, 0xc0, 0x76, 0x28, 0x71, 0x71, 0x43, 0xdb, 0xd2, 0xb6, 0x97, 0xda,
+	0x4b, 0x42, 0xf2, 0x80, 0xb8, 0xa8, 0x5f, 0x83, 0x12, 0x13, 0xc0, 0x0e, 0x31, 0x4d, 0x0f, 0x7d,
+	0x7f, 0x23, 0x27, 0x20, 0x2b, 0x52, 0xba, 0x27, 0x85, 0xfa, 0x75, 0x58, 0xed, 0x7a, 0xb6, 0x69,
+	0xa1, 0x17, 0xe1, 0xf2, 0x02, 0x57, 0x52, 0xe2, 0x10, 0x78, 0x03, 0xd6, 0x70, 0xc4, 0xd1, 0xa3,
+	0xc4, 0x89, 0x90, 0x05, 0x81, 0x5c, 0x0d, 0xe5, 0x21, 0xf4, 0x26, 0x9c, 0x1f, 0x12, 0xc7, 0x36,
+	0x09, 0x67, 0xc7, 0xbb, 0xce, 0x0b, 0xec, 0x5a, 0xf4, 0x21, 0x04, 0xdf, 0x87, 0x55, 0x13, 0x1d,
+	0xb4, 0x08, 0xc7, 0x0e, 0x71, 0xd9, 0x80, 0xf2, 0x8d, 0x85, 0x2d, 0x6d, 0xbb, 0xb8, 0xbb, 0x59,
+	0x97, 0x2c, 0xd6, 0x03, 0x16, 0xeb, 0x8a, 0xc5, 0xfa, 0x01, 0xb3, 0xe9, 0x7e, 0xe1, 0xc5, 0xab,
+	0xea, 0x5c, 0xbb, 0x14, 0xae, 0xdb, 0x13, 0xcb, 0x6a, 0x9b, 0x70, 0x29, 0xc5, 0x51, 0x1b, 0xfd,
+	0x23, 0x46, 0x7d, 0xac, 0xfd, 0xa0, 0x41, 0xa9, 0xe5, 0x5b, 0x7b, 0xa6, 0xf9, 0x99, 0x5a, 0x73,
+	0x46, 0xf4, 0x7d, 0x04, 0x0b, 0xca, 0xe8, 0xfc, 0x74, 0x46, 0x2b, 0x78, 0x6d, 0x03, 0x2e, 0x26,
+	0x0d, 0x8a, 0x6c, 0xfd, 0x56, 0x83, 0x95, 0x96, 0x6f, 0xdd, 0x33, 0x6d, 0x7e, 0xa6, 0x9e, 0xce,
+	0xf4, 0x4a, 0x3e, 0xdb, 0x2b, 0xb5, 0x4b, 0xf0, 0xbf, 0x84, 0x0d, 0x91, 0x75, 0x5f, 0xc2, 0xf9,
+	0x96, 0x6f, 0x3d, 0xa1, 0xdd, 0x33, 0x0f, 0xc5, 0xda, 0x65, 0xd8, 0x3c, 0xb1, 0x75, 0x4a, 0xef,
+	0x17, 0x36, 0xef, 0x9b, 0x1e, 0x79, 0xd6, 0xc6, 0x67, 0xc4, 0x33, 0xcf, 0x54, 0x6f, 0x72, 0xeb,
+	0x48, 0xef, 0xaf, 0x1a, 0x5c, 0x68, 0xf9, 0x96, 0xb4, 0xe6, 0x11, 0xf2, 0x03, 0x46, 0x7b, 0xb6,
+	0xe7, 0xea, 0xeb, 0x30, 0x4f, 0x19, 0x35, 0xa4, 0xd6, 0x42, 0x5b, 0xbe, 0x64, 0x65, 0x53, 0x6e,
+	0xea, 0x6c, 0xca, 0x67, 0x67, 0xd3, 0xff, 0x61, 0xc9, 0xb7, 0x2d, 0x4a, 0xf8, 0xc0, 0x43, 0x95,
+	0x71, 0xc7, 0x82, 0x14, 0x05, 0xf3, 0x29, 0x0a, 0x6a, 0x57, 0xe0, 0x72, 0x86, 0xf5, 0xd1, 0xe9,
+	0x7e, 0xca, 0xc1, 0x46, 0xfc, 0xfb, 0x93, 0x23, 0x93, 0x70, 0x34, 0x0f, 0x1c, 0x62, 0xbb, 0x7a,
+	0x15, 0x8a, 0x38, 0x44, 0xca, 0x3b, 0xf1, 0x83, 0x82, 0x10, 0x3d, 0x10, 0xa7, 0xbd, 0x0a, 0xcb,
+	0x5d, 0x87, 0x19, 0x4f, 0x3b, 0x7d, 0xb4, 0xad, 0x3e, 0x17, 0x47, 0x2d, 0xb4, 0x8b, 0x42, 0x76,
+	0x5f, 0x88, 0xf4, 0x6d, 0x58, 0x53, 0x2e, 0xf0, 0x31, 0xdc, 0x28, 0x2f, 0x60, 0xca, 0x35, 0x8f,
+	0x50, 0x6d, 0xd6, 0x84, 0x45, 0x17, 0xdd, 0x2e, 0x7a, 0x41, 0x59, 0xc9, 0x6f, 0x17, 0x77, 0x6f,
+	0xd4, 0x4f, 0xab, 0xaf, 0xf5, 0x7d, 0x41, 0xe6, 0xe7, 0x61, 0xd0, 0xaa, 0xd4, 0x0a, 0xd7, 0x67,
+	0x79, 0x61, 0x21, 0xd3, 0x0b, 0x49, 0xf2, 0x16, 0xd3, 0xe4, 0xd5, 0x60, 0xeb, 0x34, 0x72, 0x22,
+	0x06, 0x5f, 0xe7, 0x60, 0xad, 0xe5, 0x5b, 0x8f, 0x90, 0x9a, 0x8f, 0xd9, 0xe1, 0xe8, 0xec, 0x98,
+	0xbb, 0x06, 0x25, 0xce, 0x9e, 0x22, 0xed, 0x18, 0x8c, 0x72, 0x8f, 0x18, 0x5c, 0xc5, 0xc7, 0x8a,
+	0x90, 0x1e, 0x28, 0xa1, 0x7e, 0x18, 0x15, 0x20, 0x11, 0x1a, 0xfb, 0xf5, 0x80, 0x8a, 0x3f, 0x5e,
+	0x55, 0xdf, 0xb7, 0x6c, 0xde, 0x1f, 0x74, 0xeb, 0x06, 0x73, 0x1b, 0xaa, 0x1b, 0xc9, 0x9f, 0x5b,
+	0xbe, 0xf9, 0x54, 0xf5, 0x96, 0x26, 0xe5, 0x61, 0x3d, 0xd2, 0x2f, 0xc2, 0x82, 0x8f, 0xd4, 0x44,
+	0x4f, 0xc5, 0x90, 0x7a, 0xd3, 0xcb, 0x70, 0xce, 0x43, 0x03, 0xed, 0x21, 0x7a, 0x8a, 0xc4, 0xe8,
+	0x3d, 0xa0, 0x8f, 0x13, 0xcf, 0x42, 0xde, 0xb1, 0xbb, 0x46, 0x48, 0x9f, 0x94, 0x34, 0xbb, 0x46,
+	0x96, 0x1b, 0xce, 0x4d, 0xe1, 0x86, 0xa5, 0xb4, 0x1b, 0xca, 0x22, 0x46, 0x13, 0x0c, 0x47, 0xf4,
+	0xff, 0xa6, 0x89, 0xba, 0x20, 0x3f, 0xde, 0x53, 0x99, 0x13, 0x3b, 0x8c, 0x96, 0x38, 0x8c, 0x0e,
+	0x05, 0x13, 0x7d, 0xae, 0x72, 0x52, 0x3c, 0xbf, 0x73, 0x05, 0xd7, 0x3f, 0x05, 0x90, 0xe7, 0xe8,
+	0xf4, 0x50, 0x26, 0xe6, 0x14, 0x8b, 0x97, 0xe4, 0x92, 0x43, 0x9c, 0x98, 0xb9, 0x7b, 0xa2, 0x2a,
+	0x25, 0x0f, 0x16, 0x1e, 0x5b, 0x7f, 0x0f, 0x4a, 0x6c, 0xc0, 0x2d, 0x66, 0x53, 0xab, 0xc3, 0x47,
+	0x1d, 0xdb, 0x54, 0x31, 0xb6, 0x1c, 0x4a, 0x1f, 0x8f, 0x9a, 0x66, 0xed, 0x99, 0x68, 0x88, 0x07,
+	0x84, 0x1a, 0xe8, 0xa4, 0x18, 0x0a, 0xa2, 0xcb, 0x23, 0xd4, 0x27, 0x06, 0xb7, 0x19, 0x3d, 0xde,
+	0x60, 0x25, 0x26, 0x6d, 0x9a, 0x31, 0x22, 0x73, 0x09, 0x22, 0x93, 0xb6, 0xe7, 0xd3, 0xb6, 0x5f,
+	0x85, 0xea, 0x29, 0x8a, 0xe3, 0x95, 0x27, 0x98, 0x68, 0xda, 0xf8, 0xf5, 0x00, 0x7d, 0xbe, 0x4f,
+	0xb8, 0xd1, 0x3f, 0xd5, 0x6d, 0xeb, 0x30, 0x6f, 0x22, 0x65, 0xae, 0x32, 0x42, 0xbe, 0xe8, 0x0f,
+	0xa1, 0xe8, 0xda, 0xd4, 0x76, 0x07, 0xae, 0x70, 0x40, 0xfe, 0x9d, 0xc2, 0x1f, 0xd4, 0x16, 0x81,
+	0x43, 0xaa, 0x50, 0xec, 0x21, 0x76, 0x54, 0x78, 0xab, 0x52, 0x0b, 0x3d, 0xc4, 0xb6, 0x94, 0x4c,
+	0xf0, 0x98, 0xde, 0x84, 0x73, 0x81, 0xdb, 0x85, 0x35, 0x0b, 0x91, 0x35, 0xda, 0x0c, 0xd6, 0x2c,
+	0x06, 0xeb, 0x0f, 0x11, 0x6b, 0x77, 0x85, 0xe7, 0xe2, 0xe4, 0x44, 0xae, 0xaf, 0x42, 0xb1, 0x1b,
+	0x08, 0x92, 0xb5, 0x45, 0x88, 0x44, 0x6d, 0xa9, 0xfd, 0xa9, 0x09, 0x66, 0x55, 0xa9, 0x97, 0xcc,
+	0x66, 0x77, 0xab, 0x93, 0x25, 0x26, 0x97, 0x55, 0x62, 0xfe, 0x8d, 0x11, 0x31, 0xd1, 0xd4, 0xe6,
+	0xc7, 0x37, 0xb5, 0x85, 0x74, 0x78, 0xc9, 0x41, 0x2f, 0x7e, 0xc0, 0x28, 0xac, 0xfe, 0xd2, 0xc4,
+	0x5c, 0x95, 0x0c, 0xba, 0xb3, 0x2b, 0xca, 0x29, 0xf2, 0xf3, 0x69, 0xf2, 0x33, 0x28, 0x2d, 0x4c,
+	0x49, 0xe9, 0xfc, 0x14, 0xa5, 0xf1, 0x04, 0x13, 0x5b, 0x50, 0xc9, 0x3e, 0x6d, 0x44, 0xc8, 0x2f,
+	0x39, 0x31, 0xbf, 0xc8, 0x8e, 0xf9, 0x58, 0x18, 0xf1, 0x5f, 0xb7, 0x28, 0x1d, 0x0a, 0xc2, 0x7a,
+	0xc9, 0x84, 0x78, 0x16, 0xa9, 0xfe, 0xdc, 0xed, 0x32, 0x27, 0x6a, 0x37, 0xe2, 0x2d, 0x68, 0x37,
+	0x26, 0x1a, 0xb6, 0x4b, 0x1c, 0xd9, 0xb3, 0x0b, 0xed, 0xe8, 0x3d, 0x8b, 0xb4, 0xc5, 0x4c, 0xd2,
+	0xaa, 0x50, 0x34, 0xfa, 0x84, 0x52, 0x74, 0x44, 0x63, 0x92, 0x4d, 0x07, 0x94, 0x28, 0xe8, 0x4c,
+	0x13, 0x1a, 0x8e, 0x1c, 0x9a, 0xd2, 0x94, 0x85, 0x94, 0xee, 0xfe, 0xbd, 0x0c, 0xf9, 0x96, 0x6f,
+	0xe9, 0x0e, 0x2c, 0x27, 0x2e, 0x64, 0x63, 0x06, 0x96, 0xd4, 0xbd, 0xa4, 0xbc, 0x33, 0x35, 0x34,
+	0xca, 0x7b, 0x1b, 0x8a, 0xf1, 0xeb, 0xcb, 0xf6, 0xd8, 0x1d, 0x62, 0xc8, 0xf2, 0xed, 0x69, 0x91,
+	0x91, 0xaa, 0x1e, 0x40, 0xec, 0xf6, 0x71, 0x7d, 0xec, 0xfa, 0x63, 0x60, 0xb9, 0x31, 0x25, 0x30,
+	0xd2, 0xe3, 0x41, 0x29, 0x35, 0xd0, 0xdf, 0x1c, 0xbb, 0x45, 0x12, 0x5c, 0xbe, 0x33, 0x03, 0x38,
+	0xae, 0x33, 0x75, 0x79, 0x19, 0xaf, 0x33, 0x09, 0x9e, 0xa0, 0x33, 0xfb, 0xee, 0xa2, 0x8f, 0x60,
+	0xed, 0xc4, 0xfd, 0xe1, 0xd6, 0xd8, 0x8d, 0xd2, 0xf0, 0xf2, 0x87, 0x33, 0xc1, 0x23, 0xcd, 0xdf,
+	0x6b, 0xb0, 0x9e, 0x9a, 0x5f, 0x65, 0xfa, 0xef, 0x4e, 0xb7, 0x5f, 0x7c, 0xe4, 0x2d, 0xdf, 0x9d,
+	0x7d, 0x4d, 0x9c, 0x82, 0x13, 0x25, 0x68, 0x3c, 0x05, 0x69, 0xf8, 0x04, 0x0a, 0x4e, 0xcb, 0x56,
+	0x9d, 0xc1, 0x4a, 0x72, 0x38, 0xff, 0x60, 0xec, 0x3e, 0x09, 0x6c, 0x79, 0x77, 0x7a, 0x6c, 0x3c,
+	0xc2, 0x52, 0xc3, 0xd6, 0xcd, 0x29, 0x76, 0x09, 0xc1, 0x13, 0x22, 0xec, 0x94, 0x79, 0xf0, 0x3b,
+	0x0d, 0xd6, 0x33, 0xe7, 0xbc, 0xf1, 0x85, 0x26, 0x6b, 0x49, 0xf9, 0x93, 0x99, 0x97, 0x44, 0x66,
+	0x7c, 0xa3, 0xc1, 0x85, 0xac, 0xd6, 0x7b, 0x7b, 0x86, 0x33, 0x49, 0xe2, 0x3f, 0x9e, 0x75, 0x45,
+	0x64, 0x83, 0x03, 0xcb, 0x89, 0xa1, 0x72, 0x7c, 0x55, 0x8e, 0x43, 0x27, 0x54, 0xe5, 0xcc, 0x69,
+	0xcc, 0x81, 0xe5, 0xc4, 0xa0, 0x35, 0x5e, 0x5b, 0x1c, 0x3a, 0x41, 0x5b, 0xd6, 0x74, 0xb3, 0xdf,
+	0x7c, 0xf1, 0xa6, 0xa2, 0xbd, 0x7c, 0x53, 0xd1, 0x5e, 0xbf, 0xa9, 0x68, 0x3f, 0xbe, 0xad, 0xcc,
+	0xbd, 0x7c, 0x5b, 0x99, 0xfb, 0xfd, 0x6d, 0x65, 0xee, 0xab, 0x46, 0x6c, 0xc2, 0xec, 0x0d, 0xa8,
+	0x98, 0xdf, 0x47, 0x8d, 0xde, 0xe8, 0x96, 0xc1, 0x3c, 0x6c, 0x8c, 0x1a, 0xb1, 0xbf, 0x16, 0xc5,
+	0xb8, 0xd9, 0x5d, 0x10, 0x7f, 0x2c, 0xde, 0xf9, 0x27, 0x00, 0x00, 0xff, 0xff, 0xd1, 0x63, 0x94,
+	0x57, 0xdd, 0x14, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1704,10 +1795,11 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	CreateOracleBridger(ctx context.Context, in *MsgCreateOracleBridger, opts ...grpc.CallOption) (*MsgCreateOracleBridgerResponse, error)
-	AddOracleDelegate(ctx context.Context, in *MsgAddOracleDelegate, opts ...grpc.CallOption) (*MsgAddOracleDelegateResponse, error)
+	BondedOracle(ctx context.Context, in *MsgBondedOracle, opts ...grpc.CallOption) (*MsgBondedOracleResponse, error)
+	AddDelegate(ctx context.Context, in *MsgAddDelegate, opts ...grpc.CallOption) (*MsgAddDelegateResponse, error)
 	EditOracle(ctx context.Context, in *MsgEditOracle, opts ...grpc.CallOption) (*MsgEditOracleResponse, error)
 	WithdrawReward(ctx context.Context, in *MsgWithdrawReward, opts ...grpc.CallOption) (*MsgWithdrawRewardResponse, error)
+	UnbondedOracle(ctx context.Context, in *MsgUnbondedOracle, opts ...grpc.CallOption) (*MsgUnbondedOracleResponse, error)
 	OracleSetConfirm(ctx context.Context, in *MsgOracleSetConfirm, opts ...grpc.CallOption) (*MsgOracleSetConfirmResponse, error)
 	OracleSetUpdateClaim(ctx context.Context, in *MsgOracleSetUpdatedClaim, opts ...grpc.CallOption) (*MsgOracleSetUpdatedClaimResponse, error)
 	BridgeTokenClaim(ctx context.Context, in *MsgBridgeTokenClaim, opts ...grpc.CallOption) (*MsgBridgeTokenClaimResponse, error)
@@ -1727,18 +1819,18 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) CreateOracleBridger(ctx context.Context, in *MsgCreateOracleBridger, opts ...grpc.CallOption) (*MsgCreateOracleBridgerResponse, error) {
-	out := new(MsgCreateOracleBridgerResponse)
-	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/CreateOracleBridger", in, out, opts...)
+func (c *msgClient) BondedOracle(ctx context.Context, in *MsgBondedOracle, opts ...grpc.CallOption) (*MsgBondedOracleResponse, error) {
+	out := new(MsgBondedOracleResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/BondedOracle", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) AddOracleDelegate(ctx context.Context, in *MsgAddOracleDelegate, opts ...grpc.CallOption) (*MsgAddOracleDelegateResponse, error) {
-	out := new(MsgAddOracleDelegateResponse)
-	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/AddOracleDelegate", in, out, opts...)
+func (c *msgClient) AddDelegate(ctx context.Context, in *MsgAddDelegate, opts ...grpc.CallOption) (*MsgAddDelegateResponse, error) {
+	out := new(MsgAddDelegateResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/AddDelegate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1757,6 +1849,15 @@ func (c *msgClient) EditOracle(ctx context.Context, in *MsgEditOracle, opts ...g
 func (c *msgClient) WithdrawReward(ctx context.Context, in *MsgWithdrawReward, opts ...grpc.CallOption) (*MsgWithdrawRewardResponse, error) {
 	out := new(MsgWithdrawRewardResponse)
 	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/WithdrawReward", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UnbondedOracle(ctx context.Context, in *MsgUnbondedOracle, opts ...grpc.CallOption) (*MsgUnbondedOracleResponse, error) {
+	out := new(MsgUnbondedOracleResponse)
+	err := c.cc.Invoke(ctx, "/fx.gravity.crosschain.v1.Msg/UnbondedOracle", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1846,10 +1947,11 @@ func (c *msgClient) ConfirmBatch(ctx context.Context, in *MsgConfirmBatch, opts 
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	CreateOracleBridger(context.Context, *MsgCreateOracleBridger) (*MsgCreateOracleBridgerResponse, error)
-	AddOracleDelegate(context.Context, *MsgAddOracleDelegate) (*MsgAddOracleDelegateResponse, error)
+	BondedOracle(context.Context, *MsgBondedOracle) (*MsgBondedOracleResponse, error)
+	AddDelegate(context.Context, *MsgAddDelegate) (*MsgAddDelegateResponse, error)
 	EditOracle(context.Context, *MsgEditOracle) (*MsgEditOracleResponse, error)
 	WithdrawReward(context.Context, *MsgWithdrawReward) (*MsgWithdrawRewardResponse, error)
+	UnbondedOracle(context.Context, *MsgUnbondedOracle) (*MsgUnbondedOracleResponse, error)
 	OracleSetConfirm(context.Context, *MsgOracleSetConfirm) (*MsgOracleSetConfirmResponse, error)
 	OracleSetUpdateClaim(context.Context, *MsgOracleSetUpdatedClaim) (*MsgOracleSetUpdatedClaimResponse, error)
 	BridgeTokenClaim(context.Context, *MsgBridgeTokenClaim) (*MsgBridgeTokenClaimResponse, error)
@@ -1865,17 +1967,20 @@ type MsgServer interface {
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) CreateOracleBridger(ctx context.Context, req *MsgCreateOracleBridger) (*MsgCreateOracleBridgerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateOracleBridger not implemented")
+func (*UnimplementedMsgServer) BondedOracle(ctx context.Context, req *MsgBondedOracle) (*MsgBondedOracleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BondedOracle not implemented")
 }
-func (*UnimplementedMsgServer) AddOracleDelegate(ctx context.Context, req *MsgAddOracleDelegate) (*MsgAddOracleDelegateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddOracleDelegate not implemented")
+func (*UnimplementedMsgServer) AddDelegate(ctx context.Context, req *MsgAddDelegate) (*MsgAddDelegateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddDelegate not implemented")
 }
 func (*UnimplementedMsgServer) EditOracle(ctx context.Context, req *MsgEditOracle) (*MsgEditOracleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditOracle not implemented")
 }
 func (*UnimplementedMsgServer) WithdrawReward(ctx context.Context, req *MsgWithdrawReward) (*MsgWithdrawRewardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WithdrawReward not implemented")
+}
+func (*UnimplementedMsgServer) UnbondedOracle(ctx context.Context, req *MsgUnbondedOracle) (*MsgUnbondedOracleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnbondedOracle not implemented")
 }
 func (*UnimplementedMsgServer) OracleSetConfirm(ctx context.Context, req *MsgOracleSetConfirm) (*MsgOracleSetConfirmResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OracleSetConfirm not implemented")
@@ -1909,38 +2014,38 @@ func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_CreateOracleBridger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCreateOracleBridger)
+func _Msg_BondedOracle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgBondedOracle)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).CreateOracleBridger(ctx, in)
+		return srv.(MsgServer).BondedOracle(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fx.gravity.crosschain.v1.Msg/CreateOracleBridger",
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/BondedOracle",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CreateOracleBridger(ctx, req.(*MsgCreateOracleBridger))
+		return srv.(MsgServer).BondedOracle(ctx, req.(*MsgBondedOracle))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_AddOracleDelegate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgAddOracleDelegate)
+func _Msg_AddDelegate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddDelegate)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).AddOracleDelegate(ctx, in)
+		return srv.(MsgServer).AddDelegate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fx.gravity.crosschain.v1.Msg/AddOracleDelegate",
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/AddDelegate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).AddOracleDelegate(ctx, req.(*MsgAddOracleDelegate))
+		return srv.(MsgServer).AddDelegate(ctx, req.(*MsgAddDelegate))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1977,6 +2082,24 @@ func _Msg_WithdrawReward_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).WithdrawReward(ctx, req.(*MsgWithdrawReward))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UnbondedOracle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUnbondedOracle)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UnbondedOracle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fx.gravity.crosschain.v1.Msg/UnbondedOracle",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UnbondedOracle(ctx, req.(*MsgUnbondedOracle))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2148,12 +2271,12 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateOracleBridger",
-			Handler:    _Msg_CreateOracleBridger_Handler,
+			MethodName: "BondedOracle",
+			Handler:    _Msg_BondedOracle_Handler,
 		},
 		{
-			MethodName: "AddOracleDelegate",
-			Handler:    _Msg_AddOracleDelegate_Handler,
+			MethodName: "AddDelegate",
+			Handler:    _Msg_AddDelegate_Handler,
 		},
 		{
 			MethodName: "EditOracle",
@@ -2162,6 +2285,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WithdrawReward",
 			Handler:    _Msg_WithdrawReward_Handler,
+		},
+		{
+			MethodName: "UnbondedOracle",
+			Handler:    _Msg_UnbondedOracle_Handler,
 		},
 		{
 			MethodName: "OracleSetConfirm",
@@ -2204,7 +2331,7 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	Metadata: "crosschain/v1/tx.proto",
 }
 
-func (m *MsgCreateOracleBridger) Marshal() (dAtA []byte, err error) {
+func (m *MsgBondedOracle) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2214,12 +2341,12 @@ func (m *MsgCreateOracleBridger) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCreateOracleBridger) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgBondedOracle) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCreateOracleBridger) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgBondedOracle) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2272,7 +2399,7 @@ func (m *MsgCreateOracleBridger) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCreateOracleBridgerResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgBondedOracleResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2282,12 +2409,12 @@ func (m *MsgCreateOracleBridgerResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCreateOracleBridgerResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgBondedOracleResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCreateOracleBridgerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgBondedOracleResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2295,7 +2422,7 @@ func (m *MsgCreateOracleBridgerResponse) MarshalToSizedBuffer(dAtA []byte) (int,
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAddOracleDelegate) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddDelegate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2305,12 +2432,12 @@ func (m *MsgAddOracleDelegate) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAddOracleDelegate) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddDelegate) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAddOracleDelegate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddDelegate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2342,7 +2469,7 @@ func (m *MsgAddOracleDelegate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAddOracleDelegateResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddDelegateResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2352,12 +2479,12 @@ func (m *MsgAddOracleDelegateResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAddOracleDelegateResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddDelegateResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAddOracleDelegateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddDelegateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2425,6 +2552,66 @@ func (m *MsgEditOracleResponse) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *MsgEditOracleResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUnbondedOracle) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUnbondedOracle) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUnbondedOracle) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.OracleAddress) > 0 {
+		i -= len(m.OracleAddress)
+		copy(dAtA[i:], m.OracleAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OracleAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ChainName) > 0 {
+		i -= len(m.ChainName)
+		copy(dAtA[i:], m.ChainName)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ChainName)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUnbondedOracleResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUnbondedOracleResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUnbondedOracleResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3308,7 +3495,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgCreateOracleBridger) Size() (n int) {
+func (m *MsgBondedOracle) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3339,7 +3526,7 @@ func (m *MsgCreateOracleBridger) Size() (n int) {
 	return n
 }
 
-func (m *MsgCreateOracleBridgerResponse) Size() (n int) {
+func (m *MsgBondedOracleResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3348,7 +3535,7 @@ func (m *MsgCreateOracleBridgerResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgAddOracleDelegate) Size() (n int) {
+func (m *MsgAddDelegate) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3367,7 +3554,7 @@ func (m *MsgAddOracleDelegate) Size() (n int) {
 	return n
 }
 
-func (m *MsgAddOracleDelegateResponse) Size() (n int) {
+func (m *MsgAddDelegateResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3398,6 +3585,32 @@ func (m *MsgEditOracle) Size() (n int) {
 }
 
 func (m *MsgEditOracleResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUnbondedOracle) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChainName)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.OracleAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgUnbondedOracleResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3806,7 +4019,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgCreateOracleBridger) Unmarshal(dAtA []byte) error {
+func (m *MsgBondedOracle) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3829,10 +4042,10 @@ func (m *MsgCreateOracleBridger) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCreateOracleBridger: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgBondedOracle: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCreateOracleBridger: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgBondedOracle: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4049,7 +4262,7 @@ func (m *MsgCreateOracleBridger) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCreateOracleBridgerResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgBondedOracleResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4072,10 +4285,10 @@ func (m *MsgCreateOracleBridgerResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCreateOracleBridgerResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgBondedOracleResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCreateOracleBridgerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgBondedOracleResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -4099,7 +4312,7 @@ func (m *MsgCreateOracleBridgerResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAddOracleDelegate) Unmarshal(dAtA []byte) error {
+func (m *MsgAddDelegate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4122,10 +4335,10 @@ func (m *MsgAddOracleDelegate) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAddOracleDelegate: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddDelegate: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAddOracleDelegate: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddDelegate: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4246,7 +4459,7 @@ func (m *MsgAddOracleDelegate) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAddOracleDelegateResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgAddDelegateResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4269,10 +4482,10 @@ func (m *MsgAddOracleDelegateResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAddOracleDelegateResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddDelegateResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAddOracleDelegateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddDelegateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -4469,6 +4682,170 @@ func (m *MsgEditOracleResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgEditOracleResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUnbondedOracle) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUnbondedOracle: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUnbondedOracle: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChainName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OracleAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OracleAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUnbondedOracleResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUnbondedOracleResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUnbondedOracleResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

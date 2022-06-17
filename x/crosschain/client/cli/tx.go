@@ -137,7 +137,7 @@ func CmdCreateOracleBridger() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.MsgCreateOracleBridger{
+			msg := types.MsgBondedOracle{
 				OracleAddress:   cliCtx.GetFromAddress().String(),
 				BridgerAddress:  bridgerAddr.String(),
 				ExternalAddress: externalAddress,
@@ -166,7 +166,7 @@ func CmdAddOracleDelegate() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.MsgAddOracleDelegate{
+			msg := types.MsgAddDelegate{
 				OracleAddress: cliCtx.GetFromAddress().String(),
 				Amount:        amount,
 				ChainName:     args[0],

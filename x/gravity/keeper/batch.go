@@ -226,7 +226,7 @@ func (k Keeper) CancelOutgoingTXBatch(ctx sdk.Context, tokenContract string, bat
 
 // IterateOutgoingTXBatches iterates through all outgoing batches in DESC order.
 func (k Keeper) IterateOutgoingTXBatches(ctx sdk.Context, cb func(key []byte, batch *types.OutgoingTxBatch) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTXBatchKey)
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTxBatchKey)
 	iter := prefixStore.ReverseIterator(nil, nil)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
@@ -293,7 +293,7 @@ func (k Keeper) GetUnSlashedBatches(ctx sdk.Context, maxHeight uint64) (out []*t
 
 // IterateBatchBySlashedBatchBlock iterates through all Batch by last slashed Batch block in ASC order
 func (k Keeper) IterateBatchBySlashedBatchBlock(ctx sdk.Context, lastSlashedBatchBlock uint64, maxHeight uint64, cb func([]byte, *types.OutgoingTxBatch) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTXBatchBlockKey)
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTxBatchBlockKey)
 	iter := prefixStore.Iterator(types.UInt64Bytes(lastSlashedBatchBlock), types.UInt64Bytes(maxHeight))
 	defer iter.Close()
 

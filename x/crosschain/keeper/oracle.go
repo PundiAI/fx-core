@@ -145,7 +145,7 @@ func (k Keeper) SetOracle(ctx sdk.Context, oracle types.Oracle) {
 	store.Set(types.GetOracleKey(oracle.GetOracle()), bz)
 }
 
-func (k Keeper) HaiOracle(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
+func (k Keeper) HasOracle(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetOracleKey(addr))
 }
@@ -171,7 +171,7 @@ func (k Keeper) DelOracle(ctx sdk.Context, oracle sdk.AccAddress) {
 }
 
 // GetAllOracles
-func (k Keeper) GetAllOracles(ctx sdk.Context, isActive bool) (oracles types.Oracles) {
+func (k Keeper) GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Oracles) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)
 	defer iterator.Close()
@@ -179,7 +179,7 @@ func (k Keeper) GetAllOracles(ctx sdk.Context, isActive bool) (oracles types.Ora
 	for ; iterator.Valid(); iterator.Next() {
 		var oracle types.Oracle
 		k.cdc.MustUnmarshal(iterator.Value(), &oracle)
-		if isActive && oracle.Jailed {
+		if isOnline && !oracle.Online {
 			continue
 		}
 		oracles = append(oracles, oracle)
@@ -188,59 +188,35 @@ func (k Keeper) GetAllOracles(ctx sdk.Context, isActive bool) (oracles types.Ora
 	return oracles
 }
 
-func (k Keeper) SlashOracle(ctx sdk.Context, oracle types.Oracle, slashFraction sdk.Dec) {
-	if oracle.Jailed {
+func (k Keeper) SlashOracle(ctx sdk.Context, oracle types.Oracle) {
+	if !oracle.Online {
+		oracle.SlashTimes += 1
+		k.SetOracle(ctx, oracle)
 		return
 	}
 
-	if oracle.IsValidator {
-		valAddr, err := sdk.ValAddressFromBech32(oracle.DelegateValidator)
-		if err != nil {
-			panic(err)
-		}
-		validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
-		if found && !validator.IsJailed() {
-			consAddr, _ := validator.GetConsAddr()
-			power := validator.ConsensusPower(sdk.DefaultPowerReduction)
-			k.stakingKeeper.Slash(ctx, consAddr, ctx.BlockHeight(), power, slashFraction)
-			k.stakingKeeper.Jail(ctx, consAddr)
-		}
-	} else {
-		slashAmount := oracle.DelegateAmount.ToDec().Mul(slashFraction).TruncateInt()
-		slashAmount = sdk.MinInt(slashAmount, oracle.DelegateAmount)
-		slashAmount = sdk.MaxInt(slashAmount, sdk.ZeroInt())
-		if slashAmount.IsPositive() {
-			oracle.DelegateAmount = oracle.DelegateAmount.Sub(slashAmount)
-			oracleAddr, err := sdk.AccAddressFromBech32(oracle.OracleAddress)
-			if err != nil {
-				panic(err)
-			}
-			delegateAddr := types.GetOracleDelegateAddress(k.moduleName, oracleAddr)
-			valAddr, err := sdk.ValAddressFromBech32(oracle.DelegateValidator)
-			if err != nil {
-				panic(err)
-			}
-			sharesAmount, err := k.stakingKeeper.ValidateUnbondAmount(ctx, delegateAddr, valAddr, slashAmount)
-			if err != nil {
-				panic(err)
-			}
-			completionTime, err := k.stakingKeeper.Undelegate(ctx, delegateAddr, valAddr, sharesAmount)
-			if err != nil {
-				panic(err)
-			}
-			ctx.EventManager().EmitEvents(sdk.Events{
-				sdk.NewEvent(
-					stakingtypes.EventTypeUnbond,
-					sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, slashAmount.String()),
-					sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
-				),
-			})
-		}
+	delegateAddr := oracle.GetDelegateAddress(k.moduleName)
+	valAddr := oracle.GetValidator()
+	sharesAmount, err := k.stakingKeeper.ValidateUnbondAmount(ctx, delegateAddr, valAddr, oracle.DelegateAmount)
+	if err != nil {
+		panic(err)
+	}
+	completionTime, err := k.stakingKeeper.Undelegate(ctx, delegateAddr, valAddr, sharesAmount)
+	if err != nil {
+		panic(err)
 	}
 
-	oracle.Jailed = true
-	oracle.JailedHeight = ctx.BlockHeight()
+	oracle.Online = false
+	oracle.SlashTimes += 1
 	k.SetOracle(ctx, oracle)
 	k.SetLastOracleSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			stakingtypes.EventTypeUnbond,
+			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
+			sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+		),
+	})
 }

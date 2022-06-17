@@ -17,7 +17,7 @@ type TronMsgValidate struct {
 	crosschaintypes.EthereumMsgValidate
 }
 
-func (b TronMsgValidate) MsgCreateOracleBridgerValidate(m crosschaintypes.MsgCreateOracleBridger) (err error) {
+func (b TronMsgValidate) MsgBondedOracleValidate(m crosschaintypes.MsgBondedOracle) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "oracle address")
 	}

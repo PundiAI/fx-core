@@ -95,6 +95,30 @@ func (k Keeper) GetOracleDelegateMultiple(ctx sdk.Context) int64 {
 	return multiple
 }
 
+func (k Keeper) GetSlashFraction(ctx sdk.Context) sdk.Dec {
+	var dec sdk.Dec
+	k.paramSpace.Get(ctx, types.ParamsStoreSlashFraction, &dec)
+	return dec
+}
+
+func (k Keeper) GetSignedWindow(ctx sdk.Context) uint64 {
+	var i uint64
+	k.paramSpace.Get(ctx, types.ParamsStoreKeySignedWindow, &i)
+	return i
+}
+
+func (k Keeper) GetIbcTransferTimeoutHeight(ctx sdk.Context) uint64 {
+	var i uint64
+	k.paramSpace.Get(ctx, types.ParamStoreIbcTransferTimeoutHeight, &i)
+	return i
+}
+
+func (k Keeper) GetOracleSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
+	var dec sdk.Dec
+	k.paramSpace.Get(ctx, types.ParamStoreOracleSetUpdatePowerChangePercent, &dec)
+	return dec
+}
+
 // SetLastOracleSlashBlockHeight sets the last proposal block height
 func (k Keeper) SetLastOracleSlashBlockHeight(ctx sdk.Context, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)

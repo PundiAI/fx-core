@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
@@ -27,22 +29,27 @@ func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer
 		newOracleMap[oracle] = true
 	}
 
-	var deleteOracleList []types.Oracle
+	var unbondedOracleList []types.Oracle
 	var totalPower, deleteTotalPower = sdk.ZeroInt(), sdk.ZeroInt()
 
 	allOracles := keeper.GetAllOracles(ctx, false)
+	proposalOracle, _ := keeper.GetProposalOracle(ctx)
+
 	for _, oldOracle := range allOracles {
 
-		if !oldOracle.Jailed {
+		if oldOracle.Online {
 			totalPower = totalPower.Add(oldOracle.GetPower())
 		}
 		if _, ok := newOracleMap[oldOracle.OracleAddress]; ok {
 			continue
 		}
-		deleteOracleList = append(deleteOracleList, oldOracle)
-
-		if !oldOracle.Jailed {
-			deleteTotalPower = deleteTotalPower.Add(oldOracle.GetPower())
+		for _, oracle := range proposalOracle.Oracles {
+			if oracle == oldOracle.OracleAddress {
+				unbondedOracleList = append(unbondedOracleList, oldOracle)
+				if oldOracle.Online {
+					deleteTotalPower = deleteTotalPower.Add(oldOracle.GetPower())
+				}
+			}
 		}
 	}
 
@@ -55,17 +62,27 @@ func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer
 	// update proposal oracle
 	keeper.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: proposal.Oracles})
 
-	for _, deleteOracle := range deleteOracleList {
-		keeper.DelExternalAddressForOracle(ctx, deleteOracle.ExternalAddress)
-		bridgerAddr, err := sdk.AccAddressFromBech32(deleteOracle.BridgerAddress)
+	var events = make(sdk.Events, 0)
+	for _, unbondedOracle := range unbondedOracleList {
+		delegateAddr := unbondedOracle.GetDelegateAddress(keeper.moduleName)
+		valAddr := unbondedOracle.GetValidator()
+		sharesAmount, err := keeper.stakingKeeper.ValidateUnbondAmount(ctx, delegateAddr, valAddr, unbondedOracle.DelegateAmount)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		keeper.DelOracleByBridger(ctx, bridgerAddr)
-		oracleAddr := deleteOracle.GetOracle()
-		keeper.DelOracle(ctx, oracleAddr)
-
-		keeper.DelLastEventNonceByOracle(ctx, oracleAddr)
+		completionTime, err := keeper.stakingKeeper.Undelegate(ctx, delegateAddr, valAddr, sharesAmount)
+		if err != nil {
+			return err
+		}
+		unbondedOracle.Online = false
+		keeper.SetOracle(ctx, unbondedOracle)
+		events = append(events, sdk.NewEvent(
+			stakingtypes.EventTypeUnbond,
+			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, unbondedOracle.DelegateValidator),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, unbondedOracle.DelegateAmount.String()),
+			sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+		))
 	}
+	ctx.EventManager().EmitEvents(events)
 	return nil
 }

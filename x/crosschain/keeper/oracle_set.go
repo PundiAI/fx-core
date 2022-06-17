@@ -32,14 +32,6 @@ func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 	var totalPower uint64
 
 	for _, oracle := range allOracles {
-		if oracle.IsValidator {
-			valAddr, err := sdk.ValAddressFromBech32(oracle.DelegateValidator)
-			if err != nil {
-				panic(err)
-			}
-			power := k.stakingKeeper.GetLastValidatorPower(ctx, valAddr)
-			oracle.DelegateAmount = sdk.NewInt(power)
-		}
 		power := oracle.GetPower()
 		if power.LTE(sdk.ZeroInt()) {
 			continue
@@ -60,7 +52,7 @@ func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 }
 
 // AddOracleSetRequest returns a new instance of the Gravity BridgeValidatorSet
-func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.OracleSet, gravityId string) *types.OracleSet {
+func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.OracleSet) *types.OracleSet {
 	// if currentOracleSet member is empty, not store OracleSet.
 	if len(currentOracleSet.Members) <= 0 {
 		return currentOracleSet
@@ -69,6 +61,7 @@ func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 
 	k.CommonSetOracleTotalPower(ctx)
 
+	gravityId := k.GetGravityID(ctx)
 	checkpoint, err := currentOracleSet.GetCheckpoint(gravityId)
 	if err != nil {
 		panic(err)

@@ -192,8 +192,8 @@ func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracle
 		ExternalAddress: externalAddress.String(),
 		DelegateAmount:  deposit.Amount,
 		StartHeight:     ctx.BlockHeight(),
-		Jailed:          false,
-		JailedHeight:    0,
+		Online:          true,
+		SlashTimes:      0,
 	}
 	// save oracle
 	myApp.BscKeeper.SetOracle(ctx, oracle)

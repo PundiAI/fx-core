@@ -13,7 +13,7 @@ var _ MsgValidateBasic = &EthereumMsgValidate{}
 // EthereumMsgValidate
 type EthereumMsgValidate struct{}
 
-func (b EthereumMsgValidate) MsgCreateOracleBridgerValidate(m MsgCreateOracleBridger) (err error) {
+func (b EthereumMsgValidate) MsgBondedOracleValidate(m MsgBondedOracle) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}
@@ -29,7 +29,7 @@ func (b EthereumMsgValidate) MsgCreateOracleBridgerValidate(m MsgCreateOracleBri
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgAddOracleDelegateValidate(m MsgAddOracleDelegate) (err error) {
+func (b EthereumMsgValidate) MsgAddDelegateValidate(m MsgAddDelegate) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}
@@ -50,6 +50,13 @@ func (b EthereumMsgValidate) MsgEditOracleValidate(m MsgEditOracle) (err error) 
 }
 
 func (b EthereumMsgValidate) MsgWithdrawRewardValidate(m MsgWithdrawReward) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
+		return sdkerrors.Wrap(ErrInvalid, "oracle address")
+	}
+	return nil
+}
+
+func (b EthereumMsgValidate) MsgUnbondedOracleValidate(m MsgUnbondedOracle) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}

@@ -530,9 +530,6 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 			myApp.DistrKeeper.Hooks(),
 			myApp.SlashingKeeper.Hooks(),
 			myApp.GravityKeeper.Hooks(),
-			myApp.BscKeeper.Hooks(),
-			myApp.PolygonKeeper.Hooks(),
-			myApp.TronKeeper.Hooks(),
 		),
 	)
 	myApp.EvmKeeper.SetHooks(evmkeeper.NewMultiEvmHooks(myApp.Erc20Keeper.Hooks()))

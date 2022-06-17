@@ -12,20 +12,22 @@ import (
 
 // EndBlocker is called at the end of every block
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
-	params := k.GetParams(ctx)
-	slashing(ctx, k, params)
+	signedWindow := k.GetSignedWindow(ctx)
+	slashing(ctx, k, signedWindow)
 	attestationTally(ctx, k)
 	cleanupTimedOutBatches(ctx, k)
-	createOracleSetRequest(ctx, k, params)
-	pruneOracleSet(ctx, k, params.SignedWindow)
+	createOracleSetRequest(ctx, k)
+	pruneOracleSet(ctx, k, signedWindow)
 	pruneAttestations(ctx, k)
 }
 
-func createOracleSetRequest(ctx sdk.Context, k keeper.Keeper, params types.Params) {
+func createOracleSetRequest(ctx sdk.Context, k keeper.Keeper) {
 	// Auto OracleSetRequest Creation.
 	// WARNING: do not use k.GetLastObservedOracleSet in this function, it *will* result in losing control of the bridge
-	if currentOracleSet, isNeed := isNeedOracleSetRequest(ctx, k, params.OracleSetUpdatePowerChangePercent); isNeed {
-		k.AddOracleSetRequest(ctx, currentOracleSet, params.GravityId)
+
+	oracleSetUpdatePowerChangePercent := k.GetOracleSetUpdatePowerChangePercent(ctx)
+	if currentOracleSet, isNeed := isNeedOracleSetRequest(ctx, k, oracleSetUpdatePowerChangePercent); isNeed {
+		k.AddOracleSetRequest(ctx, currentOracleSet)
 	}
 }
 
@@ -59,21 +61,21 @@ func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper, oracleSetUpdatePow
 	return currentOracleSet, false
 }
 
-func slashing(ctx sdk.Context, k keeper.Keeper, params types.Params) {
-	if uint64(ctx.BlockHeight()) <= params.SignedWindow {
+func slashing(ctx sdk.Context, k keeper.Keeper, signedWindow uint64) {
+	if uint64(ctx.BlockHeight()) <= signedWindow {
 		return
 	}
 	// Slash oracle for not confirming oracle set requests, batch requests
 	oracles := k.GetAllOracles(ctx, true)
-	oracleSetHasSlash := oracleSetSlashing(ctx, k, oracles, params)
-	batchHasSlash := batchSlashing(ctx, k, oracles, params)
+	oracleSetHasSlash := oracleSetSlashing(ctx, k, oracles, signedWindow)
+	batchHasSlash := batchSlashing(ctx, k, oracles, signedWindow)
 	if oracleSetHasSlash || batchHasSlash {
 		k.CommonSetOracleTotalPower(ctx)
 	}
 }
 
-func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, params types.Params) (hasSlash bool) {
-	maxHeight := uint64(ctx.BlockHeight()) - params.SignedWindow
+func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, signedWindow uint64) (hasSlash bool) {
+	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
 	unSlashedOracleSets := k.GetUnSlashedOracleSets(ctx, maxHeight)
 
 	// Find all verifiers that meet the penalty to change the signature consensus
@@ -89,8 +91,8 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 			}
 			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
 				k.Logger(ctx).Info("slash oracle by oracle set", "oracleAddress", oracle.OracleAddress,
-					"oracleSetNonce", oracleSet.Nonce, "oracleSetHeight", oracleSet.Height, "blockHeight", ctx.BlockHeight(), "slashFraction", params.SlashFraction.String())
-				k.SlashOracle(ctx, oracle, params.SlashFraction)
+					"oracleSetNonce", oracleSet.Nonce, "oracleSetHeight", oracleSet.Height, "blockHeight", ctx.BlockHeight())
+				k.SlashOracle(ctx, oracle)
 				hasSlash = true
 			}
 		}
@@ -100,8 +102,8 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 	return
 }
 
-func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, params types.Params) (hasSlash bool) {
-	maxHeight := uint64(ctx.BlockHeight()) - params.SignedWindow
+func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, signedWindow uint64) (hasSlash bool) {
+	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
 	unSlashedBatches := k.GetUnSlashedBatches(ctx, maxHeight)
 
 	for _, batch := range unSlashedBatches {
@@ -116,8 +118,8 @@ func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, para
 			}
 			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
 				k.Logger(ctx).Info("slash oracle by batch", "oracleAddress", oracle.OracleAddress,
-					"batchNonce", batch.BatchNonce, "batchHeight", batch.Block, "blockHeight", ctx.BlockHeight(), "slashFraction", params.SlashFraction.String())
-				k.SlashOracle(ctx, oracle, params.SlashFraction)
+					"batchNonce", batch.BatchNonce, "batchHeight", batch.Block, "blockHeight", ctx.BlockHeight())
+				k.SlashOracle(ctx, oracle)
 				hasSlash = true
 			}
 		}

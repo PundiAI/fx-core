@@ -21,19 +21,19 @@ func NewMsgServerRouterImpl(routerKeeper RouterKeeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) CreateOracleBridger(ctx context.Context, msg *types.MsgCreateOracleBridger) (*types.MsgCreateOracleBridgerResponse, error) {
+func (k msgServer) BondedOracle(ctx context.Context, msg *types.MsgBondedOracle) (*types.MsgBondedOracleResponse, error) {
 	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err
 	} else {
-		return queryServer.CreateOracleBridger(ctx, msg)
+		return queryServer.BondedOracle(ctx, msg)
 	}
 }
 
-func (k msgServer) AddOracleDelegate(ctx context.Context, msg *types.MsgAddOracleDelegate) (*types.MsgAddOracleDelegateResponse, error) {
+func (k msgServer) AddDelegate(ctx context.Context, msg *types.MsgAddDelegate) (*types.MsgAddDelegateResponse, error) {
 	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err
 	} else {
-		return queryServer.AddOracleDelegate(ctx, msg)
+		return queryServer.AddDelegate(ctx, msg)
 	}
 }
 
@@ -50,6 +50,14 @@ func (k msgServer) WithdrawReward(ctx context.Context, msg *types.MsgWithdrawRew
 		return nil, err
 	} else {
 		return queryServer.WithdrawReward(ctx, msg)
+	}
+}
+
+func (k msgServer) UnbondedOracle(ctx context.Context, msg *types.MsgUnbondedOracle) (*types.MsgUnbondedOracleResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.UnbondedOracle(ctx, msg)
 	}
 }
 

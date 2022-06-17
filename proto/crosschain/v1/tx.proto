@@ -9,10 +9,11 @@ option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 
 // Msg defines the state transitions possible within gravity
 service Msg {
-  rpc CreateOracleBridger(MsgCreateOracleBridger) returns (MsgCreateOracleBridgerResponse);
-  rpc AddOracleDelegate(MsgAddOracleDelegate) returns (MsgAddOracleDelegateResponse);
+  rpc BondedOracle(MsgBondedOracle) returns (MsgBondedOracleResponse);
+  rpc AddDelegate(MsgAddDelegate) returns (MsgAddDelegateResponse);
   rpc EditOracle(MsgEditOracle) returns (MsgEditOracleResponse);
   rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
+  rpc UnbondedOracle(MsgUnbondedOracle) returns (MsgUnbondedOracleResponse);
 
   rpc OracleSetConfirm(MsgOracleSetConfirm) returns (MsgOracleSetConfirmResponse);
   rpc OracleSetUpdateClaim(MsgOracleSetUpdatedClaim) returns (MsgOracleSetUpdatedClaimResponse);
@@ -29,7 +30,7 @@ service Msg {
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
 }
 
-message MsgCreateOracleBridger {
+message MsgBondedOracle {
   string chain_name = 1;
   string oracle_address = 2;
   string bridger_address = 3;
@@ -38,25 +39,30 @@ message MsgCreateOracleBridger {
   cosmos.base.v1beta1.Coin delegate_amount = 6 [(gogoproto.nullable) = false];
 }
 
-message MsgCreateOracleBridgerResponse {}
+message MsgBondedOracleResponse {}
 
-message MsgAddOracleDelegate {
+message MsgAddDelegate {
   string chain_name = 1;
   string oracle_address = 2;
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
 
-message MsgAddOracleDelegateResponse {}
+message MsgAddDelegateResponse {}
 
 message MsgEditOracle {
   string chain_name = 1;
   string oracle_address = 2;
   string validator_address = 3;
-//  string bridge_address = 4;
-//  string external_address = 5;
 }
 
 message MsgEditOracleResponse {}
+
+message MsgUnbondedOracle {
+  string chain_name = 1;
+  string oracle_address = 2;
+}
+
+message MsgUnbondedOracleResponse {}
 
 message MsgWithdrawReward {
   string chain_name = 1;

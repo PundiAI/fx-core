@@ -40,17 +40,17 @@ var (
 	// eventually executes
 	OracleAttestationKey = []byte{0x5}
 
-	// OutgoingTXPoolKey indexes the last nonce for the outgoing tx pool
-	OutgoingTXPoolKey = []byte{0x6}
+	// OutgoingTxPoolKey indexes the last nonce for the outgoing tx pool
+	OutgoingTxPoolKey = []byte{0x6}
 
-	// SecondIndexOutgoingTXFeeKey indexes fee amounts by token contract address
-	SecondIndexOutgoingTXFeeKey = []byte{0x7}
+	// SecondIndexOutgoingTxFeeKey indexes fee amounts by token contract address
+	SecondIndexOutgoingTxFeeKey = []byte{0x7}
 
-	// OutgoingTXBatchKey indexes outgoing tx batches under a nonce and token address
-	OutgoingTXBatchKey = []byte{0x8}
+	// OutgoingTxBatchKey indexes outgoing tx batches under a nonce and token address
+	OutgoingTxBatchKey = []byte{0x8}
 
-	// OutgoingTXBatchBlockKey indexes outgoing tx batches under a block height and token address
-	OutgoingTXBatchBlockKey = []byte{0x9}
+	// OutgoingTxBatchBlockKey indexes outgoing tx batches under a block height and token address
+	OutgoingTxBatchBlockKey = []byte{0x9}
 
 	// BatchConfirmKey indexes validator confirmations by token contract address
 	BatchConfirmKey = []byte{0xa}
@@ -70,8 +70,8 @@ var (
 	// KeyLastOutgoingBatchID indexes the lastBatchID
 	KeyLastOutgoingBatchID = append(SequenceKeyPrefix, []byte("lastBatchId")...)
 
-	// KeyOrchestratorAddress indexes the validator keys for an orchestrator
-	KeyOrchestratorAddress = []byte{0xe}
+	// ValidatorAddressByOrchestratorAddress indexes the validator keys for an orchestrator
+	ValidatorAddressByOrchestratorAddress = []byte{0xe}
 
 	// DenomToERC20Key prefixes the index of Cosmos originated asset denoms to ERC20s
 	DenomToERC20Key = []byte{0xf}
@@ -97,8 +97,8 @@ var (
 	// LastObservedValsetKey indexes the latest observed valset nonce
 	LastObservedValsetKey = []byte{0x16}
 
-	// KeyIbcSequenceHeight  indexes the gravity -> ibc sequence block height
-	KeyIbcSequenceHeight = []byte{0x17}
+	// IbcSequenceHeightKey  indexes the gravity -> ibc sequence block height
+	IbcSequenceHeightKey = []byte{0x17}
 
 	// LastEventBlockHeightByValidatorKey indexes lateset event blockHeight by validator
 	LastEventBlockHeightByValidatorKey = []byte{0x18}
@@ -106,7 +106,7 @@ var (
 
 // GetOrchestratorAddressKey returns the following key format
 func GetOrchestratorAddressKey(orc sdk.AccAddress) []byte {
-	return append(KeyOrchestratorAddress, orc.Bytes()...)
+	return append(ValidatorAddressByOrchestratorAddress, orc.Bytes()...)
 }
 
 // GetEthAddressByValidatorKey returns the following key format
@@ -161,17 +161,17 @@ func GetAttestationKeyWithHash(eventNonce uint64, claimHash []byte) []byte {
 
 // GetOutgoingTxPoolKey returns the following key format
 func GetOutgoingTxPoolKey(id uint64) []byte {
-	return append(OutgoingTXPoolKey, sdk.Uint64ToBigEndian(id)...)
+	return append(OutgoingTxPoolKey, sdk.Uint64ToBigEndian(id)...)
 }
 
 // GetOutgoingTxBatchKey returns the following key format
 func GetOutgoingTxBatchKey(tokenContract string, nonce uint64) []byte {
-	return append(append(OutgoingTXBatchKey, []byte(tokenContract)...), UInt64Bytes(nonce)...)
+	return append(append(OutgoingTxBatchKey, []byte(tokenContract)...), UInt64Bytes(nonce)...)
 }
 
 // GetOutgoingTxBatchBlockKey returns the following key format
 func GetOutgoingTxBatchBlockKey(block uint64) []byte {
-	return append(OutgoingTXBatchBlockKey, UInt64Bytes(block)...)
+	return append(OutgoingTxBatchBlockKey, UInt64Bytes(block)...)
 }
 
 // GetBatchConfirmKey returns the following key format
@@ -193,7 +193,7 @@ func GetFeeSecondIndexKey(fee ERC20Token) []byte {
 	// therefore this will never panic and is always safe
 	amount := make([]byte, 32)
 	amount = fee.Amount.BigInt().FillBytes(amount)
-	copy(res[0:1], SecondIndexOutgoingTXFeeKey)
+	copy(res[0:1], SecondIndexOutgoingTxFeeKey)
 	copy(res[1:1+ETHContractAddressLen], fee.Contract)
 	copy(res[1+ETHContractAddressLen:1+ETHContractAddressLen+32], amount)
 	return res
@@ -217,7 +217,7 @@ func GetERC20ToDenomKey(erc20 string) []byte {
 //GetIbcSequenceHeightKey [0xc1][sourcePort/sourceChannel/sequence]
 func GetIbcSequenceHeightKey(sourcePort, sourceChannel string, sequence uint64) []byte {
 	key := fmt.Sprintf("%s/%s/%d", sourcePort, sourceChannel, sequence)
-	return append(KeyIbcSequenceHeight, []byte(key)...)
+	return append(IbcSequenceHeightKey, []byte(key)...)
 }
 
 // GetLastEventBlockHeightByValidatorKey indexes lateset event blockHeight by validator

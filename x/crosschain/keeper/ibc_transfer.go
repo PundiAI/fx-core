@@ -45,9 +45,9 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 		return
 	}
 
-	params := k.GetParams(ctx)
+	ibcTransferTimeoutHeight := k.GetIbcTransferTimeoutHeight(ctx)
 	clientStateHeight := clientState.GetLatestHeight()
-	destTimeoutHeight := clientStateHeight.GetRevisionHeight() + params.IbcTransferTimeoutHeight
+	destTimeoutHeight := clientStateHeight.GetRevisionHeight() + ibcTransferTimeoutHeight
 	ibcTimeoutHeight := ibcclienttypes.Height{
 		RevisionNumber: clientStateHeight.GetRevisionNumber(),
 		RevisionHeight: destTimeoutHeight,

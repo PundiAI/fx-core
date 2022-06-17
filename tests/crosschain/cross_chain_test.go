@@ -418,7 +418,7 @@ func setOrchestratorAddress(c *Client) {
 	if err != nil {
 		c.t.Fatal(err)
 	}
-	c.BroadcastTx([]sdk.Msg{&crosschaintypes.MsgCreateOracleBridger{
+	c.BroadcastTx([]sdk.Msg{&crosschaintypes.MsgBondedOracle{
 		OracleAddress:   fxAddress.String(),
 		BridgerAddress:  fxAddress.String(),
 		ExternalAddress: c.ethAddress.Hex(),

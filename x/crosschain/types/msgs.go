@@ -11,10 +11,11 @@ import (
 
 // cross chain message types
 const (
-	TypeMsgCreateOracleBridger = "create_oracle_bridger"
-	TypeMsgAddOracleDelegate   = "add_oracle_delegate"
-	TypeMsgEditOracle          = "edit_oracle"
-	TypeMsgWithdrawReward      = "withdraw_reward"
+	TypeMsgBondedOracle   = "bonded_oracle"
+	TypeMsgAddDelegate    = "add_delegate"
+	TypeMsgEditOracle     = "edit_oracle"
+	TypeMsgWithdrawReward = "withdraw_reward"
+	TypeMsgUnbondedOracle = "unbonded_oracle"
 
 	TypeMsgOracleSetConfirm      = "valset_confirm"
 	TypeMsgOracleSetUpdatedClaim = "valset_updated_claim"
@@ -39,14 +40,16 @@ type (
 )
 
 var (
-	_ sdk.Msg       = &MsgCreateOracleBridger{}
-	_ CrossChainMsg = &MsgCreateOracleBridger{}
-	_ sdk.Msg       = &MsgAddOracleDelegate{}
-	_ CrossChainMsg = &MsgAddOracleDelegate{}
+	_ sdk.Msg       = &MsgBondedOracle{}
+	_ CrossChainMsg = &MsgBondedOracle{}
+	_ sdk.Msg       = &MsgAddDelegate{}
+	_ CrossChainMsg = &MsgAddDelegate{}
 	_ sdk.Msg       = &MsgEditOracle{}
 	_ CrossChainMsg = &MsgEditOracle{}
 	_ sdk.Msg       = &MsgWithdrawReward{}
 	_ CrossChainMsg = &MsgWithdrawReward{}
+	_ sdk.Msg       = &MsgUnbondedOracle{}
+	_ CrossChainMsg = &MsgUnbondedOracle{}
 
 	_ sdk.Msg       = &MsgOracleSetConfirm{}
 	_ CrossChainMsg = &MsgOracleSetConfirm{}
@@ -73,10 +76,11 @@ var (
 )
 
 type MsgValidateBasic interface {
-	MsgCreateOracleBridgerValidate(m MsgCreateOracleBridger) (err error)
-	MsgAddOracleDelegateValidate(m MsgAddOracleDelegate) (err error)
+	MsgBondedOracleValidate(m MsgBondedOracle) (err error)
+	MsgAddDelegateValidate(m MsgAddDelegate) (err error)
 	MsgEditOracleValidate(m MsgEditOracle) (err error)
 	MsgWithdrawRewardValidate(m MsgWithdrawReward) (err error)
+	MsgUnbondedOracleValidate(m MsgUnbondedOracle) (err error)
 
 	MsgOracleSetConfirmValidate(m MsgOracleSetConfirm) (err error)
 	MsgOracleSetUpdatedClaimValidate(m MsgOracleSetUpdatedClaim) (err error)
@@ -141,28 +145,28 @@ func RegisterValidatorBasic(chainName string, validate MsgValidateBasic) {
 	msgValidatorBasicRouter[chainName] = validate
 }
 
-// MsgCreateOracleBridger
+// MsgBondedOracle
 
-func (m MsgCreateOracleBridger) Route() string { return RouterKey }
+func (m MsgBondedOracle) Route() string { return RouterKey }
 
-func (m MsgCreateOracleBridger) Type() string { return TypeMsgCreateOracleBridger }
+func (m MsgBondedOracle) Type() string { return TypeMsgBondedOracle }
 
-func (m MsgCreateOracleBridger) ValidateBasic() (err error) {
+func (m MsgBondedOracle) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", m.ChainName))
 	} else {
-		return router.MsgCreateOracleBridgerValidate(m)
+		return router.MsgBondedOracleValidate(m)
 	}
 }
 
-func (m MsgCreateOracleBridger) GetSignBytes() []byte {
+func (m MsgBondedOracle) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgCreateOracleBridger) GetSigners() []sdk.AccAddress {
+func (m MsgBondedOracle) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
 		panic(err)
@@ -170,30 +174,30 @@ func (m MsgCreateOracleBridger) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-// MsgAddOracleDelegate
+// MsgAddDelegate
 
-func (m *MsgAddOracleDelegate) Route() string { return RouterKey }
+func (m *MsgAddDelegate) Route() string { return RouterKey }
 
-func (m *MsgAddOracleDelegate) Type() string {
-	return TypeMsgAddOracleDelegate
+func (m *MsgAddDelegate) Type() string {
+	return TypeMsgAddDelegate
 }
 
-func (m MsgAddOracleDelegate) ValidateBasic() (err error) {
+func (m MsgAddDelegate) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
 	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
 		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", m.ChainName))
 	} else {
-		return router.MsgAddOracleDelegateValidate(m)
+		return router.MsgAddDelegateValidate(m)
 	}
 }
 
-func (m *MsgAddOracleDelegate) GetSignBytes() []byte {
+func (m *MsgAddDelegate) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m *MsgAddOracleDelegate) GetSigners() []sdk.AccAddress {
+func (m *MsgAddDelegate) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
 		panic(err)
@@ -252,6 +256,35 @@ func (m MsgWithdrawReward) GetSignBytes() []byte {
 }
 
 func (m MsgWithdrawReward) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// MsgUnbondedOracle
+
+func (m MsgUnbondedOracle) Route() string { return RouterKey }
+
+func (m MsgUnbondedOracle) Type() string { return TypeMsgUnbondedOracle }
+
+func (m MsgUnbondedOracle) ValidateBasic() (err error) {
+	if err = ValidateModuleName(m.ChainName); err != nil {
+		return sdkerrors.Wrap(ErrInvalid, "chain name")
+	}
+	if router, ok := msgValidatorBasicRouter[m.ChainName]; !ok {
+		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", m.ChainName))
+	} else {
+		return router.MsgUnbondedOracleValidate(m)
+	}
+}
+
+func (m MsgUnbondedOracle) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+func (m MsgUnbondedOracle) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
 		panic(err)

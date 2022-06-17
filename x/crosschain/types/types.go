@@ -242,11 +242,36 @@ func (m Oracle) GetOracle() sdk.AccAddress {
 	return addr
 }
 
-func (m Oracle) GetPower() sdk.Int {
-	if m.IsValidator {
-		return m.DelegateAmount
+func (m Oracle) GetBridger() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(m.BridgerAddress)
+	if err != nil {
+		panic(err)
 	}
+	return addr
+}
+
+func (m Oracle) GetValidator() sdk.ValAddress {
+	addr, err := sdk.ValAddressFromBech32(m.DelegateValidator)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func (m Oracle) GetSlashAmount(slashFraction sdk.Dec) sdk.Int {
+	slashAmount := m.DelegateAmount.ToDec().Mul(slashFraction).MulInt64(m.SlashTimes).TruncateInt()
+	slashAmount = sdk.MinInt(slashAmount, m.DelegateAmount)
+	slashAmount = sdk.MaxInt(slashAmount, sdk.ZeroInt())
+	return slashAmount
+}
+
+func (m Oracle) GetPower() sdk.Int {
 	return m.DelegateAmount.Quo(sdk.DefaultPowerReduction)
+}
+
+func (m Oracle) GetDelegateAddress(moduleName string) sdk.AccAddress {
+	data := append(m.GetOracle(), []byte(moduleName)...)
+	return crypto.Keccak256(data)[12:]
 }
 
 type Oracles []Oracle
@@ -279,9 +304,4 @@ func CovertIbcPacketReceiveAddressByPrefix(targetIbcPrefix string, receiver sdk.
 		return gethcommon.BytesToAddress(receiver.Bytes()).String(), nil
 	}
 	return bech32.ConvertAndEncode(targetIbcPrefix, receiver)
-}
-
-func GetOracleDelegateAddress(moduleName string, oracleAddr sdk.AccAddress) sdk.AccAddress {
-	data := append(oracleAddr, []byte(moduleName)...)
-	return crypto.Keccak256(data)[12:]
 }

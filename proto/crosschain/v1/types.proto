@@ -18,10 +18,9 @@ message Oracle {
   ];
   // start oracle height
   int64 start_height = 5;
-  bool jailed = 6;
-  int64 jailed_height = 7;
-  string delegate_validator = 8;
-  bool  is_validator = 9;
+  bool online = 6;
+  string delegate_validator = 7;
+  int64 slash_times = 8;
 }
 // BridgeValidator represents a validator's external address and its power
 message BridgeValidator {

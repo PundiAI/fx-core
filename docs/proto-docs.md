@@ -25,16 +25,16 @@
     - [SignType](#fx.gravity.crosschain.v1.SignType)
   
 - [crosschain/v1/tx.proto](#crosschain/v1/tx.proto)
-    - [MsgAddOracleDelegate](#fx.gravity.crosschain.v1.MsgAddOracleDelegate)
-    - [MsgAddOracleDelegateResponse](#fx.gravity.crosschain.v1.MsgAddOracleDelegateResponse)
+    - [MsgAddDelegate](#fx.gravity.crosschain.v1.MsgAddDelegate)
+    - [MsgAddDelegateResponse](#fx.gravity.crosschain.v1.MsgAddDelegateResponse)
+    - [MsgBondedOracle](#fx.gravity.crosschain.v1.MsgBondedOracle)
+    - [MsgBondedOracleResponse](#fx.gravity.crosschain.v1.MsgBondedOracleResponse)
     - [MsgBridgeTokenClaim](#fx.gravity.crosschain.v1.MsgBridgeTokenClaim)
     - [MsgBridgeTokenClaimResponse](#fx.gravity.crosschain.v1.MsgBridgeTokenClaimResponse)
     - [MsgCancelSendToExternal](#fx.gravity.crosschain.v1.MsgCancelSendToExternal)
     - [MsgCancelSendToExternalResponse](#fx.gravity.crosschain.v1.MsgCancelSendToExternalResponse)
     - [MsgConfirmBatch](#fx.gravity.crosschain.v1.MsgConfirmBatch)
     - [MsgConfirmBatchResponse](#fx.gravity.crosschain.v1.MsgConfirmBatchResponse)
-    - [MsgCreateOracleBridger](#fx.gravity.crosschain.v1.MsgCreateOracleBridger)
-    - [MsgCreateOracleBridgerResponse](#fx.gravity.crosschain.v1.MsgCreateOracleBridgerResponse)
     - [MsgEditOracle](#fx.gravity.crosschain.v1.MsgEditOracle)
     - [MsgEditOracleResponse](#fx.gravity.crosschain.v1.MsgEditOracleResponse)
     - [MsgOracleSetConfirm](#fx.gravity.crosschain.v1.MsgOracleSetConfirm)
@@ -49,6 +49,8 @@
     - [MsgSendToExternalResponse](#fx.gravity.crosschain.v1.MsgSendToExternalResponse)
     - [MsgSendToFxClaim](#fx.gravity.crosschain.v1.MsgSendToFxClaim)
     - [MsgSendToFxClaimResponse](#fx.gravity.crosschain.v1.MsgSendToFxClaimResponse)
+    - [MsgUnbondedOracle](#fx.gravity.crosschain.v1.MsgUnbondedOracle)
+    - [MsgUnbondedOracleResponse](#fx.gravity.crosschain.v1.MsgUnbondedOracleResponse)
     - [MsgWithdrawReward](#fx.gravity.crosschain.v1.MsgWithdrawReward)
     - [MsgWithdrawRewardResponse](#fx.gravity.crosschain.v1.MsgWithdrawRewardResponse)
   
@@ -471,10 +473,9 @@ even if no Ethereum block height has been relayed for a long time
 | `external_address` | [string](#string) |  |  |
 | `delegate_amount` | [string](#string) |  |  |
 | `start_height` | [int64](#int64) |  | start oracle height |
-| `jailed` | [bool](#bool) |  |  |
-| `jailed_height` | [int64](#int64) |  |  |
+| `online` | [bool](#bool) |  |  |
 | `delegate_validator` | [string](#string) |  |  |
-| `is_validator` | [bool](#bool) |  |  |
+| `slash_times` | [int64](#int64) |  |  |
 
 
 
@@ -644,9 +645,9 @@ SignType defines messages that have been signed by an bridger
 
 
 
-<a name="fx.gravity.crosschain.v1.MsgAddOracleDelegate"></a>
+<a name="fx.gravity.crosschain.v1.MsgAddDelegate"></a>
 
-### MsgAddOracleDelegate
+### MsgAddDelegate
 
 
 
@@ -661,9 +662,39 @@ SignType defines messages that have been signed by an bridger
 
 
 
-<a name="fx.gravity.crosschain.v1.MsgAddOracleDelegateResponse"></a>
+<a name="fx.gravity.crosschain.v1.MsgAddDelegateResponse"></a>
 
-### MsgAddOracleDelegateResponse
+### MsgAddDelegateResponse
+
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgBondedOracle"></a>
+
+### MsgBondedOracle
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_name` | [string](#string) |  |  |
+| `oracle_address` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
+| `external_address` | [string](#string) |  |  |
+| `validator_address` | [string](#string) |  |  |
+| `delegate_amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgBondedOracleResponse"></a>
+
+### MsgBondedOracleResponse
 
 
 
@@ -770,36 +801,6 @@ as well as an Bsc signature over this batch by the validator
 
 
 
-<a name="fx.gravity.crosschain.v1.MsgCreateOracleBridger"></a>
-
-### MsgCreateOracleBridger
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `chain_name` | [string](#string) |  |  |
-| `oracle_address` | [string](#string) |  |  |
-| `bridger_address` | [string](#string) |  |  |
-| `external_address` | [string](#string) |  |  |
-| `validator_address` | [string](#string) |  |  |
-| `delegate_amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-
-
-
-
-
-
-<a name="fx.gravity.crosschain.v1.MsgCreateOracleBridgerResponse"></a>
-
-### MsgCreateOracleBridgerResponse
-
-
-
-
-
-
-
 <a name="fx.gravity.crosschain.v1.MsgEditOracle"></a>
 
 ### MsgEditOracle
@@ -810,7 +811,7 @@ as well as an Bsc signature over this batch by the validator
 | ----- | ---- | ----- | ----------- |
 | `chain_name` | [string](#string) |  |  |
 | `oracle_address` | [string](#string) |  |  |
-| `validator_address` | [string](#string) |  | string bridge_address = 4; string external_address = 5; |
+| `validator_address` | [string](#string) |  |  |
 
 
 
@@ -1058,6 +1059,32 @@ issued to the Payment address in question
 
 
 
+<a name="fx.gravity.crosschain.v1.MsgUnbondedOracle"></a>
+
+### MsgUnbondedOracle
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_name` | [string](#string) |  |  |
+| `oracle_address` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgUnbondedOracleResponse"></a>
+
+### MsgUnbondedOracleResponse
+
+
+
+
+
+
+
 <a name="fx.gravity.crosschain.v1.MsgWithdrawReward"></a>
 
 ### MsgWithdrawReward
@@ -1097,10 +1124,11 @@ Msg defines the state transitions possible within gravity
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `CreateOracleBridger` | [MsgCreateOracleBridger](#fx.gravity.crosschain.v1.MsgCreateOracleBridger) | [MsgCreateOracleBridgerResponse](#fx.gravity.crosschain.v1.MsgCreateOracleBridgerResponse) |  | |
-| `AddOracleDelegate` | [MsgAddOracleDelegate](#fx.gravity.crosschain.v1.MsgAddOracleDelegate) | [MsgAddOracleDelegateResponse](#fx.gravity.crosschain.v1.MsgAddOracleDelegateResponse) |  | |
+| `BondedOracle` | [MsgBondedOracle](#fx.gravity.crosschain.v1.MsgBondedOracle) | [MsgBondedOracleResponse](#fx.gravity.crosschain.v1.MsgBondedOracleResponse) |  | |
+| `AddDelegate` | [MsgAddDelegate](#fx.gravity.crosschain.v1.MsgAddDelegate) | [MsgAddDelegateResponse](#fx.gravity.crosschain.v1.MsgAddDelegateResponse) |  | |
 | `EditOracle` | [MsgEditOracle](#fx.gravity.crosschain.v1.MsgEditOracle) | [MsgEditOracleResponse](#fx.gravity.crosschain.v1.MsgEditOracleResponse) |  | |
 | `WithdrawReward` | [MsgWithdrawReward](#fx.gravity.crosschain.v1.MsgWithdrawReward) | [MsgWithdrawRewardResponse](#fx.gravity.crosschain.v1.MsgWithdrawRewardResponse) |  | |
+| `UnbondedOracle` | [MsgUnbondedOracle](#fx.gravity.crosschain.v1.MsgUnbondedOracle) | [MsgUnbondedOracleResponse](#fx.gravity.crosschain.v1.MsgUnbondedOracleResponse) |  | |
 | `OracleSetConfirm` | [MsgOracleSetConfirm](#fx.gravity.crosschain.v1.MsgOracleSetConfirm) | [MsgOracleSetConfirmResponse](#fx.gravity.crosschain.v1.MsgOracleSetConfirmResponse) |  | |
 | `OracleSetUpdateClaim` | [MsgOracleSetUpdatedClaim](#fx.gravity.crosschain.v1.MsgOracleSetUpdatedClaim) | [MsgOracleSetUpdatedClaimResponse](#fx.gravity.crosschain.v1.MsgOracleSetUpdatedClaimResponse) |  | |
 | `BridgeTokenClaim` | [MsgBridgeTokenClaim](#fx.gravity.crosschain.v1.MsgBridgeTokenClaim) | [MsgBridgeTokenClaimResponse](#fx.gravity.crosschain.v1.MsgBridgeTokenClaimResponse) |  | |
