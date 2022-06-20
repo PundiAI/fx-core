@@ -161,5 +161,3 @@ replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.
 replace github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
 
 replace github.com/evmos/ethermint => github.com/functionx/ethermint v0.6.1-0.20220620041833-6d87fab54c8e
-
-replace github.com/cosmos/ibc-go/v3 => github.com/cosmos/ibc-go/v3 v3.0.1

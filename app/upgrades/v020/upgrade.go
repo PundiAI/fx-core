@@ -2,8 +2,13 @@ package v020
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
+
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	ibctransferkeeper "github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
+	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 
@@ -34,7 +39,6 @@ import (
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 
 	fxtypes "github.com/functionx/fx-core/types"
@@ -46,7 +50,7 @@ func CreateUpgradeHandler(
 	kvStoreKeyMap map[string]*sdk.KVStoreKey,
 	mm *module.Manager, configurator module.Configurator,
 	bankKeeper bankKeeper.Keeper, accountKeeper authkeeper.AccountKeeper,
-	paramsKeeper paramskeeper.Keeper, ibcKeeper *ibckeeper.Keeper,
+	paramsKeeper paramskeeper.Keeper, ibcKeeper *ibckeeper.Keeper, transferKeeper ibctransferkeeper.Keeper,
 	erc20Keeper erc20keeper.Keeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
@@ -64,9 +68,8 @@ func CreateUpgradeHandler(
 		// 4. migrate base account to eth account
 		migrateAccountToEth(cacheCtx, accountKeeper)
 
-		// set max expected block time parameter. Replace the default with your expected value
-		// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
-		ibcKeeper.ConnectionKeeper.SetParams(cacheCtx, ibcconnectiontypes.DefaultParams())
+		// 5. migrate ibc cosmos-sdk/x/ibc -> ibc-go v3.1.0
+		ibcMigrate(cacheCtx, ibcKeeper, transferKeeper)
 
 		// cosmos-sdk 0.42.x from version must be empty
 		if len(fromVM) != 0 {
@@ -115,6 +118,34 @@ func CreateUpgradeHandler(
 		commit()
 
 		return toVersion, nil
+	}
+}
+
+func ibcMigrate(ctx sdk.Context, ibcKeeper *ibckeeper.Keeper, transferKeeper ibctransferkeeper.Keeper) {
+	// set max expected block time parameter. Replace the default with your expected value
+	// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
+	ibcKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
+
+	// list of traces that must replace the old traces in store
+	// https://github.com/cosmos/ibc-go/blob/v3.1.0/docs/migrations/support-denoms-with-slashes.md
+	var newTraces []ibctransfertypes.DenomTrace
+	transferKeeper.IterateDenomTraces(ctx,
+		func(dt ibctransfertypes.DenomTrace) bool {
+			// check if the new way of splitting FullDenom
+			// into Trace and BaseDenom passes validation and
+			// is the same as the current DenomTrace.
+			// If it isn't then store the new DenomTrace in the list of new traces.
+			newTrace := ibctransfertypes.ParseDenomTrace(dt.GetFullDenomPath())
+			if err := newTrace.Validate(); err == nil && !reflect.DeepEqual(newTrace, dt) {
+				newTraces = append(newTraces, newTrace)
+			}
+
+			return false
+		})
+
+	// replace the outdated traces with the new trace information
+	for _, nt := range newTraces {
+		transferKeeper.SetDenomTrace(ctx, nt)
 	}
 }
 
