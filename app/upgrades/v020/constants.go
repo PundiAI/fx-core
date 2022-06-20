@@ -11,7 +11,6 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/ethereum/go-ethereum/crypto"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -69,8 +68,6 @@ var (
 			authzkeeper.StoreKey,
 		},
 	}
-
-	emptyCodeHash = crypto.Keccak256(nil)
 )
 
 func GetStoreUpgrades() *store.StoreUpgrades {

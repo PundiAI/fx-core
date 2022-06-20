@@ -7,6 +7,7 @@ import (
 	"time"
 
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+
 	ibctransferkeeper "github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
 	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
 
@@ -23,10 +24,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/ethereum/go-ethereum/common"
-	ethermint "github.com/evmos/ethermint/types"
 
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
@@ -65,10 +62,7 @@ func CreateUpgradeHandler(
 		// 3. update block params (max_gas:3000000000)
 		updateBlockParams(cacheCtx, paramsKeeper)
 
-		// 4. migrate base account to eth account
-		migrateAccountToEth(cacheCtx, accountKeeper)
-
-		// 5. migrate ibc cosmos-sdk/x/ibc -> ibc-go v3.1.0
+		// 4. migrate ibc cosmos-sdk/x/ibc -> ibc-go v3.1.0
 		ibcMigrate(cacheCtx, ibcKeeper, transferKeeper)
 
 		// cosmos-sdk 0.42.x from version must be empty
@@ -166,29 +160,6 @@ func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, keys map[st
 	denomMetaDataStore.Delete([]byte(fxDenom))
 	//set FX
 	bankKeeper.SetDenomMetaData(ctx, md)
-}
-
-func migrateAccountToEth(ctx sdk.Context, ak authkeeper.AccountKeeper) {
-	logger := ctx.Logger()
-	logger.Info("migrate account to eth", "network", fxtypes.Network())
-	// migrate base account to eth account
-	ak.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
-		if _, ok := account.(ethermint.EthAccountI); ok {
-			return false
-		}
-		baseAccount, ok := account.(*authtypes.BaseAccount)
-		if !ok {
-			logger.Info("ignore account", "address", account.GetAddress(), "type", fmt.Sprintf("%T", account))
-			return false
-		}
-		ethAccount := &ethermint.EthAccount{
-			BaseAccount: baseAccount,
-			CodeHash:    common.BytesToHash(emptyCodeHash).String(),
-		}
-		ak.SetAccount(ctx, ethAccount)
-		logger.Info("migrate account to eth", "address", account.GetAddress())
-		return false
-	})
 }
 
 func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) {
