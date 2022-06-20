@@ -144,12 +144,25 @@ func (s EthereumMsgServer) AddDelegate(c context.Context, msg *types.MsgAddDeleg
 	if delegateAmount.GT(threshold.Amount.Mul(sdk.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
 		return nil, types.ErrDelegateAmountBelowMaximum
 	}
+	slashAmount := sdk.NewCoin(fxtypes.DefaultDenom, oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
+	if slashAmount.IsPositive() {
+		if delegateAmount.LTE(slashAmount.Amount) {
+			return nil, sdkerrors.Wrap(types.ErrInvalid, "not sufficient slash amount")
+		}
+		if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
+			return nil, err
+		}
+		if err := s.bankKeeper.BurnCoins(ctx, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
+			return nil, err
+		}
+	}
+	delegateCoin := sdk.NewCoin(fxtypes.DefaultDenom, delegateAmount.Sub(slashAmount.Amount))
 
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
-	if err := s.bankKeeper.SendCoins(ctx, oracleAddr, delegateAddr, sdk.NewCoins(msg.Amount)); err != nil {
+	if err := s.bankKeeper.SendCoins(ctx, oracleAddr, delegateAddr, sdk.NewCoins(delegateCoin)); err != nil {
 		return nil, err
 	}
-	newShares, err := s.stakingKeeper.Delegate(ctx, delegateAddr, msg.Amount.Amount, stakingtypes.Unbonded, validator, true)
+	newShares, err := s.stakingKeeper.Delegate(ctx, delegateAddr, delegateCoin.Amount, stakingtypes.Unbonded, validator, true)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +180,7 @@ func (s EthereumMsgServer) AddDelegate(c context.Context, msg *types.MsgAddDeleg
 		sdk.NewEvent(
 			stakingtypes.EventTypeDelegate,
 			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, delegateCoin.Amount.String()),
 			sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
 		),
 		sdk.NewEvent(
@@ -197,18 +210,18 @@ func (s EthereumMsgServer) EditOracle(c context.Context, msg *types.MsgEditOracl
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address is not changed")
 	}
 
-	delegateAddress := oracle.GetDelegateAddress(s.moduleName)
+	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
 	valSrcAddress := oracle.GetValidator()
 
 	valDestAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
 	}
-	sharesAmount, err := s.stakingKeeper.ValidateUnbondAmount(ctx, delegateAddress, valSrcAddress, oracle.DelegateAmount)
-	if err != nil {
-		return nil, err
+	delegation, found := s.stakingKeeper.GetDelegation(ctx, delegateAddr, valSrcAddress)
+	if !found {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "no delegation for (address, validator) tuple")
 	}
-	completionTime, err := s.stakingKeeper.BeginRedelegation(ctx, delegateAddress, valSrcAddress, valDestAddress, sharesAmount)
+	completionTime, err := s.stakingKeeper.BeginRedelegation(ctx, delegateAddr, valSrcAddress, valDestAddress, delegation.Shares)
 	if err != nil {
 		return nil, err
 	}
@@ -237,11 +250,14 @@ func (s EthereumMsgServer) WithdrawReward(c context.Context, msg *types.MsgWithd
 	}
 
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
-	rewards, err := s.distributionKeeper.WithdrawDelegationRewards(ctx, delegateAddr, oracle.GetValidator())
-	if err != nil {
+	if _, err := s.distributionKeeper.WithdrawDelegationRewards(ctx, delegateAddr, oracle.GetValidator()); err != nil {
 		return nil, err
 	}
-	if err = s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, rewards); err != nil {
+	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
+	if !balances.IsAllPositive() {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "rewards")
+	}
+	if err = s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, balances); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvent(
@@ -278,10 +294,10 @@ func (s EthereumMsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbon
 	if _, err := s.distributionKeeper.WithdrawDelegationRewards(ctx, delegateAddr, validatorAddr); err != nil {
 		return nil, err
 	}
-	balance := s.bankKeeper.GetBalance(ctx, delegateAddr, fxtypes.DefaultDenom)
+	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
 	slashAmount := sdk.NewCoin(fxtypes.DefaultDenom, oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
 	if slashAmount.IsPositive() {
-		if balance.IsLT(slashAmount) {
+		if balances.AmountOf(fxtypes.DefaultDenom).LT(slashAmount.Amount) {
 			return nil, sdkerrors.Wrap(types.ErrInvalid, "not sufficient slash amount")
 		}
 		if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, delegateAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
@@ -291,9 +307,15 @@ func (s EthereumMsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbon
 			return nil, err
 		}
 	}
-	send := balance.Sub(slashAmount)
-	if send.IsPositive() {
-		if err := s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, sdk.NewCoins(send)); err != nil {
+	sendCoins := balances.Sub(sdk.NewCoins(slashAmount))
+	for i := 0; i < len(sendCoins); i++ {
+		if !sendCoins[i].IsPositive() {
+			sendCoins = append(sendCoins[:i], sendCoins[i+1:]...)
+			i--
+		}
+	}
+	if sendCoins.IsAllPositive() {
+		if err := s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, sendCoins); err != nil {
 			return nil, err
 		}
 	}

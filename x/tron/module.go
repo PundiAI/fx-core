@@ -6,7 +6,7 @@ import (
 
 	"github.com/functionx/fx-core/x/tron/keeper"
 
-	crosschainv54 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
+	crosschainv020 "github.com/functionx/fx-core/x/crosschain/legacy/v020"
 
 	"github.com/functionx/fx-core/x/crosschain"
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
@@ -84,14 +84,14 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
 type AppModule struct {
 	AppModuleBasic
 	keeper        keeper.Keeper
-	stakingKeeper crosschainv54.StakingKeeper
-	bankKeeper    crosschainv54.BankKeeper
+	stakingKeeper crosschainv020.StakingKeeper
+	bankKeeper    crosschainv020.BankKeeper
 	paramsKey     sdk.StoreKey
 	legacyAmino   *codec.LegacyAmino
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper, stakingKeeper crosschainv54.StakingKeeper, bankKeeper crosschainv54.BankKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) AppModule {
+func NewAppModule(keeper keeper.Keeper, stakingKeeper crosschainv020.StakingKeeper, bankKeeper crosschainv020.BankKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,

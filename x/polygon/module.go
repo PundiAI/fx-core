@@ -19,7 +19,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
-	crosschainv54 "github.com/functionx/fx-core/x/crosschain/legacy/v045"
+	crosschainv020 "github.com/functionx/fx-core/x/crosschain/legacy/v020"
 )
 
 // type check to ensure the interface is properly implemented
@@ -81,14 +81,14 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
 type AppModule struct {
 	AppModuleBasic
 	keeper        crosschainkeeper.Keeper
-	stakingKeeper crosschainv54.StakingKeeper
-	bankKeeper    crosschainv54.BankKeeper
+	stakingKeeper crosschainv020.StakingKeeper
+	bankKeeper    crosschainv020.BankKeeper
 	paramsKey     sdk.StoreKey
 	legacyAmino   *codec.LegacyAmino
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper crosschainkeeper.Keeper, stakingKeeper crosschainv54.StakingKeeper, bankKeeper crosschainv54.BankKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) AppModule {
+func NewAppModule(keeper crosschainkeeper.Keeper, stakingKeeper crosschainv020.StakingKeeper, bankKeeper crosschainv020.BankKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,

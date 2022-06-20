@@ -39,6 +39,13 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 		sdkserver.VersionCmd(),
 		tmcmd.ResetAllCmd,
 		tmcmd.ResetStateCmd,
+		tmcmd.RollbackStateCmd,
+		tmcmd.ReplayCmd,
+		tmcmd.ReplayConsoleCmd,
+		tmcmd.GenValidatorCmd,
+		tmcmd.GenNodeKeyCmd,
+		tmcmd.VersionCmd,
+		//tmcmd.ResetPrivValidatorCmd
 	)
 
 	rootCmd.AddCommand(

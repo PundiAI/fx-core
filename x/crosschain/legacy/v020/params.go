@@ -1,17 +1,17 @@
-package v045
+package v020
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v042 "github.com/functionx/fx-core/x/crosschain/legacy/v042"
+	v010 "github.com/functionx/fx-core/x/crosschain/legacy/v010"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
 func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) error {
 	params := types.Params{}
-	paramSetPairs := v042.GetParamSetPairs(&params)
+	paramSetPairs := v010.GetParamSetPairs(&params)
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(moduleName), '/'))
 	for _, pair := range paramSetPairs {
 		bz := paramsStore.Get(pair.Key)
@@ -19,8 +19,8 @@ func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.Legacy
 			return err
 		}
 	}
-	paramsStore.Delete(v042.ParamStoreOracles)
-	paramsStore.Delete(v042.ParamOracleDepositThreshold)
+	paramsStore.Delete(v010.ParamStoreOracles)
+	paramsStore.Delete(v010.ParamOracleDepositThreshold)
 
 	params.DelegateMultiple = types.DefaultOracleDelegateThreshold
 	if err := params.ValidateBasic(); err != nil {

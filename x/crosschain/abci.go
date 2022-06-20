@@ -85,14 +85,14 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 		for _, confirm := range confirms {
 			confirmOracleMap[confirm.ExternalAddress] = true
 		}
-		for _, oracle := range oracles {
-			if uint64(oracle.StartHeight) > oracleSet.Height {
+		for i := 0; i < len(oracles); i++ {
+			if uint64(oracles[i].StartHeight) > oracleSet.Height {
 				continue
 			}
-			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
-				k.Logger(ctx).Info("slash oracle by oracle set", "oracleAddress", oracle.OracleAddress,
+			if _, ok := confirmOracleMap[oracles[i].ExternalAddress]; !ok {
+				k.Logger(ctx).Info("slash oracle by oracle set", "oracleAddress", oracles[i].OracleAddress,
 					"oracleSetNonce", oracleSet.Nonce, "oracleSetHeight", oracleSet.Height, "blockHeight", ctx.BlockHeight())
-				k.SlashOracle(ctx, oracle)
+				k.SlashOracle(ctx, oracles[i].OracleAddress)
 				hasSlash = true
 			}
 		}
@@ -112,14 +112,14 @@ func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, sign
 		for _, confirm := range confirms {
 			confirmOracleMap[confirm.ExternalAddress] = true
 		}
-		for _, oracle := range oracles {
-			if uint64(oracle.StartHeight) > batch.Block {
+		for i := 0; i < len(oracles); i++ {
+			if uint64(oracles[i].StartHeight) > batch.Block {
 				continue
 			}
-			if _, ok := confirmOracleMap[oracle.ExternalAddress]; !ok {
-				k.Logger(ctx).Info("slash oracle by batch", "oracleAddress", oracle.OracleAddress,
+			if _, ok := confirmOracleMap[oracles[i].ExternalAddress]; !ok {
+				k.Logger(ctx).Info("slash oracle by batch", "oracleAddress", oracles[i].OracleAddress,
 					"batchNonce", batch.BatchNonce, "batchHeight", batch.Block, "blockHeight", ctx.BlockHeight())
-				k.SlashOracle(ctx, oracle)
+				k.SlashOracle(ctx, oracles[i].OracleAddress)
 				hasSlash = true
 			}
 		}

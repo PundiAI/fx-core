@@ -2,9 +2,6 @@ package keeper
 
 import (
 	"sort"
-	"time"
-
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -188,35 +185,21 @@ func (k Keeper) GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Ora
 	return oracles
 }
 
-func (k Keeper) SlashOracle(ctx sdk.Context, oracle types.Oracle) {
+func (k Keeper) SlashOracle(ctx sdk.Context, oracleAddrStr string) {
+	oracleAddr, err := sdk.AccAddressFromBech32(oracleAddrStr)
+	if err != nil {
+		panic(err)
+	}
+	oracle, found := k.GetOracle(ctx, oracleAddr)
+	if !found {
+		panic(types.ErrNoFoundOracle)
+	}
 	if !oracle.Online {
-		oracle.SlashTimes += 1
-		k.SetOracle(ctx, oracle)
 		return
-	}
-
-	delegateAddr := oracle.GetDelegateAddress(k.moduleName)
-	valAddr := oracle.GetValidator()
-	sharesAmount, err := k.stakingKeeper.ValidateUnbondAmount(ctx, delegateAddr, valAddr, oracle.DelegateAmount)
-	if err != nil {
-		panic(err)
-	}
-	completionTime, err := k.stakingKeeper.Undelegate(ctx, delegateAddr, valAddr, sharesAmount)
-	if err != nil {
-		panic(err)
 	}
 
 	oracle.Online = false
 	oracle.SlashTimes += 1
 	k.SetOracle(ctx, oracle)
 	k.SetLastOracleSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			stakingtypes.EventTypeUnbond,
-			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
-			sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
-		),
-	})
 }

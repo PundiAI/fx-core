@@ -607,7 +607,7 @@ func (suite *IntegrationTestSuite) TestSlashFactoryGreat1() {
 			require.True(suite.T(), oracle.Online)
 			require.True(suite.T(), oracle.DelegateAmount.Equal(suite.delegateAmount))
 
-			suite.Keeper().SlashOracle(suite.ctx, oracle)
+			suite.Keeper().SlashOracle(suite.ctx, oracle.OracleAddress)
 
 			oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
 			require.True(suite.T(), found)
@@ -622,7 +622,7 @@ func (suite *IntegrationTestSuite) TestSlashFactoryGreat1() {
 			require.False(suite.T(), oracle.Online)
 			//require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
 
-			suite.Keeper().SlashOracle(suite.ctx, oracle)
+			suite.Keeper().SlashOracle(suite.ctx, oracle.OracleAddress)
 
 			oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
 			require.True(suite.T(), found)

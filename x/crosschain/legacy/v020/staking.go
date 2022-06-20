@@ -1,4 +1,4 @@
-package v045
+package v020
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,15 +26,15 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 			return sdkerr.Wrap(types.ErrInvalid, "delegate validator")
 		}
 
-		delegateAddress := oracle.GetDelegateAddress(moduleName)
+		delegateAddr := oracle.GetDelegateAddress(moduleName)
 
 		if err := bankKeeper.SendCoinsFromModuleToAccount(ctx,
-			moduleName, delegateAddress, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount))); err != nil {
+			moduleName, delegateAddr, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount))); err != nil {
 			return err
 		}
 
 		newShares, err := stakingKeeper.Delegate(ctx,
-			delegateAddress, oracle.DelegateAmount, stakingtypes.Unbonded, delegateValidator, true)
+			delegateAddr, oracle.DelegateAmount, stakingtypes.Unbonded, delegateValidator, true)
 		if err != nil {
 			return err
 		}

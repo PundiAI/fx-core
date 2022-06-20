@@ -66,11 +66,11 @@ func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer
 	for _, unbondedOracle := range unbondedOracleList {
 		delegateAddr := unbondedOracle.GetDelegateAddress(keeper.moduleName)
 		valAddr := unbondedOracle.GetValidator()
-		sharesAmount, err := keeper.stakingKeeper.ValidateUnbondAmount(ctx, delegateAddr, valAddr, unbondedOracle.DelegateAmount)
-		if err != nil {
-			return err
+		delegation, found := keeper.stakingKeeper.GetDelegation(ctx, delegateAddr, valAddr)
+		if !found {
+			panic(sdkerrors.Wrap(types.ErrInvalid, "no delegation for (address, validator) tuple"))
 		}
-		completionTime, err := keeper.stakingKeeper.Undelegate(ctx, delegateAddr, valAddr, sharesAmount)
+		completionTime, err := keeper.stakingKeeper.Undelegate(ctx, delegateAddr, valAddr, delegation.Shares)
 		if err != nil {
 			return err
 		}

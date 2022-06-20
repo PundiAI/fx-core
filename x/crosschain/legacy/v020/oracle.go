@@ -1,4 +1,4 @@
-package v045
+package v020
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -7,7 +7,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
-	v042 "github.com/functionx/fx-core/x/crosschain/legacy/v042"
+	v010 "github.com/functionx/fx-core/x/crosschain/legacy/v010"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
@@ -25,7 +25,7 @@ func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey
 
 	oracles := types.Oracles{}
 	for ; iterator.Valid(); iterator.Next() {
-		var legacyOracle v042.LegacyOracle
+		var legacyOracle v010.LegacyOracle
 		cdc.MustUnmarshal(iterator.Value(), &legacyOracle)
 		if legacyOracle.DelegateAmount.Denom != fxtypes.DefaultDenom {
 			return nil, delegateValidator, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom: %s", legacyOracle.DelegateAmount.Denom)
