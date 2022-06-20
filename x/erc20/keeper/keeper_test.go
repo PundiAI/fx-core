@@ -35,16 +35,16 @@ import (
 
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
-	"github.com/tharsis/ethermint/server/config"
-	"github.com/tharsis/ethermint/x/evm/statedb"
-	evm "github.com/tharsis/ethermint/x/evm/types"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/evmos/ethermint/server/config"
+	"github.com/evmos/ethermint/x/evm/statedb"
+	evm "github.com/evmos/ethermint/x/evm/types"
 
 	app "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/tests"
 	"github.com/functionx/fx-core/x/erc20/types"
 
-	ethermint "github.com/tharsis/ethermint/types"
+	ethermint "github.com/evmos/ethermint/types"
 )
 
 const (

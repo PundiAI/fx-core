@@ -12,7 +12,7 @@ import (
 
 	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 
-	"github.com/tharsis/ethermint/server"
+	"github.com/evmos/ethermint/server"
 )
 
 func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCreator types.AppCreator, appExport types.AppExporter) {

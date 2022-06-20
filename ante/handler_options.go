@@ -7,7 +7,7 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	ibcante "github.com/cosmos/ibc-go/v3/modules/core/ante"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	ethante "github.com/tharsis/ethermint/app/ante"
+	ethante "github.com/evmos/ethermint/app/ante"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC

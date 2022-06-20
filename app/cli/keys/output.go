@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/sha3"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 )
 
 // available output formats.

@@ -9,8 +9,8 @@ import (
 
 	"github.com/functionx/fx-core/app"
 
-	"github.com/tharsis/ethermint/crypto/hd"
-	"github.com/tharsis/ethermint/server/config"
+	"github.com/evmos/ethermint/crypto/hd"
+	"github.com/evmos/ethermint/server/config"
 
 	fxtypes "github.com/functionx/fx-core/types"
 

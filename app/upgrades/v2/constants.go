@@ -19,8 +19,8 @@ import (
 	polygontypes "github.com/functionx/fx-core/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
-	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"

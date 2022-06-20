@@ -16,7 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 
-	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 )
 
 func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {

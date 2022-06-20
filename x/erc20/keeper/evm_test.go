@@ -7,7 +7,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/types"
 
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/tests"
 

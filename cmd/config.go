@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 
-	ethermintconfig "github.com/tharsis/ethermint/server/config"
+	ethermintconfig "github.com/evmos/ethermint/server/config"
 )
 
 const (

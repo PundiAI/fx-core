@@ -9,7 +9,7 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
-	cryptohd "github.com/tharsis/ethermint/crypto/hd"
+	cryptohd "github.com/evmos/ethermint/crypto/hd"
 
 	fxtypes "github.com/functionx/fx-core/types"
 

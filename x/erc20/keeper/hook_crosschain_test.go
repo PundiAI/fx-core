@@ -14,8 +14,8 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/require"
-	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
 
 	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/tests"

@@ -29,8 +29,8 @@ import (
 	"github.com/tendermint/tendermint/rpc/client/http"
 	"google.golang.org/grpc"
 
-	cryptohd "github.com/tharsis/ethermint/crypto/hd"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	cryptohd "github.com/evmos/ethermint/crypto/hd"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/app"
 	fxtypes "github.com/functionx/fx-core/types"

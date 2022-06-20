@@ -10,7 +10,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/gov"
 
-	ethermint "github.com/tharsis/ethermint/types"
+	ethermint "github.com/evmos/ethermint/types"
 
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 
@@ -145,11 +145,11 @@ import (
 	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 
-	"github.com/tharsis/ethermint/x/evm"
-	evmrest "github.com/tharsis/ethermint/x/evm/client/rest"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
-	"github.com/tharsis/ethermint/x/feemarket"
-	feemarketkeeper "github.com/tharsis/ethermint/x/feemarket/keeper"
+	"github.com/evmos/ethermint/x/evm"
+	evmrest "github.com/evmos/ethermint/x/evm/client/rest"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/evmos/ethermint/x/feemarket"
+	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 
 	erc20client "github.com/functionx/fx-core/x/erc20/client"
 	erc20types "github.com/functionx/fx-core/x/erc20/types"
@@ -157,9 +157,9 @@ import (
 	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 
-	srvflags "github.com/tharsis/ethermint/server/flags"
-	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
-	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
+	srvflags "github.com/evmos/ethermint/server/flags"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/erc20"

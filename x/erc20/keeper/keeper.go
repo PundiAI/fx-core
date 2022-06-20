@@ -16,7 +16,7 @@ import (
 
 	"github.com/functionx/fx-core/x/erc20/types"
 
-	"github.com/tharsis/ethermint/x/evm/statedb"
+	"github.com/evmos/ethermint/x/evm/statedb"
 )
 
 // Keeper of this module maintains collections of erc20.
