@@ -10,8 +10,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/gov"
 
-	ethermint "github.com/evmos/ethermint/types"
-
 	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
 
 	ante2 "github.com/functionx/fx-core/ante"
@@ -380,7 +378,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.CapabilityKeeper.Seal()
 
 	myApp.AccountKeeper = authkeeper.NewAccountKeeper(
-		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), ethermint.ProtoAccount, maccPerms,
+		appCodec, keys[authtypes.StoreKey], myApp.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
 	)
 	myApp.AuthzKeeper = authzkeeper.NewKeeper(
 		keys[authzkeeper.StoreKey],
