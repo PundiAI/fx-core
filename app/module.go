@@ -32,7 +32,8 @@ type FeeMarketAppModule struct {
 // DefaultGenesis returns default genesis state as raw bytes for the fee market module.
 func (FeeMarketAppModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	genesisState := feemarkettypes.DefaultGenesisState()
-	genesisState.Params.MinGasPrice = sdk.NewDec(500 * 1e9)
+	genesisState.Params.BaseFee = sdk.NewInt(500_000_000_000)
+	genesisState.Params.MinGasPrice = sdk.NewDec(500_000_000_000)
 	genesisState.Params.MinGasMultiplier = sdk.ZeroDec()
 	return cdc.MustMarshalJSON(genesisState)
 }

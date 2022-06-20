@@ -343,8 +343,10 @@ func sendEthTx(t *testing.T, ctx sdk.Context, myApp *app.App,
 	nonce, err := myApp.AccountKeeper.GetSequence(ctx, from.Bytes())
 	require.NoError(t, err)
 
-	var feeCap, tipCap sdk.Int
 	baseFee := myApp.FeeMarketKeeper.GetBaseFee(ctx)
+	tipCap := sdk.NewInt(1)
+	feeCap := tipCap.Add(sdk.NewIntFromBigInt(baseFee))
+
 	params := myApp.FeeMarketKeeper.GetParams(ctx)
 	if sdk.NewDecFromBigInt(baseFee).LT(params.MinGasPrice) {
 		feeCap = params.MinGasPrice.TruncateInt()

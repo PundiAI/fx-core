@@ -3,6 +3,9 @@ package app
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common/math"
+	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
+
 	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,6 +31,9 @@ func init() {
 	// set chain id function
 	ethermint.SetParseChainIDFunc(ParseFunctionXChainID)
 	ethermint.SetValidChainIDFunc(ValidFunctionXChainID)
+
+	// set calculate base fee function
+	feemarketkeeper.SetCalculateBaseFeeFunc(CalculateBaseFee)
 }
 
 func ParseFunctionXChainID(_ string) (*big.Int, error) {
@@ -39,4 +45,18 @@ func ValidFunctionXChainID(chainID string) bool {
 		return true
 	}
 	return false
+}
+
+func CalculateBaseFee(ctx sdk.Context, k feemarketkeeper.Keeper) *big.Int {
+	// default calculate base fee
+	baseFee := feemarketkeeper.DefaultCalculateBaseFee(ctx, k)
+	if baseFee == nil {
+		return nil
+	}
+	// check min gas price
+	params := k.GetParams(ctx)
+	if params.MinGasPrice.IsNil() || params.MinGasPrice.IsZero() {
+		return baseFee
+	}
+	return math.BigMax(baseFee, params.MinGasPrice.TruncateInt().BigInt())
 }
