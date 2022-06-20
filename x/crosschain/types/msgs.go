@@ -519,7 +519,7 @@ func (m MsgSendToFxClaim) GetSignBytes() []byte {
 func (m MsgSendToFxClaim) GetClaimer() sdk.AccAddress {
 	err := m.ValidateBasic()
 	if err != nil {
-		panic("MsgSendToFxClaim failed ValidateBasic! Should have been handled earlier")
+		panic("MsgSendToFxClaim failed ValidateBasic! Should have been handled earlier: " + err.Error())
 	}
 	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
@@ -582,7 +582,7 @@ func (m MsgSendToExternalClaim) GetSignBytes() []byte {
 func (m MsgSendToExternalClaim) GetClaimer() sdk.AccAddress {
 	err := m.ValidateBasic()
 	if err != nil {
-		panic("MsgSendToExternalClaim failed ValidateBasic! Should have been handled earlier")
+		panic("MsgSendToExternalClaim failed ValidateBasic! Should have been handled earlier: " + err.Error())
 	}
 	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
@@ -638,7 +638,7 @@ func (m MsgBridgeTokenClaim) GetSigners() []sdk.AccAddress {
 func (m MsgBridgeTokenClaim) GetClaimer() sdk.AccAddress {
 	err := m.ValidateBasic()
 	if err != nil {
-		panic("MsgBridgeTokenClaim failed ValidateBasic! Should have been handled earlier")
+		panic("MsgBridgeTokenClaim failed ValidateBasic! Should have been handled earlier: " + err.Error())
 	}
 	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
@@ -683,7 +683,8 @@ func (m MsgOracleSetUpdatedClaim) GetSignBytes() []byte {
 func (m MsgOracleSetUpdatedClaim) GetClaimer() sdk.AccAddress {
 	err := m.ValidateBasic()
 	if err != nil {
-		panic("MsgOracleSetUpdatedClaim failed ValidateBasic! Should have been handled earlier")
+		fmt.Println("ChainName", m.ChainName, m.Members[0].ExternalAddress)
+		panic("MsgOracleSetUpdatedClaim failed ValidateBasic! Should have been handled earlier: " + err.Error())
 	}
 	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {

@@ -500,7 +500,7 @@ func (s EthereumMsgServer) SendToExternalClaim(c context.Context, msg *types.Msg
 		return nil, err
 	}
 
-	return &types.MsgSendToExternalClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg, msg.Type())
+	return &types.MsgSendToExternalClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg)
 }
 
 // SendToFxClaim handles MsgSendToFxClaim
@@ -517,7 +517,7 @@ func (s EthereumMsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendTo
 		return nil, err
 	}
 
-	return &types.MsgSendToFxClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg, msg.Type())
+	return &types.MsgSendToFxClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg)
 }
 
 func (s EthereumMsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
@@ -531,7 +531,7 @@ func (s EthereumMsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBri
 		return nil, err
 	}
 
-	return &types.MsgBridgeTokenClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg, msg.Type())
+	return &types.MsgBridgeTokenClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg)
 }
 
 // OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
@@ -542,8 +542,9 @@ func (s EthereumMsgServer) OracleSetUpdateClaim(c context.Context, msg *types.Ms
 	}
 
 	for _, member := range msg.Members {
+
 		if _, found := s.GetOracleByExternalAddress(ctx, member.ExternalAddress); !found {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "member oracle")
+			return nil, sdkerrors.Wrap(types.ErrUnknown, "oracle")
 		}
 	}
 
@@ -552,7 +553,7 @@ func (s EthereumMsgServer) OracleSetUpdateClaim(c context.Context, msg *types.Ms
 		return nil, err
 	}
 
-	return &types.MsgOracleSetUpdatedClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg, msg.Type())
+	return &types.MsgOracleSetUpdatedClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg)
 }
 
 func (s EthereumMsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddress string) error {
@@ -576,7 +577,7 @@ func (s EthereumMsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddress 
 
 // claimHandlerCommon is an internal function that provides common code for processing claims once they are
 // translated from the message to the Ethereum claim interface
-func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectypes.Any, msg types.ExternalClaim, msgType string) error {
+func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectypes.Any, msg types.ExternalClaim) error {
 	// Add the claim to the store
 	_, err := s.Attest(ctx, msg, msgAny)
 	if err != nil {

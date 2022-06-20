@@ -224,7 +224,7 @@ func testBSCParamsProposal(t *testing.T, ctx sdk.Context, myApp *app.App, oracle
 	}
 
 	k := &crosschainkeeper.EthereumMsgServer{Keeper: myApp.BscKeeper}
-	err := crosschainkeeper.HandleUpdateChainOraclesProposal(ctx, k, proposal)
+	err := crosschain.HandleUpdateChainOraclesProposal(ctx, k, proposal)
 	require.NoError(t, err)
 }
 

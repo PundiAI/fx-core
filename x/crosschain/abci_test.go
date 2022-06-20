@@ -9,8 +9,14 @@ import (
 	"sync"
 	"testing"
 
+	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	bsctypes "github.com/functionx/fx-core/x/bsc/types"
+	polygontypes "github.com/functionx/fx-core/x/polygon/types"
+	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/x/tron/types"
 
 	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/helpers"
@@ -19,7 +25,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -44,27 +49,42 @@ type IntegrationTestSuite struct {
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
-	methodFinder := reflect.TypeOf(new(IntegrationTestSuite))
-	for i := 0; i < methodFinder.NumMethod(); i++ {
-		method := methodFinder.Method(i)
-		if !strings.HasPrefix(method.Name, "Test") {
-			continue
+	for _, moduleName := range []string{bsctypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName} {
+		methodFinder := reflect.TypeOf(new(IntegrationTestSuite))
+		for i := 0; i < methodFinder.NumMethod(); i++ {
+			method := methodFinder.Method(i)
+			if !strings.HasPrefix(method.Name, "Test") {
+				continue
+			}
+			t.Run(fmt.Sprintf("%s_%s", method.Name, moduleName), func(subT *testing.T) {
+				mySuite := new(IntegrationTestSuite)
+				mySuite.SetT(subT)
+				mySuite.chainName = moduleName
+				mySuite.SetupTest()
+				method.Func.Call([]reflect.Value{reflect.ValueOf(mySuite)})
+			})
 		}
-		t.Run(method.Name, func(subT *testing.T) {
-			mySuite := new(IntegrationTestSuite)
-			mySuite.SetT(t)
-			mySuite.SetupTest()
-			method.Func.Call([]reflect.Value{reflect.ValueOf(mySuite)})
-		})
 	}
 }
 
-func (suite *IntegrationTestSuite) Msg() types.MsgServer {
+func (suite *IntegrationTestSuite) MsgServer() types.MsgServer {
+	if suite.chainName == trontypes.ModuleName {
+		return tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
+	}
 	return keeper.NewMsgServerImpl(suite.Keeper())
 }
 
 func (suite *IntegrationTestSuite) Keeper() keeper.Keeper {
-	return suite.app.BscKeeper
+	switch suite.chainName {
+	case bsctypes.ModuleName:
+		return suite.app.BscKeeper
+	case polygontypes.ModuleName:
+		return suite.app.PolygonKeeper
+	case trontypes.ModuleName:
+		return suite.app.TronKeeper.Keeper
+	default:
+		panic("invalid chain name")
+	}
 }
 
 func (suite *IntegrationTestSuite) SetupTest() {
@@ -78,7 +98,6 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	for i := 0; i < types.MaxOracleSize; i++ {
 		suite.validator = append(suite.validator, valAccounts[i].GetAddress().Bytes())
 	}
-	suite.chainName = "bsc"
 
 	proposalOracle := &types.ProposalOracle{}
 	for _, oracle := range suite.oracles {
@@ -88,7 +107,6 @@ func (suite *IntegrationTestSuite) SetupTest() {
 }
 
 func (suite *IntegrationTestSuite) TestABCIEndBlockDepositClaim() {
-
 	normalMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
@@ -97,17 +115,26 @@ func (suite *IntegrationTestSuite) TestABCIEndBlockDepositClaim() {
 		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
 		ChainName:        suite.chainName,
 	}
-	_, err := suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
+	if trontypes.ModuleName == suite.chainName {
+		normalMsg.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[0].PublicKey).String()
+	}
+	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
 	require.NoError(suite.T(), err)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
+	bridgeToken := "0x3f6795b8ABE0775a88973469909adE1405f7ac09"
+	sendToFxSendAddr := "0x3f6795b8ABE0775a88973469909adE1405f7ac09"
+	if trontypes.ModuleName == suite.chainName {
+		bridgeToken = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+		sendToFxSendAddr = tronAddress.PubkeyToAddress(suite.externals[0].PublicKey).String()
+	}
 	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 		EventNonce:     1,
 		BlockHeight:    1000,
-		TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+		TokenContract:  bridgeToken,
 		Name:           "Pundix Reward Token",
 		Symbol:         "PURES",
 		Decimals:       18,
@@ -115,7 +142,7 @@ func (suite *IntegrationTestSuite) TestABCIEndBlockDepositClaim() {
 		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 		ChainName:      suite.chainName,
 	}
-	_, err = suite.Msg().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
+	_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
 	require.NoError(suite.T(), err)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -124,15 +151,15 @@ func (suite *IntegrationTestSuite) TestABCIEndBlockDepositClaim() {
 	sendToFxClaim := &types.MsgSendToFxClaim{
 		EventNonce:     2,
 		BlockHeight:    1001,
-		TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+		TokenContract:  bridgeToken,
 		Amount:         sdk.NewInt(1234),
-		Sender:         "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+		Sender:         sendToFxSendAddr,
 		Receiver:       "fx16wvwsmpp4y4ttgzknyr6kqla877jud6u04lqey",
 		TargetIbc:      hex.EncodeToString([]byte("px/transfer/channel-0")),
 		BridgerAddress: suite.bridgers[0].String(),
 		ChainName:      suite.chainName,
 	}
-	_, err = suite.Msg().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
+	_, err = suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToFxClaim)
 	require.NoError(suite.T(), err)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -141,15 +168,14 @@ func (suite *IntegrationTestSuite) TestABCIEndBlockDepositClaim() {
 	receiveAddr, err := sdk.AccAddressFromBech32(sendToFxClaim.Receiver)
 	require.NoError(suite.T(), err)
 	allBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, receiveAddr)
-	tokenContract := common.HexToAddress(addBridgeTokenClaim.TokenContract).Hex()
 	// transfer/channel-0/bscPURES
-	tokenName := fmt.Sprintf("%s%s", suite.chainName, tokenContract)
+	tokenName := fmt.Sprintf("%s%s", suite.chainName, bridgeToken)
 	if len(addBridgeTokenClaim.ChannelIbc) > 0 {
 		channel, err := hex.DecodeString(addBridgeTokenClaim.ChannelIbc)
 		require.NoError(suite.T(), err)
 		tokenName = ibcTransferTypes.DenomTrace{
 			Path:      string(channel),
-			BaseDenom: fmt.Sprintf("%s%s", suite.chainName, tokenContract),
+			BaseDenom: fmt.Sprintf("%s%s", suite.chainName, bridgeToken),
 		}.IBCDenom()
 	}
 	require.EqualValues(suite.T(), fmt.Sprintf("%s%s", sendToFxClaim.Amount.String(), tokenName), allBalances.String())
@@ -157,14 +183,20 @@ func (suite *IntegrationTestSuite) TestABCIEndBlockDepositClaim() {
 
 func (suite *IntegrationTestSuite) TestOracleUpdate() {
 	for i := 0; i < 10; i++ {
-		_, err := suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
+		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
 			ChainName:        suite.chainName,
-		})
+		}
+		if trontypes.ModuleName == suite.chainName {
+			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
+		}
+		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
+		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
+
 		require.NoError(suite.T(), err)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -177,11 +209,16 @@ func (suite *IntegrationTestSuite) TestOracleUpdate() {
 		require.True(suite.T(), expectPower.Equal(power))
 	}
 
+	bridgeToken := "0x3f6795b8ABE0775a88973469909adE1405f7ac09"
+	if trontypes.ModuleName == suite.chainName {
+		bridgeToken = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+	}
+
 	for i := 0; i < 6; i++ {
 		addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 			EventNonce:     1,
 			BlockHeight:    1000,
-			TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+			TokenContract:  bridgeToken,
 			Name:           "Pundix Reward Token",
 			Symbol:         "PURES",
 			Decimals:       18,
@@ -189,7 +226,7 @@ func (suite *IntegrationTestSuite) TestOracleUpdate() {
 			ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 			ChainName:      suite.chainName,
 		}
-		_, err := suite.Msg().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
+		_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
 		require.NoError(suite.T(), err)
 		endBlockBeforeAttestation := suite.Keeper().GetAttestation(suite.ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
 		require.NotNil(suite.T(), endBlockBeforeAttestation)
@@ -207,7 +244,7 @@ func (suite *IntegrationTestSuite) TestOracleUpdate() {
 	addBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 		EventNonce:     1,
 		BlockHeight:    1000,
-		TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+		TokenContract:  bridgeToken,
 		Name:           "Pundix Reward Token",
 		Symbol:         "PURES",
 		Decimals:       18,
@@ -215,7 +252,7 @@ func (suite *IntegrationTestSuite) TestOracleUpdate() {
 		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 		ChainName:      suite.chainName,
 	}
-	_, err := suite.Msg().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
+	_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), addBridgeTokenClaim)
 	require.NoError(suite.T(), err)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -264,14 +301,18 @@ func (suite *IntegrationTestSuite) TestOracleUpdate() {
 func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 
 	for i := 0; i < 20; i++ {
-		_, err := suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
+		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
 			ChainName:        suite.chainName,
-		})
+		}
+		if trontypes.ModuleName == suite.chainName {
+			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
+		}
+		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
 		require.NoError(suite.T(), err)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -284,11 +325,16 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		require.True(suite.T(), expectPower.Equal(power))
 	}
 
+	bridgeToken := "0x3f6795b8ABE0775a88973469909adE1405f7ac09"
+	if trontypes.ModuleName == suite.chainName {
+		bridgeToken = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+	}
+
 	{
 		firstBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 			EventNonce:     1,
 			BlockHeight:    1000,
-			TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+			TokenContract:  bridgeToken,
 			Name:           "Pundix Reward Token",
 			Symbol:         "PURES",
 			Decimals:       18,
@@ -299,7 +345,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 
 		for i := 0; i < 13; i++ {
 			firstBridgeTokenClaim.BridgerAddress = suite.bridgers[i].String()
-			_, err := suite.Msg().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), firstBridgeTokenClaim)
+			_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), firstBridgeTokenClaim)
 			require.NoError(suite.T(), err)
 			endBlockBeforeAttestation := suite.Keeper().GetAttestation(suite.ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
 			require.NotNil(suite.T(), endBlockBeforeAttestation)
@@ -315,7 +361,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		}
 
 		firstBridgeTokenClaim.BridgerAddress = suite.bridgers[13].String()
-		_, err := suite.Msg().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), firstBridgeTokenClaim)
+		_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), firstBridgeTokenClaim)
 		require.NoError(suite.T(), err)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -330,7 +376,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		secondBridgeTokenClaim := &types.MsgBridgeTokenClaim{
 			EventNonce:     2,
 			BlockHeight:    1001,
-			TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
+			TokenContract:  bridgeToken,
 			Name:           "Pundix Reward Token2",
 			Symbol:         "PURES2",
 			Decimals:       18,
@@ -341,7 +387,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 
 		for i := 0; i < 6; i++ {
 			secondBridgeTokenClaim.BridgerAddress = suite.bridgers[i].String()
-			_, err := suite.Msg().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), secondBridgeTokenClaim)
+			_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), secondBridgeTokenClaim)
 			require.NoError(suite.T(), err)
 			endBlockBeforeAttestation := suite.Keeper().GetAttestation(suite.ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 			require.NotNil(suite.T(), endBlockBeforeAttestation)
@@ -362,13 +408,11 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		require.NotNil(suite.T(), secondClaimAttestation.Votes)
 		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
 
-		proposalHandler := crosschain.NewChainProposalHandler(suite.app.CrosschainKeeper)
-
 		var newOracleList []string
 		for i := 0; i < 15; i++ {
 			newOracleList = append(newOracleList, suite.oracles[i].String())
 		}
-		err := proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
+		err := crosschain.HandleUpdateChainOraclesProposal(suite.ctx, suite.MsgServer(), &types.UpdateChainOraclesProposal{
 			Title:       "proposal 1: try update chain oracle save top 15 oracle, expect success",
 			Description: "",
 			Oracles:     newOracleList,
@@ -395,7 +439,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 11; i++ {
 			newOracleList2 = append(newOracleList2, suite.oracles[i].String())
 		}
-		err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
+		err = crosschain.HandleUpdateChainOraclesProposal(suite.ctx, suite.MsgServer(), &types.UpdateChainOraclesProposal{
 			Title:       "proposal 2: try update chain oracle save top 11 oracle, expect success",
 			Description: "",
 			Oracles:     newOracleList2,
@@ -422,7 +466,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 10; i++ {
 			newOracleList3 = append(newOracleList3, suite.oracles[i].String())
 		}
-		err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
+		err = crosschain.HandleUpdateChainOraclesProposal(suite.ctx, suite.MsgServer(), &types.UpdateChainOraclesProposal{
 			Title:       "proposal 3: try update chain oracle save top 10 oracle, expect success",
 			Description: "",
 			Oracles:     newOracleList3,
@@ -446,7 +490,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		}
 
 		secondBridgeTokenClaim.BridgerAddress = suite.bridgers[6].String()
-		_, err = suite.Msg().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), secondBridgeTokenClaim)
+		_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), secondBridgeTokenClaim)
 		require.NoError(suite.T(), err)
 
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -461,26 +505,34 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 }
 
 func (suite *IntegrationTestSuite) TestOracleDelete() {
-	for i := 0; i < 10; i++ {
-		_, err := suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
+	for i := 0; i < len(suite.oracles); i++ {
+		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
 			ChainName:        suite.chainName,
-		})
+		}
+		if trontypes.ModuleName == suite.chainName {
+			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
+		}
+		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
+		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
 		require.NoError(suite.T(), err)
 	}
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	allOracles := suite.Keeper().GetAllOracles(suite.ctx, false)
 	require.NotNil(suite.T(), allOracles)
-	require.EqualValues(suite.T(), 10, len(allOracles))
+	require.EqualValues(suite.T(), len(suite.oracles), len(allOracles))
 
 	oracle := suite.oracles[0]
 	bridger := suite.bridgers[0]
 	externalAddress := crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex()
+	if trontypes.ModuleName == suite.chainName {
+		externalAddress = tronAddress.PubkeyToAddress(suite.externals[0].PublicKey).String()
+	}
 
 	oracleAddr, found := suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
 	require.True(suite.T(), found)
@@ -499,14 +551,12 @@ func (suite *IntegrationTestSuite) TestOracleDelete() {
 
 	require.True(suite.T(), suite.delegateAmount.Equal(oracleData.DelegateAmount))
 
-	proposalHandler := crosschain.NewChainProposalHandler(suite.app.CrosschainKeeper)
-
 	var newOracleAddressList []string
 	for _, address := range suite.oracles[1:] {
 		newOracleAddressList = append(newOracleAddressList, address.String())
 	}
 
-	err := proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
+	err := crosschain.HandleUpdateChainOraclesProposal(suite.ctx, suite.MsgServer(), &types.UpdateChainOraclesProposal{
 		Title:       "proposal 1: try update chain oracle remove first oracle, expect success",
 		Description: "",
 		Oracles:     newOracleAddressList,
@@ -527,109 +577,131 @@ func (suite *IntegrationTestSuite) TestOracleDelete() {
 }
 
 func (suite *IntegrationTestSuite) TestOracleSetSlash() {
-	for i := 0; i < 10; i++ {
-		_, err := suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
+	for i := 0; i < len(suite.oracles); i++ {
+		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
 			ChainName:        suite.chainName,
-		})
+		}
+		if trontypes.ModuleName == suite.chainName {
+			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
+		}
+		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
+		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
 		require.NoError(suite.T(), err)
 	}
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	crosschain.EndBlocker(suite.ctx, suite.Keeper())
+
 	allOracles := suite.Keeper().GetAllOracles(suite.ctx, false)
 	require.NotNil(suite.T(), allOracles)
-	require.EqualValues(suite.T(), 10, len(allOracles))
+	require.Equal(suite.T(), len(suite.oracles), len(allOracles))
+
 	oracleSets := suite.Keeper().GetOracleSets(suite.ctx)
 	require.NotNil(suite.T(), oracleSets)
 	require.EqualValues(suite.T(), 1, len(oracleSets))
 
 	gravityId := suite.Keeper().GetGravityID(suite.ctx)
-	checkpoint, _ := oracleSets[0].GetCheckpoint(gravityId)
-	for i := 0; i < 9; i++ {
+	for i := 0; i < len(suite.oracles)-1; i++ {
+		externalAddress := crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex()
+
+		checkpoint, err := oracleSets[0].GetCheckpoint(gravityId)
+		require.NoError(suite.T(), err)
 		signature, err := types.NewEthereumSignature(checkpoint, suite.externals[i])
 		require.NoError(suite.T(), err)
-		_, err = suite.Msg().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), &types.MsgOracleSetConfirm{
+
+		if trontypes.ModuleName == suite.chainName {
+			externalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
+
+			checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSets[0], gravityId)
+			require.NoError(suite.T(), err)
+
+			signature, err = trontypes.NewTronSignature(checkpoint, suite.externals[i])
+			require.NoError(suite.T(), err)
+		}
+		oracleSetConfirm := &types.MsgOracleSetConfirm{
 			Nonce:           oracleSets[0].Nonce,
 			BridgerAddress:  suite.bridgers[i].String(),
-			ExternalAddress: crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
+			ExternalAddress: externalAddress,
 			Signature:       hex.EncodeToString(signature),
 			ChainName:       suite.chainName,
-		})
+		}
+		require.NoError(suite.T(), oracleSetConfirm.ValidateBasic())
+		_, err = suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), oracleSetConfirm)
 		require.NoError(suite.T(), err)
 	}
+
 	crosschain.EndBlocker(suite.ctx, suite.Keeper())
 	oracleSetHeight := int64(oracleSets[0].Height)
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
-	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[9])
+
+	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[len(suite.oracles)-1])
 	require.True(suite.T(), found)
 	require.True(suite.T(), oracle.Online)
+	require.Equal(suite.T(), int64(0), oracle.SlashTimes)
 
 	suite.ctx = suite.ctx.WithBlockHeight(oracleSetHeight + int64(suite.Keeper().GetParams(suite.ctx).SignedWindow) + 1)
 	crosschain.EndBlocker(suite.ctx, suite.Keeper())
-	oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[9])
+
+	oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[len(suite.oracles)-1])
 	require.True(suite.T(), found)
 	require.False(suite.T(), oracle.Online)
+	require.Equal(suite.T(), int64(1), oracle.SlashTimes)
 }
 
-func (suite *IntegrationTestSuite) TestSlashFactoryGreat1() {
-	for i := 0; i < 10; i++ {
-		_, err := suite.Msg().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
+func (suite *IntegrationTestSuite) TestSlashOracle() {
+	for i := 0; i < len(suite.oracles); i++ {
+		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
 			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
 			ChainName:        suite.chainName,
-		})
+		}
+		if trontypes.ModuleName == suite.chainName {
+			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
+		}
+		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
+		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
 		require.NoError(suite.T(), err)
 	}
+
 	params := suite.Keeper().GetParams(suite.ctx)
-	params.SlashFraction, _ = sdk.NewDecFromStr("1.1")
+	suite.Keeper().SetParams(suite.ctx, &params)
 
-	//expectSlashAfterStakeAmount := sdk.MaxInt(
-	//	suite.delegateAmount.Sub(
-	//		sdk.MinInt(suite.delegateAmount, suite.delegateAmount.ToDec().Mul(params.SlashFraction).TruncateInt()),
-	//	),
-	//	sdk.ZeroInt())
-	require.NotPanics(suite.T(), func() {
-		suite.Keeper().SetParams(suite.ctx, &params)
-	})
+	for i := 0; i < len(suite.oracles); i++ {
+		oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
+		require.True(suite.T(), found)
+		require.True(suite.T(), oracle.Online)
+		require.Equal(suite.T(), int64(0), oracle.SlashTimes)
 
-	require.NotPanics(suite.T(), func() {
-		for i := 0; i < 10; i++ {
-			oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
-			require.True(suite.T(), found)
-			require.True(suite.T(), oracle.Online)
-			require.True(suite.T(), oracle.DelegateAmount.Equal(suite.delegateAmount))
+		suite.Keeper().SlashOracle(suite.ctx, oracle.OracleAddress)
 
-			suite.Keeper().SlashOracle(suite.ctx, oracle.OracleAddress)
+		oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
+		require.True(suite.T(), found)
+		require.False(suite.T(), oracle.Online)
+		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
+	}
 
-			oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
-			require.True(suite.T(), found)
-			require.False(suite.T(), oracle.Online)
-			//require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
-		}
+	// repeat slash test.
+	for i := 0; i < len(suite.oracles); i++ {
+		oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
+		require.True(suite.T(), found)
+		require.False(suite.T(), oracle.Online)
+		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
 
-		// repeat slash test.
-		for i := 0; i < 10; i++ {
-			oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
-			require.True(suite.T(), found)
-			require.False(suite.T(), oracle.Online)
-			//require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
+		suite.Keeper().SlashOracle(suite.ctx, oracle.OracleAddress)
 
-			suite.Keeper().SlashOracle(suite.ctx, oracle.OracleAddress)
-
-			oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
-			require.True(suite.T(), found)
-			//require.True(suite.T(), oracle.Online)
-			//require.True(suite.T(), oracle.DelegateAmount.Equal(expectSlashAfterStakeAmount))
-		}
-	})
+		oracle, found = suite.Keeper().GetOracle(suite.ctx, suite.oracles[i])
+		require.True(suite.T(), found)
+		require.False(suite.T(), oracle.Online)
+		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
+	}
 }
 
 func genEthKey(count int) []*ecdsa.PrivateKey {

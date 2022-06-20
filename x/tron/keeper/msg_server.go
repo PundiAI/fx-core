@@ -15,20 +15,20 @@ import (
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 )
 
-var _ crosschaintypes.MsgServer = msgServer{}
+var _ crosschaintypes.MsgServer = TronMsgServer{}
 
-type msgServer struct {
+type TronMsgServer struct {
 	crosschainkeeper.EthereumMsgServer
 }
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(keeper Keeper) crosschaintypes.MsgServer {
-	return &msgServer{crosschainkeeper.EthereumMsgServer{Keeper: keeper.Keeper}}
+	return &TronMsgServer{crosschainkeeper.EthereumMsgServer{Keeper: keeper.Keeper}}
 }
 
 // ConfirmBatch handles MsgConfirmBatch
-func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfirmBatch) (*crosschaintypes.MsgConfirmBatchResponse, error) {
+func (s TronMsgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfirmBatch) (*crosschaintypes.MsgConfirmBatchResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
@@ -67,7 +67,7 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 }
 
 // OracleSetConfirm handles MsgOracleSetConfirm
-func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgOracleSetConfirm) (*crosschaintypes.MsgOracleSetConfirmResponse, error) {
+func (s TronMsgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgOracleSetConfirm) (*crosschaintypes.MsgOracleSetConfirmResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
@@ -102,7 +102,7 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgO
 	return &crosschaintypes.MsgOracleSetConfirmResponse{}, nil
 }
 
-func (s msgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
+func (s TronMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "signature decoding")

@@ -1,24 +1,44 @@
-package keeper
+package crosschain
 
 import (
 	"fmt"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/functionx/fx-core/x/crosschain/keeper"
 	"github.com/functionx/fx-core/x/crosschain/types"
+	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
 )
 
-func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer, proposal *types.UpdateChainOraclesProposal) error {
-	ethereumMsgServer, ok := msgServer.(*EthereumMsgServer)
-	if !ok {
-		return sdkerrors.Wrap(types.ErrInvalid, "msg server")
+func NewChainProposalHandler(k keeper.RouterKeeper) govtypes.Handler {
+	moduleHandlerRouter := k.Router()
+	return func(ctx sdk.Context, content govtypes.Content) error {
+		switch c := content.(type) {
+		case *types.UpdateChainOraclesProposal:
+			if !moduleHandlerRouter.HasRoute(c.ChainName) {
+				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", c.ChainName))
+			}
+			return HandleUpdateChainOraclesProposal(ctx, k.Router().GetRoute(c.ChainName).MsgServer, c)
+		default:
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized %s proposal content type: %T", types.ModuleName, c)
+		}
 	}
-	keeper := ethereumMsgServer.Keeper
+}
 
-	logger := keeper.Logger(ctx)
+func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer, proposal *types.UpdateChainOraclesProposal) error {
+	var k keeper.Keeper
+	switch server := msgServer.(type) {
+	case *keeper.EthereumMsgServer:
+		k = server.Keeper
+	case *tronkeeper.TronMsgServer:
+		k = server.Keeper
+	default:
+		return sdkerrors.Wrapf(types.ErrInvalid, "msg server: %T", msgServer)
+	}
+
+	logger := k.Logger(ctx)
 	logger.Info("handle update chain oracles proposal", "proposal", proposal.String())
 	if len(proposal.Oracles) > types.MaxOracleSize {
 		return sdkerrors.Wrapf(types.ErrInvalid, fmt.Sprintf("oracle length must be less than or equal: %d", types.MaxOracleSize))
@@ -32,8 +52,8 @@ func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer
 	var unbondedOracleList []types.Oracle
 	var totalPower, deleteTotalPower = sdk.ZeroInt(), sdk.ZeroInt()
 
-	allOracles := keeper.GetAllOracles(ctx, false)
-	proposalOracle, _ := keeper.GetProposalOracle(ctx)
+	allOracles := k.GetAllOracles(ctx, false)
+	proposalOracle, _ := k.GetProposalOracle(ctx)
 
 	for _, oldOracle := range allOracles {
 
@@ -60,29 +80,12 @@ func HandleUpdateChainOraclesProposal(ctx sdk.Context, msgServer types.MsgServer
 	}
 
 	// update proposal oracle
-	keeper.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: proposal.Oracles})
+	k.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: proposal.Oracles})
 
-	var events = make(sdk.Events, 0)
 	for _, unbondedOracle := range unbondedOracleList {
-		delegateAddr := unbondedOracle.GetDelegateAddress(keeper.moduleName)
-		valAddr := unbondedOracle.GetValidator()
-		delegation, found := keeper.stakingKeeper.GetDelegation(ctx, delegateAddr, valAddr)
-		if !found {
-			panic(sdkerrors.Wrap(types.ErrInvalid, "no delegation for (address, validator) tuple"))
-		}
-		completionTime, err := keeper.stakingKeeper.Undelegate(ctx, delegateAddr, valAddr, delegation.Shares)
-		if err != nil {
+		if err := k.UnbondedOracle(ctx, unbondedOracle); err != nil {
 			return err
 		}
-		unbondedOracle.Online = false
-		keeper.SetOracle(ctx, unbondedOracle)
-		events = append(events, sdk.NewEvent(
-			stakingtypes.EventTypeUnbond,
-			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, unbondedOracle.DelegateValidator),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, unbondedOracle.DelegateAmount.String()),
-			sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
-		))
 	}
-	ctx.EventManager().EmitEvents(events)
 	return nil
 }

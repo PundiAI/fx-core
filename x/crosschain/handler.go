@@ -3,8 +3,6 @@ package crosschain
 import (
 	"fmt"
 
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -41,10 +39,18 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 			res, err = msgServer.BondedOracle(sdkCtx, msg)
 		case *types.MsgAddDelegate:
 			res, err = msgServer.AddDelegate(sdkCtx, msg)
+		case *types.MsgEditOracle:
+			res, err = msgServer.EditOracle(sdkCtx, msg)
+		case *types.MsgWithdrawReward:
+			res, err = msgServer.WithdrawReward(sdkCtx, msg)
+		case *types.MsgUnbondedOracle:
+			res, err = msgServer.UnbondedOracle(sdkCtx, msg)
+
 		case *types.MsgOracleSetConfirm:
 			res, err = msgServer.OracleSetConfirm(sdkCtx, msg)
 		case *types.MsgOracleSetUpdatedClaim:
 			res, err = msgServer.OracleSetUpdateClaim(sdkCtx, msg)
+
 		case *types.MsgBridgeTokenClaim:
 			res, err = msgServer.BridgeTokenClaim(sdkCtx, msg)
 
@@ -66,20 +72,5 @@ func NewHandler(k keeper.RouterKeeper) sdk.Handler {
 			err = sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized %s Msg type: %T", chainName, msg))
 		}
 		return sdk.WrapServiceResult(ctx, res, err)
-	}
-}
-
-func NewChainProposalHandler(k keeper.RouterKeeper) govtypes.Handler {
-	moduleHandlerRouter := k.Router()
-	return func(ctx sdk.Context, content govtypes.Content) error {
-		switch c := content.(type) {
-		case *types.UpdateChainOraclesProposal:
-			if !moduleHandlerRouter.HasRoute(c.ChainName) {
-				return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", c.ChainName))
-			}
-			return keeper.HandleUpdateChainOraclesProposal(ctx, k.Router().GetRoute(c.ChainName).MsgServer, c)
-		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "Unrecognized %s proposal content type: %T", types.ModuleName, c)
-		}
 	}
 }
