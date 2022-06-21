@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	UpgradeName = "v2"
+	UpgradeName = "fxv2"
 
 	blockParamsMaxGas = 3000000000
 )

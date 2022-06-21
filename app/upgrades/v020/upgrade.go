@@ -88,7 +88,7 @@ func CreateUpgradeHandler(
 		cacheCtx.Logger().Info("start to run module v2 migrations...")
 		toVersion, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
-			return nil, fmt.Errorf("run migrations error %s", err.Error())
+			return nil, fmt.Errorf("run migrations: %s", err.Error())
 		}
 
 		// clear metadata except FX
@@ -99,7 +99,7 @@ func CreateUpgradeHandler(
 			cacheCtx.Logger().Info("add metadata", "coin", metadata.String())
 			pair, err := erc20Keeper.RegisterCoin(cacheCtx, metadata)
 			if err != nil {
-				return nil, fmt.Errorf("register %s error %s", metadata.Base, err.Error())
+				return nil, fmt.Errorf("register %s: %s", metadata.Base, err.Error())
 			}
 			cacheCtx.EventManager().EmitEvent(sdk.NewEvent(
 				erc20types.EventTypeRegisterCoin,

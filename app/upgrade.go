@@ -9,7 +9,7 @@ import (
 )
 
 func (app *App) setUpgradeHandler() {
-	// set upgrade handler v2
+	// set upgrade handler
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrade.UpgradeName, upgrade.CreateUpgradeHandler(app.keys, app.mm, app.configurator,
 			app.BankKeeper, app.AccountKeeper, app.ParamsKeeper, app.IBCKeeper, app.TransferKeeper, app.Erc20Keeper),
