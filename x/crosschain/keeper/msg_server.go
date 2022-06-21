@@ -142,7 +142,7 @@ func (s EthereumMsgServer) AddDelegate(c context.Context, msg *types.MsgAddDeleg
 	if slashAmount.IsPositive() && msg.Amount.Amount.LTE(slashAmount.Amount) {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "not sufficient slash amount")
 	}
-	fmt.Println(slashAmount.String())
+
 	delegateCoin := sdk.NewCoin(fxtypes.DefaultDenom, msg.Amount.Amount.Sub(slashAmount.Amount))
 
 	oracle.DelegateAmount = oracle.DelegateAmount.Add(delegateCoin.Amount)
