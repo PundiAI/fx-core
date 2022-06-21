@@ -2,8 +2,8 @@ syntax = "proto3";
 package fx.erc20.v1;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "erc20/v1/genesis.proto";
-import "erc20/v1/erc20.proto";
+import "fx/erc20/v1/genesis.proto";
+import "fx/erc20/v1/erc20.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 
@@ -13,17 +13,17 @@ option go_package = "github.com/functionx/fx-core/x/erc20/types";
 service Query {
   // Retrieves registered token pairs
   rpc TokenPairs(QueryTokenPairsRequest) returns (QueryTokenPairsResponse) {
-    option (google.api.http).get = "/erc20/v1/token_pairs";
+    option (google.api.http).get = "/fx/erc20/v1/token_pairs";
   }
 
   // Retrieves a registered token pair
   rpc TokenPair(QueryTokenPairRequest) returns (QueryTokenPairResponse) {
-    option (google.api.http).get = "/erc20/v1/token_pairs/{token}";
+    option (google.api.http).get = "/fx/erc20/v1/token_pairs/{token}";
   }
 
   // Params retrieves the erc20 module params
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/erc20/v1/params";
+    option (google.api.http).get = "/fx/erc20/v1/params";
   }
 }
 

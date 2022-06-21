@@ -1,7 +1,7 @@
 syntax = "proto3";
 package fx.gravity.v1;
 
-import "gravity/v1/attestation.proto";
+import "fx/gravity/v1/attestation.proto";
 
 option go_package = "github.com/functionx/fx-core/x/gravity/types";
 

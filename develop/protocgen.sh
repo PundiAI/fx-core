@@ -50,6 +50,23 @@ if [ ! -f ./build/ibc-go/README.md ]; then
     rm -rf ./build/ibc-go/proto/ibc/applications/transfer
 fi
 
+if [ ! -f ./build/ethermint/README.md ]; then
+  mkdir -p build
+  commit_hash=$(go list -m -f '{{.Replace.Version}}' github.com/evmos/ethermint | awk -F- '{print $3}')
+    if [ ! -f "./build/ethermint-proto.zip" ]; then
+      wget -c "https://github.com/evmos/ethermint/archive/$commit_hash.zip" -O "./build/ethermint-proto.zip"
+    fi
+  (
+    cd build
+    unzip -q -o "./ethermint-proto.zip"
+    for dir in *; do
+      if [[ -d $dir && "$dir" == "ethermint-"* ]]; then
+        mv "./$dir" ethermint
+      fi
+    done
+  )
+fi
+
 proto_dirs=$(find ./proto -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do
   buf protoc \
@@ -68,11 +85,23 @@ buf protoc \
   -I "build/ibc-go/proto" \
   -I "build/cosmos-sdk/proto" \
   -I "build/cosmos-sdk/third_party/proto" \
-  --doc_out=./docs \
-  --doc_opt=./docs/protodoc-markdown.tmpl,proto-docs.md \
+  --doc_out=./docs/proto \
+  --doc_opt=./docs/proto/proto-doc-markdown.tmpl,fx-proto-docs.md \
   $(find "$(pwd)/proto" -maxdepth 5 -name '*.proto')
 
-#go mod tidy
+buf protoc \
+  -I "build/cosmos-sdk/proto" \
+  -I "build/cosmos-sdk/third_party/proto" \
+  --doc_out=./docs/proto \
+  --doc_opt=./docs/proto/proto-doc-markdown.tmpl,cosmos-proto-docs.md \
+  $(find "$(pwd)/build/cosmos-sdk/proto" -maxdepth 5 -name '*.proto')
+
+buf protoc \
+  -I "build/ethermint/proto" \
+  -I "build/ethermint/third_party/proto" \
+  --doc_out=./docs/proto \
+  --doc_opt=./docs/proto/proto-doc-markdown.tmpl,ethermint-proto-docs.md \
+  $(find "$(pwd)/build/ethermint/proto" -maxdepth 5 -name '*.proto')
 
 cp -r github.com/functionx/fx-core/* ./
 rm -rf github.com

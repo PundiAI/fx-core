@@ -17,7 +17,7 @@ func NewQuerier(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return nil, sdkerrors.ErrInvalidRequest
 		}
 		switch path[0] {
-		case types.QueryGasPrice:
+		case "gasPrice":
 			var gasPrices sdk.Coins
 			for _, coin := range ctx.MinGasPrices() {
 				gasPrices = append(gasPrices, sdk.NewCoin(coin.Denom, coin.Amount.TruncateInt()))

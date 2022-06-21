@@ -3,7 +3,7 @@ package fx.ibc.applications.transfer.v1;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "ibc/applications/transfer/v1/transfer.proto";
+import "fx/ibc/applications/transfer/v1/transfer.proto";
 import "google/api/annotations.proto";
 
 option go_package = "github.com/functionx/fx-core/x/ibc/applications/transfer/types";

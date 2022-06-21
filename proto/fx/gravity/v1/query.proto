@@ -1,11 +1,11 @@
 syntax = "proto3";
 package fx.gravity.v1;
 
-import "gravity/v1/genesis.proto";
-import "gravity/v1/types.proto";
-import "gravity/v1/tx.proto";
-import "gravity/v1/pool.proto";
-import "gravity/v1/batch.proto";
+import "fx/gravity/v1/genesis.proto";
+import "fx/gravity/v1/types.proto";
+import "fx/gravity/v1/tx.proto";
+import "fx/gravity/v1/pool.proto";
+import "fx/gravity/v1/batch.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 
@@ -15,105 +15,105 @@ option go_package = "github.com/functionx/fx-core/x/gravity/types";
 service Query {
   // Deployments queries deployments
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/gravity/v1beta/params";
+    option (google.api.http).get = "/fx/gravity/v1/params";
   }
   rpc CurrentValset(QueryCurrentValsetRequest)
       returns (QueryCurrentValsetResponse) {
-    option (google.api.http).get = "/gravity/v1beta/valset/current";
+    option (google.api.http).get = "/fx/gravity/v1/valset/current";
   }
   rpc ValsetRequest(QueryValsetRequestRequest)
       returns (QueryValsetRequestResponse) {
-    option (google.api.http).get = "/gravity/v1beta/valset/request";
+    option (google.api.http).get = "/fx/gravity/v1/valset/request";
   }
   rpc ValsetConfirm(QueryValsetConfirmRequest)
       returns (QueryValsetConfirmResponse) {
-    option (google.api.http).get = "/gravity/v1beta/valset/confirm";
+    option (google.api.http).get = "/fx/gravity/v1/valset/confirm";
   }
   rpc ValsetConfirmsByNonce(QueryValsetConfirmsByNonceRequest)
       returns (QueryValsetConfirmsByNonceResponse) {
-    option (google.api.http).get = "/gravity/v1beta/valset/confirms";
+    option (google.api.http).get = "/fx/gravity/v1/valset/confirms";
   }
   rpc LastValsetRequests(QueryLastValsetRequestsRequest)
       returns (QueryLastValsetRequestsResponse) {
-    option (google.api.http).get = "/gravity/v1beta/valset/requests";
+    option (google.api.http).get = "/fx/gravity/v1/valset/requests";
   }
   rpc LastPendingValsetRequestByAddr(QueryLastPendingValsetRequestByAddrRequest)
       returns (QueryLastPendingValsetRequestByAddrResponse) {
-    option (google.api.http).get = "/gravity/v1beta/valset/last";
+    option (google.api.http).get = "/fx/gravity/v1/valset/last";
   }
   rpc LastPendingBatchRequestByAddr(QueryLastPendingBatchRequestByAddrRequest)
       returns (QueryLastPendingBatchRequestByAddrResponse) {
-    option (google.api.http).get = "/gravity/v1beta/batch/last";
+    option (google.api.http).get = "/fx/gravity/v1/batch/last";
   }
   rpc LastEventNonceByAddr(QueryLastEventNonceByAddrRequest)
       returns (QueryLastEventNonceByAddrResponse) {
     option (google.api.http).get =
-        "/gravity/v1beta/oracle/event_nonce/{address}";
+        "/fx/gravity/v1/oracle/event_nonce/{address}";
   }
   rpc LastEventBlockHeightByAddr(QueryLastEventBlockHeightByAddrRequest)
       returns (QueryLastEventBlockHeightByAddrResponse) {
     option (google.api.http).get =
-        "/gravity/v1beta/oracle/event/block_height/{address}";
+        "/fx/gravity/v1/oracle/event/block_height/{address}";
   }
   rpc BatchFees(QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
-    option (google.api.http).get = "/gravity/v1beta/batch_fees";
+    option (google.api.http).get = "/fx/gravity/v1/batch_fees";
   }
   rpc LastObservedBlockHeight(QueryLastObservedBlockHeightRequest)
       returns (QueryLastObservedBlockHeightResponse) {
-    option (google.api.http).get = "/gravity/v1beta/observed/block_height";
+    option (google.api.http).get = "/fx/gravity/v1/observed/block_height";
   }
   rpc OutgoingTxBatches(QueryOutgoingTxBatchesRequest)
       returns (QueryOutgoingTxBatchesResponse) {
-    option (google.api.http).get = "/gravity/v1beta/batch/outgoing_tx";
+    option (google.api.http).get = "/fx/gravity/v1/batch/outgoing_tx";
   }
   rpc BatchRequestByNonce(QueryBatchRequestByNonceRequest)
       returns (QueryBatchRequestByNonceResponse) {
-    option (google.api.http).get = "/gravity/v1beta/batch/request";
+    option (google.api.http).get = "/fx/gravity/v1/batch/request";
   }
   rpc BatchConfirm(QueryBatchConfirmRequest)
       returns (QueryBatchConfirmResponse) {
-    option (google.api.http).get = "/gravity/v1beta/batch/confirm";
+    option (google.api.http).get = "/fx/gravity/v1/batch/confirm";
   }
   rpc BatchConfirms(QueryBatchConfirmsRequest)
       returns (QueryBatchConfirmsResponse) {
-    option (google.api.http).get = "/gravity/v1beta/batch/confirms";
+    option (google.api.http).get = "/fx/gravity/v1/batch/confirms";
   }
   rpc ERC20ToDenom(QueryERC20ToDenomRequest)
       returns (QueryERC20ToDenomResponse) {
-    option (google.api.http).get = "/gravity/v1beta/denom";
+    option (google.api.http).get = "/fx/gravity/v1/denom";
   }
   rpc DenomToERC20(QueryDenomToERC20Request)
       returns (QueryDenomToERC20Response) {
-    option (google.api.http).get = "/gravity/v1beta/erc20";
+    option (google.api.http).get = "/fx/gravity/v1/erc20";
   }
   rpc GetDelegateKeyByValidator(QueryDelegateKeyByValidatorRequest)
       returns (QueryDelegateKeyByValidatorResponse) {
-    option (google.api.http).get = "/gravity/v1beta/delegate_key_by_validator";
+    option (google.api.http).get = "/fx/gravity/v1/delegate_key_by_validator";
   }
   rpc GetDelegateKeyByEth(QueryDelegateKeyByEthRequest)
       returns (QueryDelegateKeyByEthResponse) {
-    option (google.api.http).get = "/gravity/v1beta/delegate_key_by_eth";
+    option (google.api.http).get = "/fx/gravity/v1/delegate_key_by_eth";
   }
   rpc GetDelegateKeyByOrchestrator(QueryDelegateKeyByOrchestratorRequest)
       returns (QueryDelegateKeyByOrchestratorResponse) {
     option (google.api.http).get =
-        "/gravity/v1beta/delegate_key_by_orchestrator";
+        "/fx/gravity/v1/delegate_key_by_orchestrator";
   }
   rpc GetPendingSendToEth(QueryPendingSendToEthRequest)
       returns (QueryPendingSendToEthResponse) {
-    option (google.api.http).get = "/gravity/v1beta/pending_send_to_eth";
+    option (google.api.http).get = "/fx/gravity/v1/pending_send_to_eth";
   }
   rpc GetIbcSequenceHeightByChannel(QueryIbcSequenceHeightRequest)
       returns (QueryIbcSequenceHeightResponse) {
-    option (google.api.http).get = "/gravity/v1beta/ibc_sequence_height";
+    option (google.api.http).get = "/fx/gravity/v1/ibc_sequence_height";
   }
   rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest)
       returns (QueryProjectedBatchTimeoutHeightResponse) {
-    option (google.api.http).get = "/gravity/v1beta1/projected_batch_timeout";
+    option (google.api.http).get = "/fx/gravity/v1/projected_batch_timeout";
   }
   rpc BridgeTokens(QueryBridgeTokensRequest)
       returns (QueryBridgeTokensResponse) {
-    option (google.api.http).get = "/gravity/v1beta1/bridge_tokens";
+    option (google.api.http).get = "/fx/gravity/v1/bridge_tokens";
   }
 }
 

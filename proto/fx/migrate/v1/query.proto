@@ -5,17 +5,17 @@ option go_package = "github.com/functionx/fx-core/x/migrate/types";
 
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
-import "migrate/v1/migrate.proto";
+import "fx/migrate/v1/migrate.proto";
 
 // Query provides defines the gRPC querier service.
 service Query {
   // DenomTrace queries a denomination trace information.
   rpc MigrateRecord(QueryMigrateRecordRequest) returns (QueryMigrateRecordResponse) {
-    option (google.api.http).get = "/migrate/v1/record/{address}";
+    option (google.api.http).get = "/fx/migrate/v1/record/{address}";
   }
 
   rpc MigrateCheckAccount(QueryMigrateCheckAccountRequest) returns (QueryMigrateCheckAccountResponse) {
-    option (google.api.http).get = "/migrate/v1/check/account";
+    option (google.api.http).get = "/fx/migrate/v1/check/account";
   }
 }
 

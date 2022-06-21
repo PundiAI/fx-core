@@ -1,8 +1,8 @@
 syntax = "proto3";
 package fx.gravity.crosschain.v1;
 
-import "crosschain/v1/types.proto";
-import "crosschain/v1/tx.proto";
+import "fx/crosschain/v1/types.proto";
+import "fx/crosschain/v1/tx.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 
@@ -12,102 +12,102 @@ option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 service Query {
   // Deployments queries deployments
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/params";
+    option (google.api.http).get = "/fx/crosschain/v1/params";
   }
   rpc CurrentOracleSet(QueryCurrentOracleSetRequest)
       returns (QueryCurrentOracleSetResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle_set/current";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/current";
   }
   rpc OracleSetRequest(QueryOracleSetRequestRequest)
       returns (QueryOracleSetRequestResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle_set/request";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/request";
   }
   rpc OracleSetConfirm(QueryOracleSetConfirmRequest)
       returns (QueryOracleSetConfirmResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle_set/confirm";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/confirm";
   }
   rpc OracleSetConfirmsByNonce(QueryOracleSetConfirmsByNonceRequest)
       returns (QueryOracleSetConfirmsByNonceResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle_set/confirms";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/confirms";
   }
   rpc LastOracleSetRequests(QueryLastOracleSetRequestsRequest)
       returns (QueryLastOracleSetRequestsResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle_set/requests";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/requests";
   }
   rpc LastPendingOracleSetRequestByAddr(
       QueryLastPendingOracleSetRequestByAddrRequest)
       returns (QueryLastPendingOracleSetRequestByAddrResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle_set/last";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_set/last";
   }
   rpc LastPendingBatchRequestByAddr(QueryLastPendingBatchRequestByAddrRequest)
       returns (QueryLastPendingBatchRequestByAddrResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/batch/last";
+    option (google.api.http).get = "/fx/crosschain/v1/batch/last";
   }
   rpc LastEventNonceByAddr(QueryLastEventNonceByAddrRequest)
       returns (QueryLastEventNonceByAddrResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle/event_nonce";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle/event_nonce";
   }
   rpc LastEventBlockHeightByAddr(QueryLastEventBlockHeightByAddrRequest)
       returns (QueryLastEventBlockHeightByAddrResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle/event/block_height";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle/event/block_height";
   }
   rpc BatchFees(QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/batch_fees";
+    option (google.api.http).get = "/fx/crosschain/v1/batch_fees";
   }
   rpc LastObservedBlockHeight(QueryLastObservedBlockHeightRequest)
       returns (QueryLastObservedBlockHeightResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/observed/block_height";
+    option (google.api.http).get = "/fx/crosschain/v1/observed/block_height";
   }
   rpc OutgoingTxBatches(QueryOutgoingTxBatchesRequest)
       returns (QueryOutgoingTxBatchesResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/batch/outgoing_tx";
+    option (google.api.http).get = "/fx/crosschain/v1/batch/outgoing_tx";
   }
   rpc BatchRequestByNonce(QueryBatchRequestByNonceRequest)
       returns (QueryBatchRequestByNonceResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/batch/request";
+    option (google.api.http).get = "/fx/crosschain/v1/batch/request";
   }
   rpc BatchConfirm(QueryBatchConfirmRequest)
       returns (QueryBatchConfirmResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/batch/confirm";
+    option (google.api.http).get = "/fx/crosschain/v1/batch/confirm";
   }
   rpc BatchConfirms(QueryBatchConfirmsRequest)
       returns (QueryBatchConfirmsResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/batch/confirms";
+    option (google.api.http).get = "/fx/crosschain/v1/batch/confirms";
   }
   rpc TokenToDenom(QueryTokenToDenomRequest)
       returns (QueryTokenToDenomResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/denom";
+    option (google.api.http).get = "/fx/crosschain/v1/denom";
   }
   rpc DenomToToken(QueryDenomToTokenRequest)
       returns (QueryDenomToTokenResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/token";
+    option (google.api.http).get = "/fx/crosschain/v1/token";
   }
   rpc GetOracleByAddr(QueryOracleByAddrRequest) returns (QueryOracleResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle_by_addr";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_by_addr";
   }
   rpc GetOracleByExternalAddr(QueryOracleByExternalAddrRequest)
       returns (QueryOracleResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle_by_external_addr";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_by_external_addr";
   }
   rpc GetOracleByBridgerAddr(QueryOracleByBridgerAddrRequest)
       returns (QueryOracleResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/oracle_by_bridger_addr";
+    option (google.api.http).get = "/fx/crosschain/v1/oracle_by_bridger_addr";
   }
   rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest)
       returns (QueryPendingSendToExternalResponse) {
-    option (google.api.http).get = "/crosschain/v1beta/pending_send_to_external";
+    option (google.api.http).get = "/fx/crosschain/v1/pending_send_to_external";
   }
   // Validators queries all oracle that match the given status.
   rpc Oracles(QueryOraclesRequest) returns (QueryOraclesResponse) {
-    option (google.api.http).get = "/crosschain/v1beta1/oracles";
+    option (google.api.http).get = "/fx/crosschain/v1/oracles";
   }
   rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest)
       returns (QueryProjectedBatchTimeoutHeightResponse) {
-    option (google.api.http).get = "/crosschain/v1beta1/projected_batch_timeout";
+    option (google.api.http).get = "/fx/crosschain/v1/projected_batch_timeout";
   }
   rpc BridgeTokens(QueryBridgeTokensRequest)
       returns (QueryBridgeTokensResponse) {
-    option (google.api.http).get = "/gravity/v1beta1/bridge_tokens";
+    option (google.api.http).get = "/fx/crosschain/v1/bridge_tokens";
   }
 }
 

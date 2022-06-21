@@ -3,22 +3,51 @@
   "info": {
     "title": "fxCore REST and gRPC Gateway docs",
     "description": "A REST interface for state queries, legacy transactions",
-    "version": "1.0.0"
+    "version": "0.2.0"
   },
   "apis": [
     {
-      "url": "./tmp-swagger-gen/gravity/v1/query.swagger.json",
+      "url": "./tmp-swagger-gen/ethermint/evm/v1/query.swagger.json",
       "operationIds": {
         "rename": {
-          "Params": "gravity"
+          "Params": "EVMParams",
+          "Account": "EthAccount",
+          "Balance": "EthBalance"
         }
       }
     },
     {
-      "url": "./tmp-swagger-gen/other/query.swagger.json",
+      "url": "./tmp-swagger-gen/fx/erc20/v1/query.swagger.json",
       "operationIds": {
         "rename": {
-          "Params": "other"
+          "Params": "ERC20Params"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/fx/migrate/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "MigrateParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/fx/crosschain/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "CrosschainParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/fx/other/v1/query.swagger.json"
+    },
+    {
+      "url": "./tmp-swagger-gen/fx/ibc/applications/transfer/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "IBCTransferParams"
         }
       }
     },
@@ -107,14 +136,6 @@
       "url": "./tmp-swagger-gen/cosmos/tx/v1beta1/service.swagger.json",
       "dereference": {
         "circular": "ignore"
-      }
-    },
-    {
-      "url": "./tmp-swagger-gen/ibc/applications/transfer/v1/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "IBCTransferParams"
-        }
       }
     }
   ]

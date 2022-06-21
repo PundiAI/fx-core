@@ -4,7 +4,7 @@
 
 ## Table of Contents
 
-- [crosschain/v1/types.proto](#crosschain/v1/types.proto)
+- [fx/crosschain/v1/types.proto](#fx/crosschain/v1/types.proto)
     - [Attestation](#fx.gravity.crosschain.v1.Attestation)
     - [BatchFees](#fx.gravity.crosschain.v1.BatchFees)
     - [BridgeToken](#fx.gravity.crosschain.v1.BridgeToken)
@@ -23,7 +23,7 @@
   
     - [ClaimType](#fx.gravity.crosschain.v1.ClaimType)
   
-- [crosschain/v1/tx.proto](#crosschain/v1/tx.proto)
+- [fx/crosschain/v1/tx.proto](#fx/crosschain/v1/tx.proto)
     - [MsgAddDelegate](#fx.gravity.crosschain.v1.MsgAddDelegate)
     - [MsgAddDelegateResponse](#fx.gravity.crosschain.v1.MsgAddDelegateResponse)
     - [MsgBondedOracle](#fx.gravity.crosschain.v1.MsgBondedOracle)
@@ -55,10 +55,10 @@
   
     - [Msg](#fx.gravity.crosschain.v1.Msg)
   
-- [crosschain/v1/genesis.proto](#crosschain/v1/genesis.proto)
+- [fx/crosschain/v1/genesis.proto](#fx/crosschain/v1/genesis.proto)
     - [GenesisState](#fx.gravity.crosschain.v1.GenesisState)
   
-- [crosschain/v1/query.proto](#crosschain/v1/query.proto)
+- [fx/crosschain/v1/query.proto](#fx/crosschain/v1/query.proto)
     - [QueryBatchConfirmRequest](#fx.gravity.crosschain.v1.QueryBatchConfirmRequest)
     - [QueryBatchConfirmResponse](#fx.gravity.crosschain.v1.QueryBatchConfirmResponse)
     - [QueryBatchConfirmsRequest](#fx.gravity.crosschain.v1.QueryBatchConfirmsRequest)
@@ -110,7 +110,7 @@
   
     - [Query](#fx.gravity.crosschain.v1.Query)
   
-- [erc20/v1/erc20.proto](#erc20/v1/erc20.proto)
+- [fx/erc20/v1/erc20.proto](#fx/erc20/v1/erc20.proto)
     - [RegisterCoinProposal](#fx.erc20.v1.RegisterCoinProposal)
     - [RegisterERC20Proposal](#fx.erc20.v1.RegisterERC20Proposal)
     - [ToggleTokenConversionProposal](#fx.erc20.v1.ToggleTokenConversionProposal)
@@ -118,11 +118,11 @@
   
     - [Owner](#fx.erc20.v1.Owner)
   
-- [erc20/v1/genesis.proto](#erc20/v1/genesis.proto)
+- [fx/erc20/v1/genesis.proto](#fx/erc20/v1/genesis.proto)
     - [GenesisState](#fx.erc20.v1.GenesisState)
     - [Params](#fx.erc20.v1.Params)
   
-- [erc20/v1/query.proto](#erc20/v1/query.proto)
+- [fx/erc20/v1/query.proto](#fx/erc20/v1/query.proto)
     - [QueryParamsRequest](#fx.erc20.v1.QueryParamsRequest)
     - [QueryParamsResponse](#fx.erc20.v1.QueryParamsResponse)
     - [QueryTokenPairRequest](#fx.erc20.v1.QueryTokenPairRequest)
@@ -132,7 +132,7 @@
   
     - [Query](#fx.erc20.v1.Query)
   
-- [erc20/v1/tx.proto](#erc20/v1/tx.proto)
+- [fx/erc20/v1/tx.proto](#fx/erc20/v1/tx.proto)
     - [MsgConvertCoin](#fx.erc20.v1.MsgConvertCoin)
     - [MsgConvertCoinResponse](#fx.erc20.v1.MsgConvertCoinResponse)
     - [MsgConvertERC20](#fx.erc20.v1.MsgConvertERC20)
@@ -140,26 +140,26 @@
   
     - [Msg](#fx.erc20.v1.Msg)
   
-- [gravity/v1/attestation.proto](#gravity/v1/attestation.proto)
+- [fx/gravity/v1/attestation.proto](#fx/gravity/v1/attestation.proto)
     - [Attestation](#fx.gravity.v1.Attestation)
     - [ERC20Token](#fx.gravity.v1.ERC20Token)
   
     - [ClaimType](#fx.gravity.v1.ClaimType)
   
-- [gravity/v1/batch.proto](#gravity/v1/batch.proto)
+- [fx/gravity/v1/batch.proto](#fx/gravity/v1/batch.proto)
     - [OutgoingTransferTx](#fx.gravity.v1.OutgoingTransferTx)
     - [OutgoingTxBatch](#fx.gravity.v1.OutgoingTxBatch)
   
-- [gravity/v1/ethereum_signer.proto](#gravity/v1/ethereum_signer.proto)
+- [fx/gravity/v1/ethereum_signer.proto](#fx/gravity/v1/ethereum_signer.proto)
     - [SignType](#fx.gravity.v1.SignType)
   
-- [gravity/v1/types.proto](#gravity/v1/types.proto)
+- [fx/gravity/v1/types.proto](#fx/gravity/v1/types.proto)
     - [BridgeValidator](#fx.gravity.v1.BridgeValidator)
     - [ERC20ToDenom](#fx.gravity.v1.ERC20ToDenom)
     - [LastObservedEthereumBlockHeight](#fx.gravity.v1.LastObservedEthereumBlockHeight)
     - [Valset](#fx.gravity.v1.Valset)
   
-- [gravity/v1/tx.proto](#gravity/v1/tx.proto)
+- [fx/gravity/v1/tx.proto](#fx/gravity/v1/tx.proto)
     - [MsgCancelSendToEth](#fx.gravity.v1.MsgCancelSendToEth)
     - [MsgCancelSendToEthResponse](#fx.gravity.v1.MsgCancelSendToEthResponse)
     - [MsgConfirmBatch](#fx.gravity.v1.MsgConfirmBatch)
@@ -183,16 +183,16 @@
   
     - [Msg](#fx.gravity.v1.Msg)
   
-- [gravity/v1/genesis.proto](#gravity/v1/genesis.proto)
+- [fx/gravity/v1/genesis.proto](#fx/gravity/v1/genesis.proto)
     - [GenesisState](#fx.gravity.v1.GenesisState)
     - [Params](#fx.gravity.v1.Params)
   
-- [gravity/v1/pool.proto](#gravity/v1/pool.proto)
+- [fx/gravity/v1/pool.proto](#fx/gravity/v1/pool.proto)
     - [BatchFees](#fx.gravity.v1.BatchFees)
     - [IDSet](#fx.gravity.v1.IDSet)
     - [MinBatchFee](#fx.gravity.v1.MinBatchFee)
   
-- [gravity/v1/query.proto](#gravity/v1/query.proto)
+- [fx/gravity/v1/query.proto](#fx/gravity/v1/query.proto)
     - [QueryBatchConfirmRequest](#fx.gravity.v1.QueryBatchConfirmRequest)
     - [QueryBatchConfirmResponse](#fx.gravity.v1.QueryBatchConfirmResponse)
     - [QueryBatchConfirmsRequest](#fx.gravity.v1.QueryBatchConfirmsRequest)
@@ -246,39 +246,13 @@
   
     - [Query](#fx.gravity.v1.Query)
   
-- [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
-    - [DenomTrace](#fx.ibc.applications.transfer.v1.DenomTrace)
-    - [FungibleTokenPacketData](#fx.ibc.applications.transfer.v1.FungibleTokenPacketData)
-    - [Params](#fx.ibc.applications.transfer.v1.Params)
-  
-- [ibc/applications/transfer/v1/genesis.proto](#ibc/applications/transfer/v1/genesis.proto)
-    - [GenesisState](#fx.ibc.applications.transfer.v1.GenesisState)
-  
-- [ibc/applications/transfer/v1/query.proto](#ibc/applications/transfer/v1/query.proto)
-    - [QueryDenomHashRequest](#fx.ibc.applications.transfer.v1.QueryDenomHashRequest)
-    - [QueryDenomHashResponse](#fx.ibc.applications.transfer.v1.QueryDenomHashResponse)
-    - [QueryDenomTraceRequest](#fx.ibc.applications.transfer.v1.QueryDenomTraceRequest)
-    - [QueryDenomTraceResponse](#fx.ibc.applications.transfer.v1.QueryDenomTraceResponse)
-    - [QueryDenomTracesRequest](#fx.ibc.applications.transfer.v1.QueryDenomTracesRequest)
-    - [QueryDenomTracesResponse](#fx.ibc.applications.transfer.v1.QueryDenomTracesResponse)
-    - [QueryParamsRequest](#fx.ibc.applications.transfer.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#fx.ibc.applications.transfer.v1.QueryParamsResponse)
-  
-    - [Query](#fx.ibc.applications.transfer.v1.Query)
-  
-- [ibc/applications/transfer/v1/tx.proto](#ibc/applications/transfer/v1/tx.proto)
-    - [MsgTransfer](#fx.ibc.applications.transfer.v1.MsgTransfer)
-    - [MsgTransferResponse](#fx.ibc.applications.transfer.v1.MsgTransferResponse)
-  
-    - [Msg](#fx.ibc.applications.transfer.v1.Msg)
-  
-- [migrate/v1/genesis.proto](#migrate/v1/genesis.proto)
+- [fx/migrate/v1/genesis.proto](#fx/migrate/v1/genesis.proto)
     - [GenesisState](#fx.ethereum.migrate.v1.GenesisState)
   
-- [migrate/v1/migrate.proto](#migrate/v1/migrate.proto)
+- [fx/migrate/v1/migrate.proto](#fx/migrate/v1/migrate.proto)
     - [MigrateRecord](#fx.migrate.v1.MigrateRecord)
   
-- [migrate/v1/query.proto](#migrate/v1/query.proto)
+- [fx/migrate/v1/query.proto](#fx/migrate/v1/query.proto)
     - [QueryMigrateCheckAccountRequest](#fx.migrate.v1.QueryMigrateCheckAccountRequest)
     - [QueryMigrateCheckAccountResponse](#fx.migrate.v1.QueryMigrateCheckAccountResponse)
     - [QueryMigrateRecordRequest](#fx.migrate.v1.QueryMigrateRecordRequest)
@@ -286,13 +260,13 @@
   
     - [Query](#fx.migrate.v1.Query)
   
-- [migrate/v1/tx.proto](#migrate/v1/tx.proto)
+- [fx/migrate/v1/tx.proto](#fx/migrate/v1/tx.proto)
     - [MsgMigrateAccount](#fx.migrate.v1.MsgMigrateAccount)
     - [MsgMigrateAccountResponse](#fx.migrate.v1.MsgMigrateAccountResponse)
   
     - [Msg](#fx.migrate.v1.Msg)
   
-- [other/query.proto](#other/query.proto)
+- [fx/other/v1/query.proto](#fx/other/v1/query.proto)
     - [GasPriceRequest](#fx.other.GasPriceRequest)
     - [GasPriceResponse](#fx.other.GasPriceResponse)
   
@@ -302,10 +276,10 @@
 
 
 
-<a name="crosschain/v1/types.proto"></a>
+<a name="fx/crosschain/v1/types.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## crosschain/v1/types.proto
+## fx/crosschain/v1/types.proto
 
 
 
@@ -624,10 +598,10 @@ be handled
 
 
 
-<a name="crosschain/v1/tx.proto"></a>
+<a name="fx/crosschain/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## crosschain/v1/tx.proto
+## fx/crosschain/v1/tx.proto
 
 
 
@@ -1129,10 +1103,10 @@ Msg defines the state transitions possible within gravity
 
 
 
-<a name="crosschain/v1/genesis.proto"></a>
+<a name="fx/crosschain/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## crosschain/v1/genesis.proto
+## fx/crosschain/v1/genesis.proto
 
 
 
@@ -1166,10 +1140,10 @@ GenesisState struct
 
 
 
-<a name="crosschain/v1/query.proto"></a>
+<a name="fx/crosschain/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## crosschain/v1/query.proto
+## fx/crosschain/v1/query.proto
 
 
 
@@ -1932,40 +1906,40 @@ Query defines the gRPC querier service
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#fx.gravity.crosschain.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.gravity.crosschain.v1.QueryParamsResponse) | Deployments queries deployments | GET|/crosschain/v1beta/params|
-| `CurrentOracleSet` | [QueryCurrentOracleSetRequest](#fx.gravity.crosschain.v1.QueryCurrentOracleSetRequest) | [QueryCurrentOracleSetResponse](#fx.gravity.crosschain.v1.QueryCurrentOracleSetResponse) |  | GET|/crosschain/v1beta/oracle_set/current|
-| `OracleSetRequest` | [QueryOracleSetRequestRequest](#fx.gravity.crosschain.v1.QueryOracleSetRequestRequest) | [QueryOracleSetRequestResponse](#fx.gravity.crosschain.v1.QueryOracleSetRequestResponse) |  | GET|/crosschain/v1beta/oracle_set/request|
-| `OracleSetConfirm` | [QueryOracleSetConfirmRequest](#fx.gravity.crosschain.v1.QueryOracleSetConfirmRequest) | [QueryOracleSetConfirmResponse](#fx.gravity.crosschain.v1.QueryOracleSetConfirmResponse) |  | GET|/crosschain/v1beta/oracle_set/confirm|
-| `OracleSetConfirmsByNonce` | [QueryOracleSetConfirmsByNonceRequest](#fx.gravity.crosschain.v1.QueryOracleSetConfirmsByNonceRequest) | [QueryOracleSetConfirmsByNonceResponse](#fx.gravity.crosschain.v1.QueryOracleSetConfirmsByNonceResponse) |  | GET|/crosschain/v1beta/oracle_set/confirms|
-| `LastOracleSetRequests` | [QueryLastOracleSetRequestsRequest](#fx.gravity.crosschain.v1.QueryLastOracleSetRequestsRequest) | [QueryLastOracleSetRequestsResponse](#fx.gravity.crosschain.v1.QueryLastOracleSetRequestsResponse) |  | GET|/crosschain/v1beta/oracle_set/requests|
-| `LastPendingOracleSetRequestByAddr` | [QueryLastPendingOracleSetRequestByAddrRequest](#fx.gravity.crosschain.v1.QueryLastPendingOracleSetRequestByAddrRequest) | [QueryLastPendingOracleSetRequestByAddrResponse](#fx.gravity.crosschain.v1.QueryLastPendingOracleSetRequestByAddrResponse) |  | GET|/crosschain/v1beta/oracle_set/last|
-| `LastPendingBatchRequestByAddr` | [QueryLastPendingBatchRequestByAddrRequest](#fx.gravity.crosschain.v1.QueryLastPendingBatchRequestByAddrRequest) | [QueryLastPendingBatchRequestByAddrResponse](#fx.gravity.crosschain.v1.QueryLastPendingBatchRequestByAddrResponse) |  | GET|/crosschain/v1beta/batch/last|
-| `LastEventNonceByAddr` | [QueryLastEventNonceByAddrRequest](#fx.gravity.crosschain.v1.QueryLastEventNonceByAddrRequest) | [QueryLastEventNonceByAddrResponse](#fx.gravity.crosschain.v1.QueryLastEventNonceByAddrResponse) |  | GET|/crosschain/v1beta/oracle/event_nonce|
-| `LastEventBlockHeightByAddr` | [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrRequest) | [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrResponse) |  | GET|/crosschain/v1beta/oracle/event/block_height|
-| `BatchFees` | [QueryBatchFeeRequest](#fx.gravity.crosschain.v1.QueryBatchFeeRequest) | [QueryBatchFeeResponse](#fx.gravity.crosschain.v1.QueryBatchFeeResponse) |  | GET|/crosschain/v1beta/batch_fees|
-| `LastObservedBlockHeight` | [QueryLastObservedBlockHeightRequest](#fx.gravity.crosschain.v1.QueryLastObservedBlockHeightRequest) | [QueryLastObservedBlockHeightResponse](#fx.gravity.crosschain.v1.QueryLastObservedBlockHeightResponse) |  | GET|/crosschain/v1beta/observed/block_height|
-| `OutgoingTxBatches` | [QueryOutgoingTxBatchesRequest](#fx.gravity.crosschain.v1.QueryOutgoingTxBatchesRequest) | [QueryOutgoingTxBatchesResponse](#fx.gravity.crosschain.v1.QueryOutgoingTxBatchesResponse) |  | GET|/crosschain/v1beta/batch/outgoing_tx|
-| `BatchRequestByNonce` | [QueryBatchRequestByNonceRequest](#fx.gravity.crosschain.v1.QueryBatchRequestByNonceRequest) | [QueryBatchRequestByNonceResponse](#fx.gravity.crosschain.v1.QueryBatchRequestByNonceResponse) |  | GET|/crosschain/v1beta/batch/request|
-| `BatchConfirm` | [QueryBatchConfirmRequest](#fx.gravity.crosschain.v1.QueryBatchConfirmRequest) | [QueryBatchConfirmResponse](#fx.gravity.crosschain.v1.QueryBatchConfirmResponse) |  | GET|/crosschain/v1beta/batch/confirm|
-| `BatchConfirms` | [QueryBatchConfirmsRequest](#fx.gravity.crosschain.v1.QueryBatchConfirmsRequest) | [QueryBatchConfirmsResponse](#fx.gravity.crosschain.v1.QueryBatchConfirmsResponse) |  | GET|/crosschain/v1beta/batch/confirms|
-| `TokenToDenom` | [QueryTokenToDenomRequest](#fx.gravity.crosschain.v1.QueryTokenToDenomRequest) | [QueryTokenToDenomResponse](#fx.gravity.crosschain.v1.QueryTokenToDenomResponse) |  | GET|/crosschain/v1beta/denom|
-| `DenomToToken` | [QueryDenomToTokenRequest](#fx.gravity.crosschain.v1.QueryDenomToTokenRequest) | [QueryDenomToTokenResponse](#fx.gravity.crosschain.v1.QueryDenomToTokenResponse) |  | GET|/crosschain/v1beta/token|
-| `GetOracleByAddr` | [QueryOracleByAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_addr|
-| `GetOracleByExternalAddr` | [QueryOracleByExternalAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByExternalAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_external_addr|
-| `GetOracleByBridgerAddr` | [QueryOracleByBridgerAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByBridgerAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/crosschain/v1beta/oracle_by_bridger_addr|
-| `GetPendingSendToExternal` | [QueryPendingSendToExternalRequest](#fx.gravity.crosschain.v1.QueryPendingSendToExternalRequest) | [QueryPendingSendToExternalResponse](#fx.gravity.crosschain.v1.QueryPendingSendToExternalResponse) |  | GET|/crosschain/v1beta/pending_send_to_external|
-| `Oracles` | [QueryOraclesRequest](#fx.gravity.crosschain.v1.QueryOraclesRequest) | [QueryOraclesResponse](#fx.gravity.crosschain.v1.QueryOraclesResponse) | Validators queries all oracle that match the given status. | GET|/crosschain/v1beta1/oracles|
-| `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/crosschain/v1beta1/projected_batch_timeout|
-| `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.crosschain.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.crosschain.v1.QueryBridgeTokensResponse) |  | GET|/gravity/v1beta1/bridge_tokens|
+| `Params` | [QueryParamsRequest](#fx.gravity.crosschain.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.gravity.crosschain.v1.QueryParamsResponse) | Deployments queries deployments | GET|/fx/crosschain/v1/params|
+| `CurrentOracleSet` | [QueryCurrentOracleSetRequest](#fx.gravity.crosschain.v1.QueryCurrentOracleSetRequest) | [QueryCurrentOracleSetResponse](#fx.gravity.crosschain.v1.QueryCurrentOracleSetResponse) |  | GET|/fx/crosschain/v1/oracle_set/current|
+| `OracleSetRequest` | [QueryOracleSetRequestRequest](#fx.gravity.crosschain.v1.QueryOracleSetRequestRequest) | [QueryOracleSetRequestResponse](#fx.gravity.crosschain.v1.QueryOracleSetRequestResponse) |  | GET|/fx/crosschain/v1/oracle_set/request|
+| `OracleSetConfirm` | [QueryOracleSetConfirmRequest](#fx.gravity.crosschain.v1.QueryOracleSetConfirmRequest) | [QueryOracleSetConfirmResponse](#fx.gravity.crosschain.v1.QueryOracleSetConfirmResponse) |  | GET|/fx/crosschain/v1/oracle_set/confirm|
+| `OracleSetConfirmsByNonce` | [QueryOracleSetConfirmsByNonceRequest](#fx.gravity.crosschain.v1.QueryOracleSetConfirmsByNonceRequest) | [QueryOracleSetConfirmsByNonceResponse](#fx.gravity.crosschain.v1.QueryOracleSetConfirmsByNonceResponse) |  | GET|/fx/crosschain/v1/oracle_set/confirms|
+| `LastOracleSetRequests` | [QueryLastOracleSetRequestsRequest](#fx.gravity.crosschain.v1.QueryLastOracleSetRequestsRequest) | [QueryLastOracleSetRequestsResponse](#fx.gravity.crosschain.v1.QueryLastOracleSetRequestsResponse) |  | GET|/fx/crosschain/v1/oracle_set/requests|
+| `LastPendingOracleSetRequestByAddr` | [QueryLastPendingOracleSetRequestByAddrRequest](#fx.gravity.crosschain.v1.QueryLastPendingOracleSetRequestByAddrRequest) | [QueryLastPendingOracleSetRequestByAddrResponse](#fx.gravity.crosschain.v1.QueryLastPendingOracleSetRequestByAddrResponse) |  | GET|/fx/crosschain/v1/oracle_set/last|
+| `LastPendingBatchRequestByAddr` | [QueryLastPendingBatchRequestByAddrRequest](#fx.gravity.crosschain.v1.QueryLastPendingBatchRequestByAddrRequest) | [QueryLastPendingBatchRequestByAddrResponse](#fx.gravity.crosschain.v1.QueryLastPendingBatchRequestByAddrResponse) |  | GET|/fx/crosschain/v1/batch/last|
+| `LastEventNonceByAddr` | [QueryLastEventNonceByAddrRequest](#fx.gravity.crosschain.v1.QueryLastEventNonceByAddrRequest) | [QueryLastEventNonceByAddrResponse](#fx.gravity.crosschain.v1.QueryLastEventNonceByAddrResponse) |  | GET|/fx/crosschain/v1/oracle/event_nonce|
+| `LastEventBlockHeightByAddr` | [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrRequest) | [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrResponse) |  | GET|/fx/crosschain/v1/oracle/event/block_height|
+| `BatchFees` | [QueryBatchFeeRequest](#fx.gravity.crosschain.v1.QueryBatchFeeRequest) | [QueryBatchFeeResponse](#fx.gravity.crosschain.v1.QueryBatchFeeResponse) |  | GET|/fx/crosschain/v1/batch_fees|
+| `LastObservedBlockHeight` | [QueryLastObservedBlockHeightRequest](#fx.gravity.crosschain.v1.QueryLastObservedBlockHeightRequest) | [QueryLastObservedBlockHeightResponse](#fx.gravity.crosschain.v1.QueryLastObservedBlockHeightResponse) |  | GET|/fx/crosschain/v1/observed/block_height|
+| `OutgoingTxBatches` | [QueryOutgoingTxBatchesRequest](#fx.gravity.crosschain.v1.QueryOutgoingTxBatchesRequest) | [QueryOutgoingTxBatchesResponse](#fx.gravity.crosschain.v1.QueryOutgoingTxBatchesResponse) |  | GET|/fx/crosschain/v1/batch/outgoing_tx|
+| `BatchRequestByNonce` | [QueryBatchRequestByNonceRequest](#fx.gravity.crosschain.v1.QueryBatchRequestByNonceRequest) | [QueryBatchRequestByNonceResponse](#fx.gravity.crosschain.v1.QueryBatchRequestByNonceResponse) |  | GET|/fx/crosschain/v1/batch/request|
+| `BatchConfirm` | [QueryBatchConfirmRequest](#fx.gravity.crosschain.v1.QueryBatchConfirmRequest) | [QueryBatchConfirmResponse](#fx.gravity.crosschain.v1.QueryBatchConfirmResponse) |  | GET|/fx/crosschain/v1/batch/confirm|
+| `BatchConfirms` | [QueryBatchConfirmsRequest](#fx.gravity.crosschain.v1.QueryBatchConfirmsRequest) | [QueryBatchConfirmsResponse](#fx.gravity.crosschain.v1.QueryBatchConfirmsResponse) |  | GET|/fx/crosschain/v1/batch/confirms|
+| `TokenToDenom` | [QueryTokenToDenomRequest](#fx.gravity.crosschain.v1.QueryTokenToDenomRequest) | [QueryTokenToDenomResponse](#fx.gravity.crosschain.v1.QueryTokenToDenomResponse) |  | GET|/fx/crosschain/v1/denom|
+| `DenomToToken` | [QueryDenomToTokenRequest](#fx.gravity.crosschain.v1.QueryDenomToTokenRequest) | [QueryDenomToTokenResponse](#fx.gravity.crosschain.v1.QueryDenomToTokenResponse) |  | GET|/fx/crosschain/v1/token|
+| `GetOracleByAddr` | [QueryOracleByAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/fx/crosschain/v1/oracle_by_addr|
+| `GetOracleByExternalAddr` | [QueryOracleByExternalAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByExternalAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/fx/crosschain/v1/oracle_by_external_addr|
+| `GetOracleByBridgerAddr` | [QueryOracleByBridgerAddrRequest](#fx.gravity.crosschain.v1.QueryOracleByBridgerAddrRequest) | [QueryOracleResponse](#fx.gravity.crosschain.v1.QueryOracleResponse) |  | GET|/fx/crosschain/v1/oracle_by_bridger_addr|
+| `GetPendingSendToExternal` | [QueryPendingSendToExternalRequest](#fx.gravity.crosschain.v1.QueryPendingSendToExternalRequest) | [QueryPendingSendToExternalResponse](#fx.gravity.crosschain.v1.QueryPendingSendToExternalResponse) |  | GET|/fx/crosschain/v1/pending_send_to_external|
+| `Oracles` | [QueryOraclesRequest](#fx.gravity.crosschain.v1.QueryOraclesRequest) | [QueryOraclesResponse](#fx.gravity.crosschain.v1.QueryOraclesResponse) | Validators queries all oracle that match the given status. | GET|/fx/crosschain/v1/oracles|
+| `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.crosschain.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/fx/crosschain/v1/projected_batch_timeout|
+| `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.crosschain.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.crosschain.v1.QueryBridgeTokensResponse) |  | GET|/fx/crosschain/v1/bridge_tokens|
 
  <!-- end services -->
 
 
 
-<a name="erc20/v1/erc20.proto"></a>
+<a name="fx/erc20/v1/erc20.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## erc20/v1/erc20.proto
+## fx/erc20/v1/erc20.proto
 
 
 
@@ -2062,10 +2036,10 @@ Owner enumerates the ownership of a ERC20 contract.
 
 
 
-<a name="erc20/v1/genesis.proto"></a>
+<a name="fx/erc20/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## erc20/v1/genesis.proto
+## fx/erc20/v1/genesis.proto
 
 
 
@@ -2111,10 +2085,10 @@ Params defines the erc20 module params
 
 
 
-<a name="erc20/v1/query.proto"></a>
+<a name="fx/erc20/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## erc20/v1/query.proto
+## fx/erc20/v1/query.proto
 
 
 
@@ -2221,18 +2195,18 @@ Query defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `TokenPairs` | [QueryTokenPairsRequest](#fx.erc20.v1.QueryTokenPairsRequest) | [QueryTokenPairsResponse](#fx.erc20.v1.QueryTokenPairsResponse) | Retrieves registered token pairs | GET|/erc20/v1/token_pairs|
-| `TokenPair` | [QueryTokenPairRequest](#fx.erc20.v1.QueryTokenPairRequest) | [QueryTokenPairResponse](#fx.erc20.v1.QueryTokenPairResponse) | Retrieves a registered token pair | GET|/erc20/v1/token_pairs/{token}|
-| `Params` | [QueryParamsRequest](#fx.erc20.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.erc20.v1.QueryParamsResponse) | Params retrieves the erc20 module params | GET|/erc20/v1/params|
+| `TokenPairs` | [QueryTokenPairsRequest](#fx.erc20.v1.QueryTokenPairsRequest) | [QueryTokenPairsResponse](#fx.erc20.v1.QueryTokenPairsResponse) | Retrieves registered token pairs | GET|/fx/erc20/v1/token_pairs|
+| `TokenPair` | [QueryTokenPairRequest](#fx.erc20.v1.QueryTokenPairRequest) | [QueryTokenPairResponse](#fx.erc20.v1.QueryTokenPairResponse) | Retrieves a registered token pair | GET|/fx/erc20/v1/token_pairs/{token}|
+| `Params` | [QueryParamsRequest](#fx.erc20.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.erc20.v1.QueryParamsResponse) | Params retrieves the erc20 module params | GET|/fx/erc20/v1/params|
 
  <!-- end services -->
 
 
 
-<a name="erc20/v1/tx.proto"></a>
+<a name="fx/erc20/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## erc20/v1/tx.proto
+## fx/erc20/v1/tx.proto
 
 
 
@@ -2311,10 +2285,10 @@ Msg defines the erc20 Msg service.
 
 
 
-<a name="gravity/v1/attestation.proto"></a>
+<a name="fx/gravity/v1/attestation.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## gravity/v1/attestation.proto
+## fx/gravity/v1/attestation.proto
 
 
 
@@ -2396,10 +2370,10 @@ be handled
 
 
 
-<a name="gravity/v1/batch.proto"></a>
+<a name="fx/gravity/v1/batch.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## gravity/v1/batch.proto
+## fx/gravity/v1/batch.proto
 
 
 
@@ -2451,10 +2425,10 @@ OutgoingTxBatch represents a batch of transactions going from gravity to ETH
 
 
 
-<a name="gravity/v1/ethereum_signer.proto"></a>
+<a name="fx/gravity/v1/ethereum_signer.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## gravity/v1/ethereum_signer.proto
+## fx/gravity/v1/ethereum_signer.proto
 
 
  <!-- end messages -->
@@ -2480,10 +2454,10 @@ SignType defines messages that have been signed by an orchestrator
 
 
 
-<a name="gravity/v1/types.proto"></a>
+<a name="fx/gravity/v1/types.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## gravity/v1/types.proto
+## fx/gravity/v1/types.proto
 
 
 
@@ -2568,10 +2542,10 @@ ETH because of the significant gas savings
 
 
 
-<a name="gravity/v1/tx.proto"></a>
+<a name="fx/gravity/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## gravity/v1/tx.proto
+## fx/gravity/v1/tx.proto
 
 
 
@@ -2943,10 +2917,10 @@ Msg defines the state transitions possible within gravity
 
 
 
-<a name="gravity/v1/genesis.proto"></a>
+<a name="fx/gravity/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## gravity/v1/genesis.proto
+## fx/gravity/v1/genesis.proto
 
 
 
@@ -3018,10 +2992,10 @@ is > 10%
 
 
 
-<a name="gravity/v1/pool.proto"></a>
+<a name="fx/gravity/v1/pool.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## gravity/v1/pool.proto
+## fx/gravity/v1/pool.proto
 
 
 
@@ -3083,10 +3057,10 @@ IDSet represents a set of IDs
 
 
 
-<a name="gravity/v1/query.proto"></a>
+<a name="fx/gravity/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## gravity/v1/query.proto
+## fx/gravity/v1/query.proto
 
 
 
@@ -3833,359 +3807,40 @@ Query defines the gRPC querier service
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#fx.gravity.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.gravity.v1.QueryParamsResponse) | Deployments queries deployments | GET|/gravity/v1beta/params|
-| `CurrentValset` | [QueryCurrentValsetRequest](#fx.gravity.v1.QueryCurrentValsetRequest) | [QueryCurrentValsetResponse](#fx.gravity.v1.QueryCurrentValsetResponse) |  | GET|/gravity/v1beta/valset/current|
-| `ValsetRequest` | [QueryValsetRequestRequest](#fx.gravity.v1.QueryValsetRequestRequest) | [QueryValsetRequestResponse](#fx.gravity.v1.QueryValsetRequestResponse) |  | GET|/gravity/v1beta/valset/request|
-| `ValsetConfirm` | [QueryValsetConfirmRequest](#fx.gravity.v1.QueryValsetConfirmRequest) | [QueryValsetConfirmResponse](#fx.gravity.v1.QueryValsetConfirmResponse) |  | GET|/gravity/v1beta/valset/confirm|
-| `ValsetConfirmsByNonce` | [QueryValsetConfirmsByNonceRequest](#fx.gravity.v1.QueryValsetConfirmsByNonceRequest) | [QueryValsetConfirmsByNonceResponse](#fx.gravity.v1.QueryValsetConfirmsByNonceResponse) |  | GET|/gravity/v1beta/valset/confirms|
-| `LastValsetRequests` | [QueryLastValsetRequestsRequest](#fx.gravity.v1.QueryLastValsetRequestsRequest) | [QueryLastValsetRequestsResponse](#fx.gravity.v1.QueryLastValsetRequestsResponse) |  | GET|/gravity/v1beta/valset/requests|
-| `LastPendingValsetRequestByAddr` | [QueryLastPendingValsetRequestByAddrRequest](#fx.gravity.v1.QueryLastPendingValsetRequestByAddrRequest) | [QueryLastPendingValsetRequestByAddrResponse](#fx.gravity.v1.QueryLastPendingValsetRequestByAddrResponse) |  | GET|/gravity/v1beta/valset/last|
-| `LastPendingBatchRequestByAddr` | [QueryLastPendingBatchRequestByAddrRequest](#fx.gravity.v1.QueryLastPendingBatchRequestByAddrRequest) | [QueryLastPendingBatchRequestByAddrResponse](#fx.gravity.v1.QueryLastPendingBatchRequestByAddrResponse) |  | GET|/gravity/v1beta/batch/last|
-| `LastEventNonceByAddr` | [QueryLastEventNonceByAddrRequest](#fx.gravity.v1.QueryLastEventNonceByAddrRequest) | [QueryLastEventNonceByAddrResponse](#fx.gravity.v1.QueryLastEventNonceByAddrResponse) |  | GET|/gravity/v1beta/oracle/event_nonce/{address}|
-| `LastEventBlockHeightByAddr` | [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.v1.QueryLastEventBlockHeightByAddrRequest) | [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.v1.QueryLastEventBlockHeightByAddrResponse) |  | GET|/gravity/v1beta/oracle/event/block_height/{address}|
-| `BatchFees` | [QueryBatchFeeRequest](#fx.gravity.v1.QueryBatchFeeRequest) | [QueryBatchFeeResponse](#fx.gravity.v1.QueryBatchFeeResponse) |  | GET|/gravity/v1beta/batch_fees|
-| `LastObservedBlockHeight` | [QueryLastObservedBlockHeightRequest](#fx.gravity.v1.QueryLastObservedBlockHeightRequest) | [QueryLastObservedBlockHeightResponse](#fx.gravity.v1.QueryLastObservedBlockHeightResponse) |  | GET|/gravity/v1beta/observed/block_height|
-| `OutgoingTxBatches` | [QueryOutgoingTxBatchesRequest](#fx.gravity.v1.QueryOutgoingTxBatchesRequest) | [QueryOutgoingTxBatchesResponse](#fx.gravity.v1.QueryOutgoingTxBatchesResponse) |  | GET|/gravity/v1beta/batch/outgoing_tx|
-| `BatchRequestByNonce` | [QueryBatchRequestByNonceRequest](#fx.gravity.v1.QueryBatchRequestByNonceRequest) | [QueryBatchRequestByNonceResponse](#fx.gravity.v1.QueryBatchRequestByNonceResponse) |  | GET|/gravity/v1beta/batch/request|
-| `BatchConfirm` | [QueryBatchConfirmRequest](#fx.gravity.v1.QueryBatchConfirmRequest) | [QueryBatchConfirmResponse](#fx.gravity.v1.QueryBatchConfirmResponse) |  | GET|/gravity/v1beta/batch/confirm|
-| `BatchConfirms` | [QueryBatchConfirmsRequest](#fx.gravity.v1.QueryBatchConfirmsRequest) | [QueryBatchConfirmsResponse](#fx.gravity.v1.QueryBatchConfirmsResponse) |  | GET|/gravity/v1beta/batch/confirms|
-| `ERC20ToDenom` | [QueryERC20ToDenomRequest](#fx.gravity.v1.QueryERC20ToDenomRequest) | [QueryERC20ToDenomResponse](#fx.gravity.v1.QueryERC20ToDenomResponse) |  | GET|/gravity/v1beta/denom|
-| `DenomToERC20` | [QueryDenomToERC20Request](#fx.gravity.v1.QueryDenomToERC20Request) | [QueryDenomToERC20Response](#fx.gravity.v1.QueryDenomToERC20Response) |  | GET|/gravity/v1beta/erc20|
-| `GetDelegateKeyByValidator` | [QueryDelegateKeyByValidatorRequest](#fx.gravity.v1.QueryDelegateKeyByValidatorRequest) | [QueryDelegateKeyByValidatorResponse](#fx.gravity.v1.QueryDelegateKeyByValidatorResponse) |  | GET|/gravity/v1beta/delegate_key_by_validator|
-| `GetDelegateKeyByEth` | [QueryDelegateKeyByEthRequest](#fx.gravity.v1.QueryDelegateKeyByEthRequest) | [QueryDelegateKeyByEthResponse](#fx.gravity.v1.QueryDelegateKeyByEthResponse) |  | GET|/gravity/v1beta/delegate_key_by_eth|
-| `GetDelegateKeyByOrchestrator` | [QueryDelegateKeyByOrchestratorRequest](#fx.gravity.v1.QueryDelegateKeyByOrchestratorRequest) | [QueryDelegateKeyByOrchestratorResponse](#fx.gravity.v1.QueryDelegateKeyByOrchestratorResponse) |  | GET|/gravity/v1beta/delegate_key_by_orchestrator|
-| `GetPendingSendToEth` | [QueryPendingSendToEthRequest](#fx.gravity.v1.QueryPendingSendToEthRequest) | [QueryPendingSendToEthResponse](#fx.gravity.v1.QueryPendingSendToEthResponse) |  | GET|/gravity/v1beta/pending_send_to_eth|
-| `GetIbcSequenceHeightByChannel` | [QueryIbcSequenceHeightRequest](#fx.gravity.v1.QueryIbcSequenceHeightRequest) | [QueryIbcSequenceHeightResponse](#fx.gravity.v1.QueryIbcSequenceHeightResponse) |  | GET|/gravity/v1beta/ibc_sequence_height|
-| `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/gravity/v1beta1/projected_batch_timeout|
-| `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.v1.QueryBridgeTokensResponse) |  | GET|/gravity/v1beta1/bridge_tokens|
+| `Params` | [QueryParamsRequest](#fx.gravity.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.gravity.v1.QueryParamsResponse) | Deployments queries deployments | GET|/fx/gravity/v1/params|
+| `CurrentValset` | [QueryCurrentValsetRequest](#fx.gravity.v1.QueryCurrentValsetRequest) | [QueryCurrentValsetResponse](#fx.gravity.v1.QueryCurrentValsetResponse) |  | GET|/fx/gravity/v1/valset/current|
+| `ValsetRequest` | [QueryValsetRequestRequest](#fx.gravity.v1.QueryValsetRequestRequest) | [QueryValsetRequestResponse](#fx.gravity.v1.QueryValsetRequestResponse) |  | GET|/fx/gravity/v1/valset/request|
+| `ValsetConfirm` | [QueryValsetConfirmRequest](#fx.gravity.v1.QueryValsetConfirmRequest) | [QueryValsetConfirmResponse](#fx.gravity.v1.QueryValsetConfirmResponse) |  | GET|/fx/gravity/v1/valset/confirm|
+| `ValsetConfirmsByNonce` | [QueryValsetConfirmsByNonceRequest](#fx.gravity.v1.QueryValsetConfirmsByNonceRequest) | [QueryValsetConfirmsByNonceResponse](#fx.gravity.v1.QueryValsetConfirmsByNonceResponse) |  | GET|/fx/gravity/v1/valset/confirms|
+| `LastValsetRequests` | [QueryLastValsetRequestsRequest](#fx.gravity.v1.QueryLastValsetRequestsRequest) | [QueryLastValsetRequestsResponse](#fx.gravity.v1.QueryLastValsetRequestsResponse) |  | GET|/fx/gravity/v1/valset/requests|
+| `LastPendingValsetRequestByAddr` | [QueryLastPendingValsetRequestByAddrRequest](#fx.gravity.v1.QueryLastPendingValsetRequestByAddrRequest) | [QueryLastPendingValsetRequestByAddrResponse](#fx.gravity.v1.QueryLastPendingValsetRequestByAddrResponse) |  | GET|/fx/gravity/v1/valset/last|
+| `LastPendingBatchRequestByAddr` | [QueryLastPendingBatchRequestByAddrRequest](#fx.gravity.v1.QueryLastPendingBatchRequestByAddrRequest) | [QueryLastPendingBatchRequestByAddrResponse](#fx.gravity.v1.QueryLastPendingBatchRequestByAddrResponse) |  | GET|/fx/gravity/v1/batch/last|
+| `LastEventNonceByAddr` | [QueryLastEventNonceByAddrRequest](#fx.gravity.v1.QueryLastEventNonceByAddrRequest) | [QueryLastEventNonceByAddrResponse](#fx.gravity.v1.QueryLastEventNonceByAddrResponse) |  | GET|/fx/gravity/v1/oracle/event_nonce/{address}|
+| `LastEventBlockHeightByAddr` | [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.v1.QueryLastEventBlockHeightByAddrRequest) | [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.v1.QueryLastEventBlockHeightByAddrResponse) |  | GET|/fx/gravity/v1/oracle/event/block_height/{address}|
+| `BatchFees` | [QueryBatchFeeRequest](#fx.gravity.v1.QueryBatchFeeRequest) | [QueryBatchFeeResponse](#fx.gravity.v1.QueryBatchFeeResponse) |  | GET|/fx/gravity/v1/batch_fees|
+| `LastObservedBlockHeight` | [QueryLastObservedBlockHeightRequest](#fx.gravity.v1.QueryLastObservedBlockHeightRequest) | [QueryLastObservedBlockHeightResponse](#fx.gravity.v1.QueryLastObservedBlockHeightResponse) |  | GET|/fx/gravity/v1/observed/block_height|
+| `OutgoingTxBatches` | [QueryOutgoingTxBatchesRequest](#fx.gravity.v1.QueryOutgoingTxBatchesRequest) | [QueryOutgoingTxBatchesResponse](#fx.gravity.v1.QueryOutgoingTxBatchesResponse) |  | GET|/fx/gravity/v1/batch/outgoing_tx|
+| `BatchRequestByNonce` | [QueryBatchRequestByNonceRequest](#fx.gravity.v1.QueryBatchRequestByNonceRequest) | [QueryBatchRequestByNonceResponse](#fx.gravity.v1.QueryBatchRequestByNonceResponse) |  | GET|/fx/gravity/v1/batch/request|
+| `BatchConfirm` | [QueryBatchConfirmRequest](#fx.gravity.v1.QueryBatchConfirmRequest) | [QueryBatchConfirmResponse](#fx.gravity.v1.QueryBatchConfirmResponse) |  | GET|/fx/gravity/v1/batch/confirm|
+| `BatchConfirms` | [QueryBatchConfirmsRequest](#fx.gravity.v1.QueryBatchConfirmsRequest) | [QueryBatchConfirmsResponse](#fx.gravity.v1.QueryBatchConfirmsResponse) |  | GET|/fx/gravity/v1/batch/confirms|
+| `ERC20ToDenom` | [QueryERC20ToDenomRequest](#fx.gravity.v1.QueryERC20ToDenomRequest) | [QueryERC20ToDenomResponse](#fx.gravity.v1.QueryERC20ToDenomResponse) |  | GET|/fx/gravity/v1/denom|
+| `DenomToERC20` | [QueryDenomToERC20Request](#fx.gravity.v1.QueryDenomToERC20Request) | [QueryDenomToERC20Response](#fx.gravity.v1.QueryDenomToERC20Response) |  | GET|/fx/gravity/v1/erc20|
+| `GetDelegateKeyByValidator` | [QueryDelegateKeyByValidatorRequest](#fx.gravity.v1.QueryDelegateKeyByValidatorRequest) | [QueryDelegateKeyByValidatorResponse](#fx.gravity.v1.QueryDelegateKeyByValidatorResponse) |  | GET|/fx/gravity/v1/delegate_key_by_validator|
+| `GetDelegateKeyByEth` | [QueryDelegateKeyByEthRequest](#fx.gravity.v1.QueryDelegateKeyByEthRequest) | [QueryDelegateKeyByEthResponse](#fx.gravity.v1.QueryDelegateKeyByEthResponse) |  | GET|/fx/gravity/v1/delegate_key_by_eth|
+| `GetDelegateKeyByOrchestrator` | [QueryDelegateKeyByOrchestratorRequest](#fx.gravity.v1.QueryDelegateKeyByOrchestratorRequest) | [QueryDelegateKeyByOrchestratorResponse](#fx.gravity.v1.QueryDelegateKeyByOrchestratorResponse) |  | GET|/fx/gravity/v1/delegate_key_by_orchestrator|
+| `GetPendingSendToEth` | [QueryPendingSendToEthRequest](#fx.gravity.v1.QueryPendingSendToEthRequest) | [QueryPendingSendToEthResponse](#fx.gravity.v1.QueryPendingSendToEthResponse) |  | GET|/fx/gravity/v1/pending_send_to_eth|
+| `GetIbcSequenceHeightByChannel` | [QueryIbcSequenceHeightRequest](#fx.gravity.v1.QueryIbcSequenceHeightRequest) | [QueryIbcSequenceHeightResponse](#fx.gravity.v1.QueryIbcSequenceHeightResponse) |  | GET|/fx/gravity/v1/ibc_sequence_height|
+| `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/fx/gravity/v1/projected_batch_timeout|
+| `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.v1.QueryBridgeTokensResponse) |  | GET|/fx/gravity/v1/bridge_tokens|
 
  <!-- end services -->
 
 
 
-<a name="ibc/applications/transfer/v1/transfer.proto"></a>
+<a name="fx/migrate/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## ibc/applications/transfer/v1/transfer.proto
-
-
-
-<a name="fx.ibc.applications.transfer.v1.DenomTrace"></a>
-
-### DenomTrace
-DenomTrace contains the base denomination for ICS20 fungible tokens and the
-source tracing information path.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `path` | [string](#string) |  | path defines the chain of port/channel identifiers used for tracing the source of the fungible token. |
-| `base_denom` | [string](#string) |  | base denomination of the relayed fungible token. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.FungibleTokenPacketData"></a>
-
-### FungibleTokenPacketData
-FungibleTokenPacketData defines a struct for the packet payload
-See FungibleTokenPacketData spec:
-https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  | the token denomination to be transferred |
-| `amount` | [string](#string) |  | the token amount to be transferred |
-| `sender` | [string](#string) |  | the sender address |
-| `receiver` | [string](#string) |  | the recipient address on the destination chain |
-| `router` | [string](#string) |  | the router is hook destination chain |
-| `fee` | [string](#string) |  | the fee is destination fee |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.Params"></a>
-
-### Params
-Params defines the set of IBC transfer parameters.
-NOTE: To prevent a single token from being transferred, set the
-TransfersEnabled parameter to true and then set the bank module's SendEnabled
-parameter for the denomination to false.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `send_enabled` | [bool](#bool) |  | send_enabled enables or disables all cross-chain token transfers from this chain. |
-| `receive_enabled` | [bool](#bool) |  | receive_enabled enables or disables all cross-chain token transfers to this chain. |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/transfer/v1/genesis.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/transfer/v1/genesis.proto
-
-
-
-<a name="fx.ibc.applications.transfer.v1.GenesisState"></a>
-
-### GenesisState
-GenesisState defines the ibc-transfer genesis state
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  |  |
-| `denom_traces` | [DenomTrace](#fx.ibc.applications.transfer.v1.DenomTrace) | repeated |  |
-| `params` | [Params](#fx.ibc.applications.transfer.v1.Params) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/transfer/v1/query.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/transfer/v1/query.proto
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomHashRequest"></a>
-
-### QueryDenomHashRequest
-QueryDenomHashRequest is the request type for the Query/DenomHash RPC
-method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `trace` | [string](#string) |  | The denomination trace ([port_id]/[channel_id])+/[denom] |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomHashResponse"></a>
-
-### QueryDenomHashResponse
-QueryDenomHashResponse is the response type for the Query/DenomHash RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomTraceRequest"></a>
-
-### QueryDenomTraceRequest
-QueryDenomTraceRequest is the request type for the Query/DenomTrace RPC
-method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomTraceResponse"></a>
-
-### QueryDenomTraceResponse
-QueryDenomTraceResponse is the response type for the Query/DenomTrace RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `denom_trace` | [DenomTrace](#fx.ibc.applications.transfer.v1.DenomTrace) |  | denom_trace returns the requested denomination trace information. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomTracesRequest"></a>
-
-### QueryDenomTracesRequest
-QueryConnectionsRequest is the request type for the Query/DenomTraces RPC
-method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomTracesResponse"></a>
-
-### QueryDenomTracesResponse
-QueryConnectionsResponse is the response type for the Query/DenomTraces RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `denom_traces` | [DenomTrace](#fx.ibc.applications.transfer.v1.DenomTrace) | repeated | denom_traces returns all denominations trace information. |
-| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryParamsRequest"></a>
-
-### QueryParamsRequest
-QueryParamsRequest is the request type for the Query/Params RPC method.
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryParamsResponse"></a>
-
-### QueryParamsResponse
-QueryParamsResponse is the response type for the Query/Params RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `params` | [Params](#fx.ibc.applications.transfer.v1.Params) |  | params defines the parameters of the module. |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="fx.ibc.applications.transfer.v1.Query"></a>
-
-### Query
-Query provides defines the gRPC querier service.
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `DenomTrace` | [QueryDenomTraceRequest](#fx.ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#fx.ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/applications/transfer/v1beta1/denom_traces/{hash}|
-| `DenomTraces` | [QueryDenomTracesRequest](#fx.ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#fx.ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/applications/transfer/v1beta1/denom_traces|
-| `Params` | [QueryParamsRequest](#fx.ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/applications/transfer/v1beta1/params|
-| `DenomHash` | [QueryDenomHashRequest](#fx.ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#fx.ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/applications/transfer/v1beta1/denom_hashes/{trace}|
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/transfer/v1/tx.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/transfer/v1/tx.proto
-
-
-
-<a name="fx.ibc.applications.transfer.v1.MsgTransfer"></a>
-
-### MsgTransfer
-MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
-ICS20 enabled chains. See ICS Spec here:
-https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `source_port` | [string](#string) |  | the port on which the packet will be sent |
-| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
-| `token` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | the tokens to be transferred |
-| `sender` | [string](#string) |  | the sender address |
-| `receiver` | [string](#string) |  | the recipient address on the destination chain |
-| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
-| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp (in nanoseconds) relative to the current block timestamp. The timeout is disabled when set to 0. |
-| `router` | [string](#string) |  | the router is hook destination chain |
-| `fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | the tokens to be destination fee |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.MsgTransferResponse"></a>
-
-### MsgTransferResponse
-MsgTransferResponse defines the Msg/Transfer response type.
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="fx.ibc.applications.transfer.v1.Msg"></a>
-
-### Msg
-Msg defines the ibc/transfer Msg service.
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Transfer` | [MsgTransfer](#fx.ibc.applications.transfer.v1.MsgTransfer) | [MsgTransferResponse](#fx.ibc.applications.transfer.v1.MsgTransferResponse) | Transfer defines a rpc handler method for MsgTransfer. | |
-
- <!-- end services -->
-
-
-
-<a name="migrate/v1/genesis.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## migrate/v1/genesis.proto
+## fx/migrate/v1/genesis.proto
 
 
 
@@ -4208,10 +3863,10 @@ GenesisState defines the module's genesis state.
 
 
 
-<a name="migrate/v1/migrate.proto"></a>
+<a name="fx/migrate/v1/migrate.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## migrate/v1/migrate.proto
+## fx/migrate/v1/migrate.proto
 
 
 
@@ -4241,10 +3896,10 @@ GenesisState defines the module's genesis state.
 
 
 
-<a name="migrate/v1/query.proto"></a>
+<a name="fx/migrate/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## migrate/v1/query.proto
+## fx/migrate/v1/query.proto
 
 
 
@@ -4318,17 +3973,17 @@ Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `MigrateRecord` | [QueryMigrateRecordRequest](#fx.migrate.v1.QueryMigrateRecordRequest) | [QueryMigrateRecordResponse](#fx.migrate.v1.QueryMigrateRecordResponse) | DenomTrace queries a denomination trace information. | GET|/migrate/v1/record/{address}|
-| `MigrateCheckAccount` | [QueryMigrateCheckAccountRequest](#fx.migrate.v1.QueryMigrateCheckAccountRequest) | [QueryMigrateCheckAccountResponse](#fx.migrate.v1.QueryMigrateCheckAccountResponse) |  | GET|/migrate/v1/check/account|
+| `MigrateRecord` | [QueryMigrateRecordRequest](#fx.migrate.v1.QueryMigrateRecordRequest) | [QueryMigrateRecordResponse](#fx.migrate.v1.QueryMigrateRecordResponse) | DenomTrace queries a denomination trace information. | GET|/fx/migrate/v1/record/{address}|
+| `MigrateCheckAccount` | [QueryMigrateCheckAccountRequest](#fx.migrate.v1.QueryMigrateCheckAccountRequest) | [QueryMigrateCheckAccountResponse](#fx.migrate.v1.QueryMigrateCheckAccountResponse) |  | GET|/fx/migrate/v1/check/account|
 
  <!-- end services -->
 
 
 
-<a name="migrate/v1/tx.proto"></a>
+<a name="fx/migrate/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## migrate/v1/tx.proto
+## fx/migrate/v1/tx.proto
 
 
 
@@ -4378,10 +4033,10 @@ Msg defines the state transitions possible within gravity
 
 
 
-<a name="other/query.proto"></a>
+<a name="fx/other/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## other/query.proto
+## fx/other/v1/query.proto
 
 
 
@@ -4423,7 +4078,7 @@ Msg defines the state transitions possible within gravity
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) |  | GET|/other/v1/gas_price|
+| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) |  | GET|/fx/other/v1/gas_price|
 
  <!-- end services -->
 

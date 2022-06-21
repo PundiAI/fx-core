@@ -247,7 +247,7 @@ proto-lint:
 statik: $(STATIK)
 $(STATIK):
 	@echo "Installing statik..."
-	@(cd /tmp && go get github.com/rakyll/statik@v0.1.6)
+	@(cd /tmp && go install github.com/rakyll/statik@latest)
 
 update-swagger-docs: statik
 	$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
