@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Improvements
+
+* Bump tendermint to v0.34.20.
+* Bump cosmos-sdk to v0.45.5.
+* The IBC version was upgraded from Cosmos-SDK/x/ibc to IBC-Go v3.1.0
+* Added modules: feegrant、authz、feemarket、evm、erc20、migrate
+* Migrate modules: auth、bank、distribution、gov、slashing、ibc、crosschain(bsc、polygon、tron)
+* The previous Oracle deposit will be automatically delegated to the validator with the highest power value after the upgrade.  Oracle can modify the validator itself, requiring a manual delegate payment
+* `MsgRequestBatch` add the field BaseFee
+* Delete gravity and crosschain module ibc sequence key 
+
 ### CLI Breaking Changes
 
 * `fxcored unsafe-reset-all` command has been moved to the `fxcored tendermint` sub-command.
@@ -13,20 +24,14 @@
 * `fxcored keys add` command output add the EIP55 address
 * Remove Cli flags `--gas-prices` default value
 * Change Cli flags `--gas` default value with `80000`
-* Change the `fxcored config` command output to lowercase
+* Change the `fxcored config` command output to lowercase      
 
-### Improvements
-
-* Updated Tendermint to v0.34.19;
-* Updated Cosmos-sdk to v0.42.x;
-* `MsgRequestBatch` add the field BaseFee
-* Delete gravity and crosschain module ibc sequence key 
-      
 ### API Breaking Changes
 
 * Update FX metadata, delete `fx` denom
 * Refactor `gravity` and `crosschain` module reset api routes
 * The `gravity` and `crosschain` module add `ProjectedBatchTimeoutHeight` and `BridgeTokens` query api
+* The `gravity`、`crosschain` and `other` reset API route add `/fx` prefix
 
 ### Features
 
