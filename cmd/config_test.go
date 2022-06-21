@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -21,7 +22,6 @@ func Test_configTomlConfig_output(t *testing.T) {
 	}
 	assert.NoError(t, c.output(clientCtx))
 	assert.Equal(t, tmConfigJson, buf.String())
-
 }
 
 func Test_appTomlConfig_output(t *testing.T) {
@@ -256,3 +256,38 @@ const appConfigJson = `{
   }
 }
 `
+
+func Test_output(t *testing.T) {
+	type args struct {
+		ctx     client.Context
+		content interface{}
+	}
+	clientCtx := func() client.Context {
+		return client.Context{
+			Output:       new(bytes.Buffer),
+			OutputFormat: "json",
+		}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "app.toml output grpc.enable",
+			args: args{
+				ctx:     clientCtx(),
+				content: true,
+			},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.Equal(t, i[0].(*client.Context).Output.(*bytes.Buffer).String(), fmt.Sprintf("%v\n", i[1]))
+				return assert.NoError(t, err)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.wantErr(t, output(tt.args.ctx, tt.args.content), &tt.args.ctx, tt.args.content)
+		})
+	}
+}

@@ -192,7 +192,11 @@ func newConfig(v *viper.Viper, configName string) (cmdConfig, error) {
 func output(ctx client.Context, content interface{}) error {
 	var mapData map[string]interface{}
 	if err := mapstructure.Decode(content, &mapData); err != nil {
-		return err
+		var data interface{}
+		if err := mapstructure.Decode(content, &data); err != nil {
+			return err
+		}
+		return cli.PrintOutput(ctx, data)
 	}
 	return cli.PrintOutput(ctx, mapData)
 }
