@@ -123,8 +123,8 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 		ChainName:        suite.chainName,
 	}
 	_, err = suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), depositAmountBelowMaximumMsg)
-	require.ErrorIs(suite.T(), types.ErrDelegateAmountBelowMaximum, err)
-	require.EqualValues(suite.T(), types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
+	require.ErrorIs(suite.T(), types.ErrDelegateAmountAboveMaximum, err)
+	require.EqualValues(suite.T(), types.ErrDelegateAmountAboveMaximum.Error(), err.Error())
 
 	// 9. success msg
 	normalMsgOracle2 := &types.MsgBondedOracle{
@@ -195,8 +195,8 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 		ChainName:     suite.chainName,
 	}
 	_, err = suite.MsgServer().AddDelegate(sdk.WrapSDKContext(suite.ctx), depositAmountBelowMaximumMsg)
-	require.ErrorIs(suite.T(), types.ErrDelegateAmountBelowMaximum, err)
-	require.EqualValues(suite.T(), types.ErrDelegateAmountBelowMaximum.Error(), err.Error())
+	require.ErrorIs(suite.T(), types.ErrDelegateAmountAboveMaximum, err)
+	require.EqualValues(suite.T(), types.ErrDelegateAmountAboveMaximum.Error(), err.Error())
 
 	normalAddStakeMsg := &types.MsgAddDelegate{
 		OracleAddress: suite.oracles[0].String(),
