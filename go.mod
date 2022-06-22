@@ -19,10 +19,10 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.5.0
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.12.0
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.7.4
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/tendermint/tendermint v0.34.20-0.20220517115723-e6f071164839
 	github.com/tendermint/tm-db v0.6.7
@@ -129,7 +129,6 @@ require (
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969 // indirect
-	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
 	github.com/tendermint/btcd v0.1.1 // indirect
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 // indirect
@@ -160,4 +159,4 @@ replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.
 
 replace github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
 
-replace github.com/evmos/ethermint => github.com/functionx/ethermint v0.6.1-0.20220620041833-6d87fab54c8e
+replace github.com/evmos/ethermint => github.com/functionx/ethermint v0.16.1-fxcore-v2.0.0-rc3
