@@ -23,7 +23,9 @@ func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.Legacy
 	paramsStore.Delete(v010.ParamOracleDepositThreshold)
 
 	params.DelegateMultiple = types.DefaultOracleDelegateThreshold
-	params.AverageBlockTime = 7 * 1e3
+	params.AverageBlockTime = 7_000
+	logger := ctx.Logger().With("module", "x/"+moduleName)
+	logger.Debug("migrate params", "averageBlockTime", params.AverageBlockTime)
 	if err := params.ValidateBasic(); err != nil {
 		return err
 	}
