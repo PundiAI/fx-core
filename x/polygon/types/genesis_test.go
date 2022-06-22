@@ -16,10 +16,10 @@ func TestDefaultGenesisState(t *testing.T) {
 		want *crosschaintypes.GenesisState
 	}{
 		{
-			name: "bsc default genesis",
+			name: "polygon default genesis",
 			want: &crosschaintypes.GenesisState{
 				Params: &crosschaintypes.Params{
-					GravityId:                         "fx-bsc-bridge",
+					GravityId:                         "fx-polygon-bridge",
 					AverageBlockTime:                  5_000,
 					ExternalBatchTimeout:              12 * 3600 * 1000,
 					AverageExternalBlockTime:          5_000,

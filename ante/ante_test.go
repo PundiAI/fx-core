@@ -65,7 +65,7 @@ func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
 
 func (suite *AnteTestSuite) SetupTest() {
 
-	suite.app = helpers.Setup(suite.T(), false)
+	suite.app = helpers.Setup(false, false)
 
 	// account key
 	priv := secp256k1.GenPrivKey()

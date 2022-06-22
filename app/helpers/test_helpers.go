@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -66,14 +68,22 @@ type EmptyAppOptions struct{}
 
 func (EmptyAppOptions) Get(string) interface{} { return nil }
 
-func Setup(t *testing.T, isCheckTx bool) *app.App {
-	t.Helper()
+func Setup(isCheckTx bool, isShowLog bool) *app.App {
+	logger := log.NewNopLogger()
+	if isShowLog {
+		logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	}
 
-	myApp, genesisState := setup(!isCheckTx, 5)
+	myApp := app.New(logger, dbm.NewMemDB(),
+		nil, true, map[int64]bool{}, os.TempDir(), 5,
+		app.MakeEncodingConfig(), EmptyAppOptions{},
+	)
 	if !isCheckTx {
 		// InitChain must be called to stop deliverState from being nil
-		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
-		require.NoError(t, err)
+		stateBytes, err := json.MarshalIndent(DefGenesisState(myApp.AppCodec()), "", " ")
+		if err != nil {
+			panic(err)
+		}
 
 		// Initialize the chain
 		myApp.InitChain(abci.RequestInitChain{
@@ -86,41 +96,32 @@ func Setup(t *testing.T, isCheckTx bool) *app.App {
 	return myApp
 }
 
-func setup(withGenesis bool, invCheckPeriod uint) (*app.App, app.GenesisState) {
-	db := dbm.NewMemDB()
-	encCdc := app.MakeEncodingConfig()
-	myApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{},
-		os.TempDir(), invCheckPeriod, encCdc, EmptyAppOptions{},
-	)
-	if withGenesis {
-		genesis := app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encCdc.Marshaler)
-		bankState := new(banktypes.GenesisState)
-		encCdc.Marshaler.MustUnmarshalJSON(genesis[banktypes.ModuleName], bankState)
-		bankState.Balances = append(bankState.Balances, banktypes.Balance{
-			Address: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-			Coins:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(4000).MulRaw(1e18))),
-		})
-		genesis[banktypes.ModuleName] = encCdc.Marshaler.MustMarshalJSON(bankState)
-		return myApp, genesis
-	}
-
-	return myApp, app.GenesisState{}
+func DefGenesisState(cdc codec.Codec) app.GenesisState {
+	genesis := app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cdc)
+	bankState := new(banktypes.GenesisState)
+	cdc.MustUnmarshalJSON(genesis[banktypes.ModuleName], bankState)
+	bankState.Balances = append(bankState.Balances, banktypes.Balance{
+		Address: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
+		Coins:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(4_000).MulRaw(1e18))),
+	})
+	genesis[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
+	return genesis
 }
 
-func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (*tmtypes.ValidatorSet, authtypes.GenesisAccounts, []banktypes.Balance) {
+func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tmtypes.ValidatorSet, genAccs authtypes.GenesisAccounts, balances []banktypes.Balance) {
 	if initCoins == nil || initCoins.Len() <= 0 {
-		initCoins = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10000).MulRaw(1e18)))
+		initCoins = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)))
 	}
-	valSets := make([]*tmtypes.Validator, 0, validatorNum)
-	var genesisAccounts authtypes.GenesisAccounts
-	balances := make([]banktypes.Balance, 0, validatorNum)
+	validators := make([]*tmtypes.Validator, 0, validatorNum)
+	genAccs = make(authtypes.GenesisAccounts, 0)
+	balances = make([]banktypes.Balance, 0, validatorNum)
 	for i := 0; i < validatorNum; i++ {
 		validator := tmtypes.NewValidator(ed255192.GenPrivKey().PubKey(), 1)
-		valSets = append(valSets, validator)
+		validators = append(validators, validator)
 
 		senderPrivKey := secp256k1.GenPrivKey()
 		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
-		genesisAccounts = append(genesisAccounts, acc)
+		genAccs = append(genAccs, acc)
 
 		balance := banktypes.Balance{
 			Address: acc.GetAddress().String(),
@@ -128,7 +129,7 @@ func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (*tmtypes.V
 		}
 		balances = append(balances, balance)
 	}
-	return tmtypes.NewValidatorSet(valSets), genesisAccounts, balances
+	return tmtypes.NewValidatorSet(validators), genAccs, balances
 }
 
 // SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts
@@ -136,7 +137,8 @@ func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (*tmtypes.V
 // of one consensus engine unit (10^6) in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
 func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
-	myApp, genesisState := setup(true, 5)
+	myApp := Setup(true, false)
+	genesisState := DefGenesisState(myApp.AppCodec())
 
 	// set genesis accounts
 	var authGenesis authtypes.GenesisState
@@ -225,7 +227,9 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 // SetupWithGenesisAccounts initializes a new SimApp with the provided genesis
 // accounts and possible balances.
 func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
-	myApp, genesisState := setup(true, 0)
+	myApp := Setup(true, false)
+	genesisState := DefGenesisState(myApp.AppCodec())
+
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
 	genesisState[authtypes.ModuleName] = myApp.AppCodec().MustMarshalJSON(authGenesis)
 

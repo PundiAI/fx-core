@@ -241,7 +241,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 	require.NotPanics(suite.T(), func() {
 		gravityId = suite.Keeper().GetGravityID(suite.ctx)
 	})
-	require.EqualValues(suite.T(), fmt.Sprintf("fx-bridge-%s", suite.chainName), gravityId)
+	require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 
 	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[0])
@@ -349,7 +349,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	require.NotPanics(suite.T(), func() {
 		gravityId = suite.Keeper().GetGravityID(suite.ctx)
 	})
-	require.EqualValues(suite.T(), fmt.Sprintf("fx-bridge-%s", suite.chainName), gravityId)
+	require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 
 	// oracle Online!!!

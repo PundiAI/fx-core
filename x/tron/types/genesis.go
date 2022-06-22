@@ -6,7 +6,7 @@ import (
 
 func DefaultGenesisState() *crosschaintypes.GenesisState {
 	params := crosschaintypes.DefaultParams()
-	params.GravityId = "fx-bridge-tron"
+	params.GravityId = "fx-tron-bridge"
 	return &crosschaintypes.GenesisState{
 		Params: params,
 	}

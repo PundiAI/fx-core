@@ -61,14 +61,14 @@ var (
 func DefaultParams() *Params {
 	return &Params{
 		GravityId:                         "fx-gravity-id",
-		AverageBlockTime:                  5 * 1e3,
-		ExternalBatchTimeout:              24 * 3600 * 1e3,
-		AverageExternalBlockTime:          5 * 1e3,
-		SignedWindow:                      20 * 1e3,
-		SlashFraction:                     sdk.NewDecWithPrec(1, 3),
+		AverageBlockTime:                  5_000,
+		ExternalBatchTimeout:              12 * 3600 * 1000,
+		AverageExternalBlockTime:          5_000,
+		SignedWindow:                      20_000,
+		SlashFraction:                     sdk.NewDecWithPrec(1, 2),
 		OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
-		IbcTransferTimeoutHeight:          20 * 1e3,
-		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10*1e3).MulRaw(1e18)),
+		IbcTransferTimeoutHeight:          20_000,
+		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
 		DelegateMultiple:                  DefaultOracleDelegateThreshold,
 	}
 }
