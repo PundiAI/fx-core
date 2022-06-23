@@ -3,6 +3,7 @@ package v020
 import (
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -37,6 +38,8 @@ var (
 		evmtypes.ModuleName:       true,
 		erc20types.ModuleName:     true,
 		migratetypes.ModuleName:   true,
+		feegrant.ModuleName:       true,
+		authz.ModuleName:          true,
 	}
 
 	runMigrates = map[string]uint64{
