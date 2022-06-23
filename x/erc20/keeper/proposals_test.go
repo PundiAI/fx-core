@@ -17,14 +17,11 @@ const (
 )
 
 const (
-	erc20Name          = "Coin Token"
-	erc20Symbol        = "CTKN"
-	erc20Decimals      = uint8(18)
-	cosmosTokenBase    = "acoin"
-	cosmosTokenDisplay = "coin"
-	cosmosDecimals     = uint8(6)
-	defaultExponent    = uint32(18)
-	zeroExponent       = uint32(0)
+	erc20Name       = "Coin Token"
+	erc20Symbol     = "CTKN"
+	erc20Decimals   = uint8(18)
+	cosmosTokenBase = "acoin"
+	defaultExponent = uint32(18)
 )
 
 func (suite *KeeperTestSuite) setupRegisterERC20Pair(contractType int) common.Address {
@@ -69,7 +66,7 @@ func (suite *KeeperTestSuite) setupRegisterCoin() (banktypes.Metadata, *types.To
 	return validMetadata, pair
 }
 
-func (suite KeeperTestSuite) TestRegisterCoin() {
+func (suite *KeeperTestSuite) TestRegisterCoin() {
 	metadata := banktypes.Metadata{
 		Description: "description",
 		// NOTE: Denom units MUST be increasing
@@ -172,7 +169,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() {
 	}
 }
 
-func (suite KeeperTestSuite) TestRegisterERC20() {
+func (suite *KeeperTestSuite) TestRegisterERC20() {
 	var (
 		contractAddr common.Address
 		pair         types.TokenPair
@@ -251,7 +248,7 @@ func (suite KeeperTestSuite) TestRegisterERC20() {
 	}
 }
 
-func (suite KeeperTestSuite) TestToggleRelay() {
+func (suite *KeeperTestSuite) TestToggleRelay() {
 	var (
 		contractAddr common.Address
 		id           []byte

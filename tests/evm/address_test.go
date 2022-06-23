@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	// nolint
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -34,6 +35,7 @@ func Test_FxAddress(t *testing.T) {
 	bz, _ := hex.DecodeString(privateKey)
 	priKey := secp256k1.PrivKey{Key: bz}
 
+	// nolint
 	pubkey, err := legacybech32.MarshalPubKey(legacybech32.AccPK, priKey.PubKey())
 	require.NoError(t, err)
 	t.Log("fx pubkey", pubkey)

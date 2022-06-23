@@ -326,7 +326,10 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	chain.NextBlock()
 
 	// increment sequence for successful transaction execution
-	chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+	err = chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+	if err != nil {
+		return nil, err
+	}
 
 	chain.Coordinator.IncrementTime()
 
@@ -477,10 +480,8 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		Commit: commit.ToProto(),
 	}
 
-	if tmValSet != nil {
-		valSet, err = tmValSet.ToProto()
-		require.NoError(chain.T, err)
-	}
+	valSet, err = tmValSet.ToProto()
+	require.NoError(chain.T, err)
 
 	if tmTrustedVals != nil {
 		trustedVals, err = tmTrustedVals.ToProto()

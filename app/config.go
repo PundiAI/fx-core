@@ -41,10 +41,7 @@ func ParseFunctionXChainID(_ string) (*big.Int, error) {
 }
 
 func ValidFunctionXChainID(chainID string) bool {
-	if fxtypes.ChainId() == chainID {
-		return true
-	}
-	return false
+	return fxtypes.ChainId() == chainID
 }
 
 func CalculateBaseFee(ctx sdk.Context, k feemarketkeeper.Keeper) *big.Int {

@@ -122,7 +122,7 @@ func (c *Client) BroadcastTx(msgList []sdk.Msg) string {
 		if err != nil {
 			c.t.Fatal(err)
 		}
-		c.t.Logf("msg index:[%d], type:[%s], data:[%+v]", i, fmt.Sprintf("%s", sdk.MsgTypeURL(msg)), string(marshalIndent))
+		c.t.Logf("msg index:[%d], type:[%s], data:[%+v]", i, sdk.MsgTypeURL(msg), string(marshalIndent))
 	}
 
 	txBodyBytes, txAuthInfoBytes := buildTxBodyAndTxAuthInfo(c, msgList, account.GetAccountNumber(), account.GetSequence())

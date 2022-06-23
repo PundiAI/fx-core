@@ -243,6 +243,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 	})
 	require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
+	require.NoError(suite.T(), err)
 
 	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[0])
 	require.NoError(suite.T(), err)
@@ -351,6 +352,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	})
 	require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
+	require.NoError(suite.T(), err)
 
 	// oracle Online!!!
 	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[0])

@@ -13,12 +13,15 @@ const (
 
 // mainnet constant
 const (
-	mainnetCrossChainSupportBscBlock            = 1354000
-	mainnetCrossChainSupportTronAndPolygonBlock = 2062000
-	// gravity prune validator set
-	mainnetGravityPruneValsetAndAttestationBlock = 610000
-	// gravity not slash no set eth address validator
-	mainnetGravityValsetSlashBlock = 1685000
+
+	/*
+		mainnetCrossChainSupportBscBlock            = 1354000
+		mainnetCrossChainSupportTronAndPolygonBlock = 2062000
+		// gravity prune validator set
+		mainnetGravityPruneValsetAndAttestationBlock = 610000
+		// gravity not slash no set eth address validator
+		mainnetGravityValsetSlashBlock = 1685000
+	*/
 
 	mainnetChainId    = "fxcore"
 	mainnetEvmChainID = 1

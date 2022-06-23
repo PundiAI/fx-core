@@ -69,6 +69,9 @@ func GetMigrateAccountCmd() *cobra.Command {
 
 			//migrate account
 			msg, err := getMigrateAccountMsg(cliCtx, fromAddress, hexAddress)
+			if err != nil {
+				return err
+			}
 			msgs = append(msgs, msg)
 			//sign and broadcast tx
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msgs...)

@@ -295,6 +295,9 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 	}
 
 	unpacked, err := erc20Config.ABI.Unpack("balanceOf", res.Ret)
+	if err != nil {
+		return err
+	}
 	if len(unpacked) == 0 {
 		return nil
 	}

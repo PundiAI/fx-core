@@ -10,7 +10,7 @@ import (
 	"github.com/functionx/fx-core/tests"
 )
 
-func (suite AnteTestSuite) TestSignatures() {
+func (suite *AnteTestSuite) TestSignatures() {
 	suite.SetupTest() // reset
 
 	addr, privKey := tests.NewAddrKey()

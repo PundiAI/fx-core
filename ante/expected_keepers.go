@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -58,10 +57,6 @@ type EVMKeeper interface {
 	GetBalance(ctx sdk.Context, addr common.Address) *big.Int
 	ResetTransientGasUsed(ctx sdk.Context)
 	GetTxIndexTransient(ctx sdk.Context) uint64
-}
-
-type protoTxProvider interface {
-	GetProtoTx() *tx.Tx
 }
 
 // FeeMarketKeeper defines the expected keeper interface used on the AnteHandler

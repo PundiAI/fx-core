@@ -23,15 +23,16 @@ import (
 )
 
 func TestMigrateOracle(t *testing.T) {
-	oracleAddr := make([]sdk.AccAddress, 20)
+	oracleNumber := 20
+	oracleAddr := make([]sdk.AccAddress, oracleNumber)
 	for i := 0; i < len(oracleAddr); i++ {
 		oracleAddr[i] = secp256k1.GenPrivKey().PubKey().Bytes()
 	}
-	bridgerAddr := make([]sdk.AccAddress, 20)
+	bridgerAddr := make([]sdk.AccAddress, oracleNumber)
 	for i := 0; i < len(oracleAddr); i++ {
 		bridgerAddr[i] = secp256k1.GenPrivKey().PubKey().Bytes()
 	}
-	externalAddr := make([]common.Address, 20)
+	externalAddr := make([]common.Address, oracleNumber)
 	for i := 0; i < len(oracleAddr); i++ {
 		key, _ := crypto.GenerateKey()
 		externalAddr[i] = crypto.PubkeyToAddress(key.PublicKey)
@@ -81,7 +82,7 @@ func TestMigrateOracle(t *testing.T) {
 					ctx := myApp.BaseApp.NewContext(false, tmproto.Header{Time: time.Now()})
 					oraclesFromDB := myApp.BscKeeper.GetAllOracles(ctx, false)
 					sort.Slice(oraclesFromDB, func(i, j int) bool {
-						return oraclesFromDB[i].OracleAddress > oracles[j].OracleAddress
+						return oraclesFromDB[i].OracleAddress > oraclesFromDB[j].OracleAddress
 					})
 					require.Equal(t, len(oracles), len(oraclesFromDB))
 

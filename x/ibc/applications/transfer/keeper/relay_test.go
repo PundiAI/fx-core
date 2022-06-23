@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				cap := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				// Release channel capability
-				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
+				_ = suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
 				amount = sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))
 			}, true, false},
 	}

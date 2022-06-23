@@ -568,9 +568,11 @@ func (suite *IntegrationTestSuite) TestOracleDelete() {
 
 	oracleAddr, found = suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
 	require.True(suite.T(), found)
+	require.Equal(suite.T(), oracleAddr, oracle)
 
 	oracleAddr, found = suite.Keeper().GetOracleByExternalAddress(suite.ctx, externalAddress)
 	require.True(suite.T(), found)
+	require.Equal(suite.T(), oracleAddr, oracle)
 
 	oracleData, found = suite.Keeper().GetOracle(suite.ctx, oracle)
 	require.True(suite.T(), found)

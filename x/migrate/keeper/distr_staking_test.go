@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 
 	//check eth acc delegate
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
-	suite.Require().False(false)
+	suite.Require().False(found)
 
 	//commit block
 	suite.ctx = commitBlock(suite.T(), suite.ctx, suite.app)

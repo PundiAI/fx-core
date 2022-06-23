@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"math/big"
 	"sync"
 	"testing"
 
@@ -48,16 +47,6 @@ const (
 	//purseTokenChannelIBC            = "transfer/channel-0"
 	defaultExternalWalletPrivateKey = "b3f8605873861602b62617993fda26c00c057776934931a9d8cfa5d2e78fdc4a"
 	chainName                       = trontypes.ModuleName
-	gravityId                       = "fx-" + chainName + "-local"
-)
-
-var (
-	oneInt = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-
-	//purseDenom = types2.DenomTrace{
-	//	Path:      purseTokenChannelIBC,
-	//	BaseDenom: fmt.Sprintf("%s%s", chainName, tusdTokenContract),
-	//}.IBCDenom()
 )
 
 var (
@@ -135,7 +124,7 @@ func (c *Client) BroadcastTx(msgList []sdk.Msg) string {
 		if err != nil {
 			c.t.Fatal(err)
 		}
-		c.t.Logf("msg index:[%d], type:[%s], data:[%+v]", i, fmt.Sprintf("%s", sdk.MsgTypeURL(msg)), string(marshalIndent))
+		c.t.Logf("msg index:[%d], type:[%s], data:[%+v]", i, sdk.MsgTypeURL(msg), string(marshalIndent))
 	}
 
 	txBodyBytes, txAuthInfoBytes := buildTxBodyAndTxAuthInfo(c, msgList, account.GetAccountNumber(), account.GetSequence())
