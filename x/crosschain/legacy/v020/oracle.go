@@ -5,7 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	fxtypes "github.com/functionx/fx-core/types"
 	v010 "github.com/functionx/fx-core/x/crosschain/legacy/v010"
 	"github.com/functionx/fx-core/x/crosschain/types"
@@ -27,15 +26,15 @@ func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey
 	for ; iterator.Valid(); iterator.Next() {
 		var legacyOracle v010.LegacyOracle
 		cdc.MustUnmarshal(iterator.Value(), &legacyOracle)
-		if legacyOracle.DelegateAmount.Denom != fxtypes.DefaultDenom {
-			return nil, delegateValidator, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom: %s", legacyOracle.DelegateAmount.Denom)
+		if legacyOracle.DepositAmount.Denom != fxtypes.DefaultDenom {
+			return nil, delegateValidator, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom: %s", legacyOracle.DepositAmount.Denom)
 		}
 
 		oracle := types.Oracle{
 			OracleAddress:     legacyOracle.OracleAddress,
-			BridgerAddress:    legacyOracle.BridgerAddress,
+			BridgerAddress:    legacyOracle.OrchestratorAddress,
 			ExternalAddress:   legacyOracle.ExternalAddress,
-			DelegateAmount:    legacyOracle.DelegateAmount.Amount,
+			DelegateAmount:    legacyOracle.DepositAmount.Amount,
 			StartHeight:       legacyOracle.StartHeight,
 			Online:            !legacyOracle.Jailed,
 			DelegateValidator: delegateValidator.OperatorAddress,
@@ -44,5 +43,6 @@ func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey
 		store.Set(types.GetOracleKey(oracle.GetOracle()), cdc.MustMarshal(&oracle))
 		oracles = append(oracles, oracle)
 	}
+
 	return oracles, delegateValidator, nil
 }
