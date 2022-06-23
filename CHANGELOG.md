@@ -14,6 +14,7 @@
 * Delete gravity and crosschain module ibc sequence key 
 * Update crosschain params AverageBlockTime
 * Bump ethermint to v0.16.1-fxcore-v2.0.0-rc3.
+* Update block max gas to 30_000_000
 
 ### CLI Breaking Changes
 

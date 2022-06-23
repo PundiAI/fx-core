@@ -28,7 +28,7 @@ import (
 const (
 	UpgradeName = "fxv2"
 
-	blockParamsMaxGas = 3000000000
+	blockParamsMaxGas = 30_000_000
 )
 
 var (
