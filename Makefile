@@ -163,7 +163,7 @@ docker-devnet:
 	@docker build --no-cache --build-arg NETWORK=devnet -f Dockerfile -t functionx/fx-core:boonlay .
 
 docker-testnet:
-	@docker build --no-cache --build-arg NETWORK=testnet -f Dockerfile -t functionx/fx-core:dhobyghaut-v2.0.0-rc2 .
+	@docker build --no-cache --build-arg NETWORK=testnet -f Dockerfile -t functionx/fx-core:dhobyghaut-v2.0.0-rc3 .
 
 run-local: install
 	@./develop/run_fxcore.sh init

@@ -12,6 +12,8 @@
 * The previous Oracle deposit will be automatically delegated to the validator with the highest power value after the upgrade.  Oracle can modify the validator itself, requiring a manual delegate payment
 * `MsgRequestBatch` add the field BaseFee
 * Delete gravity and crosschain module ibc sequence key 
+* Update crosschain params AverageBlockTime
+* Bump ethermint to v0.16.1-fxcore-v2.0.0-rc3.
 
 ### CLI Breaking Changes
 
