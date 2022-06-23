@@ -180,7 +180,7 @@ draw-deps:
 
 lint:
 	@echo "--> Running linter"
-	golangci-lint run -v --timeout 3m
+	golangci-lint run -v --timeout 5m
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' -not -name "statik.go" | xargs gofmt -d -s
 
 format:

@@ -125,7 +125,7 @@ func (k *Keeper) SetIBCChannelKeeperForTest(t types.IBCChannelKeeper) {
 }
 
 func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error {
-	k.Logger(ctx).Debug("create contract with code", "address", addr.String(), "code", hex.EncodeToString(code))
+	k.Logger(ctx).Debug("create contract with code", "address", addr.String(), "code", hex.EncodeToString(code[:32])+"..."+hex.EncodeToString(code[len(code)-32:]))
 	codeHash := crypto.Keccak256Hash(code)
 	acc := k.evmKeeper.GetAccount(ctx, addr)
 	if acc == nil {
