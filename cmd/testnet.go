@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/testutil"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"html/template"
 	"net"
 	"os"
@@ -13,8 +15,6 @@ import (
 
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	"github.com/functionx/fx-core/app"
 
@@ -45,6 +45,7 @@ const (
 	flagOutputDir      = "output-dir"
 	flagNodeDaemonHome = "node-daemon-home"
 	flagStartingIP     = "starting-ip"
+	flagDockerImage    = "docker-image"
 )
 
 // testnetCmd get cmd to initialize all files for tendermint testnet and application
@@ -61,38 +62,41 @@ Example:
 	fxcored testnet -validators 4 -output-dir ./testnet --starting-ip 172.20.0.2
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			srvconfig.SetConfigTemplate(DefaultConfigTemplate())
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 			serverCtx := server.GetServerContextFromCmd(cmd)
+
 			outputDir := serverCtx.Viper.GetString(flagOutputDir)
 			chainID := serverCtx.Viper.GetString(flags.FlagChainID)
 			valNum := serverCtx.Viper.GetInt(flagValidatorNum)
 			startingIPAddress := serverCtx.Viper.GetString(flagStartingIP)
+			dockerImage := serverCtx.Viper.GetString(flagDockerImage)
 
-			_ = os.RemoveAll(outputDir)
+			minGasPrices, _ := cmd.Flags().GetString(server.FlagMinGasPrices)
 			err = initTestnet(
 				clientCtx,
 				serverCtx,
-				serverCtx.Viper.GetString(flagOutputDir),
+				outputDir,
 				chainID,
-				serverCtx.Viper.GetString(server.FlagMinGasPrices),
+				minGasPrices,
 				serverCtx.Viper.GetString(flagNodeNamePrefix),
 				serverCtx.Viper.GetString(flagNodeDaemonHome),
 				startingIPAddress,
-				serverCtx.Viper.GetString(flags.FlagKeyringBackend),
 				serverCtx.Viper.GetString(flags.FlagKeyAlgorithm),
 				serverCtx.Viper.GetString(cli.FlagDenom),
-				serverCtx.Viper.GetInt(flagValidatorNum),
+				valNum,
 			)
 			if err != nil {
 				return err
 			}
-			if err = generateFxChainDockerComposeYml(valNum, chainID, startingIPAddress); err != nil {
+			if err = generateFxChainDockerComposeYml(valNum, chainID, startingIPAddress, dockerImage); err != nil {
 				return err
 			}
-			return clientCtx.PrintString("Please run: docker-compose up -d")
+			return clientCtx.PrintString("Please run: docker-compose up -d\n")
 		},
 	}
 
@@ -101,11 +105,11 @@ Example:
 	cmd.Flags().String(flagNodeNamePrefix, "node", "Prefix the directory name for each node with (node results in node0, node1, ...)")
 	cmd.Flags().String(flagNodeDaemonHome, fxtypes.Name, "Home directory of the node's daemon configuration")
 	cmd.Flags().String(flagStartingIP, "172.20.0.2", "Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")
-	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
+	cmd.Flags().String(flags.FlagChainID, fxtypes.ChainID, "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("4000000000000%s", fxtypes.DefaultDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum")
-	cmd.Flags().String(flags.FlagKeyringBackend, "", "Select keyring's backend (os|file|test)")
-	cmd.Flags().String(flags.FlagKeyAlgorithm, ethsecp256k1.KeyType, "Key signing algorithm to generate keys for")
+	cmd.Flags().String(flags.FlagKeyAlgorithm, secp256k1.KeyType, "Key signing algorithm to generate keys for")
 	cmd.Flags().String(cli.FlagDenom, fxtypes.DefaultDenom, "set the default coin denomination")
+	cmd.Flags().String(flagDockerImage, "functionx/fx-core:latest", "set docker run image")
 
 	return cmd
 }
@@ -119,14 +123,11 @@ func initTestnet(
 	nodeNamePrefix,
 	nodeDaemonHome,
 	startingIP,
-	keyringBackend,
 	algoStr,
 	denom string,
 	valNum int,
 ) error {
-	fxAppConfig := Config{
-		Config: *srvconfig.DefaultConfig(),
-	}
+	fxAppConfig := DefaultConfig()
 	fxAppConfig.MinGasPrices = minGasPrices
 	fxAppConfig.API.Enable = true
 	fxAppConfig.Telemetry.Enabled = true
@@ -172,7 +173,7 @@ func initTestnet(
 		memo := fmt.Sprintf("%s@%s:26656", nodeIDs[i], ip)
 		genFiles = append(genFiles, serverCtx.Config.GenesisFile())
 
-		kb, err := keyring.New(sdk.KeyringServiceName(), keyringBackend, nodeDir, bufio.NewReader(os.Stdin))
+		kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendTest, nodeDir, bufio.NewReader(os.Stdin))
 		if err != nil {
 			return err
 		}
@@ -182,12 +183,11 @@ func initTestnet(
 		if err != nil {
 			return err
 		}
-		// nolint
-		valAddr, mnemonic, err := server.GenerateSaveCoinKey(kb, nodeDirName, true, algo)
+		valAddr, mnemonic, err := testutil.GenerateSaveCoinKey(kb, nodeDirName, "", true, algo)
 		if err != nil {
 			return err
 		}
-		valKeyData, err := json.Marshal(map[string]string{"mnemonic": mnemonic})
+		valKeyData, err := json.Marshal(map[string]string{"mnemonic": mnemonic, "algo": keyringAlgos.String()})
 		if err != nil {
 			return err
 		}
@@ -264,7 +264,7 @@ func initTestnet(
 	var bankGenState banktypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appGenState[banktypes.ModuleName], &bankGenState)
 
-	bankGenState.Balances = genBalances
+	bankGenState.Balances = append(bankGenState.Balances, genBalances...)
 	appGenState[banktypes.ModuleName] = clientCtx.Codec.MustMarshalJSON(&bankGenState)
 
 	appGenStateJSON, err := json.MarshalIndent(appGenState, "", "  ")
@@ -407,8 +407,7 @@ networks:
       - subnet: {{.Subnet}}
 `
 
-func generateFxChainDockerComposeYml(numValidators int, chainId, startingIPAddress string) error {
-	var dockerImage = "functionx/fx-core:latest"
+func generateFxChainDockerComposeYml(numValidators int, chainId, startingIPAddress, dockerImage string) error {
 	data := map[string]interface{}{
 		"NetworkName": fmt.Sprintf("%s-net", chainId),
 		"Subnet":      fmt.Sprintf("%s/16", calculateSubnet(startingIPAddress)),
