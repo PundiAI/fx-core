@@ -119,7 +119,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		appCmd.Debug(),
 		networkCmd(),
 		sdkCfgCmd,
-		dataCmd(),
+		appCmd.DataCmd(),
 	)
 
 	appCreator := appCreator{encodingConfig}

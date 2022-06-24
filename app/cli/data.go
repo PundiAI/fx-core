@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"fmt"
@@ -29,21 +29,21 @@ const (
 	appDBName   = "application"
 )
 
-func dataCmd() *cobra.Command {
+func DataCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "data",
 		Short: "modify data or query data in database",
 	}
 
 	cmd.AddCommand(
-		queryCmd(),
-		pruningCmd(),
+		dataQueryCmd(),
+		dataPruningCmd(),
 	)
 
 	return cmd
 }
 
-func queryCmd() *cobra.Command {
+func dataQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "query",
 		Short: "Query blocks and states in database",
@@ -70,7 +70,7 @@ func queryCmd() *cobra.Command {
 	return cmd
 }
 
-func pruningCmd() *cobra.Command {
+func dataPruningCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "prune-compact",
 		Short: "Prune and Compact blocks and application states",

@@ -11,8 +11,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/debug"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -80,7 +78,8 @@ func StringToBytes32() *cobra.Command {
 		Short: "string to bytes32 hex",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			byte32 := fxtypes.StringToByte32(args[0])
+			var byte32 [32]byte
+			copy(byte32[:], args[0])
 			cmd.Println(hex.EncodeToString(byte32[:]))
 			return nil
 		},
