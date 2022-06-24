@@ -5,6 +5,8 @@ import (
 	"math"
 	"strings"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 
 	"time"
@@ -194,7 +196,14 @@ func (im IBCModule) OnRecvPacket(
 	// only attempt the application logic if the packet data
 	// was successfully decoded
 	if ack.Success() {
-		err := handlerForwardTransferPacket(ctx, im, packet, data)
+		var err error
+		// if router set, route packet
+		if ctx.BlockHeight() >= fxtypes.IBCRouteBlock() && data.Router != "" {
+			err = im.keeper.OnRecvPacket(ctx, packet, data)
+		} else {
+			err = handlerForwardTransferPacket(ctx, im, packet, data)
+		}
+
 		if err != nil {
 			ack = types.NewErrorAcknowledgement(err)
 		}

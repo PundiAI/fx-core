@@ -23,9 +23,10 @@ func networkCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			output := map[string]interface{}{
-				"ChainId":       types.ChainID,
-				"Network":       types.Network(),
-				"EIP155ChainID": fmt.Sprintf("%d", types.EIP155ChainID()),
+				"ChainId":        types.ChainID,
+				"Network":        types.Network(),
+				"EIP155ChainID":  fmt.Sprintf("%d", types.EIP155ChainID()),
+				"IBCRouterBlock": fmt.Sprintf("%d", types.IBCRouteBlock()),
 			}
 			return cli.PrintOutput(clientCtx, output)
 		},

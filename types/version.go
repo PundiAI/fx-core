@@ -29,8 +29,9 @@ const (
 
 // testnet constant
 const (
-	testnetChainId    = "dhobyghaut"
-	testnetEvmChainID = 90001
+	testnetChainId        = "dhobyghaut"
+	testnetEvmChainID     = 90001
+	testnetIBCRouterBlock = 3433511
 )
 
 // devnet constant
@@ -79,4 +80,11 @@ func EIP155ChainID() *big.Int {
 		return big.NewInt(testnetEvmChainID)
 	}
 	return big.NewInt(mainnetEvmChainID)
+}
+
+func IBCRouteBlock() int64 {
+	if networkTestnet == network {
+		return testnetIBCRouterBlock
+	}
+	return 0
 }

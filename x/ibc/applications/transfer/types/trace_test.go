@@ -31,6 +31,7 @@ func TestParseDenomTrace(t *testing.T) {
 		{"invalid path (5)", "transfer/channelToA/", DenomTrace{Path: "transfer/channelToA"}},
 		{"invalid path (6)", "transfer/channelToA/transfer", DenomTrace{BaseDenom: "transfer", Path: "transfer/channelToA"}},
 		{"invalid path (7)", "transfer/channelToA/transfer/channelToB", DenomTrace{Path: "transfer/channelToA/transfer/channelToB"}},
+		{"invalid path (7)", "eth0xd9EEd31F5731DfC3Ca18f09B487e200F50a6343B", DenomTrace{BaseDenom: "eth0xd9EEd31F5731DfC3Ca18f09B487e200F50a6343B", Path: ""}},
 	}
 
 	for _, tc := range testCases {
