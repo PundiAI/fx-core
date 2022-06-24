@@ -157,17 +157,6 @@ func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 				telemetry.NewLabel("erc20", pair.Erc20Address),
 			},
 		)
-
-		if msg.Coin.Amount.IsInt64() {
-			telemetry.IncrCounterWithLabels(
-				[]string{"tx", "msg", "convert", "coin", "amount", "total"},
-				float32(msg.Coin.Amount.Int64()),
-				[]metrics.Label{
-					telemetry.NewLabel("denom", pair.Denom),
-					telemetry.NewLabel("erc20", pair.Erc20Address),
-				},
-			)
-		}
 	}()
 
 	ctx.EventManager().EmitEvents(
@@ -256,17 +245,6 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 				telemetry.NewLabel("erc20", pair.Erc20Address),
 			},
 		)
-
-		if msg.Amount.IsInt64() {
-			telemetry.IncrCounterWithLabels(
-				[]string{"tx", "msg", "convert", "erc20", "amount", "total"},
-				float32(msg.Amount.Int64()),
-				[]metrics.Label{
-					telemetry.NewLabel("denom", pair.Denom),
-					telemetry.NewLabel("erc20", pair.Erc20Address),
-				},
-			)
-		}
 	}()
 
 	ctx.EventManager().EmitEvents(
@@ -376,17 +354,6 @@ func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 				telemetry.NewLabel("erc20", pair.Erc20Address),
 			},
 		)
-
-		if msg.Amount.IsInt64() {
-			telemetry.IncrCounterWithLabels(
-				[]string{"tx", "msg", "convert", "erc20", "amount", "total"},
-				float32(msg.Amount.Int64()),
-				[]metrics.Label{
-					telemetry.NewLabel("denom", pair.Denom),
-					telemetry.NewLabel("erc20", pair.Erc20Address),
-				},
-			)
-		}
 	}()
 
 	ctx.EventManager().EmitEvents(
@@ -479,17 +446,6 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 				telemetry.NewLabel("erc20", pair.Erc20Address),
 			},
 		)
-
-		if msg.Coin.Amount.IsInt64() {
-			telemetry.IncrCounterWithLabels(
-				[]string{"tx", "msg", "convert", "coin", "amount", "total"},
-				float32(msg.Coin.Amount.Int64()),
-				[]metrics.Label{
-					telemetry.NewLabel("denom", pair.Denom),
-					telemetry.NewLabel("erc20", pair.Erc20Address),
-				},
-			)
-		}
 	}()
 
 	ctx.EventManager().EmitEvents(
