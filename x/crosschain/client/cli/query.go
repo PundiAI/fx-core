@@ -110,7 +110,7 @@ func CmdGetParams() *cobra.Command {
 func CmdGetOracles() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oracles [chain-name]",
-		Short: "Query init oracles",
+		Short: "Query oracles",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -131,7 +131,7 @@ func CmdGetOracles() *cobra.Command {
 func CmdGetChainOracles() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "chain-oracles [chain-name]",
-		Short: "Query active oracles",
+		Short: "Query active oracles address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)

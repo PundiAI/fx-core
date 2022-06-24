@@ -3,14 +3,17 @@ package v020_test
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+	"time"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 	v010 "github.com/functionx/fx-core/x/crosschain/legacy/v010"
 	polygontypes "github.com/functionx/fx-core/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -96,8 +99,16 @@ func TestMigrateParams(t *testing.T) {
 			for _, pair := range paramSetPairs {
 				paramsStore.Set(pair.Key, myApp.LegacyAmino().MustMarshalJSON(pair.Value))
 			}
+			paramsStore.Set(v010.ParamStoreOracles, myApp.LegacyAmino().MustMarshalJSON([]string{sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String()}))
 
 			require.NoError(t, v020.MigrateParams(ctx, tt.args.moduleName, myApp.LegacyAmino(), myApp.GetKey(paramstypes.ModuleName)))
+
+			iterator := paramsStore.Iterator(nil, nil)
+			for ; iterator.Valid(); iterator.Next() {
+				require.NotEqual(t, iterator.Key(), v010.ParamOracleDepositThreshold)
+				require.NotEqual(t, iterator.Key(), v010.ParamStoreOracles)
+			}
+			require.NoError(t, iterator.Close())
 
 			paramsFromDB := tt.args.keeper(myApp).GetParams(ctx)
 			require.NoError(t, paramsFromDB.ValidateBasic())
