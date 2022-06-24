@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -11,21 +10,9 @@ import (
 	"github.com/functionx/fx-core/x/other/types"
 )
 
-func GetQueryCmd() *cobra.Command {
+func CmdQueryGasPrice() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
-	}
-	cmd.AddCommand(CmdGasPrice())
-	return cmd
-}
-
-func CmdGasPrice() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "gasPrice",
+		Use:   "gas-price",
 		Short: "query node gas price",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {

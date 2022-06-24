@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/functionx/fx-core/x/other/client/cli"
+
 	"github.com/functionx/fx-core/app"
 
 	"github.com/evmos/ethermint/crypto/hd"
@@ -161,6 +163,7 @@ func queryCommand() *cobra.Command {
 		appCmd.QueryStoreCmd(),
 		appCmd.QueryValidatorByConsAddr(),
 		appCmd.QueryBlockResultsCmd(),
+		cli.CmdQueryGasPrice(),
 	)
 
 	app.ModuleBasics.AddQueryCommands(cmd)
