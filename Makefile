@@ -157,13 +157,7 @@ install-testnet:
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 docker:
-	@docker build --no-cache --build-arg NETWORK=mainnet -f Dockerfile -t functionx/fx-core:mainnet-1.0 .
-
-docker-devnet:
-	@docker build --no-cache --build-arg NETWORK=devnet -f Dockerfile -t functionx/fx-core:boonlay .
-
-docker-testnet:
-	@docker build --no-cache --build-arg NETWORK=testnet -f Dockerfile -t functionx/fx-core:dhobyghaut-v2.0.0-rc3 .
+	@docker build --no-cache --build-arg NETWORK=mainnet -f Dockerfile -t functionx/fx-core:latest .
 
 run-local: install
 	@./develop/run_fxcore.sh init
