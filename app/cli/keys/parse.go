@@ -3,6 +3,8 @@ package keys
 import (
 	"encoding/hex"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -30,7 +32,7 @@ func ParseAddressCommand() *cobra.Command {
 			keyInfo, err := clientCtx.Keyring.Key(addrStr)
 			if err != nil {
 				// try hex, then bech32
-				addr, err = hex.DecodeString(addrStr)
+				addr, err = hexutil.Decode(addrStr)
 				if err != nil {
 					_, addr, err = bech32.DecodeAndConvert(addrStr)
 					if err != nil {
