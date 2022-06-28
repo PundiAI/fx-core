@@ -2,13 +2,7 @@ package types
 
 import (
 	"math/big"
-)
-
-// network constant
-const (
-	networkMainnet = "mainnet"
-	networkTestnet = "testnet"
-	networkDevnet  = "devnet"
+	"sync"
 )
 
 // mainnet constant
@@ -34,56 +28,40 @@ const (
 	testnetIBCRouterBlock = 3433511
 )
 
-// devnet constant
-const (
-	devnetChainId    = "boonlay"
-	devnetEvmChainID = 221
-)
-
 var (
-	// network config network, default mainnet
-	network = networkMainnet
+	chainId = mainnetChainId
+	once    sync.Once
 )
 
-func init() {
-	if network != networkTestnet && network != networkMainnet && network != networkDevnet {
-		network = networkMainnet
+func SetChainId(id string) {
+	if id != mainnetChainId && id != testnetChainId {
+		panic("invalid chainId: " + id)
 	}
-}
-
-func Network() string {
-	return network
-}
-
-func NetworkMainnet() string {
-	return networkMainnet
-}
-func NetworkTestnet() string {
-	return networkTestnet
-}
-func NetworkDevnet() string {
-	return networkDevnet
+	once.Do(func() {
+		chainId = id
+	})
 }
 
 func ChainId() string {
-	if networkDevnet == network {
-		return devnetChainId
-	} else if networkTestnet == network {
-		return testnetChainId
-	}
+	return chainId
+}
+
+func NetworkMainnet() string {
 	return mainnetChainId
 }
+func TestnetChainId() string {
+	return testnetChainId
+}
+
 func EIP155ChainID() *big.Int {
-	if networkDevnet == network {
-		return big.NewInt(devnetEvmChainID)
-	} else if networkTestnet == network {
+	if testnetChainId == chainId {
 		return big.NewInt(testnetEvmChainID)
 	}
 	return big.NewInt(mainnetEvmChainID)
 }
 
 func IBCRouteBlock() int64 {
-	if networkTestnet == network {
+	if testnetChainId == chainId {
 		return testnetIBCRouterBlock
 	}
 	return 0

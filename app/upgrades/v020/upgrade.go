@@ -164,7 +164,7 @@ func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, keys map[st
 
 func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) {
 	logger := ctx.Logger()
-	logger.Info("update block params", "network", fxtypes.Network())
+	logger.Info("update block params", "chainId", fxtypes.ChainId())
 	baseappSubspace, found := pk.GetSubspace(baseapp.Paramspace)
 	if !found {
 		panic(fmt.Sprintf("unknown subspace: %s", baseapp.Paramspace))
@@ -197,7 +197,7 @@ func migrationsOrder(modules []string) []string {
 }
 
 func clearTestnetDenom(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
-	if fxtypes.NetworkTestnet() != fxtypes.Network() {
+	if fxtypes.TestnetChainId() != fxtypes.ChainId() {
 		return
 	}
 	key, ok := keys[banktypes.StoreKey]
@@ -205,7 +205,7 @@ func clearTestnetDenom(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 		panic("bank key store not found")
 	}
 	logger := ctx.Logger()
-	logger.Info("clear testnet metadata", "network", fxtypes.Network())
+	logger.Info("clear testnet metadata", "chainId", fxtypes.ChainId())
 	for _, md := range fxtypes.GetMetadata() {
 		//remove denom except FX
 		if md.Base == fxtypes.DefaultDenom {
@@ -219,10 +219,10 @@ func clearTestnetDenom(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 
 func clearTestnetModule(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 	logger := ctx.Logger()
-	if fxtypes.NetworkTestnet() != fxtypes.Network() {
+	if fxtypes.TestnetChainId() != fxtypes.ChainId() {
 		return
 	}
-	logger.Info("clear kv store", "network", fxtypes.Network())
+	logger.Info("clear kv store", "chainId", fxtypes.ChainId())
 	cleanModules := []string{feemarkettypes.StoreKey, evmtypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey}
 	multiStore := ctx.MultiStore()
 	for _, storeName := range cleanModules {

@@ -74,7 +74,7 @@ var (
 )
 
 func GetStoreUpgrades() *store.StoreUpgrades {
-	if fxtypes.Network() == fxtypes.NetworkTestnet() {
+	if fxtypes.ChainId() == fxtypes.TestnetChainId() {
 		return storeUpgradesTestnet
 	}
 	return storeUpgradesDefault

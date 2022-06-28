@@ -1,9 +1,6 @@
 # compile fx-core
 FROM golang:1.18.2-alpine3.16 as builder
 
-# default mainnet
-ARG NETWORK=mainnet
-
 RUN apk add --no-cache git build-base linux-headers
 
 WORKDIR /app
@@ -14,7 +11,7 @@ RUN go env -w GO111MODULE=on && go mod download
 
 COPY . .
 
-RUN FX_BUILD_OPTIONS=${NETWORK} make build
+RUN make build
 
 # build fx-core
 FROM alpine:3.16

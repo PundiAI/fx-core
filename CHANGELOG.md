@@ -28,6 +28,7 @@
 * Remove Cli flags `--gas-prices` default value
 * Change Cli flags `--gas` default value with `80000`
 * Change the `fxcored config` command output to lowercase      
+* Remove `network` command
 
 ### API Breaking Changes
 

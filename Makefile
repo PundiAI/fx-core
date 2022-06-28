@@ -79,33 +79,9 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 ifneq (,$(FX_BUILD_OPTIONS))
   network=$(FX_BUILD_OPTIONS)
 endif
-ifeq (devnet,$(network))
-  FX_BUILD_OPTIONS := devnet
-endif
-ifeq (testnet,$(network))
-  FX_BUILD_OPTIONS := testnet
-endif
-ifeq (,$(network))
-  FX_BUILD_OPTIONS := mainnet
-endif
 
 ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
-endif
-
-ifeq (devnet,$(findstring devnet,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/functionx/fx-core/types.network=devnet
-  ldflags += -X github.com/functionx/fx-core/types.ChainID=boonlay
-endif
-
-ifeq (testnet,$(findstring testnet,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/functionx/fx-core/types.network=testnet
-  ldflags += -X github.com/functionx/fx-core/types.ChainID=dhobyghaut
-endif
-
-ifeq (mainnet,$(findstring mainnet,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/functionx/fx-core/types.network=mainnet
-  ldflags += -X github.com/functionx/fx-core/types.ChainID=fxcore
 endif
 
 ifeq (,$(findstring nostrip,$(FX_BUILD_OPTIONS)))
@@ -135,7 +111,6 @@ go.sum: go.mod
 	@go mod download
 
 build: go.mod
-	@echo "--> build $(FX_BUILD_OPTIONS) <--"
 	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd
 
 build-win:
@@ -145,19 +120,11 @@ build-linux:
 	@GOOS=linux GOARCH=amd64 $(MAKE) build
 
 install:
-	@FX_BUILD_OPTIONS=mainnet $(MAKE) build
-	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
-
-install-devnet:
-	@FX_BUILD_OPTIONS=devnet $(MAKE) build
-	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
-
-install-testnet:
-	@FX_BUILD_OPTIONS=testnet $(MAKE) build
+	$(MAKE) build
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 docker:
-	@docker build --no-cache --build-arg NETWORK=mainnet -f Dockerfile -t functionx/fx-core:latest .
+	@docker build --no-cache --build-arg -f Dockerfile -t functionx/fx-core:latest .
 
 run-local: install
 	@./develop/run_fxcore.sh init

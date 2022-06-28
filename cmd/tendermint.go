@@ -5,6 +5,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	types2 "github.com/tendermint/tendermint/types"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/app/cli"
 
@@ -48,8 +51,22 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 		//tmcmd.ResetPrivValidatorCmd
 	)
 
+	startCmd := server.StartCmd(appCreator, defaultNodeHome)
+	preRun := startCmd.PreRunE
+	startCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+		if err := preRun(cmd, args); err != nil {
+			return err
+		}
+		serverCtx := sdkserver.GetServerContextFromCmd(cmd)
+		genesisDoc, err := types2.GenesisDocFromFile(serverCtx.Config.GenesisFile())
+		if err != nil {
+			return err
+		}
+		fxtypes.SetChainId(genesisDoc.ChainID)
+		return nil
+	}
 	rootCmd.AddCommand(
-		server.StartCmd(appCreator, defaultNodeHome),
+		startCmd,
 		tendermintCmd,
 		cli.ExportSateCmd(appExport, defaultNodeHome),
 		version.NewVersionCommand(),

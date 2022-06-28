@@ -106,9 +106,7 @@ var (
 )
 
 func GetMetadata() []banktypes.Metadata {
-	if NetworkDevnet() == Network() {
-		return []banktypes.Metadata{wfxMetadata, devnetPUNDIXMetadata, devnetPURSEMetadata, devnetUSDTMetadata}
-	} else if NetworkTestnet() == Network() {
+	if TestnetChainId() == ChainId() {
 		return []banktypes.Metadata{wfxMetadata, testnetPUNDIXMetadata, testnetEthUSDTMetadata, testnetUSDCMetadata, testnetDAIMetadata,
 			testnetPURSEMetadata, testnetUSDJMetadata, testnetUSDFMetadata, testnetTronUSDTMetadata, testnetLINKMetadata}
 	} else {

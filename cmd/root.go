@@ -119,7 +119,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(),
 		appCmd.Debug(),
-		networkCmd(),
 		sdkCfgCmd,
 		appCmd.DataCmd(),
 	)
