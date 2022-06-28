@@ -206,6 +206,7 @@ const appConfigJson = `{
   "inter-block-cache": true,
   "json-rpc": {
     "address": "0.0.0.0:8545",
+    "allow-unprotected-txs": false,
     "api": [
       "eth",
       "net",
