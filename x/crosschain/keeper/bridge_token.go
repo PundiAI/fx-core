@@ -21,6 +21,7 @@ func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *type
 	}
 	var bridgeToken types.BridgeToken
 	k.cdc.MustUnmarshal(data, &bridgeToken)
+	bridgeToken.Token = tokenContract
 	return &bridgeToken
 }
 
@@ -33,6 +34,7 @@ func (k Keeper) GetDenomByBridgeToken(ctx sdk.Context, denom string) *types.Brid
 	}
 	var bridgeToken types.BridgeToken
 	k.cdc.MustUnmarshal(data, &bridgeToken)
+	bridgeToken.Denom = denom
 	return &bridgeToken
 }
 
@@ -79,7 +81,7 @@ func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func([]byte, *type
 	for ; iter.Valid(); iter.Next() {
 		var bridgeToken types.BridgeToken
 		k.cdc.MustUnmarshal(iter.Value(), &bridgeToken)
-		bridgeToken.Denom = string(iter.Value())
+		bridgeToken.Denom = string(iter.Key())
 		// cb returns true to stop early
 		if cb(iter.Key(), &bridgeToken) {
 			break
