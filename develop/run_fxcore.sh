@@ -37,12 +37,8 @@ if [[ "$1" == "init" ]]; then
   fxcored config broadcast-mode "block"
 
   fxcored keys add fx1
-  perl -pi -e 's|378604525462891000000000000|778600525462891000000000000|g' ~/.fxcore/config/genesis.json
-  perl -pi -e 's|"amount": "10000000000000000000000"|"amount": "100000000000000000000"|g' ~/.fxcore/config/genesis.json
-  perl -pi -e 's|"voting_period": "1209600s"|"voting_period": "30s"|g' ~/.fxcore/config/genesis.json
-  perl -pi -e 's|"unbonding_time": "1814400s"|"unbonding_time": "1800s"|g' ~/.fxcore/config/genesis.json
-  fxcored add-genesis-account fx1 400000000000000000000000000FX
-  fxcored gentx fx1 1000000000000000000000FX --chain-id=fxcore \
+  fxcored add-genesis-account fx1 4000000000000000000000FX
+  fxcored gentx fx1 100000000000000000000FX --chain-id=fxcore \
     --moniker="fx-validator" \
     --commission-max-change-rate=0.01 \
     --commission-max-rate=0.2 \
