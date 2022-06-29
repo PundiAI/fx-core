@@ -124,7 +124,7 @@ install:
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 docker:
-	@docker build --no-cache --build-arg -f Dockerfile -t functionx/fx-core:latest .
+	@docker build --no-cache -f Dockerfile -t functionx/fx-core:latest .
 
 run-local: install
 	@./develop/run_fxcore.sh init
