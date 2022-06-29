@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -31,7 +30,6 @@ import (
 
 type KeeperTestSuite struct {
 	suite.Suite
-	sync.Mutex
 
 	app            *app.App
 	ctx            sdk.Context

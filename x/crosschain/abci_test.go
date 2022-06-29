@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"sync"
 	"testing"
 
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
@@ -36,7 +35,6 @@ import (
 
 type IntegrationTestSuite struct {
 	suite.Suite
-	sync.Mutex
 
 	app            *app.App
 	ctx            sdk.Context

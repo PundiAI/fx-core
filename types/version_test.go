@@ -2,8 +2,16 @@ package types
 
 import (
 	"github.com/stretchr/testify/require"
+	"sync"
 	"testing"
 )
+
+func TestSetChainId_invalid(t *testing.T) {
+	require.Equal(t, ChainId(), mainnetChainId)
+	require.Panics(t, func() {
+		SetChainId("hello")
+	})
+}
 
 func TestSetChainId_mainnet(t *testing.T) {
 	require.Equal(t, ChainId(), mainnetChainId)
@@ -16,6 +24,7 @@ func TestSetChainId_mainnet(t *testing.T) {
 }
 
 func TestSetChainId_testnet(t *testing.T) {
+	once = sync.Once{}
 	require.Equal(t, ChainId(), mainnetChainId)
 
 	SetChainId(testnetChainId)
@@ -23,11 +32,4 @@ func TestSetChainId_testnet(t *testing.T) {
 
 	SetChainId(mainnetChainId)
 	require.Equal(t, ChainId(), testnetChainId)
-}
-
-func TestSetChainId_invalid(t *testing.T) {
-	require.Equal(t, ChainId(), mainnetChainId)
-	require.Panics(t, func() {
-		SetChainId("hello")
-	})
 }
