@@ -18,7 +18,7 @@ const (
 	*/
 
 	mainnetChainId    = "fxcore"
-	mainnetEvmChainID = 1
+	mainnetEvmChainID = 530
 )
 
 // testnet constant
