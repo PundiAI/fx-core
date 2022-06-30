@@ -140,6 +140,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 			command.AddCommand(appCmd.UnsafeResetNodeKeyCmd())
 		}
 	}
+
+	// add rosetta
+	rootCmd.AddCommand(server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Marshaler))
 }
 
 func queryCommand() *cobra.Command {
