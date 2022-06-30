@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	types2 "github.com/tendermint/tendermint/types"
@@ -52,6 +53,7 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 	)
 
 	startCmd := server.StartCmd(appCreator, defaultNodeHome)
+	crisis.AddModuleInitFlags(startCmd)
 	preRun := startCmd.PreRunE
 	startCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		if err := preRun(cmd, args); err != nil {
