@@ -133,7 +133,7 @@ draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
 	@goviz -i github.com/functionx/fx-core/app -d 2 | dot -Tpng -o dependency-graph.png
 
-.PHONY: build build-win install docker go.sum
+.PHONY: build build-win install docker go.sum run-local draw-deps
 
 ###############################################################################
 ###                                Linting                                  ###
@@ -182,7 +182,12 @@ containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
 containerProtoGenSwagger=cosmos-sdk-proto-gen-swagger-$(protoVer)
 containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
 
-proto-gen:
+proto-format:
+	@echo "Formatting Protobuf files"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
+		find ./ -name "*.proto" -exec clang-format -i {} \; ; fi
+
+proto-gen: proto-format
 	@echo "Generating Protobuf files"
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
 		sh ./develop/protocgen.sh; fi
@@ -192,10 +197,7 @@ proto-swagger-gen:
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
 		sh ./develop/protoc-swagger-gen.sh; fi
 
-proto-format:
-	@echo "Formatting Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
-		find ./ -name "*.proto" -exec clang-format -i {} \; ; fi
+.PHONY: proto-format proto-gen proto-swagger-gen
 
 # Install the runsim binary with a temporary workaround of entering an outside
 # directory as the "go get" command ignores the -mod option and will polute the
@@ -216,7 +218,7 @@ update-swagger-docs: statik
         echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
 
-.PHONY: proto-gen proto-swagger-gen proto-format proto-lint update-swagger-docs
+.PHONY: statik update-swagger-docs
 
 ###############################################################################
 ###                                Releasing                                ###
