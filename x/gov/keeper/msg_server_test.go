@@ -2,9 +2,11 @@ package keeper_test
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types2 "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/gov/keeper"
 	types3 "github.com/functionx/fx-core/x/gov/types"
@@ -30,6 +32,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 		successInitCoins,
 		suite.addrs[0],
 	)
+	suite.Require().NoError(err)
 	_, err = suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), successProposalMsg)
 	suite.Require().NoError(err)
 

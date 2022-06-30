@@ -1,17 +1,19 @@
 package keeper_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types2 "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/helpers"
 	fxtypes "github.com/functionx/fx-core/types"
 	"github.com/functionx/fx-core/x/gov/keeper"
-	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
 )
 
 type KeeperTestSuite struct {
@@ -35,7 +37,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.addrs = helpers.AddTestAddrs(suite.app, suite.ctx, 3, sdk.NewInt(5000*1e8).MulRaw(1e18))
 	// init communityPool
-	suite.app.DistrKeeper.FundCommunityPool(suite.ctx, sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(5000 * 1e5).MulRaw(1e18)}}, suite.addrs[0])
+	err := suite.app.DistrKeeper.FundCommunityPool(suite.ctx, sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(5000 * 1e5).MulRaw(1e18)}}, suite.addrs[0])
+	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) TestNormalDeposits() {
@@ -46,6 +49,7 @@ func (suite *KeeperTestSuite) TestNormalDeposits() {
 		initCoins,
 		suite.addrs[0],
 	)
+	suite.Require().NoError(err)
 	minDeposit := suite.app.GovKeeper.GetDepositParams(suite.ctx).MinDeposit
 	proposalResponse, err := suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), testProposalMsg)
 	suite.Require().NoError(err)
@@ -101,6 +105,7 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 		initCoins,
 		suite.addrs[0],
 	)
+	suite.Require().NoError(err)
 	proposalResponse, err := suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), communityPoolSpendProposalMsg)
 	suite.Require().NoError(err)
 	_, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposalResponse.ProposalId, suite.addrs[1])
