@@ -1,10 +1,6 @@
 name: Makefile CI
 
-on:
-  push:
-    branches: [ testnet/v2.0.x ]
-  pull_request:
-    branches: [ testnet/v2.0.x ]
+on: [push, pull_request]
 
 jobs:
   build:
