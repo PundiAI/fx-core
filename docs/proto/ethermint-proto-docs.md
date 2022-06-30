@@ -444,7 +444,8 @@ DynamicFeeTx is the data of EIP-1559 dinamic fee transactions.
 
 ### LegacyTx
 LegacyTx is the transaction data of regular Ethereum transactions.
-NOTE: All non-protected transactions (i.e non EIP155 signed) will fail if the RejectUnprotectedTx parameter is enabled.
+NOTE: All non-protected transactions (i.e non EIP155 signed) will fail if the RejectUnprotectedTx parameter is
+enabled.
 
 
 | Field | Type | Label | Description |

@@ -12,12 +12,14 @@ option go_package = "github.com/functionx/fx-core/x/ibc/applications/transfer/ty
 service Query {
   // DenomTrace queries a denomination trace information.
   rpc DenomTrace(QueryDenomTraceRequest) returns (QueryDenomTraceResponse) {
-    option (google.api.http).get = "/ibc/applications/transfer/v1beta1/denom_traces/{hash}";
+    option (google.api.http).get =
+        "/ibc/applications/transfer/v1beta1/denom_traces/{hash}";
   }
 
   // DenomTraces queries all denomination traces.
   rpc DenomTraces(QueryDenomTracesRequest) returns (QueryDenomTracesResponse) {
-    option (google.api.http).get = "/ibc/applications/transfer/v1beta1/denom_traces";
+    option (google.api.http).get =
+        "/ibc/applications/transfer/v1beta1/denom_traces";
   }
 
   // Params queries all parameters of the ibc-transfer module.
@@ -27,7 +29,8 @@ service Query {
 
   // DenomHash queries a denomination hash information.
   rpc DenomHash(QueryDenomHashRequest) returns (QueryDenomHashResponse) {
-    option (google.api.http).get = "/ibc/applications/transfer/v1beta1/denom_hashes/{trace}";
+    option (google.api.http).get =
+        "/ibc/applications/transfer/v1beta1/denom_hashes/{trace}";
   }
 }
 

@@ -197,9 +197,6 @@ proto-format:
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
 		find ./ -name "*.proto" -exec clang-format -i {} \; ; fi
 
-proto-lint:
-	@docker run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf lint --error-format=json
-
 # Install the runsim binary with a temporary workaround of entering an outside
 # directory as the "go get" command ignores the -mod option and will polute the
 # go.{mod, sum} files.
