@@ -36,7 +36,7 @@ if [[ "$1" == "init" ]]; then
   fxcored config output json
   fxcored config broadcast-mode "block"
 
-  fxcored keys add fx1
+  fxcored keys add fx1 --algo secp256k1 --coin-type 118
   fxcored add-genesis-account fx1 4000000000000000000000FX
   fxcored gentx fx1 100000000000000000000FX --chain-id=fxcore \
     --moniker="fx-validator" \
