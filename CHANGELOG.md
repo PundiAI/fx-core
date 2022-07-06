@@ -40,6 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * Add support for the `x-crisis-skip-assert-invariants` CLI flag to the `start` command 
+* CLI parse legacy proposal `InitCrossChainParamsProposal` failed
 
 ## [v5.0.8] - 2022-06-29
 

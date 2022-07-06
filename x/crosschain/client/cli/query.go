@@ -812,7 +812,7 @@ func CmdGetOracleEventBlockHeight() *cobra.Command {
 func CmdCovertBridgeToken() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "covert-bridge-token [chain-name] [token-contract]",
-		Short:   "covert bridge claim token name",
+		Short:   "Covert bridge claim token name",
 		Example: "fxcored q crosschain covert-bridge-token bsc 0x3f6795b8ABE0775a88973469909adE1405f7ac09 --channelIBC=transfer/channel-0",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -10,16 +10,41 @@ import (
 )
 
 const (
+	// Deprecated: ProposalTypeInitCrossChainParams
+	ProposalTypeInitCrossChainParams = "InitCrossChainParams"
 	// ProposalTypeUpdateChainOracles defines the type for a UpdateChainOraclesProposal
 	ProposalTypeUpdateChainOracles = "UpdateChainOracles"
 )
 
 var (
+	_ govtypes.Content = &InitCrossChainParamsProposal{}
 	_ govtypes.Content = &UpdateChainOraclesProposal{}
 )
 
 func init() {
+	govtypes.RegisterProposalType(ProposalTypeInitCrossChainParams)
 	govtypes.RegisterProposalType(ProposalTypeUpdateChainOracles)
+}
+
+func (m *InitCrossChainParamsProposal) GetTitle() string { return m.Title }
+
+func (m *InitCrossChainParamsProposal) GetDescription() string { return m.Description }
+
+func (m *InitCrossChainParamsProposal) ProposalRoute() string { return RouterKey }
+
+func (m *InitCrossChainParamsProposal) ProposalType() string { return ProposalTypeInitCrossChainParams }
+
+func (m *InitCrossChainParamsProposal) ValidateBasic() error { return nil }
+
+func (m *InitCrossChainParamsProposal) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`Init CrossChain Params Proposal:
+  Title:       %s
+  Description: %s
+  ChainName: %s
+  Params: %v
+`, m.Title, m.Description, m.ChainName, m.Params))
+	return b.String()
 }
 
 func (m *UpdateChainOraclesProposal) GetTitle() string { return m.Title }

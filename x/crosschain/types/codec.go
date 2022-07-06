@@ -51,6 +51,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
+		&InitCrossChainParamsProposal{},
 		&UpdateChainOraclesProposal{},
 	)
 
@@ -82,4 +83,5 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 	// register Proposal
 	cdc.RegisterConcrete(&UpdateChainOraclesProposal{}, fmt.Sprintf("%s/%s", ModuleName, "UpdateChainOraclesProposal"), nil)
+	cdc.RegisterConcrete(&InitCrossChainParamsProposal{}, fmt.Sprintf("%s/%s", ModuleName, "InitCrossChainParamsProposal"), nil)
 }
