@@ -119,30 +119,34 @@ func CmdUpdateChainOraclesProposal() *cobra.Command {
 
 func CmdCreateOracleBridger() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-oracle-bridger [chain-name] [bridger-address] [external-address] [delegate-amount]",
+		Use:   "create-oracle-bridger [chain-name] [validator-address] [bridger-address] [external-address] [delegate-amount]",
 		Short: "Allows oracle to delegate their voting responsibilities to a given key.",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
+			valAddr, err := sdk.ValAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
-			externalAddress := args[2]
-			amount, err := sdk.ParseCoinNormalized(args[3])
+			bridgerAddr, err := sdk.AccAddressFromBech32(args[2])
+			if err != nil {
+				return err
+			}
+			externalAddress := args[3]
+			amount, err := sdk.ParseCoinNormalized(args[4])
 			if err != nil {
 				return err
 			}
 			msg := types.MsgBondedOracle{
-				OracleAddress:   cliCtx.GetFromAddress().String(),
-				BridgerAddress:  bridgerAddr.String(),
-				ExternalAddress: externalAddress,
-				DelegateAmount:  amount,
-				ChainName:       args[0],
+				OracleAddress:    cliCtx.GetFromAddress().String(),
+				BridgerAddress:   bridgerAddr.String(),
+				ExternalAddress:  externalAddress,
+				ValidatorAddress: valAddr.String(),
+				DelegateAmount:   amount,
+				ChainName:        args[0],
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
