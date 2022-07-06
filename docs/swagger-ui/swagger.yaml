@@ -1727,10 +1727,14 @@ paths:
                       using *sdk.Int values
 
                       instead of *big.Int.
-                  reject_unprotected_tx:
+                  allow_unprotected_txs:
                     type: boolean
                     format: boolean
-                    title: reject replay-unprotected transactions
+                    description: >-
+                      Allow unprotected transactions defines if replay-protected
+                      (i.e non EIP155
+
+                      signed) transactions can be executed on the state machine.
                 title: Params defines the EVM module parameters
             description: >-
               QueryParamsResponse defines the response type for querying x/evm
@@ -27284,10 +27288,14 @@ definitions:
           values
 
           instead of *big.Int.
-      reject_unprotected_tx:
+      allow_unprotected_txs:
         type: boolean
         format: boolean
-        title: reject replay-unprotected transactions
+        description: >-
+          Allow unprotected transactions defines if replay-protected (i.e non
+          EIP155
+
+          signed) transactions can be executed on the state machine.
     title: Params defines the EVM module parameters
   ethermint.evm.v1.QueryAccountResponse:
     type: object
@@ -27453,10 +27461,14 @@ definitions:
               *sdk.Int values
 
               instead of *big.Int.
-          reject_unprotected_tx:
+          allow_unprotected_txs:
             type: boolean
             format: boolean
-            title: reject replay-unprotected transactions
+            description: >-
+              Allow unprotected transactions defines if replay-protected (i.e
+              non EIP155
+
+              signed) transactions can be executed on the state machine.
         title: Params defines the EVM module parameters
     description: >-
       QueryParamsResponse defines the response type for querying x/evm

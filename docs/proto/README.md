@@ -2,6 +2,8 @@
 
 ### [fxCore custom protobuf documentation](fx-proto-docs.md)
 
-### [cosmos protobuf documentation](cosmos-proto-docs.md)
+### [CosmosSDK protobuf documentation](cosmos-sdk-proto-docs.md)
 
-### [ethermint protobuf documentation](ethermint-proto-docs.md)
+### [IBC protobuf documentation](ibc-go-proto-docs.md)
+
+### [Ethermint protobuf documentation](ethermint-proto-docs.md)

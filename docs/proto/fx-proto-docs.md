@@ -11,6 +11,7 @@
     - [BridgeValidator](#fx.gravity.crosschain.v1.BridgeValidator)
     - [ERC20Token](#fx.gravity.crosschain.v1.ERC20Token)
     - [IDSet](#fx.gravity.crosschain.v1.IDSet)
+    - [InitCrossChainParamsProposal](#fx.gravity.crosschain.v1.InitCrossChainParamsProposal)
     - [LastObservedBlockHeight](#fx.gravity.crosschain.v1.LastObservedBlockHeight)
     - [MinBatchFee](#fx.gravity.crosschain.v1.MinBatchFee)
     - [Oracle](#fx.gravity.crosschain.v1.Oracle)
@@ -246,11 +247,11 @@
   
     - [Query](#fx.gravity.v1.Query)
   
-- [fx/migrate/v1/genesis.proto](#fx/migrate/v1/genesis.proto)
-    - [GenesisState](#fx.ethereum.migrate.v1.GenesisState)
-  
 - [fx/migrate/v1/migrate.proto](#fx/migrate/v1/migrate.proto)
     - [MigrateRecord](#fx.migrate.v1.MigrateRecord)
+  
+- [fx/migrate/v1/genesis.proto](#fx/migrate/v1/genesis.proto)
+    - [GenesisState](#fx.migrate.v1.GenesisState)
   
 - [fx/migrate/v1/query.proto](#fx/migrate/v1/query.proto)
     - [QueryMigrateCheckAccountRequest](#fx.migrate.v1.QueryMigrateCheckAccountRequest)
@@ -397,6 +398,24 @@ IDSet represents a set of IDs
 
 
 
+<a name="fx.gravity.crosschain.v1.InitCrossChainParamsProposal"></a>
+
+### InitCrossChainParamsProposal
+Deprecated
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `params` | [Params](#fx.gravity.crosschain.v1.Params) |  |  |
+| `chain_name` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="fx.gravity.crosschain.v1.LastObservedBlockHeight"></a>
 
 ### LastObservedBlockHeight
@@ -532,6 +551,7 @@ request is > 10%
 | `slash_fraction` | [bytes](#bytes) |  |  |
 | `oracle_set_update_power_change_percent` | [bytes](#bytes) |  |  |
 | `ibc_transfer_timeout_height` | [uint64](#uint64) |  |  |
+| `oracles` | [string](#string) | repeated | Deprecated |
 | `delegate_threshold` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 | `delegate_multiple` | [int64](#int64) |  |  |
 
@@ -1120,11 +1140,12 @@ GenesisState struct
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#fx.gravity.crosschain.v1.Params) |  |  |
 | `last_observed_block_height` | [LastObservedBlockHeight](#fx.gravity.crosschain.v1.LastObservedBlockHeight) |  |  |
-| `OracleSet` | [OracleSet](#fx.gravity.crosschain.v1.OracleSet) | repeated |  |
-| `oracle` | [Oracle](#fx.gravity.crosschain.v1.Oracle) | repeated |  |
+| `oracle_sets` | [OracleSet](#fx.gravity.crosschain.v1.OracleSet) | repeated |  |
+| `oracles` | [Oracle](#fx.gravity.crosschain.v1.Oracle) | repeated |  |
+| `bridge_tokens` | [BridgeToken](#fx.gravity.crosschain.v1.BridgeToken) | repeated |  |
+| `attestations` | [Attestation](#fx.gravity.crosschain.v1.Attestation) | repeated |  |
 | `unbatched_transfers` | [OutgoingTransferTx](#fx.gravity.crosschain.v1.OutgoingTransferTx) | repeated |  |
 | `batches` | [OutgoingTxBatch](#fx.gravity.crosschain.v1.OutgoingTxBatch) | repeated |  |
-| `bridge_token` | [BridgeToken](#fx.gravity.crosschain.v1.BridgeToken) | repeated |  |
 
 
 
@@ -3837,32 +3858,6 @@ Query defines the gRPC querier service
 
 
 
-<a name="fx/migrate/v1/genesis.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## fx/migrate/v1/genesis.proto
-
-
-
-<a name="fx.ethereum.migrate.v1.GenesisState"></a>
-
-### GenesisState
-GenesisState defines the module's genesis state.
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="fx/migrate/v1/migrate.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -3881,6 +3876,37 @@ GenesisState defines the module's genesis state.
 | `from` | [string](#string) |  |  |
 | `to` | [string](#string) |  |  |
 | `height` | [int64](#int64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="fx/migrate/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/migrate/v1/genesis.proto
+
+
+
+<a name="fx.migrate.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `migrate_records` | [MigrateRecord](#fx.migrate.v1.MigrateRecord) | repeated |  |
 
 
 
@@ -4078,7 +4104,7 @@ Msg defines the state transitions possible within gravity
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) |  | GET|/fx/other/v1/gas_price|
+| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/fx/other/v1/gas_price|
 
  <!-- end services -->
 

@@ -41,9 +41,6 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/fx/other/v1/query.swagger.json"
-    },
-    {
       "url": "./tmp-swagger-gen/fx/ibc/applications/transfer/v1/query.swagger.json",
       "operationIds": {
         "rename": {
