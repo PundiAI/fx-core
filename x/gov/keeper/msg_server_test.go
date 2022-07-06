@@ -21,6 +21,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 		errInitCoins,
 		suite.addrs[0],
 	)
+	suite.Require().NoError(err)
 	_, err = suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), errProposalMsg)
 	suite.Require().Error(err)
 	suite.Require().EqualValues(fmt.Sprintf("%v is smaller than %v: initial amount too low", errInitCoins.String(), types3.InitialDeposit.String()), err.Error())

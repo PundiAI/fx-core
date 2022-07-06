@@ -156,6 +156,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
+	// Deprecated
 	GasPrice(ctx context.Context, in *GasPriceRequest, opts ...grpc.CallOption) (*GasPriceResponse, error)
 }
 
@@ -178,6 +179,7 @@ func (c *queryClient) GasPrice(ctx context.Context, in *GasPriceRequest, opts ..
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
+	// Deprecated
 	GasPrice(context.Context, *GasPriceRequest) (*GasPriceResponse, error)
 }
 
