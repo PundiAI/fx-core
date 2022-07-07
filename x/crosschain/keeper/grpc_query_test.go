@@ -152,16 +152,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetRequest() {
 			expPass: true,
 		},
 		{
-			name: "oracle set nonce is zero",
-			malleate: func() {
-				request = &types.QueryOracleSetRequestRequest{
-					Nonce: 0,
-				}
-				expectedError = sdkerrors.Wrapf(types.ErrUnknown, "nonce")
-			},
-			expPass: false,
-		},
-		{
 			name: "normal oracle set",
 			malleate: func() {
 				members := []types.BridgeValidator{
