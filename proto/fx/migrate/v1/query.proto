@@ -1,11 +1,11 @@
 syntax = "proto3";
 package fx.migrate.v1;
 
-option go_package = "github.com/functionx/fx-core/x/migrate/types";
-
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 import "fx/migrate/v1/migrate.proto";
+
+option go_package = "github.com/functionx/fx-core/x/migrate/types";
 
 // Query provides defines the gRPC querier service.
 service Query {

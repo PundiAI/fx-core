@@ -58,8 +58,8 @@ var (
 	_ paramtypes.ParamSet = &Params{}
 )
 
-func DefaultParams() *Params {
-	return &Params{
+func DefaultParams() Params {
+	return Params{
 		GravityId:                         "fx-gravity-id",
 		AverageBlockTime:                  5_000,
 		ExternalBatchTimeout:              12 * 3600 * 1000,
@@ -70,6 +70,7 @@ func DefaultParams() *Params {
 		IbcTransferTimeoutHeight:          20_000,
 		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
 		DelegateMultiple:                  DefaultOracleDelegateThreshold,
+		Oracles:                           nil,
 	}
 }
 

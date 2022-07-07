@@ -18,7 +18,7 @@ func TestDefaultGenesisState(t *testing.T) {
 		{
 			name: "tron default genesis",
 			want: &crosschaintypes.GenesisState{
-				Params: &crosschaintypes.Params{
+				Params: crosschaintypes.Params{
 					GravityId:                         "fx-tron-bridge",
 					AverageBlockTime:                  5_000,
 					ExternalBatchTimeout:              12 * 3600 * 1000,

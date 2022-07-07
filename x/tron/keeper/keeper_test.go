@@ -97,7 +97,7 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 		DelegateMultiple:                  10,
 	})
 
-	for index, oracle := range suite.oracleAddressList {
+	for index, oracleAddress := range suite.oracleAddressList {
 		dbOracleAddress, found := suite.app.TronKeeper.GetOracleAddressByBridgerKey(suite.ctx, suite.orchestratorAddressList[index])
 		require.False(suite.T(), found)
 		require.Empty(suite.T(), dbOracleAddress)
@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 		})
 
 		newOracle := types.Oracle{
-			OracleAddress:   oracle.String(),
+			OracleAddress:   oracleAddress.String(),
 			BridgerAddress:  suite.orchestratorAddressList[index].String(),
 			ExternalAddress: suite.externalAccList[index].address,
 			StartHeight:     3,
@@ -118,13 +118,13 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 		if index == 0 {
 			suite.app.TronKeeper.SetOracle(suite.ctx, newOracle)
 		}
-		suite.app.TronKeeper.SetOracleByBridger(suite.ctx, oracle, suite.orchestratorAddressList[index])
+		suite.app.TronKeeper.SetOracleByBridger(suite.ctx, suite.orchestratorAddressList[index], oracleAddress)
 
 		dbOracleAddress, found = suite.app.TronKeeper.GetOracleAddressByBridgerKey(suite.ctx, suite.orchestratorAddressList[index])
 		require.True(suite.T(), found)
-		require.EqualValues(suite.T(), oracle, dbOracleAddress)
+		require.EqualValues(suite.T(), oracleAddress, dbOracleAddress)
 
-		suite.app.TronKeeper.SetExternalAddressForOracle(suite.ctx, oracle, suite.externalAccList[index].address)
+		suite.app.TronKeeper.SetOracleByExternalAddress(suite.ctx, suite.externalAccList[index].address, oracleAddress)
 	}
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 		if index == 2 {
 			channalIbc = hex.EncodeToString([]byte("transfer/channel-0"))
 		}
-		err := suite.app.TronKeeper.AttestationHandler(suite.ctx, types.Attestation{}, &types.MsgBridgeTokenClaim{
+		err := suite.app.TronKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 			TokenContract:  token.token,
 			BridgerAddress: suite.orchestratorAddressList[0].String(),
 			ChannelIbc:     channalIbc,

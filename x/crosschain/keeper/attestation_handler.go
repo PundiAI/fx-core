@@ -8,7 +8,7 @@ import (
 )
 
 // AttestationHandler Handle is the entry point for Attestation processing.
-func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, externalClaim types.ExternalClaim) error {
+func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.ExternalClaim) error {
 	switch claim := externalClaim.(type) {
 	case *types.MsgSendToFxClaim:
 		bridgeToken := k.GetBridgeTokenDenom(ctx, claim.TokenContract)
@@ -44,7 +44,7 @@ func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, extern
 		}
 		k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc)
 
-		coinDenom, err := k.addBridgeToken(ctx, claim.TokenContract, claim.Symbol, claim.ChannelIbc)
+		coinDenom, err := k.AddBridgeToken(ctx, claim.TokenContract, claim.ChannelIbc)
 		if err != nil {
 			return err
 		}

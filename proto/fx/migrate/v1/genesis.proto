@@ -1,7 +1,12 @@
 syntax = "proto3";
-package fx.ethereum.migrate.v1;
+package fx.migrate.v1;
+
+import "gogoproto/gogo.proto";
+import "fx/migrate/v1/migrate.proto";
 
 option go_package = "github.com/functionx/fx-core/x/migrate/types";
 
 // GenesisState defines the module's genesis state.
-message GenesisState {}
+message GenesisState {
+  repeated MigrateRecord migrate_records = 1 [ (gogoproto.nullable) = false ];
+}

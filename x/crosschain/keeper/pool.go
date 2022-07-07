@@ -56,8 +56,8 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		Fee:         bridgeTokenFee,
 	}
 
-	if err := k.addUnbatchedTx(ctx, outgoing); err != nil {
-		return 0, nil
+	if err := k.AddUnbatchedTx(ctx, outgoing); err != nil {
+		return 0, err
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -137,22 +137,17 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	return nil
 }
 
-// addUnbatchedTx creates a new transaction in the pool
+// AddUnbatchedTx creates a new transaction in the pool
 // WARNING: Do not make this function public
-func (k Keeper) addUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.OutgoingTransferTx) error {
+func (k Keeper) AddUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.OutgoingTransferTx) error {
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingTxPoolKey(outgoingTransferTx.Fee, outgoingTransferTx.Id)
 	if store.Has(idxKey) {
 		return sdkerrors.Wrap(types.ErrDuplicate, "transaction already in pool")
 	}
 
-	bz, err := k.cdc.Marshal(outgoingTransferTx)
-	if err != nil {
-		return err
-	}
-
-	store.Set(idxKey, bz)
-	return err
+	store.Set(idxKey, k.cdc.MustMarshal(outgoingTransferTx))
+	return nil
 }
 
 // removeUnbatchedTXIndex removes the tx from the pool

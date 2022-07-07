@@ -87,7 +87,7 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 		}
 
 		// Add to denom-erc20 mapping
-		a.keeper.setFxOriginatedDenomToERC20(ctx, claim.Symbol, claim.TokenContract)
+		a.keeper.SetFxOriginatedDenomToERC20(ctx, claim.Symbol, claim.TokenContract)
 		a.keeper.Logger(ctx).Debug("set fx originated denom to erc20 success", "denom", claim.Symbol, "token", claim.TokenContract)
 	case *types.MsgValsetUpdatedClaim:
 		a.keeper.SetLastObservedValset(ctx, types.Valset{

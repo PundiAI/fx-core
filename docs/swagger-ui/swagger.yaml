@@ -8638,6 +8638,11 @@ paths:
                   ibc_transfer_timeout_height:
                     type: string
                     format: uint64
+                  oracles:
+                    type: array
+                    items:
+                      type: string
+                    title: Deprecated
                   delegate_threshold:
                     type: object
                     properties:
@@ -9556,56 +9561,6 @@ paths:
           in: query
           required: false
           type: string
-      tags:
-        - Query
-  /fx/other/v1/gas_price:
-    get:
-      operationId: GasPrice
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              gas_prices:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
-
-
-                    NOTE: The amount field is an Int which implements the custom
-                    method
-
-                    signatures required by gogoproto.
-        default:
-          description: An unexpected error response
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
       tags:
         - Query
   '/ibc/applications/transfer/v1beta1/denom_hashes/{trace}':
@@ -28540,6 +28495,11 @@ definitions:
       ibc_transfer_timeout_height:
         type: string
         format: uint64
+      oracles:
+        type: array
+        items:
+          type: string
+        title: Deprecated
       delegate_threshold:
         type: object
         properties:
@@ -29197,6 +29157,11 @@ definitions:
           ibc_transfer_timeout_height:
             type: string
             format: uint64
+          oracles:
+            type: array
+            items:
+              type: string
+            title: Deprecated
           delegate_threshold:
             type: object
             properties:
@@ -29295,23 +29260,6 @@ definitions:
         type: string
       channel_ibc:
         type: string
-  fx.other.GasPriceResponse:
-    type: object
-    properties:
-      gas_prices:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
   fx.ibc.applications.transfer.v1.DenomTrace:
     type: object
     properties:

@@ -43,7 +43,7 @@ func (k Keeper) hasBridgeToken(ctx sdk.Context, tokenContract string) bool {
 	return store.Has(types.GetDenomToTokenKey(tokenContract))
 }
 
-func (k Keeper) addBridgeToken(ctx sdk.Context, token, _, channelIBC string) (string, error) {
+func (k Keeper) AddBridgeToken(ctx sdk.Context, token, channelIBC string) (string, error) {
 	store := ctx.KVStore(k.storeKey)
 	decodeChannelIBC, err := hex.DecodeString(channelIBC)
 	if err != nil {

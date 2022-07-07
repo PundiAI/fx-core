@@ -94,12 +94,12 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 			panic("attempting to apply events to state out of order")
 		}
 		k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
-		k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight())
+		k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
 
 		att.Observed = true
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
-		err = k.processAttestation(ctx, att, claim)
+		err = k.processAttestation(ctx, claim)
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeContractEvnet,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
@@ -113,10 +113,10 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 }
 
 // processAttestation actually applies the attestation to the consensus state
-func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, claim types.ExternalClaim) error {
+func (k Keeper) processAttestation(ctx sdk.Context, claim types.ExternalClaim) error {
 	// then execute in a new Tx so that we can store state on failure
 	xCtx, commit := ctx.CacheContext()
-	if err := k.AttestationHandler(xCtx, *att, claim); err != nil {
+	if err := k.AttestationHandler(xCtx, claim); err != nil {
 		// execute with a transient storage
 		// If the attestation fails, something has gone wrong and we can't recover it. Log and move on
 		// The attestation will still be marked "Observed", and validators can still be slashed for not
@@ -233,11 +233,11 @@ func (k Keeper) GetLastObservedBlockHeight(ctx sdk.Context) types.LastObservedBl
 }
 
 // SetLastObservedBlockHeight sets the block height in the store.
-func (k Keeper) SetLastObservedBlockHeight(ctx sdk.Context, externalBlockHeight uint64) {
+func (k Keeper) SetLastObservedBlockHeight(ctx sdk.Context, externalBlockHeight, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
 	height := types.LastObservedBlockHeight{
 		ExternalBlockHeight: externalBlockHeight,
-		BlockHeight:         uint64(ctx.BlockHeight()),
+		BlockHeight:         blockHeight,
 	}
 	store.Set(types.LastObservedBlockHeightKey, k.cdc.MustMarshal(&height))
 }

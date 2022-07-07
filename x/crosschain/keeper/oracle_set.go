@@ -52,10 +52,10 @@ func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 }
 
 // AddOracleSetRequest returns a new instance of the Gravity BridgeValidatorSet
-func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.OracleSet) *types.OracleSet {
+func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.OracleSet) {
 	// if currentOracleSet member is empty, not store OracleSet.
 	if len(currentOracleSet.Members) <= 0 {
-		return currentOracleSet
+		return
 	}
 	k.StoreOracleSet(ctx, currentOracleSet)
 
@@ -74,8 +74,6 @@ func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 		sdk.NewAttribute(types.AttributeKeyOracleSetNonce, fmt.Sprint(currentOracleSet.Nonce)),
 		sdk.NewAttribute(types.AttributeKeyOracleSetLen, fmt.Sprint(len(currentOracleSet.Members))),
 	))
-
-	return currentOracleSet
 }
 
 // StoreOracleSet is for storing a oracle set at a given height

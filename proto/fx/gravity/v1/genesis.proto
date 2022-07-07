@@ -115,18 +115,18 @@ message Params {
 
 // GenesisState struct
 message GenesisState {
-  Params params = 1;
+  Params params = 1 [ (gogoproto.nullable) = false ];
   uint64 last_observed_nonce = 2;
-  repeated Valset valsets = 3;
-  repeated MsgValsetConfirm valset_confirms = 4;
-  repeated OutgoingTxBatch batches = 5;
-  repeated MsgConfirmBatch batch_confirms = 6 [ (gogoproto.nullable) = false ];
-  repeated Attestation attestations = 7 [ (gogoproto.nullable) = false ];
-  repeated MsgSetOrchestratorAddress delegate_keys = 8;
-  repeated ERC20ToDenom erc20_to_denoms = 9;
-  repeated OutgoingTransferTx unbatched_transfers = 10;
-  repeated cosmos.base.v1beta1.Coin module_coins = 11 [
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.nullable) = false
-  ];
+  LastObservedEthereumBlockHeight last_observed_block_height = 3;
+  repeated MsgSetOrchestratorAddress delegate_keys = 4
+      [ (gogoproto.nullable) = false ];
+  repeated Valset valsets = 5 [ (gogoproto.nullable) = false ];
+  repeated ERC20ToDenom erc20_to_denoms = 6 [ (gogoproto.nullable) = false ];
+  repeated OutgoingTransferTx unbatched_transfers = 7
+      [ (gogoproto.nullable) = false ];
+  repeated OutgoingTxBatch batches = 8 [ (gogoproto.nullable) = false ];
+  repeated MsgConfirmBatch batch_confirms = 9 [ (gogoproto.nullable) = false ];
+  repeated MsgValsetConfirm valset_confirms = 10
+      [ (gogoproto.nullable) = false ];
+  repeated Attestation attestations = 11 [ (gogoproto.nullable) = false ];
 }

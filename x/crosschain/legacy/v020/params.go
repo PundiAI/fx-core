@@ -1,6 +1,8 @@
 package v020
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,7 +18,7 @@ func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.Legacy
 	for _, pair := range paramSetPairs {
 		bz := paramsStore.Get(pair.Key)
 		if err := legacyAmino.UnmarshalJSON(bz, pair.Value); err != nil {
-			return err
+			return fmt.Errorf("%s: %s", err.Error(), pair.Key)
 		}
 	}
 	paramsStore.Delete(v010.ParamStoreOracles)

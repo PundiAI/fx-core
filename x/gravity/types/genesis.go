@@ -83,18 +83,13 @@ func (s GenesisState) ValidateBasic() error {
 // DefaultGenesisState returns empty genesis state
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:      DefaultParams(),
-		ModuleCoins: DefaultModuleCoins(),
+		Params: DefaultParams(),
 	}
 }
 
-func DefaultModuleCoins() sdk.Coins {
-	return sdk.NewCoins()
-}
-
 // DefaultParams returns a copy of the default params
-func DefaultParams() *Params {
-	return &Params{
+func DefaultParams() Params {
+	return Params{
 		GravityId:                      "fx-bridge-eth",
 		BridgeChainId:                  1,
 		SignedValsetsWindow:            10000,

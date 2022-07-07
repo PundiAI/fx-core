@@ -54,7 +54,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive 
 		Transactions:  selectedTx,
 		TokenContract: tokenContract,
 		FeeReceive:    feeReceive,
-		Block:         0,
+		Block:         uint64(ctx.BlockHeight()), // set the current block height when storing the batch
 	}
 	if err = k.StoreBatch(ctx, batch); err != nil {
 		return nil, err
@@ -120,14 +120,12 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, n
 	})
 
 	// Delete batch since it is finished
-	k.DeleteBatch(ctx, *batch)
+	k.DeleteBatch(ctx, batch)
 }
 
 // StoreBatch stores a transaction batch
 func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error {
 	store := ctx.KVStore(k.storeKey)
-	// set the current block height when storing the batch
-	batch.Block = uint64(ctx.BlockHeight())
 	key := types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce)
 	store.Set(key, k.cdc.MustMarshal(batch))
 
@@ -140,18 +138,8 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 	return nil
 }
 
-// StoreBatchUnsafe stores a transaction batch w/o setting the height
-func (k Keeper) StoreBatchUnsafe(ctx sdk.Context, batch *types.OutgoingTxBatch) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce)
-	store.Set(key, k.cdc.MustMarshal(batch))
-
-	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
-	store.Set(blockKey, k.cdc.MustMarshal(batch))
-}
-
 // DeleteBatch deletes an outgoing transaction batch
-func (k Keeper) DeleteBatch(ctx sdk.Context, batch types.OutgoingTxBatch) {
+func (k Keeper) DeleteBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce))
 	store.Delete(types.GetOutgoingTxBatchBlockKey(batch.Block))
@@ -200,14 +188,13 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, tokenContract string, non
 		return types.ErrUnknown
 	}
 	for _, tx := range batch.Transactions {
-		err := k.addUnbatchedTx(ctx, tx)
-		if err != nil {
+		if err := k.AddUnbatchedTx(ctx, tx); err != nil {
 			panic(sdkerrors.Wrapf(err, "unable to add batched transaction back into pool %v", tx))
 		}
 	}
 
 	// Delete batch since it is finished
-	k.DeleteBatch(ctx, *batch)
+	k.DeleteBatch(ctx, batch)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,

@@ -99,8 +99,8 @@ func (s EthereumMsgServer) BondedOracle(c context.Context, msg *types.MsgBondedO
 	))
 
 	s.SetOracle(ctx, oracle)
-	s.SetOracleByBridger(ctx, oracleAddr, bridgerAddr)
-	s.SetExternalAddressForOracle(ctx, oracleAddr, msg.ExternalAddress)
+	s.SetOracleByBridger(ctx, bridgerAddr, oracleAddr)
+	s.SetOracleByExternalAddress(ctx, msg.ExternalAddress, oracleAddr)
 	s.CommonSetOracleTotalPower(ctx)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -320,7 +320,7 @@ func (s EthereumMsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbon
 		}
 	}
 
-	s.DelExternalAddressForOracle(ctx, oracle.ExternalAddress)
+	s.DelOracleByExternalAddress(ctx, oracle.ExternalAddress)
 	s.DelOracleByBridger(ctx, oracle.GetBridger())
 	s.DelOracle(ctx, oracle.GetOracle())
 	s.DelLastEventNonceByOracle(ctx, oracleAddr)

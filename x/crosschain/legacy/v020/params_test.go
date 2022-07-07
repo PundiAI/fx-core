@@ -70,7 +70,20 @@ func TestMigrateParams(t *testing.T) {
 			myApp := helpers.Setup(true, true)
 
 			genesisState := helpers.DefGenesisState(myApp.AppCodec())
-			genesisState[tt.args.moduleName] = json.RawMessage("{}")
+			genesisState[tt.args.moduleName] = myApp.AppCodec().MustMarshalJSON(&types.GenesisState{
+				Params: types.Params{
+					GravityId:                         fmt.Sprintf("fx-%s-bridge", tt.args.moduleName),
+					AverageBlockTime:                  5_000,
+					ExternalBatchTimeout:              43_200_000,
+					AverageExternalBlockTime:          3_000,
+					SignedWindow:                      20_000,
+					SlashFraction:                     sdk.MustNewDecFromStr("0.01"),
+					OracleSetUpdatePowerChangePercent: sdk.MustNewDecFromStr("0.1"),
+					IbcTransferTimeoutHeight:          20_000,
+					DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
+					DelegateMultiple:                  10,
+				},
+			})
 			stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 			require.NoError(t, err)
 
@@ -82,24 +95,9 @@ func TestMigrateParams(t *testing.T) {
 			ctx := myApp.BaseApp.NewContext(false, tmproto.Header{Time: time.Now()})
 
 			paramsKey := myApp.GetKey(paramstypes.ModuleName)
-			var params = types.Params{
-				GravityId:                         fmt.Sprintf("fx-%s-bridge", tt.args.moduleName),
-				AverageBlockTime:                  5_000,
-				ExternalBatchTimeout:              43_200_000,
-				AverageExternalBlockTime:          3_000,
-				SignedWindow:                      20_000,
-				SlashFraction:                     sdk.MustNewDecFromStr("0.01"),
-				OracleSetUpdatePowerChangePercent: sdk.MustNewDecFromStr("0.1"),
-				IbcTransferTimeoutHeight:          20_000,
-				DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
-				DelegateMultiple:                  0,
-			}
-			paramSetPairs := v010.GetParamSetPairs(&params)
 			paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(tt.args.moduleName), '/'))
-			for _, pair := range paramSetPairs {
-				paramsStore.Set(pair.Key, myApp.LegacyAmino().MustMarshalJSON(pair.Value))
-			}
 			paramsStore.Set(v010.ParamStoreOracles, myApp.LegacyAmino().MustMarshalJSON([]string{sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String()}))
+			paramsStore.Set(v010.ParamOracleDepositThreshold, myApp.LegacyAmino().MustMarshalJSON(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
 
 			require.NoError(t, v020.MigrateParams(ctx, tt.args.moduleName, myApp.LegacyAmino(), myApp.GetKey(paramstypes.ModuleName)))
 
@@ -121,7 +119,7 @@ func TestMigrateParams(t *testing.T) {
 			defParams.GravityId = fmt.Sprintf("fx-%s-bridge", tt.args.moduleName)
 			defParams.AverageBlockTime = 7_000
 			defParams.AverageExternalBlockTime = 3_000
-			require.EqualValues(t, &paramsFromDB, defParams)
+			require.EqualValues(t, paramsFromDB, defParams)
 		})
 	}
 }

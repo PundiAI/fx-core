@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 		}
 		// save oracle
 		suite.Keeper().SetOracle(suite.ctx, oracle)
-		suite.Keeper().SetOracleByBridger(suite.ctx, oracle.GetOracle(), testCase.BridgerAddress)
+		suite.Keeper().SetOracleByBridger(suite.ctx, testCase.BridgerAddress, oracle.GetOracle())
 
 		pendingOracleSetRequestByAddr, err := suite.Keeper().LastPendingOracleSetRequestByAddr(wrapSDKContext, &types.QueryLastPendingOracleSetRequestByAddrRequest{
 			BridgerAddress: testCase.BridgerAddress.String(),

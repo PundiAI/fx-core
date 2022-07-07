@@ -67,9 +67,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, counte
 	}
 
 	// set the outgoing tx in the pool index
-	if err := k.setPoolEntry(ctx, outgoing); err != nil {
-		return 0, err
-	}
+	k.SetPoolEntry(ctx, outgoing)
 
 	// add a second index with the fee
 	k.appendToUnbatchedTXIndex(ctx, tokenContract, *erc20Fee, nextID)
@@ -211,14 +209,9 @@ func (k Keeper) removeFromUnbatchedTXIndex(ctx sdk.Context, fee types.ERC20Token
 	return sdkerrors.Wrap(types.ErrUnknown, "tx id")
 }
 
-func (k Keeper) setPoolEntry(ctx sdk.Context, val *types.OutgoingTransferTx) error {
-	bz, err := k.cdc.Marshal(val)
-	if err != nil {
-		return err
-	}
+func (k Keeper) SetPoolEntry(ctx sdk.Context, val *types.OutgoingTransferTx) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetOutgoingTxPoolKey(val.Id), bz)
-	return nil
+	store.Set(types.GetOutgoingTxPoolKey(val.Id), k.cdc.MustMarshal(val))
 }
 
 func (k Keeper) getPoolEntry(ctx sdk.Context, id uint64) (*types.OutgoingTransferTx, error) {

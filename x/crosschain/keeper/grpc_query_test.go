@@ -258,7 +258,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirm() {
 					BridgerAddress: suite.bridgers[0].String(),
 					Nonce:          3,
 				}
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracles[0], &types.MsgOracleSetConfirm{
 					Nonce:          3,
 					BridgerAddress: suite.bridgers[0].String(),
@@ -329,7 +329,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirmsByNonce() {
 		{
 			name: "query nonce normal",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracles[0], &types.MsgOracleSetConfirm{
 					Nonce:          3,
 					BridgerAddress: suite.bridgers[0].String(),
@@ -451,7 +451,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 		{
 			name: "not found oracle by oracle address",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				request = &types.QueryLastPendingOracleSetRequestByAddrRequest{
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgers[0].String(),
@@ -479,7 +479,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 					Height: 100,
 				}
 
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 
 				suite.Keeper().SetOracle(suite.ctx, types.Oracle{
 					OracleAddress:   suite.oracles[0].String(),
@@ -549,7 +549,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 				externalKey, _ := ethsecp256k1.GenerateKey()
 				externalAcc := common.BytesToAddress(externalKey.PubKey().Address())
 				token := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), 0).String()
-				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, types.Attestation{}, &types.MsgBridgeTokenClaim{
+				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 					TokenContract:  token,
 					BridgerAddress: suite.bridgers[0].String(),
 					ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
@@ -611,7 +611,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 
 				for i := 0; i < 2; i++ {
 					token := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), uint64(i)).String()
-					err := suite.app.BscKeeper.AttestationHandler(suite.ctx, types.Attestation{}, &types.MsgBridgeTokenClaim{
+					err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 						TokenContract:  token,
 						BridgerAddress: suite.bridgers[0].String(),
 						ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
@@ -738,7 +738,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 		{
 			name: "not found oracle",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				request = &types.QueryLastPendingBatchRequestByAddrRequest{
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgers[0].String(),
@@ -755,7 +755,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 				externalAcc := common.BytesToAddress(externalKey.PubKey().Address().Bytes())
 				externalToken := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address().Bytes()), 0)
 
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				suite.Keeper().SetOracle(suite.ctx, types.Oracle{
 					OracleAddress:   suite.oracles[0].String(),
 					BridgerAddress:  suite.bridgers[0].String(),
@@ -768,6 +768,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 				}
 				suite.ctx = suite.ctx.WithBlockHeight(100)
 				err = suite.Keeper().StoreBatch(suite.ctx, &types.OutgoingTxBatch{
+					Block:        uint64(suite.ctx.BlockHeight()),
 					BatchNonce:   3,
 					BatchTimeout: 10000,
 					Transactions: []*types.OutgoingTransferTx{
@@ -809,7 +810,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 				suite.Require().NoError(err)
 				externalAcc := common.BytesToAddress(externalKey.PubKey().Address().Bytes())
 				externalToken := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address().Bytes()), 0)
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				suite.Keeper().SetOracle(suite.ctx, types.Oracle{
 					OracleAddress:   suite.oracles[0].String(),
 					BridgerAddress:  suite.bridgers[0].String(),
@@ -1102,7 +1103,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirm() {
 		{
 			name: "query batch confirm normal",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 
 				suite.Keeper().SetBatchConfirm(suite.ctx, suite.oracles[0], &types.MsgConfirmBatch{
 					Nonce:          3,
@@ -1260,7 +1261,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 		{
 			name: "query last event nonce from lastObservedEventNonce",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				suite.Keeper().SetLastObservedEventNonce(suite.ctx, 5)
 
 				request = &types.QueryLastEventNonceByAddrRequest{
@@ -1274,7 +1275,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 		{
 			name: "query last event nonce not found",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				request = &types.QueryLastEventNonceByAddrRequest{
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgers[0].String(),
@@ -1286,7 +1287,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 		{
 			name: "query last event nonce normal",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				suite.Keeper().SetLastEventNonceByOracle(suite.ctx, suite.oracles[0], 3)
 
 				request = &types.QueryLastEventNonceByAddrRequest{
@@ -1353,7 +1354,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_DenomToToken() {
 				key, _ := ethsecp256k1.GenerateKey()
 				token := common.BytesToAddress(key.PubKey().Address()).String()
 
-				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, types.Attestation{}, &types.MsgBridgeTokenClaim{
+				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 					TokenContract: token,
 					ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
 					Symbol:        "fxcoin",
@@ -1428,7 +1429,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 			func() {
 				key, _ := ethsecp256k1.GenerateKey()
 				token := common.BytesToAddress(key.PubKey().Address()).String()
-				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, types.Attestation{}, &types.MsgBridgeTokenClaim{
+				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 					TokenContract: token,
 					ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
 					Symbol:        "fxcoin",
@@ -1576,7 +1577,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 		{
 			name: "query oracle by oracle address does not exist",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				request = &types.QueryOracleByBridgerAddrRequest{
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgers[0].String(),
@@ -1588,7 +1589,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 		{
 			name: "query oracle by oracle address normal",
 			malleate: func() {
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 				key, err := ethsecp256k1.GenerateKey()
 				suite.Require().NoError(err)
 				externalAcc := common.BytesToAddress(key.PubKey().Address().Bytes())
@@ -1671,7 +1672,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 				key, err := ethsecp256k1.GenerateKey()
 				suite.Require().NoError(err)
 				externalAcc := common.BytesToAddress(key.PubKey().Address().Bytes())
-				suite.Keeper().SetExternalAddressForOracle(suite.ctx, suite.oracles[0], externalAcc.String())
+				suite.Keeper().SetOracleByExternalAddress(suite.ctx, externalAcc.String(), suite.oracles[0])
 				request = &types.QueryOracleByExternalAddrRequest{
 					ChainName:       suite.chainName,
 					ExternalAddress: externalAcc.String(),
@@ -1686,7 +1687,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 				key, err := ethsecp256k1.GenerateKey()
 				suite.Require().NoError(err)
 				externalAcc := common.BytesToAddress(key.PubKey().Address().Bytes())
-				suite.Keeper().SetExternalAddressForOracle(suite.ctx, suite.oracles[0], externalAcc.String())
+				suite.Keeper().SetOracleByExternalAddress(suite.ctx, externalAcc.String(), suite.oracles[0])
 				newOracle := types.Oracle{
 					OracleAddress:   suite.oracles[0].String(),
 					BridgerAddress:  suite.bridgers[0].String(),
@@ -1801,7 +1802,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 				externalAcc := common.BytesToAddress(externalKey.PubKey().Address())
 				token := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), 0)
 				bridgeAcc := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, types.Attestation{}, &types.MsgBridgeTokenClaim{
+				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 					TokenContract:  token.String(),
 					BridgerAddress: suite.bridgers[0].String(),
 					ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
@@ -1926,7 +1927,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 					BridgerAddress: suite.bridgers[0].String(),
 				}
 				suite.ctx = suite.ctx.WithBlockHeight(100)
-				suite.Keeper().SetOracleByBridger(suite.ctx, suite.oracles[0], suite.bridgers[0])
+				suite.Keeper().SetOracleByBridger(suite.ctx, suite.bridgers[0], suite.oracles[0])
 
 				suite.Keeper().SetOracle(suite.ctx, types.Oracle{
 					OracleAddress:  suite.oracles[0].String(),
@@ -1997,7 +1998,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastObservedBlockHeight() {
 			"ExternalBlockHeight exist",
 			func() {
 				suite.ctx = suite.ctx.WithBlockHeight(100)
-				suite.Keeper().SetLastObservedBlockHeight(suite.ctx, uint64(30))
+				suite.Keeper().SetLastObservedBlockHeight(suite.ctx, uint64(30), uint64(suite.ctx.BlockHeight()))
 
 				request = &types.QueryLastObservedBlockHeightRequest{
 					ChainName: suite.chainName,
@@ -2173,7 +2174,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_ProjectedBatchTimeoutHeight() {
 			name: "ProjectedBatchTimeoutHeight exist",
 			malleate: func() {
 				suite.ctx = suite.ctx.WithBlockHeight(100)
-				suite.Keeper().SetLastObservedBlockHeight(suite.ctx, 99)
+				suite.Keeper().SetLastObservedBlockHeight(suite.ctx, 99, uint64(suite.ctx.BlockHeight()))
 				heights := suite.Keeper().GetLastObservedBlockHeight(suite.ctx)
 				suite.Assert().Equal(uint64(99), heights.ExternalBlockHeight)
 				suite.Assert().Equal(uint64(100), heights.BlockHeight)
@@ -2228,7 +2229,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeTokens() {
 					if i == 2 {
 						channelIbc = "transfer/channel-0"
 					}
-					err := suite.app.BscKeeper.AttestationHandler(suite.ctx, types.Attestation{}, &types.MsgBridgeTokenClaim{
+					err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 						TokenContract:  common.BytesToAddress(key.PubKey().Address()).String(),
 						BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 						ChannelIbc:     hex.EncodeToString([]byte(channelIbc)),

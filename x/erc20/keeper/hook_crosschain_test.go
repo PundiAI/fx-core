@@ -198,9 +198,9 @@ func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracle
 	// save oracle
 	myApp.BscKeeper.SetOracle(ctx, oracle)
 
-	myApp.BscKeeper.SetOracleByBridger(ctx, oracleAddress, bridgeAddress)
+	myApp.BscKeeper.SetOracleByBridger(ctx, bridgeAddress, oracleAddress)
 	// set the ethereum address
-	myApp.BscKeeper.SetExternalAddressForOracle(ctx, oracleAddress, externalAddress.String())
+	myApp.BscKeeper.SetOracleByExternalAddress(ctx, externalAddress.String(), oracleAddress)
 
 	myApp.BscKeeper.CommonSetOracleTotalPower(ctx)
 

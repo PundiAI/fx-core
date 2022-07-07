@@ -3,6 +3,8 @@ package keeper
 import (
 	"bytes"
 
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -126,4 +128,23 @@ func (k Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtype
 		return nil, sdkerrors.Wrapf(types.ErrInvalidPublicKey, "account type not support: %s(%s)", addr.String(), fromPubKey.Type())
 	}
 	return fromAccount, nil
+}
+
+func (k Keeper) IterateMigrateRecords(ctx sdk.Context, cb func(types.MigrateRecord) bool) {
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixMigratedRecord)
+	iter := prefixStore.Iterator(nil, nil)
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		if bytes.Equal(iter.Value()[1+addressLen+1:], types.ValuePrefixMigrateToFlag) {
+			continue
+		}
+		if cb(types.MigrateRecord{
+			From:   sdk.AccAddress(iter.Key()).String(),
+			To:     common.BytesToAddress(iter.Value()[1 : addressLen+1]).String(),
+			Height: int64(sdk.BigEndianToUint64(iter.Value()[1+addressLen:])),
+		}) {
+			break
+		}
+	}
 }

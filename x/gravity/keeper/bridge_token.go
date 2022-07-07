@@ -28,7 +28,7 @@ func (k Keeper) GetFxOriginatedERC20(ctx sdk.Context, denom string) (string, boo
 	return "", false
 }
 
-func (k Keeper) setFxOriginatedDenomToERC20(ctx sdk.Context, denom string, tokenContract string) {
+func (k Keeper) SetFxOriginatedDenomToERC20(ctx sdk.Context, denom string, tokenContract string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetDenomToERC20Key(denom), []byte(tokenContract))
 	store.Set(types.GetERC20ToDenomKey(tokenContract), []byte(denom))

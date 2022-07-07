@@ -88,7 +88,7 @@ var (
 	// LastSlashedBatchBlock indexes the latest slashed batch block height
 	LastSlashedBatchBlock = []byte{0x13}
 
-	// LastProposalBlockHeight indexes the last validator unbonding block height
+	// LastUnBondingBlockHeight indexes the last validator unbonding block height
 	LastUnBondingBlockHeight = []byte{0x14}
 
 	// LastObservedEthereumBlockHeightKey indexes the latest Ethereum block height
@@ -199,7 +199,7 @@ func GetFeeSecondIndexKey(fee ERC20Token) []byte {
 	return res
 }
 
-// GetLastEventNonceByOracleKey indexes lateset event nonce by validator
+// GetLastEventNonceByValidatorKey indexes lateset event nonce by validator
 func GetLastEventNonceByValidatorKey(validator sdk.ValAddress) []byte {
 	return append(LastEventNonceByValidatorKey, validator.Bytes()...)
 }

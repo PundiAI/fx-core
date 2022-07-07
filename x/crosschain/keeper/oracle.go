@@ -49,9 +49,8 @@ func (k Keeper) IsProposalOracle(ctx sdk.Context, oracleAddr string) bool {
 /////////////////////////////
 
 // SetOracleByBridger sets the bridger key for a given oracle
-func (k Keeper) SetOracleByBridger(ctx sdk.Context, oracleAddr sdk.AccAddress, bridgerAddr sdk.AccAddress) {
+func (k Keeper) SetOracleByBridger(ctx sdk.Context, bridgerAddr, oracleAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	// save external oracleAddr -> bridgerAddr
 	store.Set(types.GetOracleAddressByBridgerKey(bridgerAddr), oracleAddr.Bytes())
 }
 
@@ -76,10 +75,9 @@ func (k Keeper) DelOracleByBridger(ctx sdk.Context, bridgerAddr sdk.AccAddress) 
 //    External ADDRESS     //
 /////////////////////////////
 
-// SetExternalAddressForOracle sets the external address for a given oracle
-func (k Keeper) SetExternalAddressForOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, externalAddress string) {
+// SetOracleByExternalAddress sets the external address for a given oracle
+func (k Keeper) SetOracleByExternalAddress(ctx sdk.Context, externalAddress string, oracleAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	// save external address -> oracleAddr
 	store.Set(types.GetOracleAddressByExternalKey(externalAddress), oracleAddr.Bytes())
 }
 
@@ -90,8 +88,8 @@ func (k Keeper) GetOracleByExternalAddress(ctx sdk.Context, externalAddress stri
 	return bz, bz != nil
 }
 
-// DelExternalAddressForOracle delete the external address for a give oracle
-func (k Keeper) DelExternalAddressForOracle(ctk sdk.Context, externalAddress string) {
+// DelOracleByExternalAddress delete the external address for a give oracle
+func (k Keeper) DelOracleByExternalAddress(ctk sdk.Context, externalAddress string) {
 	store := ctk.KVStore(k.storeKey)
 	oracleAddr := types.GetOracleAddressByExternalKey(externalAddress)
 	if !store.Has(oracleAddr) {
@@ -139,6 +137,20 @@ func (k Keeper) CommonSetOracleTotalPower(ctx sdk.Context) {
 //        ORACLES          //
 /////////////////////////////
 
+func (k Keeper) IterateOracle(ctx sdk.Context, cb func(oracle types.Oracle) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		oracle := types.Oracle{}
+		k.cdc.MustUnmarshal(iterator.Value(), &oracle)
+		if cb(oracle) {
+			break
+		}
+	}
+}
+
 // SetOracle save Oracle data
 func (k Keeper) SetOracle(ctx sdk.Context, oracle types.Oracle) {
 	store := ctx.KVStore(k.storeKey)
@@ -171,7 +183,6 @@ func (k Keeper) DelOracle(ctx sdk.Context, oracle sdk.AccAddress) {
 	store.Delete(key)
 }
 
-// GetAllOracles
 func (k Keeper) GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Oracles) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.OracleKey)

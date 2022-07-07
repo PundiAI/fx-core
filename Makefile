@@ -209,7 +209,7 @@ $(STATIK):
 	@echo "Installing statik..."
 	@(cd /tmp && go install github.com/rakyll/statik@latest)
 
-update-swagger-docs: statik
+update-swagger-docs: proto-swagger-gen statik
 	$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
 	@if [ -n "$(git status --porcelain)" ]; then \
         echo "\033[91mSwagger docs are out of sync!!!\033[0m";\

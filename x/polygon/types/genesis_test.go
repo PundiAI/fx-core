@@ -18,7 +18,7 @@ func TestDefaultGenesisState(t *testing.T) {
 		{
 			name: "polygon default genesis",
 			want: &crosschaintypes.GenesisState{
-				Params: &crosschaintypes.Params{
+				Params: crosschaintypes.Params{
 					GravityId:                         "fx-polygon-bridge",
 					AverageBlockTime:                  5_000,
 					ExternalBatchTimeout:              12 * 3600 * 1000,
