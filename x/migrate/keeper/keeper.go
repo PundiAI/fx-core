@@ -16,6 +16,7 @@ import (
 	"github.com/functionx/fx-core/x/migrate/types"
 )
 
+// secp256k1
 const addressLen = 20
 
 type Keeper struct {
@@ -71,11 +72,11 @@ func (k Keeper) SetMigrateRecord(ctx sdk.Context, from sdk.AccAddress, to common
 	copy(bzTo[1:], from.Bytes())
 	copy(bzTo[1+addressLen:], height)
 
-	store.Set(types.GetMigratedRecordKey(from), bzFrom)
+	store.Set(types.GetMigratedRecordKey(from.Bytes()), bzFrom)
 	store.Set(types.GetMigratedRecordKey(to.Bytes()), bzTo)
 
 	store.Set(types.GetMigratedDirectionFrom(from), []byte{1})
-	store.Set(types.GetMigratedDirectionTo(to.Bytes()), []byte{1})
+	store.Set(types.GetMigratedDirectionTo(to), []byte{1})
 }
 
 // GetMigrateRecord get address migrate record
@@ -106,7 +107,7 @@ func (k Keeper) HasMigratedDirectionFrom(ctx sdk.Context, addr []byte) bool {
 	return store.Has(types.GetMigratedDirectionFrom(addr))
 }
 
-func (k Keeper) HasMigratedDirectionTo(ctx sdk.Context, addr []byte) bool {
+func (k Keeper) HasMigratedDirectionTo(ctx sdk.Context, addr common.Address) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetMigratedDirectionTo(addr))
 }

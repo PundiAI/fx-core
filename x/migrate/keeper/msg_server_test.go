@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestMigrateAccount() {
 	found = suite.app.MigrateKeeper.HasMigratedDirectionFrom(suite.ctx, acc)
 	suite.Require().False(found)
 
-	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc.Bytes())
+	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc)
 	suite.Require().False(found)
 
 	_, err := suite.app.MigrateKeeper.MigrateAccount(sdk.WrapSDKContext(suite.ctx), &types.MsgMigrateAccount{
@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestMigrateAccount() {
 	found = suite.app.MigrateKeeper.HasMigratedDirectionFrom(suite.ctx, acc)
 	suite.Require().True(found)
 
-	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc.Bytes())
+	found = suite.app.MigrateKeeper.HasMigratedDirectionTo(suite.ctx, ethAcc)
 	suite.Require().True(found)
 
 	bb1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)

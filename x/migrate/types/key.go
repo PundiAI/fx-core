@@ -1,6 +1,9 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
+)
 
 const (
 	// ModuleName is the name of the module
@@ -40,14 +43,14 @@ var (
 )
 
 // GetMigratedRecordKey returns the following key format
-func GetMigratedRecordKey(addr sdk.AccAddress) []byte {
-	return append(KeyPrefixMigratedRecord, addr.Bytes()...)
+func GetMigratedRecordKey(addr []byte) []byte {
+	return append(KeyPrefixMigratedRecord, addr...)
 }
 
 func GetMigratedDirectionFrom(addr sdk.AccAddress) []byte {
 	return append(KeyPrefixMigratedDirectionFrom, addr.Bytes()...)
 }
 
-func GetMigratedDirectionTo(addr sdk.AccAddress) []byte {
+func GetMigratedDirectionTo(addr common.Address) []byte {
 	return append(KeyPrefixMigratedDirectionTo, addr.Bytes()...)
 }
