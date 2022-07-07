@@ -27,7 +27,7 @@ func (k Keeper) CurrentOracleSet(c context.Context, _ *types.QueryCurrentOracleS
 
 // OracleSetRequest queries the OracleSetRequest of the bsc module
 func (k Keeper) OracleSetRequest(c context.Context, req *types.QueryOracleSetRequestRequest) (*types.QueryOracleSetRequestResponse, error) {
-	if req.GetNonce() <= 0 {
+	if req.GetNonce() < 0 {
 		return nil, sdkerrors.Wrap(types.ErrUnknown, "nonce")
 	}
 	return &types.QueryOracleSetRequestResponse{OracleSet: k.GetOracleSet(sdk.UnwrapSDKContext(c), req.Nonce)}, nil
