@@ -33,7 +33,7 @@ func TestIsEmptyHash(t *testing.T) {
 	}
 }
 
-func TestIsZeroAddress(t *testing.T) {
+func TestIsZeroEthereumAddress(t *testing.T) {
 	testCases := []struct {
 		name     string
 		address  string
@@ -52,11 +52,11 @@ func TestIsZeroAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, IsZeroAddress(tc.address), tc.name)
+		require.Equal(t, tc.expEmpty, IsZeroEthereumAddress(tc.address), tc.name)
 	}
 }
 
-func TestValidateAddress(t *testing.T) {
+func TestValidateEthereumAddress(t *testing.T) {
 	testCases := []struct {
 		name     string
 		address  string
@@ -83,75 +83,7 @@ func TestValidateAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := ValidateAddress(tc.address)
-
-		if tc.expError {
-			require.Error(t, err, tc.name)
-		} else {
-			require.NoError(t, err, tc.name)
-		}
-	}
-}
-
-func TestValidateAddressIgnoreChecksum(t *testing.T) {
-	testCases := []struct {
-		name     string
-		address  string
-		expError bool
-	}{
-		{
-			"empty string", "", true,
-		},
-		{
-			"invalid address", "0x", true,
-		},
-		{
-			"zero address", common.Address{}.String(), false,
-		},
-		{
-			"valid address", tests.GenerateAddress().Hex(), false,
-		},
-		{
-			"invalid address - upper address", "0x" + strings.ToUpper(tests.GenerateAddress().Hex()[2:]), false,
-		},
-		{
-			"invalid address - lower address", "0x" + strings.ToLower(tests.GenerateAddress().Hex()[2:]), false,
-		},
-	}
-
-	for _, tc := range testCases {
-		err := ValidateAddressIgnoreChecksum(tc.address)
-
-		if tc.expError {
-			require.Error(t, err, tc.name)
-		} else {
-			require.NoError(t, err, tc.name)
-		}
-	}
-}
-
-func TestValidateNonZeroAddress(t *testing.T) {
-	testCases := []struct {
-		name     string
-		address  string
-		expError bool
-	}{
-		{
-			"empty string", "", true,
-		},
-		{
-			"invalid address", "0x", true,
-		},
-		{
-			"zero address", common.Address{}.String(), true,
-		},
-		{
-			"valid address", tests.GenerateAddress().Hex(), false,
-		},
-	}
-
-	for _, tc := range testCases {
-		err := ValidateNonZeroAddress(tc.address)
+		err := ValidateEthereumAddress(tc.address)
 
 		if tc.expError {
 			require.Error(t, err, tc.name)

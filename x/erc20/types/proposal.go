@@ -109,7 +109,7 @@ func ValidateErc20Denom(denom string) error {
 		return fmt.Errorf("invalid denom. %s denomination should be prefixed with the format 'erc20/", denom)
 	}
 
-	return fxtypes.ValidateAddress(denomSplit[1])
+	return fxtypes.ValidateEthereumAddress(denomSplit[1])
 }
 
 // NewRegisterERC20Proposal returns new instance of RegisterERC20Proposal
@@ -131,7 +131,7 @@ func (*RegisterERC20Proposal) ProposalType() string {
 
 // ValidateBasic performs a stateless check of the proposal fields
 func (rtbp *RegisterERC20Proposal) ValidateBasic() error {
-	if err := fxtypes.ValidateAddress(rtbp.Erc20Address); err != nil {
+	if err := fxtypes.ValidateEthereumAddress(rtbp.Erc20Address); err != nil {
 		return sdkerrors.Wrap(err, "ERC20 address")
 	}
 	return govtypes.ValidateAbstract(rtbp)
@@ -158,7 +158,7 @@ func (*ToggleTokenConversionProposal) ProposalType() string {
 func (etrp *ToggleTokenConversionProposal) ValidateBasic() error {
 	// check if the token is a hex address, if not, check if it is a valid SDK
 	// denom
-	if err := fxtypes.ValidateAddress(etrp.Token); err != nil {
+	if err := fxtypes.ValidateEthereumAddress(etrp.Token); err != nil {
 		if err := sdk.ValidateDenom(etrp.Token); err != nil {
 			return err
 		}

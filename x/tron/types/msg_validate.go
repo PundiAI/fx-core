@@ -12,7 +12,6 @@ import (
 
 var _ crosschaintypes.MsgValidateBasic = &TronMsgValidate{}
 
-// TronMsgValidate
 type TronMsgValidate struct {
 	crosschaintypes.EthereumMsgValidate
 }

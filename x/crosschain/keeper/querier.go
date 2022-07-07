@@ -3,6 +3,8 @@ package keeper
 import (
 	"strconv"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -387,7 +389,7 @@ func queryBatch(ctx sdk.Context, nonceStr string, tokenContract string, keeper K
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "nonce")
 	}
-	if types.ValidateEthereumAddress(tokenContract) != nil {
+	if fxtypes.ValidateEthereumAddress(tokenContract) != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "token contract")
 	}
 	foundBatch := keeper.GetOutgoingTxBatch(ctx, tokenContract, nonce)
@@ -429,7 +431,7 @@ func queryDenomToToken(ctx sdk.Context, denom string, keeper Keeper) ([]byte, er
 }
 
 func queryTokenToDenom(ctx sdk.Context, token string, keeper Keeper) ([]byte, error) {
-	if types.ValidateEthereumAddress(token) != nil {
+	if fxtypes.ValidateEthereumAddress(token) != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "token")
 	}
 	bridgeToken := keeper.GetBridgeTokenDenom(ctx, token)

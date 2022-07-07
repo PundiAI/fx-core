@@ -36,7 +36,7 @@ func (tp TokenPair) Validate() error {
 		return err
 	}
 
-	if err := fxtypes.ValidateAddress(tp.Erc20Address); err != nil {
+	if err := fxtypes.ValidateEthereumAddress(tp.Erc20Address); err != nil {
 		return err
 	}
 

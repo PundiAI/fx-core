@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,7 +26,7 @@ func (m BridgeValidator) ValidateBasic() error {
 	if m.Power == 0 {
 		return sdkerrors.Wrap(ErrEmpty, "power")
 	}
-	if err := ValidateEthereumAddress(m.ExternalAddress); err != nil {
+	if err := fxtypes.ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "external address")
 	}
 	return nil

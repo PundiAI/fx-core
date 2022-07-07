@@ -44,7 +44,7 @@ func GetMigrateAccountCmd() *cobra.Command {
 			}
 			fromAddress := cliCtx.GetFromAddress()
 
-			if err := fxtypes.ValidateAddress(args[0]); err != nil {
+			if err := fxtypes.ValidateEthereumAddress(args[0]); err != nil {
 				return err
 			}
 			hexAddress := common.HexToAddress(args[0])

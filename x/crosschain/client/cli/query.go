@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -823,7 +825,7 @@ func CmdCovertBridgeToken() *cobra.Command {
 				return err
 			}
 			tokenContract := args[1]
-			if err := types.ValidateEthereumAddress(tokenContract); err != nil {
+			if err := fxtypes.ValidateEthereumAddress(tokenContract); err != nil {
 				return err
 			}
 			channelIbc, err := cmd.Flags().GetString(flagChannelIBC)

@@ -42,7 +42,7 @@ func (m MsgConvertCoin) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
-	if err = fxtypes.ValidateAddress(m.Receiver); err != nil {
+	if err = fxtypes.ValidateEthereumAddress(m.Receiver); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address %s", err.Error())
 	}
 	if err = ValidateErc20Denom(m.Coin.Denom); err != nil {
@@ -85,14 +85,14 @@ func (m MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
 
 // ValidateBasic runs stateless checks on the message
 func (m MsgConvertERC20) ValidateBasic() error {
-	if err := fxtypes.ValidateAddress(m.Sender); err != nil {
+	if err := fxtypes.ValidateEthereumAddress(m.Sender); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err.Error())
 	}
 	_, err := sdk.AccAddressFromBech32(m.Receiver)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
 	}
-	if err := fxtypes.ValidateAddress(m.ContractAddress); err != nil {
+	if err := fxtypes.ValidateEthereumAddress(m.ContractAddress); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid contract address %s", err.Error())
 	}
 	if !m.Amount.IsPositive() {

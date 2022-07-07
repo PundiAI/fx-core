@@ -38,11 +38,11 @@ func (m *MsgMigrateAccount) Type() string { return TypeMsgMigrateAccount }
 func (m *MsgMigrateAccount) ValidateBasic() error {
 	fromAddress, err := sdk.AccAddressFromBech32(m.From)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	//check to address
-	if err := fxtypes.ValidateAddress(m.To); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address (%s)", err.Error())
+	if err := fxtypes.ValidateEthereumAddress(m.To); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	toAddress := common.HexToAddress(m.To)
 

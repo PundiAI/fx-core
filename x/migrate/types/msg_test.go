@@ -52,11 +52,11 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 	}{
 		{"valid migrate", "", types.NewMsgMigrateAccount(addr1, addr2, validSignHex)},
 
-		{"empty from address", "invalid sender address (empty address string is not allowed): invalid address", types.NewMsgMigrateAccount(addrEmpty, addr2, emptySign)},
-		{"invalid from address", "invalid sender address (address max length is 255, got 268: unknown address): invalid address", types.NewMsgMigrateAccount(addrTooLong, addr2, emptySign)},
+		{"empty from address", "empty address string is not allowed: invalid address", types.NewMsgMigrateAccount(addrEmpty, addr2, emptySign)},
+		{"invalid from address", "address max length is 255, got 268: unknown address: invalid address", types.NewMsgMigrateAccount(addrTooLong, addr2, emptySign)},
 
-		{"empty to address", "invalid to address (empty): invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "", Signature: emptySign}},
-		{"invalid to address", "invalid to address (address(1234567890) of the wrong length exp(10) actual(42)): invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "1234567890", Signature: emptySign}},
+		{"empty to address", "empty: invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "", Signature: emptySign}},
+		{"invalid to address", "invalid address (1234567890) of the wrong length exp (10) actual (42): invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "1234567890", Signature: emptySign}},
 
 		{"same from address to address", fmt.Sprintf("%s: same account", addr1.String()), types.NewMsgMigrateAccount(addr1, common.BytesToAddress(addr1.Bytes()), emptySign)},
 

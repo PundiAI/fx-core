@@ -58,7 +58,7 @@ func NewConvertCoinCmd() *cobra.Command {
 
 			if len(args) == 2 {
 				receiver = args[1]
-				if err := fxtypes.ValidateAddress(receiver); err != nil {
+				if err := fxtypes.ValidateEthereumAddress(receiver); err != nil {
 					return fmt.Errorf("invalid receiver hex address %w", err)
 				}
 			} else {
@@ -92,7 +92,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 			}
 
 			contract := args[0]
-			if err := fxtypes.ValidateAddress(contract); err != nil {
+			if err := fxtypes.ValidateEthereumAddress(contract); err != nil {
 				return fmt.Errorf("invalid ERC20 contract address %w", err)
 			}
 

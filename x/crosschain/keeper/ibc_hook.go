@@ -2,8 +2,10 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/functionx/fx-core/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/types"
+	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
 // TransferAfter Hook operation after transfer transaction triggered by IBC module
@@ -11,11 +13,11 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, amount, f
 	// Claim channel capability passed back by IBC module
 	sendAddr, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
-		return err
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "sender address")
 	}
 
-	if err = types.ValidateEthereumAddress(receive); err != nil {
-		return err
+	if err = fxtypes.ValidateEthereumAddress(receive); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "receive address")
 	}
 
 	_, err = k.AddToOutgoingPool(ctx, sendAddr, receive, amount, fee)
