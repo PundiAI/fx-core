@@ -12,7 +12,7 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 	genAppState := NewDefAppGenesisByDenom(MintDenom, encodingConfig.Marshaler)
 
 	state := gravitytypes.DefaultGenesisState()
-	state.Erc20ToDenoms = []*gravitytypes.ERC20ToDenom{
+	state.Erc20ToDenoms = []gravitytypes.ERC20ToDenom{
 		{
 			Denom: MintDenom,                                    // token symbol
 			Erc20: "0x0AD5CE837A789423CC6158053CAd5eB75A6183AC", // token contract address

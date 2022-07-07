@@ -158,7 +158,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(MintDenom, bondAmt))...)
 	}
 	bankGenesis.Supply = totalSupply
-	bankGenesis.Balances = balances
+	bankGenesis.Balances = append(bankGenesis.Balances, balances...)
 	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(&bankGenesis)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")

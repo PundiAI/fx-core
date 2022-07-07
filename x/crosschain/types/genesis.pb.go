@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
@@ -24,6 +25,17 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState struct
 type GenesisState struct {
+	Params                  Params                  `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	LastObservedEventNonce  uint64                  `protobuf:"varint,2,opt,name=last_observed_event_nonce,json=lastObservedEventNonce,proto3" json:"last_observed_event_nonce,omitempty"`
+	LastObservedBlockHeight LastObservedBlockHeight `protobuf:"bytes,3,opt,name=last_observed_block_height,json=lastObservedBlockHeight,proto3" json:"last_observed_block_height"`
+	Oracles                 []Oracle                `protobuf:"bytes,4,rep,name=oracles,proto3" json:"oracles"`
+	OracleSets              []OracleSet             `protobuf:"bytes,5,rep,name=oracle_sets,json=oracleSets,proto3" json:"oracle_sets"`
+	BridgeTokens            []BridgeToken           `protobuf:"bytes,6,rep,name=bridge_tokens,json=bridgeTokens,proto3" json:"bridge_tokens"`
+	UnbatchedTransfers      []OutgoingTransferTx    `protobuf:"bytes,7,rep,name=unbatched_transfers,json=unbatchedTransfers,proto3" json:"unbatched_transfers"`
+	Batches                 []OutgoingTxBatch       `protobuf:"bytes,8,rep,name=batches,proto3" json:"batches"`
+	OracleSetConfirms       []MsgOracleSetConfirm   `protobuf:"bytes,9,rep,name=oracle_set_confirms,json=oracleSetConfirms,proto3" json:"oracle_set_confirms"`
+	BatchConfirms           []MsgConfirmBatch       `protobuf:"bytes,10,rep,name=batch_confirms,json=batchConfirms,proto3" json:"batch_confirms"`
+	Attestations            []Attestation           `protobuf:"bytes,11,rep,name=attestations,proto3" json:"attestations"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -59,6 +71,83 @@ func (m *GenesisState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GenesisState proto.InternalMessageInfo
 
+func (m *GenesisState) GetParams() Params {
+	if m != nil {
+		return m.Params
+	}
+	return Params{}
+}
+
+func (m *GenesisState) GetLastObservedEventNonce() uint64 {
+	if m != nil {
+		return m.LastObservedEventNonce
+	}
+	return 0
+}
+
+func (m *GenesisState) GetLastObservedBlockHeight() LastObservedBlockHeight {
+	if m != nil {
+		return m.LastObservedBlockHeight
+	}
+	return LastObservedBlockHeight{}
+}
+
+func (m *GenesisState) GetOracles() []Oracle {
+	if m != nil {
+		return m.Oracles
+	}
+	return nil
+}
+
+func (m *GenesisState) GetOracleSets() []OracleSet {
+	if m != nil {
+		return m.OracleSets
+	}
+	return nil
+}
+
+func (m *GenesisState) GetBridgeTokens() []BridgeToken {
+	if m != nil {
+		return m.BridgeTokens
+	}
+	return nil
+}
+
+func (m *GenesisState) GetUnbatchedTransfers() []OutgoingTransferTx {
+	if m != nil {
+		return m.UnbatchedTransfers
+	}
+	return nil
+}
+
+func (m *GenesisState) GetBatches() []OutgoingTxBatch {
+	if m != nil {
+		return m.Batches
+	}
+	return nil
+}
+
+func (m *GenesisState) GetOracleSetConfirms() []MsgOracleSetConfirm {
+	if m != nil {
+		return m.OracleSetConfirms
+	}
+	return nil
+}
+
+func (m *GenesisState) GetBatchConfirms() []MsgConfirmBatch {
+	if m != nil {
+		return m.BatchConfirms
+	}
+	return nil
+}
+
+func (m *GenesisState) GetAttestations() []Attestation {
+	if m != nil {
+		return m.Attestations
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "fx.gravity.crosschain.v1.GenesisState")
 }
@@ -66,17 +155,40 @@ func init() {
 func init() { proto.RegisterFile("crosschain/v1/genesis.proto", fileDescriptor_d7270fc0eb117dea) }
 
 var fileDescriptor_d7270fc0eb117dea = []byte{
-	// 156 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x4e, 0x2e, 0xca, 0x2f,
-	0x2e, 0x4e, 0xce, 0x48, 0xcc, 0xcc, 0xd3, 0x2f, 0x33, 0xd4, 0x4f, 0x4f, 0xcd, 0x4b, 0x2d, 0xce,
-	0x2c, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0x48, 0xab, 0xd0, 0x4b, 0x2f, 0x4a, 0x2c,
-	0xcb, 0x2c, 0xa9, 0xd4, 0x43, 0xa8, 0xd3, 0x2b, 0x33, 0x54, 0xe2, 0xe3, 0xe2, 0x71, 0x87, 0x28,
-	0x0d, 0x2e, 0x49, 0x2c, 0x49, 0x75, 0xf2, 0x3c, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6,
-	0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39,
-	0x86, 0x28, 0xfd, 0xf4, 0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0xfd, 0xb4, 0xd2,
-	0xbc, 0xe4, 0x92, 0xcc, 0xfc, 0xbc, 0x0a, 0xfd, 0xb4, 0x0a, 0xdd, 0xe4, 0xfc, 0xa2, 0x54, 0xfd,
-	0x0a, 0x7d, 0x24, 0xfb, 0x4b, 0x2a, 0x0b, 0x52, 0x8b, 0x93, 0xd8, 0xc0, 0x76, 0x1b, 0x03, 0x02,
-	0x00, 0x00, 0xff, 0xff, 0x1a, 0x8a, 0x2e, 0x2e, 0x9a, 0x00, 0x00, 0x00,
+	// 520 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0xc1, 0x6e, 0xd3, 0x30,
+	0x1c, 0xc6, 0x1b, 0x56, 0x5a, 0x70, 0x3b, 0x24, 0x0c, 0x1a, 0xa6, 0x48, 0xa1, 0x02, 0x21, 0x0d,
+	0x89, 0x25, 0x2a, 0x9c, 0xb8, 0x20, 0x28, 0x42, 0x30, 0xc4, 0xe8, 0xb4, 0x55, 0x1c, 0xb8, 0x44,
+	0x8e, 0xeb, 0xba, 0xd1, 0x5a, 0xbb, 0xf2, 0xdf, 0xad, 0xb2, 0xb7, 0xe0, 0x05, 0x78, 0x9f, 0x1d,
+	0x77, 0xe4, 0x84, 0x50, 0xfb, 0x22, 0x28, 0xae, 0xd3, 0xa6, 0x88, 0xae, 0xbb, 0x45, 0xff, 0xef,
+	0xfb, 0x7e, 0xfe, 0xf2, 0xb7, 0x8c, 0x1e, 0x31, 0xad, 0x00, 0xd8, 0x80, 0x26, 0x32, 0x9c, 0xb6,
+	0x42, 0xc1, 0x25, 0x87, 0x04, 0x82, 0xb1, 0x56, 0x46, 0x61, 0xd2, 0x4f, 0x03, 0xa1, 0xe9, 0x34,
+	0x31, 0xe7, 0xc1, 0xca, 0x17, 0x4c, 0x5b, 0x8d, 0xfb, 0x42, 0x09, 0x65, 0x4d, 0x61, 0xf6, 0xb5,
+	0xf0, 0x37, 0xf6, 0xd6, 0x61, 0x26, 0x75, 0x73, 0x7f, 0x7d, 0x5e, 0x40, 0x59, 0xfd, 0xc9, 0xcf,
+	0x2a, 0xaa, 0x7f, 0x5c, 0x9c, 0x7c, 0x6a, 0xa8, 0xe1, 0xf8, 0x0d, 0xaa, 0x8c, 0xa9, 0xa6, 0x23,
+	0x20, 0x5e, 0xd3, 0xdb, 0xaf, 0xbd, 0x6c, 0x06, 0x9b, 0x9a, 0x04, 0xc7, 0xd6, 0xd7, 0x2e, 0x5f,
+	0xfc, 0x7e, 0x5c, 0x3a, 0x71, 0x29, 0xfc, 0x1a, 0x3d, 0x1c, 0x52, 0x30, 0x91, 0x8a, 0x81, 0xeb,
+	0x29, 0xef, 0x45, 0x7c, 0xca, 0xa5, 0x89, 0xa4, 0x92, 0x8c, 0x93, 0x1b, 0x4d, 0x6f, 0xbf, 0x7c,
+	0xb2, 0x97, 0x19, 0x3a, 0x4e, 0xff, 0x90, 0xc9, 0x5f, 0x33, 0x15, 0x1b, 0xd4, 0x58, 0x8f, 0xc6,
+	0x43, 0xc5, 0xce, 0xa2, 0x01, 0x4f, 0xc4, 0xc0, 0x90, 0x1d, 0x5b, 0xa7, 0xb5, 0xb9, 0xce, 0x97,
+	0x02, 0xb5, 0x9d, 0x25, 0x3f, 0xd9, 0xa0, 0xeb, 0xf7, 0x60, 0xf8, 0x7f, 0x19, 0xbf, 0x45, 0x55,
+	0xa5, 0x29, 0x1b, 0x72, 0x20, 0xe5, 0xe6, 0xce, 0xd5, 0x7f, 0xdc, 0xb1, 0x46, 0x47, 0xcc, 0x63,
+	0xf8, 0x33, 0xaa, 0x2d, 0x3e, 0x23, 0xe0, 0x06, 0xc8, 0x4d, 0x4b, 0x79, 0xba, 0x8d, 0x72, 0xca,
+	0xf3, 0x6a, 0x48, 0xe5, 0x03, 0xc0, 0xc7, 0x68, 0x37, 0xd6, 0x49, 0x4f, 0xf0, 0xc8, 0xa8, 0x33,
+	0x2e, 0x81, 0x54, 0x2c, 0xed, 0xd9, 0x66, 0x5a, 0xdb, 0xda, 0xbb, 0x99, 0xdb, 0xf1, 0xea, 0xf1,
+	0x6a, 0x04, 0x98, 0xa1, 0x7b, 0x13, 0x19, 0x53, 0xc3, 0x06, 0xbc, 0x17, 0x19, 0x4d, 0x25, 0xf4,
+	0xb9, 0x06, 0x52, 0xb5, 0xdc, 0x17, 0x57, 0xb4, 0x9c, 0x18, 0xa1, 0x12, 0x29, 0xba, 0x2e, 0xd2,
+	0x4d, 0x1d, 0x1e, 0x2f, 0x71, 0xb9, 0x04, 0xf8, 0x10, 0x55, 0x17, 0x33, 0x20, 0xb7, 0x2c, 0xf8,
+	0xf9, 0x35, 0xc0, 0x69, 0x3b, 0x8b, 0xe4, 0xdb, 0x74, 0xf9, 0xac, 0xef, 0x6a, 0x9b, 0x11, 0x53,
+	0xb2, 0x9f, 0xe8, 0x11, 0x90, 0xdb, 0x16, 0x7b, 0xb0, 0x19, 0x7b, 0x04, 0x62, 0xb9, 0xd8, 0xf7,
+	0x8b, 0x94, 0x43, 0xdf, 0x55, 0xff, 0xcc, 0x01, 0x7f, 0x43, 0x77, 0xec, 0x79, 0x2b, 0x3e, 0xda,
+	0x56, 0xfb, 0x08, 0x44, 0x8e, 0x2d, 0xd4, 0xde, 0xb5, 0x98, 0x25, 0xb7, 0x83, 0xea, 0xd4, 0x18,
+	0x0e, 0x86, 0x9a, 0x44, 0x49, 0x20, 0xb5, 0x6d, 0xb7, 0xf7, 0x6e, 0xe5, 0xce, 0x6f, 0xaf, 0x08,
+	0x68, 0x1f, 0x5e, 0xcc, 0x7c, 0xef, 0x72, 0xe6, 0x7b, 0x7f, 0x66, 0xbe, 0xf7, 0x63, 0xee, 0x97,
+	0x2e, 0xe7, 0x7e, 0xe9, 0xd7, 0xdc, 0x2f, 0x7d, 0x0f, 0x45, 0x62, 0x06, 0x93, 0x38, 0x60, 0x6a,
+	0x14, 0xf6, 0x27, 0x92, 0x65, 0xfe, 0x34, 0xec, 0xa7, 0x07, 0x4c, 0x69, 0x1e, 0xa6, 0x85, 0xa7,
+	0x1e, 0x9a, 0xf3, 0x31, 0x87, 0xb8, 0x62, 0x5f, 0xfc, 0xab, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff,
+	0x96, 0xf9, 0x93, 0x18, 0x78, 0x04, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -99,6 +211,143 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Attestations) > 0 {
+		for iNdEx := len(m.Attestations) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Attestations[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x5a
+		}
+	}
+	if len(m.BatchConfirms) > 0 {
+		for iNdEx := len(m.BatchConfirms) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.BatchConfirms[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x52
+		}
+	}
+	if len(m.OracleSetConfirms) > 0 {
+		for iNdEx := len(m.OracleSetConfirms) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.OracleSetConfirms[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x4a
+		}
+	}
+	if len(m.Batches) > 0 {
+		for iNdEx := len(m.Batches) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Batches[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x42
+		}
+	}
+	if len(m.UnbatchedTransfers) > 0 {
+		for iNdEx := len(m.UnbatchedTransfers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.UnbatchedTransfers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
+	if len(m.BridgeTokens) > 0 {
+		for iNdEx := len(m.BridgeTokens) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.BridgeTokens[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x32
+		}
+	}
+	if len(m.OracleSets) > 0 {
+		for iNdEx := len(m.OracleSets) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.OracleSets[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.Oracles) > 0 {
+		for iNdEx := len(m.Oracles) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Oracles[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	{
+		size, err := m.LastObservedBlockHeight.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if m.LastObservedEventNonce != 0 {
+		i = encodeVarintGenesis(dAtA, i, uint64(m.LastObservedEventNonce))
+		i--
+		dAtA[i] = 0x10
+	}
+	{
+		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -119,6 +368,61 @@ func (m *GenesisState) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = m.Params.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	if m.LastObservedEventNonce != 0 {
+		n += 1 + sovGenesis(uint64(m.LastObservedEventNonce))
+	}
+	l = m.LastObservedBlockHeight.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	if len(m.Oracles) > 0 {
+		for _, e := range m.Oracles {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.OracleSets) > 0 {
+		for _, e := range m.OracleSets {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.BridgeTokens) > 0 {
+		for _, e := range m.BridgeTokens {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.UnbatchedTransfers) > 0 {
+		for _, e := range m.UnbatchedTransfers {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.Batches) > 0 {
+		for _, e := range m.Batches {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.OracleSetConfirms) > 0 {
+		for _, e := range m.OracleSetConfirms {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.BatchConfirms) > 0 {
+		for _, e := range m.BatchConfirms {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.Attestations) > 0 {
+		for _, e := range m.Attestations {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -157,6 +461,363 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: GenesisState: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LastObservedEventNonce", wireType)
+			}
+			m.LastObservedEventNonce = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.LastObservedEventNonce |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LastObservedBlockHeight", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.LastObservedBlockHeight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Oracles", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Oracles = append(m.Oracles, Oracle{})
+			if err := m.Oracles[len(m.Oracles)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OracleSets", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OracleSets = append(m.OracleSets, OracleSet{})
+			if err := m.OracleSets[len(m.OracleSets)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BridgeTokens", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BridgeTokens = append(m.BridgeTokens, BridgeToken{})
+			if err := m.BridgeTokens[len(m.BridgeTokens)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UnbatchedTransfers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.UnbatchedTransfers = append(m.UnbatchedTransfers, OutgoingTransferTx{})
+			if err := m.UnbatchedTransfers[len(m.UnbatchedTransfers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Batches", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Batches = append(m.Batches, OutgoingTxBatch{})
+			if err := m.Batches[len(m.Batches)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OracleSetConfirms", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OracleSetConfirms = append(m.OracleSetConfirms, MsgOracleSetConfirm{})
+			if err := m.OracleSetConfirms[len(m.OracleSetConfirms)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BatchConfirms", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BatchConfirms = append(m.BatchConfirms, MsgConfirmBatch{})
+			if err := m.BatchConfirms[len(m.BatchConfirms)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Attestations", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Attestations = append(m.Attestations, Attestation{})
+			if err := m.Attestations[len(m.Attestations)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGenesis(dAtA[iNdEx:])

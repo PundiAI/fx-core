@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/x/gravity/types"
@@ -10,20 +8,20 @@ import (
 
 // InitGenesis starts a chain from a genesis state
 func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) {
-	k.SetParams(ctx, *data.Params)
+	k.SetParams(ctx, data.Params)
 	// reset valsets in state
 	for _, vs := range data.Valsets {
-		k.StoreValset(ctx, vs)
+		k.StoreValset(ctx, &vs)
 	}
 
 	// reset valset confirmations in state
 	for _, conf := range data.ValsetConfirms {
-		k.SetValsetConfirm(ctx, *conf)
+		k.SetValsetConfirm(ctx, conf)
 	}
 
 	// reset batches in state
 	for _, batch := range data.Batches {
-		k.StoreBatchUnsafe(ctx, batch)
+		k.StoreBatchUnsafe(ctx, &batch)
 	}
 
 	// reset batch confirmations in state
@@ -33,7 +31,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) {
 
 	// reset pool transactions in state
 	for _, tx := range data.UnbatchedTransfers {
-		if err := k.setPoolEntry(ctx, tx); err != nil {
+		if err := k.setPoolEntry(ctx, &tx); err != nil {
 			panic(err)
 		}
 	}
@@ -101,64 +99,41 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) {
 	for _, item := range data.Erc20ToDenoms {
 		k.setFxOriginatedDenomToERC20(ctx, item.Denom, item.Erc20)
 	}
-
-	moduleAcc := k.ak.GetModuleAccount(ctx, types.ModuleName)
-	balances := k.bankKeeper.GetAllBalances(ctx, moduleAcc.GetAddress())
-	if balances.IsZero() {
-		if err := k.bankKeeper.SetBalances(ctx, moduleAcc.GetAddress(), data.ModuleCoins); err != nil {
-			panic(fmt.Errorf("mint module coins err!!!module:%v, coins:%v,err:%v", types.ModuleName, data.ModuleCoins, err))
-		}
-		k.ak.SetModuleAccount(ctx, moduleAcc)
-	}
 }
 
 // ExportGenesis exports all the state needed to restart the chain
 // from the current state of the chain
-func ExportGenesis(ctx sdk.Context, k Keeper) types.GenesisState {
-	var (
-		p                  = k.GetParams(ctx)
-		batches            = k.GetOutgoingTxBatches(ctx)
-		valsets            = k.GetValsets(ctx)
-		attmap             = k.GetAttestationMapping(ctx)
-		vsconfs            []*types.MsgValsetConfirm
-		batchconfs         []types.MsgConfirmBatch
-		attestations       []types.Attestation
-		delegates          = k.GetDelegateKeys(ctx)
-		lastobserved       = k.GetLastObservedEventNonce(ctx)
-		erc20ToDenoms      []*types.ERC20ToDenom
-		unbatchedTransfers = k.GetPoolTransactions(ctx)
-	)
-
-	// export valset confirmations from state
-	for _, vs := range valsets {
-		vsconfs = append(vsconfs, k.GetValsetConfirms(ctx, vs.Nonce)...)
+func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
+	genesisState := &types.GenesisState{
+		Params:            k.GetParams(ctx),
+		LastObservedNonce: k.GetLastObservedEventNonce(ctx),
 	}
-
-	// export batch confirmations from state
-	for _, batch := range batches {
-		batchconfs = append(batchconfs, k.GetBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract)...)
+	for _, address := range k.GetDelegateKeys(ctx) {
+		genesisState.DelegateKeys = append(genesisState.DelegateKeys, *address)
 	}
-
-	// export attestations from state
-	for _, atts := range attmap {
-		attestations = append(attestations, atts...)
+	for _, valset := range k.GetValsets(ctx) {
+		genesisState.Valsets = append(genesisState.Valsets, *valset)
 	}
-
-	// export erc20 to denom relations
 	k.IterateERC20ToDenom(ctx, func(key []byte, erc20ToDenom *types.ERC20ToDenom) bool {
-		erc20ToDenoms = append(erc20ToDenoms, erc20ToDenom)
+		genesisState.Erc20ToDenoms = append(genesisState.Erc20ToDenoms, *erc20ToDenom)
 		return false
 	})
-	return types.GenesisState{
-		Params:             &p,
-		LastObservedNonce:  lastobserved,
-		Valsets:            valsets,
-		ValsetConfirms:     vsconfs,
-		Batches:            batches,
-		BatchConfirms:      batchconfs,
-		Attestations:       attestations,
-		DelegateKeys:       delegates,
-		Erc20ToDenoms:      erc20ToDenoms,
-		UnbatchedTransfers: unbatchedTransfers,
+	for _, batch := range k.GetOutgoingTxBatches(ctx) {
+		genesisState.Batches = append(genesisState.Batches, *batch)
 	}
+	for _, tx := range k.GetPoolTransactions(ctx) {
+		genesisState.UnbatchedTransfers = append(genesisState.UnbatchedTransfers, *tx)
+	}
+	for _, vs := range genesisState.Valsets {
+		for _, cfg := range k.GetValsetConfirms(ctx, vs.Nonce) {
+			genesisState.ValsetConfirms = append(genesisState.ValsetConfirms, *cfg)
+		}
+	}
+	for _, batch := range genesisState.Batches {
+		genesisState.BatchConfirms = append(genesisState.BatchConfirms, k.GetBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract)...)
+	}
+	for _, attestations := range k.GetAttestationMapping(ctx) {
+		genesisState.Attestations = append(genesisState.Attestations, attestations...)
+	}
+	return genesisState
 }

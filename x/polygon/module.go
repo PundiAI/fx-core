@@ -127,7 +127,7 @@ func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONMarshaler, _ json.Raw
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
-	return nil
+	return cdc.MustMarshalJSON(crosschain.ExportGenesis(ctx, am.keeper))
 }
 
 // BeginBlock implements app module

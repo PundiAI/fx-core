@@ -195,12 +195,12 @@ draw-deps:
 lint:
 	@echo "--> Running linter"
 	golangci-lint run -v --timeout 3m
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' | xargs gofmt -d -s
+	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' | xargs gofmt -d -s
 
 format:
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' | xargs gofmt -w -s
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.*' | xargs goimports -w -local github.com/functionx/fx-core
+	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' | xargs gofmt -w -s
+	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' | xargs goimports -w -local github.com/functionx/fx-core
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
@@ -225,12 +225,16 @@ benchmark:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-# The below include contains the tools target.
-include develop/devtools.mk
+protoVer=v0.2
+protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
+containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
+containerProtoGenSwagger=cosmos-sdk-proto-gen-swagger-$(protoVer)
+containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@./develop/protocgen.sh
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
+		sh ./develop/protocgen.sh; fi
 
 ###############################################################################
 ###                                 Other                                  ###

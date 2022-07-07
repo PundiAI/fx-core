@@ -2,7 +2,7 @@ package fxcore
 
 import (
 	"encoding/json"
-	"fmt"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"math/big"
 	"strings"
 	"time"
@@ -94,6 +94,14 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONMarshaler) map[string]j
 				panic("invalid fx total supply")
 			}
 			state.Supply = sdk.NewCoins(sdk.NewCoin(denom, fxTotalSupply))
+			gravityInitAmount, ok := sdk.NewIntFromString(GravityModuleInitAmount)
+			if !ok {
+				panic("invalid gravity module init amount")
+			}
+			state.Balances = append(state.Balances, banktypes.Balance{
+				Address: authtypes.NewModuleAddress(gravitytypes.ModuleName).String(),
+				Coins:   sdk.NewCoins(sdk.NewCoin(denom, gravityInitAmount)),
+			})
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case gravitytypes.ModuleName:
 			state := gravitytypes.DefaultGenesisState()
@@ -103,11 +111,6 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONMarshaler) map[string]j
 			state.Params.UnbondSlashingValsetsWindow = 20000
 			state.Params.IbcTransferTimeoutHeight = 20000
 
-			initAmount, ok := sdk.NewIntFromString(GravityModuleInitAmount)
-			if !ok {
-				panic(fmt.Errorf("gravity module init amount err!!!amount:[%v]", GravityModuleInitAmount))
-			}
-			state.ModuleCoins = sdk.NewCoins(sdk.NewCoin(denom, initAmount))
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case ibchost.ModuleName:
 			state := types.DefaultGenesisState()

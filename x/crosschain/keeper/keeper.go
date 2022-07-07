@@ -708,3 +708,17 @@ func (k Keeper) GetParamSpace() paramtypes.Subspace {
 func (k Keeper) GetBankKeeper() types.BankKeeper {
 	return k.bankKeeper
 }
+
+func (k Keeper) IterateOracle(ctx sdk.Context, cb func(oracle types.Oracle) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.OraclesKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		oracle := types.Oracle{}
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &oracle)
+		if cb(oracle) {
+			break
+		}
+	}
+}

@@ -9,7 +9,8 @@ require (
 	github.com/ethereum/go-ethereum v1.10.15
 	github.com/fbsobreira/gotron-sdk v0.0.0-20211012084317-763989224068
 	github.com/gogo/protobuf v1.3.3
-	github.com/golang/protobuf v1.5.0
+	github.com/golang/protobuf v1.5.2
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/magiconair/properties v1.8.5 // indirect
@@ -26,11 +27,12 @@ require (
 	github.com/tendermint/tendermint v0.34.9
 	github.com/tendermint/tm-db v0.6.4
 	github.com/tyler-smith/go-bip39 v1.0.2
-	google.golang.org/genproto v0.0.0-20210114201628-6edceaf6022f
-	google.golang.org/grpc v1.38.0
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
+	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
+	google.golang.org/grpc v1.46.2
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.33.2
