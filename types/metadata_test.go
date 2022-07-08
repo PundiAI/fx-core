@@ -15,12 +15,11 @@ func TestGetMetadata_Validate(t *testing.T) {
 		return `[a-zA-Z][a-zA-Z0-9/-]{1,127}`
 	})
 
-	devnetMetadata := []banktypes.Metadata{wfxMetadata, devnetPUNDIXMetadata, devnetPURSEMetadata, devnetUSDTMetadata}
 	testnetMetadata := []banktypes.Metadata{wfxMetadata, testnetPUNDIXMetadata, testnetEthUSDTMetadata, testnetUSDCMetadata, testnetDAIMetadata,
 		testnetPURSEMetadata, testnetUSDJMetadata, testnetUSDFMetadata, testnetTronUSDTMetadata, testnetLINKMetadata}
-	mainnetMetadata := []banktypes.Metadata{wfxMetadata, mainnetPUNDIXMetadata, mainnetPURSEMetadata, mainnetTronUSDTMetadata, mainnetPolygonUSDTMetadata}
+	mainnetMetadata := []banktypes.Metadata{wfxMetadata, mainnetPUNDIXMetadata, mainnetPURSEMetadata}
 
-	for _, m := range append(append(devnetMetadata, testnetMetadata...), mainnetMetadata...) {
+	for _, m := range append(testnetMetadata, mainnetMetadata...) {
 		err := m.Validate()
 		assert.NoError(t, err)
 	}

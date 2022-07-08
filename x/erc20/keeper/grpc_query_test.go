@@ -23,19 +23,19 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 		expPass  bool
 	}{
 		{
-			"5 pairs registered",
+			"3 pairs registered",
 			func() {
 				req = &types.QueryTokenPairsRequest{}
 				expRes = &types.QueryTokenPairsResponse{Pagination: &query.PageResponse{}}
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 5},
-					TokenPairs: []types.TokenPair{fxTokenPair, pundixTokenPair, purseTokenPair, tronUsdtTokenPair, polygonUsdtTokenPair},
+					Pagination: &query.PageResponse{Total: 3},
+					TokenPairs: []types.TokenPair{fxTokenPair, pundixTokenPair, purseTokenPair},
 				}
 			},
 			true,
 		},
 		{
-			"6 pair registered w/pagination",
+			"4 pair registered w/pagination",
 			func() {
 				req = &types.QueryTokenPairsRequest{
 					Pagination: &query.PageRequest{Limit: 10, CountTotal: true},
@@ -44,14 +44,14 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 6},
-					TokenPairs: []types.TokenPair{pair, fxTokenPair, pundixTokenPair, purseTokenPair, tronUsdtTokenPair, polygonUsdtTokenPair},
+					Pagination: &query.PageResponse{Total: 4},
+					TokenPairs: []types.TokenPair{pair, fxTokenPair, pundixTokenPair, purseTokenPair},
 				}
 			},
 			true,
 		},
 		{
-			"7 pairs registered wo/pagination",
+			"5 pairs registered wo/pagination",
 			func() {
 				req = &types.QueryTokenPairsRequest{}
 				pair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
@@ -60,8 +60,8 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 7},
-					TokenPairs: []types.TokenPair{pair, pair2, fxTokenPair, pundixTokenPair, purseTokenPair, tronUsdtTokenPair, polygonUsdtTokenPair},
+					Pagination: &query.PageResponse{Total: 5},
+					TokenPairs: []types.TokenPair{pair, pair2, fxTokenPair, pundixTokenPair, purseTokenPair},
 				}
 			},
 			true,

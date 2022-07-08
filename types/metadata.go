@@ -85,10 +85,6 @@ var (
 
 	wfxMetadata = GetFXMetaData(DefaultDenom)
 
-	devnetPUNDIXMetadata = GetCrossChainMetadata("Pundi X Token", "PUNDIX", 18, "eth0x338E7A8687AdA7274Dc87C95D94f920d8F4185AE")
-	devnetPURSEMetadata  = GetCrossChainMetadata("PURSE TOKEN", "PURSE", 18, "ibc/B1861D0C2E4BAFA42A61739291975B7663F278FFAF579F83C9C4AD3890D09CA0")
-	devnetUSDTMetadata   = GetCrossChainMetadata("USD COIN", "USDT", 6, "eth0x1BE1f78d417B1C4A199bb8ad4c946Ca248f7A83e")
-
 	testnetPUNDIXMetadata   = GetCrossChainMetadata("Pundi X Token", "PUNDIX", 18, "eth0xd9EEd31F5731DfC3Ca18f09B487e200F50a6343B")
 	testnetEthUSDTMetadata  = GetCrossChainMetadata("Tether USD", "USDT", 6, "eth0xD69133f9A0206b3340d9622F2eBc4571022b3b5f")
 	testnetUSDCMetadata     = GetCrossChainMetadata("USD Coin", "USDC", 18, "eth0xeC822cd1238d946Cf0f73be57359c5cAa5512a9D")
@@ -99,10 +95,8 @@ var (
 	testnetTronUSDTMetadata = GetCrossChainMetadata("Tether USD", "USDT", 6, "tronTXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj")
 	testnetLINKMetadata     = GetCrossChainMetadata("ChainLink Token", "LINK", 18, "polygon0x326C977E6efc84E512bB9C30f76E30c160eD06FB")
 
-	mainnetPUNDIXMetadata      = GetCrossChainMetadata("Pundi X Token", "PUNDIX", 18, "eth0x0FD10b9899882a6f2fcb5c371E17e70FdEe00C38")
-	mainnetPURSEMetadata       = GetCrossChainMetadata("PURSE TOKEN", "PURSE", 18, "ibc/F08B62C2C1BE9E52942617489CAB1E94537FE3849F8EEC910B142468C340EB0D")
-	mainnetTronUSDTMetadata    = GetCrossChainMetadata("Tether USD", "USDT", 6, "tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
-	mainnetPolygonUSDTMetadata = GetCrossChainMetadata("(PoS) Tether USD", "USDT", 6, "polygon0xc2132D05D31c914a87C6611C10748AEb04B58e8F")
+	mainnetPUNDIXMetadata = GetCrossChainMetadata("Pundi X Token", "PUNDIX", 18, "eth0x0FD10b9899882a6f2fcb5c371E17e70FdEe00C38")
+	mainnetPURSEMetadata  = GetCrossChainMetadata("PURSE TOKEN", "PURSE", 18, "ibc/F08B62C2C1BE9E52942617489CAB1E94537FE3849F8EEC910B142468C340EB0D")
 )
 
 func GetMetadata() []banktypes.Metadata {
@@ -110,6 +104,6 @@ func GetMetadata() []banktypes.Metadata {
 		return []banktypes.Metadata{wfxMetadata, testnetPUNDIXMetadata, testnetEthUSDTMetadata, testnetUSDCMetadata, testnetDAIMetadata,
 			testnetPURSEMetadata, testnetUSDJMetadata, testnetUSDFMetadata, testnetTronUSDTMetadata, testnetLINKMetadata}
 	} else {
-		return []banktypes.Metadata{wfxMetadata, mainnetPUNDIXMetadata, mainnetPURSEMetadata, mainnetTronUSDTMetadata, mainnetPolygonUSDTMetadata}
+		return []banktypes.Metadata{wfxMetadata, mainnetPUNDIXMetadata, mainnetPURSEMetadata}
 	}
 }

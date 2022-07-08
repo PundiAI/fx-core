@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) TestRegisterCoin() {
 			//suite.Commit()
 
 			expPair := &types.TokenPair{
-				Erc20Address:  "0xc03345448969Dd8C00e9E4A85d2d9722d093aF8E",
+				Erc20Address:  "0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265",
 				Denom:         cosmosTokenBase,
 				Enabled:       true,
 				ContractOwner: 1,
