@@ -2,10 +2,11 @@ package keeper_test
 
 import (
 	"crypto/ecdsa"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
 

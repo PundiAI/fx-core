@@ -17,8 +17,14 @@ import (
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
 func (k Keeper) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
-	//if (target is module/evm) or (target is empty and denom != FX), evm transfer
-	if claim.TargetIbc == targetEvmPrefix || claim.TargetIbc == "" && coin.Denom != fxtypes.DefaultDenom {
+	// router evm condition
+	// 1. target == module/evm
+	// 2. isTestnet + target empty + denom != FX
+	evmTarget := claim.TargetIbc == targetEvmPrefix
+	isTestnet := fxtypes.ChainId() == fxtypes.TestnetChainId()
+	emptyTarget := claim.TargetIbc == ""
+	notDefaultDenom := coin.Denom != fxtypes.DefaultDenom
+	if evmTarget || (isTestnet && emptyTarget && notDefaultDenom) {
 		k.handlerEvmTransfer(ctx, claim, receiver, coin)
 		return
 	}
