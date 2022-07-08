@@ -102,7 +102,7 @@ func (s TronMsgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.
 	return &crosschaintypes.MsgOracleSetConfirmResponse{}, nil
 }
 
-func (s TronMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
+func (s TronMsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "signature decoding")
@@ -121,8 +121,8 @@ func (s TronMsgServer) confirmHandlerCommon(ctx sdk.Context, orchestratorAddr sd
 	if oracle.ExternalAddress != signatureAddr {
 		return nil, sdkerrors.Wrapf(crosschaintypes.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
 	}
-	if oracle.BridgerAddress != orchestratorAddr.String() {
-		return nil, sdkerrors.Wrapf(crosschaintypes.ErrInvalid, "got %s, expected %s", orchestratorAddr, oracle.BridgerAddress)
+	if oracle.BridgerAddress != bridgerAddr.String() {
+		return nil, sdkerrors.Wrapf(crosschaintypes.ErrInvalid, "got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
 	}
 	if err = trontypes.ValidateTronSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))

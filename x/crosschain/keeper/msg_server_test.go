@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -217,6 +218,9 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
 		ChainName:        suite.chainName,
 	}
+	if trontypes.ModuleName == suite.chainName {
+		normalMsg.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[0].PublicKey).String()
+	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
 	require.NoError(suite.T(), err)
 
@@ -234,21 +238,28 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 	require.EqualValues(suite.T(), uint64(1), nonce1OracleSet.Nonce)
 	require.EqualValues(suite.T(), uint64(2), nonce1OracleSet.Height)
 	require.EqualValues(suite.T(), 1, len(nonce1OracleSet.Members))
-	require.EqualValues(suite.T(), crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(), nonce1OracleSet.Members[0].ExternalAddress)
+	require.EqualValues(suite.T(), normalMsg.ExternalAddress, nonce1OracleSet.Members[0].ExternalAddress)
 	require.EqualValues(suite.T(), math.MaxUint32, nonce1OracleSet.Members[0].Power)
 
-	var gravityId string
-	require.NotPanics(suite.T(), func() {
-		gravityId = suite.Keeper().GetGravityID(suite.ctx)
-	})
+	gravityId := suite.Keeper().GetGravityID(suite.ctx)
 	require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
+	if trontypes.ModuleName == suite.chainName {
+		checkpoint, err = trontypes.GetCheckpointOracleSet(nonce1OracleSet, gravityId)
+	}
 	require.NoError(suite.T(), err)
 
 	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[0])
+	if trontypes.ModuleName == suite.chainName {
+		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externals[0])
+	}
 	require.NoError(suite.T(), err)
 	external2Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[1])
+	if trontypes.ModuleName == suite.chainName {
+		external2Signature, err = trontypes.NewTronSignature(checkpoint, suite.externals[1])
+	}
 	require.NoError(suite.T(), err)
+
 	errMsgData := []struct {
 		name      string
 		msg       *types.MsgOracleSetConfirm
@@ -273,7 +284,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 				Nonce:           nonce1OracleSet.Nonce,
 				BridgerAddress:  suite.bridgers[0].String(),
 				ExternalAddress: crypto.PubkeyToAddress(suite.externals[1].PublicKey).Hex(),
-				Signature:       hex.EncodeToString(external1Signature),
+				Signature:       hex.EncodeToString(external2Signature),
 				ChainName:       suite.chainName,
 			},
 			err:       types.ErrNoFoundOracle,
@@ -289,7 +300,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 				ChainName:       suite.chainName,
 			},
 			err:       types.ErrInvalid,
-			errReason: fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s: %s", crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(), hex.EncodeToString(checkpoint), hex.EncodeToString(external2Signature), types.ErrInvalid),
+			errReason: fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s: %s", normalMsg.ExternalAddress, hex.EncodeToString(checkpoint), hex.EncodeToString(external2Signature), types.ErrInvalid),
 		},
 		{
 			name: "bridger tronAddress not match",
@@ -306,6 +317,10 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 	}
 
 	for _, testData := range errMsgData {
+		if trontypes.ModuleName == suite.chainName {
+			testData.msg.ExternalAddress = tronAddress.Address(append([]byte{tronAddress.TronBytePrefix}, common.HexToAddress(testData.msg.ExternalAddress).Bytes()...)).String()
+		}
+		suite.T().Log(suite.chainName, testData.msg)
 		_, err = suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), testData.msg)
 		require.ErrorIs(suite.T(), err, testData.err, testData.name)
 		require.EqualValues(suite.T(), err.Error(), testData.errReason, testData.name)
@@ -314,7 +329,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 	normalOracleSetConfirmMsg := &types.MsgOracleSetConfirm{
 		Nonce:           nonce1OracleSet.Nonce,
 		BridgerAddress:  suite.bridgers[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ExternalAddress: normalMsg.ExternalAddress,
 		Signature:       hex.EncodeToString(external1Signature),
 		ChainName:       suite.chainName,
 	}
@@ -334,6 +349,9 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: suite.delegateAmount},
 		ChainName:        suite.chainName,
 	}
+	if trontypes.ModuleName == suite.chainName {
+		normalMsg.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[0].PublicKey).String()
+	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
 	require.NoError(suite.T(), err)
 
@@ -352,6 +370,9 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	})
 	require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
+	if trontypes.ModuleName == suite.chainName {
+		checkpoint, err = trontypes.GetCheckpointOracleSet(nonce1OracleSet, gravityId)
+	}
 	require.NoError(suite.T(), err)
 
 	// oracle Online!!!
@@ -361,12 +382,15 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	suite.Keeper().SetOracle(suite.ctx, oracle)
 
 	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[0])
+	if trontypes.ModuleName == suite.chainName {
+		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externals[0])
+	}
 	require.NoError(suite.T(), err)
 
 	normalOracleSetConfirmMsg := &types.MsgOracleSetConfirm{
 		Nonce:           latestOracleSetNonce,
 		BridgerAddress:  suite.bridgers[0].String(),
-		ExternalAddress: crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ExternalAddress: normalMsg.ExternalAddress,
 		Signature:       hex.EncodeToString(external1Signature),
 		ChainName:       suite.chainName,
 	}

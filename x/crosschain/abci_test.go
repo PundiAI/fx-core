@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"reflect"
-	"strings"
+	"regexp"
 	"testing"
 
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
@@ -47,17 +47,18 @@ type IntegrationTestSuite struct {
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
+	compile, err := regexp.Compile("^Test")
+	require.NoError(t, err)
 	for _, moduleName := range []string{bsctypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName} {
 		methodFinder := reflect.TypeOf(new(IntegrationTestSuite))
 		for i := 0; i < methodFinder.NumMethod(); i++ {
 			method := methodFinder.Method(i)
-			if !strings.HasPrefix(method.Name, "Test") {
+			if !compile.MatchString(method.Name) {
 				continue
 			}
-			t.Run(fmt.Sprintf("%s_%s", method.Name, moduleName), func(subT *testing.T) {
-				mySuite := new(IntegrationTestSuite)
+			t.Run(method.Name, func(subT *testing.T) {
+				mySuite := &IntegrationTestSuite{chainName: moduleName}
 				mySuite.SetT(subT)
-				mySuite.chainName = moduleName
 				mySuite.SetupTest()
 				method.Func.Call([]reflect.Value{reflect.ValueOf(mySuite)})
 			})
@@ -91,7 +92,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
 	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.externals = genEthKey(types.MaxOracleSize)
+	suite.externals = helpers.GenEthKey(types.MaxOracleSize)
 	suite.delegateAmount = sdk.NewInt(10 * 1e3).MulRaw(1e18)
 	for i := 0; i < types.MaxOracleSize; i++ {
 		suite.validator = append(suite.validator, valAccounts[i].GetAddress().Bytes())
@@ -702,16 +703,4 @@ func (suite *IntegrationTestSuite) TestSlashOracle() {
 		require.False(suite.T(), oracle.Online)
 		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
 	}
-}
-
-func genEthKey(count int) []*ecdsa.PrivateKey {
-	var ethKeys []*ecdsa.PrivateKey
-	for i := 0; i < count; i++ {
-		key, err := crypto.GenerateKey()
-		if err != nil {
-			panic(err)
-		}
-		ethKeys = append(ethKeys, key)
-	}
-	return ethKeys
 }

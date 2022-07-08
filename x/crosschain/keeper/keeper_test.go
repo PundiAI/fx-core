@@ -2,12 +2,12 @@ package keeper_test
 
 import (
 	"crypto/ecdsa"
-	"fmt"
+	"github.com/stretchr/testify/require"
 	"reflect"
-	"strings"
+	"regexp"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/crypto"
+	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
 
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	polygontypes "github.com/functionx/fx-core/x/polygon/types"
@@ -43,26 +43,29 @@ type KeeperTestSuite struct {
 }
 
 func TestKeeperTestSuite(t *testing.T) {
+	compile, err := regexp.Compile("^Test")
+	require.NoError(t, err)
 	for _, moduleName := range []string{bsctypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName} {
 		methodFinder := reflect.TypeOf(new(KeeperTestSuite))
 		for i := 0; i < methodFinder.NumMethod(); i++ {
 			method := methodFinder.Method(i)
-			if !strings.HasPrefix(method.Name, "Test") {
+			if !compile.MatchString(method.Name) {
 				continue
 			}
-			t.Run(fmt.Sprintf("%s_%s", method.Name, moduleName), func(subT *testing.T) {
-				mySuite := new(KeeperTestSuite)
+			t.Run(method.Name, func(subT *testing.T) {
+				mySuite := &KeeperTestSuite{chainName: moduleName}
 				mySuite.SetT(subT)
-				mySuite.chainName = moduleName
 				mySuite.SetupTest()
 				method.Func.Call([]reflect.Value{reflect.ValueOf(mySuite)})
 			})
 		}
 	}
-
 }
 
 func (suite *KeeperTestSuite) MsgServer() types.MsgServer {
+	if suite.chainName == trontypes.ModuleName {
+		return tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
+	}
 	return keeper.NewMsgServerImpl(suite.Keeper())
 }
 
@@ -95,7 +98,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
 	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.externals = genEthKey(types.MaxOracleSize)
+	suite.externals = helpers.GenEthKey(types.MaxOracleSize)
 	suite.delegateAmount = sdk.NewInt(10 * 1e3).MulRaw(1e18)
 	for i := 0; i < types.MaxOracleSize; i++ {
 		suite.validator = append(suite.validator, valAccounts[i].GetAddress().Bytes())
@@ -106,16 +109,4 @@ func (suite *KeeperTestSuite) SetupTest() {
 		proposalOracle.Oracles = append(proposalOracle.Oracles, oracle.String())
 	}
 	suite.Keeper().SetProposalOracle(suite.ctx, proposalOracle)
-}
-
-func genEthKey(count int) []*ecdsa.PrivateKey {
-	var ethKeys []*ecdsa.PrivateKey
-	for i := 0; i < count; i++ {
-		key, err := crypto.GenerateKey()
-		if err != nil {
-			panic(err)
-		}
-		ethKeys = append(ethKeys, key)
-	}
-	return ethKeys
 }
