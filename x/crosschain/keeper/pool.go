@@ -17,8 +17,7 @@ import (
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
-	totalAmount := amount.Add(fee)
-	totalInVouchers := sdk.Coins{totalAmount}
+	totalInVouchers := sdk.NewCoins(amount.Add(fee))
 
 	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
 	// If there is, lock the coins.
@@ -42,9 +41,6 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	// get next tx id from keeper
 	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
 
-	tokenContract := bridgeToken.Token
-	bridgeTokenFee := types.NewERC20Token(fee.Amount, tokenContract)
-
 	// construct outgoing tx, as part of this process we represent
 	// the token as an ERC20 token since it is preparing to go to ETH
 	// rather than the denom that is the input to this function.
@@ -52,8 +48,8 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		Id:          nextTxID,
 		Sender:      sender.String(),
 		DestAddress: receiver,
-		Token:       types.NewERC20Token(amount.Amount, tokenContract),
-		Fee:         bridgeTokenFee,
+		Token:       types.NewERC20Token(amount.Amount, bridgeToken.Token),
+		Fee:         types.NewERC20Token(fee.Amount, bridgeToken.Token),
 	}
 
 	if err := k.AddUnbatchedTx(ctx, outgoing); err != nil {
