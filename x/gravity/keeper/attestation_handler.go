@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -60,30 +62,22 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 		}
 
 		// Check if attributes of ERC20 match fx denom
-		if claim.Name != metadata.Description {
+		if claim.Name != metadata.Name {
 			return sdkerrors.Wrap(
 				types.ErrInvalid,
 				fmt.Sprintf("ERC20 name %s does not match denom display %s", claim.Name, metadata.Description))
 		}
 
-		if claim.Symbol != metadata.Display {
+		if claim.Symbol != metadata.Symbol {
 			return sdkerrors.Wrap(
 				types.ErrInvalid,
 				fmt.Sprintf("ERC20 symbol %s does not match denom display %s", claim.Symbol, metadata.Display))
 		}
 
-		decimals := uint32(0)
-		for _, denomUnit := range metadata.DenomUnits {
-			if denomUnit.Denom == metadata.Display {
-				decimals = denomUnit.Exponent
-				break
-			}
-		}
-
-		if decimals != uint32(claim.Decimals) {
+		if fxtypes.BaseDenomUnit != uint32(claim.Decimals) {
 			return sdkerrors.Wrap(
 				types.ErrInvalid,
-				fmt.Sprintf("ERC20 decimals %d does not match denom decimals %d", claim.Decimals, decimals))
+				fmt.Sprintf("ERC20 decimals %d does not match denom decimals %d", claim.Decimals, fxtypes.BaseDenomUnit))
 		}
 
 		// Add to denom-erc20 mapping
