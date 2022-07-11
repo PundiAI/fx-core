@@ -2,10 +2,9 @@ package keeper_test
 
 import (
 	"encoding/hex"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"math/big"
 	"testing"
-
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
