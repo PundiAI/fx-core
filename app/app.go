@@ -209,7 +209,7 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
-		other.AppModuleBasic{},
+		other.AppModuleBasic{}, //nolint
 		gravity.AppModuleBasic{},
 		crosschain.AppModuleBasic{},
 		bsc.AppModuleBasic{},

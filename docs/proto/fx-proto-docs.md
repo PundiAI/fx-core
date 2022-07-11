@@ -267,7 +267,7 @@
   
     - [Msg](#fx.migrate.v1.Msg)
   
-- [fx/other/v1/query.proto](#fx/other/v1/query.proto)
+- [fx/other/query.proto](#fx/other/query.proto)
     - [GasPriceRequest](#fx.other.GasPriceRequest)
     - [GasPriceResponse](#fx.other.GasPriceResponse)
   
@@ -4062,10 +4062,10 @@ Msg defines the state transitions possible within gravity
 
 
 
-<a name="fx/other/v1/query.proto"></a>
+<a name="fx/other/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## fx/other/v1/query.proto
+## fx/other/query.proto
 
 
 
@@ -4107,7 +4107,7 @@ Msg defines the state transitions possible within gravity
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/fx/other/v1/gas_price|
+| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/fx/other/gas_price|
 
  <!-- end services -->
 

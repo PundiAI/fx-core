@@ -32,7 +32,7 @@ var (
 // AppModuleBasic
 // ----------------------------------------------------------------------------
 
-// AppModuleBasic implements the AppModuleBasic interface for the capability module.
+// Deprecated: AppModuleBasic implements the AppModuleBasic interface for the capability module.
 type AppModuleBasic struct {
 	cdc codec.Codec
 }
@@ -80,7 +80,7 @@ func (AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 // AppModule
 // ----------------------------------------------------------------------------
 
-// AppModule implements the AppModule interface for the capability module.
+// Deprecated: AppModule implements the AppModule interface for the capability module.
 type AppModule struct {
 	AppModuleBasic
 }

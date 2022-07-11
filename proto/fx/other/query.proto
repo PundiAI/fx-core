@@ -10,7 +10,7 @@ option go_package = "github.com/functionx/fx-core/x/other/types";
 service Query {
   // Deprecated
   rpc GasPrice(GasPriceRequest) returns (GasPriceResponse) {
-    option (google.api.http).get = "/fx/other/v1/gas_price";
+    option (google.api.http).get = "/fx/other/gas_price";
   }
 }
 
