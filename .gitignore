@@ -3,7 +3,6 @@ build
 .idea
 .vscode
 .DS_Store
-go.sum
 github.com
 docker-compose.yml
 testnet
