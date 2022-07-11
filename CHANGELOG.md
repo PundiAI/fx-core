@@ -37,12 +37,19 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v2.1.1] - 2022-07-11
+
 ### Bug Fixes
 
 * Add support for the `x-crisis-skip-assert-invariants` CLI flag to the `start` command 
 * CLI parse legacy proposal `InitCrossChainParamsProposal` failed
+* Deleted Polygon(USDT) and Tron(USDT) contracts and metadata initialization during migration and upgrade
 
-## [v5.0.8] - 2022-06-29
+### Improvements
+
+* Refactor gravity handle FxOriginatedTokenClaim
+
+## [v2.1.0] - 2022-06-29
 
 ### Improvements
 
