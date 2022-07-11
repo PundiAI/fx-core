@@ -3,10 +3,10 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/functionx/fx-core/app/helpers"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-
-	"github.com/functionx/fx-core/tests"
 
 	"github.com/functionx/fx-core/x/erc20/types"
 )
@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				req = &types.QueryTokenPairsRequest{
 					Pagination: &query.PageRequest{Limit: 10, CountTotal: true},
 				}
-				pair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
 				expRes = &types.QueryTokenPairsResponse{
@@ -54,8 +54,8 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 			"5 pairs registered wo/pagination",
 			func() {
 				req = &types.QueryTokenPairsRequest{}
-				pair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
-				pair2 := types.NewTokenPair(tests.GenerateAddress(), "coin2", true, types.OWNER_MODULE)
+				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+				pair2 := types.NewTokenPair(helpers.GenerateAddress(), "coin2", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 			"token pair not found",
 			func() {
 				req = &types.QueryTokenPairRequest{
-					Token: tests.GenerateAddress().Hex(),
+					Token: helpers.GenerateAddress().Hex(),
 				}
 				expRes = &types.QueryTokenPairResponse{}
 			},
@@ -127,7 +127,7 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 		{
 			"token pair found",
 			func() {
-				addr := tests.GenerateAddress()
+				addr := helpers.GenerateAddress()
 				pair := types.NewTokenPair(addr, "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, addr, pair.GetID())

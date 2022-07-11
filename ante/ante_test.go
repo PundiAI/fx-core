@@ -35,7 +35,6 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/tests"
 )
 
 type AnteTestSuite struct {
@@ -70,7 +69,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	// account key
 	priv := secp256k1.GenPrivKey()
 	suite.address = priv.PubKey().Address().Bytes()
-	suite.signer = tests.NewSigner(priv)
+	suite.signer = helpers.NewSigner(priv)
 	suite.privateKey = priv
 
 	// consensus key
@@ -139,7 +138,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 		builder.SetExtensionOptions(option)
 	}
 
-	err = msg.Sign(suite.ethSigner, tests.NewSigner(priv))
+	err = msg.Sign(suite.ethSigner, helpers.NewSigner(priv))
 	suite.Require().NoError(err)
 
 	err = builder.SetMsgs(msg)

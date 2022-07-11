@@ -3,18 +3,18 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/functionx/fx-core/app/helpers"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/functionx/fx-core/tests"
 
 	"github.com/functionx/fx-core/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestMintingEnabled() {
-	sender := sdk.AccAddress(tests.GenerateAddress().Bytes())
-	receiver := sdk.AccAddress(tests.GenerateAddress().Bytes())
-	expPair := types.NewTokenPair(tests.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	receiver := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	expPair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 	id := expPair.GetID()
 
 	testCases := []struct {

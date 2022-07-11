@@ -41,7 +41,6 @@ import (
 	evm "github.com/evmos/ethermint/x/evm/types"
 
 	app "github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/tests"
 	"github.com/functionx/fx-core/x/erc20/types"
 
 	ethermint "github.com/evmos/ethermint/types"
@@ -80,7 +79,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	priv, err := ethsecp256k1.GenerateKey()
 	require.NoError(t, err)
 	suite.address = common.BytesToAddress(priv.PubKey().Address().Bytes())
-	suite.signer = tests.NewSigner(priv)
+	suite.signer = helpers.NewSigner(priv)
 	suite.privateKey = priv
 
 	// consensus key

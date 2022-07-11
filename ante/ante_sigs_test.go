@@ -3,18 +3,18 @@ package ante_test
 import (
 	"math/big"
 
+	"github.com/functionx/fx-core/app/helpers"
+
 	"github.com/evmos/ethermint/x/evm/statedb"
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
-	"github.com/functionx/fx-core/tests"
 )
 
 func (suite *AnteTestSuite) TestSignatures() {
 	suite.SetupTest() // reset
 
-	addr, privKey := tests.NewAddrKey()
-	to := tests.GenerateAddress()
+	addr, privKey := helpers.NewAddrKey()
+	to := helpers.GenerateAddress()
 
 	acc := statedb.NewEmptyAccount()
 	acc.Nonce = 1

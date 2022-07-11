@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -10,8 +9,6 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -517,20 +514,4 @@ func FundModuleAccount(bankKeeper bankkeeper.Keeper, ctx sdk.Context, recipientM
 	}
 
 	return bankKeeper.SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, recipientMod, amounts)
-}
-
-func GenEthKey(count int) []*ecdsa.PrivateKey {
-	var ethKeys []*ecdsa.PrivateKey
-	for i := 0; i < count; i++ {
-		ethKeys = append(ethKeys, GenerateEthKey())
-	}
-	return ethKeys
-}
-
-func GenerateEthKey() *ecdsa.PrivateKey {
-	key, err := crypto.GenerateKey()
-	if err != nil {
-		panic(err)
-	}
-	return key
 }

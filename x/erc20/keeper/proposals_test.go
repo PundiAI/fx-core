@@ -3,11 +3,11 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/functionx/fx-core/app/helpers"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/functionx/fx-core/tests"
 
 	"github.com/functionx/fx-core/x/erc20/types"
 )
@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestRegisterCoin() {
 		{
 			"denom already registered",
 			func() {
-				regPair := types.NewTokenPair(tests.GenerateAddress(), metadata.Base, true, types.OWNER_MODULE)
+				regPair := types.NewTokenPair(helpers.GenerateAddress(), metadata.Base, true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, regPair.Denom, regPair.GetID())
 				//suite.Commit()
 			},

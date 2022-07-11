@@ -3,13 +3,13 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/functionx/fx-core/app/helpers"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
-	"github.com/functionx/fx-core/tests"
 
 	"github.com/functionx/fx-core/x/erc20/types"
 )
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 		erc20Config := fxtypes.GetERC20()
 		contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
 		suite.Require().NoError(err)
-		account := tests.GenerateAddress()
+		account := helpers.GenerateAddress()
 
 		res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, true, tc.method, account)
 		if tc.expPass {
@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestCallEVMWithData() {
 			func() ([]byte, *common.Address) {
 				contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
 				suite.Require().NoError(err)
-				account := tests.GenerateAddress()
+				account := helpers.GenerateAddress()
 				data, _ := erc20.ABI.Pack("", account)
 				return data, &contract
 			},
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestCallEVMWithData() {
 			func() ([]byte, *common.Address) {
 				contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
 				suite.Require().NoError(err)
-				account := tests.GenerateAddress()
+				account := helpers.GenerateAddress()
 				data, _ := erc20.ABI.Pack("balanceOf", account)
 				return data, &contract
 			},

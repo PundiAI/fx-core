@@ -7,6 +7,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/functionx/fx-core/app/helpers"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/tests"
 	fxtypes "github.com/functionx/fx-core/types"
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain"
@@ -172,7 +173,7 @@ func privateSigner() (keyring.Signer, common.Address) {
 	//ethsecp256k1.GenerateKey()
 	ethPriv := &ethsecp256k1.PrivKey{Key: priKey.Bytes()}
 
-	return tests.NewSigner(ethPriv), common.BytesToAddress(ethPriv.PubKey().Address())
+	return helpers.NewSigner(ethPriv), common.BytesToAddress(ethPriv.PubKey().Address())
 }
 
 var (

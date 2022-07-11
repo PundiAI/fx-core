@@ -1,13 +1,14 @@
-package types
+package types_test
 
 import (
 	"strings"
 	"testing"
 
+	"github.com/functionx/fx-core/app/helpers"
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
-
-	"github.com/functionx/fx-core/tests"
 )
 
 func TestIsEmptyHash(t *testing.T) {
@@ -29,7 +30,7 @@ func TestIsEmptyHash(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, IsEmptyHash(tc.hash), tc.name)
+		require.Equal(t, tc.expEmpty, fxtypes.IsEmptyHash(tc.hash), tc.name)
 	}
 }
 
@@ -52,7 +53,7 @@ func TestIsZeroEthereumAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, IsZeroEthereumAddress(tc.address), tc.name)
+		require.Equal(t, tc.expEmpty, fxtypes.IsZeroEthereumAddress(tc.address), tc.name)
 	}
 }
 
@@ -72,18 +73,18 @@ func TestValidateEthereumAddress(t *testing.T) {
 			"zero address", common.Address{}.String(), false,
 		},
 		{
-			"valid address", tests.GenerateAddress().Hex(), false,
+			"valid address", helpers.GenerateEthAddress().Hex(), false,
 		},
 		{
-			"invalid address - upper address", strings.ToUpper(tests.GenerateAddress().Hex()), true,
+			"invalid address - upper address", strings.ToUpper(helpers.GenerateEthAddress().Hex()), true,
 		},
 		{
-			"invalid address - lower address", strings.ToLower(tests.GenerateAddress().Hex()), true,
+			"invalid address - lower address", strings.ToLower(helpers.GenerateEthAddress().Hex()), true,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := ValidateEthereumAddress(tc.address)
+		err := fxtypes.ValidateEthereumAddress(tc.address)
 
 		if tc.expError {
 			require.Error(t, err, tc.name)
@@ -108,7 +109,7 @@ func TestSafeInt64(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		value, err := SafeInt64(tc.value)
+		value, err := fxtypes.SafeInt64(tc.value)
 		if tc.expError {
 			require.Error(t, err, tc.name)
 			continue
