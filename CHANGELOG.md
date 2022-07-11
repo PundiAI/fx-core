@@ -57,6 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * Update crosschain params AverageBlockTime
 * Bump ethermint to v0.16.1-fxcore-v2.0.0-rc3.
 * Update block max gas to 30_000_000
+* Refactor gravity handle FxOriginatedTokenClaim
 
 ### CLI Breaking Changes
 
