@@ -136,7 +136,7 @@ func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensus
 			if err != nil {
 				return err
 			}
-			return clientCtx.PrintBytes(sdk.MustSortJSON(out))
+			return clientCtx.PrintString(string(sdk.MustSortJSON(out)) + "\n")
 		},
 	}
 

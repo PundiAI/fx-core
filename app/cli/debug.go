@@ -137,7 +137,7 @@ func ParseTx() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return clientCtx.PrintBytes(jsonMarshal)
+			return clientCtx.PrintString(string(jsonMarshal) + "\n")
 		},
 	}
 	return cmd
@@ -213,13 +213,11 @@ func VerifyTx() *cobra.Command {
 					legacytx.StdFee{Amount: stdTx.GetFee(), Gas: stdTx.GetGas()},
 					tx.GetMsgs(), stdTx.GetMemo(),
 				)
-				err = clientCtx.PrintBytes(bz)
-				if err != nil {
+				if err = clientCtx.PrintString(string(bz) + "\n"); err != nil {
 					return err
 				}
 
-				err = authsigning.VerifySignature(pubKey, signerData, sig.Data, clientCtx.TxConfig.SignModeHandler(), tx)
-				if err != nil {
+				if err = authsigning.VerifySignature(pubKey, signerData, sig.Data, clientCtx.TxConfig.SignModeHandler(), tx); err != nil {
 					return err
 				}
 			}
