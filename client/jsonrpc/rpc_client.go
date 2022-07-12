@@ -21,8 +21,10 @@ import (
 	"nhooyr.io/websocket"
 )
 
+var _ jsonRPCCaller = &WSClient{}
+
+// WSClient implement jsonRPCCaller
 type WSClient struct {
-	Remote       string
 	ctx          context.Context
 	conn         *websocket.Conn
 	quit         chan struct{}
@@ -31,13 +33,12 @@ type WSClient struct {
 	log.Logger
 }
 
-func NewWsClient(url string) (*WSClient, error) {
+func NewWsClient(ctx context.Context, url string) (*WSClient, error) {
 	split := strings.Split(url, "://")
 	if len(split) > 1 && split[0] == "tcp" {
 		url = fmt.Sprintf("http://%s", split[1])
 	}
 
-	ctx := context.Background()
 	conn, _, err := websocket.Dial(ctx, url, nil)
 	if err != nil {
 		return nil, err
@@ -45,7 +46,6 @@ func NewWsClient(url string) (*WSClient, error) {
 	conn.SetReadLimit(1024 * 1000 * 100)
 
 	var ws = &WSClient{
-		Remote:       url,
 		ctx:          ctx,
 		conn:         conn,
 		quit:         make(chan struct{}),
@@ -367,8 +367,9 @@ func NewRPCRequest(id, method string, params json.RawMessage) RPCRequest {
 	}
 }
 
-/*================================== HTTP FxBridge ==================================*/
+var _ jsonRPCCaller = &FastClient{}
 
+// FastClient implement jsonRPCCaller
 type FastClient struct {
 	Remote string
 	cli    *http.Client

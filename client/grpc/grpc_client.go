@@ -8,10 +8,18 @@ import (
 	"strings"
 	"time"
 
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ethcryptocodec "github.com/evmos/ethermint/crypto/codec"
+	ethermint "github.com/evmos/ethermint/types"
+
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/functionx/fx-core/app"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -31,7 +39,6 @@ import (
 	"google.golang.org/grpc/credentials/google"
 
 	otherTypes "github.com/functionx/fx-core/x/other/types"
-	othertypes "github.com/functionx/fx-core/x/other/types"
 )
 
 const DefGasLimit int64 = 200000
@@ -50,10 +57,10 @@ func NewGrpcConn(rawUrl string) (*grpc.ClientConn, error) {
 	}
 	_url := u.Host
 	if u.Port() == "" {
-		if u.Scheme == "http" {
-			_url = u.Host + ":80"
-		} else {
+		if u.Scheme == "https" {
 			_url = u.Host + ":443"
+		} else {
+			_url = u.Host + ":80"
 		}
 	}
 	var opts []grpc.DialOption
@@ -87,60 +94,95 @@ func (cli *Client) WithGasPrices(gasPrices sdk.Coins) {
 func (cli *Client) AuthQuery() authtypes.QueryClient {
 	return authtypes.NewQueryClient(cli.ClientConn)
 }
-func (cli *Client) StakingQuery() stakingtypes.QueryClient {
-	return stakingtypes.NewQueryClient(cli.ClientConn)
-}
-func (cli *Client) DistrQuery() distrtypes.QueryClient {
-	return distrtypes.NewQueryClient(cli.ClientConn)
-}
-func (cli *Client) OtherQuery() othertypes.QueryClient {
-	return othertypes.NewQueryClient(cli.ClientConn)
+func (cli *Client) AuthzQuery() authz.QueryClient {
+	return authz.NewQueryClient(cli.ClientConn)
 }
 func (cli *Client) BankQuery() banktypes.QueryClient {
 	return banktypes.NewQueryClient(cli.ClientConn)
 }
+func (cli *Client) DistrQuery() distrtypes.QueryClient {
+	return distrtypes.NewQueryClient(cli.ClientConn)
+}
+func (cli *Client) EvidenceQuery() evidencetypes.QueryClient {
+	return evidencetypes.NewQueryClient(cli.ClientConn)
+}
+func (cli *Client) FeegrantQuery() feegrant.QueryClient {
+	return feegrant.NewQueryClient(cli.ClientConn)
+}
 func (cli *Client) GovQuery() govtypes.QueryClient {
 	return govtypes.NewQueryClient(cli.ClientConn)
+}
+func (cli *Client) MintQuery() minttypes.QueryClient {
+	return minttypes.NewQueryClient(cli.ClientConn)
+}
+func (cli *Client) SlashingQuery() slashingtypes.QueryClient {
+	return slashingtypes.NewQueryClient(cli.ClientConn)
+}
+func (cli *Client) StakingQuery() stakingtypes.QueryClient {
+	return stakingtypes.NewQueryClient(cli.ClientConn)
+}
+func (cli *Client) UpgradeQuery() upgradetypes.QueryClient {
+	return upgradetypes.NewQueryClient(cli.ClientConn)
 }
 func (cli *Client) ServiceClient() tx.ServiceClient {
 	return tx.NewServiceClient(cli.ClientConn)
 }
-
 func (cli *Client) TMServiceClient() tmservice.ServiceClient {
 	return tmservice.NewServiceClient(cli.ClientConn)
 }
 
-func (cli *Client) QueryAccount(fxAddress string) (authtypes.AccountI, error) {
-	response, err := cli.AuthQuery().Account(cli.ctx, &authtypes.QueryAccountRequest{Address: fxAddress})
+func (cli *Client) AppVersion() (string, error) {
+	info, err := cli.TMServiceClient().GetNodeInfo(cli.ctx, &tmservice.GetNodeInfoRequest{})
+	if err != nil {
+		return "", err
+	}
+	return info.ApplicationVersion.Version, nil
+}
+
+func (cli *Client) QueryAccount(address string) (authtypes.AccountI, error) {
+	response, err := cli.AuthQuery().Account(cli.ctx, &authtypes.QueryAccountRequest{Address: address})
 	if err != nil {
 		return nil, err
 	}
+	interfaceRegistry := types.NewInterfaceRegistry()
+	ethermint.RegisterInterfaces(interfaceRegistry)
+	authtypes.RegisterInterfaces(interfaceRegistry)
+	cryptocodec.RegisterInterfaces(interfaceRegistry)
+	ethcryptocodec.RegisterInterfaces(interfaceRegistry)
 	var account authtypes.AccountI
-	if err = app.MakeEncodingConfig().InterfaceRegistry.UnpackAny(response.GetAccount(), &account); err != nil {
+	if err = interfaceRegistry.UnpackAny(response.GetAccount(), &account); err != nil {
 		return nil, err
 	}
 	return account, err
 }
 
-func (cli *Client) QueryBalance(fxAddress string, denom string) (*sdk.Coin, error) {
+func (cli *Client) QueryBalance(address string, denom string) (sdk.Coin, error) {
 	response, err := cli.BankQuery().Balance(cli.ctx, &banktypes.QueryBalanceRequest{
-		Address: fxAddress,
+		Address: address,
 		Denom:   denom,
 	})
 	if err != nil {
-		return nil, err
+		return sdk.Coin{}, err
 	}
-	return response.Balance, nil
+	return *response.Balance, nil
 }
 
-func (cli *Client) QueryBalances(fxAddress string) (sdk.Coins, error) {
+func (cli *Client) QueryBalances(address string) (sdk.Coins, error) {
 	response, err := cli.BankQuery().AllBalances(cli.ctx, &banktypes.QueryAllBalancesRequest{
-		Address: fxAddress,
+		Address: address,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return response.Balances, nil
+}
+
+func (cli *Client) QuerySupply() (sdk.Coins, error) {
+	response, err := cli.BankQuery().TotalSupply(cli.ctx, &banktypes.QueryTotalSupplyRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return response.Supply, nil
 }
 
 func (cli *Client) GetMintDenom() (string, error) {
@@ -213,8 +255,9 @@ func (cli *Client) GetStatusByTx(txHash string) (*tx.GetTxResponse, error) {
 	return response, nil
 }
 
+// Deprecated: GetGasPrices
 func (cli *Client) GetGasPrices() (sdk.Coins, error) {
-	response, err := cli.OtherQuery().GasPrice(cli.ctx, &otherTypes.GasPriceRequest{})
+	response, err := otherTypes.NewQueryClient(cli).GasPrice(cli.ctx, &otherTypes.GasPriceRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -427,6 +470,14 @@ func (cli *Client) BroadcastTxBytes(txBytes []byte, mode ...tx.BroadcastMode) (*
 		return nil, err
 	}
 	return broadcastTxResponse.TxResponse, nil
+}
+
+func (cli *Client) TxByHash(txHash string) (*sdk.TxResponse, error) {
+	resp, err := cli.ServiceClient().GetTx(cli.ctx, &tx.GetTxRequest{Hash: txHash})
+	if err != nil {
+		return nil, err
+	}
+	return resp.TxResponse, nil
 }
 
 func BuildTxV1(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {

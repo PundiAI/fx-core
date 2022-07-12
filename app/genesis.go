@@ -45,7 +45,7 @@ const (
 // object provided to it during init.
 type GenesisState map[string]json.RawMessage
 
-func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) map[string]json.RawMessage {
+func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 	fxTotalSupply, ok := sdk.NewIntFromString(BankModuleTotalSupply)
 	if !ok {
 		panic("invalid fx total supply")

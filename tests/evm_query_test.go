@@ -47,7 +47,7 @@ func (suite *EvmTestSuite) TestQueryFxTxByEvmHash(t *testing.T) {
 	t.Logf("transactionReceipt:%+#v", transactionReceipt)
 
 	evmHashBlockNumber := transactionReceipt.BlockNumber.Int64()
-	blockData, err := suite.tmClient.Block(evmHashBlockNumber)
+	blockData, err := suite.jsonRPC.Block(evmHashBlockNumber)
 	suite.Require().NoError(err)
 	require.True(t, uint(len(blockData.Block.Txs)) > transactionReceipt.TransactionIndex)
 	fxTx := blockData.Block.Txs[transactionReceipt.TransactionIndex]
@@ -73,12 +73,12 @@ func (suite *EvmTestSuite) TestFxAddressToEthAddress(t *testing.T) {
 }
 
 func (suite *EvmTestSuite) TestTraverseBlockERC20(t *testing.T) {
-	info, err := suite.tmClient.Status()
+	info, err := suite.jsonRPC.Status()
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i := int64(1); i < info.SyncInfo.LatestBlockHeight; i++ {
-		block, err := suite.tmClient.BlockResults(i)
+		block, err := suite.jsonRPC.BlockResults(i)
 		if err != nil {
 			t.Fatal(err)
 		}
