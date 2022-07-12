@@ -72,7 +72,7 @@ func NewGrpcConn(rawUrl string) (*grpc.ClientConn, error) {
 	return grpc.Dial(_url, opts...)
 }
 
-func NewGRPCClient(rawUrl string) (*Client, error) {
+func NewClient(rawUrl string) (*Client, error) {
 	grpcConn, err := NewGrpcConn(rawUrl)
 	if err != nil {
 		return nil, err

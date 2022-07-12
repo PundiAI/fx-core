@@ -26,12 +26,12 @@ type TestSuite struct {
 	sync.Mutex
 	ctx        context.Context
 	grpcClient *grpc.Client
-	jsonRPC    *jsonrpc.JsonRPC
+	jsonRPC    *jsonrpc.NodeRPC
 	privateKey cryptotypes.PrivKey
 }
 
 func NewTestSuite() TestSuite {
-	client, err := grpc.NewGRPCClient(GetGrpcUrl())
+	client, err := grpc.NewClient(GetGrpcUrl())
 	if err != nil {
 		panic(err)
 	}
@@ -45,7 +45,7 @@ func NewTestSuite() TestSuite {
 		ctx:        context.Background(),
 		grpcClient: client,
 		privateKey: privKey,
-		jsonRPC:    jsonrpc.NewJsonRPC(jsonrpc.NewFastClient(GetNodeJsonRpcUrl())),
+		jsonRPC:    jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(GetNodeJsonRpcUrl())),
 	}
 }
 

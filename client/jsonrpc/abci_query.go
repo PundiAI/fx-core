@@ -14,7 +14,7 @@ import (
 	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
 )
 
-func (c *JsonRPC) QueryAccount(address string) (authtypes.AccountI, error) {
+func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {
 	result, err := c.ABCIQueryIsOk("/custom/auth/account", legacy.Cdc.MustMarshalJSON(authtypes.QueryAccountRequest{Address: address}))
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (c *JsonRPC) QueryAccount(address string) (authtypes.AccountI, error) {
 	return account, nil
 }
 
-func (c *JsonRPC) QueryBalance(address string, denom string) (sdk.Coin, error) {
+func (c *NodeRPC) QueryBalance(address string, denom string) (sdk.Coin, error) {
 	result, err := c.ABCIQueryIsOk("/custom/bank/balance", legacy.Cdc.MustMarshalJSON(banktypes.QueryBalanceRequest{Address: address, Denom: denom}))
 	if err != nil {
 		return sdk.Coin{}, err
@@ -38,7 +38,7 @@ func (c *JsonRPC) QueryBalance(address string, denom string) (sdk.Coin, error) {
 	return coin, nil
 }
 
-func (c *JsonRPC) QueryBalances(address string) (sdk.Coins, error) {
+func (c *NodeRPC) QueryBalances(address string) (sdk.Coins, error) {
 	result, err := c.ABCIQueryIsOk("/custom/bank/all_balances", legacy.Cdc.MustMarshalJSON(banktypes.QueryAllBalancesRequest{Address: address}))
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (c *JsonRPC) QueryBalances(address string) (sdk.Coins, error) {
 	return coins, nil
 }
 
-func (c *JsonRPC) QuerySupply() (sdk.Coins, error) {
+func (c *NodeRPC) QuerySupply() (sdk.Coins, error) {
 	result, err := c.ABCIQueryIsOk("/custom/bank/total_supply", legacy.Cdc.MustMarshalJSON(banktypes.QueryTotalSupplyRequest{}))
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (c *JsonRPC) QuerySupply() (sdk.Coins, error) {
 }
 
 // Deprecated: GetGasPrices
-func (c *JsonRPC) GetGasPrices() (sdk.Coins, error) {
+func (c *NodeRPC) GetGasPrices() (sdk.Coins, error) {
 	result, err := c.ABCIQueryIsOk("/custom/other/gasPrice", nil)
 	if err != nil {
 		return sdk.Coins{}, err
@@ -75,19 +75,19 @@ func (c *JsonRPC) GetGasPrices() (sdk.Coins, error) {
 	return gasPrice, nil
 }
 
-func (c *JsonRPC) Store(path string) (*coreTypes.ResultABCIQuery, error) {
+func (c *NodeRPC) Store(path string) (*coreTypes.ResultABCIQuery, error) {
 	return c.ABCIQueryIsOk("/store/"+path, nil)
 }
 
-func (c *JsonRPC) PeersByAddressPort(port string) (*coreTypes.ResultABCIQuery, error) {
+func (c *NodeRPC) PeersByAddressPort(port string) (*coreTypes.ResultABCIQuery, error) {
 	return c.ABCIQueryIsOk("/p2p/filter/addr/"+port, nil)
 }
 
-func (c *JsonRPC) PeersById(id string) (*coreTypes.ResultABCIQuery, error) {
+func (c *NodeRPC) PeersById(id string) (*coreTypes.ResultABCIQuery, error) {
 	return c.ABCIQueryIsOk("/p2p/filter/id/"+id, nil)
 }
 
-func (c *JsonRPC) GetGravityAttestation(cdc codec.Codec, id []byte) (*gravitytypes.Attestation, error) {
+func (c *NodeRPC) GetGravityAttestation(cdc codec.Codec, id []byte) (*gravitytypes.Attestation, error) {
 	query, err := c.ABCIQuery("/store/gravity/key", id)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (c *JsonRPC) GetGravityAttestation(cdc codec.Codec, id []byte) (*gravitytyp
 	return &gravityAtt, nil
 }
 
-func (c *JsonRPC) GetGravityLastObservedEventNonce() (uint64, error) {
+func (c *NodeRPC) GetGravityLastObservedEventNonce() (uint64, error) {
 	query, err := c.ABCIQuery("/store/gravity/key", []byte{0xc})
 	if err != nil {
 		return 0, err

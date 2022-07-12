@@ -29,24 +29,24 @@ type jsonRPCCaller interface {
 	Call(ctx context.Context, method string, params map[string]interface{}, result interface{}) (err error)
 }
 
-type JsonRPC struct {
+type NodeRPC struct {
 	chainId string
 	caller  jsonRPCCaller
 	ctx     context.Context
 }
 
-func NewJsonRPC(caller jsonRPCCaller) *JsonRPC {
-	return &JsonRPC{caller: caller, ctx: context.Background()}
+func NewNodeRPC(caller jsonRPCCaller) *NodeRPC {
+	return &NodeRPC{caller: caller, ctx: context.Background()}
 }
 
-func (c *JsonRPC) WithContext(ctx context.Context) *JsonRPC {
+func (c *NodeRPC) WithContext(ctx context.Context) *NodeRPC {
 	c.ctx = ctx
 	return c
 }
 
 // Custom API
 
-func (c *JsonRPC) GetChainId() (chain string, err error) {
+func (c *NodeRPC) GetChainId() (chain string, err error) {
 	res, err := c.Genesis()
 	if err != nil {
 		return
@@ -54,7 +54,7 @@ func (c *JsonRPC) GetChainId() (chain string, err error) {
 	return res.Genesis.ChainID, nil
 }
 
-func (c *JsonRPC) GetBlockHeight() (int64, error) {
+func (c *NodeRPC) GetBlockHeight() (int64, error) {
 	status, err := c.Status()
 	if err != nil {
 		return 0, err
@@ -65,7 +65,7 @@ func (c *JsonRPC) GetBlockHeight() (int64, error) {
 	return status.SyncInfo.LatestBlockHeight, nil
 }
 
-func (c *JsonRPC) GetMintDenom() (denom string, err error) {
+func (c *NodeRPC) GetMintDenom() (denom string, err error) {
 	genesis, err := c.Genesis()
 	if err != nil {
 		return
@@ -84,7 +84,7 @@ func (c *JsonRPC) GetMintDenom() (denom string, err error) {
 	return mintGenesis.Params.MintDenom, json.Unmarshal(appState[minttypes.ModuleName], &mintGenesis)
 }
 
-func (c *JsonRPC) GetAddressPrefix() (prefix string, err error) {
+func (c *NodeRPC) GetAddressPrefix() (prefix string, err error) {
 	genesis, err := c.Genesis()
 	if err != nil {
 		return
@@ -109,7 +109,7 @@ func (c *JsonRPC) GetAddressPrefix() (prefix string, err error) {
 	return sdk.Bech32MainPrefix, nil
 }
 
-func (c *JsonRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
+func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
 	account, err := c.QueryAccount(sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
 	if err != nil {
 		return nil, err
@@ -226,7 +226,7 @@ func (c *JsonRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRa
 	}, nil
 }
 
-func (c *JsonRPC) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.TxResponse, error) {
+func (c *NodeRPC) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.TxResponse, error) {
 	txBytes, err := proto.Marshal(txRaw)
 	if err != nil {
 		return nil, err
@@ -259,7 +259,7 @@ func (c *JsonRPC) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.T
 	}
 }
 
-func (c *JsonRPC) BroadcastTxRawCommit(txRaw *tx.TxRaw) (*coreTypes.ResultBroadcastTxCommit, error) {
+func (c *NodeRPC) BroadcastTxRawCommit(txRaw *tx.TxRaw) (*coreTypes.ResultBroadcastTxCommit, error) {
 	txBytes, err := proto.Marshal(txRaw)
 	if err != nil {
 		return nil, err
@@ -267,7 +267,7 @@ func (c *JsonRPC) BroadcastTxRawCommit(txRaw *tx.TxRaw) (*coreTypes.ResultBroadc
 	return c.BroadcastTxCommit(txBytes)
 }
 
-func (c *JsonRPC) TxByHash(txHash string) (*sdk.TxResponse, error) {
+func (c *NodeRPC) TxByHash(txHash string) (*sdk.TxResponse, error) {
 	hash, err := hex.DecodeString(txHash)
 	if err != nil {
 		return nil, err
@@ -279,7 +279,7 @@ func (c *JsonRPC) TxByHash(txHash string) (*sdk.TxResponse, error) {
 	return sdk.NewResponseResultTx(resultTx, nil, ""), nil
 }
 
-func (c *JsonRPC) EstimatingGas(txBody *tx.TxBody, authInfo *tx.AuthInfo, sign []byte) (*sdk.GasInfo, error) {
+func (c *NodeRPC) EstimatingGas(txBody *tx.TxBody, authInfo *tx.AuthInfo, sign []byte) (*sdk.GasInfo, error) {
 	result, err := c.ABCIQueryIsOk("/app/simulate", nil)
 	if err != nil {
 		return nil, err
@@ -288,7 +288,7 @@ func (c *JsonRPC) EstimatingGas(txBody *tx.TxBody, authInfo *tx.AuthInfo, sign [
 	return &resp.GasInfo, json.Unmarshal(result.Response.Value, &resp)
 }
 
-func (c *JsonRPC) AppVersion() (string, error) {
+func (c *NodeRPC) AppVersion() (string, error) {
 	result, err := c.ABCIQueryIsOk("/app/version", nil)
 	if err != nil {
 		return "", err
@@ -296,7 +296,7 @@ func (c *JsonRPC) AppVersion() (string, error) {
 	return string(result.Response.Value), nil
 }
 
-func (c *JsonRPC) ABCIQueryIsOk(path string, data tmBytes.HexBytes) (*coreTypes.ResultABCIQuery, error) {
+func (c *NodeRPC) ABCIQueryIsOk(path string, data tmBytes.HexBytes) (*coreTypes.ResultABCIQuery, error) {
 	result := new(coreTypes.ResultABCIQuery)
 	params := map[string]interface{}{"path": path, "data": data, "height": "0", "prove": false}
 	err := c.caller.Call(c.ctx, "abci_query", params, result)
@@ -312,7 +312,7 @@ func (c *JsonRPC) ABCIQueryIsOk(path string, data tmBytes.HexBytes) (*coreTypes.
 
 // Tendermint API
 
-func (c *JsonRPC) Status() (*coreTypes.ResultStatus, error) {
+func (c *NodeRPC) Status() (*coreTypes.ResultStatus, error) {
 	result := new(coreTypes.ResultStatus)
 	err := c.caller.Call(c.ctx, "status", map[string]interface{}{}, result)
 	if err != nil {
@@ -321,7 +321,7 @@ func (c *JsonRPC) Status() (*coreTypes.ResultStatus, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) ABCIInfo() (*coreTypes.ResultABCIInfo, error) {
+func (c *NodeRPC) ABCIInfo() (*coreTypes.ResultABCIInfo, error) {
 	result := new(coreTypes.ResultABCIInfo)
 	err := c.caller.Call(c.ctx, "abci_info", map[string]interface{}{}, result)
 	if err != nil {
@@ -330,7 +330,7 @@ func (c *JsonRPC) ABCIInfo() (*coreTypes.ResultABCIInfo, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) ABCIQuery(path string, data tmBytes.HexBytes) (*coreTypes.ResultABCIQuery, error) {
+func (c *NodeRPC) ABCIQuery(path string, data tmBytes.HexBytes) (*coreTypes.ResultABCIQuery, error) {
 	result := new(coreTypes.ResultABCIQuery)
 	params := map[string]interface{}{"path": path, "data": data, "height": "0", "prove": false}
 	err := c.caller.Call(c.ctx, "abci_query", params, result)
@@ -340,7 +340,7 @@ func (c *JsonRPC) ABCIQuery(path string, data tmBytes.HexBytes) (*coreTypes.Resu
 	return result, nil
 }
 
-func (c *JsonRPC) BroadcastTxCommit(tx types.Tx) (*coreTypes.ResultBroadcastTxCommit, error) {
+func (c *NodeRPC) BroadcastTxCommit(tx types.Tx) (*coreTypes.ResultBroadcastTxCommit, error) {
 	result := new(coreTypes.ResultBroadcastTxCommit)
 	err := c.caller.Call(c.ctx, "broadcast_tx_commit", map[string]interface{}{"tx": tx}, result)
 	if err != nil {
@@ -349,15 +349,15 @@ func (c *JsonRPC) BroadcastTxCommit(tx types.Tx) (*coreTypes.ResultBroadcastTxCo
 	return result, nil
 }
 
-func (c *JsonRPC) BroadcastTxAsync(tx types.Tx) (*coreTypes.ResultBroadcastTx, error) {
+func (c *NodeRPC) BroadcastTxAsync(tx types.Tx) (*coreTypes.ResultBroadcastTx, error) {
 	return c.broadcastTX("broadcast_tx_async", tx)
 }
 
-func (c *JsonRPC) BroadcastTxSync(tx types.Tx) (*coreTypes.ResultBroadcastTx, error) {
+func (c *NodeRPC) BroadcastTxSync(tx types.Tx) (*coreTypes.ResultBroadcastTx, error) {
 	return c.broadcastTX("broadcast_tx_sync", tx)
 }
 
-func (c *JsonRPC) broadcastTX(route string, tx types.Tx) (*coreTypes.ResultBroadcastTx, error) {
+func (c *NodeRPC) broadcastTX(route string, tx types.Tx) (*coreTypes.ResultBroadcastTx, error) {
 	result := new(coreTypes.ResultBroadcastTx)
 	err := c.caller.Call(c.ctx, route, map[string]interface{}{"tx": tx}, result)
 	if err != nil {
@@ -366,7 +366,7 @@ func (c *JsonRPC) broadcastTX(route string, tx types.Tx) (*coreTypes.ResultBroad
 	return result, nil
 }
 
-func (c *JsonRPC) UnconfirmedTxs(limit int) (*coreTypes.ResultUnconfirmedTxs, error) {
+func (c *NodeRPC) UnconfirmedTxs(limit int) (*coreTypes.ResultUnconfirmedTxs, error) {
 	result := new(coreTypes.ResultUnconfirmedTxs)
 	err := c.caller.Call(c.ctx, "unconfirmed_txs", map[string]interface{}{"limit": limit}, result)
 	if err != nil {
@@ -375,7 +375,7 @@ func (c *JsonRPC) UnconfirmedTxs(limit int) (*coreTypes.ResultUnconfirmedTxs, er
 	return result, nil
 }
 
-func (c *JsonRPC) NumUnconfirmedTxs() (*coreTypes.ResultUnconfirmedTxs, error) {
+func (c *NodeRPC) NumUnconfirmedTxs() (*coreTypes.ResultUnconfirmedTxs, error) {
 	result := new(coreTypes.ResultUnconfirmedTxs)
 	err := c.caller.Call(c.ctx, "num_unconfirmed_txs", map[string]interface{}{}, result)
 	if err != nil {
@@ -384,7 +384,7 @@ func (c *JsonRPC) NumUnconfirmedTxs() (*coreTypes.ResultUnconfirmedTxs, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) NetInfo() (*coreTypes.ResultNetInfo, error) {
+func (c *NodeRPC) NetInfo() (*coreTypes.ResultNetInfo, error) {
 	result := new(coreTypes.ResultNetInfo)
 	err := c.caller.Call(c.ctx, "net_info", map[string]interface{}{}, result)
 	if err != nil {
@@ -393,7 +393,7 @@ func (c *JsonRPC) NetInfo() (*coreTypes.ResultNetInfo, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) DumpConsensusState() (*coreTypes.ResultDumpConsensusState, error) {
+func (c *NodeRPC) DumpConsensusState() (*coreTypes.ResultDumpConsensusState, error) {
 	result := new(coreTypes.ResultDumpConsensusState)
 	err := c.caller.Call(c.ctx, "dump_consensus_state", map[string]interface{}{}, result)
 	if err != nil {
@@ -402,7 +402,7 @@ func (c *JsonRPC) DumpConsensusState() (*coreTypes.ResultDumpConsensusState, err
 	return result, nil
 }
 
-func (c *JsonRPC) ConsensusState() (*coreTypes.ResultConsensusState, error) {
+func (c *NodeRPC) ConsensusState() (*coreTypes.ResultConsensusState, error) {
 	result := new(coreTypes.ResultConsensusState)
 	err := c.caller.Call(c.ctx, "consensus_state", map[string]interface{}{}, result)
 	if err != nil {
@@ -411,7 +411,7 @@ func (c *JsonRPC) ConsensusState() (*coreTypes.ResultConsensusState, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) ConsensusParams(height int64) (*coreTypes.ResultConsensusParams, error) {
+func (c *NodeRPC) ConsensusParams(height int64) (*coreTypes.ResultConsensusParams, error) {
 	result := new(coreTypes.ResultConsensusParams)
 	params := map[string]interface{}{"height": height}
 	if height <= 0 {
@@ -424,7 +424,7 @@ func (c *JsonRPC) ConsensusParams(height int64) (*coreTypes.ResultConsensusParam
 	return result, nil
 }
 
-func (c *JsonRPC) Health() (*coreTypes.ResultHealth, error) {
+func (c *NodeRPC) Health() (*coreTypes.ResultHealth, error) {
 	result := new(coreTypes.ResultHealth)
 	err := c.caller.Call(c.ctx, "health", map[string]interface{}{}, result)
 	if err != nil {
@@ -433,7 +433,7 @@ func (c *JsonRPC) Health() (*coreTypes.ResultHealth, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) BlockchainInfo(minHeight, maxHeight int64) (*coreTypes.ResultBlockchainInfo, error) {
+func (c *NodeRPC) BlockchainInfo(minHeight, maxHeight int64) (*coreTypes.ResultBlockchainInfo, error) {
 	result := new(coreTypes.ResultBlockchainInfo)
 	params := map[string]interface{}{"minHeight": minHeight, "maxHeight": maxHeight}
 	err := c.caller.Call(c.ctx, "blockchain", params, result)
@@ -443,7 +443,7 @@ func (c *JsonRPC) BlockchainInfo(minHeight, maxHeight int64) (*coreTypes.ResultB
 	return result, nil
 }
 
-func (c *JsonRPC) Genesis() (*coreTypes.ResultGenesis, error) {
+func (c *NodeRPC) Genesis() (*coreTypes.ResultGenesis, error) {
 	result := new(coreTypes.ResultGenesis)
 	err := c.caller.Call(c.ctx, "genesis", map[string]interface{}{}, result)
 	if err != nil {
@@ -452,7 +452,7 @@ func (c *JsonRPC) Genesis() (*coreTypes.ResultGenesis, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) Block(height int64) (*coreTypes.ResultBlock, error) {
+func (c *NodeRPC) Block(height int64) (*coreTypes.ResultBlock, error) {
 	result := new(coreTypes.ResultBlock)
 	params := map[string]interface{}{}
 	if height > 0 {
@@ -465,7 +465,7 @@ func (c *JsonRPC) Block(height int64) (*coreTypes.ResultBlock, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) BlockResults(height int64) (*coreTypes.ResultBlockResults, error) {
+func (c *NodeRPC) BlockResults(height int64) (*coreTypes.ResultBlockResults, error) {
 	result := new(coreTypes.ResultBlockResults)
 	params := map[string]interface{}{}
 	if height > 0 {
@@ -478,7 +478,7 @@ func (c *JsonRPC) BlockResults(height int64) (*coreTypes.ResultBlockResults, err
 	return result, nil
 }
 
-func (c *JsonRPC) Commit(height int64) (*coreTypes.ResultCommit, error) {
+func (c *NodeRPC) Commit(height int64) (*coreTypes.ResultCommit, error) {
 	result := new(coreTypes.ResultCommit)
 	params := map[string]interface{}{}
 	if height > 0 {
@@ -491,7 +491,7 @@ func (c *JsonRPC) Commit(height int64) (*coreTypes.ResultCommit, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) Validators(height int64, page, perPage int) (*coreTypes.ResultValidators, error) {
+func (c *NodeRPC) Validators(height int64, page, perPage int) (*coreTypes.ResultValidators, error) {
 	result := new(coreTypes.ResultValidators)
 	params := map[string]interface{}{}
 	if height > 0 {
@@ -504,7 +504,7 @@ func (c *JsonRPC) Validators(height int64, page, perPage int) (*coreTypes.Result
 	return result, nil
 }
 
-func (c *JsonRPC) Tx(hash []byte) (*coreTypes.ResultTx, error) {
+func (c *NodeRPC) Tx(hash []byte) (*coreTypes.ResultTx, error) {
 	result := new(coreTypes.ResultTx)
 	params := map[string]interface{}{"hash": hash, "prove": false}
 	err := c.caller.Call(c.ctx, "tx", params, result)
@@ -514,7 +514,7 @@ func (c *JsonRPC) Tx(hash []byte) (*coreTypes.ResultTx, error) {
 	return result, nil
 }
 
-func (c *JsonRPC) TxSearch(query string, page, perPage int, orderBy string) (
+func (c *NodeRPC) TxSearch(query string, page, perPage int, orderBy string) (
 	*coreTypes.ResultTxSearch, error) {
 	result := new(coreTypes.ResultTxSearch)
 	params := map[string]interface{}{"query": query, "prove": false, "page": strconv.Itoa(page), "per_page": strconv.Itoa(perPage), "order_by": orderBy}
@@ -525,7 +525,7 @@ func (c *JsonRPC) TxSearch(query string, page, perPage int, orderBy string) (
 	return result, nil
 }
 
-func (c *JsonRPC) BroadcastEvidence(ev types.Evidence) (*coreTypes.ResultBroadcastEvidence, error) {
+func (c *NodeRPC) BroadcastEvidence(ev types.Evidence) (*coreTypes.ResultBroadcastEvidence, error) {
 	result := new(coreTypes.ResultBroadcastEvidence)
 	err := c.caller.Call(c.ctx, "broadcast_evidence", map[string]interface{}{"evidence": ev}, result)
 	if err != nil {

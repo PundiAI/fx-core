@@ -53,10 +53,10 @@ func (suite *IntegrationTestSuite) GetFirstValidator() *network.Validator {
 func (suite *IntegrationTestSuite) GetClients() []TestClient {
 	validator := suite.GetFirstValidator()
 	suite.True(validator.AppConfig.GRPC.Enable)
-	grpcClient, err := grpc.NewGRPCClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
+	grpcClient, err := grpc.NewClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
 	suite.NoError(err)
 	return []TestClient{
-		jsonrpc.NewJsonRPC(jsonrpc.NewFastClient(validator.RPCAddress)),
+		jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress)),
 		grpcClient,
 	}
 }
