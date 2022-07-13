@@ -10,22 +10,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain/types"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
-)
 
-func init() {
-	types.InitMsgValidatorBasicRouter()
-	types.RegisterValidatorBasic(bsctypes.ModuleName, types.EthereumMsgValidate{})
-	types.RegisterValidatorBasic(polygontypes.ModuleName, types.EthereumMsgValidate{})
-}
+	_ "github.com/functionx/fx-core/app"
+)
 
 func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 	addrTooLong := sdk.AccAddress("Accidentally used 268 bytes pubkey test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content")
 	addr := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
 	chainName := "bsc"
-	invalidChainName := "tron"
+	invalidChainName := "foo"
 	tests := []struct {
 		name    string
 		msg     *types.MsgBondedOracle

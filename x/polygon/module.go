@@ -69,9 +69,7 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // RegisterInterfaces implements app bmodule basic
-func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
-	crosschaintypes.RegisterValidatorBasic(types.ModuleName, crosschaintypes.EthereumMsgValidate{})
-}
+func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {}
 
 // ----------------------------------------------------------------------------
 // AppModule

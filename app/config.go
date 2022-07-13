@@ -3,6 +3,11 @@ package app
 import (
 	"math/big"
 
+	bsctypes "github.com/functionx/fx-core/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	polygontypes "github.com/functionx/fx-core/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/x/tron/types"
+
 	fxtypes "github.com/functionx/fx-core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,6 +33,10 @@ func init() {
 	// set chain id function
 	ethermint.SetParseChainIDFunc(ParseFunctionXChainID)
 	ethermint.SetValidChainIDFunc(ValidFunctionXChainID)
+
+	crosschaintypes.RegisterValidateBasic(bsctypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
+	crosschaintypes.RegisterValidateBasic(polygontypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
+	crosschaintypes.RegisterValidateBasic(trontypes.ModuleName, trontypes.TronMsgValidate{})
 }
 
 func ParseFunctionXChainID(_ string) (*big.Int, error) {

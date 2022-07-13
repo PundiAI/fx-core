@@ -21,11 +21,6 @@ import (
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 )
 
-func init() {
-	types.InitMsgValidatorBasicRouter()
-	types.RegisterValidatorBasic(trontypes.ModuleName, trontypes.TronMsgValidate{})
-}
-
 func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
 	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()

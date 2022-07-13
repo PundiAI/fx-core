@@ -84,11 +84,6 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	if suite.chainName == trontypes.ModuleName {
-		types.InitMsgValidatorBasicRouter()
-		types.RegisterValidatorBasic(trontypes.ModuleName, trontypes.TronMsgValidate{})
-	}
-
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(types.MaxOracleSize, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})

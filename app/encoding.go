@@ -12,8 +12,6 @@ import (
 	cryptocodec "github.com/evmos/ethermint/crypto/codec"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	ethermint "github.com/evmos/ethermint/types"
-
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -29,7 +27,6 @@ type EncodingConfig struct {
 func MakeEncodingConfig() EncodingConfig {
 	encodingConfig := makeEncodingConfig()
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	crosschaintypes.InitMsgValidatorBasicRouter()
 	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }
