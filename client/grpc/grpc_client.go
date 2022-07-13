@@ -8,18 +8,14 @@ import (
 	"strings"
 	"time"
 
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ethcryptocodec "github.com/evmos/ethermint/crypto/codec"
-	ethermint "github.com/evmos/ethermint/types"
-
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -144,16 +140,11 @@ func (cli *Client) QueryAccount(address string) (authtypes.AccountI, error) {
 	if err != nil {
 		return nil, err
 	}
-	interfaceRegistry := types.NewInterfaceRegistry()
-	ethermint.RegisterInterfaces(interfaceRegistry)
-	authtypes.RegisterInterfaces(interfaceRegistry)
-	cryptocodec.RegisterInterfaces(interfaceRegistry)
-	ethcryptocodec.RegisterInterfaces(interfaceRegistry)
 	var account authtypes.AccountI
-	if err = interfaceRegistry.UnpackAny(response.GetAccount(), &account); err != nil {
+	if err = newInterfaceRegistry().UnpackAny(response.GetAccount(), &account); err != nil {
 		return nil, err
 	}
-	return account, err
+	return account, nil
 }
 
 func (cli *Client) QueryBalance(address string, denom string) (sdk.Coin, error) {
@@ -283,12 +274,12 @@ func (cli *Client) GetAddressPrefix() (string, error) {
 	return "", errors.New("no found address prefix")
 }
 
-func (cli *Client) EstimatingGas(txBody *tx.TxBody, authInfo *tx.AuthInfo, sign []byte) (*sdk.GasInfo, error) {
-	response, err := cli.ServiceClient().Simulate(cli.ctx, &tx.SimulateRequest{Tx: &tx.Tx{
-		Body:       txBody,
-		AuthInfo:   authInfo,
-		Signatures: [][]byte{sign},
-	}})
+func (cli *Client) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
+	txBytes, err := proto.Marshal(raw)
+	if err != nil {
+		return nil, err
+	}
+	response, err := cli.ServiceClient().Simulate(cli.ctx, &tx.SimulateRequest{TxBytes: txBytes})
 	if err != nil {
 		return nil, err
 	}
@@ -385,7 +376,11 @@ func (cli *Client) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxR
 	if err != nil {
 		return nil, err
 	}
-	gasInfo, err := cli.EstimatingGas(txBody, authInfo, sign)
+	gasInfo, err := cli.EstimatingGas(&tx.TxRaw{
+		BodyBytes:     txBodyBytes,
+		AuthInfoBytes: signDoc.AuthInfoBytes,
+		Signatures:    [][]byte{sign},
+	})
 	if err != nil {
 		return nil, err
 	}

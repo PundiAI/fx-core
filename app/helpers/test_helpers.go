@@ -515,3 +515,7 @@ func FundModuleAccount(bankKeeper bankkeeper.Keeper, ctx sdk.Context, recipientM
 
 	return bankKeeper.SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, recipientMod, amounts)
 }
+
+func NewCoin(amount sdk.Int) sdk.Coin {
+	return sdk.NewCoin(fxtypes.DefaultDenom, amount)
+}

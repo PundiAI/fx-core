@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strconv"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/btcsuite/btcutil/bech32"
@@ -30,9 +32,10 @@ type jsonRPCCaller interface {
 }
 
 type NodeRPC struct {
-	chainId string
-	caller  jsonRPCCaller
-	ctx     context.Context
+	chainId   string
+	gasPrices sdk.Coins
+	ctx       context.Context
+	caller    jsonRPCCaller
 }
 
 func NewNodeRPC(caller jsonRPCCaller) *NodeRPC {
@@ -42,6 +45,10 @@ func NewNodeRPC(caller jsonRPCCaller) *NodeRPC {
 func (c *NodeRPC) WithContext(ctx context.Context) *NodeRPC {
 	c.ctx = ctx
 	return c
+}
+
+func (c *NodeRPC) WithGasPrices(gasPrices sdk.Coins) {
+	c.gasPrices = gasPrices
 }
 
 // Custom API
@@ -148,6 +155,19 @@ func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRa
 		return nil, err
 	}
 
+	gasPrice := sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())
+	if len(c.gasPrices) <= 0 {
+		gasPrices, err := c.GetGasPrices()
+		if err != nil {
+			return nil, err
+		}
+		if len(gasPrices) > 0 {
+			gasPrice = gasPrices[0]
+		}
+	} else {
+		gasPrice = c.gasPrices[0]
+	}
+
 	authInfo := &tx.AuthInfo{
 		SignerInfos: []*tx.SignerInfo{
 			{
@@ -161,21 +181,11 @@ func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRa
 			},
 		},
 		Fee: &tx.Fee{
-			Amount:   nil,
+			Amount:   sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(DefGasLimit))),
 			GasLimit: uint64(DefGasLimit),
 			Payer:    "",
 			Granter:  "",
 		},
-	}
-
-	prices, err := c.GetGasPrices()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, price := range prices {
-		authInfo.Fee.Amount = sdk.NewCoins(sdk.NewCoin(price.Denom, price.Amount.MulRaw(int64(authInfo.Fee.GasLimit))))
-		continue
 	}
 
 	txAuthInfoBytes, err := proto.Marshal(authInfo)
@@ -196,16 +206,17 @@ func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRa
 	if err != nil {
 		return nil, err
 	}
-	gasInfo, err := c.EstimatingGas(txBody, authInfo, sign)
+	gasInfo, err := c.EstimatingGas(&tx.TxRaw{
+		BodyBytes:     txBodyBytes,
+		AuthInfoBytes: signDoc.AuthInfoBytes,
+		Signatures:    [][]byte{sign},
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	authInfo.Fee.GasLimit = gasInfo.GasUsed * 12 / 10
-	for _, price := range prices {
-		authInfo.Fee.Amount = sdk.NewCoins(sdk.NewCoin(price.Denom, price.Amount.MulRaw(int64(authInfo.Fee.GasLimit))))
-		continue
-	}
+	authInfo.Fee.Amount = sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(int64(authInfo.Fee.GasLimit))))
 
 	signDoc.AuthInfoBytes, err = proto.Marshal(authInfo)
 	if err != nil {
@@ -279,13 +290,36 @@ func (c *NodeRPC) TxByHash(txHash string) (*sdk.TxResponse, error) {
 	return sdk.NewResponseResultTx(resultTx, nil, ""), nil
 }
 
-func (c *NodeRPC) EstimatingGas(txBody *tx.TxBody, authInfo *tx.AuthInfo, sign []byte) (*sdk.GasInfo, error) {
-	result, err := c.ABCIQueryIsOk("/app/simulate", nil)
+func (c *NodeRPC) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
+	txBytes, err := proto.Marshal(raw)
 	if err != nil {
 		return nil, err
 	}
-	var resp = sdk.SimulationResponse{}
-	return &resp.GasInfo, json.Unmarshal(result.Response.Value, &resp)
+	result, err := c.ABCIQueryIsOk("/app/simulate", txBytes)
+	if err != nil {
+		return nil, err
+	}
+	var resp = struct {
+		GasInfo struct {
+			GasWanted string `json:"gas_wanted"`
+			GasUsed   string `json:"gas_used"`
+		} `json:"gas_info"`
+	}{}
+	if err = json.Unmarshal(result.Response.Value, &resp); err != nil {
+		return nil, err
+	}
+	gasWanted, err := strconv.ParseUint(resp.GasInfo.GasWanted, 10, 64)
+	if err != nil && len(resp.GasInfo.GasWanted) > 0 {
+		return nil, err
+	}
+	gasUsed, err := strconv.ParseUint(resp.GasInfo.GasUsed, 10, 64)
+	if err != nil && len(resp.GasInfo.GasUsed) > 0 {
+		return nil, err
+	}
+	return &sdk.GasInfo{
+		GasWanted: gasWanted,
+		GasUsed:   gasUsed,
+	}, nil
 }
 
 func (c *NodeRPC) AppVersion() (string, error) {

@@ -34,15 +34,14 @@ func NewMnemonic() string {
 
 func PrivKeyFromMnemonic(mnemonic string, algo hd.PubKeyType, account, index uint32) (cryptotypes.PrivKey, error) {
 	var hdPath *hd.BIP44Params
-	var signAlgo keyring.SignatureAlgo
-	var err error
 	if algo == hd.Secp256k1Type {
 		hdPath = hd.CreateHDPath(118, account, index)
-		signAlgo, err = keyring.NewSigningAlgoFromString(string(hd.Secp256k1Type), keyring.SigningAlgoList{hd.Secp256k1})
 	} else if algo == hd2.EthSecp256k1Type {
 		hdPath = hd.CreateHDPath(60, account, index)
-		signAlgo, err = keyring.NewSigningAlgoFromString(string(hd2.EthSecp256k1Type), keyring.SigningAlgoList{hd2.EthSecp256k1})
+	} else {
+		return nil, fmt.Errorf("invalid algo")
 	}
+	signAlgo, err := keyring.NewSigningAlgoFromString(string(algo), hd2.SupportedAlgorithms)
 	if err != nil {
 		return nil, err
 	}

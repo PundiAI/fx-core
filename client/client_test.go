@@ -5,6 +5,15 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	hd2 "github.com/evmos/ethermint/crypto/hd"
+	"github.com/gogo/protobuf/proto"
+
+	"github.com/functionx/fx-core/client/jsonrpc"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,7 +23,6 @@ import (
 
 	"github.com/functionx/fx-core/app/helpers"
 	"github.com/functionx/fx-core/client/grpc"
-	"github.com/functionx/fx-core/client/jsonrpc"
 	fxtypes "github.com/functionx/fx-core/types"
 )
 
@@ -30,7 +38,7 @@ type TestClient interface {
 	QueryBalances(address string) (sdk.Coins, error)
 	QuerySupply() (sdk.Coins, error)
 	BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error)
-	EstimatingGas(txBody *tx.TxBody, authInfo *tx.AuthInfo, sign []byte) (*sdk.GasInfo, error)
+	EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error)
 	BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.TxResponse, error)
 	TxByHash(txHash string) (*sdk.TxResponse, error)
 }
@@ -38,7 +46,6 @@ type TestClient interface {
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	cfg     network.Config
 	network *network.Network
 }
 
@@ -64,10 +71,10 @@ func (suite *IntegrationTestSuite) GetClients() []TestClient {
 func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
-	suite.cfg = helpers.DefaultConfig()
-	suite.cfg.NumValidators = 1
-
-	suite.network = network.New(suite.T(), suite.cfg)
+	cfg := helpers.DefaultConfig()
+	cfg.NumValidators = 1
+	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
+	suite.network = network.New(suite.T(), cfg)
 
 	_, err := suite.network.WaitForHeight(1)
 	suite.Require().NoError(err)
@@ -79,6 +86,118 @@ func (suite *IntegrationTestSuite) TearDownSuite() {
 	// This is important and must be called to ensure other tests can create
 	// a network!
 	suite.network.Cleanup()
+}
+
+func (suite *IntegrationTestSuite) TestClient_Tx() {
+	cfg := suite.network.Config
+	privKey, err := helpers.PrivKeyFromMnemonic(cfg.Mnemonics[0], hd.Secp256k1Type, 0, 0)
+	suite.NoError(err)
+
+	clients := suite.GetClients()
+	for i := 0; i < len(clients); i++ {
+		client := clients[i]
+		toAddress := sdk.AccAddress(helpers.NewPriKey().PubKey().Address())
+		txRaw, err := client.BuildTx(privKey, []sdk.Msg{
+			banktypes.NewMsgSend(
+				privKey.PubKey().Address().Bytes(),
+				toAddress,
+				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))),
+			)},
+		)
+		suite.NoError(err)
+
+		gas, err := client.EstimatingGas(txRaw)
+		suite.NoError(err)
+		suite.Equal(uint64(76053), gas.GasUsed)
+		suite.Equal(uint64(0), gas.GasWanted)
+
+		txResponse, err := client.BroadcastTx(txRaw)
+		suite.NoError(err)
+		suite.Equal(uint32(0), txResponse.Code)
+
+		err = suite.network.WaitForNextBlock()
+		suite.NoError(err)
+
+		txRes, err := client.TxByHash(txResponse.TxHash)
+		suite.NoError(err)
+		txRes.Tx = nil
+		txRes.Timestamp = ""
+		suite.Equal(txResponse, txRes)
+
+		account, err := client.QueryAccount(toAddress.String())
+		suite.NoError(err)
+		suite.Equal(authtypes.NewBaseAccount(toAddress, nil, uint64(11+i), 0), account)
+	}
+
+	ethPrivKey, err := helpers.PrivKeyFromMnemonic(cfg.Mnemonics[0], hd2.EthSecp256k1Type, 0, 0)
+	suite.NoError(err)
+
+	ethAddress := sdk.AccAddress(ethPrivKey.PubKey().Address().Bytes())
+
+	for i := 0; i < len(clients); i++ {
+		client := clients[i]
+		txRaw, err := client.BuildTx(privKey, []sdk.Msg{
+			banktypes.NewMsgSend(
+				privKey.PubKey().Address().Bytes(),
+				ethAddress,
+				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10).MulRaw(1e18))),
+			)},
+		)
+		suite.NoError(err)
+
+		gas, err := client.EstimatingGas(txRaw)
+		suite.NoError(err)
+		suite.True(gas.GasUsed == uint64(76823) || gas.GasUsed == uint64(68148))
+		suite.Equal(uint64(0), gas.GasWanted)
+
+		txResponse, err := client.BroadcastTx(txRaw)
+		suite.NoError(err)
+		suite.Equal(uint32(0), txResponse.Code)
+
+		err = suite.network.WaitForNextBlock()
+		suite.NoError(err)
+
+		account, err := client.QueryAccount(ethAddress.String())
+		suite.NoError(err)
+		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, 13, 0), account)
+	}
+
+	for i := 0; i < len(clients); i++ {
+		client := clients[i]
+		toAddress := sdk.AccAddress(helpers.NewPriKey().PubKey().Address())
+		txRaw, err := client.BuildTx(ethPrivKey, []sdk.Msg{
+			banktypes.NewMsgSend(
+				ethPrivKey.PubKey().Address().Bytes(),
+				toAddress,
+				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))),
+			)},
+		)
+		suite.NoError(err)
+
+		gas, err := client.EstimatingGas(txRaw)
+		suite.NoError(err)
+		suite.True(gas.GasUsed == uint64(76465) || gas.GasUsed == uint64(83152))
+		suite.Equal(uint64(0), gas.GasWanted)
+
+		txResponse, err := client.BroadcastTx(txRaw)
+		suite.NoError(err)
+		suite.Equal(uint32(0), txResponse.Code)
+
+		err = suite.network.WaitForNextBlock()
+		suite.NoError(err)
+
+		account, err := client.QueryAccount(ethAddress.String())
+		suite.NoError(err)
+		baseAccount, ok := account.(*authtypes.BaseAccount)
+		suite.True(ok)
+		if baseAccount.PubKey.TypeUrl != "" {
+			pubAny, err := types.NewAnyWithValue(ethPrivKey.PubKey())
+			suite.NoError(err)
+			suite.Equal("/"+proto.MessageName(&ethsecp256k1.PubKey{}), baseAccount.PubKey.TypeUrl)
+			suite.Equal(pubAny, baseAccount.PubKey)
+		}
+		suite.Equal(uint64(i+1), account.GetSequence())
+	}
 }
 
 func (suite *IntegrationTestSuite) TestClient_Query() {
@@ -193,9 +312,9 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 			},
 		},
 	}
+	clients := suite.GetClients()
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			clients := suite.GetClients()
 			for i := 0; i < len(clients); i++ {
 				typeOf := reflect.TypeOf(clients[i])
 				method, is := typeOf.MethodByName(tt.funcName)
