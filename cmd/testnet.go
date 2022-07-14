@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	fxCfg "github.com/functionx/fx-core/server/config"
+
 	"github.com/cosmos/cosmos-sdk/testutil"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
@@ -63,7 +65,7 @@ Example:
 	fxcored testnet -validators 4 -output-dir ./testnet --starting-ip 172.20.0.2
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			srvconfig.SetConfigTemplate(DefaultConfigTemplate())
+			srvconfig.SetConfigTemplate(fxCfg.DefaultConfigTemplate())
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -128,14 +130,14 @@ func initTestnet(
 	denom string,
 	valNum int,
 ) error {
-	fxAppConfig := DefaultConfig()
+	fxAppConfig := fxCfg.DefaultConfig()
 	fxAppConfig.MinGasPrices = minGasPrices
 	fxAppConfig.API.Enable = true
 	fxAppConfig.Telemetry.Enabled = true
 	fxAppConfig.Telemetry.PrometheusRetentionTime = 60
 	fxAppConfig.Telemetry.EnableHostnameLabel = false
 	fxAppConfig.Telemetry.GlobalLabels = [][]string{{"chain_id", chainID}}
-	fxAppConfig.BypassMinFee = BypassMinFee{
+	fxAppConfig.BypassMinFee = fxCfg.BypassMinFee{
 		MsgTypes: []string{
 			sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
 			sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	fxCfg "github.com/functionx/fx-core/server/config"
+
 	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/stretchr/testify/assert"
@@ -25,7 +27,7 @@ func Test_configTomlConfig_output(t *testing.T) {
 }
 
 func Test_appTomlConfig_output(t *testing.T) {
-	c := appTomlConfig{config: DefaultConfig()}
+	c := appTomlConfig{config: fxCfg.DefaultConfig()}
 	buf := new(bytes.Buffer)
 	clientCtx := client.Context{
 		Output:       buf,
