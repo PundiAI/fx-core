@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/functionx/fx-core/testutil/network"
+
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/suite"
@@ -25,17 +26,20 @@ func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
 }
 
-func (suite *IntegrationTestSuite) GetFirstValidator() *network.Validator {
-	return suite.network.Validators[0]
-}
-
 func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
-	cfg := helpers.DefaultConfig()
+	cfg := helpers.DefaultNetworkConfig()
 	cfg.NumValidators = 1
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
-	suite.network = network.New(suite.T(), cfg)
+
+	baseDir, err := ioutil.TempDir(suite.T().TempDir(), cfg.ChainID)
+	suite.NoError(err)
+	suite.network, err = network.New(suite.T(), baseDir, cfg)
+	suite.NoError(err)
+
+	_, err = suite.network.WaitForHeight(1)
+	suite.NoError(err)
 
 	//_, err := suite.network.WaitForHeight(1)
 	//suite.Require().NoError(err)
@@ -52,7 +56,7 @@ func (suite *IntegrationTestSuite) TearDownSuite() {
 func (suite *IntegrationTestSuite) TestSuite() {
 	suite.Require().Equal(sdk.GetConfig().GetCoinType(), uint32(sdk.CoinType))
 
-	validator := suite.GetFirstValidator()
+	validator := suite.network.Validators[0]
 	keyringDir := validator.ClientCtx.KeyringDir
 	file, err := ioutil.ReadFile(filepath.Join(keyringDir, "key_seed.json"))
 	suite.Require().NoError(err)

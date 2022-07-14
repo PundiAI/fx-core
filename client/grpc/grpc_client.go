@@ -8,6 +8,12 @@ import (
 	"strings"
 	"time"
 
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+
+	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	migratetypes "github.com/functionx/fx-core/x/migrate/types"
+
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
@@ -125,6 +131,18 @@ func (cli *Client) ServiceClient() tx.ServiceClient {
 }
 func (cli *Client) TMServiceClient() tmservice.ServiceClient {
 	return tmservice.NewServiceClient(cli.ClientConn)
+}
+func (cli *Client) ERC20Query() erc20types.QueryClient {
+	return erc20types.NewQueryClient(cli.ClientConn)
+}
+func (cli *Client) EVMQuery() evmtypes.QueryClient {
+	return evmtypes.NewQueryClient(cli.ClientConn)
+}
+func (cli *Client) CrosschainQuery() crosschaintypes.QueryClient {
+	return crosschaintypes.NewQueryClient(cli.ClientConn)
+}
+func (cli *Client) MigrateQuery() migratetypes.QueryClient {
+	return migratetypes.NewQueryClient(cli.ClientConn)
 }
 
 func (cli *Client) AppVersion() (string, error) {
@@ -475,6 +493,37 @@ func (cli *Client) TxByHash(txHash string) (*sdk.TxResponse, error) {
 	return resp.TxResponse, nil
 }
 
+func (cli *Client) BuildTxV2(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
+	return cli.BuildTxV1(privKey, sdk.AccAddress(privKey.PubKey().Address().Bytes()).String(), msgs, gasLimit, memo, timeout)
+}
+
+func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, from string, msgs []sdk.Msg, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
+	account, err := cli.QueryAccount(from)
+	if err != nil {
+		return nil, err
+	}
+	if len(cli.chainId) <= 0 {
+		chainId, err := cli.GetChainId()
+		if err != nil {
+			return nil, err
+		}
+		cli.chainId = chainId
+	}
+	gasPrice := sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())
+	if len(cli.gasPrices) <= 0 {
+		gasPrices, err := cli.GetGasPrices()
+		if err != nil {
+			return nil, err
+		}
+		if len(gasPrices) > 0 {
+			gasPrice = gasPrices[0]
+		}
+	} else {
+		gasPrice = cli.gasPrices[0]
+	}
+	return BuildTxV1(cli.chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
+}
+
 func BuildTxV1(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
 	txBodyMessage := make([]*types.Any, 0)
 	for i := 0; i < len(msgs); i++ {
@@ -548,11 +597,6 @@ func BuildTxV1(chainId string, sequence, accountNumber uint64, privKey cryptotyp
 }
 
 // BuildTxV2 nolint
-func BuildTxV2(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin) (*tx.TxRaw, error) {
-	return BuildTxV1(chainId, sequence, accountNumber, privKey, msgs, gasPrice, DefGasLimit, "", 0)
-}
-
-// BuildTxV3 nolint
-func BuildTxV3(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin, gasLimit int64) (*tx.TxRaw, error) {
+func BuildTxV2(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin, gasLimit int64) (*tx.TxRaw, error) {
 	return BuildTxV1(chainId, sequence, accountNumber, privKey, msgs, gasPrice, gasLimit, "", 0)
 }

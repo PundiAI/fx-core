@@ -79,8 +79,8 @@ func NewPriKey() cryptotypes.PrivKey {
 	return secp256k1.GenPrivKey()
 }
 
-// NewAddrKey generates an Ethereum address and its corresponding private key.
-func NewAddrKey() (common.Address, cryptotypes.PrivKey) {
+// NewEthPrivKey generates an Ethereum address and its corresponding private key.
+func NewEthPrivKey() cryptotypes.PrivKey {
 	privkey, err := ethsecp256k1.GenerateKey()
 	if err != nil {
 		panic(err)
@@ -89,16 +89,17 @@ func NewAddrKey() (common.Address, cryptotypes.PrivKey) {
 	if err != nil {
 		panic(err)
 	}
-
-	addr := crypto.PubkeyToAddress(key.PublicKey)
-
-	return addr, privkey
+	addr1 := crypto.PubkeyToAddress(key.PublicKey)
+	addr2 := common.BytesToAddress(privkey.PubKey().Address())
+	if addr1 != addr2 {
+		panic("invalid private key")
+	}
+	return privkey
 }
 
 // GenerateAddress generates an Ethereum address.
 func GenerateAddress() common.Address {
-	addr, _ := NewAddrKey()
-	return addr
+	return common.BytesToAddress(NewEthPrivKey().PubKey().Address())
 }
 
 var _ keyring.Signer = &Signer{}

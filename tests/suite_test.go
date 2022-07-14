@@ -2,7 +2,19 @@ package tests
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"sort"
+	"strconv"
 	"sync"
+	"time"
+
+	"github.com/functionx/fx-core/testutil/network"
+
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	types "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 
@@ -23,83 +35,158 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	sync.Mutex
+	useNetwork bool
+	network    *network.Network
 	ctx        context.Context
-	grpcClient *grpc.Client
-	jsonRPC    *jsonrpc.NodeRPC
-	privateKey cryptotypes.PrivKey
+	sync.Mutex
 }
 
 func NewTestSuite() TestSuite {
-	client, err := grpc.NewClient(GetGrpcUrl())
-	if err != nil {
-		panic(err)
-	}
-	mnemonic, keyType := GetAdminMnemonic()
-	privKey, err := helpers.PrivKeyFromMnemonic(mnemonic, keyType, 0, 0)
-	if err != nil {
-		panic(err)
-	}
-	return TestSuite{
+	testSuite := TestSuite{
 		Suite:      suite.Suite{},
+		useNetwork: true,
+		Mutex:      sync.Mutex{},
 		ctx:        context.Background(),
-		grpcClient: client,
-		privateKey: privKey,
-		jsonRPC:    jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(GetNodeJsonRpcUrl())),
 	}
-}
-
-func (suite *TestSuite) SetPrivateKey(key cryptotypes.PrivKey) {
-	suite.privateKey = key
-}
-
-func (suite *TestSuite) AdminAddress() sdk.AccAddress {
-	return suite.privateKey.PubKey().Address().Bytes()
-}
-
-func (suite *TestSuite) BroadcastTx(msgList ...sdk.Msg) string {
-	buildTx, err := suite.grpcClient.BuildTx(suite.privateKey, msgList)
-	suite.Require().NoError(err)
-
-	txResponse, err := suite.grpcClient.BroadcastTxOk(buildTx)
-	suite.Require().NoError(err)
-	return txResponse.TxHash
-}
-
-func (suite *TestSuite) QueryBalance(accAddress sdk.AccAddress) sdk.Coins {
-	balances, err := suite.grpcClient.QueryBalances(accAddress.String())
-	suite.Require().NoError(err)
-	suite.Require().True(balances.IsAllPositive())
-	return balances
-}
-
-func (suite *TestSuite) QueryValidator() []sdk.ValAddress {
-	validators, err := suite.grpcClient.StakingQuery().Validators(suite.ctx, &stakingtypes.QueryValidatorsRequest{Status: stakingtypes.Bonded.String()})
-	suite.Require().NoError(err)
-	suite.Require().True(len(validators.Validators) > 0)
-
-	vals := make([]sdk.ValAddress, 0, len(validators.Validators))
-	for _, v := range validators.Validators {
-		valAddr, err := sdk.ValAddressFromBech32(v.OperatorAddress)
-		suite.Require().NoError(err)
-		vals = append(vals, valAddr)
-		suite.T().Log("query validator", "val", v.OperatorAddress, "token", v.Tokens.String(), "share", v.DelegatorShares.String())
+	if os.Getenv("USE_NETWORK") == "false" {
+		testSuite.useNetwork = false
 	}
+	// nolint
+	return testSuite
+}
 
-	return vals
+func (suite *TestSuite) SetupSuite() {
+	if !suite.useNetwork {
+		return
+	}
+	suite.T().Log("setting up integration test suite")
+
+	cfg := helpers.DefaultNetworkConfig()
+	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
+	cfg.NumValidators = 1
+	cfg.VotingPeriod = 5 * time.Second
+
+	baseDir, err := ioutil.TempDir(suite.T().TempDir(), cfg.ChainID)
+	suite.Require().NoError(err)
+	suite.network, err = network.New(suite.T(), baseDir, cfg)
+	suite.Require().NoError(err)
+
+	_, err = suite.network.WaitForHeight(1)
+	suite.Require().NoError(err)
+}
+
+func (suite *TestSuite) TearDownSuite() {
+	if !suite.useNetwork {
+		return
+	}
+	suite.T().Log("tearing down integration test suite")
+
+	// This is important and must be called to ensure other tests can create
+	// a network!
+	suite.network.Cleanup()
+}
+
+func (suite *TestSuite) GetFirstValidtor() *network.Validator {
+	return suite.network.Validators[0]
+}
+
+func (suite *TestSuite) AdminPrivateKey() cryptotypes.PrivKey {
+	privKey, err := helpers.PrivKeyFromMnemonic(suite.network.Config.Mnemonics[0], hd.Secp256k1Type, 0, 0)
+	suite.NoError(err)
+	return privKey
+}
+
+func (suite *TestSuite) GRPCClient() *grpc.Client {
+	grpcUrl := "http://localhost:9090"
+	if suite.useNetwork {
+		grpcUrl = fmt.Sprintf("http://%s", suite.GetFirstValidtor().AppConfig.GRPC.Address)
+	}
+	client, err := grpc.NewClient(grpcUrl)
+	suite.NoError(err)
+	client.WithContext(suite.ctx)
+	return client
+}
+
+func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
+	nodeUrl := "http://localhost:26657"
+	if suite.useNetwork {
+		nodeUrl = suite.GetFirstValidtor().RPCAddress
+	}
+	rpc := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(nodeUrl))
+	rpc.WithContext(suite.ctx)
+	return rpc
+}
+
+func (suite *TestSuite) ValAddress() sdk.ValAddress {
+	return suite.AdminPrivateKey().PubKey().Address().Bytes()
+}
+
+func (suite *TestSuite) BlockNumber() int64 {
+	height, err := suite.GRPCClient().GetBlockHeight()
+	suite.Error(err)
+	return height
+}
+
+func (suite *TestSuite) QueryTx(txHash string) *sdk.TxResponse {
+	txResponse, err := suite.GRPCClient().TxByHash(txHash)
+	suite.NoError(err)
+	return txResponse
+}
+
+func (suite *TestSuite) QueryBlock(blockHeight int64) *types.Block {
+	txResponse, err := suite.GRPCClient().GetBlockByHeight(blockHeight)
+	suite.NoError(err)
+	return txResponse
+}
+
+func (suite *TestSuite) QueryBlockByTxHash(txHash string) *types.Block {
+	txResponse := suite.QueryTx(txHash)
+	return suite.QueryBlock(txResponse.Height)
+}
+
+func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.Msg) *sdk.TxResponse {
+	grpcClient := suite.GRPCClient()
+	balances, err := grpcClient.QueryBalances(sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
+	suite.NoError(err)
+	suite.True(balances.AmountOf(fxtypes.DefaultDenom).GT(sdk.NewInt(2).MulRaw(1e18)))
+
+	grpcClient.WithGasPrices(sdk.NewCoins(helpers.NewCoin(sdk.NewInt(4_000).MulRaw(1e9))))
+	txRaw, err := grpcClient.BuildTxV2(privKey, msgList, 500000, "", 0)
+	suite.NoError(err)
+
+	txResponse, err := grpcClient.BroadcastTxOk(txRaw)
+	suite.NoError(err)
+	suite.Equal(uint32(0), txResponse.Code)
+
+	if suite.useNetwork {
+		suite.NoError(suite.network.WaitForNextBlock())
+	}
+	return txResponse
+}
+
+func (suite *TestSuite) BroadcastProposalTx(privKey cryptotypes.PrivKey, msgList ...sdk.Msg) (proposalId uint64) {
+	txResponse := suite.BroadcastTx(privKey, msgList...)
+	suite.T().Log("proposal submit txHash", txResponse.TxHash)
+	for _, log := range txResponse.Logs {
+		for _, event := range log.Events {
+			if event.Type != "proposal_deposit" {
+				continue
+			}
+			for _, attribute := range event.Attributes {
+				if attribute.Key != "proposal_id" {
+					continue
+				}
+				proposalId, err := strconv.ParseUint(attribute.Value, 10, 64)
+				suite.NoError(err)
+				return proposalId
+			}
+		}
+	}
+	return 0
 }
 
 func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) {
 	valAddr := sdk.ValAddress(valPriv.PubKey().Address())
-
-	amt := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
-	txHash := suite.BroadcastTx(banktypes.NewMsgSend(suite.AdminAddress(), sdk.AccAddress(valAddr), amt))
-	suite.T().Log("send to validator txHash", txHash)
-
-	oldKey := suite.privateKey
-	defer suite.SetPrivateKey(oldKey)
-	suite.SetPrivateKey(valPriv)
-
 	selfDelegate := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100)))
 	minSelfDelegate := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1))
 	description := stakingtypes.Description{
@@ -116,75 +203,174 @@ func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) {
 	}
 	ed25519PrivKey := ed25519.GenPrivKeyFromSecret(valAddr.Bytes())
 	msg, err := stakingtypes.NewMsgCreateValidator(valAddr, ed25519PrivKey.PubKey(), selfDelegate, description, rates, minSelfDelegate)
-	suite.Require().NoError(err)
-	txHash = suite.BroadcastTx(msg)
-	suite.T().Log("create validator txHash", txHash)
+	suite.NoError(err)
+	txResponse := suite.BroadcastTx(valPriv, msg)
+	suite.T().Log("create validator txHash", txResponse.TxHash)
 }
 
-func (suite *TestSuite) Send(accAddress sdk.AccAddress, amount sdk.Coin) {
-	txHash := suite.BroadcastTx(banktypes.NewMsgSend(suite.AdminAddress(), accAddress, sdk.NewCoins(amount)))
-	suite.T().Log("send txHash", txHash)
+func (suite *TestSuite) QueryValidatorByToken() sdk.ValAddress {
+	response, err := suite.GRPCClient().StakingQuery().Validators(suite.ctx, &stakingtypes.QueryValidatorsRequest{Status: stakingtypes.Bonded.String()})
+	suite.NoError(err)
+	suite.True(len(response.Validators) > 0)
+	validators := response.Validators
+	sort.Slice(validators, func(i, j int) bool {
+		return validators[i].Tokens.LT(validators[j].Tokens)
+	})
+	valAddr, err := sdk.ValAddressFromBech32(validators[0].OperatorAddress)
+	suite.NoError(err)
+	return valAddr
 }
 
-func (suite *TestSuite) SetWithdrawAddr(accAddress sdk.AccAddress) {
-	txHash := suite.BroadcastTx(distritypes.NewMsgSetWithdrawAddress(suite.AdminAddress(), accAddress))
-	suite.T().Log("set withdraw txHash", txHash)
+func (suite *TestSuite) Send(toAddress sdk.AccAddress, amount sdk.Coin) {
+	suite.SendFrom(suite.AdminPrivateKey(), toAddress, amount)
 }
 
-func (suite *TestSuite) Delegate(valAddress sdk.ValAddress, amount sdk.Coin) {
-	txHash := suite.BroadcastTx(stakingtypes.NewMsgDelegate(suite.AdminAddress(), valAddress, amount))
-	suite.T().Log("delegate txHash", txHash)
+func (suite *TestSuite) SendFrom(priv cryptotypes.PrivKey, toAddress sdk.AccAddress, amount sdk.Coin) {
+	suite.Lock()
+	defer suite.Unlock()
+	txResponse := suite.BroadcastTx(priv, banktypes.NewMsgSend(priv.PubKey().Address().Bytes(), toAddress, sdk.NewCoins(amount)))
+	suite.T().Log("send txHash", txResponse.TxHash)
 }
 
-func (suite *TestSuite) WithdrawReward(valAddress sdk.ValAddress) {
-	txHash := suite.BroadcastTx(distritypes.NewMsgWithdrawDelegatorReward(suite.AdminAddress(), valAddress))
-	suite.T().Log("withdraw reward txHash", txHash)
+func (suite *TestSuite) QueryBalances(accAddress sdk.AccAddress) sdk.Coins {
+	balances, err := suite.GRPCClient().QueryBalances(accAddress.String())
+	suite.NoError(err)
+	return balances
 }
 
-func (suite *TestSuite) Undelegate(valAddress sdk.ValAddress, all bool) {
-	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))
-	if all {
-		delegation, err := suite.grpcClient.StakingQuery().Delegation(suite.ctx, &stakingtypes.QueryDelegationRequest{
-			DelegatorAddr: suite.AdminAddress().String(),
+func (suite *TestSuite) CheckBalance(accAddress sdk.AccAddress, balance sdk.Coin) {
+	queryBalance, err := suite.GRPCClient().QueryBalance(accAddress.String(), balance.Denom)
+	suite.NoError(err)
+	suite.Equal(queryBalance, balance)
+}
+
+func (suite *TestSuite) SetWithdrawAddr(priv cryptotypes.PrivKey, withdrawAddr sdk.AccAddress) {
+	fromAddr := sdk.AccAddress(priv.PubKey().Address().Bytes())
+	txResponse := suite.BroadcastTx(priv, distritypes.NewMsgSetWithdrawAddress(fromAddr, withdrawAddr))
+	suite.T().Log("set withdraw txHash", txResponse.TxHash)
+}
+
+func (suite *TestSuite) CheckWithdrawAddr(delegatorAddr, withdrawAddr sdk.AccAddress) {
+	withdrawAddressResp, err := suite.GRPCClient().DistrQuery().DelegatorWithdrawAddress(suite.ctx, &distritypes.QueryDelegatorWithdrawAddressRequest{
+		DelegatorAddress: delegatorAddr.String(),
+	})
+	suite.NoError(err)
+	suite.Equal(withdrawAddressResp.WithdrawAddress, withdrawAddr.String())
+}
+
+func (suite *TestSuite) Delegate(priv cryptotypes.PrivKey, valAddress sdk.ValAddress, amount sdk.Coin) {
+	txResponse := suite.BroadcastTx(priv, stakingtypes.NewMsgDelegate(priv.PubKey().Address().Bytes(), valAddress, amount))
+	suite.T().Log("delegate txHash", txResponse.TxHash)
+}
+
+func (suite *TestSuite) CheckDelegate(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, delegation sdk.Coin) {
+	delegationResp, err := suite.GRPCClient().StakingQuery().Delegation(suite.ctx, &stakingtypes.QueryDelegationRequest{
+		DelegatorAddr: delegatorAddr.String(),
+		ValidatorAddr: validatorAddr.String(),
+	})
+	if delegation.IsZero() {
+		suite.Error(sdkerrors.ErrNotFound)
+	} else {
+		suite.NoError(err)
+		suite.Equal(delegation, delegationResp.DelegationResponse.Balance)
+	}
+}
+
+func (suite *TestSuite) WithdrawReward(priv cryptotypes.PrivKey, valAddress sdk.ValAddress) {
+	txResponse := suite.BroadcastTx(priv, distritypes.NewMsgWithdrawDelegatorReward(priv.PubKey().Address().Bytes(), valAddress))
+	suite.T().Log("withdraw reward txHash", txResponse.TxHash)
+}
+
+func (suite *TestSuite) Undelegate(priv cryptotypes.PrivKey, valAddress sdk.ValAddress, amount sdk.Coin) string {
+	if amount.IsZero() {
+		delegation, err := suite.GRPCClient().StakingQuery().Delegation(suite.ctx, &stakingtypes.QueryDelegationRequest{
+			DelegatorAddr: sdk.AccAddress(priv.PubKey().Address().Bytes()).String(),
 			ValidatorAddr: valAddress.String(),
 		})
-		suite.Require().NoError(err)
-		amt = delegation.DelegationResponse.Balance.Amount
+		suite.NoError(err)
+		amount = delegation.DelegationResponse.Balance
 	}
-	msg := stakingtypes.NewMsgUndelegate(suite.AdminAddress(), valAddress, sdk.NewCoin(fxtypes.DefaultDenom, amt))
-	txHash := suite.BroadcastTx(msg)
-	suite.T().Log("undelegate txHash", txHash)
+	txResponse := suite.BroadcastTx(priv, stakingtypes.NewMsgUndelegate(priv.PubKey().Address().Bytes(), valAddress, amount))
+	suite.T().Log("undelegate txHash", txResponse.TxHash)
+	return txResponse.TxHash
 }
 
-func (suite *TestSuite) Redelegate(valSrc, valDest sdk.ValAddress, all bool) {
-	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))
+func (suite *TestSuite) CheckUndelegate(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, entries ...stakingtypes.UnbondingDelegationEntry) {
+	undelegationResp, err := suite.GRPCClient().StakingQuery().UnbondingDelegation(suite.ctx, &stakingtypes.QueryUnbondingDelegationRequest{
+		DelegatorAddr: delegatorAddr.String(),
+		ValidatorAddr: validatorAddr.String(),
+	})
+	suite.NoError(err)
+	suite.T().Log(undelegationResp.Unbond.Entries)
+}
+
+func (suite *TestSuite) Redelegate(priv cryptotypes.PrivKey, valSrc, valDest sdk.ValAddress, all bool) {
+	amt := sdk.NewInt(1)
 	if all {
-		delegation, err := suite.grpcClient.StakingQuery().Delegation(suite.ctx, &stakingtypes.QueryDelegationRequest{
-			DelegatorAddr: suite.AdminAddress().String(),
+		delegation, err := suite.GRPCClient().StakingQuery().Delegation(suite.ctx, &stakingtypes.QueryDelegationRequest{
+			DelegatorAddr: sdk.AccAddress(priv.PubKey().Address().Bytes()).String(),
 			ValidatorAddr: valSrc.String(),
 		})
-		suite.Require().NoError(err)
+		suite.NoError(err)
 		amt = delegation.DelegationResponse.Balance.Amount
 	}
-	msg := stakingtypes.NewMsgBeginRedelegate(suite.AdminAddress(), valSrc, valDest, sdk.NewCoin(fxtypes.DefaultDenom, amt))
-	txHash := suite.BroadcastTx(msg)
-	suite.T().Log("redelegate txHash", txHash)
+	msg := stakingtypes.NewMsgBeginRedelegate(priv.PubKey().Address().Bytes(), valSrc, valDest, sdk.NewCoin(fxtypes.DefaultDenom, amt))
+	txResponse := suite.BroadcastTx(priv, msg)
+	suite.T().Log("redelegate txHash", txResponse.TxHash)
 }
 
-func (suite *TestSuite) ProposalSubmit(deposit sdk.Coin) {
+func (suite *TestSuite) CheckRedelegate(delegatorAddr sdk.AccAddress, entries []stakingtypes.RedelegationResponses) {
+	redelegationResp, err := suite.GRPCClient().StakingQuery().Redelegations(suite.ctx, &stakingtypes.QueryRedelegationsRequest{DelegatorAddr: delegatorAddr.String()})
+	suite.NoError(err)
+	suite.T().Log(redelegationResp.RedelegationResponses)
+}
+
+func (suite *TestSuite) ProposalSubmit(priv cryptotypes.PrivKey, deposit sdk.Coin) (proposalId uint64) {
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	msg, err := govtypes.NewMsgSubmitProposal(content, sdk.NewCoins(deposit), suite.AdminAddress())
-	suite.Require().NoError(err)
-	txHash := suite.BroadcastTx(msg)
-	suite.T().Log("proposal submit txHash", txHash)
+	msg, err := govtypes.NewMsgSubmitProposal(content, sdk.NewCoins(deposit), priv.PubKey().Address().Bytes())
+	suite.NoError(err)
+	return suite.BroadcastProposalTx(priv, msg)
 }
 
-func (suite *TestSuite) ProposalDeposit(proposalID uint64, amount sdk.Coin) {
-	txHash := suite.BroadcastTx(govtypes.NewMsgDeposit(suite.AdminAddress(), proposalID, sdk.NewCoins(amount)))
-	suite.T().Log("proposal deposit txHash", txHash)
+func (suite *TestSuite) CheckProposals(depositor sdk.AccAddress) govtypes.Proposals {
+	proposalsResp, err := suite.GRPCClient().GovQuery().Proposals(suite.ctx, &govtypes.QueryProposalsRequest{
+		ProposalStatus: govtypes.StatusDepositPeriod,
+		Depositor:      depositor.String(),
+	})
+	suite.NoError(err)
+	return proposalsResp.Proposals
 }
 
-func (suite *TestSuite) ProposalVote(proposalID uint64, option govtypes.VoteOption) {
-	txHash := suite.BroadcastTx(govtypes.NewMsgVote(suite.AdminAddress(), proposalID, option))
-	suite.T().Log("proposal vote txHash", txHash)
+func (suite *TestSuite) ProposalDeposit(priv cryptotypes.PrivKey, proposalID uint64, amount sdk.Coin) {
+	txResponse := suite.BroadcastTx(priv, govtypes.NewMsgDeposit(priv.PubKey().Address().Bytes(), proposalID, sdk.NewCoins(amount)))
+	suite.T().Log("proposal deposit txHash", txResponse.TxHash)
+}
+
+func (suite *TestSuite) CheckDeposit(proposalId uint64, depositor sdk.AccAddress, amount sdk.Coin) {
+	depositResp, err := suite.GRPCClient().GovQuery().Deposit(suite.ctx, &govtypes.QueryDepositRequest{
+		ProposalId: proposalId,
+		Depositor:  depositor.String(),
+	})
+	suite.NoError(err)
+	suite.Equal(depositResp.Deposit.Amount, amount)
+}
+
+func (suite *TestSuite) ProposalVote(priv cryptotypes.PrivKey, proposalID uint64, option govtypes.VoteOption) {
+	txResponse := suite.BroadcastTx(priv, govtypes.NewMsgVote(priv.PubKey().Address().Bytes(), proposalID, option))
+	suite.T().Log("proposal vote txHash", txResponse.TxHash)
+}
+
+func (suite *TestSuite) CheckProposal(proposalId uint64, status govtypes.ProposalStatus) govtypes.Proposal {
+	timeoutCtx, cancel := context.WithTimeout(suite.ctx, suite.network.Config.VotingPeriod)
+	defer cancel()
+	for {
+		proposalResp, err := suite.GRPCClient().GovQuery().Proposal(timeoutCtx, &govtypes.QueryProposalRequest{
+			ProposalId: proposalId,
+		})
+		suite.NoError(err)
+		if proposalResp.Proposal.Status == status {
+			return proposalResp.Proposal
+		}
+		time.Sleep(1 * time.Second)
+	}
 }

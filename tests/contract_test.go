@@ -4,96 +4,13 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
-	"fmt"
-	"math/big"
-	"strings"
 	"testing"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/app"
-	_ "github.com/functionx/fx-core/app"
+	fxtypes "github.com/functionx/fx-core/types"
 )
-
-func (suite *EvmTestSuite) TestQueryBalance(t *testing.T) {
-	balance, err := suite.ethClient.BalanceAt(suite.ctx, suite.HexAddress(), nil)
-	suite.Require().NoError(err)
-	suite.Require().True(balance.Cmp(big.NewInt(0)) > 0)
-}
-
-func (suite *EvmTestSuite) TestQueryTransaction(t *testing.T) {
-	transactionReceipt, err := suite.ethClient.TransactionReceipt(suite.ctx, common.HexToHash("0x74a90ed91f42baa375804c22e2fa17087a6060bbca4ffb8f1e0fc1446883a0f7"))
-	suite.Require().NoError(err)
-	t.Logf("transactionReceipt:%+#v", transactionReceipt)
-}
-
-func (suite *EvmTestSuite) TestQueryTransactionRaw(t *testing.T) {
-	tx, _, err := suite.ethClient.TransactionByHash(suite.ctx, common.HexToHash("0x815fced350c7d84ab36e1aa2ff392d55c4b810876f8b6bbf01312b5148f8f543"))
-	suite.Require().NoError(err)
-
-	bz, err := tx.MarshalBinary()
-	suite.Require().NoError(err)
-
-	t.Logf("raw hex %x", bz)
-}
-
-func (suite *EvmTestSuite) TestQueryFxTxByEvmHash(t *testing.T) {
-	transactionReceipt, err := suite.ethClient.TransactionReceipt(suite.ctx, common.HexToHash("0x74a90ed91f42baa375804c22e2fa17087a6060bbca4ffb8f1e0fc1446883a0f7"))
-	suite.Require().NoError(err)
-	t.Logf("transactionReceipt:%+#v", transactionReceipt)
-
-	evmHashBlockNumber := transactionReceipt.BlockNumber.Int64()
-	blockData, err := suite.jsonRPC.Block(evmHashBlockNumber)
-	suite.Require().NoError(err)
-	require.True(t, uint(len(blockData.Block.Txs)) > transactionReceipt.TransactionIndex)
-	fxTx := blockData.Block.Txs[transactionReceipt.TransactionIndex]
-	encodingConfig := app.MakeEncodingConfig()
-	tx, err := encodingConfig.TxConfig.TxDecoder()(fxTx)
-	suite.Require().NoError(err)
-	txJsonStr, err := encodingConfig.TxConfig.TxJSONEncoder()(tx)
-	suite.Require().NoError(err)
-	t.Logf("\nTxHash:%x\nData:\n%v", fxTx.Hash(), string(txJsonStr))
-}
-
-func (suite *EvmTestSuite) TestEthAddressToFxAddress(t *testing.T) {
-	ethAddress := common.HexToAddress("0xf12C0Ce17eCE69928ebf5666Df1Da746c3adf782")
-	t.Logf("%o", ethAddress.Bytes())
-	t.Logf("ethAddress:%v, FxAddress:%v", ethAddress.Hex(), sdk.AccAddress(ethAddress.Bytes()).String())
-}
-
-func (suite *EvmTestSuite) TestFxAddressToEthAddress(t *testing.T) {
-	fxAddress, err := sdk.AccAddressFromBech32("fx10kg059hhxc2pevxssszunvgc70jpmxsjal4xf6")
-	suite.Require().NoError(err)
-	ethAddress := common.BytesToAddress(fxAddress)
-	t.Logf("ethAddress:%v, FxAddress:%v", ethAddress.Hex(), sdk.AccAddress(ethAddress.Bytes()).String())
-}
-
-func (suite *EvmTestSuite) TestTraverseBlockERC20(t *testing.T) {
-	info, err := suite.jsonRPC.Status()
-	if err != nil {
-		t.Fatal(err)
-	}
-	for i := int64(1); i < info.SyncInfo.LatestBlockHeight; i++ {
-		block, err := suite.jsonRPC.BlockResults(i)
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, v := range block.EndBlockEvents {
-			for _, vv := range v.Attributes {
-				if strings.EqualFold("fip20_symbol", string(vv.Key)) {
-					fmt.Println(i, "fip20 symbol:", string(vv.Value))
-				}
-				if strings.EqualFold("fip20_token", string(vv.Key)) {
-					fmt.Println(i, "fip20 address:", string(vv.Value))
-				}
-			}
-		}
-	}
-}
 
 func TestFIP20Code(t *testing.T) {
 	codeAddr := "0x5f123738067a8BAA3E9bb8Cd7e4A8827474a2F53"

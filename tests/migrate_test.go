@@ -5,371 +5,132 @@ import (
 	"testing"
 	"time"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	hd2 "github.com/cosmos/cosmos-sdk/crypto/hd"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/stretchr/testify/suite"
-
-	fxtypes "github.com/functionx/fx-core/types"
-
-	"github.com/evmos/ethermint/crypto/hd"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/app/helpers"
-
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-
+	fxtypes "github.com/functionx/fx-core/types"
 	migratetypes "github.com/functionx/fx-core/x/migrate/types"
 )
 
 type MigrateTestSuite struct {
 	TestSuite
-	toPrivateKey cryptotypes.PrivKey
-	newValPriv   cryptotypes.PrivKey
 }
 
 func TestMigrateTestSuite(t *testing.T) {
-	if testing.Short() {
-		t.SkipNow()
-	}
-	privKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.EthSecp256k1Type, 0, 0)
-	require.NoError(t, err)
-
-	valPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.Secp256k1Type, 0, 0)
-	require.NoError(t, err)
-
-	suite.Run(t, &MigrateTestSuite{
-		TestSuite:    NewTestSuite(),
-		toPrivateKey: privKey,
-		newValPriv:   valPrivKey,
-	})
+	suite.Run(t, &MigrateTestSuite{TestSuite: NewTestSuite()})
 }
 
-func (suite *MigrateTestSuite) ToAccAddress() sdk.AccAddress {
-	return suite.toPrivateKey.PubKey().Address().Bytes()
-}
-
-func (suite *MigrateTestSuite) NewValAddress() sdk.AccAddress {
-	return suite.newValPriv.PubKey().Address().Bytes()
-}
-
-func (suite *MigrateTestSuite) MigrateAccount(toPrivateKey cryptotypes.PrivKey) {
+func (suite *MigrateTestSuite) MigrateAccount(fromPrivateKey, toPrivateKey cryptotypes.PrivKey) {
+	fromAddr := sdk.AccAddress(fromPrivateKey.PubKey().Address().Bytes())
 	toAddress := common.BytesToAddress(toPrivateKey.PubKey().Address())
-	suite.T().Log("migrate from", suite.AdminAddress().String(), "migrate to", toAddress.String())
-	migrateSign, err := toPrivateKey.Sign(migratetypes.MigrateAccountSignatureHash(suite.AdminAddress(), toAddress.Bytes()))
-	suite.Require().NoError(err)
+	suite.T().Log("migrate from", fromAddr.String(), "migrate to", toAddress.String())
 
-	msg := migratetypes.NewMsgMigrateAccount(suite.AdminAddress(), toAddress, hex.EncodeToString(migrateSign))
-	txHash := suite.BroadcastTx(msg)
+	migrateSign, err := toPrivateKey.Sign(migratetypes.MigrateAccountSignatureHash(fromAddr, toAddress.Bytes()))
+	suite.NoError(err)
+
+	msg := migratetypes.NewMsgMigrateAccount(fromAddr, toAddress, hex.EncodeToString(migrateSign))
+	txHash := suite.BroadcastTx(fromPrivateKey, msg)
 	suite.T().Log("migrate account txHash", txHash)
 }
 
-func (suite *MigrateTestSuite) SetupAllSuite() {
-	balances := suite.QueryBalance(suite.AdminAddress())
-	amount := balances.AmountOf(fxtypes.DefaultDenom).QuoRaw(3)
-
-	suite.Send(suite.ToAccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, amount))
-
-	suite.Send(suite.NewValAddress(), sdk.NewCoin(fxtypes.DefaultDenom, amount))
-}
-
 func (suite *MigrateTestSuite) TestDelegate() {
-	//default account balance
-	suite.QueryBalance(suite.AdminAddress())
-	//query
-	vals := suite.QueryValidator()
-	val := vals[0]
-	//default account delegate
-	suite.Delegate(val, sdk.NewCoin(
-		fxtypes.DefaultDenom,
-		sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100000)),
-	))
-	acc, _ := sdk.AccAddressFromBech32("fx1968jve3k63a3u9whswlu2gsns4p0fqn0acxzgg")
-	suite.SetWithdrawAddr(acc)
-	//to address
-	toAddress := sdk.AccAddress(suite.toPrivateKey.PubKey().Address())
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
+	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.Secp256k1Type, 0, 0)
+	suite.NoError(err)
+	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
+	amount := sdk.NewInt(20).MulRaw(1e18)
+	suite.Send(fromAccAddress, helpers.NewCoin(amount))
+	suite.CheckBalance(fromAccAddress, helpers.NewCoin(amount))
 
-	//suite.Delegate( val, toPrivateKey) //if not comments, can not migrate, to address has delegated
+	valAddress := suite.QueryValidatorByToken()
+	delegateAmount := helpers.NewCoin(sdk.NewInt(1).MulRaw(1e18))
+	suite.Delegate(fromPrivKey, valAddress, delegateAmount)
+	amount = amount.Sub(sdk.NewInt(3).MulRaw(1e18))
+	suite.CheckBalance(fromAccAddress, helpers.NewCoin(amount))
+	suite.CheckDelegate(fromAccAddress, valAddress, delegateAmount)
 
-	//migrate to
-	suite.MigrateAccount(suite.toPrivateKey)
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-	// to delegate
-	suite.privateKey = suite.toPrivateKey
-	suite.Delegate(val, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100000))))
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-}
+	withdrawAddr := sdk.AccAddress(helpers.NewPriKey().PubKey().Address().Bytes())
+	suite.SetWithdrawAddr(fromPrivKey, withdrawAddr)
+	amount = amount.Sub(sdk.NewInt(2).MulRaw(1e18))
+	suite.CheckBalance(fromAccAddress, helpers.NewCoin(amount))
+	suite.CheckWithdrawAddr(fromAccAddress, withdrawAddr)
 
-func (suite *MigrateTestSuite) TestWithdrawReward() {
+	// ===> migration
 
-	//default account balance
-	suite.QueryBalance(suite.AdminAddress())
-	//query
-	vals := suite.QueryValidator()
-	val := vals[0]
-	//default account delegate
-	suite.Delegate(val, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100000))))
+	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.EthSecp256k1Type, 0, 0)
+	suite.NoError(err)
+	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
+	suite.CheckBalance(toAccAddress, helpers.NewCoin(sdk.ZeroInt()))
 
-	//to address
-	toAddress := sdk.AccAddress(suite.toPrivateKey.PubKey().Address())
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
+	suite.MigrateAccount(fromPrivKey, toPrivKey)
+	amount = amount.Sub(sdk.NewInt(2).MulRaw(1e18))
 
-	//migrate to
-	suite.MigrateAccount(suite.toPrivateKey)
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
+	suite.CheckBalance(fromAccAddress, helpers.NewCoin(sdk.ZeroInt()))
+	suite.CheckDelegate(fromAccAddress, valAddress, helpers.NewCoin(sdk.ZeroInt()))
 
-	suite.privateKey = suite.toPrivateKey
-	suite.WithdrawReward(val)
+	suite.CheckBalance(toAccAddress, helpers.NewCoin(amount))
+	suite.CheckDelegate(toAccAddress, valAddress, delegateAmount)
+	suite.CheckWithdrawAddr(toAccAddress, toAccAddress)
 
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
+	suite.Delegate(toPrivKey, valAddress, helpers.NewCoin(sdk.NewInt(1).MulRaw(1e18)))
+	amount = amount.Sub(sdk.NewInt(3).MulRaw(1e18))
+	balances := suite.QueryBalances(toAccAddress)
+	suite.True(balances.AmountOf(fxtypes.DefaultDenom).GT(amount))
+
+	delegateAmount = delegateAmount.Add(helpers.NewCoin(sdk.NewInt(1).MulRaw(1e18)))
+	suite.CheckDelegate(toAccAddress, valAddress, delegateAmount)
+
+	suite.WithdrawReward(toPrivKey, valAddress)
+	amount = amount.Sub(sdk.NewInt(2).MulRaw(1e18))
+	balances2 := suite.QueryBalances(toAccAddress)
+	suite.True(balances2.AmountOf(fxtypes.DefaultDenom).GT(amount))
 }
 
 func (suite *MigrateTestSuite) TestUnDelegate() {
-	//query
-	vals := suite.QueryValidator()
-	val := vals[0]
-	//default account delegate
-	suite.Delegate(val, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100000))))
-	//undelegate
-	suite.Undelegate(val, false)
-	//to address
-	toAddress := sdk.AccAddress(suite.toPrivateKey.PubKey().Address())
-	//delegate undelegate
-	//suite.Delegate( val, toPrivateKey)         //if not comments, can not migrate, to address has delegated
-	//suite.Undelegate( val, true, toPrivateKey) //if not comments, can not migrate, to address has undelegated
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-	//migrate to
-	suite.MigrateAccount(suite.toPrivateKey)
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
+	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.Secp256k1Type, 0, 0)
+	suite.NoError(err)
+	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
+	amount := sdk.NewInt(20).MulRaw(1e18)
+	suite.Send(fromAccAddress, helpers.NewCoin(amount))
 
-	time.Sleep(30 * time.Second)
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-}
+	valAddress := suite.QueryValidatorByToken()
+	delegateAmount := helpers.NewCoin(sdk.NewInt(1).MulRaw(1e18))
+	suite.Delegate(fromPrivKey, valAddress, delegateAmount)
+	amount = amount.Sub(sdk.NewInt(3).MulRaw(1e18))
 
-func (suite *MigrateTestSuite) TestReDelegate() {
-	//create validator
-	suite.CreateValidator(suite.newValPriv)
-	//query
-	vals := suite.QueryValidator()
-	val, val2 := vals[0], vals[1]
-	//default account delegate
-	suite.Delegate(val, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100000))))
-	//redelegate
-	suite.Redelegate(val, val2, false)
-	suite.Redelegate(val, val2, false)
-	suite.Redelegate(val, val2, false)
-	suite.Redelegate(val, val2, false)
-	suite.Redelegate(val, val2, false)
-	suite.Redelegate(val, val2, false)
-	suite.Redelegate(val, val2, false)
-	//to address
-	toAddress := sdk.AccAddress(suite.toPrivateKey.PubKey().Address())
-	//delegate redelegate
-	//suite.Delegate( val, toPrivateKey)               //if not comments, can not migrate, to address has delegated
-	//suite.Redelegate( val, val2, true, toPrivateKey) //if not comments, can not migrate, to address has delegated
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-	//migrate to
-	suite.MigrateAccount(suite.toPrivateKey)
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-
-	time.Sleep(30 * time.Second)
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-}
-
-func (suite *MigrateTestSuite) TestProposalDeposit() {
-
-	//suite.ProposalSubmit()       //deposit period
-	suite.ProposalSubmit(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10_000)))) //vote period
-
-	//to address
-	toAddress := sdk.AccAddress(suite.toPrivateKey.PubKey().Address())
-
-	suite.privateKey = suite.toPrivateKey
-	suite.ProposalDeposit(1, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1))))
-
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-
-	//migrate to
-	suite.MigrateAccount(suite.toPrivateKey)
-
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-}
-
-func (suite *MigrateTestSuite) TestProposalVote() {
-	//suite.ProposalSubmit()       //deposit period
-	suite.ProposalSubmit(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10_000)))) //vote period
-
-	//to address
-	toAddress := sdk.AccAddress(suite.toPrivateKey.PubKey().Address())
-
-	suite.ProposalVote(1, govtypes.OptionYes)
-	//suite.ProposalVote( toPrivateKey) //can not migrate, to address has voted
-
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-
-	//migrate to
-	suite.MigrateAccount(suite.toPrivateKey)
-
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-}
-
-func (suite *MigrateTestSuite) TestAll() {
-	//create validator
-	suite.CreateValidator(suite.newValPriv)
-	//query
-	vals := suite.QueryValidator()
-	val, val2 := vals[0], vals[1]
-
-	//default account delegate
-	suite.Delegate(val, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10_000))))
-	acc, _ := sdk.AccAddressFromBech32("fx1968jve3k63a3u9whswlu2gsns4p0fqn0acxzgg")
-	suite.SetWithdrawAddr(acc)
-
-	//to address
-	toAddress := sdk.AccAddress(suite.toPrivateKey.PubKey().Address())
-
-	//undelegate
-	suite.Undelegate(val, false)
-
-	//redelegate(max=7)
-	suite.Redelegate(val, val2, false)
-
-	//proposal
-	suite.ProposalSubmit(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10_100))))
-
-	//vote
-	suite.ProposalVote(1, govtypes.OptionYes)
-
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-
-	//migrate to
-	suite.MigrateAccount(suite.toPrivateKey)
-
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-
-	time.Sleep(30 * time.Second)
-	//query
-	suite.checkAccount(suite.AdminAddress())
-	suite.checkAccount(toAddress)
-}
-
-func (suite *MigrateTestSuite) checkAccount(acc sdk.AccAddress) {
-	balances, err := suite.grpcClient.BankQuery().AllBalances(suite.ctx, &banktypes.QueryAllBalancesRequest{Address: acc.String()})
-	suite.Require().NoError(err)
-	suite.T().Log("all balance", balances.Balances.String())
-
-	validators, err := suite.grpcClient.StakingQuery().Validators(suite.ctx, &stakingtypes.QueryValidatorsRequest{Status: stakingtypes.Bonded.String()})
-	suite.Require().NoError(err)
-	suite.Require().True(len(validators.Validators) > 0)
-
-	withdrawAddr, err := suite.grpcClient.DistrQuery().DelegatorWithdrawAddress(suite.ctx, &distritypes.QueryDelegatorWithdrawAddressRequest{DelegatorAddress: acc.String()})
-	suite.Require().NoError(err)
-	suite.T().Log("withdraw address", withdrawAddr.WithdrawAddress)
-
-	for _, v := range validators.Validators {
-		resp, err := suite.grpcClient.StakingQuery().Delegation(suite.ctx, &stakingtypes.QueryDelegationRequest{
-			DelegatorAddr: acc.String(),
-			ValidatorAddr: v.OperatorAddress,
-		})
-		if err != nil {
-			continue
-		}
-		suite.T().Log("delegate validator", v.OperatorAddress, "balance", resp.DelegationResponse.Balance.String())
+	txHash := suite.Undelegate(fromPrivKey, valAddress, helpers.NewCoin(sdk.ZeroInt()))
+	delegateAmount = delegateAmount.Sub(helpers.NewCoin(sdk.NewInt(1).MulRaw(1e18)))
+	amount = amount.Sub(sdk.NewInt(2).MulRaw(1e18))
+	block := suite.QueryBlockByTxHash(txHash)
+	unbondingDelegationEntry := stakingtypes.UnbondingDelegationEntry{
+		CreationHeight: block.Header.Height,
+		CompletionTime: block.Header.Time.Add(21 * 24 * time.Hour),
+		InitialBalance: delegateAmount.Amount,
+		Balance:        delegateAmount.Amount,
 	}
+	suite.CheckUndelegate(fromAccAddress, valAddress, unbondingDelegationEntry)
 
-	for _, v := range validators.Validators {
-		undelegationResp, err := suite.grpcClient.StakingQuery().UnbondingDelegation(suite.ctx, &stakingtypes.QueryUnbondingDelegationRequest{
-			DelegatorAddr: acc.String(),
-			ValidatorAddr: v.OperatorAddress,
-		})
-		if err != nil {
-			continue
-		}
-		for _, e := range undelegationResp.Unbond.Entries {
-			suite.T().Log("undelegate validator", v.OperatorAddress, "balance", e.Balance.String(), "time", e.CompletionTime.String())
-		}
-	}
+	// ===> migration
 
-	redelegationResp, err := suite.grpcClient.StakingQuery().Redelegations(suite.ctx, &stakingtypes.QueryRedelegationsRequest{DelegatorAddr: acc.String()})
-	suite.Require().NoError(err)
-	for _, r := range redelegationResp.RedelegationResponses {
-		for _, e := range r.Entries {
-			suite.T().Log("redelegate validator", r.Redelegation.ValidatorSrcAddress, "to", r.Redelegation.ValidatorDstAddress, "balance", e.Balance.String(), "time", e.RedelegationEntry.CompletionTime.String())
-		}
-	}
+	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.EthSecp256k1Type, 0, 0)
+	suite.NoError(err)
+	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
 
-	proposalsResp, err := suite.grpcClient.GovQuery().Proposals(suite.ctx, &govtypes.QueryProposalsRequest{
-		ProposalStatus: govtypes.StatusDepositPeriod,
-		Depositor:      acc.String(),
-	})
-	suite.Require().NoError(err)
-	for _, p := range proposalsResp.Proposals {
-		depositResp, err := suite.grpcClient.GovQuery().Deposit(suite.ctx, &govtypes.QueryDepositRequest{ProposalId: p.ProposalId, Depositor: acc.String()})
-		if err == nil {
-			suite.T().Log("proposal deposit", "id", p.ProposalId, "title", p.GetTitle(), "status", p.Status.String(), "amount", depositResp.Deposit.Amount.String())
-		}
-	}
-	proposalsResp, err = suite.grpcClient.GovQuery().Proposals(suite.ctx, &govtypes.QueryProposalsRequest{
-		ProposalStatus: govtypes.StatusVotingPeriod,
-		Depositor:      acc.String(),
-	})
-	suite.Require().NoError(err)
-	for _, p := range proposalsResp.Proposals {
-		depositResp, err := suite.grpcClient.GovQuery().Deposit(suite.ctx, &govtypes.QueryDepositRequest{ProposalId: p.ProposalId, Depositor: acc.String()})
-		if err == nil {
-			suite.T().Log("proposal vote-deposit", "id", p.ProposalId, "title", p.GetTitle(), "status", p.Status.String(), "amount", depositResp.Deposit.Amount.String())
-		}
-	}
+	suite.MigrateAccount(fromPrivKey, toPrivKey)
+	amount = amount.Sub(sdk.NewInt(2).MulRaw(1e18))
 
-	proposalsResp, err = suite.grpcClient.GovQuery().Proposals(suite.ctx, &govtypes.QueryProposalsRequest{
-		ProposalStatus: govtypes.StatusVotingPeriod,
-		Voter:          acc.String(),
-	})
-	suite.Require().NoError(err)
-	for _, p := range proposalsResp.Proposals {
-		depositResp, err := suite.grpcClient.GovQuery().Deposit(suite.ctx, &govtypes.QueryDepositRequest{ProposalId: p.ProposalId, Depositor: acc.String()})
-		if err == nil {
-			suite.T().Log("proposal vote", "id", p.ProposalId, "title", p.GetTitle(), "status", p.Status.String(), "amount", depositResp.Deposit.Amount.String())
-		}
-	}
+	balances2 := suite.QueryBalances(toAccAddress)
+	suite.True(balances2.AmountOf(fxtypes.DefaultDenom).GT(amount))
+	suite.CheckDelegate(toAccAddress, valAddress, delegateAmount)
+	suite.CheckUndelegate(toAccAddress, valAddress, unbondingDelegationEntry)
 }
 
 func TestSignature(t *testing.T) {

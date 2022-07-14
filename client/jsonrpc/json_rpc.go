@@ -402,9 +402,13 @@ func (c *NodeRPC) broadcastTX(route string, tx types.Tx) (*coreTypes.ResultBroad
 
 func (c *NodeRPC) UnconfirmedTxs(limit int) (*coreTypes.ResultUnconfirmedTxs, error) {
 	result := new(coreTypes.ResultUnconfirmedTxs)
-	err := c.caller.Call(c.ctx, "unconfirmed_txs", map[string]interface{}{"limit": limit}, result)
+	params := map[string]interface{}{"limit": strconv.Itoa(limit)}
+	err := c.caller.Call(c.ctx, "unconfirmed_txs", params, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "unconfirmed_txs")
+	}
+	if len(result.Txs) <= 0 {
+		result.Txs = make([]types.Tx, 0)
 	}
 	return result, nil
 }
@@ -424,6 +428,9 @@ func (c *NodeRPC) NetInfo() (*coreTypes.ResultNetInfo, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "NetInfo")
 	}
+	if len(result.Peers) <= 0 {
+		result.Peers = make([]coreTypes.Peer, 0)
+	}
 	return result, nil
 }
 
@@ -432,6 +439,9 @@ func (c *NodeRPC) DumpConsensusState() (*coreTypes.ResultDumpConsensusState, err
 	err := c.caller.Call(c.ctx, "dump_consensus_state", map[string]interface{}{}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "DumpConsensusState")
+	}
+	if len(result.Peers) <= 0 {
+		result.Peers = make([]coreTypes.PeerStateInfo, 0)
 	}
 	return result, nil
 }
@@ -447,7 +457,7 @@ func (c *NodeRPC) ConsensusState() (*coreTypes.ResultConsensusState, error) {
 
 func (c *NodeRPC) ConsensusParams(height int64) (*coreTypes.ResultConsensusParams, error) {
 	result := new(coreTypes.ResultConsensusParams)
-	params := map[string]interface{}{"height": height}
+	params := map[string]interface{}{"height": strconv.FormatInt(height, 10)}
 	if height <= 0 {
 		params = map[string]interface{}{}
 	}
@@ -469,7 +479,10 @@ func (c *NodeRPC) Health() (*coreTypes.ResultHealth, error) {
 
 func (c *NodeRPC) BlockchainInfo(minHeight, maxHeight int64) (*coreTypes.ResultBlockchainInfo, error) {
 	result := new(coreTypes.ResultBlockchainInfo)
-	params := map[string]interface{}{"minHeight": minHeight, "maxHeight": maxHeight}
+	params := map[string]interface{}{
+		"minHeight": strconv.FormatInt(minHeight, 10),
+		"maxHeight": strconv.FormatInt(maxHeight, 10),
+	}
 	err := c.caller.Call(c.ctx, "blockchain", params, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "BlockchainInfo")

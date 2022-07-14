@@ -1,9 +1,15 @@
 package client_test
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"reflect"
+	"sync"
 	"testing"
+
+	"github.com/functionx/fx-core/testutil/network"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -15,7 +21,6 @@ import (
 	"github.com/functionx/fx-core/client/jsonrpc"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -71,12 +76,16 @@ func (suite *IntegrationTestSuite) GetClients() []TestClient {
 func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
-	cfg := helpers.DefaultConfig()
+	cfg := helpers.DefaultNetworkConfig()
 	cfg.NumValidators = 1
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
-	suite.network = network.New(suite.T(), cfg)
 
-	_, err := suite.network.WaitForHeight(1)
+	baseDir, err := ioutil.TempDir(suite.T().TempDir(), cfg.ChainID)
+	suite.Require().NoError(err)
+	suite.network, err = network.New(suite.T(), baseDir, cfg)
+	suite.Require().NoError(err)
+
+	_, err = suite.network.WaitForHeight(1)
 	suite.Require().NoError(err)
 }
 
@@ -217,7 +226,7 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 			name:     "get block height",
 			funcName: "GetBlockHeight",
 			params:   []interface{}{},
-			wantRes:  []interface{}{int64(7), nil},
+			wantRes:  []interface{}{int64(18), nil},
 		},
 		{
 			name:     "get mint denom",
@@ -301,7 +310,7 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 				sdk.Coins{
 					sdk.Coin{
 						Denom:  fxtypes.DefaultDenom,
-						Amount: sdk.MustNewDecFromStr("50000019408963423760327").RoundInt(),
+						Amount: sdk.MustNewDecFromStr("50000049908800971256978").RoundInt(),
 					},
 					sdk.Coin{
 						Denom:  "node0token",
@@ -332,6 +341,127 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 					)
 				}
 			}
+		})
+	}
+}
+
+func (suite *IntegrationTestSuite) TestTmClient() {
+	validator := suite.GetFirstValidator()
+	tmRPC := validator.RPCClient
+	callTmRPC := func(funcName string, params []interface{}) []reflect.Value {
+		typeOf := reflect.TypeOf(tmRPC)
+		method, is := typeOf.MethodByName(funcName)
+		suite.True(is)
+		callParams := make([]reflect.Value, len(params))
+		for i, param := range params {
+			callParams[i] = reflect.ValueOf(param)
+		}
+		callParams = append([]reflect.Value{reflect.ValueOf(tmRPC), reflect.ValueOf(context.Background())}, callParams...)
+		results := method.Func.Call(callParams)
+		return results
+	}
+
+	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress))
+	callNodeRPC := func(funcName string, params []interface{}) []reflect.Value {
+		typeOf := reflect.TypeOf(nodeRPC)
+		method, is := typeOf.MethodByName(funcName)
+		suite.True(is)
+		callParams := make([]reflect.Value, len(params))
+		for i, param := range params {
+			callParams[i] = reflect.Indirect(reflect.ValueOf(param))
+		}
+		callParams = append([]reflect.Value{reflect.ValueOf(nodeRPC)}, callParams...)
+		results := method.Func.Call(callParams)
+		return results
+	}
+
+	var height = int64(1)
+	var limit = 1
+	tests := []struct {
+		name    string
+		params  []interface{}
+		wantRes []interface{}
+	}{
+		//ABCIClient
+		{
+			name:   "ABCIInfo",
+			params: []interface{}{},
+		},
+		//HistoryClient
+		{
+			name:   "Genesis",
+			params: []interface{}{},
+		},
+		{
+			name:   "BlockchainInfo",
+			params: []interface{}{int64(1), int64(1)},
+		},
+		//StatusClient
+		//{
+		//	name:   "Status",
+		//	params: []interface{}{},
+		//},
+		//NetworkClient
+		{
+			name:   "NetInfo",
+			params: []interface{}{},
+		},
+		{
+			name:   "DumpConsensusState",
+			params: []interface{}{},
+		},
+		{
+			name:   "ConsensusState",
+			params: []interface{}{},
+		},
+		{
+			name:   "ConsensusParams",
+			params: []interface{}{&height},
+		},
+		{
+			name:   "Health",
+			params: []interface{}{},
+		},
+		//MempoolClient
+		{
+			name:   "UnconfirmedTxs",
+			params: []interface{}{&limit},
+		},
+		{
+			name:   "NumUnconfirmedTxs",
+			params: []interface{}{},
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			wg := sync.WaitGroup{}
+			wg.Add(1)
+			resultChan := make(chan []reflect.Value, 2)
+			go func() {
+				defer wg.Done()
+				resultChan <- callTmRPC(tt.name, tt.params)
+			}()
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				resultChan <- callNodeRPC(tt.name, tt.params)
+			}()
+			wg.Wait()
+
+			result1 := <-resultChan
+			result2 := <-resultChan
+			suite.Equal(len(result1), len(result2))
+			for i := 0; i < len(result1); i++ {
+				if i != 0 && result1[i].IsNil() && result2[i].IsNil() {
+					continue
+				}
+				data1, err1 := json.Marshal(reflect.Indirect(result1[i]).Interface())
+				suite.NoError(err1)
+				data2, err2 := json.Marshal(reflect.Indirect(result2[i]).Interface())
+				suite.NoError(err2)
+				suite.JSONEq(string(data1), string(data2))
+			}
+			close(resultChan)
 		})
 	}
 }

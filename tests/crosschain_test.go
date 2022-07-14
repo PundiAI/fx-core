@@ -1,172 +1,251 @@
 package tests
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"strconv"
-	"strings"
-	"testing"
 	"time"
 
-	ethCrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/stretchr/testify/suite"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/functionx/fx-core/app/helpers"
 
-	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/cosmos/cosmos-sdk/types/tx"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/stretchr/testify/require"
-
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
+	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 
 	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
 )
 
 type CrosschainTestSuite struct {
 	TestSuite
-	crosschaintypes.BridgeToken
-	ibcDenom string
-
-	ethPrivKey *ecdsa.PrivateKey
-	chainName  string
+	params            crosschaintypes.Params
+	chainName         string
+	oraclePrivKey     cryptotypes.PrivKey
+	bridgerFxPrivKey  cryptotypes.PrivKey
+	bridgerExtPrivKey *ecdsa.PrivateKey
+	privKey           cryptotypes.PrivKey
 }
 
-func TestCrosschainTestSuite(t *testing.T) {
-	if testing.Short() {
-		t.SkipNow()
+func NewCrosschainTestSuite(chainName string) CrosschainTestSuite {
+	return CrosschainTestSuite{
+		TestSuite:         NewTestSuite(),
+		chainName:         chainName,
+		oraclePrivKey:     helpers.NewPriKey(),
+		bridgerFxPrivKey:  helpers.NewPriKey(),
+		bridgerExtPrivKey: helpers.GenerateEthKey(),
+		privKey:           helpers.NewEthPrivKey(),
 	}
-	const purseTokenContract = "0xFBBbB4f7B1e5bCb0345c5A5a61584B2547d5D582"
-	const chainName = "bsc"
-	const purseTokenChannelIBC = "transfer/channel-0"
-	purseDenom := types.DenomTrace{
-		Path:      purseTokenChannelIBC,
-		BaseDenom: fmt.Sprintf("%s%s", chainName, purseTokenContract),
-	}.IBCDenom()
-	suite.Run(t, &CrosschainTestSuite{
-		TestSuite: NewTestSuite(),
-		BridgeToken: crosschaintypes.BridgeToken{
-			Token:      purseTokenContract,
-			Denom:      fmt.Sprintf("%s%s", chainName, purseTokenContract),
-			ChannelIbc: "px/transfer/channel-0",
-		},
-		ibcDenom:   purseDenom,
-		ethPrivKey: helpers.GenerateEthKey(),
-		chainName:  chainName,
-	})
 }
 
-func (suite *CrosschainTestSuite) TestBSCCrosschain() {
+func (suite *CrosschainTestSuite) SetupSuite() {
+	suite.TestSuite.SetupSuite()
 
-	go suite.signPendingValsetRequest()
-	suite.setOrchestratorAddress()
-
-	suite.addBridgeTokenClaim()
-
-	suite.externalToFx()
-
-	suite.externalToFxAndIbcTransfer()
-
-	suite.showAllBalance(suite.AdminAddress())
-
-	suite.fxToExternal(5)
-
-	suite.batchRequest()
-
-	suite.confirmBatch()
-
-	suite.sendToExternalAndCancel()
+	suite.Send(suite.OracleAddr(), helpers.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
+	suite.Send(suite.BridgerFxAddr(), helpers.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
+	suite.params = suite.QueryParams()
 }
 
-func (suite *CrosschainTestSuite) ethAddress() gethcommon.Address {
-	return ethCrypto.PubkeyToAddress(suite.ethPrivKey.PublicKey)
+func (suite *CrosschainTestSuite) OracleAddr() sdk.AccAddress {
+	return suite.oraclePrivKey.PubKey().Address().Bytes()
+}
+
+func (suite *CrosschainTestSuite) BridgerExtAddr() string {
+	return ethCrypto.PubkeyToAddress(suite.bridgerExtPrivKey.PublicKey).String()
+}
+
+func (suite *CrosschainTestSuite) BridgerFxAddr() sdk.AccAddress {
+	return suite.bridgerFxPrivKey.PubKey().Address().Bytes()
+}
+
+func (suite *CrosschainTestSuite) AccAddr() sdk.AccAddress {
+	return suite.privKey.PubKey().Address().Bytes()
+}
+
+func (suite *CrosschainTestSuite) HexAddr() gethcommon.Address {
+	return gethcommon.BytesToAddress(suite.privKey.PubKey().Address())
+}
+
+func (suite *CrosschainTestSuite) CrosschainQuery() crosschaintypes.QueryClient {
+	return suite.GRPCClient().CrosschainQuery()
+}
+
+func (suite *CrosschainTestSuite) QueryParams() crosschaintypes.Params {
+	response, err := suite.CrosschainQuery().Params(suite.ctx,
+		&crosschaintypes.QueryParamsRequest{ChainName: suite.chainName})
+	suite.NoError(err)
+	return response.Params
 }
 
 func (suite *CrosschainTestSuite) queryFxLastEventNonce() uint64 {
-	suite.T().Helper()
-	lastEventNonce, err := crosschaintypes.NewQueryClient(suite.grpcClient).LastEventNonceByAddr(suite.ctx,
+	lastEventNonce, err := suite.CrosschainQuery().LastEventNonceByAddr(suite.ctx,
 		&crosschaintypes.QueryLastEventNonceByAddrRequest{
 			ChainName:      suite.chainName,
-			BridgerAddress: suite.AdminAddress().String(),
-		})
-	suite.Require().NoError(err)
+			BridgerAddress: suite.BridgerFxAddr().String(),
+		},
+	)
+	suite.NoError(err)
 	return lastEventNonce.EventNonce + 1
 }
 
-func (suite *CrosschainTestSuite) queryObserver() *crosschaintypes.QueryLastObservedBlockHeightResponse {
-	suite.T().Helper()
-	height, err := crosschaintypes.NewQueryClient(suite.grpcClient).LastObservedBlockHeight(suite.ctx,
+func (suite *CrosschainTestSuite) queryObserverExternalBlockHeight() uint64 {
+	response, err := suite.CrosschainQuery().LastObservedBlockHeight(suite.ctx,
 		&crosschaintypes.QueryLastObservedBlockHeightRequest{
 			ChainName: suite.chainName,
-		})
-	suite.Require().NoError(err)
-	return height
+		},
+	)
+	suite.NoError(err)
+	return response.ExternalBlockHeight
 }
 
-func (suite *CrosschainTestSuite) sendToExternalAndCancel() {
-	suite.T().Helper()
-	suite.T().Logf("\n####################      FX to ETH      ####################\n")
-	sendToEthAmount, _ := sdk.NewIntFromString("20000000000000000000")
-	sendToEthFee, _ := sdk.NewIntFromString("30000000000000000000")
-	suite.BroadcastTx(&crosschaintypes.MsgSendToFxClaim{
+func (suite *CrosschainTestSuite) BondedOracle() {
+	response, err := suite.CrosschainQuery().GetOracleByBridgerAddr(suite.ctx,
+		&crosschaintypes.QueryOracleByBridgerAddrRequest{
+			BridgerAddress: suite.BridgerFxAddr().String(),
+			ChainName:      suite.chainName,
+		},
+	)
+	suite.Error(err, crosschaintypes.ErrNoFoundOracle)
+	suite.Nil(response)
+
+	suite.BroadcastTx(suite.oraclePrivKey, &crosschaintypes.MsgBondedOracle{
+		OracleAddress:    suite.OracleAddr().String(),
+		BridgerAddress:   suite.BridgerFxAddr().String(),
+		ExternalAddress:  suite.BridgerExtAddr(),
+		ValidatorAddress: suite.ValAddress().String(),
+		DelegateAmount:   suite.params.DelegateThreshold,
+		ChainName:        suite.chainName,
+	})
+
+	response, err = suite.CrosschainQuery().GetOracleByBridgerAddr(suite.ctx,
+		&crosschaintypes.QueryOracleByBridgerAddrRequest{
+			BridgerAddress: suite.BridgerFxAddr().String(),
+			ChainName:      suite.chainName,
+		},
+	)
+	suite.NoError(err)
+	suite.T().Log("oracle", response.Oracle)
+}
+
+func (suite *CrosschainTestSuite) SendUpdateChainOraclesProposal() (proposalId uint64) {
+	proposal, err := govtypes.NewMsgSubmitProposal(
+		&crosschaintypes.UpdateChainOraclesProposal{
+			Title:       fmt.Sprintf("Update %s cross chain oracle", suite.chainName),
+			Description: "foo",
+			Oracles:     []string{suite.OracleAddr().String()},
+			ChainName:   suite.chainName,
+		},
+		sdk.NewCoins(helpers.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
+		suite.OracleAddr(),
+	)
+	suite.NoError(err)
+	return suite.BroadcastProposalTx(suite.oraclePrivKey, proposal)
+}
+
+func (suite *CrosschainTestSuite) SendOracleSetConfirm() {
+	timeoutCtx, cancel := context.WithTimeout(suite.ctx, suite.network.Config.TimeoutCommit*2)
+	defer cancel()
+	for {
+		time.Sleep(1 * time.Second)
+		queryResponse, err := suite.CrosschainQuery().LastPendingOracleSetRequestByAddr(
+			timeoutCtx,
+			&crosschaintypes.QueryLastPendingOracleSetRequestByAddrRequest{
+				BridgerAddress: suite.BridgerFxAddr().String(),
+				ChainName:      suite.chainName,
+			},
+		)
+		if err != nil {
+			suite.ErrorContains(err, "no found oracle")
+			continue
+		}
+		for _, valset := range queryResponse.OracleSets {
+			checkpoint, err := valset.GetCheckpoint(suite.params.GravityId)
+			suite.NoError(err)
+
+			signature, err := crosschaintypes.NewEthereumSignature(checkpoint, suite.bridgerExtPrivKey)
+			suite.NoError(err)
+
+			suite.BroadcastTx(suite.bridgerFxPrivKey, &crosschaintypes.MsgOracleSetConfirm{
+				Nonce:           valset.Nonce,
+				BridgerAddress:  suite.BridgerFxAddr().String(),
+				ExternalAddress: suite.BridgerExtAddr(),
+				Signature:       hex.EncodeToString(signature),
+				ChainName:       suite.chainName,
+			})
+		}
+		if len(queryResponse.OracleSets) > 0 {
+			break
+		}
+	}
+}
+
+func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decimals uint64, token, channelIBC string) string {
+	bridgeToken, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
+		ChainName: suite.chainName,
+		Token:     token,
+	})
+	suite.ErrorContains(err, "bridge token is not exist: empty")
+	suite.Nil(bridgeToken)
+
+	suite.BroadcastTx(suite.bridgerFxPrivKey, &crosschaintypes.MsgBridgeTokenClaim{
 		EventNonce:     suite.queryFxLastEventNonce(),
-		BlockHeight:    suite.queryObserver().ExternalBlockHeight + 1,
-		TokenContract:  suite.BridgeToken.Token,
-		Amount:         sendToEthAmount.Add(sendToEthFee),
-		Sender:         suite.ethAddress().Hex(),
-		Receiver:       suite.AdminAddress().String(),
-		TargetIbc:      "",
-		BridgerAddress: suite.AdminAddress().String(),
+		BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
+		TokenContract:  token,
+		Name:           name,
+		Symbol:         symbol,
+		Decimals:       decimals,
+		BridgerAddress: suite.BridgerFxAddr().String(),
+		ChannelIbc:     hex.EncodeToString([]byte(channelIBC)),
 		ChainName:      suite.chainName,
 	})
 
-	fxAddress := suite.AdminAddress()
-	sendToEthBeforeBalance := suite.getBalanceByAddress(fxAddress, suite.ibcDenom)
-	suite.T().Logf("send-to-eth before balance:[%v    %v]", sendToEthBeforeBalance.Amount.String(), sendToEthBeforeBalance.Denom)
-
-	sendToEthHash := suite.BroadcastTx(&crosschaintypes.MsgSendToExternal{
-		Sender:    suite.AdminAddress().String(),
-		Dest:      suite.ethAddress().Hex(),
-		Amount:    sdk.NewCoin(suite.ibcDenom, sendToEthAmount),
-		BridgeFee: sdk.NewCoin(suite.ibcDenom, sendToEthFee),
+	bridgeToken, err = suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
 		ChainName: suite.chainName,
+		Token:     token,
 	})
-
-	sendToEthAfterBalance := suite.getBalanceByAddress(fxAddress, suite.ibcDenom)
-	suite.T().Logf("send-to-eth after balance:[%v    %v]", sendToEthAfterBalance.Amount.String(), sendToEthAfterBalance.Denom)
-
-	time.Sleep(3 * time.Second)
-
-	txResponse, err := suite.grpcClient.ServiceClient().GetTx(suite.ctx, &tx.GetTxRequest{Hash: sendToEthHash})
 	suite.NoError(err)
-	txId, found, err := suite.getSentToExternalTxIdByEvents(txResponse.TxResponse.Logs)
-	suite.NoError(err)
-	require.True(suite.T(), found)
-	require.Greater(suite.T(), txId, uint64(0))
-	suite.T().Logf("send-to-eth txId:[%d]", txId)
-	_ = suite.BroadcastTx(&crosschaintypes.MsgCancelSendToExternal{
-		TransactionId: txId,
-		Sender:        suite.AdminAddress().String(),
-		ChainName:     suite.chainName,
-	})
-
-	cancelSendToEthAfterBalance := suite.getBalanceByAddress(fxAddress, suite.ibcDenom)
-	suite.T().Logf("cancel-send-to-eth after balance:[%v    %v]", cancelSendToEthAfterBalance.Amount.String(), cancelSendToEthAfterBalance.Denom)
-	require.True(suite.T(), sendToEthBeforeBalance.Equal(cancelSendToEthAfterBalance))
+	suite.T().Log("bridge token", bridgeToken)
+	return bridgeToken.Denom
 }
 
-func (suite *CrosschainTestSuite) getBalanceByAddress(accAddr sdk.AccAddress, denom string) *sdk.Coin {
-	balanceResp, err := suite.grpcClient.BankQuery().Balance(suite.ctx, banktypes.NewQueryBalanceRequest(accAddr, denom))
+func (suite *CrosschainTestSuite) SendToFxClaim(token string, amount sdk.Int, targetIbc string) {
+	suite.BroadcastTx(suite.bridgerFxPrivKey, &crosschaintypes.MsgSendToFxClaim{
+		EventNonce:     suite.queryFxLastEventNonce(),
+		BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
+		TokenContract:  token,
+		Amount:         amount,
+		Sender:         suite.HexAddr().Hex(),
+		Receiver:       suite.AccAddr().String(),
+		TargetIbc:      hex.EncodeToString([]byte(targetIbc)),
+		BridgerAddress: suite.BridgerFxAddr().String(),
+		ChainName:      suite.chainName,
+	})
+	bridgeToken, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
+		ChainName: suite.chainName,
+		Token:     token,
+	})
 	suite.NoError(err)
-	return balanceResp.Balance
+	balances := suite.QueryBalances(suite.AccAddr())
+	suite.True(balances.IsAllGTE(sdk.NewCoins(sdk.NewCoin(bridgeToken.Denom, amount))))
 }
 
-func (suite *CrosschainTestSuite) getSentToExternalTxIdByEvents(logs sdk.ABCIMessageLogs) (uint64, bool, error) {
-	for _, eventLog := range logs {
+func (suite *CrosschainTestSuite) SendToExternal(count int, amount sdk.Coin) uint64 {
+	msgList := make([]sdk.Msg, 0, count)
+	for i := 0; i < count; i++ {
+		msgList = append(msgList, &crosschaintypes.MsgSendToExternal{
+			Sender:    suite.AccAddr().String(),
+			Dest:      suite.HexAddr().Hex(),
+			Amount:    amount.SubAmount(sdk.NewInt(1).ModRaw(1e18)),
+			BridgeFee: sdk.NewCoin(amount.Denom, sdk.NewInt(1).ModRaw(1e18)),
+			ChainName: suite.chainName,
+		})
+	}
+	txResponse := suite.BroadcastTx(suite.privKey, msgList...)
+	for _, eventLog := range txResponse.Logs {
 		for _, event := range eventLog.Events {
 			if event.Type != crosschaintypes.EventTypeSendToExternal {
 				continue
@@ -175,301 +254,110 @@ func (suite *CrosschainTestSuite) getSentToExternalTxIdByEvents(logs sdk.ABCIMes
 				if attribute.Key != crosschaintypes.AttributeKeyOutgoingTxID {
 					continue
 				}
-				result, err := strconv.ParseUint(attribute.Value, 10, 64)
-				if err != nil {
-					return 0, false, err
-				}
-				return result, true, nil
+				txId, err := strconv.ParseUint(attribute.Value, 10, 64)
+				suite.NoError(err)
+				return txId
 			}
 		}
 	}
-	return 0, false, nil
+	return 0
 }
 
-func (suite *CrosschainTestSuite) addBridgeTokenClaim() {
-	suite.T().Helper()
-	suite.T().Logf("\n####################      Add bridge token claim      ####################\n")
-	bridgeToken, err := crosschaintypes.NewQueryClient(suite.grpcClient).TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{ChainName: suite.chainName, Token: suite.BridgeToken.Token})
-	expectDenom := types.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: fmt.Sprintf("%s%s", suite.chainName, suite.BridgeToken.Token),
-	}.IBCDenom()
-	if err == nil && bridgeToken.Denom == expectDenom {
-		suite.T().Logf("bridge token already exists!tokenContract:[%v], denom:[%v], channelIbc:[%v]", suite.BridgeToken.Token, bridgeToken.Denom, bridgeToken.ChannelIbc)
-		return
-	}
-	fxOriginatedTokenClaimMsg := &crosschaintypes.MsgBridgeTokenClaim{
-		EventNonce:     suite.queryFxLastEventNonce(),
-		BlockHeight:    suite.queryObserver().ExternalBlockHeight + 1,
-		TokenContract:  suite.BridgeToken.Token,
-		Name:           "Pundix Pruse",
-		Symbol:         "PURSE",
-		Decimals:       18,
-		BridgerAddress: suite.AdminAddress().String(),
-		ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
-		ChainName:      suite.chainName,
-	}
-	suite.BroadcastTx(fxOriginatedTokenClaimMsg)
-	suite.T().Logf("\n")
+func (suite *CrosschainTestSuite) SendToExternalAndCancel(token, denom string, amount sdk.Int) {
+	coin := sdk.NewCoin(denom, amount)
+	suite.SendToFxClaim(token, coin.Amount, "")
+
+	txId := suite.SendToExternal(1, coin)
+	suite.Greater(txId, uint64(0))
+
+	suite.SendCancelSendToExternal(txId)
 }
 
-func (suite *CrosschainTestSuite) signPendingValsetRequest() {
-	suite.T().Helper()
-	defer func() {
-		suite.T().Logf("sign pending valset request defer ....\n")
-		if err := recover(); err != nil {
-			suite.T().Fatal(err)
-		}
-	}()
-	gravityId := suite.queryGravityId()
-	requestParams := &crosschaintypes.QueryLastPendingOracleSetRequestByAddrRequest{
-		BridgerAddress: suite.AdminAddress().String(),
-		ChainName:      suite.chainName,
-	}
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
-	for range ticker.C {
-		queryResponse, err := crosschaintypes.NewQueryClient(suite.grpcClient).LastPendingOracleSetRequestByAddr(suite.ctx, requestParams)
-		if err != nil {
-			suite.T().Logf("query last pending valset request is err!params:%+v, errors:%v\n", requestParams, err)
-			continue
-		}
-		valsets := queryResponse.OracleSets
-		if len(valsets) <= 0 {
-			continue
-		}
-		for _, valset := range valsets {
-			checkpoint, _ := valset.GetCheckpoint(gravityId)
-			suite.T().Logf("need confirm valset: nonce:%v ethAddress:%v\n", valset.Nonce, suite.ethAddress().Hex())
-			signature, err := crosschaintypes.NewEthereumSignature(checkpoint, suite.ethPrivKey)
-			if err != nil {
-				suite.T().Log(err)
-				continue
-			}
-			suite.BroadcastTx(
-				&crosschaintypes.MsgOracleSetConfirm{
-					Nonce:           valset.Nonce,
-					BridgerAddress:  suite.AdminAddress().String(),
-					ExternalAddress: suite.ethAddress().Hex(),
-					Signature:       hex.EncodeToString(signature),
-					ChainName:       suite.chainName,
-				})
-		}
-	}
+func (suite *CrosschainTestSuite) SendCancelSendToExternal(txId uint64) {
+	suite.BroadcastTx(suite.privKey, &crosschaintypes.MsgCancelSendToExternal{
+		TransactionId: txId,
+		Sender:        suite.AccAddr().String(),
+		ChainName:     suite.chainName,
+	})
 }
 
-func (suite *CrosschainTestSuite) queryGravityId() string {
-	suite.T().Helper()
-	chainParamsResp, err := crosschaintypes.NewQueryClient(suite.grpcClient).Params(suite.ctx, &crosschaintypes.QueryParamsRequest{ChainName: suite.chainName})
-	if err != nil {
-		suite.T().Fatal(err)
-	}
-	suite.T().Logf("chain params result:%+v\n", chainParamsResp.Params)
-	return chainParamsResp.Params.GravityId
-}
-
-func (suite *CrosschainTestSuite) confirmBatch() {
-	suite.T().Helper()
-
-	gravityId := suite.queryGravityId()
-	orchestrator := suite.AdminAddress()
+func (suite *CrosschainTestSuite) SendBatchRequest(minTxs uint64) {
+	msgList := make([]sdk.Msg, 0)
 	for {
-		lastPendingBatchRequestResponse, err := crosschaintypes.NewQueryClient(suite.grpcClient).LastPendingBatchRequestByAddr(suite.ctx,
-			&crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{BridgerAddress: orchestrator.String(), ChainName: suite.chainName})
-		if err != nil {
-			suite.T().Fatal(err)
+		batchFeeResponse, err := suite.CrosschainQuery().BatchFees(suite.ctx, &crosschaintypes.QueryBatchFeeRequest{ChainName: suite.chainName})
+		suite.NoError(err)
+		for _, batchToken := range batchFeeResponse.BatchFees {
+			if batchToken.TotalTxs >= minTxs {
+				denomResponse, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
+					Token:     batchToken.TokenContract,
+					ChainName: suite.chainName,
+				})
+				suite.NoError(err)
+
+				msgList = append(msgList, &crosschaintypes.MsgRequestBatch{
+					Sender:     suite.BridgerFxAddr().String(),
+					Denom:      denomResponse.Denom,
+					MinimumFee: batchToken.TotalFees,
+					FeeReceive: suite.HexAddr().String(),
+					ChainName:  suite.chainName,
+				})
+			}
 		}
-		outgoingTxBatch := lastPendingBatchRequestResponse.Batch
-		if outgoingTxBatch == nil {
+		if len(msgList) > 0 {
 			break
 		}
-		checkpoint, err := outgoingTxBatch.GetCheckpoint(gravityId)
-		if err != nil {
-			suite.T().Fatal(err)
-		}
-		signatureBytes, err := crosschaintypes.NewEthereumSignature(checkpoint, suite.ethPrivKey)
-		if err != nil {
-			suite.T().Fatal(err)
-		}
+		time.Sleep(1 * time.Second)
+	}
+	suite.BroadcastTx(suite.bridgerFxPrivKey, msgList...)
+}
 
-		err = crosschaintypes.ValidateEthereumSignature(checkpoint, signatureBytes, suite.ethAddress().Hex())
-		if err != nil {
-			suite.T().Fatal(err)
+func (suite *CrosschainTestSuite) SendConfirmBatch() {
+	timeoutCtx, cancel := context.WithTimeout(suite.ctx, suite.network.Config.TimeoutCommit)
+	defer cancel()
+	for {
+		lastPendingBatchRequestResponse, err := suite.CrosschainQuery().LastPendingBatchRequestByAddr(
+			timeoutCtx,
+			&crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{
+				BridgerAddress: suite.BridgerFxAddr().String(),
+				ChainName:      suite.chainName,
+			},
+		)
+		suite.NoError(err)
+
+		outgoingTxBatch := lastPendingBatchRequestResponse.Batch
+		if outgoingTxBatch == nil {
+			time.Sleep(1 * time.Second)
+			break
 		}
-		suite.BroadcastTx([]sdk.Msg{
+		checkpoint, err := outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
+		suite.NoError(err)
+
+		signatureBytes, err := crosschaintypes.NewEthereumSignature(checkpoint, suite.bridgerExtPrivKey)
+		suite.NoError(err)
+
+		err = crosschaintypes.ValidateEthereumSignature(checkpoint, signatureBytes, suite.BridgerExtAddr())
+		suite.NoError(err)
+
+		suite.BroadcastTx(suite.bridgerFxPrivKey,
 			&crosschaintypes.MsgConfirmBatch{
 				Nonce:           outgoingTxBatch.BatchNonce,
 				TokenContract:   outgoingTxBatch.TokenContract,
-				BridgerAddress:  suite.AdminAddress().String(),
-				ExternalAddress: suite.ethAddress().Hex(),
+				BridgerAddress:  suite.BridgerFxAddr().String(),
+				ExternalAddress: suite.BridgerExtAddr(),
 				Signature:       hex.EncodeToString(signatureBytes),
 				ChainName:       suite.chainName,
 			},
-		}...)
-		suite.T().Logf("\n")
-		time.Sleep(2 * time.Second)
+		)
 
-		suite.BroadcastTx([]sdk.Msg{
+		suite.BroadcastTx(suite.bridgerFxPrivKey,
 			&crosschaintypes.MsgSendToExternalClaim{
 				EventNonce:     suite.queryFxLastEventNonce(),
-				BlockHeight:    suite.queryObserver().ExternalBlockHeight + 1,
+				BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
 				BatchNonce:     outgoingTxBatch.BatchNonce,
 				TokenContract:  outgoingTxBatch.TokenContract,
-				BridgerAddress: suite.AdminAddress().String(),
+				BridgerAddress: suite.BridgerFxAddr().String(),
 				ChainName:      suite.chainName,
 			},
-		}...)
+		)
 	}
-}
-
-func (suite *CrosschainTestSuite) batchRequest() {
-	suite.T().Helper()
-
-	batchFeeResponse, err := crosschaintypes.NewQueryClient(suite.grpcClient).BatchFees(suite.ctx, &crosschaintypes.QueryBatchFeeRequest{ChainName: suite.chainName})
-	if err != nil {
-		suite.T().Fatal(err)
-	}
-	orchestrator := suite.AdminAddress()
-	feeReceive := suite.ethAddress().String()
-	msgList := make([]sdk.Msg, 0, len(batchFeeResponse.BatchFees))
-	for _, batchToken := range batchFeeResponse.BatchFees {
-		if batchToken.TotalTxs >= 5 {
-			denomResponse, err := crosschaintypes.NewQueryClient(suite.grpcClient).TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
-				Token:     batchToken.TokenContract,
-				ChainName: suite.chainName,
-			})
-			if err != nil {
-				suite.T().Fatal(err)
-			}
-			if strings.HasPrefix(denomResponse.Denom, batchToken.TokenContract) {
-				suite.T().Logf("warn!!! not found token contract, tokenContract:[%v], erc20ToDenom response:[%v]\n", batchToken.TokenContract, denomResponse.Denom)
-				continue
-			}
-
-			msgList = append(msgList, &crosschaintypes.MsgRequestBatch{
-				Sender:     orchestrator.String(),
-				Denom:      denomResponse.Denom,
-				MinimumFee: batchToken.TotalFees,
-				FeeReceive: feeReceive,
-				ChainName:  suite.chainName,
-			})
-		}
-	}
-	if len(msgList) <= 0 {
-		return
-	}
-	suite.BroadcastTx(msgList...)
-	suite.T().Logf("\n")
-}
-
-func (suite *CrosschainTestSuite) fxToExternal(count int) {
-	suite.T().Helper()
-	suite.T().Logf("\n####################      FX to External      ####################\n")
-	msgList := make([]sdk.Msg, 0, count)
-	denom := types.DenomTrace{
-		Path:      "transfer/channel-0",
-		BaseDenom: fmt.Sprintf("%s%s", suite.chainName, suite.BridgeToken.Token),
-	}.IBCDenom()
-	for i := 0; i < count; i++ {
-		msgList = append(msgList, &crosschaintypes.MsgSendToExternal{
-			Sender:    suite.AdminAddress().String(),
-			Dest:      suite.ethAddress().Hex(),
-			Amount:    sdk.NewCoin(denom, sdk.NewInt(111111)),
-			BridgeFee: sdk.NewCoin(denom, sdk.NewInt(1000)),
-			ChainName: suite.chainName,
-		})
-	}
-	suite.BroadcastTx(msgList...)
-}
-
-func (suite *CrosschainTestSuite) showAllBalance(address sdk.AccAddress) {
-	suite.T().Helper()
-	suite.T().Logf("\n####################      Query AdminAddress Balance      ####################\n")
-	queryAllBalancesResponse, err := suite.grpcClient.BankQuery().AllBalances(suite.ctx, banktypes.NewQueryAllBalancesRequest(address, &query.PageRequest{
-		Key:        nil,
-		Offset:     0,
-		Limit:      100,
-		CountTotal: true,
-	}))
-	if err != nil {
-		suite.T().Fatal(err)
-	}
-	suite.T().Logf("address: [%v] all balance\n", address.String())
-	for _, balance := range queryAllBalancesResponse.Balances {
-		suite.T().Logf("denom:%v, amount:%v\n", balance.Denom, balance.Amount.String())
-	}
-	suite.T().Logf("\n")
-}
-
-func (suite *CrosschainTestSuite) externalToFx() {
-	suite.T().Helper()
-	suite.T().Logf("\n####################      External to FX      ####################\n")
-	suite.BroadcastTx(&crosschaintypes.MsgSendToFxClaim{
-		EventNonce:     suite.queryFxLastEventNonce(),
-		BlockHeight:    suite.queryObserver().ExternalBlockHeight + 1,
-		TokenContract:  suite.BridgeToken.Token,
-		Amount:         sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)),
-		Sender:         suite.ethAddress().Hex(),
-		Receiver:       suite.AdminAddress().String(),
-		TargetIbc:      "",
-		BridgerAddress: suite.AdminAddress().String(),
-		ChainName:      suite.chainName,
-	})
-	suite.T().Logf("\n")
-}
-
-func (suite *CrosschainTestSuite) externalToFxAndIbcTransfer() {
-	suite.T().Helper()
-	suite.T().Logf("\n####################      External to FX to Pundix      ####################\n")
-
-	suite.BroadcastTx(&crosschaintypes.MsgSendToFxClaim{
-		EventNonce:     suite.queryFxLastEventNonce(),
-		BlockHeight:    suite.queryObserver().ExternalBlockHeight + 1,
-		TokenContract:  suite.BridgeToken.Token,
-		Amount:         sdk.NewIntWithDecimal(10, 18).Mul(sdk.NewInt(100000000000000)),
-		Sender:         suite.ethAddress().Hex(),
-		Receiver:       suite.AdminAddress().String(),
-		TargetIbc:      hex.EncodeToString([]byte("0x/transfer/channel-0")),
-		BridgerAddress: suite.AdminAddress().String(),
-		ChainName:      suite.chainName,
-	})
-	suite.T().Logf("\n")
-}
-
-func (suite *CrosschainTestSuite) setOrchestratorAddress() {
-	suite.T().Helper()
-
-	fxAddress := suite.AdminAddress()
-
-	if !gethcommon.IsHexAddress(suite.ethAddress().Hex()) {
-		suite.T().Fatal("eth address is invalid")
-	}
-	queryOrchestratorResponse, err := crosschaintypes.NewQueryClient(suite.grpcClient).GetOracleByBridgerAddr(suite.ctx, &crosschaintypes.QueryOracleByBridgerAddrRequest{
-		BridgerAddress: fxAddress.String(),
-		ChainName:      suite.chainName,
-	})
-	if queryOrchestratorResponse != nil && queryOrchestratorResponse.GetOracle() != nil {
-		oracle := queryOrchestratorResponse.GetOracle()
-		suite.T().Logf("already set orchestrator address! oracle:[%v], orchestrator:[%v], externalAddress:[%v]\n", oracle.OracleAddress, oracle.BridgerAddress, oracle.ExternalAddress)
-		return
-	}
-
-	if err != nil {
-		if !strings.Contains(err.Error(), "No Orchestrator: invalid") {
-			suite.T().Fatal(err)
-		}
-		suite.T().Logf("not found validator!!error msg:%v\n", err.Error())
-	}
-	chainParams, err := crosschaintypes.NewQueryClient(suite.grpcClient).Params(suite.ctx, &crosschaintypes.QueryParamsRequest{ChainName: suite.chainName})
-	if err != nil {
-		suite.T().Fatal(err)
-	}
-	suite.BroadcastTx(&crosschaintypes.MsgBondedOracle{
-		OracleAddress:   fxAddress.String(),
-		BridgerAddress:  fxAddress.String(),
-		ExternalAddress: suite.ethAddress().Hex(),
-		DelegateAmount:  chainParams.Params.DelegateThreshold,
-		ChainName:       suite.chainName,
-	})
-	suite.T().Logf("\n")
 }
