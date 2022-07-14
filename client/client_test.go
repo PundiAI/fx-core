@@ -209,6 +209,29 @@ func (suite *IntegrationTestSuite) TestClient_Tx() {
 	}
 }
 
+func (suite *IntegrationTestSuite) TestQueryBlockHeight() {
+	clients := suite.GetClients()
+	for i := 0; i < len(clients); i++ {
+		height, err := clients[i].GetBlockHeight()
+		suite.NoError(err)
+		suite.True(height >= int64(10))
+	}
+}
+
+func (suite *IntegrationTestSuite) TestQuerySupply() {
+	clients := suite.GetClients()
+	for i := 0; i < len(clients); i++ {
+		supply, err := clients[i].QuerySupply()
+		suite.NoError(err)
+		nodeCoin := sdk.Coin{
+			Denom:  "node0token",
+			Amount: sdk.NewInt(100_000).MulRaw(1e18),
+		}
+		suite.Equal(supply.AmountOf(nodeCoin.Denom), nodeCoin.Amount)
+		suite.True(supply.AmountOf(fxtypes.DefaultDenom).GTE(sdk.NewInt(50_000).MulRaw(1e18)))
+	}
+}
+
 func (suite *IntegrationTestSuite) TestClient_Query() {
 	tests := []struct {
 		name     string
@@ -221,12 +244,6 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 			funcName: "GetChainId",
 			params:   []interface{}{},
 			wantRes:  []interface{}{fxtypes.ChainID, nil},
-		},
-		{
-			name:     "get block height",
-			funcName: "GetBlockHeight",
-			params:   []interface{}{},
-			wantRes:  []interface{}{int64(18), nil},
 		},
 		{
 			name:     "get mint denom",
@@ -293,24 +310,6 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 					sdk.Coin{
 						Denom:  fxtypes.DefaultDenom,
 						Amount: sdk.NewInt(40_000).MulRaw(1e18),
-					},
-					sdk.Coin{
-						Denom:  "node0token",
-						Amount: sdk.NewInt(100_000).MulRaw(1e18),
-					},
-				},
-				nil,
-			},
-		},
-		{
-			name:     "query supply",
-			funcName: "QuerySupply",
-			params:   []interface{}{},
-			wantRes: []interface{}{
-				sdk.Coins{
-					sdk.Coin{
-						Denom:  fxtypes.DefaultDenom,
-						Amount: sdk.MustNewDecFromStr("50000049908800971256978").RoundInt(),
 					},
 					sdk.Coin{
 						Denom:  "node0token",
