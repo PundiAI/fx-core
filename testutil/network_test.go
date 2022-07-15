@@ -1,10 +1,12 @@
-package helpers_test
+package testutil_test
 
 import (
 	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
+
+	"github.com/functionx/fx-core/testutil"
 
 	"github.com/functionx/fx-core/testutil/network"
 
@@ -29,7 +31,7 @@ func TestIntegrationTestSuite(t *testing.T) {
 func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
-	cfg := helpers.DefaultNetworkConfig()
+	cfg := testutil.DefaultNetworkConfig()
 	cfg.NumValidators = 1
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
 

@@ -1,8 +1,10 @@
-package helpers
+package testutil
 
 import (
 	"fmt"
 	"time"
+
+	"github.com/functionx/fx-core/app/helpers"
 
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 
@@ -54,7 +56,7 @@ func DefaultNetworkConfig() network.Config {
 			return app.New(
 				val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
 				encCfg,
-				EmptyAppOptions{},
+				helpers.EmptyAppOptions{},
 				baseapp.SetPruning(storetypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
 				baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
 			)

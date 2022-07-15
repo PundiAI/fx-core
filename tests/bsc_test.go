@@ -37,8 +37,8 @@ func (suite *BSCTestSuite) TestCrosschain_BSC() {
 	suite.ProposalVote(suite.AdminPrivateKey(), proposalId, govtypes.OptionYes)
 	suite.CheckProposal(proposalId, govtypes.StatusPassed)
 
-	go suite.SendOracleSetConfirm()
 	suite.BondedOracle()
+	suite.SendOracleSetConfirm()
 
 	denom := suite.AddBridgeTokenClaim("PundiX reward token", "PURSE", 18, purseToken, purseTokenChannelIBC)
 	suite.Equal(denom, purseDenom)
@@ -49,8 +49,8 @@ func (suite *BSCTestSuite) TestCrosschain_BSC() {
 	suite.Send(suite.AccAddr(), helpers.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
 	suite.SendToExternal(5, sdk.NewCoin(purseDenom, sdk.NewInt(10).MulRaw(1e18)))
 
-	go suite.SendConfirmBatch()
 	suite.SendBatchRequest(5)
+	suite.SendConfirmBatch()
 
 	suite.SendToExternalAndCancel(purseToken, purseDenom, sdk.NewInt(10).MulRaw(1e18))
 }

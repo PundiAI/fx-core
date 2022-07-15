@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/functionx/fx-core/testutil"
+
 	"github.com/functionx/fx-core/testutil/network"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -61,7 +63,7 @@ func (suite *TestSuite) SetupSuite() {
 	}
 	suite.T().Log("setting up integration test suite")
 
-	cfg := helpers.DefaultNetworkConfig()
+	cfg := testutil.DefaultNetworkConfig()
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
 	cfg.NumValidators = 1
 	cfg.VotingPeriod = 5 * time.Second
@@ -145,6 +147,8 @@ func (suite *TestSuite) QueryBlockByTxHash(txHash string) *types.Block {
 }
 
 func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.Msg) *sdk.TxResponse {
+	suite.Lock()
+	defer suite.Unlock()
 	grpcClient := suite.GRPCClient()
 	balances, err := grpcClient.QueryBalances(sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
 	suite.NoError(err)
@@ -156,7 +160,10 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 
 	txResponse, err := grpcClient.BroadcastTxOk(txRaw)
 	suite.NoError(err)
-	suite.Equal(uint32(0), txResponse.Code)
+	// txResponse might be nil, but error is also nil
+	if txResponse != nil {
+		suite.Equal(uint32(0), txResponse.Code)
+	}
 
 	if suite.useNetwork {
 		suite.NoError(suite.network.WaitForNextBlock())
@@ -226,8 +233,6 @@ func (suite *TestSuite) Send(toAddress sdk.AccAddress, amount sdk.Coin) {
 }
 
 func (suite *TestSuite) SendFrom(priv cryptotypes.PrivKey, toAddress sdk.AccAddress, amount sdk.Coin) {
-	suite.Lock()
-	defer suite.Unlock()
 	txResponse := suite.BroadcastTx(priv, banktypes.NewMsgSend(priv.PubKey().Address().Bytes(), toAddress, sdk.NewCoins(amount)))
 	suite.T().Log("send txHash", txResponse.TxHash)
 }

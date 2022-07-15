@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/functionx/fx-core/app/helpers"
+	"github.com/functionx/fx-core/testutil"
 
 	"github.com/stretchr/testify/suite"
 
@@ -21,7 +21,7 @@ type IntegrationTestSuite struct {
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
 
-	cfg := helpers.DefaultNetworkConfig()
+	cfg := testutil.DefaultNetworkConfig()
 	cfg.NumValidators = 1
 
 	baseDir, err := ioutil.TempDir(s.T().TempDir(), cfg.ChainID)

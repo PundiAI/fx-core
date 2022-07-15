@@ -30,7 +30,7 @@ A typical testing flow might look like the following:
 	func (s *IntegrationTestSuite) SetupSuite() {
 		s.T().Log("setting up integration test suite")
 
-		cfg := helpers.DefaultNetworkConfig()
+		cfg := testutil.DefaultNetworkConfig()
 		cfg.NumValidators = 1
 
 		baseDir, err := ioutil.TempDir(s.T().TempDir(), cfg.ChainID)

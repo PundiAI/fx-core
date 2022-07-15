@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"sync"
 	"testing"
-	"time"
 
+	"github.com/functionx/fx-core/testutil"
 	"github.com/functionx/fx-core/testutil/network"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -62,8 +62,7 @@ func TestIntegrationTestSuite(t *testing.T) {
 func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
-	start := time.Now()
-	cfg := helpers.DefaultNetworkConfig()
+	cfg := testutil.DefaultNetworkConfig()
 	cfg.NumValidators = 1
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
 
@@ -71,7 +70,7 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.Require().NoError(err)
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
 	suite.Require().NoError(err)
-	suite.T().Log(time.Now().Sub(start).String())
+
 	_, err = suite.network.WaitForHeight(1)
 	suite.Require().NoError(err)
 

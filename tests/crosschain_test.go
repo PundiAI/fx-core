@@ -159,7 +159,7 @@ func (suite *CrosschainTestSuite) SendOracleSetConfirm() {
 			},
 		)
 		if err != nil {
-			suite.ErrorContains(err, "no found oracle")
+			suite.Require().ErrorContains(err, "oracle")
 			continue
 		}
 		for _, valset := range queryResponse.OracleSets {
@@ -188,7 +188,7 @@ func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decim
 		ChainName: suite.chainName,
 		Token:     token,
 	})
-	suite.ErrorContains(err, "bridge token is not exist: empty")
+	suite.ErrorContains(err, "bridge token")
 	suite.Nil(bridgeToken)
 
 	suite.BroadcastTx(suite.bridgerFxPrivKey, &crosschaintypes.MsgBridgeTokenClaim{
@@ -347,9 +347,6 @@ func (suite *CrosschainTestSuite) SendConfirmBatch() {
 				Signature:       hex.EncodeToString(signatureBytes),
 				ChainName:       suite.chainName,
 			},
-		)
-
-		suite.BroadcastTx(suite.bridgerFxPrivKey,
 			&crosschaintypes.MsgSendToExternalClaim{
 				EventNonce:     suite.queryFxLastEventNonce(),
 				BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
