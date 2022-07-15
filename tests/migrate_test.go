@@ -38,8 +38,8 @@ func (suite *MigrateTestSuite) MigrateAccount(fromPrivateKey, toPrivateKey crypt
 	suite.NoError(err)
 
 	msg := migratetypes.NewMsgMigrateAccount(fromAddr, toAddress, hex.EncodeToString(migrateSign))
-	txHash := suite.BroadcastTx(fromPrivateKey, msg)
-	suite.T().Log("migrate account txHash", txHash)
+	txResp := suite.BroadcastTx(fromPrivateKey, msg)
+	suite.T().Log("migrate account txHash", txResp.TxHash)
 }
 
 func (suite *MigrateTestSuite) TestDelegate() {

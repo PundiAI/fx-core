@@ -147,10 +147,10 @@ func (suite *CrosschainTestSuite) SendUpdateChainOraclesProposal() (proposalId u
 }
 
 func (suite *CrosschainTestSuite) SendOracleSetConfirm() {
-	timeoutCtx, cancel := context.WithTimeout(suite.ctx, suite.network.Config.TimeoutCommit*2)
+	timeoutCtx, cancel := context.WithTimeout(suite.ctx, suite.network.Config.TimeoutCommit)
 	defer cancel()
 	for {
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Millisecond)
 		queryResponse, err := suite.CrosschainQuery().LastPendingOracleSetRequestByAddr(
 			timeoutCtx,
 			&crosschaintypes.QueryLastPendingOracleSetRequestByAddrRequest{
@@ -306,7 +306,7 @@ func (suite *CrosschainTestSuite) SendBatchRequest(minTxs uint64) {
 		if len(msgList) > 0 {
 			break
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Millisecond)
 	}
 	suite.BroadcastTx(suite.bridgerFxPrivKey, msgList...)
 }
@@ -315,7 +315,7 @@ func (suite *CrosschainTestSuite) SendConfirmBatch() {
 	timeoutCtx, cancel := context.WithTimeout(suite.ctx, suite.network.Config.TimeoutCommit)
 	defer cancel()
 	for {
-		lastPendingBatchRequestResponse, err := suite.CrosschainQuery().LastPendingBatchRequestByAddr(
+		response, err := suite.CrosschainQuery().LastPendingBatchRequestByAddr(
 			timeoutCtx,
 			&crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{
 				BridgerAddress: suite.BridgerFxAddr().String(),
@@ -324,11 +324,11 @@ func (suite *CrosschainTestSuite) SendConfirmBatch() {
 		)
 		suite.NoError(err)
 
-		outgoingTxBatch := lastPendingBatchRequestResponse.Batch
-		if outgoingTxBatch == nil {
-			time.Sleep(1 * time.Second)
-			break
+		if response.Batch == nil {
+			time.Sleep(10 * time.Millisecond)
+			continue
 		}
+		outgoingTxBatch := response.Batch
 		checkpoint, err := outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
 		suite.NoError(err)
 
@@ -359,5 +359,6 @@ func (suite *CrosschainTestSuite) SendConfirmBatch() {
 				ChainName:      suite.chainName,
 			},
 		)
+		break
 	}
 }

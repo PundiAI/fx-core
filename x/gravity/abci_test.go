@@ -12,7 +12,6 @@ import (
 )
 
 func TestValSetPowerIsChanger(t *testing.T) {
-	fmt.Printf("multiple:%v\n", math.MaxUint32)
 	testDatas := []testCaseData{
 		{
 			latestPower:     []uint64{200, 200, 200, 200, 200},
