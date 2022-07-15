@@ -3,7 +3,8 @@ package keeper
 import (
 	"context"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
@@ -12,7 +13,7 @@ var _ types.QueryServer = RouterKeeper{}
 
 func (k RouterKeeper) getQueryServerByChainName(chainName string) (types.QueryServer, error) {
 	if !k.router.HasRoute(chainName) {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "chain name not found:"+chainName)
+		return nil, status.Error(codes.InvalidArgument, "chain name not found:"+chainName)
 	}
 	return k.router.GetRoute(chainName).QueryServer, nil
 }

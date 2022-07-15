@@ -5,6 +5,9 @@ import (
 	"math/big"
 	"testing"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -212,7 +215,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirm() {
 					ChainName:      suite.chainName,
 					BridgerAddress: "fx1",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+				expectedError = status.Error(codes.InvalidArgument, "bridger address")
 			},
 			expPass: false,
 		},
@@ -224,7 +227,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirm() {
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 					Nonce:          0,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrUnknown, "nonce")
+				expectedError = status.Error(codes.InvalidArgument, "nonce")
 			},
 			expPass: false,
 		},
@@ -236,7 +239,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirm() {
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 					Nonce:          3,
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -301,7 +304,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OracleSetConfirmsByNonce() {
 					ChainName: suite.chainName,
 					Nonce:     0,
 				}
-				expectedError = sdkerrors.Wrapf(types.ErrUnknown, "nonce")
+				expectedError = status.Error(codes.InvalidArgument, "nonce")
 			},
 			expPass: false,
 		},
@@ -423,7 +426,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 					ChainName:      suite.chainName,
 					BridgerAddress: "fx1",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+				expectedError = status.Error(codes.InvalidArgument, "bridger address")
 			},
 			expPass: false,
 		},
@@ -434,7 +437,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 					ChainName:      suite.chainName,
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -446,7 +449,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingOracleSetRequestByAd
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgers[0].String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -529,7 +532,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 						},
 					},
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "base fee")
+				expectedError = status.Error(codes.InvalidArgument, "base fee")
 			},
 			expPass: false,
 		},
@@ -710,7 +713,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 					ChainName:      suite.chainName,
 					BridgerAddress: "fx1",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+				expectedError = status.Error(codes.InvalidArgument, "bridger address")
 			},
 			expPass: false,
 		},
@@ -721,7 +724,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 					ChainName:      suite.chainName,
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -733,7 +736,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgers[0].String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -965,7 +968,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 					TokenContract: "0x1",
 					Nonce:         3,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "token contract address")
+				expectedError = status.Error(codes.InvalidArgument, "token contract address")
 			},
 			expPass: false,
 		},
@@ -978,7 +981,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 					TokenContract: crypto.CreateAddress(common.BytesToAddress(key.PubKey().Address().Bytes()), 0).String(),
 					Nonce:         0,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrUnknown, "nonce")
+				expectedError = status.Error(codes.InvalidArgument, "nonce")
 			},
 			expPass: false,
 		},
@@ -991,7 +994,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 					TokenContract: crypto.CreateAddress(common.BytesToAddress(key.PubKey().Address().Bytes()), 0).String(),
 					Nonce:         3,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "can not find tx batch")
+				expectedError = status.Error(codes.NotFound, "tx batch")
 			},
 			expPass: false,
 		},
@@ -1062,7 +1065,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirm() {
 					BridgerAddress: "fx1",
 					Nonce:          3,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+				expectedError = status.Error(codes.InvalidArgument, "bridger address")
 			},
 			expPass: false,
 		},
@@ -1074,7 +1077,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirm() {
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 					Nonce:          0,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrUnknown, "nonce")
+				expectedError = status.Error(codes.InvalidArgument, "nonce")
 			},
 			expPass: false,
 		},
@@ -1086,7 +1089,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirm() {
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 					Nonce:          3,
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -1151,7 +1154,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirms() {
 					TokenContract: "0x11",
 					Nonce:         3,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "token contract address")
+				expectedError = status.Error(codes.InvalidArgument, "token contract address")
 			},
 			expPass: false,
 		},
@@ -1166,7 +1169,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchConfirms() {
 					TokenContract: token.String(),
 					Nonce:         0,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrUnknown, "nonce")
+				expectedError = status.Error(codes.InvalidArgument, "nonce")
 			},
 			expPass: false,
 		},
@@ -1233,7 +1236,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: "fx1",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+				expectedError = status.Error(codes.InvalidArgument, "bridger address")
 			},
 			expPass: false,
 		},
@@ -1244,7 +1247,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventNonceByAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -1323,7 +1326,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_DenomToToken() {
 				request = &types.QueryDenomToTokenRequest{
 					ChainName: suite.chainName,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrUnknown, "denom")
+				expectedError = status.Error(codes.InvalidArgument, "denom")
 			},
 			false,
 		},
@@ -1334,7 +1337,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_DenomToToken() {
 					ChainName: suite.chainName,
 					Denom:     "bsc0xfbbbb4f7b1e5bcb0345c5a5a61584b2547d5d582",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrEmpty, "bridge token is not exist")
+				expectedError = status.Error(codes.NotFound, "bridge token")
 			},
 			false,
 		},
@@ -1398,7 +1401,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 				request = &types.QueryTokenToDenomRequest{
 					ChainName: suite.chainName,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "token address")
+				expectedError = status.Error(codes.InvalidArgument, "token address")
 			},
 			false,
 		},
@@ -1410,7 +1413,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 					ChainName: suite.chainName,
 					Token:     common.BytesToAddress(key.PubKey().Address()).String(),
 				}
-				expectedError = sdkerrors.Wrap(types.ErrEmpty, "bridge token is not exist")
+				expectedError = status.Error(codes.NotFound, "bridge token")
 			},
 			false,
 		},
@@ -1474,7 +1477,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByAddr() {
 					ChainName:     suite.chainName,
 					OracleAddress: "fx1",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+				expectedError = status.Error(codes.InvalidArgument, "oracle address")
 			},
 			expPass: false,
 		},
@@ -1485,7 +1488,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByAddr() {
 					ChainName:     suite.chainName,
 					OracleAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -1548,7 +1551,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: "fx1",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+				expectedError = status.Error(codes.InvalidArgument, "bridger address")
 			},
 
 			expPass: false,
@@ -1560,7 +1563,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -1572,7 +1575,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgers[0].String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -1638,7 +1641,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 					ChainName:       suite.chainName,
 					ExternalAddress: "0x123",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "external address")
+				expectedError = status.Error(codes.InvalidArgument, "external address")
 			},
 			expPass: false,
 		},
@@ -1652,7 +1655,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 					ChainName:       suite.chainName,
 					ExternalAddress: externalAcc.String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -1667,7 +1670,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 					ChainName:       suite.chainName,
 					ExternalAddress: externalAcc.String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			expPass: false,
 		},
@@ -1732,7 +1735,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 					ChainName:     suite.chainName,
 					SenderAddress: "fx1",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "sender address")
+				expectedError = status.Error(codes.InvalidArgument, "sender address")
 			},
 			false,
 		},
@@ -1894,7 +1897,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: "fx1",
 				}
-				expectedError = sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+				expectedError = status.Error(codes.InvalidArgument, "bridger address")
 			},
 			false,
 		},
@@ -1905,7 +1908,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 					ChainName:      suite.chainName,
 					BridgerAddress: suite.bridgers[0].String(),
 				}
-				expectedError = types.ErrNoFoundOracle
+				expectedError = status.Error(codes.NotFound, "oracle")
 			},
 			false,
 		},

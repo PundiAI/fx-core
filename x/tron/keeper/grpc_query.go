@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
 	"github.com/functionx/fx-core/x/tron/types"
@@ -21,10 +23,10 @@ func (k Keeper) BatchFees(c context.Context, req *crosschaintypes.QueryBatchFeeR
 	}
 	for _, fee := range req.MinBatchFees {
 		if fee.BaseFee.IsNil() || fee.BaseFee.IsNegative() {
-			return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "base fee")
+			return nil, status.Error(codes.InvalidArgument, "base fee")
 		}
 		if err := types.ValidateTronAddress(fee.TokenContract); err != nil {
-			return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "token contract")
+			return nil, status.Error(codes.InvalidArgument, "token contract")
 		}
 	}
 	allBatchFees := k.GetAllBatchFees(sdk.UnwrapSDKContext(c), crosschainkeeper.MaxResults, req.MinBatchFees)
@@ -34,14 +36,14 @@ func (k Keeper) BatchFees(c context.Context, req *crosschaintypes.QueryBatchFeeR
 // BatchRequestByNonce queries the BatchRequestByNonce of the bsc module
 func (k Keeper) BatchRequestByNonce(c context.Context, req *crosschaintypes.QueryBatchRequestByNonceRequest) (*crosschaintypes.QueryBatchRequestByNonceResponse, error) {
 	if err := types.ValidateTronAddress(req.GetTokenContract()); err != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "token contract address")
+		return nil, status.Error(codes.InvalidArgument, "token contract address")
 	}
 	if req.GetNonce() <= 0 {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrUnknown, "nonce")
+		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	foundBatch := k.GetOutgoingTxBatch(sdk.UnwrapSDKContext(c), req.TokenContract, req.Nonce)
 	if foundBatch == nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "can not find tx batch")
+		return nil, status.Error(codes.NotFound, "tx batch")
 	}
 	return &crosschaintypes.QueryBatchRequestByNonceResponse{Batch: foundBatch}, nil
 }
@@ -49,10 +51,10 @@ func (k Keeper) BatchRequestByNonce(c context.Context, req *crosschaintypes.Quer
 // BatchConfirms returns the batch confirmations by nonce and token contract
 func (k Keeper) BatchConfirms(c context.Context, req *crosschaintypes.QueryBatchConfirmsRequest) (*crosschaintypes.QueryBatchConfirmsResponse, error) {
 	if err := types.ValidateTronAddress(req.GetTokenContract()); err != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "token contract address")
+		return nil, status.Error(codes.InvalidArgument, "token contract address")
 	}
 	if req.GetNonce() <= 0 {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrUnknown, "nonce")
+		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	var confirms []*crosschaintypes.MsgConfirmBatch
 	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(_ []byte, c crosschaintypes.MsgConfirmBatch) bool {
@@ -64,11 +66,11 @@ func (k Keeper) BatchConfirms(c context.Context, req *crosschaintypes.QueryBatch
 
 func (k Keeper) TokenToDenom(c context.Context, req *crosschaintypes.QueryTokenToDenomRequest) (*crosschaintypes.QueryTokenToDenomResponse, error) {
 	if err := types.ValidateTronAddress(req.GetToken()); err != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "token address")
+		return nil, status.Error(codes.InvalidArgument, "token address")
 	}
 	bridgeToken := k.GetBridgeTokenDenom(sdk.UnwrapSDKContext(c), req.Token)
 	if bridgeToken == nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrEmpty, "bridge token is not exist")
+		return nil, status.Error(codes.NotFound, "bridge token")
 	}
 	return &crosschaintypes.QueryTokenToDenomResponse{
 		Denom:      bridgeToken.Denom,
@@ -78,17 +80,17 @@ func (k Keeper) TokenToDenom(c context.Context, req *crosschaintypes.QueryTokenT
 
 func (k Keeper) GetOracleByExternalAddr(c context.Context, req *crosschaintypes.QueryOracleByExternalAddrRequest) (*crosschaintypes.QueryOracleResponse, error) {
 	if err := types.ValidateTronAddress(req.GetExternalAddress()); err != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "external address")
+		return nil, status.Error(codes.InvalidArgument, "external address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleAddr, found := k.GetOracleByExternalAddress(ctx, req.ExternalAddress)
 	if !found {
-		return nil, crosschaintypes.ErrNoFoundOracle
+		return nil, status.Error(codes.NotFound, "oracle")
 	}
 	oracle, found := k.GetOracle(ctx, oracleAddr)
 	if !found {
-		return nil, crosschaintypes.ErrNoFoundOracle
+		return nil, status.Error(codes.NotFound, "oracle")
 	}
 	return &crosschaintypes.QueryOracleResponse{Oracle: &oracle}, nil
 }

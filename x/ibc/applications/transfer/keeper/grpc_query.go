@@ -64,7 +64,7 @@ func (q Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesReques
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryDenomTracesResponse{

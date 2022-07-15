@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/x/migrate/types"
 )
@@ -31,7 +30,7 @@ func (k Keeper) MigrateRecord(ctx context.Context, req *types.QueryMigrateRecord
 		}
 	}
 	if len(addr) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrInvalidAddress, "must be bech32 or hex address")
+		return nil, status.Error(codes.InvalidArgument, "must be bech32 or hex address")
 	}
 	record, found := k.GetMigrateRecord(sdk.UnwrapSDKContext(ctx), addr)
 	return &types.QueryMigrateRecordResponse{MigrateRecord: record, Found: found}, nil
@@ -47,25 +46,25 @@ func (k Keeper) MigrateCheckAccount(goCtx context.Context, req *types.QueryMigra
 
 	from, err := sdk.AccAddressFromBech32(req.From)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
+		return nil, status.Error(codes.InvalidArgument, "form")
 	}
 
 	if !common.IsHexAddress(req.To) {
-		return nil, sdkerrors.Wrap(types.ErrInvalidAddress, "not hex address")
+		return nil, status.Error(codes.InvalidArgument, "not hex address")
 	}
 	to := common.HexToAddress(req.To)
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	//check migrated
 	if k.HasMigrateRecord(ctx, from) {
-		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", req.From)
+		return nil, status.Errorf(codes.AlreadyExists, "address %s has been migrated", req.From)
 	}
 	if k.HasMigrateRecord(ctx, to.Bytes()) {
-		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", req.To)
+		return nil, status.Errorf(codes.AlreadyExists, "address %s has been migrated", req.To)
 	}
 	for _, m := range k.GetMigrateI() {
 		if err := m.Validate(ctx, k, from, to); err != nil {
-			return nil, err
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 	}
 	return &types.QueryMigrateCheckAccountResponse{}, nil

@@ -4,8 +4,10 @@ import (
 	"context"
 	"sort"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/x/gravity/types"
 )
@@ -34,7 +36,7 @@ func (k Keeper) ValsetRequest(c context.Context, req *types.QueryValsetRequestRe
 func (k Keeper) ValsetConfirm(c context.Context, req *types.QueryValsetConfirmRequest) (*types.QueryValsetConfirmResponse, error) {
 	addr, err := sdk.AccAddressFromBech32(req.Address)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "address invalid")
+		return nil, status.Error(codes.InvalidArgument, "address invalid")
 	}
 	return &types.QueryValsetConfirmResponse{Confirm: k.GetValsetConfirm(sdk.UnwrapSDKContext(c), req.Nonce, addr)}, nil
 }
@@ -66,7 +68,7 @@ func (k Keeper) LastValsetRequests(c context.Context, _ *types.QueryLastValsetRe
 func (k Keeper) LastPendingValsetRequestByAddr(c context.Context, req *types.QueryLastPendingValsetRequestByAddrRequest) (*types.QueryLastPendingValsetRequestByAddrResponse, error) {
 	addr, err := sdk.AccAddressFromBech32(req.Address)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "address invalid")
+		return nil, status.Error(codes.InvalidArgument, "address invalid")
 	}
 
 	var pendingValsetReq []*types.Valset
@@ -101,7 +103,7 @@ func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*
 func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
 	addr, err := sdk.AccAddressFromBech32(req.Address)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "address invalid")
+		return nil, status.Error(codes.InvalidArgument, "address invalid")
 	}
 
 	var pendingBatchReq *types.OutgoingTxBatch
@@ -133,11 +135,11 @@ func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBat
 // BatchRequestByNonce queries the BatchRequestByNonce of the gravity module
 func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
 	if err := types.ValidateEthAddressAndValidateChecksum(req.TokenContract); err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
+		return nil, status.Error(codes.InvalidArgument, "token contract")
 	}
 	foundBatch := k.GetOutgoingTXBatch(sdk.UnwrapSDKContext(c), req.TokenContract, req.Nonce)
 	if foundBatch == nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "Can not find tx batch")
+		return nil, status.Error(codes.NotFound, "tx batch")
 	}
 	return &types.QueryBatchRequestByNonceResponse{Batch: foundBatch}, nil
 }
@@ -145,7 +147,7 @@ func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequ
 func (k Keeper) BatchConfirm(ctx context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
 	orchestrator, err := sdk.AccAddressFromBech32(req.GetAddress())
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return nil, status.Error(codes.InvalidArgument, "address")
 	}
 	confirm := k.GetBatchConfirm(sdk.UnwrapSDKContext(ctx), req.GetNonce(), req.GetTokenContract(), orchestrator)
 	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
@@ -166,11 +168,11 @@ func (k Keeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEven
 	ctx := sdk.UnwrapSDKContext(c)
 	addr, err := sdk.AccAddressFromBech32(req.Address)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, req.Address)
+		return nil, status.Error(codes.InvalidArgument, "address")
 	}
 	valAddr, found := k.GetOrchestratorValidator(ctx, addr)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrUnknown, "address")
+		return nil, status.Error(codes.NotFound, "address")
 	}
 	lastEventNonce := k.GetLastEventNonceByValidator(ctx, valAddr)
 	return &types.QueryLastEventNonceByAddrResponse{EventNonce: lastEventNonce}, nil
@@ -195,20 +197,20 @@ func (k Keeper) GetDelegateKeyByValidator(c context.Context, req *types.QueryDel
 	keys := k.GetDelegateKeys(ctx)
 	reqValidator, err := sdk.ValAddressFromBech32(req.ValidatorAddress)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.InvalidArgument, "address")
 	}
 	for _, key := range keys {
 		keyValidator, err := sdk.ValAddressFromBech32(key.Validator)
 		// this should be impossible due to the validate basic on the set orchestrator message
 		if err != nil {
-			panic("Invalid validator addr in store!")
+			return nil, status.Error(codes.Internal, err.Error())
 		}
 		if reqValidator.Equals(keyValidator) {
 			return &types.QueryDelegateKeyByValidatorResponse{EthAddress: key.EthAddress, OrchestratorAddress: key.Orchestrator}, nil
 		}
 
 	}
-	return nil, sdkerrors.Wrap(types.ErrInvalid, "No validator")
+	return nil, status.Error(codes.NotFound, "validator")
 }
 
 func (k Keeper) GetDelegateKeyByOrchestrator(c context.Context, req *types.QueryDelegateKeyByOrchestratorRequest) (*types.QueryDelegateKeyByOrchestratorResponse, error) {
@@ -216,27 +218,27 @@ func (k Keeper) GetDelegateKeyByOrchestrator(c context.Context, req *types.Query
 	keys := k.GetDelegateKeys(ctx)
 	reqOrchestrator, err := sdk.AccAddressFromBech32(req.OrchestratorAddress)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.InvalidArgument, "address")
 	}
 	for _, key := range keys {
 		keyOrchestrator, err := sdk.AccAddressFromBech32(key.Orchestrator)
 		// this should be impossible due to the validate basic on the set orchestrator message
 		if err != nil {
-			panic("Invalid orchestrator addr in store!")
+			return nil, status.Error(codes.Internal, err.Error())
 		}
 		if reqOrchestrator.Equals(keyOrchestrator) {
 			return &types.QueryDelegateKeyByOrchestratorResponse{ValidatorAddress: key.Validator, EthAddress: key.EthAddress}, nil
 		}
 
 	}
-	return nil, sdkerrors.Wrap(types.ErrInvalid, "No validator")
+	return nil, status.Error(codes.NotFound, "validator")
 }
 
 func (k Keeper) GetDelegateKeyByEth(c context.Context, req *types.QueryDelegateKeyByEthRequest) (*types.QueryDelegateKeyByEthResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	keys := k.GetDelegateKeys(ctx)
 	if err := types.ValidateEthAddressAndValidateChecksum(req.EthAddress); err != nil {
-		return nil, sdkerrors.Wrap(err, "invalid eth address")
+		return nil, status.Error(codes.InvalidArgument, "address")
 	}
 	for _, key := range keys {
 		if req.EthAddress == key.EthAddress {
@@ -244,7 +246,7 @@ func (k Keeper) GetDelegateKeyByEth(c context.Context, req *types.QueryDelegateK
 		}
 
 	}
-	return nil, sdkerrors.Wrap(types.ErrInvalid, "No validator")
+	return nil, status.Error(codes.NotFound, "validator")
 }
 
 func (k Keeper) GetPendingSendToEth(c context.Context, req *types.QueryPendingSendToEthRequest) (*types.QueryPendingSendToEthResponse, error) {
@@ -286,11 +288,11 @@ func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLa
 	ctx := sdk.UnwrapSDKContext(c)
 	addr, err := sdk.AccAddressFromBech32(req.Address)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, req.Address)
+		return nil, status.Error(codes.InvalidArgument, "address")
 	}
 	valAddr, found := k.GetOrchestratorValidator(ctx, addr)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrUnknown, "address")
+		return nil, status.Error(codes.NotFound, "address")
 	}
 	lastEventBlockHeight := k.getLastEventBlockHeightByValidator(ctx, valAddr)
 	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
