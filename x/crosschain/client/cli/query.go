@@ -101,8 +101,7 @@ func CmdGetParams() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			return clientCtx.PrintProto(res)
+			return clientCtx.PrintProto(&res.Params)
 		},
 	}
 
