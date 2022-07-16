@@ -6,6 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/ethereum/go-ethereum/crypto"
+
 	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -38,6 +41,7 @@ func GetQueryCmd() *cobra.Command {
 
 		// query Oracle
 		CmdGetOracles(),
+		CmdGetOracleReward(),
 		CmdGetChainOracles(),
 		CmdGetOracleByAddr(),
 		CmdGetOracleByBridgerAddr(),
@@ -150,6 +154,37 @@ func CmdGetChainOracles() *cobra.Command {
 				return err
 			}
 			return clientCtx.PrintProto(&proposalOracle)
+		},
+	}
+
+	return cmd
+}
+
+func CmdGetOracleReward() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "reward [chain-name] [oracle-address]",
+		Short: "Query oracle reward",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			oracleAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			data := append(oracleAddr.Bytes(), []byte(args[0])...)
+			queryClient := distrtypes.NewQueryClient(clientCtx)
+			rewards, err := queryClient.DelegationTotalRewards(cmd.Context(), &distrtypes.QueryDelegationTotalRewardsRequest{
+				DelegatorAddress: sdk.AccAddress(crypto.Keccak256(data)[12:]).String(),
+			})
+			if err != nil {
+				return err
+			}
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(rewards)
 		},
 	}
 

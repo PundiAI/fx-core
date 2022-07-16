@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Features
+
+* Add query oracle reward in the crosschain module 
+
 ## [v2.1.1] - 2022-07-11
 
 ### Bug Fixes
