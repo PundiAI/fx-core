@@ -1,9 +1,11 @@
 package types
 
 const (
-	EventTypeContractEvnet   = "observation"
-	AttributeKeyClaimType    = "claim_type"
-	AttributeKeyEventNonce   = "event_nonce"
+	EventTypeContractEvnet = "observation"
+	AttributeKeyClaimType  = "claim_type"
+	AttributeKeyEventNonce = "event_nonce"
+	AttributeKeyClaimHash  = "claim_hash"
+
 	AttributeKeyBlockHeight  = "block_height"
 	AttributeKeyStateSuccess = "state_success"
 

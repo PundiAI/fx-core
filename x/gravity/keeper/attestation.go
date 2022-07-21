@@ -99,6 +99,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 					sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 					sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType().String()),
 					sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.GetEventNonce())),
+					sdk.NewAttribute(types.AttributeKeyClaimHash, fmt.Sprint(hex.EncodeToString(claim.ClaimHash()))),
 					sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
 					sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
 				))
@@ -170,7 +171,6 @@ func (k Keeper) GetAttestationMapping(ctx sdk.Context) (out map[uint64][]types.A
 		if err != nil {
 			panic("couldn't cast to claim")
 		}
-
 		if val, ok := out[claim.GetEventNonce()]; !ok {
 			out[claim.GetEventNonce()] = []types.Attestation{att}
 		} else {
