@@ -9,7 +9,7 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -18,8 +18,8 @@ import (
 	"github.com/spf13/cobra"
 	abcitype "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/x/crosschain/types"
-	types2 "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	types2 "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 const (

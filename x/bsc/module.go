@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	fmt "fmt"
 
-	crosschainv020 "github.com/functionx/fx-core/x/crosschain/legacy/v020"
+	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
 
-	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
+	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
 
-	"github.com/functionx/fx-core/x/bsc/types"
-	"github.com/functionx/fx-core/x/crosschain"
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/x/bsc/types"
+	"github.com/functionx/fx-core/v2/x/crosschain"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"

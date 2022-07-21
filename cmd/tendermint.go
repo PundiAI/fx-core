@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/viper"
 	types2 "github.com/tendermint/tendermint/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
-	"github.com/functionx/fx-core/app/cli"
+	"github.com/functionx/fx-core/v2/app/cli"
 
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strconv"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 

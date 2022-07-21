@@ -12,8 +12,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	"github.com/functionx/fx-core/x/ibc/testing/simapp/helpers"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v2/x/ibc/testing/simapp/helpers"
 )
 
 // SignAndDeliver signs and delivers a transaction. No simulation occurs as the

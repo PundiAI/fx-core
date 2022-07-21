@@ -5,7 +5,7 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/v2/app"
 )
 
 func main() {

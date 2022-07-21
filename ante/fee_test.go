@@ -7,9 +7,9 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 
-	"github.com/functionx/fx-core/ante"
+	"github.com/functionx/fx-core/v2/ante"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
 func (suite *AnteTestSuite) TestMempoolFeeDecorator() {

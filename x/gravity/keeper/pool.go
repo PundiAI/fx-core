@@ -11,7 +11,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/libs/math"
 
-	"github.com/functionx/fx-core/x/gravity/types"
+	"github.com/functionx/fx-core/v2/x/gravity/types"
 )
 
 // AddToOutgoingPool

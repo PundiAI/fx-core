@@ -5,7 +5,7 @@ import (
 	"math"
 	"strings"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 
@@ -22,8 +22,8 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	coretypes "github.com/cosmos/ibc-go/v3/modules/core/types"
 
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 const (

@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/app/helpers"
+	"github.com/functionx/fx-core/v2/app/helpers"
 
 	"github.com/ethereum/go-ethereum/crypto"
 
@@ -25,8 +25,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/require"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 )
 
 var (

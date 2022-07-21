@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/functionx/fx-core/x/crosschain/types"
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *types.BridgeToken {

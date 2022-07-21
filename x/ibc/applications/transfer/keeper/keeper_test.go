@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
-	ibctesting "github.com/functionx/fx-core/x/ibc/testing"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	ibctesting "github.com/functionx/fx-core/v2/x/ibc/testing"
 )
 
 type KeeperTestSuite struct {

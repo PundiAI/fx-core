@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/app/helpers"
-	"github.com/functionx/fx-core/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/app/helpers"
+	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,7 +25,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 type CrossChainGrpcTestSuite struct {

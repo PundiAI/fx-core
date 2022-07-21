@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/x/erc20/types"
+	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 
 // RegisterCoin deploys an erc20 contract and creates the token pair for the existing cosmos coin

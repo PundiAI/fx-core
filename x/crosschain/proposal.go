@@ -7,9 +7,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/functionx/fx-core/x/crosschain/keeper"
-	"github.com/functionx/fx-core/x/crosschain/types"
-	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
+	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
 )
 
 func NewChainProposalHandler(k keeper.RouterKeeper) govtypes.Handler {

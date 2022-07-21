@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/app/cli"
+	"github.com/functionx/fx-core/v2/app/cli"
 )
 
 const prefixFlag = "prefix"

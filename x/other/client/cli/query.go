@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/x/other/types"
+	"github.com/functionx/fx-core/v2/x/other/types"
 )
 
 func CmdQueryGasPrice() *cobra.Command {

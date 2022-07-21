@@ -5,7 +5,7 @@ import "fx/crosschain/v1/types.proto";
 import "fx/crosschain/v1/tx.proto";
 package fx.gravity.crosschain.v1;
 
-option go_package = "github.com/functionx/fx-core/x/crosschain/types";
+option go_package = "github.com/functionx/fx-core/v2/x/crosschain/types";
 
 // GenesisState struct
 message GenesisState {

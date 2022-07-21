@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/functionx/fx-core/x/erc20/keeper"
-	"github.com/functionx/fx-core/x/erc20/types"
+	"github.com/functionx/fx-core/v2/x/erc20/keeper"
+	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 
 // NewHandler defines the erc20 module handler instance

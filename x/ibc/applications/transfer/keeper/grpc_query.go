@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

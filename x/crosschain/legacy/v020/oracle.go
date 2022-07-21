@@ -6,9 +6,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	v010 "github.com/functionx/fx-core/x/crosschain/legacy/v010"
-	"github.com/functionx/fx-core/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v010"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey, stakingKeeper StakingKeeper) (types.Oracles, stakingtypes.Validator, error) {

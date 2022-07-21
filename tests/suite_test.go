@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/functionx/fx-core/testutil"
+	"github.com/functionx/fx-core/v2/testutil"
 
-	"github.com/functionx/fx-core/testutil/network"
+	"github.com/functionx/fx-core/v2/testutil/network"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -20,7 +20,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 
-	"github.com/functionx/fx-core/client/jsonrpc"
+	"github.com/functionx/fx-core/v2/client/jsonrpc"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,9 +30,9 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/app/helpers"
-	"github.com/functionx/fx-core/client/grpc"
-	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/v2/app/helpers"
+	"github.com/functionx/fx-core/v2/client/grpc"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
 type TestSuite struct {

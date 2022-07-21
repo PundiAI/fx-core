@@ -3,7 +3,7 @@ package v010
 import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 var ParamOracleDepositThreshold = []byte("OracleDepositThreshold")

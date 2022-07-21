@@ -5,14 +5,14 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
+	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
 
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 )
 
 var _ crosschaintypes.MsgServer = TronMsgServer{}

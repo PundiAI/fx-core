@@ -7,7 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/v2/app"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
@@ -26,8 +26,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	migratekeeper "github.com/functionx/fx-core/v2/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {

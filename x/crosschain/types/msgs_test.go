@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 
-	_ "github.com/functionx/fx-core/app"
+	_ "github.com/functionx/fx-core/v2/app"
 )
 
 func TestMsgBondedOracle_ValidateBasic(t *testing.T) {

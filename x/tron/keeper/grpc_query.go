@@ -8,10 +8,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
-	"github.com/functionx/fx-core/x/tron/types"
+	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v2/x/tron/types"
 
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 var _ crosschaintypes.QueryServer = Keeper{}

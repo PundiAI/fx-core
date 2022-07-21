@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/functionx/fx-core/app/cli"
+	"github.com/functionx/fx-core/v2/app/cli"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/viper"
@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 
-	fxCfg "github.com/functionx/fx-core/server/config"
+	fxCfg "github.com/functionx/fx-core/v2/server/config"
 )
 
 const (

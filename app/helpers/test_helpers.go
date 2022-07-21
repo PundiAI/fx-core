@@ -29,8 +29,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ed255192 "github.com/tendermint/tendermint/crypto/ed25519"
 
-	"github.com/functionx/fx-core/app"
-	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/v2/app"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"

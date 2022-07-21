@@ -8,13 +8,13 @@ import (
 
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/simulation"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/client/cli"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/client/cli"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"

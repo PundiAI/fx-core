@@ -7,16 +7,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/x/ibc/applications/transfer"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer"
 
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
-	_ "github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
-	ibctesting "github.com/functionx/fx-core/x/ibc/testing"
+	_ "github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	ibctesting "github.com/functionx/fx-core/v2/x/ibc/testing"
 )
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {

@@ -6,12 +6,12 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 
-	"github.com/functionx/fx-core/x/gravity/types"
+	"github.com/functionx/fx-core/v2/x/gravity/types"
 )
 
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))

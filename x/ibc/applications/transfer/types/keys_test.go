@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 
 	"github.com/stretchr/testify/require"
 )

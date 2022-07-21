@@ -8,8 +8,8 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/functionx/fx-core/x/crosschain/keeper"
-	"github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 // NewHandler returns a handler for "Gravity" type messages.

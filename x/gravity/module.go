@@ -16,9 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/x/gravity/client/cli"
-	"github.com/functionx/fx-core/x/gravity/keeper"
-	"github.com/functionx/fx-core/x/gravity/types"
+	"github.com/functionx/fx-core/v2/x/gravity/client/cli"
+	"github.com/functionx/fx-core/v2/x/gravity/keeper"
+	"github.com/functionx/fx-core/v2/x/gravity/types"
 )
 
 // type check to ensure the interface is properly implemented

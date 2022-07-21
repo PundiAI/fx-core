@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -15,7 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/functionx/fx-core/x/erc20/types"
+	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 
 // RelayTokenProcessing relay token from evm contract to chain address

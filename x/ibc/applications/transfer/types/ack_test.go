@@ -9,8 +9,8 @@ import (
 	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmstate "github.com/tendermint/tendermint/state"
 
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
-	ibctesting "github.com/functionx/fx-core/x/ibc/testing"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	ibctesting "github.com/functionx/fx-core/v2/x/ibc/testing"
 )
 
 const (

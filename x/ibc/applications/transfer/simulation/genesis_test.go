@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/simulation"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/simulation"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 
 	"github.com/stretchr/testify/require"
 

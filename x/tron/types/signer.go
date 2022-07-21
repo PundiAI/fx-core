@@ -5,7 +5,7 @@ import (
 
 	"github.com/fbsobreira/gotron-sdk/pkg/address"
 
-	"github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/crypto"

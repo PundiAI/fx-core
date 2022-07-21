@@ -3,15 +3,15 @@ package keeper_test
 import (
 	"fmt"
 
-	"github.com/functionx/fx-core/app/helpers"
+	"github.com/functionx/fx-core/v2/app/helpers"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/x/erc20/types"
+	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryERC20() {

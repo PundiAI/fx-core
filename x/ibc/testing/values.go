@@ -7,8 +7,8 @@ package ibctesting
 import (
 	"time"
 
-	_ "github.com/functionx/fx-core/app"
-	fxtypes "github.com/functionx/fx-core/types"
+	_ "github.com/functionx/fx-core/v2/app"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,8 +16,8 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
-	"github.com/functionx/fx-core/x/ibc/testing/mock"
+	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/ibc/testing/mock"
 )
 
 const (

@@ -5,7 +5,7 @@ import (
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	upgrade "github.com/functionx/fx-core/app/upgrades/v020"
+	upgrade "github.com/functionx/fx-core/v2/app/upgrades/v020"
 )
 
 func (app *App) setUpgradeHandler() {

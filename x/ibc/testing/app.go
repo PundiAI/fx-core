@@ -7,10 +7,10 @@ import (
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	fxapp "github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/app/helpers"
-	fxtypes "github.com/functionx/fx-core/types"
-	"github.com/functionx/fx-core/x/ibc/testing/simapp"
+	fxapp "github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v2/x/ibc/testing/simapp"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"

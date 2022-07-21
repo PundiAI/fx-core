@@ -3,8 +3,8 @@ package client
 import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 
-	"github.com/functionx/fx-core/x/erc20/client/cli"
-	"github.com/functionx/fx-core/x/erc20/client/rest"
+	"github.com/functionx/fx-core/v2/x/erc20/client/cli"
+	"github.com/functionx/fx-core/v2/x/erc20/client/rest"
 )
 
 var (

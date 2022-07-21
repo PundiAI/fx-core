@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	"github.com/functionx/fx-core/x/ibc/testing/simapp"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v2/x/ibc/testing/simapp"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -36,7 +36,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 
-	"github.com/functionx/fx-core/x/ibc/testing/mock"
+	"github.com/functionx/fx-core/v2/x/ibc/testing/mock"
 )
 
 var MaxAccounts = 10

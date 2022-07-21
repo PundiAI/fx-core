@@ -15,7 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/functionx/fx-core/x/migrate/types"
+	"github.com/functionx/fx-core/v2/x/migrate/types"
 )
 
 // secp256k1

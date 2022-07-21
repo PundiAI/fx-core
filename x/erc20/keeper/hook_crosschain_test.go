@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/functionx/fx-core/app/helpers"
+	"github.com/functionx/fx-core/v2/app/helpers"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -19,13 +19,13 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/app"
-	fxtypes "github.com/functionx/fx-core/types"
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	"github.com/functionx/fx-core/x/crosschain"
-	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/functionx/fx-core/x/erc20/types"
+	"github.com/functionx/fx-core/v2/app"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	"github.com/functionx/fx-core/v2/x/crosschain"
+	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestHookChainBSC() {

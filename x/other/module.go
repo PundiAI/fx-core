@@ -17,8 +17,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/functionx/fx-core/x/other/keeper"
-	types "github.com/functionx/fx-core/x/other/types"
+	"github.com/functionx/fx-core/v2/x/other/keeper"
+	types "github.com/functionx/fx-core/v2/x/other/types"
 	// this line is used by starport scaffolding # ibc/module/import
 )
 

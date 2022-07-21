@@ -11,8 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/x/migrate/types"
+	_ "github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/x/migrate/types"
 )
 
 func TestMsgMigrateAccountRoute(t *testing.T) {

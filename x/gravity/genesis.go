@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/x/gravity/keeper"
+	"github.com/functionx/fx-core/v2/x/gravity/keeper"
 
-	"github.com/functionx/fx-core/x/gravity/types"
+	"github.com/functionx/fx-core/v2/x/gravity/types"
 )
 
 // InitGenesis starts a chain from a genesis state

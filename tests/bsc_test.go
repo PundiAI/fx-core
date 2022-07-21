@@ -7,12 +7,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/functionx/fx-core/app/helpers"
+	"github.com/functionx/fx-core/v2/app/helpers"
 
 	"github.com/stretchr/testify/suite"
 
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 type BSCTestSuite struct {

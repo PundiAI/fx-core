@@ -6,7 +6,7 @@ import "cosmos/bank/v1beta1/bank.proto";
 import "google/protobuf/duration.proto";
 import "fx/erc20/v1/erc20.proto";
 
-option go_package = "github.com/functionx/fx-core/x/erc20/types";
+option go_package = "github.com/functionx/fx-core/v2/x/erc20/types";
 
 // GenesisState defines the module's genesis state.
 message GenesisState {

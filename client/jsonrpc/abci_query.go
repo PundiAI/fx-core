@@ -11,7 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
+	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
 )
 
 func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {

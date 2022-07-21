@@ -6,8 +6,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 func TestDefaultGenesisState(t *testing.T) {

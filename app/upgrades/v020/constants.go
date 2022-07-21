@@ -13,17 +13,17 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
-	migratetypes "github.com/functionx/fx-core/x/migrate/types"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
+	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
 )
 
 const (

@@ -8,8 +8,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -17,7 +17,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/x/migrate/types"
+	"github.com/functionx/fx-core/v2/x/migrate/types"
 )
 
 func GetTxCmd() *cobra.Command {

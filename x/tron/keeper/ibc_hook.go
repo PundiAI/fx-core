@@ -4,9 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 )
 
 // TransferAfter Hook operation after transfer transaction triggered by IBC module

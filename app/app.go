@@ -10,9 +10,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/gov"
 
-	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
+	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
 
-	ante2 "github.com/functionx/fx-core/ante"
+	ante2 "github.com/functionx/fx-core/v2/ante"
 
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
@@ -20,7 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 
-	othertypes "github.com/functionx/fx-core/x/other/types"
+	othertypes "github.com/functionx/fx-core/v2/x/other/types"
 
 	"github.com/cosmos/cosmos-sdk/server/config"
 
@@ -86,8 +86,8 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	fxgov "github.com/functionx/fx-core/x/gov"
-	fxgovkeeper "github.com/functionx/fx-core/x/gov/keeper"
+	fxgov "github.com/functionx/fx-core/v2/x/gov"
+	fxgovkeeper "github.com/functionx/fx-core/v2/x/gov/keeper"
 
 	ibc "github.com/cosmos/ibc-go/v3/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
@@ -121,27 +121,27 @@ import (
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
-	"github.com/functionx/fx-core/x/crosschain"
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
-	"github.com/functionx/fx-core/x/ibc/applications/transfer"
-	ibctransferkeeper "github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/crosschain"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer"
+	ibctransferkeeper "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
+	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 
-	"github.com/functionx/fx-core/x/gravity"
-	gravitykeeper "github.com/functionx/fx-core/x/gravity/keeper"
-	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
+	"github.com/functionx/fx-core/v2/x/gravity"
+	gravitykeeper "github.com/functionx/fx-core/v2/x/gravity/keeper"
+	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
 
-	"github.com/functionx/fx-core/x/bsc"
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	"github.com/functionx/fx-core/x/polygon"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
+	"github.com/functionx/fx-core/v2/x/bsc"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	"github.com/functionx/fx-core/v2/x/polygon"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
 
-	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
-	"github.com/functionx/fx-core/x/other"
+	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v2/x/other"
 
-	"github.com/functionx/fx-core/x/tron"
-	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	"github.com/functionx/fx-core/v2/x/tron"
+	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 
 	"github.com/evmos/ethermint/x/evm"
 	evmrest "github.com/evmos/ethermint/x/evm/client/rest"
@@ -149,21 +149,21 @@ import (
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 
-	erc20client "github.com/functionx/fx-core/x/erc20/client"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	erc20client "github.com/functionx/fx-core/v2/x/erc20/client"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 
-	migratekeeper "github.com/functionx/fx-core/x/migrate/keeper"
-	migratetypes "github.com/functionx/fx-core/x/migrate/types"
+	migratekeeper "github.com/functionx/fx-core/v2/x/migrate/keeper"
+	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
 
 	srvflags "github.com/evmos/ethermint/server/flags"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	"github.com/functionx/fx-core/x/erc20"
-	"github.com/functionx/fx-core/x/migrate"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v2/x/erc20"
+	"github.com/functionx/fx-core/v2/x/migrate"
 
-	_ "github.com/functionx/fx-core/docs/statik"
+	_ "github.com/functionx/fx-core/v2/docs/statik"
 
 	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"

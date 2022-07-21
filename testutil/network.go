@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/functionx/fx-core/app/helpers"
+	"github.com/functionx/fx-core/v2/app/helpers"
 
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 
@@ -19,10 +19,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/testutil/network"
+	"github.com/functionx/fx-core/v2/testutil/network"
 
-	"github.com/functionx/fx-core/app"
-	fxtypes "github.com/functionx/fx-core/types"
+	"github.com/functionx/fx-core/v2/app"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
 func DefNoSupplyGenesisState(cdc codec.Codec) app.GenesisState {

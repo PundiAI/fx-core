@@ -8,14 +8,14 @@ import (
 
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 
-	ibctransferkeeper "github.com/functionx/fx-core/x/ibc/applications/transfer/keeper"
-	ibctransfertypes "github.com/functionx/fx-core/x/ibc/applications/transfer/types"
+	ibctransferkeeper "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
+	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -25,9 +25,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 
-	migratetypes "github.com/functionx/fx-core/x/migrate/types"
+	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
 
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 
 	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,8 +38,8 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	erc20keeper "github.com/functionx/fx-core/x/erc20/keeper"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2

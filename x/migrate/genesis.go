@@ -4,10 +4,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
-	"github.com/functionx/fx-core/x/migrate/keeper"
-	"github.com/functionx/fx-core/x/migrate/types"
+	"github.com/functionx/fx-core/v2/x/migrate/keeper"
+	"github.com/functionx/fx-core/v2/x/migrate/types"
 )
 
 // InitGenesis import module genesis

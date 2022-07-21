@@ -10,9 +10,9 @@ import (
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
-	migratetypes "github.com/functionx/fx-core/x/migrate/types"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
+	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
 
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -23,7 +23,7 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -40,7 +40,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 
-	otherTypes "github.com/functionx/fx-core/x/other/types"
+	otherTypes "github.com/functionx/fx-core/v2/x/other/types"
 )
 
 const DefGasLimit int64 = 200000

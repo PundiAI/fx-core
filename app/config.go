@@ -3,12 +3,12 @@ package app
 import (
 	"math/big"
 
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

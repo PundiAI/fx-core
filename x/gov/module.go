@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/functionx/fx-core/x/gov/keeper"
+	"github.com/functionx/fx-core/v2/x/gov/keeper"
 )
 
 var (

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	ante2 "github.com/functionx/fx-core/ante"
-	"github.com/functionx/fx-core/app/helpers"
+	ante2 "github.com/functionx/fx-core/v2/ante"
+	"github.com/functionx/fx-core/v2/app/helpers"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -15,7 +15,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/x/evm/statedb"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	"github.com/stretchr/testify/suite"
 
@@ -34,7 +34,7 @@ import (
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/v2/app"
 )
 
 type AnteTestSuite struct {

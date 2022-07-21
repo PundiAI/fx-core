@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/functionx/fx-core/x/other/client/cli"
+	"github.com/functionx/fx-core/v2/x/other/client/cli"
 
-	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/v2/app"
 
 	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/evmos/ethermint/server/config"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 
@@ -38,7 +38,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	appCmd "github.com/functionx/fx-core/app/cli"
+	appCmd "github.com/functionx/fx-core/v2/app/cli"
 )
 
 const envPrefix = "FX"

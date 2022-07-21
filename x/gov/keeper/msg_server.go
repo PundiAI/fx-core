@@ -11,7 +11,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/functionx/fx-core/x/gov/types"
+	"github.com/functionx/fx-core/v2/x/gov/types"
 )
 
 type msgServer struct {

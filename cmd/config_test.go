@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	fxCfg "github.com/functionx/fx-core/server/config"
+	fxCfg "github.com/functionx/fx-core/v2/server/config"
 
 	"github.com/cosmos/cosmos-sdk/client"
 

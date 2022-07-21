@@ -5,10 +5,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/x/gravity/types"
+	"github.com/functionx/fx-core/v2/x/gravity/types"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	crosschaintypes "github.com/functionx/fx-core/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey, toModuleName string) error {

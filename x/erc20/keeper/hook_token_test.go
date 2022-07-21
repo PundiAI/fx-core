@@ -8,8 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	erc20types "github.com/functionx/fx-core/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestHookToken() {

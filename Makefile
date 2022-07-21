@@ -131,7 +131,7 @@ run-local: install
 
 draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
-	@goviz -i github.com/functionx/fx-core/app -d 2 | dot -Tpng -o dependency-graph.png
+	@goviz -i github.com/functionx/fx-core/v2/app -d 2 | dot -Tpng -o dependency-graph.png
 
 .PHONY: build build-win install docker go.sum run-local draw-deps
 
@@ -224,7 +224,7 @@ update-swagger-docs: proto-swagger-gen statik
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/functionx/fx-core
+PACKAGE_NAME:=github.com/functionx/fx-core/v2
 GOLANG_CROSS_VERSION  = v1.18
 GOPATH ?= '$(HOME)/go'
 release-dry-run:

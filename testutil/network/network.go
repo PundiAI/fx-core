@@ -17,7 +17,7 @@ import (
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 
-	fxCfg "github.com/functionx/fx-core/server/config"
+	fxCfg "github.com/functionx/fx-core/v2/server/config"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"

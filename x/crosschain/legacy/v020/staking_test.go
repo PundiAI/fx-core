@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app/helpers"
-	fxtypes "github.com/functionx/fx-core/types"
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	v020 "github.com/functionx/fx-core/x/crosschain/legacy/v020"
-	"github.com/functionx/fx-core/x/crosschain/types"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	"github.com/functionx/fx-core/v2/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	v020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 )
 
 func TestMigrateDepositToStaking(t *testing.T) {

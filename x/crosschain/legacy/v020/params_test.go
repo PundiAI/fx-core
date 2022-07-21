@@ -10,22 +10,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
-	v010 "github.com/functionx/fx-core/x/crosschain/legacy/v010"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
+	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v010"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/app/helpers"
-	fxtypes "github.com/functionx/fx-core/types"
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	v020 "github.com/functionx/fx-core/x/crosschain/legacy/v020"
-	"github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	v020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 func TestMigrateParams(t *testing.T) {

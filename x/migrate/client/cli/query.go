@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/x/migrate/types"
+	"github.com/functionx/fx-core/v2/x/migrate/types"
 )
 
 func GetQueryCmd() *cobra.Command {

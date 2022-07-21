@@ -8,25 +8,25 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
+	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
 
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app/helpers"
+	"github.com/functionx/fx-core/v2/app/helpers"
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 type KeeperTestSuite struct {

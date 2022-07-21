@@ -11,8 +11,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	"github.com/functionx/fx-core/x/migrate/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v2/x/migrate/types"
 )
 
 func (suite *KeeperTestSuite) TestMigrateRecord() {

@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	fxtypes "github.com/functionx/fx-core/types"
-	crosschainkeeper "github.com/functionx/fx-core/x/crosschain/keeper"
-	polygontypes "github.com/functionx/fx-core/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/x/tron/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,12 +17,12 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/app/helpers"
-	bsctypes "github.com/functionx/fx-core/x/bsc/types"
-	v010 "github.com/functionx/fx-core/x/crosschain/legacy/v010"
-	v020 "github.com/functionx/fx-core/x/crosschain/legacy/v020"
-	"github.com/functionx/fx-core/x/crosschain/types"
+	"github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/app/helpers"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v010"
+	v020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 func TestMigrateOracle(t *testing.T) {

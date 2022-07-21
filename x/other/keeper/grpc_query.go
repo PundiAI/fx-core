@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/x/other/types"
+	"github.com/functionx/fx-core/v2/x/other/types"
 )
 
 type Querier struct {

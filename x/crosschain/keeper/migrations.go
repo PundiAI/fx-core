@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v020 "github.com/functionx/fx-core/x/crosschain/legacy/v020"
+	v020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
 )
 
 // Migrator is a struct for handling in-place store migrations.

@@ -6,16 +6,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/functionx/fx-core/testutil"
+	"github.com/functionx/fx-core/v2/testutil"
 
-	"github.com/functionx/fx-core/testutil/network"
+	"github.com/functionx/fx-core/v2/testutil/network"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/app/helpers"
+	"github.com/functionx/fx-core/v2/app/helpers"
 )
 
 type IntegrationTestSuite struct {

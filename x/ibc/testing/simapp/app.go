@@ -10,8 +10,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	fxapp "github.com/functionx/fx-core/app"
-	"github.com/functionx/fx-core/app/helpers"
+	fxapp "github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/app/helpers"
 )
 
 var (

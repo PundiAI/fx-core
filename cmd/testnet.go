@@ -9,19 +9,19 @@ import (
 	"os"
 	"path/filepath"
 
-	fxCfg "github.com/functionx/fx-core/server/config"
+	fxCfg "github.com/functionx/fx-core/v2/server/config"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/functionx/fx-core/app/cli"
+	"github.com/functionx/fx-core/v2/app/cli"
 
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 
-	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/v2/app"
 
-	fxtypes "github.com/functionx/fx-core/types"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

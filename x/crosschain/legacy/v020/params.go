@@ -7,8 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v010 "github.com/functionx/fx-core/x/crosschain/legacy/v010"
-	"github.com/functionx/fx-core/x/crosschain/types"
+	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v010"
+	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) error {
