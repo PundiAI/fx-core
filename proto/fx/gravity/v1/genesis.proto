@@ -8,7 +8,7 @@ import "fx/gravity/v1/batch.proto";
 import "fx/gravity/v1/attestation.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-option go_package = "github.com/functionx/fx-core/v2/x/gravity/types";
+option go_package = "github.com/functionx/fx-core/x/gravity/types";
 
 // Params represent the Gravity genesis and store parameters
 // gravity_id:

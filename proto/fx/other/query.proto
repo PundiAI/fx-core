@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-option go_package = "github.com/functionx/fx-core/v2/x/other/types";
+option go_package = "github.com/functionx/fx-core/x/other/types";
 
 service Query {
   // Deprecated
