@@ -2,10 +2,11 @@ package fxcore
 
 import (
 	"encoding/json"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"math/big"
 	"strings"
 	"time"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibchost "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"

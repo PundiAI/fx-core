@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/functionx/fx-core/app"
 	"os"
 	"path/filepath"
+
+	"github.com/functionx/fx-core/app"
 
 	"github.com/cosmos/cosmos-sdk/client/input"
 

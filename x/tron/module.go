@@ -5,7 +5,6 @@ import (
 	"math/rand"
 
 	"github.com/functionx/fx-core/x/crosschain"
-	"github.com/functionx/fx-core/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -70,9 +69,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 }
 
 // RegisterInterfaces implements app bmodule basic
-func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	types.RegisterValidatorBasic(trontypes.ModuleName, trontypes.MsgValidateBasic{})
-}
+func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {}
 
 //____________________________________________________________________________
 

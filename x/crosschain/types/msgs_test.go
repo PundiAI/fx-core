@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	chainName    = "demo"
+	chainName    = "bsc"
 	depositDenom = "FX"
 )
 
@@ -26,18 +26,13 @@ var (
 	depositAmount = sdk.NewInt(1)
 )
 
-func init() {
-	types.InitMsgValidatorBasicRouter()
-	types.RegisterValidatorBasic(chainName, types.EthereumMsgValidateBasic{})
-}
-
 func TestMsgSetOrchestrator(t *testing.T) {
 	key, _ := crypto.GenerateKey()
 	normalExternalAddress := crypto.PubkeyToAddress(key.PublicKey).Hex()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalOracleAddress := addressBytes.String()
 	normalOrchestratorAddress := addressBytes.String()
-	var err error
+
 	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
 	require.NoError(t, err)
 	testCases := []struct {

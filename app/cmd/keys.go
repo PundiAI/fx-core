@@ -5,6 +5,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"path/filepath"
+	"sort"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -17,9 +21,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/cli"
 	yaml "gopkg.in/yaml.v2"
-	"io"
-	"path/filepath"
-	"sort"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptokeyring "github.com/cosmos/cosmos-sdk/crypto/keyring"

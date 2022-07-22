@@ -28,11 +28,6 @@ var (
 	depositAmount = sdk.NewInt(1)
 )
 
-func init() {
-	types.InitMsgValidatorBasicRouter()
-	types.RegisterValidatorBasic(trontypes.ModuleName, trontypes.MsgValidateBasic{})
-}
-
 func TestMsgSetOrchestrator(t *testing.T) {
 	key, _ := crypto.GenerateKey()
 	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()

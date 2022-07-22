@@ -3,6 +3,11 @@ package fxcore
 import (
 	"math/big"
 
+	bsctypes "github.com/functionx/fx-core/x/bsc/types"
+	"github.com/functionx/fx-core/x/crosschain/types"
+	polygontypes "github.com/functionx/fx-core/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/x/tron/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -19,4 +24,8 @@ func init() {
 
 	// votingPower = delegateToken / sdk.PowerReduction  --  sdk.TokensToConsensusPower(tokens Int)
 	sdk.PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
+
+	types.RegisterValidateBasic(bsctypes.ModuleName, types.EthereumMsgValidateBasic{})
+	types.RegisterValidateBasic(polygontypes.ModuleName, types.EthereumMsgValidateBasic{})
+	types.RegisterValidateBasic(trontypes.ModuleName, trontypes.MsgValidateBasic{})
 }
