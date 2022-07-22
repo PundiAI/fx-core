@@ -32,9 +32,14 @@ const (
 	testnetSupportDenomManyToOneBlock = 3920000
 )
 
-var (
-	SupportDenomManyToOneMsgTypes = []string{"/fx.erc20.v1.MsgConvertDenom", "/fx.erc20.v1.UpdateDenomAliasProposal"}
-)
+// SupportDenomManyToOneMsgTypes return msg types
+// use method return to prevent accidental modification
+func SupportDenomManyToOneMsgTypes() []string {
+	return []string{
+		"/fx.erc20.v1.MsgConvertDenom",
+		"/fx.erc20.v1.UpdateDenomAliasProposal",
+	}
+}
 
 var (
 	chainId = mainnetChainId

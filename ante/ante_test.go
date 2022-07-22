@@ -4,16 +4,15 @@ import (
 	"testing"
 	"time"
 
-	ante2 "github.com/functionx/fx-core/v2/ante"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+
+	fxante "github.com/functionx/fx-core/v2/ante"
 	"github.com/functionx/fx-core/v2/app/helpers"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/evmos/ethermint/x/evm/statedb"
 
 	fxtypes "github.com/functionx/fx-core/v2/types"
 
@@ -40,26 +39,27 @@ import (
 type AnteTestSuite struct {
 	suite.Suite
 
-	ctx         sdk.Context
+	chainId     string
 	app         *app.App
-	clientCtx   client.Context
-	txBuilder   client.TxBuilder
 	anteHandler sdk.AnteHandler
-	ethSigner   ethtypes.Signer
-	checkTx     bool
 
+	ethSigner   ethtypes.Signer
 	privateKey  cryptotypes.PrivKey
-	address     sdk.AccAddress
 	consAddress sdk.ConsAddress
-	signer      keyring.Signer
 }
 
 func TestAnteTestSuite(t *testing.T) {
-	suite.Run(t, &AnteTestSuite{})
+	suite.Run(t, &AnteTestSuite{chainId: fxtypes.Name})
 }
 
-func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
-	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes())))
+//func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
+//	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes())))
+//}
+
+func (suite *AnteTestSuite) GetContext(height int64) sdk.Context {
+	ctx := suite.app.BaseApp.NewContext(false, tmproto.Header{Height: height, ChainID: suite.chainId, ProposerAddress: suite.consAddress, Time: time.Now().UTC()})
+	context, _ := ctx.CacheContext()
+	return context
 }
 
 func (suite *AnteTestSuite) SetupTest() {
@@ -67,62 +67,59 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.app = helpers.Setup(false, false)
 
 	// account key
-	priv := secp256k1.GenPrivKey()
-	suite.address = priv.PubKey().Address().Bytes()
-	suite.signer = helpers.NewSigner(priv)
-	suite.privateKey = priv
+	suite.privateKey = secp256k1.GenPrivKey()
 
 	// consensus key
-	priv = secp256k1.GenPrivKey()
-	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
+	valConsPriv := ed25519.GenPrivKey()
+	suite.consAddress = sdk.ConsAddress(valConsPriv.PubKey().Address())
 
-	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: suite.consAddress, Time: time.Now().UTC()})
-	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
-	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
+	ctx := suite.GetContext(1)
+	ctx = ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
+	ctx = ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
+	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 
-	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
+	suite.app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
 
-	valAddr := sdk.ValAddress(suite.address.Bytes())
-	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
+	valAddr := sdk.ValAddress(suite.GetAccAddress().Bytes())
+	validator, err := stakingtypes.NewValidator(valAddr, valConsPriv.PubKey(), stakingtypes.Description{})
 	suite.Require().NoError(err)
-	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
+
+	err = suite.app.StakingKeeper.SetValidatorByConsAddr(ctx, validator)
 	suite.Require().NoError(err)
-	suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
+	suite.app.StakingKeeper.SetValidator(ctx, validator)
 
 	encodingConfig := app.MakeEncodingConfig()
-
 	// We're using TestMsg amino encoding in some tests, so register it here.
 	encodingConfig.Amino.RegisterConcrete(&testdata.TestMsg{}, "testdata.TestMsg", nil)
 
-	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
-
-	options := ante2.HandlerOptions{
+	options := fxante.HandlerOptions{
 		AccountKeeper:   suite.app.AccountKeeper,
 		BankKeeper:      suite.app.BankKeeper,
 		EvmKeeper:       suite.app.EvmKeeper,
 		FeeMarketKeeper: suite.app.FeeMarketKeeper,
 		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:  ante2.DefaultSigVerificationGasConsumer,
+		SigGasConsumer:  fxante.DefaultSigVerificationGasConsumer,
 	}
 	suite.Require().NoError(options.Validate())
-	suite.anteHandler = ante2.NewAnteHandler(options)
-	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	suite.anteHandler = fxante.NewAnteHandler(options)
+}
+
+func (suite *AnteTestSuite) GetAccAddress() sdk.AccAddress {
+	return suite.privateKey.PubKey().Address().Bytes()
+}
+
+func NewClientCtx() client.Context {
+	encodingConfig := app.MakeEncodingConfig()
+	return client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 }
 
 // CreateTestTx is a helper function to create a tx given multiple inputs.
-func (suite *AnteTestSuite) CreateTestTx(
-	msg *evmtypes.MsgEthereumTx, priv cryptotypes.PrivKey, accNum uint64, signCosmosTx bool,
-	unsetExtensionOptions ...bool,
-) authsigning.Tx {
-	return suite.CreateTestTxBuilder(msg, priv, accNum, signCosmosTx, unsetExtensionOptions...).GetTx()
+func (suite *AnteTestSuite) CreateTestTx(cliCtx client.Context, msg *evmtypes.MsgEthereumTx, priv cryptotypes.PrivKey, accNum uint64, signCosmosTx bool, unsetExtensionOptions ...bool) authsigning.Tx {
+	return suite.CreateTestTxBuilder(cliCtx, msg, priv, accNum, signCosmosTx, unsetExtensionOptions...).GetTx()
 }
 
 // CreateTestTxBuilder is a helper function to create a tx builder given multiple inputs.
-func (suite *AnteTestSuite) CreateTestTxBuilder(
-	msg *evmtypes.MsgEthereumTx, priv cryptotypes.PrivKey, accNum uint64, signCosmosTx bool,
-	unsetExtensionOptions ...bool,
-) client.TxBuilder {
+func (suite *AnteTestSuite) CreateTestTxBuilder(cliCtx client.Context, msg *evmtypes.MsgEthereumTx, priv cryptotypes.PrivKey, accNum uint64, signCosmosTx bool, unsetExtensionOptions ...bool) client.TxBuilder {
 	var option *codectypes.Any
 	var err error
 	if len(unsetExtensionOptions) == 0 {
@@ -130,7 +127,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 		suite.Require().NoError(err)
 	}
 
-	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
+	txBuilder := cliCtx.TxConfig.NewTxBuilder()
 	builder, ok := txBuilder.(authtx.ExtensionOptionsTxBuilder)
 	suite.Require().True(ok)
 
@@ -138,7 +135,8 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 		builder.SetExtensionOptions(option)
 	}
 
-	err = msg.Sign(suite.ethSigner, helpers.NewSigner(priv))
+	ethSigner := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	err = msg.Sign(ethSigner, helpers.NewSigner(priv))
 	suite.Require().NoError(err)
 
 	err = builder.SetMsgs(msg)
@@ -157,7 +155,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 		sigV2 := signing.SignatureV2{
 			PubKey: priv.PubKey(),
 			Data: &signing.SingleSignatureData{
-				SignMode:  suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+				SignMode:  cliCtx.TxConfig.SignModeHandler().DefaultMode(),
 				Signature: nil,
 			},
 			Sequence: txData.GetNonce(),
@@ -171,13 +169,13 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 		// Second round: all signer infos are set, so each signer can sign.
 
 		signerData := authsigning.SignerData{
-			ChainID:       suite.ctx.ChainID(),
+			ChainID:       suite.chainId,
 			AccountNumber: accNum,
 			Sequence:      txData.GetNonce(),
 		}
 		sigV2, err = tx.SignWithPrivKey(
-			suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(), signerData,
-			txBuilder, priv, suite.clientCtx.TxConfig, txData.GetNonce(),
+			cliCtx.TxConfig.SignModeHandler().DefaultMode(), signerData,
+			txBuilder, priv, cliCtx.TxConfig, txData.GetNonce(),
 		)
 		suite.Require().NoError(err)
 
@@ -190,13 +188,15 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 	return txBuilder
 }
 
-func (suite *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNums []uint64, accSeqs []uint64, chainID string) (authsigning.Tx, error) {
+func (suite *AnteTestSuite) CreateEmptyTestTx(txBuilder client.TxBuilder, privs []cryptotypes.PrivKey, accNums []uint64, accSeqs []uint64) (authsigning.Tx, error) {
+	cliCtx := NewClientCtx()
+	signMode := cliCtx.TxConfig.SignModeHandler().DefaultMode()
 	var sigsV2 []signing.SignatureV2
 	for i, priv := range privs {
 		sigV2 := signing.SignatureV2{
 			PubKey: priv.PubKey(),
 			Data: &signing.SingleSignatureData{
-				SignMode:  suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+				SignMode:  signMode,
 				Signature: nil,
 			},
 			Sequence: accSeqs[i],
@@ -205,23 +205,23 @@ func (suite *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNu
 		sigsV2 = append(sigsV2, sigV2)
 	}
 
-	if err := suite.txBuilder.SetSignatures(sigsV2...); err != nil {
+	if err := txBuilder.SetSignatures(sigsV2...); err != nil {
 		return nil, err
 	}
 
 	sigsV2 = []signing.SignatureV2{}
 	for i, priv := range privs {
 		signerData := authsigning.SignerData{
-			ChainID:       chainID,
+			ChainID:       suite.chainId,
 			AccountNumber: accNums[i],
 			Sequence:      accSeqs[i],
 		}
 		sigV2, err := tx.SignWithPrivKey(
-			suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+			signMode,
 			signerData,
-			suite.txBuilder,
+			txBuilder,
 			priv,
-			suite.clientCtx.TxConfig,
+			cliCtx.TxConfig,
 			accSeqs[i],
 		)
 		if err != nil {
@@ -231,11 +231,11 @@ func (suite *AnteTestSuite) CreateEmptyTestTx(privs []cryptotypes.PrivKey, accNu
 		sigsV2 = append(sigsV2, sigV2)
 	}
 
-	if err := suite.txBuilder.SetSignatures(sigsV2...); err != nil {
+	if err := txBuilder.SetSignatures(sigsV2...); err != nil {
 		return nil, err
 	}
 
-	return suite.txBuilder.GetTx(), nil
+	return txBuilder.GetTx(), nil
 }
 
 var _ sdk.Tx = &invalidTx{}

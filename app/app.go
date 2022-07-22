@@ -12,7 +12,7 @@ import (
 
 	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
 
-	ante2 "github.com/functionx/fx-core/v2/ante"
+	fxante "github.com/functionx/fx-core/v2/ante"
 
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
@@ -712,16 +712,16 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
 	interceptMsgTypes := map[int64][]string{
-		fxtypes.SupportDenomManyToOneBlock(): fxtypes.SupportDenomManyToOneMsgTypes,
+		fxtypes.SupportDenomManyToOneBlock(): fxtypes.SupportDenomManyToOneMsgTypes(),
 	}
-	anteOptions := ante2.HandlerOptions{
+	anteOptions := fxante.HandlerOptions{
 		AccountKeeper:        myApp.AccountKeeper,
 		BankKeeper:           myApp.BankKeeper,
 		EvmKeeper:            myApp.EvmKeeper,
 		FeeMarketKeeper:      myApp.FeeMarketKeeper,
 		IbcKeeper:            myApp.IBCKeeper,
 		SignModeHandler:      encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:       ante2.DefaultSigVerificationGasConsumer,
+		SigGasConsumer:       fxante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:       maxGasWanted,
 		BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(fxtypes.BypassMinFeeMsgTypesKey)),
 		InterceptMsgTypes:    interceptMsgTypes,
@@ -731,7 +731,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		panic(fmt.Errorf("failed to ante options validate: %s", err))
 	}
 
-	myApp.SetAnteHandler(ante2.NewAnteHandler(anteOptions))
+	myApp.SetAnteHandler(fxante.NewAnteHandler(anteOptions))
 	myApp.SetInitChainer(myApp.InitChainer)
 	myApp.SetBeginBlocker(myApp.BeginBlocker)
 	myApp.SetEndBlocker(myApp.EndBlocker)

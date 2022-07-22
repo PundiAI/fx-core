@@ -65,7 +65,7 @@ func newNormalTxAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		NewRejectExtensionOptionsDecorator(),
-		NewMsgTypesInterceptDecorator(options.InterceptMsgTypes),
+		NewMsgInterceptDecorator(options.InterceptMsgTypes),
 		NewMempoolFeeDecorator(options.BypassMinFeeMsgTypes),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),

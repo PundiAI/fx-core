@@ -163,7 +163,7 @@ func signatureDataToBz(data signing.SignatureData) ([][]byte, error) {
 	}
 }
 
-// Consume parameter-defined amount of gas for each signature according to the passed-in SignatureVerificationGasConsumer function
+// SigGasConsumeDecorator Consume parameter-defined amount of gas for each signature according to the passed-in SignatureVerificationGasConsumer function
 // before calling the next AnteHandler
 // CONTRACT: Pubkeys are set in context for all signers before this decorator runs
 // CONTRACT: Tx must implement SigVerifiableTx interface
@@ -226,15 +226,15 @@ func (sgcd SigGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	return next(ctx, tx, simulate)
 }
 
-type MsgTypesInterceptDecorator struct {
+type MsgInterceptDecorator struct {
 	InterceptMsgTypes map[int64][]string
 }
 
-func NewMsgTypesInterceptDecorator(interceptMsgTypes map[int64][]string) MsgTypesInterceptDecorator {
-	return MsgTypesInterceptDecorator{InterceptMsgTypes: interceptMsgTypes}
+func NewMsgInterceptDecorator(interceptMsgTypes map[int64][]string) MsgInterceptDecorator {
+	return MsgInterceptDecorator{InterceptMsgTypes: interceptMsgTypes}
 }
 
-func (mid MsgTypesInterceptDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+func (mid MsgInterceptDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	currentHeight := ctx.BlockHeight()
 
 	validateTypes := make([]string, 0, 10)
