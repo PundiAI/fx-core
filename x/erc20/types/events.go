@@ -10,6 +10,7 @@ import (
 const (
 	EventTypeConvertCoin      = "convert_coin"
 	EventTypeConvertERC20     = "convert_erc20"
+	EventTypeConvertDenom     = "convert_denom"
 	EventTypeRegisterCoin     = "register_coin"
 	EventTypeRegisterERC20    = "register_erc20"
 	EventTypeToggleTokenRelay = "toggle_token_relay"
@@ -19,6 +20,9 @@ const (
 	AttributeKeyTokenAddress = "token_address"
 	AttributeKeyReceiver     = "receiver"
 	AttributeKeyEvmTxHash    = "evm_tx_hash"
+	AttributeKeyTargetDenom  = "target_coin"
+	AttributeKeyAlias        = "alias"
+	AttributeKeyUpdateFlag   = "update_flag"
 
 	ERC20EventTransfer = "Transfer"
 )

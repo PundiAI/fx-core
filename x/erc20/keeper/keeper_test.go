@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -50,22 +52,49 @@ const (
 	PurseDenom = "ibc/F08B62C2C1BE9E52942617489CAB1E94537FE3849F8EEC910B142468C340EB0D"
 )
 
+var (
+	usdtMatedata = banktypes.Metadata{
+		Description: "description of the token",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "usdt",
+				Exponent: uint32(0),
+				Aliases:  []string{tronDenom, polygonDenom},
+			}, {
+				Denom:    "USDT",
+				Exponent: uint32(18),
+			},
+		},
+		Base:    "usdt",
+		Display: "usdt",
+		Name:    "Tether USD",
+		Symbol:  "USDT",
+	}
+	pair = &types.TokenPair{
+		Erc20Address:  "0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265",
+		Denom:         "usdt",
+		Enabled:       true,
+		ContractOwner: 1,
+	}
+)
+
 type KeeperTestSuite struct {
 	suite.Suite
 
-	ctx              sdk.Context
-	app              *app.App
-	queryClientEvm   evm.QueryClient
-	queryClient      types.QueryClient
-	address          common.Address
-	consAddress      sdk.ConsAddress
-	clientCtx        client.Context
-	ethSigner        ethereumtypes.Signer
-	signer           keyring.Signer
-	mintFeeCollector bool
-	privateKey       cryptotypes.PrivKey
-	checkTx          bool
-	purseBalance     sdk.Int
+	ctx                   sdk.Context
+	app                   *app.App
+	queryClientEvm        evm.QueryClient
+	queryClient           types.QueryClient
+	address               common.Address
+	consAddress           sdk.ConsAddress
+	clientCtx             client.Context
+	ethSigner             ethereumtypes.Signer
+	signer                keyring.Signer
+	mintFeeCollector      bool
+	privateKey            cryptotypes.PrivKey
+	checkTx               bool
+	purseBalance          sdk.Int
+	supportManyToOneBlock bool
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -150,6 +179,11 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
 		require.NoError(t, err)
 	}
+
+	if suite.supportManyToOneBlock {
+		suite.ctx = suite.ctx.WithBlockHeight(fxtypes.SupportDenomManyToOneBlock() + 1)
+	}
+
 }
 
 func (suite *KeeperTestSuite) SetupTest() {

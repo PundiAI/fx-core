@@ -28,4 +28,9 @@ const (
 	AttributeKeyIbcSourceChannel = "ibc_source_channel"
 
 	EventTypeEvmTransfer = "evm_transfer"
+
+	EventTypeConvertDenom  = "convert_denom"
+	AttributeKeyAddress    = "address"
+	AttributeKeyCoin       = "coin"
+	AttributeKeyTargetCoin = "target_coin"
 )

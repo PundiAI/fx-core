@@ -32,6 +32,7 @@ const (
 	prefixTokenPairByERC20
 	prefixTokenPairByDenom
 	prefixIBCTransfer
+	prefixAliasDenom
 )
 
 // KVStore key prefixes
@@ -40,6 +41,7 @@ var (
 	KeyPrefixTokenPairByERC20 = []byte{prefixTokenPairByERC20}
 	KeyPrefixTokenPairByDenom = []byte{prefixTokenPairByDenom}
 	KeyPrefixIBCTransfer      = []byte{prefixIBCTransfer}
+	KeyPrefixAliasDenom       = []byte{prefixAliasDenom}
 )
 
 //GetIBCTransferKey [sourcePort/sourceChannel/sequence]

@@ -23,6 +23,7 @@ type HandlerOptions struct {
 	SigGasConsumer       ante.SignatureVerificationGasConsumer
 	MaxTxGasWanted       uint64
 	BypassMinFeeMsgTypes []string
+	InterceptMsgTypes    map[int64][]string
 }
 
 func (options HandlerOptions) Validate() error {
@@ -64,6 +65,7 @@ func newNormalTxAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		NewRejectExtensionOptionsDecorator(),
+		NewMsgTypesInterceptDecorator(options.InterceptMsgTypes),
 		NewMempoolFeeDecorator(options.BypassMinFeeMsgTypes),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),

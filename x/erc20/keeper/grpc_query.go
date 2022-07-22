@@ -84,3 +84,52 @@ func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 	params := k.GetParams(ctx)
 	return &types.QueryParamsResponse{Params: params}, nil
 }
+
+// DenomAliases returns denom aliases
+func (k Keeper) DenomAliases(c context.Context, req *types.QueryDenomAliasesRequest) (*types.QueryDenomAliasesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	//check if it is a valid SDK denom
+	if err := sdk.ValidateDenom(req.Denom); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid format for denom %s", req.Denom)
+	}
+
+	if !k.IsDenomRegistered(ctx, req.Denom) {
+		return nil, status.Errorf(codes.NotFound, "not registered with denom '%s'", req.Denom)
+	}
+
+	md, found := k.bankKeeper.GetDenomMetaData(ctx, req.Denom)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "metadata with token '%s'", req.Denom)
+	}
+
+	if !types.IsManyToOneMetadata(md) {
+		return nil, status.Errorf(codes.InvalidArgument, "not support alias with token '%s'", req.Denom)
+	}
+
+	return &types.QueryDenomAliasesResponse{Aliases: md.DenomUnits[0].Aliases}, nil
+}
+
+// AliasDenom returns alias denom
+func (k Keeper) AliasDenom(c context.Context, req *types.QueryAliasDenomRequest) (*types.QueryAliasDenomResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// check if it is a valid SDK denom
+	if err := sdk.ValidateDenom(req.Alias); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid format for token %s", req.Alias)
+	}
+
+	aliasDenomBytes := k.GetAliasDenom(ctx, req.Alias)
+	if len(aliasDenomBytes) == 0 {
+		return nil, status.Errorf(codes.NotFound, "denom with alias '%s'", req.Alias)
+	}
+
+	return &types.QueryAliasDenomResponse{Denom: string(aliasDenomBytes)}, nil
+}

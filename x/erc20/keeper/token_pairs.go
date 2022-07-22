@@ -5,6 +5,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
+
 	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 
@@ -66,6 +68,14 @@ func (k Keeper) DeleteTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	k.deleteTokenPair(ctx, id)
 	k.deleteERC20Map(ctx, tokenPair.GetERC20Contract())
 	k.deleteDenomMap(ctx, tokenPair.Denom)
+
+	//after support many to one, delete denom with alias
+	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() {
+		md, found := k.bankKeeper.GetDenomMetaData(ctx, tokenPair.Denom)
+		if found && types.IsManyToOneMetadata(md) {
+			k.deleteAliasesDenom(ctx, md.DenomUnits[0].Aliases...)
+		}
+	}
 }
 
 // deleteTokenPair deletes the token pair for the given id
@@ -126,4 +136,32 @@ func (k Keeper) IsERC20Registered(ctx sdk.Context, erc20 common.Address) bool {
 func (k Keeper) IsDenomRegistered(ctx sdk.Context, denom string) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByDenom)
 	return store.Has([]byte(denom))
+}
+
+// SetAliasesDenom sets the aliases for the denomination
+func (k Keeper) SetAliasesDenom(ctx sdk.Context, denom string, aliases ...string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
+	for _, alias := range aliases {
+		store.Set([]byte(alias), []byte(denom))
+	}
+}
+
+// GetAliasDenom returns the denom for the given alias
+func (k Keeper) GetAliasDenom(ctx sdk.Context, alias string) []byte {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
+	return store.Get([]byte(alias))
+}
+
+// deleteAliasesDenom deletes the denom-alias for the given alias
+func (k Keeper) deleteAliasesDenom(ctx sdk.Context, aliases ...string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
+	for _, alias := range aliases {
+		store.Delete([]byte(alias))
+	}
+}
+
+// IsAliasDenomRegistered check if registered coin alias is registered
+func (k Keeper) IsAliasDenomRegistered(ctx sdk.Context, alias string) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
+	return store.Has([]byte(alias))
 }

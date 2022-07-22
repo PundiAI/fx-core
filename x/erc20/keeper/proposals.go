@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	fxtypes "github.com/functionx/fx-core/v2/types"
@@ -25,29 +26,10 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
 	}
 
-	//description use for name
-	name := coinMetadata.Name
-	//display use for symbol
-	symbol := coinMetadata.Symbol
-	//decimals
-	decimals := uint8(0)
-	for _, du := range coinMetadata.DenomUnits {
-		if du.Denom == symbol {
-			decimals = uint8(du.Exponent)
-			break
-		}
-	}
-	if coinMetadata.Base == fxtypes.DefaultDenom {
-		decimals = fxtypes.BaseDenomUnit
-	}
-	if len(name) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid name")
-	}
-	if len(symbol) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid symbol")
-	}
-	if decimals == 0 {
-		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "invalid symbol denom exponent")
+	// erc20 metadata
+	name, symbol, decimals, err := erc20Metadata(coinMetadata)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, err.Error())
 	}
 
 	// check if the denomination already registered
@@ -67,6 +49,30 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == fxtypes.DefaultDenom)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
+	}
+
+	//many-for-one upgrade
+	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() {
+		if types.IsManyToOneMetadata(coinMetadata) {
+			baseAliases := coinMetadata.DenomUnits[0].Aliases
+			for _, alias := range baseAliases {
+				if alias == coinMetadata.Base || alias == coinMetadata.Display || alias == coinMetadata.Symbol {
+					return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "alias can not equal base, display or symbol")
+				}
+				if k.IsDenomRegistered(ctx, alias) {
+					return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", alias)
+				}
+				// alias must not register
+				if k.IsAliasDenomRegistered(ctx, alias) {
+					return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "alias %s already registered", alias)
+				}
+			}
+			k.SetAliasesDenom(ctx, coinMetadata.Base, baseAliases...)
+		} else {
+			if k.IsAliasDenomRegistered(ctx, coinMetadata.Base) {
+				return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", coinMetadata.Base)
+			}
+		}
 	}
 
 	pair := types.NewTokenPair(addr, coinMetadata.Base, true, types.OWNER_MODULE)
@@ -210,6 +216,62 @@ func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, err
 	return pair, nil
 }
 
+// UpdateDenomAlias update denom alias
+// if alias not registered, add to denom alias
+// if alias registered with denom, remove from denom alias
+// if alias registered, but not with denom, return error
+func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, error) {
+	// check if the denom denomination already registered
+	if !k.IsDenomRegistered(ctx, denom) {
+		return false, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination not registered: %s", denom)
+	}
+	// check if the alias not registered
+	if k.IsDenomRegistered(ctx, alias) {
+		return false, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", alias)
+	}
+	// query denom metadata
+	md, found := k.bankKeeper.GetDenomMetaData(ctx, denom)
+	if !found {
+		return false, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s metadata not found", denom)
+	}
+	if !types.IsManyToOneMetadata(md) {
+		return false, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s not support update denom aliases", denom)
+	}
+
+	oldAliases := md.DenomUnits[0].Aliases
+	newAliases := make([]string, 0, len(oldAliases)+1)
+
+	aliasDenomRegistered := k.GetAliasDenom(ctx, alias)
+	//check if the alias not register denom-alias
+	if len(aliasDenomRegistered) == 0 {
+		newAliases = append(newAliases, alias)
+		k.SetAliasesDenom(ctx, denom, alias)
+	} else if string(aliasDenomRegistered) == denom {
+		// check if the denom equal alias registered denom
+		for _, denomAlias := range oldAliases {
+			if denomAlias == alias {
+				continue
+			}
+			newAliases = append(newAliases, denomAlias)
+		}
+		if len(newAliases) == 0 {
+			return false, sdkerrors.Wrapf(types.ErrInvalidDenom, "can not remove, alias %s is the last one", alias)
+		}
+		k.deleteAliasesDenom(ctx, alias)
+	} else {
+		//check if denom not equal alias registered denom, return error
+		return false, sdkerrors.Wrapf(types.ErrInvalidDenom,
+			"alias %s already registered, but denom expected: %s, actual: %s",
+			alias, string(aliasDenomRegistered), denom)
+	}
+
+	md.DenomUnits[0].Aliases = newAliases
+	k.bankKeeper.SetDenomMetaData(ctx, md)
+
+	addFlag := len(newAliases) > len(oldAliases)
+	return addFlag, nil
+}
+
 func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8, origin bool) (common.Address, error) {
 	tokenContract := fxtypes.GetERC20()
 	if origin {
@@ -272,4 +334,32 @@ func WrappedOriginDenom(name, symbol string) (fxtypes.Contract, string, string) 
 	wrappedSymbol := fmt.Sprintf("W%s", symbol)
 
 	return contract, wrappedName, wrappedSymbol
+}
+
+func erc20Metadata(md banktypes.Metadata) (name, symbol string, decimals uint8, err error) {
+	//description use for name
+	name = md.Name
+	//display use for symbol
+	symbol = md.Symbol
+	//decimals
+	decimals = uint8(0)
+	for _, du := range md.DenomUnits {
+		if du.Denom == symbol {
+			decimals = uint8(du.Exponent)
+			break
+		}
+	}
+	if md.Base == fxtypes.DefaultDenom {
+		decimals = fxtypes.BaseDenomUnit
+	}
+	if len(name) == 0 {
+		return "", "", 0, errors.New("invalid name")
+	}
+	if len(symbol) == 0 {
+		return "", "", 0, errors.New("invalid symbol")
+	}
+	if decimals == 0 {
+		return "", "", 0, errors.New("invalid symbol denom exponent")
+	}
+	return name, symbol, decimals, nil
 }

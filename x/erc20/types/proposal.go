@@ -22,6 +22,7 @@ const (
 	ProposalTypeRegisterCoin          string = "RegisterCoin"
 	ProposalTypeRegisterERC20         string = "RegisterERC20"
 	ProposalTypeToggleTokenConversion string = "ToggleTokenConversion" // #nosec
+	ProposalTypeUpdateDenomAlias      string = "UpdateDenomAlias"
 )
 
 // Implements Proposal Interface
@@ -29,15 +30,18 @@ var (
 	_ govtypes.Content = &RegisterCoinProposal{}
 	_ govtypes.Content = &RegisterERC20Proposal{}
 	_ govtypes.Content = &ToggleTokenConversionProposal{}
+	_ govtypes.Content = &UpdateDenomAliasProposal{}
 )
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeRegisterCoin)
 	govtypes.RegisterProposalType(ProposalTypeRegisterERC20)
 	govtypes.RegisterProposalType(ProposalTypeToggleTokenConversion)
+	govtypes.RegisterProposalType(ProposalTypeUpdateDenomAlias)
 	govtypes.RegisterProposalTypeCodec(&RegisterCoinProposal{}, "erc20/RegisterCoinProposal")
 	govtypes.RegisterProposalTypeCodec(&RegisterERC20Proposal{}, "erc20/RegisterERC20Proposal")
 	govtypes.RegisterProposalTypeCodec(&ToggleTokenConversionProposal{}, "erc20/ToggleTokenConversionProposal")
+	govtypes.RegisterProposalTypeCodec(&UpdateDenomAliasProposal{}, "erc20/UpdateDenomAliasProposal")
 }
 
 // CreateDenomDescription generates a string with the coin description
@@ -165,4 +169,33 @@ func (etrp *ToggleTokenConversionProposal) ValidateBasic() error {
 	}
 
 	return govtypes.ValidateAbstract(etrp)
+}
+
+// NewUpdateDenomAliasProposal returns new instance of UpdateDenomAliasProposal
+func NewUpdateDenomAliasProposal(title, description string, denom, alias string) govtypes.Content {
+	return &UpdateDenomAliasProposal{
+		Title:       title,
+		Description: description,
+		Denom:       denom,
+		Alias:       alias,
+	}
+}
+
+// ProposalRoute returns router key for this proposal
+func (*UpdateDenomAliasProposal) ProposalRoute() string { return RouterKey }
+
+// ProposalType returns proposal type for this proposal
+func (*UpdateDenomAliasProposal) ProposalType() string {
+	return ProposalTypeUpdateDenomAlias
+}
+
+// ValidateBasic performs a stateless check of the proposal fields
+func (udap *UpdateDenomAliasProposal) ValidateBasic() error {
+	if err := sdk.ValidateDenom(udap.Denom); err != nil {
+		return err
+	}
+	if err := sdk.ValidateDenom(udap.Alias); err != nil {
+		return err
+	}
+	return govtypes.ValidateAbstract(udap)
 }

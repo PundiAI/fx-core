@@ -179,6 +179,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		erc20client.RegisterCoinProposalHandler,
 		erc20client.RegisterERC20ProposalHandler,
 		erc20client.ToggleTokenConversionProposalHandler,
+		erc20client.UpdateDenomAliasProposalHandler,
 	}
 }
 
@@ -710,6 +711,9 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.MountMemoryStores(memKeys)
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
+	interceptMsgTypes := map[int64][]string{
+		fxtypes.SupportDenomManyToOneBlock(): fxtypes.SupportDenomManyToOneMsgTypes,
+	}
 	anteOptions := ante2.HandlerOptions{
 		AccountKeeper:        myApp.AccountKeeper,
 		BankKeeper:           myApp.BankKeeper,
@@ -720,6 +724,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		SigGasConsumer:       ante2.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:       maxGasWanted,
 		BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(fxtypes.BypassMinFeeMsgTypesKey)),
+		InterceptMsgTypes:    interceptMsgTypes,
 	}
 
 	if err := anteOptions.Validate(); err != nil {

@@ -6,6 +6,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	tmstrings "github.com/tendermint/tendermint/libs/strings"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -217,6 +220,41 @@ func (sgcd SigGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 
 		if err = sgcd.sigGasConsumer(ctx.GasMeter(), sig, params); err != nil {
 			return ctx, err
+		}
+	}
+
+	return next(ctx, tx, simulate)
+}
+
+type MsgTypesInterceptDecorator struct {
+	InterceptMsgTypes map[int64][]string
+}
+
+func NewMsgTypesInterceptDecorator(interceptMsgTypes map[int64][]string) MsgTypesInterceptDecorator {
+	return MsgTypesInterceptDecorator{InterceptMsgTypes: interceptMsgTypes}
+}
+
+func (mid MsgTypesInterceptDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	currentHeight := ctx.BlockHeight()
+
+	validateTypes := make([]string, 0, 10)
+	for supportHeight, types := range mid.InterceptMsgTypes {
+		//before support height, intercept msg
+		if currentHeight < supportHeight {
+			validateTypes = append(validateTypes, types...)
+		}
+	}
+
+	for _, m := range tx.GetMsgs() {
+		var msgTypeURL string
+		switch msg := m.(type) {
+		case *govtypes.MsgSubmitProposal:
+			msgTypeURL = msg.Content.GetTypeUrl()
+		default:
+			msgTypeURL = sdk.MsgTypeURL(m)
+		}
+		if tmstrings.StringInSlice(msgTypeURL, validateTypes) {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "msg type %s not support", msgTypeURL)
 		}
 	}
 

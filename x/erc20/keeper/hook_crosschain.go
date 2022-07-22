@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -16,6 +17,7 @@ import (
 )
 
 func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {
+	logger := k.Logger(ctx)
 	fip20ABI := fxtypes.GetERC20().ABI
 	for _, log := range receipt.Logs {
 		tc, isOk, err := fxtypes.ParseTransferCrossChainEvent(fip20ABI, log)
@@ -29,7 +31,7 @@ func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.A
 		if !found {
 			continue
 		}
-		k.Logger(ctx).Info("transfer cross", "tx-hash", receipt.TxHash.Hex(), "from", from.Hex(), "to", to.Hex(), "token", pair.Erc20Address, "denom", pair.Denom)
+		logger.Info("transfer cross", "tx-hash", receipt.TxHash.Hex(), "from", from.Hex(), "to", to.Hex(), "token", pair.Erc20Address, "denom", pair.Denom)
 
 		balances := k.bankKeeper.GetAllBalances(ctx, tc.From.Bytes())
 		if !balances.IsAllGTE(tc.TotalAmount(pair.Denom)) {
@@ -46,10 +48,10 @@ func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.A
 			err = fmt.Errorf("traget unknown %d", targetType)
 		}
 		if err != nil {
-			k.Logger(ctx).Error("failed to transfer cross chain", "tx-hash", receipt.TxHash.Hex(), "error", err.Error())
+			logger.Error("failed to transfer cross chain", "tx-hash", receipt.TxHash.Hex(), "error", err.Error())
 			return err
 		}
-		k.Logger(ctx).Info("transfer cross chain success", "tx-hash", receipt.TxHash.Hex())
+		logger.Info("transfer cross chain success", "tx-hash", receipt.TxHash.Hex())
 
 		telemetry.IncrCounterWithLabels(
 			[]string{types.ModuleName, "relay_transfer_cross_chain"},
@@ -72,17 +74,34 @@ func (k Keeper) TransferChainHandler(ctx sdk.Context, from sdk.AccAddress, to st
 	if router == nil || !router.HasRoute(target) {
 		return fmt.Errorf("target %s not support", target)
 	}
+	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() {
+		needConvert, err := k.IsManyToOneDenom(ctx, amount.Denom)
+		if err != nil {
+			return err
+		}
+		if needConvert {
+			targetCoin, err := k.convertDenomToMany(ctx, from, amount.Add(fee), target)
+			if err != nil {
+				return err
+			}
+			amount.Denom = targetCoin.Denom
+			fee.Denom = targetCoin.Denom
+		}
+	}
 	route, _ := router.GetRoute(target)
 	return route.TransferAfter(ctx, from.String(), to, amount, fee)
 }
 
 func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string, receipt *ethtypes.Receipt) error {
-	k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
+	logger := k.Logger(ctx)
+	logger.Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
+
 	targetIBC, ok := fxtypes.ParseTargetIBC(target)
 	if !ok {
 		return fmt.Errorf("invalid target ibc %s", target)
 	}
-	if _, err := sdk.GetFromBech32(to, targetIBC.Prefix); err != nil {
+	if err := validateIbcReceiveAddress(ctx, targetIBC.Prefix, to); err != nil {
+		logger.Error("validate ibc receive address", "address", to, "prefix", targetIBC.Prefix, "err", err.Error())
 		return fmt.Errorf("invalid to address %s", to)
 	}
 	_, _, err := k.ibcChannelKeeper.GetChannelClientState(ctx, targetIBC.SourcePort, targetIBC.SourceChannel)
@@ -96,7 +115,7 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to stri
 	if !found {
 		return fmt.Errorf("ibc channel next sequence send not found, port %s, channel %s", targetIBC.SourcePort, targetIBC.SourceChannel)
 	}
-	ctx.Logger().Info("ibc transfer", "port", targetIBC.SourcePort, "channel", targetIBC.SourceChannel, "sequence", nextSequenceSend, "timeout-height", ibcTimeoutHeight)
+	logger.Info("ibc transfer", "port", targetIBC.SourcePort, "channel", targetIBC.SourceChannel, "sequence", nextSequenceSend, "timeout-height", ibcTimeoutHeight)
 	if err := k.ibcTransferKeeper.SendTransfer(
 		ctx, targetIBC.SourcePort, targetIBC.SourceChannel, amount, from.Bytes(),
 		to, ibcTimeoutHeight, ibcTimeoutTimestamp, "", fee); err != nil {
@@ -104,6 +123,16 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to stri
 	}
 	k.setIBCTransferHash(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, nextSequenceSend, receipt.TxHash)
 	return nil
+}
+
+func validateIbcReceiveAddress(ctx sdk.Context, prefix, addr string) error {
+	// after block support denom many-to-one, validate prefix with 0x
+	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() &&
+		strings.ToLower(prefix) == fxtypes.EthereumAddressPrefix {
+		return fxtypes.ValidateEthereumAddress(addr)
+	}
+	_, err := sdk.GetFromBech32(addr, prefix)
+	return err
 }
 
 func (k Keeper) setIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64, hash common.Hash) {

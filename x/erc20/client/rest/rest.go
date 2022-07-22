@@ -41,6 +41,16 @@ type ToggleTokenConversionProposalRequest struct {
 	Token       string       `json:"token" yaml:"token"`
 }
 
+// UpdateDenomAliasProposalRequest defines a request for a update denom alias proposal.
+type UpdateDenomAliasProposalRequest struct {
+	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
+	Title       string       `json:"title" yaml:"title"`
+	Description string       `json:"description" yaml:"description"`
+	Deposit     sdk.Coins    `json:"deposit" yaml:"deposit"`
+	Denom       string       `json:"denom" yaml:"denom"`
+	Alias       string       `json:"alias" yaml:"alias"`
+}
+
 func RegisterCoinProposalRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
 	return govrest.ProposalRESTHandler{
 		SubRoute: types.ModuleName,
@@ -59,6 +69,13 @@ func ToggleTokenConversionRESTHandler(clientCtx client.Context) govrest.Proposal
 	return govrest.ProposalRESTHandler{
 		SubRoute: types.ModuleName,
 		Handler:  newToggleTokenConversionHandler(clientCtx),
+	}
+}
+
+func UpdateDenomAliasRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
+	return govrest.ProposalRESTHandler{
+		SubRoute: types.ModuleName,
+		Handler:  newUpdateDenomAliasHandler(clientCtx),
 	}
 }
 
@@ -148,6 +165,39 @@ func newToggleTokenConversionHandler(clientCtx client.Context) http.HandlerFunc 
 		}
 
 		content := types.NewToggleTokenConversionProposal(req.Title, req.Description, req.Token)
+		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, fromAddr)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
+		if rest.CheckBadRequestError(w, msg.ValidateBasic()) {
+			return
+		}
+
+		tx.WriteGeneratedTxResponse(clientCtx, w, req.BaseReq, msg)
+	}
+}
+
+// nolint: dupl
+func newUpdateDenomAliasHandler(clientCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req UpdateDenomAliasProposalRequest
+
+		if !rest.ReadRESTReq(w, r, clientCtx.LegacyAmino, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		fromAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if rest.CheckBadRequestError(w, err) {
+			return
+		}
+
+		content := types.NewUpdateDenomAliasProposal(req.Title, req.Description, req.Denom, req.Alias)
 		msg, err := govtypes.NewMsgSubmitProposal(content, req.Deposit, fromAddr)
 		if rest.CheckBadRequestError(w, err) {
 			return

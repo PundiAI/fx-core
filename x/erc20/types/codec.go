@@ -21,12 +21,14 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgConvertCoin{},
 		&MsgConvertERC20{},
+		&MsgConvertDenom{},
 	)
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
 		&RegisterCoinProposal{},
 		&RegisterERC20Proposal{},
 		&ToggleTokenConversionProposal{},
+		&UpdateDenomAliasProposal{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -8,9 +9,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -32,6 +36,7 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewConvertCoinCmd(),
 		NewConvertERC20Cmd(),
+		NewConvertDenomCmd(),
 	)
 	return txCmd
 }
@@ -126,7 +131,47 @@ func NewConvertERC20Cmd() *cobra.Command {
 	return cmd
 }
 
-// NewRegisterCoinProposalCmd implements the command to submit a community-pool-spend proposal
+func NewConvertDenomCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "convert-denom [coin] [receiver]",
+		Short: "Convert a denom to other denom, if convert one to many, need target flag",
+		Args:  cobra.RangeArgs(1, 2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			coin, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+			receiver := cliCtx.GetFromAddress()
+			if len(args) == 2 {
+				receiver, err = sdk.AccAddressFromBech32(args[1])
+				if err != nil {
+					return err
+				}
+			}
+			target, err := cmd.Flags().GetString(FlagTarget)
+			if err != nil {
+				return err
+			}
+
+			from := cliCtx.GetFromAddress()
+			msg := types.NewMsgConvertDenom(from, receiver, coin, target)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().String(FlagTarget, "", "target of chain(gravity,bsc,polygon,tron)")
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+// NewRegisterCoinProposalCmd implements the command to submit a register-coin proposal
 func NewRegisterCoinProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register-coin [metadata]",
@@ -195,7 +240,7 @@ The proposal details must be supplied via a JSON file.`,
 	return cmd
 }
 
-// NewRegisterERC20ProposalCmd implements the command to submit a community-pool-spend proposal
+// NewRegisterERC20ProposalCmd implements the command to submit a register-erc20 proposal
 func NewRegisterERC20ProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "register-erc20 [erc20-address]",
@@ -257,7 +302,7 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 	return cmd
 }
 
-// NewToggleTokenConversionProposalCmd implements the command to submit a community-pool-spend proposal
+// NewToggleTokenConversionProposalCmd implements the command to submit a toggle-token-conversion proposal
 func NewToggleTokenConversionProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "toggle-token-conversion [token]",
@@ -301,6 +346,102 @@ func NewToggleTokenConversionProposalCmd() *cobra.Command {
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
+	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDescription); err != nil {
+		panic(err)
+	}
+	if err := cmd.MarkFlagRequired(cli.FlagDeposit); err != nil {
+		panic(err)
+	}
+	return cmd
+}
+
+// NewUpdateDenomAliasProposalCmd implements the command to submit a update-denom-alias proposal
+func NewUpdateDenomAliasProposalCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "update-denom-alias [denom] [alias]",
+		Args:    cobra.ExactArgs(3),
+		Short:   "Submit a update denom alias proposal",
+		Long:    "Submit a proposal to update the alias of a denom along with an initial deposit.",
+		Example: fmt.Sprintf("$ %s tx gov submit-proposal update-denom-alias <denom> <alias> <flag> --from=<key_or_address>", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			title, err := cmd.Flags().GetString(cli.FlagTitle)
+			if err != nil {
+				return err
+			}
+
+			description, err := cmd.Flags().GetString(cli.FlagDescription)
+			if err != nil {
+				return err
+			}
+
+			depositStr, err := cmd.Flags().GetString(cli.FlagDeposit)
+			if err != nil {
+				return err
+			}
+
+			deposit, err := sdk.ParseCoinsNormalized(depositStr)
+			if err != nil {
+				return err
+			}
+
+			from := cliCtx.GetFromAddress()
+			denom := args[0]
+			alias := args[1]
+
+			ctx := context.Background()
+
+			//check denom metadata exist
+			bankQueryClient := banktypes.NewQueryClient(cliCtx)
+			_, err = bankQueryClient.DenomMetadata(ctx, &banktypes.QueryDenomMetadataRequest{Denom: denom})
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(cliCtx)
+			_, err = queryClient.TokenPair(ctx, &types.QueryTokenPairRequest{Token: denom})
+			if err != nil {
+				return err
+			}
+
+			var aliasDenom string
+			aliasDenomResp, err := queryClient.AliasDenom(ctx, &types.QueryAliasDenomRequest{Alias: alias})
+			if err != nil {
+				status, ok := grpcstatus.FromError(err)
+				if !ok {
+					return err
+				}
+				if status.Code() != codes.NotFound {
+					return err
+				}
+			} else {
+				aliasDenom = aliasDenomResp.Denom
+			}
+
+			if len(aliasDenom) > 0 && aliasDenom != denom {
+				return fmt.Errorf("alias %s already registered, but denom expected: %s, actual: %s", alias, aliasDenom, denom)
+			}
+
+			content := types.NewUpdateDenomAliasProposal(title, description, denom, alias)
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
 

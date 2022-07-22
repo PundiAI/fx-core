@@ -116,6 +116,7 @@
     - [RegisterERC20Proposal](#fx.erc20.v1.RegisterERC20Proposal)
     - [ToggleTokenConversionProposal](#fx.erc20.v1.ToggleTokenConversionProposal)
     - [TokenPair](#fx.erc20.v1.TokenPair)
+    - [UpdateDenomAliasProposal](#fx.erc20.v1.UpdateDenomAliasProposal)
   
     - [Owner](#fx.erc20.v1.Owner)
   
@@ -124,6 +125,10 @@
     - [Params](#fx.erc20.v1.Params)
   
 - [fx/erc20/v1/query.proto](#fx/erc20/v1/query.proto)
+    - [QueryAliasDenomRequest](#fx.erc20.v1.QueryAliasDenomRequest)
+    - [QueryAliasDenomResponse](#fx.erc20.v1.QueryAliasDenomResponse)
+    - [QueryDenomAliasesRequest](#fx.erc20.v1.QueryDenomAliasesRequest)
+    - [QueryDenomAliasesResponse](#fx.erc20.v1.QueryDenomAliasesResponse)
     - [QueryParamsRequest](#fx.erc20.v1.QueryParamsRequest)
     - [QueryParamsResponse](#fx.erc20.v1.QueryParamsResponse)
     - [QueryTokenPairRequest](#fx.erc20.v1.QueryTokenPairRequest)
@@ -136,6 +141,8 @@
 - [fx/erc20/v1/tx.proto](#fx/erc20/v1/tx.proto)
     - [MsgConvertCoin](#fx.erc20.v1.MsgConvertCoin)
     - [MsgConvertCoinResponse](#fx.erc20.v1.MsgConvertCoinResponse)
+    - [MsgConvertDenom](#fx.erc20.v1.MsgConvertDenom)
+    - [MsgConvertDenomResponse](#fx.erc20.v1.MsgConvertDenomResponse)
     - [MsgConvertERC20](#fx.erc20.v1.MsgConvertERC20)
     - [MsgConvertERC20Response](#fx.erc20.v1.MsgConvertERC20Response)
   
@@ -2037,6 +2044,24 @@ native Coin and an ERC20 token address.
 
 
 
+
+<a name="fx.erc20.v1.UpdateDenomAliasProposal"></a>
+
+### UpdateDenomAliasProposal
+UpdateDenomAliasProposal is a gov Content type to update denom alias
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | title of the proposal |
+| `description` | [string](#string) |  | proposal description |
+| `denom` | [string](#string) |  | denom |
+| `alias` | [string](#string) |  | alias update |
+
+
+
+
+
  <!-- end messages -->
 
 
@@ -2113,6 +2138,70 @@ Params defines the erc20 module params
 <p align="right"><a href="#top">Top</a></p>
 
 ## fx/erc20/v1/query.proto
+
+
+
+<a name="fx.erc20.v1.QueryAliasDenomRequest"></a>
+
+### QueryAliasDenomRequest
+QueryAliasDenomRequest is the request type for the Query/AliasDenom RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `alias` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.erc20.v1.QueryAliasDenomResponse"></a>
+
+### QueryAliasDenomResponse
+QueryAliasDenomResponse is the response type for the Query/AliasDenom RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.erc20.v1.QueryDenomAliasesRequest"></a>
+
+### QueryDenomAliasesRequest
+QueryDenomAliasesRequest is the request type for the Query/DenomAliases RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.erc20.v1.QueryDenomAliasesResponse"></a>
+
+### QueryDenomAliasesResponse
+QueryDenomAliasesResponse is the response type for the Query/DenomAliases RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `aliases` | [string](#string) | repeated |  |
+
+
+
 
 
 
@@ -2222,6 +2311,8 @@ Query defines the gRPC querier service.
 | `TokenPairs` | [QueryTokenPairsRequest](#fx.erc20.v1.QueryTokenPairsRequest) | [QueryTokenPairsResponse](#fx.erc20.v1.QueryTokenPairsResponse) | Retrieves registered token pairs | GET|/fx/erc20/v1/token_pairs|
 | `TokenPair` | [QueryTokenPairRequest](#fx.erc20.v1.QueryTokenPairRequest) | [QueryTokenPairResponse](#fx.erc20.v1.QueryTokenPairResponse) | Retrieves a registered token pair | GET|/fx/erc20/v1/token_pairs/{token}|
 | `Params` | [QueryParamsRequest](#fx.erc20.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.erc20.v1.QueryParamsResponse) | Params retrieves the erc20 module params | GET|/fx/erc20/v1/params|
+| `DenomAliases` | [QueryDenomAliasesRequest](#fx.erc20.v1.QueryDenomAliasesRequest) | [QueryDenomAliasesResponse](#fx.erc20.v1.QueryDenomAliasesResponse) | Retrieves registered denom aliases | GET|/fx/erc20/v1/denom/aliases|
+| `AliasDenom` | [QueryAliasDenomRequest](#fx.erc20.v1.QueryAliasDenomRequest) | [QueryAliasDenomResponse](#fx.erc20.v1.QueryAliasDenomResponse) | Retrieves registered alias denom | GET|/fx/erc20/v1/alias/denom|
 
  <!-- end services -->
 
@@ -2255,6 +2346,34 @@ MsgConvertCoin defines a Msg to convert a Cosmos Coin to a ERC20 token
 
 ### MsgConvertCoinResponse
 MsgConvertCoinResponse returns no fields
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgConvertDenom"></a>
+
+### MsgConvertDenom
+MsgConvertDenom defines a Msg to convert an denom to other denom
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  | msg sender |
+| `receiver` | [string](#string) |  | receiver address |
+| `coin` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | coin to convert |
+| `target` | [string](#string) |  | target denom |
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgConvertDenomResponse"></a>
+
+### MsgConvertDenomResponse
+MsgConvertDenomResponse returns no fields
 
 
 

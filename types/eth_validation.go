@@ -10,12 +10,17 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+const (
+	// EthereumContractAddressLen is the length of contract address strings
+	EthereumContractAddressLen = 42
+
+	// EthereumAddressPrefix is the address prefix address
+	EthereumAddressPrefix = "0x"
+)
+
 var (
 	EthereumAddressRegular = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
 )
-
-// EthereumContractAddressLen is the length of contract address strings
-const EthereumContractAddressLen = 42
 
 // IsEmptyHash returns true if the hash corresponds to an empty ethereum hex hash.
 func IsEmptyHash(hash string) bool {

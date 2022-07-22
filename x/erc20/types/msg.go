@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	fxtypes "github.com/functionx/fx-core/v2/types"
 
@@ -19,6 +20,7 @@ var (
 const (
 	TypeMsgConvertCoin  = "convert_coin"
 	TypeMsgConvertERC20 = "convert_ERC20"
+	TypeMsgConvertDenom = "convert_denom"
 )
 
 // NewMsgConvertCoin creates a new instance of MsgConvertCoin
@@ -110,4 +112,54 @@ func (m *MsgConvertERC20) GetSignBytes() []byte {
 func (m MsgConvertERC20) GetSigners() []sdk.AccAddress {
 	addr := common.HexToAddress(m.Sender)
 	return []sdk.AccAddress{addr.Bytes()}
+}
+
+func NewMsgConvertDenom(sender, receiver sdk.AccAddress, coin sdk.Coin, target string) *MsgConvertDenom {
+	return &MsgConvertDenom{
+		Sender:   sender.String(),
+		Receiver: receiver.String(),
+		Coin:     coin,
+		Target:   target,
+	}
+}
+
+// Route should return the name of the module
+func (m MsgConvertDenom) Route() string { return RouterKey }
+
+// Type should return the action
+func (m MsgConvertDenom) Type() string { return TypeMsgConvertDenom }
+
+// ValidateBasic runs stateless checks on the message
+func (m MsgConvertDenom) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err.Error())
+	}
+	if _, err := sdk.AccAddressFromBech32(m.Receiver); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
+	}
+	if !m.Coin.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, m.Coin.String())
+	}
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgConvertDenom) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m MsgConvertDenom) GetSigners() []sdk.AccAddress {
+	addr := common.HexToAddress(m.Sender)
+	return []sdk.AccAddress{addr.Bytes()}
+}
+
+func IsManyToOneMetadata(md banktypes.Metadata) bool {
+	if len(md.DenomUnits) == 0 {
+		return false
+	}
+	if len(md.DenomUnits[0].Aliases) == 0 {
+		return false
+	}
+	return true
 }

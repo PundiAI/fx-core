@@ -7,6 +7,8 @@ import (
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v2/x/erc20/types"
@@ -22,6 +24,9 @@ const (
 	erc20Decimals   = uint8(18)
 	cosmosTokenBase = "acoin"
 	defaultExponent = uint32(18)
+
+	tronDenom    = "tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+	polygonDenom = "polygon0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
 )
 
 func (suite *KeeperTestSuite) setupRegisterERC20Pair(contractType int) common.Address {
@@ -63,6 +68,55 @@ func (suite *KeeperTestSuite) setupRegisterCoin() (banktypes.Metadata, *types.To
 	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, validMetadata)
 	suite.Require().NoError(err)
 	//suite.Commit()
+	return validMetadata, pair
+}
+
+func (suite *KeeperTestSuite) setupRegisterCoinUSDT() (banktypes.Metadata, *types.TokenPair) {
+	validMetadata := banktypes.Metadata{
+		Description: "description of the token",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "usdt",
+				Exponent: uint32(0),
+				Aliases:  []string{tronDenom, polygonDenom},
+			}, {
+				Denom:    "USDT",
+				Exponent: uint32(18),
+			},
+		},
+		Base:    "usdt",
+		Display: "usdt",
+		Name:    "Tether USD",
+		Symbol:  "USDT",
+	}
+
+	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, validMetadata)
+	suite.Require().NoError(err)
+
+	return validMetadata, pair
+}
+
+func (suite *KeeperTestSuite) setupRegisterCoinUSDTWithOutAlias() (banktypes.Metadata, *types.TokenPair) {
+	validMetadata := banktypes.Metadata{
+		Description: "description of the token",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "usdt",
+				Exponent: uint32(0),
+			}, {
+				Denom:    "USDT",
+				Exponent: uint32(18),
+			},
+		},
+		Base:    "usdt",
+		Display: "usdt",
+		Name:    "Tether USD",
+		Symbol:  "USDT",
+	}
+
+	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, validMetadata)
+	suite.Require().NoError(err)
+
 	return validMetadata, pair
 }
 
@@ -136,6 +190,14 @@ func (suite *KeeperTestSuite) TestRegisterCoin() {
 			false,
 		},
 		{
+			"denom already registered alias",
+			func() {
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", metadata.Base)
+				suite.ctx = suite.ctx.WithBlockHeight(fxtypes.SupportDenomManyToOneBlock() + 1)
+			},
+			false,
+		},
+		{
 			"ok",
 			func() {
 				metadata.Base = cosmosTokenBase
@@ -167,6 +229,137 @@ func (suite *KeeperTestSuite) TestRegisterCoin() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestRegisterCoinWithManyToOne() {
+	suite.supportManyToOneBlock = true
+
+	metadata := banktypes.Metadata{
+		Description: "The cross chain token of the Function X",
+		// NOTE: Denom units MUST be increasing
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "usdt",
+				Exponent: uint32(0),
+				Aliases:  []string{tronDenom, polygonDenom},
+			},
+			{
+				Denom:    "usdtd",
+				Exponent: 0,
+			},
+			{
+				Denom:    "USDT",
+				Exponent: 18,
+			},
+		},
+		Base:    "usdt",
+		Display: "usdtd",
+		Name:    "Tether USD",
+		Symbol:  "USDT",
+	}
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+		errMsg   string
+	}{
+		{
+			"ok",
+			func() {},
+			true,
+			"",
+		},
+		{
+			"intrarelaying is disabled globally",
+			func() {
+				params := types.DefaultParams()
+				params.EnableErc20 = false
+				suite.app.Erc20Keeper.SetParams(suite.ctx, params)
+			},
+			false,
+			"registration is currently disabled by governance: erc20 module is disabled",
+		},
+		{
+			"denom already registered",
+			func() {
+				regPair := types.NewTokenPair(helpers.GenerateAddress(), metadata.Base, true, types.OWNER_MODULE)
+				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, regPair.Denom, regPair.GetID())
+			},
+			false,
+			"coin denomination already registered: The cross chain token of the Function X: token pair already exists",
+		},
+		{
+			"alias already registered denom",
+			func() {
+				regPair := types.NewTokenPair(helpers.GenerateAddress(), tronDenom, true, types.OWNER_MODULE)
+				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, regPair.Denom, regPair.GetID())
+			},
+			false,
+			"denom tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t already registered: invalid metadata",
+		},
+		{
+			"alias already registered",
+			func() {
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, metadata.Base, tronDenom)
+			},
+			false,
+			"alias tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t already registered: invalid metadata",
+		},
+		{
+			"alias equal base",
+			func() {
+				metadata.DenomUnits[0].Aliases = []string{tronDenom, polygonDenom, "usdt"}
+			},
+			false,
+			"alias can not equal base, display or symbol: invalid metadata",
+		},
+		{
+			"alias equal display",
+			func() {
+				metadata.DenomUnits[0].Aliases = []string{tronDenom, polygonDenom, "usdtd"}
+			},
+			false,
+			"alias can not equal base, display or symbol: invalid metadata",
+		},
+		{
+			"alias equal symbol",
+			func() {
+				metadata.DenomUnits[0].Aliases = []string{tronDenom, polygonDenom, "USDT"}
+			},
+			false,
+			"alias can not equal base, display or symbol: invalid metadata",
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest() // reset
+
+			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.SupportDenomManyToOneBlock() + 1)
+
+			tc.malleate()
+
+			pair, tcErr := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
+
+			expPair := &types.TokenPair{
+				Erc20Address:  "0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265",
+				Denom:         "usdt",
+				Enabled:       true,
+				ContractOwner: 1,
+			}
+
+			if tc.expPass {
+				suite.Require().NoError(tcErr, tc.name)
+				suite.Require().Equal(pair, expPair)
+				suite.Require().True(suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, tronDenom))
+				suite.Require().True(suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, polygonDenom))
+			} else {
+				suite.Require().Error(tcErr, tc.name)
+				suite.Require().EqualError(tcErr, tc.errMsg, tc.name)
+			}
+		})
+	}
+	suite.supportManyToOneBlock = false
 }
 
 func (suite *KeeperTestSuite) TestRegisterERC20() {

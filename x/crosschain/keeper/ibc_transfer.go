@@ -17,14 +17,19 @@ import (
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
 func (k Keeper) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
+	// convert denom
+	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() {
+		coin = k.handlerConvertDenom(ctx, claim, receiver, coin)
+	}
 	// router evm condition
 	// 1. target == module/evm
-	// 2. isTestnet + target empty + denom != FX
+	// 2. before block + isTestnet + target empty + denom != FX
 	evmTarget := claim.TargetIbc == targetEvmPrefix
+	beforeBlock := ctx.BlockHeight() < fxtypes.SupportDenomManyToOneBlock()
 	isTestnet := fxtypes.ChainId() == fxtypes.TestnetChainId()
 	emptyTarget := claim.TargetIbc == ""
 	notDefaultDenom := coin.Denom != fxtypes.DefaultDenom
-	if evmTarget || (isTestnet && emptyTarget && notDefaultDenom) {
+	if evmTarget || (beforeBlock && isTestnet && emptyTarget && notDefaultDenom) {
 		k.handlerEvmTransfer(ctx, claim, receiver, coin)
 		return
 	}
@@ -100,4 +105,28 @@ func (k Keeper) handlerEvmTransfer(ctx sdk.Context, claim *types.MsgSendToFxClai
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
 	))
+}
+
+func (k Keeper) handlerConvertDenom(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) sdk.Coin {
+	k.Logger(ctx).Info("convert denom symbol", "address", receiver.String(), "coin", coin.String())
+
+	cacheCtx, commit := ctx.CacheContext()
+	targetCoin, err := k.erc20Keeper.RelayConvertDenom(cacheCtx, receiver, coin)
+	if err != nil {
+		k.Logger(ctx).Error("convert denom symbol", "address", receiver.String(), "coin", coin.String(), "error", err.Error())
+		//if convert err, return default coin
+		return coin
+	}
+	commit()
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeConvertDenom,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
+		sdk.NewAttribute(types.AttributeKeyAddress, receiver.String()),
+		sdk.NewAttribute(types.AttributeKeyCoin, coin.String()),
+		sdk.NewAttribute(types.AttributeKeyTargetCoin, targetCoin.String()),
+	))
+
+	return targetCoin
 }

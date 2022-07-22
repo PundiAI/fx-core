@@ -361,7 +361,7 @@ func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdk.Int {
 }
 
 func CovertIbcPacketReceiveAddressByPrefix(targetIbcPrefix string, receiver sdk.AccAddress) (ibcReceiveAddr string, err error) {
-	if strings.ToLower(targetIbcPrefix) == "0x" {
+	if strings.ToLower(targetIbcPrefix) == fxtypes.EthereumAddressPrefix {
 		return gethcommon.BytesToAddress(receiver.Bytes()).String(), nil
 	}
 	return bech32.ConvertAndEncode(targetIbcPrefix, receiver)

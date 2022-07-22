@@ -17,14 +17,19 @@ import (
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
 func (a AttestationHandler) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgDepositClaim, receiver sdk.AccAddress, coin sdk.Coin) {
+	// convert denom
+	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() {
+		coin = a.handlerConvertDenom(ctx, claim, receiver, coin)
+	}
 	// router evm condition
 	// 1. target == module/evm
-	// 2. isTestnet + target empty + denom != FX
+	// 2. before block + isTestnet + target empty + denom != FX
 	evmTarget := claim.TargetIbc == targetEvmPrefix
+	beforeBlock := ctx.BlockHeight() < fxtypes.SupportDenomManyToOneBlock()
 	isTestnet := fxtypes.ChainId() == fxtypes.TestnetChainId()
 	emptyTarget := claim.TargetIbc == ""
 	notDefaultDenom := coin.Denom != fxtypes.DefaultDenom
-	if evmTarget || (isTestnet && emptyTarget && notDefaultDenom) {
+	if evmTarget || (beforeBlock && isTestnet && emptyTarget && notDefaultDenom) {
 		a.handlerEvmTransfer(ctx, claim, receiver, coin)
 		return
 	}
@@ -99,4 +104,30 @@ func (a AttestationHandler) handlerEvmTransfer(ctx sdk.Context, claim *types.Msg
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
 	))
+}
+
+func (a AttestationHandler) handlerConvertDenom(ctx sdk.Context, claim *types.MsgDepositClaim, receiver sdk.AccAddress, coin sdk.Coin) sdk.Coin {
+	logger := a.keeper.Logger(ctx)
+
+	cacheCtx, commit := ctx.CacheContext()
+	targetCoin, err := a.keeper.erc20Keeper.RelayConvertDenom(cacheCtx, receiver, coin)
+	if err != nil {
+		logger.Error("convert denom symbol", "address", receiver.String(), "coin", coin.String(), "error", err.Error())
+		//if convert err, return default coin
+		return coin
+	}
+	commit()
+
+	logger.Info("convert denom symbol", "address", receiver.String(), "coin", coin.String(), "target", targetCoin.String())
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeConvertDenom,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
+		sdk.NewAttribute(types.AttributeKeyAddress, receiver.String()),
+		sdk.NewAttribute(types.AttributeKeyCoin, coin.String()),
+		sdk.NewAttribute(types.AttributeKeyTargetCoin, targetCoin.String()),
+	))
+
+	return targetCoin
 }

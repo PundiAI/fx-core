@@ -8,6 +8,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
+const (
+	FlagTarget = "target"
+)
+
 // ParseMetadata reads and parses a ParseRegisterCoinProposal from a file.
 func ParseMetadata(cdc codec.JSONCodec, metadataFile string) (banktypes.Metadata, error) {
 	metadata := banktypes.Metadata{}

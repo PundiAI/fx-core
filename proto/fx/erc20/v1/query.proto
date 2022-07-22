@@ -25,6 +25,17 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/fx/erc20/v1/params";
   }
+
+  // Retrieves registered denom aliases
+  rpc DenomAliases(QueryDenomAliasesRequest)
+      returns (QueryDenomAliasesResponse) {
+    option (google.api.http).get = "/fx/erc20/v1/denom/aliases";
+  }
+
+  // Retrieves registered alias denom
+  rpc AliasDenom(QueryAliasDenomRequest) returns (QueryAliasDenomResponse) {
+    option (google.api.http).get = "/fx/erc20/v1/alias/denom";
+  }
 }
 
 // QueryTokenPairsRequest is the request type for the Query/TokenPairs RPC
@@ -63,3 +74,19 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
+
+// QueryDenomAliasesRequest is the request type for the Query/DenomAliases RPC
+// method.
+message QueryDenomAliasesRequest { string denom = 1; }
+
+// QueryDenomAliasesResponse is the response type for the Query/DenomAliases RPC
+// method.
+message QueryDenomAliasesResponse { repeated string aliases = 1; }
+
+// QueryAliasDenomRequest is the request type for the Query/AliasDenom RPC
+// method.
+message QueryAliasDenomRequest { string alias = 1; }
+
+// QueryAliasDenomResponse is the response type for the Query/AliasDenom RPC
+// method.
+message QueryAliasDenomResponse { string denom = 1; }

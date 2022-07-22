@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"math/big"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -547,4 +550,363 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 			suite.Require().Error(err, tc.name)
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestConvertDenom() {
+	suite.supportManyToOneBlock = true
+	priv1, err := ethsecp256k1.GenerateKey()
+	suite.Require().NoError(err)
+	addr1 := common.BytesToAddress(priv1.PubKey().Address().Bytes())
+
+	priv2, err := ethsecp256k1.GenerateKey()
+	suite.Require().NoError(err)
+	addr2 := common.BytesToAddress(priv2.PubKey().Address().Bytes())
+
+	tronUSDT := sdk.NewCoin(tronDenom, sdk.NewInt(100))
+
+	testCases := []struct {
+		name     string
+		register func()
+		malleate func(*types.TokenPair) error
+		expPass  bool
+		errMsg   string
+	}{
+		{
+			"ok",
+			func() {
+				usdtMatedata, pair = suite.setupRegisterCoinUSDT()
+				suite.Require().NotNil(usdtMatedata)
+
+				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+				suite.Require().True(found)
+				suite.Require().True(types.IsManyToOneMetadata(md))
+			},
+			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     tronUSDT,
+					Target:   "",
+				})
+				return err
+			},
+			true,
+			"",
+		},
+		{
+			"denom already registered",
+			func() {
+				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, tronDenom, []byte{})
+			},
+			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     tronUSDT,
+					Target:   "",
+				})
+				return err
+			},
+			false,
+			"denom tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t already registered: invalid denom",
+		},
+		{
+			"alias not registered",
+			func() {},
+			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     tronUSDT,
+					Target:   "",
+				})
+				return err
+			},
+			false,
+			"alias tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t not registered: invalid denom",
+		},
+		{
+			"alias denom not registered",
+			func() {
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", tronDenom, polygonDenom)
+			},
+			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     tronUSDT,
+					Target:   "",
+				})
+				return err
+			},
+			false,
+			"denom usdt not registered: invalid denom",
+		},
+		{
+			"denom not support many to one",
+			func() {
+				usdtMatedata, pair = suite.setupRegisterCoinUSDTWithOutAlias()
+				suite.Require().NotNil(usdtMatedata)
+
+				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+				suite.Require().True(found)
+				suite.Require().False(types.IsManyToOneMetadata(md))
+
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", tronDenom, polygonDenom)
+			},
+			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     tronUSDT,
+					Target:   "",
+				})
+				return err
+			},
+			false,
+			"not support with usdt: invalid metadata",
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest()
+
+			if tc.register != nil {
+				tc.register()
+			}
+
+			//mint and transfer
+			err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(tronUSDT))
+			suite.Require().NoError(err)
+			err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addr1.Bytes(), sdk.NewCoins(tronUSDT))
+			suite.Require().NoError(err)
+
+			beforeBalanceManyResp := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), tronDenom)
+			beforeBalanceOneResp := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), "usdt")
+
+			tcErr := tc.malleate(pair)
+
+			afterBalanceManyResp := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), tronDenom)
+			afterBalanceOneResp := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), "usdt")
+
+			if tc.expPass {
+				suite.Require().NoError(tcErr)
+				suite.Require().Equal(beforeBalanceManyResp.Amount.Sub(afterBalanceManyResp.Amount), tronUSDT.Amount)
+				suite.Require().Equal(afterBalanceOneResp.Amount.Sub(beforeBalanceOneResp.Amount), tronUSDT.Amount)
+			} else {
+				suite.Require().Error(tcErr, tc.name)
+				suite.Require().EqualError(tcErr, tc.errMsg, tc.name)
+			}
+		})
+	}
+
+	suite.supportManyToOneBlock = false
+}
+
+func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
+	suite.supportManyToOneBlock = true
+	priv1, err := ethsecp256k1.GenerateKey()
+	suite.Require().NoError(err)
+	addr1 := common.BytesToAddress(priv1.PubKey().Address().Bytes())
+
+	priv2, err := ethsecp256k1.GenerateKey()
+	suite.Require().NoError(err)
+	addr2 := common.BytesToAddress(priv2.PubKey().Address().Bytes())
+
+	registerFn := func() {
+		usdtMatedata, pair = suite.setupRegisterCoinUSDT()
+		suite.Require().NotNil(usdtMatedata)
+
+		md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+		suite.Require().True(found)
+		suite.Require().True(types.IsManyToOneMetadata(md))
+	}
+
+	tronUSDT := sdk.NewCoin(tronDenom, sdk.NewInt(100))
+	polygonUSDT := sdk.NewCoin(polygonDenom, sdk.NewInt(100))
+	usdt := sdk.NewCoin("usdt", sdk.NewInt(1))
+
+	testCases := []struct {
+		name     string
+		register func()
+		malleate func(*types.TokenPair) error
+		expPass  bool
+		errMsg   string
+	}{
+		{
+			"ok",
+			registerFn,
+			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "tron",
+				})
+				if err != nil {
+					return err
+				}
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "polygon",
+				})
+				return err
+			},
+			true,
+			"",
+		},
+		{
+			"denom not registered",
+			nil,
+			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "tron",
+				})
+				return err
+			},
+			false,
+			"denom usdt not registered: invalid denom",
+		},
+		{
+			"metadata not found",
+			nil,
+			func(pair *types.TokenPair) error {
+				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "usdt", []byte{})
+
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "tron",
+				})
+				return err
+			},
+			false,
+			"denom usdt not found: invalid metadata",
+		},
+		{
+			"metadata not support many to one",
+			nil,
+			func(pair *types.TokenPair) error {
+				usdtMatedata, pair = suite.setupRegisterCoinUSDTWithOutAlias()
+				suite.Require().NotNil(usdtMatedata)
+				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+				suite.Require().True(found)
+				suite.Require().False(types.IsManyToOneMetadata(md))
+
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", tronDenom, polygonDenom)
+
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "tron",
+				})
+				return err
+			},
+			false,
+			"denom usdt metadata not support: invalid metadata",
+		},
+		{
+			"target denom not exist",
+			registerFn,
+			func(pair *types.TokenPair) error {
+				usdtCopy := usdtMatedata
+				usdtCopy.DenomUnits[0].Aliases = []string{polygonDenom}
+				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, usdtCopy)
+
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "tron",
+				})
+				return err
+			},
+			false,
+			"target tron denom not exist: invalid target",
+		},
+		{
+			"alias not registered",
+			registerFn,
+			func(pair *types.TokenPair) error {
+				usdtCopy := usdtMatedata
+				usdtCopy.DenomUnits[0].Aliases = append(usdtCopy.DenomUnits[0].Aliases, "bsc0x0000000000000000000000000000000000000000")
+				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, usdtCopy)
+
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "bsc",
+				})
+				return err
+			},
+			false,
+			"alias bsc0x0000000000000000000000000000000000000000 not registered: invalid denom",
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest()
+
+			//mint and transfer
+			err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(tronUSDT))
+			suite.Require().NoError(err)
+			err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addr1.Bytes(), sdk.NewCoins(tronUSDT))
+			suite.Require().NoError(err)
+
+			err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(polygonUSDT))
+			suite.Require().NoError(err)
+			err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addr1.Bytes(), sdk.NewCoins(polygonUSDT))
+			suite.Require().NoError(err)
+
+			if tc.register != nil {
+				tc.register()
+
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender: sdk.AccAddress(addr1.Bytes()).String(), Receiver: sdk.AccAddress(addr1.Bytes()).String(), Coin: tronUSDT, Target: ""})
+				suite.Require().NoError(err)
+
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender: sdk.AccAddress(addr1.Bytes()).String(), Receiver: sdk.AccAddress(addr1.Bytes()).String(), Coin: polygonUSDT, Target: ""})
+				suite.Require().NoError(err)
+
+				usdtBalanceResp, err := suite.app.BankKeeper.Balance(sdk.WrapSDKContext(suite.ctx),
+					&banktypes.QueryBalanceRequest{Address: sdk.AccAddress(addr1.Bytes()).String(), Denom: "usdt"})
+				suite.Require().NoError(err)
+				suite.Require().Equal(usdtBalanceResp.Balance.Amount, tronUSDT.Amount.Add(polygonUSDT.Amount))
+			}
+
+			beforeAddr1UsdtBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), "usdt")
+			beforeAddr2TronBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), tronDenom)
+			beforeAddr2PolygonBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), polygonDenom)
+
+			// malleate
+			tcErr := tc.malleate(pair)
+
+			afterAddr1UsdtBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), "usdt")
+			afterAddr2TronBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), tronDenom)
+			afterAddr2PolygonBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), polygonDenom)
+
+			if tc.expPass {
+				suite.Require().NoError(tcErr, tc.name)
+				suite.Require().Equal(beforeAddr1UsdtBalance, afterAddr1UsdtBalance.Add(usdt).Add(usdt))
+				suite.Require().Equal(afterAddr2TronBalance.Sub(beforeAddr2TronBalance).Amount, usdt.Amount)
+				suite.Require().Equal(afterAddr2PolygonBalance.Sub(beforeAddr2PolygonBalance).Amount, usdt.Amount)
+			} else {
+				suite.Require().Error(tcErr, tc.name)
+				suite.Require().EqualError(tcErr, tc.errMsg, tc.name)
+			}
+		})
+	}
+
+	suite.supportManyToOneBlock = false
 }

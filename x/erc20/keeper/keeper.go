@@ -102,6 +102,10 @@ func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receive
 	return err
 }
 
+func (k Keeper) RelayConvertDenom(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
+	return k.convertDenomToOne(ctx, from, coin)
+}
+
 // SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *types.Router) {
@@ -139,4 +143,12 @@ func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, cod
 	acc.CodeHash = codeHash.Bytes()
 	k.evmKeeper.SetCode(ctx, acc.CodeHash, code)
 	return k.evmKeeper.SetAccount(ctx, addr, *acc)
+}
+
+func (k Keeper) IsManyToOneDenom(ctx sdk.Context, denom string) (bool, error) {
+	md, found := k.bankKeeper.GetDenomMetaData(ctx, denom)
+	if !found {
+		return false, fmt.Errorf("denom %s not found", denom)
+	}
+	return types.IsManyToOneMetadata(md), nil
 }

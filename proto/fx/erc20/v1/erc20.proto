@@ -65,3 +65,16 @@ message ToggleTokenConversionProposal {
   // Cosmos base denomination
   string token = 3;
 }
+
+// UpdateDenomAliasProposal is a gov Content type to update denom alias
+message UpdateDenomAliasProposal {
+  option (gogoproto.equal) = false;
+  // title of the proposal
+  string title = 1;
+  // proposal description
+  string description = 2;
+  // denom
+  string denom = 3;
+  // alias update
+  string alias = 4;
+}

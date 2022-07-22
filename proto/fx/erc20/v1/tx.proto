@@ -48,3 +48,18 @@ message MsgConvertERC20 {
 
 // MsgConvertERC20Response returns no fields
 message MsgConvertERC20Response {}
+
+// MsgConvertDenom defines a Msg to convert an denom to other denom
+message MsgConvertDenom {
+  // msg sender
+  string sender = 1;
+  // receiver address
+  string receiver = 2;
+  // coin to convert
+  cosmos.base.v1beta1.Coin coin = 3 [ (gogoproto.nullable) = false ];
+  // target denom
+  string target = 4;
+}
+
+// MsgConvertDenomResponse returns no fields
+message MsgConvertDenomResponse {}

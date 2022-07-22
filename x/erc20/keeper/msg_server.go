@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"math/big"
+	"strings"
 
 	fxtypes "github.com/functionx/fx-core/v2/types"
 
@@ -99,6 +100,56 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 	default:
 		return nil, types.ErrUndefinedOwner
 	}
+}
+
+// ConvertDenom converts coin into other coin, use for multiple chains in the same currency
+func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) (*types.MsgConvertDenomResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	// Error checked during msg validation
+	sender := sdk.MustAccAddressFromBech32(msg.Sender)
+	receiver := sdk.MustAccAddressFromBech32(msg.Receiver)
+
+	var coin sdk.Coin
+	var err error
+	if len(msg.Target) > 0 {
+		// convert one to many
+		coin, err = k.convertDenomToMany(ctx, sender, msg.Coin, msg.Target)
+	} else {
+		coin, err = k.convertDenomToOne(ctx, sender, msg.Coin)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err := k.sendCoins(ctx, sender, receiver, sdk.NewCoins(coin)); err != nil {
+		return nil, sdkerrors.Wrap(types.ErrConvertDenomSymbolFailed, err.Error())
+	}
+
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{"tx", "msg", "convert", "denom", "total"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel("denom", msg.Coin.Denom),
+				telemetry.NewLabel("target_denom", coin.Denom),
+			},
+		)
+	}()
+
+	ctx.EventManager().EmitEvents(
+		sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeConvertDenom,
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
+				sdk.NewAttribute(types.AttributeKeyDenom, msg.Coin.Denom),
+				sdk.NewAttribute(types.AttributeKeyTargetDenom, coin.Denom),
+			),
+		},
+	)
+
+	return &types.MsgConvertDenomResponse{}, nil
 }
 
 // convertCoinNativeCoin handles the Coin conversion flow for a native coin
@@ -462,4 +513,135 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	)
 
 	return &types.MsgConvertCoinResponse{}, nil
+}
+
+// convertDenomToMany handles the Denom conversion flow for one to many
+// token pair:
+//  - Escrow Coins on module account
+//  - Unescrow Tokens that have been previously escrowed with convertDenomToMany and send to receiver
+//  - Burn escrowed Coins
+//  - Check if token balance increased by amount
+func (k Keeper) convertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
+	//check if denom registered
+	if !k.IsDenomRegistered(ctx, coin.Denom) {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not registered", coin.Denom)
+	}
+	//check if metadata exist and support many to one
+	md, found := k.bankKeeper.GetDenomMetaData(ctx, coin.Denom)
+	if !found {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s not found", coin.Denom)
+	}
+	if !types.IsManyToOneMetadata(md) {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s metadata not support", coin.Denom)
+	}
+
+	aliases := md.DenomUnits[0].Aliases
+	targetDenom := ""
+	for _, alias := range aliases {
+		if strings.HasPrefix(alias, target) {
+			targetDenom = alias
+			break
+		}
+	}
+	if len(targetDenom) == 0 {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s denom not exist", target)
+	}
+
+	//check if alias not registered
+	if !k.IsAliasDenomRegistered(ctx, targetDenom) {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "alias %s not registered", targetDenom)
+	}
+
+	beforeBalances := k.bankKeeper.GetAllBalances(ctx, from)
+
+	var err error
+	targetCoin := sdk.NewCoin(targetDenom, coin.Amount)
+	// send symbol denom to module
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
+	if err != nil {
+		return sdk.Coin{}, sdkerrors.Wrapf(err, "send coin %s to module failed", coin.String())
+	}
+	// send alias denom to from addr
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin))
+	if err != nil {
+		return sdk.Coin{}, sdkerrors.Wrapf(err, "send coin %s failed", targetCoin.String())
+	}
+	// burn symbol coin
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
+	if err != nil {
+		return sdk.Coin{}, sdkerrors.Wrapf(err, "burn coin %s failed", coin.String())
+	}
+
+	// check balances
+	afterBalances := k.bankKeeper.GetAllBalances(ctx, from)
+	if !beforeBalances.AmountOf(coin.Denom).Equal(afterBalances.AmountOf(coin.Denom).Add(coin.Amount)) ||
+		!beforeBalances.AmountOf(targetDenom).Equal(afterBalances.AmountOf(targetDenom).Sub(coin.Amount)) {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrBalanceInvariance,
+			"invalid token balance - convert denom %s to %s", coin.Denom, targetDenom)
+	}
+
+	return targetCoin, nil
+}
+
+// convertDenomToOne handles the Denom conversion flow for many to one
+// token pair:
+//  - Escrow Coins on module account (Coins are not burned)
+//  - Mint Tokens and send to from address
+//  - Check if token balance increased by amount
+func (k Keeper) convertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
+	if k.IsDenomRegistered(ctx, coin.Denom) {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s already registered", coin.Denom)
+	}
+	aliasDenomBytes := k.GetAliasDenom(ctx, coin.Denom)
+	if len(aliasDenomBytes) == 0 {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "alias %s not registered", coin.Denom)
+	}
+	if !k.IsDenomRegistered(ctx, string(aliasDenomBytes)) {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not registered", string(aliasDenomBytes))
+	}
+	if ok, err := k.IsManyToOneDenom(ctx, string(aliasDenomBytes)); err != nil || !ok {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "not support with %s", string(aliasDenomBytes))
+	}
+
+	beforeBalances := k.bankKeeper.GetAllBalances(ctx, from)
+
+	var err error
+	targetCoin := sdk.NewCoin(string(aliasDenomBytes), coin.Amount)
+	// send alias denom to module
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
+	if err != nil {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrConvertDenomSymbolFailed, "send coin %s to module failed: %v", coin.String(), err)
+	}
+	//mint symbol denom
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin))
+	if err != nil {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrConvertDenomSymbolFailed, "mint coin %s failed: %v", targetCoin.String(), err)
+	}
+	//send symbol denom to from addr
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin))
+	if err != nil {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrConvertDenomSymbolFailed, "send coin %s failed: %v", targetCoin.String(), err)
+	}
+
+	// check balances
+	afterBalances := k.bankKeeper.GetAllBalances(ctx, from)
+	if !beforeBalances.AmountOf(coin.Denom).Equal(afterBalances.AmountOf(coin.Denom).Add(coin.Amount)) ||
+		!beforeBalances.AmountOf(targetCoin.Denom).Equal(afterBalances.AmountOf(targetCoin.Denom).Sub(coin.Amount)) {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrBalanceInvariance,
+			"invalid token balance - convert denom %s to %s", coin.Denom, targetCoin.Denom)
+	}
+
+	return targetCoin, nil
+}
+
+func (k Keeper) sendCoins(ctx sdk.Context, from, to sdk.AccAddress, coins sdk.Coins) error {
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
+		return err
+	}
+
+	if k.bankKeeper.BlockedAddr(to) {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", to.String())
+	}
+
+	return k.bankKeeper.SendCoins(ctx, from, to, coins)
 }

@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
+
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -251,13 +253,8 @@ func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdk.Int {
 	return kv
 }
 
-const (
-	// AddressPrefix0x special address prefix 0x: cosmos address to 0x address
-	AddressPrefix0x = "0x"
-)
-
 func CovertIbcPacketReceiveAddressByPrefix(height int64, targetIbcPrefix string, receiver sdk.AccAddress) (ibcReceiveAddr string, err error) {
-	if strings.ToLower(targetIbcPrefix) == AddressPrefix0x {
+	if strings.ToLower(targetIbcPrefix) == fxtypes.EthereumAddressPrefix {
 		return gethcommon.BytesToAddress(receiver.Bytes()).String(), nil
 	}
 	return bech32.ConvertAndEncode(targetIbcPrefix, receiver)
