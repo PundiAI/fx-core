@@ -793,7 +793,7 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 		{
 			"metadata not support many to one",
 			nil,
-			func(pair *types.TokenPair) error {
+			func(_ *types.TokenPair) error {
 				usdtMatedata, pair = suite.setupRegisterCoinUSDTWithOutAlias()
 				suite.Require().NotNil(usdtMatedata)
 				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)

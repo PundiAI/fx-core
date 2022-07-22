@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -95,6 +97,8 @@ type KeeperTestSuite struct {
 	checkTx               bool
 	purseBalance          sdk.Int
 	supportManyToOneBlock bool
+	bscUSDTBalance        sdk.Int
+	polygonUSDTBalance    sdk.Int
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -184,6 +188,21 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		suite.ctx = suite.ctx.WithBlockHeight(fxtypes.SupportDenomManyToOneBlock() + 1)
 	}
 
+	if !suite.bscUSDTBalance.IsNil() {
+		amount := sdk.NewCoin(bscUSDT, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
+		err = suite.app.BankKeeper.MintCoins(suite.ctx, bsctypes.ModuleName, sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, bsctypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+	}
+
+	if !suite.polygonUSDTBalance.IsNil() {
+		amount := sdk.NewCoin(polygonUSDT, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
+		err = suite.app.BankKeeper.MintCoins(suite.ctx, polygontypes.ModuleName, sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, polygontypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+	}
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
