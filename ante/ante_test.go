@@ -43,7 +43,6 @@ type AnteTestSuite struct {
 	app         *app.App
 	anteHandler sdk.AnteHandler
 
-	ethSigner   ethtypes.Signer
 	privateKey  cryptotypes.PrivKey
 	consAddress sdk.ConsAddress
 }

@@ -40,6 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 * Add query oracle reward in the crosschain module
+* Check fxcored version when synchronizing blocks from scratch
 
 ### Improvements
 

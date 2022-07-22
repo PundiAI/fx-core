@@ -1,12 +1,18 @@
 package main
 
 import (
+	"errors"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	types2 "github.com/tendermint/tendermint/types"
+	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/node"
+	"github.com/tendermint/tendermint/store"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	fxtypes "github.com/functionx/fx-core/v2/types"
 
@@ -48,7 +54,6 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 		tmcmd.ReplayConsoleCmd,
 		tmcmd.GenValidatorCmd,
 		tmcmd.GenNodeKeyCmd,
-		tmcmd.VersionCmd,
 		//tmcmd.ResetPrivValidatorCmd
 	)
 
@@ -60,8 +65,11 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 			return err
 		}
 		serverCtx := sdkserver.GetServerContextFromCmd(cmd)
-		genesisDoc, err := types2.GenesisDocFromFile(serverCtx.Config.GenesisFile())
+		genesisDoc, err := tmtypes.GenesisDocFromFile(serverCtx.Config.GenesisFile())
 		if err != nil {
+			return err
+		}
+		if err = checkMainnetAndInitChain(genesisDoc, serverCtx.Config); err != nil {
 			return err
 		}
 		fxtypes.SetChainId(genesisDoc.ChainID)
@@ -74,4 +82,21 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 		version.NewVersionCommand(),
 		sdkserver.NewRollbackCmd(defaultNodeHome),
 	)
+}
+
+func checkMainnetAndInitChain(genesisDoc *tmtypes.GenesisDoc, config *config.Config) error {
+	genesisTime, err := time.Parse("2006-01-02T15:04:05Z", "2021-07-05T04:00:00Z")
+	if err != nil {
+		return err
+	}
+	blockStoreDB, err := node.DefaultDBProvider(&node.DBContext{ID: "blockstore", Config: config})
+	if err != nil {
+		return err
+	}
+	defer blockStoreDB.Close()
+	blockStore := store.NewBlockStore(blockStoreDB)
+	if genesisDoc.GenesisTime.Equal(genesisTime) && blockStore.Height() <= 0 {
+		return errors.New("invalid version: Sync block from scratch please use use fxcored v1.1.x")
+	}
+	return nil
 }
