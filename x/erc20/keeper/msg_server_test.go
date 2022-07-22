@@ -580,6 +580,9 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
 				suite.Require().True(found)
 				suite.Require().True(types.IsManyToOneMetadata(md))
+
+				denom := suite.app.Erc20Keeper.GetAliasDenom(suite.ctx, usdtMatedata.DenomUnits[0].Aliases[0])
+				suite.Require().True(len(denom) > 0)
 			},
 			func(pair *types.TokenPair) error {
 				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{

@@ -15,6 +15,8 @@ service Msg {
   // ConvertERC20 mints a Cosmos coin representation of the ERC20 token contract
   // that is registered on the token mapping.
   rpc ConvertERC20(MsgConvertERC20) returns (MsgConvertERC20Response);
+  // ConvertDenom convert denom to other denom
+  rpc ConvertDenom(MsgConvertDenom) returns (MsgConvertDenomResponse);
 }
 
 // MsgConvertCoin defines a Msg to convert a Cosmos Coin to a ERC20 token

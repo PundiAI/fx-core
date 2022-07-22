@@ -38,7 +38,7 @@ var (
 )
 
 type EvmTestSuite struct {
-	TestSuite
+	*TestSuite
 	ethPrivKey cryptotypes.PrivKey
 }
 

@@ -43,8 +43,8 @@ type TestSuite struct {
 	sync.Mutex
 }
 
-func NewTestSuite() TestSuite {
-	testSuite := TestSuite{
+func NewTestSuite() *TestSuite {
+	testSuite := &TestSuite{
 		Suite:      suite.Suite{},
 		useNetwork: true,
 		Mutex:      sync.Mutex{},

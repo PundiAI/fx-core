@@ -22,7 +22,7 @@ import (
 )
 
 type MigrateTestSuite struct {
-	TestSuite
+	*TestSuite
 }
 
 func TestMigrateTestSuite(t *testing.T) {

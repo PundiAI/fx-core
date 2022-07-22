@@ -22,7 +22,7 @@ import (
 )
 
 type CrosschainTestSuite struct {
-	TestSuite
+	*TestSuite
 	params            crosschaintypes.Params
 	chainName         string
 	oraclePrivKey     cryptotypes.PrivKey
@@ -34,6 +34,17 @@ type CrosschainTestSuite struct {
 func NewCrosschainTestSuite(chainName string) CrosschainTestSuite {
 	return CrosschainTestSuite{
 		TestSuite:         NewTestSuite(),
+		chainName:         chainName,
+		oraclePrivKey:     helpers.NewPriKey(),
+		bridgerFxPrivKey:  helpers.NewPriKey(),
+		bridgerExtPrivKey: helpers.GenerateEthKey(),
+		privKey:           helpers.NewEthPrivKey(),
+	}
+}
+
+func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestSuite {
+	return CrosschainTestSuite{
+		TestSuite:         ts,
 		chainName:         chainName,
 		oraclePrivKey:     helpers.NewPriKey(),
 		bridgerFxPrivKey:  helpers.NewPriKey(),

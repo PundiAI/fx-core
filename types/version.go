@@ -1,7 +1,9 @@
 package types
 
 import (
+	"math"
 	"math/big"
+	"os"
 	"sync"
 )
 
@@ -20,7 +22,7 @@ const (
 	mainnetChainId    = "fxcore"
 	mainnetEvmChainID = 530
 
-	mainnetSupportDenomManyToOneBlock = 5940000
+	mainnetSupportDenomManyToOneBlock = math.MaxInt64
 )
 
 // testnet constant
@@ -29,7 +31,7 @@ const (
 	testnetEvmChainID     = 90001
 	testnetIBCRouterBlock = 3433511
 
-	testnetSupportDenomManyToOneBlock = 3920000
+	testnetSupportDenomManyToOneBlock = 3918000
 )
 
 // SupportDenomManyToOneMsgTypes return msg types
@@ -80,7 +82,19 @@ func IBCRouteBlock() int64 {
 	return 0
 }
 
+func SetTestingManyToOneBlock(fn func() int64) {
+	if os.Getenv("GO_ENV") == "testing" {
+		panic("invalid env")
+	}
+	testingManyToOneBlock = fn
+}
+
+var testingManyToOneBlock func() int64
+
 func SupportDenomManyToOneBlock() int64 {
+	if os.Getenv("GO_ENV") == "testing" {
+		return testingManyToOneBlock()
+	}
 	if testnetChainId == chainId {
 		return testnetSupportDenomManyToOneBlock
 	}

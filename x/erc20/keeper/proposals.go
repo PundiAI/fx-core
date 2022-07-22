@@ -223,11 +223,11 @@ func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, err
 func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, error) {
 	// check if the denom denomination already registered
 	if !k.IsDenomRegistered(ctx, denom) {
-		return false, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination not registered: %s", denom)
+		return false, sdkerrors.Wrapf(types.ErrInvalidDenom, "coin denomination not registered: %s", denom)
 	}
 	// check if the alias not registered
 	if k.IsDenomRegistered(ctx, alias) {
-		return false, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", alias)
+		return false, sdkerrors.Wrapf(types.ErrInvalidDenom, "coin denomination already registered: %s", alias)
 	}
 	// query denom metadata
 	md, found := k.bankKeeper.GetDenomMetaData(ctx, denom)

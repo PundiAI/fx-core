@@ -2423,6 +2423,7 @@ Msg defines the erc20 Msg service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `ConvertCoin` | [MsgConvertCoin](#fx.erc20.v1.MsgConvertCoin) | [MsgConvertCoinResponse](#fx.erc20.v1.MsgConvertCoinResponse) | ConvertCoin mints a ERC20 representation of the SDK Coin denom that is registered on the token mapping. | |
 | `ConvertERC20` | [MsgConvertERC20](#fx.erc20.v1.MsgConvertERC20) | [MsgConvertERC20Response](#fx.erc20.v1.MsgConvertERC20Response) | ConvertERC20 mints a Cosmos coin representation of the ERC20 token contract that is registered on the token mapping. | |
+| `ConvertDenom` | [MsgConvertDenom](#fx.erc20.v1.MsgConvertDenom) | [MsgConvertDenomResponse](#fx.erc20.v1.MsgConvertDenomResponse) | ConvertDenom convert denom to other denom | |
 
  <!-- end services -->
 

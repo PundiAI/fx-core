@@ -521,6 +521,18 @@ func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, from string, msgs []sd
 	} else {
 		gasPrice = cli.gasPrices[0]
 	}
+
+	txRaw, err := BuildTxV1(cli.chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
+	if err != nil {
+		return nil, err
+	}
+	estimatingGas, err := cli.EstimatingGas(txRaw)
+	if err != nil {
+		return nil, err
+	}
+	if estimatingGas.GasUsed > uint64(gasLimit) {
+		gasLimit = int64(estimatingGas.GasUsed) + (int64(estimatingGas.GasUsed) * 2 / 10)
+	}
 	return BuildTxV1(cli.chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
 }
 

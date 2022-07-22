@@ -150,8 +150,8 @@ func (m *MsgConvertDenom) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m MsgConvertDenom) GetSigners() []sdk.AccAddress {
-	addr := common.HexToAddress(m.Sender)
-	return []sdk.AccAddress{addr.Bytes()}
+	addr := sdk.MustAccAddressFromBech32(m.Sender)
+	return []sdk.AccAddress{addr}
 }
 
 func IsManyToOneMetadata(md banktypes.Metadata) bool {

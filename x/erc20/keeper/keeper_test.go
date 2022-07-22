@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"os"
 	"testing"
 	"time"
 
@@ -107,7 +108,10 @@ func TestKeeperTestSuite(t *testing.T) {
 
 // Test helpers
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
-
+	//set many to one block
+	err := os.Setenv("GO_ENV", "testing")
+	suite.NoError(err)
+	fxtypes.SetTestingManyToOneBlock(func() int64 { return 5 })
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
 	require.NoError(t, err)
@@ -185,7 +189,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	}
 
 	if suite.supportManyToOneBlock {
-		suite.ctx = suite.ctx.WithBlockHeight(fxtypes.SupportDenomManyToOneBlock() + 1)
+		suite.ctx = suite.ctx.WithBlockHeight(11)
 	}
 
 	if !suite.bscUSDTBalance.IsNil() {
