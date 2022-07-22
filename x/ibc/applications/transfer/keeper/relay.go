@@ -374,7 +374,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 		default:
 			ctx.Logger().Error("IBCTransfer", "transfer after route err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
-			routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRouteError, err.Error()))
+			routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRouteError, err.Error()))
 		}
 		ctx.EventManager().EmitEvent(routerEvent)
 

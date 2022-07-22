@@ -39,7 +39,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-* Add query oracle reward in the crosschain module 
+* Add query oracle reward in the crosschain module
+
+### Improvements
+
+* Add ibc transfer route event
+* Add gravity and crosschain attention event claimHash
 
 ## [v2.1.1] - 2022-07-11
 
