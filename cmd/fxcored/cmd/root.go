@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	appCli "github.com/functionx/fx-core/app/cli"
+
 	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -33,9 +35,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/app"
-	appCmd "github.com/functionx/fx-core/app/cmd"
-	"github.com/functionx/fx-core/app/fxcore"
-	// this line is u by starport scaffolding # stargate/root/import
 )
 
 const EnvPrefix = "FX"
@@ -44,7 +43,7 @@ const EnvPrefix = "FX"
 // main function.
 func NewRootCmd() *cobra.Command {
 
-	encodingConfig := fxcore.MakeEncodingConfig()
+	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithJSONMarshaler(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -54,11 +53,11 @@ func NewRootCmd() *cobra.Command {
 		WithOutput(os.Stdout).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
-		WithHomeDir(fxcore.DefaultNodeHome).
+		WithHomeDir(app.DefaultNodeHome).
 		WithViper(EnvPrefix)
 
 	rootCmd := &cobra.Command{
-		Use:   fxcore.Name + "d",
+		Use:   app.Name + "d",
 		Short: "FunctionX Core Chain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
@@ -90,9 +89,9 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringSlice(app.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery)`)
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID:        fxcore.ChainID,
+		flags.FlagChainID:        app.ChainID,
 		flags.FlagKeyringBackend: keyring.BackendTest,
-		flags.FlagGasPrices:      "4000000000000" + fxcore.MintDenom,
+		flags.FlagGasPrices:      "4000000000000" + app.MintDenom,
 	})
 	for _, command := range rootCmd.Commands() {
 		if command.Use == "" {
@@ -106,31 +105,30 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	authclient.Codec = encodingConfig.Marshaler
 
 	sdkCfgCmd := sdkCfg.Cmd()
-	sdkCfgCmd.AddCommand(appCmd.AppTomlCmd(), appCmd.ConfigTomlCmd())
+	sdkCfgCmd.AddCommand(appCli.AppTomlCmd(), appCli.ConfigTomlCmd())
 
 	rootCmd.AddCommand(
 		InitCmd(),
-		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, fxcore.DefaultNodeHome),
+		appCli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.MigrateGenesisCmd(),
-		appCmd.GenTxCmd(fxcore.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, fxcore.DefaultNodeHome),
-		genutilcli.ValidateGenesisCmd(fxcore.ModuleBasics),
-		appCmd.AddGenesisAccountCmd(fxcore.DefaultNodeHome),
+		appCli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		appCli.AddGenesisAccountCmd(app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		TestnetCmd(),
-		appCmd.Debug(),
-		// this line is used by starport scaffolding # stargate/root/commands
-		appCmd.Network(),
+		appCli.Debug(),
+		appCli.Network(),
 		sdkCfgCmd,
 	)
 
 	appCreator := appCreator{encodingConfig}
-	server.AddCommands(rootCmd, fxcore.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
+	server.AddCommands(rootCmd, app.DefaultNodeHome, appCreator.newApp, appCreator.appExport, addStartFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rpcStatusCmd := rpc.StatusCommand()
 	rpcStatusCmd.SetOut(os.Stdout)
 	rootCmd.AddCommand(
-		appCmd.KeyCommands(fxcore.DefaultNodeHome),
+		appCli.KeyCommands(app.DefaultNodeHome),
 		rpcStatusCmd,
 		queryCommand(),
 		txCommand(),
@@ -139,8 +137,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	for _, command := range rootCmd.Commands() {
 		// tendermint add update validator key command
 		if command.Use == "tendermint" {
-			command.AddCommand(appCmd.UpdateValidatorKeyCmd())
-			command.AddCommand(appCmd.UpdateNodeKeyCmd())
+			command.AddCommand(appCli.UpdateValidatorKeyCmd())
+			command.AddCommand(appCli.UpdateNodeKeyCmd())
 		}
 	}
 }
@@ -164,11 +162,11 @@ func queryCommand() *cobra.Command {
 		rpc.BlockCommand(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
-		appCmd.QueryStoreCmd(),
-		appCmd.QueryBlockResultsCmd(),
+		appCli.QueryStoreCmd(),
+		appCli.QueryBlockResultsCmd(),
 	)
 
-	fxcore.ModuleBasics.AddQueryCommands(cmd)
+	app.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -194,7 +192,7 @@ func txCommand() *cobra.Command {
 		vestingcli.GetTxCmd(),
 	)
 
-	fxcore.ModuleBasics.AddTxCommands(cmd)
+	app.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -236,7 +234,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 	if strings.Contains(gasPrice, ".") {
 		panic("Invalid gas price, cannot contain decimals")
 	}
-	return fxcore.New(
+	return app.New(
 		logger, db, traceStore, true, skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
@@ -262,7 +260,7 @@ func (a appCreator) appExport(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
 	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
 
-	var anApp *fxcore.App
+	var anApp *app.App
 
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
@@ -270,7 +268,7 @@ func (a appCreator) appExport(
 	}
 
 	if height != -1 {
-		anApp = fxcore.New(
+		anApp = app.New(
 			logger,
 			db,
 			traceStore,
@@ -287,7 +285,7 @@ func (a appCreator) appExport(
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		anApp = fxcore.New(
+		anApp = app.New(
 			logger,
 			db,
 			traceStore,

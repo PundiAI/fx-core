@@ -8,10 +8,10 @@ import (
 	"os"
 	"path/filepath"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/functionx/fx-core/app"
+	appCli "github.com/functionx/fx-core/app/cli"
 
-	appCmd "github.com/functionx/fx-core/app/cmd"
-	"github.com/functionx/fx-core/app/fxcore"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -96,7 +96,7 @@ func InitCmd() *cobra.Command {
 			if err != nil || flagDenom == "" {
 				return fmt.Errorf("invalid staking denom: %v", err)
 			}
-			appState, err := json.MarshalIndent(fxcore.NewDefAppGenesisByDenom(flagDenom, cdc), "", " ")
+			appState, err := json.MarshalIndent(app.NewDefAppGenesisByDenom(flagDenom, cdc), "", " ")
 			if err != nil {
 				return fmt.Errorf("failed to marshall default genesis state: %s", err.Error())
 			}
@@ -121,7 +121,7 @@ func InitCmd() *cobra.Command {
 				return fmt.Errorf("failed to export gensis file: %s", err.Error())
 			}
 
-			toPrint := appCmd.NewPrintInfo(config.Moniker, chainID, nodeID, "", appState)
+			toPrint := appCli.NewPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
@@ -133,11 +133,11 @@ func InitCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(cli.HomeFlag, fxcore.DefaultNodeHome, "node's home directory")
+	cmd.Flags().String(cli.HomeFlag, app.DefaultNodeHome, "node's home directory")
 	cmd.Flags().Bool(FlagOverwrite, false, "overwrite the genesis.json file")
 	cmd.Flags().Bool(FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
-	cmd.Flags().String(FlagDenom, fxcore.MintDenom, "set the default coin denomination")
+	cmd.Flags().String(FlagDenom, app.MintDenom, "set the default coin denomination")
 	cmd.Flags().StringP(cli.OutputFlag, "o", "json", "Output format (text|json)")
 	return cmd
 }

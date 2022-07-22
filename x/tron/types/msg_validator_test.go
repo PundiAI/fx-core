@@ -15,7 +15,7 @@ import (
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/app/fxcore"
+	_ "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 )

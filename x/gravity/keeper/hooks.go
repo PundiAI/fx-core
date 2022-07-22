@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/types"
 )
 
 // Hooks Wrapper struct
@@ -24,7 +24,7 @@ func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, _ sdk.ConsAddress, 
 	// The reason for creating valset requests in endblock is to create only one valset request per block if multiple validators starts unbonding at same block.
 
 	// 2021-11-05 not update valset on validator Unbonding(if validator not set ethAddress)
-	if ctx.BlockHeight() >= app.CrossChainSupportTronBlock() {
+	if ctx.BlockHeight() >= types.CrossChainSupportTronBlock() {
 		if _, found := h.k.GetEthAddressByValidator(ctx, valAddr); !found {
 			return
 		}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/functionx/fx-core/app"
+	types2 "github.com/functionx/fx-core/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -68,7 +68,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 		for _, validator := range validators {
 			val := validator.GetOperator()
 			_, found := k.GetEthAddressByValidator(ctx, val)
-			if !found && ctx.BlockHeight() > app.GravityValsetSlashBlock() {
+			if !found && ctx.BlockHeight() > types2.GravityValsetSlashBlock() {
 				continue
 			}
 			power := uint64(k.StakingKeeper.GetLastValidatorPower(ctx, val))

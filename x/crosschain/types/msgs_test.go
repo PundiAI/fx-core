@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/app/fxcore"
+	_ "github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 

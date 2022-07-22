@@ -4,27 +4,43 @@ set -e -x
 
 set -eo pipefail
 
-if ! grep "github.com/gogo/protobuf => github.com/regen-network/protobuf" go.mod &>/dev/null ; then
-  echo -e "\tPlease run this command from somewhere inside the fx-core folder."
-  exit 1
+protoc_gen_gocosmos() {
+  if ! grep "github.com/gogo/protobuf => github.com/regen-network/protobuf" go.mod &>/dev/null; then
+    echo -e "\tPlease run this command from somewhere inside the cosmos-sdk folder."
+    return 1
+  fi
+
+  go get github.com/regen-network/cosmos-proto/protoc-gen-gocosmos@latest 2>/dev/null
+}
+
+protoc_gen_gocosmos
+
+if [ ! -d build ]; then
+  mkdir -p build
 fi
 
-if [ ! -d "${GOPATH}/src/github.com/cosmos/cosmos-sdk" ]; then
-  echo -e "\tPlease clone cosmos-sdk to ${GOAPTH}/src/."
-  exit 1
+if [ ! -f "./build/cosmos-sdk/README.md" ]; then
+  commit_hash=$(go list -m -f '{{.Version}}' github.com/cosmos/cosmos-sdk)
+  if [ ! -f "./build/cosmos-sdk-42-proto.zip" ]; then
+    wget -c "https://github.com/cosmos/cosmos-sdk/archive/$commit_hash.zip" -O "./build/cosmos-sdk-42-proto.zip"
+  fi
+  (
+    cd build
+    unzip -q -o "./cosmos-sdk-42-proto.zip"
+    mv $(ls | grep cosmos-sdk | grep -v grep | grep -v zip) cosmos-sdk
+    rm -rf cosmos-sdk/.git
+  )
 fi
-
-(cd ${GOPATH}/src/github.com/cosmos/cosmos-sdk && git stash && git checkout v0.42.1)
 
 proto_dirs=$(find ./proto -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do
-  protoc \
-  -I "proto" \
-  -I ${GOPATH}/src/github.com/cosmos/cosmos-sdk/proto \
-  -I ${GOPATH}/src/github.com/cosmos/cosmos-sdk/third_party/proto \
-  --gocosmos_out=plugins=interfacetype+grpc,Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
-  --grpc-gateway_out=logtostderr=true:. \
-  $(find "${dir}" -maxdepth 1 -name '*.proto')
+  buf protoc \
+    -I "proto" \
+    -I "build/cosmos-sdk/proto" \
+    -I "build/cosmos-sdk/third_party/proto" \
+    --gocosmos_out=plugins=interfacetype+grpc,Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
+    --grpc-gateway_out=logtostderr=true:. \
+    $(find "${dir}" -maxdepth 1 -name '*.proto')
 done
 
 cp -r github.com/functionx/fx-core/* ./

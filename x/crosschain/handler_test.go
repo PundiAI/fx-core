@@ -8,13 +8,15 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/app/helper"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
@@ -519,15 +521,15 @@ func TestClaimTest(t *testing.T) {
 
 }
 
-func createTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
-	app = fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx = app.BaseApp.NewContext(false, tmproto.Header{})
+func createTestEnv(t *testing.T) (myApp *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {
+	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
+	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
+		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+	myApp = helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{})
 	ctx = ctx.WithBlockHeight(2000000)
-	oracleAddressList = fxcore.AddTestAddrsIncremental(app, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
-	orchestratorAddressList = fxcore.AddTestAddrs(app, ctx, GenerateAccountNum, sdk.ZeroInt())
+	oracleAddressList = helper.AddTestAddrsIncremental(myApp, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
+	orchestratorAddressList = helper.AddTestAddrs(myApp, ctx, GenerateAccountNum, sdk.ZeroInt())
 	ethKeys = genEthKey(GenerateAccountNum)
 	// chain module oracle list
 	var oracles []string
@@ -537,7 +539,7 @@ func createTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, oracleAddres
 
 	var err error
 	// init bsc params by proposal
-	proposalHandler := crosschain.NewCrossChainProposalHandler(app.CrosschainKeeper)
+	proposalHandler := crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)
 	err = proposalHandler(ctx, &types.InitCrossChainParamsProposal{
 		Title:       "init bsc chain params",
 		Description: "init fx chain <-> bsc chain params",
@@ -546,13 +548,13 @@ func createTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, oracleAddres
 	})
 	require.NoError(t, err)
 
-	crosschianHandler := crosschain.NewHandler(app.CrosschainKeeper)
+	crosschianHandler := crosschain.NewHandler(myApp.CrosschainKeeper)
 
 	proxyHandler := func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		require.NoError(t, msg.ValidateBasic(), fmt.Sprintf("msg %s/%s validate basic error", msg.Route(), msg.Type()))
 		return crosschianHandler(ctx, msg)
 	}
-	return app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, proxyHandler
+	return myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, proxyHandler
 }
 
 func defaultModuleParams(oracles []string) *types.Params {

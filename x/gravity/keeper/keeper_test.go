@@ -3,21 +3,23 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/app/helper"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/x/gravity/types"
 )
 
 func TestSetOrchestratorValidator(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
+	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
+		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+	app := helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	accAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 2, sdk.ZeroInt())
+	accAddressList := helper.AddTestAddrsIncremental(app, ctx, 2, sdk.ZeroInt())
 
 	val1OrchestratorAddr, val2OrchestratorAddr := accAddressList[0], accAddressList[1]
 	val1Addr, found := app.GravityKeeper.GetOrchestratorValidator(ctx, val1OrchestratorAddr)
@@ -37,10 +39,10 @@ func TestSetOrchestratorValidator(t *testing.T) {
 }
 
 func TestStoreValset(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
+	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
+		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+	app := helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	valset := &types.Valset{
@@ -71,10 +73,10 @@ func TestStoreValset(t *testing.T) {
 }
 
 func TestSetLatestValsetNonce(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
+	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
+		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+	app := helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	require.NotPanics(t, func() {
@@ -113,10 +115,10 @@ func TestSetLatestValsetNonce(t *testing.T) {
 	}
 }
 func TestLastSlashedValsetNonce(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
+	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
+		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+	app := helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	keeper := app.GravityKeeper
@@ -142,10 +144,10 @@ func TestLastSlashedValsetNonce(t *testing.T) {
 }
 
 func TestLastUnBondingBlockHeight(t *testing.T) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
-	app := fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
+	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
+		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+	app := helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	keeper := app.GravityKeeper

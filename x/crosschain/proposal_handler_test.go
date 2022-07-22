@@ -6,13 +6,15 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/functionx/fx-core/app"
+	"github.com/functionx/fx-core/app/helper"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/app/fxcore"
 	"github.com/functionx/fx-core/x/crosschain"
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
@@ -59,7 +61,7 @@ func TestUpdateOracleProposal(t *testing.T) {
 	require.EqualValues(t, fmt.Sprintf("max change power!maxChangePower:%v,deletePower:%v: %v", "0", "1", types.ErrInvalid), err.Error())
 
 	var oracles []string
-	accounts := fxcore.CreateIncrementalAccounts(types.MaxOracleSize + 1)
+	accounts := helper.CreateIncrementalAccounts(types.MaxOracleSize + 1)
 	for i := 0; i < len(accounts); i++ {
 		oracles = append(oracles, accounts[i].String())
 	}
@@ -74,15 +76,15 @@ func TestUpdateOracleProposal(t *testing.T) {
 	require.EqualValues(t, fmt.Sprintf("oracle length must be less than or equal : %d: %v", types.MaxOracleSize, types.ErrInvalid), err.Error())
 }
 
-func createProposalTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler, govHandler govtypes.Handler) {
-	initBalances := sdk.NewIntFromBigInt(fxcore.CoinOne).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := fxcore.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxcore.MintDenom, initBalances)))
-	app = fxcore.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
-	ctx = app.BaseApp.NewContext(false, tmproto.Header{})
+func createProposalTestEnv(t *testing.T) (myApp *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler, govHandler govtypes.Handler) {
+	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
+	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
+		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+	myApp = helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
+	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{})
 	ctx = ctx.WithBlockHeight(2000000)
-	oracleAddressList = fxcore.AddTestAddrsIncremental(app, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
-	orchestratorAddressList = fxcore.AddTestAddrs(app, ctx, GenerateAccountNum, sdk.ZeroInt())
+	oracleAddressList = helper.AddTestAddrsIncremental(myApp, ctx, GenerateAccountNum, minDepositAmount.Mul(sdk.NewInt(1000)))
+	orchestratorAddressList = helper.AddTestAddrs(myApp, ctx, GenerateAccountNum, sdk.ZeroInt())
 	ethKeys = genEthKey(GenerateAccountNum)
 	// chain module oracle list
 	var oracles []string
@@ -92,7 +94,7 @@ func createProposalTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, orac
 
 	var err error
 	// init bsc params by proposal
-	proposalHandler := crosschain.NewCrossChainProposalHandler(app.CrosschainKeeper)
+	proposalHandler := crosschain.NewCrossChainProposalHandler(myApp.CrosschainKeeper)
 	err = proposalHandler(ctx, &types.InitCrossChainParamsProposal{
 		Title:       "init bsc chain params",
 		Description: "init fx chain <-> bsc chain params",
@@ -101,11 +103,11 @@ func createProposalTestEnv(t *testing.T) (app *fxcore.App, ctx sdk.Context, orac
 	})
 	require.NoError(t, err)
 
-	crosschianHandler := crosschain.NewHandler(app.CrosschainKeeper)
+	crosschianHandler := crosschain.NewHandler(myApp.CrosschainKeeper)
 	// To add a proxy handler, execute msg validateBasic
 	proxyHandler := func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		require.NoError(t, msg.ValidateBasic(), fmt.Sprintf("msg %s/%s validate basic error", msg.Route(), msg.Type()))
 		return crosschianHandler(ctx, msg)
 	}
-	return app, ctx, oracleAddressList, orchestratorAddressList, ethKeys, proxyHandler, proposalHandler
+	return myApp, ctx, oracleAddressList, orchestratorAddressList, ethKeys, proxyHandler, proposalHandler
 }
