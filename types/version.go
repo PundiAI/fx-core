@@ -83,7 +83,7 @@ func IBCRouteBlock() int64 {
 }
 
 func SetTestingManyToOneBlock(fn func() int64) {
-	if os.Getenv("GO_ENV") == "testing" {
+	if os.Getenv("GO_ENV") != "testing" {
 		panic("invalid env")
 	}
 	testingManyToOneBlock = fn
