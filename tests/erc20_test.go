@@ -82,6 +82,35 @@ func (suite *ERC20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (propos
 	return suite.BroadcastProposalTx(suite.privKey, proposal)
 }
 
+func (suite *ERC20TestSuite) ToggleTokenConversionProposal(denom string) (proposalId uint64) {
+	proposal, err := govtypes.NewMsgSubmitProposal(
+		&erc20types.ToggleTokenConversionProposal{
+			Title:       fmt.Sprintf("update %s denom", denom),
+			Description: "update",
+			Token:       denom,
+		},
+		sdk.NewCoins(helpers.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
+		suite.Address(),
+	)
+	suite.NoError(err)
+	return suite.BroadcastProposalTx(suite.privKey, proposal)
+}
+
+func (suite *ERC20TestSuite) UpdateDenomAliasProposal(denom, alias string) (proposalId uint64) {
+	proposal, err := govtypes.NewMsgSubmitProposal(
+		&erc20types.UpdateDenomAliasProposal{
+			Title:       fmt.Sprintf("update %s denom %s alias", denom, alias),
+			Description: "update",
+			Denom:       denom,
+			Alias:       alias,
+		},
+		sdk.NewCoins(helpers.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
+		suite.Address(),
+	)
+	suite.NoError(err)
+	return suite.BroadcastProposalTx(suite.privKey, proposal)
+}
+
 func (suite *ERC20TestSuite) CheckRegisterCoin(denom string, manyToOne ...bool) {
 	_, err := suite.ERC20Query().TokenPair(suite.ctx, &erc20types.QueryTokenPairRequest{Token: denom})
 	suite.NoError(err)

@@ -27,6 +27,7 @@ const (
 
 	tronDenom    = "tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
 	polygonDenom = "polygon0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
+	bscDenom     = "bsc0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
 )
 
 func (suite *KeeperTestSuite) setupRegisterERC20Pair(contractType int) common.Address {
@@ -356,6 +357,225 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithManyToOne() {
 			} else {
 				suite.Require().Error(tcErr, tc.name)
 				suite.Require().EqualError(tcErr, tc.errMsg, tc.name)
+			}
+		})
+	}
+	suite.supportManyToOneBlock = false
+}
+
+func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
+	suite.supportManyToOneBlock = true
+
+	metadata := banktypes.Metadata{
+		Description: "The cross chain token of the Function X",
+		// NOTE: Denom units MUST be increasing
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "usdt",
+				Exponent: uint32(0),
+				Aliases:  []string{tronDenom, polygonDenom},
+			},
+			{
+				Denom:    "usdtd",
+				Exponent: 0,
+			},
+			{
+				Denom:    "USDT",
+				Exponent: 18,
+			},
+		},
+		Base:    "usdt",
+		Display: "usdtd",
+		Name:    "Tether USD",
+		Symbol:  "USDT",
+	}
+
+	testCases := []struct {
+		name     string
+		malleate func() error
+		expPass  bool
+		alias    []string
+		errMsg   string
+	}{
+		{
+			name: "success - add alias",
+			malleate: func() error {
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "usdt", bscDenom)
+				if err != nil {
+					return err
+				}
+				suite.Require().True(addAlias)
+
+				return nil
+			},
+			expPass: true,
+			alias:   []string{tronDenom, polygonDenom, bscDenom},
+			errMsg:  "",
+		},
+		{
+			name: "success - delete alias",
+			malleate: func() error {
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "usdt", polygonDenom)
+				if err != nil {
+					return err
+				}
+				suite.Require().False(addAlias)
+				return nil
+			},
+			expPass: true,
+			alias:   []string{tronDenom},
+			errMsg:  "",
+		},
+		{
+			name: "failed - denom not equal",
+			malleate: func() error {
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", polygonDenom)
+				if err != nil {
+					return err
+				}
+				suite.Require().True(addAlias)
+				return nil
+			},
+			expPass: false,
+			alias:   []string{},
+			errMsg:  "",
+		},
+		{
+			name: "failed - alias registered",
+			malleate: func() error {
+				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, banktypes.Metadata{
+					Description: "The cross chain token of Function X",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    "abc",
+							Exponent: 0,
+							Aliases:  nil,
+						},
+					},
+					Base:    "abc",
+					Display: "abc",
+					Name:    "Token ABC",
+					Symbol:  "ABC",
+				})
+				if err != nil {
+					return err
+				}
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", polygonDenom)
+				if err != nil {
+					return err
+				}
+				suite.Require().True(addAlias)
+				return nil
+			},
+			expPass: false,
+			alias:   []string{},
+			errMsg:  "",
+		},
+		{
+			name: "failed - metadata not found",
+			malleate: func() error {
+				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "abc", []byte{})
+
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", bscDenom)
+				if err != nil {
+					return err
+				}
+				suite.Require().True(addAlias)
+				return nil
+			},
+			expPass: false,
+			alias:   []string{},
+			errMsg:  "",
+		},
+		{
+			name: "failed - metadata not support many to one",
+			malleate: func() error {
+				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, banktypes.Metadata{
+					Description: "The cross chain token of Function X",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    "abc",
+							Exponent: 0,
+							Aliases:  nil,
+						},
+					},
+					Base:    "abc",
+					Display: "abc",
+					Name:    "Token ABC",
+					Symbol:  "ABC",
+				})
+				if err != nil {
+					return err
+				}
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", bscDenom)
+				if err != nil {
+					return err
+				}
+				suite.Require().True(addAlias)
+				return nil
+			},
+			expPass: false,
+			alias:   []string{},
+			errMsg:  "",
+		},
+		{
+			name: "failed - aliases can not empty",
+			malleate: func() error {
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", tronDenom)
+				if err != nil {
+					return err
+				}
+				suite.Require().True(addAlias)
+				return nil
+			},
+			expPass: false,
+			alias:   []string{},
+			errMsg:  "",
+		},
+		{
+			name: "failed - alias denom not equal with update denom",
+			malleate: func() error {
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "abc", bscDenom)
+
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "usdt", bscDenom)
+				if err != nil {
+					return err
+				}
+				suite.Require().True(addAlias)
+				return nil
+			},
+			expPass: false,
+			alias:   []string{},
+			errMsg:  "",
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest() // reset
+			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
+			suite.Require().NoError(err)
+
+			tcErr := tc.malleate()
+
+			if tc.expPass {
+				suite.Require().NoError(tcErr, tc.name)
+				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.GetDenom())
+				suite.Require().True(found)
+				suite.Require().True(types.IsManyToOneMetadata(md))
+				suite.Require().Equal(md.DenomUnits[0].Aliases, tc.alias)
+				for _, alias := range tc.alias {
+					aliasRegistered := suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, alias)
+					suite.Require().True(aliasRegistered)
+				}
+				if len(metadata.DenomUnits[0].Aliases) > len(tc.alias) {
+					for _, alias := range metadata.DenomUnits[0].Aliases[len(tc.alias):] {
+						aliasRegistered := suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, alias)
+						suite.Require().False(aliasRegistered)
+					}
+				}
+			} else {
+				suite.Require().Error(tcErr, tc.name)
 			}
 		})
 	}

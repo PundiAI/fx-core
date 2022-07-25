@@ -244,7 +244,7 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 	aliasDenomRegistered := k.GetAliasDenom(ctx, alias)
 	//check if the alias not register denom-alias
 	if len(aliasDenomRegistered) == 0 {
-		newAliases = append(newAliases, alias)
+		newAliases = append(oldAliases, alias)
 		k.SetAliasesDenom(ctx, denom, alias)
 	} else if string(aliasDenomRegistered) == denom {
 		// check if the denom equal alias registered denom
