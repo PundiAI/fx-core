@@ -236,6 +236,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	// receiving this coin as seen in the "sender chain is the source" condition.
 
 	var ibcCoin sdk.Coin
+	var receiveCoin sdk.Coin
 	if types.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
 		// sender chain is not the source, unescrow tokens
 
@@ -260,6 +261,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		ibcCoin = token
 		// The money sent to the address increases the IBC cross-chain increases the handling fee
 		token = token.Add(sdk.NewCoin(token.Denom, feeAmount))
+		receiveCoin = token
 		// unescrow tokens
 		escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
 		if err := k.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(token)); err != nil {
@@ -313,6 +315,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		ibcCoin = voucher
 		// ibc Increase handling charges across chains
 		voucher = voucher.Add(sdk.NewCoin(voucher.Denom, feeAmount))
+
+		receiveCoin = voucher
 		// mint new tokens if the source of the transfer is the same chain
 		if err := k.bankKeeper.MintCoins(
 			ctx, types.ModuleName, sdk.NewCoins(voucher),
@@ -327,6 +331,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 	}
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeReceive,
+			sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, receiveCoin.String()),
+		),
+	)
+
 	if data.Router == "" || !k.Router.HasRoute(data.Router) {
 		return nil
 	}
@@ -339,10 +351,22 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		}
 		ctx.Logger().Info("IBCTransfer", "transfer route sourceChannel", packet.GetSourceChannel(),
 			"destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "sender", sdk.AccAddress(sendAddrBytes).String(),
-			"receive", data.Receiver, "amount", ibcCoin, "fee", sdk.NewCoin(ibcCoin.Denom, feeAmount))
-		if err = route.TransferAfter(ctx, sdk.AccAddress(sendAddrBytes).String(), data.Receiver, ibcCoin, sdk.NewCoin(ibcCoin.Denom, feeAmount)); err != nil {
+			"receive", data.Receiver, "amount", ibcCoin, "fee", sdk.NewCoin(ibcCoin.Denom, feeAmount), "router", data.Router)
+		cacheCtx, writeFn := ctx.CacheContext()
+		err = route.TransferAfter(cacheCtx, sdk.AccAddress(sendAddrBytes).String(), data.Receiver, ibcCoin, sdk.NewCoin(ibcCoin.Denom, feeAmount))
+		routerEvent := sdk.NewEvent(types.EventTypeReceiveRoute,
+			sdk.NewAttribute(types.AttributeKeyRouteSuccess, fmt.Sprintf("%t", err == nil)),
+		)
+		switch err {
+		case nil:
+			writeFn()
+			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+		default:
 			ctx.Logger().Error("IBCTransfer", "transfer after route err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
+			routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRouteError, err.Error()))
 		}
+		ctx.EventManager().EmitEvent(routerEvent)
+
 		return nil
 	}
 	defer func() {
