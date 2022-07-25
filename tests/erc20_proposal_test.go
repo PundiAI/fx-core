@@ -36,7 +36,6 @@ func (suite *ERC20ProposalTestSuite) TestERC20Proposal() {
 	//check add
 	aliasesResp, err := suite.ERC20.GRPCClient().ERC20Query().DenomAliases(suite.ctx, &erc20types.QueryDenomAliasesRequest{Denom: "usdt"})
 	suite.NoError(err)
-	suite.T().Log(aliasesResp.Aliases)
 	suite.Equal(3, len(aliasesResp.Aliases))
 	denomResp, err := suite.ERC20.GRPCClient().ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: ethUSDDenom})
 	suite.NoError(err)
@@ -50,9 +49,8 @@ func (suite *ERC20ProposalTestSuite) TestERC20Proposal() {
 	//check remove
 	aliasesResp, err = suite.ERC20.GRPCClient().ERC20Query().DenomAliases(suite.ctx, &erc20types.QueryDenomAliasesRequest{Denom: "usdt"})
 	suite.NoError(err)
-	suite.T().Log(aliasesResp.Aliases)
 	suite.Equal(2, len(aliasesResp.Aliases))
-	denomResp, err = suite.ERC20.GRPCClient().ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: ethUSDDenom})
+	_, err = suite.ERC20.GRPCClient().ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: ethUSDDenom})
 	suite.Error(err)
 
 	proposalId = suite.ERC20.ToggleTokenConversionProposal("usdt")

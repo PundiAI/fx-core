@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	"github.com/functionx/fx-core/v2/app/helpers"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -149,6 +151,179 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 			tc.malleate()
 
 			res, err := suite.queryClient.TokenPair(ctx, req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expRes, res)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestDenomAlias() {
+	var (
+		req    *types.QueryDenomAliasesRequest
+		expRes *types.QueryDenomAliasesResponse
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"invalid format for denom",
+			func() {
+				req = &types.QueryDenomAliasesRequest{}
+				expRes = &types.QueryDenomAliasesResponse{}
+			},
+			false,
+		},
+		{
+			"not registered with denom",
+			func() {
+				req = &types.QueryDenomAliasesRequest{Denom: "usdt"}
+				expRes = &types.QueryDenomAliasesResponse{}
+			},
+			false,
+		},
+		{
+			"metadata not found",
+			func() {
+				req = &types.QueryDenomAliasesRequest{Denom: "usdt"}
+				expRes = &types.QueryDenomAliasesResponse{}
+
+				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "usdt", []byte{})
+			},
+			false,
+		},
+		{
+			"metadata not support many to one",
+			func() {
+				req = &types.QueryDenomAliasesRequest{Denom: "usdt"}
+				expRes = &types.QueryDenomAliasesResponse{}
+
+				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "usdt", []byte{})
+
+				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, banktypes.Metadata{
+					Description: "The cross chain token of the Function X",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    "usdt",
+							Exponent: 0,
+						},
+						{
+							Denom:    "USDT",
+							Exponent: 18,
+						},
+					},
+					Base:    "usdt",
+					Display: "usdt",
+					Name:    "Tether USD",
+					Symbol:  "USDT",
+				})
+			},
+			false,
+		},
+		{
+			"ok",
+			func() {
+				req = &types.QueryDenomAliasesRequest{Denom: "usdt"}
+				expRes = &types.QueryDenomAliasesResponse{Aliases: []string{bscDenom, polygonDenom}}
+
+				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "usdt", []byte{})
+
+				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, banktypes.Metadata{
+					Description: "The cross chain token of the Function X",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    "usdt",
+							Exponent: 0,
+							Aliases:  []string{bscDenom, polygonDenom},
+						},
+						{
+							Denom:    "USDT",
+							Exponent: 18,
+						},
+					},
+					Base:    "usdt",
+					Display: "usdt",
+					Name:    "Tether USD",
+					Symbol:  "USDT",
+				})
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest() // reset
+
+			ctx := sdk.WrapSDKContext(suite.ctx)
+
+			tc.malleate()
+
+			res, err := suite.queryClient.DenomAliases(ctx, req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expRes, res)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestAliasDenom() {
+	var (
+		req    *types.QueryAliasDenomRequest
+		expRes *types.QueryAliasDenomResponse
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"invalid format for alias",
+			func() {
+				req = &types.QueryAliasDenomRequest{}
+				expRes = &types.QueryAliasDenomResponse{}
+			},
+			false,
+		},
+		{
+			"denom not found with alias",
+			func() {
+				req = &types.QueryAliasDenomRequest{Alias: bscDenom}
+				expRes = &types.QueryAliasDenomResponse{}
+			},
+			false,
+		},
+		{
+			"ok",
+			func() {
+				req = &types.QueryAliasDenomRequest{Alias: bscDenom}
+				expRes = &types.QueryAliasDenomResponse{Denom: "usdt"}
+
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", bscDenom)
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest() // reset
+
+			ctx := sdk.WrapSDKContext(suite.ctx)
+
+			tc.malleate()
+
+			res, err := suite.queryClient.AliasDenom(ctx, req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expRes, res)
