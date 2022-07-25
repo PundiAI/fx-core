@@ -6,12 +6,13 @@ import "gogoproto/gogo.proto";
 option go_package = "github.com/functionx/fx-core/x/gravity/types";
 
 // IDSet represents a set of IDs
-message IDSet {
-    repeated uint64 ids = 1;
-}
+message IDSet { repeated uint64 ids = 1; }
 
 message BatchFees {
-    string token_contract = 1;
-    string total_fees = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-    uint64 total_txs = 3;
+  string token_contract = 1;
+  string total_fees = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  uint64 total_txs = 3;
 }

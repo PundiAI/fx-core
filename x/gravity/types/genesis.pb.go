@@ -27,7 +27,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // valset_update_power_change_percent
 //
-// If power change between validators of CurrentValset and latest valset request is > 10%
+// If power change between validators of CurrentValset and latest valset request
+// is > 10%
 type Params struct {
 	GravityId                      string                                 `protobuf:"bytes,1,opt,name=gravity_id,json=gravityId,proto3" json:"gravity_id,omitempty"`
 	ContractSourceHash             string                                 `protobuf:"bytes,2,opt,name=contract_source_hash,json=contractSourceHash,proto3" json:"contract_source_hash,omitempty"`

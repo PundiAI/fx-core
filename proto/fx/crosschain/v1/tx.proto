@@ -9,42 +9,47 @@ option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 
 // Msg defines the state transitions possible within gravity
 service Msg {
-    rpc SetOrchestratorAddress (MsgSetOrchestratorAddress) returns (MsgSetOrchestratorAddressResponse);
-    rpc AddOracleDeposit (MsgAddOracleDeposit) returns (MsgAddOracleDepositResponse);
-    rpc OracleSetConfirm (MsgOracleSetConfirm) returns (MsgOracleSetConfirmResponse);
-    rpc OracleSetUpdateClaim (MsgOracleSetUpdatedClaim) returns (MsgOracleSetUpdatedClaimResponse);
+  rpc SetOrchestratorAddress(MsgSetOrchestratorAddress)
+      returns (MsgSetOrchestratorAddressResponse);
+  rpc AddOracleDeposit(MsgAddOracleDeposit)
+      returns (MsgAddOracleDepositResponse);
+  rpc OracleSetConfirm(MsgOracleSetConfirm)
+      returns (MsgOracleSetConfirmResponse);
+  rpc OracleSetUpdateClaim(MsgOracleSetUpdatedClaim)
+      returns (MsgOracleSetUpdatedClaimResponse);
 
-    rpc BridgeTokenClaim (MsgBridgeTokenClaim) returns (MsgBridgeTokenClaimResponse);
+  rpc BridgeTokenClaim(MsgBridgeTokenClaim)
+      returns (MsgBridgeTokenClaimResponse);
 
-    rpc SendToFxClaim (MsgSendToFxClaim) returns (MsgSendToFxClaimResponse);
+  rpc SendToFxClaim(MsgSendToFxClaim) returns (MsgSendToFxClaimResponse);
 
-    rpc SendToExternal (MsgSendToExternal) returns (MsgSendToExternalResponse);
-    rpc CancelSendToExternal (MsgCancelSendToExternal) returns (MsgCancelSendToExternalResponse);
-    rpc SendToExternalClaim (MsgSendToExternalClaim) returns (MsgSendToExternalClaimResponse);
+  rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
+  rpc CancelSendToExternal(MsgCancelSendToExternal)
+      returns (MsgCancelSendToExternalResponse);
+  rpc SendToExternalClaim(MsgSendToExternalClaim)
+      returns (MsgSendToExternalClaimResponse);
 
-    rpc RequestBatch (MsgRequestBatch) returns (MsgRequestBatchResponse);
-    rpc ConfirmBatch (MsgConfirmBatch) returns (MsgConfirmBatchResponse);
+  rpc RequestBatch(MsgRequestBatch) returns (MsgRequestBatchResponse);
+  rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
 }
 
 message MsgSetOrchestratorAddress {
-    string oracle = 1;
-    string orchestrator = 2;
-    string external_address = 3;
-    cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false];
-    string chain_name = 5;
+  string oracle = 1;
+  string orchestrator = 2;
+  string external_address = 3;
+  cosmos.base.v1beta1.Coin deposit = 4 [ (gogoproto.nullable) = false ];
+  string chain_name = 5;
 }
 
-message MsgSetOrchestratorAddressResponse {
-}
+message MsgSetOrchestratorAddressResponse {}
 
 message MsgAddOracleDeposit {
-    string oracle = 1;
-    cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-    string chain_name = 3;
+  string oracle = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
+  string chain_name = 3;
 }
 
-message MsgAddOracleDepositResponse {
-}
+message MsgAddOracleDepositResponse {}
 
 // MsgOracleSetConfirm
 // this is the message sent by the validators when they wish to submit their
@@ -62,29 +67,27 @@ message MsgAddOracleDepositResponse {
 // chain store and submit them to Ethereum to update the validator set
 // -------------
 message MsgOracleSetConfirm {
-    uint64 nonce = 1;
-    string orchestrator_address = 2;
-    string external_address = 3;
-    string signature = 4;
-    string chain_name = 5;
+  uint64 nonce = 1;
+  string orchestrator_address = 2;
+  string external_address = 3;
+  string signature = 4;
+  string chain_name = 5;
 }
 
-message MsgOracleSetConfirmResponse {
-}
+message MsgOracleSetConfirmResponse {}
 
 // This informs the Cosmos module that a validator
 // set has been updated.
 message MsgOracleSetUpdatedClaim {
-    uint64 event_nonce = 1;
-    uint64 block_height = 2;
-    uint64 oracle_set_nonce = 3;
-    repeated BridgeValidator members = 4;
-    string orchestrator = 6;
-    string chain_name = 7;
+  uint64 event_nonce = 1;
+  uint64 block_height = 2;
+  uint64 oracle_set_nonce = 3;
+  repeated BridgeValidator members = 4;
+  string orchestrator = 6;
+  string chain_name = 7;
 }
 
-message MsgOracleSetUpdatedClaimResponse {
-}
+message MsgOracleSetUpdatedClaimResponse {}
 
 // MsgSendToFxClaim
 // When more than 66% of the active validator set has
@@ -92,19 +95,21 @@ message MsgOracleSetUpdatedClaimResponse {
 // issued to the Payment address in question
 // -------------
 message MsgSendToFxClaim {
-    uint64 event_nonce = 1;
-    uint64 block_height = 2;
-    string token_contract = 3;
-    string amount = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-    string sender = 5;
-    string receiver = 6;
-    string target_ibc = 7;
-    string orchestrator = 8;
-    string chain_name = 9;
+  uint64 event_nonce = 1;
+  uint64 block_height = 2;
+  string token_contract = 3;
+  string amount = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string sender = 5;
+  string receiver = 6;
+  string target_ibc = 7;
+  string orchestrator = 8;
+  string chain_name = 9;
 }
 
-message MsgSendToFxClaimResponse {
-}
+message MsgSendToFxClaimResponse {}
 
 // MsgSendToExternal
 // This is the message that a user calls when they want to bridge an asset
@@ -119,27 +124,25 @@ message MsgSendToFxClaimResponse {
 // actually send this message in the first place. So a successful send has
 // two layers of fees for the user
 message MsgSendToExternal {
-    string sender = 1;
-    string dest = 2;
-    cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
-    cosmos.base.v1beta1.Coin bridge_fee = 4 [(gogoproto.nullable) = false];
-    string chain_name = 5;
+  string sender = 1;
+  string dest = 2;
+  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin bridge_fee = 4 [ (gogoproto.nullable) = false ];
+  string chain_name = 5;
 }
 
-message MsgSendToExternalResponse {
-}
+message MsgSendToExternalResponse {}
 
 // This call allows the sender (and only the sender)
 // to cancel a given MsgSendToExternal and recieve a refund
 // of the tokens
 message MsgCancelSendToExternal {
-    uint64 transaction_id = 1;
-    string sender = 2;
-    string chain_name = 3;
+  uint64 transaction_id = 1;
+  string sender = 2;
+  string chain_name = 3;
 }
 
-message MsgCancelSendToExternalResponse {
-}
+message MsgCancelSendToExternalResponse {}
 
 // MsgRequestBatch
 // this is a message anyone can send that requests a batch of transactions to
@@ -152,15 +155,17 @@ message MsgCancelSendToExternalResponse {
 // -------------
 // feeReceive:
 message MsgRequestBatch {
-    string sender = 1;
-    string denom = 2;
-    string minimum_fee = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-    string feeReceive = 4;
-    string chain_name = 5;
+  string sender = 1;
+  string denom = 2;
+  string minimum_fee = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string feeReceive = 4;
+  string chain_name = 5;
 }
 
-message MsgRequestBatchResponse {
-}
+message MsgRequestBatchResponse {}
 
 // MsgConfirmBatch
 // When validators observe a MsgRequestBatch they form a batch by ordering
@@ -171,42 +176,39 @@ message MsgRequestBatchResponse {
 // as well as an Bsc signature over this batch by the validator
 // -------------
 message MsgConfirmBatch {
-    uint64 nonce = 1;
-    string token_contract = 2;
-    string orchestrator_address = 3;
-    string external_address = 4;
-    string signature = 5;
-    string chain_name = 6;
+  uint64 nonce = 1;
+  string token_contract = 2;
+  string orchestrator_address = 3;
+  string external_address = 4;
+  string signature = 5;
+  string chain_name = 6;
 }
 
-message MsgConfirmBatchResponse {
-}
+message MsgConfirmBatchResponse {}
 
 // SendToExternalClaim claims that a batch of withdrawal
 // operations on the bridge contract was executed.
 message MsgSendToExternalClaim {
-    uint64 event_nonce = 1;
-    uint64 block_height = 2;
-    uint64 batch_nonce = 3;
-    string token_contract = 4;
-    string orchestrator = 5;
-    string chain_name = 6;
+  uint64 event_nonce = 1;
+  uint64 block_height = 2;
+  uint64 batch_nonce = 3;
+  string token_contract = 4;
+  string orchestrator = 5;
+  string chain_name = 6;
 }
 
-message MsgSendToExternalClaimResponse {
-}
+message MsgSendToExternalClaimResponse {}
 
 message MsgBridgeTokenClaim {
-    uint64 event_nonce = 1;
-    uint64 block_height = 2;
-    string token_contract = 3;
-    string name = 4;
-    string symbol = 5;
-    uint64 decimals = 6;
-    string orchestrator = 7;
-    string channel_ibc = 8; // Bridge Token channel IBC
-    string chain_name = 9;
+  uint64 event_nonce = 1;
+  uint64 block_height = 2;
+  string token_contract = 3;
+  string name = 4;
+  string symbol = 5;
+  uint64 decimals = 6;
+  string orchestrator = 7;
+  string channel_ibc = 8; // Bridge Token channel IBC
+  string chain_name = 9;
 }
 
-message MsgBridgeTokenClaimResponse {
-}
+message MsgBridgeTokenClaimResponse {}

@@ -43,5 +43,21 @@ for dir in $proto_dirs; do
     $(find "${dir}" -maxdepth 1 -name '*.proto')
 done
 
+# command to generate docs using protoc-gen-doc
+buf protoc \
+  -I "proto" \
+  -I "build/cosmos-sdk/proto" \
+  -I "build/cosmos-sdk/third_party/proto" \
+  --doc_out=./docs/proto \
+  --doc_opt=./docs/proto/proto-doc-markdown.tmpl,fx-proto-docs.md \
+  $(find "$(pwd)/proto" -maxdepth 5 -name '*.proto')
+
+buf protoc \
+    -I "build/cosmos-sdk/proto" \
+    -I "build/cosmos-sdk/third_party/proto" \
+    --doc_out=./docs/proto \
+    --doc_opt=./docs/proto/proto-doc-markdown.tmpl,cosmos-sdk-proto-docs.md \
+    $(find "$(pwd)/build/cosmos-sdk/proto" -maxdepth 5 -name '*.proto')
+
 cp -r github.com/functionx/fx-core/* ./
 rm -rf github.com

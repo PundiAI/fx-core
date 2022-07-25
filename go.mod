@@ -18,6 +18,8 @@ require (
 	github.com/onsi/gomega v1.10.4 // indirect
 	github.com/pelletier/go-toml v1.9.1 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/rakyll/statik v0.1.7 // indirect
+	github.com/regen-network/cosmos-proto v0.3.1 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/cobra v1.1.3

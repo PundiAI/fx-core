@@ -278,9 +278,9 @@ func (m *BridgeValidator) GetExternalAddress() string {
 	return ""
 }
 
-// OracleSet is the external Chain Bridge Multsig Set, each gravity validator also
-// maintains an external key to sign messages, these are used to check signatures on
-// external because of the significant gas savings
+// OracleSet is the external Chain Bridge Multsig Set, each gravity validator
+// also maintains an external key to sign messages, these are used to check
+// signatures on external because of the significant gas savings
 type OracleSet struct {
 	Nonce   uint64             `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	Members []*BridgeValidator `protobuf:"bytes,2,rep,name=members,proto3" json:"members,omitempty"`
@@ -462,18 +462,18 @@ func (m *BridgeToken) GetChannelIbc() string {
 // Attestation is an aggregate of `claims` that eventually becomes `observed` by
 // all orchestrators
 // EVENT_NONCE:
-// EventNonce a nonce provided by the gravity contract that is unique per event fired
-// These event nonces must be relayed in order. This is a correctness issue,
-// if relaying out of order transaction replay attacks become possible
+// EventNonce a nonce provided by the gravity contract that is unique per event
+// fired These event nonces must be relayed in order. This is a correctness
+// issue, if relaying out of order transaction replay attacks become possible
 // OBSERVED:
 // Observed indicates that >67% of validators have attested to the event,
 // and that the event should be executed by the gravity state machine
 //
-// The actual content of the claims is passed in with the transaction making the claim
-// and then passed through the call stack alongside the attestation while it is processed
-// the key in which the attestation is stored is keyed on the exact details of the claim
-// but there is no reason to store those exact details becuause the next message sender
-// will kindly provide you with them.
+// The actual content of the claims is passed in with the transaction making the
+// claim and then passed through the call stack alongside the attestation while
+// it is processed the key in which the attestation is stored is keyed on the
+// exact details of the claim but there is no reason to store those exact
+// details becuause the next message sender will kindly provide you with them.
 type Attestation struct {
 	Observed bool        `protobuf:"varint,1,opt,name=observed,proto3" json:"observed,omitempty"`
 	Votes    []string    `protobuf:"bytes,2,rep,name=votes,proto3" json:"votes,omitempty"`
@@ -850,7 +850,8 @@ func (m *BatchFees) GetTotalTxs() uint64 {
 
 // oracle_set_update_power_change_percent
 //
-// If power change between validators of CurrentOracleSet and latest oracle set request is > 10%
+// If power change between validators of CurrentOracleSet and latest oracle set
+// request is > 10%
 type Params struct {
 	GravityId                         string                                 `protobuf:"bytes,1,opt,name=gravity_id,json=gravityId,proto3" json:"gravity_id,omitempty"`
 	AverageBlockTime                  uint64                                 `protobuf:"varint,2,opt,name=average_block_time,json=averageBlockTime,proto3" json:"average_block_time,omitempty"`

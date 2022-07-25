@@ -41,8 +41,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // The orchestrator field is a cosmos1... string  (i.e. sdk.AccAddress) that
 // references the key that is being delegated to
 // ETH_ADDRESS
-// This is a hex encoded 0x Ethereum public key that will be used by this validator
-// on Ethereum
+// This is a hex encoded 0x Ethereum public key that will be used by this
+// validator on Ethereum
 type MsgSetOrchestratorAddress struct {
 	Validator    string `protobuf:"bytes,1,opt,name=validator,proto3" json:"validator,omitempty"`
 	Orchestrator string `protobuf:"bytes,2,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
