@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"sort"
-	"strconv"
 
 	ibcchannelkeeper "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/keeper"
 
@@ -85,17 +84,13 @@ func (k Keeper) SetValsetRequest(ctx sdk.Context, valset *types.Valset) *types.V
 	}
 	k.StoreValset(ctx, valset)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeMultisigUpdateRequest,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			//sdk.NewAttribute(types.AttributeKeyContract, k.GetBridgeContractAddress(ctx)),
-			sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
-			sdk.NewAttribute(types.AttributeKeyMultisigID, fmt.Sprint(valset.Nonce)),
-			sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(valset.Nonce)),
-		),
-	)
-
+	k.GetBridgeChainID(ctx)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeValsetUpdate,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(types.AttributeKeyValsetNonce, fmt.Sprint(valset.Nonce)),
+		sdk.NewAttribute(types.AttributeKeyValsetLen, fmt.Sprint(len(valset.Members))),
+	))
 	return valset
 }
 

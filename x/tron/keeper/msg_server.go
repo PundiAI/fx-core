@@ -51,15 +51,13 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 	if s.GetBatchConfirm(ctx, msg.Nonce, msg.TokenContract, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(types.ErrDuplicate, "duplicate signature")
 	}
-	key := s.SetBatchConfirm(ctx, oracleAddr, msg)
+	s.SetBatchConfirm(ctx, oracleAddr, msg)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyBatchConfirmKey, hex.EncodeToString(key)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.ExternalAddress),
+	))
 
 	return nil, nil
 }
@@ -87,15 +85,13 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetCo
 	if s.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(types.ErrDuplicate, "duplicate signature")
 	}
-	key := s.SetOracleSetConfirm(ctx, oracleAddr, *msg)
+	s.SetOracleSetConfirm(ctx, oracleAddr, msg)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyOracleSetConfirmKey, hex.EncodeToString(key)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.ExternalAddress),
+	))
 
 	return &types.MsgOracleSetConfirmResponse{}, nil
 }

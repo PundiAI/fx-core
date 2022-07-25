@@ -90,8 +90,8 @@ func (s EthereumMsgServer) SetOrchestratorAddress(c context.Context, msg *types.
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeySetOperatorAddr, orchestratorAddr.String()),
+			sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Oracle),
 		),
 	)
 
@@ -164,14 +164,13 @@ func (s EthereumMsgServer) SendToExternal(c context.Context, msg *types.MsgSendT
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, err.Error())
 	}
+	_ = txID
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyOutgoingTXID, fmt.Sprint(txID)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
 
 	return &types.MsgSendToExternalResponse{}, nil
 }
@@ -187,13 +186,11 @@ func (s EthereumMsgServer) CancelSendToExternal(c context.Context, msg *types.Ms
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyOutgoingTXID, fmt.Sprint(msg.TransactionId)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
 
 	return &types.MsgCancelSendToExternalResponse{}, nil
 }
@@ -222,14 +219,13 @@ func (s EthereumMsgServer) RequestBatch(c context.Context, msg *types.MsgRequest
 	if err != nil {
 		return nil, err
 	}
+	_ = batch
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyBatchNonce, fmt.Sprint(batch.BatchNonce)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
 
 	return &types.MsgRequestBatchResponse{}, nil
 }
@@ -260,15 +256,13 @@ func (s EthereumMsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirm
 	if s.GetBatchConfirm(ctx, msg.Nonce, msg.TokenContract, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(types.ErrDuplicate, "duplicate signature")
 	}
-	key := s.SetBatchConfirm(ctx, oracleAddr, msg)
+	s.SetBatchConfirm(ctx, oracleAddr, msg)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyBatchConfirmKey, hex.EncodeToString(key)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.ExternalAddress),
+	))
 
 	return nil, nil
 }
@@ -293,15 +287,13 @@ func (s EthereumMsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOra
 	if s.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(types.ErrDuplicate, "duplicate signature")
 	}
-	key := s.SetOracleSetConfirm(ctx, oracleAddr, *msg)
+	s.SetOracleSetConfirm(ctx, oracleAddr, msg)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.Type()),
-			sdk.NewAttribute(types.AttributeKeyOracleSetConfirmKey, hex.EncodeToString(key)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.ExternalAddress),
+	))
 
 	return &types.MsgOracleSetConfirmResponse{}, nil
 }
@@ -320,7 +312,7 @@ func (s EthereumMsgServer) SendToExternalClaim(c context.Context, msg *types.Msg
 		return nil, err
 	}
 
-	return &types.MsgSendToExternalClaimResponse{}, s.claimHandlerCommon(ctx, any, msg, msg.Type())
+	return &types.MsgSendToExternalClaimResponse{}, s.claimHandlerCommon(ctx, any, msg)
 }
 
 // SendToFxClaim handles MsgSendToFxClaim
@@ -338,7 +330,7 @@ func (s EthereumMsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendTo
 		return nil, err
 	}
 
-	return &types.MsgSendToFxClaimResponse{}, s.claimHandlerCommon(ctx, any, msg, msg.Type())
+	return &types.MsgSendToFxClaimResponse{}, s.claimHandlerCommon(ctx, any, msg)
 }
 
 func (s EthereumMsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
@@ -352,7 +344,7 @@ func (s EthereumMsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBri
 		return nil, err
 	}
 
-	return &types.MsgBridgeTokenClaimResponse{}, s.claimHandlerCommon(ctx, any, msg, msg.Type())
+	return &types.MsgBridgeTokenClaimResponse{}, s.claimHandlerCommon(ctx, any, msg)
 }
 
 // OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
@@ -374,7 +366,7 @@ func (s EthereumMsgServer) OracleSetUpdateClaim(c context.Context, msg *types.Ms
 		return nil, err
 	}
 
-	return &types.MsgOracleSetUpdatedClaimResponse{}, s.claimHandlerCommon(ctx, any, msg, msg.Type())
+	return &types.MsgOracleSetUpdatedClaimResponse{}, s.claimHandlerCommon(ctx, any, msg)
 }
 
 func checkOrchestratorIsOracle(ctx sdk.Context, keep Keeper, orchestrator string) error {
@@ -399,7 +391,7 @@ func checkOrchestratorIsOracle(ctx sdk.Context, keep Keeper, orchestrator string
 
 // claimHandlerCommon is an internal function that provides common code for processing claims once they are
 // translated from the message to the Ethereum claim interface
-func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectypes.Any, msg types.ExternalClaim, msgType string) error {
+func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectypes.Any, msg types.ExternalClaim) error {
 	// Add the claim to the store
 	_, err := s.Attest(ctx, msg, msgAny)
 	if err != nil {
@@ -407,14 +399,12 @@ func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectype
 	}
 
 	// Emit the handle message event
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msgType),
-			// TODO: maybe return something better here? is this the right string representation?
-			sdk.NewAttribute(types.AttributeKeyAttestationID, hex.EncodeToString(types.GetAttestationKey(msg.GetEventNonce(), msg.ClaimHash()))),
-		),
-	)
+	types.GetAttestationKey(msg.GetEventNonce(), msg.ClaimHash())
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.GetClaimer().String()),
+	))
 
 	return nil
 }

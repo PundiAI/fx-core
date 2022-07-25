@@ -37,30 +37,7 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 		if err = a.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, receiveAddr, coins); err != nil {
 			return sdkerrors.Wrap(err, "transfer vouchers")
 		}
-
-		event := sdk.NewEvent(
-			types.EventTypeAttestationHandlerDeposit,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(types.AttributeKeyAttestationHandlerNonce, fmt.Sprintf("%d", claim.EventNonce)),
-			sdk.NewAttribute(types.AttributeKeyAttestationHandlerTokenContract, claim.TokenContract),
-			sdk.NewAttribute(types.AttributeKeyAttestationHandlerAmount, claim.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyAttestationHandlerEthereumSender, claim.EthSender),
-			sdk.NewAttribute(types.AttributeKeyAttestationHandlerFxReceiver, claim.FxReceiver),
-			sdk.NewAttribute(types.AttributeKeyAttestationHandlerTargetIbc, claim.TargetIbc),
-		)
-
-		sourcePort, sourceChannel, nextChannelSendSequence, isOk := a.handleIbcTransfer(ctx, claim, receiveAddr, coin)
-		if isOk {
-			event = event.
-				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSendSequence, fmt.Sprintf("%d", nextChannelSendSequence))).
-				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSourcePort, sourcePort)).
-				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSourceChannel, sourceChannel))
-			a.keeper.SetIbcSequenceHeight(ctx, sourcePort, sourceChannel, nextChannelSendSequence, uint64(ctx.BlockHeight()))
-		}
-		// broadcast event
-		ctx.EventManager().EmitEvents(sdk.Events{
-			event,
-		})
+		a.handleIbcTransfer(ctx, claim, receiveAddr, coin)
 		return nil
 	case *types.MsgWithdrawClaim:
 		err := a.keeper.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)

@@ -1,27 +1,30 @@
 package types
 
 const (
-	EventTypeObservation            = "observation"
-	EventTypeOutgoingBatch          = "outgoing_batch"
-	EventTypeOracleSetRequest       = "multisig_update_request"
-	EventTypeOutgoingBatchCanceled  = "outgoing_batch_canceled"
-	EventTypeSendToExternalReceived = "send_to_external_received"
+	EventTypeContractEvnet = "observation"
+	AttributeKeyClaimType  = "claim_type"
+	AttributeKeyEventNonce = "event_nonce"
+	AttributeKeyClaimHash  = "claim_hash"
+
+	AttributeKeyBlockHeight  = "block_height"
+	AttributeKeyStateSuccess = "state_success"
+
+	EventTypeOracleSetUpdate   = "oracle_set_update"
+	AttributeKeyOracleSetNonce = "oracle_set_nonce"
+	AttributeKeyOracleSetLen   = "oracle_set_len"
+
+	EventTypeSendToExternal         = "send_to_external"
 	EventTypeSendToExternalCanceled = "send_to_external_canceled"
-	EventTypeSendToFx               = "send_to_fx"
+	AttributeKeyOutgoingTxID        = "outgoing_tx_id"
 
-	AttributeKeyAttestationID       = "attestation_id"
-	AttributeKeyBatchConfirmKey     = "batch_confirm_key"
-	AttributeKeyOracleSetConfirmKey = "valset_confirm_key"
-	AttributeKeySetOperatorAddr     = "set_operator_address"
+	EventTypeOutgoingBatch           = "outgoing_batch"
+	EventTypeOutgoingBatchCanceled   = "outgoing_batch_canceled"
+	AttributeKeyOutgoingTxIds        = "outgoing_tx_ids"
+	AttributeKeyOutgoingBatchNonce   = "batch_nonce"
+	AttributeKeyOutgoingBatchTimeout = "outgoing_batch_timeout"
 
-	AttributeKeyAttestationType = "attestation_type"
-	AttributeKeyEventNonce      = "event_nonce"
-	AttributeKeyOracleSetNonce  = "oracle_set_nonce"
-	AttributeKeyOutgoingTXID    = "outgoing_tx_id"
-	AttributeKeyBatchNonceTxIds = "batch_nonce_tx_ids"
-	AttributeKeyBatchNonce      = "batch_nonce"
-
-	AttributeKeyAttestationHandlerIbcChannelSendSequence  = "ibc_channel_send_sequence"
-	AttributeKeyAttestationHandlerIbcChannelSourcePort    = "ibc_channel_source_port"
-	AttributeKeyAttestationHandlerIbcChannelSourceChannel = "ibc_channel_source_channel"
+	EventTypeIbcTransfer         = "ibc_transfer"
+	AttributeKeyIbcSendSequence  = "ibc_send_sequence"
+	AttributeKeyIbcSourcePort    = "ibc_source_port"
+	AttributeKeyIbcSourceChannel = "ibc_source_channel"
 )

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"sort"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -76,21 +75,12 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, counte
 	k.appendToUnbatchedTXIndex(ctx, tokenContract, *erc20Fee, nextID)
 
 	// todo: add second index for sender so that we can easily query: give pending Tx by sender what about a second index for receiver?
-
-	poolEvent := sdk.NewEvent(
-		types.EventTypeBridgeWithdrawalReceived,
+	k.GetBridgeChainID(ctx)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeSendToEth,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		//sdk.NewAttribute(types.AttributeKeyContract, k.GetBridgeContractAddress(ctx)),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalTokenContract, outgoing.Erc20Token.Contract),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalSender, outgoing.Sender),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalReceiver, outgoing.DestAddress),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalAmount, outgoing.Erc20Token.Amount.String()),
-		sdk.NewAttribute(types.AttributeKeyWithdrawalFee, outgoing.Erc20Fee.Amount.String()),
-		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
-		sdk.NewAttribute(types.AttributeKeyOutgoingTXID, strconv.Itoa(int(nextID))),
-		sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(nextID)),
-	)
-	ctx.EventManager().EmitEvent(poolEvent)
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(nextID)),
+	))
 
 	return nextID, nil
 }
@@ -164,15 +154,12 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 			return sdkerrors.Wrap(err, "transfer vouchers")
 		}
 	}
-
-	poolEvent := sdk.NewEvent(
-		types.EventTypeBridgeWithdrawCanceled,
+	k.GetBridgeChainID(ctx)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeSendToEthCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		//sdk.NewAttribute(types.AttributeKeyContract, k.GetBridgeContractAddress(ctx)),
-		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
-	)
-	ctx.EventManager().EmitEvent(poolEvent)
-
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
+	))
 	return nil
 }
 

@@ -281,13 +281,12 @@ func (k Keeper) SetOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 	checkpoint := currentOracleSet.GetCheckpoint(gravityId)
 	k.SetPastExternalSignatureCheckpoint(ctx, checkpoint)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeOracleSetRequest,
-			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-			sdk.NewAttribute(types.AttributeKeyOracleSetNonce, fmt.Sprint(currentOracleSet.Nonce)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeOracleSetUpdate,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+		sdk.NewAttribute(types.AttributeKeyOracleSetNonce, fmt.Sprint(currentOracleSet.Nonce)),
+		sdk.NewAttribute(types.AttributeKeyOracleSetLen, fmt.Sprint(len(currentOracleSet.Members))),
+	))
 
 	return currentOracleSet
 }
@@ -463,10 +462,10 @@ func (k Keeper) GetOracleSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sd
 }
 
 // SetOracleSetConfirm sets a oracleSet confirmation
-func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, oracleSetConfirm types.MsgOracleSetConfirm) []byte {
+func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, oracleSetConfirm *types.MsgOracleSetConfirm) []byte {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOracleSetConfirmKey(oracleSetConfirm.Nonce, oracleAddr)
-	store.Set(key, k.cdc.MustMarshalBinaryBare(&oracleSetConfirm))
+	store.Set(key, k.cdc.MustMarshalBinaryBare(oracleSetConfirm))
 	return key
 }
 

@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	"strconv"
 
 	types2 "github.com/functionx/fx-core/types"
 
@@ -96,8 +95,18 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 				att.Observed = true
 				k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
-				k.processAttestation(ctx, att, claim)
-				k.emitObservedEvent(ctx, att, claim)
+				err = k.processAttestation(ctx, att, claim)
+				k.GetBridgeChainID(ctx)
+				types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash())
+				ctx.EventManager().EmitEvent(sdk.NewEvent(
+					types.EventTypeContractEvnet,
+					sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+					sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType().String()),
+					sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.GetEventNonce())),
+					sdk.NewAttribute(types.AttributeKeyClaimHash, fmt.Sprint(hex.EncodeToString(claim.ClaimHash()))),
+					sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
+					sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
+				))
 				break
 			}
 		}
@@ -108,7 +117,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 }
 
 // processAttestation actually applies the attestation to the consensus state
-func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, claim types.EthereumClaim) {
+func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, claim types.EthereumClaim) error {
 	// then execute in a new Tx so that we can store state on failure
 	xCtx, commit := ctx.CacheContext()
 	if err := k.AttestationHandler.Handle(xCtx, *att, claim); err != nil { // execute with a transient storage
@@ -121,24 +130,11 @@ func (k Keeper) processAttestation(ctx sdk.Context, att *types.Attestation, clai
 			"id", hex.EncodeToString(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash())),
 			"nonce", fmt.Sprint(claim.GetEventNonce()),
 		)
-	} else {
-		commit() // persist transient storage
-		ctx.EventManager().EmitEvents(xCtx.EventManager().Events())
+		return err
 	}
-}
-
-// emitObservedEvent emits an event with information about an attestation that has been applied to
-// consensus state.
-func (k Keeper) emitObservedEvent(ctx sdk.Context, _ *types.Attestation, claim types.EthereumClaim) {
-	observationEvent := sdk.NewEvent(
-		types.EventTypeObservation,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(types.AttributeKeyAttestationType, claim.GetType().String()),
-		sdk.NewAttribute(types.AttributeKeyBridgeChainID, strconv.Itoa(int(k.GetBridgeChainID(ctx)))),
-		sdk.NewAttribute(types.AttributeKeyAttestationID, hex.EncodeToString(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash()))),
-		sdk.NewAttribute(types.AttributeKeyNonce, fmt.Sprint(claim.GetEventNonce())),
-	)
-	ctx.EventManager().EmitEvent(observationEvent)
+	commit() // persist transient storage
+	ctx.EventManager().EmitEvents(xCtx.EventManager().Events())
+	return nil
 }
 
 // SetAttestation sets the attestation in the store
@@ -161,7 +157,7 @@ func (k Keeper) GetAttestation(ctx sdk.Context, eventNonce uint64, claimHash []b
 	return &att
 }
 
-/// DeleteAttestation deletes an attestation given an event nonce and claim
+// DeleteAttestation deletes an attestation given an event nonce and claim
 func (k Keeper) DeleteAttestation(ctx sdk.Context, att types.Attestation) {
 	claim, err := k.UnpackAttestationClaim(&att)
 	if err != nil {
@@ -179,7 +175,6 @@ func (k Keeper) GetAttestationMapping(ctx sdk.Context) (out map[uint64][]types.A
 		if err != nil {
 			panic("couldn't cast to claim")
 		}
-
 		if val, ok := out[claim.GetEventNonce()]; !ok {
 			out[claim.GetEventNonce()] = []types.Attestation{att}
 		} else {

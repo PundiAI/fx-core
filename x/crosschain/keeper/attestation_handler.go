@@ -1,16 +1,14 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/x/crosschain/types"
 )
 
-// Handle is the entry point for Attestation processing.
-func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, externalClaim types.ExternalClaim) error {
+// AttestationHandler Handle is the entry point for Attestation processing.
+func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.ExternalClaim) error {
 	switch claim := externalClaim.(type) {
 	case *types.MsgSendToFxClaim:
 		bridgeToken := k.GetBridgeTokenDenom(ctx, claim.TokenContract)
@@ -30,22 +28,7 @@ func (k *Keeper) AttestationHandler(ctx sdk.Context, _ types.Attestation, extern
 			return sdkerrors.Wrap(err, "transfer vouchers")
 		}
 
-		event := sdk.NewEvent(
-			types.EventTypeSendToFx,
-			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprintf("%d", claim.EventNonce)),
-		)
-
-		sourcePort, sourceChannel, nextChannelSendSequence, isOk := k.handleIbcTransfer(ctx, claim, receiveAddr, coin)
-		if isOk {
-			event = event.
-				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSendSequence, fmt.Sprintf("%d", nextChannelSendSequence))).
-				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSourcePort, sourcePort)).
-				AppendAttributes(sdk.NewAttribute(types.AttributeKeyAttestationHandlerIbcChannelSourceChannel, sourceChannel))
-			k.SetIbcSequenceHeight(ctx, sourcePort, sourceChannel, nextChannelSendSequence, uint64(ctx.BlockHeight()))
-		}
-		// broadcast event
-		ctx.EventManager().EmitEvent(event)
+		k.handleIbcTransfer(ctx, claim, receiveAddr, coin)
 
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
