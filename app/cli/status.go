@@ -2,6 +2,8 @@ package cli
 
 import (
 	"context"
+	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -24,11 +26,25 @@ type validatorInfo struct {
 	VotingPower int64
 }
 
+type syncInfo struct {
+	LatestBlockHash   bytes.HexBytes `json:"latest_block_hash"`
+	LatestAppHash     bytes.HexBytes `json:"latest_app_hash"`
+	LatestBlockHeight string         `json:"latest_block_height"`
+	LatestBlockTime   time.Time      `json:"latest_block_time"`
+
+	EarliestBlockHash   bytes.HexBytes `json:"earliest_block_hash"`
+	EarliestAppHash     bytes.HexBytes `json:"earliest_app_hash"`
+	EarliestBlockHeight string         `json:"earliest_block_height"`
+	EarliestBlockTime   time.Time      `json:"earliest_block_time"`
+
+	CatchingUp bool `json:"catching_up"`
+}
+
 // ResultStatus is node's info, same as Tendermint, except that we use our own
 // PubKey.
 type resultStatus struct {
 	NodeInfo      p2p.DefaultNodeInfo
-	SyncInfo      ctypes.SyncInfo
+	SyncInfo      syncInfo
 	ValidatorInfo validatorInfo
 }
 
@@ -55,7 +71,17 @@ func StatusCommand() *cobra.Command {
 			}
 			statusWithPk := resultStatus{
 				NodeInfo: status.NodeInfo,
-				SyncInfo: status.SyncInfo,
+				SyncInfo: syncInfo{
+					LatestBlockHash:     status.SyncInfo.LatestBlockHash,
+					LatestAppHash:       status.SyncInfo.LatestAppHash,
+					LatestBlockHeight:   strconv.FormatInt(status.SyncInfo.LatestBlockHeight, 10),
+					LatestBlockTime:     status.SyncInfo.LatestBlockTime,
+					EarliestBlockHash:   status.SyncInfo.EarliestBlockHash,
+					EarliestAppHash:     status.SyncInfo.EarliestAppHash,
+					EarliestBlockHeight: strconv.FormatInt(status.SyncInfo.EarliestBlockHeight, 10),
+					EarliestBlockTime:   status.SyncInfo.EarliestBlockTime,
+					CatchingUp:          status.SyncInfo.CatchingUp,
+				},
 				ValidatorInfo: validatorInfo{
 					Address:     status.ValidatorInfo.Address,
 					PubKey:      pk,
