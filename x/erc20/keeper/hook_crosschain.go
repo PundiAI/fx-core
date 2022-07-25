@@ -53,6 +53,22 @@ func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.A
 		}
 		logger.Info("transfer cross chain success", "tx-hash", receipt.TxHash.Hex())
 
+		ctx.EventManager().EmitEvents(
+			sdk.Events{
+				sdk.NewEvent(
+					types.EventTypeRelayTransferCrossChain,
+					sdk.NewAttribute(sdk.AttributeKeySender, from.String()),
+					sdk.NewAttribute(types.AttributeKeyTo, to.String()),
+					sdk.NewAttribute(types.AttributeKeyEvmTxHash, receipt.TxHash.String()),
+					sdk.NewAttribute(types.AttributeKeyFrom, tc.From.String()),
+					sdk.NewAttribute(types.AttributeKeyRecipient, tc.Recipient),
+					sdk.NewAttribute(sdk.AttributeKeyAmount, tc.Amount.String()),
+					sdk.NewAttribute(sdk.AttributeKeyFee, tc.Fee.String()),
+					sdk.NewAttribute(types.AttributeKeyTarget, fxtypes.Byte32ToString(tc.Target)),
+				),
+			},
+		)
+
 		telemetry.IncrCounterWithLabels(
 			[]string{types.ModuleName, "relay_transfer_cross_chain"},
 			1,
@@ -84,6 +100,18 @@ func (k Keeper) TransferChainHandler(ctx sdk.Context, from sdk.AccAddress, to st
 			if err != nil {
 				return err
 			}
+
+			ctx.EventManager().EmitEvents(
+				sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeConvertDenom,
+						sdk.NewAttribute(sdk.AttributeKeyAmount, amount.Add(fee).Amount.String()),
+						sdk.NewAttribute(types.AttributeKeyDenom, amount.Denom),
+						sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
+					),
+				},
+			)
+
 			amount.Denom = targetCoin.Denom
 			fee.Denom = targetCoin.Denom
 		}
