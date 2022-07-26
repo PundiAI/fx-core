@@ -129,4 +129,8 @@ message GenesisState {
   repeated MsgValsetConfirm valset_confirms = 10
       [ (gogoproto.nullable) = false ];
   repeated Attestation attestations = 11 [ (gogoproto.nullable) = false ];
+  repeated cosmos.base.v1beta1.Coin module_coins = 12 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
 }

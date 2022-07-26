@@ -2426,6 +2426,7 @@ GenesisState struct
 | `batch_confirms` | [MsgConfirmBatch](#fx.gravity.v1.MsgConfirmBatch) | repeated |  |
 | `valset_confirms` | [MsgValsetConfirm](#fx.gravity.v1.MsgValsetConfirm) | repeated |  |
 | `attestations` | [Attestation](#fx.gravity.v1.Attestation) | repeated |  |
+| `module_coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
 
 
