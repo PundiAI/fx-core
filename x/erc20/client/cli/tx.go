@@ -368,7 +368,7 @@ func NewToggleTokenConversionProposalCmd() *cobra.Command {
 func NewUpdateDenomAliasProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-denom-alias [denom] [alias]",
-		Args:    cobra.ExactArgs(3),
+		Args:    cobra.ExactArgs(2),
 		Short:   "Submit a update denom alias proposal",
 		Long:    "Submit a proposal to update the alias of a denom along with an initial deposit.",
 		Example: fmt.Sprintf("$ %s tx gov submit-proposal update-denom-alias <denom> <alias> <flag> --from=<key_or_address>", version.AppName),

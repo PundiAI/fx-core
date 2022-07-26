@@ -24,6 +24,8 @@ func GetQueryCmd() *cobra.Command {
 		GetTokenPairsCmd(),
 		GetTokenPairCmd(),
 		GetParamsCmd(),
+		GetDenomAliases(),
+		GetAliasDenom(),
 	)
 	return cmd
 }
@@ -123,6 +125,61 @@ func GetParamsCmd() *cobra.Command {
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func GetDenomAliases() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "denom-aliases [denom]",
+		Short: "Get denom aliases",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryDenomAliasesRequest{Denom: args[0]}
+
+			res, err := queryClient.DenomAliases(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func GetAliasDenom() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "alias-denom [alias]",
+		Short: "Get alias denom",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryAliasDenomRequest{Alias: args[0]}
+
+			res, err := queryClient.AliasDenom(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
