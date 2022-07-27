@@ -112,14 +112,10 @@ import (
 	tronkeeper "github.com/functionx/fx-core/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	_ "github.com/functionx/fx-core/docs/statik"
 )
-
-var ChainID = "fxcore"
-
-const Name = "fxcore"
-const MintDenom = "FX"
-const AddressPrefix = "fx"
 
 func getGovProposalHandlers() []govclient.ProposalHandler {
 	return []govclient.ProposalHandler{
@@ -195,7 +191,7 @@ func init() {
 		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
+	DefaultNodeHome = filepath.Join(userHomeDir, "."+fxtypes.Name)
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -255,7 +251,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
-	bApp := baseapp.NewBaseApp(Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
+	bApp := baseapp.NewBaseApp(fxtypes.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)

@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/functionx/fx-core/app"
+	"github.com/cosmos/go-bip39"
 
 	"github.com/cosmos/cosmos-sdk/client/input"
 
@@ -53,7 +53,7 @@ func UpdateValidatorKeyCmd() *cobra.Command {
 				}
 			}
 
-			secret := app.NewMnemonic()
+			secret := newMnemonic()
 			if len(args) > 0 {
 				secret = args[0]
 			} else if !unsafe || !updateKey {
@@ -113,7 +113,7 @@ func UpdateNodeKeyCmd() *cobra.Command {
 					return nil
 				}
 			}
-			secret := app.NewMnemonic()
+			secret := newMnemonic()
 			if len(args) > 0 {
 				secret = args[0]
 			} else if !unsafe || !updateKey {
@@ -135,4 +135,16 @@ func UpdateNodeKeyCmd() *cobra.Command {
 	cmd.Flags().Bool(flagUpdateNodeKey, false, "Update node key. Requires --unsafe.")
 	cmd.Flags().Bool(flagUnsafe, false, "Enable unsafe operations. This flag must be switched on along with all unsafe operation-specific options.")
 	return cmd
+}
+
+func newMnemonic() string {
+	entropySeed, err := bip39.NewEntropy(256)
+	if err != nil {
+		panic(err)
+	}
+	mnemonic, err := bip39.NewMnemonic(entropySeed)
+	if err != nil {
+		panic(err)
+	}
+	return mnemonic
 }

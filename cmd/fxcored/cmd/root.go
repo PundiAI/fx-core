@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	appCli "github.com/functionx/fx-core/app/cli"
 
 	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
@@ -15,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/snapshots"
@@ -57,7 +58,7 @@ func NewRootCmd() *cobra.Command {
 		WithViper(EnvPrefix)
 
 	rootCmd := &cobra.Command{
-		Use:   app.Name + "d",
+		Use:   fxtypes.Name + "d",
 		Short: "FunctionX Core Chain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
@@ -82,16 +83,14 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 			// add log filter
-			return app.AddCmdLogWrapFilterLogType(cmd)
+			return appCli.AddCmdLogWrapFilterLogType(cmd)
 		},
 	}
 
-	rootCmd.PersistentFlags().StringSlice(app.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery)`)
+	rootCmd.PersistentFlags().StringSlice(appCli.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery)`)
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID:        app.ChainID,
-		flags.FlagKeyringBackend: keyring.BackendTest,
-		flags.FlagGasPrices:      "4000000000000" + app.MintDenom,
+		flags.FlagChainID: fxtypes.ChainID,
 	})
 	for _, command := range rootCmd.Commands() {
 		if command.Use == "" {
@@ -117,7 +116,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		tmcli.NewCompletionCmd(rootCmd, true),
 		TestnetCmd(),
 		appCli.Debug(),
-		appCli.Network(),
+		Network(),
 		sdkCfgCmd,
 	)
 

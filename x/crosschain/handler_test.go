@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math"
 	"math/big"
 	"testing"
@@ -524,7 +525,7 @@ func TestClaimTest(t *testing.T) {
 func createTestEnv(t *testing.T) (myApp *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler) {
 	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	myApp = helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{})
 	ctx = ctx.WithBlockHeight(2000000)

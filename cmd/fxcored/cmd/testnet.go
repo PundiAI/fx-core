@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/functionx/fx-core/app"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -91,13 +93,13 @@ Example:
 	cmd.Flags().Int(flagValidatorNum, 4, "Number of validators to initialize the testnet with")
 	cmd.Flags().String(flagOutputDir, "./testnet", "Directory to store initialization data for the testnet")
 	cmd.Flags().String(flagNodeNamePrefix, "node", "Prefix the directory name for each node with (node results in node0, node1, ...)")
-	cmd.Flags().String(flagNodeDaemonHome, app.Name, "Home directory of the node's daemon configuration")
+	cmd.Flags().String(flagNodeDaemonHome, fxtypes.Name, "Home directory of the node's daemon configuration")
 	cmd.Flags().String(flagStartingIP, "172.20.0.2", "Starting IP address (192.168.0.1 results in persistent peers list ID0@192.168.0.1:46656, ID1@192.168.0.2:46656, ...)")
-	cmd.Flags().String(flags.FlagChainID, app.ChainID, "genesis file chain-id, if left blank will be randomly created")
-	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("4000000000000%s", app.MintDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum")
+	cmd.Flags().String(flags.FlagChainID, fxtypes.ChainID, "genesis file chain-id, if left blank will be randomly created")
+	cmd.Flags().String(server.FlagMinGasPrices, fmt.Sprintf("4000000000000%s", fxtypes.MintDenom), "Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum")
 	cmd.Flags().String(flags.FlagKeyringBackend, keyring.BackendTest, "Select keyring's backend (os|file|test)")
 	cmd.Flags().String(flags.FlagKeyAlgorithm, string(hd.Secp256k1Type), "Key signing algorithm to generate keys for")
-	cmd.Flags().String(FlagDenom, app.MintDenom, "set the default coin denomination")
+	cmd.Flags().String(FlagDenom, fxtypes.MintDenom, "set the default coin denomination")
 
 	return cmd
 }

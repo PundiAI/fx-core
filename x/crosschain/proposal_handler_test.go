@@ -3,6 +3,7 @@ package crosschain_test
 import (
 	"crypto/ecdsa"
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 	"testing"
 
@@ -79,7 +80,7 @@ func TestUpdateOracleProposal(t *testing.T) {
 func createProposalTestEnv(t *testing.T) (myApp *app.App, ctx sdk.Context, oracleAddressList, orchestratorAddressList []sdk.AccAddress, ethKeys []*ecdsa.PrivateKey, handler sdk.Handler, govHandler govtypes.Handler) {
 	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	myApp = helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx = myApp.BaseApp.NewContext(false, tmproto.Header{})
 	ctx = ctx.WithBlockHeight(2000000)

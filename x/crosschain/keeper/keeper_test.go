@@ -2,10 +2,10 @@ package keeper_test
 
 import (
 	"fmt"
+	fxtypes "github.com/functionx/fx-core/types"
 	"math/big"
 	"testing"
 
-	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/helper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,7 +33,7 @@ func defaultModuleParams(oracles []string) types.Params {
 func TestSetOracle(t *testing.T) {
 	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	oracleAddressList := helper.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
@@ -84,7 +84,7 @@ func TestSetOracle(t *testing.T) {
 func TestLastPendingOracleSetRequestByAddr(t *testing.T) {
 	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	oracleAddressList := helper.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
@@ -153,7 +153,7 @@ func TestLastPendingBatchRequestByAddr(t *testing.T) {
 
 	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	oracleAddressList := helper.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())
@@ -229,7 +229,7 @@ func TestGetUnSlashedOracleSets(t *testing.T) {
 
 	initBalances := sdk.NewIntFromBigInt(helper.CoinOne).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helper.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(app.MintDenom, initBalances)))
+		sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, initBalances)))
 	app := helper.SetupWithGenesisValSet(t, validator, genesisAccounts, balances...)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	//oracleAddressList := fxcore.AddTestAddrsIncremental(app, ctx, 4, sdk.ZeroInt())

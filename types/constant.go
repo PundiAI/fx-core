@@ -1,15 +1,21 @@
-package app
+package types
 
 import (
 	"math/big"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	bsctypes "github.com/functionx/fx-core/x/bsc/types"
 	"github.com/functionx/fx-core/x/crosschain/types"
 	polygontypes "github.com/functionx/fx-core/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/x/tron/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+var ChainID = "fxcore"
+
+const Name = "fxcore"
+const MintDenom = "FX"
+const AddressPrefix = "fx"
 
 func init() {
 	sdk.SetCoinDenomRegex(func() string {

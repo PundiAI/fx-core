@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	fxtypes "github.com/functionx/fx-core/types"
+
 	"github.com/functionx/fx-core/app"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -68,7 +70,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*app.App, app.AppGenesisState
 	encCdc := app.MakeEncodingConfig()
 	myApp := app.New(appLog, db, nil, true, map[int64]bool{}, app.DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
 	if withGenesis {
-		return myApp, app.NewDefAppGenesisByDenom(app.MintDenom, encCdc.Marshaler)
+		return myApp, app.NewDefAppGenesisByDenom(fxtypes.MintDenom, encCdc.Marshaler)
 	}
 	return myApp, app.AppGenesisState{}
 }
@@ -153,11 +155,11 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	if !totalSupply.IsZero() {
 		gravityModuleInitAmount, ok := sdk.NewIntFromString(app.GravityModuleInitAmount)
 		require.True(t, ok)
-		totalSupply = sdk.NewCoins(sdk.NewCoin(app.MintDenom, gravityModuleInitAmount))
+		totalSupply = sdk.NewCoins(sdk.NewCoin(fxtypes.MintDenom, gravityModuleInitAmount))
 	}
 	for _, b := range balances {
 		// add genesis acc tokens and delegated tokens to total supply
-		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(app.MintDenom, bondAmt))...)
+		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(fxtypes.MintDenom, bondAmt))...)
 	}
 	bankGenesis.Supply = totalSupply
 	bankGenesis.Balances = append(bankGenesis.Balances, balances...)
