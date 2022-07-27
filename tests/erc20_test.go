@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/functionx/fx-core/v2/types/contract"
+
 	"github.com/stretchr/testify/suite"
 
 	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
@@ -143,8 +145,8 @@ func (suite *ERC20TestSuite) EthBalance(address gethcommon.Address) *big.Int {
 	return amount
 }
 
-func (suite *ERC20TestSuite) BalanceOf(contract, address gethcommon.Address) *big.Int {
-	caller, err := NewERC20TokenCaller(contract, suite.EthClient())
+func (suite *ERC20TestSuite) BalanceOf(contractAddr, address gethcommon.Address) *big.Int {
+	caller, err := contract.NewFIP20(contractAddr, suite.EthClient())
 	suite.NoError(err)
 	balance, err := caller.BalanceOf(nil, address)
 	suite.NoError(err)
