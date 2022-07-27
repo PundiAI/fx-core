@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"strings"
 
+	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
+
 	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	"github.com/armon/go-metrics"
@@ -142,9 +144,6 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 				types.EventTypeConvertDenom,
 				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, msg.Coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyTargetDenom, coin.Denom),
 			),
 		},
 	)
@@ -535,10 +534,13 @@ func (k Keeper) convertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s metadata not support", coin.Denom)
 	}
 
+	// convert target to denom prefix
+	denomPrefix := targetToDenomPrefix(ctx, target)
+
 	aliases := md.DenomUnits[0].Aliases
 	targetDenom := ""
 	for _, alias := range aliases {
-		if strings.HasPrefix(alias, target) {
+		if strings.HasPrefix(alias, denomPrefix) {
 			targetDenom = alias
 			break
 		}
@@ -579,6 +581,18 @@ func (k Keeper) convertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrBalanceInvariance,
 			"invalid token balance - convert denom %s to %s", coin.Denom, targetDenom)
 	}
+
+	ctx.EventManager().EmitEvents(
+		sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeConvertDenomToMany,
+				sdk.NewAttribute(types.AttributeKeyFrom, from.String()),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
+				sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+				sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
+			),
+		},
+	)
 
 	return targetCoin, nil
 }
@@ -631,6 +645,18 @@ func (k Keeper) convertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk
 			"invalid token balance - convert denom %s to %s", coin.Denom, targetCoin.Denom)
 	}
 
+	ctx.EventManager().EmitEvents(
+		sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeConvertDenomToOne,
+				sdk.NewAttribute(types.AttributeKeyFrom, from.String()),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
+				sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+				sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
+			),
+		},
+	)
+
 	return targetCoin, nil
 }
 
@@ -644,4 +670,14 @@ func (k Keeper) sendCoins(ctx sdk.Context, from, to sdk.AccAddress, coins sdk.Co
 	}
 
 	return k.bankKeeper.SendCoins(ctx, from, to, coins)
+}
+
+func targetToDenomPrefix(ctx sdk.Context, target string) (prefix string) {
+	if fxtypes.ChainId() == fxtypes.TestnetChainId() && ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock() {
+		return target
+	}
+	if target == gravitytypes.ModuleName {
+		return gravitytypes.GravityDenomPrefix
+	}
+	return target
 }

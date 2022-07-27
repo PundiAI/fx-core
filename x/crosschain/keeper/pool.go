@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -17,6 +19,14 @@ import (
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
+	//convert denom to many
+	targetCoin, err := k.ConvertDenomToMany(ctx, sender, amount.Add(fee))
+	if err != nil {
+		return 0, err
+	}
+	amount.Denom = targetCoin.Denom
+	fee.Denom = targetCoin.Denom
+
 	totalInVouchers := sdk.NewCoins(amount.Add(fee))
 
 	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
@@ -327,4 +337,21 @@ func addFeeToMap(amt, fee types.ERC20Token, batchFeesMap map[string]*types.Batch
 			TotalAmount:   amt.Amount,
 		}
 	}
+}
+
+func (k Keeper) ConvertDenomToMany(ctx sdk.Context, sender sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
+	if ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock() {
+		return coin, nil
+	}
+	needConvert, _ := k.erc20Keeper.IsManyToOneDenom(ctx, coin.Denom)
+	if !needConvert {
+		return coin, nil
+	}
+	cacheCtx, commit := ctx.CacheContext()
+	targetCoin, err := k.erc20Keeper.RelayConvertDenomToMany(cacheCtx, sender, coin, k.moduleName)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	commit()
+	return targetCoin, nil
 }

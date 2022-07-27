@@ -102,8 +102,11 @@ func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receive
 	return err
 }
 
-func (k Keeper) RelayConvertDenom(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
+func (k Keeper) RelayConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
 	return k.convertDenomToOne(ctx, from, coin)
+}
+func (k Keeper) RelayConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
+	return k.convertDenomToMany(ctx, from, coin, target)
 }
 
 // SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if

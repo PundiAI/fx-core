@@ -38,7 +38,9 @@ type BankKeeper interface {
 
 type Erc20Keeper interface {
 	RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error
-	RelayConvertDenom(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error)
+	RelayConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error)
+	RelayConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error)
+	IsManyToOneDenom(ctx sdk.Context, denom string) (bool, error)
 }
 
 type IBCChannelKeeper interface {

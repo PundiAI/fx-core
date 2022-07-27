@@ -108,25 +108,17 @@ func (k Keeper) handlerEvmTransfer(ctx sdk.Context, claim *types.MsgSendToFxClai
 }
 
 func (k Keeper) handlerConvertDenom(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) sdk.Coin {
-	k.Logger(ctx).Info("convert denom symbol", "address", receiver.String(), "coin", coin.String())
+	logger := k.Logger(ctx)
+	logger.Info("convert denom symbol", "address", receiver.String(), "coin", coin.String())
 
 	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.erc20Keeper.RelayConvertDenom(cacheCtx, receiver, coin)
+	targetCoin, err := k.erc20Keeper.RelayConvertDenomToOne(cacheCtx, receiver, coin)
 	if err != nil {
-		k.Logger(ctx).Error("convert denom symbol", "address", receiver.String(), "coin", coin.String(), "error", err.Error())
+		logger.Error("convert denom symbol", "address", receiver.String(), "coin", coin.String(), "error", err.Error())
 		//if convert err, return default coin
 		return coin
 	}
 	commit()
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeConvertDenom,
-		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
-		sdk.NewAttribute(types.AttributeKeyAddress, receiver.String()),
-		sdk.NewAttribute(types.AttributeKeyCoin, coin.String()),
-		sdk.NewAttribute(types.AttributeKeyTargetCoin, targetCoin.String()),
-	))
-
+	logger.Info("convert denom symbol", "address", receiver.String(), "coin", coin.String(), "target", targetCoin.String(), "module", k.moduleName)
 	return targetCoin
 }

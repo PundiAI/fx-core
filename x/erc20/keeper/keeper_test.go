@@ -8,6 +8,9 @@ import (
 	"testing"
 	"time"
 
+	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+
 	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -98,8 +101,10 @@ type KeeperTestSuite struct {
 	checkTx               bool
 	purseBalance          sdk.Int
 	supportManyToOneBlock bool
+	ethUSDTBalance        sdk.Int
 	bscUSDTBalance        sdk.Int
 	polygonUSDTBalance    sdk.Int
+	tronUSDTBalance       sdk.Int
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -112,6 +117,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	err := os.Setenv("GO_ENV", "testing")
 	suite.NoError(err)
 	fxtypes.SetTestingManyToOneBlock(func() int64 { return 5 })
+	fxtypes.SetTestingSupportDenomOneToManyBlock(func() int64 { return 5 })
+
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
 	require.NoError(t, err)
@@ -192,8 +199,16 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		suite.ctx = suite.ctx.WithBlockHeight(11)
 	}
 
+	if !suite.ethUSDTBalance.IsNil() {
+		amount := sdk.NewCoin(ethDenom, suite.ethUSDTBalance)
+		err = suite.app.BankKeeper.MintCoins(suite.ctx, gravitytypes.ModuleName, sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, gravitytypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+	}
+
 	if !suite.bscUSDTBalance.IsNil() {
-		amount := sdk.NewCoin(bscUSDT, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
+		amount := sdk.NewCoin(bscDenom, suite.bscUSDTBalance)
 		err = suite.app.BankKeeper.MintCoins(suite.ctx, bsctypes.ModuleName, sdk.NewCoins(amount))
 		suite.Require().NoError(err)
 		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, bsctypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
@@ -201,10 +216,17 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	}
 
 	if !suite.polygonUSDTBalance.IsNil() {
-		amount := sdk.NewCoin(polygonUSDT, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
+		amount := sdk.NewCoin(polygonDenom, suite.polygonUSDTBalance)
 		err = suite.app.BankKeeper.MintCoins(suite.ctx, polygontypes.ModuleName, sdk.NewCoins(amount))
 		suite.Require().NoError(err)
 		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, polygontypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+	}
+	if !suite.tronUSDTBalance.IsNil() {
+		amount := sdk.NewCoin(tronDenom, suite.tronUSDTBalance)
+		err = suite.app.BankKeeper.MintCoins(suite.ctx, trontypes.ModuleName, sdk.NewCoins(amount))
+		suite.Require().NoError(err)
+		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, trontypes.ModuleName, suite.address.Bytes(), sdk.NewCoins(amount))
 		suite.Require().NoError(err)
 	}
 }

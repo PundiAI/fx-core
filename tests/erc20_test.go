@@ -51,6 +51,7 @@ func (suite *ERC20TestSuite) SetupSuite() {
 	err := os.Setenv("GO_ENV", "testing")
 	suite.NoError(err)
 	fxtypes.SetTestingManyToOneBlock(func() int64 { return 5 })
+	fxtypes.SetTestingSupportDenomOneToManyBlock(func() int64 { return 5 })
 
 	suite.TestSuite.SetupSuite()
 	suite.Send(suite.Address(), helpers.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
@@ -239,6 +240,7 @@ func (suite *CrosschainERC20TestSuite) SetupSuite() {
 	err := os.Setenv("GO_ENV", "testing")
 	suite.NoError(err)
 	fxtypes.SetTestingManyToOneBlock(func() int64 { return 5 })
+	fxtypes.SetTestingSupportDenomOneToManyBlock(func() int64 { return 5 })
 
 	suite.TestSuite.SetupSuite()
 

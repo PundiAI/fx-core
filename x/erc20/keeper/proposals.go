@@ -34,7 +34,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 
 	// check if the denomination already registered
 	if k.IsDenomRegistered(ctx, coinMetadata.Base) {
-		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Description)
+		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Base)
 	}
 
 	meta, isExist := k.bankKeeper.GetDenomMetaData(ctx, coinMetadata.Base)
@@ -244,7 +244,13 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 	aliasDenomRegistered := k.GetAliasDenom(ctx, alias)
 	//check if the alias not register denom-alias
 	if len(aliasDenomRegistered) == 0 {
-		newAliases = append(oldAliases, alias)
+		//fix testnet new aliases
+		if fxtypes.ChainId() == fxtypes.TestnetChainId() && ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock() {
+			newAliases = append(newAliases, alias)
+		} else {
+			newAliases = append(oldAliases, alias)
+		}
+
 		k.SetAliasesDenom(ctx, denom, alias)
 	} else if string(aliasDenomRegistered) == denom {
 		// check if the denom equal alias registered denom

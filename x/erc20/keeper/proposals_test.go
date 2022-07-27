@@ -24,10 +24,6 @@ const (
 	erc20Decimals   = uint8(18)
 	cosmosTokenBase = "acoin"
 	defaultExponent = uint32(18)
-
-	tronDenom    = "tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
-	polygonDenom = "polygon0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
-	bscDenom     = "bsc0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
 )
 
 func (suite *KeeperTestSuite) setupRegisterERC20Pair(contractType int) common.Address {
@@ -72,14 +68,17 @@ func (suite *KeeperTestSuite) setupRegisterCoin() (banktypes.Metadata, *types.To
 	return validMetadata, pair
 }
 
-func (suite *KeeperTestSuite) setupRegisterCoinUSDT() (banktypes.Metadata, *types.TokenPair) {
+func (suite *KeeperTestSuite) setupRegisterCoinUSDT(alias ...string) (banktypes.Metadata, *types.TokenPair) {
+	if len(alias) == 0 {
+		alias = []string{ethDenom, polygonDenom}
+	}
 	validMetadata := banktypes.Metadata{
 		Description: "description of the token",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    "usdt",
 				Exponent: uint32(0),
-				Aliases:  []string{tronDenom, polygonDenom},
+				Aliases:  alias,
 			}, {
 				Denom:    "USDT",
 				Exponent: uint32(18),
@@ -288,7 +287,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithManyToOne() {
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, regPair.Denom, regPair.GetID())
 			},
 			false,
-			"coin denomination already registered: The cross chain token of the Function X: token pair already exists",
+			"coin denomination already registered: usdt: token pair already exists",
 		},
 		{
 			"alias already registered denom",

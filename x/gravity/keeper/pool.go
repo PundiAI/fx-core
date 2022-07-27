@@ -6,6 +6,8 @@ import (
 	"math/big"
 	"sort"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -20,6 +22,14 @@ import (
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, counterpartReceiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
+	//convert denom to many
+	targetCoin, err := k.ConvertDenomToMany(ctx, sender, amount.Add(fee))
+	if err != nil {
+		return 0, err
+	}
+	amount.Denom = targetCoin.Denom
+	fee.Denom = targetCoin.Denom
+
 	totalAmount := amount.Add(fee)
 	totalInVouchers := sdk.Coins{totalAmount}
 
@@ -392,4 +402,23 @@ func (k Keeper) getIdsTotalAmount(ctx sdk.Context, ids []uint64) sdk.Int {
 		totalAmount = totalAmount.Add(entry.Erc20Token.Amount)
 	}
 	return totalAmount
+}
+
+func (k Keeper) ConvertDenomToMany(ctx sdk.Context, sender sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
+	if ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock() {
+		return coin, nil
+	}
+	needConvert, _ := k.erc20Keeper.IsManyToOneDenom(ctx, coin.Denom)
+	if !needConvert {
+		return coin, nil
+	}
+
+	cacheCtx, commit := ctx.CacheContext()
+	targetCoin, err := k.erc20Keeper.RelayConvertDenomToMany(cacheCtx, sender, coin, types.ModuleName)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	commit()
+
+	return targetCoin, nil
 }

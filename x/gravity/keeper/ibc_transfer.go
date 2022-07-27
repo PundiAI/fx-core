@@ -110,24 +110,13 @@ func (a AttestationHandler) handlerConvertDenom(ctx sdk.Context, claim *types.Ms
 	logger := a.keeper.Logger(ctx)
 
 	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := a.keeper.erc20Keeper.RelayConvertDenom(cacheCtx, receiver, coin)
+	targetCoin, err := a.keeper.erc20Keeper.RelayConvertDenomToOne(cacheCtx, receiver, coin)
 	if err != nil {
 		logger.Error("convert denom symbol", "address", receiver.String(), "coin", coin.String(), "error", err.Error())
 		//if convert err, return default coin
 		return coin
 	}
 	commit()
-
 	logger.Info("convert denom symbol", "address", receiver.String(), "coin", coin.String(), "target", targetCoin.String())
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeConvertDenom,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
-		sdk.NewAttribute(types.AttributeKeyAddress, receiver.String()),
-		sdk.NewAttribute(types.AttributeKeyCoin, coin.String()),
-		sdk.NewAttribute(types.AttributeKeyTargetCoin, targetCoin.String()),
-	))
-
 	return targetCoin
 }

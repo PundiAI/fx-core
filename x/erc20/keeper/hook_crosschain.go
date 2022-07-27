@@ -65,6 +65,8 @@ func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.A
 					sdk.NewAttribute(sdk.AttributeKeyAmount, tc.Amount.String()),
 					sdk.NewAttribute(sdk.AttributeKeyFee, tc.Fee.String()),
 					sdk.NewAttribute(types.AttributeKeyTarget, fxtypes.Byte32ToString(tc.Target)),
+					sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+					sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
 				),
 			},
 		)
@@ -90,34 +92,40 @@ func (k Keeper) TransferChainHandler(ctx sdk.Context, from sdk.AccAddress, to st
 	if router == nil || !router.HasRoute(target) {
 		return fmt.Errorf("target %s not support", target)
 	}
-	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() {
-		needConvert, err := k.IsManyToOneDenom(ctx, amount.Denom)
-		if err != nil {
-			return err
-		}
-		if needConvert {
-			targetCoin, err := k.convertDenomToMany(ctx, from, amount.Add(fee), target)
-			if err != nil {
-				return err
-			}
-
-			ctx.EventManager().EmitEvents(
-				sdk.Events{
-					sdk.NewEvent(
-						types.EventTypeConvertDenom,
-						sdk.NewAttribute(sdk.AttributeKeyAmount, amount.Add(fee).Amount.String()),
-						sdk.NewAttribute(types.AttributeKeyDenom, amount.Denom),
-						sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
-					),
-				},
-			)
-
-			amount.Denom = targetCoin.Denom
-			fee.Denom = targetCoin.Denom
-		}
+	//testnet convert denom between many-to-one and one-to-many block
+	targetCoin, err := k.testnetConvertDenomBetweenBlock(ctx, from, amount.Add(fee), target)
+	if err != nil {
+		return err
 	}
+	amount.Denom = targetCoin.Denom
+	fee.Denom = targetCoin.Denom
+
 	route, _ := router.GetRoute(target)
 	return route.TransferAfter(ctx, from.String(), to, amount, fee)
+}
+
+func (k Keeper) testnetConvertDenomBetweenBlock(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
+	isTestnet := fxtypes.ChainId() == fxtypes.TestnetChainId()
+	afterManyToOneBlock := ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock()
+	beforeOneToManyBlock := ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock()
+
+	if !(isTestnet && afterManyToOneBlock && beforeOneToManyBlock) {
+		return coin, nil
+	}
+	needConvert, err := k.IsManyToOneDenom(ctx, coin.Denom)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	if !needConvert {
+		return coin, nil
+	}
+	cacheCtx, commit := ctx.CacheContext()
+	targetCoin, err := k.convertDenomToMany(cacheCtx, from, coin, target)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	commit()
+	return targetCoin, nil
 }
 
 func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string, receipt *ethtypes.Receipt) error {

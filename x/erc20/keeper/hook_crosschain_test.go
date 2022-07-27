@@ -7,6 +7,12 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/functionx/fx-core/v2/x/gravity"
+	gravitykeeper "github.com/functionx/fx-core/v2/x/gravity/keeper"
+	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
+	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+
 	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
 
 	"github.com/functionx/fx-core/v2/app/helpers"
@@ -28,6 +34,8 @@ import (
 	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 	"github.com/functionx/fx-core/v2/x/erc20/types"
+
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 )
 
 func (suite *KeeperTestSuite) TestHookChainBSC() {
@@ -103,7 +111,7 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 	suite.ctx = testInitPolygonCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr3.Bytes(), addr4)
 
 	usdtCopy := usdtMatedata
-	usdtCopy.DenomUnits[0].Aliases = []string{bscUSDT, polygonUSDT}
+	usdtCopy.DenomUnits[0].Aliases = []string{bscDenom, polygonDenom}
 
 	tokenPair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, usdtCopy)
 	suite.Require().NoError(err)
@@ -114,14 +122,14 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 		ContractOwner: types.OWNER_MODULE,
 	}, *tokenPair)
 
-	denomBytes := suite.app.Erc20Keeper.GetAliasDenom(suite.ctx, bscUSDT)
+	denomBytes := suite.app.Erc20Keeper.GetAliasDenom(suite.ctx, bscDenom)
 	require.Equal(suite.T(), usdtCopy.Base, string(denomBytes))
 
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(bscUSDT, amt)))
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(bscDenom, amt)))
 	suite.Require().NoError(err)
 
-	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr3.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(polygonUSDT, amt)))
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr3.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(polygonDenom, amt)))
 	suite.Require().NoError(err)
 
 	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, addr1.Bytes())
@@ -130,7 +138,7 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 	balances = suite.app.BankKeeper.GetAllBalances(suite.ctx, addr3.Bytes())
 	_ = balances
 
-	usdtCoin, err := suite.app.Erc20Keeper.RelayConvertDenom(suite.ctx, addr1.Bytes(), sdk.NewCoin(bscUSDT, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	usdtCoin, err := suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, addr1.Bytes(), sdk.NewCoin(bscDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	suite.Require().NoError(err)
 	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr1.Bytes(), addr1, usdtCoin)
 	suite.Require().NoError(err)
@@ -138,7 +146,7 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 	suite.Require().NoError(err)
 	_ = balanceOf
 
-	usdtCoin, err = suite.app.Erc20Keeper.RelayConvertDenom(suite.ctx, addr3.Bytes(), sdk.NewCoin(polygonUSDT, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	usdtCoin, err = suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, addr3.Bytes(), sdk.NewCoin(polygonDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	suite.Require().NoError(err)
 	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr3.Bytes(), addr3, usdtCoin)
 	suite.Require().NoError(err)
@@ -178,7 +186,7 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 
 	transactions = suite.app.BscKeeper.GetUnbatchedTransactions(suite.ctx)
 	require.Equal(suite.T(), 2, len(transactions))
-	transaction := getOutgoingTransferTxById(transactions, 2)
+	transaction := getCrossChainOutgoingTransferTxById(transactions, 2)
 	require.NotNil(suite.T(), transaction)
 	require.Equal(suite.T(), transaction.DestAddress, addr4.String())
 	require.Equal(suite.T(), transaction.Token.Amount.BigInt(), big.NewInt(1e18))
@@ -192,7 +200,7 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 
 	transactions = suite.app.PolygonKeeper.GetUnbatchedTransactions(suite.ctx)
 	require.Equal(suite.T(), 2, len(transactions))
-	transaction = getOutgoingTransferTxById(transactions, 2)
+	transaction = getCrossChainOutgoingTransferTxById(transactions, 2)
 	require.NotNil(suite.T(), transaction)
 	require.Equal(suite.T(), transaction.DestAddress, addr4.String())
 	require.Equal(suite.T(), transaction.Token.Amount.BigInt(), big.NewInt(1e18))
@@ -278,6 +286,125 @@ func (suite *KeeperTestSuite) TestHookIBC() {
 	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, addr1, token, transferIBCData)
 }
 
+func (suite *KeeperTestSuite) TestHookIBCManyToOne() {
+	suite.supportManyToOneBlock = true
+	suite.polygonUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
+
+	suite.SetupTest()
+
+	_, usdtTokenPair := suite.setupRegisterCoinUSDT()
+
+	signer1, addr1 := privateSigner()
+	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
+	err := suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
+	suite.Require().NoError(err)
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(polygonDenom, amt)))
+	suite.Require().NoError(err)
+
+	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, addr1.Bytes())
+	suite.Require().False(balances.IsZero())
+
+	usdtCoin, err := suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, addr1.Bytes(), sdk.NewCoin(polygonDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	suite.Require().NoError(err)
+
+	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr1.Bytes(), addr1, usdtCoin)
+	suite.Require().NoError(err)
+
+	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, usdtTokenPair.GetERC20Contract(), addr1)
+	suite.Require().NoError(err)
+	suite.Require().Equal(balanceOf.Cmp(big.NewInt(0)), 1)
+
+	//reset ibc
+	suite.app.Erc20Keeper.SetIBCTransferKeeperForTest(&IBCTransferSimulate{T: suite.T()})
+	suite.app.Erc20Keeper.SetIBCChannelKeeperForTest(&IBCChannelSimulate{})
+
+	token := usdtTokenPair.GetERC20Contract()
+	ibcTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToIBCPrefix, "px/transfer/channel-0")
+	transferIBCData := packTransferCrossData(suite.T(), "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", ibcTransferAmount, big.NewInt(0), ibcTarget)
+	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, addr1, token, transferIBCData)
+
+	suite.supportManyToOneBlock = false
+}
+
+func (suite *KeeperTestSuite) TestHookIBCOneToMany() {
+	suite.supportManyToOneBlock = true
+	suite.ethUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
+	suite.bscUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
+	suite.tronUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
+
+	suite.SetupTest()
+
+	_, addr1 := privateSigner()
+	_, addr2 := privateSigner()
+	_, addr3 := privateSigner()
+	_, addr4 := privateSigner()
+	_, addr5 := privateSigner()
+	tronExternal, _ := tronaddress.Base58ToAddress("THtbMw6byXuiFhsRv1o1BQRtzvube9X1jx")
+
+	suite.ctx = testInitGravityChain(suite.T(), suite.ctx, suite.app.GravityKeeper, suite.address.Bytes(), addr1.Bytes(), addr2)
+	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr3.Bytes(), addr4)
+	suite.ctx = testInitTronCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr5.Bytes(), tronExternal)
+
+	_, usdtTokenPair := suite.setupRegisterCoinUSDT(ethDenom, bscDenom, tronDenom)
+
+	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
+	err := suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
+	suite.Require().NoError(err)
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(ethDenom, amt)))
+	suite.Require().NoError(err)
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(bscDenom, amt)))
+	suite.Require().NoError(err)
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(tronDenom, amt)))
+	suite.Require().NoError(err)
+
+	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, addr1.Bytes())
+	suite.Require().False(balances.IsZero())
+
+	_, err = suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, addr1.Bytes(), sdk.NewCoin(ethDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	suite.Require().NoError(err)
+	_, err = suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, addr1.Bytes(), sdk.NewCoin(bscDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	suite.Require().NoError(err)
+	_, err = suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, addr1.Bytes(), sdk.NewCoin(tronDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	suite.Require().NoError(err)
+
+	sender := sdk.AccAddress(addr1.Bytes()).String()
+	hexReceiver := addr1.String()
+	tronReceiver := "THtbMw6byXuiFhsRv1o1BQRtzvube9X1jx"
+	usdtCoin := sdk.NewCoin(usdtTokenPair.Denom, sdk.NewInt(1))
+
+	err = suite.app.GravityKeeper.TransferAfter(suite.ctx, sender, hexReceiver, usdtCoin, usdtCoin)
+	suite.Require().NoError(err)
+	gravityTransactions := suite.app.GravityKeeper.GetPoolTransactions(suite.ctx)
+	require.Equal(suite.T(), 1, len(gravityTransactions))
+	require.NotNil(suite.T(), gravityTransactions[0])
+	require.Equal(suite.T(), gravityTransactions[0].DestAddress, hexReceiver)
+	require.Equal(suite.T(), gravityTransactions[0].Erc20Token.Amount.BigInt(), big.NewInt(1))
+	require.Equal(suite.T(), gravityTransactions[0].Erc20Fee.Amount.BigInt(), big.NewInt(1))
+	require.Equal(suite.T(), gravityTransactions[0].Sender, sender)
+
+	err = suite.app.BscKeeper.TransferAfter(suite.ctx, sender, hexReceiver, usdtCoin, usdtCoin)
+	suite.Require().NoError(err)
+	bscTransactions := suite.app.BscKeeper.GetUnbatchedTransactions(suite.ctx)
+	require.Equal(suite.T(), 1, len(bscTransactions))
+	bscTransaction := getCrossChainOutgoingTransferTxById(bscTransactions, 1)
+	require.NotNil(suite.T(), bscTransaction)
+	require.Equal(suite.T(), bscTransaction.DestAddress, hexReceiver)
+	require.Equal(suite.T(), bscTransaction.Token.Amount.BigInt(), big.NewInt(1))
+	require.Equal(suite.T(), bscTransaction.Fee.Amount.BigInt(), big.NewInt(1))
+	require.Equal(suite.T(), bscTransaction.Sender, sender)
+
+	err = suite.app.TronKeeper.TransferAfter(suite.ctx, sender, tronReceiver, usdtCoin, usdtCoin)
+	suite.Require().NoError(err)
+	tronTransactions := suite.app.TronKeeper.GetUnbatchedTransactions(suite.ctx)
+	require.Equal(suite.T(), 1, len(tronTransactions))
+	tronTransaction := getCrossChainOutgoingTransferTxById(tronTransactions, 1)
+	require.NotNil(suite.T(), tronTransaction)
+	require.Equal(suite.T(), tronTransaction.DestAddress, tronReceiver)
+	require.Equal(suite.T(), tronTransaction.Token.Amount.BigInt(), big.NewInt(1))
+	require.Equal(suite.T(), tronTransaction.Fee.Amount.BigInt(), big.NewInt(1))
+	require.Equal(suite.T(), tronTransaction.Sender, sender)
+}
+
 func packTransferCrossData(t *testing.T, to string, amount, fee *big.Int, target string) []byte {
 	fip20 := fxtypes.GetERC20()
 	targetBytes := fxtypes.StringToByte32(target)
@@ -297,10 +424,14 @@ func privateSigner() (keyring.Signer, common.Address) {
 
 var (
 	BSCBridgeTokenContract  = common.HexToAddress("0x29a63F4B209C29B4DC47f06FFA896F32667DAD2C")
-	BSCUSDTokenContract     = common.HexToAddress("0x0000000000000000000000000000000000000000")
-	PolygonUSDTokenContract = common.HexToAddress("0x0000000000000000000000000000000000000001")
-	bscUSDT                 = fmt.Sprintf("bsc%s", BSCUSDTokenContract.String())
-	polygonUSDT             = fmt.Sprintf("polygon%s", PolygonUSDTokenContract.String())
+	BSCUSDTokenContract     = common.HexToAddress("0x0000000000000000000000000000000000000001")
+	PolygonUSDTokenContract = common.HexToAddress("0x0000000000000000000000000000000000000002")
+	TronUSDTokenContract, _ = tronaddress.Base58ToAddress("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
+	EthUSDTokenContract     = common.HexToAddress("0xc2132D05D31c914a87C6611C10748AEb04B58e8F")
+	bscDenom                = fmt.Sprintf("bsc%s", BSCUSDTokenContract.String())
+	polygonDenom            = fmt.Sprintf("polygon%s", PolygonUSDTokenContract.String())
+	tronDenom               = fmt.Sprintf("tron%s", TronUSDTokenContract.String())
+	ethDenom                = fmt.Sprintf("eth%s", EthUSDTokenContract.String())
 )
 
 func testInitBscCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracleAddress, bridgeAddress sdk.AccAddress, externalAddress common.Address) sdk.Context {
@@ -379,6 +510,58 @@ func testInitPolygonCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, or
 	return ctx
 }
 
+func testInitTronCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracleAddress, bridgeAddress sdk.AccAddress, externalAddress tronaddress.Address) sdk.Context {
+	deposit := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), big.NewInt(1e18))))
+	err := myApp.BankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddress, trontypes.ModuleName, sdk.NewCoins(deposit))
+	require.NoError(t, err)
+
+	testTronCrossChainParamsProposal(t, ctx, myApp.TronKeeper, oracleAddress, trontypes.ModuleName)
+
+	oracle := crosschaintypes.Oracle{
+		OracleAddress:   oracleAddress.String(),
+		BridgerAddress:  bridgeAddress.String(),
+		ExternalAddress: externalAddress.String(),
+		DelegateAmount:  deposit.Amount,
+		StartHeight:     ctx.BlockHeight(),
+		Online:          true,
+		SlashTimes:      0,
+	}
+	// save oracle
+	myApp.TronKeeper.SetOracle(ctx, oracle)
+
+	myApp.TronKeeper.SetOracleByBridger(ctx, bridgeAddress, oracleAddress)
+	// set the ethereum address
+	myApp.TronKeeper.SetOracleByExternalAddress(ctx, externalAddress.String(), oracleAddress)
+
+	myApp.TronKeeper.CommonSetOracleTotalPower(ctx)
+
+	testTronCrossChainOracleSetUpdateClaim(t, ctx, myApp.TronKeeper, bridgeAddress, externalAddress, 1, trontypes.ModuleName)
+
+	testTronCrossChainBridgeTokenClaim(t, ctx, myApp.TronKeeper, bridgeAddress, 2,
+		TronUSDTokenContract, "USDT Token", "USDT", 6, trontypes.ModuleName, "")
+
+	crosschain.EndBlocker(ctx, myApp.TronKeeper.Keeper)
+
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+
+	return ctx
+}
+
+func testInitGravityChain(t *testing.T, ctx sdk.Context, cck gravitykeeper.Keeper, val sdk.ValAddress, orch sdk.AccAddress, externalAddr common.Address) sdk.Context {
+	msg := &gravitytypes.MsgSetOrchestratorAddress{
+		Validator:    val.String(),
+		Orchestrator: orch.String(),
+		EthAddress:   externalAddr.String(),
+	}
+	impl := gravitykeeper.NewMsgServerImpl(cck)
+	_, err := impl.SetOrchestratorAddress(sdk.WrapSDKContext(ctx), msg)
+	require.NoError(t, err)
+
+	gravity.EndBlocker(ctx, cck)
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+	return ctx
+}
+
 func testCrossChainParamsProposal(t *testing.T, ctx sdk.Context, cck crosschainkeeper.Keeper, oracles sdk.AccAddress, chain string) {
 	proposal := &crosschaintypes.UpdateChainOraclesProposal{
 		Title:       fmt.Sprintf("%s cross chain", chain),
@@ -392,8 +575,44 @@ func testCrossChainParamsProposal(t *testing.T, ctx sdk.Context, cck crosschaink
 	require.NoError(t, err)
 }
 
+func testTronCrossChainParamsProposal(t *testing.T, ctx sdk.Context, cck tronkeeper.Keeper, oracles sdk.AccAddress, chain string) {
+	proposal := &crosschaintypes.UpdateChainOraclesProposal{
+		Title:       fmt.Sprintf("%s cross chain", chain),
+		Description: fmt.Sprintf("%s cross chain oracles init", chain),
+		Oracles:     []string{oracles.String()},
+		ChainName:   chain,
+	}
+
+	k := &tronkeeper.TronMsgServer{EthereumMsgServer: crosschainkeeper.EthereumMsgServer{Keeper: cck.Keeper}}
+	err := crosschain.HandleUpdateChainOraclesProposal(ctx, k, proposal)
+	require.NoError(t, err)
+}
+
 func testCrossChainBridgeTokenClaim(t *testing.T, ctx sdk.Context, cck crosschainkeeper.Keeper,
 	orchAddr sdk.AccAddress, eventNonce uint64, contract common.Address,
+	name, symbol string, decimals uint64, chain, channelIBC string) {
+	msg := &crosschaintypes.MsgBridgeTokenClaim{
+		EventNonce:     eventNonce,
+		BlockHeight:    uint64(ctx.BlockHeight()),
+		TokenContract:  contract.String(),
+		Name:           name,
+		Symbol:         symbol,
+		Decimals:       decimals,
+		BridgerAddress: orchAddr.String(),
+		ChannelIbc:     channelIBC,
+		ChainName:      chain,
+	}
+
+	any, err := codectypes.NewAnyWithValue(msg)
+	require.NoError(t, err)
+
+	// Add the claim to the store
+	_, err = cck.Attest(ctx, msg, any)
+	require.NoError(t, err)
+}
+
+func testTronCrossChainBridgeTokenClaim(t *testing.T, ctx sdk.Context, cck tronkeeper.Keeper,
+	orchAddr sdk.AccAddress, eventNonce uint64, contract tronaddress.Address,
 	name, symbol string, decimals uint64, chain, channelIBC string) {
 	msg := &crosschaintypes.MsgBridgeTokenClaim{
 		EventNonce:     eventNonce,
@@ -443,7 +662,35 @@ func testCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck cross
 	require.NoError(t, err)
 }
 
-func getOutgoingTransferTxById(txs []*crosschaintypes.OutgoingTransferTx, id uint64) *crosschaintypes.OutgoingTransferTx {
+func testTronCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck tronkeeper.Keeper,
+	orch sdk.AccAddress, addr tronaddress.Address, eventNonce uint64, chain string) {
+	msg := &crosschaintypes.MsgOracleSetUpdatedClaim{
+		EventNonce:     eventNonce,
+		BlockHeight:    uint64(ctx.BlockHeight()),
+		OracleSetNonce: 0,
+		Members: crosschaintypes.BridgeValidators{
+			{
+				Power:           uint64(math.MaxUint32),
+				ExternalAddress: addr.String(),
+			},
+		},
+		BridgerAddress: orch.String(),
+		ChainName:      chain,
+	}
+	for _, member := range msg.Members {
+		_, found := cck.GetOracleByExternalAddress(ctx, member.ExternalAddress)
+		require.True(t, found)
+	}
+
+	any, err := codectypes.NewAnyWithValue(msg)
+	require.NoError(t, err)
+
+	// Add the claim to the store
+	_, err = cck.Attest(ctx, msg, any)
+	require.NoError(t, err)
+}
+
+func getCrossChainOutgoingTransferTxById(txs []*crosschaintypes.OutgoingTransferTx, id uint64) *crosschaintypes.OutgoingTransferTx {
 	for _, tx := range txs {
 		if tx.Id == id {
 			return tx
