@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strconv"
 
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	fxtypes "github.com/functionx/fx-core/v2/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -114,6 +116,22 @@ func (c *NodeRPC) GetAddressPrefix() (prefix string, err error) {
 		return prefix, err
 	}
 	return sdk.Bech32MainPrefix, nil
+}
+
+func (c *NodeRPC) GetStakeValidators(status stakingtypes.BondStatus) (stakingtypes.Validators, error) {
+	data, err := json.Marshal(map[string]string{"Page": "1", "Limit": "200", "Status": status.String()})
+	if err != nil {
+		return nil, err
+	}
+	result, err := c.ABCIQueryIsOk("/custom/staking/validators", data)
+	if err != nil {
+		return nil, err
+	}
+	validators := make(stakingtypes.Validators, 0)
+	if err := json.Unmarshal(result.Response.Value, &validators); err != nil {
+		return nil, err
+	}
+	return validators, err
 }
 
 func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {

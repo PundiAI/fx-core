@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/functionx/fx-core/v2/testutil"
 	"github.com/functionx/fx-core/v2/testutil/network"
 
@@ -493,4 +495,12 @@ func (suite *IntegrationTestSuite) TestTmClient() {
 			close(resultChan)
 		})
 	}
+}
+
+func (suite *IntegrationTestSuite) TestJsonRPC_GetStakeValidators() {
+	validator := suite.GetFirstValidator()
+	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress))
+	validators, err := nodeRPC.GetStakeValidators(stakingtypes.Bonded)
+	suite.Require().NoError(err)
+	suite.Require().Len(validators, 1)
 }
