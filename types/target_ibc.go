@@ -20,8 +20,8 @@ func ParseHexTargetIBC(hexTargetIbc string) (TargetIBC, bool) {
 }
 
 func ParseTargetIBC(targetIbc string) (TargetIBC, bool) {
-	// pay/transfer/channel-0
-	ibcData := strings.Split(string(targetIbc), "/")
+	// px/transfer/channel-0
+	ibcData := strings.Split(targetIbc, "/")
 	if len(ibcData) < 3 {
 		return TargetIBC{}, false
 	}
