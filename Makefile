@@ -2,7 +2,6 @@
 
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
-TM_VERSION := $(shell go list -m -f '{{ .Version }}' github.com/tendermint/tendermint)
 
 # don't override user values
 ifeq (,$(VERSION))
@@ -72,40 +71,12 @@ BUILD_TAGS_COMMA_SEP := $(subst $(whitespace),$(comma),$(build_tags))
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(BUILD_TAGS_COMMA_SEP)" \
-		  -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_VERSION) \
+		  -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Name=fxcore \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored \
 
-ifneq (,$(FX_BUILD_OPTIONS))
-  network=$(FX_BUILD_OPTIONS)
-endif
-ifeq (devnet,$(network))
-  FX_BUILD_OPTIONS := devnet
-endif
-ifeq (testnet,$(network))
-  FX_BUILD_OPTIONS := testnet
-endif
-ifeq (,$(network))
-  FX_BUILD_OPTIONS := mainnet
-endif
-
 ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
-endif
-
-ifeq (devnet,$(findstring devnet,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/functionx/fx-core/app.network=devnet
-  ldflags += -X github.com/functionx/fx-core/app.ChainID=boonlay
-endif
-
-ifeq (testnet,$(findstring testnet,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/functionx/fx-core/app.network=testnet
-  ldflags += -X github.com/functionx/fx-core/app.ChainID=dhobyghaut
-endif
-
-ifeq (mainnet,$(findstring mainnet,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/functionx/fx-core/app.network=mainnet
-  ldflags += -X github.com/functionx/fx-core/app.ChainID=fxcore
 endif
 
 ifeq (,$(findstring nostrip,$(FX_BUILD_OPTIONS)))
@@ -134,43 +105,14 @@ go.sum: go.mod
 	@echo "--> Download go modules to local cache"
 	@go mod download
 
-go-build: go.mod
-	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd/fxcored
-
 build: go.mod
-	@echo "--> build mainnet <--"
-	@FX_BUILD_OPTIONS=mainnet make go-build
-
-build-devnet: go.mod
-	@echo "--> build devnet <--"
-	@FX_BUILD_OPTIONS=devnet make go-build
-
-build-testnet: go.mod
-	@echo "--> build testnet <--"
-	@FX_BUILD_OPTIONS=testnet make go-build
+	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd/fxcored
 
 build-linux:
 	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build
 
-build-linux-devnet:
-	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-devnet
-
-build-linux-testnet:
-	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build-testnet
-
-build-win:
-	@make go-build
-
 install:
 	@$(MAKE) build
-	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
-
-install-devnet:
-	@$(MAKE) build-devnet
-	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
-
-install-testnet:
-	@$(MAKE) build-testnet
 	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
 
 run-local: install
@@ -180,7 +122,7 @@ draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
 	@goviz -i github.com/functionx/fx-core/cmd/fxcored -d 2 | dot -Tpng -o dependency-graph.png
 
-.PHONY: go.sum go-build build install run-local draw-deps
+.PHONY: go.sum build build-linux install run-local draw-deps
 
 ###############################################################################
 ###                                Linting                                  ###
