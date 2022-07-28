@@ -4,10 +4,11 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	fxtypes "github.com/functionx/fx-core/types"
 	"math"
 	"math/big"
 	"testing"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/app"
 	"github.com/functionx/fx-core/app/helper"

@@ -21,8 +21,8 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 	logger := a.keeper.Logger(ctx)
 	ibcReceiveAddress, err := bech32.ConvertAndEncode(ibcPrefix, receiveAddr)
 	if err != nil {
-		logger.Error("convert ibc transfer receive address error!!!", "fxReceive:", claim.FxReceiver,
-			"ibcPrefix:", ibcPrefix, "sourcePort:", sourcePort, "sourceChannel:", sourceChannel, "error:", err)
+		logger.Error("convert ibc transfer receive address error!!!", "fxReceive", claim.FxReceiver,
+			"ibcPrefix", ibcPrefix, "sourcePort", sourcePort, "sourceChannel", sourceChannel, "error", err)
 		return
 	}
 
@@ -40,15 +40,16 @@ func (a AttestationHandler) handleIbcTransfer(ctx sdk.Context, claim *types.MsgD
 	}
 	nextSequenceSend, found := a.keeper.ibcChannelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		logger.Error("ibc channel next sequence send not found!!!", "source port:", sourcePort, "source channel:", sourceChannel)
+		logger.Error("ibc channel next sequence send not found!!!", "source port", sourcePort, "source channel", sourceChannel)
 		return
 	}
-	logger.Info("gravity start ibc transfer", "sender:", receiveAddr, "receive:", ibcReceiveAddress, "coin:", coin, "timeout:", params.IbcTransferTimeoutHeight, "nextSequenceSend:", nextSequenceSend)
+	logger.Info("gravity start ibc transfer", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "timeout", params.IbcTransferTimeoutHeight, "nextSequenceSend", nextSequenceSend)
 	ibcTransferMsg := ibctransfertypes.NewMsgTransfer(sourcePort, sourceChannel, coin, receiveAddr, ibcReceiveAddress, ibcTimeoutHeight, 0, "", sdk.NewCoin(coin.Denom, sdk.ZeroInt()))
 	if _, err = a.keeper.ibcTransferKeeper.Transfer(wrapSdkContext, ibcTransferMsg); err != nil {
-		logger.Error("gravity ibc transfer fail. ", "sender:", receiveAddr, "receive:", ibcReceiveAddress, "coin:", coin, "err:", err)
+		logger.Error("gravity ibc transfer fail. ", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "err", err)
 		return
 	}
+	a.keeper.SetIbcSequenceHeight(ctx, sourcePort, sourceChannel, nextSequenceSend, uint64(ctx.BlockHeight()))
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeIbcTransfer,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),

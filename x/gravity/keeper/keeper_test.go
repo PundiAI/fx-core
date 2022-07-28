@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
-	fxtypes "github.com/functionx/fx-core/types"
 	"testing"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	"github.com/functionx/fx-core/app/helper"
 
