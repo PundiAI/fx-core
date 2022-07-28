@@ -23,8 +23,7 @@ func Network() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			outputBytes, err := json.Marshal(map[string]interface{}{
-				"ChainId":                                fxtypes.ChainID,
-				"Network":                                fxtypes.Network(),
+				"ChainId":                                fxtypes.ChainId(),
 				"GravityPruneValsetsAndAttestationBlock": fmt.Sprintf("%d", fxtypes.GravityPruneValsetsAndAttestationBlock()),
 				"GravityValsetSlashBlock":                fmt.Sprintf("%d", fxtypes.GravityValsetSlashBlock()),
 				"CrossChainSupportBscBlock":              fmt.Sprintf("%d", fxtypes.CrossChainSupportBscBlock()),

@@ -1,14 +1,10 @@
 package types
 
-// network constant
-const (
-	networkMainnet = "mainnet"
-	networkTestnet = "testnet"
-	networkDevnet  = "devnet"
-)
+import "sync"
 
 // testnet constant
 const (
+	TestnetChainId                       = "dhobyghaut"
 	testnetCrossChainSupportBscBlock     = 1
 	testnetCrossChainSupportTronBlock    = 1
 	testnetCrossChainSupportPolygonBlock = 1
@@ -19,81 +15,65 @@ const (
 
 // mainnet constant
 const (
+	MainnetChainId                       = "fxcore"
 	mainnetCrossChainSupportBscBlock     = 1354000
 	mainnetCrossChainSupportTronBlock    = 2062000
 	mainnetCrossChainSupportPolygonBlock = 2062000
 
-	//
+	// gravity prune validator set and attestation
 	mainnetGravityPruneValsetAndAttestationBlock = 610000
 	// gravity not slash no set eth address validator
 	mainnetGravityValsetSlashBlock = 1685000
 )
 
-// devnet constant
-const (
-	devnetCrossChainSupportBscBlock     = 1
-	devnetCrossChainSupportTronBlock    = 1
-	devnetCrossChainSupportPolygonBlock = 1
-
-	devnetGravityPruneValsetAndAttestationBlock = 1
-	devnetGravityValsetSlashBlock               = 1
-)
-
 var (
-	// network config network, default mainnet
-	network = networkMainnet
+	chainId = MainnetChainId
+	once    sync.Once
 )
 
-func init() {
-	if network != networkTestnet && network != networkMainnet && network != networkDevnet {
-		network = networkMainnet
+func SetChainId(id string) {
+	if id != MainnetChainId && id != TestnetChainId {
+		panic("invalid chainId: " + id)
 	}
+	once.Do(func() {
+		chainId = id
+	})
 }
 
-func Network() string {
-	return network
+func ChainId() string {
+	return chainId
 }
 
 func GravityPruneValsetsAndAttestationBlock() int64 {
-	if networkDevnet == network {
-		return devnetGravityPruneValsetAndAttestationBlock
-	} else if networkTestnet == network {
+	if TestnetChainId == chainId {
 		return testnetGravityPruneValsetAndAttestationBlock
 	}
 	return mainnetGravityPruneValsetAndAttestationBlock
 }
 
 func GravityValsetSlashBlock() int64 {
-	if networkDevnet == network {
-		return devnetGravityValsetSlashBlock
-	} else if networkTestnet == network {
+	if TestnetChainId == chainId {
 		return testnetGravityValsetSlashBlock
 	}
 	return mainnetGravityValsetSlashBlock
 }
 
 func CrossChainSupportBscBlock() int64 {
-	if networkDevnet == network {
-		return devnetCrossChainSupportBscBlock
-	} else if networkTestnet == network {
+	if TestnetChainId == chainId {
 		return testnetCrossChainSupportBscBlock
 	}
 	return mainnetCrossChainSupportBscBlock
 }
 
 func CrossChainSupportTronBlock() int64 {
-	if networkDevnet == network {
-		return devnetCrossChainSupportTronBlock
-	} else if networkTestnet == network {
+	if TestnetChainId == chainId {
 		return testnetCrossChainSupportTronBlock
 	}
 	return mainnetCrossChainSupportTronBlock
 }
 
 func CrossChainSupportPolygonBlock() int64 {
-	if networkDevnet == network {
-		return devnetCrossChainSupportPolygonBlock
-	} else if networkTestnet == network {
+	if TestnetChainId == chainId {
 		return testnetCrossChainSupportPolygonBlock
 	}
 	return mainnetCrossChainSupportPolygonBlock

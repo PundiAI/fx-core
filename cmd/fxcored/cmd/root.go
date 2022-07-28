@@ -6,6 +6,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"github.com/cosmos/cosmos-sdk/x/crisis"
+	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/node"
+	store2 "github.com/tendermint/tendermint/store"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	fxtypes "github.com/functionx/fx-core/types"
 
@@ -90,7 +97,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringSlice(appCli.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery)`)
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID: fxtypes.ChainID,
+		flags.FlagChainID: fxtypes.ChainId(),
 	})
 	for _, command := range rootCmd.Commands() {
 		if command.Use == "" {
@@ -143,6 +150,41 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 }
 
 func addStartFlags(startCmd *cobra.Command) {
+	crisis.AddModuleInitFlags(startCmd)
+
+	preRun := startCmd.PreRunE
+	startCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+		if err := preRun(cmd, args); err != nil {
+			return err
+		}
+		serverCtx := server.GetServerContextFromCmd(cmd)
+		genesisDoc, err := tmtypes.GenesisDocFromFile(serverCtx.Config.GenesisFile())
+		if err != nil {
+			return err
+		}
+		if err = checkMainnetAndBlock(genesisDoc, serverCtx.Config); err != nil {
+			return err
+		}
+		fxtypes.SetChainId(genesisDoc.ChainID)
+		return nil
+	}
+}
+
+func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config) error {
+	genesisTime, err := time.Parse("2006-01-02T15:04:05Z", "2021-07-05T04:00:00Z")
+	if err != nil {
+		return err
+	}
+	blockStoreDB, err := node.DefaultDBProvider(&node.DBContext{ID: "blockstore", Config: config})
+	if err != nil {
+		return err
+	}
+	defer blockStoreDB.Close()
+	blockStore := store2.NewBlockStore(blockStoreDB)
+	if genesisDoc.GenesisTime.Equal(genesisTime) && blockStore.Height() >= 5713000 {
+		return errors.New("invalid version: Please use a later version of fxcored for sync blocks")
+	}
+	return nil
 }
 
 func queryCommand() *cobra.Command {

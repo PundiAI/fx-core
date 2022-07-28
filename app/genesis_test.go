@@ -2,8 +2,9 @@ package app
 
 import (
 	"encoding/json"
-	fxtypes "github.com/functionx/fx-core/types"
 	"testing"
+
+	fxtypes "github.com/functionx/fx-core/types"
 
 	gravitytypes "github.com/functionx/fx-core/x/gravity/types"
 )
