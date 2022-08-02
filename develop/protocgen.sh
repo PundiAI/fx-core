@@ -34,7 +34,7 @@ fi
 
 if [ ! -f ./build/ibc-go/README.md ]; then
   commit_hash=$(go list -m -f '{{.Version}}' github.com/cosmos/ibc-go/v3)
-  if [ ! -f "./build/ibc-proto.zip" ]; then
+  if [ ! -f "./build/ibc-go-proto.zip" ]; then
     wget -c "https://github.com/cosmos/ibc-go/archive/$commit_hash.zip" -O "./build/ibc-go-proto.zip"
   fi
   (
