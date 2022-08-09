@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"math"
 
@@ -699,7 +698,6 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 		}
 
 		require.NotNil(suite.T(), err)
-		require.True(suite.T(), errors.As(err, &testCase.err))
 		require.Equal(suite.T(), err, testCase.err)
 	}
 }
