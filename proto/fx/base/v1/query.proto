@@ -1,23 +1,21 @@
 syntax = "proto3";
-package fx.other;
+package fx.base.v1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-option go_package = "github.com/functionx/fx-core/client/grpc/base/gasprice/legacy";
+option go_package = "github.com/functionx/fx-core/client/grpc/base/gasprice";
 
-// Deprecated
 service Query {
-  // Deprecated
-  rpc GasPrice(GasPriceRequest) returns (GasPriceResponse) {
-    option (google.api.http).get = "/fx/other/gas_price";
+  rpc GetGasPrice(GetGasPriceRequest) returns (GetGasPriceResponse) {
+    option (google.api.http).get = "/fx/base/v1/gas_price";
   }
 }
 
-message GasPriceRequest {}
+message GetGasPriceRequest {}
 
-message GasPriceResponse {
+message GetGasPriceResponse {
   repeated cosmos.base.v1beta1.Coin gas_prices = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",

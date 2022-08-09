@@ -8,23 +8,6 @@ import (
 	"strings"
 	"time"
 
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
-	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
-
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -33,14 +16,30 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/gogo/protobuf/proto"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	tenderminttypes "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+
+	"github.com/gogo/protobuf/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 
-	otherTypes "github.com/functionx/fx-core/v2/x/other/types"
+	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
+	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
 )
 
 const DefGasLimit int64 = 200000
@@ -264,9 +263,8 @@ func (cli *Client) GetStatusByTx(txHash string) (*tx.GetTxResponse, error) {
 	return response, nil
 }
 
-// Deprecated: GetGasPrices
 func (cli *Client) GetGasPrices() (sdk.Coins, error) {
-	response, err := otherTypes.NewQueryClient(cli).GasPrice(cli.ctx, &otherTypes.GasPriceRequest{})
+	response, err := gasprice.NewQueryClient(cli).GetGasPrice(cli.ctx, &gasprice.GetGasPriceRequest{})
 	if err != nil {
 		return nil, err
 	}

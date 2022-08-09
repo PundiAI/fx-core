@@ -37,6 +37,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Features
+
+* (fx/base) Add `GetGasPrice` gRPC query node gas price
+
+### Deprecated
+
+* (fx/other) Deprecate `GasPrice` gRPC query since `other` module will be deleted
+
 ## [v2.2.1] - 2022-07-28
 
 ### Bug Fixes

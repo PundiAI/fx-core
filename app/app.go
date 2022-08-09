@@ -8,22 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cosmos/cosmos-sdk/x/gov"
-
-	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
-
-	fxante "github.com/functionx/fx-core/v2/ante"
-
-	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
-
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
-
-	othertypes "github.com/functionx/fx-core/v2/x/other/types"
-
-	"github.com/cosmos/cosmos-sdk/server/config"
-
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
@@ -41,12 +25,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
+	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -54,6 +39,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
 
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -77,17 +64,12 @@ import (
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	fxgov "github.com/functionx/fx-core/v2/x/gov"
-	fxgovkeeper "github.com/functionx/fx-core/v2/x/gov/keeper"
 
 	ibc "github.com/cosmos/ibc-go/v3/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
@@ -119,13 +101,32 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	fxgov "github.com/functionx/fx-core/v2/x/gov"
+	fxgovkeeper "github.com/functionx/fx-core/v2/x/gov/keeper"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
-	"github.com/functionx/fx-core/v2/x/crosschain"
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	srvflags "github.com/evmos/ethermint/server/flags"
+	"github.com/evmos/ethermint/x/evm"
+	evmrest "github.com/evmos/ethermint/x/evm/client/rest"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/evmos/ethermint/x/feemarket"
+	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+
 	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer"
 	ibctransferkeeper "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
 	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+
+	"github.com/functionx/fx-core/v2/x/crosschain"
+	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 
 	"github.com/functionx/fx-core/v2/x/gravity"
 	gravitykeeper "github.com/functionx/fx-core/v2/x/gravity/keeper"
@@ -135,33 +136,26 @@ import (
 	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
 	"github.com/functionx/fx-core/v2/x/polygon"
 	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-
-	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v2/x/other"
-
 	"github.com/functionx/fx-core/v2/x/tron"
 	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 
-	"github.com/evmos/ethermint/x/evm"
-	evmrest "github.com/evmos/ethermint/x/evm/client/rest"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/evmos/ethermint/x/feemarket"
-	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
-
+	"github.com/functionx/fx-core/v2/x/erc20"
 	erc20client "github.com/functionx/fx-core/v2/x/erc20/client"
+	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 
+	"github.com/functionx/fx-core/v2/x/migrate"
 	migratekeeper "github.com/functionx/fx-core/v2/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
 
-	srvflags "github.com/evmos/ethermint/server/flags"
-	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
-	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-
+	fxante "github.com/functionx/fx-core/v2/ante"
+	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
+	gaspricelegacy "github.com/functionx/fx-core/v2/client/grpc/base/gasprice/legacy"
 	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/erc20"
-	"github.com/functionx/fx-core/v2/x/migrate"
+
+	"github.com/functionx/fx-core/v2/x/other"
+	othertypes "github.com/functionx/fx-core/v2/x/other/types"
 
 	_ "github.com/functionx/fx-core/v2/docs/statik"
 
@@ -703,7 +697,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 	myApp.mm.RegisterRoutes(myApp.Router(), myApp.QueryRouter(), encodingConfig.Amino)
 
 	myApp.configurator = module.NewConfigurator(myApp.appCodec, myApp.MsgServiceRouter(), myApp.GRPCQueryRouter())
-	myApp.mm.RegisterServices(myApp.configurator)
+	myApp.RegisterServices(myApp.configurator)
 
 	// initialize stores
 	myApp.MountKVStores(keys)
@@ -843,6 +837,14 @@ func (app *App) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
+func (app *App) RegisterServices(cfg module.Configurator) {
+	for _, m := range app.mm.Modules {
+		m.RegisterServices(cfg)
+	}
+	gasprice.RegisterQueryServer(cfg.QueryServer(), gasprice.Querier{})
+	gaspricelegacy.RegisterQueryServer(cfg.QueryServer(), gaspricelegacy.Querier{})
+}
+
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
@@ -856,6 +858,8 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	// Register gas price queries routes from grpc-gateway.
+	gasprice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)

@@ -7,19 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/functionx/fx-core/v2/x/other/client/cli"
-
-	"github.com/functionx/fx-core/v2/app"
-
-	"github.com/evmos/ethermint/crypto/hd"
-	"github.com/evmos/ethermint/server/config"
-
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
-	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -31,6 +21,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	"github.com/evmos/ethermint/crypto/hd"
+	"github.com/evmos/ethermint/server/config"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -38,7 +30,10 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/functionx/fx-core/v2/app"
 	appCmd "github.com/functionx/fx-core/v2/app/cli"
+	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
 const envPrefix = "FX"
@@ -156,7 +151,7 @@ func queryCommand() *cobra.Command {
 		appCmd.QueryStoreCmd(),
 		appCmd.QueryValidatorByConsAddr(),
 		appCmd.QueryBlockResultsCmd(),
-		cli.CmdQueryGasPrice(),
+		gasprice.QueryCmd(),
 	)
 
 	app.ModuleBasics.AddQueryCommands(cmd)

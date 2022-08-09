@@ -504,3 +504,12 @@ func (suite *IntegrationTestSuite) TestJsonRPC_GetStakeValidators() {
 	suite.Require().NoError(err)
 	suite.Require().Len(validators, 1)
 }
+
+func (suite *IntegrationTestSuite) TestQueryGasPrice() {
+	clients := suite.GetClients()
+	for _, client := range clients {
+		prices, err := client.GetGasPrices()
+		suite.Require().NoError(err)
+		suite.Require().Equal(`4000000000000FX`, prices.String())
+	}
+}

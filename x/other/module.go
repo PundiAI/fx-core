@@ -1,13 +1,13 @@
 package other
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+
+	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice/legacy"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -17,7 +17,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/functionx/fx-core/v2/x/other/keeper"
 	types "github.com/functionx/fx-core/v2/x/other/types"
 	// this line is used by starport scaffolding # ibc/module/import
 )
@@ -56,12 +55,7 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {}
 func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
-	if err != nil {
-		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", types.ModuleName, err.Error()))
-	}
-}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
 
 // GetTxCmd returns the capability module's root tx command.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
@@ -109,15 +103,13 @@ func (AppModule) QuerierRoute() string { return types.QuerierRoute }
 
 // LegacyQuerierHandler returns the capability module's Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(legacyQuerierCdc)
+	// nolint
+	return legacy.NewQuerier(legacyQuerierCdc)
 }
 
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
-func (am AppModule) RegisterServices(cfg module.Configurator) {
-	querier := keeper.Querier{}
-	types.RegisterQueryServer(cfg.QueryServer(), querier)
-}
+func (am AppModule) RegisterServices(cfg module.Configurator) {}
 
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.

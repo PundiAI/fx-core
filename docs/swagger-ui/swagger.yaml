@@ -3207,6 +3207,100 @@ paths:
           type: string
       tags:
         - Query
+  /fx/erc20/v1/alias/denom:
+    get:
+      summary: Retrieves registered alias denom
+      operationId: AliasDenom
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              denom:
+                type: string
+            description: >-
+              QueryAliasDenomResponse is the response type for the
+              Query/AliasDenom RPC
+
+              method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: alias
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
+  /fx/erc20/v1/denom/aliases:
+    get:
+      summary: Retrieves registered denom aliases
+      operationId: DenomAliases
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              aliases:
+                type: array
+                items:
+                  type: string
+            description: >-
+              QueryDenomAliasesResponse is the response type for the
+              Query/DenomAliases RPC
+
+              method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: denom
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
   /fx/erc20/v1/params:
     get:
       summary: Params retrieves the erc20 module params
@@ -9844,6 +9938,56 @@ paths:
             description: >-
               QueryParamsResponse is the response type for the Query/Params RPC
               method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
+  /fx/base/v1/gas_price:
+    get:
+      operationId: GetGasPrice
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              gas_prices:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                    amount:
+                      type: string
+                  description: >-
+                    Coin defines a token with a denomination and an amount.
+
+
+                    NOTE: The amount field is an Int which implements the custom
+                    method
+
+                    signatures required by gogoproto.
         default:
           description: An unexpected error response
           schema:
@@ -28025,6 +28169,26 @@ definitions:
         type: string
         title: parameter to set ibc timeout
     title: Params defines the erc20 module params
+  fx.erc20.v1.QueryAliasDenomResponse:
+    type: object
+    properties:
+      denom:
+        type: string
+    description: |-
+      QueryAliasDenomResponse is the response type for the Query/AliasDenom RPC
+      method.
+  fx.erc20.v1.QueryDenomAliasesResponse:
+    type: object
+    properties:
+      aliases:
+        type: array
+        items:
+          type: string
+    description: >-
+      QueryDenomAliasesResponse is the response type for the Query/DenomAliases
+      RPC
+
+      method.
   fx.erc20.v1.QueryParamsResponse:
     type: object
     properties:
@@ -29410,6 +29574,23 @@ definitions:
 
               chain.
     description: QueryParamsResponse is the response type for the Query/Params RPC method.
+  fx.base.v1.GetGasPriceResponse:
+    type: object
+    properties:
+      gas_prices:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
   cosmos.auth.v1beta1.Params:
     type: object
     properties:

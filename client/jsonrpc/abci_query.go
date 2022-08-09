@@ -87,6 +87,7 @@ func (c *NodeRPC) PeersById(id string) (*coreTypes.ResultABCIQuery, error) {
 	return c.ABCIQueryIsOk("/p2p/filter/id/"+id, nil)
 }
 
+// Deprecated: GetGravityAttestation
 func (c *NodeRPC) GetGravityAttestation(cdc codec.Codec, id []byte) (*gravitytypes.Attestation, error) {
 	query, err := c.ABCIQuery("/store/gravity/key", id)
 	if err != nil {
@@ -100,6 +101,7 @@ func (c *NodeRPC) GetGravityAttestation(cdc codec.Codec, id []byte) (*gravitytyp
 	return &gravityAtt, nil
 }
 
+// Deprecated: GetGravityLastObservedEventNonce
 func (c *NodeRPC) GetGravityLastObservedEventNonce() (uint64, error) {
 	query, err := c.ABCIQuery("/store/gravity/key", []byte{0xc})
 	if err != nil {

@@ -4,6 +4,12 @@
 
 ## Table of Contents
 
+- [fx/base/v1/query.proto](#fx/base/v1/query.proto)
+    - [GetGasPriceRequest](#fx.base.v1.GetGasPriceRequest)
+    - [GetGasPriceResponse](#fx.base.v1.GetGasPriceResponse)
+  
+    - [Query](#fx.base.v1.Query)
+  
 - [fx/crosschain/v1/types.proto](#fx/crosschain/v1/types.proto)
     - [Attestation](#fx.gravity.crosschain.v1.Attestation)
     - [BatchFees](#fx.gravity.crosschain.v1.BatchFees)
@@ -281,6 +287,57 @@
     - [Query](#fx.other.Query)
   
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="fx/base/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/base/v1/query.proto
+
+
+
+<a name="fx.base.v1.GetGasPriceRequest"></a>
+
+### GetGasPriceRequest
+
+
+
+
+
+
+
+<a name="fx.base.v1.GetGasPriceResponse"></a>
+
+### GetGasPriceResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `gas_prices` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="fx.base.v1.Query"></a>
+
+### Query
+
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `GetGasPrice` | [GetGasPriceRequest](#fx.base.v1.GetGasPriceRequest) | [GetGasPriceResponse](#fx.base.v1.GetGasPriceResponse) |  | GET|/fx/base/v1/gas_price|
+
+ <!-- end services -->
 
 
 
@@ -4223,7 +4280,7 @@ Msg defines the state transitions possible within gravity
 <a name="fx.other.Query"></a>
 
 ### Query
-
+Deprecated
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
