@@ -118,9 +118,9 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash comm
 	return nil
 }
 
-//isRelayTokenEvent check transfer event is relay token
-//transfer event ---> event Transfer(address indexed from, address indexed to, uint256 value);
-//address to must be equal ModuleAddress
+// isRelayTokenEvent check transfer event is relay token
+// transfer event ---> event Transfer(address indexed from, address indexed to, uint256 value);
+// address to must be equal ModuleAddress
 func isRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) bool {
 	// Note: the `Transfer` event contains 3 topics (id, from, to)
 	if len(log.Topics) != 3 {
@@ -139,7 +139,7 @@ func isRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) bool {
 	return bytes.Equal(to.Bytes(), types.ModuleAddress.Bytes())
 }
 
-//parseTransferAmount parse transfer event data to big int
+// parseTransferAmount parse transfer event data to big int
 func parseTransferAmount(fip20ABI abi.ABI, data []byte) (*big.Int, error) {
 	//relay amount
 	transferEvent, err := fip20ABI.Unpack(types.ERC20EventTransfer, data)

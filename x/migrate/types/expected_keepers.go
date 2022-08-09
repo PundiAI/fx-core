@@ -20,7 +20,7 @@ type StakingKeeper interface {
 	GetRedelegationQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (dvvTriplets []stakingtypes.DVVTriplet)
 }
 
-//AccountKeeper defines the expected account keeper methods
+// AccountKeeper defines the expected account keeper methods
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	SetAccount(ctx sdk.Context, acc authtypes.AccountI)

@@ -44,7 +44,7 @@ var (
 	KeyPrefixAliasDenom       = []byte{prefixAliasDenom}
 )
 
-//GetIBCTransferKey [sourcePort/sourceChannel/sequence]
+// GetIBCTransferKey [sourcePort/sourceChannel/sequence]
 func GetIBCTransferKey(sourcePort, sourceChannel string, sequence uint64) []byte {
 	key := fmt.Sprintf("%s/%s/%d", sourcePort, sourceChannel, sequence)
 	return append(KeyPrefixIBCTransfer, []byte(key)...)

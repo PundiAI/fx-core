@@ -41,7 +41,6 @@ type ModuleHandler struct {
 var _ Router = (*router)(nil)
 
 // Router implements a cross chain EthereumMsgServer Handler router.
-//
 type Router interface {
 	AddRoute(r string, moduleHandler *ModuleHandler) (rtr Router)
 	HasRoute(r string) bool
