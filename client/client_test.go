@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"reflect"
 	"sync"
 	"testing"
@@ -68,7 +68,7 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	cfg.NumValidators = 1
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
 
-	baseDir, err := ioutil.TempDir(suite.T().TempDir(), cfg.ChainID)
+	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
 	suite.Require().NoError(err)
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
 	suite.Require().NoError(err)

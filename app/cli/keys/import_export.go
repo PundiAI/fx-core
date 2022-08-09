@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -129,7 +129,7 @@ func ImportKeyCommand() *cobra.Command {
 			}
 			buf := bufio.NewReader(clientCtx.Input)
 
-			bz, err := ioutil.ReadFile(args[1])
+			bz, err := os.ReadFile(args[1])
 			if err != nil {
 				return err
 			}

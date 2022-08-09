@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -421,7 +421,7 @@ func (cli *FastClient) Call(ctx context.Context, method string, params map[strin
 	}
 	defer resp.Body.Close()
 
-	date, err := ioutil.ReadAll(resp.Body)
+	date, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
