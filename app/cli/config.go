@@ -1,23 +1,19 @@
-package main
+package cli
 
 import (
 	"fmt"
 	"path/filepath"
 	"strings"
 
-	"github.com/functionx/fx-core/v2/app/cli"
-
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/spf13/viper"
-
-	"github.com/mitchellh/mapstructure"
-
 	"github.com/cosmos/cosmos-sdk/client"
-	tmcli "github.com/tendermint/tendermint/libs/cli"
-
+	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
+	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
+	tmcli "github.com/tendermint/tendermint/libs/cli"
 
 	fxCfg "github.com/functionx/fx-core/v2/server/config"
 )
@@ -27,7 +23,19 @@ const (
 	appFileName    = "app.toml"
 )
 
-func UpdateCmd() *cobra.Command {
+// ConfigCmd returns a CLI command to interactively create an application CLI
+// config file.
+func ConfigCmd() *cobra.Command {
+	cmd := sdkCfg.Cmd()
+	cmd.AddCommand(
+		updateCmd(),
+		appTomlCmd(),
+		configTomlCmd(),
+	)
+	return cmd
+}
+
+func updateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update app.toml and config.toml files to the latest version, default only missing parts are added",
@@ -53,7 +61,7 @@ func UpdateCmd() *cobra.Command {
 	return cmd
 }
 
-func AppTomlCmd() *cobra.Command {
+func appTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app.toml [key] [value]",
 		Short: "Create or query an `~/.fxcore/config/apptoml` file",
@@ -67,7 +75,7 @@ func AppTomlCmd() *cobra.Command {
 	return cmd
 }
 
-func ConfigTomlCmd() *cobra.Command {
+func configTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config.toml [key] [value]",
 		Short: "Create or query an `~/.fxcore/config/config.toml` file",
@@ -196,7 +204,7 @@ func output(ctx client.Context, content interface{}) error {
 		if err := mapstructure.Decode(content, &data); err != nil {
 			return err
 		}
-		return cli.PrintOutput(ctx, data)
+		return PrintOutput(ctx, data)
 	}
-	return cli.PrintOutput(ctx, mapData)
+	return PrintOutput(ctx, mapData)
 }

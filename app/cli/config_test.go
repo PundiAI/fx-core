@@ -1,16 +1,15 @@
-package main
+package cli
 
 import (
 	"bytes"
 	"fmt"
 	"testing"
 
-	fxCfg "github.com/functionx/fx-core/v2/server/config"
-
 	"github.com/cosmos/cosmos-sdk/client"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/config"
+
+	fxCfg "github.com/functionx/fx-core/v2/server/config"
 )
 
 func Test_configTomlConfig_output(t *testing.T) {
