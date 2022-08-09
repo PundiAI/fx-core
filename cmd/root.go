@@ -41,6 +41,7 @@ const envPrefix = "FX"
 // newRootCmd creates a new root command for simd. It is called once in the
 // main function.
 func newRootCmd() *cobra.Command {
+	fxtypes.SetConfig(false)
 
 	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.

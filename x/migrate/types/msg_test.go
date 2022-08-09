@@ -84,12 +84,12 @@ func TestMsgMigrateAccountGetSignBytes(t *testing.T) {
 	var msg = types.NewMsgMigrateAccount(addr1, addr2, sign)
 	res := msg.GetSignBytes()
 
-	expected := `{"type":"migrate/MsgMigrateAccount","value":{"from":"fx1d9h8qat556rm7q","signature":"0x1","to":"0x00000000000000000000000000006F7574707574"}}`
+	expected := `{"type":"migrate/MsgMigrateAccount","value":{"from":"cosmos1d9h8qat57ljhcm","signature":"0x1","to":"0x00000000000000000000000000006F7574707574"}}`
 	require.Equal(t, expected, string(res))
 }
 
 func TestMsgMigrateAccountGetSigners(t *testing.T) {
-	var msg = types.NewMsgMigrateAccount(sdk.AccAddress([]byte("input111111111111111")), common.Address{}, "")
+	var msg = types.NewMsgMigrateAccount([]byte("input111111111111111"), common.Address{}, "")
 	res := msg.GetSigners()
 	require.Equal(t, fmt.Sprintf("%v", res), "[696E707574313131313131313131313131313131]")
 }

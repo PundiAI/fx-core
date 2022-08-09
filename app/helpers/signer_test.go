@@ -15,5 +15,7 @@ func TestPrivKeyFromMnemonic(t *testing.T) {
 	privKey, err := helpers.PrivKeyFromMnemonic(mnemonic, hd2.Secp256k1Type, 0, 0)
 	require.NoError(t, err)
 
-	require.Equal(t, "fx18e2hlvcupj2dqhpty99044h2j7jp5d5wh670n8", sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
+	addr, err := sdk.AccAddressFromHex("3E557FB31C0C94D05C2B214AFAD6EA97A41A368E")
+	require.NoError(t, err)
+	require.Equal(t, addr, sdk.AccAddress(privKey.PubKey().Address().Bytes()))
 }

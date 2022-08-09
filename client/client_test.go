@@ -9,28 +9,24 @@ import (
 	"sync"
 	"testing"
 
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/functionx/fx-core/v2/testutil"
-	"github.com/functionx/fx-core/v2/testutil/network"
-
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	hd2 "github.com/evmos/ethermint/crypto/hd"
-	"github.com/gogo/protobuf/proto"
-
-	"github.com/functionx/fx-core/v2/client/jsonrpc"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	hd2 "github.com/evmos/ethermint/crypto/hd"
+	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v2/app/helpers"
 	"github.com/functionx/fx-core/v2/client/grpc"
+	"github.com/functionx/fx-core/v2/client/jsonrpc"
+	"github.com/functionx/fx-core/v2/testutil"
+	"github.com/functionx/fx-core/v2/testutil/network"
 	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
@@ -288,7 +284,7 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 		{
 			funcName: "GetAddressPrefix",
 			params:   []interface{}{},
-			wantRes:  []interface{}{fxtypes.AddressPrefix, nil},
+			wantRes:  []interface{}{"cosmos", nil},
 		},
 		{
 			funcName: "AppVersion",

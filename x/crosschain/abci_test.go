@@ -147,13 +147,16 @@ func (suite *IntegrationTestSuite) TestABCIEndBlockDepositClaim() {
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
+	receiveAddr, err := sdk.AccAddressFromHex("d398e86c21a92ab5a0569907ab03fd3fbd2e375c")
+	require.NoError(suite.T(), err)
+
 	sendToFxClaim := &types.MsgSendToFxClaim{
 		EventNonce:     2,
 		BlockHeight:    1001,
 		TokenContract:  bridgeToken,
 		Amount:         sdk.NewInt(1234),
 		Sender:         sendToFxSendAddr,
-		Receiver:       "fx16wvwsmpp4y4ttgzknyr6kqla877jud6u04lqey",
+		Receiver:       receiveAddr.String(),
 		TargetIbc:      hex.EncodeToString([]byte("px/transfer/channel-0")),
 		BridgerAddress: suite.bridgers[0].String(),
 		ChainName:      suite.chainName,
@@ -164,8 +167,6 @@ func (suite *IntegrationTestSuite) TestABCIEndBlockDepositClaim() {
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
-	receiveAddr, err := sdk.AccAddressFromBech32(sendToFxClaim.Receiver)
-	require.NoError(suite.T(), err)
 	allBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, receiveAddr)
 	// transfer/channel-0/bscPURES
 	tokenName := fmt.Sprintf("%s%s", suite.chainName, bridgeToken)
