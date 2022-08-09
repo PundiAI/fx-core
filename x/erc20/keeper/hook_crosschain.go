@@ -120,7 +120,7 @@ func (k Keeper) testnetConvertDenomBetweenBlock(ctx sdk.Context, from sdk.AccAdd
 		return coin, nil
 	}
 	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.convertDenomToMany(cacheCtx, from, coin, target)
+	targetCoin, err := k.ConvertDenomToMany(cacheCtx, from, coin, target)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -157,7 +157,7 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to stri
 		to, ibcTimeoutHeight, ibcTimeoutTimestamp, "", fee); err != nil {
 		return err
 	}
-	k.setIBCTransferHash(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, nextSequenceSend, receipt.TxHash)
+	k.SetIBCTransferHash(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, nextSequenceSend, receipt.TxHash)
 	return nil
 }
 
@@ -171,7 +171,7 @@ func validateIbcReceiveAddress(ctx sdk.Context, prefix, addr string) error {
 	return err
 }
 
-func (k Keeper) setIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64, hash common.Hash) {
+func (k Keeper) SetIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64, hash common.Hash) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetIBCTransferKey(port, channel, sequence), hash.Bytes())
 }

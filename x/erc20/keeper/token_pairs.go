@@ -62,24 +62,24 @@ func (k Keeper) SetTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	store.Set(key, bz)
 }
 
-// DeleteTokenPair removes a token pair.
-func (k Keeper) DeleteTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
+// RemoveTokenPair removes a token pair.
+func (k Keeper) RemoveTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	id := tokenPair.GetID()
-	k.deleteTokenPair(ctx, id)
-	k.deleteERC20Map(ctx, tokenPair.GetERC20Contract())
-	k.deleteDenomMap(ctx, tokenPair.Denom)
+	k.DeleteTokenPair(ctx, id)
+	k.DeleteERC20Map(ctx, tokenPair.GetERC20Contract())
+	k.DeleteDenomMap(ctx, tokenPair.Denom)
 
 	//after support many to one, delete denom with alias
 	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() {
 		md, found := k.bankKeeper.GetDenomMetaData(ctx, tokenPair.Denom)
 		if found && types.IsManyToOneMetadata(md) {
-			k.deleteAliasesDenom(ctx, md.DenomUnits[0].Aliases...)
+			k.DeleteAliasesDenom(ctx, md.DenomUnits[0].Aliases...)
 		}
 	}
 }
 
-// deleteTokenPair deletes the token pair for the given id
-func (k Keeper) deleteTokenPair(ctx sdk.Context, id []byte) {
+// DeleteTokenPair deletes the token pair for the given id
+func (k Keeper) DeleteTokenPair(ctx sdk.Context, id []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
 	store.Delete(id)
 }
@@ -102,8 +102,8 @@ func (k Keeper) SetERC20Map(ctx sdk.Context, erc20 common.Address, id []byte) {
 	store.Set(erc20.Bytes(), id)
 }
 
-// deleteERC20Map deletes the token pair id for the given address
-func (k Keeper) deleteERC20Map(ctx sdk.Context, erc20 common.Address) {
+// DeleteERC20Map deletes the token pair id for the given address
+func (k Keeper) DeleteERC20Map(ctx sdk.Context, erc20 common.Address) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
 	store.Delete(erc20.Bytes())
 }
@@ -114,8 +114,8 @@ func (k Keeper) SetDenomMap(ctx sdk.Context, denom string, id []byte) {
 	store.Set([]byte(denom), id)
 }
 
-// deleteDenomMap deletes the token pair id for the given denom
-func (k Keeper) deleteDenomMap(ctx sdk.Context, denom string) {
+// DeleteDenomMap deletes the token pair id for the given denom
+func (k Keeper) DeleteDenomMap(ctx sdk.Context, denom string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByDenom)
 	store.Delete([]byte(denom))
 }
@@ -152,8 +152,8 @@ func (k Keeper) GetAliasDenom(ctx sdk.Context, alias string) []byte {
 	return store.Get([]byte(alias))
 }
 
-// deleteAliasesDenom deletes the denom-alias for the given alias
-func (k Keeper) deleteAliasesDenom(ctx sdk.Context, aliases ...string) {
+// DeleteAliasesDenom deletes the denom-alias for the given alias
+func (k Keeper) DeleteAliasesDenom(ctx sdk.Context, aliases ...string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
 	for _, alias := range aliases {
 		store.Delete([]byte(alias))

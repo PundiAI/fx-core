@@ -27,7 +27,7 @@ const (
 	appFileName    = "app.toml"
 )
 
-func updateCmd() *cobra.Command {
+func UpdateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update app.toml and config.toml files to the latest version, default only missing parts are added",
@@ -53,7 +53,7 @@ func updateCmd() *cobra.Command {
 	return cmd
 }
 
-func appTomlCmd() *cobra.Command {
+func AppTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app.toml [key] [value]",
 		Short: "Create or query an `~/.fxcore/config/apptoml` file",
@@ -67,7 +67,7 @@ func appTomlCmd() *cobra.Command {
 	return cmd
 }
 
-func configTomlCmd() *cobra.Command {
+func ConfigTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config.toml [key] [value]",
 		Short: "Create or query an `~/.fxcore/config/config.toml` file",

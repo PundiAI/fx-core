@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				pair, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
 
-				suite.app.Erc20Keeper.DeleteTokenPair(suite.ctx, *pair)
+				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, *pair)
 
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, pair.Denom, pair.GetID())
 				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, pair.GetERC20Contract(), pair.GetID())

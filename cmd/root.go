@@ -107,7 +107,7 @@ func newRootCmd() *cobra.Command {
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	sdkCfgCmd := sdkCfg.Cmd()
-	sdkCfgCmd.AddCommand(updateCmd(), appTomlCmd(), configTomlCmd())
+	sdkCfgCmd.AddCommand(UpdateCmd(), AppTomlCmd(), ConfigTomlCmd())
 
 	rootCmd.AddCommand(
 		appCmd.InitCmd(app.DefaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Marshaler), app.CustomConsensusParams()),

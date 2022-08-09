@@ -263,7 +263,7 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 		if len(newAliases) == 0 {
 			return false, sdkerrors.Wrapf(types.ErrInvalidDenom, "can not remove, alias %s is the last one", alias)
 		}
-		k.deleteAliasesDenom(ctx, alias)
+		k.DeleteAliasesDenom(ctx, alias)
 	} else {
 		//check if denom not equal alias registered denom, return error
 		return false, sdkerrors.Wrapf(types.ErrInvalidDenom,

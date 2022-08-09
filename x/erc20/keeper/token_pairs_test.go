@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestDeleteTokenPair() {
 			"detete tokenpair",
 			id,
 			func() {
-				suite.app.Erc20Keeper.DeleteTokenPair(suite.ctx, pair)
+				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
 			},
 			false,
 		},
@@ -203,7 +203,7 @@ func (suite *KeeperTestSuite) TestIsERC20Registered() {
 			"deleted erc20 map",
 			pair.GetERC20Contract(),
 			func() {
-				suite.app.Erc20Keeper.DeleteTokenPair(suite.ctx, pair)
+				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
 			},
 			false,
 		},
@@ -240,7 +240,7 @@ func (suite *KeeperTestSuite) TestIsDenomRegistered() {
 			"deleted denom map",
 			pair.GetDenom(),
 			func() {
-				suite.app.Erc20Keeper.DeleteTokenPair(suite.ctx, pair)
+				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
 			},
 			false,
 		},
