@@ -4284,7 +4284,8 @@ Deprecated
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/fx/other/gas_price|
+| `FxGasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/fx/other/gas_price|
+| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/other/v1/gas_price|
 
  <!-- end services -->
 

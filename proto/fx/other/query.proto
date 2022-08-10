@@ -10,8 +10,12 @@ option go_package = "github.com/functionx/fx-core/client/grpc/base/gasprice/lega
 // Deprecated
 service Query {
   // Deprecated
-  rpc GasPrice(GasPriceRequest) returns (GasPriceResponse) {
+  rpc FxGasPrice(GasPriceRequest) returns (GasPriceResponse) {
     option (google.api.http).get = "/fx/other/gas_price";
+  }
+  // Deprecated
+  rpc GasPrice(GasPriceRequest) returns (GasPriceResponse) {
+    option (google.api.http).get = "/other/v1/gas_price";
   }
 }
 
