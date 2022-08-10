@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -663,7 +665,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			baseFee:        sdk.NewInt(1000),
 			pass:           false,
 			expectTotalTxs: 3,
-			err:            types.ErrInvalid,
+			err:            sdkerrors.Wrap(types.ErrEmpty, "no batch tx"),
 		},
 		{
 			testName:       "Support - baseFee 2",
@@ -675,9 +677,9 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 		{
 			testName:       "Support - baseFee 0",
 			baseFee:        sdk.NewInt(0),
-			pass:           true,
+			pass:           false,
 			expectTotalTxs: 0,
-			err:            nil,
+			err:            sdkerrors.Wrap(types.ErrInvalid, "new batch would not be more profitable"),
 		},
 	}
 
@@ -694,10 +696,9 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			require.NoError(suite.T(), err)
 			usdtBatchFee = suite.Keeper().GetBatchFeesByTokenType(suite.ctx, sendToFxToken, 100, sdk.NewInt(0))
 			require.EqualValues(suite.T(), testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
-			return
+		} else {
+			require.NotNil(suite.T(), err)
+			require.Equal(suite.T(), err.Error(), testCase.err.Error())
 		}
-
-		require.NotNil(suite.T(), err)
-		require.Equal(suite.T(), err, testCase.err)
 	}
 }
