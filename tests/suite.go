@@ -9,29 +9,23 @@ import (
 	"sync"
 	"time"
 
-	"github.com/functionx/fx-core/v2/testutil"
-
-	"github.com/functionx/fx-core/v2/testutil/network"
-
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	types "github.com/tendermint/tendermint/proto/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-
-	"github.com/functionx/fx-core/v2/client/jsonrpc"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
+	"github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v2/app/helpers"
 	"github.com/functionx/fx-core/v2/client/grpc"
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v2/client/jsonrpc"
+	"github.com/functionx/fx-core/v2/testutil"
+	"github.com/functionx/fx-core/v2/testutil/network"
 )
 
 type TestSuite struct {
@@ -54,6 +48,22 @@ func NewTestSuite() *TestSuite {
 	}
 	// nolint
 	return testSuite
+}
+
+func (suite *TestSuite) WithNetwork(network *network.Network) {
+	suite.network = network
+}
+
+func (suite *TestSuite) GetNetwork() *network.Network {
+	return suite.network
+}
+
+func (suite *TestSuite) Context() context.Context {
+	return suite.ctx
+}
+
+func (suite *TestSuite) GetUseNetwork() bool {
+	return suite.useNetwork
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -122,6 +132,10 @@ func (suite *TestSuite) ValAddress() sdk.ValAddress {
 	return suite.AdminPrivateKey().PubKey().Address().Bytes()
 }
 
+func (suite *TestSuite) GetStakingDenom() string {
+	return suite.network.Config.BondDenom
+}
+
 func (suite *TestSuite) BlockNumber() int64 {
 	height, err := suite.GRPCClient().GetBlockHeight()
 	suite.Error(err)
@@ -151,9 +165,9 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	grpcClient := suite.GRPCClient()
 	balances, err := grpcClient.QueryBalances(sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
 	suite.NoError(err)
-	suite.True(balances.AmountOf(fxtypes.DefaultDenom).GT(sdk.NewInt(2).MulRaw(1e18)))
+	suite.True(balances.AmountOf(suite.GetStakingDenom()).GT(sdk.NewInt(2).MulRaw(1e18)))
 
-	grpcClient.WithGasPrices(sdk.NewCoins(helpers.NewCoin(sdk.NewInt(4_000).MulRaw(1e9))))
+	grpcClient.WithGasPrices(sdk.NewCoins(sdk.NewCoin(suite.GetStakingDenom(), sdk.NewInt(4_000).MulRaw(1e9))))
 	txRaw, err := grpcClient.BuildTxV2(privKey, msgList, 500000, "", 0)
 	suite.NoError(err)
 
@@ -184,6 +198,7 @@ func (suite *TestSuite) BroadcastProposalTx(privKey cryptotypes.PrivKey, msgList
 				}
 				proposalId, err := strconv.ParseUint(attribute.Value, 10, 64)
 				suite.NoError(err)
+				suite.CheckProposal(proposalId, govtypes.StatusVotingPeriod)
 				return proposalId
 			}
 		}
@@ -193,7 +208,7 @@ func (suite *TestSuite) BroadcastProposalTx(privKey cryptotypes.PrivKey, msgList
 
 func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) {
 	valAddr := sdk.ValAddress(valPriv.PubKey().Address())
-	selfDelegate := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100)))
+	selfDelegate := sdk.NewCoin(suite.GetStakingDenom(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100)))
 	minSelfDelegate := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1))
 	description := stakingtypes.Description{
 		Moniker:         "val2",
@@ -318,7 +333,7 @@ func (suite *TestSuite) Redelegate(priv cryptotypes.PrivKey, valSrc, valDest sdk
 		suite.NoError(err)
 		amt = delegation.DelegationResponse.Balance.Amount
 	}
-	msg := stakingtypes.NewMsgBeginRedelegate(priv.PubKey().Address().Bytes(), valSrc, valDest, sdk.NewCoin(fxtypes.DefaultDenom, amt))
+	msg := stakingtypes.NewMsgBeginRedelegate(priv.PubKey().Address().Bytes(), valSrc, valDest, sdk.NewCoin(suite.GetStakingDenom(), amt))
 	txResponse := suite.BroadcastTx(priv, msg)
 	suite.T().Log("redelegate txHash", txResponse.TxHash)
 }
@@ -374,7 +389,9 @@ func (suite *TestSuite) CheckProposal(proposalId uint64, status govtypes.Proposa
 		suite.NoError(err)
 		if proposalResp.Proposal.Status == status {
 			return proposalResp.Proposal
+		} else {
+			suite.T().Log("proposal status", proposalId, proposalResp.Proposal.Status.String())
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 	}
 }

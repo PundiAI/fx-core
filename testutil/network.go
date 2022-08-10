@@ -51,7 +51,7 @@ func DefaultNetworkConfig() network.Config {
 			)
 		},
 		GenesisState:    DefNoSupplyGenesisState(encCfg.Marshaler),
-		TimeoutCommit:   1 * time.Second,
+		TimeoutCommit:   500 * time.Millisecond,
 		ChainID:         fxtypes.MainnetChainId,
 		NumValidators:   4,
 		BondDenom:       fxtypes.DefaultDenom,
