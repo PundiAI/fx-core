@@ -19,6 +19,7 @@ func Test_Address(t *testing.T) {
 }
 
 func Test_NormalizeCoin(t *testing.T) {
+	SetConfig(false)
 	denom, err := sdk.GetBaseDenom()
 	assert.NoError(t, err)
 	assert.Equal(t, DefaultDenom, denom)
