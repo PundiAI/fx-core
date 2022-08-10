@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"testing"
@@ -21,6 +22,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authsign "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -382,7 +386,8 @@ func SignCheckDeliver(t *testing.T, txCfg client.TxConfig, app *baseapp.BaseApp,
 	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 
-	tx, err := helpers.GenTx(
+	tx, err := GenTx(
+		rand.New(rand.NewSource(time.Now().UnixNano())),
 		txCfg,
 		msgs,
 		sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
@@ -432,7 +437,8 @@ func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums []uint64, i
 	txs := make([]sdk.Tx, numToGenerate)
 	var err error
 	for i := 0; i < numToGenerate; i++ {
-		txs[i], err = helpers.GenTx(
+		txs[i], err = GenTx(
+			rand.New(rand.NewSource(time.Now().UnixNano())),
 			txGen,
 			msgs,
 			sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
@@ -455,6 +461,64 @@ func incrementAllSequenceNumbers(initSeqNums []uint64) {
 	for i := 0; i < len(initSeqNums); i++ {
 		initSeqNums[i]++
 	}
+}
+
+// GenTx generates a signed mock transaction.
+func GenTx(r *rand.Rand, gen client.TxConfig, msgs []sdk.Msg, feeAmt sdk.Coins, gas uint64, chainID string, accNums, accSeqs []uint64, priv ...cryptotypes.PrivKey) (sdk.Tx, error) {
+	sigs := make([]signing.SignatureV2, len(priv))
+
+	memo := simulation.RandStringOfLength(r, simulation.RandIntBetween(r, 0, 100))
+
+	signMode := gen.SignModeHandler().DefaultMode()
+
+	// 1st round: set SignatureV2 with empty signatures, to set correct
+	// signer infos.
+	for i, p := range priv {
+		sigs[i] = signing.SignatureV2{
+			PubKey: p.PubKey(),
+			Data: &signing.SingleSignatureData{
+				SignMode: signMode,
+			},
+			Sequence: accSeqs[i],
+		}
+	}
+
+	tx := gen.NewTxBuilder()
+	err := tx.SetMsgs(msgs...)
+	if err != nil {
+		return nil, err
+	}
+	err = tx.SetSignatures(sigs...)
+	if err != nil {
+		return nil, err
+	}
+	tx.SetMemo(memo)
+	tx.SetFeeAmount(feeAmt)
+	tx.SetGasLimit(gas)
+
+	// 2nd round: once all signer infos are set, every signer can sign.
+	for i, p := range priv {
+		signerData := authsign.SignerData{
+			ChainID:       chainID,
+			AccountNumber: accNums[i],
+			Sequence:      accSeqs[i],
+		}
+		signBytes, err := gen.SignModeHandler().GetSignBytes(signMode, signerData, tx.GetTx())
+		if err != nil {
+			panic(err)
+		}
+		sig, err := p.Sign(signBytes)
+		if err != nil {
+			panic(err)
+		}
+		sigs[i].Data.(*signing.SingleSignatureData).Signature = sig
+		err = tx.SetSignatures(sigs...)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return tx.GetTx(), nil
 }
 
 // CreateTestPubKeys returns a total of numPubKeys public keys in ascending order.
