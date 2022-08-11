@@ -13,10 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
-
 	libTypes "github.com/tendermint/tendermint/libs/bytes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/tendermint/tendermint/libs/log"
 	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
 	"nhooyr.io/websocket"
 )

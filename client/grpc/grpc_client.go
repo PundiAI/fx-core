@@ -26,17 +26,13 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	tenderminttypes "github.com/tendermint/tendermint/proto/tendermint/types"
-
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
 	"github.com/gogo/protobuf/proto"
+	tenderminttypes "github.com/tendermint/tendermint/proto/tendermint/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 
 	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
-	fxtypes "github.com/functionx/fx-core/v2/types"
 	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
@@ -194,6 +190,14 @@ func (cli *Client) QuerySupply() (sdk.Coins, error) {
 }
 
 func (cli *Client) GetMintDenom() (string, error) {
+	response, err := cli.MintQuery().Params(cli.ctx, &minttypes.QueryParamsRequest{})
+	if err != nil {
+		return "", err
+	}
+	return response.Params.MintDenom, nil
+}
+
+func (cli *Client) GetStakingDenom() (string, error) {
 	response, err := cli.StakingQuery().Params(cli.ctx, &stakingtypes.QueryParamsRequest{})
 	if err != nil {
 		return "", err
@@ -341,7 +345,7 @@ func (cli *Client) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxR
 		return nil, err
 	}
 
-	gasPrice := sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())
+	var gasPrice sdk.Coin
 	if len(cli.gasPrices) <= 0 {
 		gasPrices, err := cli.GetGasPrices()
 		if err != nil {
@@ -507,7 +511,7 @@ func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, from string, msgs []sd
 		}
 		cli.chainId = chainId
 	}
-	gasPrice := sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())
+	var gasPrice sdk.Coin
 	if len(cli.gasPrices) <= 0 {
 		gasPrices, err := cli.GetGasPrices()
 		if err != nil {

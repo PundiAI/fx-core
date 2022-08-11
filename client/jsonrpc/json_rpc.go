@@ -7,19 +7,15 @@ import (
 	"fmt"
 	"strconv"
 
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-
 	"github.com/btcsuite/btcutil/bech32"
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 	tmBytes "github.com/tendermint/tendermint/libs/bytes"
@@ -173,7 +169,7 @@ func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRa
 		return nil, err
 	}
 
-	gasPrice := sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())
+	var gasPrice sdk.Coin
 	if len(c.gasPrices) <= 0 {
 		gasPrices, err := c.GetGasPrices()
 		if err != nil {
