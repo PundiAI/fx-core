@@ -8,27 +8,23 @@ import (
 	"testing"
 	"time"
 
-	"github.com/functionx/fx-core/v2/types/contract"
-
-	"github.com/stretchr/testify/suite"
-
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	gethcommon "github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/stretchr/testify/require"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v2/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v2/types/contract"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
 )
 
 type ERC20TestSuite struct {
@@ -56,7 +52,7 @@ func (suite *ERC20TestSuite) SetupSuite() {
 	fxtypes.SetTestingSupportDenomOneToManyBlock(func() int64 { return 5 })
 
 	suite.TestSuite.SetupSuite()
-	suite.Send(suite.Address(), helpers.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
+	suite.Send(suite.Address(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
 }
 
 func (suite *ERC20TestSuite) Address() sdk.AccAddress {
@@ -78,7 +74,7 @@ func (suite *ERC20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (propos
 			Description: "bar",
 			Metadata:    md,
 		},
-		sdk.NewCoins(helpers.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
+		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
 		suite.Address(),
 	)
 	suite.NoError(err)
@@ -92,7 +88,7 @@ func (suite *ERC20TestSuite) ToggleTokenConversionProposal(denom string) (propos
 			Description: "update",
 			Token:       denom,
 		},
-		sdk.NewCoins(helpers.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
+		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
 		suite.Address(),
 	)
 	suite.NoError(err)
@@ -107,7 +103,7 @@ func (suite *ERC20TestSuite) UpdateDenomAliasProposal(denom, alias string) (prop
 			Denom:       denom,
 			Alias:       alias,
 		},
-		sdk.NewCoins(helpers.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
+		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
 		suite.Address(),
 	)
 	suite.NoError(err)
@@ -246,17 +242,17 @@ func (suite *CrosschainERC20TestSuite) SetupSuite() {
 
 	suite.TestSuite.SetupSuite()
 
-	suite.Send(suite.BSCCrossChain.OracleAddr(), helpers.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
-	suite.Send(suite.BSCCrossChain.BridgerFxAddr(), helpers.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
-	suite.Send(suite.BSCCrossChain.AccAddr(), helpers.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
+	suite.Send(suite.BSCCrossChain.OracleAddr(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
+	suite.Send(suite.BSCCrossChain.BridgerFxAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
+	suite.Send(suite.BSCCrossChain.AccAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
 	suite.BSCCrossChain.params = suite.BSCCrossChain.QueryParams()
 
-	suite.Send(suite.PolygonCrossChain.OracleAddr(), helpers.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
-	suite.Send(suite.PolygonCrossChain.BridgerFxAddr(), helpers.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
-	suite.Send(suite.PolygonCrossChain.AccAddr(), helpers.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
+	suite.Send(suite.PolygonCrossChain.OracleAddr(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
+	suite.Send(suite.PolygonCrossChain.BridgerFxAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
+	suite.Send(suite.PolygonCrossChain.AccAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
 	suite.PolygonCrossChain.params = suite.PolygonCrossChain.QueryParams()
 
-	suite.Send(suite.ERC20.Address(), helpers.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
+	suite.Send(suite.ERC20.Address(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
 }
 
 func (suite *CrosschainERC20TestSuite) InitCrossChain() {

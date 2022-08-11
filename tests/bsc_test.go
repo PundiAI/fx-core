@@ -6,9 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/functionx/fx-core/v2/app/helpers"
-
 	"github.com/stretchr/testify/suite"
 
 	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
@@ -46,7 +43,7 @@ func (suite *BSCTestSuite) TestCrosschain_BSC() {
 	suite.SendToFxClaim(purseToken, sdk.NewInt(100).MulRaw(1e18), "")
 	suite.SendToFxClaim(purseToken, sdk.NewInt(100).MulRaw(1e18), fmt.Sprintf("px/%s", purseTokenChannelIBC))
 	// send tx fee
-	suite.Send(suite.AccAddr(), helpers.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	suite.Send(suite.AccAddr(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
 	suite.SendToExternal(5, sdk.NewCoin(purseDenom, sdk.NewInt(10).MulRaw(1e18)))
 
 	suite.SendBatchRequest(5)

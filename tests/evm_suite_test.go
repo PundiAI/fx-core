@@ -9,12 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
-
-	"github.com/functionx/fx-core/v2/app/helpers"
-
-	"github.com/ethereum/go-ethereum/crypto"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum"
@@ -22,9 +16,12 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
+	"github.com/functionx/fx-core/v2/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v2/types"
 	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 )
@@ -53,7 +50,7 @@ func (suite *EvmTestSuite) SetupSuite() {
 	suite.TestSuite.SetupSuite()
 
 	// transfer to eth private key
-	suite.Send(suite.AccAddress(), helpers.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	suite.Send(suite.AccAddress(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
 }
 
 func (suite *EvmTestSuite) AccAddress() sdk.AccAddress {

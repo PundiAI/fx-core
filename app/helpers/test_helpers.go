@@ -549,7 +549,3 @@ func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 	}
 	return &ed25519.PubKey{Key: pkBytes}
 }
-
-func NewCoin(amount sdk.Int) sdk.Coin {
-	return sdk.NewCoin(fxtypes.DefaultDenom, amount)
-}

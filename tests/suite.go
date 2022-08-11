@@ -136,6 +136,10 @@ func (suite *TestSuite) GetStakingDenom() string {
 	return suite.network.Config.BondDenom
 }
 
+func (suite *TestSuite) NewCoin(amount sdk.Int) sdk.Coin {
+	return sdk.NewCoin(suite.GetStakingDenom(), amount)
+}
+
 func (suite *TestSuite) BlockNumber() int64 {
 	height, err := suite.GRPCClient().GetBlockHeight()
 	suite.Error(err)

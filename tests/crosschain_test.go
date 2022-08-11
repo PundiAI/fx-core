@@ -8,16 +8,13 @@ import (
 	"strconv"
 	"time"
 
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-
-	"github.com/functionx/fx-core/v2/app/helpers"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 
+	"github.com/functionx/fx-core/v2/app/helpers"
 	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
@@ -56,8 +53,8 @@ func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestS
 func (suite *CrosschainTestSuite) SetupSuite() {
 	suite.TestSuite.SetupSuite()
 
-	suite.Send(suite.OracleAddr(), helpers.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
-	suite.Send(suite.BridgerFxAddr(), helpers.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
+	suite.Send(suite.OracleAddr(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
+	suite.Send(suite.BridgerFxAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
 	suite.params = suite.QueryParams()
 }
 
@@ -150,7 +147,7 @@ func (suite *CrosschainTestSuite) SendUpdateChainOraclesProposal() (proposalId u
 			Oracles:     []string{suite.OracleAddr().String()},
 			ChainName:   suite.chainName,
 		},
-		sdk.NewCoins(helpers.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
+		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
 		suite.OracleAddr(),
 	)
 	suite.NoError(err)
