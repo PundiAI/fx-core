@@ -4,28 +4,22 @@ import (
 	"errors"
 	"time"
 
-	"github.com/spf13/viper"
-
+	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	"github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/store"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/functionx/fx-core/v2/app/cli"
-
-	sdkserver "github.com/cosmos/cosmos-sdk/server"
-
-	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-
-	"github.com/evmos/ethermint/server"
-
 	appCmd "github.com/functionx/fx-core/v2/app/cli"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
 func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCreator types.AppCreator, appExport types.AppExporter) {
@@ -90,6 +84,9 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 }
 
 func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config) error {
+	if genesisDoc.InitialHeight != 0 || genesisDoc.ChainID != fxtypes.MainnetChainId {
+		return nil
+	}
 	genesisTime, err := time.Parse("2006-01-02T15:04:05Z", "2021-07-05T04:00:00Z")
 	if err != nil {
 		return err
