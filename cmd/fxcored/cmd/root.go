@@ -171,6 +171,9 @@ func addStartFlags(startCmd *cobra.Command) {
 }
 
 func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config) error {
+	if genesisDoc.InitialHeight != 0 || genesisDoc.ChainID != fxtypes.MainnetChainId {
+		return nil
+	}
 	genesisTime, err := time.Parse("2006-01-02T15:04:05Z", "2021-07-05T04:00:00Z")
 	if err != nil {
 		return err
