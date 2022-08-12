@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/snapshots"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -116,7 +117,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	)
 
 	appCreator := appCreator{encodingConfig}
-	addTendermintCommands(rootCmd, app.DefaultNodeHome, appCreator.newApp, appCreator.appExport)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
@@ -124,6 +124,11 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		appCmd.StatusCommand(),
 		queryCommand(),
 		txCommand(),
+		appCmd.ExportSateCmd(appCreator.appExport, app.DefaultNodeHome),
+		version.NewVersionCommand(),
+		appCmd.NewRollbackAppCmd(app.DefaultNodeHome),
+		tendermintCommand(),
+		startCommand(appCreator.newApp, app.DefaultNodeHome),
 	)
 
 	// add rosetta

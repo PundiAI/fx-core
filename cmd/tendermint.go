@@ -6,7 +6,6 @@ import (
 
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
@@ -17,12 +16,11 @@ import (
 	"github.com/tendermint/tendermint/store"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/functionx/fx-core/v2/app/cli"
 	appCmd "github.com/functionx/fx-core/v2/app/cli"
 	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
-func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCreator types.AppCreator, appExport types.AppExporter) {
+func tendermintCommand() *cobra.Command {
 	tendermintCmd := &cobra.Command{
 		Use:   "tendermint",
 		Short: "Tendermint subcommands",
@@ -55,7 +53,10 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 		tmcmd.GenNodeKeyCmd,
 		//tmcmd.ResetPrivValidatorCmd,
 	)
+	return tendermintCmd
+}
 
+func startCommand(appCreator types.AppCreator, defaultNodeHome string) *cobra.Command {
 	startCmd := server.StartCmd(appCreator, defaultNodeHome)
 	crisis.AddModuleInitFlags(startCmd)
 	preRun := startCmd.PreRunE
@@ -74,13 +75,7 @@ func addTendermintCommands(rootCmd *cobra.Command, defaultNodeHome string, appCr
 		fxtypes.SetChainId(genesisDoc.ChainID)
 		return nil
 	}
-	rootCmd.AddCommand(
-		startCmd,
-		tendermintCmd,
-		cli.ExportSateCmd(appExport, defaultNodeHome),
-		version.NewVersionCommand(),
-		sdkserver.NewRollbackCmd(defaultNodeHome),
-	)
+	return startCmd
 }
 
 func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config) error {
