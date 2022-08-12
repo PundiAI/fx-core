@@ -477,6 +477,24 @@
     - [Period](#cosmos.vesting.v1beta1.Period)
     - [PeriodicVestingAccount](#cosmos.vesting.v1beta1.PeriodicVestingAccount)
   
+- [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
+    - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
+    - [FungibleTokenPacketData](#ibc.applications.transfer.v1.FungibleTokenPacketData)
+    - [Params](#ibc.applications.transfer.v1.Params)
+  
+- [ibc/applications/transfer/v1/genesis.proto](#ibc/applications/transfer/v1/genesis.proto)
+    - [GenesisState](#ibc.applications.transfer.v1.GenesisState)
+  
+- [ibc/applications/transfer/v1/query.proto](#ibc/applications/transfer/v1/query.proto)
+    - [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest)
+    - [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse)
+    - [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest)
+    - [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse)
+    - [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse)
+  
+    - [Query](#ibc.applications.transfer.v1.Query)
+  
 - [ibc/core/client/v1/client.proto](#ibc/core/client/v1/client.proto)
     - [ClientConsensusStates](#ibc.core.client.v1.ClientConsensusStates)
     - [ClientUpdateProposal](#ibc.core.client.v1.ClientUpdateProposal)
@@ -484,6 +502,12 @@
     - [Height](#ibc.core.client.v1.Height)
     - [IdentifiedClientState](#ibc.core.client.v1.IdentifiedClientState)
     - [Params](#ibc.core.client.v1.Params)
+  
+- [ibc/applications/transfer/v1/tx.proto](#ibc/applications/transfer/v1/tx.proto)
+    - [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer)
+    - [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse)
+  
+    - [Msg](#ibc.applications.transfer.v1.Msg)
   
 - [ibc/core/channel/v1/channel.proto](#ibc/core/channel/v1/channel.proto)
     - [Acknowledgement](#ibc.core.channel.v1.Acknowledgement)
@@ -6959,6 +6983,229 @@ periodically vests by unlocking coins during each specified period.
 
 
 
+<a name="ibc/applications/transfer/v1/transfer.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/transfer/v1/transfer.proto
+
+
+
+<a name="ibc.applications.transfer.v1.DenomTrace"></a>
+
+### DenomTrace
+DenomTrace contains the base denomination for ICS20 fungible tokens and the
+source tracing information path.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `path` | [string](#string) |  | path defines the chain of port/channel identifiers used for tracing the source of the fungible token. |
+| `base_denom` | [string](#string) |  | base denomination of the relayed fungible token. |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.FungibleTokenPacketData"></a>
+
+### FungibleTokenPacketData
+FungibleTokenPacketData defines a struct for the packet payload
+See FungibleTokenPacketData spec:
+https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | the token denomination to be transferred |
+| `amount` | [uint64](#uint64) |  | the token amount to be transferred |
+| `sender` | [string](#string) |  | the sender address |
+| `receiver` | [string](#string) |  | the recipient address on the destination chain |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.Params"></a>
+
+### Params
+Params defines the set of IBC transfer parameters.
+NOTE: To prevent a single token from being transferred, set the
+TransfersEnabled parameter to true and then set the bank module's SendEnabled
+parameter for the denomination to false.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `send_enabled` | [bool](#bool) |  | send_enabled enables or disables all cross-chain token transfers from this chain. |
+| `receive_enabled` | [bool](#bool) |  | receive_enabled enables or disables all cross-chain token transfers to this chain. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/transfer/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/transfer/v1/genesis.proto
+
+
+
+<a name="ibc.applications.transfer.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the ibc-transfer genesis state
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `port_id` | [string](#string) |  |  |
+| `denom_traces` | [DenomTrace](#ibc.applications.transfer.v1.DenomTrace) | repeated |  |
+| `params` | [Params](#ibc.applications.transfer.v1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/transfer/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/transfer/v1/query.proto
+
+
+
+<a name="ibc.applications.transfer.v1.QueryDenomTraceRequest"></a>
+
+### QueryDenomTraceRequest
+QueryDenomTraceRequest is the request type for the Query/DenomTrace RPC
+method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryDenomTraceResponse"></a>
+
+### QueryDenomTraceResponse
+QueryDenomTraceResponse is the response type for the Query/DenomTrace RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom_trace` | [DenomTrace](#ibc.applications.transfer.v1.DenomTrace) |  | denom_trace returns the requested denomination trace information. |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryDenomTracesRequest"></a>
+
+### QueryDenomTracesRequest
+QueryConnectionsRequest is the request type for the Query/DenomTraces RPC
+method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryDenomTracesResponse"></a>
+
+### QueryDenomTracesResponse
+QueryConnectionsResponse is the response type for the Query/DenomTraces RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom_traces` | [DenomTrace](#ibc.applications.transfer.v1.DenomTrace) | repeated | denom_traces returns all denominations trace information. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.applications.transfer.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.transfer.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `DenomTrace` | [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/applications/transfer/v1beta1/denom_traces/{hash}|
+| `DenomTraces` | [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/applications/transfer/v1beta1/denom_traces|
+| `Params` | [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/applications/transfer/v1beta1/params|
+
+ <!-- end services -->
+
+
+
 <a name="ibc/core/client/v1/client.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -7079,6 +7326,65 @@ Params defines the set of IBC light client parameters.
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/transfer/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/transfer/v1/tx.proto
+
+
+
+<a name="ibc.applications.transfer.v1.MsgTransfer"></a>
+
+### MsgTransfer
+MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
+ICS20 enabled chains. See ICS Spec here:
+https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `source_port` | [string](#string) |  | the port on which the packet will be sent |
+| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
+| `token` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | the tokens to be transferred |
+| `sender` | [string](#string) |  | the sender address |
+| `receiver` | [string](#string) |  | the recipient address on the destination chain |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
+| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp (in nanoseconds) relative to the current block timestamp. The timeout is disabled when set to 0. |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.MsgTransferResponse"></a>
+
+### MsgTransferResponse
+MsgTransferResponse defines the Msg/Transfer response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.transfer.v1.Msg"></a>
+
+### Msg
+Msg defines the ibc/transfer Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Transfer` | [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer) | [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse) | Transfer defines a rpc handler method for MsgTransfer. | |
 
  <!-- end services -->
 

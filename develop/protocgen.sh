@@ -50,14 +50,14 @@ buf protoc \
   -I "build/cosmos-sdk/third_party/proto" \
   --doc_out=./docs/proto \
   --doc_opt=./docs/proto/proto-doc-markdown.tmpl,fx-proto-docs.md \
-  $(find "$(pwd)/proto" -maxdepth 5 -name '*.proto')
+  $(find "$(pwd)/proto" -maxdepth 6 -name '*.proto')
 
 buf protoc \
     -I "build/cosmos-sdk/proto" \
     -I "build/cosmos-sdk/third_party/proto" \
     --doc_out=./docs/proto \
     --doc_opt=./docs/proto/proto-doc-markdown.tmpl,cosmos-sdk-proto-docs.md \
-    $(find "$(pwd)/build/cosmos-sdk/proto" -maxdepth 5 -name '*.proto')
+    $(find "$(pwd)/build/cosmos-sdk/proto" -maxdepth 6 -name '*.proto')
 
 cp -r github.com/functionx/fx-core/* ./
 rm -rf github.com
