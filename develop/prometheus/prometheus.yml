@@ -31,7 +31,7 @@ scrape_configs:
 #    static_configs:
 #      - targets: [ "node-exporter:9100"]
 
-  - job_name: "fx-chain-node"
+  - job_name: "fxcore-node"
     honor_timestamps: true
     scrape_interval: 3s
     scrape_timeout: 3s

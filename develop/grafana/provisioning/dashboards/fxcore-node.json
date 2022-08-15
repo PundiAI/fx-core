@@ -18,7 +18,7 @@
       }
     ]
   },
-  "description": "fx chain node monitoring",
+  "description": "fxCore node monitoring",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "gnetId": 11036,
@@ -1722,7 +1722,7 @@
   "schemaVersion": 31,
   "style": "dark",
   "tags": [
-    "FxChain"
+    "fxCore"
   ],
   "templating": {
     "list": [
@@ -1819,7 +1819,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Fx Chain Dashboard",
+  "title": "fxCore Dashboard",
   "uid": "JRThUNznk",
   "version": 1
 }
