@@ -64,7 +64,7 @@ func updateCmd() *cobra.Command {
 func appTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app.toml [key] [value]",
-		Short: "Create or query an `~/.fxcore/config/apptoml` file",
+		Short: "Create or query an `config/app.toml` file",
 		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config.SetConfigTemplate(fxCfg.DefaultConfigTemplate())
@@ -78,7 +78,7 @@ func appTomlCmd() *cobra.Command {
 func configTomlCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config.toml [key] [value]",
-		Short: "Create or query an `~/.fxcore/config/config.toml` file",
+		Short: "Create or query an `config/config.toml` file",
 		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runConfigCmd(cmd, append([]string{configFileName}, args...))
