@@ -14,8 +14,6 @@ if [[ "$1" == "init" ]]; then
   # Initialize private validator, p2p, genesis, and application configuration files
   fxcored init local --chain-id fxcore
 
-  # set mini gas price
-  fxcored config app.toml minimum-gas-prices 4000000000000FX
   # open prometheus
   fxcored config config.toml instrumentation.prometheus true
   # consensus

@@ -32,7 +32,7 @@ type Config struct {
 
 // AppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.
-func AppConfig(denom string) (string, interface{}) {
+func AppConfig(mintGasPrice string) (string, interface{}) {
 	// Optionally allow the chain developer to overwrite the SDK's default
 	// server config.
 	srvCfg := config.DefaultConfig()
@@ -47,11 +47,7 @@ func AppConfig(denom string) (string, interface{}) {
 	//   own app.toml config,
 	// - if you set srvCfg.MinGasPrices non-empty, validators CAN tweak their
 	//   own app.toml to override, or use this default value.
-	//
-	// In ethermint, we set the min gas prices to 0.
-	if denom != "" {
-		srvCfg.MinGasPrices = "0" + denom
-	}
+	srvCfg.MinGasPrices = mintGasPrice
 
 	customAppConfig := Config{
 		Config:  *srvCfg,
