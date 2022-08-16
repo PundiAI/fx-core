@@ -133,7 +133,9 @@ func (a *appTomlConfig) output(ctx client.Context) error {
 }
 
 func (a *appTomlConfig) save() error {
-	if err := a.v.Unmarshal(a.config); err != nil {
+	if err := a.v.Unmarshal(a.config, func(decoderConfig *mapstructure.DecoderConfig) {
+		decoderConfig.ZeroFields = true
+	}); err != nil {
 		return err
 	}
 	config.WriteConfigFile(a.configName, a.config)
@@ -172,7 +174,9 @@ func (c *configTomlConfig) output(ctx client.Context) error {
 }
 
 func (c *configTomlConfig) save() error {
-	if err := c.v.Unmarshal(c.config); err != nil {
+	if err := c.v.Unmarshal(c.config, func(decoderConfig *mapstructure.DecoderConfig) {
+		decoderConfig.ZeroFields = true
+	}); err != nil {
 		return err
 	}
 	tmcfg.WriteConfigFile(c.configName, c.config)

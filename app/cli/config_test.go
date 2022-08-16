@@ -271,9 +271,8 @@ func Test_output(t *testing.T) {
 		}
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr assert.ErrorAssertionFunc
+		name string
+		args args
 	}{
 		{
 			name: "app.toml output grpc.enable",
@@ -281,15 +280,19 @@ func Test_output(t *testing.T) {
 				ctx:     clientCtx(),
 				content: true,
 			},
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				assert.Equal(t, i[0].(*client.Context).Output.(*bytes.Buffer).String(), fmt.Sprintf("%v\n", i[1]))
-				return assert.NoError(t, err)
+		},
+		{
+			name: "app.toml output bypass-min-fee.msg-types empty",
+			args: args{
+				ctx:     clientCtx(),
+				content: []string{},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.wantErr(t, output(tt.args.ctx, tt.args.content), &tt.args.ctx, tt.args.content)
+			assert.NoError(t, output(tt.args.ctx, tt.args.content))
+			assert.Equal(t, tt.args.ctx.Output.(*bytes.Buffer).String(), fmt.Sprintf("%v\n", tt.args.content))
 		})
 	}
 }
