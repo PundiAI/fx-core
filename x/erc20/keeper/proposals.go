@@ -356,7 +356,7 @@ func erc20Metadata(md banktypes.Metadata) (name, symbol string, decimals uint8, 
 		}
 	}
 	if md.Base == fxtypes.DefaultDenom {
-		decimals = fxtypes.BaseDenomUnit
+		decimals = fxtypes.DenomUnit
 	}
 	if len(name) == 0 {
 		return "", "", 0, errors.New("invalid name")

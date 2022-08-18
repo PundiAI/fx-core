@@ -11,12 +11,7 @@ const (
 	AddressPrefix = "fx"
 
 	DefaultDenom = "FX"
-	// BaseDenomUnit defines the base denomination unit for Photons.
-	// 1 FX = 1x10^{BaseDenomUnit} fx
-	BaseDenomUnit = 18
-
-	// DefaultEvmGasPrice is default gas price for evm transactions 500Gwei
-	DefaultEvmGasPrice = 500000000000
+	DenomUnit    = 18
 )
 
 func init() {
@@ -33,7 +28,7 @@ func init() {
 	// votingPower = delegateToken / sdk.PowerReduction  --  sdk.TokensToConsensusPower(tokens Int)
 	sdk.DefaultPowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
 
-	if err := sdk.RegisterDenom(DefaultDenom, sdk.NewDec(18)); err != nil {
+	if err := sdk.RegisterDenom(DefaultDenom, sdk.NewDecWithPrec(1, 18)); err != nil {
 		panic(err)
 	}
 }
