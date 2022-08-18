@@ -3,6 +3,9 @@ info:
   title: fxCore REST and gRPC Gateway docs
   description: 'A REST interface for state queries, legacy transactions'
   version: 0.2.0
+host: fx-rest.functionx.io
+schemes:
+  - https
 paths:
   '/ethermint/evm/v1/account/{address}':
     get:
