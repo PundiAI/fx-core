@@ -25,4 +25,12 @@ func Test_NormalizeCoin(t *testing.T) {
 	assert.Equal(t, DefaultDenom, denom)
 	coin := sdk.NewCoin(DefaultDenom, sdk.NewInt(1e18))
 	assert.Equal(t, coin, sdk.NormalizeCoin(coin))
+
+	myCoin, err := sdk.ParseCoinNormalized("1000000000000000000FX")
+	assert.NoError(t, err)
+	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdk.NewInt(1e18)))
+
+	myCoin, err = sdk.ParseCoinNormalized("1FX")
+	assert.NoError(t, err)
+	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdk.NewInt(1)))
 }

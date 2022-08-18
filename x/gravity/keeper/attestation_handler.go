@@ -74,10 +74,10 @@ func (a AttestationHandler) Handle(ctx sdk.Context, att types.Attestation, ether
 				fmt.Sprintf("ERC20 symbol %s does not match denom display %s", claim.Symbol, metadata.Display))
 		}
 
-		if fxtypes.BaseDenomUnit != uint32(claim.Decimals) {
+		if fxtypes.DenomUnit != uint32(claim.Decimals) {
 			return sdkerrors.Wrap(
 				types.ErrInvalid,
-				fmt.Sprintf("ERC20 decimals %d does not match denom decimals %d", claim.Decimals, fxtypes.BaseDenomUnit))
+				fmt.Sprintf("ERC20 decimals %d does not match denom decimals %d", claim.Decimals, fxtypes.DenomUnit))
 		}
 
 		// Add to denom-erc20 mapping

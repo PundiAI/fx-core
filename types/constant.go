@@ -12,12 +12,7 @@ const (
 	AddressPrefix = "fx"
 
 	DefaultDenom = "FX"
-	// BaseDenomUnit defines the base denomination unit for Photons.
-	// 1 FX = 1x10^{BaseDenomUnit} fx
-	BaseDenomUnit = 18
-
-	// DefaultEvmGasPrice is default gas price for evm transactions 500Gwei
-	DefaultEvmGasPrice = 500000000000
+	DenomUnit    = 18
 )
 
 func init() {
@@ -49,7 +44,7 @@ func SetConfig(isCosmosCoinType bool) {
 	}
 	config.Seal()
 
-	if err := sdk.RegisterDenom(DefaultDenom, sdk.NewDec(BaseDenomUnit)); err != nil {
+	if err := sdk.RegisterDenom(DefaultDenom, sdk.NewDecWithPrec(1, 18)); err != nil {
 		panic(err)
 	}
 }
