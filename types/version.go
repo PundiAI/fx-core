@@ -1,6 +1,7 @@
 package types
 
 import (
+	"math"
 	"math/big"
 	"os"
 	"sync"
@@ -22,6 +23,8 @@ const (
 	mainnetEvmChainID = 530
 
 	mainnetSupportDenomManyToOneBlock = 5940000
+
+	mainnetGravityCancelBatchBlock = math.MaxInt64
 )
 
 // testnet constant
@@ -32,6 +35,8 @@ const (
 
 	testnetSupportDenomManyToOneBlock = 3918000
 	testnetSupportDenomOneToManyBlock = 4028000
+
+	testnetGravityCancelBatchBlock = 4317959
 )
 
 // SupportDenomManyToOneMsgTypes return msg types
@@ -111,4 +116,11 @@ func SupportDenomOneToManyBlock() int64 {
 		return testnetSupportDenomOneToManyBlock
 	}
 	return mainnetSupportDenomManyToOneBlock
+}
+
+func SupportGravityCancelBatchBlock() int64 {
+	if TestnetChainId == chainId {
+		return testnetGravityCancelBatchBlock
+	}
+	return mainnetGravityCancelBatchBlock
 }

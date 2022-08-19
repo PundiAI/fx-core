@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,12 +16,12 @@ import (
 const OutgoingTxBatchSize = 100
 
 // BuildOutgoingTXBatch starts the following process chain:
-// - find bridged denominator for given voucher type
-// - determine if a an unexecuted batch is already waiting for this token type, if so confirm the new batch would
-//   have a higher total fees. If not exit withtout creating a batch
-// - select available transactions from the outgoing transaction pool sorted by fee desc
-// - persist an outgoing batch object with an incrementing ID = nonce
-// - emit an event
+//   - find bridged denominator for given voucher type
+//   - determine if a an unexecuted batch is already waiting for this token type, if so confirm the new batch would
+//     have a higher total fees. If not exit withtout creating a batch
+//   - select available transactions from the outgoing transaction pool sorted by fee desc
+//   - persist an outgoing batch object with an incrementing ID = nonce
+//   - emit an event
 func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress string, maxElements int, minimumFee sdk.Int, feeReceive string, baseFee sdk.Int) (*types.OutgoingTxBatch, error) {
 	if maxElements == 0 {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "max elements value")
@@ -119,6 +121,9 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, n
 	k.IterateOutgoingTXBatches(ctx, func(key []byte, iterBatch *types.OutgoingTxBatch) bool {
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
 		if iterBatch.BatchNonce < b.BatchNonce {
+			if ctx.BlockHeight() >= fxtypes.SupportGravityCancelBatchBlock() && iterBatch.TokenContract != b.TokenContract {
+				return false
+			}
 			if err := k.CancelOutgoingTXBatch(ctx, tokenContract, iterBatch.BatchNonce); err != nil {
 				panic(fmt.Sprintf("Failed cancel out batch %s %d while trying to execute %s %d with %s", tokenContract, iterBatch.BatchNonce, tokenContract, nonce, err))
 			}
