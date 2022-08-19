@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -12,9 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/spf13/cobra"
-
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/spf13/cobra"
 )
 
 const (
@@ -129,7 +128,7 @@ func ImportKeyCommand() *cobra.Command {
 			}
 			buf := bufio.NewReader(clientCtx.Input)
 
-			bz, err := ioutil.ReadFile(args[1])
+			bz, err := os.ReadFile(args[1])
 			if err != nil {
 				return err
 			}

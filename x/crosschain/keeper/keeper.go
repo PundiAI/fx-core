@@ -135,13 +135,13 @@ func (k Keeper) GetLastOracleSlashBlockHeight(ctx sdk.Context) uint64 {
 	return sdk.BigEndianToUint64(data)
 }
 
-//setLastEventBlockHeightByOracle set the latest event blockHeight for a give oracle
+// setLastEventBlockHeightByOracle set the latest event blockHeight for a give oracle
 func (k Keeper) setLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetLastEventBlockHeightByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(blockHeight))
 }
 
-//getLastEventBlockHeightByOracle get the latest event blockHeight for a give oracle
+// getLastEventBlockHeightByOracle get the latest event blockHeight for a give oracle
 func (k Keeper) getLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetLastEventBlockHeightByOracleKey(oracleAddr)
@@ -154,11 +154,14 @@ func (k Keeper) getLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.
 
 // prefixRange turns a prefix into a (start, end) range. The start is the given prefix value and
 // the end is calculated by adding 1 bit to the start value. Nil is not allowed as prefix.
-// 		Example: []byte{1, 3, 4} becomes []byte{1, 3, 5}
-// 				 []byte{15, 42, 255, 255} becomes []byte{15, 43, 0, 0}
+//
+//	Example: []byte{1, 3, 4} becomes []byte{1, 3, 5}
+//			 []byte{15, 42, 255, 255} becomes []byte{15, 43, 0, 0}
 //
 // In case of an overflow the end is set to nil.
-//		Example: []byte{255, 255, 255, 255} becomes nil
+//
+//	Example: []byte{255, 255, 255, 255} becomes nil
+//
 // MARK finish-batches: this is where some crazy shit happens
 func prefixRange(prefix []byte) ([]byte, []byte) {
 	if prefix == nil {

@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -479,7 +478,7 @@ func CmdOracleSetConfirm() *cobra.Command {
 func recoveryPrivateKeyByKeystore(privateKey string) (*ecdsa.PrivateKey, error) {
 	var ethPrivateKey *ecdsa.PrivateKey
 	if _, err := os.Stat(privateKey); err == nil {
-		file, err := ioutil.ReadFile(privateKey)
+		file, err := os.ReadFile(privateKey)
 		if err != nil {
 			return nil, err
 		}

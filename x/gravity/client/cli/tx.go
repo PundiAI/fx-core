@@ -4,7 +4,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 
@@ -390,11 +390,11 @@ func CmdValidatorSetConfirm() *cobra.Command {
 }
 
 func recoveryPrivateKeyByKeystore(keystoreFile, passwordFile string) (*ecdsa.PrivateKey, error) {
-	keystoreData, err := ioutil.ReadFile(keystoreFile)
+	keystoreData, err := os.ReadFile(keystoreFile)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "keystoreFile:[%s]", keystoreFile)
 	}
-	passwordData, err := ioutil.ReadFile(passwordFile)
+	passwordData, err := os.ReadFile(passwordFile)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "passwordFile:[%s]", keystoreFile)
 	}

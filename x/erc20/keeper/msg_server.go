@@ -163,9 +163,9 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 
 // convertCoinNativeCoin handles the Coin conversion flow for a native coin
 // token pair:
-//  - Escrow Coins on module account (Coins are not burned)
-//  - Mint Tokens and send to receiver
-//  - Check if token balance increased by amount
+//   - Escrow Coins on module account (Coins are not burned)
+//   - Mint Tokens and send to receiver
+//   - Check if token balance increased by amount
 func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg *types.MsgConvertCoin, receiver common.Address, sender sdk.AccAddress) (*types.MsgConvertCoinResponse, error) {
 	// NOTE: ignore validation from NewCoin constructor
 	coins := sdk.Coins{msg.Coin}
@@ -236,10 +236,10 @@ func (k Keeper) convertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 }
 
 // convertERC20NativeCoin handles the erc20 conversion flow for a native coin token pair:
-//  - Burn escrowed tokens
-//  - Unescrow coins that have been previously escrowed with ConvertCoin
-//  - Check if coin balance increased by amount
-//  - Check if token balance decreased by amount
+//   - Burn escrowed tokens
+//   - Unescrow coins that have been previously escrowed with ConvertCoin
+//   - Check if coin balance increased by amount
+//   - Check if token balance decreased by amount
 func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, msg *types.MsgConvertERC20, receiver sdk.AccAddress, sender common.Address) (*types.MsgConvertERC20Response, error) {
 	// NOTE: coin fields already validated
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: msg.Amount}}
@@ -324,12 +324,12 @@ func (k Keeper) convertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 }
 
 // convertERC20NativeToken handles the erc20 conversion flow for a native erc20 token pair:
-//  - Escrow tokens on module account (Don't burn as module is not contract owner)
-//  - Mint coins on module
-//  - Send minted coins to the receiver
-//  - Check if coin balance increased by amount
-//  - Check if token balance decreased by amount
-//  - Check for unexpected `appove` event in logs
+//   - Escrow tokens on module account (Don't burn as module is not contract owner)
+//   - Mint coins on module
+//   - Send minted coins to the receiver
+//   - Check if coin balance increased by amount
+//   - Check if token balance decreased by amount
+//   - Check for unexpected `appove` event in logs
 func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, msg *types.MsgConvertERC20, receiver sdk.AccAddress, sender common.Address) (*types.MsgConvertERC20Response, error) {
 	// NOTE: coin fields already validated
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: msg.Amount}}
@@ -434,11 +434,11 @@ func (k Keeper) convertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 
 // convertCoinNativeERC20 handles the Coin conversion flow for a native ERC20
 // token pair:
-//  - Escrow Coins on module account
-//  - Unescrow Tokens that have been previously escrowed with ConvertERC20 and send to receiver
-//  - Burn escrowed Coins
-//  - Check if token balance increased by amount
-//  - Check for unexpected `appove` event in logs
+//   - Escrow Coins on module account
+//   - Unescrow Tokens that have been previously escrowed with ConvertERC20 and send to receiver
+//   - Burn escrowed Coins
+//   - Check if token balance increased by amount
+//   - Check for unexpected `appove` event in logs
 func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, msg *types.MsgConvertCoin, receiver common.Address, sender sdk.AccAddress) (*types.MsgConvertCoinResponse, error) {
 	// NOTE: ignore validation from NewCoin constructor
 	coins := sdk.Coins{msg.Coin}
@@ -526,10 +526,10 @@ func (k Keeper) convertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 
 // convertDenomToMany handles the Denom conversion flow for one to many
 // token pair:
-//  - Escrow Coins on module account
-//  - Unescrow Tokens that have been previously escrowed with convertDenomToMany and send to receiver
-//  - Burn escrowed Coins
-//  - Check if token balance increased by amount
+//   - Escrow Coins on module account
+//   - Unescrow Tokens that have been previously escrowed with convertDenomToMany and send to receiver
+//   - Burn escrowed Coins
+//   - Check if token balance increased by amount
 func (k Keeper) convertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
 	//check if denom registered
 	if !k.IsDenomRegistered(ctx, coin.Denom) {
@@ -609,9 +609,9 @@ func (k Keeper) convertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 
 // convertDenomToOne handles the Denom conversion flow for many to one
 // token pair:
-//  - Escrow Coins on module account (Coins are not burned)
-//  - Mint Tokens and send to from address
-//  - Check if token balance increased by amount
+//   - Escrow Coins on module account (Coins are not burned)
+//   - Mint Tokens and send to from address
+//   - Check if token balance increased by amount
 func (k Keeper) convertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
 	if k.IsDenomRegistered(ctx, coin.Denom) {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s already registered", coin.Denom)

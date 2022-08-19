@@ -1,7 +1,7 @@
 package network_test
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -24,7 +24,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	cfg := testutil.DefaultNetworkConfig()
 	cfg.NumValidators = 1
 
-	baseDir, err := ioutil.TempDir(s.T().TempDir(), cfg.ChainID)
+	baseDir, err := os.MkdirTemp(s.T().TempDir(), cfg.ChainID)
 	s.Require().NoError(err)
 	s.T().Logf("created temporary directory: %s", baseDir)
 

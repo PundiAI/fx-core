@@ -15,7 +15,7 @@ import (
 )
 
 var (
-//_ ibctesting.TestingApp = (*SimApp)(nil)
+// _ ibctesting.TestingApp = (*SimApp)(nil)
 )
 
 type SimApp struct {

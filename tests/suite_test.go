@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"sort"
 	"strconv"
@@ -68,7 +67,7 @@ func (suite *TestSuite) SetupSuite() {
 	cfg.NumValidators = 1
 	cfg.VotingPeriod = 5 * time.Second
 
-	baseDir, err := ioutil.TempDir(suite.T().TempDir(), cfg.ChainID)
+	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
 	suite.Require().NoError(err)
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
 	suite.Require().NoError(err)

@@ -2,7 +2,7 @@ package testutil_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -35,7 +35,7 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	cfg.NumValidators = 1
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
 
-	baseDir, err := ioutil.TempDir(suite.T().TempDir(), cfg.ChainID)
+	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
 	suite.NoError(err)
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
 	suite.NoError(err)
@@ -60,7 +60,7 @@ func (suite *IntegrationTestSuite) TestSuite() {
 
 	validator := suite.network.Validators[0]
 	keyringDir := validator.ClientCtx.KeyringDir
-	file, err := ioutil.ReadFile(filepath.Join(keyringDir, "key_seed.json"))
+	file, err := os.ReadFile(filepath.Join(keyringDir, "key_seed.json"))
 	suite.Require().NoError(err)
 
 	var data map[string]string

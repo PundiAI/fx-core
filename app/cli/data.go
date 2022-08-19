@@ -222,7 +222,7 @@ func initDB(config *cfg.Config, dbName string) dbm.DB {
 	return db
 }
 
-//pruneBlocks deletes blocks between the given heights (including from, excluding to).
+// pruneBlocks deletes blocks between the given heights (including from, excluding to).
 func pruneBlocks(blockStoreDB dbm.DB, baseHeight, retainHeight int64, wg *sync.WaitGroup) {
 	defer wg.Done()
 
