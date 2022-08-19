@@ -4,6 +4,24 @@
 
 ## Table of Contents
 
+- [ibc/applications/interchain_accounts/controller/v1/controller.proto](#ibc/applications/interchain_accounts/controller/v1/controller.proto)
+    - [Params](#ibc.applications.interchain_accounts.controller.v1.Params)
+  
+- [ibc/applications/interchain_accounts/controller/v1/query.proto](#ibc/applications/interchain_accounts/controller/v1/query.proto)
+    - [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse)
+  
+    - [Query](#ibc.applications.interchain_accounts.controller.v1.Query)
+  
+- [ibc/applications/interchain_accounts/host/v1/host.proto](#ibc/applications/interchain_accounts/host/v1/host.proto)
+    - [Params](#ibc.applications.interchain_accounts.host.v1.Params)
+  
+- [ibc/applications/interchain_accounts/host/v1/query.proto](#ibc/applications/interchain_accounts/host/v1/query.proto)
+    - [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#ibc.applications.interchain_accounts.host.v1.QueryParamsResponse)
+  
+    - [Query](#ibc.applications.interchain_accounts.host.v1.Query)
+  
 - [ibc/applications/interchain_accounts/v1/account.proto](#ibc/applications/interchain_accounts/v1/account.proto)
     - [InterchainAccount](#ibc.applications.interchain_accounts.v1.InterchainAccount)
   
@@ -242,6 +260,173 @@
     - [Misbehaviour](#ibc.lightclients.tendermint.v1.Misbehaviour)
   
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="ibc/applications/interchain_accounts/controller/v1/controller.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/controller/v1/controller.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.Params"></a>
+
+### Params
+Params defines the set of on-chain interchain accounts parameters.
+The following parameters may be used to disable the controller submodule.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `controller_enabled` | [bool](#bool) |  | controller_enabled enables or disables the controller submodule. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/controller/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/controller/v1/query.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.applications.interchain_accounts.controller.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.interchain_accounts.controller.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.controller.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse) | Params queries all parameters of the ICA controller submodule. | GET|/ibc/apps/interchain_accounts/controller/v1/params|
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/host/v1/host.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/host/v1/host.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.Params"></a>
+
+### Params
+Params defines the set of on-chain interchain accounts parameters.
+The following parameters may be used to disable the host submodule.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `host_enabled` | [bool](#bool) |  | host_enabled enables or disables the host submodule. |
+| `allow_messages` | [string](#string) | repeated | allow_messages defines a list of sdk message typeURLs allowed to be executed on a host chain. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ibc/applications/interchain_accounts/host/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/interchain_accounts/host/v1/query.proto
+
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#ibc.applications.interchain_accounts.host.v1.Params) |  | params defines the parameters of the module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="ibc.applications.interchain_accounts.host.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#ibc.applications.interchain_accounts.host.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.interchain_accounts.host.v1.QueryParamsResponse) | Params queries all parameters of the ICA host submodule. | GET|/ibc/apps/interchain_accounts/host/v1/params|
+
+ <!-- end services -->
 
 
 

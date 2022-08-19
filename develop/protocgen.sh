@@ -79,7 +79,7 @@ buf protoc \
   -I "build/cosmos-sdk/third_party/proto" \
   --doc_out=./docs/proto \
   --doc_opt=./docs/proto/proto-doc-markdown.tmpl,fx-proto-docs.md \
-  $(find "$(pwd)/proto" -maxdepth 5 -name '*.proto')
+  $(find "$(pwd)/proto" -maxdepth 6 -name '*.proto')
 
 for item in "cosmos-sdk" "ibc-go" "ethermint"; do
 
@@ -88,7 +88,7 @@ for item in "cosmos-sdk" "ibc-go" "ethermint"; do
     -I "build/${item}/third_party/proto" \
     --doc_out=./docs/proto \
     --doc_opt=./docs/proto/proto-doc-markdown.tmpl,${item}-proto-docs.md \
-    $(find "$(pwd)/build/${item}/proto" -maxdepth 5 -name '*.proto')
+    $(find "$(pwd)/build/${item}/proto" -maxdepth 6 -name '*.proto')
 
 done
 
