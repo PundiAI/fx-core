@@ -3,13 +3,10 @@ package cli
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	"github.com/spf13/cobra"
 	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	cfg "github.com/tendermint/tendermint/config"
-	dbm "github.com/tendermint/tm-db"
 )
 
 func RollbackStateCmd() *cobra.Command {
@@ -40,7 +37,7 @@ application.
 	}
 }
 
-// NewRollbackAppCmd creates a command to rollback tendermint and multistore state by one height.
+/*// NewRollbackAppCmd creates a command to rollback tendermint and multistore state by one height.
 func NewRollbackAppCmd(defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rollback",
@@ -80,3 +77,4 @@ application.
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	return cmd
 }
+*/
