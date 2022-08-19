@@ -210,10 +210,10 @@ update-swagger-docs: proto-swagger-gen statik
 	$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
 	@if [ -n "$(git status --porcelain)" ]; then \
         echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-        exit 1;\
     else \
         echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
+	@perl -pi -e 'print "host: fx-rest.functionx.io\nschemes:\n - https\n" if $. == 6' ./docs/swagger-ui/swagger.yaml
 
 .PHONY: statik update-swagger-docs
 
