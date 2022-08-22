@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -119,6 +121,9 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, n
 	k.IterateOutgoingTXBatches(ctx, func(key []byte, iterBatch *types.OutgoingTxBatch) bool {
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
 		if iterBatch.BatchNonce < b.BatchNonce {
+			if ctx.BlockHeight() >= fxtypes.SupportGravityCancelBatchBlock() && iterBatch.TokenContract != b.TokenContract {
+				return false
+			}
 			if err := k.CancelOutgoingTXBatch(ctx, tokenContract, iterBatch.BatchNonce); err != nil {
 				panic(fmt.Sprintf("Failed cancel out batch %s %d while trying to execute %s %d with %s", tokenContract, iterBatch.BatchNonce, tokenContract, nonce, err))
 			}
