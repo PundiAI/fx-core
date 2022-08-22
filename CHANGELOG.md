@@ -35,7 +35,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
-## [Unreleased]
+## [v2.3.0] - 2022-08-22
+
+### Bug Fixes
+
+* Fix `gravity` module cancel out batch panic
 
 ### Features
 
