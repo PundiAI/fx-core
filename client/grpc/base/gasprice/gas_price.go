@@ -38,8 +38,8 @@ func RegisterGRPCGatewayRoutes(clientConn grpc.ClientConn, mux *runtime.ServeMux
 
 func QueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "gas-price",
-		Short: "query node gas price",
+		Use:   "gas-prices",
+		Short: "query node gas prices",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
