@@ -102,13 +102,42 @@ func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.
 		supportDenom[p.Denom] = true
 	}
 
+	respMetadatas, err := bankClient.DenomsMetadata(ctx, &banktypes.QueryDenomsMetadataRequest{})
+	if err != nil {
+		return nil, err
+	}
+	for _, md := range respMetadatas.Metadatas {
+		for _, alias := range md.DenomUnits[0].Aliases {
+			supportDenom[alias] = true
+		}
+	}
+
 	msgs := make([]sdk.Msg, 0, len(respBalances.Balances))
 	for _, b := range respBalances.Balances {
 		if b.Denom == fxtypes.DefaultDenom || !supportDenom[b.Denom] {
 			continue
 		}
-		msg := erc20types.NewMsgConvertCoin(b, common.BytesToAddress(to.Bytes()), from)
-		msgs = append(msgs, msg)
+
+		var manyToOneDenom string
+		for _, md := range respMetadatas.Metadatas {
+			if md.Base == b.Denom {
+				break
+			}
+			for _, alias := range md.DenomUnits[0].Aliases {
+				if alias == b.Denom {
+					manyToOneDenom = md.Base
+					break
+				}
+			}
+		}
+		if len(manyToOneDenom) > 0 {
+			convertDenomMsg := erc20types.NewMsgConvertDenom(from, from, b, "")
+			convertCoinMsg := erc20types.NewMsgConvertCoin(sdk.NewCoin(manyToOneDenom, b.Amount), common.BytesToAddress(to.Bytes()), from)
+			msgs = append(msgs, convertDenomMsg, convertCoinMsg)
+		} else {
+			msg := erc20types.NewMsgConvertCoin(b, common.BytesToAddress(to.Bytes()), from)
+			msgs = append(msgs, msg)
+		}
 	}
 	return msgs, nil
 }
