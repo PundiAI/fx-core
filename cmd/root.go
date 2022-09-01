@@ -131,6 +131,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		//appCmd.NewRollbackAppCmd(app.DefaultNodeHome),
 		tendermintCommand(),
 		startCommand(appCreator.newApp, app.DefaultNodeHome),
+		appCmd.PreUpgradeCmd(),
 	)
 
 	// add rosetta
