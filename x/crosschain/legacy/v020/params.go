@@ -41,3 +41,8 @@ func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.Legacy
 	}
 	return nil
 }
+
+func CheckInitialize(ctx sdk.Context, moduleName string, paramsKey sdk.StoreKey) bool {
+	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(moduleName), '/'))
+	return paramsStore.Has(types.ParamsStoreKeyGravityID)
+}

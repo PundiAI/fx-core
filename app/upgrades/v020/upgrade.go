@@ -24,6 +24,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
 
@@ -40,6 +41,8 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v2/types"
 	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
+
+	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2
@@ -76,6 +79,11 @@ func CreateUpgradeHandler(
 				continue
 			}
 			if v, ok := runMigrates[n]; ok {
+				// if module genesis init, continue
+				if needInitGenesis(ctx, n, kvStoreKeyMap) {
+					continue
+				}
+				//migrate module
 				fromVM[n] = v
 				continue
 			}
@@ -255,4 +263,17 @@ func deleteKVStore(kv types.KVStore) error {
 		kv.Delete(k)
 	}
 	return nil
+}
+
+// needInitGenesis check module initialized
+func needInitGenesis(ctx sdk.Context, module string, kvStoreKeyMap map[string]*sdk.KVStoreKey) bool {
+	// crosschain module
+	if module == bsctypes.ModuleName ||
+		module == polygontypes.ModuleName ||
+		module == trontypes.ModuleName {
+		if !crosschainv020.CheckInitialize(ctx, module, kvStoreKeyMap[paramstypes.StoreKey]) {
+			return true
+		}
+	}
+	return false
 }

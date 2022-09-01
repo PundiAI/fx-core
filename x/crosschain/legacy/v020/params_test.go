@@ -99,6 +99,7 @@ func TestMigrateParams(t *testing.T) {
 			paramsStore.Set(v010.ParamStoreOracles, myApp.LegacyAmino().MustMarshalJSON([]string{sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String()}))
 			paramsStore.Set(v010.ParamOracleDepositThreshold, myApp.LegacyAmino().MustMarshalJSON(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
 
+			require.True(t, v020.CheckInitialize(ctx, tt.args.moduleName, myApp.GetKey(paramstypes.ModuleName)))
 			require.NoError(t, v020.MigrateParams(ctx, tt.args.moduleName, myApp.LegacyAmino(), myApp.GetKey(paramstypes.ModuleName)))
 
 			iterator := paramsStore.Iterator(nil, nil)
