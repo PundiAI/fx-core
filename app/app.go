@@ -495,7 +495,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		appCodec, keys[govtypes.StoreKey], myApp.GetSubspace(govtypes.ModuleName), myApp.AccountKeeper,
 		myApp.BankKeeper, &stakingKeeper, govRouter,
 	)
-	myApp.GovKeeper = fxgovkeeper.NewKeeper(myApp.BankKeeper, govKeeper)
+	myApp.GovKeeper = fxgovkeeper.NewKeeper(myApp.BankKeeper, &stakingKeeper, keys[govtypes.StoreKey], govKeeper)
 
 	erc20TransferRouter := erc20types.NewRouter()
 	erc20TransferRouter.AddRoute(gravitytypes.ModuleName, myApp.GravityKeeper)
