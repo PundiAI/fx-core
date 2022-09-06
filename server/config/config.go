@@ -9,13 +9,15 @@ import (
 type BypassMinFee struct {
 	// MsgTypes defines custom message types the operator may set that
 	// will bypass minimum fee checks during CheckTx.
-	MsgTypes []string `mapstructure:"msg-types"`
+	MsgTypes       []string `mapstructure:"msg-types"`
+	MsgMaxGasUsage uint64   `mapstructure:"msg-max-gas-usage"`
 }
 
 // DefaultBypassMinFee returns the default BypassMinFee configuration
 func DefaultBypassMinFee() BypassMinFee {
 	return BypassMinFee{
-		MsgTypes: []string{},
+		MsgTypes:       []string{},
+		MsgMaxGasUsage: uint64(300_000),
 	}
 }
 
@@ -50,10 +52,11 @@ func AppConfig(mintGasPrice string) (string, interface{}) {
 	srvCfg.MinGasPrices = mintGasPrice
 
 	customAppConfig := Config{
-		Config:  *srvCfg,
-		EVM:     *ethermintconfig.DefaultEVMConfig(),
-		JSONRPC: *ethermintconfig.DefaultJSONRPCConfig(),
-		TLS:     *ethermintconfig.DefaultTLSConfig(),
+		Config:       *srvCfg,
+		BypassMinFee: DefaultBypassMinFee(),
+		EVM:          *ethermintconfig.DefaultEVMConfig(),
+		JSONRPC:      *ethermintconfig.DefaultJSONRPCConfig(),
+		TLS:          *ethermintconfig.DefaultTLSConfig(),
 	}
 
 	customAppTemplate := DefaultConfigTemplate()
@@ -85,4 +88,7 @@ const CustomConfigTemplate = `
 # Example:
 # ["/ibc.core.channel.v1.MsgRecvPacket", "/ibc.core.channel.v1.MsgAcknowledgement", ...]
 msg-types = [{{ range .BypassMinFee.MsgTypes }}{{ printf "%q, " . }}{{end}}]
+
+# MsgMaxGasUsage defines gas consumption threshold .Default: 300000
+msg-max-gas-usage = {{ .BypassMinFee.MsgMaxGasUsage }}
 `

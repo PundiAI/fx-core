@@ -185,6 +185,7 @@ const appConfigJson = `{
     "swagger": false
   },
   "bypass-min-fee": {
+    "msg-max-gas-usage": 300000,
     "msg-types": []
   },
   "evm": {

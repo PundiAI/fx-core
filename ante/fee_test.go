@@ -20,7 +20,7 @@ func (suite *AnteTestSuite) TestMempoolFeeDecorator() {
 		sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
 		sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
 		sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
-	})
+	}, 300_000)
 	antehandler := sdk.ChainAnteDecorators(mfd)
 	priv1, _, addr1 := testdata.KeyTestPubAddr()
 

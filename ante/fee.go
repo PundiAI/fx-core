@@ -6,8 +6,6 @@ import (
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
 )
 
-const maxBypassMinFeeMsgGasUsage = uint64(200_000)
-
 // MempoolFeeDecorator will check if the transaction's fee is at least as large
 // as the local validator's minimum gasFee (defined in validator config).
 //
@@ -17,12 +15,14 @@ const maxBypassMinFeeMsgGasUsage = uint64(200_000)
 //
 // CONTRACT: Tx must implement FeeTx to use MempoolFeeDecorator
 type MempoolFeeDecorator struct {
-	BypassMinFeeMsgTypes []string
+	BypassMinFeeMsgTypes       []string
+	MaxBypassMinFeeMsgGasUsage uint64
 }
 
-func NewMempoolFeeDecorator(bypassMsgTypes []string) MempoolFeeDecorator {
+func NewMempoolFeeDecorator(bypassMsgTypes []string, MaxBypassMinFeeMsgGasUsage uint64) MempoolFeeDecorator {
 	return MempoolFeeDecorator{
-		BypassMinFeeMsgTypes: bypassMsgTypes,
+		BypassMinFeeMsgTypes:       bypassMsgTypes,
+		MaxBypassMinFeeMsgGasUsage: MaxBypassMinFeeMsgGasUsage,
 	}
 }
 
@@ -40,7 +40,7 @@ func (mfd MempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 	// not contain operator configured bypass messages. If the tx does contain
 	// operator configured bypass messages only, it's total gas must be less than
 	// or equal to a constant, otherwise minimum fees are checked to prevent spam.
-	if ctx.IsCheckTx() && !simulate && !(mfd.bypassMinFeeMsgs(msgs) && gas <= uint64(len(msgs))*maxBypassMinFeeMsgGasUsage) {
+	if ctx.IsCheckTx() && !simulate && !(mfd.bypassMinFeeMsgs(msgs) && gas <= uint64(len(msgs))*mfd.MaxBypassMinFeeMsgGasUsage) {
 		minGasPrices := ctx.MinGasPrices()
 		if !minGasPrices.IsZero() {
 			requiredFees := make(sdk.Coins, len(minGasPrices))

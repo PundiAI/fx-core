@@ -713,16 +713,17 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 		fxtypes.UpgradeExponential1Block(): fxtypes.SupportDenomManyToOneMsgTypes(),
 	}
 	anteOptions := fxante.HandlerOptions{
-		AccountKeeper:        myApp.AccountKeeper,
-		BankKeeper:           myApp.BankKeeper,
-		EvmKeeper:            myApp.EvmKeeper,
-		FeeMarketKeeper:      myApp.FeeMarketKeeper,
-		IbcKeeper:            myApp.IBCKeeper,
-		SignModeHandler:      encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:       fxante.DefaultSigVerificationGasConsumer,
-		MaxTxGasWanted:       maxGasWanted,
-		BypassMinFeeMsgTypes: cast.ToStringSlice(appOpts.Get(fxtypes.BypassMinFeeMsgTypesKey)),
-		InterceptMsgTypes:    interceptMsgTypes,
+		AccountKeeper:              myApp.AccountKeeper,
+		BankKeeper:                 myApp.BankKeeper,
+		EvmKeeper:                  myApp.EvmKeeper,
+		FeeMarketKeeper:            myApp.FeeMarketKeeper,
+		IbcKeeper:                  myApp.IBCKeeper,
+		SignModeHandler:            encodingConfig.TxConfig.SignModeHandler(),
+		SigGasConsumer:             fxante.DefaultSigVerificationGasConsumer,
+		MaxTxGasWanted:             maxGasWanted,
+		BypassMinFeeMsgTypes:       cast.ToStringSlice(appOpts.Get(fxtypes.BypassMinFeeMsgTypesKey)),
+		MaxBypassMinFeeMsgGasUsage: cast.ToUint64(appOpts.Get(fxtypes.BypassMinFeeMsgMaxGasUsageKey)),
+		InterceptMsgTypes:          interceptMsgTypes,
 	}
 
 	if err := anteOptions.Validate(); err != nil {
