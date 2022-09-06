@@ -13,17 +13,18 @@ import (
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
 // channel keeper, EVM Keeper and Fee Market Keeper.
 type HandlerOptions struct {
-	AccountKeeper        AccountKeeper
-	BankKeeper           BankKeeper
-	FeegrantKeeper       FeegrantKeeper
-	EvmKeeper            EVMKeeper
-	FeeMarketKeeper      FeeMarketKeeper
-	IbcKeeper            *ibckeeper.Keeper
-	SignModeHandler      authsigning.SignModeHandler
-	SigGasConsumer       ante.SignatureVerificationGasConsumer
-	MaxTxGasWanted       uint64
-	BypassMinFeeMsgTypes []string
-	InterceptMsgTypes    map[int64][]string
+	AccountKeeper              AccountKeeper
+	BankKeeper                 BankKeeper
+	FeegrantKeeper             FeegrantKeeper
+	EvmKeeper                  EVMKeeper
+	FeeMarketKeeper            FeeMarketKeeper
+	IbcKeeper                  *ibckeeper.Keeper
+	SignModeHandler            authsigning.SignModeHandler
+	SigGasConsumer             ante.SignatureVerificationGasConsumer
+	MaxTxGasWanted             uint64
+	BypassMinFeeMsgTypes       []string
+	MaxBypassMinFeeMsgGasUsage uint64
+	InterceptMsgTypes          map[int64][]string
 }
 
 func (options HandlerOptions) Validate() error {
@@ -66,7 +67,7 @@ func newNormalTxAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		NewRejectExtensionOptionsDecorator(),
 		NewMsgInterceptDecorator(options.InterceptMsgTypes),
-		NewMempoolFeeDecorator(options.BypassMinFeeMsgTypes),
+		NewMempoolFeeDecorator(options.BypassMinFeeMsgTypes, options.MaxBypassMinFeeMsgGasUsage),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
