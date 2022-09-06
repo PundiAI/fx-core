@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -9,17 +10,24 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
 	"github.com/functionx/fx-core/v2/x/gov/types"
 )
 
 type Keeper struct {
-	bankKeeper govtypes.BankKeeper
 	govkeeper.Keeper
+	// The (unexposed) keys used to access the stores from the Context.
+	storeKey sdk.StoreKey
+
+	bankKeeper govtypes.BankKeeper
+	sk         govtypes.StakingKeeper
 }
 
-func NewKeeper(bk govtypes.BankKeeper, gk govkeeper.Keeper) Keeper {
+func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, key sdk.StoreKey, gk govkeeper.Keeper) Keeper {
 	return Keeper{
+		storeKey:   key,
 		bankKeeper: bk,
+		sk:         sk,
 		Keeper:     gk,
 	}
 }
@@ -54,8 +62,8 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	activatedVotingPeriod := false
 
 	var minDeposit sdk.Coins
-	if types.CommunityPoolSpendByRouter == proposal.ProposalRoute() &&
-		types.ProposalTypeCommunityPoolSpend == proposal.ProposalType() {
+	isEGF := types.CommunityPoolSpendByRouter == proposal.ProposalRoute() && types.ProposalTypeCommunityPoolSpend == proposal.ProposalType()
+	if isEGF {
 		cpsp, ok := proposal.GetContent().(*distrtypes.CommunityPoolSpendProposal)
 		if !ok {
 			return false, sdkerrors.Wrapf(govtypes.ErrInvalidProposalType, "%d", proposalID)
@@ -65,7 +73,11 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 		minDeposit = keeper.GetDepositParams(ctx).MinDeposit
 	}
 	if proposal.Status == govtypes.StatusDepositPeriod && proposal.TotalDeposit.IsAllGTE(minDeposit) {
-		keeper.ActivateVotingPeriod(ctx, proposal)
+		if ctx.BlockHeight() >= fxtypes.SupportGravityCancelBatchBlock() && isEGF {
+			keeper.EGFActivateVotingPeriod(ctx, proposal)
+		} else {
+			keeper.ActivateVotingPeriod(ctx, proposal)
+		}
 
 		activatedVotingPeriod = true
 	}
@@ -93,6 +105,21 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	keeper.SetDeposit(ctx, deposit)
 
 	return activatedVotingPeriod, nil
+}
+
+func (keeper Keeper) EGFActivateVotingPeriod(ctx sdk.Context, proposal govtypes.Proposal) {
+	proposal.VotingStartTime = ctx.BlockHeader().Time
+	votingPeriod := keeper.GetVotingParams(ctx).VotingPeriod
+	twoWeek := time.Hour * 24 * 14
+	if votingPeriod < twoWeek {
+		votingPeriod = twoWeek
+	}
+	proposal.VotingEndTime = proposal.VotingStartTime.Add(votingPeriod)
+	proposal.Status = govtypes.StatusVotingPeriod
+	keeper.SetProposal(ctx, proposal)
+
+	keeper.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalId, proposal.DepositEndTime)
+	keeper.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
 }
 
 func SupportEGFProposalTotalDeposit(first bool, claimCoin sdk.Coins) sdk.Coins {

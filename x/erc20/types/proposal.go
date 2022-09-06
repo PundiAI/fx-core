@@ -13,10 +13,6 @@ import (
 	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
-func init() {
-
-}
-
 // constants
 const (
 	ProposalTypeRegisterCoin          string = "RegisterCoin"
