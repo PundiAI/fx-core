@@ -405,7 +405,7 @@ func (k Keeper) getIdsTotalAmount(ctx sdk.Context, ids []uint64) sdk.Int {
 }
 
 func (k Keeper) ConvertDenomToMany(ctx sdk.Context, sender sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
-	if ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock() {
+	if ctx.BlockHeight() < fxtypes.UpgradeExponential2Block() {
 		return coin, nil
 	}
 	needConvert, _ := k.erc20Keeper.IsManyToOneDenom(ctx, coin.Denom)

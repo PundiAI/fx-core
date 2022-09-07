@@ -52,7 +52,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	}
 
 	//many-for-one upgrade
-	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() {
+	if ctx.BlockHeight() >= fxtypes.UpgradeExponential1Block() {
 		if types.IsManyToOneMetadata(coinMetadata) {
 			baseAliases := coinMetadata.DenomUnits[0].Aliases
 			for _, alias := range baseAliases {
@@ -245,7 +245,7 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 	//check if the alias not register denom-alias
 	if len(aliasDenomRegistered) == 0 {
 		//fix testnet new aliases
-		if fxtypes.ChainId() == fxtypes.TestnetChainId && ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock() {
+		if fxtypes.ChainId() == fxtypes.TestnetChainId && ctx.BlockHeight() < fxtypes.UpgradeExponential2Block() {
 			newAliases = append(newAliases, alias)
 		} else {
 			newAliases = append(oldAliases, alias)

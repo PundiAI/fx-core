@@ -710,7 +710,7 @@ func New(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, sk
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
 	interceptMsgTypes := map[int64][]string{
-		fxtypes.SupportDenomManyToOneBlock(): fxtypes.SupportDenomManyToOneMsgTypes(),
+		fxtypes.UpgradeExponential1Block(): fxtypes.SupportDenomManyToOneMsgTypes(),
 	}
 	anteOptions := fxante.HandlerOptions{
 		AccountKeeper:        myApp.AccountKeeper,

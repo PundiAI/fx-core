@@ -193,7 +193,7 @@ func (suite *KeeperTestSuite) TestRegisterCoin() {
 			"denom already registered alias",
 			func() {
 				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", metadata.Base)
-				suite.ctx = suite.ctx.WithBlockHeight(fxtypes.SupportDenomManyToOneBlock() + 1)
+				suite.ctx = suite.ctx.WithBlockHeight(fxtypes.UpgradeExponential1Block() + 1)
 			},
 			false,
 		},
@@ -335,7 +335,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithManyToOne() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.SupportDenomManyToOneBlock() + 1)
+			suite.ctx = suite.ctx.WithBlockHeight(fxtypes.UpgradeExponential1Block() + 1)
 
 			tc.malleate()
 
