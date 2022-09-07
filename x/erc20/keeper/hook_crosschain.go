@@ -106,8 +106,8 @@ func (k Keeper) TransferChainHandler(ctx sdk.Context, from sdk.AccAddress, to st
 
 func (k Keeper) testnetConvertDenomBetweenBlock(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
 	isTestnet := fxtypes.ChainId() == fxtypes.TestnetChainId
-	afterManyToOneBlock := ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock()
-	beforeOneToManyBlock := ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock()
+	afterManyToOneBlock := ctx.BlockHeight() >= fxtypes.UpgradeExponential1Block()
+	beforeOneToManyBlock := ctx.BlockHeight() < fxtypes.UpgradeExponential2Block()
 
 	if !(isTestnet && afterManyToOneBlock && beforeOneToManyBlock) {
 		return coin, nil
@@ -163,7 +163,7 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to stri
 
 func validateIbcReceiveAddress(ctx sdk.Context, prefix, addr string) error {
 	// after block support denom many-to-one, validate prefix with 0x
-	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() &&
+	if ctx.BlockHeight() >= fxtypes.UpgradeExponential1Block() &&
 		strings.ToLower(prefix) == fxtypes.EthereumAddressPrefix {
 		return fxtypes.ValidateEthereumAddress(addr)
 	}

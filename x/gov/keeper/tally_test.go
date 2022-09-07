@@ -1,13 +1,14 @@
 package keeper_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
 
 	"github.com/functionx/fx-core/v2/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v2/types"
@@ -20,7 +21,7 @@ func TestKeeper_Tally(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{
 		ProposerAddress: val.Proposer.Address.Bytes(),
 	})
-	ctx = ctx.WithBlockHeight(fxtypes.SupportGravityCancelBatchBlock())
+	ctx = ctx.WithBlockHeight(fxtypes.UpgradeTrigonometric2Block())
 
 	proposalContent := erc20types.NewRegisterCoinProposal("register erc20", "foo", banktypes.Metadata{
 		Display: "test",

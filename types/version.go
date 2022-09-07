@@ -7,36 +7,30 @@ import (
 	"sync"
 )
 
-// mainnet constant
+// mainnet
 const (
-
-	/*
-		mainnetCrossChainSupportBscBlock            = 1354000
-		mainnetCrossChainSupportTronAndPolygonBlock = 2062000
-		// gravity prune validator set
-		mainnetGravityPruneValsetAndAttestationBlock = 610000
-		// gravity not slash no set eth address validator
-		mainnetGravityValsetSlashBlock = 1685000
-	*/
-
 	MainnetChainId    = "fxcore"
 	mainnetEvmChainID = 530
 
-	mainnetSupportDenomManyToOneBlock = 5940000
+	// v2.2.x upgrade code-named is Exponential
+	mainnetExponentialBlock = 5940000
 
-	mainnetGravityCancelBatchBlock = math.MaxInt64
+	// v2.3.x upgrade code-named is Trigonometric
+	testnetTrigonometricBlock = math.MaxInt64
 )
 
-// testnet constant
+// testnet
 const (
-	TestnetChainId        = "dhobyghaut"
-	testnetEvmChainID     = 90001
+	TestnetChainId    = "dhobyghaut"
+	testnetEvmChainID = 90001
+
 	testnetIBCRouterBlock = 3433511
 
-	testnetSupportDenomManyToOneBlock = 3918000
-	testnetSupportDenomOneToManyBlock = 4028000
+	testnetExponential1Block = 3918000
+	testnetExponential2Block = 4028000
 
-	testnetGravityCancelBatchBlock = 4317959
+	testnetTrigonometric1Block = 4317959
+	testnetTrigonometric2Block = math.MaxInt64
 )
 
 // SupportDenomManyToOneMsgTypes return msg types
@@ -80,47 +74,36 @@ func IBCRouteBlock() int64 {
 	return 0
 }
 
-func SetTestingManyToOneBlock(fn func() int64) {
-	if os.Getenv("GO_ENV") != "testing" {
-		panic("invalid env")
-	}
-	testingManyToOneBlock = fn
-}
-
-var testingManyToOneBlock func() int64
-
-func SupportDenomManyToOneBlock() int64 {
+func UpgradeExponential1Block() int64 {
 	if os.Getenv("GO_ENV") == "testing" {
-		return testingManyToOneBlock()
+		return 0
 	}
 	if TestnetChainId == chainId {
-		return testnetSupportDenomManyToOneBlock
+		return testnetExponential1Block
 	}
-	return mainnetSupportDenomManyToOneBlock
+	return mainnetExponentialBlock
 }
 
-func SetTestingSupportDenomOneToManyBlock(fn func() int64) {
-	if os.Getenv("GO_ENV") != "testing" {
-		panic("invalid env")
-	}
-	testingSupportDenomOneToManyBlock = fn
-}
-
-var testingSupportDenomOneToManyBlock func() int64
-
-func SupportDenomOneToManyBlock() int64 {
+func UpgradeExponential2Block() int64 {
 	if os.Getenv("GO_ENV") == "testing" {
-		return testingSupportDenomOneToManyBlock()
+		return 0
 	}
 	if TestnetChainId == chainId {
-		return testnetSupportDenomOneToManyBlock
+		return testnetExponential2Block
 	}
-	return mainnetSupportDenomManyToOneBlock
+	return mainnetExponentialBlock
 }
 
-func SupportGravityCancelBatchBlock() int64 {
+func UpgradeTrigonometric1Block() int64 {
 	if TestnetChainId == chainId {
-		return testnetGravityCancelBatchBlock
+		return testnetTrigonometric1Block
 	}
-	return mainnetGravityCancelBatchBlock
+	return testnetTrigonometricBlock
+}
+
+func UpgradeTrigonometric2Block() int64 {
+	if TestnetChainId == chainId {
+		return testnetTrigonometric2Block
+	}
+	return testnetTrigonometricBlock
 }

@@ -73,7 +73,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 		minDeposit = keeper.GetDepositParams(ctx).MinDeposit
 	}
 	if proposal.Status == govtypes.StatusDepositPeriod && proposal.TotalDeposit.IsAllGTE(minDeposit) {
-		if ctx.BlockHeight() >= fxtypes.SupportGravityCancelBatchBlock() && isEGF {
+		if ctx.BlockHeight() >= fxtypes.UpgradeTrigonometric2Block() && isEGF {
 			keeper.EGFActivateVotingPeriod(ctx, proposal)
 		} else {
 			keeper.ActivateVotingPeriod(ctx, proposal)

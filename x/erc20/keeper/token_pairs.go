@@ -70,7 +70,7 @@ func (k Keeper) RemoveTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	k.DeleteDenomMap(ctx, tokenPair.Denom)
 
 	//after support many to one, delete denom with alias
-	if ctx.BlockHeight() >= fxtypes.SupportDenomManyToOneBlock() {
+	if ctx.BlockHeight() >= fxtypes.UpgradeExponential1Block() {
 		md, found := k.bankKeeper.GetDenomMetaData(ctx, tokenPair.Denom)
 		if found && types.IsManyToOneMetadata(md) {
 			k.DeleteAliasesDenom(ctx, md.DenomUnits[0].Aliases...)

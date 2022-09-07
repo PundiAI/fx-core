@@ -684,21 +684,21 @@ func (k Keeper) SendCoins(ctx sdk.Context, from, to sdk.AccAddress, coins sdk.Co
 
 func (k Keeper) SupportInfiniteGasMeter(ctx sdk.Context) (sdk.Context, sdk.GasMeter) {
 	gasMeter := ctx.GasMeter()
-	if ctx.BlockHeight() >= fxtypes.SupportDenomOneToManyBlock() {
+	if ctx.BlockHeight() >= fxtypes.UpgradeExponential2Block() {
 		ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	}
 	return ctx, gasMeter
 }
 
 func (k Keeper) SupportRefundGasWithGasMeter(ctx sdk.Context, gasMater sdk.GasMeter) sdk.Context {
-	if ctx.BlockHeight() >= fxtypes.SupportDenomOneToManyBlock() {
+	if ctx.BlockHeight() >= fxtypes.UpgradeExponential2Block() {
 		ctx = ctx.WithGasMeter(gasMater)
 	}
 	return ctx
 }
 
 func targetToDenomPrefix(ctx sdk.Context, target string) (prefix string) {
-	if fxtypes.ChainId() == fxtypes.TestnetChainId && ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock() {
+	if fxtypes.ChainId() == fxtypes.TestnetChainId && ctx.BlockHeight() < fxtypes.UpgradeExponential2Block() {
 		return target
 	}
 	if target == gravitytypes.ModuleName {

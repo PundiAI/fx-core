@@ -340,7 +340,7 @@ func addFeeToMap(amt, fee types.ERC20Token, batchFeesMap map[string]*types.Batch
 }
 
 func (k Keeper) ConvertDenomToMany(ctx sdk.Context, sender sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
-	if ctx.BlockHeight() < fxtypes.SupportDenomOneToManyBlock() {
+	if ctx.BlockHeight() < fxtypes.UpgradeExponential2Block() {
 		return coin, nil
 	}
 	needConvert, _ := k.erc20Keeper.IsManyToOneDenom(ctx, coin.Denom)

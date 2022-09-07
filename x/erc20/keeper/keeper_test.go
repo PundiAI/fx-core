@@ -113,11 +113,8 @@ func TestKeeperTestSuite(t *testing.T) {
 
 // Test helpers
 func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
-	//set many to one block
-	err := os.Setenv("GO_ENV", "testing")
-	suite.NoError(err)
-	fxtypes.SetTestingManyToOneBlock(func() int64 { return 5 })
-	fxtypes.SetTestingSupportDenomOneToManyBlock(func() int64 { return 5 })
+	// set test env
+	suite.NoError(os.Setenv("GO_ENV", "testing"))
 
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
