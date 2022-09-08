@@ -19,6 +19,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
@@ -148,7 +149,10 @@ func CmdCancelSendToEth() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgCancelSendToEth(senderAddr, txId)
+			msg := &types.MsgCancelSendToEth{
+				TransactionId: txId,
+				Sender:        senderAddr.String(),
+			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
@@ -188,7 +192,13 @@ func CmdRequestBatch() *cobra.Command {
 					}
 				}
 			}
-			msg := types.NewMsgRequestBatch(fromAddress, args[0], minimumFee, ethFeeReceive, baseFee)
+			msg := &types.MsgRequestBatch{
+				Sender:     fromAddress.String(),
+				Denom:      args[0],
+				MinimumFee: minimumFee,
+				FeeReceive: ethFeeReceive,
+				BaseFee:    baseFee,
+			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
@@ -253,6 +263,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			ethAddress := ethCrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
+			// nolint
 			batchRequestByNonceResp, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
 				Nonce:         nonce,
 				TokenContract: contractAddress,
@@ -264,6 +275,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				return fmt.Errorf("not found batch request by nonce!!!contractAddress:[%v], nonce:[%v]", contractAddress, nonce)
 			}
 			// Determine whether it has been confirmed
+			// nolint
 			batchConfirmResp, err := queryClient.BatchConfirm(cmd.Context(), &types.QueryBatchConfirmRequest{
 				Nonce:         nonce,
 				TokenContract: contractAddress,
@@ -277,19 +289,49 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				return clientCtx.PrintString(fmt.Sprintf("already confirm requestBatch!!!\n\tnonce:[%v]\n\ttokenContract:[%v]\n\torchestrator:[%v]\n\tethAddress:[%v]\n\tsignature:[%v]\n",
 					confirm.Nonce, confirm.TokenContract, confirm.Orchestrator, confirm.EthSigner, confirm.Signature))
 			}
+			// nolint
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
-			checkpoint, err := batchRequestByNonceResp.GetBatch().GetCheckpoint(paramsResp.Params.GetGravityId())
+			var outgoingTxBatch = &crosschaintypes.OutgoingTxBatch{
+				BatchNonce:    batchRequestByNonceResp.Batch.BatchNonce,
+				BatchTimeout:  batchRequestByNonceResp.Batch.BatchTimeout,
+				Transactions:  make([]*crosschaintypes.OutgoingTransferTx, len(batchRequestByNonceResp.Batch.Transactions)),
+				TokenContract: batchRequestByNonceResp.Batch.TokenContract,
+				Block:         batchRequestByNonceResp.Batch.Block,
+				FeeReceive:    batchRequestByNonceResp.Batch.FeeReceive,
+			}
+			for i := 0; i < len(batchRequestByNonceResp.Batch.Transactions); i++ {
+				outgoingTxBatch.Transactions[i] = &crosschaintypes.OutgoingTransferTx{
+					Id:          batchRequestByNonceResp.Batch.Transactions[i].Id,
+					Sender:      batchRequestByNonceResp.Batch.Transactions[i].Sender,
+					DestAddress: batchRequestByNonceResp.Batch.Transactions[i].DestAddress,
+					Token: crosschaintypes.ERC20Token{
+						Contract: batchRequestByNonceResp.Batch.Transactions[i].Erc20Token.Contract,
+						Amount:   batchRequestByNonceResp.Batch.Transactions[i].Erc20Token.Amount,
+					},
+					Fee: crosschaintypes.ERC20Token{
+						Contract: batchRequestByNonceResp.Batch.Transactions[i].Erc20Fee.Contract,
+						Amount:   batchRequestByNonceResp.Batch.Transactions[i].Erc20Fee.Amount,
+					},
+				}
+			}
+			checkpoint, err := outgoingTxBatch.GetCheckpoint(paramsResp.Params.GetGravityId())
 			if err != nil {
 				return err
 			}
-			signature, err := types.NewEthereumSignature(checkpoint, ethPrivateKey)
+			signature, err := crosschaintypes.NewEthereumSignature(checkpoint, ethPrivateKey)
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgConfirmBatch(nonce, contractAddress, ethAddress.String(), hex.EncodeToString(signature), fromAddress)
+			msg := &types.MsgConfirmBatch{
+				Nonce:         nonce,
+				TokenContract: contractAddress,
+				EthSigner:     ethAddress.String(),
+				Orchestrator:  fromAddress.String(),
+				Signature:     hex.EncodeToString(signature),
+			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		}}
 
@@ -352,11 +394,13 @@ func CmdValidatorSetConfirm() *cobra.Command {
 			ethAddress := ethCrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
+			// nolint
 			valsetRequestResp, err := queryClient.ValsetRequest(cmd.Context(), &types.QueryValsetRequestRequest{Nonce: nonce})
 			if err != nil {
 				return err
 			}
 			// Determine whether it has been confirmed
+			// nolint
 			valsetConfirmResp, err := queryClient.ValsetConfirm(cmd.Context(), &types.QueryValsetConfirmRequest{
 				Nonce:   nonce,
 				Address: fromAddress.String(),
@@ -368,16 +412,36 @@ func CmdValidatorSetConfirm() *cobra.Command {
 				confirm := valsetConfirmResp.GetConfirm()
 				return fmt.Errorf("already confirm valset!!!\n\tnonce:[%v]\n\torchestrator:[%v]\n\tethAddress:[%v]\n\tsignature:[%v]\n", confirm.Nonce, confirm.Orchestrator, confirm.EthAddress, confirm.Signature)
 			}
+			// nolint
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
-			checkpoint := valsetRequestResp.GetValset().GetCheckpoint(paramsResp.Params.GetGravityId())
-			signature, err := types.NewEthereumSignature(checkpoint, ethPrivateKey)
+			oracleSet := crosschaintypes.OracleSet{
+				Nonce:   valsetRequestResp.Valset.Nonce,
+				Members: make([]crosschaintypes.BridgeValidator, len(valsetRequestResp.Valset.Members)),
+				Height:  valsetRequestResp.Valset.Height,
+			}
+			for i := 0; i < len(valsetRequestResp.Valset.Members); i++ {
+				oracleSet.Members[i] = crosschaintypes.BridgeValidator{
+					Power:           valsetRequestResp.Valset.Members[i].Power,
+					ExternalAddress: valsetRequestResp.Valset.Members[i].EthAddress,
+				}
+			}
+			checkpoint, err := oracleSet.GetCheckpoint(paramsResp.Params.GetGravityId())
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgValsetConfirm(nonce, ethAddress.String(), fromAddress, hex.EncodeToString(signature))
+			signature, err := crosschaintypes.NewEthereumSignature(checkpoint, ethPrivateKey)
+			if err != nil {
+				return err
+			}
+			msg := &types.MsgValsetConfirm{
+				Nonce:        nonce,
+				Orchestrator: fromAddress.String(),
+				EthAddress:   ethAddress.String(),
+				Signature:    hex.EncodeToString(signature),
+			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		}}
 

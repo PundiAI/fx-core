@@ -169,7 +169,7 @@ func appModules(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		gravity.NewAppModule(app.GravityKeeper),
+		gravity.NewAppModule(app.EthKeeper, app.GravityMigrator),
 		crosschain.NewAppModuleByRouter(app.CrosschainKeeper),
 		bsc.NewAppModule(app.BscKeeper),
 		polygon.NewAppModule(app.PolygonKeeper),

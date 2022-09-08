@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
@@ -23,26 +26,56 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if err != nil {
 			return sdkerrors.Wrap(types.ErrInvalid, "receiver address")
 		}
-		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, coins); err != nil {
-			return sdkerrors.Wrapf(err, "mint vouchers coins")
+		if bridgeToken.Denom != fxtypes.DefaultDenom {
+			// If it is not fxcore originated, mint the coins (aka vouchers)
+			if err := k.bankKeeper.MintCoins(ctx, k.moduleName, coins); err != nil {
+				return sdkerrors.Wrapf(err, "mint vouchers coins")
+			}
 		}
 		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiveAddr, coins); err != nil {
 			return sdkerrors.Wrap(err, "transfer vouchers")
 		}
 
-		k.handlerRelayTransfer(ctx, claim, receiveAddr, coin)
+		k.HandlerRelayTransfer(ctx, claim, receiveAddr, coin)
 
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
-		return nil
 
 	case *types.MsgBridgeTokenClaim:
 		// Check if it already exists
-		isExist := k.hasBridgeToken(ctx, claim.TokenContract)
+		isExist := k.HasBridgeToken(ctx, claim.TokenContract)
 		if isExist {
 			return sdkerrors.Wrap(types.ErrInvalid, "bridge token is exist")
 		}
 		k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc)
+		if claim.Symbol == fxtypes.DefaultDenom {
+			// Check if denom exists
+			metadata, found := k.bankKeeper.GetDenomMetaData(ctx, claim.Symbol)
+			if !found {
+				return sdkerrors.Wrap(
+					types.ErrUnknown,
+					fmt.Sprintf("denom not found %s", claim.Symbol))
+			}
+
+			// Check if attributes of ERC20 match fx denom
+			if claim.Name != metadata.Name {
+				return sdkerrors.Wrap(
+					types.ErrInvalid,
+					fmt.Sprintf("ERC20 name %s does not match denom display %s", claim.Name, metadata.Description))
+			}
+
+			if claim.Symbol != metadata.Symbol {
+				return sdkerrors.Wrap(
+					types.ErrInvalid,
+					fmt.Sprintf("ERC20 symbol %s does not match denom display %s", claim.Symbol, metadata.Display))
+			}
+
+			if fxtypes.DenomUnit != uint32(claim.Decimals) {
+				return sdkerrors.Wrap(
+					types.ErrInvalid,
+					fmt.Sprintf("ERC20 decimals %d does not match denom decimals %d", claim.Decimals, fxtypes.DenomUnit))
+			}
+		}
 
 		coinDenom, err := k.AddBridgeToken(ctx, claim.TokenContract, claim.ChannelIbc)
 		if err != nil {

@@ -117,5 +117,5 @@ func (c *NodeRPC) GetGravityLastObservedEventNonce() (uint64, error) {
 	if len(query.Response.Value) == 0 {
 		return 0, nil
 	}
-	return gravitytypes.UInt64FromBytes(query.Response.Value), nil
+	return sdk.BigEndianToUint64(query.Response.Value), nil
 }

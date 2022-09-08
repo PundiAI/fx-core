@@ -10,8 +10,8 @@ import (
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
-func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey, toModuleName string) error {
-	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(types.ModuleName), '/'))
+func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsStoreKey sdk.StoreKey, toModuleName string) error {
+	paramsStore := prefix.NewStore(ctx.KVStore(paramsStoreKey), append([]byte(types.ModuleName), '/'))
 	gravityParams := &types.Params{}
 	isExist := false
 	for _, pair := range gravityParams.ParamSetPairs() {
@@ -48,7 +48,7 @@ func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sd
 		return err
 	}
 
-	store := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(toModuleName), '/'))
+	store := prefix.NewStore(ctx.KVStore(paramsStoreKey), append([]byte(toModuleName), '/'))
 	for _, pair := range params.ParamSetPairs() {
 		bz, err := legacyAmino.MarshalJSON(pair.Value)
 		if err != nil {

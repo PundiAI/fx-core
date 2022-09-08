@@ -2,8 +2,6 @@ package types
 
 import (
 	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -104,123 +102,8 @@ var (
 	LastEventBlockHeightByValidatorKey = []byte{0x18}
 )
 
-// GetOrchestratorAddressKey returns the following key format
-func GetOrchestratorAddressKey(orc sdk.AccAddress) []byte {
-	return append(ValidatorAddressByOrchestratorAddress, orc.Bytes()...)
-}
-
-// GetEthAddressByValidatorKey returns the following key format
-func GetEthAddressByValidatorKey(validator sdk.ValAddress) []byte {
-	return append(EthAddressByValidatorKey, validator.Bytes()...)
-}
-
-// GetValidatorByEthAddressKey returns the following key format
-func GetValidatorByEthAddressKey(ethAddress string) []byte {
-	return append(ValidatorByEthAddressKey, []byte(ethAddress)...)
-}
-
-// GetValsetKey returns the following key format
-func GetValsetKey(nonce uint64) []byte {
-	return append(ValsetRequestKey, UInt64Bytes(nonce)...)
-}
-
-// GetValsetConfirmKey returns the following key format
-func GetValsetConfirmKey(nonce uint64, validator sdk.AccAddress) []byte {
-	return append(ValsetConfirmKey, append(UInt64Bytes(nonce), validator.Bytes()...)...)
-}
-
-// GetAttestationKey returns the following key format
-// prefix     nonce                             claim-details-hash
-// [0x0][0 0 0 0 0 0 0 1][fd1af8cec6c67fcf156f1b61fdf91ebc04d05484d007436e75342fc05bbff35a]
-// An attestation is an event multiple people are voting on, this function needs the claim
-// details because each Attestation is aggregating all claims of a specific event, lets say
-// validator X and validator y where making different claims about the same event nonce
-// Note that the claim hash does NOT include the claimer address and only identifies an event
-func GetAttestationKey(eventNonce uint64, claimHash []byte) []byte {
-	key := make([]byte, len(OracleAttestationKey)+len(UInt64Bytes(0))+len(claimHash))
-	copy(key[0:], OracleAttestationKey)
-	copy(key[len(OracleAttestationKey):], UInt64Bytes(eventNonce))
-	copy(key[len(OracleAttestationKey)+len(UInt64Bytes(0)):], claimHash)
-	return key
-}
-
-// GetAttestationKeyWithHash returns the following key format
-// prefix     nonce                             claim-details-hash
-// [0x0][0 0 0 0 0 0 0 1][fd1af8cec6c67fcf156f1b61fdf91ebc04d05484d007436e75342fc05bbff35a]
-// An attestation is an event multiple people are voting on, this function needs the claim
-// details because each Attestation is aggregating all claims of a specific event, lets say
-// validator X and validator y where making different claims about the same event nonce
-// Note that the claim hash does NOT include the claimer address and only identifies an event
-func GetAttestationKeyWithHash(eventNonce uint64, claimHash []byte) []byte {
-	key := make([]byte, len(OracleAttestationKey)+len(UInt64Bytes(0))+len(claimHash))
-	copy(key[0:], OracleAttestationKey)
-	copy(key[len(OracleAttestationKey):], UInt64Bytes(eventNonce))
-	copy(key[len(OracleAttestationKey)+len(UInt64Bytes(0)):], claimHash)
-	return key
-}
-
-// GetOutgoingTxPoolKey returns the following key format
-func GetOutgoingTxPoolKey(id uint64) []byte {
-	return append(OutgoingTxPoolKey, sdk.Uint64ToBigEndian(id)...)
-}
-
-// GetOutgoingTxBatchKey returns the following key format
-func GetOutgoingTxBatchKey(tokenContract string, nonce uint64) []byte {
-	return append(append(OutgoingTxBatchKey, []byte(tokenContract)...), UInt64Bytes(nonce)...)
-}
-
-// GetOutgoingTxBatchBlockKey returns the following key format
-func GetOutgoingTxBatchBlockKey(block uint64) []byte {
-	return append(OutgoingTxBatchBlockKey, UInt64Bytes(block)...)
-}
-
-// GetBatchConfirmKey returns the following key format
-// prefix           eth-contract-address                BatchNonce                       Validator-address
-// [0x0][0xb4fA5979babd8Bb7e427157d0d353Cf205F43752][0 0 0 0 0 0 0 1][cosmosvaloper1ahx7f8wyertuus9r20284ej0asrs085case3kn]
-func GetBatchConfirmKey(tokenContract string, batchNonce uint64, validator sdk.AccAddress) []byte {
-	a := append(UInt64Bytes(batchNonce), validator.Bytes()...)
-	b := append([]byte(tokenContract), a...)
-	c := append(BatchConfirmKey, b...)
-	return c
-}
-
-// GetFeeSecondIndexKey returns the following key format
-// prefix            eth-contract-address            fee_amount
-// [0x0][0xb4fA5979babd8Bb7e427157d0d353Cf205F43752][1000000000]
-func GetFeeSecondIndexKey(fee ERC20Token) []byte {
-	res := make([]byte, 1+ETHContractAddressLen+32)
-	// sdkInts have a size limit of 255 bits or 32 bytes
-	// therefore this will never panic and is always safe
-	amount := make([]byte, 32)
-	amount = fee.Amount.BigInt().FillBytes(amount)
-	copy(res[0:1], SecondIndexOutgoingTxFeeKey)
-	copy(res[1:1+ETHContractAddressLen], fee.Contract)
-	copy(res[1+ETHContractAddressLen:1+ETHContractAddressLen+32], amount)
-	return res
-}
-
-// GetLastEventNonceByValidatorKey indexes lateset event nonce by validator
-func GetLastEventNonceByValidatorKey(validator sdk.ValAddress) []byte {
-	return append(LastEventNonceByValidatorKey, validator.Bytes()...)
-}
-
-// GetDenomToERC20Key denom -> erc20
-func GetDenomToERC20Key(denom string) []byte {
-	return append(DenomToERC20Key, []byte(denom)...)
-}
-
-// GetERC20ToDenomKey erc20 -> denom
-func GetERC20ToDenomKey(erc20 string) []byte {
-	return append(ERC20ToDenomKey, []byte(erc20)...)
-}
-
 // GetIbcSequenceHeightKey [0xc1][sourcePort/sourceChannel/sequence]
 func GetIbcSequenceHeightKey(sourcePort, sourceChannel string, sequence uint64) []byte {
 	key := fmt.Sprintf("%s/%s/%d", sourcePort, sourceChannel, sequence)
 	return append(IbcSequenceHeightKey, []byte(key)...)
-}
-
-// GetLastEventBlockHeightByValidatorKey indexes lateset event blockHeight by validator
-func GetLastEventBlockHeightByValidatorKey(validator sdk.ValAddress) []byte {
-	return append(LastEventBlockHeightByValidatorKey, validator.Bytes()...)
 }

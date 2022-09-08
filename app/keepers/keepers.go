@@ -100,7 +100,7 @@ type AppKeepers struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	GravityKeeper    gravitykeeper.Keeper
+	GravityMigrator  gravitykeeper.Migrator
 	CrosschainKeeper crosschainkeeper.RouterKeeper
 	BscKeeper        crosschainkeeper.Keeper
 	PolygonKeeper    crosschainkeeper.Keeper
@@ -275,17 +275,15 @@ func NewAppKeeper(
 		appKeepers.TransferKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper)
 
-	appKeepers.GravityKeeper = gravitykeeper.NewKeeper(
+	appKeepers.GravityMigrator = gravitykeeper.NewMigrator(
 		appCodec,
+		legacyAmino,
+		appKeepers.keys[paramstypes.StoreKey],
 		appKeepers.keys[gravitytypes.StoreKey],
-		appKeepers.GetSubspace(gravitytypes.ModuleName),
+		appKeepers.keys[ethtypes.StoreKey],
 		stakingKeeper,
-		appKeepers.BankKeeper,
 		appKeepers.AccountKeeper,
-		appKeepers.SlashingKeeper,
-		appKeepers.TransferKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper,
-		erc20Keeper,
+		appKeepers.BankKeeper,
 	)
 
 	// init cross chain module
@@ -337,7 +335,7 @@ func NewAppKeeper(
 		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
-	appKeepers.TronKeeper = tronkeeper.NewKeeper(
+	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
 		appCodec,
 		trontypes.ModuleName,
 		appKeepers.keys[trontypes.StoreKey],
@@ -347,7 +345,7 @@ func NewAppKeeper(
 		appKeepers.BankKeeper,
 		appKeepers.TransferKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper,
-		erc20Keeper)
+		erc20Keeper))
 
 	// add cross-chain router
 	crosschainRouter := crosschainkeeper.NewRouter()
@@ -402,7 +400,6 @@ func NewAppKeeper(
 	)
 
 	erc20TransferRouter := erc20types.NewRouter()
-	erc20TransferRouter.AddRoute(gravitytypes.ModuleName, appKeepers.GravityKeeper)
 	erc20TransferRouter.AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper)
 	erc20TransferRouter.AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper)
 	erc20TransferRouter.AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
@@ -412,7 +409,6 @@ func NewAppKeeper(
 	appKeepers.EvmKeeper.SetHooks(erc20keeper.NewHooks(&appKeepers.Erc20Keeper))
 
 	ibcTransferRouter := ibctransfertypes.NewRouter()
-	ibcTransferRouter.AddRoute(gravitytypes.ModuleName, appKeepers.GravityKeeper)
 	ibcTransferRouter.AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper)
 	ibcTransferRouter.AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper)
 	ibcTransferRouter.AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
@@ -435,7 +431,6 @@ func NewAppKeeper(
 		stakingtypes.NewMultiStakingHooks(
 			appKeepers.DistrKeeper.Hooks(),
 			appKeepers.SlashingKeeper.Hooks(),
-			appKeepers.GravityKeeper.Hooks(),
 		),
 	)
 

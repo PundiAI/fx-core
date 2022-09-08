@@ -2,313 +2,490 @@ package keeper
 
 import (
 	"context"
-	"sort"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
-var _ types.QueryServer = Keeper{}
-
-// Params queries the params of the gravity module
-func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	var params types.Params
-	k.paramSpace.GetParamSet(sdk.UnwrapSDKContext(c), &params)
-	return &types.QueryParamsResponse{Params: params}, nil
-
+type queryServer struct {
+	crosschainkeeper.Keeper
 }
 
-// CurrentValset queries the CurrentValset of the gravity module
-func (k Keeper) CurrentValset(c context.Context, _ *types.QueryCurrentValsetRequest) (*types.QueryCurrentValsetResponse, error) {
-	return &types.QueryCurrentValsetResponse{Valset: k.GetCurrentValset(sdk.UnwrapSDKContext(c))}, nil
+func NewQueryServerImpl(keeper crosschainkeeper.Keeper) types.QueryServer {
+	return &queryServer{Keeper: keeper}
 }
 
-// ValsetRequest queries the ValsetRequest of the gravity module
-func (k Keeper) ValsetRequest(c context.Context, req *types.QueryValsetRequestRequest) (*types.QueryValsetRequestResponse, error) {
-	return &types.QueryValsetRequestResponse{Valset: k.GetValset(sdk.UnwrapSDKContext(c), req.Nonce)}, nil
-}
+var _ types.QueryServer = queryServer{}
 
-// ValsetConfirm queries the ValsetConfirm of the gravity module
-func (k Keeper) ValsetConfirm(c context.Context, req *types.QueryValsetConfirmRequest) (*types.QueryValsetConfirmResponse, error) {
-	addr, err := sdk.AccAddressFromBech32(req.Address)
+func (k queryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	response, err := k.Keeper.Params(c, &crosschaintypes.QueryParamsRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "address invalid")
+		return nil, err
 	}
-	return &types.QueryValsetConfirmResponse{Confirm: k.GetValsetConfirm(sdk.UnwrapSDKContext(c), req.Nonce, addr)}, nil
+	return &types.QueryParamsResponse{Params: types.Params{
+		GravityId:                      response.Params.GravityId,
+		BridgeChainId:                  1,
+		SignedValsetsWindow:            response.Params.SignedWindow,
+		SignedBatchesWindow:            response.Params.SignedWindow,
+		SignedClaimsWindow:             response.Params.SignedWindow,
+		TargetBatchTimeout:             response.Params.ExternalBatchTimeout,
+		AverageBlockTime:               response.Params.AverageBlockTime,
+		AverageEthBlockTime:            response.Params.AverageExternalBlockTime,
+		SlashFractionValset:            response.Params.SlashFraction,
+		SlashFractionBatch:             response.Params.SlashFraction,
+		SlashFractionClaim:             response.Params.SlashFraction,
+		SlashFractionConflictingClaim:  response.Params.SlashFraction,
+		UnbondSlashingValsetsWindow:    response.Params.SignedWindow,
+		IbcTransferTimeoutHeight:       response.Params.IbcTransferTimeoutHeight,
+		ValsetUpdatePowerChangePercent: response.Params.OracleSetUpdatePowerChangePercent,
+	}}, nil
 }
 
-// ValsetConfirmsByNonce queries the ValsetConfirmsByNonce of the gravity module
-func (k Keeper) ValsetConfirmsByNonce(c context.Context, req *types.QueryValsetConfirmsByNonceRequest) (*types.QueryValsetConfirmsByNonceResponse, error) {
-	var confirms []*types.MsgValsetConfirm
-	k.IterateValsetConfirmByNonce(sdk.UnwrapSDKContext(c), req.Nonce, func(_ []byte, c types.MsgValsetConfirm) bool {
-		confirms = append(confirms, &c)
-		return false
+func (k queryServer) CurrentValset(c context.Context, _ *types.QueryCurrentValsetRequest) (*types.QueryCurrentValsetResponse, error) {
+	response, err := k.Keeper.CurrentOracleSet(c, &crosschaintypes.QueryCurrentOracleSetRequest{ChainName: ethtypes.ModuleName})
+	if err != nil {
+		return nil, err
+	}
+	valset := &types.Valset{
+		Nonce:   response.OracleSet.Nonce,
+		Members: make([]*types.BridgeValidator, len(response.OracleSet.Members)),
+		Height:  response.OracleSet.Height,
+	}
+	for i := 0; i < len(response.OracleSet.Members); i++ {
+		valset.Members[i] = &types.BridgeValidator{
+			Power:      response.OracleSet.Members[i].Power,
+			EthAddress: response.OracleSet.Members[i].ExternalAddress,
+		}
+	}
+	return &types.QueryCurrentValsetResponse{Valset: valset}, nil
+}
+
+func (k queryServer) ValsetRequest(c context.Context, req *types.QueryValsetRequestRequest) (*types.QueryValsetRequestResponse, error) {
+	response, err := k.Keeper.OracleSetRequest(c, &crosschaintypes.QueryOracleSetRequestRequest{
+		ChainName: ethtypes.ModuleName,
+		Nonce:     req.Nonce,
 	})
+	if err != nil {
+		return nil, err
+	}
+	valset := &types.Valset{
+		Nonce:   response.OracleSet.Nonce,
+		Members: make([]*types.BridgeValidator, len(response.OracleSet.Members)),
+		Height:  response.OracleSet.Height,
+	}
+	for i := 0; i < len(response.OracleSet.Members); i++ {
+		valset.Members[i] = &types.BridgeValidator{
+			Power:      response.OracleSet.Members[i].Power,
+			EthAddress: response.OracleSet.Members[i].ExternalAddress,
+		}
+	}
+	return &types.QueryValsetRequestResponse{Valset: valset}, nil
+}
+
+func (k queryServer) ValsetConfirm(c context.Context, req *types.QueryValsetConfirmRequest) (*types.QueryValsetConfirmResponse, error) {
+	response, err := k.Keeper.OracleSetConfirm(c, &crosschaintypes.QueryOracleSetConfirmRequest{
+		ChainName:      ethtypes.ModuleName,
+		BridgerAddress: req.Address,
+		Nonce:          req.Nonce,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryValsetConfirmResponse{Confirm: &types.MsgValsetConfirm{
+		Nonce:        response.Confirm.Nonce,
+		Orchestrator: response.Confirm.BridgerAddress,
+		EthAddress:   response.Confirm.ExternalAddress,
+		Signature:    response.Confirm.Signature,
+	}}, nil
+}
+
+func (k queryServer) ValsetConfirmsByNonce(c context.Context, req *types.QueryValsetConfirmsByNonceRequest) (*types.QueryValsetConfirmsByNonceResponse, error) {
+	response, err := k.Keeper.OracleSetConfirmsByNonce(c, &crosschaintypes.QueryOracleSetConfirmsByNonceRequest{
+		ChainName: ethtypes.ModuleName,
+		Nonce:     req.Nonce,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var confirms = make([]*types.MsgValsetConfirm, len(response.Confirms))
+	for i := 0; i < len(response.Confirms); i++ {
+		confirms[i] = &types.MsgValsetConfirm{
+			Nonce:        response.Confirms[i].Nonce,
+			Orchestrator: response.Confirms[i].BridgerAddress,
+			EthAddress:   response.Confirms[i].ExternalAddress,
+			Signature:    response.Confirms[i].Signature,
+		}
+	}
 	return &types.QueryValsetConfirmsByNonceResponse{Confirms: confirms}, nil
 }
 
-// LastValsetRequests queries the LastValsetRequests of the gravity module
-func (k Keeper) LastValsetRequests(c context.Context, _ *types.QueryLastValsetRequestsRequest) (*types.QueryLastValsetRequestsResponse, error) {
-	valReq := k.GetValsets(sdk.UnwrapSDKContext(c))
-	valReqLen := len(valReq)
-	retLen := 0
-	if valReqLen < maxValsetRequestsReturned {
-		retLen = valReqLen
-	} else {
-		retLen = maxValsetRequestsReturned
-	}
-	return &types.QueryLastValsetRequestsResponse{Valsets: valReq[0:retLen]}, nil
-}
-
-// LastPendingValsetRequestByAddr queries the LastPendingValsetRequestByAddr of the gravity module
-func (k Keeper) LastPendingValsetRequestByAddr(c context.Context, req *types.QueryLastPendingValsetRequestByAddrRequest) (*types.QueryLastPendingValsetRequestByAddrResponse, error) {
-	addr, err := sdk.AccAddressFromBech32(req.Address)
+func (k queryServer) LastValsetRequests(c context.Context, _ *types.QueryLastValsetRequestsRequest) (*types.QueryLastValsetRequestsResponse, error) {
+	response, err := k.Keeper.LastOracleSetRequests(c, &crosschaintypes.QueryLastOracleSetRequestsRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "address invalid")
+		return nil, err
 	}
-
-	var pendingValsetReq []*types.Valset
-	k.IterateValsets(sdk.UnwrapSDKContext(c), func(_ []byte, val *types.Valset) bool {
-		// foundConfirm is true if the operatorAddr has signed the valset we are currently looking at
-		foundConfirm := k.GetValsetConfirm(sdk.UnwrapSDKContext(c), val.Nonce, addr) != nil
-		// if this valset has NOT been signed by operatorAddr, store it in pendingValsetReq
-		// and exit the loop
-		if !foundConfirm {
-			pendingValsetReq = append(pendingValsetReq, val)
+	valsets := make([]*types.Valset, len(response.OracleSets))
+	for i := 0; i < len(response.OracleSets); i++ {
+		valsets[i] = &types.Valset{
+			Nonce:   response.OracleSets[i].Nonce,
+			Members: make([]*types.BridgeValidator, len(response.OracleSets[i].Members)),
+			Height:  response.OracleSets[i].Height,
 		}
-		// if we have more than 100 unconfirmed requests in
-		// our array we should exit, pagination
-		if len(pendingValsetReq) > 100 {
-			return true
-		}
-		// return false to continue the loop
-		return false
-	})
-	return &types.QueryLastPendingValsetRequestByAddrResponse{Valsets: pendingValsetReq}, nil
-}
-
-// BatchFees queries the batch fees from unbatched pool
-func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
-	if req.MinBatchFees == nil {
-		req.MinBatchFees = make([]types.MinBatchFee, 0)
-	}
-	return &types.QueryBatchFeeResponse{BatchFees: k.GetAllBatchFees(sdk.UnwrapSDKContext(c), req.MinBatchFees)}, nil
-}
-
-// LastPendingBatchRequestByAddr queries the LastPendingBatchRequestByAddr of the gravity module
-func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
-	addr, err := sdk.AccAddressFromBech32(req.Address)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "address invalid")
-	}
-
-	var pendingBatchReq *types.OutgoingTxBatch
-	k.IterateOutgoingTXBatches(sdk.UnwrapSDKContext(c), func(_ []byte, batch *types.OutgoingTxBatch) bool {
-		foundConfirm := k.GetBatchConfirm(sdk.UnwrapSDKContext(c), batch.BatchNonce, batch.TokenContract, addr) != nil
-		if !foundConfirm {
-			pendingBatchReq = batch
-			return true
-		}
-		return false
-	})
-
-	return &types.QueryLastPendingBatchRequestByAddrResponse{Batch: pendingBatchReq}, nil
-}
-
-// OutgoingTxBatches queries the OutgoingTxBatches of the gravity module
-func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
-	var batches []*types.OutgoingTxBatch
-	k.IterateOutgoingTXBatches(sdk.UnwrapSDKContext(c), func(_ []byte, batch *types.OutgoingTxBatch) bool {
-		batches = append(batches, batch)
-		return len(batches) == MaxResults
-	})
-	sort.Slice(batches, func(i, j int) bool {
-		return batches[i].BatchTimeout < batches[j].BatchTimeout
-	})
-	return &types.QueryOutgoingTxBatchesResponse{Batches: batches}, nil
-}
-
-// BatchRequestByNonce queries the BatchRequestByNonce of the gravity module
-func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
-	if err := types.ValidateEthAddressAndValidateChecksum(req.TokenContract); err != nil {
-		return nil, status.Error(codes.InvalidArgument, "token contract")
-	}
-	foundBatch := k.GetOutgoingTXBatch(sdk.UnwrapSDKContext(c), req.TokenContract, req.Nonce)
-	if foundBatch == nil {
-		return nil, status.Error(codes.NotFound, "tx batch")
-	}
-	return &types.QueryBatchRequestByNonceResponse{Batch: foundBatch}, nil
-}
-
-func (k Keeper) BatchConfirm(ctx context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
-	orchestrator, err := sdk.AccAddressFromBech32(req.GetAddress())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "address")
-	}
-	confirm := k.GetBatchConfirm(sdk.UnwrapSDKContext(ctx), req.GetNonce(), req.GetTokenContract(), orchestrator)
-	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
-}
-
-// BatchConfirms returns the batch confirmations by nonce and token contract
-func (k Keeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
-	var confirms []*types.MsgConfirmBatch
-	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(_ []byte, c types.MsgConfirmBatch) bool {
-		confirms = append(confirms, &c)
-		return false
-	})
-	return &types.QueryBatchConfirmsResponse{Confirms: confirms}, nil
-}
-
-// LastEventNonceByAddr returns the last event nonce for the given validator address, this allows eth oracles to figure out where they left off
-func (k Keeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	addr, err := sdk.AccAddressFromBech32(req.Address)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "address")
-	}
-	valAddr, found := k.GetOrchestratorValidator(ctx, addr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "address")
-	}
-	lastEventNonce := k.GetLastEventNonceByValidator(ctx, valAddr)
-	return &types.QueryLastEventNonceByAddrResponse{EventNonce: lastEventNonce}, nil
-}
-
-// DenomToERC20 queries the Cosmos Denom that maps to an Ethereum ERC20
-func (k Keeper) DenomToERC20(c context.Context, req *types.QueryDenomToERC20Request) (*types.QueryDenomToERC20Response, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	fxOriginated, erc20, err := k.DenomToERC20Lookup(ctx, req.Denom)
-	return &types.QueryDenomToERC20Response{Erc20: erc20, FxOriginated: fxOriginated}, err
-}
-
-// ERC20ToDenom queries the ERC20 contract that maps to an Ethereum ERC20 if any
-func (k Keeper) ERC20ToDenom(c context.Context, req *types.QueryERC20ToDenomRequest) (*types.QueryERC20ToDenomResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	fxOriginated, denom := k.ERC20ToDenomLookup(ctx, req.Erc20)
-	return &types.QueryERC20ToDenomResponse{Denom: denom, FxOriginated: fxOriginated}, nil
-}
-
-func (k Keeper) GetDelegateKeyByValidator(c context.Context, req *types.QueryDelegateKeyByValidatorRequest) (*types.QueryDelegateKeyByValidatorResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	keys := k.GetDelegateKeys(ctx)
-	reqValidator, err := sdk.ValAddressFromBech32(req.ValidatorAddress)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "address")
-	}
-	for _, key := range keys {
-		keyValidator, err := sdk.ValAddressFromBech32(key.Validator)
-		// this should be impossible due to the validate basic on the set orchestrator message
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
-		}
-		if reqValidator.Equals(keyValidator) {
-			return &types.QueryDelegateKeyByValidatorResponse{EthAddress: key.EthAddress, OrchestratorAddress: key.Orchestrator}, nil
-		}
-
-	}
-	return nil, status.Error(codes.NotFound, "validator")
-}
-
-func (k Keeper) GetDelegateKeyByOrchestrator(c context.Context, req *types.QueryDelegateKeyByOrchestratorRequest) (*types.QueryDelegateKeyByOrchestratorResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	keys := k.GetDelegateKeys(ctx)
-	reqOrchestrator, err := sdk.AccAddressFromBech32(req.OrchestratorAddress)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "address")
-	}
-	for _, key := range keys {
-		keyOrchestrator, err := sdk.AccAddressFromBech32(key.Orchestrator)
-		// this should be impossible due to the validate basic on the set orchestrator message
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
-		}
-		if reqOrchestrator.Equals(keyOrchestrator) {
-			return &types.QueryDelegateKeyByOrchestratorResponse{ValidatorAddress: key.Validator, EthAddress: key.EthAddress}, nil
-		}
-
-	}
-	return nil, status.Error(codes.NotFound, "validator")
-}
-
-func (k Keeper) GetDelegateKeyByEth(c context.Context, req *types.QueryDelegateKeyByEthRequest) (*types.QueryDelegateKeyByEthResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	keys := k.GetDelegateKeys(ctx)
-	if err := types.ValidateEthAddressAndValidateChecksum(req.EthAddress); err != nil {
-		return nil, status.Error(codes.InvalidArgument, "address")
-	}
-	for _, key := range keys {
-		if req.EthAddress == key.EthAddress {
-			return &types.QueryDelegateKeyByEthResponse{ValidatorAddress: key.Validator, OrchestratorAddress: key.Orchestrator}, nil
-		}
-
-	}
-	return nil, status.Error(codes.NotFound, "validator")
-}
-
-func (k Keeper) GetPendingSendToEth(c context.Context, req *types.QueryPendingSendToEthRequest) (*types.QueryPendingSendToEthResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	batches := k.GetOutgoingTxBatches(ctx)
-	unbatchedTx := k.GetPoolTransactions(ctx)
-	senderAddress := req.SenderAddress
-	var res = &types.QueryPendingSendToEthResponse{
-		TransfersInBatches: make([]*types.OutgoingTransferTx, 0),
-		UnbatchedTransfers: make([]*types.OutgoingTransferTx, 0),
-	}
-	for _, batch := range batches {
-		for _, tx := range batch.Transactions {
-			if tx.Sender == senderAddress {
-				res.TransfersInBatches = append(res.TransfersInBatches, tx)
+		for j := 0; j < len(response.OracleSets[i].Members); j++ {
+			valsets[i].Members[j] = &types.BridgeValidator{
+				Power:      response.OracleSets[i].Members[j].Power,
+				EthAddress: response.OracleSets[i].Members[j].ExternalAddress,
 			}
 		}
 	}
-	for _, tx := range unbatchedTx {
-		if tx.Sender == senderAddress {
-			res.UnbatchedTransfers = append(res.UnbatchedTransfers, tx)
+	return &types.QueryLastValsetRequestsResponse{Valsets: valsets}, nil
+}
+
+func (k queryServer) LastPendingValsetRequestByAddr(c context.Context, req *types.QueryLastPendingValsetRequestByAddrRequest) (*types.QueryLastPendingValsetRequestByAddrResponse, error) {
+	response, err := k.Keeper.LastPendingOracleSetRequestByAddr(c, &crosschaintypes.QueryLastPendingOracleSetRequestByAddrRequest{
+		ChainName:      ethtypes.ModuleName,
+		BridgerAddress: req.Address,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var valsets = make([]*types.Valset, len(response.OracleSets))
+	for i := 0; i < len(response.OracleSets); i++ {
+		valsets[i] = &types.Valset{
+			Nonce:   response.OracleSets[i].Nonce,
+			Members: make([]*types.BridgeValidator, len(response.OracleSets[i].Members)),
+			Height:  response.OracleSets[i].Height,
+		}
+		for j := 0; j < len(response.OracleSets[i].Members); j++ {
+			valsets[i].Members[j] = &types.BridgeValidator{
+				Power:      response.OracleSets[i].Members[j].Power,
+				EthAddress: response.OracleSets[i].Members[j].ExternalAddress,
+			}
+		}
+	}
+
+	return &types.QueryLastPendingValsetRequestByAddrResponse{Valsets: valsets}, nil
+}
+
+func (k queryServer) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
+	var minBatchFees = make([]crosschaintypes.MinBatchFee, len(req.MinBatchFees))
+	for i := 0; i < len(req.MinBatchFees); i++ {
+		minBatchFees[i] = crosschaintypes.MinBatchFee{
+			TokenContract: req.MinBatchFees[i].TokenContract,
+			BaseFee:       req.MinBatchFees[i].BaseFee,
+		}
+	}
+	response, err := k.Keeper.BatchFees(c, &crosschaintypes.QueryBatchFeeRequest{
+		ChainName:    ethtypes.ModuleName,
+		MinBatchFees: minBatchFees,
+	})
+	if err != nil {
+		return nil, err
+	}
+	batchFees := make([]*types.BatchFees, len(response.BatchFees))
+	for i := 0; i < len(response.BatchFees); i++ {
+		batchFees[i] = &types.BatchFees{
+			TokenContract: response.BatchFees[i].TokenContract,
+			TotalFees:     response.BatchFees[i].TotalFees,
+			TotalTxs:      response.BatchFees[i].TotalTxs,
+			TotalAmount:   response.BatchFees[i].TotalAmount,
+		}
+	}
+	return &types.QueryBatchFeeResponse{BatchFees: batchFees}, nil
+}
+
+func (k queryServer) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
+	response, err := k.Keeper.LastPendingBatchRequestByAddr(c, &crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{
+		ChainName:      ethtypes.ModuleName,
+		BridgerAddress: req.Address,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var outgoingTxBatch = &types.OutgoingTxBatch{
+		BatchNonce:    response.Batch.BatchNonce,
+		BatchTimeout:  response.Batch.BatchTimeout,
+		Transactions:  make([]*types.OutgoingTransferTx, len(response.Batch.Transactions)),
+		TokenContract: response.Batch.TokenContract,
+		Block:         response.Batch.Block,
+		FeeReceive:    response.Batch.FeeReceive,
+	}
+	for i := 0; i < len(response.Batch.Transactions); i++ {
+		outgoingTxBatch.Transactions[i] = &types.OutgoingTransferTx{
+			Id:          response.Batch.Transactions[i].Id,
+			Sender:      response.Batch.Transactions[i].Sender,
+			DestAddress: response.Batch.Transactions[i].DestAddress,
+			Erc20Token: &types.ERC20Token{
+				Contract: response.Batch.Transactions[i].Token.Contract,
+				Amount:   response.Batch.Transactions[i].Token.Amount,
+			},
+			Erc20Fee: &types.ERC20Token{
+				Contract: response.Batch.Transactions[i].Fee.Contract,
+				Amount:   response.Batch.Transactions[i].Fee.Amount,
+			},
+		}
+	}
+	return &types.QueryLastPendingBatchRequestByAddrResponse{Batch: outgoingTxBatch}, nil
+}
+
+func (k queryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
+	response, err := k.Keeper.OutgoingTxBatches(c, &crosschaintypes.QueryOutgoingTxBatchesRequest{ChainName: ethtypes.ModuleName})
+	if err != nil {
+		return nil, err
+	}
+	var batches = make([]*types.OutgoingTxBatch, len(response.Batches))
+	for i := 0; i < len(response.Batches); i++ {
+		batches[i] = &types.OutgoingTxBatch{
+			BatchNonce:    response.Batches[i].BatchNonce,
+			BatchTimeout:  response.Batches[i].BatchTimeout,
+			Transactions:  make([]*types.OutgoingTransferTx, len(response.Batches[i].Transactions)),
+			TokenContract: response.Batches[i].TokenContract,
+			Block:         response.Batches[i].Block,
+			FeeReceive:    response.Batches[i].FeeReceive,
+		}
+		for j := 0; j < len(response.Batches[i].Transactions); j++ {
+			batches[i].Transactions[j] = &types.OutgoingTransferTx{
+				Id:          response.Batches[i].Transactions[j].Id,
+				Sender:      response.Batches[i].Transactions[j].Sender,
+				DestAddress: response.Batches[i].Transactions[j].DestAddress,
+				Erc20Token: &types.ERC20Token{
+					Contract: response.Batches[i].Transactions[j].Token.Contract,
+					Amount:   response.Batches[i].Transactions[j].Token.Amount,
+				},
+				Erc20Fee: &types.ERC20Token{
+					Contract: response.Batches[i].Transactions[j].Fee.Contract,
+					Amount:   response.Batches[i].Transactions[j].Fee.Amount,
+				},
+			}
+		}
+	}
+	return &types.QueryOutgoingTxBatchesResponse{Batches: batches}, nil
+}
+
+func (k queryServer) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
+	response, err := k.Keeper.BatchRequestByNonce(c, &crosschaintypes.QueryBatchRequestByNonceRequest{
+		ChainName:     ethtypes.ModuleName,
+		TokenContract: req.TokenContract,
+		Nonce:         req.Nonce,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var outgoingTxBatch = &types.OutgoingTxBatch{
+		BatchNonce:    response.Batch.BatchNonce,
+		BatchTimeout:  response.Batch.BatchTimeout,
+		Transactions:  make([]*types.OutgoingTransferTx, len(response.Batch.Transactions)),
+		TokenContract: response.Batch.TokenContract,
+		Block:         response.Batch.Block,
+		FeeReceive:    response.Batch.FeeReceive,
+	}
+	for i := 0; i < len(response.Batch.Transactions); i++ {
+		outgoingTxBatch.Transactions[i] = &types.OutgoingTransferTx{
+			Id:          response.Batch.Transactions[i].Id,
+			Sender:      response.Batch.Transactions[i].Sender,
+			DestAddress: response.Batch.Transactions[i].DestAddress,
+			Erc20Token: &types.ERC20Token{
+				Contract: response.Batch.Transactions[i].Token.Contract,
+				Amount:   response.Batch.Transactions[i].Token.Amount,
+			},
+			Erc20Fee: &types.ERC20Token{
+				Contract: response.Batch.Transactions[i].Fee.Contract,
+				Amount:   response.Batch.Transactions[i].Fee.Amount,
+			},
+		}
+	}
+	return &types.QueryBatchRequestByNonceResponse{Batch: outgoingTxBatch}, nil
+}
+
+func (k queryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
+	response, err := k.Keeper.BatchConfirm(c, &crosschaintypes.QueryBatchConfirmRequest{
+		ChainName:      ethtypes.ModuleName,
+		TokenContract:  req.TokenContract,
+		BridgerAddress: req.Address,
+		Nonce:          req.Nonce,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryBatchConfirmResponse{Confirm: &types.MsgConfirmBatch{
+		Nonce:         response.Confirm.Nonce,
+		TokenContract: response.Confirm.TokenContract,
+		EthSigner:     response.Confirm.ExternalAddress,
+		Orchestrator:  response.Confirm.BridgerAddress,
+		Signature:     response.Confirm.Signature,
+	}}, nil
+}
+
+func (k queryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
+	response, err := k.Keeper.BatchConfirms(c, &crosschaintypes.QueryBatchConfirmsRequest{
+		ChainName:     ethtypes.ModuleName,
+		TokenContract: req.TokenContract,
+		Nonce:         req.Nonce,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var confirms = make([]*types.MsgConfirmBatch, len(response.Confirms))
+	for i := 0; i < len(response.Confirms); i++ {
+		confirms[i] = &types.MsgConfirmBatch{
+			Nonce:         response.Confirms[i].Nonce,
+			TokenContract: response.Confirms[i].TokenContract,
+			EthSigner:     response.Confirms[i].ExternalAddress,
+			Orchestrator:  response.Confirms[i].BridgerAddress,
+			Signature:     response.Confirms[i].Signature,
+		}
+	}
+	return &types.QueryBatchConfirmsResponse{Confirms: confirms}, nil
+}
+
+func (k queryServer) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
+	response, err := k.Keeper.LastEventNonceByAddr(c, &crosschaintypes.QueryLastEventNonceByAddrRequest{
+		ChainName:      ethtypes.ModuleName,
+		BridgerAddress: req.Address,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryLastEventNonceByAddrResponse{EventNonce: response.EventNonce}, nil
+}
+
+func (k queryServer) DenomToERC20(c context.Context, req *types.QueryDenomToERC20Request) (*types.QueryDenomToERC20Response, error) {
+	response, err := k.Keeper.DenomToToken(c, &crosschaintypes.QueryDenomToTokenRequest{
+		ChainName: ethtypes.ModuleName,
+		Denom:     req.Denom,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryDenomToERC20Response{Erc20: response.Token, FxOriginated: req.Denom == fxtypes.DefaultDenom}, err
+}
+
+func (k queryServer) ERC20ToDenom(c context.Context, req *types.QueryERC20ToDenomRequest) (*types.QueryERC20ToDenomResponse, error) {
+	response, err := k.Keeper.TokenToDenom(c, &crosschaintypes.QueryTokenToDenomRequest{
+		ChainName: ethtypes.ModuleName,
+		Token:     req.Erc20,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryERC20ToDenomResponse{Denom: response.Denom, FxOriginated: response.Denom == fxtypes.DefaultDenom}, nil
+}
+
+func (k queryServer) GetDelegateKeyByValidator(c context.Context, req *types.QueryDelegateKeyByValidatorRequest) (*types.QueryDelegateKeyByValidatorResponse, error) {
+	response, err := k.Keeper.GetOracleByAddr(c, &crosschaintypes.QueryOracleByAddrRequest{
+		ChainName:     ethtypes.ModuleName,
+		OracleAddress: req.ValidatorAddress,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryDelegateKeyByValidatorResponse{
+		EthAddress:          response.Oracle.ExternalAddress,
+		OrchestratorAddress: response.Oracle.BridgerAddress,
+	}, nil
+}
+
+func (k queryServer) GetDelegateKeyByOrchestrator(c context.Context, req *types.QueryDelegateKeyByOrchestratorRequest) (*types.QueryDelegateKeyByOrchestratorResponse, error) {
+	response, err := k.Keeper.GetOracleByBridgerAddr(c, &crosschaintypes.QueryOracleByBridgerAddrRequest{
+		ChainName:      ethtypes.ModuleName,
+		BridgerAddress: req.OrchestratorAddress,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryDelegateKeyByOrchestratorResponse{
+		ValidatorAddress: response.Oracle.OracleAddress,
+		EthAddress:       response.Oracle.ExternalAddress,
+	}, nil
+}
+
+func (k queryServer) GetDelegateKeyByEth(c context.Context, req *types.QueryDelegateKeyByEthRequest) (*types.QueryDelegateKeyByEthResponse, error) {
+	response, err := k.Keeper.GetOracleByExternalAddr(c, &crosschaintypes.QueryOracleByExternalAddrRequest{
+		ChainName:       ethtypes.ModuleName,
+		ExternalAddress: req.EthAddress,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryDelegateKeyByEthResponse{
+		ValidatorAddress:    response.Oracle.OracleAddress,
+		OrchestratorAddress: response.Oracle.BridgerAddress,
+	}, nil
+}
+
+func (k queryServer) GetPendingSendToEth(c context.Context, req *types.QueryPendingSendToEthRequest) (*types.QueryPendingSendToEthResponse, error) {
+	response, err := k.Keeper.GetPendingSendToExternal(c, &crosschaintypes.QueryPendingSendToExternalRequest{
+		ChainName:     ethtypes.ModuleName,
+		SenderAddress: req.SenderAddress,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var res = &types.QueryPendingSendToEthResponse{
+		TransfersInBatches: make([]*types.OutgoingTransferTx, len(response.TransfersInBatches)),
+		UnbatchedTransfers: make([]*types.OutgoingTransferTx, len(response.UnbatchedTransfers)),
+	}
+	for i := 0; i < len(response.TransfersInBatches); i++ {
+		res.UnbatchedTransfers[i] = &types.OutgoingTransferTx{
+			Id:          response.TransfersInBatches[i].Id,
+			Sender:      response.TransfersInBatches[i].Sender,
+			DestAddress: response.TransfersInBatches[i].DestAddress,
+			Erc20Token: &types.ERC20Token{
+				Contract: response.TransfersInBatches[i].Token.Contract,
+				Amount:   response.TransfersInBatches[i].Token.Amount,
+			},
+			Erc20Fee: &types.ERC20Token{
+				Contract: response.TransfersInBatches[i].Fee.Contract,
+				Amount:   response.TransfersInBatches[i].Fee.Amount,
+			},
 		}
 	}
 	return res, nil
 }
 
-func (k Keeper) GetIbcSequenceHeightByChannel(c context.Context, req *types.QueryIbcSequenceHeightRequest) (*types.QueryIbcSequenceHeightResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	height, found := k.GetIbcSequenceHeight(ctx, req.GetSourcePort(), req.GetSourceChannel(), req.GetSequence())
-	return &types.QueryIbcSequenceHeightResponse{Found: found, Height: height}, nil
-}
-
-func (k Keeper) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
-	blockHeight := k.GetLastObservedEthBlockHeight(sdk.UnwrapSDKContext(c))
-	return &types.QueryLastObservedBlockHeightResponse{BlockHeight: blockHeight.FxBlockHeight, EthBlockHeight: blockHeight.EthBlockHeight}, nil
-}
-
-func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	addr, err := sdk.AccAddressFromBech32(req.Address)
+func (k queryServer) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
+	response, err := k.Keeper.LastObservedBlockHeight(c, &crosschaintypes.QueryLastObservedBlockHeightRequest{ChainName: ethtypes.ModuleName})
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "address")
+		return nil, err
 	}
-	valAddr, found := k.GetOrchestratorValidator(ctx, addr)
-	if !found {
-		return nil, status.Error(codes.NotFound, "address")
-	}
-	lastEventBlockHeight := k.getLastEventBlockHeightByValidator(ctx, valAddr)
-	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
+	return &types.QueryLastObservedBlockHeightResponse{BlockHeight: response.BlockHeight, EthBlockHeight: response.ExternalBlockHeight}, nil
 }
 
-func (k Keeper) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	timeout := k.GetBatchTimeoutHeight(ctx)
-	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: timeout}, nil
-}
-
-func (k Keeper) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	var bridgeTokens = make([]*types.ERC20ToDenom, 0)
-	k.IterateERC20ToDenom(ctx, func(bytes []byte, token *types.ERC20ToDenom) bool {
-		bridgeTokens = append(bridgeTokens, token)
-		return false
+func (k queryServer) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
+	response, err := k.Keeper.LastEventBlockHeightByAddr(c, &crosschaintypes.QueryLastEventBlockHeightByAddrRequest{
+		ChainName:      ethtypes.ModuleName,
+		BridgerAddress: req.Address,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: response.BlockHeight}, nil
+}
+
+func (k queryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
+	response, err := k.Keeper.ProjectedBatchTimeoutHeight(c, &crosschaintypes.QueryProjectedBatchTimeoutHeightRequest{ChainName: ethtypes.ModuleName})
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: response.TimeoutHeight}, nil
+}
+
+func (k queryServer) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
+	response, err := k.Keeper.BridgeTokens(c, &crosschaintypes.QueryBridgeTokensRequest{ChainName: ethtypes.ModuleName})
+	if err != nil {
+		return nil, err
+	}
+	var bridgeTokens = make([]*types.ERC20ToDenom, len(response.BridgeTokens))
+	for i := 0; i < len(response.BridgeTokens); i++ {
+		bridgeTokens[i] = &types.ERC20ToDenom{
+			Erc20: response.BridgeTokens[i].Token,
+			Denom: response.BridgeTokens[i].Denom,
+		}
+	}
 	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens}, nil
 }

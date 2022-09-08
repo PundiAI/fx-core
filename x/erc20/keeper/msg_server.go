@@ -13,6 +13,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
@@ -700,7 +701,7 @@ func targetToDenomPrefix(ctx sdk.Context, target string) (prefix string) {
 		return target
 	}
 	if target == gravitytypes.ModuleName {
-		return gravitytypes.GravityDenomPrefix
+		return ethtypes.ModuleName
 	}
 	return target
 }

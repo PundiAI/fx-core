@@ -24,8 +24,7 @@ import (
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
-	"github.com/functionx/fx-core/v3/x/gravity"
-	gravitykeeper "github.com/functionx/fx-core/v3/x/gravity/keeper"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
@@ -317,7 +316,7 @@ func (suite *KeeperTestSuite) TestHookIBCOneToMany() {
 	tronExternal, err := tronaddress.Base58ToAddress("THtbMw6byXuiFhsRv1o1BQRtzvube9X1jx")
 	suite.Require().NoError(err)
 
-	suite.ctx = testInitGravityChain(suite.T(), suite.ctx, suite.app.GravityKeeper, suite.address.Bytes(), addr1.Bytes(), helpers.GenerateAddress())
+	suite.ctx = testInitGravityChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr1.Bytes(), helpers.GenerateAddress())
 	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), helpers.GenerateAddress().Bytes(), helpers.GenerateAddress())
 	suite.ctx = testInitTronCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), helpers.GenerateAddress().Bytes(), tronExternal)
 
@@ -348,14 +347,14 @@ func (suite *KeeperTestSuite) TestHookIBCOneToMany() {
 	tronReceiver := "THtbMw6byXuiFhsRv1o1BQRtzvube9X1jx"
 	usdtCoin := sdk.NewCoin(usdtTokenPair.Denom, sdk.NewInt(1))
 
-	err = suite.app.GravityKeeper.TransferAfter(suite.ctx, sender, hexReceiver, usdtCoin, usdtCoin)
+	err = suite.app.EthKeeper.TransferAfter(suite.ctx, sender, hexReceiver, usdtCoin, usdtCoin)
 	suite.Require().NoError(err)
-	gravityTransactions := suite.app.GravityKeeper.GetPoolTransactions(suite.ctx)
+	gravityTransactions := suite.app.EthKeeper.GetUnbatchedTransactions(suite.ctx)
 	require.Equal(suite.T(), 1, len(gravityTransactions))
 	require.NotNil(suite.T(), gravityTransactions[0])
 	require.Equal(suite.T(), gravityTransactions[0].DestAddress, hexReceiver)
-	require.Equal(suite.T(), gravityTransactions[0].Erc20Token.Amount.BigInt(), big.NewInt(1))
-	require.Equal(suite.T(), gravityTransactions[0].Erc20Fee.Amount.BigInt(), big.NewInt(1))
+	require.Equal(suite.T(), gravityTransactions[0].Token.Amount.BigInt(), big.NewInt(1))
+	require.Equal(suite.T(), gravityTransactions[0].Fee.Amount.BigInt(), big.NewInt(1))
 	require.Equal(suite.T(), gravityTransactions[0].Sender, sender)
 
 	err = suite.app.BscKeeper.TransferAfter(suite.ctx, sender, hexReceiver, usdtCoin, usdtCoin)
@@ -514,18 +513,40 @@ func testInitTronCrossChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracl
 	return ctx
 }
 
-func testInitGravityChain(t *testing.T, ctx sdk.Context, cck gravitykeeper.Keeper, val sdk.ValAddress, orch sdk.AccAddress, externalAddr common.Address) sdk.Context {
-	msg := &gravitytypes.MsgSetOrchestratorAddress{
-		Validator:    val.String(),
-		Orchestrator: orch.String(),
-		EthAddress:   externalAddr.String(),
-	}
-	impl := gravitykeeper.NewMsgServerImpl(cck)
-	_, err := impl.SetOrchestratorAddress(sdk.WrapSDKContext(ctx), msg)
+func testInitGravityChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracleAddress, bridgeAddress sdk.AccAddress, externalAddress common.Address) sdk.Context {
+	deposit := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(big.NewInt(0).Mul(big.NewInt(10), big.NewInt(1e18))))
+	err := myApp.BankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddress, ethtypes.ModuleName, sdk.NewCoins(deposit))
 	require.NoError(t, err)
 
-	gravity.EndBlocker(ctx, cck)
+	testCrossChainParamsProposal(t, ctx, myApp.EthKeeper, oracleAddress, ethtypes.ModuleName)
+
+	oracle := crosschaintypes.Oracle{
+		OracleAddress:   oracleAddress.String(),
+		BridgerAddress:  bridgeAddress.String(),
+		ExternalAddress: externalAddress.String(),
+		DelegateAmount:  deposit.Amount,
+		StartHeight:     ctx.BlockHeight(),
+		Online:          true,
+		SlashTimes:      0,
+	}
+	// save oracle
+	myApp.EthKeeper.SetOracle(ctx, oracle)
+
+	myApp.EthKeeper.SetOracleByBridger(ctx, bridgeAddress, oracleAddress)
+	// set the ethereum address
+	myApp.EthKeeper.SetOracleByExternalAddress(ctx, externalAddress.String(), oracleAddress)
+
+	myApp.EthKeeper.CommonSetOracleTotalPower(ctx)
+
+	testCrossChainOracleSetUpdateClaim(t, ctx, myApp.EthKeeper, bridgeAddress, externalAddress, 1, ethtypes.ModuleName)
+
+	testCrossChainBridgeTokenClaim(t, ctx, myApp.EthKeeper, bridgeAddress, 2,
+		EthUSDTokenContract, "USDT Token", "USDT", 6, ethtypes.ModuleName, "")
+
+	crosschain.EndBlocker(ctx, myApp.EthKeeper)
+
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+
 	return ctx
 }
 

@@ -3,7 +3,6 @@ package gravity
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v3/x/gravity/client/cli"
 	"github.com/functionx/fx-core/v3/x/gravity/keeper"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
@@ -38,18 +38,13 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // DefaultGenesis implements app module basic
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
+	return []byte("{}")
 }
 
 // ValidateGenesis implements app module basic
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
-	var data types.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
-	}
-
-	return data.ValidateBasic()
+func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConfig, _ json.RawMessage) error {
+	return nil
 }
 
 // RegisterRESTRoutes implements app module basic
@@ -83,14 +78,16 @@ func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper   crosschainkeeper.Keeper
+	migrator keeper.Migrator
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(keeper crosschainkeeper.Keeper, migrator keeper.Migrator) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         k,
+		keeper:         keeper,
+		migrator:       migrator,
 	}
 }
 
@@ -106,38 +103,36 @@ func (am AppModule) Route() sdk.Route {
 func (am AppModule) QuerierRoute() string { return types.QuerierRoute }
 
 // LegacyQuerierHandler returns the distribution module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
+func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
+	return nil
 }
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
+
+	if err := cfg.RegisterMigration(types.ModuleName, 1, am.migrator.Migrate1to2); err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis initializes the genesis state for this module and implements app module.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
+func (am AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(ExportGenesis(ctx, am.keeper))
+func (am AppModule) ExportGenesis(_ sdk.Context, _ codec.JSONCodec) json.RawMessage {
+	return []byte("{}")
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 1
+	return 2
 }
 
 // EndBlock implements app module
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper)
-	// this begin blocker is only for testing purposes, don't import into your
-	// own chain running gravity
 	return []abci.ValidatorUpdate{}
 }

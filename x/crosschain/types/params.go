@@ -19,7 +19,7 @@ const (
 var (
 	// AttestationVotesPowerThreshold threshold of votes power to succeed
 	AttestationVotesPowerThreshold = sdk.NewInt(66)
-	// AttestationProposalOracleChangePowerThreshold
+
 	AttestationProposalOracleChangePowerThreshold = sdk.NewInt(30)
 
 	// ParamsStoreKeyGravityID stores the gravity id

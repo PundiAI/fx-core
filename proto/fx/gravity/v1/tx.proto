@@ -7,59 +7,28 @@ import "fx/gravity/v1/types.proto";
 
 option go_package = "github.com/functionx/fx-core/x/gravity/types";
 
-// Msg defines the state transitions possible within gravity
+// Deprecated after upgrade v3
 service Msg {
+  // Deprecated: Please use crosschain Msg.OracleSetConfirm
   rpc ValsetConfirm(MsgValsetConfirm) returns (MsgValsetConfirmResponse);
+  // Deprecated: Please use crosschain Msg.SendToExternal
   rpc SendToEth(MsgSendToEth) returns (MsgSendToEthResponse);
+  // Deprecated: Please use crosschain Msg.RequestBatch
   rpc RequestBatch(MsgRequestBatch) returns (MsgRequestBatchResponse);
+  // Deprecated: Please use crosschain Msg.ConfirmBatch
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
+  // Deprecated: Please use crosschain Msg.SendToFxClaim
   rpc DepositClaim(MsgDepositClaim) returns (MsgDepositClaimResponse);
+  // Deprecated: Please use crosschain Msg.SendToExternalClaim
   rpc WithdrawClaim(MsgWithdrawClaim) returns (MsgWithdrawClaimResponse);
+  // Deprecated: Please use crosschain Msg.CancelSendToExternal
+  rpc CancelSendToEth(MsgCancelSendToEth) returns (MsgCancelSendToEthResponse);
+  // Deprecated: Please use crosschain Msg.OracleSetUpdateClaim
   rpc ValsetUpdateClaim(MsgValsetUpdatedClaim)
       returns (MsgValsetUpdatedClaimResponse);
-  rpc SetOrchestratorAddress(MsgSetOrchestratorAddress)
-      returns (MsgSetOrchestratorAddressResponse);
-  rpc CancelSendToEth(MsgCancelSendToEth) returns (MsgCancelSendToEthResponse);
-  rpc FxOriginatedTokenClaim(MsgFxOriginatedTokenClaim)
-      returns (MsgFxOriginatedTokenClaimResponse);
 }
 
-// MsgSetOrchestratorAddress
-// this message allows validators to delegate their voting responsibilities
-// to a given key. This key is then used as an optional authentication method
-// for sigining oracle claims
-// VALIDATOR
-// The validator field is a cosmosvaloper1... string (i.e. sdk.ValAddress)
-// that references a validator in the active set
-// ORCHESTRATOR
-// The orchestrator field is a cosmos1... string  (i.e. sdk.AccAddress) that
-// references the key that is being delegated to
-// ETH_ADDRESS
-// This is a hex encoded 0x Ethereum public key that will be used by this
-// validator on Ethereum
-message MsgSetOrchestratorAddress {
-  string validator = 1;
-  string orchestrator = 2;
-  string eth_address = 3;
-}
-
-message MsgSetOrchestratorAddressResponse {}
-
-// MsgValsetConfirm
-// this is the message sent by the validators when they wish to submit their
-// signatures over the validator set at a given block height. A validator must
-// first call MsgSetEthAddress to set their Ethereum address to be used for
-// signing. Then someone (anyone) must make a ValsetRequest, the request is
-// essentially a messaging mechanism to determine which block all validators
-// should submit signatures over. Finally validators sign the validator set,
-// powers, and Ethereum addresses of the entire validator set at the height of a
-// ValsetRequest and submit that signature with this message.
-//
-// If a sufficient number of validators (66% of voting power) (A) have set
-// Ethereum addresses and (B) submit ValsetConfirm messages with their
-// signatures it is then possible for anyone to view these signatures in the
-// chain store and submit them to Ethereum to update the validator set
-// -------------
+// Deprecated after upgrade v3
 message MsgValsetConfirm {
   uint64 nonce = 1;
   string orchestrator = 2;
@@ -67,20 +36,10 @@ message MsgValsetConfirm {
   string signature = 4;
 }
 
+// Deprecated after upgrade v3
 message MsgValsetConfirmResponse {}
 
-// MsgSendToEth
-// This is the message that a user calls when they want to bridge an asset
-// it will later be removed when it is included in a batch and successfully
-// submitted tokens are removed from the users balance immediately
-// -------------
-// AMOUNT:
-// the coin to send across the bridge, note the restriction that this is a
-// single coin not a set of coins that is normal in other Cosmos messages
-// FEE:
-// the fee paid for the bridge, distinct from the fee paid to the chain to
-// actually send this message in the first place. So a successful send has
-// two layers of fees for the user
+// Deprecated after upgrade v3
 message MsgSendToEth {
   string sender = 1;
   string eth_dest = 2;
@@ -88,19 +47,10 @@ message MsgSendToEth {
   cosmos.base.v1beta1.Coin bridge_fee = 4 [ (gogoproto.nullable) = false ];
 }
 
+// Deprecated after upgrade v3
 message MsgSendToEthResponse {}
 
-// MsgRequestBatch
-// this is a message anyone can send that requests a batch of transactions to
-// send across the bridge be created for whatever block height this message is
-// included in. This acts as a coordination point, the handler for this message
-// looks at the AddToOutgoingPool tx's in the store and generates a batch, also
-// available in the store tied to this message. The validators then grab this
-// batch, sign it, submit the signatures with a MsgConfirmBatch before a relayer
-// can finally submit the batch
-// -------------
-// feeReceive:
-
+// Deprecated after upgrade v3
 message MsgRequestBatch {
   string sender = 1;
   string denom = 2;
@@ -115,16 +65,10 @@ message MsgRequestBatch {
   ];
 }
 
+// Deprecated after upgrade v3
 message MsgRequestBatchResponse {}
 
-// MsgConfirmBatch
-// When validators observe a MsgRequestBatch they form a batch by ordering
-// transactions currently in the txqueue in order of highest to lowest fee,
-// cutting off when the batch either reaches a hardcoded maximum size (to be
-// decided, probably around 100) or when transactions stop being profitable
-// (determine this without nondeterminism) This message includes the batch
-// as well as an Ethereum signature over this batch by the validator
-// -------------
+// Deprecated after upgrade v3
 message MsgConfirmBatch {
   uint64 nonce = 1;
   string token_contract = 2;
@@ -133,13 +77,10 @@ message MsgConfirmBatch {
   string signature = 5;
 }
 
+// Deprecated after upgrade v3
 message MsgConfirmBatchResponse {}
 
-// EthereumBridgeDepositClaim
-// When more than 66% of the active validator set has
-// claimed to have seen the deposit enter the ethereum blockchain coins are
-// issued to the Cosmos address in question
-// -------------
+// Deprecated after upgrade v3
 message MsgDepositClaim {
   uint64 event_nonce = 1;
   uint64 block_height = 2;
@@ -154,10 +95,10 @@ message MsgDepositClaim {
   string orchestrator = 8;
 }
 
+// Deprecated after upgrade v3
 message MsgDepositClaimResponse {}
 
-// WithdrawClaim claims that a batch of withdrawal
-// operations on the bridge contract was executed.
+// Deprecated after upgrade v3
 message MsgWithdrawClaim {
   uint64 event_nonce = 1;
   uint64 block_height = 2;
@@ -166,18 +107,41 @@ message MsgWithdrawClaim {
   string orchestrator = 5;
 }
 
+// Deprecated after upgrade v3
 message MsgWithdrawClaimResponse {}
 
-// This call allows the sender (and only the sender)
-// to cancel a given MsgSendToEth and recieve a refund
-// of the tokens
+// Deprecated after upgrade v3
 message MsgCancelSendToEth {
   uint64 transaction_id = 1;
   string sender = 2;
 }
 
+// Deprecated after upgrade v3
 message MsgCancelSendToEthResponse {}
 
+// Deprecated after upgrade v3
+message MsgValsetUpdatedClaim {
+  uint64 event_nonce = 1;
+  uint64 block_height = 2;
+  uint64 valset_nonce = 3;
+  repeated BridgeValidator members = 4;
+  string orchestrator = 6;
+}
+
+// Deprecated after upgrade v3
+message MsgValsetUpdatedClaimResponse {}
+
+// Deprecated after upgrade v3
+message MsgSetOrchestratorAddress {
+  string validator = 1;
+  string orchestrator = 2;
+  string eth_address = 3;
+}
+
+// Deprecated after upgrade v3
+message MsgSetOrchestratorAddressResponse {}
+
+// Deprecated after upgrade v3
 message MsgFxOriginatedTokenClaim {
   uint64 event_nonce = 1;
   uint64 block_height = 2;
@@ -188,16 +152,5 @@ message MsgFxOriginatedTokenClaim {
   string orchestrator = 7;
 }
 
+// Deprecated after upgrade v3
 message MsgFxOriginatedTokenClaimResponse {}
-
-// This informs the Cosmos module that a validator
-// set has been updated.
-message MsgValsetUpdatedClaim {
-  uint64 event_nonce = 1;
-  uint64 block_height = 2;
-  uint64 valset_nonce = 3;
-  repeated BridgeValidator members = 4;
-  string orchestrator = 6;
-}
-
-message MsgValsetUpdatedClaimResponse {}

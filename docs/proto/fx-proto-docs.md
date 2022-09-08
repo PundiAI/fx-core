@@ -156,24 +156,19 @@
   
     - [Msg](#fx.erc20.v1.Msg)
   
-- [fx/gravity/v1/attestation.proto](#fx/gravity/v1/attestation.proto)
-    - [Attestation](#fx.gravity.v1.Attestation)
-    - [ERC20Token](#fx.gravity.v1.ERC20Token)
-  
-    - [ClaimType](#fx.gravity.v1.ClaimType)
-  
-- [fx/gravity/v1/batch.proto](#fx/gravity/v1/batch.proto)
-    - [OutgoingTransferTx](#fx.gravity.v1.OutgoingTransferTx)
-    - [OutgoingTxBatch](#fx.gravity.v1.OutgoingTxBatch)
-  
-- [fx/gravity/v1/ethereum_signer.proto](#fx/gravity/v1/ethereum_signer.proto)
-    - [SignType](#fx.gravity.v1.SignType)
-  
 - [fx/gravity/v1/types.proto](#fx/gravity/v1/types.proto)
+    - [Attestation](#fx.gravity.v1.Attestation)
+    - [BatchFees](#fx.gravity.v1.BatchFees)
     - [BridgeValidator](#fx.gravity.v1.BridgeValidator)
     - [ERC20ToDenom](#fx.gravity.v1.ERC20ToDenom)
+    - [ERC20Token](#fx.gravity.v1.ERC20Token)
     - [LastObservedEthereumBlockHeight](#fx.gravity.v1.LastObservedEthereumBlockHeight)
+    - [MinBatchFee](#fx.gravity.v1.MinBatchFee)
+    - [OutgoingTransferTx](#fx.gravity.v1.OutgoingTransferTx)
+    - [OutgoingTxBatch](#fx.gravity.v1.OutgoingTxBatch)
     - [Valset](#fx.gravity.v1.Valset)
+  
+    - [ClaimType](#fx.gravity.v1.ClaimType)
   
 - [fx/gravity/v1/tx.proto](#fx/gravity/v1/tx.proto)
     - [MsgCancelSendToEth](#fx.gravity.v1.MsgCancelSendToEth)
@@ -200,13 +195,7 @@
     - [Msg](#fx.gravity.v1.Msg)
   
 - [fx/gravity/v1/genesis.proto](#fx/gravity/v1/genesis.proto)
-    - [GenesisState](#fx.gravity.v1.GenesisState)
     - [Params](#fx.gravity.v1.Params)
-  
-- [fx/gravity/v1/pool.proto](#fx/gravity/v1/pool.proto)
-    - [BatchFees](#fx.gravity.v1.BatchFees)
-    - [IDSet](#fx.gravity.v1.IDSet)
-    - [MinBatchFee](#fx.gravity.v1.MinBatchFee)
   
 - [fx/gravity/v1/query.proto](#fx/gravity/v1/query.proto)
     - [QueryBatchConfirmRequest](#fx.gravity.v1.QueryBatchConfirmRequest)
@@ -231,8 +220,6 @@
     - [QueryDenomToERC20Response](#fx.gravity.v1.QueryDenomToERC20Response)
     - [QueryERC20ToDenomRequest](#fx.gravity.v1.QueryERC20ToDenomRequest)
     - [QueryERC20ToDenomResponse](#fx.gravity.v1.QueryERC20ToDenomResponse)
-    - [QueryIbcSequenceHeightRequest](#fx.gravity.v1.QueryIbcSequenceHeightRequest)
-    - [QueryIbcSequenceHeightResponse](#fx.gravity.v1.QueryIbcSequenceHeightResponse)
     - [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.v1.QueryLastEventBlockHeightByAddrRequest)
     - [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.v1.QueryLastEventBlockHeightByAddrResponse)
     - [QueryLastEventNonceByAddrRequest](#fx.gravity.v1.QueryLastEventNonceByAddrRequest)
@@ -2552,31 +2539,17 @@ Msg defines the erc20 Msg service.
 
 
 
-<a name="fx/gravity/v1/attestation.proto"></a>
+<a name="fx/gravity/v1/types.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## fx/gravity/v1/attestation.proto
+## fx/gravity/v1/types.proto
 
 
 
 <a name="fx.gravity.v1.Attestation"></a>
 
 ### Attestation
-Attestation is an aggregate of `claims` that eventually becomes `observed` by
-all orchestrators
-EVENT_NONCE:
-EventNonce a nonce provided by the gravity contract that is unique per event
-fired These event nonces must be relayed in order. This is a correctness
-issue, if relaying out of order transaction replay attacks become possible
-OBSERVED:
-Observed indicates that >67% of validators have attested to the event,
-and that the event should be executed by the gravity state machine
-
-The actual content of the claims is passed in with the transaction making the
-claim and then passed through the call stack alongside the attestation while
-it is processed the key in which the attestation is stored is keyed on the
-exact details of the claim but there is no reason to store those exact
-details becuause the next message sender will kindly provide you with them.
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2591,15 +2564,60 @@ details becuause the next message sender will kindly provide you with them.
 
 
 
+<a name="fx.gravity.v1.BatchFees"></a>
+
+### BatchFees
+Deprecated after upgrade v3
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `token_contract` | [string](#string) |  |  |
+| `total_fees` | [string](#string) |  |  |
+| `total_txs` | [uint64](#uint64) |  |  |
+| `total_amount` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.gravity.v1.BridgeValidator"></a>
+
+### BridgeValidator
+Deprecated after upgrade v3
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `power` | [uint64](#uint64) |  |  |
+| `eth_address` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.gravity.v1.ERC20ToDenom"></a>
+
+### ERC20ToDenom
+Deprecated after upgrade v3
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `erc20` | [string](#string) |  |  |
+| `denom` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="fx.gravity.v1.ERC20Token"></a>
 
 ### ERC20Token
-ERC20Token unique identifier for an Ethereum ERC20 token.
-CONTRACT:
-The contract address on ETH of the token, this could be a Cosmos
-originated token, if so it will be the ERC20 address of the representation
-(note: developers should look up the token symbol using the address on ETH to
-display for UI)
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2611,43 +2629,43 @@ display for UI)
 
 
 
- <!-- end messages -->
+
+<a name="fx.gravity.v1.LastObservedEthereumBlockHeight"></a>
+
+### LastObservedEthereumBlockHeight
+Deprecated after upgrade v3
 
 
-<a name="fx.gravity.v1.ClaimType"></a>
-
-### ClaimType
-ClaimType is the cosmos type of an event from the counterpart chain that can
-be handled
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| CLAIM_TYPE_UNSPECIFIED | 0 |  |
-| CLAIM_TYPE_DEPOSIT | 1 |  |
-| CLAIM_TYPE_WITHDRAW | 2 |  |
-| CLAIM_TYPE_ORIGINATED_TOKEN | 3 |  |
-| CLAIM_TYPE_VALSET_UPDATED | 4 |  |
-
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fx_block_height` | [uint64](#uint64) |  |  |
+| `eth_block_height` | [uint64](#uint64) |  |  |
 
 
 
-<a name="fx/gravity/v1/batch.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
 
-## fx/gravity/v1/batch.proto
+
+
+<a name="fx.gravity.v1.MinBatchFee"></a>
+
+### MinBatchFee
+Deprecated after upgrade v3
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `token_contract` | [string](#string) |  |  |
+| `baseFee` | [string](#string) |  |  |
+
+
+
 
 
 
 <a name="fx.gravity.v1.OutgoingTransferTx"></a>
 
 ### OutgoingTransferTx
-OutgoingTransferTx represents an individual send from gravity to ETH
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2666,7 +2684,7 @@ OutgoingTransferTx represents an individual send from gravity to ETH
 <a name="fx.gravity.v1.OutgoingTxBatch"></a>
 
 ### OutgoingTxBatch
-OutgoingTxBatch represents a batch of transactions going from gravity to ETH
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2682,111 +2700,11 @@ OutgoingTxBatch represents a batch of transactions going from gravity to ETH
 
 
 
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="fx/gravity/v1/ethereum_signer.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## fx/gravity/v1/ethereum_signer.proto
-
-
- <!-- end messages -->
-
-
-<a name="fx.gravity.v1.SignType"></a>
-
-### SignType
-SignType defines messages that have been signed by an orchestrator
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| SIGN_TYPE_UNSPECIFIED | 0 |  |
-| SIGN_TYPE_ORCHESTRATOR_SIGNED_MULTI_SIG_UPDATE | 1 |  |
-| SIGN_TYPE_ORCHESTRATOR_SIGNED_WITHDRAW_BATCH | 2 |  |
-
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="fx/gravity/v1/types.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## fx/gravity/v1/types.proto
-
-
-
-<a name="fx.gravity.v1.BridgeValidator"></a>
-
-### BridgeValidator
-BridgeValidator represents a validator's ETH address and its power
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `power` | [uint64](#uint64) |  |  |
-| `eth_address` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="fx.gravity.v1.ERC20ToDenom"></a>
-
-### ERC20ToDenom
-This records the relationship between an ERC20 token and the denom
-of the corresponding fx originated asset
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `erc20` | [string](#string) |  |  |
-| `denom` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="fx.gravity.v1.LastObservedEthereumBlockHeight"></a>
-
-### LastObservedEthereumBlockHeight
-LastObservedEthereumBlockHeight stores the last observed
-Ethereum block height along with the fx block height that
-it was observed at. These two numbers can be used to project
-outward and always produce batches with timeouts in the future
-even if no Ethereum block height has been relayed for a long time
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `fx_block_height` | [uint64](#uint64) |  |  |
-| `eth_block_height` | [uint64](#uint64) |  |  |
-
-
-
-
-
 
 <a name="fx.gravity.v1.Valset"></a>
 
 ### Valset
-Valset is the Ethereum Bridge Multsig Set, each gravity validator also
-maintains an ETH key to sign messages, these are used to check signatures on
-ETH because of the significant gas savings
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2800,6 +2718,21 @@ ETH because of the significant gas savings
 
 
  <!-- end messages -->
+
+
+<a name="fx.gravity.v1.ClaimType"></a>
+
+### ClaimType
+Deprecated after upgrade v3
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| CLAIM_TYPE_UNSPECIFIED | 0 |  |
+| CLAIM_TYPE_DEPOSIT | 1 |  |
+| CLAIM_TYPE_WITHDRAW | 2 |  |
+| CLAIM_TYPE_ORIGINATED_TOKEN | 3 |  |
+| CLAIM_TYPE_VALSET_UPDATED | 4 |  |
+
 
  <!-- end enums -->
 
@@ -2819,9 +2752,7 @@ ETH because of the significant gas savings
 <a name="fx.gravity.v1.MsgCancelSendToEth"></a>
 
 ### MsgCancelSendToEth
-This call allows the sender (and only the sender)
-to cancel a given MsgSendToEth and recieve a refund
-of the tokens
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2837,7 +2768,7 @@ of the tokens
 <a name="fx.gravity.v1.MsgCancelSendToEthResponse"></a>
 
 ### MsgCancelSendToEthResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -2847,14 +2778,7 @@ of the tokens
 <a name="fx.gravity.v1.MsgConfirmBatch"></a>
 
 ### MsgConfirmBatch
-MsgConfirmBatch
-When validators observe a MsgRequestBatch they form a batch by ordering
-transactions currently in the txqueue in order of highest to lowest fee,
-cutting off when the batch either reaches a hardcoded maximum size (to be
-decided, probably around 100) or when transactions stop being profitable
-(determine this without nondeterminism) This message includes the batch
-as well as an Ethereum signature over this batch by the validator
--------------
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2873,7 +2797,7 @@ as well as an Ethereum signature over this batch by the validator
 <a name="fx.gravity.v1.MsgConfirmBatchResponse"></a>
 
 ### MsgConfirmBatchResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -2883,11 +2807,7 @@ as well as an Ethereum signature over this batch by the validator
 <a name="fx.gravity.v1.MsgDepositClaim"></a>
 
 ### MsgDepositClaim
-EthereumBridgeDepositClaim
-When more than 66% of the active validator set has
-claimed to have seen the deposit enter the ethereum blockchain coins are
-issued to the Cosmos address in question
--------------
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2909,7 +2829,7 @@ issued to the Cosmos address in question
 <a name="fx.gravity.v1.MsgDepositClaimResponse"></a>
 
 ### MsgDepositClaimResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -2919,7 +2839,7 @@ issued to the Cosmos address in question
 <a name="fx.gravity.v1.MsgFxOriginatedTokenClaim"></a>
 
 ### MsgFxOriginatedTokenClaim
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2940,7 +2860,7 @@ issued to the Cosmos address in question
 <a name="fx.gravity.v1.MsgFxOriginatedTokenClaimResponse"></a>
 
 ### MsgFxOriginatedTokenClaimResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -2950,7 +2870,7 @@ issued to the Cosmos address in question
 <a name="fx.gravity.v1.MsgRequestBatch"></a>
 
 ### MsgRequestBatch
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2969,7 +2889,7 @@ issued to the Cosmos address in question
 <a name="fx.gravity.v1.MsgRequestBatchResponse"></a>
 
 ### MsgRequestBatchResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -2979,18 +2899,7 @@ issued to the Cosmos address in question
 <a name="fx.gravity.v1.MsgSendToEth"></a>
 
 ### MsgSendToEth
-MsgSendToEth
-This is the message that a user calls when they want to bridge an asset
-it will later be removed when it is included in a batch and successfully
-submitted tokens are removed from the users balance immediately
--------------
-AMOUNT:
-the coin to send across the bridge, note the restriction that this is a
-single coin not a set of coins that is normal in other Cosmos messages
-FEE:
-the fee paid for the bridge, distinct from the fee paid to the chain to
-actually send this message in the first place. So a successful send has
-two layers of fees for the user
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3008,7 +2917,7 @@ two layers of fees for the user
 <a name="fx.gravity.v1.MsgSendToEthResponse"></a>
 
 ### MsgSendToEthResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -3018,19 +2927,7 @@ two layers of fees for the user
 <a name="fx.gravity.v1.MsgSetOrchestratorAddress"></a>
 
 ### MsgSetOrchestratorAddress
-MsgSetOrchestratorAddress
-this message allows validators to delegate their voting responsibilities
-to a given key. This key is then used as an optional authentication method
-for sigining oracle claims
-VALIDATOR
-The validator field is a cosmosvaloper1... string (i.e. sdk.ValAddress)
-that references a validator in the active set
-ORCHESTRATOR
-The orchestrator field is a cosmos1... string  (i.e. sdk.AccAddress) that
-references the key that is being delegated to
-ETH_ADDRESS
-This is a hex encoded 0x Ethereum public key that will be used by this
-validator on Ethereum
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3047,7 +2944,7 @@ validator on Ethereum
 <a name="fx.gravity.v1.MsgSetOrchestratorAddressResponse"></a>
 
 ### MsgSetOrchestratorAddressResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -3057,21 +2954,7 @@ validator on Ethereum
 <a name="fx.gravity.v1.MsgValsetConfirm"></a>
 
 ### MsgValsetConfirm
-MsgValsetConfirm
-this is the message sent by the validators when they wish to submit their
-signatures over the validator set at a given block height. A validator must
-first call MsgSetEthAddress to set their Ethereum address to be used for
-signing. Then someone (anyone) must make a ValsetRequest, the request is
-essentially a messaging mechanism to determine which block all validators
-should submit signatures over. Finally validators sign the validator set,
-powers, and Ethereum addresses of the entire validator set at the height of a
-ValsetRequest and submit that signature with this message.
-
-If a sufficient number of validators (66% of voting power) (A) have set
-Ethereum addresses and (B) submit ValsetConfirm messages with their
-signatures it is then possible for anyone to view these signatures in the
-chain store and submit them to Ethereum to update the validator set
--------------
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3089,7 +2972,7 @@ chain store and submit them to Ethereum to update the validator set
 <a name="fx.gravity.v1.MsgValsetConfirmResponse"></a>
 
 ### MsgValsetConfirmResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -3099,8 +2982,7 @@ chain store and submit them to Ethereum to update the validator set
 <a name="fx.gravity.v1.MsgValsetUpdatedClaim"></a>
 
 ### MsgValsetUpdatedClaim
-This informs the Cosmos module that a validator
-set has been updated.
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3119,7 +3001,7 @@ set has been updated.
 <a name="fx.gravity.v1.MsgValsetUpdatedClaimResponse"></a>
 
 ### MsgValsetUpdatedClaimResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -3129,8 +3011,7 @@ set has been updated.
 <a name="fx.gravity.v1.MsgWithdrawClaim"></a>
 
 ### MsgWithdrawClaim
-WithdrawClaim claims that a batch of withdrawal
-operations on the bridge contract was executed.
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3149,7 +3030,7 @@ operations on the bridge contract was executed.
 <a name="fx.gravity.v1.MsgWithdrawClaimResponse"></a>
 
 ### MsgWithdrawClaimResponse
-
+Deprecated after upgrade v3
 
 
 
@@ -3165,20 +3046,18 @@ operations on the bridge contract was executed.
 <a name="fx.gravity.v1.Msg"></a>
 
 ### Msg
-Msg defines the state transitions possible within gravity
+Deprecated after upgrade v3
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `ValsetConfirm` | [MsgValsetConfirm](#fx.gravity.v1.MsgValsetConfirm) | [MsgValsetConfirmResponse](#fx.gravity.v1.MsgValsetConfirmResponse) |  | |
-| `SendToEth` | [MsgSendToEth](#fx.gravity.v1.MsgSendToEth) | [MsgSendToEthResponse](#fx.gravity.v1.MsgSendToEthResponse) |  | |
-| `RequestBatch` | [MsgRequestBatch](#fx.gravity.v1.MsgRequestBatch) | [MsgRequestBatchResponse](#fx.gravity.v1.MsgRequestBatchResponse) |  | |
-| `ConfirmBatch` | [MsgConfirmBatch](#fx.gravity.v1.MsgConfirmBatch) | [MsgConfirmBatchResponse](#fx.gravity.v1.MsgConfirmBatchResponse) |  | |
-| `DepositClaim` | [MsgDepositClaim](#fx.gravity.v1.MsgDepositClaim) | [MsgDepositClaimResponse](#fx.gravity.v1.MsgDepositClaimResponse) |  | |
-| `WithdrawClaim` | [MsgWithdrawClaim](#fx.gravity.v1.MsgWithdrawClaim) | [MsgWithdrawClaimResponse](#fx.gravity.v1.MsgWithdrawClaimResponse) |  | |
-| `ValsetUpdateClaim` | [MsgValsetUpdatedClaim](#fx.gravity.v1.MsgValsetUpdatedClaim) | [MsgValsetUpdatedClaimResponse](#fx.gravity.v1.MsgValsetUpdatedClaimResponse) |  | |
-| `SetOrchestratorAddress` | [MsgSetOrchestratorAddress](#fx.gravity.v1.MsgSetOrchestratorAddress) | [MsgSetOrchestratorAddressResponse](#fx.gravity.v1.MsgSetOrchestratorAddressResponse) |  | |
-| `CancelSendToEth` | [MsgCancelSendToEth](#fx.gravity.v1.MsgCancelSendToEth) | [MsgCancelSendToEthResponse](#fx.gravity.v1.MsgCancelSendToEthResponse) |  | |
-| `FxOriginatedTokenClaim` | [MsgFxOriginatedTokenClaim](#fx.gravity.v1.MsgFxOriginatedTokenClaim) | [MsgFxOriginatedTokenClaimResponse](#fx.gravity.v1.MsgFxOriginatedTokenClaimResponse) |  | |
+| `ValsetConfirm` | [MsgValsetConfirm](#fx.gravity.v1.MsgValsetConfirm) | [MsgValsetConfirmResponse](#fx.gravity.v1.MsgValsetConfirmResponse) | Deprecated: Please use crosschain Msg.OracleSetConfirm | |
+| `SendToEth` | [MsgSendToEth](#fx.gravity.v1.MsgSendToEth) | [MsgSendToEthResponse](#fx.gravity.v1.MsgSendToEthResponse) | Deprecated: Please use crosschain Msg.SendToExternal | |
+| `RequestBatch` | [MsgRequestBatch](#fx.gravity.v1.MsgRequestBatch) | [MsgRequestBatchResponse](#fx.gravity.v1.MsgRequestBatchResponse) | Deprecated: Please use crosschain Msg.RequestBatch | |
+| `ConfirmBatch` | [MsgConfirmBatch](#fx.gravity.v1.MsgConfirmBatch) | [MsgConfirmBatchResponse](#fx.gravity.v1.MsgConfirmBatchResponse) | Deprecated: Please use crosschain Msg.ConfirmBatch | |
+| `DepositClaim` | [MsgDepositClaim](#fx.gravity.v1.MsgDepositClaim) | [MsgDepositClaimResponse](#fx.gravity.v1.MsgDepositClaimResponse) | Deprecated: Please use crosschain Msg.SendToFxClaim | |
+| `WithdrawClaim` | [MsgWithdrawClaim](#fx.gravity.v1.MsgWithdrawClaim) | [MsgWithdrawClaimResponse](#fx.gravity.v1.MsgWithdrawClaimResponse) | Deprecated: Please use crosschain Msg.SendToExternalClaim | |
+| `CancelSendToEth` | [MsgCancelSendToEth](#fx.gravity.v1.MsgCancelSendToEth) | [MsgCancelSendToEthResponse](#fx.gravity.v1.MsgCancelSendToEthResponse) | Deprecated: Please use crosschain Msg.CancelSendToExternal | |
+| `ValsetUpdateClaim` | [MsgValsetUpdatedClaim](#fx.gravity.v1.MsgValsetUpdatedClaim) | [MsgValsetUpdatedClaimResponse](#fx.gravity.v1.MsgValsetUpdatedClaimResponse) | Deprecated: Please use crosschain Msg.OracleSetUpdateClaim | |
 
  <!-- end services -->
 
@@ -3191,38 +3070,10 @@ Msg defines the state transitions possible within gravity
 
 
 
-<a name="fx.gravity.v1.GenesisState"></a>
-
-### GenesisState
-GenesisState struct
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `params` | [Params](#fx.gravity.v1.Params) |  |  |
-| `last_observed_nonce` | [uint64](#uint64) |  |  |
-| `last_observed_block_height` | [LastObservedEthereumBlockHeight](#fx.gravity.v1.LastObservedEthereumBlockHeight) |  |  |
-| `delegate_keys` | [MsgSetOrchestratorAddress](#fx.gravity.v1.MsgSetOrchestratorAddress) | repeated |  |
-| `valsets` | [Valset](#fx.gravity.v1.Valset) | repeated |  |
-| `erc20_to_denoms` | [ERC20ToDenom](#fx.gravity.v1.ERC20ToDenom) | repeated |  |
-| `unbatched_transfers` | [OutgoingTransferTx](#fx.gravity.v1.OutgoingTransferTx) | repeated |  |
-| `batches` | [OutgoingTxBatch](#fx.gravity.v1.OutgoingTxBatch) | repeated |  |
-| `batch_confirms` | [MsgConfirmBatch](#fx.gravity.v1.MsgConfirmBatch) | repeated |  |
-| `valset_confirms` | [MsgValsetConfirm](#fx.gravity.v1.MsgValsetConfirm) | repeated |  |
-| `attestations` | [Attestation](#fx.gravity.v1.Attestation) | repeated |  |
-
-
-
-
-
-
 <a name="fx.gravity.v1.Params"></a>
 
 ### Params
-valset_update_power_change_percent
-
-If power change between validators of CurrentValset and latest valset request
-is > 10%
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3259,71 +3110,6 @@ is > 10%
 
 
 
-<a name="fx/gravity/v1/pool.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## fx/gravity/v1/pool.proto
-
-
-
-<a name="fx.gravity.v1.BatchFees"></a>
-
-### BatchFees
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `token_contract` | [string](#string) |  |  |
-| `total_fees` | [string](#string) |  |  |
-| `total_txs` | [uint64](#uint64) |  |  |
-| `total_amount` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="fx.gravity.v1.IDSet"></a>
-
-### IDSet
-IDSet represents a set of IDs
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `ids` | [uint64](#uint64) | repeated |  |
-
-
-
-
-
-
-<a name="fx.gravity.v1.MinBatchFee"></a>
-
-### MinBatchFee
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `token_contract` | [string](#string) |  |  |
-| `baseFee` | [string](#string) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="fx/gravity/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -3334,7 +3120,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBatchConfirmRequest"></a>
 
 ### QueryBatchConfirmRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3351,7 +3137,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBatchConfirmResponse"></a>
 
 ### QueryBatchConfirmResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3366,7 +3152,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBatchConfirmsRequest"></a>
 
 ### QueryBatchConfirmsRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3382,7 +3168,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBatchConfirmsResponse"></a>
 
 ### QueryBatchConfirmsResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3397,7 +3183,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBatchFeeRequest"></a>
 
 ### QueryBatchFeeRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3412,7 +3198,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBatchFeeResponse"></a>
 
 ### QueryBatchFeeResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3427,7 +3213,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBatchRequestByNonceRequest"></a>
 
 ### QueryBatchRequestByNonceRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3443,7 +3229,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBatchRequestByNonceResponse"></a>
 
 ### QueryBatchRequestByNonceResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3458,7 +3244,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBridgeTokensRequest"></a>
 
 ### QueryBridgeTokensRequest
-
+Deprecated after upgrade v3
 
 
 
@@ -3468,7 +3254,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryBridgeTokensResponse"></a>
 
 ### QueryBridgeTokensResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3483,7 +3269,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryCurrentValsetRequest"></a>
 
 ### QueryCurrentValsetRequest
-
+Deprecated after upgrade v3
 
 
 
@@ -3493,7 +3279,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryCurrentValsetResponse"></a>
 
 ### QueryCurrentValsetResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3508,7 +3294,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryDelegateKeyByEthRequest"></a>
 
 ### QueryDelegateKeyByEthRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3523,7 +3309,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryDelegateKeyByEthResponse"></a>
 
 ### QueryDelegateKeyByEthResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3539,7 +3325,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryDelegateKeyByOrchestratorRequest"></a>
 
 ### QueryDelegateKeyByOrchestratorRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3554,7 +3340,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryDelegateKeyByOrchestratorResponse"></a>
 
 ### QueryDelegateKeyByOrchestratorResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3570,7 +3356,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryDelegateKeyByValidatorRequest"></a>
 
 ### QueryDelegateKeyByValidatorRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3585,7 +3371,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryDelegateKeyByValidatorResponse"></a>
 
 ### QueryDelegateKeyByValidatorResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3601,7 +3387,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryDenomToERC20Request"></a>
 
 ### QueryDenomToERC20Request
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3616,7 +3402,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryDenomToERC20Response"></a>
 
 ### QueryDenomToERC20Response
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3632,7 +3418,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryERC20ToDenomRequest"></a>
 
 ### QueryERC20ToDenomRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3647,7 +3433,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryERC20ToDenomResponse"></a>
 
 ### QueryERC20ToDenomResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3660,43 +3446,10 @@ IDSet represents a set of IDs
 
 
 
-<a name="fx.gravity.v1.QueryIbcSequenceHeightRequest"></a>
-
-### QueryIbcSequenceHeightRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `sourcePort` | [string](#string) |  |  |
-| `sourceChannel` | [string](#string) |  |  |
-| `sequence` | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="fx.gravity.v1.QueryIbcSequenceHeightResponse"></a>
-
-### QueryIbcSequenceHeightResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `found` | [bool](#bool) |  |  |
-| `height` | [uint64](#uint64) |  |  |
-
-
-
-
-
-
 <a name="fx.gravity.v1.QueryLastEventBlockHeightByAddrRequest"></a>
 
 ### QueryLastEventBlockHeightByAddrRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3711,7 +3464,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastEventBlockHeightByAddrResponse"></a>
 
 ### QueryLastEventBlockHeightByAddrResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3726,7 +3479,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastEventNonceByAddrRequest"></a>
 
 ### QueryLastEventNonceByAddrRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3741,7 +3494,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastEventNonceByAddrResponse"></a>
 
 ### QueryLastEventNonceByAddrResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3756,7 +3509,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastObservedBlockHeightRequest"></a>
 
 ### QueryLastObservedBlockHeightRequest
-
+Deprecated after upgrade v3
 
 
 
@@ -3766,7 +3519,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastObservedBlockHeightResponse"></a>
 
 ### QueryLastObservedBlockHeightResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3782,7 +3535,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastPendingBatchRequestByAddrRequest"></a>
 
 ### QueryLastPendingBatchRequestByAddrRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3797,7 +3550,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastPendingBatchRequestByAddrResponse"></a>
 
 ### QueryLastPendingBatchRequestByAddrResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3812,7 +3565,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastPendingValsetRequestByAddrRequest"></a>
 
 ### QueryLastPendingValsetRequestByAddrRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3827,7 +3580,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastPendingValsetRequestByAddrResponse"></a>
 
 ### QueryLastPendingValsetRequestByAddrResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3842,7 +3595,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastValsetRequestsRequest"></a>
 
 ### QueryLastValsetRequestsRequest
-
+Deprecated after upgrade v3
 
 
 
@@ -3852,7 +3605,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryLastValsetRequestsResponse"></a>
 
 ### QueryLastValsetRequestsResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3867,7 +3620,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryOutgoingTxBatchesRequest"></a>
 
 ### QueryOutgoingTxBatchesRequest
-
+Deprecated after upgrade v3
 
 
 
@@ -3877,7 +3630,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryOutgoingTxBatchesResponse"></a>
 
 ### QueryOutgoingTxBatchesResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3892,7 +3645,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
-
+Deprecated after upgrade v3
 
 
 
@@ -3902,7 +3655,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3917,7 +3670,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryPendingSendToEthRequest"></a>
 
 ### QueryPendingSendToEthRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3932,7 +3685,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryPendingSendToEthResponse"></a>
 
 ### QueryPendingSendToEthResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3948,7 +3701,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryProjectedBatchTimeoutHeightRequest"></a>
 
 ### QueryProjectedBatchTimeoutHeightRequest
-
+Deprecated after upgrade v3
 
 
 
@@ -3958,7 +3711,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryProjectedBatchTimeoutHeightResponse"></a>
 
 ### QueryProjectedBatchTimeoutHeightResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3973,7 +3726,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryValsetConfirmRequest"></a>
 
 ### QueryValsetConfirmRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3989,7 +3742,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryValsetConfirmResponse"></a>
 
 ### QueryValsetConfirmResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -4004,7 +3757,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryValsetConfirmsByNonceRequest"></a>
 
 ### QueryValsetConfirmsByNonceRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -4019,7 +3772,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryValsetConfirmsByNonceResponse"></a>
 
 ### QueryValsetConfirmsByNonceResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -4034,7 +3787,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryValsetRequestRequest"></a>
 
 ### QueryValsetRequestRequest
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -4049,7 +3802,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.QueryValsetRequestResponse"></a>
 
 ### QueryValsetRequestResponse
-
+Deprecated after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -4070,35 +3823,34 @@ IDSet represents a set of IDs
 <a name="fx.gravity.v1.Query"></a>
 
 ### Query
-Query defines the gRPC querier service
+Deprecated after upgrade v3
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#fx.gravity.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.gravity.v1.QueryParamsResponse) | Deployments queries deployments | GET|/fx/gravity/v1/params|
-| `CurrentValset` | [QueryCurrentValsetRequest](#fx.gravity.v1.QueryCurrentValsetRequest) | [QueryCurrentValsetResponse](#fx.gravity.v1.QueryCurrentValsetResponse) |  | GET|/fx/gravity/v1/valset/current|
-| `ValsetRequest` | [QueryValsetRequestRequest](#fx.gravity.v1.QueryValsetRequestRequest) | [QueryValsetRequestResponse](#fx.gravity.v1.QueryValsetRequestResponse) |  | GET|/fx/gravity/v1/valset/request|
-| `ValsetConfirm` | [QueryValsetConfirmRequest](#fx.gravity.v1.QueryValsetConfirmRequest) | [QueryValsetConfirmResponse](#fx.gravity.v1.QueryValsetConfirmResponse) |  | GET|/fx/gravity/v1/valset/confirm|
-| `ValsetConfirmsByNonce` | [QueryValsetConfirmsByNonceRequest](#fx.gravity.v1.QueryValsetConfirmsByNonceRequest) | [QueryValsetConfirmsByNonceResponse](#fx.gravity.v1.QueryValsetConfirmsByNonceResponse) |  | GET|/fx/gravity/v1/valset/confirms|
-| `LastValsetRequests` | [QueryLastValsetRequestsRequest](#fx.gravity.v1.QueryLastValsetRequestsRequest) | [QueryLastValsetRequestsResponse](#fx.gravity.v1.QueryLastValsetRequestsResponse) |  | GET|/fx/gravity/v1/valset/requests|
-| `LastPendingValsetRequestByAddr` | [QueryLastPendingValsetRequestByAddrRequest](#fx.gravity.v1.QueryLastPendingValsetRequestByAddrRequest) | [QueryLastPendingValsetRequestByAddrResponse](#fx.gravity.v1.QueryLastPendingValsetRequestByAddrResponse) |  | GET|/fx/gravity/v1/valset/last|
-| `LastPendingBatchRequestByAddr` | [QueryLastPendingBatchRequestByAddrRequest](#fx.gravity.v1.QueryLastPendingBatchRequestByAddrRequest) | [QueryLastPendingBatchRequestByAddrResponse](#fx.gravity.v1.QueryLastPendingBatchRequestByAddrResponse) |  | GET|/fx/gravity/v1/batch/last|
-| `LastEventNonceByAddr` | [QueryLastEventNonceByAddrRequest](#fx.gravity.v1.QueryLastEventNonceByAddrRequest) | [QueryLastEventNonceByAddrResponse](#fx.gravity.v1.QueryLastEventNonceByAddrResponse) |  | GET|/fx/gravity/v1/oracle/event_nonce/{address}|
-| `LastEventBlockHeightByAddr` | [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.v1.QueryLastEventBlockHeightByAddrRequest) | [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.v1.QueryLastEventBlockHeightByAddrResponse) |  | GET|/fx/gravity/v1/oracle/event/block_height/{address}|
-| `BatchFees` | [QueryBatchFeeRequest](#fx.gravity.v1.QueryBatchFeeRequest) | [QueryBatchFeeResponse](#fx.gravity.v1.QueryBatchFeeResponse) |  | GET|/fx/gravity/v1/batch_fees|
-| `LastObservedBlockHeight` | [QueryLastObservedBlockHeightRequest](#fx.gravity.v1.QueryLastObservedBlockHeightRequest) | [QueryLastObservedBlockHeightResponse](#fx.gravity.v1.QueryLastObservedBlockHeightResponse) |  | GET|/fx/gravity/v1/observed/block_height|
-| `OutgoingTxBatches` | [QueryOutgoingTxBatchesRequest](#fx.gravity.v1.QueryOutgoingTxBatchesRequest) | [QueryOutgoingTxBatchesResponse](#fx.gravity.v1.QueryOutgoingTxBatchesResponse) |  | GET|/fx/gravity/v1/batch/outgoing_tx|
-| `BatchRequestByNonce` | [QueryBatchRequestByNonceRequest](#fx.gravity.v1.QueryBatchRequestByNonceRequest) | [QueryBatchRequestByNonceResponse](#fx.gravity.v1.QueryBatchRequestByNonceResponse) |  | GET|/fx/gravity/v1/batch/request|
-| `BatchConfirm` | [QueryBatchConfirmRequest](#fx.gravity.v1.QueryBatchConfirmRequest) | [QueryBatchConfirmResponse](#fx.gravity.v1.QueryBatchConfirmResponse) |  | GET|/fx/gravity/v1/batch/confirm|
-| `BatchConfirms` | [QueryBatchConfirmsRequest](#fx.gravity.v1.QueryBatchConfirmsRequest) | [QueryBatchConfirmsResponse](#fx.gravity.v1.QueryBatchConfirmsResponse) |  | GET|/fx/gravity/v1/batch/confirms|
-| `ERC20ToDenom` | [QueryERC20ToDenomRequest](#fx.gravity.v1.QueryERC20ToDenomRequest) | [QueryERC20ToDenomResponse](#fx.gravity.v1.QueryERC20ToDenomResponse) |  | GET|/fx/gravity/v1/denom|
-| `DenomToERC20` | [QueryDenomToERC20Request](#fx.gravity.v1.QueryDenomToERC20Request) | [QueryDenomToERC20Response](#fx.gravity.v1.QueryDenomToERC20Response) |  | GET|/fx/gravity/v1/erc20|
-| `GetDelegateKeyByValidator` | [QueryDelegateKeyByValidatorRequest](#fx.gravity.v1.QueryDelegateKeyByValidatorRequest) | [QueryDelegateKeyByValidatorResponse](#fx.gravity.v1.QueryDelegateKeyByValidatorResponse) |  | GET|/fx/gravity/v1/delegate_key_by_validator|
-| `GetDelegateKeyByEth` | [QueryDelegateKeyByEthRequest](#fx.gravity.v1.QueryDelegateKeyByEthRequest) | [QueryDelegateKeyByEthResponse](#fx.gravity.v1.QueryDelegateKeyByEthResponse) |  | GET|/fx/gravity/v1/delegate_key_by_eth|
-| `GetDelegateKeyByOrchestrator` | [QueryDelegateKeyByOrchestratorRequest](#fx.gravity.v1.QueryDelegateKeyByOrchestratorRequest) | [QueryDelegateKeyByOrchestratorResponse](#fx.gravity.v1.QueryDelegateKeyByOrchestratorResponse) |  | GET|/fx/gravity/v1/delegate_key_by_orchestrator|
-| `GetPendingSendToEth` | [QueryPendingSendToEthRequest](#fx.gravity.v1.QueryPendingSendToEthRequest) | [QueryPendingSendToEthResponse](#fx.gravity.v1.QueryPendingSendToEthResponse) |  | GET|/fx/gravity/v1/pending_send_to_eth|
-| `GetIbcSequenceHeightByChannel` | [QueryIbcSequenceHeightRequest](#fx.gravity.v1.QueryIbcSequenceHeightRequest) | [QueryIbcSequenceHeightResponse](#fx.gravity.v1.QueryIbcSequenceHeightResponse) |  | GET|/fx/gravity/v1/ibc_sequence_height|
-| `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightResponse) |  | GET|/fx/gravity/v1/projected_batch_timeout|
-| `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.v1.QueryBridgeTokensResponse) |  | GET|/fx/gravity/v1/bridge_tokens|
+| `Params` | [QueryParamsRequest](#fx.gravity.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.gravity.v1.QueryParamsResponse) | Deprecated: Please use crosschain query.Params | GET|/fx/gravity/v1/params|
+| `CurrentValset` | [QueryCurrentValsetRequest](#fx.gravity.v1.QueryCurrentValsetRequest) | [QueryCurrentValsetResponse](#fx.gravity.v1.QueryCurrentValsetResponse) | Deprecated: Please use crosschain query.CurrentOracleSet | GET|/fx/gravity/v1/valset/current|
+| `ValsetRequest` | [QueryValsetRequestRequest](#fx.gravity.v1.QueryValsetRequestRequest) | [QueryValsetRequestResponse](#fx.gravity.v1.QueryValsetRequestResponse) | Deprecated: Please use crosschain query.OracleSetRequest | GET|/fx/gravity/v1/valset/request|
+| `ValsetConfirm` | [QueryValsetConfirmRequest](#fx.gravity.v1.QueryValsetConfirmRequest) | [QueryValsetConfirmResponse](#fx.gravity.v1.QueryValsetConfirmResponse) | Deprecated: Please use crosschain query.OracleSetConfirm | GET|/fx/gravity/v1/valset/confirm|
+| `ValsetConfirmsByNonce` | [QueryValsetConfirmsByNonceRequest](#fx.gravity.v1.QueryValsetConfirmsByNonceRequest) | [QueryValsetConfirmsByNonceResponse](#fx.gravity.v1.QueryValsetConfirmsByNonceResponse) | Deprecated: Please use crosschain query.OracleSetConfirmsByNonce | GET|/fx/gravity/v1/valset/confirms|
+| `LastValsetRequests` | [QueryLastValsetRequestsRequest](#fx.gravity.v1.QueryLastValsetRequestsRequest) | [QueryLastValsetRequestsResponse](#fx.gravity.v1.QueryLastValsetRequestsResponse) | Deprecated: Please use crosschain query.LastOracleSetRequests | GET|/fx/gravity/v1/valset/requests|
+| `LastPendingValsetRequestByAddr` | [QueryLastPendingValsetRequestByAddrRequest](#fx.gravity.v1.QueryLastPendingValsetRequestByAddrRequest) | [QueryLastPendingValsetRequestByAddrResponse](#fx.gravity.v1.QueryLastPendingValsetRequestByAddrResponse) | Deprecated: Please use crosschain query.LastPendingOracleSetRequestByAddr | GET|/fx/gravity/v1/valset/last|
+| `LastPendingBatchRequestByAddr` | [QueryLastPendingBatchRequestByAddrRequest](#fx.gravity.v1.QueryLastPendingBatchRequestByAddrRequest) | [QueryLastPendingBatchRequestByAddrResponse](#fx.gravity.v1.QueryLastPendingBatchRequestByAddrResponse) | Deprecated: Please use crosschain query.LastPendingBatchRequestByAddr | GET|/fx/gravity/v1/batch/last|
+| `LastEventNonceByAddr` | [QueryLastEventNonceByAddrRequest](#fx.gravity.v1.QueryLastEventNonceByAddrRequest) | [QueryLastEventNonceByAddrResponse](#fx.gravity.v1.QueryLastEventNonceByAddrResponse) | Deprecated: Please use crosschain query.LastEventNonceByAddr | GET|/fx/gravity/v1/oracle/event_nonce/{address}|
+| `LastEventBlockHeightByAddr` | [QueryLastEventBlockHeightByAddrRequest](#fx.gravity.v1.QueryLastEventBlockHeightByAddrRequest) | [QueryLastEventBlockHeightByAddrResponse](#fx.gravity.v1.QueryLastEventBlockHeightByAddrResponse) | Deprecated: Please use crosschain query.LastEventBlockHeightByAddr | GET|/fx/gravity/v1/oracle/event/block_height/{address}|
+| `BatchFees` | [QueryBatchFeeRequest](#fx.gravity.v1.QueryBatchFeeRequest) | [QueryBatchFeeResponse](#fx.gravity.v1.QueryBatchFeeResponse) | Deprecated: Please use crosschain query.BatchFees | GET|/fx/gravity/v1/batch_fees|
+| `LastObservedBlockHeight` | [QueryLastObservedBlockHeightRequest](#fx.gravity.v1.QueryLastObservedBlockHeightRequest) | [QueryLastObservedBlockHeightResponse](#fx.gravity.v1.QueryLastObservedBlockHeightResponse) | Deprecated: Please use crosschain query.LastObservedBlockHeight | GET|/fx/gravity/v1/observed/block_height|
+| `OutgoingTxBatches` | [QueryOutgoingTxBatchesRequest](#fx.gravity.v1.QueryOutgoingTxBatchesRequest) | [QueryOutgoingTxBatchesResponse](#fx.gravity.v1.QueryOutgoingTxBatchesResponse) | Deprecated: Please use crosschain query.OutgoingTxBatches | GET|/fx/gravity/v1/batch/outgoing_tx|
+| `BatchRequestByNonce` | [QueryBatchRequestByNonceRequest](#fx.gravity.v1.QueryBatchRequestByNonceRequest) | [QueryBatchRequestByNonceResponse](#fx.gravity.v1.QueryBatchRequestByNonceResponse) | Deprecated: Please use crosschain query.BatchRequestByNonce | GET|/fx/gravity/v1/batch/request|
+| `BatchConfirm` | [QueryBatchConfirmRequest](#fx.gravity.v1.QueryBatchConfirmRequest) | [QueryBatchConfirmResponse](#fx.gravity.v1.QueryBatchConfirmResponse) | Deprecated: Please use crosschain query.BatchConfirm | GET|/fx/gravity/v1/batch/confirm|
+| `BatchConfirms` | [QueryBatchConfirmsRequest](#fx.gravity.v1.QueryBatchConfirmsRequest) | [QueryBatchConfirmsResponse](#fx.gravity.v1.QueryBatchConfirmsResponse) | Deprecated: Please use crosschain query.BatchConfirms | GET|/fx/gravity/v1/batch/confirms|
+| `ERC20ToDenom` | [QueryERC20ToDenomRequest](#fx.gravity.v1.QueryERC20ToDenomRequest) | [QueryERC20ToDenomResponse](#fx.gravity.v1.QueryERC20ToDenomResponse) | Deprecated: Please use crosschain query.TokenToDenom | GET|/fx/gravity/v1/denom|
+| `DenomToERC20` | [QueryDenomToERC20Request](#fx.gravity.v1.QueryDenomToERC20Request) | [QueryDenomToERC20Response](#fx.gravity.v1.QueryDenomToERC20Response) | Deprecated: Please use crosschain query.DenomToToken | GET|/fx/gravity/v1/erc20|
+| `GetDelegateKeyByValidator` | [QueryDelegateKeyByValidatorRequest](#fx.gravity.v1.QueryDelegateKeyByValidatorRequest) | [QueryDelegateKeyByValidatorResponse](#fx.gravity.v1.QueryDelegateKeyByValidatorResponse) | Deprecated: Please use crosschain query.GetOracleByAddr | GET|/fx/gravity/v1/delegate_key_by_validator|
+| `GetDelegateKeyByEth` | [QueryDelegateKeyByEthRequest](#fx.gravity.v1.QueryDelegateKeyByEthRequest) | [QueryDelegateKeyByEthResponse](#fx.gravity.v1.QueryDelegateKeyByEthResponse) | Deprecated: Please use crosschain query.GetOracleByExternalAddr | GET|/fx/gravity/v1/delegate_key_by_eth|
+| `GetDelegateKeyByOrchestrator` | [QueryDelegateKeyByOrchestratorRequest](#fx.gravity.v1.QueryDelegateKeyByOrchestratorRequest) | [QueryDelegateKeyByOrchestratorResponse](#fx.gravity.v1.QueryDelegateKeyByOrchestratorResponse) | Deprecated: Please use crosschain query.GetOracleByBridgerAddr | GET|/fx/gravity/v1/delegate_key_by_orchestrator|
+| `GetPendingSendToEth` | [QueryPendingSendToEthRequest](#fx.gravity.v1.QueryPendingSendToEthRequest) | [QueryPendingSendToEthResponse](#fx.gravity.v1.QueryPendingSendToEthResponse) | Deprecated: Please use crosschain query.GetPendingSendToExternal | GET|/fx/gravity/v1/pending_send_to_eth|
+| `ProjectedBatchTimeoutHeight` | [QueryProjectedBatchTimeoutHeightRequest](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightRequest) | [QueryProjectedBatchTimeoutHeightResponse](#fx.gravity.v1.QueryProjectedBatchTimeoutHeightResponse) | Deprecated: Please use crosschain query.ProjectedBatchTimeoutHeight | GET|/fx/gravity/v1/projected_batch_timeout|
+| `BridgeTokens` | [QueryBridgeTokensRequest](#fx.gravity.v1.QueryBridgeTokensRequest) | [QueryBridgeTokensResponse](#fx.gravity.v1.QueryBridgeTokensResponse) | Deprecated: Please use crosschain query.BridgeTokens | GET|/fx/gravity/v1/bridge_tokens|
 
  <!-- end services -->
 

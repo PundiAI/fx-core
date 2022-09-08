@@ -7,6 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 const (
@@ -35,15 +38,6 @@ var (
 	_ sdk.Msg = &MsgValsetUpdatedClaim{}
 )
 
-// NewMsgSetOrchestratorAddress returns a new msgSetOrchestratorAddress
-func NewMsgSetOrchestratorAddress(val sdk.ValAddress, oper sdk.AccAddress, eth string) *MsgSetOrchestratorAddress {
-	return &MsgSetOrchestratorAddress{
-		Validator:    val.String(),
-		Orchestrator: oper.String(),
-		EthAddress:   eth,
-	}
-}
-
 // Route should return the name of the module
 func (m *MsgSetOrchestratorAddress) Route() string { return RouterKey }
 
@@ -53,13 +47,13 @@ func (m *MsgSetOrchestratorAddress) Type() string { return TypeMsgSetOrchestrato
 // ValidateBasic performs stateless checks
 func (m *MsgSetOrchestratorAddress) ValidateBasic() (err error) {
 	if _, err = sdk.ValAddressFromBech32(m.Validator); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "validator address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "validator address")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "orchestrator address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
-	if err := ValidateEthAddressAndValidateChecksum(m.EthAddress); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "ethereum address")
+	if err := fxtypes.ValidateEthereumAddress(m.EthAddress); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "ethereum address")
 	}
 	return nil
 }
@@ -78,16 +72,6 @@ func (m *MsgSetOrchestratorAddress) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(acc)}
 }
 
-// NewMsgValsetConfirm returns a new msgValsetConfirm
-func NewMsgValsetConfirm(nonce uint64, ethAddress string, validator sdk.AccAddress, signature string) *MsgValsetConfirm {
-	return &MsgValsetConfirm{
-		Nonce:        nonce,
-		Orchestrator: validator.String(),
-		EthAddress:   ethAddress,
-		Signature:    signature,
-	}
-}
-
 // Route should return the name of the module
 func (m *MsgValsetConfirm) Route() string { return RouterKey }
 
@@ -97,16 +81,16 @@ func (m *MsgValsetConfirm) Type() string { return TypeMsgValsetConfirm }
 // ValidateBasic performs stateless checks
 func (m *MsgValsetConfirm) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "orchestrator address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
-	if err := ValidateEthAddressAndValidateChecksum(m.EthAddress); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "ethereum address")
+	if err := fxtypes.ValidateEthereumAddress(m.EthAddress); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "ethereum address")
 	}
 	if len(m.Signature) == 0 {
-		return sdkerrors.Wrap(ErrEmpty, "signature")
+		return sdkerrors.Wrap(crosschaintypes.ErrEmpty, "signature")
 	}
 	if _, err = hex.DecodeString(m.Signature); err != nil {
-		return sdkerrors.Wrapf(ErrInvalid, "could not hex decode signature: %s", m.Signature)
+		return sdkerrors.Wrapf(crosschaintypes.ErrInvalid, "could not hex decode signature: %s", m.Signature)
 	}
 	return nil
 }
@@ -125,16 +109,6 @@ func (m *MsgValsetConfirm) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-// NewMsgSendToEth returns a new msgSendToEth
-func NewMsgSendToEth(sender sdk.AccAddress, destAddress string, send sdk.Coin, bridgeFee sdk.Coin) *MsgSendToEth {
-	return &MsgSendToEth{
-		Sender:    sender.String(),
-		EthDest:   destAddress,
-		Amount:    send,
-		BridgeFee: bridgeFee,
-	}
-}
-
 // Route should return the name of the module
 func (m MsgSendToEth) Route() string { return RouterKey }
 
@@ -145,19 +119,19 @@ func (m MsgSendToEth) Type() string { return TypeMsgSendToEth }
 // Checks if the Eth address is valid
 func (m MsgSendToEth) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "sender address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "sender address")
 	}
 	if m.Amount.Denom != m.BridgeFee.Denom {
-		return sdkerrors.Wrap(ErrInvalid, fmt.Sprintf("fee and amount must be the same type %s != %s", m.Amount.Denom, m.BridgeFee.Denom))
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, fmt.Sprintf("fee and amount must be the same type %s != %s", m.Amount.Denom, m.BridgeFee.Denom))
 	}
 	if !m.Amount.IsValid() || m.Amount.IsZero() {
-		return sdkerrors.Wrap(ErrInvalid, "amount")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "amount")
 	}
 	if !m.BridgeFee.IsValid() || m.BridgeFee.IsZero() {
-		return sdkerrors.Wrap(ErrInvalid, "bridge fee")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridge fee")
 	}
-	if err := ValidateEthAddress(m.EthDest); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "ethereum dest address")
+	if err := fxtypes.ValidateEthereumAddress(m.EthDest); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "ethereum dest address")
 	}
 	return nil
 }
@@ -177,17 +151,6 @@ func (m MsgSendToEth) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-// NewMsgRequestBatch returns a new msgRequestBatch
-func NewMsgRequestBatch(orchestrator sdk.AccAddress, denom string, minimumFee sdk.Int, feeReceive string, baseFee sdk.Int) *MsgRequestBatch {
-	return &MsgRequestBatch{
-		Sender:     orchestrator.String(),
-		Denom:      denom,
-		MinimumFee: minimumFee,
-		FeeReceive: feeReceive,
-		BaseFee:    baseFee,
-	}
-}
-
 // Route should return the name of the module
 func (m MsgRequestBatch) Route() string { return RouterKey }
 
@@ -197,16 +160,16 @@ func (m MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
 // ValidateBasic performs stateless checks
 func (m MsgRequestBatch) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "sender address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "sender address")
 	}
 	if len(m.Denom) <= 0 {
-		return sdkerrors.Wrap(ErrUnknown, "denom")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "denom")
 	}
 	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {
-		return sdkerrors.Wrap(ErrInvalid, "minimum fee")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "minimum fee")
 	}
-	if err := ValidateEthAddressAndValidateChecksum(m.FeeReceive); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "fee receive address")
+	if err := fxtypes.ValidateEthereumAddress(m.FeeReceive); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "fee receive address")
 	}
 	return nil
 }
@@ -226,17 +189,6 @@ func (m MsgRequestBatch) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-// NewMsgConfirmBatch returns a new msgConfirmBatch
-func NewMsgConfirmBatch(nonce uint64, tokenContract, bscAddress, signature string, orchestrator sdk.AccAddress) *MsgConfirmBatch {
-	return &MsgConfirmBatch{
-		Nonce:         nonce,
-		TokenContract: tokenContract,
-		EthSigner:     bscAddress,
-		Signature:     signature,
-		Orchestrator:  orchestrator.String(),
-	}
-}
-
 // Route should return the name of the module
 func (m MsgConfirmBatch) Route() string { return RouterKey }
 
@@ -246,20 +198,20 @@ func (m MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
 // ValidateBasic performs stateless checks
 func (m MsgConfirmBatch) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "orchestrator address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
-	if err := ValidateEthAddressAndValidateChecksum(m.EthSigner); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "eth signer address")
+	if err := fxtypes.ValidateEthereumAddress(m.EthSigner); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "eth signer address")
 	}
-	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "token contract")
+	if err := fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "token contract")
 	}
 	if len(m.Signature) == 0 {
-		return sdkerrors.Wrap(ErrEmpty, "signature")
+		return sdkerrors.Wrap(crosschaintypes.ErrEmpty, "signature")
 	}
 	_, err := hex.DecodeString(m.Signature)
 	if err != nil {
-		return sdkerrors.Wrapf(ErrInvalid, "could not hex decode signature: %s", m.Signature)
+		return sdkerrors.Wrapf(crosschaintypes.ErrInvalid, "could not hex decode signature: %s", m.Signature)
 	}
 	return nil
 }
@@ -287,10 +239,10 @@ func (m *MsgCancelSendToEth) Type() string { return TypeMsgCancelSendToEth }
 // ValidateBasic performs stateless checks
 func (m *MsgCancelSendToEth) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "sender address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "sender address")
 	}
 	if m.TransactionId == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "transaction id")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "transaction id")
 	}
 	return nil
 }
@@ -338,20 +290,6 @@ var (
 	_ EthereumClaim = &MsgValsetUpdatedClaim{}
 )
 
-func NewMsgDepositClaim(eventNonce, blockHeight uint64, tokenContract string, amount sdk.Int, ethSender, fxReceiver,
-	targetIbc, orchestrator string) *MsgDepositClaim {
-	return &MsgDepositClaim{
-		EventNonce:    eventNonce,
-		BlockHeight:   blockHeight,
-		TokenContract: tokenContract,
-		Amount:        amount,
-		EthSender:     ethSender,
-		FxReceiver:    fxReceiver,
-		TargetIbc:     targetIbc,
-		Orchestrator:  orchestrator,
-	}
-}
-
 // GetType returns the type of the claim
 func (m *MsgDepositClaim) GetType() ClaimType {
 	return CLAIM_TYPE_DEPOSIT
@@ -360,28 +298,28 @@ func (m *MsgDepositClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgDepositClaim) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.FxReceiver); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "fx receiver address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "fx receiver address")
 	}
-	if err := ValidateEthAddressAndValidateChecksum(m.EthSender); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "eth sender address")
+	if err := fxtypes.ValidateEthereumAddress(m.EthSender); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "eth sender address")
 	}
-	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "token contract")
+	if err := fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "token contract")
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "orchestrator address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
 	if m.Amount.IsNil() || m.Amount.IsNegative() {
-		return sdkerrors.Wrap(ErrInvalid, "amount cannot be negative")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "amount cannot be negative")
 	}
 	if _, err := hex.DecodeString(m.TargetIbc); len(m.TargetIbc) > 0 && err != nil {
-		return sdkerrors.Wrapf(ErrInvalid, "could not decode hex targetIbc string: %s", m.TargetIbc)
+		return sdkerrors.Wrapf(crosschaintypes.ErrInvalid, "could not decode hex targetIbc string: %s", m.TargetIbc)
 	}
 	if m.EventNonce == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "event nonce")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "block height")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "block height")
 	}
 	return nil
 }
@@ -433,19 +371,19 @@ func (m *MsgWithdrawClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgWithdrawClaim) ValidateBasic() error {
 	if m.EventNonce == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "event nonce")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "event nonce")
 	}
 	if m.BatchNonce == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "batch_nonce")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "batch_nonce")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "block height")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "block height")
 	}
-	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "token contract")
+	if err := fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "token contract")
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "orchestrator address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
 	return nil
 }
@@ -489,14 +427,6 @@ func (m MsgWithdrawClaim) Route() string { return RouterKey }
 // Type should return the action
 func (m MsgWithdrawClaim) Type() string { return TypeMsgWithdrawClaim }
 
-// NewMsgCancelSendToEth returns a new MsgCancelSendToEth
-func NewMsgCancelSendToEth(sender sdk.AccAddress, id uint64) *MsgCancelSendToEth {
-	return &MsgCancelSendToEth{
-		Sender:        sender.String(),
-		TransactionId: id,
-	}
-}
-
 func (m *MsgFxOriginatedTokenClaim) Route() string {
 	return RouterKey
 }
@@ -504,23 +434,23 @@ func (m *MsgFxOriginatedTokenClaim) Route() string {
 func (m *MsgFxOriginatedTokenClaim) Type() string { return TypeMsgFxOriginatedTokenClaim }
 
 func (m *MsgFxOriginatedTokenClaim) ValidateBasic() error {
-	if err := ValidateEthAddressAndValidateChecksum(m.TokenContract); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "token contract")
+	if err := fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "token contract")
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "orchestrator address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
 	if m.EventNonce == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "event nonce")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "event nonce")
 	}
 	if len(m.Name) == 0 {
-		return sdkerrors.Wrap(ErrEmpty, "token name")
+		return sdkerrors.Wrap(crosschaintypes.ErrEmpty, "token name")
 	}
 	if len(m.Symbol) == 0 {
-		return sdkerrors.Wrap(ErrEmpty, "token symbol")
+		return sdkerrors.Wrap(crosschaintypes.ErrEmpty, "token symbol")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "block height")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "block height")
 	}
 	return nil
 }
@@ -569,24 +499,24 @@ func (m *MsgValsetUpdatedClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgValsetUpdatedClaim) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "orchestrator address")
+		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
 	if len(m.Members) == 0 {
-		return sdkerrors.Wrap(ErrEmpty, "members")
+		return sdkerrors.Wrap(crosschaintypes.ErrEmpty, "members")
 	}
 	for _, member := range m.Members {
-		if err := ValidateEthAddress(member.EthAddress); err != nil {
-			return sdkerrors.Wrap(ErrInvalid, "eth address")
+		if err := fxtypes.ValidateEthereumAddress(member.EthAddress); err != nil {
+			return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "eth address")
 		}
 		if member.Power == 0 {
-			return sdkerrors.Wrap(ErrEmpty, "member power")
+			return sdkerrors.Wrap(crosschaintypes.ErrEmpty, "member power")
 		}
 	}
 	if m.EventNonce == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "event nonce")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.Wrap(ErrUnknown, "block height")
+		return sdkerrors.Wrap(crosschaintypes.ErrUnknown, "block height")
 	}
 	return nil
 }
@@ -626,7 +556,7 @@ func (m MsgValsetUpdatedClaim) Type() string { return TypeMsgValsetUpdatedClaim 
 func (m MsgValsetUpdatedClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeDeposit.Hash
-func (m *MsgValsetUpdatedClaim) ClaimHash() []byte {
+func (m MsgValsetUpdatedClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%d/%s/", m.ValsetNonce, m.EventNonce, m.BlockHeight, m.Members)
 	return tmhash.Sum([]byte(path))
 }

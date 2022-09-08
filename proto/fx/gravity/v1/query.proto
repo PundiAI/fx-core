@@ -4,248 +4,298 @@ package fx.gravity.v1;
 import "fx/gravity/v1/genesis.proto";
 import "fx/gravity/v1/types.proto";
 import "fx/gravity/v1/tx.proto";
-import "fx/gravity/v1/pool.proto";
-import "fx/gravity/v1/batch.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/functionx/fx-core/x/gravity/types";
 
-// Query defines the gRPC querier service
+// Deprecated after upgrade v3
 service Query {
-  // Deployments queries deployments
+  // Deprecated: Please use crosschain query.Params
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/fx/gravity/v1/params";
   }
+  // Deprecated: Please use crosschain query.CurrentOracleSet
   rpc CurrentValset(QueryCurrentValsetRequest)
       returns (QueryCurrentValsetResponse) {
     option (google.api.http).get = "/fx/gravity/v1/valset/current";
   }
+  // Deprecated: Please use crosschain query.OracleSetRequest
   rpc ValsetRequest(QueryValsetRequestRequest)
       returns (QueryValsetRequestResponse) {
     option (google.api.http).get = "/fx/gravity/v1/valset/request";
   }
+  // Deprecated: Please use crosschain query.OracleSetConfirm
   rpc ValsetConfirm(QueryValsetConfirmRequest)
       returns (QueryValsetConfirmResponse) {
     option (google.api.http).get = "/fx/gravity/v1/valset/confirm";
   }
+  // Deprecated: Please use crosschain query.OracleSetConfirmsByNonce
   rpc ValsetConfirmsByNonce(QueryValsetConfirmsByNonceRequest)
       returns (QueryValsetConfirmsByNonceResponse) {
     option (google.api.http).get = "/fx/gravity/v1/valset/confirms";
   }
+  // Deprecated: Please use crosschain query.LastOracleSetRequests
   rpc LastValsetRequests(QueryLastValsetRequestsRequest)
       returns (QueryLastValsetRequestsResponse) {
     option (google.api.http).get = "/fx/gravity/v1/valset/requests";
   }
+  // Deprecated: Please use crosschain query.LastPendingOracleSetRequestByAddr
   rpc LastPendingValsetRequestByAddr(QueryLastPendingValsetRequestByAddrRequest)
       returns (QueryLastPendingValsetRequestByAddrResponse) {
     option (google.api.http).get = "/fx/gravity/v1/valset/last";
   }
+  // Deprecated: Please use crosschain query.LastPendingBatchRequestByAddr
   rpc LastPendingBatchRequestByAddr(QueryLastPendingBatchRequestByAddrRequest)
       returns (QueryLastPendingBatchRequestByAddrResponse) {
     option (google.api.http).get = "/fx/gravity/v1/batch/last";
   }
+  // Deprecated: Please use crosschain query.LastEventNonceByAddr
   rpc LastEventNonceByAddr(QueryLastEventNonceByAddrRequest)
       returns (QueryLastEventNonceByAddrResponse) {
     option (google.api.http).get =
         "/fx/gravity/v1/oracle/event_nonce/{address}";
   }
+  // Deprecated: Please use crosschain query.LastEventBlockHeightByAddr
   rpc LastEventBlockHeightByAddr(QueryLastEventBlockHeightByAddrRequest)
       returns (QueryLastEventBlockHeightByAddrResponse) {
     option (google.api.http).get =
         "/fx/gravity/v1/oracle/event/block_height/{address}";
   }
+  // Deprecated: Please use crosschain query.BatchFees
   rpc BatchFees(QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
     option (google.api.http).get = "/fx/gravity/v1/batch_fees";
   }
+  // Deprecated: Please use crosschain query.LastObservedBlockHeight
   rpc LastObservedBlockHeight(QueryLastObservedBlockHeightRequest)
       returns (QueryLastObservedBlockHeightResponse) {
     option (google.api.http).get = "/fx/gravity/v1/observed/block_height";
   }
+  // Deprecated: Please use crosschain query.OutgoingTxBatches
   rpc OutgoingTxBatches(QueryOutgoingTxBatchesRequest)
       returns (QueryOutgoingTxBatchesResponse) {
     option (google.api.http).get = "/fx/gravity/v1/batch/outgoing_tx";
   }
+  // Deprecated: Please use crosschain query.BatchRequestByNonce
   rpc BatchRequestByNonce(QueryBatchRequestByNonceRequest)
       returns (QueryBatchRequestByNonceResponse) {
     option (google.api.http).get = "/fx/gravity/v1/batch/request";
   }
+  // Deprecated: Please use crosschain query.BatchConfirm
   rpc BatchConfirm(QueryBatchConfirmRequest)
       returns (QueryBatchConfirmResponse) {
     option (google.api.http).get = "/fx/gravity/v1/batch/confirm";
   }
+  // Deprecated: Please use crosschain query.BatchConfirms
   rpc BatchConfirms(QueryBatchConfirmsRequest)
       returns (QueryBatchConfirmsResponse) {
     option (google.api.http).get = "/fx/gravity/v1/batch/confirms";
   }
+  // Deprecated: Please use crosschain query.TokenToDenom
   rpc ERC20ToDenom(QueryERC20ToDenomRequest)
       returns (QueryERC20ToDenomResponse) {
     option (google.api.http).get = "/fx/gravity/v1/denom";
   }
+  // Deprecated: Please use crosschain query.DenomToToken
   rpc DenomToERC20(QueryDenomToERC20Request)
       returns (QueryDenomToERC20Response) {
     option (google.api.http).get = "/fx/gravity/v1/erc20";
   }
+  // Deprecated: Please use crosschain query.GetOracleByAddr
   rpc GetDelegateKeyByValidator(QueryDelegateKeyByValidatorRequest)
       returns (QueryDelegateKeyByValidatorResponse) {
     option (google.api.http).get = "/fx/gravity/v1/delegate_key_by_validator";
   }
+  // Deprecated: Please use crosschain query.GetOracleByExternalAddr
   rpc GetDelegateKeyByEth(QueryDelegateKeyByEthRequest)
       returns (QueryDelegateKeyByEthResponse) {
     option (google.api.http).get = "/fx/gravity/v1/delegate_key_by_eth";
   }
+  // Deprecated: Please use crosschain query.GetOracleByBridgerAddr
   rpc GetDelegateKeyByOrchestrator(QueryDelegateKeyByOrchestratorRequest)
       returns (QueryDelegateKeyByOrchestratorResponse) {
     option (google.api.http).get =
         "/fx/gravity/v1/delegate_key_by_orchestrator";
   }
+  // Deprecated: Please use crosschain query.GetPendingSendToExternal
   rpc GetPendingSendToEth(QueryPendingSendToEthRequest)
       returns (QueryPendingSendToEthResponse) {
     option (google.api.http).get = "/fx/gravity/v1/pending_send_to_eth";
   }
-  rpc GetIbcSequenceHeightByChannel(QueryIbcSequenceHeightRequest)
-      returns (QueryIbcSequenceHeightResponse) {
-    option (google.api.http).get = "/fx/gravity/v1/ibc_sequence_height";
-  }
+  // Deprecated: Please use crosschain query.ProjectedBatchTimeoutHeight
   rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest)
       returns (QueryProjectedBatchTimeoutHeightResponse) {
     option (google.api.http).get = "/fx/gravity/v1/projected_batch_timeout";
   }
+  // Deprecated: Please use crosschain query.BridgeTokens
   rpc BridgeTokens(QueryBridgeTokensRequest)
       returns (QueryBridgeTokensResponse) {
     option (google.api.http).get = "/fx/gravity/v1/bridge_tokens";
   }
 }
 
+// Deprecated after upgrade v3
 message QueryParamsRequest {}
+// Deprecated after upgrade v3
 message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
+// Deprecated after upgrade v3
 message QueryCurrentValsetRequest {}
+// Deprecated after upgrade v3
 message QueryCurrentValsetResponse { Valset valset = 1; }
 
+// Deprecated after upgrade v3
 message QueryValsetRequestRequest { uint64 nonce = 1; }
+// Deprecated after upgrade v3
 message QueryValsetRequestResponse { Valset valset = 1; }
 
+// Deprecated after upgrade v3
 message QueryValsetConfirmRequest {
   uint64 nonce = 1;
   string address = 2;
 }
+// Deprecated after upgrade v3
 message QueryValsetConfirmResponse { MsgValsetConfirm confirm = 1; }
 
+// Deprecated after upgrade v3
 message QueryValsetConfirmsByNonceRequest { uint64 nonce = 1; }
+// Deprecated after upgrade v3
 message QueryValsetConfirmsByNonceResponse {
   repeated MsgValsetConfirm confirms = 1;
 }
 
+// Deprecated after upgrade v3
 message QueryLastValsetRequestsRequest {}
+// Deprecated after upgrade v3
 message QueryLastValsetRequestsResponse { repeated Valset valsets = 1; }
 
+// Deprecated after upgrade v3
 message QueryLastPendingValsetRequestByAddrRequest { string address = 1; }
+// Deprecated after upgrade v3
 message QueryLastPendingValsetRequestByAddrResponse {
   repeated Valset valsets = 1;
 }
 
+// Deprecated after upgrade v3
 message QueryBatchFeeRequest {
   repeated MinBatchFee minBatchFees = 1 [ (gogoproto.nullable) = false ];
 }
+// Deprecated after upgrade v3
 message QueryBatchFeeResponse { repeated BatchFees batch_fees = 1; }
 
+// Deprecated after upgrade v3
 message QueryLastPendingBatchRequestByAddrRequest { string address = 1; }
+// Deprecated after upgrade v3
 message QueryLastPendingBatchRequestByAddrResponse {
   OutgoingTxBatch batch = 1;
 }
 
+// Deprecated after upgrade v3
 message QueryOutgoingTxBatchesRequest {}
+// Deprecated after upgrade v3
 message QueryOutgoingTxBatchesResponse { repeated OutgoingTxBatch batches = 1; }
 
+// Deprecated after upgrade v3
 message QueryBatchRequestByNonceRequest {
   uint64 nonce = 1;
   string token_contract = 2;
 }
+// Deprecated after upgrade v3
 message QueryBatchRequestByNonceResponse { OutgoingTxBatch batch = 1; }
 
+// Deprecated after upgrade v3
 message QueryBatchConfirmRequest {
   uint64 nonce = 1;
   string token_contract = 2;
   string address = 3;
 }
-
+// Deprecated after upgrade v3
 message QueryBatchConfirmResponse { MsgConfirmBatch confirm = 1; }
 
+// Deprecated after upgrade v3
 message QueryBatchConfirmsRequest {
   uint64 nonce = 1;
   string token_contract = 2;
 }
+// Deprecated after upgrade v3
 message QueryBatchConfirmsResponse { repeated MsgConfirmBatch confirms = 1; }
 
+// Deprecated after upgrade v3
 message QueryLastEventNonceByAddrRequest { string address = 1; }
+// Deprecated after upgrade v3
 message QueryLastEventNonceByAddrResponse { uint64 event_nonce = 1; }
 
+// Deprecated after upgrade v3
 message QueryERC20ToDenomRequest { string erc20 = 1; }
+// Deprecated after upgrade v3
 message QueryERC20ToDenomResponse {
   string denom = 1;
   bool fx_originated = 2;
 }
 
+// Deprecated after upgrade v3
 message QueryDenomToERC20Request { string denom = 1; }
+// Deprecated after upgrade v3
 message QueryDenomToERC20Response {
   string erc20 = 1;
   bool fx_originated = 2;
 }
 
+// Deprecated after upgrade v3
 message QueryDelegateKeyByValidatorRequest { string validator_address = 1; }
+// Deprecated after upgrade v3
 message QueryDelegateKeyByValidatorResponse {
   string eth_address = 1;
   string orchestrator_address = 2;
 }
 
+// Deprecated after upgrade v3
 message QueryDelegateKeyByEthRequest { string eth_address = 1; }
+// Deprecated after upgrade v3
 message QueryDelegateKeyByEthResponse {
   string validator_address = 1;
   string orchestrator_address = 2;
 }
 
+// Deprecated after upgrade v3
 message QueryDelegateKeyByOrchestratorRequest {
   string orchestrator_address = 1;
 }
+// Deprecated after upgrade v3
 message QueryDelegateKeyByOrchestratorResponse {
   string validator_address = 1;
   string eth_address = 2;
 }
 
+// Deprecated after upgrade v3
 message QueryPendingSendToEthRequest { string sender_address = 1; }
+// Deprecated after upgrade v3
 message QueryPendingSendToEthResponse {
   repeated OutgoingTransferTx transfers_in_batches = 1;
   repeated OutgoingTransferTx unbatched_transfers = 2;
 }
 
-message QueryIbcSequenceHeightRequest {
-  string sourcePort = 1;
-  string sourceChannel = 2;
-  uint64 sequence = 3;
-}
-
-message QueryIbcSequenceHeightResponse {
-  bool found = 1;
-  uint64 height = 2;
-}
-
+// Deprecated after upgrade v3
 message QueryLastObservedBlockHeightRequest {}
-
+// Deprecated after upgrade v3
 message QueryLastObservedBlockHeightResponse {
   uint64 eth_block_height = 1;
   uint64 block_height = 2;
 }
 
+// Deprecated after upgrade v3
 message QueryLastEventBlockHeightByAddrRequest { string address = 1; }
+// Deprecated after upgrade v3
 message QueryLastEventBlockHeightByAddrResponse { uint64 block_height = 1; }
 
+// Deprecated after upgrade v3
 message QueryProjectedBatchTimeoutHeightRequest {}
-
+// Deprecated after upgrade v3
 message QueryProjectedBatchTimeoutHeightResponse { uint64 timeout_height = 1; }
 
+// Deprecated after upgrade v3
 message QueryBridgeTokensRequest {}
-
+// Deprecated after upgrade v3
 message QueryBridgeTokensResponse { repeated ERC20ToDenom bridge_tokens = 1; }

@@ -14,7 +14,7 @@ import (
 
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
-func (k Keeper) handlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
+func (k Keeper) HandlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
 	// convert denom
 	if ctx.BlockHeight() >= fxtypes.UpgradeExponential1Block() {
 		coin = k.handlerConvertDenom(ctx, claim, receiver, coin)
