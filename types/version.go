@@ -1,7 +1,6 @@
 package types
 
 import (
-	"math"
 	"math/big"
 	"os"
 	"sync"
@@ -16,7 +15,7 @@ const (
 	mainnetExponentialBlock = 5940000
 
 	// v2.3.x upgrade code-named is Trigonometric
-	testnetTrigonometricBlock = math.MaxInt64
+	testnetTrigonometricBlock = 6807000
 )
 
 // testnet
@@ -30,7 +29,7 @@ const (
 	testnetExponential2Block = 4028000
 
 	testnetTrigonometric1Block = 4317959
-	testnetTrigonometric2Block = math.MaxInt64
+	testnetTrigonometric2Block = 4714000
 )
 
 // SupportDenomManyToOneMsgTypes return msg types
