@@ -35,9 +35,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v2.3.1] - 2022-09-13
+
 ### Features
 
 * `RegisterERC20Proposal`, `RegisterCoinProposal`, `ToggleTokenConversionProposal`, `UpdateDenomAliasProposal` proposal quorum changed from 40% to 25%
+* configurable bypass-min-fee maxGas
 
 ## [v2.3.0] - 2022-08-22
 
