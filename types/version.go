@@ -15,7 +15,7 @@ const (
 	mainnetExponentialBlock = 5940000
 
 	// v2.3.x upgrade code-named is Trigonometric
-	testnetTrigonometricBlock = 6807000
+	mainnetTrigonometricBlock = 6807000
 )
 
 // testnet
@@ -97,12 +97,12 @@ func UpgradeTrigonometric1Block() int64 {
 	if TestnetChainId == chainId {
 		return testnetTrigonometric1Block
 	}
-	return testnetTrigonometricBlock
+	return mainnetTrigonometricBlock
 }
 
 func UpgradeTrigonometric2Block() int64 {
 	if TestnetChainId == chainId {
 		return testnetTrigonometric2Block
 	}
-	return testnetTrigonometricBlock
+	return mainnetTrigonometricBlock
 }
