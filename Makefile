@@ -109,8 +109,9 @@ go.sum: go.mod
 	@echo "--> Download go modules to local cache"
 	@go mod download
 
-build: go.mod
+build: go.sum
 	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd
+	@echo "--> Done building."
 
 build-win:
 	@$(MAKE) build
@@ -119,8 +120,16 @@ build-linux:
 	@GOOS=linux GOARCH=amd64 $(MAKE) build
 
 install:
-	$(MAKE) build
-	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
+	@$(MAKE) build
+	@if [[ "$(GOPATH)" == "" || ! -d "$(GOPATH)" ]]; then \
+		echo "--> no found \"GOPATH\" env, Run \"./build/bin/fxcored start\" to launch fxcored."; \
+	else \
+	 	if [ ! -d $(GOPATH)/bin ]; then \
+			mkdir -p $(GOPATH)/bin; \
+		fi; \
+		mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored; \
+		echo "--> Run \"fxcored start\" or \"$(GOPATH)/bin/fxcored start\" to launch fxcored."; \
+	fi
 
 run-local: install
 	@./develop/run_fxcore.sh init
