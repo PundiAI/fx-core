@@ -146,7 +146,7 @@ draw-deps:
 
 lint:
 	@echo "--> Running linter"
-	@golangci-lint --version | grep 1.46.2 || (echo "\033[91mPlease switch golangci-lint version to v1.46.2\033[0m" && exit 1)
+	@golangci-lint --version | grep 1.49.0 || (echo "\033[91mPlease switch golangci-lint version to v1.49.0\033[0m" && exit 1)
 	golangci-lint run -v --go=1.18 --timeout 5m
 	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' -not -name "statik.go" | xargs gofmt -d -s
 
