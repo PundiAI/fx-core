@@ -34,10 +34,11 @@ type NodeRPC struct {
 	gasPrices sdk.Coins
 	ctx       context.Context
 	caller    jsonRPCCaller
+	height    int64
 }
 
 func NewNodeRPC(caller jsonRPCCaller) *NodeRPC {
-	return &NodeRPC{caller: caller, ctx: context.Background()}
+	return &NodeRPC{caller: caller, ctx: context.Background(), height: 0}
 }
 
 func (c *NodeRPC) WithContext(ctx context.Context) *NodeRPC {
@@ -45,8 +46,14 @@ func (c *NodeRPC) WithContext(ctx context.Context) *NodeRPC {
 	return c
 }
 
-func (c *NodeRPC) WithGasPrices(gasPrices sdk.Coins) {
+func (c *NodeRPC) WithGasPrices(gasPrices sdk.Coins) *NodeRPC {
 	c.gasPrices = gasPrices
+	return c
+}
+
+func (c *NodeRPC) WithHeight(height int64) *NodeRPC {
+	c.height = height
+	return c
 }
 
 // Custom API
@@ -346,7 +353,7 @@ func (c *NodeRPC) AppVersion() (string, error) {
 
 func (c *NodeRPC) ABCIQueryIsOk(path string, data tmBytes.HexBytes) (*coreTypes.ResultABCIQuery, error) {
 	result := new(coreTypes.ResultABCIQuery)
-	params := map[string]interface{}{"path": path, "data": data, "height": "0", "prove": false}
+	params := map[string]interface{}{"path": path, "data": data, "height": strconv.FormatInt(c.height, 10), "prove": false}
 	err := c.caller.Call(c.ctx, "abci_query", params, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "ABCIQueryIsOk")
@@ -380,7 +387,7 @@ func (c *NodeRPC) ABCIInfo() (*coreTypes.ResultABCIInfo, error) {
 
 func (c *NodeRPC) ABCIQuery(path string, data tmBytes.HexBytes) (*coreTypes.ResultABCIQuery, error) {
 	result := new(coreTypes.ResultABCIQuery)
-	params := map[string]interface{}{"path": path, "data": data, "height": "0", "prove": false}
+	params := map[string]interface{}{"path": path, "data": data, "height": strconv.FormatInt(c.height, 10), "prove": false}
 	err := c.caller.Call(c.ctx, "abci_query", params, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "ABCIQuery")

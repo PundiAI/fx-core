@@ -509,3 +509,19 @@ func (suite *IntegrationTestSuite) TestQueryGasPrice() {
 		suite.Require().Equal(`4000000000000FX`, prices.String())
 	}
 }
+
+func (suite *IntegrationTestSuite) TestJsonRPC_QueryBalanceByHeight() {
+	validator := suite.GetFirstValidator()
+	nextValKey := suite.GetPrivKeyByIndex(hd.Secp256k1Type, 1)
+
+	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress))
+	nodeRPC.WithHeight(0)
+	balances, err := nodeRPC.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
+	suite.NoError(err)
+	suite.True(balances.IsAllPositive())
+
+	nodeRPC.WithHeight(1)
+	balances, err = nodeRPC.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
+	suite.NoError(err)
+	suite.False(balances.IsAllPositive())
+}
