@@ -19,6 +19,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -26,6 +27,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	gethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/privval"
 )
@@ -42,6 +44,7 @@ func Debug() *cobra.Command {
 		ModuleAddressCmd(),
 		ChecksumEthAddressCmd(),
 		CovertTxDataToHashCmd(),
+		DecodeSimulateTxCmd(),
 		VerifyTxCmd(),
 		PubkeyCmd(),
 		AddrCmd(),
@@ -210,6 +213,35 @@ func CovertTxDataToHashCmd() *cobra.Command {
 			return nil
 		},
 	}
+	return cmd
+}
+
+func DecodeSimulateTxCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "simulate-tx [base64/hex]",
+		Short: "decode base64 or hex tx data to json",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			var txBytes []byte
+			if useHex, _ := cmd.Flags().GetBool("hex"); useHex {
+				txBytes, err = hex.DecodeString(args[0])
+			} else {
+				txBytes, err = base64.StdEncoding.DecodeString(args[0])
+			}
+			if err != nil {
+				return err
+			}
+
+			var simulateReq = new(tx.SimulateRequest)
+			if err := proto.Unmarshal(txBytes, simulateReq); err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(simulateReq)
+		},
+	}
+	cmd.Flags().BoolP("hex", "x", false, "Treat input as hexadecimal instead of base64")
 	return cmd
 }
 
