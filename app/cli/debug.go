@@ -9,28 +9,25 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/client/debug"
-
-	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	// nolint
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
 
+	"github.com/btcsuite/btcutil/base58"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/debug"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/tendermint/tendermint/privval"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/cosmos/cosmos-sdk/client"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
+	"github.com/tendermint/tendermint/privval"
 )
 
 func Debug() *cobra.Command {
@@ -40,67 +37,64 @@ func Debug() *cobra.Command {
 		RunE:  client.ValidateCmd,
 	}
 	cmd.AddCommand(
-		HexToString(),
-		StringToBytes32(),
-		Base64ToString(),
+		ToStringCmd(),
+		ToBytes32Cmd(),
 		ModuleAddressCmd(),
-		CovertTxDataToHash(),
-		ChecksumEthAddress(),
+		ChecksumEthAddressCmd(),
+		CovertTxDataToHashCmd(),
+		VerifyTxCmd(),
 		PubkeyCmd(),
-		VerifyTx(),
+		AddrCmd(),
 		debug.RawBytesCmd(),
 	)
 	return cmd
 }
 
-func HexToString() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "hex-to-str [hex]",
-		Short: "Hex to string tools",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			hexStr := strings.TrimPrefix(args[0], "0x")
-			decodeString, err := hex.DecodeString(hexStr)
-			if err != nil {
-				return err
+func ToStringCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "2str [hex/base64/base58] [data]",
+		Short: "Decode to string tools",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			var decodeString []byte
+			switch args[0] {
+			case "hex":
+				hexStr := strings.TrimPrefix(args[1], "0x")
+				decodeString, err = hex.DecodeString(hexStr)
+				if err != nil {
+					return err
+				}
+			case "base64":
+				decodeString, err = base64.StdEncoding.DecodeString(args[1])
+				if err != nil {
+					return err
+				}
+			case "base58":
+				decodeString = base58.Decode(args[1])
+			default:
+				return fmt.Errorf("invalid encode type: %s", args[0])
 			}
 			cmd.Println(string(decodeString))
 			return nil
 		},
 	}
-	return cmd
 }
 
-func StringToBytes32() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "str-to-bytes32",
-		Short: "string to bytes32 hex",
+func ToBytes32Cmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "2bytes32",
+		Short: "String to bytes32 hex",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args[0]) > 32 {
+				return fmt.Errorf("input data leng greater than 32")
+			}
 			var byte32 [32]byte
 			copy(byte32[:], args[0])
 			cmd.Println(hex.EncodeToString(byte32[:]))
 			return nil
 		},
 	}
-	return cmd
-}
-
-func Base64ToString() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "base64-to-str [hex]",
-		Short: "Base64 to string tools",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			decodeString, err := base64.StdEncoding.DecodeString(args[0])
-			if err != nil {
-				return err
-			}
-			cmd.Println(string(decodeString))
-			return nil
-		},
-	}
-	return cmd
 }
 
 func ModuleAddressCmd() *cobra.Command {
@@ -116,10 +110,10 @@ func ModuleAddressCmd() *cobra.Command {
 	return cmd
 }
 
-func VerifyTx() *cobra.Command {
+func VerifyTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "verify-tx [base64TxData]",
-		Short:   "verify tx",
+		Short:   "Verify tx",
 		Example: fmt.Sprintf("%s debug verify-tx 'CucHC...==='", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -200,10 +194,10 @@ func VerifyTx() *cobra.Command {
 	return cmd
 }
 
-func CovertTxDataToHash() *cobra.Command {
+func CovertTxDataToHashCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "tx-hash [base64TxData]",
-		Short:   "covert base64 tx data to txHash",
+		Short:   "Covert base64 tx data to txHash",
 		Example: fmt.Sprintf("%s debug tx-hash 'CucHC...==='", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -219,10 +213,10 @@ func CovertTxDataToHash() *cobra.Command {
 	return cmd
 }
 
-func ChecksumEthAddress() *cobra.Command {
+func ChecksumEthAddressCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "checksum [eth address]",
-		Short: "checksum eth address",
+		Short: "Checksum eth address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -300,6 +294,51 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 				return err
 			}
 			return clientCtx.PrintString(string(data))
+		},
+	}
+}
+
+func AddrCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "addr [address]",
+		Short: "Convert an address between hex and bech32",
+		Long: fmt.Sprintf(`Convert an address between hex encoding and bech32.
+
+Example:
+$ %s debug addr fx1e0jnq2sun3dzjh8p2xq95kk0expwmd7sd7r5ye
+			`, version.AppName),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			addrString := args[0]
+			var addr []byte
+
+			// try hex, then bech32
+			addr, err = hex.DecodeString(addrString)
+			if err != nil {
+				var err2 error
+				addr, err2 = sdk.AccAddressFromBech32(addrString)
+				if err2 != nil {
+					var err3 error
+					addr, err3 = sdk.ValAddressFromBech32(addrString)
+
+					if err3 != nil {
+						return fmt.Errorf("expected hex or bech32. Got errors: hex: %v, bech32 acc: %v, bech32 val: %v", err, err2, err3)
+
+					}
+				}
+			}
+
+			return PrintOutput(clientCtx, map[string]interface{}{
+				"base64_address": addr,
+				"hex_address":    hex.EncodeToString(addr),
+				"eip55_address":  common.BytesToAddress(addr).String(),
+				"acc_address":    sdk.AccAddress(addr),
+				"val_address":    sdk.ValAddress(addr),
+			})
 		},
 	}
 }
