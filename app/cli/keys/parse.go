@@ -3,12 +3,12 @@ package keys
 import (
 	"encoding/hex"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/spf13/cobra"
 
 	"github.com/functionx/fx-core/v2/app/cli"
@@ -28,6 +28,8 @@ func ParseAddressCommand() *cobra.Command {
 			}
 			addrStr := args[0]
 
+			outputMap := make(map[string]interface{})
+
 			var addr []byte
 			keyInfo, err := clientCtx.Keyring.Key(addrStr)
 			if err != nil {
@@ -38,6 +40,8 @@ func ParseAddressCommand() *cobra.Command {
 					if err != nil {
 						return err
 					}
+				} else {
+					outputMap["eip55_address"] = common.BytesToAddress(addr).String()
 				}
 				keyInfo, _ = clientCtx.Keyring.KeyByAddress(sdk.AccAddress(addr))
 			} else {
@@ -56,13 +60,10 @@ func ParseAddressCommand() *cobra.Command {
 				return err
 			}
 
-			outputMap := map[string]interface{}{
-				"base64_address": addr,
-				"hex_address":    hex.EncodeToString(addr),
-				"eip55_address":  common.BytesToAddress(addr).String(),
-				"acc_address":    accAddress,
-				"val_address":    valAddress,
-			}
+			outputMap["base64_address"] = addr
+			outputMap["hex_address"] = hex.EncodeToString(addr)
+			outputMap["acc_address"] = accAddress
+			outputMap["val_address"] = valAddress
 			if keyInfo != nil {
 				outputMap["name"] = keyInfo.GetName()
 				outputMap["algo"] = keyInfo.GetAlgo()
@@ -71,6 +72,9 @@ func ParseAddressCommand() *cobra.Command {
 				path, err := keyInfo.GetPath()
 				if err == nil {
 					outputMap["path"] = path
+				}
+				if keyInfo.GetAlgo() == hd.EthSecp256k1Type {
+					outputMap["eip55_address"] = common.BytesToAddress(addr).String()
 				}
 			}
 
