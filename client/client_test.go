@@ -525,3 +525,12 @@ func (suite *IntegrationTestSuite) TestJsonRPC_QueryBalanceByHeight() {
 	suite.NoError(err)
 	suite.False(balances.IsAllPositive())
 }
+
+func (suite *IntegrationTestSuite) TestQueryModuleAccount() {
+	clients := suite.GetClients()
+	for _, client := range clients {
+		account, err := client.QueryAccount(authtypes.NewModuleAddress(authtypes.FeeCollectorName).String())
+		suite.Require().NoError(err)
+		suite.Equal(uint64(0), account.GetSequence())
+	}
+}

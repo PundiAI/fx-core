@@ -1,7 +1,6 @@
 package jsonrpc
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -9,8 +8,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	etherminttypes "github.com/evmos/ethermint/types"
+	"github.com/gogo/protobuf/proto"
 	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
 
+	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
 	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
 )
 
@@ -21,7 +23,10 @@ func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {
 	}
 	var account authtypes.AccountI
 	if err = legacy.Cdc.UnmarshalJSON(result.Response.Value, &account); err != nil {
-		return nil, err
+		account = new(etherminttypes.EthAccount)
+		if err1 := legacy.Cdc.UnmarshalJSON(result.Response.Value, account); err1 != nil {
+			return nil, fmt.Errorf("%s: %s", err.Error(), err1.Error())
+		}
 	}
 	return account, nil
 }
@@ -62,17 +67,16 @@ func (c *NodeRPC) QuerySupply() (sdk.Coins, error) {
 	return supplyRes.Supply, nil
 }
 
-// Deprecated: GetGasPrices
 func (c *NodeRPC) GetGasPrices() (sdk.Coins, error) {
-	result, err := c.ABCIQueryIsOk("/custom/other/gasPrice", nil)
+	result, err := c.ABCIQueryIsOk("/fx.base.v1.Query/GetGasPrice", nil)
 	if err != nil {
 		return sdk.Coins{}, err
 	}
-	var gasPrice sdk.Coins
-	if err = json.Unmarshal(result.Response.Value, &gasPrice); err != nil {
+	var response = new(gasprice.GetGasPriceResponse)
+	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
 		return nil, err
 	}
-	return gasPrice, nil
+	return response.GasPrices, nil
 }
 
 func (c *NodeRPC) Store(path string) (*coreTypes.ResultABCIQuery, error) {
