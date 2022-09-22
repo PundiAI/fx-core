@@ -27,6 +27,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	gethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/privval"
@@ -62,8 +63,7 @@ func ToStringCmd() *cobra.Command {
 			var decodeString []byte
 			switch args[0] {
 			case "hex":
-				hexStr := strings.TrimPrefix(args[1], "0x")
-				decodeString, err = hex.DecodeString(hexStr)
+				decodeString, err = hexutil.Decode(args[1])
 				if err != nil {
 					return err
 				}
@@ -226,7 +226,7 @@ func DecodeSimulateTxCmd() *cobra.Command {
 
 			var txBytes []byte
 			if useHex, _ := cmd.Flags().GetBool("hex"); useHex {
-				txBytes, err = hex.DecodeString(args[0])
+				txBytes, err = hexutil.Decode(args[0])
 			} else {
 				txBytes, err = base64.StdEncoding.DecodeString(args[0])
 			}
@@ -349,7 +349,7 @@ $ %s debug addr fx1e0jnq2sun3dzjh8p2xq95kk0expwmd7sd7r5ye
 			var addr []byte
 
 			// try hex, then bech32
-			addr, err = hex.DecodeString(addrString)
+			addr, err = hexutil.Decode(addrString)
 			if err != nil {
 				var err2 error
 				addr, err2 = sdk.AccAddressFromBech32(addrString)
