@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/gov/keeper"
 	types3 "github.com/functionx/fx-core/v3/x/gov/types"
 )
 
@@ -94,22 +93,22 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 	}{
 		{
 			testName:     "",
-			amount:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100 * 1e3).MulRaw(1e18)}},
+			amount:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)}},
 			expect:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}},
 			votingPeriod: true,
 			expectedErr:  nil,
 		},
 		{
 			testName:     "",
-			amount:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(150 * 1e3).MulRaw(1e18)}},
+			amount:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(11 * 1e3).MulRaw(1e18)}},
 			expect:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}},
 			votingPeriod: false,
 			expectedErr:  nil,
 		},
 		{
 			testName:     "",
-			amount:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(150 * 1e3).MulRaw(1e18)}},
-			expect:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(16 * 1e3).MulRaw(1e18)}},
+			amount:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(11 * 1e3).MulRaw(1e18)}},
+			expect:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(11 * 1e2).MulRaw(1e18)}},
 			votingPeriod: true,
 			expectedErr:  nil,
 		},
@@ -123,7 +122,7 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 		{
 			testName:     "",
 			amount:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(200 * 1e3).MulRaw(1e18)}},
-			expect:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(21 * 1e3).MulRaw(1e18)}},
+			expect:       sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(20 * 1e3).MulRaw(1e18)}},
 			votingPeriod: true,
 			expectedErr:  nil,
 		},
@@ -140,12 +139,12 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 		suite.Require().NoError(err)
 		proposalResponse, err := suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), testProposalMsg)
 		suite.Require().NoError(err)
-		_, found := suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposalResponse.ProposalId)
+		proposal, found := suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposalResponse.ProposalId)
 		suite.Require().True(found)
 		if tc.votingPeriod {
-			suite.Require().True(tc.expect.IsAllGTE(keeper.SupportEGFProposalTotalDeposit(true, tc.amount)))
+			suite.Require().True(tc.expect.IsAllGTE(types3.EGFProposalMinDeposit(tc.amount)))
 			continue
 		}
-		suite.Require().True(sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}.IsEqual(types3.InitialDeposit))
+		suite.Require().True(sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}.IsEqual(proposal.TotalDeposit))
 	}
 }

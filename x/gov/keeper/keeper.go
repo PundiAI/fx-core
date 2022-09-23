@@ -51,8 +51,6 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 		return false, err
 	}
 
-	// first deposit
-	first := proposal.TotalDeposit.IsZero()
 	// Update proposal
 	proposal.TotalDeposit = proposal.TotalDeposit.Add(depositAmount...)
 	keeper.SetProposal(ctx, proposal)
@@ -67,7 +65,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 		if !ok {
 			return false, sdkerrors.Wrapf(govtypes.ErrInvalidProposalType, "%d", proposalID)
 		}
-		minDeposit = SupportEGFProposalTotalDeposit(first, cpsp.Amount)
+		minDeposit = types.EGFProposalMinDeposit(cpsp.Amount)
 	} else {
 		minDeposit = keeper.GetDepositParams(ctx).MinDeposit
 	}
@@ -119,17 +117,4 @@ func (keeper Keeper) EGFActivateVotingPeriod(ctx sdk.Context, proposal govtypes.
 
 	keeper.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalId, proposal.DepositEndTime)
 	keeper.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
-}
-
-func SupportEGFProposalTotalDeposit(first bool, claimCoin sdk.Coins) sdk.Coins {
-	// minimum collateral amount for initializing EGF proposals
-	if claimCoin.IsAllLTE(types.DepositProposalThreshold) && first {
-		return types.InitialDeposit
-	}
-	initialDeposit := types.InitialDeposit
-	for _, coin := range claimCoin {
-		amount := coin.Amount.ToDec().Mul(types.ClaimRatio).TruncateInt()
-		initialDeposit = initialDeposit.Add(sdk.NewCoin(coin.Denom, amount))
-	}
-	return initialDeposit
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/gov/keeper"
+	types3 "github.com/functionx/fx-core/v3/x/gov/types"
 )
 
 type KeeperTestSuite struct {
@@ -91,6 +92,68 @@ func (suite *KeeperTestSuite) TestNormalDeposits() {
 
 }
 
+func (suite *KeeperTestSuite) TestEGFDepositsLessThan10000() {
+	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)}}
+	communityPoolSpendProposal := &types2.CommunityPoolSpendProposal{
+		Title:       "community Pool Spend Proposal",
+		Description: "description", Recipient: suite.addrs[0].String(),
+		Amount: egfCoins,
+	}
+	minDeposit := types3.EGFProposalMinDeposit(egfCoins)
+	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}
+	communityPoolSpendProposalMsg, err := types.NewMsgSubmitProposal(
+		communityPoolSpendProposal,
+		initCoins,
+		suite.addrs[0],
+	)
+	suite.Require().NoError(err)
+	proposalResponse, err := suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), communityPoolSpendProposalMsg)
+	suite.Require().NoError(err)
+	_, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposalResponse.ProposalId, suite.addrs[1])
+	suite.Require().False(found)
+	proposal, ok := suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposalResponse.ProposalId)
+	suite.Require().True(ok)
+	suite.Require().Equal(types.StatusVotingPeriod, proposal.Status)
+	suite.Require().True(initCoins.IsEqual(minDeposit))
+}
+
+func (suite *KeeperTestSuite) TestEGFDepositsLessThan10001() {
+	thousand := sdk.NewInt(1 * 1e3).MulRaw(1e18)
+	tenThousand := thousand.MulRaw(10)
+	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: tenThousand.Add(sdk.NewInt(10))}}
+	communityPoolSpendProposal := &types2.CommunityPoolSpendProposal{
+		Title:       "community Pool Spend Proposal",
+		Description: "description", Recipient: suite.addrs[0].String(),
+		Amount: egfCoins,
+	}
+	minDeposit := types3.EGFProposalMinDeposit(egfCoins)
+
+	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: thousand}}
+	communityPoolSpendProposalMsg, err := types.NewMsgSubmitProposal(
+		communityPoolSpendProposal,
+		initCoins,
+		suite.addrs[0],
+	)
+	suite.Require().NoError(err)
+	proposalResponse, err := suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), communityPoolSpendProposalMsg)
+	suite.Require().NoError(err)
+	_, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposalResponse.ProposalId, suite.addrs[1])
+	suite.Require().False(found)
+	proposal, ok := suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposalResponse.ProposalId)
+	suite.Require().True(ok)
+	suite.Require().Equal(types.StatusDepositPeriod, proposal.Status)
+	suite.Require().True(initCoins.IsAllLT(minDeposit))
+
+	depositCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1)}}
+	votingStarted, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, suite.addrs[1], depositCoins)
+	suite.Require().NoError(err)
+	suite.Require().True(votingStarted)
+	proposal, ok = suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposalResponse.ProposalId)
+	suite.Require().True(ok)
+	suite.Require().Equal(types.StatusVotingPeriod, proposal.Status)
+	suite.Require().Equal(proposal.TotalDeposit, minDeposit)
+}
+
 func (suite *KeeperTestSuite) TestEGFDeposits() {
 	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(150 * 1e3).MulRaw(1e18)}}
 	communityPoolSpendProposal := &types2.CommunityPoolSpendProposal{
@@ -98,7 +161,7 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 		Description: "description", Recipient: suite.addrs[0].String(),
 		Amount: egfCoins,
 	}
-	minDeposit := keeper.SupportEGFProposalTotalDeposit(false, egfCoins)
+	minDeposit := types3.EGFProposalMinDeposit(egfCoins)
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}
 	communityPoolSpendProposalMsg, err := types.NewMsgSubmitProposal(
 		communityPoolSpendProposal,
@@ -145,7 +208,7 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 	suite.Require().True(initCoins.Add(firstCoins...).Add(secondCoins...).IsAllLT(minDeposit))
 
 	// third deposit
-	thirdCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(5 * 1e3).MulRaw(1e18)}}
+	thirdCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(4 * 1e3).MulRaw(1e18)}}
 	votingStarted, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, suite.addrs[1], thirdCoins)
 	suite.Require().NoError(err)
 	suite.Require().True(votingStarted)

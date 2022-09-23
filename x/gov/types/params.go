@@ -13,7 +13,16 @@ const (
 )
 
 var (
-	InitialDeposit           = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18))))
-	ClaimRatio               = sdk.NewDecWithPrec(1, 1)
-	DepositProposalThreshold = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
+	InitialDeposit      = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18))))
+	ClaimRatio          = sdk.NewDecWithPrec(1, 1)
+	EGFDepositThreshold = sdk.NewInt(10000).Mul(sdk.NewInt(1e18))
 )
+
+func EGFProposalMinDeposit(claimCoin sdk.Coins) sdk.Coins {
+	claimAmount := claimCoin.AmountOf(fxtypes.DefaultDenom)
+	if claimAmount.LTE(EGFDepositThreshold) {
+		return InitialDeposit
+	}
+	initialDeposit := claimAmount.ToDec().Mul(ClaimRatio).TruncateInt()
+	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initialDeposit))
+}
