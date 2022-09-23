@@ -105,15 +105,27 @@ go.sum: go.mod
 	@echo "--> Download go modules to local cache"
 	@go mod download
 
-build: go.mod
-	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd/fxcored
+build: go.sum
+	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd
+	@echo "--> Done building."
+
+build-win:
+	@$(MAKE) build
 
 build-linux:
 	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build
 
 install:
 	@$(MAKE) build
-	@mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored
+	@if [[ "$(GOPATH)" == "" || ! -d "$(GOPATH)" ]]; then \
+		echo "--> no found \"GOPATH\" env, Run \"./build/bin/fxcored start\" to launch fxcored."; \
+	else \
+	 	if [ ! -d $(GOPATH)/bin ]; then \
+			mkdir -p $(GOPATH)/bin; \
+		fi; \
+		mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored; \
+		echo "--> Run \"fxcored start\" or \"$(GOPATH)/bin/fxcored start\" to launch fxcored."; \
+	fi
 
 run-local: install
 	@./develop/run_fxcore.sh init
@@ -209,7 +221,6 @@ update-swagger-docs: proto-swagger-gen statik
     fi
 
 .PHONY: statik update-swagger-docs
-
 
 ###############################################################################
 ###                                Releasing                                ###
