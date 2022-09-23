@@ -1,17 +1,15 @@
-package cmd
+package main
 
 import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/functionx/fx-core/app/cli"
-
-	fxtypes "github.com/functionx/fx-core/types"
-
-	tmcli "github.com/tendermint/tendermint/libs/cli"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
+	tmcli "github.com/tendermint/tendermint/libs/cli"
+
+	"github.com/functionx/fx-core/app/cli"
+	fxtypes "github.com/functionx/fx-core/types"
 )
 
 func Network() *cobra.Command {

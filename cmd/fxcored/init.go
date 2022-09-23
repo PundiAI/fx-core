@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"bufio"
@@ -8,17 +8,11 @@ import (
 	"os"
 	"path/filepath"
 
-	fxtypes "github.com/functionx/fx-core/types"
-
-	"github.com/functionx/fx-core/app"
-	appCli "github.com/functionx/fx-core/app/cli"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/server"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/spf13/cobra"
 	cfg "github.com/tendermint/tendermint/config"
@@ -28,6 +22,10 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
 	bip39 "github.com/tyler-smith/go-bip39"
+
+	"github.com/functionx/fx-core/app"
+	appCli "github.com/functionx/fx-core/app/cli"
+	fxtypes "github.com/functionx/fx-core/types"
 )
 
 const (

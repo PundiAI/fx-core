@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"bufio"
@@ -8,10 +8,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-
-	fxtypes "github.com/functionx/fx-core/types"
-
-	"github.com/functionx/fx-core/app"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -31,6 +27,9 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	"github.com/functionx/fx-core/app"
+	fxtypes "github.com/functionx/fx-core/types"
 )
 
 const (

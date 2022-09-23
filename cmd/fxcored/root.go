@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"errors"
@@ -8,20 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/x/crisis"
-	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/node"
-	store2 "github.com/tendermint/tendermint/store"
-	tmtypes "github.com/tendermint/tendermint/types"
-
-	fxtypes "github.com/functionx/fx-core/types"
-
-	appCli "github.com/functionx/fx-core/app/cli"
-
-	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -34,15 +23,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingcli "github.com/cosmos/cosmos-sdk/x/auth/vesting/client/cli"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/node"
+	store2 "github.com/tendermint/tendermint/store"
+	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/app"
+	appCli "github.com/functionx/fx-core/app/cli"
+	fxtypes "github.com/functionx/fx-core/types"
 )
 
 const EnvPrefix = "FX"
