@@ -7,7 +7,6 @@ WORKDIR /app
 
 # download and cache go mod
 COPY ./go.* ./
-COPY ./ics23 ./
 RUN go env -w GO111MODULE=on && go mod download
 
 COPY . .
