@@ -126,18 +126,18 @@ func VerifyTxCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			tx, err := clientCtx.TxConfig.TxDecoder()(txBytes)
+			sdkTx, err := clientCtx.TxConfig.TxDecoder()(txBytes)
 			if err != nil {
 				return err
 			}
 
-			builder, err := clientCtx.TxConfig.WrapTxBuilder(tx)
+			builder, err := clientCtx.TxConfig.WrapTxBuilder(sdkTx)
 			if err != nil {
 				return err
 			}
 			stdTx := builder.GetTx()
 
-			sigTx, ok := tx.(authsigning.SigVerifiableTx)
+			sigTx, ok := sdkTx.(authsigning.SigVerifiableTx)
 			if !ok {
 				return errors.New("invalid transaction type")
 			}
@@ -160,7 +160,7 @@ func VerifyTxCmd() *cobra.Command {
 			chainId := status.NodeInfo.Network
 			queryClient := authtypes.NewQueryClient(clientCtx)
 			for i, sig := range sigs {
-				accountResponse, err := queryClient.Account(cmd.Context(), &authtypes.QueryAccountRequest{Address: sdk.AccAddress(signerAddrs[i]).String()})
+				accountResponse, err := queryClient.Account(cmd.Context(), &authtypes.QueryAccountRequest{Address: signerAddrs[i].String()})
 				if err != nil {
 					return err
 				}
@@ -181,13 +181,13 @@ func VerifyTxCmd() *cobra.Command {
 				bz := legacytx.StdSignBytes(
 					chainId, acc.GetAccountNumber(), sequence, stdTx.GetTimeoutHeight(),
 					legacytx.StdFee{Amount: stdTx.GetFee(), Gas: stdTx.GetGas()},
-					tx.GetMsgs(), stdTx.GetMemo(),
+					sdkTx.GetMsgs(), stdTx.GetMemo(),
 				)
 				if err = clientCtx.PrintString(string(bz) + "\n"); err != nil {
 					return err
 				}
 
-				if err = authsigning.VerifySignature(pubKey, signerData, sig.Data, clientCtx.TxConfig.SignModeHandler(), tx); err != nil {
+				if err = authsigning.VerifySignature(pubKey, signerData, sig.Data, clientCtx.TxConfig.SignModeHandler(), sdkTx); err != nil {
 					return err
 				}
 			}
@@ -285,14 +285,15 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 				if err != nil {
 					return err
 				}
-			}
-			if err = clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &pubkey); err != nil {
-				// nolint
-				if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ConsPK, args[0]); err == nil {
-				} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.AccPK, args[0]); err == nil {
-				} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ValPK, args[0]); err == nil {
-				} else {
-					return fmt.Errorf("pubkey '%s' invalid", args[0])
+			} else {
+				if err = clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &pubkey); err != nil {
+					// nolint
+					if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ConsPK, args[0]); err == nil {
+					} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.AccPK, args[0]); err == nil {
+					} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ValPK, args[0]); err == nil {
+					} else {
+						return fmt.Errorf("pubkey '%s' invalid", args[0])
+					}
 				}
 			}
 			var data []byte
