@@ -708,3 +708,27 @@ func (m MsgOracleSetUpdatedClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%d/%v/", m.BlockHeight, m.OracleSetNonce, m.EventNonce, m.Members)
 	return tmhash.Sum([]byte(path))
 }
+
+func (m MsgSetOrchestratorAddress) ValidateBasic() (err error) {
+	return nil
+}
+
+func (m MsgSetOrchestratorAddress) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+func (m MsgAddOracleDeposit) ValidateBasic() (err error) {
+	return nil
+}
+
+func (m MsgAddOracleDeposit) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}

@@ -33,6 +33,7 @@
 - [fx/crosschain/v1/tx.proto](#fx/crosschain/v1/tx.proto)
     - [MsgAddDelegate](#fx.gravity.crosschain.v1.MsgAddDelegate)
     - [MsgAddDelegateResponse](#fx.gravity.crosschain.v1.MsgAddDelegateResponse)
+    - [MsgAddOracleDeposit](#fx.gravity.crosschain.v1.MsgAddOracleDeposit)
     - [MsgBondedOracle](#fx.gravity.crosschain.v1.MsgBondedOracle)
     - [MsgBondedOracleResponse](#fx.gravity.crosschain.v1.MsgBondedOracleResponse)
     - [MsgBridgeTokenClaim](#fx.gravity.crosschain.v1.MsgBridgeTokenClaim)
@@ -55,6 +56,7 @@
     - [MsgSendToExternalResponse](#fx.gravity.crosschain.v1.MsgSendToExternalResponse)
     - [MsgSendToFxClaim](#fx.gravity.crosschain.v1.MsgSendToFxClaim)
     - [MsgSendToFxClaimResponse](#fx.gravity.crosschain.v1.MsgSendToFxClaimResponse)
+    - [MsgSetOrchestratorAddress](#fx.gravity.crosschain.v1.MsgSetOrchestratorAddress)
     - [MsgUnbondedOracle](#fx.gravity.crosschain.v1.MsgUnbondedOracle)
     - [MsgUnbondedOracleResponse](#fx.gravity.crosschain.v1.MsgUnbondedOracleResponse)
     - [MsgWithdrawReward](#fx.gravity.crosschain.v1.MsgWithdrawReward)
@@ -491,7 +493,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.crosschain.v1.InitCrossChainParamsProposal"></a>
 
 ### InitCrossChainParamsProposal
-Deprecated
+Deprecated after block 5713000
 
 
 | Field | Type | Label | Description |
@@ -641,7 +643,7 @@ request is > 10%
 | `slash_fraction` | [bytes](#bytes) |  |  |
 | `oracle_set_update_power_change_percent` | [bytes](#bytes) |  |  |
 | `ibc_transfer_timeout_height` | [uint64](#uint64) |  |  |
-| `oracles` | [string](#string) | repeated | Deprecated |
+| `oracles` | [string](#string) | repeated | Deprecated after block 5713000 |
 | `delegate_threshold` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 | `delegate_multiple` | [int64](#int64) |  |  |
 
@@ -736,6 +738,23 @@ be handled
 
 ### MsgAddDelegateResponse
 
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgAddOracleDeposit"></a>
+
+### MsgAddOracleDeposit
+Deprecated after block 5713000
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `oracle_address` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `chain_name` | [string](#string) |  |  |
 
 
 
@@ -1123,6 +1142,25 @@ issued to the Payment address in question
 
 ### MsgSendToFxClaimResponse
 
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgSetOrchestratorAddress"></a>
+
+### MsgSetOrchestratorAddress
+Deprecated after block 5713000
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `oracle_address` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
+| `external_address` | [string](#string) |  |  |
+| `deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `chain_name` | [string](#string) |  |  |
 
 
 

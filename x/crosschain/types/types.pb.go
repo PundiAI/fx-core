@@ -882,7 +882,7 @@ type Params struct {
 	SlashFraction                     github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,6,opt,name=slash_fraction,json=slashFraction,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"slash_fraction"`
 	OracleSetUpdatePowerChangePercent github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,7,opt,name=oracle_set_update_power_change_percent,json=oracleSetUpdatePowerChangePercent,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"oracle_set_update_power_change_percent"`
 	IbcTransferTimeoutHeight          uint64                                 `protobuf:"varint,8,opt,name=ibc_transfer_timeout_height,json=ibcTransferTimeoutHeight,proto3" json:"ibc_transfer_timeout_height,omitempty"`
-	// Deprecated
+	// Deprecated after block 5713000
 	Oracles           []string    `protobuf:"bytes,9,rep,name=oracles,proto3" json:"oracles,omitempty"`
 	DelegateThreshold types1.Coin `protobuf:"bytes,10,opt,name=delegate_threshold,json=delegateThreshold,proto3" json:"delegate_threshold"`
 	DelegateMultiple  int64       `protobuf:"varint,11,opt,name=delegate_multiple,json=delegateMultiple,proto3" json:"delegate_multiple,omitempty"`
@@ -984,7 +984,7 @@ func (m *Params) GetDelegateMultiple() int64 {
 	return 0
 }
 
-// Deprecated
+// Deprecated after block 5713000
 type InitCrossChainParamsProposal struct {
 	Title       string  `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Description string  `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`

@@ -20,6 +20,9 @@ func init() {
 // RegisterInterfaces registers the interfaces for the proto stuff
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgSetOrchestratorAddress{},
+		&MsgAddOracleDeposit{},
+
 		&MsgBondedOracle{},
 		&MsgAddDelegate{},
 		&MsgEditOracle{},
