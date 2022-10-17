@@ -115,17 +115,14 @@ build-win:
 build-linux:
 	@CGO_ENABLED=0 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 make build
 
-install:
-	@$(MAKE) build
-	@if [[ "$(GOPATH)" == "" || ! -d "$(GOPATH)" ]]; then \
-		echo "--> no found \"GOPATH\" env, Run \"./build/bin/fxcored start\" to launch fxcored."; \
-	else \
-	 	if [ ! -d $(GOPATH)/bin ]; then \
-			mkdir -p $(GOPATH)/bin; \
-		fi; \
-		mv $(BUILDDIR)/bin/fxcored $(GOPATH)/bin/fxcored; \
-		echo "--> Run \"fxcored start\" or \"$(GOPATH)/bin/fxcored start\" to launch fxcored."; \
-	fi
+INSTALL_DIR := $(shell go env GOPATH)/bin
+install: build $(INSTALL_DIR)
+	mv $(BUILDDIR)/bin/fxcored $(shell go env GOPATH)/bin/fxcored
+	@echo "--> Run \"fxcored start\" or \"$(shell go env GOPATH)/bin/fxcored start\" to launch fxcored."
+
+$(INSTALL_DIR):
+	@echo "Folder $(INSTALL_DIR) does not exist"
+	mkdir -p $@
 
 run-local: install
 	@./develop/run_fxcore.sh init
