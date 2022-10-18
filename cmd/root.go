@@ -127,7 +127,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		txCommand(),
 		appCmd.ExportSateCmd(appCreator.appExport, app.DefaultNodeHome),
 		version.NewVersionCommand(),
-		server.NewRollbackCmd(app.DefaultNodeHome),
+		server.NewRollbackCmd(appCreator.newApp, app.DefaultNodeHome),
 		//appCmd.NewRollbackAppCmd(app.DefaultNodeHome),
 		tendermintCommand(),
 		startCommand(appCreator.newApp, app.DefaultNodeHome),

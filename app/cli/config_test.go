@@ -82,6 +82,9 @@ const tmConfigJson = `{
     "max_txs_bytes": 1073741824,
     "recheck": true,
     "size": 5000,
+    "ttl-duration": 0,
+    "ttl-num-blocks": 0,
+    "version": "v0",
     "wal_dir": ""
   },
   "moniker": "anonymous",
@@ -204,6 +207,7 @@ const appConfigJson = `{
   "halt-height": 0,
   "halt-time": 0,
   "iavl-cache-size": 781250,
+  "iavl-disable-fastnode": true,
   "index-events": [],
   "inter-block-cache": true,
   "json-rpc": {

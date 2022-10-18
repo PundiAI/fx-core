@@ -253,7 +253,9 @@ func pruneStates(stateDB dbm.DB, from, to int64, wg *sync.WaitGroup) {
 	}
 
 	start := time.Now()
-	stateStore := sm.NewStore(stateDB)
+	stateStore := sm.NewStore(stateDB, sm.StoreOptions{
+		DiscardABCIResponses: false,
+	})
 	if err := stateStore.PruneStates(from, to); err != nil {
 		panic(fmt.Errorf("failed to prune state database: %w", err))
 	}
