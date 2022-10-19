@@ -144,10 +144,6 @@ func (am AppModule) ConsensusVersion() uint64 {
 	return 2
 }
 
-// BeginBlock implements app module
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
-}
-
 // EndBlock implements app module
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	crosschain.EndBlocker(ctx, am.keeper.Keeper)
