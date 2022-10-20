@@ -35,6 +35,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+### Improvements
+
+* Bump cosmos-sdk to v0.45.9
+* Bump tendermint to v0.34.22
+
+## [v2.4.0] - 2022-10-14
+
+### Bug Fixes
+
+* Fix Dragonberry Patch
+* Fix docker images tag
+
+### Features
+
 ## [v2.3.1] - 2022-09-13
 
 ### Features
