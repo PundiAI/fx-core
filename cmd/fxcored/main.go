@@ -6,10 +6,11 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
 	"github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/cmd"
 )
 
 func main() {
-	if err := svrcmd.Execute(newRootCmd(), app.DefaultNodeHome); err != nil {
+	if err := svrcmd.Execute(cmd.NewRootCmd(), app.DefaultNodeHome); err != nil {
 		os.Exit(1)
 	}
 }

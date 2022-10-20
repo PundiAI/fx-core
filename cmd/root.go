@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"errors"
@@ -40,9 +40,9 @@ import (
 
 const envPrefix = "FX"
 
-// newRootCmd creates a new root command for simd. It is called once in the
+// NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
-func newRootCmd() *cobra.Command {
+func NewRootCmd() *cobra.Command {
 	fxtypes.SetConfig(false)
 
 	encodingConfig := app.MakeEncodingConfig()

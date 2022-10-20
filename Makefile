@@ -110,7 +110,7 @@ go.sum: go.mod
 	@go mod download
 
 build: go.sum
-	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd
+	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd/fxcored
 	@echo "--> Done building."
 
 build-win:
