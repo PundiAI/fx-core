@@ -78,7 +78,7 @@ func startCommand(appCreator types.AppCreator, defaultNodeHome string) *cobra.Co
 }
 
 func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config) error {
-	if genesisDoc.InitialHeight != 0 || genesisDoc.ChainID != fxtypes.MainnetChainId {
+	if genesisDoc.InitialHeight > 1 || genesisDoc.ChainID != fxtypes.MainnetChainId || config.StateSync.Enable {
 		return nil
 	}
 	genesisTime, err := time.Parse("2006-01-02T15:04:05Z", "2021-07-05T04:00:00Z")
