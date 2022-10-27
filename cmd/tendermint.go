@@ -44,7 +44,6 @@ func tendermintCommand() *cobra.Command {
 		sdkserver.VersionCmd(),
 		appCmd.UnsafeRestPrivValidatorCmd(),
 		appCmd.UnsafeResetNodeKeyCmd(),
-		appCmd.RollbackStateCmd(),
 		appCmd.ReplayCmd(),
 		appCmd.ReplayConsoleCmd(),
 		tmcmd.ResetAllCmd,
