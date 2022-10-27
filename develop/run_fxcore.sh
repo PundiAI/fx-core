@@ -37,6 +37,7 @@ if [[ "$1" == "init" ]]; then
   fxcored keys add fx1 --algo secp256k1 --coin-type 118
   fxcored add-genesis-account fx1 4000000000000000000000FX
   fxcored gentx fx1 100000000000000000000FX --chain-id=fxcore \
+    --gas="200000" \
     --moniker="fx-validator" \
     --commission-max-change-rate=0.01 \
     --commission-max-rate=0.2 \

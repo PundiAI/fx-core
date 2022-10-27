@@ -9,26 +9,24 @@ import (
 	"os"
 	"path/filepath"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
+	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	tmos "github.com/tendermint/tendermint/libs/os"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // GenTxCmd builds the application's gentx command.
@@ -47,7 +45,7 @@ file. The following default parameters are included:
     %s
 
 Example:
-$ %s gentx my-key-name 100000000000000000000Fx --home=/path/to/home/dir --keyring-backend=os --chain-id=test-chain-1 \
+$ %s gentx my-key-name 100000000000000000000FX --keyring-backend=os --chain-id=fxcore \
     --moniker="myvalidator" \
     --commission-max-change-rate=0.01 \
     --commission-max-rate=1.0 \

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/server"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 )
@@ -13,21 +11,6 @@ import (
 const (
 	FlagLogFilter = "log_filter"
 )
-
-func AddCmdLogWrapFilterLogType(cmd *cobra.Command) error {
-	filterLogTypes, err := cmd.Flags().GetStringSlice(FlagLogFilter)
-	if err != nil {
-		return err
-	}
-	if len(filterLogTypes) <= 0 {
-		return nil
-	}
-	serverCtx := server.GetServerContextFromCmd(cmd)
-	if zeroLog, ok := serverCtx.Logger.(server.ZeroLogWrapper); ok {
-		serverCtx.Logger = NewFxZeroLogWrapper(zeroLog, filterLogTypes)
-	}
-	return server.SetCmdServerContext(cmd, serverCtx)
-}
 
 func NewFxZeroLogWrapper(logger server.ZeroLogWrapper, logTypes []string) FxZeroLogWrapper {
 	filterLogMap := make(map[string]bool, len(logTypes))

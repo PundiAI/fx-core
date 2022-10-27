@@ -60,14 +60,14 @@ func ChainId() string {
 }
 
 func EIP155ChainID() *big.Int {
-	if TestnetChainId == chainId {
+	if TestnetChainId == ChainId() {
 		return big.NewInt(testnetEvmChainID)
 	}
 	return big.NewInt(mainnetEvmChainID)
 }
 
 func IBCRouteBlock() int64 {
-	if TestnetChainId == chainId {
+	if TestnetChainId == ChainId() {
 		return testnetIBCRouterBlock
 	}
 	return 0
@@ -77,7 +77,7 @@ func UpgradeExponential1Block() int64 {
 	if os.Getenv("GO_ENV") == "testing" {
 		return 0
 	}
-	if TestnetChainId == chainId {
+	if TestnetChainId == ChainId() {
 		return testnetExponential1Block
 	}
 	return mainnetExponentialBlock
@@ -87,21 +87,21 @@ func UpgradeExponential2Block() int64 {
 	if os.Getenv("GO_ENV") == "testing" {
 		return 0
 	}
-	if TestnetChainId == chainId {
+	if TestnetChainId == ChainId() {
 		return testnetExponential2Block
 	}
 	return mainnetExponentialBlock
 }
 
 func UpgradeTrigonometric1Block() int64 {
-	if TestnetChainId == chainId {
+	if TestnetChainId == ChainId() {
 		return testnetTrigonometric1Block
 	}
 	return mainnetTrigonometricBlock
 }
 
 func UpgradeTrigonometric2Block() int64 {
-	if TestnetChainId == chainId {
+	if TestnetChainId == ChainId() {
 		return testnetTrigonometric2Block
 	}
 	return mainnetTrigonometricBlock

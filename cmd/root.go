@@ -88,17 +88,17 @@ func NewRootCmd() *cobra.Command {
 			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
 				return err
 			}
-			// add log filter
-			return appCmd.AddCmdLogWrapFilterLogType(cmd)
+			return nil
 		},
 	}
 
-	rootCmd.PersistentFlags().StringSlice(appCmd.FlagLogFilter, []string{}, `The logging filter can discard custom log type (ABCIQuery)`)
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxtypes.ChainId(),
 		flags.FlagKeyringBackend: keyring.BackendOS,
-		flags.FlagGas:            "80000",
+		flags.FlagGas:            "100000",
+		//flags.FlagGas:            "auto",
+		//flags.FlagGasAdjustment:  "1.5",
 	})
 	return rootCmd
 }
@@ -291,6 +291,12 @@ func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
 			f.DefValue = val
 			if err := f.Value.Set(val); err != nil {
 				panic(err)
+			}
+			if key == flags.FlagGasPrices {
+				f.Usage = "Gas prices in decimal format to determine the transaction fee"
+			}
+			if key == flags.FlagGas {
+				f.Usage = "gas limit to set per-transaction; set to 'auto' to calculate sufficient gas automatically"
 			}
 		}
 	}

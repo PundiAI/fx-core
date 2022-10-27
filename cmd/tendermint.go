@@ -58,12 +58,27 @@ func tendermintCommand() *cobra.Command {
 func startCommand(appCreator types.AppCreator, defaultNodeHome string) *cobra.Command {
 	startCmd := server.StartCmd(appCreator, defaultNodeHome)
 	crisis.AddModuleInitFlags(startCmd)
-	preRun := startCmd.PreRunE
+
 	startCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		if err := preRun(cmd, args); err != nil {
+		serverCtx := sdkserver.GetServerContextFromCmd(cmd)
+
+		if zeroLog, ok := serverCtx.Logger.(sdkserver.ZeroLogWrapper); ok {
+			filterLogTypes, _ := cmd.Flags().GetStringSlice(appCmd.FlagLogFilter)
+			if len(filterLogTypes) > 0 {
+				serverCtx.Logger = appCmd.NewFxZeroLogWrapper(zeroLog, filterLogTypes)
+			}
+		}
+
+		// Bind flags to the Context's Viper so the app construction can set
+		// options accordingly.
+		if err := serverCtx.Viper.BindPFlags(cmd.Flags()); err != nil {
 			return err
 		}
-		serverCtx := sdkserver.GetServerContextFromCmd(cmd)
+
+		if _, err := sdkserver.GetPruningOptionsFromFlags(serverCtx.Viper); err != nil {
+			return err
+		}
+
 		genesisDoc, err := tmtypes.GenesisDocFromFile(serverCtx.Config.GenesisFile())
 		if err != nil {
 			return err
@@ -74,6 +89,7 @@ func startCommand(appCreator types.AppCreator, defaultNodeHome string) *cobra.Co
 		fxtypes.SetChainId(genesisDoc.ChainID)
 		return nil
 	}
+	startCmd.Flags().StringSlice(appCmd.FlagLogFilter, nil, `The logging filter can discard custom log type (ABCIQuery)`)
 	return startCmd
 }
 
