@@ -8,15 +8,14 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/node"
 	sm "github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
 	dbm "github.com/tendermint/tm-db"
-
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 const (

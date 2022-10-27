@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"sort"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
 	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 

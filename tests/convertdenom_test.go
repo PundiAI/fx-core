@@ -5,9 +5,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
 )
 
 type ConvertDenomTestSuite struct {

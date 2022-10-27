@@ -29,17 +29,16 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ed255192 "github.com/tendermint/tendermint/crypto/ed25519"
-
-	"github.com/functionx/fx-core/v2/app"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
+	ed255192 "github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
+
+	"github.com/functionx/fx-core/v2/app"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
 // SimAppChainID hardcoded chainID for simulation

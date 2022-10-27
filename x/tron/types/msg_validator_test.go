@@ -6,8 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -17,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/functionx/fx-core/v2/app"
+	fxtypes "github.com/functionx/fx-core/v2/types"
 	"github.com/functionx/fx-core/v2/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 )

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"math/big"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
 	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 

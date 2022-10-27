@@ -6,10 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -17,6 +13,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channelutils "github.com/cosmos/ibc-go/v3/modules/core/04-channel/client/utils"
+	"github.com/spf13/cobra"
+
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 const (

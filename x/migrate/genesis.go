@@ -5,7 +5,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/functionx/fx-core/v2/x/migrate/keeper"
 	"github.com/functionx/fx-core/v2/x/migrate/types"
 )

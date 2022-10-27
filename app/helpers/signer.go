@@ -5,19 +5,15 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/go-bip39"
-	hd2 "github.com/evmos/ethermint/crypto/hd"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"github.com/cosmos/go-bip39"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	hd2 "github.com/evmos/ethermint/crypto/hd"
 )
 
 func NewMnemonic() string {

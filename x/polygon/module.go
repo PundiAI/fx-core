@@ -4,10 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/functionx/fx-core/v2/x/crosschain"
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
-	types "github.com/functionx/fx-core/v2/x/polygon/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -18,8 +14,11 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/functionx/fx-core/v2/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
 	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	types "github.com/functionx/fx-core/v2/x/polygon/types"
 )
 
 // type check to ensure the interface is properly implemented

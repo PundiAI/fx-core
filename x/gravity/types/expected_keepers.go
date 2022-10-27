@@ -3,16 +3,14 @@ package types
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // StakingKeeper defines the expected staking keeper methods

@@ -3,12 +3,11 @@ package types
 import (
 	"crypto/ecdsa"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fbsobreira/gotron-sdk/pkg/address"
 
 	"github.com/functionx/fx-core/v2/x/crosschain/types"
-
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/ethereum/go-ethereum/crypto"
 )
 
 const tronSignaturePrefix = "\x19TRON Signed Message:\n32"

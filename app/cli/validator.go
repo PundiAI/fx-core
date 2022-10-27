@@ -8,17 +8,15 @@ import (
 	"path/filepath"
 	"strconv"
 
-	cfg "github.com/tendermint/tendermint/config"
-
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
+	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/go-bip39"
 	"github.com/spf13/cobra"
+	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	tmos "github.com/tendermint/tendermint/libs/os"

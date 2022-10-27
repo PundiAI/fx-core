@@ -12,14 +12,12 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
 
-	"github.com/ethereum/go-ethereum/common"
-
 	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 

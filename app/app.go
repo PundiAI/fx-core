@@ -8,16 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gorilla/mux"
-	"github.com/rakyll/statik/fs"
-	"github.com/spf13/cast"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	dbm "github.com/tendermint/tm-db"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -30,7 +20,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
-
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -38,79 +27,60 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
-
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
-
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibc "github.com/cosmos/ibc-go/v3/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
-
-	"github.com/cosmos/cosmos-sdk/x/mint"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-
-	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
-	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	fxgov "github.com/functionx/fx-core/v2/x/gov"
-	fxgovkeeper "github.com/functionx/fx-core/v2/x/gov/keeper"
-
-	// this line is used by starport scaffolding # stargate/app/moduleImport
-
+	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
+	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
 	srvflags "github.com/evmos/ethermint/server/flags"
 	"github.com/evmos/ethermint/x/evm"
 	evmrest "github.com/evmos/ethermint/x/evm/client/rest"
@@ -119,49 +89,47 @@ import (
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	"github.com/gorilla/mux"
+	"github.com/rakyll/statik/fs"
+	"github.com/spf13/cast"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/tendermint/tendermint/libs/log"
+	tmos "github.com/tendermint/tendermint/libs/os"
+	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer"
-	ibctransferkeeper "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
-	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-
+	fxante "github.com/functionx/fx-core/v2/ante"
+	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
+	gaspricelegacy "github.com/functionx/fx-core/v2/client/grpc/base/gasprice/legacy"
+	_ "github.com/functionx/fx-core/v2/docs/statik"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v2/x/bsc"
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
 	"github.com/functionx/fx-core/v2/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
-
+	"github.com/functionx/fx-core/v2/x/erc20"
+	erc20client "github.com/functionx/fx-core/v2/x/erc20/client"
+	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
+	fxgov "github.com/functionx/fx-core/v2/x/gov"
+	fxgovkeeper "github.com/functionx/fx-core/v2/x/gov/keeper"
 	"github.com/functionx/fx-core/v2/x/gravity"
 	gravitykeeper "github.com/functionx/fx-core/v2/x/gravity/keeper"
 	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
-
-	"github.com/functionx/fx-core/v2/x/bsc"
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer"
+	ibctransferkeeper "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
+	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v2/x/migrate"
+	migratekeeper "github.com/functionx/fx-core/v2/x/migrate/keeper"
+	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
+	"github.com/functionx/fx-core/v2/x/other"
+	othertypes "github.com/functionx/fx-core/v2/x/other/types"
 	"github.com/functionx/fx-core/v2/x/polygon"
 	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
 	"github.com/functionx/fx-core/v2/x/tron"
 	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
-
-	"github.com/functionx/fx-core/v2/x/erc20"
-	erc20client "github.com/functionx/fx-core/v2/x/erc20/client"
-	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
-	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
-
-	"github.com/functionx/fx-core/v2/x/migrate"
-	migratekeeper "github.com/functionx/fx-core/v2/x/migrate/keeper"
-	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
-
-	fxante "github.com/functionx/fx-core/v2/ante"
-	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
-	gaspricelegacy "github.com/functionx/fx-core/v2/client/grpc/base/gasprice/legacy"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
-	"github.com/functionx/fx-core/v2/x/other"
-	othertypes "github.com/functionx/fx-core/v2/x/other/types"
-
-	_ "github.com/functionx/fx-core/v2/docs/statik"
-
-	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
-	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
-	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
 )
 
 func getGovProposalHandlers() []govclient.ProposalHandler {

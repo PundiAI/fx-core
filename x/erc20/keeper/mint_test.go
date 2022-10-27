@@ -3,11 +3,10 @@ package keeper_test
 import (
 	"fmt"
 
-	"github.com/functionx/fx-core/v2/app/helpers"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	"github.com/functionx/fx-core/v2/app/helpers"
 	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 

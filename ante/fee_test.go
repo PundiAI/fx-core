@@ -8,7 +8,6 @@ import (
 	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 
 	"github.com/functionx/fx-core/v2/ante"
-
 	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 

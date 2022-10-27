@@ -1,13 +1,12 @@
 package cmd
 
 import (
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
+	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/cli"
 
 	keys2 "github.com/functionx/fx-core/v2/app/cli/keys"
-
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cobra"
 )
 
 // Commands registers a sub-tree of commands to interact with

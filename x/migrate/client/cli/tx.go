@@ -5,18 +5,16 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ethereum/go-ethereum/common"
-
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 	"github.com/functionx/fx-core/v2/x/migrate/types"
 )
 

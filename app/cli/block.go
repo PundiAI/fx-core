@@ -6,12 +6,11 @@ import (
 	"os"
 	"strconv"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
+	"gopkg.in/yaml.v2"
 )
 
 // BlockCommand returns the verified block data for a given heights

@@ -3,9 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 // InitGenesis initializes the ibc-transfer state and binds to PortID.

@@ -6,9 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	tmstrings "github.com/tendermint/tendermint/libs/strings"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,8 +14,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	tmstrings "github.com/tendermint/tendermint/libs/strings"
 )
 
 var (

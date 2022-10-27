@@ -3,9 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-
 	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 func TestValidateParams(t *testing.T) {

@@ -8,13 +8,6 @@ import (
 	"fmt"
 	"sort"
 
-	"gopkg.in/yaml.v2"
-
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-
-	bip39 "github.com/cosmos/go-bip39"
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -23,6 +16,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bip39 "github.com/cosmos/go-bip39"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 const (

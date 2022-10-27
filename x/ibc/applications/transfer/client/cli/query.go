@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/spf13/cobra"
+
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 // GetCmdQueryDenomTrace defines the command to query a a denomination trace from a given hash.

@@ -7,12 +7,11 @@ import (
 	"sort"
 	"strings"
 
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // ParseDenomTrace parses a string with the ibc prefix (denom trace) and the base denomination

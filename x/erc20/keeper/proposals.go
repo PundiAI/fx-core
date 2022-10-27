@@ -5,16 +5,14 @@ import (
 	"errors"
 	"fmt"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
-	"github.com/ethereum/go-ethereum/accounts/abi"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
 	"github.com/functionx/fx-core/v2/x/erc20/types"
 )
 

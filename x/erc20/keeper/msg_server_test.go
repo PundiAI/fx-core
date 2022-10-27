@@ -5,11 +5,10 @@ import (
 	"math/big"
 	"strings"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	"github.com/functionx/fx-core/v2/x/erc20/types"
 )

@@ -12,9 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/spf13/cobra"
-
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/spf13/cobra"
 )
 
 const (

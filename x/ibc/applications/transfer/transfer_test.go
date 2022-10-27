@@ -3,13 +3,11 @@ package transfer_test
 import (
 	"testing"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-
+	fxtypes "github.com/functionx/fx-core/v2/types"
 	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 	ibctesting "github.com/functionx/fx-core/v2/x/ibc/testing"
 )

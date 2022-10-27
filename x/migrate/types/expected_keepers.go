@@ -3,9 +3,8 @@ package types
 import (
 	"time"
 
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )

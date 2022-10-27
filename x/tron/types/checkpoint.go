@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fbsobreira/gotron-sdk/pkg/abi"
 

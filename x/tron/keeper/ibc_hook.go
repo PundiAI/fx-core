@@ -5,7 +5,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
-
 	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 )
 

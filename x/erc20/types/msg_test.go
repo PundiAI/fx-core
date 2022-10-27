@@ -3,12 +3,10 @@ package types
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/evmos/ethermint/tests"
-
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/evmos/ethermint/tests"
+	"github.com/stretchr/testify/suite"
 )
 
 type MsgsTestSuite struct {

@@ -7,16 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/functionx/fx-core/v2/x/gravity"
-	gravitykeeper "github.com/functionx/fx-core/v2/x/gravity/keeper"
-	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
-	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
-
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-
-	"github.com/functionx/fx-core/v2/app/helpers"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,17 +15,23 @@ import (
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v2/types"
 	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
 	"github.com/functionx/fx-core/v2/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 	"github.com/functionx/fx-core/v2/x/erc20/types"
-
-	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
+	"github.com/functionx/fx-core/v2/x/gravity"
+	gravitykeeper "github.com/functionx/fx-core/v2/x/gravity/keeper"
+	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestHookChainBSC() {

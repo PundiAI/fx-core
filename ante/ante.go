@@ -4,19 +4,17 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256r1"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256r1"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	txsigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	tmlog "github.com/tendermint/tendermint/libs/log"
-
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	tmlog "github.com/tendermint/tendermint/libs/log"
 )
 
 func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {

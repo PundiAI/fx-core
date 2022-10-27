@@ -3,12 +3,12 @@ package v021_test
 import (
 	"testing"
 
-	v021 "github.com/functionx/fx-core/v2/x/gravity/legacy/v021"
-	"github.com/functionx/fx-core/v2/x/gravity/types"
-
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	v021 "github.com/functionx/fx-core/v2/x/gravity/legacy/v021"
+	"github.com/functionx/fx-core/v2/x/gravity/types"
 )
 
 func TestMigratePruneKey_IbcSequenceMigration(t *testing.T) {

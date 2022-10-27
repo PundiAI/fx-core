@@ -3,10 +3,8 @@ package types
 import (
 	"testing"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/functionx/fx-core/v2/x/crosschain/keeper"

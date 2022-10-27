@@ -4,14 +4,6 @@ import (
 	"encoding/json"
 	fmt "fmt"
 
-	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
-
-	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
-
-	"github.com/functionx/fx-core/v2/x/bsc/types"
-	"github.com/functionx/fx-core/v2/x/crosschain"
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -21,6 +13,12 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/functionx/fx-core/v2/x/bsc/types"
+	"github.com/functionx/fx-core/v2/x/crosschain"
+	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
+	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
+	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 
 // type check to ensure the interface is properly implemented

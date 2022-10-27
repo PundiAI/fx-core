@@ -9,15 +9,14 @@ import (
 	"strconv"
 	"strings"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
-	"github.com/cosmos/cosmos-sdk/types/bech32"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+
+	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
 // UInt64FromBytes create uint from binary big endian representation

@@ -5,19 +5,13 @@ import (
 	"testing"
 	"time"
 
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-
-	fxapp "github.com/functionx/fx-core/v2/app"
-	"github.com/functionx/fx-core/v2/app/helpers"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/ibc/testing/simapp"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -28,6 +22,11 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	fxapp "github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v2/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v2/x/ibc/testing/simapp"
 )
 
 var DefaultTestingAppInit func() (TestingApp, map[string]json.RawMessage) = SetupTestingApp

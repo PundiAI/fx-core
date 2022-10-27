@@ -5,10 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/functionx/fx-core/v2/testutil"
-
 	"github.com/stretchr/testify/suite"
 
+	"github.com/functionx/fx-core/v2/testutil"
 	"github.com/functionx/fx-core/v2/testutil/network"
 )
 

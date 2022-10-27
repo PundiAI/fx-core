@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -13,6 +11,7 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	"github.com/stretchr/testify/require"
 )
 
 // Endpoint is a which represents a channel endpoint and its associated

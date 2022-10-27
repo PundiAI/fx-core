@@ -6,10 +6,10 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 // Simulation parameter constants

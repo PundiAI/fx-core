@@ -9,9 +9,6 @@ import (
 	"fmt"
 	"strings"
 
-	// nolint
-	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
-
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -19,6 +16,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"

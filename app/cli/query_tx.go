@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,6 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/version"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/spf13/cobra"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 const (

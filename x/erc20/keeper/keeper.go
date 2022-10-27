@@ -4,19 +4,16 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/tendermint/tendermint/libs/log"
 
 	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/functionx/fx-core/v2/x/erc20/types"
-
-	"github.com/evmos/ethermint/x/evm/statedb"
 )
 
 // Keeper of this module maintains collections of erc20.

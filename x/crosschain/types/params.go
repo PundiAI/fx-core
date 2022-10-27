@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	fxtypes "github.com/functionx/fx-core/v2/types"
 )
 
 const (

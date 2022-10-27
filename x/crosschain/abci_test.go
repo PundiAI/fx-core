@@ -8,29 +8,25 @@ import (
 	"regexp"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 
 	"github.com/functionx/fx-core/v2/app"
 	"github.com/functionx/fx-core/v2/app/helpers"
-	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
-
 	fxtypes "github.com/functionx/fx-core/v2/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-
+	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
 	"github.com/functionx/fx-core/v2/x/crosschain"
+	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v2/x/crosschain/types"
 	ibcTransferTypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 )
 
 type IntegrationTestSuite struct {

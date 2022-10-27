@@ -3,10 +3,9 @@ package mock_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v2/x/ibc/testing/mock"
 )

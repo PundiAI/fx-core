@@ -4,20 +4,17 @@ import (
 	"fmt"
 	"strings"
 
-	coretypes "github.com/cosmos/ibc-go/v3/modules/core/types"
-
-	"github.com/cosmos/cosmos-sdk/types/bech32"
-
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-
 	"github.com/armon/go-metrics"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	coretypes "github.com/cosmos/ibc-go/v3/modules/core/types"
+
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 // SendTransfer handles transfer sending logic. There are 2 possible cases:

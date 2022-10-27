@@ -5,15 +5,14 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/simulation"
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/simulation"
+	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.

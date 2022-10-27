@@ -4,10 +4,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-
-	"github.com/stretchr/testify/require"
 )
 
 const (

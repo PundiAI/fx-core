@@ -5,17 +5,15 @@ import (
 	"math/big"
 	"strings"
 
-	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
-
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
 	"github.com/functionx/fx-core/v2/x/erc20/types"
+	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
 )
 
 var _ types.MsgServer = &Keeper{}

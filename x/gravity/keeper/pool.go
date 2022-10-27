@@ -6,13 +6,12 @@ import (
 	"math/big"
 	"sort"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/libs/math"
 
+	fxtypes "github.com/functionx/fx-core/v2/types"
 	"github.com/functionx/fx-core/v2/x/gravity/types"
 )
 

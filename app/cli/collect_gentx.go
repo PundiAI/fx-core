@@ -8,21 +8,19 @@ import (
 	"runtime"
 	"strings"
 
-	cfg "github.com/tendermint/tendermint/config"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	cfg "github.com/tendermint/tendermint/config"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 const flagGenTxDir = "gentx-dir"

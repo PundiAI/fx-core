@@ -7,10 +7,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // GravityDenomPrefix indicates the prefix for all assests minted by this module

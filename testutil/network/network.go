@@ -15,19 +15,6 @@ import (
 	"testing"
 	"time"
 
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-
-	fxCfg "github.com/functionx/fx-core/v2/server/config"
-
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/spf13/cobra"
-	tmcfg "github.com/tendermint/tendermint/config"
-	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/node"
-	tmclient "github.com/tendermint/tendermint/rpc/client"
-	"google.golang.org/grpc"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -37,15 +24,25 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/evmos/ethermint/server/config"
 	ethermint "github.com/evmos/ethermint/types"
+	"github.com/spf13/cobra"
+	tmcfg "github.com/tendermint/tendermint/config"
+	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
+	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/node"
+	tmclient "github.com/tendermint/tendermint/rpc/client"
+	"google.golang.org/grpc"
+
+	fxCfg "github.com/functionx/fx-core/v2/server/config"
 )
 
 // package-wide network lock to only allow one test network at a time

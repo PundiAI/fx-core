@@ -4,12 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
-	"github.com/evmos/ethermint/tests"
-
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	length "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/evmos/ethermint/tests"
+	"github.com/stretchr/testify/suite"
 )
 
 type ProposalTestSuite struct {

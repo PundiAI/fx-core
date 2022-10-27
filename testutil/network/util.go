@@ -7,18 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/evmos/ethermint/server/config"
-
-	"github.com/ethereum/go-ethereum/ethclient"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	"github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/p2p"
-	pvm "github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/rpc/client/local"
-	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
-
 	"github.com/cosmos/cosmos-sdk/server/api"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
 	srvtypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -30,9 +18,18 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/evmos/ethermint/server"
+	"github.com/evmos/ethermint/server/config"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	tmos "github.com/tendermint/tendermint/libs/os"
+	"github.com/tendermint/tendermint/node"
+	"github.com/tendermint/tendermint/p2p"
+	pvm "github.com/tendermint/tendermint/privval"
+	"github.com/tendermint/tendermint/proxy"
+	"github.com/tendermint/tendermint/rpc/client/local"
+	"github.com/tendermint/tendermint/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 func startInProcess(cfg Config, val *Validator) error {

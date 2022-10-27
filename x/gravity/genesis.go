@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v2/x/gravity/keeper"
-
 	"github.com/functionx/fx-core/v2/x/gravity/types"
 )
 
