@@ -40,7 +40,8 @@ func GetQueryCmd() *cobra.Command {
 		// query Oracle
 		CmdGetOracles(),
 		CmdGetOracleReward(),
-		CmdGetChainOracles(),
+		CmdGetOracleDelegateAddr(),
+		CmdGetProposalOracles(),
 		CmdGetOracleByAddr(),
 		CmdGetOracleByBridgerAddr(),
 		CmdGetOracleByExternalAddr(),
@@ -131,9 +132,9 @@ func CmdGetOracles() *cobra.Command {
 	return cmd
 }
 
-func CmdGetChainOracles() *cobra.Command {
+func CmdGetProposalOracles() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "chain-oracles [chain-name]",
+		Use:   "proposal-oracles [chain-name]",
 		Short: "Query active oracles address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -183,6 +184,26 @@ func CmdGetOracleReward() *cobra.Command {
 				return err
 			}
 			return clientCtx.PrintProto(rewards)
+		},
+	}
+
+	return cmd
+}
+
+func CmdGetOracleDelegateAddr() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:    "oracle-delegate [chain-name] [oracle-address]",
+		Short:  "Query oracle delegate address",
+		Hidden: true,
+		Args:   cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			oracleAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+			data := append(oracleAddr.Bytes(), []byte(args[0])...)
+			cmd.Println(sdk.AccAddress(crypto.Keccak256(data)[12:]).String())
+			return nil
 		},
 	}
 
