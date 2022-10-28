@@ -153,7 +153,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
 	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
 
-	bondAmt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
+	bondAmt := sdk.DefaultPowerReduction
 
 	for i, val := range valSet.Validators {
 		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
@@ -166,7 +166,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
+			DelegatorShares:   bondAmt.ToDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
@@ -174,11 +174,12 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 			MinSelfDelegation: sdk.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[i].GetAddress(), validator.GetOperator(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[i].GetAddress(), validator.GetOperator(), bondAmt.ToDec()))
 	}
 
 	var stakingGenesis stakingtypes.GenesisState
 	myApp.AppCodec().MustUnmarshalJSON(genesisState[stakingtypes.ModuleName], &stakingGenesis)
+	stakingGenesis.Params.MaxValidators = uint32(len(validators))
 	stakingGenesis.Validators = validators
 	stakingGenesis.Delegations = delegations
 	genesisState[stakingtypes.ModuleName] = myApp.AppCodec().MustMarshalJSON(&stakingGenesis)

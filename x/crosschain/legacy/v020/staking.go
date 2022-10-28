@@ -19,9 +19,14 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
-func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, bankKeeper BankKeeper, oracles types.Oracles, delegateValidator stakingtypes.Validator) error {
+func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, bankKeeper BankKeeper, oracles types.Oracles, delegateValAddr sdk.ValAddress) error {
+	validator, found := stakingKeeper.GetValidator(ctx, delegateValAddr)
+	if !found {
+		return stakingtypes.ErrNoValidatorFound
+	}
+
 	for _, oracle := range oracles {
-		if delegateValidator.OperatorAddress != oracle.DelegateValidator {
+		if validator.OperatorAddress != oracle.DelegateValidator {
 			return sdkerr.Wrap(types.ErrInvalid, "delegate validator")
 		}
 
@@ -33,10 +38,12 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		}
 
 		newShares, err := stakingKeeper.Delegate(ctx,
-			delegateAddr, oracle.DelegateAmount, stakingtypes.Unbonded, delegateValidator, true)
+			delegateAddr, oracle.DelegateAmount, stakingtypes.Unbonded, validator, true)
 		if err != nil {
 			return err
 		}
+		//notice: Each delegate should be followed by an update of the validator `Tokens` and `DelegatorShares`
+		//validator, _ = validator.AddTokensFromDel(oracle.DelegateAmount)
 
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(

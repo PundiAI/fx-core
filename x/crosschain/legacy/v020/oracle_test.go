@@ -108,7 +108,7 @@ func TestMigrateOracle(t *testing.T) {
 				store.Set(append(types.OracleKey, oracleAddrs[i].Bytes()...), myApp.AppCodec().MustMarshal(legacyOracles[i]))
 			}
 
-			oracles, validator, err := v020.MigrateOracle(ctx, myApp.AppCodec(), myApp.GetKey(tt.args.moduleName), myApp.StakingKeeper)
+			oracles, validatorAddr, err := v020.MigrateOracle(ctx, myApp.AppCodec(), myApp.GetKey(tt.args.moduleName), myApp.StakingKeeper)
 			require.NoError(t, err)
 
 			require.Equal(t, len(oracles), len(legacyOracles))
@@ -132,7 +132,7 @@ func TestMigrateOracle(t *testing.T) {
 					DelegateAmount:    legacyOracles[i].DepositAmount.Amount,
 					StartHeight:       legacyOracles[i].StartHeight,
 					Online:            legacyOracles[i].Jailed == false,
-					DelegateValidator: validator.OperatorAddress,
+					DelegateValidator: validatorAddr.String(),
 					SlashTimes:        0,
 				}
 				oracleFromDB, found := tt.args.keeper(myApp).GetOracle(ctx, oracles[i].GetOracle())

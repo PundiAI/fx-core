@@ -67,18 +67,41 @@ func TestMigrateDepositToStaking(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valSet, genAccs, balances := helpers.GenerateGenesisValidator(50, nil)
+			valSet, genAccs, balances := helpers.GenerateGenesisValidator(20, nil)
 			myApp := helpers.SetupWithGenesisValSet(t, valSet, genAccs, balances...)
 
 			ctx := myApp.BaseApp.NewContext(false, tmproto.Header{Time: time.Now()})
 			validators := myApp.StakingKeeper.GetBondedValidatorsByPower(ctx)
-			oracles := newOracles(tt.args.oracleNumber, validators[0].OperatorAddress)
+			require.Equal(t, len(validators), 20)
+			delegatorValidator := validators[0]
+
+			totalTokens := sdk.NewInt(0)
+			totalDelegatorShares := sdk.NewDec(0)
+			for _, validator := range validators {
+				totalTokens = totalTokens.Add(validator.Tokens)
+				totalDelegatorShares = totalDelegatorShares.Add(validator.DelegatorShares)
+			}
+			require.EqualValues(t, totalTokens.String(), totalDelegatorShares.RoundInt().String())
+
+			bondedPool := myApp.StakingKeeper.GetBondedPool(ctx)
+			bondedPoolAllBalances := myApp.BankKeeper.GetAllBalances(ctx, bondedPool.GetAddress())
+			require.Equal(t, bondedPoolAllBalances.String(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, totalTokens)).String())
+
+			notBondedPool := myApp.StakingKeeper.GetNotBondedPool(ctx)
+			notBondedPoolAllBalances := myApp.BankKeeper.GetAllBalances(ctx, notBondedPool.GetAddress())
+			require.Equal(t, notBondedPoolAllBalances.String(), sdk.Coins{}.String())
+
+			validator, found := myApp.StakingKeeper.GetValidator(ctx, delegatorValidator.GetOperator())
+			require.True(t, found)
+			require.EqualValues(t, validator, delegatorValidator)
+
+			oracles := newOracles(tt.args.oracleNumber, delegatorValidator.OperatorAddress)
 			for _, oracle := range oracles {
 				err := myApp.BankKeeper.MintCoins(ctx, tt.args.moduleName, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount)))
 				require.NoError(t, err)
 			}
 
-			err := v020.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper, myApp.BankKeeper, oracles, validators[0])
+			err := v020.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper, myApp.BankKeeper, oracles, delegatorValidator.GetOperator())
 			require.NoError(t, err)
 
 			allDelegations := myApp.StakingKeeper.GetAllDelegations(ctx)
@@ -91,12 +114,30 @@ func TestMigrateDepositToStaking(t *testing.T) {
 
 				delegation, found := myApp.StakingKeeper.GetDelegation(ctx, delegateAddr, oracle.GetValidator())
 				require.True(t, found)
-				require.EqualValues(t, delegation.Shares.TruncateInt().Int64(), 100)
+				require.Equal(t, delegation.Shares.TruncateInt().String(), oracle.DelegateAmount.String())
 
 				delegations := myApp.StakingKeeper.GetAllDelegatorDelegations(ctx, delegateAddr)
 				require.EqualValues(t, len(delegations), 1)
 				require.EqualValues(t, delegation, delegations[0])
+
+				bondedPoolAllBalances = bondedPoolAllBalances.Add(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount))
+				totalTokens = totalTokens.Add(oracle.DelegateAmount)
+				totalDelegatorShares = totalDelegatorShares.Add(oracle.DelegateAmount.ToDec())
 			}
+
+			validators1 := myApp.StakingKeeper.GetBondedValidatorsByPower(ctx)
+			totalTokens1 := sdk.NewInt(0)
+			totalDelegatorShares1 := sdk.NewDec(0)
+			for _, validator := range validators1 {
+				totalTokens1 = totalTokens1.Add(validator.Tokens)
+				totalDelegatorShares1 = totalDelegatorShares1.Add(validator.DelegatorShares)
+			}
+			require.Equal(t, totalTokens1.String(), totalDelegatorShares1.RoundInt().String())
+			require.NotEqual(t, totalTokens.String(), totalTokens1.String())
+			require.NotEqual(t, totalDelegatorShares, totalDelegatorShares1)
+
+			require.Equal(t, bondedPoolAllBalances, myApp.BankKeeper.GetAllBalances(ctx, bondedPool.GetAddress()))
+			require.Equal(t, sdk.Coins{}, myApp.BankKeeper.GetAllBalances(ctx, notBondedPool.GetAddress()))
 		})
 	}
 }

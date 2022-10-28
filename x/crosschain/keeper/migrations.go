@@ -32,11 +32,11 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	if err := v020.MigrateParams(ctx, m.keeper.moduleName, m.legacyAmino, m.paramsKey); err != nil {
 		return err
 	}
-	oracles, delegateValidator, err := v020.MigrateOracle(ctx, m.keeper.cdc, m.keeper.storeKey, m.sk)
+	oracles, delegateValAddr, err := v020.MigrateOracle(ctx, m.keeper.cdc, m.keeper.storeKey, m.sk)
 	if err != nil {
 		return err
 	}
-	if err := v020.MigrateDepositToStaking(ctx, m.keeper.moduleName, m.sk, m.bk, oracles, delegateValidator); err != nil {
+	if err := v020.MigrateDepositToStaking(ctx, m.keeper.moduleName, m.sk, m.bk, oracles, delegateValAddr); err != nil {
 		return err
 	}
 	v020.MigrateStore(ctx, m.keeper.storeKey)
