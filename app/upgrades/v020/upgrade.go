@@ -108,6 +108,7 @@ func CreateUpgradeHandler(
 
 		//commit upgrade
 		commit()
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 		return toVersion, nil
 	}

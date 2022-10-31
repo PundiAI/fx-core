@@ -25,7 +25,7 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		return stakingtypes.ErrNoValidatorFound
 	}
 
-	for _, oracle := range oracles {
+	for i, oracle := range oracles {
 		if validator.OperatorAddress != oracle.DelegateValidator {
 			return sdkerr.Wrap(types.ErrInvalid, "delegate validator")
 		}
@@ -45,6 +45,9 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		//notice: Each delegate should be followed by an update of the validator `Tokens` and `DelegatorShares`
 		//validator, _ = validator.AddTokensFromDel(oracle.DelegateAmount)
 
+		if i != 0 {
+			continue
+		}
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
 				stakingtypes.EventTypeDelegate,
