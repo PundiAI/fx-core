@@ -294,12 +294,16 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 					}
 				}
 			}
+			pubkeyJson, err := clientCtx.Codec.MarshalInterfaceJSON(pubkey)
+			if err != nil {
+				return err
+			}
 			var data []byte
 			switch pubkey.Type() {
 			case "ed25519":
 				data, err = json.MarshalIndent(map[string]interface{}{
 					"address":        strings.ToUpper(hex.EncodeToString(pubkey.Address().Bytes())),
-					"val_cons_pub":   pubkey,
+					"val_cons_pub":   json.RawMessage(pubkeyJson),
 					"pub_key_hex":    hex.EncodeToString(pubkey.Bytes()),
 					"pub_key_base64": base64.StdEncoding.EncodeToString(pubkey.Bytes()),
 				}, "", "  ")
