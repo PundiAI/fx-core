@@ -75,10 +75,6 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Name=fxcore \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored \
 
-ifneq (,$(FX_BUILD_OPTIONS))
-  network=$(FX_BUILD_OPTIONS)
-endif
-
 ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
 endif
@@ -104,20 +100,20 @@ all: build lint test
 
 go.sum: go.mod
 	@echo "--> Ensure dependencies have not been modified"
-	@go mod verify
-	@go mod tidy
+	go mod verify
+	go mod tidy
 	@echo "--> Download go modules to local cache"
-	@go mod download
+	go mod download
 
 build: go.sum
-	@go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd/fxcored
+	go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/bin/$(BINARYNAME) ./cmd/fxcored
 	@echo "--> Done building."
 
 build-win:
 	@$(MAKE) build
 
-build-linux:
-	@GOOS=linux GOARCH=amd64 $(MAKE) build
+#build-linux:
+#	@GOOS=linux GOARCH=amd64 $(MAKE) build
 
 INSTALL_DIR := $(shell go env GOPATH)/bin
 install: build $(INSTALL_DIR)
