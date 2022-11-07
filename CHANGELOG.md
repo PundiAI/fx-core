@@ -35,6 +35,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+### Bug Fixes
+
+* Fix Rest API query tx
+* Fix `make install`
+
 ### Improvements
 
 * Bump cosmos-sdk to v0.45.9
