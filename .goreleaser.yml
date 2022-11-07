@@ -4,7 +4,7 @@ before:
 
 builds:
   - id: "fxcore-darwin"
-    main: ./cmd
+    main: ./cmd/fxcored
     binary: bin/fxcored
     env:
       - CGO_ENABLED=1
@@ -19,7 +19,7 @@ builds:
     ldflags:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "fxcore-darwin-arm64"
-    main: ./cmd
+    main: ./cmd/fxcored
     binary: bin/fxcored
     env:
       - CGO_ENABLED=1
@@ -34,7 +34,7 @@ builds:
     ldflags:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "fxcore-linux"
-    main: ./cmd
+    main: ./cmd/fxcored
     binary: bin/fxcored
     env:
       - CGO_ENABLED=1
@@ -49,7 +49,7 @@ builds:
     ldflags:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "fxcore-linux-arm64"
-    main: ./cmd
+    main: ./cmd/fxcored
     binary: bin/fxcored
     env:
       - CGO_ENABLED=1
@@ -64,7 +64,7 @@ builds:
     ldflags:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "fxcore-windows"
-    main: ./cmd
+    main: ./cmd/fxcored
     binary: bin/fxcored
     env:
       - CGO_ENABLED=1
