@@ -14,12 +14,14 @@ if [[ "$1" == "init" ]]; then
   # Initialize private validator, p2p, genesis, and application configuration files
   fxcored init local --chain-id fxcore
 
+  fxcored config config.toml rpc.cors_allowed_origins "*"
   # open prometheus
   fxcored config config.toml instrumentation.prometheus true
   # consensus
   # fxcored config config.toml consensus.timeout_commit 1s
   # open rest and swagger
   fxcored config app.toml api.enable true
+  fxcored config app.toml api.enabled-unsafe-cors
   fxcored config app.toml api.swagger true
   # open telemetry
   fxcored config app.toml telemetry.enabled true

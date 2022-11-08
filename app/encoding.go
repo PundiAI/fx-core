@@ -12,6 +12,8 @@ import (
 	cryptocodec "github.com/evmos/ethermint/crypto/codec"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	ethermint "github.com/evmos/ethermint/types"
+
+	fxlegacy "github.com/functionx/fx-core/v2/types/legacy"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -28,6 +30,7 @@ func MakeEncodingConfig() EncodingConfig {
 	encodingConfig := makeEncodingConfig()
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	fxlegacy.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }
 
