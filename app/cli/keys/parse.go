@@ -60,8 +60,8 @@ func ParseAddressCommand() *cobra.Command {
 				return err
 			}
 
-			outputMap["base64_address"] = addr
-			outputMap["hex_address"] = hex.EncodeToString(addr)
+			outputMap["base64"] = addr
+			outputMap["hex"] = hex.EncodeToString(addr)
 			outputMap["acc_address"] = accAddress
 			outputMap["val_address"] = valAddress
 			if keyInfo != nil {

@@ -368,11 +368,10 @@ $ %s debug addr fx1e0jnq2sun3dzjh8p2xq95kk0expwmd7sd7r5ye
 			}
 
 			return PrintOutput(clientCtx, map[string]interface{}{
-				"base64_address": addr,
-				"hex_address":    hex.EncodeToString(addr),
-				"eip55_address":  common.BytesToAddress(addr).String(),
-				"acc_address":    sdk.AccAddress(addr),
-				"val_address":    sdk.ValAddress(addr),
+				"base64":      addr,
+				"hex":         hex.EncodeToString(addr),
+				"acc_address": sdk.AccAddress(addr),
+				"val_address": sdk.ValAddress(addr),
 			})
 		},
 	}
