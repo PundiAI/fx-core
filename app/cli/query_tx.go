@@ -41,7 +41,8 @@ documents its respective events under 'xx_events.md'.
 
 Example:
 $ %s query txs --%s 'message.sender=cosmos1...&message.action=withdraw_delegator_reward' --page 1 --limit 30
-`, eventFormat, version.AppName, flagEvents),
+$ %s query txs --%s 'message.sender=cosmos1...&message.module=distribution' --page 1 --limit 30
+`, eventFormat, version.AppName, flagEvents, version.AppName, flagEvents),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -134,18 +135,20 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 			switch typ {
 			case typeHash:
 				{
-					if args[0] == "" {
+					txHash := args[0]
+					if txHash == "" {
 						return fmt.Errorf("argument should be a tx hash")
 					}
+					txHash = strings.TrimPrefix(txHash, "0x")
 
 					// If hash is given, then query the tx by hash.
-					output, err := authtx.QueryTx(clientCtx, args[0])
+					output, err := authtx.QueryTx(clientCtx, txHash)
 					if err != nil {
 						return err
 					}
 
 					if output.Empty() {
-						return fmt.Errorf("no transaction found with hash %s", args[0])
+						return fmt.Errorf("no transaction found with hash %s", txHash)
 					}
 					return PrintOutput(clientCtx, TxResponseToMap(clientCtx.Codec, output))
 				}
