@@ -8,8 +8,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 type BSCTestSuite struct {

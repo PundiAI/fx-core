@@ -1,4 +1,4 @@
-package v03_test
+package v3_test
 
 import (
 	"testing"
@@ -7,9 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	v03 "github.com/functionx/fx-core/v2/x/gravity/legacy/v03"
-
-	"github.com/functionx/fx-core/v2/x/gravity/types"
+	"github.com/functionx/fx-core/v3/x/gravity/legacy/v3"
+	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func TestMigratePruneKey_IbcSequenceMigration(t *testing.T) {
@@ -26,7 +25,7 @@ func TestMigratePruneKey_IbcSequenceMigration(t *testing.T) {
 	for i := 1; i < 100; i++ {
 		require.True(t, store.Has(types.GetIbcSequenceHeightKey(sourcePort, sourceChannel, uint64(i))))
 	}
-	v03.MigratePruneKey(ctx.KVStore(gravityKey), types.IbcSequenceHeightKey)
+	v3.MigratePruneKey(ctx.KVStore(gravityKey), types.IbcSequenceHeightKey)
 
 	// migrate after check key not exists
 	for i := 1; i < 100; i++ {

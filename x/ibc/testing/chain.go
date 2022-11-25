@@ -32,9 +32,9 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/version"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/ibc/testing/mock"
-	"github.com/functionx/fx-core/v2/x/ibc/testing/simapp"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/ibc/testing/mock"
+	"github.com/functionx/fx-core/v3/x/ibc/testing/simapp"
 )
 
 var MaxAccounts = 10

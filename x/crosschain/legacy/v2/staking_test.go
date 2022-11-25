@@ -9,14 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	v020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v2"
-
-	"github.com/functionx/fx-core/v2/app/helpers"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func TestMigrateDepositToStaking(t *testing.T) {
@@ -102,7 +101,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			err := v020.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper, myApp.BankKeeper, oracles, delegatorValidator.GetOperator())
+			err := crosschainv2.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper, myApp.BankKeeper, oracles, delegatorValidator.GetOperator())
 			require.NoError(t, err)
 
 			allDelegations := myApp.StakingKeeper.GetAllDelegations(ctx)

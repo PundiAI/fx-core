@@ -37,8 +37,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v2/app"
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v3/app"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 // SimAppChainID hardcoded chainID for simulation

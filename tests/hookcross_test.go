@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v2/x/migrate/types"
+	"github.com/functionx/fx-core/v3/x/migrate/types"
 )
 
 const (

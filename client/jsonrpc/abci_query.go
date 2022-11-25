@@ -12,8 +12,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
-	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
+	"github.com/functionx/fx-core/v3/client/grpc/base/gasprice"
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {

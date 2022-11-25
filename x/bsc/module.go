@@ -14,11 +14,11 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v2/x/bsc/types"
-	"github.com/functionx/fx-core/v2/x/crosschain"
-	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v2"
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/bsc/types"
+	"github.com/functionx/fx-core/v3/x/crosschain"
+	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 // type check to ensure the interface is properly implemented
@@ -82,14 +82,14 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {}
 type AppModule struct {
 	AppModuleBasic
 	keeper        crosschainkeeper.Keeper
-	stakingKeeper crosschainv020.StakingKeeper
-	bankKeeper    crosschainv020.BankKeeper
+	stakingKeeper crosschainv2.StakingKeeper
+	bankKeeper    crosschainv2.BankKeeper
 	paramsKey     sdk.StoreKey
 	legacyAmino   *codec.LegacyAmino
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper crosschainkeeper.Keeper, stakingKeeper crosschainv020.StakingKeeper, bankKeeper crosschainv020.BankKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) AppModule {
+func NewAppModule(keeper crosschainkeeper.Keeper, stakingKeeper crosschainv2.StakingKeeper, bankKeeper crosschainv2.BankKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,

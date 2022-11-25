@@ -11,7 +11,7 @@ import (
 	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v2/app/cli"
+	"github.com/functionx/fx-core/v3/app/cli"
 )
 
 const prefixFlag = "prefix"

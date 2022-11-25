@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 // Test that there is domain separation between the port id and the channel id otherwise an

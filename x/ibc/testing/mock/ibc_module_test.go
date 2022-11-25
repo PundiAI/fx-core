@@ -7,7 +7,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v2/x/ibc/testing/mock"
+	"github.com/functionx/fx-core/v3/x/ibc/testing/mock"
 )
 
 func TestCreateCapabilityName(t *testing.T) {

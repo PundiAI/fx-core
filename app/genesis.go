@@ -22,8 +22,8 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 const (

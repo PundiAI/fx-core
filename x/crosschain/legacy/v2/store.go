@@ -4,15 +4,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v1"
+	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v1"
 )
 
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey) {
 	store := ctx.KVStore(storeKey)
-	store.Delete(v010.OracleTotalDepositKey)
+	store.Delete(crosschainv1.OracleTotalDepositKey)
 
 	// pruneIbcSequenceKey
-	MigratePruneKey(store, v010.IbcSequenceHeightKey)
+	MigratePruneKey(store, crosschainv1.IbcSequenceHeightKey)
 }
 
 func MigratePruneKey(store sdk.KVStore, key []byte) {

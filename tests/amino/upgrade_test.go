@@ -7,7 +7,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v2/app"
+	"github.com/functionx/fx-core/v3/app"
 )
 
 func TestAminoEncodeSoftwareUpgradeProposal(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 // GetCmdQueryDenomTrace defines the command to query a a denomination trace from a given hash.

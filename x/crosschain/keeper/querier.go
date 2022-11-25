@@ -8,8 +8,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 const MaxResults = 100

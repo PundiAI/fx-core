@@ -11,7 +11,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v2/x/gov/keeper"
+	"github.com/functionx/fx-core/v3/x/gov/keeper"
 )
 
 var (

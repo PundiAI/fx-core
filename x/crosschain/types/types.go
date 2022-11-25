@@ -13,7 +13,7 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 //////////////////////////////////////

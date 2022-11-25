@@ -14,17 +14,16 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v1"
-	v020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v2"
-
-	"github.com/functionx/fx-core/v2/app"
-	"github.com/functionx/fx-core/v2/app/helpers"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v1"
+	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func TestMigrateParams(t *testing.T) {
@@ -95,16 +94,16 @@ func TestMigrateParams(t *testing.T) {
 
 			paramsKey := myApp.GetKey(paramstypes.ModuleName)
 			paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(tt.args.moduleName), '/'))
-			paramsStore.Set(v010.ParamStoreOracles, myApp.LegacyAmino().MustMarshalJSON([]string{sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String()}))
-			paramsStore.Set(v010.ParamOracleDepositThreshold, myApp.LegacyAmino().MustMarshalJSON(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
+			paramsStore.Set(crosschainv1.ParamStoreOracles, myApp.LegacyAmino().MustMarshalJSON([]string{sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String()}))
+			paramsStore.Set(crosschainv1.ParamOracleDepositThreshold, myApp.LegacyAmino().MustMarshalJSON(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
 
-			require.True(t, v020.CheckInitialize(ctx, tt.args.moduleName, myApp.GetKey(paramstypes.ModuleName)))
-			require.NoError(t, v020.MigrateParams(ctx, tt.args.moduleName, myApp.LegacyAmino(), myApp.GetKey(paramstypes.ModuleName)))
+			require.True(t, crosschainv2.CheckInitialize(ctx, tt.args.moduleName, myApp.GetKey(paramstypes.ModuleName)))
+			require.NoError(t, crosschainv2.MigrateParams(ctx, tt.args.moduleName, myApp.LegacyAmino(), myApp.GetKey(paramstypes.ModuleName)))
 
 			iterator := paramsStore.Iterator(nil, nil)
 			for ; iterator.Valid(); iterator.Next() {
-				require.NotEqual(t, iterator.Key(), v010.ParamOracleDepositThreshold)
-				require.NotEqual(t, iterator.Key(), v010.ParamStoreOracles)
+				require.NotEqual(t, iterator.Key(), crosschainv1.ParamOracleDepositThreshold)
+				require.NotEqual(t, iterator.Key(), crosschainv1.ParamStoreOracles)
 			}
 			require.NoError(t, iterator.Close())
 

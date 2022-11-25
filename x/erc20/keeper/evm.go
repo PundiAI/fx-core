@@ -14,8 +14,8 @@ import (
 	"github.com/evmos/ethermint/server/config"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 // QueryERC20 returns the data of a deployed ERC20 contract

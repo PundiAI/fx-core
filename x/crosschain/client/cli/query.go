@@ -15,9 +15,9 @@ import (
 	"github.com/spf13/cobra"
 	abcitype "github.com/tendermint/tendermint/abci/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
-	types2 "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	types2 "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 const (

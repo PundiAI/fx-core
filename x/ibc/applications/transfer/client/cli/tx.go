@@ -15,7 +15,7 @@ import (
 	channelutils "github.com/cosmos/ibc-go/v3/modules/core/04-channel/client/utils"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 const (

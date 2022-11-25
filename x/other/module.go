@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice/legacy"
-	types "github.com/functionx/fx-core/v2/x/other/types"
+	"github.com/functionx/fx-core/v3/client/grpc/base/gasprice/legacy"
+	types "github.com/functionx/fx-core/v3/x/other/types"
 )
 
 // type check to ensure the interface is properly implemented

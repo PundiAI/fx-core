@@ -14,8 +14,8 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v2/app/helpers"
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 type CrosschainTestSuite struct {

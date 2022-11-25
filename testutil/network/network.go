@@ -42,7 +42,7 @@ import (
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 	"google.golang.org/grpc"
 
-	fxCfg "github.com/functionx/fx-core/v2/server/config"
+	fxCfg "github.com/functionx/fx-core/v3/server/config"
 )
 
 // package-wide network lock to only allow one test network at a time

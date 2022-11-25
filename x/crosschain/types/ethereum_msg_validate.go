@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 var _ MsgValidateBasic = &EthereumMsgValidate{}

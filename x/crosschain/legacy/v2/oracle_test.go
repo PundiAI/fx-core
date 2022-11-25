@@ -12,17 +12,16 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v1"
-	v020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v2"
-
-	"github.com/functionx/fx-core/v2/app"
-	"github.com/functionx/fx-core/v2/app/helpers"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v1"
+	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func TestMigrateOracle(t *testing.T) {
@@ -83,9 +82,9 @@ func TestMigrateOracle(t *testing.T) {
 				key, _ := crypto.GenerateKey()
 				externalAddrs[i] = crypto.PubkeyToAddress(key.PublicKey)
 			}
-			var legacyOracles = make([]*v010.LegacyOracle, len(oracleAddrs))
+			var legacyOracles = make([]*crosschainv1.LegacyOracle, len(oracleAddrs))
 			for i := 0; i < len(oracleAddrs); i++ {
-				legacyOracles[i] = &v010.LegacyOracle{
+				legacyOracles[i] = &crosschainv1.LegacyOracle{
 					OracleAddress:       oracleAddrs[i].String(),
 					OrchestratorAddress: bridgerAddrs[i].String(),
 					ExternalAddress:     externalAddrs[i].String(),
@@ -109,7 +108,7 @@ func TestMigrateOracle(t *testing.T) {
 				store.Set(append(types.OracleKey, oracleAddrs[i].Bytes()...), myApp.AppCodec().MustMarshal(legacyOracles[i]))
 			}
 
-			oracles, validatorAddr, err := v020.MigrateOracle(ctx, myApp.AppCodec(), myApp.GetKey(tt.args.moduleName), myApp.StakingKeeper)
+			oracles, validatorAddr, err := crosschainv2.MigrateOracle(ctx, myApp.AppCodec(), myApp.GetKey(tt.args.moduleName), myApp.StakingKeeper)
 			require.NoError(t, err)
 
 			require.Equal(t, len(oracles), len(legacyOracles))

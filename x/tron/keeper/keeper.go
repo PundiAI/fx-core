@@ -5,8 +5,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 type Keeper struct {

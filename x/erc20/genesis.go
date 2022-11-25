@@ -7,9 +7,9 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/erc20/keeper"
-	"github.com/functionx/fx-core/v2/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/erc20/keeper"
+	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 // InitGenesis import module genesis

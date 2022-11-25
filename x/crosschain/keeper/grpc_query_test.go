@@ -18,10 +18,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/functionx/fx-core/v2/app"
-	"github.com/functionx/fx-core/v2/app/helpers"
-	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 type CrossChainGrpcTestSuite struct {

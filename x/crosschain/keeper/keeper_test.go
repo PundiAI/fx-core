@@ -12,14 +12,14 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v2/app"
-	"github.com/functionx/fx-core/v2/app/helpers"
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-	tronkeeper "github.com/functionx/fx-core/v2/x/tron/keeper"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 type KeeperTestSuite struct {

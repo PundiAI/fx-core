@@ -7,7 +7,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
-	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 type ERC20ProposalTestSuite struct {

@@ -7,14 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v1"
-
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v1"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) error {
 	params := types.Params{}
-	paramSetPairs := v010.GetParamSetPairs(&params)
+	paramSetPairs := crosschainv1.GetParamSetPairs(&params)
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(moduleName), '/'))
 	for _, pair := range paramSetPairs {
 		bz := paramsStore.Get(pair.Key)
@@ -22,8 +21,8 @@ func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.Legacy
 			return fmt.Errorf("%s: %s", err.Error(), pair.Key)
 		}
 	}
-	paramsStore.Delete(v010.ParamStoreOracles)
-	paramsStore.Delete(v010.ParamOracleDepositThreshold)
+	paramsStore.Delete(crosschainv1.ParamStoreOracles)
+	paramsStore.Delete(crosschainv1.ParamOracleDepositThreshold)
 
 	params.DelegateMultiple = types.DefaultOracleDelegateThreshold
 	params.AverageBlockTime = 7_000

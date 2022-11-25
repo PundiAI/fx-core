@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v2/x/gravity/types"
+	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 // TransferAfter Hook operation after transfer transaction triggered by IBC module

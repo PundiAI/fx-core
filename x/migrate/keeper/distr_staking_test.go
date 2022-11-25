@@ -21,9 +21,9 @@ import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v2/app"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	migratekeeper "github.com/functionx/fx-core/v2/x/migrate/keeper"
+	"github.com/functionx/fx-core/v3/app"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {

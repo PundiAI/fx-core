@@ -31,11 +31,11 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v2/app"
-	appCmd "github.com/functionx/fx-core/v2/app/cli"
-	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
-	"github.com/functionx/fx-core/v2/server/config"
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v3/app"
+	appCmd "github.com/functionx/fx-core/v3/app/cli"
+	"github.com/functionx/fx-core/v3/client/grpc/base/gasprice"
+	"github.com/functionx/fx-core/v3/server/config"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 const envPrefix = "FX"

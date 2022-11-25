@@ -1,13 +1,13 @@
-package v03
+package v3
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
-	"github.com/functionx/fx-core/v2/x/gravity/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey, toModuleName string) error {

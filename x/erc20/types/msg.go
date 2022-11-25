@@ -6,8 +6,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 var (

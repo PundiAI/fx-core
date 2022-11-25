@@ -6,8 +6,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {

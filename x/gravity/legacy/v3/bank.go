@@ -1,9 +1,9 @@
-package v03
+package v3
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func MigrateBank(ctx sdk.Context, accountKeeper AccountKeeper, bankKeeper BankKeeper, toModuleName string) error {

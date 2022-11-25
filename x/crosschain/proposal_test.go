@@ -3,8 +3,8 @@ package crosschain_test
 import (
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v2/x/crosschain"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/crosschain"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 func (suite *IntegrationTestSuite) TestUpdateCrossChainOraclesProposal() {

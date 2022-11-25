@@ -5,8 +5,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 // TODO: Break into several smaller functions for clarity

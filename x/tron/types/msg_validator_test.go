@@ -14,10 +14,10 @@ import (
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v2/app"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+	_ "github.com/functionx/fx-core/v3/app"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func TestMsgBondedOracle_ValidateBasic(t *testing.T) {

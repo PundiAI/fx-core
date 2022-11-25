@@ -6,7 +6,7 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/functionx/fx-core/v2/x/gov/keeper"
+	"github.com/functionx/fx-core/v3/x/gov/keeper"
 )
 
 // NewHandler creates an sdk.Handler for all the gov type messages

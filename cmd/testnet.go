@@ -31,10 +31,10 @@ import (
 	"github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	"github.com/functionx/fx-core/v2/app"
-	"github.com/functionx/fx-core/v2/app/cli"
-	fxCfg "github.com/functionx/fx-core/v2/server/config"
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/cli"
+	fxCfg "github.com/functionx/fx-core/v3/server/config"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 const (

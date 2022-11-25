@@ -7,7 +7,7 @@ import (
 	"github.com/evmos/ethermint/x/evm/statedb"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v2/app/helpers"
+	"github.com/functionx/fx-core/v3/app/helpers"
 )
 
 func (suite *AnteTestSuite) TestSignatures() {

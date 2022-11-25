@@ -13,7 +13,7 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	ethermint "github.com/evmos/ethermint/types"
 
-	fxlegacy "github.com/functionx/fx-core/v2/types/legacy"
+	fxlegacy "github.com/functionx/fx-core/v3/types/legacy"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.

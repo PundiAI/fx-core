@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/functionx/fx-core/v2/x/migrate/types"
+	"github.com/functionx/fx-core/v3/x/migrate/types"
 )
 
 var _ types.QueryServer = Keeper{}

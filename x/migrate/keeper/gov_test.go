@@ -5,8 +5,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	migratekeeper "github.com/functionx/fx-core/v2/x/migrate/keeper"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateGovInactive() {

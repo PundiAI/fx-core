@@ -7,7 +7,7 @@ import (
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	v2 "github.com/functionx/fx-core/v2/app/upgrades/v2"
+	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
 )
 
 // AddPreUpgradeCommand add pre-upgrade command

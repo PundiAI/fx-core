@@ -1,6 +1,6 @@
 package keeper_test
 
-import "github.com/functionx/fx-core/v2/x/erc20/types"
+import "github.com/functionx/fx-core/v3/x/erc20/types"
 
 func (suite *KeeperTestSuite) TestParams() {
 	params := suite.app.Erc20Keeper.GetParams(suite.ctx)

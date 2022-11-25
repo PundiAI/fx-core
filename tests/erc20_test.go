@@ -19,12 +19,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v2/app/helpers"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/types/contract"
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/types/contract"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 )
 
 type ERC20TestSuite struct {

@@ -12,8 +12,8 @@ import (
 	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/tendermint/tendermint/libs/log"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/erc20/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 // Keeper of this module maintains collections of erc20.

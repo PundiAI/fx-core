@@ -21,11 +21,11 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v2/app/helpers"
-	"github.com/functionx/fx-core/v2/client/grpc"
-	"github.com/functionx/fx-core/v2/client/jsonrpc"
-	"github.com/functionx/fx-core/v2/testutil"
-	"github.com/functionx/fx-core/v2/testutil/network"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/client/grpc"
+	"github.com/functionx/fx-core/v3/client/jsonrpc"
+	"github.com/functionx/fx-core/v3/testutil"
+	"github.com/functionx/fx-core/v3/testutil/network"
 )
 
 type TestSuite struct {

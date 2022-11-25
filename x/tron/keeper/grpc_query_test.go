@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_BatchFees() {

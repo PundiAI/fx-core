@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/simulation"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/simulation"
 )
 
 func TestParamChanges(t *testing.T) {

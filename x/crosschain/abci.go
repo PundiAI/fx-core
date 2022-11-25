@@ -6,8 +6,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 // EndBlocker is called at the end of every block

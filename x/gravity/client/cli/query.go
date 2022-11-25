@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	abcitype "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v2/x/gravity/types"
+	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func GetQueryCmd() *cobra.Command {

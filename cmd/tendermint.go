@@ -16,8 +16,8 @@ import (
 	"github.com/tendermint/tendermint/store"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	appCmd "github.com/functionx/fx-core/v2/app/cli"
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	appCmd "github.com/functionx/fx-core/v3/app/cli"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 func tendermintCommand() *cobra.Command {

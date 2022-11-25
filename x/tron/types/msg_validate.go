@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 var _ crosschaintypes.MsgValidateBasic = &TronMsgValidate{}

@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/functionx/fx-core/v2/x/gov/keeper"
+	"github.com/functionx/fx-core/v3/x/gov/keeper"
 )
 
 // EndBlocker called every block, process inflation, update validator set.

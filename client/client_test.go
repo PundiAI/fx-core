@@ -22,12 +22,12 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v2/app/helpers"
-	"github.com/functionx/fx-core/v2/client/grpc"
-	"github.com/functionx/fx-core/v2/client/jsonrpc"
-	"github.com/functionx/fx-core/v2/testutil"
-	"github.com/functionx/fx-core/v2/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/client/grpc"
+	"github.com/functionx/fx-core/v3/client/jsonrpc"
+	"github.com/functionx/fx-core/v3/testutil"
+	"github.com/functionx/fx-core/v3/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 type TestClient interface {

@@ -3,7 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 const (

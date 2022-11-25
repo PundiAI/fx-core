@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/functionx/fx-core/v2/x/gravity/types"
+	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func (k Keeper) GetFxOriginatedDenom(ctx sdk.Context, tokenContract string) (string, bool) {

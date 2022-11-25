@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v2/testutil"
-	"github.com/functionx/fx-core/v2/testutil/network"
+	"github.com/functionx/fx-core/v3/testutil"
+	"github.com/functionx/fx-core/v3/testutil/network"
 )
 
 type IntegrationTestSuite struct {

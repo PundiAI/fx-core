@@ -15,9 +15,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v2/x/crosschain/client/cli"
-	"github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/crosschain/client/cli"
+	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 // type check to ensure the interface is properly implemented

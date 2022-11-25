@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v2/x/migrate/types"
+	"github.com/functionx/fx-core/v3/x/migrate/types"
 )
 
 func (suite *KeeperTestSuite) TestMigrateAccount() {

@@ -32,15 +32,15 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	ante2 "github.com/functionx/fx-core/v2/ante"
-	app "github.com/functionx/fx-core/v2/app"
-	"github.com/functionx/fx-core/v2/app/helpers"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	"github.com/functionx/fx-core/v2/x/erc20/types"
-	gravitytypes "github.com/functionx/fx-core/v2/x/gravity/types"
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+	ante2 "github.com/functionx/fx-core/v3/ante"
+	app "github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	"github.com/functionx/fx-core/v3/x/erc20/types"
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 const (

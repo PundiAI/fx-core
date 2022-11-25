@@ -15,9 +15,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v2/x/gravity/client/cli"
-	"github.com/functionx/fx-core/v2/x/gravity/keeper"
-	"github.com/functionx/fx-core/v2/x/gravity/types"
+	"github.com/functionx/fx-core/v3/x/gravity/client/cli"
+	"github.com/functionx/fx-core/v3/x/gravity/keeper"
+	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 // type check to ensure the interface is properly implemented

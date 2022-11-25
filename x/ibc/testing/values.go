@@ -12,10 +12,10 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 
-	_ "github.com/functionx/fx-core/v2/app"
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-	"github.com/functionx/fx-core/v2/x/ibc/testing/mock"
+	_ "github.com/functionx/fx-core/v3/app"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v3/x/ibc/testing/mock"
 )
 
 const (

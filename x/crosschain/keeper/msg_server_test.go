@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/crosschain"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/crosschain"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 // 1. Test MsgBondedOracle

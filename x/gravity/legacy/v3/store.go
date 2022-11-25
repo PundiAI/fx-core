@@ -1,4 +1,4 @@
-package v03
+package v3
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
-	"github.com/functionx/fx-core/v2/x/gravity/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 // MigrateStore performs in-place store migrations from v0.42 to v0.45.

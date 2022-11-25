@@ -32,10 +32,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 
-	"github.com/functionx/fx-core/v2/client/grpc/base/gasprice"
-	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
-	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
+	"github.com/functionx/fx-core/v3/client/grpc/base/gasprice"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 )
 
 const DefGasLimit int64 = 200000

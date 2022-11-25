@@ -18,9 +18,9 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	coretypes "github.com/cosmos/ibc-go/v3/modules/core/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 
-	"github.com/functionx/fx-core/v2/x/ibc/testing/mock"
+	"github.com/functionx/fx-core/v3/x/ibc/testing/mock"
 )
 
 type ClientConfig interface {

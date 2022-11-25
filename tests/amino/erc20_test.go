@@ -6,8 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v2/app"
-	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
+	"github.com/functionx/fx-core/v3/app"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 func TestAminoEncodeRegisterCoinProposal(t *testing.T) {

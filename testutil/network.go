@@ -16,10 +16,10 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v2/app"
-	"github.com/functionx/fx-core/v2/app/helpers"
-	"github.com/functionx/fx-core/v2/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 func DefNoSupplyGenesisState(cdc codec.Codec) app.GenesisState {

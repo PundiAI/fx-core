@@ -10,7 +10,7 @@ import (
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 type EvmAppModule struct {

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/config"
 
-	fxCfg "github.com/functionx/fx-core/v2/server/config"
+	fxCfg "github.com/functionx/fx-core/v3/server/config"
 )
 
 func Test_configTomlConfig_output(t *testing.T) {

@@ -7,15 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	"github.com/spf13/cobra"
-	tmcfg "github.com/tendermint/tendermint/config"
-
-	fxCfg "github.com/functionx/fx-core/v2/server/config"
-
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,18 +24,21 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmcfg "github.com/tendermint/tendermint/config"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v2"
-	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
-	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
-	ibctransferkeeper "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
-	ibctransfertypes "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-	migratetypes "github.com/functionx/fx-core/v2/x/migrate/types"
-	polygontypes "github.com/functionx/fx-core/v2/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
+	fxCfg "github.com/functionx/fx-core/v3/server/config"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	crosschainv020 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
+	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	ibctransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
+	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 // PreUpgradeCmd called by cosmovisor

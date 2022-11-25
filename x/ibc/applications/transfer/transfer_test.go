@@ -7,9 +7,9 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/stretchr/testify/suite"
 
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-	ibctesting "github.com/functionx/fx-core/v2/x/ibc/testing"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	ibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
 )
 
 var (

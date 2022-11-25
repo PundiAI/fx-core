@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/simulation"
-	"github.com/functionx/fx-core/v2/x/ibc/applications/transfer/types"
-	"github.com/functionx/fx-core/v2/x/ibc/testing/simapp"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/simulation"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v3/x/ibc/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {

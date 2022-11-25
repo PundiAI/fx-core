@@ -5,10 +5,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v1"
-
-	fxtypes "github.com/functionx/fx-core/v2/types"
-	"github.com/functionx/fx-core/v2/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v1"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey, stakingKeeper StakingKeeper) (types.Oracles, sdk.ValAddress, error) {
@@ -25,7 +24,7 @@ func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey
 
 	oracles := types.Oracles{}
 	for ; iterator.Valid(); iterator.Next() {
-		var legacyOracle v010.LegacyOracle
+		var legacyOracle crosschainv1.LegacyOracle
 		cdc.MustUnmarshal(iterator.Value(), &legacyOracle)
 		if legacyOracle.DepositAmount.Denom != fxtypes.DefaultDenom {
 			return nil, nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom: %s", legacyOracle.DepositAmount.Denom)
