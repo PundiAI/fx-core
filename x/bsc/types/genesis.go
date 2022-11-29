@@ -7,6 +7,7 @@ import (
 func DefaultGenesisState() *crosschaintypes.GenesisState {
 	params := crosschaintypes.DefaultParams()
 	params.GravityId = "fx-bsc-bridge"
+	params.AverageExternalBlockTime = 3_000
 	return &crosschaintypes.GenesisState{
 		Params: params,
 	}

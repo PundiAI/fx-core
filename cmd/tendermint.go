@@ -16,7 +16,7 @@ import (
 	"github.com/tendermint/tendermint/store"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	appCmd "github.com/functionx/fx-core/v3/app/cli"
+	"github.com/functionx/fx-core/v3/client/cli"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -42,10 +42,10 @@ func tendermintCommand() *cobra.Command {
 		sdkserver.ShowValidatorCmd(),
 		sdkserver.ShowAddressCmd(),
 		sdkserver.VersionCmd(),
-		appCmd.UnsafeRestPrivValidatorCmd(),
-		appCmd.UnsafeResetNodeKeyCmd(),
-		appCmd.ReplayCmd(),
-		appCmd.ReplayConsoleCmd(),
+		cli.UnsafeRestPrivValidatorCmd(),
+		cli.UnsafeResetNodeKeyCmd(),
+		cli.ReplayCmd(),
+		cli.ReplayConsoleCmd(),
 		tmcmd.ResetAllCmd,
 		tmcmd.ResetStateCmd,
 		tmcmd.GenValidatorCmd,
@@ -63,9 +63,9 @@ func startCommand(appCreator types.AppCreator, defaultNodeHome string) *cobra.Co
 		serverCtx := sdkserver.GetServerContextFromCmd(cmd)
 
 		if zeroLog, ok := serverCtx.Logger.(sdkserver.ZeroLogWrapper); ok {
-			filterLogTypes, _ := cmd.Flags().GetStringSlice(appCmd.FlagLogFilter)
+			filterLogTypes, _ := cmd.Flags().GetStringSlice(cli.FlagLogFilter)
 			if len(filterLogTypes) > 0 {
-				serverCtx.Logger = appCmd.NewFxZeroLogWrapper(zeroLog, filterLogTypes)
+				serverCtx.Logger = cli.NewFxZeroLogWrapper(zeroLog, filterLogTypes)
 			}
 		}
 
@@ -89,7 +89,7 @@ func startCommand(appCreator types.AppCreator, defaultNodeHome string) *cobra.Co
 		fxtypes.SetChainId(genesisDoc.ChainID)
 		return nil
 	}
-	startCmd.Flags().StringSlice(appCmd.FlagLogFilter, nil, `The logging filter can discard custom log type (ABCIQuery)`)
+	startCmd.Flags().StringSlice(cli.FlagLogFilter, nil, `The logging filter can discard custom log type (ABCIQuery)`)
 	return startCmd
 }
 

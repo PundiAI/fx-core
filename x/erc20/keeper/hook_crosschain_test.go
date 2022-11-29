@@ -8,13 +8,11 @@ import (
 	"testing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 
@@ -35,15 +33,14 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestHookChainBSC() {
-	suite.purseBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
-	suite.SetupTest()
+	suite.mintToken(bsctypes.ModuleName, sdk.NewCoin(purseDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
 
-	signer1, addr1 := privateSigner()
-	_, addr2 := privateSigner()
+	signer1 := helpers.NewSigner(helpers.NewEthPrivKey())
+	addr2 := helpers.GenerateEthAddress()
 
-	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr1.Bytes(), addr2)
+	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), signer1.Address().Bytes(), addr2)
 
-	purseID := suite.app.Erc20Keeper.GetDenomMap(suite.ctx, PurseDenom)
+	purseID := suite.app.Erc20Keeper.GetDenomMap(suite.ctx, purseDenom)
 	suite.Require().NotEmpty(purseID)
 
 	tokenPair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, purseID)
@@ -53,7 +50,7 @@ func (suite *KeeperTestSuite) TestHookChainBSC() {
 
 	require.Equal(suite.T(), types.TokenPair{
 		Erc20Address:  tokenPair.GetErc20Address(),
-		Denom:         PurseDenom,
+		Denom:         purseDenom,
 		Enabled:       true,
 		ContractOwner: types.OWNER_MODULE,
 	}, tokenPair)
@@ -63,48 +60,43 @@ func (suite *KeeperTestSuite) TestHookChainBSC() {
 	suite.Require().Equal("PURSE", fip20.Symbol)
 
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(PurseDenom, amt)))
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), signer1.Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(purseDenom, amt)))
 	suite.Require().NoError(err)
 
-	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, addr1.Bytes())
+	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer1.Address().Bytes())
 	_ = balances
 
-	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr1.Bytes(), addr1, sdk.NewCoin(PurseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, signer1.Address().Bytes(), signer1.Address(), sdk.NewCoin(purseDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	suite.Require().NoError(err)
 
-	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, tokenPair.GetERC20Contract(), addr1)
+	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, tokenPair.GetERC20Contract(), signer1.Address())
 	suite.Require().NoError(err)
 	_ = balanceOf
 
 	token := tokenPair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, bsctypes.ModuleName)
 	transferChainData := packTransferCrossData(suite.T(), addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
-	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, addr1, token, transferChainData)
+	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, signer1.Address(), token, transferChainData)
 
 	transactions := suite.app.BscKeeper.GetUnbatchedTransactions(suite.ctx)
 	require.Equal(suite.T(), 1, len(transactions))
 	require.Equal(suite.T(), transactions[0].DestAddress, addr2.String())
 	require.Equal(suite.T(), transactions[0].Token.Amount.BigInt(), big.NewInt(1e18))
 	require.Equal(suite.T(), transactions[0].Fee.Amount.BigInt(), big.NewInt(1e18))
-	require.Equal(suite.T(), transactions[0].Sender, sdk.AccAddress(addr1.Bytes()).String())
+	require.Equal(suite.T(), transactions[0].Sender, sdk.AccAddress(signer1.Address().Bytes()).String())
 }
 
 func (suite *KeeperTestSuite) TestHookChainUSDT() {
-	suite.supportManyToOneBlock = true
-	suite.bscUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
-	suite.polygonUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
-	suite.SetupTest()
+	suite.mintToken(bsctypes.ModuleName, sdk.NewCoin(bscDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
+	suite.mintToken(polygontypes.ModuleName, sdk.NewCoin(polygonDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
 
-	signer1, addr1 := privateSigner()
-	_, addr2 := privateSigner()
-	_ = signer1
+	signer1 := helpers.NewSigner(helpers.NewEthPrivKey())
+	addr2 := helpers.GenerateEthAddress()
+	signer3 := helpers.NewSigner(helpers.NewEthPrivKey())
+	addr4 := helpers.GenerateEthAddress()
 
-	signer3, addr3 := privateSigner()
-	_, addr4 := privateSigner()
-	_ = signer3
-
-	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr1.Bytes(), addr2)
-	suite.ctx = testInitPolygonCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr3.Bytes(), addr4)
+	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), signer1.Address().Bytes(), addr2)
+	suite.ctx = testInitPolygonCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), signer3.Address().Bytes(), addr4)
 
 	usdtCopy := usdtMatedata
 	usdtCopy.DenomUnits[0].Aliases = []string{bscDenom, polygonDenom}
@@ -122,31 +114,31 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 	require.Equal(suite.T(), usdtCopy.Base, string(denomBytes))
 
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(bscDenom, amt)))
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), signer1.Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(bscDenom, amt)))
 	suite.Require().NoError(err)
 
-	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr3.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(polygonDenom, amt)))
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), signer3.Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt), sdk.NewCoin(polygonDenom, amt)))
 	suite.Require().NoError(err)
 
-	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, addr1.Bytes())
+	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer1.Address().Bytes())
 	_ = balances
 
-	balances = suite.app.BankKeeper.GetAllBalances(suite.ctx, addr3.Bytes())
+	balances = suite.app.BankKeeper.GetAllBalances(suite.ctx, signer3.Address().Bytes())
 	_ = balances
 
-	usdtCoin, err := suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, addr1.Bytes(), sdk.NewCoin(bscDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	usdtCoin, err := suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, signer1.Address().Bytes(), sdk.NewCoin(bscDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	suite.Require().NoError(err)
-	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr1.Bytes(), addr1, usdtCoin)
+	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, signer1.Address().Bytes(), signer1.Address(), usdtCoin)
 	suite.Require().NoError(err)
-	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, tokenPair.GetERC20Contract(), addr1)
+	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, tokenPair.GetERC20Contract(), signer1.Address())
 	suite.Require().NoError(err)
 	_ = balanceOf
 
-	usdtCoin, err = suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, addr3.Bytes(), sdk.NewCoin(polygonDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	usdtCoin, err = suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, signer3.Address().Bytes(), sdk.NewCoin(polygonDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	suite.Require().NoError(err)
-	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr3.Bytes(), addr3, usdtCoin)
+	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, signer3.Address().Bytes(), signer3.Address(), usdtCoin)
 	suite.Require().NoError(err)
-	balanceOf, err = suite.app.Erc20Keeper.BalanceOf(suite.ctx, tokenPair.GetERC20Contract(), addr3)
+	balanceOf, err = suite.app.Erc20Keeper.BalanceOf(suite.ctx, tokenPair.GetERC20Contract(), signer3.Address())
 	suite.Require().NoError(err)
 	_ = balanceOf
 
@@ -154,31 +146,31 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 	token := tokenPair.GetERC20Contract()
 	crossChainTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, bsctypes.ModuleName)
 	transferChainData := packTransferCrossData(suite.T(), addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
-	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, addr1, token, transferChainData)
+	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, signer1.Address(), token, transferChainData)
 
 	transactions := suite.app.BscKeeper.GetUnbatchedTransactions(suite.ctx)
 	require.Equal(suite.T(), 1, len(transactions))
 	require.Equal(suite.T(), transactions[0].DestAddress, addr2.String())
 	require.Equal(suite.T(), transactions[0].Token.Amount.BigInt(), big.NewInt(1e18))
 	require.Equal(suite.T(), transactions[0].Fee.Amount.BigInt(), big.NewInt(1e18))
-	require.Equal(suite.T(), transactions[0].Sender, sdk.AccAddress(addr1.Bytes()).String())
+	require.Equal(suite.T(), transactions[0].Sender, sdk.AccAddress(signer1.Address().Bytes()).String())
 
 	// addr1 transfer usdt to polygon
 	crossChainTarget = fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, polygontypes.ModuleName)
 	transferChainData = packTransferCrossData(suite.T(), addr2.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
-	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, addr1, token, transferChainData)
+	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, signer1.Address(), token, transferChainData)
 
 	transactions = suite.app.PolygonKeeper.GetUnbatchedTransactions(suite.ctx)
 	require.Equal(suite.T(), 1, len(transactions))
 	require.Equal(suite.T(), transactions[0].DestAddress, addr2.String())
 	require.Equal(suite.T(), transactions[0].Token.Amount.BigInt(), big.NewInt(1e18))
 	require.Equal(suite.T(), transactions[0].Fee.Amount.BigInt(), big.NewInt(1e18))
-	require.Equal(suite.T(), transactions[0].Sender, sdk.AccAddress(addr1.Bytes()).String())
+	require.Equal(suite.T(), transactions[0].Sender, sdk.AccAddress(signer1.Address().Bytes()).String())
 
 	// addr3 transfer usdt to bsc
 	crossChainTarget = fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, bsctypes.ModuleName)
 	transferChainData = packTransferCrossData(suite.T(), addr4.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
-	sendEthTx(suite.T(), suite.ctx, suite.app, signer3, addr3, token, transferChainData)
+	sendEthTx(suite.T(), suite.ctx, suite.app, signer3, signer3.Address(), token, transferChainData)
 
 	transactions = suite.app.BscKeeper.GetUnbatchedTransactions(suite.ctx)
 	require.Equal(suite.T(), 2, len(transactions))
@@ -187,12 +179,12 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 	require.Equal(suite.T(), transaction.DestAddress, addr4.String())
 	require.Equal(suite.T(), transaction.Token.Amount.BigInt(), big.NewInt(1e18))
 	require.Equal(suite.T(), transaction.Fee.Amount.BigInt(), big.NewInt(1e18))
-	require.Equal(suite.T(), transaction.Sender, sdk.AccAddress(addr3.Bytes()).String())
+	require.Equal(suite.T(), transaction.Sender, sdk.AccAddress(signer3.Address().Bytes()).String())
 
 	// addr2 transfer usdt to polygon
 	crossChainTarget = fmt.Sprintf("%s%s", fxtypes.FIP20TransferToChainPrefix, polygontypes.ModuleName)
 	transferChainData = packTransferCrossData(suite.T(), addr4.String(), big.NewInt(1e18), big.NewInt(1e18), crossChainTarget)
-	sendEthTx(suite.T(), suite.ctx, suite.app, signer3, addr3, token, transferChainData)
+	sendEthTx(suite.T(), suite.ctx, suite.app, signer3, signer3.Address(), token, transferChainData)
 
 	transactions = suite.app.PolygonKeeper.GetUnbatchedTransactions(suite.ctx)
 	require.Equal(suite.T(), 2, len(transactions))
@@ -201,25 +193,28 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 	require.Equal(suite.T(), transaction.DestAddress, addr4.String())
 	require.Equal(suite.T(), transaction.Token.Amount.BigInt(), big.NewInt(1e18))
 	require.Equal(suite.T(), transaction.Fee.Amount.BigInt(), big.NewInt(1e18))
-	require.Equal(suite.T(), transaction.Sender, sdk.AccAddress(addr3.Bytes()).String())
-
-	suite.supportManyToOneBlock = false
+	require.Equal(suite.T(), transaction.Sender, sdk.AccAddress(signer3.Address().Bytes()).String())
 }
 
 type IBCTransferSimulate struct {
 	T *testing.T
 }
 
-func (it *IBCTransferSimulate) SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
+func (i *IBCTransferSimulate) SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
 	receiver string, timeoutHeight ibcclienttypes.Height, timeoutTimestamp uint64, router string, fee sdk.Coin) error {
-	require.Equal(it.T, token.Amount.BigInt(), ibcTransferAmount)
+	require.Equal(i.T, token.Amount.BigInt(), big.NewInt(1e18))
+	require.Equal(i.T, "transfer", sourcePort)
+	require.Equal(i.T, "channel-0", sourceChannel)
 	return nil
 }
 
 type IBCChannelSimulate struct {
+	T *testing.T
 }
 
-func (ic *IBCChannelSimulate) GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) {
+func (i *IBCChannelSimulate) GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) {
+	require.Equal(i.T, "transfer", portID)
+	require.Equal(i.T, "channel-0", channelID)
 	return "", &ibctmtypes.ClientState{
 		ChainId:         "fxcore",
 		TrustLevel:      ibctmtypes.Fraction{},
@@ -240,111 +235,96 @@ func (ic *IBCChannelSimulate) GetChannelClientState(ctx sdk.Context, portID, cha
 		AllowUpdateAfterMisbehaviour: false,
 	}, nil
 }
-func (ic *IBCChannelSimulate) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+func (i *IBCChannelSimulate) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+	require.Equal(i.T, "transfer", portID)
+	require.Equal(i.T, "channel-0", channelID)
 	return 1, true
 }
 
-var (
-	ibcTransferAmount = big.NewInt(1e18)
-)
-
 func (suite *KeeperTestSuite) TestHookIBC() {
-	suite.SetupTest()
-
-	pairId := suite.app.Erc20Keeper.GetDenomMap(suite.ctx, "FX")
+	pairId := suite.app.Erc20Keeper.GetDenomMap(suite.ctx, fxtypes.DefaultDenom)
 	suite.Require().Greater(len(pairId), 0)
 
 	pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, pairId)
 	suite.Require().True(found)
 
-	signer1, addr1 := privateSigner()
+	signer1 := helpers.NewSigner(helpers.NewEthPrivKey())
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err := suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
+	err := suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), signer1.Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
 	suite.Require().NoError(err)
 
-	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, addr1.Bytes())
+	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer1.Address().Bytes())
 	suite.Require().False(balances.IsZero())
 
-	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr1.Bytes(), addr1, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, signer1.Address().Bytes(), signer1.Address(), sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	suite.Require().NoError(err)
 
-	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, pair.GetERC20Contract(), addr1)
+	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, pair.GetERC20Contract(), signer1.Address())
 	suite.Require().NoError(err)
 	suite.Require().Equal(balanceOf.Cmp(big.NewInt(0)), 1)
 
 	//reset ibc
-	suite.app.Erc20Keeper.SetIBCTransferKeeperForTest(&IBCTransferSimulate{T: suite.T()})
-	suite.app.Erc20Keeper.SetIBCChannelKeeperForTest(&IBCChannelSimulate{})
+	(&suite.app.Erc20Keeper).IbcTransferKeeper = &IBCTransferSimulate{T: suite.T()}
+	(&suite.app.Erc20Keeper).IbcChannelKeeper = &IBCChannelSimulate{T: suite.T()}
 
 	token := pair.GetERC20Contract()
 	ibcTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToIBCPrefix, "px/transfer/channel-0")
-	transferIBCData := packTransferCrossData(suite.T(), "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", ibcTransferAmount, big.NewInt(0), ibcTarget)
-	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, addr1, token, transferIBCData)
+	transferIBCData := packTransferCrossData(suite.T(), "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", big.NewInt(1e18), big.NewInt(0), ibcTarget)
+	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, signer1.Address(), token, transferIBCData)
 }
 
 func (suite *KeeperTestSuite) TestHookIBCManyToOne() {
-	suite.supportManyToOneBlock = true
-	suite.polygonUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
-
-	suite.SetupTest()
+	suite.mintToken(polygontypes.ModuleName, sdk.NewCoin(polygonDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
 
 	_, usdtTokenPair := suite.setupRegisterCoinUSDT()
 
-	signer1, addr1 := privateSigner()
+	signer1 := helpers.NewSigner(helpers.NewEthPrivKey())
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err := suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
+	err := suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), signer1.Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
 	suite.Require().NoError(err)
-	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(polygonDenom, amt)))
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), signer1.Address().Bytes(), sdk.NewCoins(sdk.NewCoin(polygonDenom, amt)))
 	suite.Require().NoError(err)
 
-	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, addr1.Bytes())
+	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer1.Address().Bytes())
 	suite.Require().False(balances.IsZero())
 
-	usdtCoin, err := suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, addr1.Bytes(), sdk.NewCoin(polygonDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
+	usdtCoin, err := suite.app.Erc20Keeper.RelayConvertDenomToOne(suite.ctx, signer1.Address().Bytes(), sdk.NewCoin(polygonDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10))))
 	suite.Require().NoError(err)
 
-	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, addr1.Bytes(), addr1, usdtCoin)
+	err = suite.app.Erc20Keeper.RelayConvertCoin(suite.ctx, signer1.Address().Bytes(), signer1.Address(), usdtCoin)
 	suite.Require().NoError(err)
 
-	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, usdtTokenPair.GetERC20Contract(), addr1)
+	balanceOf, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, usdtTokenPair.GetERC20Contract(), signer1.Address())
 	suite.Require().NoError(err)
 	suite.Require().Equal(balanceOf.Cmp(big.NewInt(0)), 1)
 
 	//reset ibc
-	suite.app.Erc20Keeper.SetIBCTransferKeeperForTest(&IBCTransferSimulate{T: suite.T()})
-	suite.app.Erc20Keeper.SetIBCChannelKeeperForTest(&IBCChannelSimulate{})
+	(&suite.app.Erc20Keeper).IbcTransferKeeper = &IBCTransferSimulate{T: suite.T()}
+	(&suite.app.Erc20Keeper).IbcChannelKeeper = &IBCChannelSimulate{T: suite.T()}
 
 	token := usdtTokenPair.GetERC20Contract()
 	ibcTarget := fmt.Sprintf("%s%s", fxtypes.FIP20TransferToIBCPrefix, "px/transfer/channel-0")
-	transferIBCData := packTransferCrossData(suite.T(), "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", ibcTransferAmount, big.NewInt(0), ibcTarget)
-	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, addr1, token, transferIBCData)
-
-	suite.supportManyToOneBlock = false
+	transferIBCData := packTransferCrossData(suite.T(), "px16u6kjunrcxkvaln9aetxwjpruply3sgwpr9z8u", big.NewInt(1e18), big.NewInt(0), ibcTarget)
+	sendEthTx(suite.T(), suite.ctx, suite.app, signer1, signer1.Address(), token, transferIBCData)
 }
 
 func (suite *KeeperTestSuite) TestHookIBCOneToMany() {
-	suite.supportManyToOneBlock = true
-	suite.ethUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
-	suite.bscUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
-	suite.tronUSDTBalance = sdk.NewInt(100000).Mul(sdk.NewInt(1e18))
+	suite.mintToken(bsctypes.ModuleName, sdk.NewCoin(bscDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
+	suite.mintToken(gravitytypes.ModuleName, sdk.NewCoin(ethDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
+	suite.mintToken(trontypes.ModuleName, sdk.NewCoin(tronDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
 
-	suite.SetupTest()
+	addr1 := helpers.GenerateAddress()
+	tronExternal, err := tronaddress.Base58ToAddress("THtbMw6byXuiFhsRv1o1BQRtzvube9X1jx")
+	suite.Require().NoError(err)
 
-	_, addr1 := privateSigner()
-	_, addr2 := privateSigner()
-	_, addr3 := privateSigner()
-	_, addr4 := privateSigner()
-	_, addr5 := privateSigner()
-	tronExternal, _ := tronaddress.Base58ToAddress("THtbMw6byXuiFhsRv1o1BQRtzvube9X1jx")
-
-	suite.ctx = testInitGravityChain(suite.T(), suite.ctx, suite.app.GravityKeeper, suite.address.Bytes(), addr1.Bytes(), addr2)
-	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr3.Bytes(), addr4)
-	suite.ctx = testInitTronCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), addr5.Bytes(), tronExternal)
+	suite.ctx = testInitGravityChain(suite.T(), suite.ctx, suite.app.GravityKeeper, suite.address.Bytes(), addr1.Bytes(), helpers.GenerateAddress())
+	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), helpers.GenerateAddress().Bytes(), helpers.GenerateAddress())
+	suite.ctx = testInitTronCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), helpers.GenerateAddress().Bytes(), tronExternal)
 
 	_, usdtTokenPair := suite.setupRegisterCoinUSDT(ethDenom, bscDenom, tronDenom)
 
 	amt := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100))
-	err := suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
+	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amt)))
 	suite.Require().NoError(err)
 	err = suite.app.BankKeeper.SendCoins(suite.ctx, suite.address.Bytes(), addr1.Bytes(), sdk.NewCoins(sdk.NewCoin(ethDenom, amt)))
 	suite.Require().NoError(err)
@@ -407,15 +387,6 @@ func packTransferCrossData(t *testing.T, to string, amount, fee *big.Int, target
 	pack, err := fip20.ABI.Pack("transferCrossChain", to, amount, fee, targetBytes)
 	require.NoError(t, err)
 	return pack
-}
-
-func privateSigner() (keyring.Signer, common.Address) {
-	// account key
-	priKey := NewPriKey()
-	//ethsecp256k1.GenerateKey()
-	ethPriv := &ethsecp256k1.PrivKey{Key: priKey.Bytes()}
-
-	return helpers.NewSigner(ethPriv), common.BytesToAddress(ethPriv.PubKey().Address())
 }
 
 var (
@@ -599,11 +570,11 @@ func testCrossChainBridgeTokenClaim(t *testing.T, ctx sdk.Context, cck crosschai
 		ChainName:      chain,
 	}
 
-	any, err := codectypes.NewAnyWithValue(msg)
+	anyMsg, err := codectypes.NewAnyWithValue(msg)
 	require.NoError(t, err)
 
 	// Add the claim to the store
-	_, err = cck.Attest(ctx, msg, any)
+	_, err = cck.Attest(ctx, msg, anyMsg)
 	require.NoError(t, err)
 }
 
@@ -622,11 +593,11 @@ func testTronCrossChainBridgeTokenClaim(t *testing.T, ctx sdk.Context, cck tronk
 		ChainName:      chain,
 	}
 
-	any, err := codectypes.NewAnyWithValue(msg)
+	anyMsg, err := codectypes.NewAnyWithValue(msg)
 	require.NoError(t, err)
 
 	// Add the claim to the store
-	_, err = cck.Attest(ctx, msg, any)
+	_, err = cck.Attest(ctx, msg, anyMsg)
 	require.NoError(t, err)
 }
 
@@ -650,11 +621,11 @@ func testCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck cross
 		require.True(t, found)
 	}
 
-	any, err := codectypes.NewAnyWithValue(msg)
+	anyMsg, err := codectypes.NewAnyWithValue(msg)
 	require.NoError(t, err)
 
 	// Add the claim to the store
-	_, err = cck.Attest(ctx, msg, any)
+	_, err = cck.Attest(ctx, msg, anyMsg)
 	require.NoError(t, err)
 }
 
@@ -678,11 +649,11 @@ func testTronCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck t
 		require.True(t, found)
 	}
 
-	any, err := codectypes.NewAnyWithValue(msg)
+	anyMsg, err := codectypes.NewAnyWithValue(msg)
 	require.NoError(t, err)
 
 	// Add the claim to the store
-	_, err = cck.Attest(ctx, msg, any)
+	_, err = cck.Attest(ctx, msg, anyMsg)
 	require.NoError(t, err)
 }
 

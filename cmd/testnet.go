@@ -32,7 +32,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/cli"
+	"github.com/functionx/fx-core/v3/client/cli"
 	fxCfg "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )

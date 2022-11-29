@@ -5,12 +5,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateBank() {
-	suite.purseBalance = sdk.NewInt(1000)
-	suite.SetupTest()
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)

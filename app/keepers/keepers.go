@@ -1,0 +1,454 @@
+package keepers
+
+import (
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
+	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	srvflags "github.com/evmos/ethermint/server/flags"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	"github.com/spf13/cast"
+
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	"github.com/functionx/fx-core/v3/x/crosschain"
+	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/erc20"
+	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	fxgovkeeper "github.com/functionx/fx-core/v3/x/gov/keeper"
+	gravitykeeper "github.com/functionx/fx-core/v3/x/gravity/keeper"
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
+	ibctransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
+	ibctransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
+	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
+	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+)
+
+type AppKeepers struct {
+	// keys to access the substores
+	keys    map[string]*sdk.KVStoreKey
+	tkeys   map[string]*sdk.TransientStoreKey
+	memKeys map[string]*sdk.MemoryStoreKey
+
+	// keepers
+	AccountKeeper    authkeeper.AccountKeeper
+	BankKeeper       bankkeeper.Keeper
+	CapabilityKeeper *capabilitykeeper.Keeper
+	StakingKeeper    stakingkeeper.Keeper
+	SlashingKeeper   slashingkeeper.Keeper
+	MintKeeper       mintkeeper.Keeper
+	DistrKeeper      distrkeeper.Keeper
+	GovKeeper        fxgovkeeper.Keeper
+	CrisisKeeper     crisiskeeper.Keeper
+	UpgradeKeeper    upgradekeeper.Keeper
+	ParamsKeeper     paramskeeper.Keeper
+
+	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	IBCKeeper      *ibckeeper.Keeper
+	EvidenceKeeper evidencekeeper.Keeper
+	TransferKeeper ibctransferkeeper.Keeper
+	FeeGrantKeeper feegrantkeeper.Keeper
+	AuthzKeeper    authzkeeper.Keeper
+
+	// make scoped keepers public for test purposes
+	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
+
+	GravityKeeper    gravitykeeper.Keeper
+	CrosschainKeeper crosschainkeeper.RouterKeeper
+	BscKeeper        crosschainkeeper.Keeper
+	PolygonKeeper    crosschainkeeper.Keeper
+	TronKeeper       tronkeeper.Keeper
+
+	EvmKeeper       *evmkeeper.Keeper
+	FeeMarketKeeper feemarketkeeper.Keeper
+	Erc20Keeper     erc20keeper.Keeper
+	MigrateKeeper   migratekeeper.Keeper
+
+	TransferModule ibctransfer.AppModule
+}
+
+func NewAppKeeper(
+	appCodec codec.Codec,
+	bApp *baseapp.BaseApp,
+	legacyAmino *codec.LegacyAmino,
+	maccPerms map[string][]string,
+	blockedAddress map[string]bool,
+	skipUpgradeHeights map[int64]bool,
+	homePath string,
+	invCheckPeriod uint,
+	appOpts servertypes.AppOptions,
+) *AppKeepers {
+	appKeepers := &AppKeepers{}
+
+	// Set keys KVStoreKey, TransientStoreKey, MemoryStoreKey
+	appKeepers.GenerateKeys()
+
+	appKeepers.ParamsKeeper = initParamsKeeper(
+		appCodec,
+		legacyAmino,
+		appKeepers.keys[paramstypes.StoreKey],
+		appKeepers.tkeys[paramstypes.TStoreKey],
+	)
+
+	// set the BaseApp's parameter store
+	bApp.SetParamStore(
+		appKeepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
+	)
+
+	// add capability keeper and ScopeToModule for ibc module
+	appKeepers.CapabilityKeeper = capabilitykeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[capabilitytypes.StoreKey],
+		appKeepers.memKeys[capabilitytypes.MemStoreKey],
+	)
+
+	// grant capabilities for the ibc and ibc-transfer modules
+	appKeepers.ScopedIBCKeeper = appKeepers.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
+	appKeepers.ScopedTransferKeeper = appKeepers.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+	appKeepers.CapabilityKeeper.Seal()
+
+	appKeepers.AccountKeeper = authkeeper.NewAccountKeeper(
+		appCodec,
+		appKeepers.keys[authtypes.StoreKey],
+		appKeepers.GetSubspace(authtypes.ModuleName),
+		authtypes.ProtoBaseAccount, maccPerms,
+	)
+	appKeepers.AuthzKeeper = authzkeeper.NewKeeper(
+		appKeepers.keys[authzkeeper.StoreKey],
+		appCodec,
+		bApp.MsgServiceRouter(),
+	)
+	appKeepers.FeeGrantKeeper = feegrantkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[feegrant.StoreKey],
+		appKeepers.AccountKeeper,
+	)
+	appKeepers.BankKeeper = bankkeeper.NewBaseKeeper(
+		appCodec,
+		appKeepers.keys[banktypes.StoreKey],
+		appKeepers.AccountKeeper,
+		appKeepers.GetSubspace(banktypes.ModuleName),
+		blockedAddress,
+	)
+	stakingKeeper := stakingkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[stakingtypes.StoreKey],
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.GetSubspace(stakingtypes.ModuleName),
+	)
+	appKeepers.MintKeeper = mintkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[minttypes.StoreKey],
+		appKeepers.GetSubspace(minttypes.ModuleName),
+		&stakingKeeper,
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		authtypes.FeeCollectorName,
+	)
+	appKeepers.DistrKeeper = distrkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[distrtypes.StoreKey],
+		appKeepers.GetSubspace(distrtypes.ModuleName),
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		&stakingKeeper,
+		authtypes.FeeCollectorName,
+		blockedAddress,
+	)
+	appKeepers.SlashingKeeper = slashingkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[slashingtypes.StoreKey],
+		&stakingKeeper,
+		appKeepers.GetSubspace(slashingtypes.ModuleName),
+	)
+
+	appKeepers.CrisisKeeper = crisiskeeper.NewKeeper(
+		appKeepers.GetSubspace(crisistypes.ModuleName),
+		invCheckPeriod,
+		appKeepers.BankKeeper,
+		authtypes.FeeCollectorName,
+	)
+
+	appKeepers.UpgradeKeeper = upgradekeeper.NewKeeper(
+		skipUpgradeHeights,
+		appKeepers.keys[upgradetypes.StoreKey],
+		appCodec,
+		homePath,
+		bApp)
+
+	appKeepers.IBCKeeper = ibckeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[ibchost.StoreKey],
+		appKeepers.GetSubspace(ibchost.ModuleName),
+		stakingKeeper,
+		appKeepers.UpgradeKeeper,
+		appKeepers.ScopedIBCKeeper,
+	)
+
+	appKeepers.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[ibctransfertypes.StoreKey],
+		appKeepers.GetSubspace(ibctransfertypes.ModuleName),
+		appKeepers.IBCKeeper.ChannelKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper,
+		&appKeepers.IBCKeeper.PortKeeper,
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.ScopedTransferKeeper,
+	)
+
+	appKeepers.FeeMarketKeeper = feemarketkeeper.NewKeeper(
+		appCodec,
+		appKeepers.GetSubspace(feemarkettypes.ModuleName),
+		appKeepers.keys[feemarkettypes.StoreKey],
+		appKeepers.tkeys[feemarkettypes.TransientKey],
+	)
+
+	appKeepers.EvmKeeper = evmkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[evmtypes.StoreKey],
+		appKeepers.tkeys[evmtypes.TransientKey],
+		appKeepers.GetSubspace(evmtypes.ModuleName),
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		stakingKeeper,
+		appKeepers.FeeMarketKeeper,
+		cast.ToString(appOpts.Get(srvflags.EVMTracer)))
+
+	erc20Keeper := erc20keeper.NewKeeper(
+		appKeepers.keys[erc20types.StoreKey],
+		appCodec,
+		appKeepers.GetSubspace(erc20types.ModuleName),
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.EvmKeeper,
+		appKeepers.TransferKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper)
+
+	appKeepers.GravityKeeper = gravitykeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[gravitytypes.StoreKey],
+		appKeepers.GetSubspace(gravitytypes.ModuleName),
+		stakingKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.AccountKeeper,
+		appKeepers.SlashingKeeper,
+		appKeepers.TransferKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper,
+		erc20Keeper,
+	)
+
+	// init cross chain module
+	appKeepers.BscKeeper = crosschainkeeper.NewKeeper(
+		appCodec,
+		bsctypes.ModuleName,
+		appKeepers.keys[bsctypes.StoreKey],
+		appKeepers.GetSubspace(bsctypes.ModuleName),
+		stakingKeeper,
+		appKeepers.DistrKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.TransferKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper,
+		erc20Keeper)
+
+	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
+		appCodec,
+		polygontypes.ModuleName,
+		appKeepers.keys[polygontypes.StoreKey],
+		appKeepers.GetSubspace(polygontypes.ModuleName),
+		stakingKeeper,
+		appKeepers.DistrKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.TransferKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper,
+		erc20Keeper)
+
+	appKeepers.TronKeeper = tronkeeper.NewKeeper(
+		appCodec,
+		trontypes.ModuleName,
+		appKeepers.keys[trontypes.StoreKey],
+		appKeepers.GetSubspace(trontypes.ModuleName),
+		stakingKeeper,
+		appKeepers.DistrKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.TransferKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper,
+		erc20Keeper)
+
+	// add cross-chain router
+	crosschainRouter := crosschainkeeper.NewRouter()
+	crosschainRouter.
+		AddRoute(bsctypes.ModuleName, &crosschainkeeper.ModuleHandler{
+			QueryServer: appKeepers.BscKeeper,
+			MsgServer:   crosschainkeeper.NewMsgServerImpl(appKeepers.BscKeeper),
+		}).
+		AddRoute(polygontypes.ModuleName, &crosschainkeeper.ModuleHandler{
+			QueryServer: appKeepers.PolygonKeeper,
+			MsgServer:   crosschainkeeper.NewMsgServerImpl(appKeepers.PolygonKeeper),
+		}).
+		AddRoute(trontypes.ModuleName, &crosschainkeeper.ModuleHandler{
+			QueryServer: appKeepers.TronKeeper,
+			MsgServer:   tronkeeper.NewMsgServerImpl(appKeepers.TronKeeper),
+		})
+
+	appKeepers.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
+
+	// register the proposal types
+	govRouter := govtypes.NewRouter()
+	govRouter.AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(appKeepers.ParamsKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(appKeepers.DistrKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(appKeepers.UpgradeKeeper)).
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(appKeepers.IBCKeeper.ClientKeeper)).
+		AddRoute(crosschaintypes.RouterKey, crosschain.NewChainProposalHandler(appKeepers.CrosschainKeeper)).
+		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(erc20Keeper))
+
+	govKeeper := govkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[govtypes.StoreKey],
+		appKeepers.GetSubspace(govtypes.ModuleName),
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		&stakingKeeper,
+		govRouter,
+	)
+	appKeepers.GovKeeper = fxgovkeeper.NewKeeper(
+		appKeepers.BankKeeper,
+		&stakingKeeper,
+		appKeepers.keys[govtypes.StoreKey],
+		govKeeper,
+	)
+
+	erc20TransferRouter := erc20types.NewRouter()
+	erc20TransferRouter.AddRoute(gravitytypes.ModuleName, appKeepers.GravityKeeper)
+	erc20TransferRouter.AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper)
+	erc20TransferRouter.AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper)
+	erc20TransferRouter.AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
+	appKeepers.Erc20Keeper = erc20Keeper.SetRouter(erc20TransferRouter)
+	appKeepers.EvmKeeper.SetHooks(erc20keeper.NewHooks(&appKeepers.Erc20Keeper))
+
+	ibcTransferRouter := ibctransfertypes.NewRouter()
+	ibcTransferRouter.AddRoute(gravitytypes.ModuleName, appKeepers.GravityKeeper)
+	ibcTransferRouter.AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper)
+	ibcTransferRouter.AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper)
+	ibcTransferRouter.AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
+	ibcTransferRouter.AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
+	appKeepers.TransferKeeper.SetRouter(ibcTransferRouter)
+	appKeepers.TransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
+	appKeepers.TransferModule = ibctransfer.NewAppModule(appKeepers.TransferKeeper)
+	transferIBCModule := ibctransfer.NewIBCModule(appKeepers.TransferKeeper)
+
+	// Create static IBC router, add transfer route, then set and seal it
+	ibcRouter := porttypes.NewRouter()
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
+	appKeepers.IBCKeeper.SetRouter(ibcRouter)
+
+	// register the staking hooks
+	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	appKeepers.StakingKeeper = *stakingKeeper.SetHooks(
+		stakingtypes.NewMultiStakingHooks(
+			appKeepers.DistrKeeper.Hooks(),
+			appKeepers.SlashingKeeper.Hooks(),
+			appKeepers.GravityKeeper.Hooks(),
+		),
+	)
+
+	appKeepers.MigrateKeeper = migratekeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[migratetypes.StoreKey],
+		appKeepers.AccountKeeper,
+	)
+	appKeepers.MigrateKeeper = appKeepers.MigrateKeeper.SetMigrateI(
+		migratekeeper.NewBankMigrate(appKeepers.BankKeeper),
+		migratekeeper.NewDistrStakingMigrate(appKeepers.keys[distrtypes.StoreKey], appKeepers.keys[stakingtypes.StoreKey], appKeepers.StakingKeeper),
+		migratekeeper.NewGovMigrate(appKeepers.keys[govtypes.StoreKey], appKeepers.GovKeeper),
+	)
+
+	appKeepers.EvidenceKeeper = *evidencekeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[evidencetypes.StoreKey],
+		stakingKeeper,
+		appKeepers.SlashingKeeper,
+	)
+
+	return appKeepers
+}
+
+// GetSubspace returns a param subspace for a given module name.
+func (appKeepers *AppKeepers) GetSubspace(moduleName string) paramstypes.Subspace {
+	subspace, _ := appKeepers.ParamsKeeper.GetSubspace(moduleName)
+	return subspace
+}
+
+// initParamsKeeper init params keeper and its subspaces
+func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey sdk.StoreKey) paramskeeper.Keeper {
+	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
+
+	paramsKeeper.Subspace(authtypes.ModuleName)
+	paramsKeeper.Subspace(banktypes.ModuleName)
+	paramsKeeper.Subspace(stakingtypes.ModuleName)
+	paramsKeeper.Subspace(minttypes.ModuleName)
+	paramsKeeper.Subspace(distrtypes.ModuleName)
+	paramsKeeper.Subspace(slashingtypes.ModuleName)
+	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	paramsKeeper.Subspace(crisistypes.ModuleName)
+	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
+	paramsKeeper.Subspace(ibchost.ModuleName)
+	// this line is used by starport scaffolding # stargate/app/paramSubspace
+	paramsKeeper.Subspace(gravitytypes.ModuleName)
+	paramsKeeper.Subspace(bsctypes.ModuleName)
+	paramsKeeper.Subspace(polygontypes.ModuleName)
+	paramsKeeper.Subspace(trontypes.ModuleName)
+
+	// ethermint subspaces
+	paramsKeeper.Subspace(evmtypes.ModuleName)
+	paramsKeeper.Subspace(feemarkettypes.ModuleName)
+	paramsKeeper.Subspace(erc20types.ModuleName)
+	return paramsKeeper
+}

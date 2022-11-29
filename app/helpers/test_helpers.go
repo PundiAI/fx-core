@@ -41,11 +41,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
-// SimAppChainID hardcoded chainID for simulation
-const (
-	SimAppChainID = "sim-app"
-)
-
 // DefaultConsensusParams defines the default Tendermint consensus params used
 // in GaiaApp testing.
 var DefaultConsensusParams = &abci.ConsensusParams{

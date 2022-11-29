@@ -40,7 +40,6 @@ func (suite *KeeperTestSuite) setupRegisterERC20Pair(contractType int) common.Ad
 }
 
 func (suite *KeeperTestSuite) setupRegisterCoin() (banktypes.Metadata, *types.TokenPair) {
-	suite.SetupTest()
 	validMetadata := banktypes.Metadata{
 		Description: "description of the token",
 		DenomUnits: []*banktypes.DenomUnit{
@@ -229,7 +228,6 @@ func (suite *KeeperTestSuite) TestRegisterCoin() {
 }
 
 func (suite *KeeperTestSuite) TestRegisterCoinWithManyToOne() {
-	suite.supportManyToOneBlock = true
 
 	metadata := banktypes.Metadata{
 		Description: "The cross chain token of the Function X",
@@ -356,11 +354,9 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithManyToOne() {
 			}
 		})
 	}
-	suite.supportManyToOneBlock = false
 }
 
 func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
-	suite.supportManyToOneBlock = true
 
 	metadata := banktypes.Metadata{
 		Description: "The cross chain token of the Function X",
@@ -575,7 +571,6 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 			}
 		})
 	}
-	suite.supportManyToOneBlock = false
 }
 
 func (suite *KeeperTestSuite) TestRegisterERC20() {

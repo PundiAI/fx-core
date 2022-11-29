@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v3/x/gravity/legacy/v3"
+	v3 "github.com/functionx/fx-core/v3/x/gravity/legacy/v3"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 

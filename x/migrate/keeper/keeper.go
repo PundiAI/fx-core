@@ -24,7 +24,7 @@ type Keeper struct {
 	// Store key required for the Fee Market Prefix KVStore.
 	storeKey sdk.StoreKey
 	//account keeper
-	AccountKeeper types.AccountKeeper
+	accountKeeper types.AccountKeeper
 	// Migrate handlers
 	migrateI []MigrateI
 }
@@ -34,7 +34,7 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, ak types.AccountKee
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,
-		AccountKeeper: ak,
+		accountKeeper: ak,
 	}
 }
 
@@ -45,12 +45,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // SetMigrateI set migrate handlers
-func (k *Keeper) SetMigrateI(migrate ...MigrateI) {
+func (k Keeper) SetMigrateI(migrate ...MigrateI) Keeper {
 	k.migrateI = migrate
+	return k
 }
 
 // GetMigrateI get all migrate handlers
-func (k *Keeper) GetMigrateI() []MigrateI {
+func (k Keeper) GetMigrateI() []MigrateI {
 	return k.migrateI
 }
 
@@ -113,7 +114,7 @@ func (k Keeper) HasMigratedDirectionTo(ctx sdk.Context, addr common.Address) boo
 
 // checkMigrateFrom check migrate from address
 func (k Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtypes.AccountI, error) {
-	fromAccount := k.AccountKeeper.GetAccount(ctx, addr)
+	fromAccount := k.accountKeeper.GetAccount(ctx, addr)
 	if fromAccount == nil {
 		return nil, sdkerrors.Wrapf(types.ErrInvalidAddress, "empty account: %s", addr.String())
 	}

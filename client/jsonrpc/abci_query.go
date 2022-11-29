@@ -12,7 +12,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	"github.com/functionx/fx-core/v3/client/grpc/base/gasprice"
+	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 

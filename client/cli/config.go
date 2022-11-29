@@ -6,89 +6,17 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
-	tmcli "github.com/tendermint/tendermint/libs/cli"
 
-	fxCfg "github.com/functionx/fx-core/v3/server/config"
+	fxcfg "github.com/functionx/fx-core/v3/server/config"
 )
 
-const (
-	configFileName = "config.toml"
-	appFileName    = "app.toml"
-)
-
-// ConfigCmd returns a CLI command to interactively create an application CLI
-// config file.
-func ConfigCmd() *cobra.Command {
-	cmd := sdkCfg.Cmd()
-	cmd.AddCommand(
-		updateCmd(),
-		appTomlCmd(),
-		configTomlCmd(),
-	)
-	return cmd
-}
-
-func updateCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "Update app.toml and config.toml files to the latest version, default only missing parts are added",
-		Args:  cobra.RangeArgs(0, 2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			rootDir := serverCtx.Config.RootDir
-			fileName := filepath.Join(rootDir, "config", configFileName)
-			tmcfg.WriteConfigFile(fileName, serverCtx.Config)
-			serverCtx.Logger.Info("Update config.toml is successful", "fileName", fileName)
-
-			config.SetConfigTemplate(fxCfg.DefaultConfigTemplate())
-			appConfig := fxCfg.DefaultConfig()
-			if err := serverCtx.Viper.Unmarshal(appConfig); err != nil {
-				return err
-			}
-			fileName = filepath.Join(rootDir, "config", appFileName)
-			config.WriteConfigFile(fileName, appConfig)
-			serverCtx.Logger.Info("Update app.toml is successful", "fileName", fileName)
-			return nil
-		},
-	}
-	return cmd
-}
-
-func appTomlCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "app.toml [key] [value]",
-		Short: "Create or query an `config/app.toml` file",
-		Args:  cobra.RangeArgs(0, 2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			config.SetConfigTemplate(fxCfg.DefaultConfigTemplate())
-			return runConfigCmd(cmd, append([]string{appFileName}, args...))
-		},
-	}
-	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
-	return cmd
-}
-
-func configTomlCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "config.toml [key] [value]",
-		Short: "Create or query an `config/config.toml` file",
-		Args:  cobra.RangeArgs(0, 2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runConfigCmd(cmd, append([]string{configFileName}, args...))
-		},
-	}
-	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
-	return cmd
-}
-
-func runConfigCmd(cmd *cobra.Command, args []string) error {
+func RunConfigCmd(cmd *cobra.Command, args []string) error {
 	serverCtx := server.GetServerContextFromCmd(cmd)
 	clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -124,7 +52,7 @@ var (
 
 type appTomlConfig struct {
 	v          *viper.Viper
-	config     *fxCfg.Config
+	config     *fxcfg.Config
 	configName string
 }
 
@@ -184,20 +112,20 @@ func (c *configTomlConfig) save() error {
 }
 
 func newConfig(v *viper.Viper, configName string) (cmdConfig, error) {
-	if strings.HasSuffix(configName, appFileName) {
-		var configData = fxCfg.Config{}
+	if strings.HasSuffix(configName, "app.toml") {
+		var configData = fxcfg.Config{}
 		if err := v.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
 		return &appTomlConfig{config: &configData, v: v, configName: configName}, nil
-	} else if strings.HasSuffix(configName, configFileName) {
+	} else if strings.HasSuffix(configName, "config.toml") {
 		var configData = tmcfg.Config{}
 		if err := v.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
 		return &configTomlConfig{config: &configData, v: v, configName: configName}, nil
 	} else {
-		return nil, fmt.Errorf("invalid config file: %s, (support: %v)", configName, strings.Join([]string{appFileName, configFileName}, "/"))
+		return nil, fmt.Errorf("invalid config file: %s, (support: %v)", configName, strings.Join([]string{"app.toml", "config.toml"}, "/"))
 	}
 }
 

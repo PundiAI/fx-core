@@ -15,6 +15,7 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
+	"github.com/functionx/fx-core/v3/app/upgrades"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
@@ -28,6 +29,32 @@ const (
 
 	blockParamsMaxGas = 30_000_000
 )
+
+// Upgrade nolint
+var Upgrade = upgrades.Upgrade{
+	UpgradeName:          UpgradeName,
+	CreateUpgradeHandler: CreateUpgradeHandler,
+	StoreUpgrades: func() *store.StoreUpgrades {
+		if fxtypes.ChainId() == fxtypes.TestnetChainId {
+			return &store.StoreUpgrades{
+				Added: []string{
+					feegrant.StoreKey,
+					authzkeeper.StoreKey,
+				},
+			}
+		}
+		return &store.StoreUpgrades{
+			Added: []string{
+				feemarkettypes.StoreKey,
+				evmtypes.StoreKey,
+				erc20types.StoreKey,
+				migratetypes.StoreKey,
+				feegrant.StoreKey,
+				authzkeeper.StoreKey,
+			},
+		}
+	},
+}
 
 var (
 	initGenesis = map[string]bool{
@@ -57,28 +84,4 @@ var (
 		polygontypes.ModuleName: true,
 		trontypes.ModuleName:    true,
 	}
-
-	storeUpgradesDefault = &store.StoreUpgrades{
-		Added: []string{
-			feemarkettypes.StoreKey,
-			evmtypes.StoreKey,
-			erc20types.StoreKey,
-			migratetypes.StoreKey,
-			feegrant.StoreKey,
-			authzkeeper.StoreKey,
-		},
-	}
-	storeUpgradesTestnet = &store.StoreUpgrades{
-		Added: []string{
-			feegrant.StoreKey,
-			authzkeeper.StoreKey,
-		},
-	}
 )
-
-func GetStoreUpgrades() *store.StoreUpgrades {
-	if fxtypes.ChainId() == fxtypes.TestnetChainId {
-		return storeUpgradesTestnet
-	}
-	return storeUpgradesDefault
-}

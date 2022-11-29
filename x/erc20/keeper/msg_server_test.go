@@ -87,8 +87,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.mintFeeCollector = true
-			suite.SetupTest()
+			suite.SetupTest() // reset
 			metadata, pair := suite.setupRegisterCoin()
 			suite.Require().NotNil(metadata)
 			erc20 := pair.GetERC20Contract()
@@ -138,7 +137,6 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			}
 		})
 	}
-	suite.mintFeeCollector = false
 }
 
 func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
@@ -165,8 +163,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.mintFeeCollector = true
-			suite.SetupTest()
+			suite.SetupTest() // reset
 			metadata, pair := suite.setupRegisterCoin()
 			suite.Require().NotNil(metadata)
 			suite.Require().NotNil(pair)
@@ -223,7 +220,6 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			}
 		})
 	}
-	suite.mintFeeCollector = false
 }
 
 func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
@@ -335,8 +331,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.mintFeeCollector = true
-			suite.SetupTest()
+			suite.SetupTest() // reset
 
 			contractAddr = suite.setupRegisterERC20Pair(tc.contractType)
 
@@ -388,7 +383,6 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			}
 		})
 	}
-	suite.mintFeeCollector = false
 }
 
 func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
@@ -445,8 +439,8 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.mintFeeCollector = true
-			suite.SetupTest()
+
+			suite.SetupTest() // reset
 			contractAddr = suite.setupRegisterERC20Pair(tc.contractType)
 			suite.Require().NotNil(contractAddr)
 
@@ -497,7 +491,6 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			}
 		})
 	}
-	suite.mintFeeCollector = false
 }
 
 func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
@@ -512,8 +505,8 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.mintFeeCollector = true
-			suite.SetupTest()
+
+			suite.SetupTest() // reset
 			metadata, pair := suite.setupRegisterCoin()
 			suite.Require().NotNil(metadata)
 			suite.Require().NotNil(pair)
@@ -553,7 +546,6 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 }
 
 func (suite *KeeperTestSuite) TestConvertDenom() {
-	suite.supportManyToOneBlock = true
 	priv1, err := ethsecp256k1.GenerateKey()
 	suite.Require().NoError(err)
 	addr1 := common.BytesToAddress(priv1.PubKey().Address().Bytes())
@@ -787,7 +779,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest()
+			suite.SetupTest() // reset
 
 			if tc.register != nil {
 				tc.register()
@@ -849,12 +841,9 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 			}
 		})
 	}
-
-	suite.supportManyToOneBlock = false
 }
 
 func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
-	suite.supportManyToOneBlock = true
 	priv1, err := ethsecp256k1.GenerateKey()
 	suite.Require().NoError(err)
 	addr1 := common.BytesToAddress(priv1.PubKey().Address().Bytes())
@@ -1024,7 +1013,7 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest()
+			suite.SetupTest() // reset
 
 			//mint and transfer
 			err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(ethUSDTCoin))
@@ -1092,6 +1081,4 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 			}
 		})
 	}
-
-	suite.supportManyToOneBlock = false
 }

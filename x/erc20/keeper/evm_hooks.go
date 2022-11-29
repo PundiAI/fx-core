@@ -11,8 +11,8 @@ type Hooks struct {
 	k *Keeper
 }
 
-// Hooks Return the wrapper struct
-func (k *Keeper) Hooks() Hooks {
+// NewHooks Return the wrapper struct
+func NewHooks(k *Keeper) Hooks {
 	return Hooks{k}
 }
 

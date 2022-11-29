@@ -105,10 +105,18 @@ type Signer struct {
 	privKey cryptotypes.PrivKey
 }
 
-func NewSigner(sk cryptotypes.PrivKey) keyring.Signer {
+func NewSigner(sk cryptotypes.PrivKey) *Signer {
 	return &Signer{
 		privKey: sk,
 	}
+}
+
+func (s Signer) Address() common.Address {
+	return common.BytesToAddress(s.privKey.PubKey().Address())
+}
+
+func (s Signer) AccAddress() sdk.AccAddress {
+	return s.privKey.PubKey().Address().Bytes()
 }
 
 // Sign signs the message using the underlying private key

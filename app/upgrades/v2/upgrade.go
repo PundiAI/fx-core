@@ -28,10 +28,11 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmcfg "github.com/tendermint/tendermint/config"
 
+	"github.com/functionx/fx-core/v3/app/keepers"
 	fxCfg "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	crosschainv020 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
+	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ibctransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
@@ -71,31 +72,23 @@ func PreUpgradeCmd() *cobra.Command {
 }
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2
-func CreateUpgradeHandler(
-	kvStoreKeyMap map[string]*sdk.KVStoreKey,
-	mm *module.Manager,
-	configurator module.Configurator,
-	bankKeeper bankKeeper.Keeper,
-	paramsKeeper paramskeeper.Keeper,
-	ibcKeeper *ibckeeper.Keeper,
-	transferKeeper ibctransferkeeper.Keeper,
-	erc20Keeper erc20keeper.Keeper,
-) upgradetypes.UpgradeHandler {
+func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, keepers *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		// cache context
 		cacheCtx, commit := ctx.CacheContext()
 
+		kvStoreKeyMap := keepers.GetKVStoreKey()
 		// 1. clear testnet module data
 		clearTestnetModule(cacheCtx, kvStoreKeyMap)
 
 		// 2. update FX metadata
-		updateFXMetadata(cacheCtx, bankKeeper, kvStoreKeyMap[banktypes.StoreKey])
+		updateFXMetadata(cacheCtx, keepers.BankKeeper, kvStoreKeyMap[banktypes.StoreKey])
 
 		// 3. update block params (max_gas:3000000000)
-		updateBlockParams(cacheCtx, paramsKeeper)
+		updateBlockParams(cacheCtx, keepers.ParamsKeeper)
 
 		// 4. migrate ibc cosmos-sdk/x/ibc -> ibc-go v3.1.0
-		ibcMigrate(cacheCtx, ibcKeeper, transferKeeper)
+		ibcMigrate(cacheCtx, keepers.IBCKeeper, keepers.TransferKeeper)
 
 		// 5. run migrations
 		toVersion := runMigrations(cacheCtx, kvStoreKeyMap[paramstypes.StoreKey], fromVM, mm, configurator)
@@ -104,7 +97,7 @@ func CreateUpgradeHandler(
 		clearTestnetDenom(cacheCtx, kvStoreKeyMap[banktypes.StoreKey])
 
 		// 7. register coin
-		registerCoin(cacheCtx, erc20Keeper)
+		registerCoin(cacheCtx, keepers.Erc20Keeper)
 
 		//commit upgrade
 		commit()
@@ -301,7 +294,7 @@ func deleteKVStore(kv types.KVStore) error {
 func needInitGenesis(ctx sdk.Context, module string, paramsKey *sdk.KVStoreKey) bool {
 	// crosschain module
 	if crossChainModule[module] {
-		if !crosschainv020.CheckInitialize(ctx, module, paramsKey) {
+		if !crosschainv2.CheckInitialize(ctx, module, paramsKey) {
 			return true
 		}
 	}

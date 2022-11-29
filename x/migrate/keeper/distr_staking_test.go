@@ -23,12 +23,12 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
-	suite.purseBalance = sdk.NewInt(1000)
-	suite.SetupTest()
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)
@@ -90,8 +90,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 }
 
 func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
-	suite.purseBalance = sdk.NewInt(1000)
-	suite.SetupTest()
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)
@@ -168,8 +167,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 }
 
 func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
-	suite.purseBalance = sdk.NewInt(1000)
-	suite.SetupTest()
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)

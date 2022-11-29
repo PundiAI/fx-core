@@ -32,13 +32,12 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v3/app"
-	appCmd "github.com/functionx/fx-core/v3/app/cli"
-	"github.com/functionx/fx-core/v3/client/grpc/base/gasprice"
+	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
+	"github.com/functionx/fx-core/v3/client/cli"
 	"github.com/functionx/fx-core/v3/server/config"
+	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
-
-const envPrefix = "FX"
 
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
@@ -56,7 +55,7 @@ func NewRootCmd() *cobra.Command {
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper(envPrefix).
+		WithViper("FX").
 		WithKeyringOptions(hd.EthSecp256k1Option())
 
 	rootCmd := &cobra.Command{
@@ -105,16 +104,16 @@ func NewRootCmd() *cobra.Command {
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	rootCmd.AddCommand(
-		appCmd.InitCmd(app.DefaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Marshaler), app.CustomConsensusParams()),
-		appCmd.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
-		appCmd.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		cli.InitCmd(app.DefaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Marshaler), app.CustomConsensusParams()),
+		cli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		cli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		appCmd.AddGenesisAccountCmd(app.DefaultNodeHome),
+		cli.AddGenesisAccountCmd(app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(),
-		appCmd.Debug(),
-		appCmd.ConfigCmd(),
-		appCmd.DataCmd(),
+		cli.Debug(),
+		configCmd(),
+		cli.DataCmd(),
 	)
 
 	appCreator := appCreator{encodingConfig}
@@ -122,18 +121,16 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		keyCommands(app.DefaultNodeHome),
-		appCmd.StatusCommand(),
+		cli.StatusCommand(),
 		queryCommand(),
 		txCommand(),
-		appCmd.ExportSateCmd(appCreator.appExport, app.DefaultNodeHome),
+		cli.ExportSateCmd(appCreator.appExport, app.DefaultNodeHome),
 		version.NewVersionCommand(),
 		server.NewRollbackCmd(appCreator.newApp, app.DefaultNodeHome),
 		tendermintCommand(),
 		startCommand(appCreator.newApp, app.DefaultNodeHome),
+		v2.PreUpgradeCmd(),
 	)
-
-	// add pre-upgrade command
-	app.AddPreUpgradeCommand(rootCmd)
 
 	// add rosetta
 	rootCmd.AddCommand(server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Marshaler))
@@ -151,13 +148,13 @@ func queryCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		authcmd.GetAccountCmd(),
-		appCmd.ValidatorCommand(),
-		appCmd.BlockCommand(),
-		appCmd.QueryTxsByEventsCmd(),
-		appCmd.QueryTxCmd(),
-		appCmd.QueryStoreCmd(),
-		appCmd.QueryValidatorByConsAddr(),
-		appCmd.QueryBlockResultsCmd(),
+		cli.ValidatorCommand(),
+		cli.BlockCommand(),
+		cli.QueryTxsByEventsCmd(),
+		cli.QueryTxCmd(),
+		cli.QueryStoreCmd(),
+		cli.QueryValidatorByConsAddr(),
+		cli.QueryBlockResultsCmd(),
 		gasprice.QueryCmd(),
 	)
 

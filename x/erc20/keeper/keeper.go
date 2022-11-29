@@ -27,10 +27,10 @@ type Keeper struct {
 	evmKeeper     types.EVMKeeper
 	// fetch EIP1559 base fee and parameters
 
-	ibcTransferKeeper types.IBCTransferKeeper
-	ibcChannelKeeper  types.IBCChannelKeeper
+	IbcTransferKeeper types.IBCTransferKeeper
+	IbcChannelKeeper  types.IBCChannelKeeper
 
-	Router *types.Router
+	router *types.Router
 }
 
 // NewKeeper creates new instances of the erc20 Keeper
@@ -56,8 +56,8 @@ func NewKeeper(
 		accountKeeper:     ak,
 		bankKeeper:        bk,
 		evmKeeper:         evmKeeper,
-		ibcTransferKeeper: ibcTransferKeeper,
-		ibcChannelKeeper:  ibcChannelKeeper,
+		IbcTransferKeeper: ibcTransferKeeper,
+		IbcChannelKeeper:  ibcChannelKeeper,
 	}
 }
 
@@ -108,24 +108,13 @@ func (k Keeper) RelayConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, co
 
 // SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
-func (k *Keeper) SetRouter(rtr *types.Router) {
-	if k.Router != nil && k.Router.Sealed() {
+func (k Keeper) SetRouter(rtr *types.Router) Keeper {
+	if k.router != nil && k.router.Sealed() {
 		panic("cannot reset a sealed router")
 	}
-	k.Router = rtr
-	k.Router.Seal()
-}
-
-func (k Keeper) GetRouter() *types.Router {
-	return k.Router
-}
-
-func (k *Keeper) SetIBCTransferKeeperForTest(t types.IBCTransferKeeper) {
-	k.ibcTransferKeeper = t
-}
-
-func (k *Keeper) SetIBCChannelKeeperForTest(t types.IBCChannelKeeper) {
-	k.ibcChannelKeeper = t
+	k.router = rtr
+	k.router.Seal()
+	return k
 }
 
 func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error {

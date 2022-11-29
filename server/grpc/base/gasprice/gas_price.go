@@ -11,7 +11,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v3/client/grpc/base/gasprice/legacy"
+	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy"
 )
 
 type Querier struct{}

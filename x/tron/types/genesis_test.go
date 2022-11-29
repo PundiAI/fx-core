@@ -20,9 +20,9 @@ func TestDefaultGenesisState(t *testing.T) {
 			want: &crosschaintypes.GenesisState{
 				Params: crosschaintypes.Params{
 					GravityId:                         "fx-tron-bridge",
-					AverageBlockTime:                  5_000,
+					AverageBlockTime:                  7_000,
+					AverageExternalBlockTime:          3_000,
 					ExternalBatchTimeout:              12 * 3600 * 1000,
-					AverageExternalBlockTime:          5_000,
 					SignedWindow:                      20_000,
 					SlashFraction:                     sdk.NewDec(1).Quo(sdk.NewDec(100)),
 					OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),

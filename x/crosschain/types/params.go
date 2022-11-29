@@ -61,9 +61,9 @@ var (
 func DefaultParams() Params {
 	return Params{
 		GravityId:                         "fx-gravity-id",
-		AverageBlockTime:                  5_000,
-		ExternalBatchTimeout:              12 * 3600 * 1000,
+		AverageBlockTime:                  7_000,
 		AverageExternalBlockTime:          5_000,
+		ExternalBatchTimeout:              12 * 3600 * 1000,
 		SignedWindow:                      20_000,
 		SlashFraction:                     sdk.NewDecWithPrec(1, 2),
 		OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),

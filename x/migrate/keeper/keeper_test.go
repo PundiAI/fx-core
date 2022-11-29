@@ -23,12 +23,7 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
-)
-
-var (
-	DevnetPurseDenom = "ibc/B1861D0C2E4BAFA42A61739291975B7663F278FFAF579F83C9C4AD3890D09CA0"
 )
 
 type KeeperTestSuite struct {
@@ -40,8 +35,6 @@ type KeeperTestSuite struct {
 	secp256k1PrivKey    cryptotypes.PrivKey
 	ethsecp256k1PrivKey cryptotypes.PrivKey
 	queryClient         migratetypes.QueryClient
-	checkTx             bool
-	purseBalance        sdk.Int
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -61,7 +54,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(3, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), validator, genesisAccounts, balances...)
 
-	suite.ctx = suite.app.BaseApp.NewContext(suite.checkTx, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: validator.Validators[0].Address, Time: time.Now().UTC()})
+	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: validator.Validators[0].Address, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
@@ -80,14 +73,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.Require().NoError(err)
 	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
 	suite.Require().NoError(err)
-
-	if !suite.purseBalance.IsNil() {
-		amount := sdk.NewCoin(DevnetPurseDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
-		err = suite.app.BankKeeper.MintCoins(suite.ctx, bsctypes.ModuleName, sdk.NewCoins(amount))
-		suite.Require().NoError(err)
-		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
-		suite.Require().NoError(err)
-	}
 
 	//update staking unbonding time
 	stakingParams := suite.app.StakingKeeper.GetParams(suite.ctx)
@@ -142,14 +127,6 @@ func (suite *KeeperTestSuite) GenerateAcc(num int) []cryptotypes.PrivKey {
 		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, privateKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
 		suite.Require().NoError(err)
 
-		if !suite.purseBalance.IsNil() {
-			amount := sdk.NewCoin(DevnetPurseDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18)))
-			err = suite.app.BankKeeper.MintCoins(suite.ctx, bsctypes.ModuleName, sdk.NewCoins(amount))
-			suite.Require().NoError(err)
-			err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, bsctypes.ModuleName, privateKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
-			suite.Require().NoError(err)
-		}
-
 		acc := &ethermint.EthAccount{
 			BaseAccount: authtypes.NewBaseAccount(privateKey.PubKey().Address().Bytes(), privateKey.PubKey(), 0, 0),
 			CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
@@ -175,4 +152,11 @@ func (suite *KeeperTestSuite) GenerateEthAcc(num int) []cryptotypes.PrivKey {
 		keys = append(keys, privateKey)
 	}
 	return keys
+}
+
+func (suite *KeeperTestSuite) mintToken(module string, address sdk.AccAddress, amount sdk.Coin) {
+	err := suite.app.BankKeeper.MintCoins(suite.ctx, module, sdk.NewCoins(amount))
+	suite.Require().NoError(err)
+	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, module, address.Bytes(), sdk.NewCoins(amount))
+	suite.Require().NoError(err)
 }
