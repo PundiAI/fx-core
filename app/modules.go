@@ -55,6 +55,8 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20"
 	erc20client "github.com/functionx/fx-core/v3/x/erc20/client"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	"github.com/functionx/fx-core/v3/x/eth"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	fxgov "github.com/functionx/fx-core/v3/x/gov"
 	"github.com/functionx/fx-core/v3/x/gravity"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
@@ -72,6 +74,7 @@ func init() {
 	crosschaintypes.RegisterValidateBasic(bsctypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
 	crosschaintypes.RegisterValidateBasic(polygontypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
 	crosschaintypes.RegisterValidateBasic(avalanchetypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
+	crosschaintypes.RegisterValidateBasic(ethtypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
 	crosschaintypes.RegisterValidateBasic(trontypes.ModuleName, trontypes.TronMsgValidate{})
 }
 
@@ -89,6 +92,7 @@ var maccPerms = map[string][]string{
 	bsctypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 	polygontypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 	avalanchetypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+	ethtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 	trontypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 	evmtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 	erc20types.ModuleName:     {authtypes.Minter, authtypes.Burner},
@@ -131,6 +135,7 @@ var ModuleBasics = module.NewBasicManager(
 	bsc.AppModuleBasic{},
 	polygon.AppModuleBasic{},
 	avalanche.AppModuleBasic{},
+	eth.AppModuleBasic{},
 	tron.AppModuleBasic{},
 	EvmAppModule{},
 	FeeMarketAppModule{},
@@ -169,6 +174,7 @@ func appModules(
 		bsc.NewAppModule(app.BscKeeper),
 		polygon.NewAppModule(app.PolygonKeeper),
 		avalanche.NewAppModule(app.AvalancheKeeper),
+		eth.NewAppModule(app.EthKeeper),
 		tron.NewAppModule(app.TronKeeper),
 		EvmAppModule{evm.NewAppModule(app.EvmKeeper, app.AccountKeeper)},
 		FeeMarketAppModule{feemarket.NewAppModule(app.FeeMarketKeeper)},
@@ -243,6 +249,7 @@ func orderBeginBlockers() []string {
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
 		avalanchetypes.ModuleName,
+		ethtypes.ModuleName,
 
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
@@ -281,6 +288,7 @@ func orderEndBlockers() []string {
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
 		avalanchetypes.ModuleName,
+		ethtypes.ModuleName,
 
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
@@ -320,6 +328,7 @@ func orderInitBlockers() []string {
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
 		avalanchetypes.ModuleName,
+		ethtypes.ModuleName,
 
 		erc20types.ModuleName,
 		migratetypes.ModuleName,

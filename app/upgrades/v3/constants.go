@@ -5,6 +5,7 @@ import (
 
 	"github.com/functionx/fx-core/v3/app/upgrades"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 )
 
 const (
@@ -18,6 +19,7 @@ var Upgrade = upgrades.Upgrade{
 		return &store.StoreUpgrades{
 			Added: []string{
 				avalanchetypes.ModuleName,
+				ethtypes.ModuleName,
 			},
 			Deleted: []string{
 				"other",
