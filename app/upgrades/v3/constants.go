@@ -4,6 +4,7 @@ import (
 	store "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/functionx/fx-core/v3/app/upgrades"
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 )
 
 const (
@@ -15,7 +16,9 @@ var Upgrade = upgrades.Upgrade{
 	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: func() *store.StoreUpgrades {
 		return &store.StoreUpgrades{
-			Added: []string{},
+			Added: []string{
+				avalanchetypes.ModuleName,
+			},
 			Deleted: []string{
 				"other",
 			},

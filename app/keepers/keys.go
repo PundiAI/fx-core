@@ -20,6 +20,7 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
@@ -40,7 +41,7 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		feegrant.StoreKey, authzkeeper.StoreKey,
 		// this line is used by starport scaffolding # stargate/myApp/storeKey
 		gravitytypes.StoreKey,
-		bsctypes.StoreKey, polygontypes.StoreKey, trontypes.StoreKey,
+		bsctypes.StoreKey, polygontypes.StoreKey, avalanchetypes.StoreKey, trontypes.StoreKey,
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		erc20types.StoreKey, migratetypes.StoreKey,
 	)

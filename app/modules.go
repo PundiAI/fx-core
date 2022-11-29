@@ -46,6 +46,8 @@ import (
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
+	"github.com/functionx/fx-core/v3/x/avalanche"
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	"github.com/functionx/fx-core/v3/x/bsc"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain"
@@ -69,6 +71,7 @@ import (
 func init() {
 	crosschaintypes.RegisterValidateBasic(bsctypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
 	crosschaintypes.RegisterValidateBasic(polygontypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
+	crosschaintypes.RegisterValidateBasic(avalanchetypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
 	crosschaintypes.RegisterValidateBasic(trontypes.ModuleName, trontypes.TronMsgValidate{})
 }
 
@@ -82,12 +85,13 @@ var maccPerms = map[string][]string{
 	govtypes.ModuleName:            {authtypes.Burner},
 	ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	// used for secure addition and subtraction of balance using module account
-	gravitytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-	bsctypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
-	polygontypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-	trontypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-	evmtypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
-	erc20types.ModuleName:   {authtypes.Minter, authtypes.Burner},
+	gravitytypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
+	bsctypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+	polygontypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
+	avalanchetypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+	trontypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+	evmtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+	erc20types.ModuleName:     {authtypes.Minter, authtypes.Burner},
 }
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -126,6 +130,7 @@ var ModuleBasics = module.NewBasicManager(
 	crosschain.AppModuleBasic{},
 	bsc.AppModuleBasic{},
 	polygon.AppModuleBasic{},
+	avalanche.AppModuleBasic{},
 	tron.AppModuleBasic{},
 	EvmAppModule{},
 	FeeMarketAppModule{},
@@ -163,6 +168,7 @@ func appModules(
 		crosschain.NewAppModuleByRouter(app.CrosschainKeeper),
 		bsc.NewAppModule(app.BscKeeper),
 		polygon.NewAppModule(app.PolygonKeeper),
+		avalanche.NewAppModule(app.AvalancheKeeper),
 		tron.NewAppModule(app.TronKeeper),
 		EvmAppModule{evm.NewAppModule(app.EvmKeeper, app.AccountKeeper)},
 		FeeMarketAppModule{feemarket.NewAppModule(app.FeeMarketKeeper)},
@@ -236,6 +242,8 @@ func orderBeginBlockers() []string {
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
+		avalanchetypes.ModuleName,
+
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 	}
@@ -272,6 +280,7 @@ func orderEndBlockers() []string {
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
+		avalanchetypes.ModuleName,
 
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
@@ -310,6 +319,8 @@ func orderInitBlockers() []string {
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
 		polygontypes.ModuleName,
+		avalanchetypes.ModuleName,
+
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 	}

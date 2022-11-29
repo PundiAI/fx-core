@@ -48,6 +48,7 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/spf13/cast"
 
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
@@ -102,6 +103,7 @@ type AppKeepers struct {
 	CrosschainKeeper crosschainkeeper.RouterKeeper
 	BscKeeper        crosschainkeeper.Keeper
 	PolygonKeeper    crosschainkeeper.Keeper
+	AvalancheKeeper  crosschainkeeper.Keeper
 	TronKeeper       tronkeeper.Keeper
 
 	EvmKeeper       *evmkeeper.Keeper
@@ -309,6 +311,18 @@ func NewAppKeeper(
 		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
+	appKeepers.AvalancheKeeper = crosschainkeeper.NewKeeper(
+		appCodec,
+		avalanchetypes.ModuleName,
+		appKeepers.keys[avalanchetypes.StoreKey],
+		appKeepers.GetSubspace(avalanchetypes.ModuleName),
+		stakingKeeper,
+		appKeepers.DistrKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.TransferKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper,
+		erc20Keeper)
+
 	appKeepers.TronKeeper = tronkeeper.NewKeeper(
 		appCodec,
 		trontypes.ModuleName,
@@ -331,6 +345,10 @@ func NewAppKeeper(
 		AddRoute(polygontypes.ModuleName, &crosschainkeeper.ModuleHandler{
 			QueryServer: appKeepers.PolygonKeeper,
 			MsgServer:   crosschainkeeper.NewMsgServerImpl(appKeepers.PolygonKeeper),
+		}).
+		AddRoute(avalanchetypes.ModuleName, &crosschainkeeper.ModuleHandler{
+			QueryServer: appKeepers.AvalancheKeeper,
+			MsgServer:   crosschainkeeper.NewMsgServerImpl(appKeepers.AvalancheKeeper),
 		}).
 		AddRoute(trontypes.ModuleName, &crosschainkeeper.ModuleHandler{
 			QueryServer: appKeepers.TronKeeper,
@@ -369,6 +387,7 @@ func NewAppKeeper(
 	erc20TransferRouter.AddRoute(gravitytypes.ModuleName, appKeepers.GravityKeeper)
 	erc20TransferRouter.AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper)
 	erc20TransferRouter.AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper)
+	erc20TransferRouter.AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
 	erc20TransferRouter.AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
 	appKeepers.Erc20Keeper = erc20Keeper.SetRouter(erc20TransferRouter)
 	appKeepers.EvmKeeper.SetHooks(erc20keeper.NewHooks(&appKeepers.Erc20Keeper))
@@ -377,6 +396,7 @@ func NewAppKeeper(
 	ibcTransferRouter.AddRoute(gravitytypes.ModuleName, appKeepers.GravityKeeper)
 	ibcTransferRouter.AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper)
 	ibcTransferRouter.AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper)
+	ibcTransferRouter.AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
 	ibcTransferRouter.AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
 	ibcTransferRouter.AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
 	appKeepers.TransferKeeper.SetRouter(ibcTransferRouter)
@@ -444,6 +464,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(gravitytypes.ModuleName)
 	paramsKeeper.Subspace(bsctypes.ModuleName)
 	paramsKeeper.Subspace(polygontypes.ModuleName)
+	paramsKeeper.Subspace(avalanchetypes.ModuleName)
 	paramsKeeper.Subspace(trontypes.ModuleName)
 
 	// ethermint subspaces
