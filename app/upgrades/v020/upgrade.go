@@ -2,16 +2,24 @@ package v020
 
 import (
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/server/config"
+	"github.com/spf13/cobra"
+	tmcfg "github.com/tendermint/tendermint/config"
+
+	fxCfg "github.com/functionx/fx-core/v2/server/config"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -35,19 +43,52 @@ import (
 	trontypes "github.com/functionx/fx-core/v2/x/tron/types"
 )
 
+// PreUpgradeCmd called by cosmovisor
+func PreUpgradeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pre-upgrade",
+		Short: "fxv2 pre-upgrade, called by cosmovisor, before migrations upgrade",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			serverCtx.Logger.Info("pre-upgrade", "action", "update app.toml and config.toml")
+
+			rootDir := serverCtx.Config.RootDir
+			fileName := filepath.Join(rootDir, "config", "config.toml")
+			tmcfg.WriteConfigFile(fileName, serverCtx.Config)
+
+			config.SetConfigTemplate(fxCfg.DefaultConfigTemplate())
+			appConfig := fxCfg.DefaultConfig()
+			if err := serverCtx.Viper.Unmarshal(appConfig); err != nil {
+				return err
+			}
+			fileName = filepath.Join(rootDir, "config", "app.toml")
+			config.WriteConfigFile(fileName, appConfig)
+
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			return clientCtx.PrintString("fxv2 pre-upgrade success")
+		},
+	}
+	return cmd
+}
+
 // CreateUpgradeHandler creates an SDK upgrade handler for v2
 func CreateUpgradeHandler(
 	kvStoreKeyMap map[string]*sdk.KVStoreKey,
-	mm *module.Manager, configurator module.Configurator,
-	bankKeeper bankKeeper.Keeper, accountKeeper authkeeper.AccountKeeper,
-	paramsKeeper paramskeeper.Keeper, ibcKeeper *ibckeeper.Keeper, transferKeeper ibctransferkeeper.Keeper,
+	mm *module.Manager,
+	configurator module.Configurator,
+	bankKeeper bankKeeper.Keeper,
+	paramsKeeper paramskeeper.Keeper,
+	ibcKeeper *ibckeeper.Keeper,
+	transferKeeper ibctransferkeeper.Keeper,
 	erc20Keeper erc20keeper.Keeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		// cache context
 		cacheCtx, commit := ctx.CacheContext()
 
 		// 1. clear testnet module data
-		clearTestnetModule(ctx, kvStoreKeyMap)
+		clearTestnetModule(cacheCtx, kvStoreKeyMap)
 
 		// 2. update FX metadata
 		updateFXMetadata(cacheCtx, bankKeeper, kvStoreKeyMap)
@@ -58,53 +99,14 @@ func CreateUpgradeHandler(
 		// 4. migrate ibc cosmos-sdk/x/ibc -> ibc-go v3.1.0
 		ibcMigrate(cacheCtx, ibcKeeper, transferKeeper)
 
-		// cosmos-sdk 0.42.x from version must be empty
-		if len(fromVM) != 0 {
-			panic("invalid from version map")
-		}
+		// 5. run migrations
+		toVersion := runMigrations(cacheCtx, kvStoreKeyMap, fromVM, mm, configurator)
 
-		for n, m := range mm.Modules {
-			//NOTE: fromVM empty
-			if initGenesis[n] {
-				continue
-			}
-			if v, ok := runMigrates[n]; ok {
-				// if module genesis init, continue
-				if needInitGenesis(ctx, n, kvStoreKeyMap) {
-					continue
-				}
-				//migrate module
-				fromVM[n] = v
-				continue
-			}
-			fromVM[n] = m.ConsensusVersion()
-		}
+		// 6. clear metadata except FX
+		clearTestnetDenom(cacheCtx, kvStoreKeyMap)
 
-		if mm.OrderMigrations == nil {
-			mm.OrderMigrations = migrationsOrder(mm.ModuleNames())
-		}
-		cacheCtx.Logger().Info("start to run module v2 migrations...")
-		toVersion, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
-		if err != nil {
-			return nil, fmt.Errorf("run migrations: %s", err.Error())
-		}
-
-		// clear metadata except FX
-		clearTestnetDenom(ctx, kvStoreKeyMap)
-
-		// register coin
-		for _, metadata := range fxtypes.GetMetadata() {
-			cacheCtx.Logger().Info("add metadata", "coin", metadata.String())
-			pair, err := erc20Keeper.RegisterCoin(cacheCtx, metadata)
-			if err != nil {
-				return nil, fmt.Errorf("register %s: %s", metadata.Base, err.Error())
-			}
-			cacheCtx.EventManager().EmitEvent(sdk.NewEvent(
-				erc20types.EventTypeRegisterCoin,
-				sdk.NewAttribute(erc20types.AttributeKeyDenom, pair.Denom),
-				sdk.NewAttribute(erc20types.AttributeKeyTokenAddress, pair.Erc20Address),
-			))
-		}
+		// 7. register coin
+		registerCoin(cacheCtx, erc20Keeper)
 
 		//commit upgrade
 		commit()
@@ -195,6 +197,40 @@ func migrationsOrder(modules []string) []string {
 	return orders
 }
 
+func runMigrations(ctx sdk.Context, kvStoreKeyMap map[string]*sdk.KVStoreKey, fromVersion module.VersionMap,
+	mm *module.Manager, configurator module.Configurator) module.VersionMap {
+	if len(fromVersion) != 0 {
+		panic("invalid from version map")
+	}
+
+	for n, m := range mm.Modules {
+		//NOTE: fromVM empty
+		if initGenesis[n] {
+			continue
+		}
+		if v, ok := runMigrates[n]; ok {
+			// if module genesis init, continue
+			if needInitGenesis(ctx, n, kvStoreKeyMap) {
+				continue
+			}
+			//migrate module
+			fromVersion[n] = v
+			continue
+		}
+		fromVersion[n] = m.ConsensusVersion()
+	}
+
+	if mm.OrderMigrations == nil {
+		mm.OrderMigrations = migrationsOrder(mm.ModuleNames())
+	}
+	ctx.Logger().Info("start to run module v2 migrations...")
+	toVersion, err := mm.RunMigrations(ctx, configurator, fromVersion)
+	if err != nil {
+		panic(fmt.Sprintf("run migrations: %s", err.Error()))
+	}
+	return toVersion
+}
+
 func clearTestnetDenom(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 	if fxtypes.TestnetChainId != fxtypes.ChainId() {
 		return
@@ -213,6 +249,21 @@ func clearTestnetDenom(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 		logger.Info("clear testnet metadata", "metadata", md.String())
 		denomMetaDataStore := prefix.NewStore(ctx.KVStore(key), banktypes.DenomMetadataKey(md.Base))
 		denomMetaDataStore.Delete([]byte(md.Base))
+	}
+}
+
+func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
+	for _, metadata := range fxtypes.GetMetadata() {
+		ctx.Logger().Info("add metadata", "coin", metadata.String())
+		pair, err := k.RegisterCoin(ctx, metadata)
+		if err != nil {
+			panic(fmt.Sprintf("register %s: %s", metadata.Base, err.Error()))
+		}
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			erc20types.EventTypeRegisterCoin,
+			sdk.NewAttribute(erc20types.AttributeKeyDenom, pair.Denom),
+			sdk.NewAttribute(erc20types.AttributeKeyTokenAddress, pair.Erc20Address),
+		))
 	}
 }
 
@@ -259,9 +310,7 @@ func deleteKVStore(kv types.KVStore) error {
 // needInitGenesis check module initialized
 func needInitGenesis(ctx sdk.Context, module string, kvStoreKeyMap map[string]*sdk.KVStoreKey) bool {
 	// crosschain module
-	if module == bsctypes.ModuleName ||
-		module == polygontypes.ModuleName ||
-		module == trontypes.ModuleName {
+	if crossChainModule[module] {
 		if !crosschainv020.CheckInitialize(ctx, module, kvStoreKeyMap[paramstypes.StoreKey]) {
 			return true
 		}

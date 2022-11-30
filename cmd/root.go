@@ -130,8 +130,10 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 		server.NewRollbackCmd(appCreator.newApp, app.DefaultNodeHome),
 		tendermintCommand(),
 		startCommand(appCreator.newApp, app.DefaultNodeHome),
-		appCmd.PreUpgradeCmd(),
 	)
+
+	// add pre-upgrade command
+	app.AddPreUpgradeCommand(rootCmd)
 
 	// add rosetta
 	rootCmd.AddCommand(server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Marshaler))

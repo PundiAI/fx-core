@@ -52,6 +52,12 @@ var (
 		trontypes.ModuleName:         1,
 	}
 
+	crossChainModule = map[string]bool{
+		bsctypes.ModuleName:     true,
+		polygontypes.ModuleName: true,
+		trontypes.ModuleName:    true,
+	}
+
 	storeUpgradesDefault = &store.StoreUpgrades{
 		Added: []string{
 			feemarkettypes.StoreKey,
