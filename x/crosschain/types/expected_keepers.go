@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/common"
 
-	tranfsertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	tranfsertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 )
 
 type StakingKeeper interface {
@@ -60,8 +60,6 @@ type IBCTransferKeeper interface {
 		receiver string,
 		timeoutHeight clienttypes.Height,
 		timeoutTimestamp uint64,
-		router string,
-		fee sdk.Coin,
 	) error
 	SetDenomTrace(ctx sdk.Context, denomTrace tranfsertypes.DenomTrace)
 }

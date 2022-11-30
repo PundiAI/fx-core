@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryDenomTrace() {
@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 			func() {
 				expTrace.Path = "transfer/channelToA/transfer/channelToB"
 				expTrace.BaseDenom = "uatom"
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
+				suite.chainA.GetSimApp().FxTransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
 
 				req = &types.QueryDenomTraceRequest{
 					Hash: expTrace.Hash().String(),
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 				expTraces = append(expTraces, types.DenomTrace{Path: "transfer/channelToA/transfer/channelToB", BaseDenom: "uatom"})
 
 				for _, trace := range expTraces {
-					suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), trace)
+					suite.chainA.GetSimApp().FxTransferKeeper.SetDenomTrace(suite.chainA.GetContext(), trace)
 				}
 
 				req = &types.QueryDenomTracesRequest{
@@ -191,7 +191,7 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 			req = &types.QueryDenomHashRequest{
 				Trace: reqTrace.GetFullDenomPath(),
 			}
-			suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), reqTrace)
+			suite.chainA.GetSimApp().FxTransferKeeper.SetDenomTrace(suite.chainA.GetContext(), reqTrace)
 
 			tc.malleate()
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())

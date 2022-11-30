@@ -4,19 +4,16 @@ import (
 	"strings"
 	"time"
 
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var (
-	// DefaultRelativePacketTimeoutHeight is the default packet timeout height (in blocks) relative
-	// to the current block height of the counterparty chain provided by the client state. The
-	// timeout is disabled when set to 0.
-	DefaultRelativePacketTimeoutHeight = "0-20000"
-
 	// DefaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
 	// relative to the current block timestamp of the counterparty chain provided by the client
-	// state. The timeout is disabled when set to 0. The default is currently set to a 12 hour
+	// state. The timeout is disabled when set to 0. The default is currently set to a 12-hour
 	// timeout.
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(12) * time.Hour).Nanoseconds())
 )
@@ -40,10 +37,10 @@ func NewFungibleTokenPacketData(denom, amount, sender, receiver, router string, 
 func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	amount, ok := sdk.NewIntFromString(ftpd.Amount)
 	if !ok {
-		return sdkerrors.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", ftpd.Amount)
+		return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", ftpd.Amount)
 	}
 	if !amount.IsPositive() {
-		return sdkerrors.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
+		return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
 	}
 	if strings.TrimSpace(ftpd.Sender) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
@@ -53,15 +50,25 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	}
 	fee, ok := sdk.NewIntFromString(ftpd.Fee)
 	if !ok {
-		return sdkerrors.Wrapf(ErrInvalidAmount, "unable to parse transfer fee (%s) into sdk.Int", ftpd.Fee)
+		return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer fee (%s) into sdk.Int", ftpd.Fee)
 	}
 	if fee.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidAmount, "fee must be strictly not negative: got %d", fee)
+		return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "fee must be strictly not negative: got %d", fee)
 	}
-	return ValidatePrefixedDenom(ftpd.Denom)
+	return transfertypes.ValidatePrefixedDenom(ftpd.Denom)
 }
 
 // GetBytes is a helper for serialising
 func (ftpd FungibleTokenPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&ftpd))
+	if ftpd.Router == "" {
+		ftpd.Fee = ""
+	}
+	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
+}
+
+// GetBytes is a helper for serialising
+func (ftpd FungibleTokenPacketData) ToIBCPacketData() transfertypes.FungibleTokenPacketData {
+	result := transfertypes.NewFungibleTokenPacketData(ftpd.Denom, ftpd.Amount, ftpd.Sender, ftpd.Receiver)
+	result.Memo = ftpd.Memo
+	return result
 }

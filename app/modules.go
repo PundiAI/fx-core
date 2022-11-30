@@ -46,6 +46,12 @@ import (
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
+	fxibctransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
+	fxibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+
+	ibctransfer "github.com/cosmos/ibc-go/v3/modules/apps/transfer"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	"github.com/functionx/fx-core/v3/x/avalanche"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	"github.com/functionx/fx-core/v3/x/bsc"
@@ -60,8 +66,6 @@ import (
 	fxgov "github.com/functionx/fx-core/v3/x/gov"
 	"github.com/functionx/fx-core/v3/x/gravity"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
-	ibctransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
-	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 	"github.com/functionx/fx-core/v3/x/migrate"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	"github.com/functionx/fx-core/v3/x/polygon"
@@ -128,6 +132,7 @@ var ModuleBasics = module.NewBasicManager(
 	upgrade.AppModuleBasic{},
 	evidence.AppModuleBasic{},
 	ibctransfer.AppModuleBasic{},
+	fxibctransfer.AppModuleBasic{},
 	vesting.AppModuleBasic{},
 	// this line is used by starport scaffolding # stargate/app/moduleBasic
 	gravity.AppModuleBasic{},
@@ -180,7 +185,8 @@ func appModules(
 		FeeMarketAppModule{feemarket.NewAppModule(app.FeeMarketKeeper)},
 		erc20.NewAppModule(app.Erc20Keeper, app.AccountKeeper),
 		migrate.NewAppModule(app.MigrateKeeper),
-		app.TransferModule,
+		fxibctransfer.NewAppModule(app.FxTransferKeeper),
+		ibctransfer.NewAppModule(app.IBCTransferKeeper),
 	}
 }
 
@@ -209,7 +215,7 @@ func simulationModules(
 		//groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		//liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
-		app.TransferModule,
+		ibctransfer.NewAppModule(app.IBCTransferKeeper),
 	}
 }
 
@@ -227,6 +233,7 @@ func orderBeginBlockers() []string {
 		stakingtypes.ModuleName,
 		//liquiditytypes.ModuleName,
 		ibctransfertypes.ModuleName,
+		fxibctransfertypes.CompatibleModuleName,
 		ibchost.ModuleName,
 		//icatypes.ModuleName,
 		//routertypes.ModuleName,
@@ -265,6 +272,7 @@ func orderEndBlockers() []string {
 		feemarkettypes.ModuleName,
 		//liquiditytypes.ModuleName,
 		ibctransfertypes.ModuleName,
+		fxibctransfertypes.CompatibleModuleName,
 		ibchost.ModuleName,
 		//icatypes.ModuleName,
 		//routertypes.ModuleName,
@@ -306,6 +314,7 @@ func orderInitBlockers() []string {
 		minttypes.ModuleName,
 		crisistypes.ModuleName,
 		ibctransfertypes.ModuleName,
+		fxibctransfertypes.CompatibleModuleName,
 		ibchost.ModuleName,
 		//icatypes.ModuleName,
 		evidencetypes.ModuleName,

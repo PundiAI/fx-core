@@ -152,7 +152,7 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to stri
 	logger.Info("ibc transfer", "port", targetIBC.SourcePort, "channel", targetIBC.SourceChannel, "sequence", nextSequenceSend, "timeout-height", ibcTimeoutHeight)
 	if err := k.IbcTransferKeeper.SendTransfer(
 		ctx, targetIBC.SourcePort, targetIBC.SourceChannel, amount, from.Bytes(),
-		to, ibcTimeoutHeight, ibcTimeoutTimestamp, "", fee); err != nil {
+		to, ibcTimeoutHeight, ibcTimeoutTimestamp); err != nil {
 		return err
 	}
 	k.SetIBCTransferHash(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, nextSequenceSend, receipt.TxHash)

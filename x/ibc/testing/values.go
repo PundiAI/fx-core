@@ -7,14 +7,17 @@ package ibctesting
 import (
 	"time"
 
+	_ "github.com/functionx/fx-core/v3/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 
-	_ "github.com/functionx/fx-core/v3/app"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	"github.com/functionx/fx-core/v3/x/ibc/testing/mock"
 )
 
@@ -33,7 +36,7 @@ const (
 	InvalidID             = "IDisInvalid"
 
 	// Application Ports
-	TransferPort = ibctransfertypes.ModuleName
+	TransferPort = transfertypes.ModuleName
 	MockPort     = mock.ModuleName
 
 	// used for testing proposals

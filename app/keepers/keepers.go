@@ -49,6 +49,15 @@ import (
 	"github.com/spf13/cast"
 
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
+	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
+	fxtransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
+	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter"
+
+	ibctransfer "github.com/cosmos/ibc-go/v3/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
@@ -60,9 +69,6 @@ import (
 	fxgovkeeper "github.com/functionx/fx-core/v3/x/gov/keeper"
 	gravitykeeper "github.com/functionx/fx-core/v3/x/gravity/keeper"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
-	ibctransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
-	ibctransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
-	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
@@ -90,11 +96,12 @@ type AppKeepers struct {
 	ParamsKeeper     paramskeeper.Keeper
 
 	// IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	IBCKeeper      *ibckeeper.Keeper
-	EvidenceKeeper evidencekeeper.Keeper
-	TransferKeeper ibctransferkeeper.Keeper
-	FeeGrantKeeper feegrantkeeper.Keeper
-	AuthzKeeper    authzkeeper.Keeper
+	IBCKeeper         *ibckeeper.Keeper
+	EvidenceKeeper    evidencekeeper.Keeper
+	FxTransferKeeper  fxtransferkeeper.Keeper
+	IBCTransferKeeper ibctransferkeeper.Keeper
+	FeeGrantKeeper    feegrantkeeper.Keeper
+	AuthzKeeper       authzkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -235,16 +242,14 @@ func NewAppKeeper(
 		appKeepers.ScopedIBCKeeper,
 	)
 
-	appKeepers.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec,
-		appKeepers.keys[ibctransfertypes.StoreKey],
-		appKeepers.GetSubspace(ibctransfertypes.ModuleName),
-		appKeepers.IBCKeeper.ChannelKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper,
-		&appKeepers.IBCKeeper.PortKeeper,
-		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		appKeepers.ScopedTransferKeeper,
+	appKeepers.IBCTransferKeeper = ibctransferkeeper.NewKeeper(appCodec, appKeepers.keys[ibctransfertypes.StoreKey], appKeepers.GetSubspace(ibctransfertypes.ModuleName),
+		appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.ChannelKeeper, &appKeepers.IBCKeeper.PortKeeper,
+		appKeepers.AccountKeeper, appKeepers.BankKeeper, appKeepers.ScopedTransferKeeper)
+
+	appKeepers.FxTransferKeeper = fxtransferkeeper.NewKeeper(appKeepers.IBCTransferKeeper,
+		appCodec, appKeepers.keys[ibctransfertypes.StoreKey], appKeepers.GetSubspace(ibctransfertypes.ModuleName),
+		appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.ChannelKeeper, &appKeepers.IBCKeeper.PortKeeper,
+		appKeepers.AccountKeeper, appKeepers.BankKeeper, appKeepers.ScopedTransferKeeper,
 	)
 
 	appKeepers.FeeMarketKeeper = feemarketkeeper.NewKeeper(
@@ -272,7 +277,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.EvmKeeper,
-		appKeepers.TransferKeeper,
+		appKeepers.IBCTransferKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper)
 
 	appKeepers.GravityMigrator = gravitykeeper.NewMigrator(
@@ -295,7 +300,7 @@ func NewAppKeeper(
 		stakingKeeper,
 		appKeepers.DistrKeeper,
 		appKeepers.BankKeeper,
-		appKeepers.TransferKeeper,
+		appKeepers.IBCTransferKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
@@ -307,7 +312,7 @@ func NewAppKeeper(
 		stakingKeeper,
 		appKeepers.DistrKeeper,
 		appKeepers.BankKeeper,
-		appKeepers.TransferKeeper,
+		appKeepers.IBCTransferKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
@@ -319,7 +324,7 @@ func NewAppKeeper(
 		stakingKeeper,
 		appKeepers.DistrKeeper,
 		appKeepers.BankKeeper,
-		appKeepers.TransferKeeper,
+		appKeepers.IBCTransferKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
@@ -331,7 +336,7 @@ func NewAppKeeper(
 		stakingKeeper,
 		appKeepers.DistrKeeper,
 		appKeepers.BankKeeper,
-		appKeepers.TransferKeeper,
+		appKeepers.IBCTransferKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
@@ -343,7 +348,7 @@ func NewAppKeeper(
 		stakingKeeper,
 		appKeepers.DistrKeeper,
 		appKeepers.BankKeeper,
-		appKeepers.TransferKeeper,
+		appKeepers.IBCTransferKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper))
 
@@ -408,21 +413,23 @@ func NewAppKeeper(
 	appKeepers.Erc20Keeper = erc20Keeper.SetRouter(erc20TransferRouter)
 	appKeepers.EvmKeeper.SetHooks(erc20keeper.NewHooks(&appKeepers.Erc20Keeper))
 
-	ibcTransferRouter := ibctransfertypes.NewRouter()
+	ibcTransferRouter := fxtransfertypes.NewRouter()
 	ibcTransferRouter.AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper)
 	ibcTransferRouter.AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper)
 	ibcTransferRouter.AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
 	ibcTransferRouter.AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper)
 	ibcTransferRouter.AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
 	ibcTransferRouter.AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
-	appKeepers.TransferKeeper.SetRouter(ibcTransferRouter)
-	appKeepers.TransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
-	appKeepers.TransferModule = ibctransfer.NewAppModule(appKeepers.TransferKeeper)
-	transferIBCModule := ibctransfer.NewIBCModule(appKeepers.TransferKeeper)
+	appKeepers.FxTransferKeeper.SetRouter(ibcTransferRouter)
+	appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
+
+	ibcTransferModule := ibctransfer.NewIBCModule(appKeepers.IBCTransferKeeper)
+	transferIBCModule := fxtransfer.NewIBCMiddleware(appKeepers.FxTransferKeeper, ibcTransferModule)
+	ibcRouterMiddleware := ibcrouter.NewIBCMiddleware(transferIBCModule, appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCTransferKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, ibcRouterMiddleware)
 	appKeepers.IBCKeeper.SetRouter(ibcRouter)
 
 	// register the staking hooks

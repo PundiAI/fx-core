@@ -200,7 +200,7 @@ type IBCTransferSimulate struct {
 }
 
 func (i *IBCTransferSimulate) SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
-	receiver string, timeoutHeight ibcclienttypes.Height, timeoutTimestamp uint64, router string, fee sdk.Coin) error {
+	receiver string, timeoutHeight ibcclienttypes.Height, timeoutTimestamp uint64) error {
 	require.Equal(i.T, token.Amount.BigInt(), big.NewInt(1e18))
 	require.Equal(i.T, "transfer", sourcePort)
 	require.Equal(i.T, "channel-0", sourceChannel)

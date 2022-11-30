@@ -20,12 +20,13 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
-	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"

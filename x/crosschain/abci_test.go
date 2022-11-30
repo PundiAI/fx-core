@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"testing"
 
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
@@ -23,7 +25,6 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
-	ibcTransferTypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -169,7 +170,7 @@ func (suite *IntegrationTestSuite) TestABCIEndBlockDepositClaim() {
 	if len(addBridgeTokenClaim.ChannelIbc) > 0 {
 		channel, err := hex.DecodeString(addBridgeTokenClaim.ChannelIbc)
 		require.NoError(suite.T(), err)
-		tokenName = ibcTransferTypes.DenomTrace{
+		tokenName = ibctransfertypes.DenomTrace{
 			Path:      string(channel),
 			BaseDenom: fmt.Sprintf("%s%s", suite.chainName, bridgeToken),
 		}.IBCDenom()

@@ -1,16 +1,16 @@
-package types_test
+package types
 
 import (
 	"fmt"
 	"testing"
 
+	_ "github.com/functionx/fx-core/v3/types"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 )
 
 // define constants used for testing
@@ -47,21 +47,21 @@ var (
 
 // TestMsgTransferRoute tests Route for MsgTransfer
 func TestMsgTransferRoute(t *testing.T) {
-	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee)
+	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee)
 
-	require.Equal(t, types.RouterKey, msg.Route())
+	require.Equal(t, RouterKey, msg.Route())
 }
 
 // TestMsgTransferType tests Type for MsgTransfer
 func TestMsgTransferType(t *testing.T) {
-	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee)
+	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee)
 
 	require.Equal(t, "transfer", msg.Type())
 }
 
 func TestMsgTransferGetSignBytes(t *testing.T) {
-	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee)
-	expected := fmt.Sprintf(`{"type":"cosmos-sdk/MsgTransfer","value":{"fee":{"amount":"0","denom":"demo"},"receiver":"%s","sender":"%s","source_channel":"testchannel","source_port":"testportid","timeout_height":{"revision_height":"10"},"token":{"amount":"100","denom":"demo"}}}`, addr2, addr1)
+	msg := NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee)
+	expected := fmt.Sprintf(`{"type":"fxtransfer/MsgTransfer","value":{"fee":{"amount":"0","denom":"demo"},"receiver":"%s","sender":"%s","source_channel":"testchannel","source_port":"testportid","timeout_height":{"revision_height":"10"},"token":{"amount":"100","denom":"demo"}}}`, addr2, addr1)
 	require.NotPanics(t, func() {
 		res := msg.GetSignBytes()
 		require.Equal(t, expected, string(res))
@@ -72,23 +72,23 @@ func TestMsgTransferGetSignBytes(t *testing.T) {
 func TestMsgTransferValidation(t *testing.T) {
 	testCases := []struct {
 		name    string
-		msg     *types.MsgTransfer
+		msg     *MsgTransfer
 		expPass bool
 	}{
-		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), true},
-		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultIbcFee), true},
-		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"port id contains non-alpha", types.NewMsgTransfer(invalidPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"too short channel id", types.NewMsgTransfer(validPort, invalidShortChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"too long channel id", types.NewMsgTransfer(validPort, invalidLongChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"channel id contains non-alpha", types.NewMsgTransfer(validPort, invalidChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"invalid denom", types.NewMsgTransfer(validPort, validChannel, invalidDenomCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"zero coin", types.NewMsgTransfer(validPort, validChannel, zeroCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"missing sender address", types.NewMsgTransfer(validPort, validChannel, coin, emptyAddr, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"missing recipient address", types.NewMsgTransfer(validPort, validChannel, coin, addr1, "", timeoutHeight, 0, defaultRouter, defaultFee), false},
-		{"empty coin", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"valid msg with base denom", NewMsgTransfer(validPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), true},
+		{"valid msg with trace hash", NewMsgTransfer(validPort, validChannel, ibcCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultIbcFee), true},
+		{"invalid ibc denom", NewMsgTransfer(validPort, validChannel, invalidIBCCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"too short port id", NewMsgTransfer(invalidShortPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"too long port id", NewMsgTransfer(invalidLongPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"port id contains non-alpha", NewMsgTransfer(invalidPort, validChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"too short channel id", NewMsgTransfer(validPort, invalidShortChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"too long channel id", NewMsgTransfer(validPort, invalidLongChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"channel id contains non-alpha", NewMsgTransfer(validPort, invalidChannel, coin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"invalid denom", NewMsgTransfer(validPort, validChannel, invalidDenomCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"zero coin", NewMsgTransfer(validPort, validChannel, zeroCoin, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"missing sender address", NewMsgTransfer(validPort, validChannel, coin, emptyAddr, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"missing recipient address", NewMsgTransfer(validPort, validChannel, coin, addr1, "", timeoutHeight, 0, defaultRouter, defaultFee), false},
+		{"empty coin", NewMsgTransfer(validPort, validChannel, sdk.Coin{}, addr1, addr2, timeoutHeight, 0, defaultRouter, defaultFee), false},
 	}
 
 	for i, tc := range testCases {
@@ -105,7 +105,7 @@ func TestMsgTransferValidation(t *testing.T) {
 func TestMsgTransferGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
-	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr.String(), addr2, timeoutHeight, 0, defaultRouter, defaultFee)
+	msg := NewMsgTransfer(validPort, validChannel, coin, addr.String(), addr2, timeoutHeight, 0, defaultRouter, defaultFee)
 	res := msg.GetSigners()
 
 	require.Equal(t, []sdk.AccAddress{addr}, res)

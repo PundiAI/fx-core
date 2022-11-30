@@ -15,9 +15,10 @@ import (
 	"github.com/spf13/cobra"
 	abcitype "github.com/tendermint/tendermint/abci/types"
 
+	tranfsertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
-	types2 "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 const (
@@ -887,7 +888,7 @@ func CmdCovertBridgeToken() *cobra.Command {
 			}
 			coinName := fmt.Sprintf("%s%s", chainName, tokenContract)
 			if len(channelIbc) > 0 {
-				coinName = types2.DenomTrace{
+				coinName = tranfsertypes.DenomTrace{
 					Path:      channelIbc,
 					BaseDenom: coinName,
 				}.IBCDenom()

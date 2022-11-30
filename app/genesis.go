@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"time"
 
+	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -122,6 +124,8 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			// only allowedClients tendermint
 			state.ClientGenesis.Params.AllowedClients = []string{exported.Tendermint}
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+		case fxtransfertypes.CompatibleModuleName:
+			// ignore fx ibc transfer module
 		default:
 			genesis[b.Name()] = b.DefaultGenesis(cdc)
 		}

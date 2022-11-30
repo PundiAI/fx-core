@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"strings"
 
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
-// msg types
 const (
 	TypeMsgTransfer = "transfer"
 )
@@ -77,7 +78,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if msg.Fee.Denom != msg.Token.Denom {
 		return sdkerrors.Wrap(ErrFeeDenomNotMatchTokenDenom, fmt.Sprintf("token denom:%s, fee denom:%s", msg.Token.Denom, msg.Fee.Denom))
 	}
-	return ValidateIBCDenom(msg.Token.Denom)
+	return transfertypes.ValidateIBCDenom(msg.Token.Denom)
 }
 
 // GetSignBytes implements sdk.Msg.

@@ -28,6 +28,9 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmcfg "github.com/tendermint/tendermint/config"
 
+	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	"github.com/functionx/fx-core/v3/app/keepers"
 	fxCfg "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -35,8 +38,6 @@ import (
 	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	ibctransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
-	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -88,7 +89,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		updateBlockParams(cacheCtx, keepers.ParamsKeeper)
 
 		// 4. migrate ibc cosmos-sdk/x/ibc -> ibc-go v3.1.0
-		ibcMigrate(cacheCtx, keepers.IBCKeeper, keepers.TransferKeeper)
+		ibcMigrate(cacheCtx, keepers.IBCKeeper, keepers.IBCTransferKeeper)
 
 		// 5. run migrations
 		toVersion := runMigrations(cacheCtx, kvStoreKeyMap[paramstypes.StoreKey], fromVM, mm, configurator)

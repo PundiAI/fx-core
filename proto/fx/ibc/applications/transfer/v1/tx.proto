@@ -6,16 +6,21 @@ option go_package = "github.com/functionx/fx-core/x/ibc/applications/transfer/ty
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "ibc/core/client/v1/client.proto";
+import "ibc/applications/transfer/v1/tx.proto";
 
 // Msg defines the ibc/transfer Msg service.
+// Deprecated: This service is deprecated. It may be removed in the next version.
+// Replace ibc.applications.transfer.v1.Msg
 service Msg {
   // Transfer defines a rpc handler method for MsgTransfer.
-  rpc Transfer(MsgTransfer) returns (MsgTransferResponse);
+  rpc Transfer(MsgTransfer) returns (ibc.applications.transfer.v1.MsgTransferResponse);
 }
 
 // MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
 // ICS20 enabled chains. See ICS Spec here:
 // https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
+// Deprecated: This Msg is deprecated. It may be removed in the next version.
+// Replace ibc.applications.transfer.v1.MsgTransfer
 message MsgTransfer {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -45,7 +50,7 @@ message MsgTransfer {
   string router = 8;
   // the tokens to be destination fee
   cosmos.base.v1beta1.Coin fee = 9 [ (gogoproto.nullable) = false ];
+  // optional memo
+  string memo = 10;
 }
 
-// MsgTransferResponse defines the Msg/Transfer response type.
-message MsgTransferResponse {}
