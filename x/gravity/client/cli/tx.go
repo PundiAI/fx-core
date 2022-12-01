@@ -36,6 +36,7 @@ func GetTxCmd() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
+		Hidden:                     true,
 	}
 
 	cmd.AddCommand([]*cobra.Command{

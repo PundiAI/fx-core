@@ -1,4 +1,4 @@
-package v3
+package v2
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -6,7 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
@@ -14,7 +16,6 @@ import (
 // migrate data from gravity module
 func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 
-	MigratePruneKey(gravityStore, types.IbcSequenceHeightKey)
 	// gravity 0x1 -> eth ? -
 	// gravity ? -> eth 0x12 *
 
@@ -78,9 +79,6 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	// gravity 0x16 -> eth 0x33
 	migratePrefix(gravityStore, ethStore, types.LastObservedValsetKey, crosschaintypes.LastObservedOracleSetKey)
 
-	// gravity 0x17 -> eth 0x34
-	//migratePrefix(gravityStore, ethStore, types.IbcSequenceHeightKey, crosschaintypes.IbcSequenceHeightKey)
-
 	// gravity 0x18 -> eth 0x35
 	migratePrefix(gravityStore, ethStore, types.LastEventBlockHeightByValidatorKey, crosschaintypes.LastEventBlockHeightByOracleKey)
 
@@ -102,10 +100,14 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 	}
 }
 
-func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, stakingKeeper StakingKeeper) {
+func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, stakingKeeper StakingKeeper, bankKeeper BankKeeper) {
 
 	chainOracle := new(crosschaintypes.ProposalOracle)
 	totalPower := sdk.ZeroInt()
+
+	ethOracles := ethInitOracles(ctx.ChainID())
+	i := 0
+	minDelegateAmount := sdk.DefaultPowerReduction.MulRaw(100)
 
 	oldStore := prefix.NewStore(gravityStore, types.ValidatorAddressByOrchestratorAddress)
 
@@ -113,21 +115,51 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 	defer oldStoreIter.Close()
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		bridgerAddr := sdk.AccAddress(oldStoreIter.Key()[len(types.ValidatorAddressByOrchestratorAddress):])
-		oracleAddress := sdk.AccAddress(oldStoreIter.Value())
-		externalAddress := sdk.AccAddress(oldStore.Get(append(types.EthAddressByValidatorKey, oracleAddress.Bytes()...)))
-		validator, found := stakingKeeper.GetValidator(ctx, oldStoreIter.Value())
+		oldOracleAddress := sdk.AccAddress(oldStoreIter.Value())
+		externalAddress := sdk.AccAddress(oldStore.Get(append(types.EthAddressByValidatorKey, oldOracleAddress.Bytes()...)))
+		validator, found := stakingKeeper.GetValidator(ctx, oldOracleAddress.Bytes())
 		if !found {
+			ctx.Logger().Error("no found validator", "address", sdk.ValAddress(oldOracleAddress))
 			continue
 		}
 		oracle := crosschaintypes.Oracle{
-			OracleAddress:     oracleAddress.String(),
 			BridgerAddress:    bridgerAddr.String(),
 			ExternalAddress:   externalAddress.String(),
-			DelegateAmount:    sdk.NewInt(validator.ConsensusPower(sdk.DefaultPowerReduction)),
 			StartHeight:       0,
-			Online:            !validator.Jailed,
-			DelegateValidator: oracleAddress.String(),
+			DelegateValidator: oldOracleAddress.String(),
 		}
+		if len(ethOracles) > 0 && validator.Tokens.GTE(minDelegateAmount) {
+			oracle.DelegateAmount = minDelegateAmount
+		}
+		oracle.OracleAddress = oldOracleAddress.String()
+		oracle.Online = !validator.Jailed
+		if len(ethOracles) > i {
+			oracle.OracleAddress = ethOracles[i]
+			balances := bankKeeper.GetAllBalances(ctx, oracle.GetOracle())
+			if balances.AmountOf(fxtypes.DefaultDenom).GTE(minDelegateAmount) {
+				delegateAddr := oracle.GetDelegateAddress(ethtypes.ModuleName)
+				newShares, err := stakingKeeper.Delegate(ctx,
+					delegateAddr, minDelegateAmount, stakingtypes.Unbonded, validator, true)
+				if err != nil {
+					panic("gravity migrate to eth error: " + err.Error())
+				}
+				ctx.EventManager().EmitEvents(sdk.Events{
+					sdk.NewEvent(
+						stakingtypes.EventTypeDelegate,
+						sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
+						sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
+						sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
+					),
+				})
+				oracle.StartHeight = ctx.BlockHeight()
+				oracle.DelegateAmount = minDelegateAmount
+				oracle.Online = true
+			} else {
+				oracle.Online = false
+			}
+			i = i + 1
+		}
+
 		if oracle.Online {
 			totalPower = totalPower.Add(oracle.GetPower())
 		}
@@ -135,7 +167,7 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 		ethStore.Set(crosschaintypes.GetOracleKey(oracle.GetOracle()), cdc.MustMarshal(&oracle))
 		oldStore.Delete(oldStoreIter.Key())
 
-		chainOracle.Oracles = append(chainOracle.Oracles, oracleAddress.String())
+		chainOracle.Oracles = append(chainOracle.Oracles, oracle.OracleAddress)
 	}
 
 	// SetProposalOracle
@@ -170,12 +202,19 @@ func migrateOutgoingTxPool(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVS
 	}
 }
 
-func MigratePruneKey(store sdk.KVStore, key []byte) {
-	prefixStore := prefix.NewStore(store, key)
-	iterator := prefixStore.Iterator(nil, nil)
-	defer iterator.Close()
+func CleanKVStore(kv sdk.KVStore) error {
+	// Note that we cannot write while iterating, so load all keys here, delete below
+	var keys [][]byte
+	itr := kv.Iterator(nil, nil)
+	defer itr.Close()
 
-	for ; iterator.Valid(); iterator.Next() {
-		prefixStore.Delete(iterator.Key())
+	for itr.Valid() {
+		keys = append(keys, itr.Key())
+		itr.Next()
 	}
+
+	for _, k := range keys {
+		kv.Delete(k)
+	}
+	return nil
 }

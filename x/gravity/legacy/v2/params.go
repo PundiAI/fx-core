@@ -1,4 +1,4 @@
-package v3
+package v2
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -10,12 +10,12 @@ import (
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
-func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsStoreKey sdk.StoreKey, toModuleName string) error {
-	paramsStore := prefix.NewStore(ctx.KVStore(paramsStoreKey), append([]byte(types.ModuleName), '/'))
+func MigrateParams(legacyAmino *codec.LegacyAmino, paramsStore sdk.KVStore, toModuleName string) error {
+	oldStore := prefix.NewStore(paramsStore, append([]byte(types.ModuleName), '/'))
 	gravityParams := &types.Params{}
 	isExist := false
 	for _, pair := range gravityParams.ParamSetPairs() {
-		bz := paramsStore.Get(pair.Key)
+		bz := oldStore.Get(pair.Key)
 		if len(bz) <= 0 {
 			continue
 		}
@@ -23,7 +23,7 @@ func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsStoreK
 		if err := legacyAmino.UnmarshalJSON(bz, pair.Value); err != nil {
 			panic(err)
 		}
-		paramsStore.Delete(pair.Key)
+		oldStore.Delete(pair.Key)
 	}
 	if !isExist {
 		return nil
@@ -48,13 +48,13 @@ func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsStoreK
 		return err
 	}
 
-	store := prefix.NewStore(ctx.KVStore(paramsStoreKey), append([]byte(toModuleName), '/'))
+	newStore := prefix.NewStore(paramsStore, append([]byte(toModuleName), '/'))
 	for _, pair := range params.ParamSetPairs() {
 		bz, err := legacyAmino.MarshalJSON(pair.Value)
 		if err != nil {
 			panic(err)
 		}
-		store.Set(pair.Key, bz)
+		newStore.Set(pair.Key, bz)
 	}
 	return nil
 }

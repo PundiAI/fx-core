@@ -1,9 +1,5 @@
 package types
 
-import (
-	"fmt"
-)
-
 const (
 	// ModuleName is the name of the module
 	ModuleName = "gravity"
@@ -63,10 +59,10 @@ var (
 	SequenceKeyPrefix = []byte{0xd}
 
 	// KeyLastTXPoolID indexes the lastTxPoolID
-	KeyLastTXPoolID = append(SequenceKeyPrefix, []byte("lastTxPoolId")...)
+	//KeyLastTXPoolID = append(SequenceKeyPrefix, []byte("lastTxPoolId")...)
 
 	// KeyLastOutgoingBatchID indexes the lastBatchID
-	KeyLastOutgoingBatchID = append(SequenceKeyPrefix, []byte("lastBatchId")...)
+	//KeyLastOutgoingBatchID = append(SequenceKeyPrefix, []byte("lastBatchId")...)
 
 	// ValidatorAddressByOrchestratorAddress indexes the validator keys for an orchestrator
 	ValidatorAddressByOrchestratorAddress = []byte{0xe}
@@ -87,7 +83,7 @@ var (
 	LastSlashedBatchBlock = []byte{0x13}
 
 	// LastUnBondingBlockHeight indexes the last validator unbonding block height
-	LastUnBondingBlockHeight = []byte{0x14}
+	//LastUnBondingBlockHeight = []byte{0x14}
 
 	// LastObservedEthereumBlockHeightKey indexes the latest Ethereum block height
 	LastObservedEthereumBlockHeightKey = []byte{0x15}
@@ -95,15 +91,6 @@ var (
 	// LastObservedValsetKey indexes the latest observed valset nonce
 	LastObservedValsetKey = []byte{0x16}
 
-	// IbcSequenceHeightKey  indexes the gravity -> ibc sequence block height
-	IbcSequenceHeightKey = []byte{0x17}
-
 	// LastEventBlockHeightByValidatorKey indexes lateset event blockHeight by validator
 	LastEventBlockHeightByValidatorKey = []byte{0x18}
 )
-
-// GetIbcSequenceHeightKey [0xc1][sourcePort/sourceChannel/sequence]
-func GetIbcSequenceHeightKey(sourcePort, sourceChannel string, sequence uint64) []byte {
-	key := fmt.Sprintf("%s/%s/%d", sourcePort, sourceChannel, sequence)
-	return append(IbcSequenceHeightKey, []byte(key)...)
-}

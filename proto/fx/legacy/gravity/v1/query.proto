@@ -1,9 +1,9 @@
 syntax = "proto3";
 package fx.gravity.v1;
 
-import "fx/gravity/v1/genesis.proto";
-import "fx/gravity/v1/types.proto";
-import "fx/gravity/v1/tx.proto";
+import "fx/legacy/gravity/v1/genesis.proto";
+import "fx/legacy/gravity/v1/types.proto";
+import "fx/legacy/gravity/v1/tx.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 

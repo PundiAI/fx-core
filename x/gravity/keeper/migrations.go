@@ -5,15 +5,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	v3 "github.com/functionx/fx-core/v3/x/gravity/legacy/v3"
+	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
 )
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
 	cdc             codec.BinaryCodec
-	sk              v3.StakingKeeper
-	ak              v3.AccountKeeper
-	bk              v3.BankKeeper
+	sk              v2.StakingKeeper
+	ak              v2.AccountKeeper
+	bk              v2.BankKeeper
 	gravityStoreKey sdk.StoreKey
 	ethStoreKey     sdk.StoreKey
 	legacyAmino     *codec.LegacyAmino
@@ -24,7 +24,7 @@ type Migrator struct {
 func NewMigrator(cdc codec.BinaryCodec,
 	legacyAmino *codec.LegacyAmino, paramsStoreKey sdk.StoreKey,
 	gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey,
-	sk v3.StakingKeeper, ak v3.AccountKeeper, bk v3.BankKeeper) Migrator {
+	sk v2.StakingKeeper, ak v2.AccountKeeper, bk v2.BankKeeper) Migrator {
 	return Migrator{
 		cdc:             cdc,
 		sk:              sk,
@@ -39,15 +39,17 @@ func NewMigrator(cdc codec.BinaryCodec,
 
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	if err := v3.MigrateBank(ctx, m.ak, m.bk, ethtypes.ModuleName); err != nil {
+	if err := v2.MigrateBank(ctx, m.ak, m.bk, ethtypes.ModuleName); err != nil {
 		return err
 	}
-	gravityStore := ctx.KVStore(m.gravityStoreKey)
-	ethStore := ctx.KVStore(m.ethStoreKey)
-	v3.MigrateValidatorToOracle(ctx, m.cdc, gravityStore, ethStore, m.sk)
-	if err := v3.MigrateParams(ctx, m.legacyAmino, m.paramsStoreKey, ethtypes.ModuleName); err != nil {
+	multiStore := ctx.MultiStore()
+	gravityStore := multiStore.GetKVStore(m.gravityStoreKey)
+	ethStore := multiStore.GetKVStore(m.ethStoreKey)
+	paramsStore := multiStore.GetKVStore(m.paramsStoreKey)
+	v2.MigrateValidatorToOracle(ctx, m.cdc, gravityStore, ethStore, m.sk, m.bk)
+	if err := v2.MigrateParams(m.legacyAmino, paramsStore, ethtypes.ModuleName); err != nil {
 		return err
 	}
-	v3.MigrateStore(m.cdc, gravityStore, ethStore)
-	return nil
+	v2.MigrateStore(m.cdc, gravityStore, ethStore)
+	return v2.CleanKVStore(gravityStore)
 }
