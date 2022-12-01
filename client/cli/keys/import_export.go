@@ -7,12 +7,16 @@ import (
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/crypto"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/spf13/cobra"
 )
 
@@ -132,15 +136,24 @@ func ImportKeyCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			//ioutil.ReadFile read all data, contains line break at the end of a file
-			bz = bytes.TrimSuffix(bz, []byte{'\n'})
+			// os.ReadFile read all data, contains line break at the end of a file
+			bz = bytes.TrimPrefix(bytes.TrimSuffix(bz, []byte{'\n'}), []byte("0x"))
 
 			if len(bz) == 64 {
 				priv, err := ethcrypto.HexToECDSA(string(bz))
 				if err != nil {
 					return err
 				}
-				armoPrivKey := crypto.EncryptArmorPrivKey(&ethsecp256k1.PrivKey{Key: ethcrypto.FromECDSA(priv)}, "", ethsecp256k1.KeyType)
+				algoStr := clientCtx.Viper.GetString(flags.FlagKeyAlgorithm)
+				var armoPrivKey string
+				if hd.PubKeyType(algoStr) == hd.Secp256k1Type {
+					armoPrivKey = crypto.EncryptArmorPrivKey(&secp256k1.PrivKey{Key: ethcrypto.FromECDSA(priv)}, "", string(hd.Secp256k1Type))
+				} else if hd.PubKeyType(algoStr) == hd2.EthSecp256k1Type {
+					armoPrivKey = crypto.EncryptArmorPrivKey(&ethsecp256k1.PrivKey{Key: ethcrypto.FromECDSA(priv)}, "", string(hd2.EthSecp256k1Type))
+				} else {
+					return fmt.Errorf("provided algorithm %q is not supported", algoStr)
+				}
+
 				return clientCtx.Keyring.ImportPrivKey(args[0], armoPrivKey, "")
 			}
 			passphrase, err := input.GetPassword("Enter passphrase to decrypt your key:", buf)
@@ -149,12 +162,21 @@ func ImportKeyCommand() *cobra.Command {
 			}
 			key, err := keystore.DecryptKey(bz, passphrase)
 			if err == nil {
-				armoPrivKey := crypto.EncryptArmorPrivKey(&ethsecp256k1.PrivKey{Key: ethcrypto.FromECDSA(key.PrivateKey)}, "", ethsecp256k1.KeyType)
+				algoStr := clientCtx.Viper.GetString(flags.FlagKeyAlgorithm)
+				var armoPrivKey string
+				if hd.PubKeyType(algoStr) == hd.Secp256k1Type {
+					armoPrivKey = crypto.EncryptArmorPrivKey(&secp256k1.PrivKey{Key: ethcrypto.FromECDSA(key.PrivateKey)}, "", string(hd.Secp256k1Type))
+				} else if hd.PubKeyType(algoStr) == hd2.EthSecp256k1Type {
+					armoPrivKey = crypto.EncryptArmorPrivKey(&ethsecp256k1.PrivKey{Key: ethcrypto.FromECDSA(key.PrivateKey)}, "", string(hd2.EthSecp256k1Type))
+				} else {
+					return fmt.Errorf("provided algorithm %q is not supported", algoStr)
+				}
 				return clientCtx.Keyring.ImportPrivKey(args[0], armoPrivKey, "")
 			}
 
 			return clientCtx.Keyring.ImportPrivKey(args[0], string(bz), passphrase)
 		},
 	}
+	cmd.Flags().String(flags.FlagKeyAlgorithm, ethsecp256k1.KeyType, "Key signing algorithm to generate keys for")
 	return cmd
 }
