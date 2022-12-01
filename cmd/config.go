@@ -3,7 +3,7 @@ package cmd
 import (
 	"path/filepath"
 
-	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
+	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/spf13/cobra"
@@ -22,7 +22,7 @@ const (
 // configCmd returns a CLI command to interactively create an application CLI
 // config file.
 func configCmd() *cobra.Command {
-	cmd := sdkCfg.Cmd()
+	cmd := sdkcfg.Cmd()
 	cmd.AddCommand(
 		updateCfgCmd(),
 		appTomlCfgCmd(),

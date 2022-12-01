@@ -10,7 +10,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
+	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -62,9 +62,6 @@ func NewRootCmd() *cobra.Command {
 		Use:   fxtypes.Name + "d",
 		Short: "FunctionX Core Chain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			// set the default command outputs
-			cmd.SetOut(cmd.OutOrStdout())
-			cmd.SetErr(cmd.ErrOrStderr())
 
 			// read flag
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
@@ -73,7 +70,7 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			// read client.toml
-			initClientCtx, err = sdkCfg.ReadFromClientConfig(initClientCtx)
+			initClientCtx, err = sdkcfg.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
 			}
