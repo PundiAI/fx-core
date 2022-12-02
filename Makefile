@@ -129,7 +129,7 @@ run-local: install
 
 draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
-	@goviz -i github.com/functionx/fx-core/v3/app -d 2 | dot -Tpng -o dependency-graph.png
+	@goviz -i github.com/functionx/fx-core/app -d 2 | dot -Tpng -o dependency-graph.png
 
 .PHONY: build build-win install docker go.sum run-local draw-deps
 
@@ -155,21 +155,10 @@ format:
 ###############################################################################
 
 test:
-	@go test -mod=readonly -cover -short $(shell go list ./...)
+	@echo "--> Running tests"
+	@go test -mod=readonly $(ARGS) $(shell go list ./...)
 
-test-unit:
-	@VERSION=$(VERSION) go test -mod=readonly -short -tags='ledger test_ledger_mock' ./...
-
-test-race:
-	@VERSION=$(VERSION) go test -mod=readonly -race -short -tags='ledger test_ledger_mock' ./...
-
-test-cover:
-	@go test -mod=readonly -timeout 30m -race -short -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
-
-benchmark:
-	@go test -mod=readonly -short -bench=. ./...
-
-.PHONY: test test-cover test-unit test-race benchmark
+.PHONY: test
 
 ###############################################################################
 ###                                Protobuf                                 ###

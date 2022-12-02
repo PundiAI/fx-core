@@ -5,8 +5,6 @@ import (
 	"math/big"
 	"time"
 
-	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -30,6 +28,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
+	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 const (
