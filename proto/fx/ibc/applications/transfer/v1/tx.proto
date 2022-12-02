@@ -9,11 +9,12 @@ import "ibc/core/client/v1/client.proto";
 import "ibc/applications/transfer/v1/tx.proto";
 
 // Msg defines the ibc/transfer Msg service.
-// Deprecated: This service is deprecated. It may be removed in the next version.
-// Replace ibc.applications.transfer.v1.Msg
+// Deprecated: This service is deprecated. It may be removed in the next
+// version. Replace ibc.applications.transfer.v1.Msg
 service Msg {
   // Transfer defines a rpc handler method for MsgTransfer.
-  rpc Transfer(MsgTransfer) returns (ibc.applications.transfer.v1.MsgTransferResponse);
+  rpc Transfer(MsgTransfer)
+      returns (ibc.applications.transfer.v1.MsgTransferResponse);
 }
 
 // MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
@@ -53,4 +54,3 @@ message MsgTransfer {
   // optional memo
   string memo = 10;
 }
-

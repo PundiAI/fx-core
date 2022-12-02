@@ -156,7 +156,18 @@
   
     - [Msg](#fx.erc20.v1.Msg)
   
-- [fx/gravity/v1/types.proto](#fx/gravity/v1/types.proto)
+- [fx/ibc/applications/transfer/v1/query.proto](#fx/ibc/applications/transfer/v1/query.proto)
+    - [Query](#fx.ibc.applications.transfer.v1.Query)
+  
+- [fx/ibc/applications/transfer/v1/transfer.proto](#fx/ibc/applications/transfer/v1/transfer.proto)
+    - [FungibleTokenPacketData](#fx.ibc.applications.transfer.v1.FungibleTokenPacketData)
+  
+- [fx/ibc/applications/transfer/v1/tx.proto](#fx/ibc/applications/transfer/v1/tx.proto)
+    - [MsgTransfer](#fx.ibc.applications.transfer.v1.MsgTransfer)
+  
+    - [Msg](#fx.ibc.applications.transfer.v1.Msg)
+  
+- [fx/legacy/gravity/v1/types.proto](#fx/legacy/gravity/v1/types.proto)
     - [Attestation](#fx.gravity.v1.Attestation)
     - [BatchFees](#fx.gravity.v1.BatchFees)
     - [BridgeValidator](#fx.gravity.v1.BridgeValidator)
@@ -170,7 +181,7 @@
   
     - [ClaimType](#fx.gravity.v1.ClaimType)
   
-- [fx/gravity/v1/tx.proto](#fx/gravity/v1/tx.proto)
+- [fx/legacy/gravity/v1/tx.proto](#fx/legacy/gravity/v1/tx.proto)
     - [MsgCancelSendToEth](#fx.gravity.v1.MsgCancelSendToEth)
     - [MsgCancelSendToEthResponse](#fx.gravity.v1.MsgCancelSendToEthResponse)
     - [MsgConfirmBatch](#fx.gravity.v1.MsgConfirmBatch)
@@ -194,10 +205,10 @@
   
     - [Msg](#fx.gravity.v1.Msg)
   
-- [fx/gravity/v1/genesis.proto](#fx/gravity/v1/genesis.proto)
+- [fx/legacy/gravity/v1/genesis.proto](#fx/legacy/gravity/v1/genesis.proto)
     - [Params](#fx.gravity.v1.Params)
   
-- [fx/gravity/v1/query.proto](#fx/gravity/v1/query.proto)
+- [fx/legacy/gravity/v1/query.proto](#fx/legacy/gravity/v1/query.proto)
     - [QueryBatchConfirmRequest](#fx.gravity.v1.QueryBatchConfirmRequest)
     - [QueryBatchConfirmResponse](#fx.gravity.v1.QueryBatchConfirmResponse)
     - [QueryBatchConfirmsRequest](#fx.gravity.v1.QueryBatchConfirmsRequest)
@@ -249,33 +260,11 @@
   
     - [Query](#fx.gravity.v1.Query)
   
-- [fx/ibc/applications/transfer/v1/transfer.proto](#fx/ibc/applications/transfer/v1/transfer.proto)
-    - [DenomTrace](#fx.ibc.applications.transfer.v1.DenomTrace)
-    - [FungibleTokenPacketData](#fx.ibc.applications.transfer.v1.FungibleTokenPacketData)
-    - [Params](#fx.ibc.applications.transfer.v1.Params)
+- [fx/legacy/other/query.proto](#fx/legacy/other/query.proto)
+    - [GasPriceRequest](#fx.other.GasPriceRequest)
+    - [GasPriceResponse](#fx.other.GasPriceResponse)
   
-- [fx/ibc/applications/transfer/v1/genesis.proto](#fx/ibc/applications/transfer/v1/genesis.proto)
-    - [GenesisState](#fx.ibc.applications.transfer.v1.GenesisState)
-  
-- [fx/ibc/applications/transfer/v1/query.proto](#fx/ibc/applications/transfer/v1/query.proto)
-    - [QueryDenomHashRequest](#fx.ibc.applications.transfer.v1.QueryDenomHashRequest)
-    - [QueryDenomHashResponse](#fx.ibc.applications.transfer.v1.QueryDenomHashResponse)
-    - [QueryDenomTraceRequest](#fx.ibc.applications.transfer.v1.QueryDenomTraceRequest)
-    - [QueryDenomTraceResponse](#fx.ibc.applications.transfer.v1.QueryDenomTraceResponse)
-    - [QueryDenomTracesRequest](#fx.ibc.applications.transfer.v1.QueryDenomTracesRequest)
-    - [QueryDenomTracesResponse](#fx.ibc.applications.transfer.v1.QueryDenomTracesResponse)
-    - [QueryEscrowAddressRequest](#fx.ibc.applications.transfer.v1.QueryEscrowAddressRequest)
-    - [QueryEscrowAddressResponse](#fx.ibc.applications.transfer.v1.QueryEscrowAddressResponse)
-    - [QueryParamsRequest](#fx.ibc.applications.transfer.v1.QueryParamsRequest)
-    - [QueryParamsResponse](#fx.ibc.applications.transfer.v1.QueryParamsResponse)
-  
-    - [Query](#fx.ibc.applications.transfer.v1.Query)
-  
-- [fx/ibc/applications/transfer/v1/tx.proto](#fx/ibc/applications/transfer/v1/tx.proto)
-    - [MsgTransfer](#fx.ibc.applications.transfer.v1.MsgTransfer)
-    - [MsgTransferResponse](#fx.ibc.applications.transfer.v1.MsgTransferResponse)
-  
-    - [Msg](#fx.ibc.applications.transfer.v1.Msg)
+    - [Query](#fx.other.Query)
   
 - [fx/migrate/v1/migrate.proto](#fx/migrate/v1/migrate.proto)
     - [MigrateRecord](#fx.migrate.v1.MigrateRecord)
@@ -296,12 +285,6 @@
     - [MsgMigrateAccountResponse](#fx.migrate.v1.MsgMigrateAccountResponse)
   
     - [Msg](#fx.migrate.v1.Msg)
-  
-- [fx/other/query.proto](#fx/other/query.proto)
-    - [GasPriceRequest](#fx.other.GasPriceRequest)
-    - [GasPriceResponse](#fx.other.GasPriceResponse)
-  
-    - [Query](#fx.other.Query)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -2539,10 +2522,137 @@ Msg defines the erc20 Msg service.
 
 
 
-<a name="fx/gravity/v1/types.proto"></a>
+<a name="fx/ibc/applications/transfer/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## fx/gravity/v1/types.proto
+## fx/ibc/applications/transfer/v1/query.proto
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="fx.ibc.applications.transfer.v1.Query"></a>
+
+### Query
+Query provides defines the gRPC querier service.
+Deprecated: This service is deprecated. It may be removed in the next version.
+Replace ibc.applications.transfer.v1.Query
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `DenomTrace` | [.ibc.applications.transfer.v1.QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest) | [.ibc.applications.transfer.v1.QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | |
+| `DenomTraces` | [.ibc.applications.transfer.v1.QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest) | [.ibc.applications.transfer.v1.QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | |
+| `Params` | [.ibc.applications.transfer.v1.QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest) | [.ibc.applications.transfer.v1.QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | |
+| `DenomHash` | [.ibc.applications.transfer.v1.QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest) | [.ibc.applications.transfer.v1.QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | |
+| `EscrowAddress` | [.ibc.applications.transfer.v1.QueryEscrowAddressRequest](#ibc.applications.transfer.v1.QueryEscrowAddressRequest) | [.ibc.applications.transfer.v1.QueryEscrowAddressResponse](#ibc.applications.transfer.v1.QueryEscrowAddressResponse) | EscrowAddress returns the escrow address for a particular port and channel id. | |
+
+ <!-- end services -->
+
+
+
+<a name="fx/ibc/applications/transfer/v1/transfer.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/ibc/applications/transfer/v1/transfer.proto
+
+
+
+<a name="fx.ibc.applications.transfer.v1.FungibleTokenPacketData"></a>
+
+### FungibleTokenPacketData
+FungibleTokenPacketData defines a struct for the packet payload
+See FungibleTokenPacketData spec:
+https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | the token denomination to be transferred |
+| `amount` | [string](#string) |  | the token amount to be transferred |
+| `sender` | [string](#string) |  | the sender address |
+| `receiver` | [string](#string) |  | the recipient address on the destination chain |
+| `router` | [string](#string) |  | the router is hook destination chain |
+| `fee` | [string](#string) |  | the fee is destination fee |
+| `memo` | [string](#string) |  | optional memo |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="fx/ibc/applications/transfer/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/ibc/applications/transfer/v1/tx.proto
+
+
+
+<a name="fx.ibc.applications.transfer.v1.MsgTransfer"></a>
+
+### MsgTransfer
+MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
+ICS20 enabled chains. See ICS Spec here:
+https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
+Deprecated: This Msg is deprecated. It may be removed in the next version.
+Replace ibc.applications.transfer.v1.MsgTransfer
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `source_port` | [string](#string) |  | the port on which the packet will be sent |
+| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
+| `token` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | the tokens to be transferred |
+| `sender` | [string](#string) |  | the sender address |
+| `receiver` | [string](#string) |  | the recipient address on the destination chain |
+| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
+| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp (in nanoseconds) relative to the current block timestamp. The timeout is disabled when set to 0. |
+| `router` | [string](#string) |  | the router is hook destination chain |
+| `fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | the tokens to be destination fee |
+| `memo` | [string](#string) |  | optional memo |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="fx.ibc.applications.transfer.v1.Msg"></a>
+
+### Msg
+Msg defines the ibc/transfer Msg service.
+Deprecated: This service is deprecated. It may be removed in the next version.
+Replace ibc.applications.transfer.v1.Msg
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Transfer` | [MsgTransfer](#fx.ibc.applications.transfer.v1.MsgTransfer) | [.ibc.applications.transfer.v1.MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse) | Transfer defines a rpc handler method for MsgTransfer. | |
+
+ <!-- end services -->
+
+
+
+<a name="fx/legacy/gravity/v1/types.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/legacy/gravity/v1/types.proto
 
 
 
@@ -2742,10 +2852,10 @@ Deprecated after upgrade v3
 
 
 
-<a name="fx/gravity/v1/tx.proto"></a>
+<a name="fx/legacy/gravity/v1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## fx/gravity/v1/tx.proto
+## fx/legacy/gravity/v1/tx.proto
 
 
 
@@ -3063,10 +3173,10 @@ Deprecated after upgrade v3
 
 
 
-<a name="fx/gravity/v1/genesis.proto"></a>
+<a name="fx/legacy/gravity/v1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## fx/gravity/v1/genesis.proto
+## fx/legacy/gravity/v1/genesis.proto
 
 
 
@@ -3110,10 +3220,10 @@ Deprecated after upgrade v3
 
 
 
-<a name="fx/gravity/v1/query.proto"></a>
+<a name="fx/legacy/gravity/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## fx/gravity/v1/query.proto
+## fx/legacy/gravity/v1/query.proto
 
 
 
@@ -3856,267 +3966,32 @@ Deprecated after upgrade v3
 
 
 
-<a name="fx/ibc/applications/transfer/v1/transfer.proto"></a>
+<a name="fx/legacy/other/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## fx/ibc/applications/transfer/v1/transfer.proto
+## fx/legacy/other/query.proto
 
 
 
-<a name="fx.ibc.applications.transfer.v1.DenomTrace"></a>
+<a name="fx.other.GasPriceRequest"></a>
 
-### DenomTrace
-DenomTrace contains the base denomination for ICS20 fungible tokens and the
-source tracing information path.
+### GasPriceRequest
+
+
+
+
+
+
+
+<a name="fx.other.GasPriceResponse"></a>
+
+### GasPriceResponse
+
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `path` | [string](#string) |  | path defines the chain of port/channel identifiers used for tracing the source of the fungible token. |
-| `base_denom` | [string](#string) |  | base denomination of the relayed fungible token. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.FungibleTokenPacketData"></a>
-
-### FungibleTokenPacketData
-FungibleTokenPacketData defines a struct for the packet payload
-See FungibleTokenPacketData spec:
-https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `denom` | [string](#string) |  | the token denomination to be transferred |
-| `amount` | [string](#string) |  | the token amount to be transferred |
-| `sender` | [string](#string) |  | the sender address |
-| `receiver` | [string](#string) |  | the recipient address on the destination chain |
-| `router` | [string](#string) |  | the router is hook destination chain |
-| `fee` | [string](#string) |  | the fee is destination fee |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.Params"></a>
-
-### Params
-Params defines the set of IBC transfer parameters.
-NOTE: To prevent a single token from being transferred, set the
-TransfersEnabled parameter to true and then set the bank module's SendEnabled
-parameter for the denomination to false.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `send_enabled` | [bool](#bool) |  | send_enabled enables or disables all cross-chain token transfers from this chain. |
-| `receive_enabled` | [bool](#bool) |  | receive_enabled enables or disables all cross-chain token transfers to this chain. |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="fx/ibc/applications/transfer/v1/genesis.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## fx/ibc/applications/transfer/v1/genesis.proto
-
-
-
-<a name="fx.ibc.applications.transfer.v1.GenesisState"></a>
-
-### GenesisState
-GenesisState defines the ibc-transfer genesis state
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  |  |
-| `denom_traces` | [DenomTrace](#fx.ibc.applications.transfer.v1.DenomTrace) | repeated |  |
-| `params` | [Params](#fx.ibc.applications.transfer.v1.Params) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="fx/ibc/applications/transfer/v1/query.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## fx/ibc/applications/transfer/v1/query.proto
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomHashRequest"></a>
-
-### QueryDenomHashRequest
-QueryDenomHashRequest is the request type for the Query/DenomHash RPC
-method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `trace` | [string](#string) |  | The denomination trace ([port_id]/[channel_id])+/[denom] |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomHashResponse"></a>
-
-### QueryDenomHashResponse
-QueryDenomHashResponse is the response type for the Query/DenomHash RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomTraceRequest"></a>
-
-### QueryDenomTraceRequest
-QueryDenomTraceRequest is the request type for the Query/DenomTrace RPC
-method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | hash (in hex format) of the denomination trace information. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomTraceResponse"></a>
-
-### QueryDenomTraceResponse
-QueryDenomTraceResponse is the response type for the Query/DenomTrace RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `denom_trace` | [DenomTrace](#fx.ibc.applications.transfer.v1.DenomTrace) |  | denom_trace returns the requested denomination trace information. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomTracesRequest"></a>
-
-### QueryDenomTracesRequest
-QueryConnectionsRequest is the request type for the Query/DenomTraces RPC
-method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryDenomTracesResponse"></a>
-
-### QueryDenomTracesResponse
-QueryConnectionsResponse is the response type for the Query/DenomTraces RPC
-method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `denom_traces` | [DenomTrace](#fx.ibc.applications.transfer.v1.DenomTrace) | repeated | denom_traces returns all denominations trace information. |
-| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryEscrowAddressRequest"></a>
-
-### QueryEscrowAddressRequest
-QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `port_id` | [string](#string) |  | unique port identifier |
-| `channel_id` | [string](#string) |  | unique channel identifier |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryEscrowAddressResponse"></a>
-
-### QueryEscrowAddressResponse
-QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `escrow_address` | [string](#string) |  | the escrow account address |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryParamsRequest"></a>
-
-### QueryParamsRequest
-QueryParamsRequest is the request type for the Query/Params RPC method.
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.QueryParamsResponse"></a>
-
-### QueryParamsResponse
-QueryParamsResponse is the response type for the Query/Params RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `params` | [Params](#fx.ibc.applications.transfer.v1.Params) |  | params defines the parameters of the module. |
+| `gas_prices` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
 
 
@@ -4129,79 +4004,15 @@ QueryParamsResponse is the response type for the Query/Params RPC method.
  <!-- end HasExtensions -->
 
 
-<a name="fx.ibc.applications.transfer.v1.Query"></a>
+<a name="fx.other.Query"></a>
 
 ### Query
-Query provides defines the gRPC querier service.
+Deprecated
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `DenomTrace` | [QueryDenomTraceRequest](#fx.ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#fx.ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/apps/transfer/v1/denom_traces/{hash}|
-| `DenomTraces` | [QueryDenomTracesRequest](#fx.ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#fx.ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/apps/transfer/v1/denom_traces|
-| `Params` | [QueryParamsRequest](#fx.ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/apps/transfer/v1/params|
-| `DenomHash` | [QueryDenomHashRequest](#fx.ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#fx.ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/apps/transfer/v1/denom_hashes/{trace}|
-| `EscrowAddress` | [QueryEscrowAddressRequest](#fx.ibc.applications.transfer.v1.QueryEscrowAddressRequest) | [QueryEscrowAddressResponse](#fx.ibc.applications.transfer.v1.QueryEscrowAddressResponse) | EscrowAddress returns the escrow address for a particular port and channel id. | GET|/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address|
-
- <!-- end services -->
-
-
-
-<a name="fx/ibc/applications/transfer/v1/tx.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## fx/ibc/applications/transfer/v1/tx.proto
-
-
-
-<a name="fx.ibc.applications.transfer.v1.MsgTransfer"></a>
-
-### MsgTransfer
-MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
-ICS20 enabled chains. See ICS Spec here:
-https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `source_port` | [string](#string) |  | the port on which the packet will be sent |
-| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
-| `token` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | the tokens to be transferred |
-| `sender` | [string](#string) |  | the sender address |
-| `receiver` | [string](#string) |  | the recipient address on the destination chain |
-| `timeout_height` | [ibc.core.client.v1.Height](#ibc.core.client.v1.Height) |  | Timeout height relative to the current block height. The timeout is disabled when set to 0. |
-| `timeout_timestamp` | [uint64](#uint64) |  | Timeout timestamp (in nanoseconds) relative to the current block timestamp. The timeout is disabled when set to 0. |
-| `router` | [string](#string) |  | the router is hook destination chain |
-| `fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | the tokens to be destination fee |
-
-
-
-
-
-
-<a name="fx.ibc.applications.transfer.v1.MsgTransferResponse"></a>
-
-### MsgTransferResponse
-MsgTransferResponse defines the Msg/Transfer response type.
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="fx.ibc.applications.transfer.v1.Msg"></a>
-
-### Msg
-Msg defines the ibc/transfer Msg service.
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Transfer` | [MsgTransfer](#fx.ibc.applications.transfer.v1.MsgTransfer) | [MsgTransferResponse](#fx.ibc.applications.transfer.v1.MsgTransferResponse) | Transfer defines a rpc handler method for MsgTransfer. | |
+| `FxGasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/fx/other/gas_price|
+| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/other/v1/gas_price|
 
  <!-- end services -->
 
@@ -4403,58 +4214,6 @@ Msg defines the state transitions possible within gravity
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `MigrateAccount` | [MsgMigrateAccount](#fx.migrate.v1.MsgMigrateAccount) | [MsgMigrateAccountResponse](#fx.migrate.v1.MsgMigrateAccountResponse) |  | |
-
- <!-- end services -->
-
-
-
-<a name="fx/other/query.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## fx/other/query.proto
-
-
-
-<a name="fx.other.GasPriceRequest"></a>
-
-### GasPriceRequest
-
-
-
-
-
-
-
-<a name="fx.other.GasPriceResponse"></a>
-
-### GasPriceResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `gas_prices` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="fx.other.Query"></a>
-
-### Query
-Deprecated
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `FxGasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/fx/other/gas_price|
-| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/other/v1/gas_price|
 
  <!-- end services -->
 
