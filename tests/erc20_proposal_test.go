@@ -29,7 +29,7 @@ func (suite *ERC20ProposalTestSuite) TestERC20Proposal() {
 	// add eth usd denom
 	ethUSDDenom := fmt.Sprintf("eth%s", ethUSDToken)
 	proposalId := suite.ERC20.UpdateDenomAliasProposal("usdt", ethUSDDenom)
-	suite.ProposalVote(suite.AdminPrivateKey(), proposalId, govtypes.OptionYes)
+	suite.NoError(suite.network.WaitForNextBlock())
 	suite.CheckProposal(proposalId, govtypes.StatusPassed)
 
 	//check add
@@ -42,7 +42,7 @@ func (suite *ERC20ProposalTestSuite) TestERC20Proposal() {
 
 	//remove eth usd
 	proposalId = suite.ERC20.UpdateDenomAliasProposal("usdt", ethUSDDenom)
-	suite.ProposalVote(suite.AdminPrivateKey(), proposalId, govtypes.OptionYes)
+	suite.NoError(suite.network.WaitForNextBlock())
 	suite.CheckProposal(proposalId, govtypes.StatusPassed)
 
 	//check remove
@@ -53,7 +53,7 @@ func (suite *ERC20ProposalTestSuite) TestERC20Proposal() {
 	suite.Error(err)
 
 	proposalId = suite.ERC20.ToggleTokenConversionProposal("usdt")
-	suite.ProposalVote(suite.AdminPrivateKey(), proposalId, govtypes.OptionYes)
+	suite.NoError(suite.network.WaitForNextBlock())
 	suite.CheckProposal(proposalId, govtypes.StatusPassed)
 
 	tokenPairResp, err := suite.ERC20.GRPCClient().ERC20Query().TokenPair(suite.ctx, &erc20types.QueryTokenPairRequest{Token: "usdt"})

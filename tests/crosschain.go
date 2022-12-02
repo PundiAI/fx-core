@@ -1,16 +1,13 @@
 package tests
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"strconv"
-	"time"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 
@@ -26,17 +23,6 @@ type CrosschainTestSuite struct {
 	bridgerFxPrivKey  cryptotypes.PrivKey
 	bridgerExtPrivKey *ecdsa.PrivateKey
 	privKey           cryptotypes.PrivKey
-}
-
-func NewCrosschainTestSuite(chainName string) CrosschainTestSuite {
-	return CrosschainTestSuite{
-		TestSuite:         NewTestSuite(),
-		chainName:         chainName,
-		oraclePrivKey:     helpers.NewPriKey(),
-		bridgerFxPrivKey:  helpers.NewPriKey(),
-		bridgerExtPrivKey: helpers.GenerateEthKey(),
-		privKey:           helpers.NewEthPrivKey(),
-	}
 }
 
 func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestSuite {
@@ -140,54 +126,39 @@ func (suite *CrosschainTestSuite) BondedOracle() {
 }
 
 func (suite *CrosschainTestSuite) SendUpdateChainOraclesProposal() (proposalId uint64) {
-	proposal, err := govtypes.NewMsgSubmitProposal(
-		&crosschaintypes.UpdateChainOraclesProposal{
-			Title:       fmt.Sprintf("Update %s cross chain oracle", suite.chainName),
-			Description: "foo",
-			Oracles:     []string{suite.OracleAddr().String()},
-			ChainName:   suite.chainName,
-		},
-		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
-		suite.OracleAddr(),
-	)
-	suite.NoError(err)
-	return suite.BroadcastProposalTx(suite.oraclePrivKey, proposal)
+	content := &crosschaintypes.UpdateChainOraclesProposal{
+		Title:       fmt.Sprintf("Update %s cross chain oracle", suite.chainName),
+		Description: "foo",
+		Oracles:     []string{suite.OracleAddr().String()},
+		ChainName:   suite.chainName,
+	}
+	return suite.BroadcastProposalTx(content)
 }
 
 func (suite *CrosschainTestSuite) SendOracleSetConfirm() {
-	timeoutCtx, cancel := context.WithTimeout(suite.ctx, suite.network.Config.TimeoutCommit)
-	defer cancel()
-	for {
-		time.Sleep(10 * time.Millisecond)
-		queryResponse, err := suite.CrosschainQuery().LastPendingOracleSetRequestByAddr(
-			timeoutCtx,
-			&crosschaintypes.QueryLastPendingOracleSetRequestByAddrRequest{
-				BridgerAddress: suite.BridgerFxAddr().String(),
-				ChainName:      suite.chainName,
-			},
-		)
-		if err != nil {
-			suite.Require().ErrorContains(err, "oracle")
-			continue
-		}
-		for _, valset := range queryResponse.OracleSets {
-			checkpoint, err := valset.GetCheckpoint(suite.params.GravityId)
-			suite.NoError(err)
+	queryResponse, err := suite.CrosschainQuery().LastPendingOracleSetRequestByAddr(
+		suite.ctx,
+		&crosschaintypes.QueryLastPendingOracleSetRequestByAddrRequest{
+			BridgerAddress: suite.BridgerFxAddr().String(),
+			ChainName:      suite.chainName,
+		},
+	)
+	suite.NoError(err)
 
-			signature, err := crosschaintypes.NewEthereumSignature(checkpoint, suite.bridgerExtPrivKey)
-			suite.NoError(err)
+	for _, valset := range queryResponse.OracleSets {
+		checkpoint, err := valset.GetCheckpoint(suite.params.GravityId)
+		suite.NoError(err)
 
-			suite.BroadcastTx(suite.bridgerFxPrivKey, &crosschaintypes.MsgOracleSetConfirm{
-				Nonce:           valset.Nonce,
-				BridgerAddress:  suite.BridgerFxAddr().String(),
-				ExternalAddress: suite.BridgerExtAddr(),
-				Signature:       hex.EncodeToString(signature),
-				ChainName:       suite.chainName,
-			})
-		}
-		if len(queryResponse.OracleSets) > 0 {
-			break
-		}
+		signature, err := crosschaintypes.NewEthereumSignature(checkpoint, suite.bridgerExtPrivKey)
+		suite.NoError(err)
+
+		suite.BroadcastTx(suite.bridgerFxPrivKey, &crosschaintypes.MsgOracleSetConfirm{
+			Nonce:           valset.Nonce,
+			BridgerAddress:  suite.BridgerFxAddr().String(),
+			ExternalAddress: suite.BridgerExtAddr(),
+			Signature:       hex.EncodeToString(signature),
+			ChainName:       suite.chainName,
+		})
 	}
 }
 
@@ -291,79 +262,65 @@ func (suite *CrosschainTestSuite) SendCancelSendToExternal(txId uint64) {
 
 func (suite *CrosschainTestSuite) SendBatchRequest(minTxs uint64) {
 	msgList := make([]sdk.Msg, 0)
-	for {
-		batchFeeResponse, err := suite.CrosschainQuery().BatchFees(suite.ctx, &crosschaintypes.QueryBatchFeeRequest{ChainName: suite.chainName})
-		suite.NoError(err)
-		for _, batchToken := range batchFeeResponse.BatchFees {
-			if batchToken.TotalTxs >= minTxs {
-				denomResponse, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
-					Token:     batchToken.TokenContract,
-					ChainName: suite.chainName,
-				})
-				suite.NoError(err)
+	batchFeeResponse, err := suite.CrosschainQuery().BatchFees(suite.ctx, &crosschaintypes.QueryBatchFeeRequest{ChainName: suite.chainName})
+	suite.NoError(err)
+	for _, batchToken := range batchFeeResponse.BatchFees {
+		if batchToken.TotalTxs >= minTxs {
+			denomResponse, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
+				Token:     batchToken.TokenContract,
+				ChainName: suite.chainName,
+			})
+			suite.NoError(err)
 
-				msgList = append(msgList, &crosschaintypes.MsgRequestBatch{
-					Sender:     suite.BridgerFxAddr().String(),
-					Denom:      denomResponse.Denom,
-					MinimumFee: batchToken.TotalFees,
-					FeeReceive: suite.HexAddr().String(),
-					ChainName:  suite.chainName,
-				})
-			}
+			msgList = append(msgList, &crosschaintypes.MsgRequestBatch{
+				Sender:     suite.BridgerFxAddr().String(),
+				Denom:      denomResponse.Denom,
+				MinimumFee: batchToken.TotalFees,
+				FeeReceive: suite.HexAddr().String(),
+				ChainName:  suite.chainName,
+			})
 		}
-		if len(msgList) > 0 {
-			break
-		}
-		time.Sleep(10 * time.Millisecond)
 	}
 	suite.BroadcastTx(suite.bridgerFxPrivKey, msgList...)
 }
 
 func (suite *CrosschainTestSuite) SendConfirmBatch() {
-	timeoutCtx, cancel := context.WithTimeout(suite.ctx, suite.network.Config.TimeoutCommit)
-	defer cancel()
-	for {
-		response, err := suite.CrosschainQuery().LastPendingBatchRequestByAddr(
-			timeoutCtx,
-			&crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{
-				BridgerAddress: suite.BridgerFxAddr().String(),
-				ChainName:      suite.chainName,
-			},
-		)
-		suite.NoError(err)
+	response, err := suite.CrosschainQuery().LastPendingBatchRequestByAddr(
+		suite.ctx,
+		&crosschaintypes.QueryLastPendingBatchRequestByAddrRequest{
+			BridgerAddress: suite.BridgerFxAddr().String(),
+			ChainName:      suite.chainName,
+		},
+	)
+	suite.NoError(err)
+	suite.NotNil(response.Batch)
 
-		if response.Batch == nil {
-			time.Sleep(10 * time.Millisecond)
-			continue
-		}
-		outgoingTxBatch := response.Batch
-		checkpoint, err := outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
-		suite.NoError(err)
+	outgoingTxBatch := response.Batch
+	checkpoint, err := outgoingTxBatch.GetCheckpoint(suite.params.GravityId)
+	suite.NoError(err)
 
-		signatureBytes, err := crosschaintypes.NewEthereumSignature(checkpoint, suite.bridgerExtPrivKey)
-		suite.NoError(err)
+	signatureBytes, err := crosschaintypes.NewEthereumSignature(checkpoint, suite.bridgerExtPrivKey)
+	suite.NoError(err)
 
-		err = crosschaintypes.ValidateEthereumSignature(checkpoint, signatureBytes, suite.BridgerExtAddr())
-		suite.NoError(err)
+	err = crosschaintypes.ValidateEthereumSignature(checkpoint, signatureBytes, suite.BridgerExtAddr())
+	suite.NoError(err)
 
-		suite.BroadcastTx(suite.bridgerFxPrivKey,
-			&crosschaintypes.MsgConfirmBatch{
-				Nonce:           outgoingTxBatch.BatchNonce,
-				TokenContract:   outgoingTxBatch.TokenContract,
-				BridgerAddress:  suite.BridgerFxAddr().String(),
-				ExternalAddress: suite.BridgerExtAddr(),
-				Signature:       hex.EncodeToString(signatureBytes),
-				ChainName:       suite.chainName,
-			},
-			&crosschaintypes.MsgSendToExternalClaim{
-				EventNonce:     suite.queryFxLastEventNonce(),
-				BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
-				BatchNonce:     outgoingTxBatch.BatchNonce,
-				TokenContract:  outgoingTxBatch.TokenContract,
-				BridgerAddress: suite.BridgerFxAddr().String(),
-				ChainName:      suite.chainName,
-			},
-		)
-		break
-	}
+	suite.BroadcastTx(suite.bridgerFxPrivKey,
+		&crosschaintypes.MsgConfirmBatch{
+			Nonce:           outgoingTxBatch.BatchNonce,
+			TokenContract:   outgoingTxBatch.TokenContract,
+			BridgerAddress:  suite.BridgerFxAddr().String(),
+			ExternalAddress: suite.BridgerExtAddr(),
+			Signature:       hex.EncodeToString(signatureBytes),
+			ChainName:       suite.chainName,
+		},
+		&crosschaintypes.MsgSendToExternalClaim{
+			EventNonce:     suite.queryFxLastEventNonce(),
+			BlockHeight:    suite.queryObserverExternalBlockHeight() + 1,
+			BatchNonce:     outgoingTxBatch.BatchNonce,
+			TokenContract:  outgoingTxBatch.TokenContract,
+			BridgerAddress: suite.BridgerFxAddr().String(),
+			ChainName:      suite.chainName,
+		},
+	)
 }

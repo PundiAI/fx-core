@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/stretchr/testify/suite"
 
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
@@ -19,7 +18,7 @@ type BSCTestSuite struct {
 
 func TestBSCTestSuite(t *testing.T) {
 	suite.Run(t, &BSCTestSuite{
-		CrosschainTestSuite: NewCrosschainTestSuite(bsctypes.ModuleName),
+		CrosschainTestSuite: NewCrosschainWithTestSuite(bsctypes.ModuleName, NewTestSuite()),
 	})
 }
 
@@ -32,7 +31,7 @@ func (suite *BSCTestSuite) TestCrosschain_BSC() {
 	}.IBCDenom()
 
 	proposalId := suite.SendUpdateChainOraclesProposal()
-	suite.ProposalVote(suite.AdminPrivateKey(), proposalId, govtypes.OptionYes)
+	suite.NoError(suite.network.WaitForNextBlock())
 	suite.CheckProposal(proposalId, govtypes.StatusPassed)
 
 	suite.BondedOracle()

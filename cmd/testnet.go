@@ -33,7 +33,7 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/client/cli"
-	fxCfg "github.com/functionx/fx-core/v3/server/config"
+	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -60,7 +60,7 @@ Example:
 	fxcored testnet -validators 4 -output-dir ./testnet --starting-ip 172.20.0.2
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			srvconfig.SetConfigTemplate(fxCfg.DefaultConfigTemplate())
+			srvconfig.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -125,14 +125,14 @@ func initTestnet(
 	denom string,
 	valNum int,
 ) error {
-	fxAppConfig := fxCfg.DefaultConfig()
+	fxAppConfig := fxcfg.DefaultConfig()
 	fxAppConfig.MinGasPrices = minGasPrices
 	fxAppConfig.API.Enable = true
 	fxAppConfig.Telemetry.Enabled = true
 	fxAppConfig.Telemetry.PrometheusRetentionTime = 60
 	fxAppConfig.Telemetry.EnableHostnameLabel = false
 	fxAppConfig.Telemetry.GlobalLabels = [][]string{{"chain_id", chainID}}
-	fxAppConfig.BypassMinFee = fxCfg.BypassMinFee{
+	fxAppConfig.BypassMinFee = fxcfg.BypassMinFee{
 		MsgTypes: []string{
 			sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
 			sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),

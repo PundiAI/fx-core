@@ -6,7 +6,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -14,6 +13,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -30,23 +30,22 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	useNetwork bool
-	network    *network.Network
-	ctx        context.Context
-	sync.Mutex
+	useLocalNetwork bool
+	network         *network.Network
+	ctx             context.Context
+	proposalId      uint64
 }
 
 func NewTestSuite() *TestSuite {
 	testSuite := &TestSuite{
-		Suite:      suite.Suite{},
-		useNetwork: true,
-		Mutex:      sync.Mutex{},
-		ctx:        context.Background(),
+		Suite:           suite.Suite{},
+		useLocalNetwork: true,
+		proposalId:      0,
+		ctx:             context.Background(),
 	}
-	if os.Getenv("USE_NETWORK") == "false" {
-		testSuite.useNetwork = false
+	if os.Getenv("USE_LOCAL_NETWORK") == "false" {
+		testSuite.useLocalNetwork = false
 	}
-	// nolint
 	return testSuite
 }
 
@@ -62,12 +61,17 @@ func (suite *TestSuite) Context() context.Context {
 	return suite.ctx
 }
 
-func (suite *TestSuite) GetUseNetwork() bool {
-	return suite.useNetwork
+func (suite *TestSuite) IsUseLocalNetwork() bool {
+	return suite.useLocalNetwork
+}
+
+func (suite *TestSuite) getNextProposalId() uint64 {
+	suite.proposalId = suite.proposalId + 1
+	return suite.proposalId
 }
 
 func (suite *TestSuite) SetupSuite() {
-	if !suite.useNetwork {
+	if !suite.useLocalNetwork {
 		return
 	}
 	suite.T().Log("setting up integration test suite")
@@ -75,7 +79,7 @@ func (suite *TestSuite) SetupSuite() {
 	cfg := testutil.DefaultNetworkConfig()
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
 	cfg.NumValidators = 1
-	cfg.VotingPeriod = 5 * time.Second
+	cfg.VotingPeriod = 100 * time.Nanosecond
 
 	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
 	suite.Require().NoError(err)
@@ -87,7 +91,7 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) TearDownSuite() {
-	if !suite.useNetwork {
+	if !suite.useLocalNetwork {
 		return
 	}
 	suite.T().Log("tearing down integration test suite")
@@ -109,7 +113,7 @@ func (suite *TestSuite) AdminPrivateKey() cryptotypes.PrivKey {
 
 func (suite *TestSuite) GRPCClient() *grpc.Client {
 	grpcUrl := "http://localhost:9090"
-	if suite.useNetwork {
+	if suite.useLocalNetwork {
 		grpcUrl = fmt.Sprintf("http://%s", suite.GetFirstValidtor().AppConfig.GRPC.Address)
 	}
 	client, err := grpc.NewClient(grpcUrl)
@@ -120,7 +124,7 @@ func (suite *TestSuite) GRPCClient() *grpc.Client {
 
 func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
 	nodeUrl := "http://localhost:26657"
-	if suite.useNetwork {
+	if suite.useLocalNetwork {
 		nodeUrl = suite.GetFirstValidtor().RPCAddress
 	}
 	rpc := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(nodeUrl))
@@ -164,8 +168,6 @@ func (suite *TestSuite) QueryBlockByTxHash(txHash string) *types.Block {
 }
 
 func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.Msg) *sdk.TxResponse {
-	suite.Lock()
-	defer suite.Unlock()
 	grpcClient := suite.GRPCClient()
 	balances, err := grpcClient.QueryBalances(sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
 	suite.NoError(err)
@@ -175,22 +177,24 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	txRaw, err := grpcClient.BuildTxV2(privKey, msgList, 500000, "", 0)
 	suite.NoError(err)
 
-	txResponse, err := grpcClient.BroadcastTxOk(txRaw)
+	txResponse, err := grpcClient.BroadcastTxOk(txRaw, tx.BroadcastMode_BROADCAST_MODE_BLOCK)
 	suite.NoError(err)
 	// txResponse might be nil, but error is also nil
-	if txResponse != nil {
-		suite.Equal(uint32(0), txResponse.Code)
-	}
-
-	if suite.useNetwork {
-		suite.NoError(suite.network.WaitForNextBlock())
-	}
+	suite.NotNil(txResponse)
 	return txResponse
 }
 
-func (suite *TestSuite) BroadcastProposalTx(privKey cryptotypes.PrivKey, msgList ...sdk.Msg) (proposalId uint64) {
-	txResponse := suite.BroadcastTx(privKey, msgList...)
-	suite.T().Log("proposal submit txHash", txResponse.TxHash)
+func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content) (proposalId uint64) {
+	proposal, err := govtypes.NewMsgSubmitProposal(
+		content,
+		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
+		suite.ValAddress().Bytes(),
+	)
+	suite.NoError(err)
+	proposalId = suite.getNextProposalId()
+	voteMsg := govtypes.NewMsgVote(suite.ValAddress().Bytes(), proposalId, govtypes.OptionYes)
+	txResponse := suite.BroadcastTx(suite.AdminPrivateKey(), proposal, voteMsg)
+	suite.T().Log("proposal submit txHash", txResponse.TxHash, txResponse.RawLog)
 	for _, log := range txResponse.Logs {
 		for _, event := range log.Events {
 			if event.Type != "proposal_deposit" {
@@ -200,14 +204,14 @@ func (suite *TestSuite) BroadcastProposalTx(privKey cryptotypes.PrivKey, msgList
 				if attribute.Key != "proposal_id" {
 					continue
 				}
-				proposalId, err := strconv.ParseUint(attribute.Value, 10, 64)
+				id, err := strconv.ParseUint(attribute.Value, 10, 64)
 				suite.NoError(err)
-				suite.CheckProposal(proposalId, govtypes.StatusVotingPeriod)
-				return proposalId
+				suite.CheckProposal(id, govtypes.StatusVotingPeriod)
+				suite.Require().Equal(proposalId, id)
 			}
 		}
 	}
-	return 0
+	return proposalId
 }
 
 func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) {
@@ -348,13 +352,6 @@ func (suite *TestSuite) CheckRedelegate(delegatorAddr sdk.AccAddress, entries []
 	suite.T().Log(redelegationResp.RedelegationResponses)
 }
 
-func (suite *TestSuite) ProposalSubmit(priv cryptotypes.PrivKey, deposit sdk.Coin) (proposalId uint64) {
-	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	msg, err := govtypes.NewMsgSubmitProposal(content, sdk.NewCoins(deposit), priv.PubKey().Address().Bytes())
-	suite.NoError(err)
-	return suite.BroadcastProposalTx(priv, msg)
-}
-
 func (suite *TestSuite) CheckProposals(depositor sdk.AccAddress) govtypes.Proposals {
 	proposalsResp, err := suite.GRPCClient().GovQuery().Proposals(suite.ctx, &govtypes.QueryProposalsRequest{
 		ProposalStatus: govtypes.StatusDepositPeriod,
@@ -384,18 +381,10 @@ func (suite *TestSuite) ProposalVote(priv cryptotypes.PrivKey, proposalID uint64
 }
 
 func (suite *TestSuite) CheckProposal(proposalId uint64, status govtypes.ProposalStatus) govtypes.Proposal {
-	timeoutCtx, cancel := context.WithTimeout(suite.ctx, suite.network.Config.VotingPeriod)
-	defer cancel()
-	for {
-		proposalResp, err := suite.GRPCClient().GovQuery().Proposal(timeoutCtx, &govtypes.QueryProposalRequest{
-			ProposalId: proposalId,
-		})
-		suite.NoError(err)
-		if proposalResp.Proposal.Status == status {
-			return proposalResp.Proposal
-		} else {
-			suite.T().Log("proposal status", proposalId, proposalResp.Proposal.Status.String())
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
+	proposalResp, err := suite.GRPCClient().GovQuery().Proposal(suite.ctx, &govtypes.QueryProposalRequest{
+		ProposalId: proposalId,
+	})
+	suite.NoError(err)
+	suite.Require().Equal(status, proposalResp.Proposal.Status)
+	return proposalResp.Proposal
 }

@@ -321,7 +321,7 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 			wantRes: []interface{}{
 				sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
-					Amount: sdk.NewInt(38998).MulRaw(1e18),
+					Amount: sdk.NewInt(488998).MulRaw(1e18),
 				},
 				nil,
 			},
@@ -333,7 +333,7 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 				sdk.Coins{
 					sdk.Coin{
 						Denom:  fxtypes.DefaultDenom,
-						Amount: sdk.NewInt(38998).MulRaw(1e18),
+						Amount: sdk.NewInt(488998).MulRaw(1e18),
 					},
 					sdk.Coin{
 						Denom:  "node0token",

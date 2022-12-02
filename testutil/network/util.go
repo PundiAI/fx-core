@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
-	"time"
+	"sync"
 
 	"github.com/cosmos/cosmos-sdk/server/api"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
-	srvtypes "github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -85,40 +84,39 @@ func startInProcess(cfg Config, val *Validator) error {
 		app.RegisterTendermintService(val.ClientCtx)
 	}
 
-	if val.AppConfig.API.Enable && val.APIAddress != "" {
-		apiSrv := api.New(val.ClientCtx, logger.With("module", "api-server"))
-		app.RegisterAPIRoutes(apiSrv, val.AppConfig.API)
+	errCh := make(chan error, 8)
+	wg := sync.WaitGroup{}
 
-		errCh := make(chan error)
+	if val.AppConfig.API.Enable && val.APIAddress != "" {
+		val.api = api.New(val.ClientCtx, logger.With("module", "api-server"))
+		app.RegisterAPIRoutes(val.api, val.AppConfig.API)
 
 		go func() {
-			if err := apiSrv.Start(val.AppConfig.Config); err != nil {
+			if err := val.api.Start(val.AppConfig.Config); err != nil {
+				errCh <- err
+			}
+		}()
+	}
+
+	if val.AppConfig.GRPC.Enable {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			val.grpc, err = servergrpc.StartGRPCServer(val.ClientCtx, app, val.AppConfig.GRPC.Address)
+			if err != nil {
 				errCh <- err
 			}
 		}()
 
-		select {
-		case err := <-errCh:
-			return err
-		case <-time.After(srvtypes.ServerStartTime): // assume server started successfully
-		}
-
-		val.api = apiSrv
-	}
-
-	if val.AppConfig.GRPC.Enable {
-		grpcSrv, err := servergrpc.StartGRPCServer(val.ClientCtx, app, val.AppConfig.GRPC.Address)
-		if err != nil {
-			return err
-		}
-
-		val.grpc = grpcSrv
-
 		if val.AppConfig.GRPCWeb.Enable {
-			val.grpcWeb, err = servergrpc.StartGRPCWeb(grpcSrv, val.AppConfig.Config)
-			if err != nil {
-				return err
-			}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				val.grpcWeb, err = servergrpc.StartGRPCWeb(val.grpc, val.AppConfig.Config)
+				if err != nil {
+					errCh <- err
+				}
+			}()
 		}
 	}
 
@@ -130,22 +128,31 @@ func startInProcess(cfg Config, val *Validator) error {
 		tmEndpoint := "/websocket"
 		tmRPCAddr := val.RPCAddress
 
-		val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, val.ClientCtx, tmRPCAddr, tmEndpoint, config.Config{
-			Config:  val.AppConfig.Config,
-			EVM:     val.AppConfig.EVM,
-			JSONRPC: val.AppConfig.JSONRPC,
-			TLS:     val.AppConfig.TLS,
-		})
-		if err != nil {
-			return err
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, val.ClientCtx, tmRPCAddr, tmEndpoint, config.Config{
+				Config:  val.AppConfig.Config,
+				EVM:     val.AppConfig.EVM,
+				JSONRPC: val.AppConfig.JSONRPC,
+				TLS:     val.AppConfig.TLS,
+			})
+			if err != nil {
+				errCh <- err
+				return
+			}
+			val.JSONRPCClient, err = ethclient.Dial(fmt.Sprintf("http://%s", val.AppConfig.JSONRPC.Address))
+			if err != nil {
+				errCh <- fmt.Errorf("failed to dial JSON-RPC at %s: %w", val.AppConfig.JSONRPC.Address, err)
+			}
+		}()
+	}
 
-		address := fmt.Sprintf("http://%s", val.AppConfig.JSONRPC.Address)
-
-		val.JSONRPCClient, err = ethclient.Dial(address)
-		if err != nil {
-			return fmt.Errorf("failed to dial JSON-RPC at %s: %w", val.AppConfig.JSONRPC.Address, err)
-		}
+	wg.Wait()
+	select {
+	case err := <-errCh:
+		return err
+	default:
 	}
 
 	return nil

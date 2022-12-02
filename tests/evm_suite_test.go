@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -10,17 +9,16 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/client"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
@@ -57,8 +55,8 @@ func (suite *EvmTestSuite) AccAddress() sdk.AccAddress {
 }
 
 func (suite *EvmTestSuite) Erc20TokenAddress(denom string) common.Address {
-	pair, err := suite.GRPCClient().ERC20Query().TokenPair(context.Background(), &erc20types.QueryTokenPairRequest{Token: denom})
-	require.NoError(suite.T(), err)
+	pair, err := suite.GRPCClient().ERC20Query().TokenPair(suite.ctx, &erc20types.QueryTokenPairRequest{Token: denom})
+	suite.Require().NoError(err)
 	return pair.GetTokenPair().GetERC20Contract()
 }
 
@@ -82,30 +80,30 @@ func (suite *EvmTestSuite) HexAddress() common.Address {
 
 func (suite *EvmTestSuite) TransactOpts() *bind.TransactOpts {
 	ecdsa, err := crypto.ToECDSA(suite.ethPrivKey.Bytes())
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	transactOpts, err := bind.NewKeyedTransactorWithChainID(ecdsa, fxtypes.EIP155ChainID())
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
 	return transactOpts
 }
 
 func (suite *EvmTestSuite) Balance(addr common.Address) *big.Int {
-	at, err := suite.EthClient().BalanceAt(context.Background(), addr, nil)
-	require.NoError(suite.T(), err)
+	at, err := suite.EthClient().BalanceAt(suite.ctx, addr, nil)
+	suite.Require().NoError(err)
 	return at
 }
 
 func (suite *EvmTestSuite) BlockHeight() uint64 {
-	number, err := suite.EthClient().BlockNumber(context.Background())
-	require.NoError(suite.T(), err)
+	number, err := suite.EthClient().BlockNumber(suite.ctx)
+	suite.Require().NoError(err)
 	return number
 }
 
 func (suite *EvmTestSuite) Transfer(recipient common.Address, value *big.Int) common.Hash {
 	suite.T().Logf("transfer to %s value %s\n", recipient.String(), value.String())
-	ethTx, err := dynamicFeeTx(suite.EthClient(), suite.ethPrivKey, &recipient, value, nil)
-	require.NoError(suite.T(), err)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.ethPrivKey, &recipient, value, nil)
+	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
 	return ethTx.Hash()
@@ -114,10 +112,10 @@ func (suite *EvmTestSuite) Transfer(recipient common.Address, value *big.Int) co
 func (suite *EvmTestSuite) TransferCrossChain(token common.Address, recipient string, amount, fee *big.Int, target string) common.Hash {
 	suite.T().Log("transfer cross chain", target)
 	pack, err := FIP20ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.StringToByte32(target))
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
-	ethTx, err := dynamicFeeTx(suite.EthClient(), suite.ethPrivKey, &token, nil, pack)
-	require.NoError(suite.T(), err)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.ethPrivKey, &token, nil, pack)
+	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
 
@@ -126,10 +124,10 @@ func (suite *EvmTestSuite) TransferCrossChain(token common.Address, recipient st
 
 func (suite *EvmTestSuite) WFXDeposit(address common.Address, amount *big.Int) common.Hash {
 	pack, err := WFXABI.Pack("deposit")
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
-	ethTx, err := dynamicFeeTx(suite.EthClient(), suite.ethPrivKey, &address, amount, pack)
-	require.NoError(suite.T(), err)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.ethPrivKey, &address, amount, pack)
+	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
 
@@ -138,10 +136,10 @@ func (suite *EvmTestSuite) WFXDeposit(address common.Address, amount *big.Int) c
 
 func (suite *EvmTestSuite) WFXWithdraw(address, recipient common.Address, value *big.Int) common.Hash {
 	pack, err := WFXABI.Pack("withdraw", recipient, value)
-	require.NoError(suite.T(), err)
+	suite.Require().NoError(err)
 
-	ethTx, err := dynamicFeeTx(suite.EthClient(), suite.ethPrivKey, &address, nil, pack)
-	require.NoError(suite.T(), err)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.ethPrivKey, &address, nil, pack)
+	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
 
@@ -149,90 +147,13 @@ func (suite *EvmTestSuite) WFXWithdraw(address, recipient common.Address, value 
 }
 
 func (suite *EvmTestSuite) SendTransaction(tx *ethtypes.Transaction) {
-	err := suite.EthClient().SendTransaction(context.Background(), tx)
-	require.NoError(suite.T(), err)
+	err := suite.EthClient().SendTransaction(suite.ctx, tx)
+	suite.Require().NoError(err)
 
 	suite.T().Log("pending tx hash", tx.Hash())
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(suite.ctx, 30*time.Second)
 	defer cancel()
 	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
-	require.NoError(suite.T(), err)
-	require.Equal(suite.T(), receipt.Status, ethtypes.ReceiptStatusSuccessful)
-}
-
-func dynamicFeeTx(cli *ethclient.Client, priKey cryptotypes.PrivKey, to *common.Address, value *big.Int, data []byte) (*ethtypes.Transaction, error) {
-	ctx := context.Background()
-	sender := common.BytesToAddress(priKey.PubKey().Address().Bytes())
-
-	chainId, err := cli.ChainID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	nonce, err := cli.NonceAt(ctx, sender, nil)
-	if err != nil {
-		return nil, err
-	}
-	head, err := cli.HeaderByNumber(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	var gasTipCap, gasFeeCap, gasPrice *big.Int
-	if head.BaseFee != nil {
-		tip, err := cli.SuggestGasTipCap(ctx)
-		if err != nil {
-			return nil, err
-		}
-		gasTipCap = tip
-		gasFeeCap = new(big.Int).Add(tip, new(big.Int).Mul(head.BaseFee, big.NewInt(2)))
-		if gasFeeCap.Cmp(gasTipCap) < 0 {
-			return nil, fmt.Errorf("maxFeePerGas (%v) < maxPriorityFeePerGas (%v)", gasFeeCap, gasTipCap)
-		}
-	} else {
-		gasPrice, err = cli.SuggestGasPrice(ctx)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	msg := ethereum.CallMsg{From: sender, To: to, GasPrice: gasPrice, GasTipCap: gasTipCap, GasFeeCap: gasFeeCap, Value: value, Data: data}
-	gasLimit, err := cli.EstimateGas(ctx, msg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to estimate gas needed: %v", err)
-	}
-	gasLimit = gasLimit * 130 / 100
-	if value == nil {
-		value = big.NewInt(0)
-	}
-
-	var rawTx *ethtypes.Transaction
-	if gasFeeCap == nil {
-		baseTx := &ethtypes.LegacyTx{
-			Nonce:    nonce,
-			GasPrice: gasPrice,
-			Gas:      gasLimit,
-			To:       to,
-			Value:    value,
-			Data:     data,
-		}
-		rawTx = ethtypes.NewTx(baseTx)
-	} else {
-		baseTx := &ethtypes.DynamicFeeTx{
-			ChainID:   chainId,
-			Nonce:     nonce,
-			GasFeeCap: gasFeeCap,
-			GasTipCap: gasTipCap,
-			Gas:       gasLimit,
-			To:        to,
-			Value:     value,
-			Data:      data,
-		}
-		rawTx = ethtypes.NewTx(baseTx)
-	}
-	signer := ethtypes.NewLondonSigner(chainId)
-	signature, err := priKey.Sign(signer.Hash(rawTx).Bytes())
-	if err != nil {
-		return nil, err
-	}
-	return rawTx.WithSignature(signer, signature)
+	suite.Require().NoError(err)
+	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
 }

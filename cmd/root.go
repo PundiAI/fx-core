@@ -34,7 +34,7 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
 	"github.com/functionx/fx-core/v3/client/cli"
-	"github.com/functionx/fx-core/v3/server/config"
+	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
@@ -80,7 +80,7 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := config.AppConfig(fmt.Sprintf("4000000000000%s", fxtypes.DefaultDenom))
+			customAppTemplate, customAppConfig := fxcfg.AppConfig(fmt.Sprintf("4000000000000%s", fxtypes.DefaultDenom))
 			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
 				return err
 			}

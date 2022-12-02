@@ -40,9 +40,10 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/node"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
+	db "github.com/tendermint/tm-db"
 	"google.golang.org/grpc"
 
-	fxCfg "github.com/functionx/fx-core/v3/server/config"
+	fxcfg "github.com/functionx/fx-core/v3/server/config"
 )
 
 // package-wide network lock to only allow one test network at a time
@@ -107,7 +108,7 @@ type (
 	// a client can make RPC and API calls and interact with any client command
 	// or handler.
 	Validator struct {
-		AppConfig     *fxCfg.Config
+		AppConfig     *fxcfg.Config
 		ClientCtx     client.Context
 		Ctx           *server.Context
 		Dir           string
@@ -192,7 +193,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 
 	// generate private keys, node IDs, and initial transactions
 	for i := 0; i < cfg.NumValidators; i++ {
-		appCfg := fxCfg.DefaultConfig()
+		appCfg := fxcfg.DefaultConfig()
 		appCfg.Pruning = cfg.PruningStrategy
 		appCfg.MinGasPrices = cfg.MinGasPrices
 		appCfg.API.Enable = true
@@ -202,6 +203,9 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 
 		ctx := server.NewDefaultContext()
 		tmCfg := ctx.Config
+		tmCfg.DBBackend = string(db.MemDBBackend)
+		tmCfg.Consensus = tmcfg.TestConsensusConfig()
+		tmCfg.Consensus.SkipTimeoutCommit = false
 		tmCfg.Consensus.TimeoutCommit = cfg.TimeoutCommit
 
 		// Only allow the first validator to expose an RPC, API and gRPC
@@ -250,12 +254,12 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			}
 			appCfg.GRPC.Enable = true
 
-			_, grpcWebPort, err := server.FreeTCPAddr()
-			if err != nil {
-				return nil, err
-			}
-			appCfg.GRPCWeb.Address = fmt.Sprintf("0.0.0.0:%s", grpcWebPort)
-			appCfg.GRPCWeb.Enable = true
+			//_, grpcWebPort, err := server.FreeTCPAddr()
+			//if err != nil {
+			//	return nil, err
+			//}
+			//appCfg.GRPCWeb.Address = fmt.Sprintf("0.0.0.0:%s", grpcWebPort)
+			//appCfg.GRPCWeb.Enable = true
 
 			if cfg.JSONRPCAddress != "" {
 				appCfg.JSONRPC.Address = cfg.JSONRPCAddress
@@ -318,7 +322,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		nodeIDs[i] = nodeID
 		valPubKeys[i] = pubKey
 
-		kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendTest, clientDir, buf, cfg.KeyringOptions...)
+		kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientDir, buf, cfg.KeyringOptions...)
 		if err != nil {
 			return nil, err
 		}
@@ -345,7 +349,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			printMnemonic(l, secret)
 		}
 
-		info := map[string]string{"secret": secret}
+		/*info := map[string]string{"secret": secret}
 		infoBz, err := json.Marshal(info)
 		if err != nil {
 			return nil, err
@@ -355,7 +359,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		err = WriteFile(fmt.Sprintf("%v.json", "key_seed"), clientDir, infoBz)
 		if err != nil {
 			return nil, err
-		}
+		}*/
 
 		balances := sdk.NewCoins(
 			sdk.NewCoin(fmt.Sprintf("%stoken", nodeDirName), cfg.AccountTokens),
@@ -419,7 +423,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			return nil, err
 		}
 
-		srvconfig.SetConfigTemplate(fxCfg.DefaultConfigTemplate())
+		srvconfig.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
 		srvconfig.WriteConfigFile(filepath.Join(nodeDir, "config/app.toml"), appCfg)
 
 		ctx.Viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
@@ -465,6 +469,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		return nil, err
 	}
 
+	now := time.Now()
 	l.Log("starting test network...")
 	for _, v := range network.Validators {
 		err := startInProcess(cfg, v)
@@ -473,7 +478,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		}
 	}
 
-	l.Log("started test network")
+	l.Log("started test network", time.Since(now).Seconds())
 
 	// Ensure we cleanup incase any test was abruptly halted (e.g. SIGINT) as any
 	// defer in a test would not be called.
