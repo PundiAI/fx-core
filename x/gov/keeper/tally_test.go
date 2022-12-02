@@ -21,7 +21,6 @@ func TestKeeper_Tally(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{
 		ProposerAddress: val.Proposer.Address.Bytes(),
 	})
-	ctx = ctx.WithBlockHeight(fxtypes.UpgradeTrigonometric2Block())
 
 	proposalContent := erc20types.NewRegisterCoinProposal("register erc20", "foo", banktypes.Metadata{
 		Display: "test",

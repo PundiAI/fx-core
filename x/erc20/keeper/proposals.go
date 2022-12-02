@@ -50,26 +50,24 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	}
 
 	//many-for-one upgrade
-	if ctx.BlockHeight() >= fxtypes.UpgradeExponential1Block() {
-		if types.IsManyToOneMetadata(coinMetadata) {
-			baseAliases := coinMetadata.DenomUnits[0].Aliases
-			for _, alias := range baseAliases {
-				if alias == coinMetadata.Base || alias == coinMetadata.Display || alias == coinMetadata.Symbol {
-					return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "alias can not equal base, display or symbol")
-				}
-				if k.IsDenomRegistered(ctx, alias) {
-					return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", alias)
-				}
-				// alias must not register
-				if k.IsAliasDenomRegistered(ctx, alias) {
-					return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "alias %s already registered", alias)
-				}
+	if types.IsManyToOneMetadata(coinMetadata) {
+		baseAliases := coinMetadata.DenomUnits[0].Aliases
+		for _, alias := range baseAliases {
+			if alias == coinMetadata.Base || alias == coinMetadata.Display || alias == coinMetadata.Symbol {
+				return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "alias can not equal base, display or symbol")
 			}
-			k.SetAliasesDenom(ctx, coinMetadata.Base, baseAliases...)
-		} else {
-			if k.IsAliasDenomRegistered(ctx, coinMetadata.Base) {
-				return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", coinMetadata.Base)
+			if k.IsDenomRegistered(ctx, alias) {
+				return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", alias)
 			}
+			// alias must not register
+			if k.IsAliasDenomRegistered(ctx, alias) {
+				return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "alias %s already registered", alias)
+			}
+		}
+		k.SetAliasesDenom(ctx, coinMetadata.Base, baseAliases...)
+	} else {
+		if k.IsAliasDenomRegistered(ctx, coinMetadata.Base) {
+			return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", coinMetadata.Base)
 		}
 	}
 
@@ -243,11 +241,7 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 	//check if the alias not register denom-alias
 	if len(aliasDenomRegistered) == 0 {
 		//fix testnet new aliases
-		if fxtypes.ChainId() == fxtypes.TestnetChainId && ctx.BlockHeight() < fxtypes.UpgradeExponential2Block() {
-			newAliases = append(newAliases, alias)
-		} else {
-			newAliases = append(oldAliases, alias)
-		}
+		newAliases = append(oldAliases, alias)
 
 		k.SetAliasesDenom(ctx, denom, alias)
 	} else if string(aliasDenomRegistered) == denom {

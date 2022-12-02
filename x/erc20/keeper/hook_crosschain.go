@@ -90,40 +90,9 @@ func (k Keeper) TransferChainHandler(ctx sdk.Context, from sdk.AccAddress, to st
 	if k.router == nil || !k.router.HasRoute(target) {
 		return fmt.Errorf("target %s not support", target)
 	}
-	//testnet convert denom between many-to-one and one-to-many block
-	targetCoin, err := k.testnetConvertDenomBetweenBlock(ctx, from, amount.Add(fee), target)
-	if err != nil {
-		return err
-	}
-	amount.Denom = targetCoin.Denom
-	fee.Denom = targetCoin.Denom
 
 	route, _ := k.router.GetRoute(target)
 	return route.TransferAfter(ctx, from.String(), to, amount, fee)
-}
-
-func (k Keeper) testnetConvertDenomBetweenBlock(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
-	isTestnet := fxtypes.ChainId() == fxtypes.TestnetChainId
-	afterManyToOneBlock := ctx.BlockHeight() >= fxtypes.UpgradeExponential1Block()
-	beforeOneToManyBlock := ctx.BlockHeight() < fxtypes.UpgradeExponential2Block()
-
-	if !(isTestnet && afterManyToOneBlock && beforeOneToManyBlock) {
-		return coin, nil
-	}
-	needConvert, err := k.IsManyToOneDenom(ctx, coin.Denom)
-	if err != nil {
-		return sdk.Coin{}, err
-	}
-	if !needConvert {
-		return coin, nil
-	}
-	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.ConvertDenomToMany(cacheCtx, from, coin, target)
-	if err != nil {
-		return sdk.Coin{}, err
-	}
-	commit()
-	return targetCoin, nil
 }
 
 func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string, receipt *ethtypes.Receipt) error {
@@ -134,7 +103,7 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to stri
 	if !ok {
 		return fmt.Errorf("invalid target ibc %s", target)
 	}
-	if err := validateIbcReceiveAddress(ctx, targetIBC.Prefix, to); err != nil {
+	if err := validateIbcReceiveAddress(targetIBC.Prefix, to); err != nil {
 		logger.Error("validate ibc receive address", "address", to, "prefix", targetIBC.Prefix, "err", err.Error())
 		return fmt.Errorf("invalid to address %s", to)
 	}
@@ -159,10 +128,9 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to stri
 	return nil
 }
 
-func validateIbcReceiveAddress(ctx sdk.Context, prefix, addr string) error {
+func validateIbcReceiveAddress(prefix, addr string) error {
 	// after block support denom many-to-one, validate prefix with 0x
-	if ctx.BlockHeight() >= fxtypes.UpgradeExponential1Block() &&
-		strings.ToLower(prefix) == fxtypes.EthereumAddressPrefix {
+	if strings.ToLower(prefix) == fxtypes.EthereumAddressPrefix {
 		return fxtypes.ValidateEthereumAddress(addr)
 	}
 	_, err := sdk.GetFromBech32(addr, prefix)

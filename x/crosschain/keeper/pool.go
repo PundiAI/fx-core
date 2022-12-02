@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
@@ -339,9 +338,6 @@ func addFeeToMap(amt, fee types.ERC20Token, batchFeesMap map[string]*types.Batch
 }
 
 func (k Keeper) ConvertDenomToMany(ctx sdk.Context, sender sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
-	if ctx.BlockHeight() < fxtypes.UpgradeExponential2Block() {
-		return coin, nil
-	}
 	needConvert, _ := k.erc20Keeper.IsManyToOneDenom(ctx, coin.Denom)
 	if !needConvert {
 		return coin, nil

@@ -5,7 +5,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -92,7 +91,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 	tallyParams := keeper.GetTallyParams(ctx)
 	proposalContent := proposal.GetContent()
 	erc20ProposalQuorum := sdk.NewDecWithPrec(25, 2) //25%
-	if ctx.BlockHeight() >= fxtypes.UpgradeTrigonometric2Block() && proposalContent.ProposalRoute() == erc20types.RouterKey && tallyParams.Quorum.GT(erc20ProposalQuorum) {
+	if proposalContent.ProposalRoute() == erc20types.RouterKey && tallyParams.Quorum.GT(erc20ProposalQuorum) {
 		tallyParams.Quorum = erc20ProposalQuorum
 	}
 	tallyResults = types.NewTallyResultFromMap(results)

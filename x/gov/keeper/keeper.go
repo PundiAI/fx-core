@@ -10,7 +10,6 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/gov/types"
 )
 
@@ -73,7 +72,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 		minDeposit = keeper.GetDepositParams(ctx).MinDeposit
 	}
 	if proposal.Status == govtypes.StatusDepositPeriod && proposal.TotalDeposit.IsAllGTE(minDeposit) {
-		if ctx.BlockHeight() >= fxtypes.UpgradeTrigonometric2Block() && isEGF {
+		if isEGF {
 			keeper.EGFActivateVotingPeriod(ctx, proposal)
 		} else {
 			keeper.ActivateVotingPeriod(ctx, proposal)

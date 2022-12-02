@@ -5,7 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -69,11 +68,9 @@ func (k Keeper) RemoveTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	k.DeleteDenomMap(ctx, tokenPair.Denom)
 
 	//after support many to one, delete denom with alias
-	if ctx.BlockHeight() >= fxtypes.UpgradeExponential1Block() {
-		md, found := k.bankKeeper.GetDenomMetaData(ctx, tokenPair.Denom)
-		if found && types.IsManyToOneMetadata(md) {
-			k.DeleteAliasesDenom(ctx, md.DenomUnits[0].Aliases...)
-		}
+	md, found := k.bankKeeper.GetDenomMetaData(ctx, tokenPair.Denom)
+	if found && types.IsManyToOneMetadata(md) {
+		k.DeleteAliasesDenom(ctx, md.DenomUnits[0].Aliases...)
 	}
 }
 

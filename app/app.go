@@ -185,9 +185,6 @@ func New(
 	myApp.MountMemoryStores(myApp.GetMemoryStoreKey())
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
-	interceptMsgTypes := map[int64][]string{
-		fxtypes.UpgradeExponential1Block(): fxtypes.SupportDenomManyToOneMsgTypes(),
-	}
 	anteOptions := fxante.HandlerOptions{
 		AccountKeeper:              myApp.AccountKeeper,
 		BankKeeper:                 myApp.BankKeeper,
@@ -199,7 +196,6 @@ func New(
 		MaxTxGasWanted:             maxGasWanted,
 		BypassMinFeeMsgTypes:       cast.ToStringSlice(appOpts.Get(fxtypes.BypassMinFeeMsgTypesKey)),
 		MaxBypassMinFeeMsgGasUsage: cast.ToUint64(appOpts.Get(fxtypes.BypassMinFeeMsgMaxGasUsageKey)),
-		InterceptMsgTypes:          interceptMsgTypes,
 	}
 
 	if err := anteOptions.Validate(); err != nil {
