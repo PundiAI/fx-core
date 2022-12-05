@@ -21,6 +21,7 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
+	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/client/grpc"
@@ -242,30 +243,9 @@ func (suite *IntegrationTestSuite) TestClient_Tx() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestQueryBlockHeight() {
-	clients := suite.GetClients()
-	for i := 0; i < len(clients); i++ {
-		height, err := clients[i].GetBlockHeight()
-		suite.NoError(err)
-		suite.True(height >= int64(10))
-	}
-}
-
-func (suite *IntegrationTestSuite) TestQuerySupply() {
-	clients := suite.GetClients()
-	for i := 0; i < len(clients); i++ {
-		supply, err := clients[i].QuerySupply()
-		suite.NoError(err)
-		nodeCoin := sdk.Coin{
-			Denom:  "node0token",
-			Amount: sdk.NewInt(100_000).MulRaw(1e18),
-		}
-		suite.Equal(supply.AmountOf(nodeCoin.Denom), nodeCoin.Amount)
-		suite.True(supply.AmountOf(fxtypes.DefaultDenom).GTE(sdk.NewInt(50_000).MulRaw(1e18)))
-	}
-}
-
 func (suite *IntegrationTestSuite) TestClient_Query() {
+	feeCollectorAddr, err := sdk.AccAddressFromHex("f1829676db577682e944fc3493d451b67ff3e29f")
+	suite.NoError(err)
 	tests := []struct {
 		funcName string
 		params   []interface{}
@@ -292,6 +272,36 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 			wantRes:  []interface{}{"", nil},
 		},
 		{
+			funcName: "GetBlockHeight",
+			params:   []interface{}{},
+			wantRes: []interface{}{
+				func(height int64, err error) {
+					suite.NoError(err)
+					suite.True(height >= int64(10))
+				}},
+		},
+		{
+			funcName: "QuerySupply",
+			params:   []interface{}{},
+			wantRes: []interface{}{
+				func(supply sdk.Coins, err error) {
+					suite.NoError(err)
+					supply.IsAllGTE(
+						sdk.Coins{
+							sdk.Coin{
+								Denom:  fxtypes.DefaultDenom,
+								Amount: sdk.NewInt(500_000).MulRaw(1e18),
+							},
+							sdk.Coin{
+								Denom:  "node0token",
+								Amount: sdk.NewInt(100_000).MulRaw(1e18),
+							},
+						},
+					)
+				},
+			},
+		},
+		{
 			funcName: "GetGasPrices",
 			params:   []interface{}{},
 			wantRes: []interface{}{
@@ -306,14 +316,36 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 		},
 		{
 			funcName: "QueryAccount",
-			params:   []interface{}{suite.GetFirstValidator().Address.String()},
-			wantRes: []interface{}{authtypes.NewBaseAccount(
-				suite.GetFirstValidator().Address,
-				suite.GetFirstValidator().PubKey,
-				0,
-				0,
-			),
-				nil},
+			params: []interface{}{
+				suite.GetFirstValidator().Address.String(),
+			},
+			wantRes: []interface{}{
+				authtypes.NewBaseAccount(
+					suite.GetFirstValidator().Address,
+					suite.GetFirstValidator().PubKey,
+					0,
+					0,
+				),
+				nil,
+			},
+		},
+		{
+			funcName: "QueryAccount",
+			params: []interface{}{
+				authtypes.NewModuleAddress(authtypes.FeeCollectorName).String(),
+			},
+			wantRes: []interface{}{
+				authtypes.NewModuleAccount(
+					authtypes.NewBaseAccount(
+						feeCollectorAddr,
+						nil,
+						7,
+						0,
+					),
+					authtypes.FeeCollectorName,
+				),
+				nil,
+			},
 		},
 		{
 			funcName: "QueryBalance",
@@ -357,11 +389,17 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 					params[i] = reflect.ValueOf(tt.params[i-1])
 				}
 				results := method.Func.Call(params)
-				for i := 0; i < len(results); i++ {
-					suite.EqualValues(
-						fmt.Sprintf("%v", tt.wantRes[i]),
-						fmt.Sprintf("%v", results[i]),
-					)
+				if len(tt.wantRes) == 1 {
+					wantResTf := reflect.ValueOf(tt.wantRes[0])
+					suite.Equal(wantResTf.Kind(), reflect.Func)
+					wantResTf.Call(results)
+				} else {
+					for i := 0; i < len(results); i++ {
+						suite.EqualValues(
+							fmt.Sprintf("%v", tt.wantRes[i]),
+							fmt.Sprintf("%v", results[i]),
+						)
+					}
 				}
 			}
 		})
@@ -420,10 +458,18 @@ func (suite *IntegrationTestSuite) TestTmClient() {
 			params:   []interface{}{int64(1), int64(1)},
 		},
 		//StatusClient
-		//{
-		//	funcName:   "Status",
-		//	params: []interface{}{},
-		//},
+		{
+			funcName: "Status",
+			params:   []interface{}{},
+			wantRes: []interface{}{
+				func(res1 *coreTypes.ResultStatus, err1 error, res2 *coreTypes.ResultStatus, err2 error) {
+					suite.NoError(err1)
+					suite.NoError(err2)
+					suite.EqualValues(res1.NodeInfo, res2.NodeInfo)
+					suite.EqualValues(res1.ValidatorInfo, res2.ValidatorInfo)
+				},
+			},
+		},
 		//NetworkClient
 		{
 			funcName: "NetInfo",
@@ -432,6 +478,13 @@ func (suite *IntegrationTestSuite) TestTmClient() {
 		{
 			funcName: "DumpConsensusState",
 			params:   []interface{}{},
+			wantRes: []interface{}{
+				func(res1 *coreTypes.ResultDumpConsensusState, err1 error, res2 *coreTypes.ResultDumpConsensusState, err2 error) {
+					suite.NoError(err1)
+					suite.NoError(err2)
+					suite.EqualValues(len(res1.Peers), len(res2.Peers))
+				},
+			},
 		},
 		{
 			funcName: "ConsensusState",
@@ -474,47 +527,34 @@ func (suite *IntegrationTestSuite) TestTmClient() {
 			result1 := <-resultChan
 			result2 := <-resultChan
 			suite.Equal(len(result1), len(result2))
-			for i := 0; i < len(result1); i++ {
-				if i != 0 && result1[i].IsNil() && result2[i].IsNil() {
-					continue
+			if len(tt.wantRes) == 1 {
+				wantResTf := reflect.ValueOf(tt.wantRes[0])
+				suite.Equal(wantResTf.Kind(), reflect.Func)
+				wantResTf.Call(append(result1, result2...))
+			} else {
+				for i := 0; i < len(result1); i++ {
+					data1, err1 := json.Marshal(reflect.Indirect(result1[i]).Interface())
+					suite.NoError(err1)
+					data2, err2 := json.Marshal(reflect.Indirect(result2[i]).Interface())
+					suite.NoError(err2)
+					suite.JSONEq(string(data1), string(data2))
 				}
-				if result1[i].IsNil() || result2[i].IsNil() {
-					suite.T().Log("warn", result1[i], result2[i])
-					continue
-				}
-				data1, err1 := json.Marshal(reflect.Indirect(result1[i]).Interface())
-				suite.NoError(err1)
-				data2, err2 := json.Marshal(reflect.Indirect(result2[i]).Interface())
-				suite.NoError(err2)
-				suite.JSONEq(string(data1), string(data2))
 			}
 			close(resultChan)
 		})
 	}
 }
 
-func (suite *IntegrationTestSuite) TestJsonRPC_GetStakeValidators() {
+func (suite *IntegrationTestSuite) TestJsonRPC_ABCI_Query() {
+	// GetStakeValidators
 	validator := suite.GetFirstValidator()
 	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress))
 	validators, err := nodeRPC.GetStakeValidators(stakingtypes.Bonded)
 	suite.Require().NoError(err)
 	suite.Require().Len(validators, 1)
-}
 
-func (suite *IntegrationTestSuite) TestQueryGasPrice() {
-	clients := suite.GetClients()
-	for _, client := range clients {
-		prices, err := client.GetGasPrices()
-		suite.Require().NoError(err)
-		suite.Require().Equal(`4000000000000FX`, prices.String())
-	}
-}
-
-func (suite *IntegrationTestSuite) TestJsonRPC_QueryBalanceByHeight() {
-	validator := suite.GetFirstValidator()
+	// QueryBalanceByHeight
 	nextValKey := suite.GetPrivKeyByIndex(hd.Secp256k1Type, 1)
-
-	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress))
 	nodeRPC.WithHeight(0)
 	balances, err := nodeRPC.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
 	suite.NoError(err)
@@ -524,13 +564,4 @@ func (suite *IntegrationTestSuite) TestJsonRPC_QueryBalanceByHeight() {
 	balances, err = nodeRPC.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
 	suite.NoError(err)
 	suite.False(balances.IsAllPositive())
-}
-
-func (suite *IntegrationTestSuite) TestQueryModuleAccount() {
-	clients := suite.GetClients()
-	for _, client := range clients {
-		account, err := client.QueryAccount(authtypes.NewModuleAddress(authtypes.FeeCollectorName).String())
-		suite.Require().NoError(err)
-		suite.Equal(uint64(0), account.GetSequence())
-	}
 }
