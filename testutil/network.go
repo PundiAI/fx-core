@@ -17,7 +17,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/testutil/network"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
@@ -42,10 +41,10 @@ func DefaultNetworkConfig() network.Config {
 		InterfaceRegistry: encCfg.InterfaceRegistry,
 		AccountRetriever:  authtypes.AccountRetriever{},
 		AppConstructor: func(val network.Validator) servertypes.Application {
-			return app.New(
-				val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
+			return app.New(val.Ctx.Logger, dbm.NewMemDB(),
+				nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
 				encCfg,
-				helpers.EmptyAppOptions{},
+				app.EmptyAppOptions{},
 				baseapp.SetPruning(storetypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
 				baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
 			)

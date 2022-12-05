@@ -69,7 +69,6 @@ type App struct {
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
-	invCheckPeriod    uint
 
 	// the module manager
 	mm *module.Manager
@@ -124,7 +123,6 @@ func New(
 		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
-		invCheckPeriod:    invCheckPeriod,
 	}
 	// Setup keepers
 	myApp.AppKeepers = keepers.NewAppKeeper(

@@ -11,7 +11,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	fxapp "github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
 )
 
 var (
@@ -58,7 +57,7 @@ func (app *SimApp) GetTxConfig() client.TxConfig {
 func NewSimApp() *SimApp {
 	db := dbm.NewMemDB()
 	encCdc := fxapp.MakeEncodingConfig()
-	fxApp := fxapp.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, fxapp.DefaultNodeHome, 5, encCdc, helpers.EmptyAppOptions{})
+	fxApp := fxapp.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, fxapp.DefaultNodeHome, 5, encCdc, fxapp.EmptyAppOptions{})
 
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.

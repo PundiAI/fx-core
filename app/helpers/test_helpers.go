@@ -40,8 +40,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
-// DefaultConsensusParams defines the default Tendermint consensus params used
-// in GaiaApp testing.
+// DefaultConsensusParams defines the default Tendermint consensus params used in fxCore testing.
 var DefaultConsensusParams = &abci.ConsensusParams{
 	Block: &abci.BlockParams{
 		MaxBytes: 1048576,
@@ -59,10 +58,6 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 	},
 }
 
-type EmptyAppOptions struct{}
-
-func (EmptyAppOptions) Get(string) interface{} { return nil }
-
 func Setup(isCheckTx bool, isShowLog bool) *app.App {
 	logger := log.NewNopLogger()
 	if isShowLog {
@@ -71,7 +66,7 @@ func Setup(isCheckTx bool, isShowLog bool) *app.App {
 
 	myApp := app.New(logger, dbm.NewMemDB(),
 		nil, true, map[int64]bool{}, os.TempDir(), 5,
-		app.MakeEncodingConfig(), EmptyAppOptions{},
+		app.MakeEncodingConfig(), app.EmptyAppOptions{},
 	)
 	if !isCheckTx {
 		// InitChain must be called to stop deliverState from being nil
@@ -127,10 +122,10 @@ func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tm
 	return tmtypes.NewValidatorSet(validators), genAccs, balances
 }
 
-// SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts
+// SetupWithGenesisValSet initializes a new App with a validator set and genesis accounts
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
-// of one consensus engine unit (10^6) in the default token of the simapp from first genesis
-// account. A Nop logger is set in SimApp.
+// of one consensus engine unit (10^6) in the default token of the app from first genesis
+// account. A Nop logger is set in App.
 func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
 	myApp := Setup(true, false)
 	genesisState := DefGenesisState(myApp.AppCodec())
@@ -220,7 +215,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	return myApp
 }
 
-// SetupWithGenesisAccounts initializes a new SimApp with the provided genesis
+// SetupWithGenesisAccounts initializes a new App with the provided genesis
 // accounts and possible balances.
 func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
 	myApp := Setup(true, false)
