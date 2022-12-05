@@ -391,6 +391,11 @@ func (app *App) GetTxConfig() client.TxConfig {
 	return MakeEncodingConfig().TxConfig
 }
 
+// GetModules implements the TestingApp interface.
+func (app *App) GetModules() map[string]module.AppModule {
+	return app.mm.Modules
+}
+
 // EmptyAppOptions is a stub implementing AppOptions
 type EmptyAppOptions struct{}
 
