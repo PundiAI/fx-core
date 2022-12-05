@@ -1,12 +1,13 @@
-package v020
+package v2
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v1"
+
 	fxtypes "github.com/functionx/fx-core/v2/types"
-	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v010"
 	"github.com/functionx/fx-core/v2/x/crosschain/types"
 )
 

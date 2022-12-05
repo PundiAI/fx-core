@@ -1,4 +1,4 @@
-package v010
+package v1
 
 import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"

@@ -1,10 +1,10 @@
-package v020
+package v2
 
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v010"
+	v010 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v1"
 )
 
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey) {

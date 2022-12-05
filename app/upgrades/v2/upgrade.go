@@ -1,4 +1,4 @@
-package v020
+package v2
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v2/types"
 	bsctypes "github.com/functionx/fx-core/v2/x/bsc/types"
-	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
+	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v2"
 	erc20keeper "github.com/functionx/fx-core/v2/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v2/x/erc20/types"
 	ibctransferkeeper "github.com/functionx/fx-core/v2/x/ibc/applications/transfer/keeper"
@@ -91,7 +91,7 @@ func CreateUpgradeHandler(
 		clearTestnetModule(cacheCtx, kvStoreKeyMap)
 
 		// 2. update FX metadata
-		updateFXMetadata(cacheCtx, bankKeeper, kvStoreKeyMap)
+		updateFXMetadata(cacheCtx, bankKeeper, kvStoreKeyMap[banktypes.StoreKey])
 
 		// 3. update block params (max_gas:3000000000)
 		updateBlockParams(cacheCtx, paramsKeeper)
@@ -100,10 +100,10 @@ func CreateUpgradeHandler(
 		ibcMigrate(cacheCtx, ibcKeeper, transferKeeper)
 
 		// 5. run migrations
-		toVersion := runMigrations(cacheCtx, kvStoreKeyMap, fromVM, mm, configurator)
+		toVersion := runMigrations(cacheCtx, kvStoreKeyMap[paramstypes.StoreKey], fromVM, mm, configurator)
 
 		// 6. clear metadata except FX
-		clearTestnetDenom(cacheCtx, kvStoreKeyMap)
+		clearTestnetDenom(cacheCtx, kvStoreKeyMap[banktypes.StoreKey])
 
 		// 7. register coin
 		registerCoin(cacheCtx, erc20Keeper)
@@ -144,20 +144,16 @@ func ibcMigrate(ctx sdk.Context, ibcKeeper *ibckeeper.Keeper, transferKeeper ibc
 	}
 }
 
-func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, keys map[string]*sdk.KVStoreKey) {
+func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *sdk.KVStoreKey) {
 	md := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
 	if err := md.Validate(); err != nil {
 		panic(fmt.Sprintf("invalid %s metadata", fxtypes.DefaultDenom))
-	}
-	key, ok := keys[banktypes.StoreKey]
-	if !ok {
-		panic("bank key store not found")
 	}
 	logger := ctx.Logger()
 	logger.Info("update FX metadata", "metadata", md.String())
 	//delete fx
 	fxDenom := strings.ToLower(fxtypes.DefaultDenom)
-	denomMetaDataStore := prefix.NewStore(ctx.KVStore(key), banktypes.DenomMetadataKey(fxDenom))
+	denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataKey(fxDenom))
 	denomMetaDataStore.Delete([]byte(fxDenom))
 	//set FX
 	bankKeeper.SetDenomMetaData(ctx, md)
@@ -197,7 +193,7 @@ func migrationsOrder(modules []string) []string {
 	return orders
 }
 
-func runMigrations(ctx sdk.Context, kvStoreKeyMap map[string]*sdk.KVStoreKey, fromVersion module.VersionMap,
+func runMigrations(ctx sdk.Context, paramsKey *sdk.KVStoreKey, fromVersion module.VersionMap,
 	mm *module.Manager, configurator module.Configurator) module.VersionMap {
 	if len(fromVersion) != 0 {
 		panic("invalid from version map")
@@ -208,11 +204,11 @@ func runMigrations(ctx sdk.Context, kvStoreKeyMap map[string]*sdk.KVStoreKey, fr
 		if initGenesis[n] {
 			continue
 		}
+		// if module genesis init, continue
+		if needInitGenesis(ctx, n, paramsKey) {
+			continue
+		}
 		if v, ok := runMigrates[n]; ok {
-			// if module genesis init, continue
-			if needInitGenesis(ctx, n, kvStoreKeyMap) {
-				continue
-			}
 			//migrate module
 			fromVersion[n] = v
 			continue
@@ -231,13 +227,9 @@ func runMigrations(ctx sdk.Context, kvStoreKeyMap map[string]*sdk.KVStoreKey, fr
 	return toVersion
 }
 
-func clearTestnetDenom(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
+func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
 	if fxtypes.TestnetChainId != fxtypes.ChainId() {
 		return
-	}
-	key, ok := keys[banktypes.StoreKey]
-	if !ok {
-		panic("bank key store not found")
 	}
 	logger := ctx.Logger()
 	logger.Info("clear testnet metadata", "chainId", fxtypes.ChainId())
@@ -247,7 +239,7 @@ func clearTestnetDenom(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 			continue
 		}
 		logger.Info("clear testnet metadata", "metadata", md.String())
-		denomMetaDataStore := prefix.NewStore(ctx.KVStore(key), banktypes.DenomMetadataKey(md.Base))
+		denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataKey(md.Base))
 		denomMetaDataStore.Delete([]byte(md.Base))
 	}
 }
@@ -308,10 +300,10 @@ func deleteKVStore(kv types.KVStore) error {
 }
 
 // needInitGenesis check module initialized
-func needInitGenesis(ctx sdk.Context, module string, kvStoreKeyMap map[string]*sdk.KVStoreKey) bool {
+func needInitGenesis(ctx sdk.Context, module string, paramsKey *sdk.KVStoreKey) bool {
 	// crosschain module
 	if crossChainModule[module] {
-		if !crosschainv020.CheckInitialize(ctx, module, kvStoreKeyMap[paramstypes.StoreKey]) {
+		if !crosschainv020.CheckInitialize(ctx, module, paramsKey) {
 			return true
 		}
 	}

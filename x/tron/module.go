@@ -16,7 +16,7 @@ import (
 
 	"github.com/functionx/fx-core/v2/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v2/x/crosschain/keeper"
-	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v020"
+	crosschainv020 "github.com/functionx/fx-core/v2/x/crosschain/legacy/v2"
 	crosschaintypes "github.com/functionx/fx-core/v2/x/crosschain/types"
 	"github.com/functionx/fx-core/v2/x/tron/keeper"
 	"github.com/functionx/fx-core/v2/x/tron/types"
