@@ -51,5 +51,5 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		return err
 	}
 	v2.MigrateStore(m.cdc, gravityStore, ethStore)
-	return v2.CleanKVStore(gravityStore)
+	return nil
 }

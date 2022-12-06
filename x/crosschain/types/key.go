@@ -101,7 +101,7 @@ var (
 	// ProposalOracleKey -> value ProposalOracle
 	ProposalOracleKey = []byte{0x38}
 
-	// LastTotalPowerKey
+	// LastTotalPowerKey oracle set total power
 	LastTotalPowerKey = []byte{0x39}
 )
 

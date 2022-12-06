@@ -16,9 +16,6 @@ import (
 // migrate data from gravity module
 func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 
-	// gravity 0x1 -> eth ? -
-	// gravity ? -> eth 0x12 *
-
 	// gravity 0x2 -> eth 0x13
 	migratePrefix(gravityStore, ethStore, types.ValidatorByEthAddressKey, crosschaintypes.OracleAddressByExternalKey)
 
@@ -71,7 +68,8 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	// gravity 0x13 -> eth 0x30
 	migratePrefix(gravityStore, ethStore, types.LastSlashedBatchBlock, crosschaintypes.LastSlashedBatchBlock)
 
-	// gravity 0x14 -> eth 0x31 -
+	// gravity 0x14 delete
+	deletePrefixKey(gravityStore, types.LastUnBondingBlockHeight)
 
 	// gravity 0x15 -> eth 0x32
 	migratePrefix(gravityStore, ethStore, types.LastObservedEthereumBlockHeightKey, crosschaintypes.LastObservedBlockHeightKey)
@@ -79,13 +77,11 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	// gravity 0x16 -> eth 0x33
 	migratePrefix(gravityStore, ethStore, types.LastObservedValsetKey, crosschaintypes.LastObservedOracleSetKey)
 
+	// gravity 0x17 delete
+	deletePrefixKey(gravityStore, types.IbcSequenceHeightKey)
+
 	// gravity 0x18 -> eth 0x35
 	migratePrefix(gravityStore, ethStore, types.LastEventBlockHeightByValidatorKey, crosschaintypes.LastEventBlockHeightByOracleKey)
-
-	// gravity ? -> eth 0x36 -
-	// gravity ? -> eth 0x37 -
-	// gravity ? -> eth 0x38 *
-	// gravity ? -> eth 0x39 *
 }
 
 func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []byte) {
@@ -94,9 +90,10 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
-		newStoreKey := append(newPrefix, oldStoreIter.Key()[len(oldPrefix):]...)
+		key := oldStoreIter.Key()
+		newStoreKey := append(newPrefix, key[len(oldPrefix):]...)
 		ethStore.Set(newStoreKey, oldStoreIter.Value())
-		oldStore.Delete(oldStoreIter.Key())
+		oldStore.Delete(key)
 	}
 }
 
@@ -116,7 +113,7 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		bridgerAddr := sdk.AccAddress(oldStoreIter.Key()[len(types.ValidatorAddressByOrchestratorAddress):])
 		oldOracleAddress := sdk.AccAddress(oldStoreIter.Value())
-		externalAddress := sdk.AccAddress(oldStore.Get(append(types.EthAddressByValidatorKey, oldOracleAddress.Bytes()...)))
+		externalAddress := sdk.AccAddress(gravityStore.Get(append(types.EthAddressByValidatorKey, oldOracleAddress.Bytes()...)))
 		validator, found := stakingKeeper.GetValidator(ctx, oldOracleAddress.Bytes())
 		if !found {
 			ctx.Logger().Error("no found validator", "address", sdk.ValAddress(oldOracleAddress))
@@ -170,12 +167,15 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 		chainOracle.Oracles = append(chainOracle.Oracles, oracle.OracleAddress)
 	}
 
-	// SetProposalOracle
+	// SetProposalOracle eth 0x38
 	if len(chainOracle.Oracles) > 0 {
 		ethStore.Set(crosschaintypes.ProposalOracleKey, cdc.MustMarshal(chainOracle))
 	}
-	// setLastTotalPower
+	// setLastTotalPower eth 0x39
 	ethStore.Set(stakingtypes.LastTotalPowerKey, cdc.MustMarshal(&sdk.IntProto{Int: totalPower}))
+
+	// gravity 0x1 -> eth 0x12
+	deletePrefixKey(gravityStore, types.EthAddressByValidatorKey)
 }
 
 func migrateOutgoingTxPool(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
@@ -202,19 +202,11 @@ func migrateOutgoingTxPool(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVS
 	}
 }
 
-func CleanKVStore(kv sdk.KVStore) error {
-	// Note that we cannot write while iterating, so load all keys here, delete below
-	var keys [][]byte
-	itr := kv.Iterator(nil, nil)
-	defer itr.Close()
-
-	for itr.Valid() {
-		keys = append(keys, itr.Key())
-		itr.Next()
+func deletePrefixKey(gravityStore sdk.KVStore, prefixKey []byte) {
+	oldStore := prefix.NewStore(gravityStore, prefixKey)
+	oldStoreIter := oldStore.Iterator(nil, nil)
+	defer oldStoreIter.Close()
+	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
+		oldStore.Delete(oldStoreIter.Key())
 	}
-
-	for _, k := range keys {
-		kv.Delete(k)
-	}
-	return nil
 }

@@ -11,6 +11,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func TestLocalStoreInV2(t *testing.T) {
@@ -38,6 +39,17 @@ func TestLocalStoreInV2(t *testing.T) {
 				vm := myApp.UpgradeKeeper.GetModuleVersionMap(ctx)
 				for k, v := range vm {
 					t.Log(k, v)
+				}
+			},
+		},
+		{
+			name: "Interator gravity module store",
+			testCase: func(t *testing.T) {
+				store := ctx.MultiStore().GetKVStore(myApp.GetKey(gravitytypes.ModuleName))
+				iterator := store.Iterator(nil, nil)
+				defer iterator.Close()
+				for ; iterator.Valid(); iterator.Next() {
+					t.Log(iterator.Key())
 				}
 			},
 		},
