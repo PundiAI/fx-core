@@ -64,8 +64,8 @@ func DefaultParams() Params {
 		AverageBlockTime:                  7_000,
 		AverageExternalBlockTime:          5_000,
 		ExternalBatchTimeout:              12 * 3600 * 1000,
-		SignedWindow:                      20_000,
-		SlashFraction:                     sdk.NewDecWithPrec(1, 2),
+		SignedWindow:                      30_000,
+		SlashFraction:                     sdk.NewDecWithPrec(8, 1),
 		OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
 		IbcTransferTimeoutHeight:          20_000,
 		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
@@ -200,11 +200,12 @@ func validateOracleDelegateThreshold(i interface{}) error {
 	c, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	} else if !c.IsValid() || !c.IsPositive() {
+	}
+	if !c.IsValid() || !c.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
 	}
 	if c.Denom != fxtypes.DefaultDenom {
-		return fmt.Errorf("")
+		return fmt.Errorf("oracle delegate denom must FX")
 	}
 	return nil
 }
@@ -239,6 +240,9 @@ func validateOracleSetUpdatePowerChangePercent(i interface{}) error {
 	if percent.IsNegative() {
 		return fmt.Errorf("attempted to powet change percent with a negative: %v", percent)
 	}
+	if percent.GT(sdk.OneDec()) {
+		return fmt.Errorf("powet change percent too large: %s", i)
+	}
 	return nil
 }
 
@@ -249,6 +253,9 @@ func validateSlashFraction(i interface{}) error {
 	}
 	if slashFactor.IsNegative() {
 		return fmt.Errorf("attempted to slash with a negative slash factor: %v", slashFactor)
+	}
+	if slashFactor.GT(sdk.OneDec()) {
+		return fmt.Errorf("slash factor too large: %s", i)
 	}
 	return nil
 }

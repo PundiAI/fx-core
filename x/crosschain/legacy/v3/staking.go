@@ -16,7 +16,8 @@ import (
 
 type StakingKeeper interface {
 	GetBondedValidatorsByPower(ctx sdk.Context) []stakingtypes.Validator
-	Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool) (newShares sdk.Dec, err error)
+	Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus,
+		validator stakingtypes.Validator, subtractAccount bool) (newShares sdk.Dec, err error)
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
 	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
 	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
@@ -26,7 +27,8 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
-func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, bankKeeper BankKeeper, oracles types.Oracles, delegateValAddr sdk.ValAddress) error {
+func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, bankKeeper BankKeeper,
+	oracles types.Oracles, proposalOracle types.ProposalOracle, delegateValAddr sdk.ValAddress) error {
 	if moduleName != bsctypes.ModuleName && moduleName != polygontypes.ModuleName && moduleName != trontypes.ModuleName {
 		return fmt.Errorf("not support module name: %s", moduleName)
 	}
@@ -67,6 +69,9 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		if err := bankKeeper.SendCoinsFromModuleToAccount(ctx,
 			sendName, delegateAddr, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount))); err != nil {
 			return err
+		}
+		if !oracle.Online {
+			continue
 		}
 
 		newShares, err := stakingKeeper.Delegate(ctx, delegateAddr, oracle.DelegateAmount, stakingtypes.Unbonded, validator, true)

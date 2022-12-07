@@ -20,6 +20,7 @@ import (
 )
 
 func TestMigrateDepositToStaking(t *testing.T) {
+	proposalOracle := types.ProposalOracle{}
 	newOracles := func(number int, validatorAddr string) types.Oracles {
 		var oracles = make(types.Oracles, number)
 		for i := 0; i < len(oracles); i++ {
@@ -33,6 +34,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 				DelegateValidator: validatorAddr,
 				SlashTimes:        0,
 			}
+			proposalOracle.Oracles = append(proposalOracle.Oracles, oracles[i].OracleAddress)
 		}
 		return oracles
 	}
@@ -71,7 +73,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 			valSet, genAccs, balances := helpers.GenerateGenesisValidator(20, nil)
 			myApp := helpers.SetupWithGenesisValSet(t, valSet, genAccs, balances...)
 
-			ctx := myApp.BaseApp.NewContext(false, tmproto.Header{Time: time.Now()})
+			ctx := myApp.NewContext(false, tmproto.Header{Time: time.Now(), Height: 1})
 			validators := myApp.StakingKeeper.GetBondedValidatorsByPower(ctx)
 			require.Equal(t, len(validators), 20)
 			delegatorValidator := validators[0]
@@ -98,12 +100,15 @@ func TestMigrateDepositToStaking(t *testing.T) {
 
 			oracles := newOracles(tt.args.oracleNumber, delegatorValidator.OperatorAddress)
 			for _, oracle := range oracles {
-				err := myApp.BankKeeper.MintCoins(ctx, tt.args.moduleName, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount)))
+				delegateCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: oracle.DelegateAmount}}
+				err := myApp.BankKeeper.MintCoins(ctx, tt.args.moduleName, delegateCoins)
 				require.NoError(t, err)
 			}
 
-			require.NoError(t, crosschainv2.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper, myApp.BankKeeper, oracles, delegatorValidator.GetOperator()))
-			require.NoError(t, crosschainv3.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper, myApp.BankKeeper, oracles, delegatorValidator.GetOperator()))
+			require.NoError(t, crosschainv2.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper,
+				myApp.BankKeeper, oracles, delegatorValidator.GetOperator()))
+			require.NoError(t, crosschainv3.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper,
+				myApp.BankKeeper, oracles, proposalOracle, delegatorValidator.GetOperator()))
 
 			allDelegations := myApp.StakingKeeper.GetAllDelegations(ctx)
 			require.EqualValues(t, len(allDelegations), oracles.Len()+valSet.Size())

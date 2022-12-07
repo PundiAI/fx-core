@@ -22,6 +22,7 @@ func CreateUpgradeHandler(
 		fromVM[avalanchetypes.ModuleName] = mm.Modules[avalanchetypes.ModuleName].ConsensusVersion()
 		fromVM[ethtypes.ModuleName] = mm.Modules[ethtypes.ModuleName].ConsensusVersion()
 		initAvalancheOracles(ctx, keepers.AvalancheKeeper)
+		updateBSCOracles(ctx, keepers.BscKeeper)
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }
@@ -37,6 +38,21 @@ func initAvalancheOracles(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keep
 		panic("invalid chainId:" + chainId)
 	}
 	avalancheKeeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
+		Oracles: oracles,
+	})
+}
+
+func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
+	var oracles []string
+	chainId := ctx.ChainID()
+	if chainId == fxtypes.MainnetChainId {
+		oracles = []string{}
+	} else if chainId == fxtypes.TestnetChainId {
+		oracles = []string{}
+	} else {
+		panic("invalid chainId:" + chainId)
+	}
+	bscKeeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: oracles,
 	})
 }

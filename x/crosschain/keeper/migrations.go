@@ -1,44 +1,24 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
+	crosschainv3 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v3"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-// Migrator is a struct for handling in-place store migrations.
-type Migrator struct {
-	keeper      Keeper
-	sk          crosschainv2.StakingKeeper
-	bk          crosschainv2.BankKeeper
-	paramsKey   sdk.StoreKey
-	legacyAmino *codec.LegacyAmino
-}
+func (k Keeper) Migrate2to3(ctx sdk.Context) error {
+	// update params
+	k.paramSpace.Set(ctx, types.ParamsStoreKeySignedWindow, uint64(30_000))
+	k.paramSpace.Set(ctx, types.ParamsStoreSlashFraction, sdk.NewDecWithPrec(8, 1))
 
-// NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper, sk crosschainv2.StakingKeeper, bk crosschainv2.BankKeeper, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) Migrator {
-	return Migrator{
-		keeper:      keeper,
-		sk:          sk,
-		bk:          bk,
-		paramsKey:   paramsKey,
-		legacyAmino: legacyAmino,
+	// fix oracle delegate
+	validatorsByPower := k.stakingKeeper.GetBondedValidatorsByPower(ctx)
+	if len(validatorsByPower) <= 0 {
+		panic("no found bonded validator")
 	}
-}
-
-// Migrate1to2 migrates from version 1 to 2.
-func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	if err := crosschainv2.MigrateParams(ctx, m.keeper.moduleName, m.legacyAmino, m.paramsKey); err != nil {
-		return err
-	}
-	oracles, delegateValAddr, err := crosschainv2.MigrateOracle(ctx, m.keeper.cdc, m.keeper.storeKey, m.sk)
-	if err != nil {
-		return err
-	}
-	if err := crosschainv2.MigrateDepositToStaking(ctx, m.keeper.moduleName, m.sk, m.bk, oracles, delegateValAddr); err != nil {
-		return err
-	}
-	crosschainv2.MigrateStore(ctx, m.keeper.storeKey)
-	return nil
+	validator := validatorsByPower[0].GetOperator()
+	oracles := k.GetAllOracles(ctx, false)
+	proposalOracle, _ := k.GetProposalOracle(ctx)
+	return crosschainv3.MigrateDepositToStaking(ctx, k.moduleName, k.stakingKeeper, k.bankKeeper, oracles, proposalOracle, validator)
 }
