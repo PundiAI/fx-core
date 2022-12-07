@@ -93,29 +93,3 @@ func TestValidateEthereumAddress(t *testing.T) {
 		}
 	}
 }
-
-func TestSafeInt64(t *testing.T) {
-	testCases := []struct {
-		name     string
-		value    uint64
-		expError bool
-	}{
-		{
-			"no overflow", 10, false,
-		},
-		{
-			"overflow", 18446744073709551615, true,
-		},
-	}
-
-	for _, tc := range testCases {
-		value, err := fxtypes.SafeInt64(tc.value)
-		if tc.expError {
-			require.Error(t, err, tc.name)
-			continue
-		}
-
-		require.NoError(t, err, tc.name)
-		require.Equal(t, int64(tc.value), value, tc.name)
-	}
-}

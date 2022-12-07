@@ -111,7 +111,7 @@ func (suite *EvmTestSuite) Transfer(recipient common.Address, value *big.Int) co
 
 func (suite *EvmTestSuite) TransferCrossChain(token common.Address, recipient string, amount, fee *big.Int, target string) common.Hash {
 	suite.T().Log("transfer cross chain", target)
-	pack, err := FIP20ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.StringToByte32(target))
+	pack, err := FIP20ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.ethPrivKey, &token, nil, pack)

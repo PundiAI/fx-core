@@ -157,7 +157,7 @@ func (m OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
 	// will panic if gravityId is too long to fit in 32 bytes
-	gravityID, err := StrToFixByteArray(gravityIDStr)
+	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "parse gravity id")
 	}
@@ -242,7 +242,7 @@ func (m OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
 	// will panic if gravityId is too long to fit in 32 bytes
-	gravityID, err := StrToFixByteArray(gravityIDString)
+	gravityID, err := fxtypes.StrToByte32(gravityIDString)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "parse gravity id")
 	}

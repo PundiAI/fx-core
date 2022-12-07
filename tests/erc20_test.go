@@ -172,7 +172,7 @@ func (suite *ERC20TestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token
 func (suite *ERC20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, token gethcommon.Address,
 	recipient string, amount, fee *big.Int, target string) gethcommon.Hash {
 	suite.T().Log("transfer cross chain", target)
-	pack, err := FIP20ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.StringToByte32(target))
+	pack, err := FIP20ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)

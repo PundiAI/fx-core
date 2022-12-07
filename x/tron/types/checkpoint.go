@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fbsobreira/gotron-sdk/pkg/abi"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
@@ -19,11 +20,11 @@ func GetCheckpointOracleSet(oracleSet *types.OracleSet, gravityIDStr string) ([]
 		powers[i] = big.NewInt(int64(member.Power))
 	}
 
-	gravityID, err := types.StrToFixByteArray(gravityIDStr)
+	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "parse gravity id")
 	}
-	checkpoint, err := types.StrToFixByteArray("checkpoint")
+	checkpoint, err := fxtypes.StrToByte32("checkpoint")
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "parse checkpoint")
 	}
@@ -53,11 +54,11 @@ func GetCheckpointConfirmBatch(txBatch *types.OutgoingTxBatch, gravityIDStr stri
 		fees[i] = transferTx.Fee.Amount.BigInt()
 	}
 
-	gravityID, err := types.StrToFixByteArray(gravityIDStr)
+	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "parse gravity id")
 	}
-	transactionBatch, err := types.StrToFixByteArray("transactionBatch")
+	transactionBatch, err := fxtypes.StrToByte32("transactionBatch")
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "parse checkpoint")
 	}

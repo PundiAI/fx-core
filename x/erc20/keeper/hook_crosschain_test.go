@@ -382,7 +382,7 @@ func (suite *KeeperTestSuite) TestHookIBCOneToMany() {
 
 func packTransferCrossData(t *testing.T, to string, amount, fee *big.Int, target string) []byte {
 	fip20 := fxtypes.GetERC20()
-	targetBytes := fxtypes.StringToByte32(target)
+	targetBytes := fxtypes.MustStrToByte32(target)
 	pack, err := fip20.ABI.Pack("transferCrossChain", to, amount, fee, targetBytes)
 	require.NoError(t, err)
 	return pack

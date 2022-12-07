@@ -146,7 +146,7 @@ func validateGravityID(i interface{}) error {
 	if len(v) == 0 {
 		return fmt.Errorf("gravityId cannpt be empty")
 	}
-	if _, err := StrToFixByteArray(v); err != nil {
+	if _, err := fxtypes.StrToByte32(v); err != nil {
 		return err
 	}
 	return nil
@@ -251,13 +251,4 @@ func validateSlashFraction(i interface{}) error {
 		return fmt.Errorf("attempted to slash with a negative slash factor: %v", slashFactor)
 	}
 	return nil
-}
-
-func StrToFixByteArray(s string) ([32]byte, error) {
-	var out [32]byte
-	if len([]byte(s)) > 32 {
-		return out, fmt.Errorf("string too long")
-	}
-	copy(out[:], s)
-	return out, nil
 }

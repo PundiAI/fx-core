@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -98,10 +99,12 @@ func (event *TransferCrossChainEvent) TotalAmount(denom string) sdk.Coins {
 	return sdk.NewCoins(event.GetAmount(denom)).Add(event.GetFee(denom))
 }
 
-func StringToByte32(str string) [32]byte {
-	var bz [32]byte
-	copy(bz[:], str)
-	return bz
+func MustStrToByte32(str string) [32]byte {
+	byte32, err := StrToByte32(str)
+	if err != nil {
+		panic(err)
+	}
+	return byte32
 }
 
 func Byte32ToString(bytes [32]byte) string {
@@ -111,4 +114,13 @@ func Byte32ToString(bytes [32]byte) string {
 		}
 	}
 	return ""
+}
+
+func StrToByte32(s string) ([32]byte, error) {
+	var out [32]byte
+	if len([]byte(s)) > 32 {
+		return out, fmt.Errorf("string too long")
+	}
+	copy(out[:], s)
+	return out, nil
 }
