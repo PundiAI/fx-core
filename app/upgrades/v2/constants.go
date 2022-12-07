@@ -85,3 +85,29 @@ var (
 		trontypes.ModuleName:    true,
 	}
 )
+
+func GetMetadata(chainId string) []banktypes.Metadata {
+	var (
+		wfxMetadata = fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
+
+		// fxv2 token
+		testnetPUNDIXMetadata   = fxtypes.GetCrossChainMetadata("Pundi X Token", "PUNDIX", 18, "eth0xd9EEd31F5731DfC3Ca18f09B487e200F50a6343B")
+		testnetEthUSDTMetadata  = fxtypes.GetCrossChainMetadata("Tether USD", "USDT", 6, "eth0xD69133f9A0206b3340d9622F2eBc4571022b3b5f")
+		testnetUSDCMetadata     = fxtypes.GetCrossChainMetadata("USD Coin", "USDC", 18, "eth0xeC822cd1238d946Cf0f73be57359c5cAa5512a9D")
+		testnetDAIMetadata      = fxtypes.GetCrossChainMetadata("DAI StableCoin", "DAI", 18, "eth0x2870405E4ABF9FcCDc93d9cC83c09788296d8354")
+		testnetPURSEMetadata    = fxtypes.GetCrossChainMetadata("PURSE TOKEN", "PURSE", 18, "ibc/4757BC3AA2C696F7083C825BD3951AE3D1631F2A272EA7AFB9B3E1CCCA8560D4")
+		testnetUSDJMetadata     = fxtypes.GetCrossChainMetadata("JUST Stablecoin v1.0", "USDJ", 18, "tronTLBaRhANQoJFTqre9Nf1mjuwNWjCJeYqUL")
+		testnetUSDFMetadata     = fxtypes.GetCrossChainMetadata("FX USD", "USDF", 6, "tronTK1pM7NtkLohgRgKA6LeocW2znwJ8JtLrQ")
+		testnetTronUSDTMetadata = fxtypes.GetCrossChainMetadata("Tether USD", "USDT", 6, "tronTXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj")
+		testnetLINKMetadata     = fxtypes.GetCrossChainMetadata("ChainLink Token", "LINK", 18, "polygon0x326C977E6efc84E512bB9C30f76E30c160eD06FB")
+
+		mainnetPUNDIXMetadata = fxtypes.GetCrossChainMetadata("Pundi X Token", "PUNDIX", 18, "eth0x0FD10b9899882a6f2fcb5c371E17e70FdEe00C38")
+		mainnetPURSEMetadata  = fxtypes.GetCrossChainMetadata("PURSE TOKEN", "PURSE", 18, "ibc/F08B62C2C1BE9E52942617489CAB1E94537FE3849F8EEC910B142468C340EB0D")
+	)
+	if fxtypes.TestnetChainId == chainId {
+		return []banktypes.Metadata{wfxMetadata, testnetPUNDIXMetadata, testnetEthUSDTMetadata, testnetUSDCMetadata, testnetDAIMetadata,
+			testnetPURSEMetadata, testnetUSDJMetadata, testnetUSDFMetadata, testnetTronUSDTMetadata, testnetLINKMetadata}
+	} else {
+		return []banktypes.Metadata{wfxMetadata, mainnetPUNDIXMetadata, mainnetPURSEMetadata}
+	}
+}

@@ -29,6 +29,8 @@ import (
 	"github.com/tendermint/tendermint/rpc/client/local"
 	"github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 func startInProcess(cfg Config, val *Validator) error {
@@ -131,12 +133,13 @@ func startInProcess(cfg Config, val *Validator) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, val.ClientCtx, tmRPCAddr, tmEndpoint, config.Config{
+			clientCtx := val.ClientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
+			val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, clientCtx, tmRPCAddr, tmEndpoint, &config.Config{
 				Config:  val.AppConfig.Config,
 				EVM:     val.AppConfig.EVM,
 				JSONRPC: val.AppConfig.JSONRPC,
 				TLS:     val.AppConfig.TLS,
-			})
+			}, nil)
 			if err != nil {
 				errCh <- err
 				return

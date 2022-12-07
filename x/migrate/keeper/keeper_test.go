@@ -22,6 +22,8 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
+	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
+	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 )
@@ -91,7 +93,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	}
 
 	// register coin
-	for _, metadata := range fxtypes.GetMetadata() {
+	metadatas := append(v2.GetMetadata(suite.ctx.ChainID()), v3.GetMetadata(suite.ctx.ChainID())...)
+	for _, metadata := range metadatas {
 		_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
 		require.NoError(t, err)
 	}

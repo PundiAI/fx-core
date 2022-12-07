@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/crypto"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -208,8 +210,9 @@ func (suite *KeeperTestSuite) TestRegisterCoin() {
 			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
 			//suite.Commit()
 
+			contractAddr := crypto.CreateAddress(types.ModuleAddress, suite.app.EvmKeeper.GetNonce(suite.ctx, types.ModuleAddress)-1)
 			expPair := &types.TokenPair{
-				Erc20Address:  "0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265",
+				Erc20Address:  contractAddr.String(),
 				Denom:         cosmosTokenBase,
 				Enabled:       true,
 				ContractOwner: 1,
@@ -332,8 +335,9 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithManyToOne() {
 
 			pair, tcErr := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
 
+			contractAddr := crypto.CreateAddress(types.ModuleAddress, suite.app.EvmKeeper.GetNonce(suite.ctx, types.ModuleAddress)-1)
 			expPair := &types.TokenPair{
-				Erc20Address:  "0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265",
+				Erc20Address:  contractAddr.String(),
 				Denom:         "usdt",
 				Enabled:       true,
 				ContractOwner: 1,

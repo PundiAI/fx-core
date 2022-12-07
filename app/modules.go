@@ -41,7 +41,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibc "github.com/cosmos/ibc-go/v3/modules/core"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/evmos/ethermint/x/evm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -63,6 +62,7 @@ import (
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	"github.com/functionx/fx-core/v3/x/eth"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	fxevm "github.com/functionx/fx-core/v3/x/evm"
 	fxgov "github.com/functionx/fx-core/v3/x/gov"
 	"github.com/functionx/fx-core/v3/x/gravity"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
@@ -142,7 +142,7 @@ var ModuleBasics = module.NewBasicManager(
 	avalanche.AppModuleBasic{},
 	eth.AppModuleBasic{},
 	tron.AppModuleBasic{},
-	EvmAppModule{},
+	fxevm.AppModule{},
 	FeeMarketAppModule{},
 	erc20.AppModuleBasic{},
 	migrate.AppModuleBasic{},
@@ -181,7 +181,7 @@ func appModules(
 		avalanche.NewAppModule(app.AvalancheKeeper),
 		eth.NewAppModule(app.EthKeeper),
 		tron.NewAppModule(app.TronKeeper),
-		EvmAppModule{evm.NewAppModule(app.EvmKeeper, app.AccountKeeper)},
+		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper),
 		FeeMarketAppModule{feemarket.NewAppModule(app.FeeMarketKeeper)},
 		erc20.NewAppModule(app.Erc20Keeper, app.AccountKeeper),
 		migrate.NewAppModule(app.MigrateKeeper),

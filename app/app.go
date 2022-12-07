@@ -38,7 +38,7 @@ import (
 	fxante "github.com/functionx/fx-core/v3/ante"
 	"github.com/functionx/fx-core/v3/app/keepers"
 	"github.com/functionx/fx-core/v3/app/upgrades"
-	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
+	"github.com/functionx/fx-core/v3/app/upgrades/v3"
 	_ "github.com/functionx/fx-core/v3/docs/statik"
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	gaspricelegacy "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy"

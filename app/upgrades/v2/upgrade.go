@@ -20,6 +20,8 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -28,11 +30,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmcfg "github.com/tendermint/tendermint/config"
 
-	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-
 	"github.com/functionx/fx-core/v3/app/keepers"
-	fxCfg "github.com/functionx/fx-core/v3/server/config"
+	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
@@ -42,35 +41,6 @@ import (
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
-
-// PreUpgradeCmd called by cosmovisor
-func PreUpgradeCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "pre-upgrade",
-		Short: "fxv2 pre-upgrade, called by cosmovisor, before migrations upgrade",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			serverCtx.Logger.Info("pre-upgrade", "action", "update app.toml and config.toml")
-
-			rootDir := serverCtx.Config.RootDir
-			fileName := filepath.Join(rootDir, "config", "config.toml")
-			tmcfg.WriteConfigFile(fileName, serverCtx.Config)
-
-			config.SetConfigTemplate(fxCfg.DefaultConfigTemplate())
-			appConfig := fxCfg.DefaultConfig()
-			if err := serverCtx.Viper.Unmarshal(appConfig); err != nil {
-				return err
-			}
-			fileName = filepath.Join(rootDir, "config", "app.toml")
-			config.WriteConfigFile(fileName, appConfig)
-
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			return clientCtx.PrintString("fxv2 pre-upgrade success")
-		},
-	}
-	return cmd
-}
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2
 func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, keepers *keepers.AppKeepers) upgradetypes.UpgradeHandler {
@@ -220,12 +190,12 @@ func runMigrations(ctx sdk.Context, paramsKey *sdk.KVStoreKey, fromVersion modul
 }
 
 func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
-	if fxtypes.TestnetChainId != fxtypes.ChainId() {
+	if fxtypes.TestnetChainId != ctx.ChainID() {
 		return
 	}
 	logger := ctx.Logger()
 	logger.Info("clear testnet metadata", "chainId", fxtypes.ChainId())
-	for _, md := range fxtypes.GetMetadata() {
+	for _, md := range GetMetadata(ctx.ChainID()) {
 		//remove denom except FX
 		if md.Base == fxtypes.DefaultDenom {
 			continue
@@ -237,7 +207,7 @@ func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
 }
 
 func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
-	for _, metadata := range fxtypes.GetMetadata() {
+	for _, metadata := range GetMetadata(ctx.ChainID()) {
 		ctx.Logger().Info("add metadata", "coin", metadata.String())
 		pair, err := k.RegisterCoin(ctx, metadata)
 		if err != nil {
@@ -300,4 +270,33 @@ func needInitGenesis(ctx sdk.Context, module string, paramsKey *sdk.KVStoreKey) 
 		}
 	}
 	return false
+}
+
+// PreUpgradeCmd called by cosmovisor
+func PreUpgradeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pre-upgrade",
+		Short: "fxv2 pre-upgrade, called by cosmovisor, before migrations upgrade",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			serverCtx.Logger.Info("pre-upgrade", "action", "update app.toml and config.toml")
+
+			rootDir := serverCtx.Config.RootDir
+			fileName := filepath.Join(rootDir, "config", "config.toml")
+			tmcfg.WriteConfigFile(fileName, serverCtx.Config)
+
+			config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
+			appConfig := fxcfg.DefaultConfig()
+			if err := serverCtx.Viper.Unmarshal(appConfig); err != nil {
+				return err
+			}
+			fileName = filepath.Join(rootDir, "config", "app.toml")
+			config.WriteConfigFile(fileName, appConfig)
+
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			return clientCtx.PrintString("fxv2 pre-upgrade success")
+		},
+	}
+	return cmd
 }

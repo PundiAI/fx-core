@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ethermint "github.com/evmos/ethermint/types"
 )
 
 const (
@@ -22,14 +21,6 @@ func init() {
 
 	// votingPower = delegateToken / sdk.PowerReduction  --  sdk.TokensToConsensusPower(tokens Int)
 	sdk.DefaultPowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
-
-	// set chain id function
-	ethermint.SetParseChainIDFunc(func(chainID string) (*big.Int, error) {
-		return EIP155ChainID(), nil
-	})
-	ethermint.SetValidChainIDFunc(func(chainId string) bool {
-		return ChainId() == chainId
-	})
 }
 
 func SetConfig(isCosmosCoinType bool) {

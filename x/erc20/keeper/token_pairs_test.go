@@ -6,6 +6,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
+	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
+	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
@@ -31,6 +33,28 @@ var (
 	}
 )
 
+func getMetadataTokenPairs() []types.TokenPair {
+	mds := append(v2.GetMetadata(fxtypes.ChainId()), v3.GetMetadata(fxtypes.ChainId())...)
+	tps := make([]types.TokenPair, 0, len(mds))
+	for _, md := range mds {
+		tps = append(tps, types.TokenPair{
+			Denom:         md.Base,
+			Enabled:       true,
+			ContractOwner: 1,
+		})
+	}
+	return tps
+}
+
+func clearTokenPairErc20Address(tp ...types.TokenPair) []types.TokenPair {
+	p := make([]types.TokenPair, 0, len(tp))
+	for _, t := range tp {
+		t.Erc20Address = ""
+		p = append(p, t)
+	}
+	return p
+}
+
 func (suite *KeeperTestSuite) TestGetAllTokenPairs() {
 	var expRes []types.TokenPair
 
@@ -39,28 +63,32 @@ func (suite *KeeperTestSuite) TestGetAllTokenPairs() {
 		malleate func()
 	}{
 		{
-			"5 pair registered", func() {
-				expRes = []types.TokenPair{fxTokenPair, pundixTokenPair, purseTokenPair}
+			"metadata pair registered", func() {
+				expRes = getMetadataTokenPairs()
 			},
 		},
 		{
-			"6 pair registered",
+			"metadata +1 pair registered",
 			func() {
 				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
-				expRes = []types.TokenPair{pair, fxTokenPair, pundixTokenPair, purseTokenPair}
+				//clear pair erc20 address
+				pairs := clearTokenPairErc20Address(pair)
+				expRes = append(pairs, getMetadataTokenPairs()...)
 			},
 		},
 		{
-			"7 pairs registered",
+			"metadata +2 pairs registered",
 			func() {
 				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				pair2 := types.NewTokenPair(helpers.GenerateAddress(), "coin2", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
-				expRes = []types.TokenPair{pair, pair2, fxTokenPair, pundixTokenPair, purseTokenPair}
+				//clear pair erc20 address
+				pairs := clearTokenPairErc20Address(pair, pair2)
+				expRes = append(pairs, getMetadataTokenPairs()...)
 			},
 		},
 	}
@@ -71,7 +99,10 @@ func (suite *KeeperTestSuite) TestGetAllTokenPairs() {
 			tc.malleate()
 			res := suite.app.Erc20Keeper.GetAllTokenPairs(suite.ctx)
 
-			suite.Require().ElementsMatch(expRes, res, tc.name)
+			//clear erc20 address
+			newRes := clearTokenPairErc20Address(res...)
+
+			suite.Require().ElementsMatch(expRes, newRes, tc.name)
 		})
 	}
 }

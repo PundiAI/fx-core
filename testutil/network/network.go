@@ -44,6 +44,7 @@ import (
 	"google.golang.org/grpc"
 
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 // package-wide network lock to only allow one test network at a time
@@ -166,7 +167,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 	l.Log("acquiring test network lock")
 	lock.Lock()
 
-	if !ethermint.IsValidChainID(cfg.ChainID) {
+	if !ethermint.IsValidChainID(fxtypes.ChainIdWithEIP155()) {
 		return nil, fmt.Errorf("invalid chain-id: %s", cfg.ChainID)
 	}
 

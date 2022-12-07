@@ -48,16 +48,11 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/spf13/cast"
 
-	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
-	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
-	fxtransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
-	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
-	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter"
-
 	ibctransfer "github.com/cosmos/ibc-go/v3/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
@@ -66,9 +61,14 @@ import (
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	fxevmkeeper "github.com/functionx/fx-core/v3/x/evm/keeper"
 	fxgovkeeper "github.com/functionx/fx-core/v3/x/gov/keeper"
 	gravitykeeper "github.com/functionx/fx-core/v3/x/gravity/keeper"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
+	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
+	fxtransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
+	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter"
 	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
@@ -115,12 +115,14 @@ type AppKeepers struct {
 	EthKeeper        crosschainkeeper.Keeper
 	TronKeeper       tronkeeper.Keeper
 
-	EvmKeeper       *evmkeeper.Keeper
+	EvmKeeper       *fxevmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
 	Erc20Keeper     erc20keeper.Keeper
 	MigrateKeeper   migratekeeper.Keeper
 
 	TransferModule ibctransfer.AppModule
+
+	LegacyAmino *codec.LegacyAmino
 }
 
 func NewAppKeeper(
@@ -134,7 +136,7 @@ func NewAppKeeper(
 	invCheckPeriod uint,
 	appOpts servertypes.AppOptions,
 ) *AppKeepers {
-	appKeepers := &AppKeepers{}
+	appKeepers := &AppKeepers{LegacyAmino: legacyAmino}
 
 	// Set keys KVStoreKey, TransientStoreKey, MemoryStoreKey
 	appKeepers.GenerateKeys()
@@ -259,16 +261,20 @@ func NewAppKeeper(
 		appKeepers.tkeys[feemarkettypes.TransientKey],
 	)
 
-	appKeepers.EvmKeeper = evmkeeper.NewKeeper(
-		appCodec,
-		appKeepers.keys[evmtypes.StoreKey],
-		appKeepers.tkeys[evmtypes.TransientKey],
-		appKeepers.GetSubspace(evmtypes.ModuleName),
+	appKeepers.EvmKeeper = fxevmkeeper.NewKeeper(
+		evmkeeper.NewKeeper(
+			appCodec,
+			appKeepers.keys[evmtypes.StoreKey],
+			appKeepers.tkeys[evmtypes.TransientKey],
+			appKeepers.GetSubspace(evmtypes.ModuleName),
+			appKeepers.AccountKeeper,
+			appKeepers.BankKeeper,
+			stakingKeeper,
+			appKeepers.FeeMarketKeeper,
+			cast.ToString(appOpts.Get(srvflags.EVMTracer)),
+		),
 		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		stakingKeeper,
-		appKeepers.FeeMarketKeeper,
-		cast.ToString(appOpts.Get(srvflags.EVMTracer)))
+	)
 
 	erc20Keeper := erc20keeper.NewKeeper(
 		appKeepers.keys[erc20types.StoreKey],

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"math/big"
 	"sync"
 )
@@ -40,4 +41,11 @@ func EIP155ChainID() *big.Int {
 		return big.NewInt(testnetEvmChainID)
 	}
 	return big.NewInt(mainnetEvmChainID)
+}
+
+func ChainIdWithEIP155() string {
+	if TestnetChainId == ChainId() {
+		return fmt.Sprintf("%s_%d-1", TestnetChainId, testnetEvmChainID)
+	}
+	return fmt.Sprintf("%s_%d-1", MainnetChainId, mainnetEvmChainID)
 }

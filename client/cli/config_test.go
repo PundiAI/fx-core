@@ -192,7 +192,7 @@ const appConfigJson = `{
     "msg-types": []
   },
   "evm": {
-    "max-tx-gas-wanted": 500000,
+    "max-tx-gas-wanted": 0,
     "tracer": ""
   },
   "grpc": {
@@ -220,6 +220,7 @@ const appConfigJson = `{
     ],
     "block-range-cap": 10000,
     "enable": true,
+    "enable-indexer": false,
     "evm-timeout": 5000000000,
     "feehistory-cap": 100,
     "filter-cap": 200,
@@ -227,6 +228,7 @@ const appConfigJson = `{
     "http-idle-timeout": 120000000000,
     "http-timeout": 30000000000,
     "logs-cap": 10000,
+    "max-open-connections": 0,
     "txfee-cap": 1,
     "ws-address": "0.0.0.0:8546"
   },

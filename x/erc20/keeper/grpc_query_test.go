@@ -23,19 +23,21 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 		expPass  bool
 	}{
 		{
-			"3 pairs registered",
+			"metadata pairs registered",
 			func() {
 				req = &types.QueryTokenPairsRequest{}
 				expRes = &types.QueryTokenPairsResponse{Pagination: &query.PageResponse{}}
+
+				tokenPairs := getMetadataTokenPairs()
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 3},
-					TokenPairs: []types.TokenPair{fxTokenPair, pundixTokenPair, purseTokenPair},
+					Pagination: &query.PageResponse{Total: uint64(len(tokenPairs))},
+					TokenPairs: tokenPairs,
 				}
 			},
 			true,
 		},
 		{
-			"4 pair registered w/pagination",
+			"metadata +1 pair registered w/pagination",
 			func() {
 				req = &types.QueryTokenPairsRequest{
 					Pagination: &query.PageRequest{Limit: 10, CountTotal: true},
@@ -43,15 +45,18 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
+				//clear erc20 address
+				pairs := clearTokenPairErc20Address(pair)
+				tokenPairs := getMetadataTokenPairs()
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 4},
-					TokenPairs: []types.TokenPair{pair, fxTokenPair, pundixTokenPair, purseTokenPair},
+					Pagination: &query.PageResponse{Total: uint64(len(tokenPairs)) + 1},
+					TokenPairs: append(pairs, tokenPairs...),
 				}
 			},
 			true,
 		},
 		{
-			"5 pairs registered wo/pagination",
+			"metadata +2 pairs registered wo/pagination",
 			func() {
 				req = &types.QueryTokenPairsRequest{}
 				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
@@ -59,9 +64,12 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
+				//clear erc20 address
+				pairs := clearTokenPairErc20Address(pair, pair2)
+				tokenPairs := getMetadataTokenPairs()
 				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 5},
-					TokenPairs: []types.TokenPair{pair, pair2, fxTokenPair, pundixTokenPair, purseTokenPair},
+					Pagination: &query.PageResponse{Total: uint64(len(tokenPairs)) + 2},
+					TokenPairs: append(pairs, tokenPairs...),
 				}
 			},
 			true,
@@ -78,7 +86,9 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expRes.Pagination, res.Pagination)
-				suite.Require().ElementsMatch(expRes.TokenPairs, res.TokenPairs)
+				//clear erc20 address
+				newPairs := clearTokenPairErc20Address(res.TokenPairs...)
+				suite.Require().ElementsMatch(expRes.TokenPairs, newPairs)
 			} else {
 				suite.Require().Error(err)
 			}

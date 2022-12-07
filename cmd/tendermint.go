@@ -7,7 +7,6 @@ import (
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
-	"github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
@@ -17,6 +16,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/client/cli"
+	fxserver "github.com/functionx/fx-core/v3/server"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -56,7 +56,7 @@ func tendermintCommand() *cobra.Command {
 }
 
 func startCommand(appCreator types.AppCreator, defaultNodeHome string) *cobra.Command {
-	startCmd := server.StartCmd(appCreator, defaultNodeHome)
+	startCmd := fxserver.StartCmd(appCreator, defaultNodeHome)
 	crisis.AddModuleInitFlags(startCmd)
 
 	startCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
