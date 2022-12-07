@@ -2,8 +2,6 @@ package v3
 
 import (
 	"fmt"
-	"path/filepath"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -12,8 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
+	"path/filepath"
 
 	"github.com/functionx/fx-core/v3/app/keepers"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
@@ -24,6 +24,7 @@ import (
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	fxevmkeeper "github.com/functionx/fx-core/v3/x/evm/keeper"
 	evmlegacyv3 "github.com/functionx/fx-core/v3/x/evm/legacy/v3"
 )
 
@@ -39,8 +40,14 @@ func CreateUpgradeHandler(
 		// cache context
 		cacheCtx, commit := ctx.CacheContext()
 
+		// init avalanche oracles
 		initAvalancheOracles(cacheCtx, keepers.AvalancheKeeper)
+
+		// update bsc oracles
 		updateBSCOracles(cacheCtx, keepers.BscKeeper)
+
+		// update wfx code
+		updateWFXCode(cacheCtx, keepers.EvmKeeper)
 
 		// migrate evm param RejectUnprotectedTx to AllowUnprotectedTxs
 		migrateRejectUnprotectedTx(cacheCtx, keepers.LegacyAmino, keepers.GetKey(paramstypes.StoreKey))
@@ -119,6 +126,30 @@ func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 			sdk.NewAttribute(erc20types.AttributeKeyTokenAddress, pair.Erc20Address),
 		))
 	}
+}
+
+// updateWFXCode update wfx code
+func updateWFXCode(ctx sdk.Context, ek *fxevmkeeper.Keeper) {
+	logger := ctx.Logger()
+	wfx := fxtypes.GetWFX()
+	codeHash := crypto.Keccak256Hash(wfx.Code)
+
+	logger.Info("update wfx code", "address", wfx.Address.String(), "version", wfx.Version, "code-hash", codeHash.String())
+	acc := ek.GetAccount(ctx, wfx.Address)
+	if acc == nil {
+		panic(fmt.Sprintf("account %s not found", wfx.Address.String()))
+	}
+	acc.CodeHash = codeHash.Bytes()
+	ek.SetCode(ctx, acc.CodeHash, wfx.Code)
+	if err := ek.SetAccount(ctx, wfx.Address, *acc); err != nil {
+		panic(fmt.Sprintf("evm set account %s error %s", wfx.Address.String(), err.Error()))
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		EventUpdateContract,
+		sdk.NewAttribute(AttributeKeyContract, wfx.Address.String()),
+		sdk.NewAttribute(AttributeKeyVersion, wfx.Version),
+	))
 }
 
 // PreUpgradeCmd called by cosmovisor

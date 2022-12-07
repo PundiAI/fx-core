@@ -12,6 +12,10 @@ import (
 
 const (
 	UpgradeName = "v3"
+
+	EventUpdateContract  = "update_contract"
+	AttributeKeyContract = "contract"
+	AttributeKeyVersion  = "version"
 )
 
 var Upgrade = upgrades.Upgrade{
