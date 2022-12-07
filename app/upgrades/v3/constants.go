@@ -16,6 +16,14 @@ const (
 	EventUpdateContract  = "update_contract"
 	AttributeKeyContract = "contract"
 	AttributeKeyVersion  = "version"
+
+	DAIDenom  = "dai"
+	EURSDenom = "eurs"
+	LINKDenom = "link"
+	C98Denom  = "c98"
+
+	EventUpdateMetadata = "update_metadata"
+	AttributeKeyDenom   = "denom"
 )
 
 var Upgrade = upgrades.Upgrade{
@@ -54,4 +62,11 @@ func GetMetadata(chainId string) []banktypes.Metadata {
 	} else {
 		return []banktypes.Metadata{mainnetWAVAXMetadata, mainnetSAVAXMetadata, mainnetQIMetadata, mainnetBAVAMetadata, mainnetWBTCMetadata}
 	}
+}
+
+func GetAliasNullDenom() []string {
+	if fxtypes.ChainId() == fxtypes.TestnetChainId {
+		return []string{}
+	}
+	return []string{DAIDenom, EURSDenom, LINKDenom, C98Denom}
 }

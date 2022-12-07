@@ -2,18 +2,21 @@ package v3
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
-	"path/filepath"
 
 	"github.com/functionx/fx-core/v3/app/keepers"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
@@ -48,6 +51,9 @@ func CreateUpgradeHandler(
 
 		// update wfx code
 		updateWFXCode(cacheCtx, keepers.EvmKeeper)
+
+		// update metadata alias null
+		updateMetadataAliasNull(cacheCtx, keepers.BankKeeper)
 
 		// migrate evm param RejectUnprotectedTx to AllowUnprotectedTxs
 		migrateRejectUnprotectedTx(cacheCtx, keepers.LegacyAmino, keepers.GetKey(paramstypes.StoreKey))
@@ -150,6 +156,26 @@ func updateWFXCode(ctx sdk.Context, ek *fxevmkeeper.Keeper) {
 		sdk.NewAttribute(AttributeKeyContract, wfx.Address.String()),
 		sdk.NewAttribute(AttributeKeyVersion, wfx.Version),
 	))
+}
+
+func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
+	logger := ctx.Logger()
+	denoms := GetAliasNullDenom()
+	logger.Info("update metadata alias null", "chain-id", fxtypes.ChainId(), "denoms", strings.Join(denoms, ","))
+	for _, denom := range denoms {
+		md, found := bk.GetDenomMetaData(ctx, denom)
+		if !found || len(md.DenomUnits) != 2 || len(md.DenomUnits[1].Aliases) != 1 || md.DenomUnits[1].Aliases[0] != "null" {
+			continue
+		}
+		logger.Info("update metadata alias null", "denom", denom)
+		md.DenomUnits[1].Aliases = []string{}
+		bk.SetDenomMetaData(ctx, md)
+
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			EventUpdateMetadata,
+			sdk.NewAttribute(AttributeKeyDenom, denom),
+		))
+	}
 }
 
 // PreUpgradeCmd called by cosmovisor
