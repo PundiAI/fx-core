@@ -21,3 +21,11 @@ func NewKeeper(keeper crosschainkeeper.Keeper) Keeper {
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
+
+func NewModuleHandler(keeper Keeper) *crosschainkeeper.ModuleHandler {
+	return &crosschainkeeper.ModuleHandler{
+		QueryServer:    keeper,
+		MsgServer:      NewMsgServerImpl(keeper),
+		ProposalServer: keeper,
+	}
+}

@@ -617,5 +617,5 @@ func (s EthereumMsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk
 	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 	}
-	return oracle.GetOracle(), nil
+	return oracleAddr, nil
 }

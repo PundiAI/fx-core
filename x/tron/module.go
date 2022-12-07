@@ -112,13 +112,13 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	var genesisState crosschaintypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
-	crosschain.InitGenesis(ctx, am.keeper.Keeper, &genesisState)
+	crosschainkeeper.InitGenesis(ctx, am.keeper.Keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	state := crosschain.ExportGenesis(ctx, am.keeper.Keeper)
+	state := crosschainkeeper.ExportGenesis(ctx, am.keeper.Keeper)
 	return cdc.MustMarshalJSON(state)
 }
 

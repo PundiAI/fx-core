@@ -1,13 +1,12 @@
-package crosschain_test
+package keeper_test
 
 import (
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v3/x/crosschain"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-func (suite *IntegrationTestSuite) TestUpdateCrossChainOraclesProposal() {
+func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 	updateOracle := &types.UpdateChainOraclesProposal{
 		Title:       "Test UpdateCrossChainOracles",
 		Description: "test",
@@ -19,7 +18,7 @@ func (suite *IntegrationTestSuite) TestUpdateCrossChainOraclesProposal() {
 		ChainName: suite.chainName,
 	}
 
-	err := crosschain.HandleUpdateChainOraclesProposal(suite.ctx, suite.MsgServer(), updateOracle)
+	err := suite.Keeper().UpdateChainOraclesProposal(suite.ctx, updateOracle)
 	require.NoError(suite.T(), err)
 	require.True(suite.T(), suite.Keeper().IsProposalOracle(suite.ctx, suite.oracles[0].String()))
 	require.True(suite.T(), suite.Keeper().IsProposalOracle(suite.ctx, suite.oracles[1].String()))

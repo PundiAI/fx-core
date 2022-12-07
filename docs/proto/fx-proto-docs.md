@@ -1249,6 +1249,10 @@ GenesisState struct
 | `oracle_set_confirms` | [MsgOracleSetConfirm](#fx.gravity.crosschain.v1.MsgOracleSetConfirm) | repeated |  |
 | `batch_confirms` | [MsgConfirmBatch](#fx.gravity.crosschain.v1.MsgConfirmBatch) | repeated |  |
 | `attestations` | [Attestation](#fx.gravity.crosschain.v1.Attestation) | repeated |  |
+| `proposal_oracle` | [ProposalOracle](#fx.gravity.crosschain.v1.ProposalOracle) |  |  |
+| `last_observed_oracle_set` | [OracleSet](#fx.gravity.crosschain.v1.OracleSet) |  |  |
+| `last_slashed_batch_block` | [uint64](#uint64) |  |  |
+| `last_slashed_oracle_set_nonce` | [uint64](#uint64) |  |  |
 
 
 
@@ -2539,8 +2543,8 @@ Msg defines the erc20 Msg service.
 
 ### Query
 Query provides defines the gRPC querier service.
-Deprecated: This service is deprecated. It may be removed in the next version.
-Replace ibc.applications.transfer.v1.Query
+Deprecated: This service is deprecated. It may be removed in the next
+version. Replace ibc.applications.transfer.v1.Query
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
@@ -2638,8 +2642,8 @@ Replace ibc.applications.transfer.v1.MsgTransfer
 
 ### Msg
 Msg defines the ibc/transfer Msg service.
-Deprecated: This service is deprecated. It may be removed in the next version.
-Replace ibc.applications.transfer.v1.Msg
+Deprecated: This service is deprecated. It may be removed in the next
+version. Replace ibc.applications.transfer.v1.Msg
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |

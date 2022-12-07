@@ -43,7 +43,7 @@ func (k Keeper) Attest(ctx sdk.Context, claim types.ExternalClaim, anyClaim *cod
 
 	k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 	k.SetLastEventNonceByOracle(ctx, oracleAddr, claim.GetEventNonce())
-	k.setLastEventBlockHeightByOracle(ctx, oracleAddr, claim.GetBlockHeight())
+	k.SetLastEventBlockHeightByOracle(ctx, oracleAddr, claim.GetBlockHeight())
 
 	return att, nil
 }

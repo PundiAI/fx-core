@@ -74,7 +74,8 @@ type QueryClient interface {
 	Params(ctx context.Context, in *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error)
 	// DenomHash queries a denomination hash information.
 	DenomHash(ctx context.Context, in *types.QueryDenomHashRequest, opts ...grpc.CallOption) (*types.QueryDenomHashResponse, error)
-	// EscrowAddress returns the escrow address for a particular port and channel id.
+	// EscrowAddress returns the escrow address for a particular port and channel
+	// id.
 	EscrowAddress(ctx context.Context, in *types.QueryEscrowAddressRequest, opts ...grpc.CallOption) (*types.QueryEscrowAddressResponse, error)
 }
 
@@ -141,7 +142,8 @@ type QueryServer interface {
 	Params(context.Context, *types.QueryParamsRequest) (*types.QueryParamsResponse, error)
 	// DenomHash queries a denomination hash information.
 	DenomHash(context.Context, *types.QueryDenomHashRequest) (*types.QueryDenomHashResponse, error)
-	// EscrowAddress returns the escrow address for a particular port and channel id.
+	// EscrowAddress returns the escrow address for a particular port and channel
+	// id.
 	EscrowAddress(context.Context, *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error)
 }
 

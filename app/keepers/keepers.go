@@ -355,26 +355,11 @@ func NewAppKeeper(
 	// add cross-chain router
 	crosschainRouter := crosschainkeeper.NewRouter()
 	crosschainRouter.
-		AddRoute(bsctypes.ModuleName, &crosschainkeeper.ModuleHandler{
-			QueryServer: appKeepers.BscKeeper,
-			MsgServer:   crosschainkeeper.NewMsgServerImpl(appKeepers.BscKeeper),
-		}).
-		AddRoute(polygontypes.ModuleName, &crosschainkeeper.ModuleHandler{
-			QueryServer: appKeepers.PolygonKeeper,
-			MsgServer:   crosschainkeeper.NewMsgServerImpl(appKeepers.PolygonKeeper),
-		}).
-		AddRoute(avalanchetypes.ModuleName, &crosschainkeeper.ModuleHandler{
-			QueryServer: appKeepers.AvalancheKeeper,
-			MsgServer:   crosschainkeeper.NewMsgServerImpl(appKeepers.AvalancheKeeper),
-		}).
-		AddRoute(ethtypes.ModuleName, &crosschainkeeper.ModuleHandler{
-			QueryServer: appKeepers.EthKeeper,
-			MsgServer:   crosschainkeeper.NewMsgServerImpl(appKeepers.EthKeeper),
-		}).
-		AddRoute(trontypes.ModuleName, &crosschainkeeper.ModuleHandler{
-			QueryServer: appKeepers.TronKeeper,
-			MsgServer:   tronkeeper.NewMsgServerImpl(appKeepers.TronKeeper),
-		})
+		AddRoute(bsctypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.BscKeeper)).
+		AddRoute(polygontypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.PolygonKeeper)).
+		AddRoute(avalanchetypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.AvalancheKeeper)).
+		AddRoute(ethtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.EthKeeper)).
+		AddRoute(trontypes.ModuleName, tronkeeper.NewModuleHandler(appKeepers.TronKeeper))
 
 	appKeepers.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
 

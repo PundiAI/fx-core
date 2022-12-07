@@ -64,15 +64,14 @@ func (k Keeper) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOrac
 
 // LastOracleSetRequests queries the LastOracleSetRequests of the bsc module
 func (k Keeper) LastOracleSetRequests(c context.Context, _ *types.QueryLastOracleSetRequestsRequest) (*types.QueryLastOracleSetRequestsResponse, error) {
-	valReq := k.GetOracleSets(sdk.UnwrapSDKContext(c))
-	valReqLen := len(valReq)
+	oracleSets := k.GetOracleSets(sdk.UnwrapSDKContext(c))
 	retLen := 0
-	if valReqLen < maxOracleSetRequestsReturned {
-		retLen = valReqLen
+	if len(oracleSets) < maxOracleSetRequestsReturned {
+		retLen = len(oracleSets)
 	} else {
 		retLen = maxOracleSetRequestsReturned
 	}
-	return &types.QueryLastOracleSetRequestsResponse{OracleSets: valReq[0:retLen]}, nil
+	return &types.QueryLastOracleSetRequestsResponse{OracleSets: oracleSets[0:retLen]}, nil
 }
 
 // LastPendingOracleSetRequestByAddr queries the LastPendingOracleSetRequestByAddr of the bsc module
@@ -96,8 +95,8 @@ func (k Keeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.
 		if oracle.StartHeight > int64(oracleSet.Height) {
 			return false
 		}
-		// found is true if the operatorAddr has signed the valset we are currently looking at
-		// if this valset has NOT been signed by oracleAddr, store it in pendingOracleSetReq and exit the loop
+		// found is true if the operatorAddr has signed the oracle set we are currently looking at
+		// if this oracle set has NOT been signed by oracleAddr, store it in pendingOracleSetReq and exit the loop
 		if found = k.GetOracleSetConfirm(sdkCtx, oracleSet.Nonce, oracleAddr) != nil; !found {
 			pendingOracleSetReq = append(pendingOracleSetReq, oracleSet)
 		}
@@ -361,7 +360,7 @@ func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLa
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
 
-	lastEventBlockHeight := k.getLastEventBlockHeightByOracle(ctx, oracle)
+	lastEventBlockHeight := k.GetLastEventBlockHeightByOracle(ctx, oracle)
 	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
 }
 

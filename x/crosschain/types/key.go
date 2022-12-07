@@ -28,10 +28,10 @@ var (
 	// OracleAddressByBridgerKey key bridger address -> value oracle address
 	OracleAddressByBridgerKey = []byte{0x14}
 
-	// OracleSetRequestKey indexes valset requests by nonce
+	// OracleSetRequestKey indexes oracle set requests by nonce
 	OracleSetRequestKey = []byte{0x15}
 
-	// OracleSetConfirmKey indexes valset confirmations by nonce and the validator account address
+	// OracleSetConfirmKey indexes oracle set confirmations by nonce and the validator account address
 	OracleSetConfirmKey = []byte{0x16}
 
 	// OracleAttestationKey attestation details by nonce and validator address
@@ -50,11 +50,11 @@ var (
 	// OutgoingTxBatchBlockKey indexes outgoing tx batches under a block height and token address
 	OutgoingTxBatchBlockKey = []byte{0x21}
 
-	// BatchConfirmKey indexes validator confirmations by token contract address
+	// BatchConfirmKey indexes oracle confirmations by token contract address
 	BatchConfirmKey = []byte{0x22}
 
-	// LastEventNonceByValidatorKey indexes latest event nonce by validator
-	LastEventNonceByValidatorKey = []byte{0x23}
+	// LastEventNonceByOracleKey indexes latest event nonce by oracle
+	LastEventNonceByOracleKey = []byte{0x23}
 
 	// LastObservedEventNonceKey indexes the latest event nonce
 	LastObservedEventNonceKey = []byte{0x24}
@@ -89,7 +89,7 @@ var (
 	// LastObservedOracleSetKey indexes the latest observed OracleSet nonce
 	LastObservedOracleSetKey = []byte{0x33}
 
-	// LastEventBlockHeightByOracleKey indexes latest event blockHeight by validator
+	// LastEventBlockHeightByOracleKey indexes latest event blockHeight by oracle
 	LastEventBlockHeightByOracleKey = []byte{0x35}
 
 	// PastExternalSignatureCheckpointKey indexes eth signature checkpoints that have existed
@@ -169,7 +169,7 @@ func GetBatchConfirmKey(tokenContract string, batchNonce uint64, oracleAddr sdk.
 
 // GetLastEventNonceByOracleKey returns the following key format
 func GetLastEventNonceByOracleKey(validator sdk.AccAddress) []byte {
-	return append(LastEventNonceByValidatorKey, validator.Bytes()...)
+	return append(LastEventNonceByOracleKey, validator.Bytes()...)
 }
 
 // GetLastEventBlockHeightByOracleKey returns the following key format

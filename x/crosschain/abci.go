@@ -22,16 +22,12 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 }
 
 func createOracleSetRequest(ctx sdk.Context, k keeper.Keeper) {
-	// Auto OracleSetRequest Creation.
-	// WARNING: do not use k.GetLastObservedOracleSet in this function, it *will* result in losing control of the bridge
-
-	oracleSetUpdatePowerChangePercent := k.GetOracleSetUpdatePowerChangePercent(ctx)
-	if currentOracleSet, isNeed := isNeedOracleSetRequest(ctx, k, oracleSetUpdatePowerChangePercent); isNeed {
+	if currentOracleSet, isNeed := isNeedOracleSetRequest(ctx, k); isNeed {
 		k.AddOracleSetRequest(ctx, currentOracleSet)
 	}
 }
 
-func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper, oracleSetUpdatePowerChangePercent sdk.Dec) (*types.OracleSet, bool) {
+func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper) (*types.OracleSet, bool) {
 	currentOracleSet := k.GetCurrentOracleSet(ctx)
 	// 1. get latest OracleSet
 	latestOracleSet := k.GetLatestOracleSet(ctx)
@@ -44,13 +40,13 @@ func isNeedOracleSetRequest(ctx sdk.Context, k keeper.Keeper, oracleSetUpdatePow
 		return currentOracleSet, true
 	}
 	// 3. Power diff
-	powerDiff := types.BridgeValidators(currentOracleSet.Members).PowerDiff(latestOracleSet.Members)
-	powerDiffStr := fmt.Sprintf("%.8f", powerDiff)
-	powerDiffDec, err := sdk.NewDecFromStr(powerDiffStr)
+	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(currentOracleSet.Members).PowerDiff(latestOracleSet.Members))
+	powerDiffDec, err := sdk.NewDecFromStr(powerDiff)
 	if err != nil {
-		panic(fmt.Errorf("covert power diff to dec err!!!powerDiff: %v, err: %v", powerDiffStr, err))
+		panic(fmt.Errorf("covert power diff to dec err, powerDiff: %v, err: %v", powerDiff, err))
 	}
 
+	oracleSetUpdatePowerChangePercent := k.GetOracleSetUpdatePowerChangePercent(ctx)
 	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
 		oracleSetUpdatePowerChangePercent = sdk.OneDec()
 	}
@@ -146,7 +142,7 @@ func attestationTally(ctx sdk.Context, k keeper.Keeper) {
 
 	// This iterates over all nonces (event nonces) in the attestation mapping. Each value contains
 	// a slice with one or more attestations at that event nonce. There can be multiple attestations
-	// at one event nonce when validators disagree about what event happened at that nonce.
+	// at one event nonce when Oracles disagree about what event happened at that nonce.
 	for _, nonce := range nonces {
 		// This iterates over all attestations at a particular event nonce.
 		// They are ordered by when the first attestation at the event nonce was received.
@@ -189,20 +185,20 @@ func attestationTally(ctx sdk.Context, k keeper.Keeper) {
 //	AND any deposit or withdraw has occurred to update the Ethereum block height.
 func cleanupTimedOutBatches(ctx sdk.Context, k keeper.Keeper) {
 	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
-	batches := k.GetOutgoingTxBatches(ctx)
-	for _, batch := range batches {
+	k.IterateOutgoingTxBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
 		if batch.BatchTimeout < externalBlockHeight {
 			if err := k.CancelOutgoingTxBatch(ctx, batch.TokenContract, batch.BatchNonce); err != nil {
 				panic(fmt.Sprintf("Failed cancel out batch %s %d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
 			}
 		}
-	}
+		return false
+	})
 }
 
 // pruneOracleSet
 func pruneOracleSet(ctx sdk.Context, k keeper.Keeper, signedOracleSetsWindow uint64) {
-	// Validator set pruning
-	// prune all validator sets with a nonce less than the
+	// Oracle set pruning
+	// prune all Oracle sets with a nonce less than the
 	// last observed nonce, they can't be submitted any longer
 	//
 	// Only prune oracleSets after the signed oracleSets window has passed
@@ -212,12 +208,12 @@ func pruneOracleSet(ctx sdk.Context, k keeper.Keeper, signedOracleSetsWindow uin
 	tooEarly := currentBlock < signedOracleSetsWindow
 	if lastObserved != nil && !tooEarly {
 		earliestToPrune := currentBlock - signedOracleSetsWindow
-		sets := k.GetOracleSets(ctx)
-		for _, set := range sets {
-			if set.Nonce < lastObserved.Nonce && set.Nonce < earliestToPrune {
+		k.IterateOracleSets(ctx, func(_ []byte, set *types.OracleSet) bool {
+			if set.Height < earliestToPrune && set.Nonce < lastObserved.Nonce {
 				k.DeleteOracleSet(ctx, set.Nonce)
 			}
-		}
+			return false
+		})
 	}
 }
 
@@ -243,16 +239,14 @@ func pruneAttestations(ctx sdk.Context, k keeper.Keeper) {
 	// frontends and other UI components to view recent oracle history
 	const eventsToKeep = 100
 	lastNonce := k.GetLastObservedEventNonce(ctx)
-	var cutoff uint64
 	if lastNonce <= eventsToKeep {
 		return
-	} else {
-		cutoff = lastNonce - eventsToKeep
 	}
+	cutoff := lastNonce - eventsToKeep
 
 	// This iterates over all keys (event nonces) in the attestation mapping. Each value contains
 	// a slice with one or more attestations at that event nonce. There can be multiple attestations
-	// at one event nonce when validators disagree about what event happened at that nonce.
+	// at one event nonce when Oracles disagree about what event happened at that nonce.
 	for _, nonce := range keys {
 		// This iterates over all attestations at a particular event nonce.
 		// They are ordered by when the first attestation at the event nonce was received.

@@ -179,6 +179,7 @@ proto-gen:
 	@echo "Generating Protobuf files"
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
 		sh ./develop/protocgen.sh; fi
+	@go mod tidy
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
@@ -195,7 +196,7 @@ proto-swagger-gen:
 statik: $(STATIK)
 $(STATIK):
 	@echo "Installing statik..."
-	@(cd /tmp && go install github.com/rakyll/statik@latest)
+	@go install github.com/rakyll/statik@latest
 
 update-swagger-docs: proto-swagger-gen statik
 	$(GOPATH)/bin/statik -src=docs/swagger-ui -dest=docs -f -m
@@ -204,7 +205,7 @@ update-swagger-docs: proto-swagger-gen statik
     else \
         echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
-	@perl -pi -e 'print "host: fx-rest.functionx.io\nschemes:\n - https\n" if $. == 6' ./docs/swagger-ui/swagger.yaml
+	#perl -pi -e "print \"host: fx-rest.functionx.io\nschemes:\n  - https\n\" if $.==6 " ./docs/swagger-ui/swagger.yaml
 
 .PHONY: statik update-swagger-docs
 

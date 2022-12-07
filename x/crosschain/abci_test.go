@@ -409,7 +409,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 15; i++ {
 			newOracleList = append(newOracleList, suite.oracles[i].String())
 		}
-		err := crosschain.HandleUpdateChainOraclesProposal(suite.ctx, suite.MsgServer(), &types.UpdateChainOraclesProposal{
+		err := suite.Keeper().UpdateChainOraclesProposal(suite.ctx, &types.UpdateChainOraclesProposal{
 			Title:       "proposal 1: try update chain oracle save top 15 oracle, expect success",
 			Description: "",
 			Oracles:     newOracleList,
@@ -436,7 +436,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 11; i++ {
 			newOracleList2 = append(newOracleList2, suite.oracles[i].String())
 		}
-		err = crosschain.HandleUpdateChainOraclesProposal(suite.ctx, suite.MsgServer(), &types.UpdateChainOraclesProposal{
+		err = suite.Keeper().UpdateChainOraclesProposal(suite.ctx, &types.UpdateChainOraclesProposal{
 			Title:       "proposal 2: try update chain oracle save top 11 oracle, expect success",
 			Description: "",
 			Oracles:     newOracleList2,
@@ -463,7 +463,7 @@ func (suite *IntegrationTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 10; i++ {
 			newOracleList3 = append(newOracleList3, suite.oracles[i].String())
 		}
-		err = crosschain.HandleUpdateChainOraclesProposal(suite.ctx, suite.MsgServer(), &types.UpdateChainOraclesProposal{
+		err = suite.Keeper().UpdateChainOraclesProposal(suite.ctx, &types.UpdateChainOraclesProposal{
 			Title:       "proposal 3: try update chain oracle save top 10 oracle, expect success",
 			Description: "",
 			Oracles:     newOracleList3,
@@ -553,7 +553,7 @@ func (suite *IntegrationTestSuite) TestOracleDelete() {
 		newOracleAddressList = append(newOracleAddressList, address.String())
 	}
 
-	err := crosschain.HandleUpdateChainOraclesProposal(suite.ctx, suite.MsgServer(), &types.UpdateChainOraclesProposal{
+	err := suite.Keeper().UpdateChainOraclesProposal(suite.ctx, &types.UpdateChainOraclesProposal{
 		Title:       "proposal 1: try update chain oracle remove first oracle, expect success",
 		Description: "",
 		Oracles:     newOracleAddressList,

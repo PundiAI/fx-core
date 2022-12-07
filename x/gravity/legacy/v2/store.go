@@ -44,7 +44,7 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	migratePrefix(gravityStore, ethStore, types.BatchConfirmKey, crosschaintypes.BatchConfirmKey)
 
 	// gravity 0xb -> eth 0x23
-	migratePrefix(gravityStore, ethStore, types.LastEventNonceByValidatorKey, crosschaintypes.LastEventNonceByValidatorKey)
+	migratePrefix(gravityStore, ethStore, types.LastEventNonceByValidatorKey, crosschaintypes.LastEventNonceByOracleKey)
 
 	// gravity 0xc -> eth 0x24
 	migratePrefix(gravityStore, ethStore, types.LastObservedEventNonceKey, crosschaintypes.LastObservedEventNonceKey)

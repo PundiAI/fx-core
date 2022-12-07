@@ -2,10 +2,6 @@
 
 set -eo pipefail
 
-if [ -d "build/cosmos-sdk/proto/ibc/applications" ]; then
-  rm -rf "build/cosmos-sdk/proto/ibc/applications"
-fi
-
 if [ -d ./tmp-swagger-gen ]; then
   rm -rf ./tmp-swagger-gen
 fi
@@ -18,6 +14,7 @@ for dir in $proto_dirs; do
   if [[ ! -z "$query_file" ]]; then
     buf protoc \
       -I "proto" \
+      -I "build/ibc-go/proto" \
       -I "build/cosmos-sdk/proto" \
       -I "build/cosmos-sdk/third_party/proto" \
       "$query_file" \

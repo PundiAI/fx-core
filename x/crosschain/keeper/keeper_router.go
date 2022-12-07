@@ -34,17 +34,26 @@ func (k RouterKeeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 type ModuleHandler struct {
-	QueryServer types.QueryServer
-	MsgServer   types.MsgServer
+	QueryServer    types.QueryServer
+	MsgServer      types.MsgServer
+	ProposalServer proposalServer
+}
+
+func NewModuleHandler(keeper Keeper) *ModuleHandler {
+	return &ModuleHandler{
+		QueryServer:    keeper,
+		MsgServer:      NewMsgServerImpl(keeper),
+		ProposalServer: keeper,
+	}
 }
 
 var _ Router = (*router)(nil)
 
 // Router implements a cross chain EthereumMsgServer Handler router.
 type Router interface {
-	AddRoute(r string, moduleHandler *ModuleHandler) (rtr Router)
-	HasRoute(r string) bool
-	GetRoute(path string) (moduleHandler *ModuleHandler)
+	AddRoute(name string, moduleHandler *ModuleHandler) (router Router)
+	HasRoute(name string) bool
+	GetRoute(name string) (moduleHandler *ModuleHandler)
 	Seal()
 }
 

@@ -37,10 +37,10 @@ var (
 	// ParamsStoreKeySignedWindow stores the signed blocks window
 	ParamsStoreKeySignedWindow = []byte("SignedWindow")
 
-	// ParamsStoreSlashFraction stores the slash fraction valset
+	// ParamsStoreSlashFraction stores the slash fraction oracle set
 	ParamsStoreSlashFraction = []byte("SlashFraction")
 
-	// ParamStoreOracleSetUpdatePowerChangePercent valset update pwer change percent
+	// ParamStoreOracleSetUpdatePowerChangePercent oracle set update pwer change percent
 	ParamStoreOracleSetUpdatePowerChangePercent = []byte("OracleSetUpdatePowerChangePercent")
 
 	// ParamStoreIbcTransferTimeoutHeight gravity and ibc transfer timeout height

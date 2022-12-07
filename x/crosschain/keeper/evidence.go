@@ -8,7 +8,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-// SetPastExternalSignatureCheckpoint puts the checkpoint of a valset, batch, or logic call into a set
+// SetPastExternalSignatureCheckpoint puts the checkpoint of a oracle set, batch, or logic call into a set
 // in order to prove later that it existed at one point.
 func (k Keeper) SetPastExternalSignatureCheckpoint(ctx sdk.Context, checkpoint []byte) {
 	store := ctx.KVStore(k.storeKey)

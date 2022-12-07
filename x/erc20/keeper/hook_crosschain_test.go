@@ -550,7 +550,7 @@ func testInitGravityChain(t *testing.T, ctx sdk.Context, myApp *app.App, oracleA
 	return ctx
 }
 
-func testCrossChainParamsProposal(t *testing.T, ctx sdk.Context, cck crosschainkeeper.Keeper, oracles sdk.AccAddress, chain string) {
+func testCrossChainParamsProposal(t *testing.T, ctx sdk.Context, keeper crosschainkeeper.Keeper, oracles sdk.AccAddress, chain string) {
 	proposal := &crosschaintypes.UpdateChainOraclesProposal{
 		Title:       fmt.Sprintf("%s cross chain", chain),
 		Description: fmt.Sprintf("%s cross chain oracles init", chain),
@@ -558,12 +558,11 @@ func testCrossChainParamsProposal(t *testing.T, ctx sdk.Context, cck crosschaink
 		ChainName:   chain,
 	}
 
-	k := &crosschainkeeper.EthereumMsgServer{Keeper: cck}
-	err := crosschain.HandleUpdateChainOraclesProposal(ctx, k, proposal)
+	err := keeper.UpdateChainOraclesProposal(ctx, proposal)
 	require.NoError(t, err)
 }
 
-func testTronCrossChainParamsProposal(t *testing.T, ctx sdk.Context, cck tronkeeper.Keeper, oracles sdk.AccAddress, chain string) {
+func testTronCrossChainParamsProposal(t *testing.T, ctx sdk.Context, keeper tronkeeper.Keeper, oracles sdk.AccAddress, chain string) {
 	proposal := &crosschaintypes.UpdateChainOraclesProposal{
 		Title:       fmt.Sprintf("%s cross chain", chain),
 		Description: fmt.Sprintf("%s cross chain oracles init", chain),
@@ -571,8 +570,7 @@ func testTronCrossChainParamsProposal(t *testing.T, ctx sdk.Context, cck tronkee
 		ChainName:   chain,
 	}
 
-	k := &tronkeeper.TronMsgServer{EthereumMsgServer: crosschainkeeper.EthereumMsgServer{Keeper: cck.Keeper}}
-	err := crosschain.HandleUpdateChainOraclesProposal(ctx, k, proposal)
+	err := keeper.Keeper.UpdateChainOraclesProposal(ctx, proposal)
 	require.NoError(t, err)
 }
 

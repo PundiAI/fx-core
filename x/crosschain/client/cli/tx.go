@@ -314,7 +314,7 @@ func CmdRequestBatch() *cobra.Command {
 func CmdRequestBatchConfirm() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "request-batch-confirm [chain-name] [contract-address] [nonce] [private-key]",
-		Short: "Send valset confirm msg",
+		Short: "Send batch confirm msg",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

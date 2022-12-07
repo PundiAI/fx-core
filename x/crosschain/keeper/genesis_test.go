@@ -1,4 +1,4 @@
-package crosschain_test
+package keeper_test
 
 import (
 	"fmt"
@@ -10,13 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
-	"github.com/functionx/fx-core/v3/x/crosschain"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 // Tests that batches and transactions are preserved during chain restart
-func (suite *IntegrationTestSuite) TestBatchAndTxImportExport() {
+func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 
 	bridgeTokens := make([]types.BridgeToken, 10)
 	for i := 0; i < len(bridgeTokens); i++ {
@@ -94,7 +93,7 @@ func (suite *IntegrationTestSuite) TestBatchAndTxImportExport() {
 
 	// export
 	checkAllTransactionsExist(suite.T(), suite.ctx, suite.Keeper(), txs)
-	genesisState := crosschain.ExportGenesis(suite.ctx, suite.Keeper())
+	genesisState := keeper.ExportGenesis(suite.ctx, suite.Keeper())
 
 	// clear data
 	storeKey := suite.app.GetKey(suite.chainName)
@@ -110,7 +109,7 @@ func (suite *IntegrationTestSuite) TestBatchAndTxImportExport() {
 	suite.Require().Empty(batches)
 
 	// import
-	crosschain.InitGenesis(suite.ctx, suite.Keeper(), genesisState)
+	keeper.InitGenesis(suite.ctx, suite.Keeper(), genesisState)
 	checkAllTransactionsExist(suite.T(), suite.ctx, suite.Keeper(), txs)
 }
 

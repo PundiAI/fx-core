@@ -23,4 +23,8 @@ message GenesisState {
       [ (gogoproto.nullable) = false ];
   repeated MsgConfirmBatch batch_confirms = 10 [ (gogoproto.nullable) = false ];
   repeated Attestation attestations = 11 [ (gogoproto.nullable) = false ];
+  ProposalOracle proposal_oracle = 12 [ (gogoproto.nullable) = false ];
+  OracleSet last_observed_oracle_set = 13 [ (gogoproto.nullable) = false ];
+  uint64 last_slashed_batch_block = 14;
+  uint64 last_slashed_oracle_set_nonce = 15;
 }
