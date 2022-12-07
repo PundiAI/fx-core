@@ -24,8 +24,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
 	}
 
-	// erc20 metadata
-	name, symbol, decimals, err := erc20Metadata(coinMetadata)
+	decimals, err := getErc20Decimals(coinMetadata)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, err.Error())
 	}
@@ -44,7 +43,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		k.bankKeeper.SetDenomMetaData(ctx, coinMetadata)
 	}
 
-	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, name, symbol, decimals, coinMetadata.Base == fxtypes.DefaultDenom)
+	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, coinMetadata.Name, coinMetadata.Symbol, decimals, coinMetadata.Base == fxtypes.DefaultDenom)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
 	}
@@ -334,15 +333,10 @@ func WrappedOriginDenom(name, symbol string) (fxtypes.Contract, string, string) 
 	return contract, wrappedName, wrappedSymbol
 }
 
-func erc20Metadata(md banktypes.Metadata) (name, symbol string, decimals uint8, err error) {
-	//description use for name
-	name = md.Name
-	//display use for symbol
-	symbol = md.Symbol
-	//decimals
+func getErc20Decimals(md banktypes.Metadata) (decimals uint8, err error) {
 	decimals = uint8(0)
 	for _, du := range md.DenomUnits {
-		if du.Denom == symbol {
+		if du.Denom == md.Symbol {
 			decimals = uint8(du.Exponent)
 			break
 		}
@@ -350,14 +344,14 @@ func erc20Metadata(md banktypes.Metadata) (name, symbol string, decimals uint8, 
 	if md.Base == fxtypes.DefaultDenom {
 		decimals = fxtypes.DenomUnit
 	}
-	if len(name) == 0 {
-		return "", "", 0, errors.New("invalid name")
+	if len(md.Name) == 0 {
+		return 0, errors.New("invalid name")
 	}
-	if len(symbol) == 0 {
-		return "", "", 0, errors.New("invalid symbol")
+	if len(md.Symbol) == 0 {
+		return 0, errors.New("invalid symbol")
 	}
 	if decimals == 0 {
-		return "", "", 0, errors.New("invalid symbol denom exponent")
+		return 0, errors.New("invalid symbol denom exponent")
 	}
-	return name, symbol, decimals, nil
+	return decimals, nil
 }
