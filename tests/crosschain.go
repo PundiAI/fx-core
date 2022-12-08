@@ -110,7 +110,7 @@ func (suite *CrosschainTestSuite) BondedOracle() {
 		OracleAddress:    suite.OracleAddr().String(),
 		BridgerAddress:   suite.BridgerFxAddr().String(),
 		ExternalAddress:  suite.BridgerExtAddr(),
-		ValidatorAddress: suite.ValAddress().String(),
+		ValidatorAddress: suite.GetFirstValiAddr().String(),
 		DelegateAmount:   suite.params.DelegateThreshold,
 		ChainName:        suite.chainName,
 	})

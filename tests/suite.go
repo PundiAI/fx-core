@@ -85,9 +85,6 @@ func (suite *TestSuite) SetupSuite() {
 	suite.Require().NoError(err)
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
 	suite.Require().NoError(err)
-
-	_, err = suite.network.WaitForHeight(1)
-	suite.Require().NoError(err)
 }
 
 func (suite *TestSuite) TearDownSuite() {
@@ -105,7 +102,7 @@ func (suite *TestSuite) GetFirstValidtor() *network.Validator {
 	return suite.network.Validators[0]
 }
 
-func (suite *TestSuite) AdminPrivateKey() cryptotypes.PrivKey {
+func (suite *TestSuite) GetFirstValiPrivKey() cryptotypes.PrivKey {
 	privKey, err := helpers.PrivKeyFromMnemonic(suite.network.Config.Mnemonics[0], hd.Secp256k1Type, 0, 0)
 	suite.NoError(err)
 	return privKey
@@ -132,8 +129,8 @@ func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
 	return rpc
 }
 
-func (suite *TestSuite) ValAddress() sdk.ValAddress {
-	return suite.AdminPrivateKey().PubKey().Address().Bytes()
+func (suite *TestSuite) GetFirstValiAddr() sdk.ValAddress {
+	return suite.GetFirstValiPrivKey().PubKey().Address().Bytes()
 }
 
 func (suite *TestSuite) GetStakingDenom() string {
@@ -188,12 +185,12 @@ func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content) (proposalI
 	proposal, err := govtypes.NewMsgSubmitProposal(
 		content,
 		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
-		suite.ValAddress().Bytes(),
+		suite.GetFirstValiAddr().Bytes(),
 	)
 	suite.NoError(err)
 	proposalId = suite.getNextProposalId()
-	voteMsg := govtypes.NewMsgVote(suite.ValAddress().Bytes(), proposalId, govtypes.OptionYes)
-	txResponse := suite.BroadcastTx(suite.AdminPrivateKey(), proposal, voteMsg)
+	voteMsg := govtypes.NewMsgVote(suite.GetFirstValiAddr().Bytes(), proposalId, govtypes.OptionYes)
+	txResponse := suite.BroadcastTx(suite.GetFirstValiPrivKey(), proposal, voteMsg)
 	suite.T().Log("proposal submit txHash", txResponse.TxHash, txResponse.RawLog)
 	for _, log := range txResponse.Logs {
 		for _, event := range log.Events {
@@ -251,7 +248,7 @@ func (suite *TestSuite) QueryValidatorByToken() sdk.ValAddress {
 }
 
 func (suite *TestSuite) Send(toAddress sdk.AccAddress, amount sdk.Coin) {
-	suite.SendFrom(suite.AdminPrivateKey(), toAddress, amount)
+	suite.SendFrom(suite.GetFirstValiPrivKey(), toAddress, amount)
 }
 
 func (suite *TestSuite) SendFrom(priv cryptotypes.PrivKey, toAddress sdk.AccAddress, amount sdk.Coin) {

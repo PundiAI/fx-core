@@ -70,9 +70,6 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
 	suite.Require().NoError(err)
 
-	_, err = suite.network.WaitForHeight(1)
-	suite.Require().NoError(err)
-
 	suite.FirstValidatorTransferTo(1, sdk.NewInt(1_000).MulRaw(1e18))
 }
 
@@ -88,7 +85,7 @@ func (suite *IntegrationTestSuite) GetFirstValidator() *network.Validator {
 	return suite.network.Validators[0]
 }
 
-func (suite *IntegrationTestSuite) GetFirstValidatorPrivKey() cryptotypes.PrivKey {
+func (suite *IntegrationTestSuite) GetFirstValiPrivKey() cryptotypes.PrivKey {
 	return suite.GetPrivKeyByIndex(hd.Secp256k1Type, 0)
 }
 
@@ -114,7 +111,7 @@ func (suite *IntegrationTestSuite) FirstValidatorTransferTo(index uint32, amount
 	suite.True(validator.AppConfig.GRPC.Enable)
 	grpcClient, err := grpc.NewClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
 	suite.NoError(err)
-	valKey := suite.GetFirstValidatorPrivKey()
+	valKey := suite.GetFirstValiPrivKey()
 	nextValKey := suite.GetPrivKeyByIndex(hd.Secp256k1Type, index)
 	txRaw, err := grpcClient.BuildTxV2(valKey,
 		[]sdk.Msg{
@@ -489,6 +486,12 @@ func (suite *IntegrationTestSuite) TestTmClient() {
 		{
 			funcName: "ConsensusState",
 			params:   []interface{}{},
+			wantRes: []interface{}{
+				func(_ *coreTypes.ResultConsensusState, err1 error, _ *coreTypes.ResultConsensusState, err2 error) {
+					suite.NoError(err1)
+					suite.NoError(err2)
+				},
+			},
 		},
 		{
 			funcName: "ConsensusParams",
