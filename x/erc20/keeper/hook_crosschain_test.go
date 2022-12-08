@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
@@ -575,7 +574,7 @@ func testTronCrossChainParamsProposal(t *testing.T, ctx sdk.Context, keeper tron
 }
 
 func testCrossChainBridgeTokenClaim(t *testing.T, ctx sdk.Context, cck crosschainkeeper.Keeper,
-	orchAddr sdk.AccAddress, eventNonce uint64, contract common.Address,
+	bridgeAddr sdk.AccAddress, eventNonce uint64, contract common.Address,
 	name, symbol string, decimals uint64, chain, channelIBC string) {
 	msg := &crosschaintypes.MsgBridgeTokenClaim{
 		EventNonce:     eventNonce,
@@ -584,21 +583,20 @@ func testCrossChainBridgeTokenClaim(t *testing.T, ctx sdk.Context, cck crosschai
 		Name:           name,
 		Symbol:         symbol,
 		Decimals:       decimals,
-		BridgerAddress: orchAddr.String(),
+		BridgerAddress: bridgeAddr.String(),
 		ChannelIbc:     channelIBC,
 		ChainName:      chain,
 	}
-
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
-	require.NoError(t, err)
+	oracleAddr, found := cck.GetOracleAddressByBridgerKey(ctx, bridgeAddr)
+	require.True(t, found)
 
 	// Add the claim to the store
-	_, err = cck.Attest(ctx, msg, anyMsg)
+	_, err := cck.Attest(ctx, oracleAddr, msg)
 	require.NoError(t, err)
 }
 
 func testTronCrossChainBridgeTokenClaim(t *testing.T, ctx sdk.Context, cck tronkeeper.Keeper,
-	orchAddr sdk.AccAddress, eventNonce uint64, contract tronaddress.Address,
+	bridgeAddr sdk.AccAddress, eventNonce uint64, contract tronaddress.Address,
 	name, symbol string, decimals uint64, chain, channelIBC string) {
 	msg := &crosschaintypes.MsgBridgeTokenClaim{
 		EventNonce:     eventNonce,
@@ -607,21 +605,21 @@ func testTronCrossChainBridgeTokenClaim(t *testing.T, ctx sdk.Context, cck tronk
 		Name:           name,
 		Symbol:         symbol,
 		Decimals:       decimals,
-		BridgerAddress: orchAddr.String(),
+		BridgerAddress: bridgeAddr.String(),
 		ChannelIbc:     channelIBC,
 		ChainName:      chain,
 	}
 
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
-	require.NoError(t, err)
+	oracleAddr, found := cck.GetOracleAddressByBridgerKey(ctx, bridgeAddr)
+	require.True(t, found)
 
 	// Add the claim to the store
-	_, err = cck.Attest(ctx, msg, anyMsg)
+	_, err := cck.Attest(ctx, oracleAddr, msg)
 	require.NoError(t, err)
 }
 
 func testCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck crosschainkeeper.Keeper,
-	orch sdk.AccAddress, addr common.Address, eventNonce uint64, chain string) {
+	bridgeAddr sdk.AccAddress, addr common.Address, eventNonce uint64, chain string) {
 	msg := &crosschaintypes.MsgOracleSetUpdatedClaim{
 		EventNonce:     eventNonce,
 		BlockHeight:    uint64(ctx.BlockHeight()),
@@ -632,7 +630,7 @@ func testCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck cross
 				ExternalAddress: addr.String(),
 			},
 		},
-		BridgerAddress: orch.String(),
+		BridgerAddress: bridgeAddr.String(),
 		ChainName:      chain,
 	}
 	for _, member := range msg.Members {
@@ -640,16 +638,16 @@ func testCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck cross
 		require.True(t, found)
 	}
 
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
-	require.NoError(t, err)
+	oracleAddr, found := cck.GetOracleAddressByBridgerKey(ctx, bridgeAddr)
+	require.True(t, found)
 
 	// Add the claim to the store
-	_, err = cck.Attest(ctx, msg, anyMsg)
+	_, err := cck.Attest(ctx, oracleAddr, msg)
 	require.NoError(t, err)
 }
 
 func testTronCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck tronkeeper.Keeper,
-	orch sdk.AccAddress, addr tronaddress.Address, eventNonce uint64, chain string) {
+	bridgeAddr sdk.AccAddress, addr tronaddress.Address, eventNonce uint64, chain string) {
 	msg := &crosschaintypes.MsgOracleSetUpdatedClaim{
 		EventNonce:     eventNonce,
 		BlockHeight:    uint64(ctx.BlockHeight()),
@@ -660,7 +658,7 @@ func testTronCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck t
 				ExternalAddress: addr.String(),
 			},
 		},
-		BridgerAddress: orch.String(),
+		BridgerAddress: bridgeAddr.String(),
 		ChainName:      chain,
 	}
 	for _, member := range msg.Members {
@@ -668,11 +666,11 @@ func testTronCrossChainOracleSetUpdateClaim(t *testing.T, ctx sdk.Context, cck t
 		require.True(t, found)
 	}
 
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
-	require.NoError(t, err)
+	oracleAddr, found := cck.GetOracleAddressByBridgerKey(ctx, bridgeAddr)
+	require.True(t, found)
 
 	// Add the claim to the store
-	_, err = cck.Attest(ctx, msg, anyMsg)
+	_, err := cck.Attest(ctx, oracleAddr, msg)
 	require.NoError(t, err)
 }
 

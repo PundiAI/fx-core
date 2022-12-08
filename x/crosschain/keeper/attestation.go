@@ -11,10 +11,10 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-func (k Keeper) Attest(ctx sdk.Context, claim types.ExternalClaim, anyClaim *codectypes.Any) (*types.Attestation, error) {
-	oracleAddr, found := k.GetOracleAddressByBridgerKey(ctx, claim.GetClaimer())
-	if !found {
-		panic("Could not find Oracle for delegate key, should be checked by now")
+func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.ExternalClaim) (*types.Attestation, error) {
+	anyClaim, err := codectypes.NewAnyWithValue(claim)
+	if err != nil {
+		return nil, sdkerrors.Wrap(err, "msg to any")
 	}
 	// Check that the nonce of this event is exactly one higher than the last nonce stored by this oracle.
 	// We check the event nonce in processAttestation as well, but checking it here gives individual eth signers a chance to retry,

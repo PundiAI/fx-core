@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -489,16 +488,10 @@ func (s EthereumMsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOra
 // should not be a security risk as 'old' events can never execute but it does store spam in the chain.
 func (s EthereumMsgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.checkBridgerIsOracle(ctx, msg.BridgerAddress); err != nil {
+	if err := s.claimHandlerCommon(ctx, msg); err != nil {
 		return nil, err
 	}
-
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.MsgSendToExternalClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg)
+	return &types.MsgSendToExternalClaimResponse{}, nil
 }
 
 // SendToFxClaim handles MsgSendToFxClaim
@@ -506,79 +499,75 @@ func (s EthereumMsgServer) SendToExternalClaim(c context.Context, msg *types.Msg
 // should not be a security risk as 'old' events can never execute but it does store spam in the chain.
 func (s EthereumMsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendToFxClaim) (*types.MsgSendToFxClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.checkBridgerIsOracle(ctx, msg.BridgerAddress); err != nil {
+	if err := s.claimHandlerCommon(ctx, msg); err != nil {
 		return nil, err
 	}
-
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.MsgSendToFxClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg)
+	return &types.MsgSendToFxClaimResponse{}, nil
 }
 
 func (s EthereumMsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.checkBridgerIsOracle(ctx, msg.BridgerAddress); err != nil {
+	if err := s.claimHandlerCommon(ctx, msg); err != nil {
 		return nil, err
 	}
-
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.MsgBridgeTokenClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg)
+	return &types.MsgBridgeTokenClaimResponse{}, nil
 }
 
 // OracleSetUpdateClaim handles claims for executing a oracle set update on Ethereum
 func (s EthereumMsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleSetUpdatedClaim) (*types.MsgOracleSetUpdatedClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if err := s.checkBridgerIsOracle(ctx, msg.BridgerAddress); err != nil {
+	bridgerAddr := msg.GetClaimer()
+	oracleAddr, err := s.checkBridgerIsOracle(ctx, bridgerAddr)
+	if err != nil {
 		return nil, err
 	}
 
 	for _, member := range msg.Members {
-
 		if _, found := s.GetOracleByExternalAddress(ctx, member.ExternalAddress); !found {
-			return nil, sdkerrors.Wrap(types.ErrUnknown, "oracle")
+			return nil, sdkerrors.Wrap(types.ErrInvalid, "external address")
 		}
 	}
-
-	anyMsg, err := codectypes.NewAnyWithValue(msg)
-	if err != nil {
-		return nil, err
+	// Add the claim to the store
+	if _, err := s.Attest(ctx, oracleAddr, msg); err != nil {
+		return nil, sdkerrors.Wrap(err, "create attestation")
 	}
 
-	return &types.MsgOracleSetUpdatedClaimResponse{}, s.claimHandlerCommon(ctx, anyMsg, msg)
+	// Emit the handle message event
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, bridgerAddr.String()),
+	))
+
+	return &types.MsgOracleSetUpdatedClaimResponse{}, nil
 }
 
-func (s EthereumMsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddress string) error {
-	bridgerAddr, err := sdk.AccAddressFromBech32(bridgerAddress)
-	if err != nil {
-		return sdkerrors.Wrap(types.ErrInvalid, "bridger address")
-	}
+func (s EthereumMsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddr sdk.AccAddress) (oracleAddr sdk.AccAddress, err error) {
 	oracleAddr, found := s.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
 	if !found {
-		return types.ErrNoFoundOracle
+		return oracleAddr, types.ErrNoFoundOracle
 	}
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
-		return types.ErrNoFoundOracle
+		return oracleAddr, types.ErrNoFoundOracle
 	}
 	if !oracle.Online {
-		return types.ErrOracleNotOnLine
+		return oracleAddr, types.ErrOracleNotOnLine
 	}
-	return nil
+	return oracleAddr, nil
 }
 
 // claimHandlerCommon is an internal function that provides common code for processing claims once they are
 // translated from the message to the Ethereum claim interface
-func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectypes.Any, msg types.ExternalClaim) error {
-	// Add the claim to the store
-	_, err := s.Attest(ctx, msg, msgAny)
+func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) (err error) {
+	bridgerAddr := msg.GetClaimer()
+	oracleAddr, err := s.checkBridgerIsOracle(ctx, bridgerAddr)
 	if err != nil {
+		return err
+	}
+
+	// Add the claim to the store
+	if _, err := s.Attest(ctx, oracleAddr, msg); err != nil {
 		return sdkerrors.Wrap(err, "create attestation")
 	}
 
@@ -586,7 +575,7 @@ func (s EthereumMsgServer) claimHandlerCommon(ctx sdk.Context, msgAny *codectype
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, s.moduleName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.GetClaimer().String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, bridgerAddr.String()),
 	))
 
 	return nil
