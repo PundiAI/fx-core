@@ -13,6 +13,12 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	k.SetParams(ctx, data.Params)
 
+	k.SetLastObservedEventNonce(ctx, data.LastObservedNonce)
+	k.SetLastObservedEthBlockHeight(ctx, data.LastObservedBlockHeight.EthBlockHeight, data.LastObservedBlockHeight.FxBlockHeight)
+	k.SetLastObservedValset(ctx, data.LastObservedValset)
+	k.SetLastSlashedValsetNonce(ctx, data.LastSlashedValsetNonce)
+	k.SetLastSlashedBatchBlock(ctx, data.LastSlashedBatchBlock)
+
 	// reset delegate keys in state
 	for _, keys := range data.DelegateKeys {
 		err := keys.ValidateBasic()
@@ -78,7 +84,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), &att)
 	}
-	k.SetLastObservedEventNonce(ctx, data.LastObservedNonce)
 
 	// reset attestation state of specific validators
 	// this must be done after the above to be correct
@@ -104,6 +109,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 			last := k.GetLastEventNonceByValidator(ctx, val)
 			if claim.GetEventNonce() > last {
 				k.SetLastEventNonceByValidator(ctx, val, claim.GetEventNonce())
+				k.SetLastEventBlockHeightByValidator(ctx, val, claim.GetBlockHeight())
 			}
 		}
 	}
@@ -143,5 +149,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	for _, attestations := range k.GetAttestationMapping(ctx) {
 		genesisState.Attestations = append(genesisState.Attestations, attestations...)
 	}
+	if lastObserved := k.GetLastObservedValset(ctx); lastObserved != nil {
+		genesisState.LastObservedValset = *lastObserved
+	}
+	genesisState.LastSlashedBatchBlock = k.GetLastSlashedBatchBlock(ctx)
+	genesisState.LastSlashedValsetNonce = k.GetLastSlashedValsetNonce(ctx)
+	genesisState.LastObservedBlockHeight = k.GetLastObservedEthBlockHeight(ctx)
 	return genesisState
 }

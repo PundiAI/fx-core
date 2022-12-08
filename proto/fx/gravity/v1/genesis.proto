@@ -117,7 +117,8 @@ message Params {
 message GenesisState {
   Params params = 1 [ (gogoproto.nullable) = false ];
   uint64 last_observed_nonce = 2;
-  LastObservedEthereumBlockHeight last_observed_block_height = 3;
+  LastObservedEthereumBlockHeight last_observed_block_height = 3
+      [ (gogoproto.nullable) = false ];
   repeated MsgSetOrchestratorAddress delegate_keys = 4
       [ (gogoproto.nullable) = false ];
   repeated Valset valsets = 5 [ (gogoproto.nullable) = false ];
@@ -129,4 +130,7 @@ message GenesisState {
   repeated MsgValsetConfirm valset_confirms = 10
       [ (gogoproto.nullable) = false ];
   repeated Attestation attestations = 11 [ (gogoproto.nullable) = false ];
+  Valset last_observed_valset = 12 [ (gogoproto.nullable) = false ];
+  uint64 last_slashed_batch_block = 13;
+  uint64 last_slashed_valset_nonce = 14;
 }

@@ -116,8 +116,8 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {
 	return ip.Int
 }
 
-// setLastTotalPower Set the last total validator power.
-func (k Keeper) setLastTotalPower(ctx sdk.Context, power sdk.Int) {
+// SetLastTotalPower Set the last total validator power.
+func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: power})
 	store.Set(types.LastTotalPowerKey, bz)
@@ -129,7 +129,7 @@ func (k Keeper) CommonSetOracleTotalPower(ctx sdk.Context) {
 	for _, oracle := range oracles {
 		totalPower = totalPower.Add(oracle.GetPower())
 	}
-	k.setLastTotalPower(ctx, totalPower)
+	k.SetLastTotalPower(ctx, totalPower)
 }
 
 /////////////////////////////

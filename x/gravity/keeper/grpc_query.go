@@ -293,7 +293,7 @@ func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLa
 	if !found {
 		return nil, status.Error(codes.NotFound, "address")
 	}
-	lastEventBlockHeight := k.getLastEventBlockHeightByValidator(ctx, valAddr)
+	lastEventBlockHeight := k.GetLastEventBlockHeightByValidator(ctx, valAddr)
 	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
 }
 

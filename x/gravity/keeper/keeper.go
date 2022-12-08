@@ -663,14 +663,14 @@ func (k Keeper) GetIbcSequenceHeight(ctx sdk.Context, sourcePort, sourceChannel 
 	return types.UInt64FromBytes(value), true
 }
 
-// setLastEventBlockHeightByValidator set the latest event blockHeight for a give validator
-func (k Keeper) setLastEventBlockHeightByValidator(ctx sdk.Context, validator sdk.ValAddress, blockHeight uint64) {
+// SetLastEventBlockHeightByValidator set the latest event blockHeight for a give validator
+func (k Keeper) SetLastEventBlockHeightByValidator(ctx sdk.Context, validator sdk.ValAddress, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetLastEventBlockHeightByValidatorKey(validator), types.UInt64Bytes(blockHeight))
 }
 
-// getLastEventBlockHeightByValidator get the latest event blockHeight for a give validator
-func (k Keeper) getLastEventBlockHeightByValidator(ctx sdk.Context, validator sdk.ValAddress) uint64 {
+// GetLastEventBlockHeightByValidator get the latest event blockHeight for a give validator
+func (k Keeper) GetLastEventBlockHeightByValidator(ctx sdk.Context, validator sdk.ValAddress) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetLastEventBlockHeightByValidatorKey(validator)
 	if !store.Has(key) {

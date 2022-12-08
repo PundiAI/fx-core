@@ -5,7 +5,7 @@ info:
   version: 0.2.0
 host: fx-rest.functionx.io
 schemes:
-  - https
+ - https
 paths:
   '/ethermint/evm/v1/account/{address}':
     get:
@@ -1735,7 +1735,7 @@ paths:
                     format: boolean
                     description: >-
                       Allow unprotected transactions defines if replay-protected
-                      (i.e non EIP155
+                      (i.e non EIP155 
 
                       signed) transactions can be executed on the state machine.
                 title: Params defines the EVM module parameters
@@ -8739,7 +8739,7 @@ paths:
                     type: array
                     items:
                       type: string
-                    title: Deprecated
+                    title: Deprecated after block 5713000
                   delegate_threshold:
                     type: object
                     properties:
@@ -9660,7 +9660,60 @@ paths:
           type: string
       tags:
         - Query
-  '/ibc/applications/transfer/v1beta1/denom_hashes/{trace}':
+  '/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address':
+    get:
+      summary: >-
+        EscrowAddress returns the escrow address for a particular port and
+        channel id.
+      operationId: EscrowAddress
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              escrow_address:
+                type: string
+                title: the escrow account address
+            description: >-
+              QueryEscrowAddressResponse is the response type of the
+              EscrowAddress RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: channel_id
+          description: unique channel identifier
+          in: path
+          required: true
+          type: string
+        - name: port_id
+          description: unique port identifier
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  '/ibc/apps/transfer/v1/denom_hashes/{trace}':
     get:
       summary: DenomHash queries a denomination hash information.
       operationId: DenomHash
@@ -9708,7 +9761,7 @@ paths:
           type: string
       tags:
         - Query
-  /ibc/applications/transfer/v1beta1/denom_traces:
+  /ibc/apps/transfer/v1/denom_traces:
     get:
       summary: DenomTraces queries all denomination traces.
       operationId: DenomTraces
@@ -9845,7 +9898,7 @@ paths:
           format: boolean
       tags:
         - Query
-  '/ibc/applications/transfer/v1beta1/denom_traces/{hash}':
+  '/ibc/apps/transfer/v1/denom_traces/{hash}':
     get:
       summary: DenomTrace queries a denomination trace information.
       operationId: DenomTrace
@@ -9908,7 +9961,7 @@ paths:
           type: string
       tags:
         - Query
-  /ibc/applications/transfer/v1beta1/params:
+  /ibc/apps/transfer/v1/params:
     get:
       summary: Params queries all parameters of the ibc-transfer module.
       operationId: IBCTransferParams
@@ -27395,7 +27448,7 @@ definitions:
         format: boolean
         description: >-
           Allow unprotected transactions defines if replay-protected (i.e non
-          EIP155
+          EIP155 
 
           signed) transactions can be executed on the state machine.
     title: Params defines the EVM module parameters
@@ -27568,7 +27621,7 @@ definitions:
             format: boolean
             description: >-
               Allow unprotected transactions defines if replay-protected (i.e
-              non EIP155
+              non EIP155 
 
               signed) transactions can be executed on the state machine.
         title: Params defines the EVM module parameters
@@ -28666,7 +28719,7 @@ definitions:
         type: array
         items:
           type: string
-        title: Deprecated
+        title: Deprecated after block 5713000
       delegate_threshold:
         type: object
         properties:
@@ -29328,7 +29381,7 @@ definitions:
             type: array
             items:
               type: string
-            title: Deprecated
+            title: Deprecated after block 5713000
           delegate_threshold:
             type: object
             properties:
@@ -29552,6 +29605,15 @@ definitions:
       QueryConnectionsResponse is the response type for the Query/DenomTraces
       RPC
 
+      method.
+  fx.ibc.applications.transfer.v1.QueryEscrowAddressResponse:
+    type: object
+    properties:
+      escrow_address:
+        type: string
+        title: the escrow account address
+    description: >-
+      QueryEscrowAddressResponse is the response type of the EscrowAddress RPC
       method.
   fx.ibc.applications.transfer.v1.QueryParamsResponse:
     type: object

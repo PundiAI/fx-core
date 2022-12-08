@@ -13,33 +13,71 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, state *types.GenesisState) {
 	k.SetParams(ctx, &state.Params)
 
+	// 0x24
 	k.SetLastObservedEventNonce(ctx, state.LastObservedEventNonce)
+	// 0x32
 	k.SetLastObservedBlockHeight(ctx, state.LastObservedBlockHeight.ExternalBlockHeight, state.LastObservedBlockHeight.BlockHeight)
 
+	// 0x38
+	k.SetProposalOracle(ctx, &state.ProposalOracle)
+
+	// 0x33
+	k.SetLastObservedOracleSet(ctx, state.LastObservedOracleSet)
+
+	// 0x28
+	k.SetLastSlashedOracleSetNonce(ctx, state.LastSlashedOracleSetNonce)
+
+	// 0x30
+	k.SetLastSlashedBatchBlock(ctx, state.LastSlashedBatchBlock)
+
 	for _, oracle := range state.Oracles {
+		// 0x12
 		k.SetOracle(ctx, oracle)
+		// 0x14
 		k.SetOracleByBridger(ctx, oracle.GetBridger(), oracle.GetOracle())
+		// 0x13
 		k.SetOracleByExternalAddress(ctx, oracle.ExternalAddress, oracle.GetOracle())
-		k.CommonSetOracleTotalPower(ctx)
 	}
+	// 0x39
+	k.CommonSetOracleTotalPower(ctx)
 
 	for _, set := range state.OracleSets {
+		// 0x15 0x29
 		k.StoreOracleSet(ctx, &set)
 	}
 
 	for _, bridgeToken := range state.BridgeTokens {
+		// 0x26 0x27
 		if _, err := k.AddBridgeToken(ctx, bridgeToken.Token, hex.EncodeToString([]byte(bridgeToken.ChannelIbc))); err != nil {
 			panic(err)
 		}
 	}
+	for _, confirm := range state.BatchConfirms {
+		for _, oracle := range state.Oracles {
+			if confirm.BridgerAddress == oracle.BridgerAddress {
+				// 0x22
+				k.SetBatchConfirm(ctx, oracle.GetOracle(), &confirm)
+			}
+		}
+	}
+	for _, confirm := range state.OracleSetConfirms {
+		for _, oracle := range state.Oracles {
+			if confirm.BridgerAddress == oracle.BridgerAddress {
+				// 0x16
+				k.SetOracleSetConfirm(ctx, oracle.GetOracle(), &confirm)
+			}
+		}
+	}
 
 	for _, transfer := range state.UnbatchedTransfers {
+		// 0x18
 		if err := k.AddUnbatchedTx(ctx, &transfer); err != nil {
 			panic(err)
 		}
 	}
 
 	for _, batch := range state.Batches {
+		// 0x20 0x21
 		if err := k.StoreBatch(ctx, &batch); err != nil {
 			panic(err)
 		}
@@ -52,6 +90,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, state *types.GenesisState) {
 			panic("couldn't cast to claim")
 		}
 
+		// 0x17
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), &att)
 	}
 
@@ -78,7 +117,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, state *types.GenesisState) {
 			}
 			last := k.GetLastEventNonceByOracle(ctx, oracle)
 			if claim.GetEventNonce() > last {
+				// 0x23
 				k.SetLastEventNonceByOracle(ctx, oracle, claim.GetEventNonce())
+				// 0x35
+				k.SetLastEventBlockHeightByOracle(ctx, oracle, claim.GetBlockHeight())
 			}
 		}
 	}
@@ -119,5 +161,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		state.BridgeTokens = append(state.BridgeTokens, *erc20ToDenom)
 		return false
 	})
+	state.ProposalOracle, _ = k.GetProposalOracle(ctx)
+	if lastObserved := k.GetLastObservedOracleSet(ctx); lastObserved != nil {
+		state.LastObservedOracleSet = *lastObserved
+	}
+	state.LastSlashedBatchBlock = k.GetLastSlashedBatchBlock(ctx)
+	state.LastSlashedOracleSetNonce = k.GetLastSlashedOracleSetNonce(ctx)
 	return state
 }

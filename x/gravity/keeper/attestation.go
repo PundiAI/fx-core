@@ -42,7 +42,7 @@ func (k Keeper) Attest(ctx sdk.Context, claim types.EthereumClaim, anyClaim *cod
 
 	k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 	k.SetLastEventNonceByValidator(ctx, valAddr, claim.GetEventNonce())
-	k.setLastEventBlockHeightByValidator(ctx, valAddr, claim.GetBlockHeight())
+	k.SetLastEventBlockHeightByValidator(ctx, valAddr, claim.GetBlockHeight())
 
 	return att, nil
 }
@@ -88,7 +88,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 					panic("attempting to apply events to state out of order")
 				}
 				k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
-				k.SetLastObservedEthBlockHeight(ctx, claim.GetBlockHeight())
+				k.SetLastObservedEthBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
 
 				att.Observed = true
 				k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
@@ -227,11 +227,11 @@ func (k Keeper) GetLastObservedEthBlockHeight(ctx sdk.Context) types.LastObserve
 }
 
 // SetLastObservedEthBlockHeight sets the block height in the store.
-func (k Keeper) SetLastObservedEthBlockHeight(ctx sdk.Context, ethereumHeight uint64) {
+func (k Keeper) SetLastObservedEthBlockHeight(ctx sdk.Context, ethereumHeight, fxBlockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
 	height := types.LastObservedEthereumBlockHeight{
 		EthBlockHeight: ethereumHeight,
-		FxBlockHeight:  uint64(ctx.BlockHeight()),
+		FxBlockHeight:  fxBlockHeight,
 	}
 	store.Set(types.LastObservedEthereumBlockHeightKey, k.cdc.MustMarshal(&height))
 }

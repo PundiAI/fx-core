@@ -135,14 +135,14 @@ func (k Keeper) GetLastOracleSlashBlockHeight(ctx sdk.Context) uint64 {
 	return sdk.BigEndianToUint64(data)
 }
 
-// setLastEventBlockHeightByOracle set the latest event blockHeight for a give oracle
-func (k Keeper) setLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, blockHeight uint64) {
+// SetLastEventBlockHeightByOracle set the latest event blockHeight for a give oracle
+func (k Keeper) SetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetLastEventBlockHeightByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(blockHeight))
 }
 
-// getLastEventBlockHeightByOracle get the latest event blockHeight for a give oracle
-func (k Keeper) getLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) uint64 {
+// GetLastEventBlockHeightByOracle get the latest event blockHeight for a give oracle
+func (k Keeper) GetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetLastEventBlockHeightByOracleKey(oracleAddr)
 	if !store.Has(key) {

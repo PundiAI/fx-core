@@ -361,7 +361,7 @@ func (k Keeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLa
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
 
-	lastEventBlockHeight := k.getLastEventBlockHeightByOracle(ctx, oracle)
+	lastEventBlockHeight := k.GetLastEventBlockHeightByOracle(ctx, oracle)
 	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
 }
 

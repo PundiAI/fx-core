@@ -1279,6 +1279,10 @@ GenesisState struct
 | `oracle_set_confirms` | [MsgOracleSetConfirm](#fx.gravity.crosschain.v1.MsgOracleSetConfirm) | repeated |  |
 | `batch_confirms` | [MsgConfirmBatch](#fx.gravity.crosschain.v1.MsgConfirmBatch) | repeated |  |
 | `attestations` | [Attestation](#fx.gravity.crosschain.v1.Attestation) | repeated |  |
+| `proposal_oracle` | [ProposalOracle](#fx.gravity.crosschain.v1.ProposalOracle) |  |  |
+| `last_observed_oracle_set` | [OracleSet](#fx.gravity.crosschain.v1.OracleSet) |  |  |
+| `last_slashed_batch_block` | [uint64](#uint64) |  |  |
+| `last_slashed_oracle_set_nonce` | [uint64](#uint64) |  |  |
 
 
 
@@ -3210,6 +3214,9 @@ GenesisState struct
 | `batch_confirms` | [MsgConfirmBatch](#fx.gravity.v1.MsgConfirmBatch) | repeated |  |
 | `valset_confirms` | [MsgValsetConfirm](#fx.gravity.v1.MsgValsetConfirm) | repeated |  |
 | `attestations` | [Attestation](#fx.gravity.v1.Attestation) | repeated |  |
+| `last_observed_valset` | [Valset](#fx.gravity.v1.Valset) |  |  |
+| `last_slashed_batch_block` | [uint64](#uint64) |  |  |
+| `last_slashed_valset_nonce` | [uint64](#uint64) |  |  |
 
 
 
