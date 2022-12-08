@@ -20,12 +20,10 @@ import (
 	"github.com/functionx/fx-core/v3/app/keepers"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	evmlegacyv3 "github.com/functionx/fx-core/v3/x/evm/legacy/v3"
 )
 
@@ -35,17 +33,8 @@ func CreateUpgradeHandler(
 	keepers *keepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		fromVM[avalanchetypes.ModuleName] = mm.Modules[avalanchetypes.ModuleName].ConsensusVersion()
-		fromVM[ethtypes.ModuleName] = mm.Modules[ethtypes.ModuleName].ConsensusVersion()
-
 		// cache context
 		cacheCtx, commit := ctx.CacheContext()
-
-		// init avalanche oracles
-		initAvalancheOracles(cacheCtx, keepers.AvalancheKeeper)
-
-		// update bsc oracles
-		updateBSCOracles(cacheCtx, keepers.BscKeeper)
 
 		// update wfx logic code
 		updateWFXLogicCode(cacheCtx, keepers.Erc20Keeper)
@@ -58,6 +47,12 @@ func CreateUpgradeHandler(
 
 		// run migrations
 		toVM := runMigrations(cacheCtx, fromVM, mm, configurator)
+
+		// init avalanche oracles
+		initAvalancheOracles(cacheCtx, keepers.AvalancheKeeper)
+
+		// update bsc oracles
+		updateBSCOracles(cacheCtx, keepers.BscKeeper)
 
 		// register coin
 		registerCoin(cacheCtx, keepers.Erc20Keeper)

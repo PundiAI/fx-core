@@ -91,7 +91,10 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 	defer oldStoreIter.Close()
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		key := oldStoreIter.Key()
-		newStoreKey := append(newPrefix, key[len(oldPrefix):]...)
+		newStoreKey := newPrefix
+		if len(key) > len(oldPrefix) {
+			newStoreKey = append(newPrefix, key[len(oldPrefix):]...)
+		}
 		ethStore.Set(newStoreKey, oldStoreIter.Value())
 		oldStore.Delete(key)
 	}
