@@ -35,14 +35,30 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+### Features
+
+* Support 0x prefix txhash in query tx command
+* Query Oracle delegate Address in crosschain module 
+
+### Bug Fixes 
+
+* Fix keys command parse address
+
+## [v2.4.1-2] - 2022-10-14
+
 ### Bug Fixes
 
+* Fix ibc app-transfer v3 grpc-gateway path
 * Fix Rest API query tx
 * Fix `make install`
+* Fix v2.1 upgrade migrate event
+* Fix parse ed25519 pubkey command
+* Import deprecated msg
+* Dragonberry Patch
 
 ### Improvements
 
-* Bump cosmos-sdk to v0.45.9
+* Bump cosmos-sdk to v0.45.10
 * Bump tendermint to v0.34.22
 
 ## [v2.4.0] - 2022-10-14
