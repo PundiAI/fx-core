@@ -12,6 +12,9 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
+const MaxResults = 100
+const maxOracleSetRequestsReturned = 5
+
 var _ types.QueryServer = Keeper{}
 
 // Params queries the params of the bsc module

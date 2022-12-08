@@ -106,8 +106,8 @@ func (am AppModule) QuerierRoute() string {
 	return types.RouterKey
 }
 
-// LegacyQuerierHandler returns the capability module's Querier.
-func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
+// LegacyQuerierHandler returns no sdk.Querier
+func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 	return nil
 }
 

@@ -50,8 +50,7 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // RegisterRESTRoutes implements app module basic
 func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
-// also implements app modeul basic
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 	if err != nil {
@@ -101,10 +100,10 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute implements app module
-func (am AppModule) QuerierRoute() string { return types.QuerierRoute }
+func (am AppModule) QuerierRoute() string { return "" }
 
-// LegacyQuerierHandler returns the distribution module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
+// LegacyQuerierHandler returns no sdk.Querier
+func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 	return nil
 }
 

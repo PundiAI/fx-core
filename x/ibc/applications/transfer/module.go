@@ -99,7 +99,7 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute implements the AppModule interface
-func (AppModule) QuerierRoute() string { return types.QuerierRoute }
+func (AppModule) QuerierRoute() string { return "" }
 
 // LegacyQuerierHandler implements the AppModule interface
 func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {

@@ -62,8 +62,7 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return nil
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the distribution module.
-// also implements app modeul basic
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // RegisterInterfaces implements app bmodule basic
@@ -96,11 +95,11 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute implements app module
-func (am AppModule) QuerierRoute() string { return types.QuerierRoute }
+func (am AppModule) QuerierRoute() string { return "" }
 
-// LegacyQuerierHandler returns the distribution module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return crosschainkeeper.NewQuerier(am.keeper, legacyQuerierCdc)
+// LegacyQuerierHandler returns no sdk.Querier
+func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
+	return nil
 }
 
 // RegisterServices registers module services.
