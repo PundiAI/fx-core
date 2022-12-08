@@ -18,6 +18,7 @@ const (
 	EventTypeToggleTokenRelay        = "toggle_token_relay"
 	EventTypeRelayToken              = "relay_token"
 	EventTypeRelayTransferCrossChain = "relay_transfer_cross_chain"
+	EventUpdateContractCode          = "update_contract_code"
 
 	AttributeKeyDenom        = "coin"
 	AttributeKeyTokenAddress = "token_address"
@@ -30,6 +31,8 @@ const (
 	AttributeKeyTargetDenom  = "target_coin"
 	AttributeKeyAlias        = "alias"
 	AttributeKeyUpdateFlag   = "update_flag"
+	AttributeKeyContract     = "contract"
+	AttributeKeyVersion      = "version"
 
 	ERC20EventTransfer = "Transfer"
 )

@@ -13,17 +13,10 @@ import (
 const (
 	UpgradeName = "fxv3"
 
-	EventUpdateContract  = "update_contract"
-	AttributeKeyContract = "contract"
-	AttributeKeyVersion  = "version"
-
 	DAIDenom  = "dai"
 	EURSDenom = "eurs"
 	LINKDenom = "link"
 	C98Denom  = "c98"
-
-	EventUpdateMetadata = "update_metadata"
-	AttributeKeyDenom   = "denom"
 )
 
 var Upgrade = upgrades.Upgrade{

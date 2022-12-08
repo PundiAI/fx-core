@@ -14,7 +14,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 
@@ -27,7 +26,6 @@ import (
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	fxevmkeeper "github.com/functionx/fx-core/v3/x/evm/keeper"
 	evmlegacyv3 "github.com/functionx/fx-core/v3/x/evm/legacy/v3"
 )
 
@@ -49,8 +47,8 @@ func CreateUpgradeHandler(
 		// update bsc oracles
 		updateBSCOracles(cacheCtx, keepers.BscKeeper)
 
-		// update wfx code
-		updateWFXCode(cacheCtx, keepers.EvmKeeper)
+		// update wfx logic code
+		updateWFXLogicCode(cacheCtx, keepers.Erc20Keeper)
 
 		// update metadata alias null
 		updateMetadataAliasNull(cacheCtx, keepers.BankKeeper)
@@ -134,28 +132,12 @@ func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 	}
 }
 
-// updateWFXCode update wfx code
-func updateWFXCode(ctx sdk.Context, ek *fxevmkeeper.Keeper) {
-	logger := ctx.Logger()
+func updateWFXLogicCode(ctx sdk.Context, k erc20keeper.Keeper) {
 	wfx := fxtypes.GetWFX()
-	codeHash := crypto.Keccak256Hash(wfx.Code)
-
-	logger.Info("update wfx code", "address", wfx.Address.String(), "version", wfx.Version, "code-hash", codeHash.String())
-	acc := ek.GetAccount(ctx, wfx.Address)
-	if acc == nil {
-		panic(fmt.Sprintf("account %s not found", wfx.Address.String()))
+	err := k.UpdateContractCode(ctx, wfx)
+	if err != nil {
+		panic(fmt.Sprintf("update wfx logic code error: %s", err.Error()))
 	}
-	acc.CodeHash = codeHash.Bytes()
-	ek.SetCode(ctx, acc.CodeHash, wfx.Code)
-	if err := ek.SetAccount(ctx, wfx.Address, *acc); err != nil {
-		panic(fmt.Sprintf("evm set account %s error %s", wfx.Address.String(), err.Error()))
-	}
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		EventUpdateContract,
-		sdk.NewAttribute(AttributeKeyContract, wfx.Address.String()),
-		sdk.NewAttribute(AttributeKeyVersion, wfx.Version),
-	))
 }
 
 func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
@@ -170,11 +152,6 @@ func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 		logger.Info("update metadata alias null", "denom", denom)
 		md.DenomUnits[1].Aliases = []string{}
 		bk.SetDenomMetaData(ctx, md)
-
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			EventUpdateMetadata,
-			sdk.NewAttribute(AttributeKeyDenom, denom),
-		))
 	}
 }
 
