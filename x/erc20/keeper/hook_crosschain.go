@@ -107,9 +107,8 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to stri
 		logger.Error("validate ibc receive address", "address", to, "prefix", targetIBC.Prefix, "err", err.Error())
 		return fmt.Errorf("invalid to address %s", to)
 	}
-	_, _, err := k.IbcChannelKeeper.GetChannelClientState(ctx, targetIBC.SourcePort, targetIBC.SourceChannel)
-	if err != nil {
-		return err
+	if !fee.IsZero() {
+		return fmt.Errorf("ibc transfer fee must be zero: %s", fee.Amount.String())
 	}
 	params := k.GetParams(ctx)
 	ibcTimeoutHeight := ibcclienttypes.ZeroHeight()
