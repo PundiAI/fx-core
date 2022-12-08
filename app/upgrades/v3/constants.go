@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	UpgradeName = "v3"
+	UpgradeName = "fxv3"
 
 	EventUpdateContract  = "update_contract"
 	AttributeKeyContract = "contract"
