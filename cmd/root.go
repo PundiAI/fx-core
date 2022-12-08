@@ -255,33 +255,23 @@ func (a appCreator) appExport(
 	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
 
 	var anApp *app.App
-
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
 		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
 
-	var loadLatest bool
-	if height == -1 {
-		loadLatest = true
-	}
+	if height != -1 {
+		anApp = app.New(logger, db, traceStore, false, map[int64]bool{},
+			homePath, cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)), a.encCfg, appOpts,
+		)
 
-	anApp = app.New(
-		logger,
-		db,
-		traceStore,
-		loadLatest,
-		map[int64]bool{},
-		homePath,
-		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
-		a.encCfg,
-		appOpts,
-	)
-
-	if height == -1 {
 		if err := anApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
+	} else {
+		anApp = app.New(logger, db, traceStore, true, map[int64]bool{},
+			homePath, cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)), a.encCfg, appOpts,
+		)
 	}
 
 	return anApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
