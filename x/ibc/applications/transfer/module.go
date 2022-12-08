@@ -93,9 +93,9 @@ func NewAppModule(k keeper.Keeper) AppModule {
 // RegisterInvariants implements the AppModule interface
 func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route implements the AppModule interface
+// Deprecated: Route returns the message routing key
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+	return sdk.Route{}
 }
 
 // QuerierRoute implements the AppModule interface

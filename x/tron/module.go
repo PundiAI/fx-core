@@ -91,7 +91,7 @@ func NewAppModule(keeper keeper.Keeper) AppModule {
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route implements app module
+// Deprecated: Route returns the message routing key
 func (am AppModule) Route() sdk.Route {
 	return sdk.Route{}
 }

@@ -63,9 +63,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 }
 
-// Route returns the message routing key for the evm module.
+// Deprecated: Route returns the message routing key
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, evm.NewHandler(am.keeper))
+	return sdk.Route{}
 }
 
 // BeginBlock returns the begin block for the evm module.

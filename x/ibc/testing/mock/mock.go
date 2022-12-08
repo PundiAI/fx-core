@@ -101,9 +101,9 @@ func NewAppModule(pk PortKeeper) AppModule {
 // RegisterInvariants implements the AppModule interface.
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
-// Route implements the AppModule interface.
+// Deprecated: Route returns the message routing key
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(ModuleName, nil)
+	return sdk.Route{}
 }
 
 // QuerierRoute implements the AppModule interface.

@@ -93,16 +93,12 @@ func NewAppModule(kepper keeper.Keeper, ak authkeeper.AccountKeeper) AppModule {
 	}
 }
 
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
-}
-
 // RegisterInvariants registers the capability module's invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route returns the capability module's message routing key.
+// Deprecated: Route returns the message routing key
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, am.NewHandler())
+	return sdk.Route{}
 }
 
 // QuerierRoute returns the capability module's query routing key.

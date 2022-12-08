@@ -32,9 +32,9 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak govtypes.AccountKeep
 	}
 }
 
-// Route returns the message routing key for the gov module.
+// Deprecated: Route returns the message routing key
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(govtypes.RouterKey, NewHandler(am.keeper))
+	return sdk.Route{}
 }
 
 // RegisterServices registers module services.
