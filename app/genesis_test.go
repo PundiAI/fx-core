@@ -2,9 +2,20 @@ package app_test
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
+	"sort"
 	"testing"
 
+	types2 "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/assert"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/tendermint/tendermint/privval"
+	"github.com/tendermint/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -21,4 +32,102 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 
 	t.Log(string(genAppStateStr))
 	assert.Equal(t, genesisData, string(genAppStateStr))
+}
+
+func TestResetExportGenesisValidator(t *testing.T) {
+	if os.Getenv("LOCAL_TEST") != "true" {
+		t.Skip("skipping local test: ", t.Name())
+	}
+	t.Log("run reset export genesis validator")
+	fxtypes.SetConfig(false)
+
+	genesisFile := filepath.Join(app.DefaultNodeHome, "config", "genesis.json")
+	genesisDoc, err := types.GenesisDocFromFile(genesisFile)
+	assert.NoError(t, err)
+
+	appState := app.GenesisState{}
+	assert.NoError(t, json.Unmarshal(genesisDoc.AppState, &appState))
+
+	keyJSONBytes, err := os.ReadFile(filepath.Join(app.DefaultNodeHome, "config", "priv_validator_key.json"))
+	assert.NoError(t, err)
+
+	pvKey := privval.FilePVKey{}
+	err = tmjson.Unmarshal(keyJSONBytes, &pvKey)
+	assert.NoError(t, err)
+
+	encodingConfig := app.MakeEncodingConfig()
+	cdc := encodingConfig.Codec
+
+	// stakingGenesisState
+	stakingGenesisState := new(stakingtypes.GenesisState)
+	cdc.MustUnmarshalJSON(appState[stakingtypes.ModuleName], stakingGenesisState)
+	sort.Slice(stakingGenesisState.Validators, func(i, j int) bool {
+		return stakingGenesisState.Validators[i].ConsensusPower(sdk.DefaultPowerReduction) > stakingGenesisState.Validators[j].ConsensusPower(sdk.DefaultPowerReduction)
+	})
+
+	pubkey, err := cryptocodec.FromTmPubKeyInterface(pvKey.PubKey)
+	assert.NoError(t, err)
+
+	pubAny, err := types2.NewAnyWithValue(pubkey)
+	assert.NoError(t, err)
+
+	for i := 0; i < len(stakingGenesisState.Validators); i++ {
+		if i == 0 {
+			stakingGenesisState.Validators[0].ConsensusPubkey = pubAny
+			stakingGenesisState.Validators[0].Tokens = stakingGenesisState.Validators[0].Tokens.Add(sdk.NewInt(190000).MulRaw(1e18))
+			continue
+		}
+		if stakingGenesisState.Validators[i].Status == stakingtypes.Bonded {
+			stakingGenesisState.Validators[i].Status = stakingtypes.Unbonded
+			stakingGenesisState.Validators[i].Jailed = true
+			stakingGenesisState.Validators[0].Tokens = stakingGenesisState.Validators[0].Tokens.Add(stakingGenesisState.Validators[i].Tokens)
+			_, delegatorShares := stakingGenesisState.Validators[0].AddTokensFromDel(stakingGenesisState.Validators[i].Tokens)
+			stakingGenesisState.Validators[0].DelegatorShares = delegatorShares
+			stakingGenesisState.Validators[i].Tokens = sdk.ZeroInt()
+			stakingGenesisState.Validators[i].DelegatorShares = sdk.ZeroDec()
+		}
+	}
+
+	for i := 0; i < len(stakingGenesisState.LastValidatorPowers); i++ {
+		if stakingGenesisState.LastValidatorPowers[i].Address == stakingGenesisState.Validators[0].OperatorAddress {
+			stakingGenesisState.LastValidatorPowers[i].Power = stakingGenesisState.Validators[0].GetConsensusPower(sdk.DefaultPowerReduction)
+			stakingGenesisState.LastValidatorPowers = []stakingtypes.LastValidatorPower{
+				stakingGenesisState.LastValidatorPowers[i],
+			}
+		}
+	}
+	appState[stakingtypes.ModuleName] = cdc.MustMarshalJSON(stakingGenesisState)
+
+	// genesisDoc.Validators
+	validatorConsAddress := types.Address{}
+	for i := 0; i < len(genesisDoc.Validators); i++ {
+		if genesisDoc.Validators[i].Name == stakingGenesisState.Validators[0].Description.Moniker {
+			validatorConsAddress = genesisDoc.Validators[i].Address
+			genesisDoc.Validators[i].PubKey = pvKey.PubKey
+			genesisDoc.Validators[i].Address = pvKey.Address
+			genesisDoc.Validators[i].Power = stakingGenesisState.Validators[0].GetConsensusPower(sdk.DefaultPowerReduction)
+			genesisDoc.Validators = []types.GenesisValidator{genesisDoc.Validators[i]}
+
+			break
+		}
+	}
+
+	//slashingGenesisState
+	slashingGenesisState := new(slashingtypes.GenesisState)
+	cdc.MustUnmarshalJSON(appState[slashingtypes.ModuleName], slashingGenesisState)
+
+	t.Log(sdk.ConsAddress(validatorConsAddress).String())
+	for i := 0; i < len(slashingGenesisState.SigningInfos); i++ {
+		if slashingGenesisState.SigningInfos[i].Address == sdk.ConsAddress(validatorConsAddress).String() {
+			slashingGenesisState.SigningInfos[i].Address = sdk.ConsAddress(pvKey.Address.Bytes()).String()
+			slashingGenesisState.SigningInfos[i].ValidatorSigningInfo.Address = sdk.ConsAddress(pvKey.Address.Bytes()).String()
+			slashingGenesisState.SigningInfos = []slashingtypes.SigningInfo{slashingGenesisState.SigningInfos[i]}
+			break
+		}
+	}
+	appState[slashingtypes.ModuleName] = cdc.MustMarshalJSON(slashingGenesisState)
+
+	genesisDoc.AppState, err = json.Marshal(appState)
+	assert.NoError(t, err)
+	assert.NoError(t, genesisDoc.SaveAs(genesisFile))
 }
