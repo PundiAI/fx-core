@@ -260,7 +260,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData, ack channeltypes.Acknowledgement) error {
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
-		if err := k.Keeper.OnAcknowledgementPacket(ctx, packet, data.ToIBCPacketData(), ack); err != nil {
+		_, amount, fee, err := parseReceiveAndAmountByPacket(data)
+		if err != nil {
+			return err
+		}
+		ibcPacketData := data.ToIBCPacketData()
+		ibcPacketData.Amount = amount.Add(fee).String()
+		if err = k.Keeper.OnAcknowledgementPacket(ctx, packet, ibcPacketData, ack); err != nil {
 			return err
 		}
 		return k.refundPacketTokenHook(ctx, packet, data)
@@ -274,7 +280,13 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 // OnTimeoutPacket refunds the sender since the original packet sent was
 // never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData) error {
-	if err := k.Keeper.OnTimeoutPacket(ctx, packet, data.ToIBCPacketData()); err != nil {
+	_, amount, fee, err := parseReceiveAndAmountByPacket(data)
+	if err != nil {
+		return err
+	}
+	ibcPacketData := data.ToIBCPacketData()
+	ibcPacketData.Amount = amount.Add(fee).String()
+	if err = k.Keeper.OnTimeoutPacket(ctx, packet, ibcPacketData); err != nil {
 		return err
 	}
 	return k.refundPacketTokenHook(ctx, packet, data)
