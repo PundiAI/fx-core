@@ -59,20 +59,22 @@ func NewKeeper(keeper ibctransferkeeper.Keeper,
 
 // SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
-func (k Keeper) SetRouter(rtr *types.Router) {
+func (k Keeper) SetRouter(rtr *types.Router) Keeper {
 	if k.Router != nil && k.Router.Sealed() {
 		panic("cannot reset a sealed router")
 	}
 	k.Router = rtr
 	k.Router.Seal()
+	return k
 }
 
 func (k Keeper) GetRouter() *types.Router {
 	return k.Router
 }
 
-func (k *Keeper) SetRefundHook(hook types.RefundHook) {
+func (k Keeper) SetRefundHook(hook types.RefundHook) Keeper {
 	k.RefundHook = hook
+	return k
 }
 
 // Logger returns a module-specific logger.

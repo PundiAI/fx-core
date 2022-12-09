@@ -411,8 +411,8 @@ func NewAppKeeper(
 	ibcTransferRouter.AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper)
 	ibcTransferRouter.AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
 	ibcTransferRouter.AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
-	appKeepers.FxTransferKeeper.SetRouter(ibcTransferRouter)
-	appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
+	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRouter(ibcTransferRouter)
+	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
 
 	ibcTransferModule := ibctransfer.NewIBCModule(appKeepers.IBCTransferKeeper)
 	transferIBCModule := fxtransfer.NewIBCMiddleware(appKeepers.FxTransferKeeper, ibcTransferModule)
