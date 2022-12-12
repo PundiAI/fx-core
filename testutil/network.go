@@ -35,7 +35,7 @@ func DefaultNetworkConfig() network.Config {
 	encCfg := app.MakeEncodingConfig()
 
 	return network.Config{
-		Codec:             encCfg.Marshaler,
+		Codec:             encCfg.Codec,
 		TxConfig:          encCfg.TxConfig,
 		LegacyAmino:       encCfg.Amino,
 		InterfaceRegistry: encCfg.InterfaceRegistry,
@@ -49,7 +49,7 @@ func DefaultNetworkConfig() network.Config {
 				baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
 			)
 		},
-		GenesisState:    DefNoSupplyGenesisState(encCfg.Marshaler),
+		GenesisState:    DefNoSupplyGenesisState(encCfg.Codec),
 		TimeoutCommit:   10 * time.Millisecond,
 		ChainID:         fxtypes.MainnetChainId,
 		NumValidators:   4,

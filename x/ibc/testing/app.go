@@ -54,7 +54,7 @@ type TestingApp interface {
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 	app := simapp.NewSimApp()
 	encCdc := fxapp.MakeEncodingConfig()
-	return app, fxapp.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encCdc.Marshaler)
+	return app, fxapp.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encCdc.Codec)
 }
 
 // SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts

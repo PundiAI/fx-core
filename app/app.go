@@ -104,7 +104,7 @@ func New(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 
-	appCodec := encodingConfig.Marshaler
+	appCodec := encodingConfig.Codec
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 

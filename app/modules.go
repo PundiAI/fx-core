@@ -153,7 +153,7 @@ func appModules(
 	encodingConfig EncodingConfig,
 	skipGenesisInvariants bool,
 ) []module.AppModule {
-	appCodec := encodingConfig.Marshaler
+	appCodec := encodingConfig.Codec
 	return []module.AppModule{
 		genutil.NewAppModule(
 			app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig,
@@ -197,7 +197,7 @@ func simulationModules(
 	encodingConfig EncodingConfig,
 	_ bool,
 ) []module.AppModuleSimulation {
-	appCodec := encodingConfig.Marshaler
+	appCodec := encodingConfig.Codec
 
 	return []module.AppModuleSimulation{
 		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts),

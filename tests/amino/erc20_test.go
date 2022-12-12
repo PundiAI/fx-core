@@ -41,7 +41,7 @@ func TestAminoEncodeRegisterCoinProposal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, `{"title":"v2","description":"foo","metadata":{"description":"test","denom_units":[{"denom":"test","aliases":["ethtest"]},{"denom":"TEST","exponent":18}],"base":"test","display":"test","name":"test name","symbol":"TEST"}}`, string(data))
 
-	marshal, err := encode.Marshaler.MarshalJSON(&proposal)
+	marshal, err := encode.Codec.MarshalJSON(&proposal)
 	require.NoError(t, err)
 	require.Equal(t, `{"title":"v2","description":"foo","metadata":{"description":"test","denom_units":[{"denom":"test","exponent":0,"aliases":["ethtest"]},{"denom":"TEST","exponent":18,"aliases":[]}],"base":"test","display":"test","name":"test name","symbol":"TEST"}}`, string(marshal))
 }
