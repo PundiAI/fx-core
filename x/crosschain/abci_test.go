@@ -89,7 +89,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
 	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.externals = helpers.CreateMultiEthKey(types.MaxOracleSize)
+	suite.externals = helpers.CreateMultiECDSA(types.MaxOracleSize)
 	suite.delegateAmount = sdk.NewInt(10 * 1e3).MulRaw(1e18)
 	for i := 0; i < types.MaxOracleSize; i++ {
 		suite.validator = append(suite.validator, valAccounts[i].GetAddress().Bytes())

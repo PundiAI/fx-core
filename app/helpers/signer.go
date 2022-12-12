@@ -50,24 +50,16 @@ func PrivKeyFromMnemonic(mnemonic string, algo hd.PubKeyType, account, index uin
 	return privKey, nil
 }
 
-func CreateMultiEthKey(count int) []*ecdsa.PrivateKey {
+func CreateMultiECDSA(count int) []*ecdsa.PrivateKey {
 	var ethKeys []*ecdsa.PrivateKey
 	for i := 0; i < count; i++ {
-		ethKeys = append(ethKeys, GenerateEthKey())
+		key, err := crypto.GenerateKey()
+		if err != nil {
+			panic(err)
+		}
+		ethKeys = append(ethKeys, key)
 	}
 	return ethKeys
-}
-
-func GenerateEthKey() *ecdsa.PrivateKey {
-	key, err := crypto.GenerateKey()
-	if err != nil {
-		panic(err)
-	}
-	return key
-}
-
-func GenerateEthAddress() common.Address {
-	return crypto.PubkeyToAddress(GenerateEthKey().PublicKey)
 }
 
 // NewPriKey generates cosmos-sdk accAddress private key.

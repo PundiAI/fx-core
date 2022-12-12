@@ -870,7 +870,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 				newBatchList := make([]*types.OutgoingTxBatch, 0)
 				for i := 0; i < 10; i++ {
 					suite.ctx = suite.ctx.WithBlockHeight(int64(i + 3))
-					token := crypto.PubkeyToAddress(helpers.GenerateEthKey().PublicKey)
+					token := helpers.GenerateAddress().String()
 					newOutgoingTx := &types.OutgoingTxBatch{
 						BatchNonce:   uint64(i + 3),
 						BatchTimeout: uint64(1000),
@@ -878,14 +878,14 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 							{
 								Id:          uint64(i),
 								Sender:      sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-								DestAddress: crypto.PubkeyToAddress(helpers.GenerateEthKey().PublicKey).String(),
-								Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
-								Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
+								DestAddress: helpers.GenerateAddress().String(),
+								Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
+								Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
 							},
 						},
-						TokenContract: token.String(),
+						TokenContract: token,
 						Block:         uint64(i + 3),
-						FeeReceive:    crypto.PubkeyToAddress(helpers.GenerateEthKey().PublicKey).String(),
+						FeeReceive:    helpers.GenerateAddress().String(),
 					}
 					err := suite.Keeper().StoreBatch(suite.ctx, newOutgoingTx)
 					suite.Require().NoError(err)
@@ -900,7 +900,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 			malleate: func() *types.QueryOutgoingTxBatchesResponse {
 				for i := 1; i < 110; i++ {
 					suite.ctx = suite.ctx.WithBlockHeight(int64(i))
-					token := crypto.PubkeyToAddress(helpers.GenerateEthKey().PublicKey)
+					token := helpers.GenerateAddress().String()
 					newOutgoingTx := &types.OutgoingTxBatch{
 						BatchNonce:   uint64(i),
 						BatchTimeout: uint64(1000 + i),
@@ -908,14 +908,14 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 							{
 								Id:          uint64(i),
 								Sender:      sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-								DestAddress: crypto.PubkeyToAddress(helpers.GenerateEthKey().PublicKey).String(),
-								Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
-								Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
+								DestAddress: helpers.GenerateAddress().String(),
+								Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
+								Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
 							},
 						},
-						TokenContract: token.String(),
+						TokenContract: token,
 						Block:         uint64(i),
-						FeeReceive:    crypto.PubkeyToAddress(helpers.GenerateEthKey().PublicKey).String(),
+						FeeReceive:    helpers.GenerateAddress().String(),
 					}
 					err := suite.Keeper().StoreBatch(suite.ctx, newOutgoingTx)
 					suite.Require().NoError(err)
@@ -1927,7 +1927,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 				_, err := suite.msgServer.BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), &types.MsgBridgeTokenClaim{
 					EventNonce:     1,
 					BlockHeight:    100,
-					TokenContract:  crypto.PubkeyToAddress(helpers.GenerateEthKey().PublicKey).String(),
+					TokenContract:  helpers.GenerateAddress().String(),
 					Name:           "test token",
 					Symbol:         "tt",
 					Decimals:       18,

@@ -16,7 +16,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	gethcommon "github.com/ethereum/go-ethereum/common"
-	ethCrypto "github.com/ethereum/go-ethereum/crypto"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -262,7 +262,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			default:
 				return fmt.Errorf("unknown eth-key-type flag:%v, support:(keystore|hex)", ethKeyType)
 			}
-			ethAddress := ethCrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
+			ethAddress := ethcrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
 			batchRequestByNonceResp, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
@@ -390,7 +390,7 @@ func CmdValidatorSetConfirm() *cobra.Command {
 			default:
 				return fmt.Errorf("unknown eth-key-type flag:%v, support:(keystore|hex)", ethKeyType)
 			}
-			ethAddress := ethCrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
+			ethAddress := ethcrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
 			valsetRequestResp, err := queryClient.ValsetRequest(cmd.Context(), &types.QueryValsetRequestRequest{Nonce: nonce})
@@ -465,5 +465,5 @@ func recoveryPrivateKeyByKeystore(keystoreFile, passwordFile string) (*ecdsa.Pri
 }
 
 func recoveryPrivateKeyHexPrivateKey(hexPrivateKey string) (*ecdsa.PrivateKey, error) {
-	return ethCrypto.HexToECDSA(hexPrivateKey)
+	return ethcrypto.HexToECDSA(hexPrivateKey)
 }

@@ -19,7 +19,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 
 	bridgeTokens := make([]types.BridgeToken, 10)
 	for i := 0; i < len(bridgeTokens); i++ {
-		contractAddress := crypto.PubkeyToAddress(helpers.GenerateEthKey().PublicKey).Hex()
+		contractAddress := helpers.GenerateAddress().Hex()
 		bridgeToken := types.BridgeToken{
 			Token:      contractAddress,
 			Denom:      fmt.Sprintf("%s%s", suite.chainName, contractAddress),

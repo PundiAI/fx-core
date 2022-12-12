@@ -17,7 +17,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	gethcommon "github.com/ethereum/go-ethereum/common"
-	ethCrypto "github.com/ethereum/go-ethereum/crypto"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -339,7 +339,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			externalAddress := ethCrypto.PubkeyToAddress(privateKey.PublicKey)
+			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
 			batchRequestByNonceResp, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
@@ -421,7 +421,7 @@ func CmdOracleSetConfirm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			externalAddress := ethCrypto.PubkeyToAddress(privateKey.PublicKey)
+			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
 			oracleSetRequestResp, err := queryClient.OracleSetRequest(cmd.Context(), &types.QueryOracleSetRequestRequest{Nonce: nonce, ChainName: args[0]})
@@ -492,7 +492,7 @@ func recoveryPrivateKeyByKeystore(privateKey string) (*ecdsa.PrivateKey, error) 
 		}
 		ethPrivateKey = key.PrivateKey
 	} else {
-		key, err := ethCrypto.HexToECDSA(privateKey)
+		key, err := ethcrypto.HexToECDSA(privateKey)
 		if err != nil {
 			return nil, fmt.Errorf("invalid eth private key: %s", err.Error())
 		}

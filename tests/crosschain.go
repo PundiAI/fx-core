@@ -9,7 +9,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
-	ethCrypto "github.com/ethereum/go-ethereum/crypto"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -26,12 +26,13 @@ type CrosschainTestSuite struct {
 }
 
 func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestSuite {
+	key, _ := ethcrypto.GenerateKey()
 	return CrosschainTestSuite{
 		TestSuite:         ts,
 		chainName:         chainName,
 		oraclePrivKey:     helpers.NewPriKey(),
 		bridgerFxPrivKey:  helpers.NewPriKey(),
-		bridgerExtPrivKey: helpers.GenerateEthKey(),
+		bridgerExtPrivKey: key,
 		privKey:           helpers.NewEthPrivKey(),
 	}
 }
@@ -49,7 +50,7 @@ func (suite *CrosschainTestSuite) OracleAddr() sdk.AccAddress {
 }
 
 func (suite *CrosschainTestSuite) BridgerExtAddr() string {
-	return ethCrypto.PubkeyToAddress(suite.bridgerExtPrivKey.PublicKey).String()
+	return ethcrypto.PubkeyToAddress(suite.bridgerExtPrivKey.PublicKey).String()
 }
 
 func (suite *CrosschainTestSuite) BridgerFxAddr() sdk.AccAddress {

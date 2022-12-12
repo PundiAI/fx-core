@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestHookChainBSC() {
 	suite.mintToken(bsctypes.ModuleName, sdk.NewCoin(purseDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
 
 	signer1 := helpers.NewSigner(helpers.NewEthPrivKey())
-	addr2 := helpers.GenerateEthAddress()
+	addr2 := helpers.GenerateAddress()
 
 	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), signer1.Address().Bytes(), addr2)
 
@@ -89,9 +89,9 @@ func (suite *KeeperTestSuite) TestHookChainUSDT() {
 	suite.mintToken(polygontypes.ModuleName, sdk.NewCoin(polygonDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
 
 	signer1 := helpers.NewSigner(helpers.NewEthPrivKey())
-	addr2 := helpers.GenerateEthAddress()
+	addr2 := helpers.GenerateAddress()
 	signer3 := helpers.NewSigner(helpers.NewEthPrivKey())
-	addr4 := helpers.GenerateEthAddress()
+	addr4 := helpers.GenerateAddress()
 
 	suite.ctx = testInitBscCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), signer1.Address().Bytes(), addr2)
 	suite.ctx = testInitPolygonCrossChain(suite.T(), suite.ctx, suite.app, suite.address.Bytes(), signer3.Address().Bytes(), addr4)
