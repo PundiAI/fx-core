@@ -43,20 +43,16 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 		return &types.MsgConvertCoinResponse{}, nil
 	}
 
-	var res *types.MsgConvertCoinResponse
-	var gasMeter sdk.GasMeter
-	ctx, gasMeter = k.SupportInfiniteGasMeter(ctx)
+	newCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	// Check ownership and execute conversion
 	switch {
 	case pair.IsNativeCoin():
-		res, err = k.ConvertCoinNativeCoin(ctx, pair, msg, receiver, sender) // case 1.1
+		return k.ConvertCoinNativeCoin(newCtx, pair, msg, receiver, sender) // case 1.1
 	case pair.IsNativeERC20():
-		res, err = k.ConvertCoinNativeERC20(ctx, pair, msg, receiver, sender) // case 2.2
+		return k.ConvertCoinNativeERC20(newCtx, pair, msg, receiver, sender) // case 2.2
 	default:
-		err = types.ErrUndefinedOwner
+		return nil, types.ErrUndefinedOwner
 	}
-	ctx = k.SupportRefundGasWithGasMeter(ctx, gasMeter) //nolint
-	return res, err
 }
 
 // ConvertERC20 converts ERC20 tokens into Cosmos-native Coins for both
@@ -97,20 +93,16 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 		return &types.MsgConvertERC20Response{}, nil
 	}
 
-	var res *types.MsgConvertERC20Response
-	var gasMeter sdk.GasMeter
-	ctx, gasMeter = k.SupportInfiniteGasMeter(ctx)
+	newCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	// Check ownership
 	switch {
 	case pair.IsNativeCoin():
-		res, err = k.ConvertERC20NativeCoin(ctx, pair, msg, receiver, sender) // case 1.2
+		return k.ConvertERC20NativeCoin(newCtx, pair, msg, receiver, sender) // case 1.2
 	case pair.IsNativeERC20():
-		res, err = k.ConvertERC20NativeToken(ctx, pair, msg, receiver, sender) // case 2.1
+		return k.ConvertERC20NativeToken(newCtx, pair, msg, receiver, sender) // case 2.1
 	default:
-		err = types.ErrUndefinedOwner
+		return nil, types.ErrUndefinedOwner
 	}
-	ctx = k.SupportRefundGasWithGasMeter(ctx, gasMeter) //nolint
-	return res, err
 }
 
 // ConvertDenom converts coin into other coin, use for multiple chains in the same currency
@@ -682,15 +674,4 @@ func (k Keeper) SendCoins(ctx sdk.Context, from, to sdk.AccAddress, coins sdk.Co
 	}
 
 	return k.bankKeeper.SendCoins(ctx, from, to, coins)
-}
-
-func (k Keeper) SupportInfiniteGasMeter(ctx sdk.Context) (sdk.Context, sdk.GasMeter) {
-	gasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-	return ctx, gasMeter
-}
-
-func (k Keeper) SupportRefundGasWithGasMeter(ctx sdk.Context, gasMater sdk.GasMeter) sdk.Context {
-	ctx = ctx.WithGasMeter(gasMater)
-	return ctx
 }
