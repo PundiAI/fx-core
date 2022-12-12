@@ -29,7 +29,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryParamsRequest struct {
 }
 
@@ -66,7 +66,7 @@ func (m *QueryParamsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryParamsRequest proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryParamsResponse struct {
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 }
@@ -111,7 +111,7 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryCurrentValsetRequest struct {
 }
 
@@ -148,7 +148,7 @@ func (m *QueryCurrentValsetRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryCurrentValsetRequest proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryCurrentValsetResponse struct {
 	Valset *Valset `protobuf:"bytes,1,opt,name=valset,proto3" json:"valset,omitempty"`
 }
@@ -193,7 +193,7 @@ func (m *QueryCurrentValsetResponse) GetValset() *Valset {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryValsetRequestRequest struct {
 	Nonce uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 }
@@ -238,7 +238,7 @@ func (m *QueryValsetRequestRequest) GetNonce() uint64 {
 	return 0
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryValsetRequestResponse struct {
 	Valset *Valset `protobuf:"bytes,1,opt,name=valset,proto3" json:"valset,omitempty"`
 }
@@ -283,7 +283,7 @@ func (m *QueryValsetRequestResponse) GetValset() *Valset {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryValsetConfirmRequest struct {
 	Nonce   uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
@@ -336,7 +336,7 @@ func (m *QueryValsetConfirmRequest) GetAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryValsetConfirmResponse struct {
 	Confirm *MsgValsetConfirm `protobuf:"bytes,1,opt,name=confirm,proto3" json:"confirm,omitempty"`
 }
@@ -381,7 +381,7 @@ func (m *QueryValsetConfirmResponse) GetConfirm() *MsgValsetConfirm {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryValsetConfirmsByNonceRequest struct {
 	Nonce uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 }
@@ -426,7 +426,7 @@ func (m *QueryValsetConfirmsByNonceRequest) GetNonce() uint64 {
 	return 0
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryValsetConfirmsByNonceResponse struct {
 	Confirms []*MsgValsetConfirm `protobuf:"bytes,1,rep,name=confirms,proto3" json:"confirms,omitempty"`
 }
@@ -471,7 +471,7 @@ func (m *QueryValsetConfirmsByNonceResponse) GetConfirms() []*MsgValsetConfirm {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastValsetRequestsRequest struct {
 }
 
@@ -508,7 +508,7 @@ func (m *QueryLastValsetRequestsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryLastValsetRequestsRequest proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastValsetRequestsResponse struct {
 	Valsets []*Valset `protobuf:"bytes,1,rep,name=valsets,proto3" json:"valsets,omitempty"`
 }
@@ -553,7 +553,7 @@ func (m *QueryLastValsetRequestsResponse) GetValsets() []*Valset {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastPendingValsetRequestByAddrRequest struct {
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 }
@@ -602,7 +602,7 @@ func (m *QueryLastPendingValsetRequestByAddrRequest) GetAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastPendingValsetRequestByAddrResponse struct {
 	Valsets []*Valset `protobuf:"bytes,1,rep,name=valsets,proto3" json:"valsets,omitempty"`
 }
@@ -651,7 +651,7 @@ func (m *QueryLastPendingValsetRequestByAddrResponse) GetValsets() []*Valset {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBatchFeeRequest struct {
 	MinBatchFees []MinBatchFee `protobuf:"bytes,1,rep,name=minBatchFees,proto3" json:"minBatchFees"`
 }
@@ -696,7 +696,7 @@ func (m *QueryBatchFeeRequest) GetMinBatchFees() []MinBatchFee {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBatchFeeResponse struct {
 	BatchFees []*BatchFees `protobuf:"bytes,1,rep,name=batch_fees,json=batchFees,proto3" json:"batch_fees,omitempty"`
 }
@@ -741,7 +741,7 @@ func (m *QueryBatchFeeResponse) GetBatchFees() []*BatchFees {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastPendingBatchRequestByAddrRequest struct {
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 }
@@ -790,7 +790,7 @@ func (m *QueryLastPendingBatchRequestByAddrRequest) GetAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastPendingBatchRequestByAddrResponse struct {
 	Batch *OutgoingTxBatch `protobuf:"bytes,1,opt,name=batch,proto3" json:"batch,omitempty"`
 }
@@ -839,7 +839,7 @@ func (m *QueryLastPendingBatchRequestByAddrResponse) GetBatch() *OutgoingTxBatch
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryOutgoingTxBatchesRequest struct {
 }
 
@@ -876,7 +876,7 @@ func (m *QueryOutgoingTxBatchesRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryOutgoingTxBatchesRequest proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryOutgoingTxBatchesResponse struct {
 	Batches []*OutgoingTxBatch `protobuf:"bytes,1,rep,name=batches,proto3" json:"batches,omitempty"`
 }
@@ -921,7 +921,7 @@ func (m *QueryOutgoingTxBatchesResponse) GetBatches() []*OutgoingTxBatch {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBatchRequestByNonceRequest struct {
 	Nonce         uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	TokenContract string `protobuf:"bytes,2,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
@@ -974,7 +974,7 @@ func (m *QueryBatchRequestByNonceRequest) GetTokenContract() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBatchRequestByNonceResponse struct {
 	Batch *OutgoingTxBatch `protobuf:"bytes,1,opt,name=batch,proto3" json:"batch,omitempty"`
 }
@@ -1019,7 +1019,7 @@ func (m *QueryBatchRequestByNonceResponse) GetBatch() *OutgoingTxBatch {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBatchConfirmRequest struct {
 	Nonce         uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	TokenContract string `protobuf:"bytes,2,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
@@ -1080,7 +1080,7 @@ func (m *QueryBatchConfirmRequest) GetAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBatchConfirmResponse struct {
 	Confirm *MsgConfirmBatch `protobuf:"bytes,1,opt,name=confirm,proto3" json:"confirm,omitempty"`
 }
@@ -1125,7 +1125,7 @@ func (m *QueryBatchConfirmResponse) GetConfirm() *MsgConfirmBatch {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBatchConfirmsRequest struct {
 	Nonce         uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	TokenContract string `protobuf:"bytes,2,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
@@ -1178,7 +1178,7 @@ func (m *QueryBatchConfirmsRequest) GetTokenContract() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBatchConfirmsResponse struct {
 	Confirms []*MsgConfirmBatch `protobuf:"bytes,1,rep,name=confirms,proto3" json:"confirms,omitempty"`
 }
@@ -1223,7 +1223,7 @@ func (m *QueryBatchConfirmsResponse) GetConfirms() []*MsgConfirmBatch {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastEventNonceByAddrRequest struct {
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 }
@@ -1268,7 +1268,7 @@ func (m *QueryLastEventNonceByAddrRequest) GetAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastEventNonceByAddrResponse struct {
 	EventNonce uint64 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
 }
@@ -1313,7 +1313,7 @@ func (m *QueryLastEventNonceByAddrResponse) GetEventNonce() uint64 {
 	return 0
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryERC20ToDenomRequest struct {
 	Erc20 string `protobuf:"bytes,1,opt,name=erc20,proto3" json:"erc20,omitempty"`
 }
@@ -1358,7 +1358,7 @@ func (m *QueryERC20ToDenomRequest) GetErc20() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryERC20ToDenomResponse struct {
 	Denom        string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
 	FxOriginated bool   `protobuf:"varint,2,opt,name=fx_originated,json=fxOriginated,proto3" json:"fx_originated,omitempty"`
@@ -1411,7 +1411,7 @@ func (m *QueryERC20ToDenomResponse) GetFxOriginated() bool {
 	return false
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryDenomToERC20Request struct {
 	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
 }
@@ -1456,7 +1456,7 @@ func (m *QueryDenomToERC20Request) GetDenom() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryDenomToERC20Response struct {
 	Erc20        string `protobuf:"bytes,1,opt,name=erc20,proto3" json:"erc20,omitempty"`
 	FxOriginated bool   `protobuf:"varint,2,opt,name=fx_originated,json=fxOriginated,proto3" json:"fx_originated,omitempty"`
@@ -1509,7 +1509,7 @@ func (m *QueryDenomToERC20Response) GetFxOriginated() bool {
 	return false
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryDelegateKeyByValidatorRequest struct {
 	ValidatorAddress string `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
 }
@@ -1554,7 +1554,7 @@ func (m *QueryDelegateKeyByValidatorRequest) GetValidatorAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryDelegateKeyByValidatorResponse struct {
 	EthAddress          string `protobuf:"bytes,1,opt,name=eth_address,json=ethAddress,proto3" json:"eth_address,omitempty"`
 	OrchestratorAddress string `protobuf:"bytes,2,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
@@ -1607,7 +1607,7 @@ func (m *QueryDelegateKeyByValidatorResponse) GetOrchestratorAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryDelegateKeyByEthRequest struct {
 	EthAddress string `protobuf:"bytes,1,opt,name=eth_address,json=ethAddress,proto3" json:"eth_address,omitempty"`
 }
@@ -1652,7 +1652,7 @@ func (m *QueryDelegateKeyByEthRequest) GetEthAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryDelegateKeyByEthResponse struct {
 	ValidatorAddress    string `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
 	OrchestratorAddress string `protobuf:"bytes,2,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
@@ -1705,7 +1705,7 @@ func (m *QueryDelegateKeyByEthResponse) GetOrchestratorAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryDelegateKeyByOrchestratorRequest struct {
 	OrchestratorAddress string `protobuf:"bytes,1,opt,name=orchestrator_address,json=orchestratorAddress,proto3" json:"orchestrator_address,omitempty"`
 }
@@ -1750,7 +1750,7 @@ func (m *QueryDelegateKeyByOrchestratorRequest) GetOrchestratorAddress() string 
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryDelegateKeyByOrchestratorResponse struct {
 	ValidatorAddress string `protobuf:"bytes,1,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
 	EthAddress       string `protobuf:"bytes,2,opt,name=eth_address,json=ethAddress,proto3" json:"eth_address,omitempty"`
@@ -1805,7 +1805,7 @@ func (m *QueryDelegateKeyByOrchestratorResponse) GetEthAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryPendingSendToEthRequest struct {
 	SenderAddress string `protobuf:"bytes,1,opt,name=sender_address,json=senderAddress,proto3" json:"sender_address,omitempty"`
 }
@@ -1850,7 +1850,7 @@ func (m *QueryPendingSendToEthRequest) GetSenderAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryPendingSendToEthResponse struct {
 	TransfersInBatches []*OutgoingTransferTx `protobuf:"bytes,1,rep,name=transfers_in_batches,json=transfersInBatches,proto3" json:"transfers_in_batches,omitempty"`
 	UnbatchedTransfers []*OutgoingTransferTx `protobuf:"bytes,2,rep,name=unbatched_transfers,json=unbatchedTransfers,proto3" json:"unbatched_transfers,omitempty"`
@@ -1903,7 +1903,7 @@ func (m *QueryPendingSendToEthResponse) GetUnbatchedTransfers() []*OutgoingTrans
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastObservedBlockHeightRequest struct {
 }
 
@@ -1940,7 +1940,7 @@ func (m *QueryLastObservedBlockHeightRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryLastObservedBlockHeightRequest proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastObservedBlockHeightResponse struct {
 	EthBlockHeight uint64 `protobuf:"varint,1,opt,name=eth_block_height,json=ethBlockHeight,proto3" json:"eth_block_height,omitempty"`
 	BlockHeight    uint64 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
@@ -1993,7 +1993,7 @@ func (m *QueryLastObservedBlockHeightResponse) GetBlockHeight() uint64 {
 	return 0
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastEventBlockHeightByAddrRequest struct {
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 }
@@ -2040,7 +2040,7 @@ func (m *QueryLastEventBlockHeightByAddrRequest) GetAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryLastEventBlockHeightByAddrResponse struct {
 	BlockHeight uint64 `protobuf:"varint,1,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
 }
@@ -2087,7 +2087,7 @@ func (m *QueryLastEventBlockHeightByAddrResponse) GetBlockHeight() uint64 {
 	return 0
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryProjectedBatchTimeoutHeightRequest struct {
 }
 
@@ -2126,7 +2126,7 @@ func (m *QueryProjectedBatchTimeoutHeightRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryProjectedBatchTimeoutHeightRequest proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryProjectedBatchTimeoutHeightResponse struct {
 	TimeoutHeight uint64 `protobuf:"varint,1,opt,name=timeout_height,json=timeoutHeight,proto3" json:"timeout_height,omitempty"`
 }
@@ -2173,7 +2173,7 @@ func (m *QueryProjectedBatchTimeoutHeightResponse) GetTimeoutHeight() uint64 {
 	return 0
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBridgeTokensRequest struct {
 }
 
@@ -2210,7 +2210,7 @@ func (m *QueryBridgeTokensRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryBridgeTokensRequest proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type QueryBridgeTokensResponse struct {
 	BridgeTokens []*ERC20ToDenom `protobuf:"bytes,1,rep,name=bridge_tokens,json=bridgeTokens,proto3" json:"bridge_tokens,omitempty"`
 }

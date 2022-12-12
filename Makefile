@@ -205,7 +205,7 @@ update-swagger-docs: proto-swagger-gen statik
     else \
         echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
-	#perl -pi -e "print \"host: fx-rest.functionx.io\nschemes:\n  - https\n\" if $.==6 " ./docs/swagger-ui/swagger.yaml
+	perl -pi -e "print \"host: fx-rest.functionx.io\nschemes:\n  - https\n\" if $$.==6 " ./docs/swagger-ui/swagger.yaml
 
 .PHONY: statik update-swagger-docs
 

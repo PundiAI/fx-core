@@ -203,14 +203,14 @@ message Params {
     (gogoproto.nullable) = false
   ];
   uint64 ibc_transfer_timeout_height = 8;
-  // Deprecated after block 5713000
+  // Deprecated: after block 5713000
   repeated string oracles = 9 [ (gogoproto.nullable) = true ];
   cosmos.base.v1beta1.Coin delegate_threshold = 10
       [ (gogoproto.nullable) = false ];
   int64 delegate_multiple = 11;
 }
 
-// Deprecated after block 5713000
+// Deprecated: after block 5713000
 message InitCrossChainParamsProposal {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;

@@ -1,3 +1,4 @@
+// nolint
 package cli
 
 import (
@@ -86,7 +87,6 @@ func CmdGetParams() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
@@ -117,7 +117,6 @@ func CmdGetDelegateKeyByValidator() *cobra.Command {
 				ValidatorAddress: validator.String(),
 			}
 
-			// nolint
 			res, err := queryClient.GetDelegateKeyByValidator(cmd.Context(), req)
 			if err != nil {
 				return err
@@ -144,7 +143,6 @@ func CmdGetDelegateKeyByOrchestrator() *cobra.Command {
 				return err
 			}
 
-			// nolint
 			res, err := queryClient.GetDelegateKeyByOrchestrator(cmd.Context(), &types.QueryDelegateKeyByOrchestratorRequest{
 				OrchestratorAddress: validator.String(),
 			})
@@ -173,7 +171,6 @@ func CmdGetDelegateKeyByEth() *cobra.Command {
 			if !gethCommon.IsHexAddress(args[0]) {
 				return fmt.Errorf("contract address is invalid!address:[%s]", args[0])
 			}
-			// nolint
 			res, err := queryClient.GetDelegateKeyByEth(cmd.Context(), &types.QueryDelegateKeyByEthRequest{
 				EthAddress: args[0],
 			})
@@ -196,7 +193,6 @@ func CmdGetCurrentValset() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.CurrentValset(cmd.Context(), &types.QueryCurrentValsetRequest{})
 			if err != nil {
 				return err
@@ -237,7 +233,6 @@ func CmdGetValsetRequest() *cobra.Command {
 					return err
 				}
 			}
-			// nolint
 			res, err := queryClient.ValsetRequest(cmd.Context(), &types.QueryValsetRequestRequest{
 				Nonce: nonce,
 			})
@@ -260,7 +255,6 @@ func CmdGetLastValSetRequests() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.LastValsetRequests(cmd.Context(), &types.QueryLastValsetRequestsRequest{})
 			if err != nil {
 				return err
@@ -292,7 +286,6 @@ func CmdGetPendingValsetRequest() *cobra.Command {
 				Address: orchestrator.String(),
 			}
 
-			// nolint
 			res, err := queryClient.LastPendingValsetRequestByAddr(cmd.Context(), req)
 			if err != nil {
 				return err
@@ -318,7 +311,6 @@ func CmdGetValsetConfirm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// nolint
 			res, err := queryClient.ValsetConfirm(cmd.Context(), &types.QueryValsetConfirmRequest{
 				Nonce:   nonce,
 				Address: args[1],
@@ -347,7 +339,6 @@ func CmdGetValsetConfirms() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// nolint
 			res, err := queryClient.ValsetConfirmsByNonce(cmd.Context(), &types.QueryValsetConfirmsByNonceRequest{
 				Nonce: nonce,
 			})
@@ -373,7 +364,6 @@ func CmdGetPendingOutgoingTXBatchRequest() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.LastPendingBatchRequestByAddr(cmd.Context(), &types.QueryLastPendingBatchRequestByAddrRequest{
 				Address: args[0],
 			})
@@ -407,7 +397,6 @@ func CmdBatchConfirm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// nolint
 			res, err := queryClient.BatchConfirm(cmd.Context(), &types.QueryBatchConfirmRequest{
 				TokenContract: args[0],
 				Nonce:         nonce,
@@ -439,7 +428,6 @@ func CmdBatchConfirms() *cobra.Command {
 			if !gethCommon.IsHexAddress(args[0]) {
 				return fmt.Errorf("contract address is invalid!address:[%s]", args[0])
 			}
-			// nolint
 			res, err := queryClient.BatchConfirms(cmd.Context(), &types.QueryBatchConfirmsRequest{
 				TokenContract: args[0],
 				Nonce:         uint64(nonce),
@@ -470,7 +458,6 @@ func CmdBatchRequestByNonce() *cobra.Command {
 				return err
 			}
 
-			// nolint
 			res, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
 				TokenContract: args[1],
 				Nonce:         nonce,
@@ -496,7 +483,6 @@ func CmdGetPendingSendToEth() *cobra.Command {
 			if _, err := sdk.AccAddressFromBech32(args[0]); err != nil {
 				return nil
 			}
-			// nolint
 			res, err := queryClient.GetPendingSendToEth(cmd.Context(), &types.QueryPendingSendToEthRequest{
 				SenderAddress: args[0],
 			})
@@ -519,7 +505,6 @@ func CmdOutgoingTxBatches() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.OutgoingTxBatches(cmd.Context(), &types.QueryOutgoingTxBatchesRequest{})
 			if err != nil {
 				return err
@@ -541,7 +526,6 @@ func CmdGetBatchFees() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.BatchFees(cmd.Context(), &types.QueryBatchFeeRequest{})
 			if err != nil {
 				return err
@@ -561,7 +545,6 @@ func CmdGetLastObservedBlockHeight() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.LastObservedBlockHeight(cmd.Context(), &types.QueryLastObservedBlockHeightRequest{})
 			if err != nil {
 				return err
@@ -581,7 +564,6 @@ func CmdProjectedBatchTimeoutHeight() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.ProjectedBatchTimeoutHeight(cmd.Context(), &types.QueryProjectedBatchTimeoutHeightRequest{})
 			if err != nil {
 				return err
@@ -602,7 +584,6 @@ func CmdGetDenomToERC20Token() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.DenomToERC20(cmd.Context(), &types.QueryDenomToERC20Request{
 				Denom: args[0],
 			})
@@ -631,7 +612,6 @@ func CmdGetERC20TokenToDenom() *cobra.Command {
 				return fmt.Errorf("invalid contract address:%s", contractAddress)
 			}
 
-			// nolint
 			res, err := queryClient.ERC20ToDenom(cmd.Context(), &types.QueryERC20ToDenomRequest{
 				Erc20: args[0],
 			})
@@ -654,7 +634,6 @@ func CmdGetBridgeTokens() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// nolint
 			res, err := queryClient.BridgeTokens(cmd.Context(), &types.QueryBridgeTokensRequest{})
 			if err != nil {
 				return err
@@ -681,7 +660,6 @@ func CmdGetValidatorEventNonce() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// nolint
 			res, err := queryClient.LastEventNonceByAddr(cmd.Context(), &types.QueryLastEventNonceByAddrRequest{
 				Address: orchestratorAddress.String(),
 			})
@@ -709,7 +687,6 @@ func CmdGetValidatorEventBlockHeight() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// nolint
 			res, err := queryClient.LastEventBlockHeightByAddr(cmd.Context(), &types.QueryLastEventBlockHeightByAddrRequest{
 				Address: orchestratorAddress.String(),
 			})

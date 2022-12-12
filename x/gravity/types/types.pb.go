@@ -25,7 +25,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type ClaimType int32
 
 const (
@@ -60,7 +60,7 @@ func (ClaimType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_b659a1646c27d4e3, []int{0}
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type BridgeValidator struct {
 	Power      uint64 `protobuf:"varint,1,opt,name=power,proto3" json:"power,omitempty"`
 	EthAddress string `protobuf:"bytes,2,opt,name=eth_address,json=ethAddress,proto3" json:"eth_address,omitempty"`
@@ -113,7 +113,7 @@ func (m *BridgeValidator) GetEthAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type Valset struct {
 	Nonce   uint64             `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	Members []*BridgeValidator `protobuf:"bytes,2,rep,name=members,proto3" json:"members,omitempty"`
@@ -174,7 +174,7 @@ func (m *Valset) GetHeight() uint64 {
 	return 0
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type LastObservedEthereumBlockHeight struct {
 	FxBlockHeight  uint64 `protobuf:"varint,1,opt,name=fx_block_height,json=fxBlockHeight,proto3" json:"fx_block_height,omitempty"`
 	EthBlockHeight uint64 `protobuf:"varint,2,opt,name=eth_block_height,json=ethBlockHeight,proto3" json:"eth_block_height,omitempty"`
@@ -227,7 +227,7 @@ func (m *LastObservedEthereumBlockHeight) GetEthBlockHeight() uint64 {
 	return 0
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type ERC20ToDenom struct {
 	Erc20 string `protobuf:"bytes,1,opt,name=erc20,proto3" json:"erc20,omitempty"`
 	Denom string `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
@@ -280,7 +280,7 @@ func (m *ERC20ToDenom) GetDenom() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type ERC20Token struct {
 	Contract string                                 `protobuf:"bytes,1,opt,name=contract,proto3" json:"contract,omitempty"`
 	Amount   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
@@ -326,7 +326,7 @@ func (m *ERC20Token) GetContract() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type Attestation struct {
 	Observed bool       `protobuf:"varint,1,opt,name=observed,proto3" json:"observed,omitempty"`
 	Votes    []string   `protobuf:"bytes,2,rep,name=votes,proto3" json:"votes,omitempty"`
@@ -395,7 +395,7 @@ func (m *Attestation) GetClaim() *types.Any {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type OutgoingTxBatch struct {
 	BatchNonce    uint64                `protobuf:"varint,1,opt,name=batch_nonce,json=batchNonce,proto3" json:"batch_nonce,omitempty"`
 	BatchTimeout  uint64                `protobuf:"varint,2,opt,name=batch_timeout,json=batchTimeout,proto3" json:"batch_timeout,omitempty"`
@@ -480,7 +480,7 @@ func (m *OutgoingTxBatch) GetFeeReceive() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type OutgoingTransferTx struct {
 	Id          uint64      `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Sender      string      `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
@@ -557,7 +557,7 @@ func (m *OutgoingTransferTx) GetErc20Fee() *ERC20Token {
 	return nil
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type BatchFees struct {
 	TokenContract string                                 `protobuf:"bytes,1,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
 	TotalFees     github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=total_fees,json=totalFees,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_fees"`
@@ -612,7 +612,7 @@ func (m *BatchFees) GetTotalTxs() uint64 {
 	return 0
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MinBatchFee struct {
 	TokenContract string                                 `protobuf:"bytes,1,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
 	BaseFee       github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=baseFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"baseFee"`

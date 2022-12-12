@@ -298,7 +298,7 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 		m.RegisterServices(cfg)
 	}
 	gasprice.RegisterQueryServer(cfg.QueryServer(), gasprice.Querier{})
-	gaspricelegacy.RegisterQueryServer(cfg.QueryServer(), gaspricelegacy.Querier{})
+	gaspricelegacy.RegisterQueryServer(cfg.QueryServer(), gaspricelegacy.Querier{}) // nolint
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided

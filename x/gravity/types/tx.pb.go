@@ -30,7 +30,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgValsetConfirm struct {
 	Nonce        uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	Orchestrator string `protobuf:"bytes,2,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
@@ -99,7 +99,7 @@ func (m *MsgValsetConfirm) GetSignature() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgValsetConfirmResponse struct {
 }
 
@@ -136,7 +136,7 @@ func (m *MsgValsetConfirmResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgValsetConfirmResponse proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgSendToEth struct {
 	Sender    string     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	EthDest   string     `protobuf:"bytes,2,opt,name=eth_dest,json=ethDest,proto3" json:"eth_dest,omitempty"`
@@ -205,7 +205,7 @@ func (m *MsgSendToEth) GetBridgeFee() types.Coin {
 	return types.Coin{}
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgSendToEthResponse struct {
 }
 
@@ -242,7 +242,7 @@ func (m *MsgSendToEthResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSendToEthResponse proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgRequestBatch struct {
 	Sender     string                                 `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	Denom      string                                 `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
@@ -305,7 +305,7 @@ func (m *MsgRequestBatch) GetFeeReceive() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgRequestBatchResponse struct {
 }
 
@@ -342,7 +342,7 @@ func (m *MsgRequestBatchResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRequestBatchResponse proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgConfirmBatch struct {
 	Nonce         uint64 `protobuf:"varint,1,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	TokenContract string `protobuf:"bytes,2,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
@@ -419,7 +419,7 @@ func (m *MsgConfirmBatch) GetSignature() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgConfirmBatchResponse struct {
 }
 
@@ -456,7 +456,7 @@ func (m *MsgConfirmBatchResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgConfirmBatchResponse proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgDepositClaim struct {
 	EventNonce    uint64                                 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
 	BlockHeight   uint64                                 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
@@ -550,7 +550,7 @@ func (m *MsgDepositClaim) GetOrchestrator() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgDepositClaimResponse struct {
 }
 
@@ -587,7 +587,7 @@ func (m *MsgDepositClaimResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDepositClaimResponse proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgWithdrawClaim struct {
 	EventNonce    uint64 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
 	BlockHeight   uint64 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
@@ -664,7 +664,7 @@ func (m *MsgWithdrawClaim) GetOrchestrator() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgWithdrawClaimResponse struct {
 }
 
@@ -701,7 +701,7 @@ func (m *MsgWithdrawClaimResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgWithdrawClaimResponse proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgCancelSendToEth struct {
 	TransactionId uint64 `protobuf:"varint,1,opt,name=transaction_id,json=transactionId,proto3" json:"transaction_id,omitempty"`
 	Sender        string `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
@@ -754,7 +754,7 @@ func (m *MsgCancelSendToEth) GetSender() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgCancelSendToEthResponse struct {
 }
 
@@ -791,7 +791,7 @@ func (m *MsgCancelSendToEthResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCancelSendToEthResponse proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgValsetUpdatedClaim struct {
 	EventNonce   uint64             `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
 	BlockHeight  uint64             `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
@@ -868,7 +868,7 @@ func (m *MsgValsetUpdatedClaim) GetOrchestrator() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgValsetUpdatedClaimResponse struct {
 }
 
@@ -905,7 +905,7 @@ func (m *MsgValsetUpdatedClaimResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgValsetUpdatedClaimResponse proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgSetOrchestratorAddress struct {
 	Validator    string `protobuf:"bytes,1,opt,name=validator,proto3" json:"validator,omitempty"`
 	Orchestrator string `protobuf:"bytes,2,opt,name=orchestrator,proto3" json:"orchestrator,omitempty"`
@@ -966,7 +966,7 @@ func (m *MsgSetOrchestratorAddress) GetEthAddress() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgSetOrchestratorAddressResponse struct {
 }
 
@@ -1003,7 +1003,7 @@ func (m *MsgSetOrchestratorAddressResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSetOrchestratorAddressResponse proto.InternalMessageInfo
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgFxOriginatedTokenClaim struct {
 	EventNonce    uint64 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
 	BlockHeight   uint64 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
@@ -1096,7 +1096,7 @@ func (m *MsgFxOriginatedTokenClaim) GetOrchestrator() string {
 	return ""
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 type MsgFxOriginatedTokenClaimResponse struct {
 }
 

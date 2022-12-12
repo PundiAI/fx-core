@@ -7,7 +7,7 @@ import "fx/legacy/gravity/v1/types.proto";
 
 option go_package = "github.com/functionx/fx-core/x/gravity/types";
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 service Msg {
   // Deprecated: Please use crosschain Msg.OracleSetConfirm
   rpc ValsetConfirm(MsgValsetConfirm) returns (MsgValsetConfirmResponse);
@@ -28,7 +28,7 @@ service Msg {
       returns (MsgValsetUpdatedClaimResponse);
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgValsetConfirm {
   uint64 nonce = 1;
   string orchestrator = 2;
@@ -36,10 +36,10 @@ message MsgValsetConfirm {
   string signature = 4;
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgValsetConfirmResponse {}
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgSendToEth {
   string sender = 1;
   string eth_dest = 2;
@@ -47,10 +47,10 @@ message MsgSendToEth {
   cosmos.base.v1beta1.Coin bridge_fee = 4 [ (gogoproto.nullable) = false ];
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgSendToEthResponse {}
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgRequestBatch {
   string sender = 1;
   string denom = 2;
@@ -65,10 +65,10 @@ message MsgRequestBatch {
   ];
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgRequestBatchResponse {}
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgConfirmBatch {
   uint64 nonce = 1;
   string token_contract = 2;
@@ -77,10 +77,10 @@ message MsgConfirmBatch {
   string signature = 5;
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgConfirmBatchResponse {}
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgDepositClaim {
   uint64 event_nonce = 1;
   uint64 block_height = 2;
@@ -95,10 +95,10 @@ message MsgDepositClaim {
   string orchestrator = 8;
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgDepositClaimResponse {}
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgWithdrawClaim {
   uint64 event_nonce = 1;
   uint64 block_height = 2;
@@ -107,19 +107,19 @@ message MsgWithdrawClaim {
   string orchestrator = 5;
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgWithdrawClaimResponse {}
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgCancelSendToEth {
   uint64 transaction_id = 1;
   string sender = 2;
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgCancelSendToEthResponse {}
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgValsetUpdatedClaim {
   uint64 event_nonce = 1;
   uint64 block_height = 2;
@@ -128,20 +128,20 @@ message MsgValsetUpdatedClaim {
   string orchestrator = 6;
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgValsetUpdatedClaimResponse {}
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgSetOrchestratorAddress {
   string validator = 1;
   string orchestrator = 2;
   string eth_address = 3;
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgSetOrchestratorAddressResponse {}
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgFxOriginatedTokenClaim {
   uint64 event_nonce = 1;
   uint64 block_height = 2;
@@ -152,5 +152,5 @@ message MsgFxOriginatedTokenClaim {
   string orchestrator = 7;
 }
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message MsgFxOriginatedTokenClaimResponse {}

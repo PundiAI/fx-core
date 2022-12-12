@@ -242,7 +242,7 @@ message MsgBridgeTokenClaim {
 
 message MsgBridgeTokenClaimResponse {}
 
-// Deprecated after block 5713000
+// Deprecated: after block 5713000
 message MsgSetOrchestratorAddress {
   string oracle_address = 1;
   string bridger_address = 2;
@@ -251,7 +251,7 @@ message MsgSetOrchestratorAddress {
   string chain_name = 5;
 }
 
-// Deprecated after block 5713000
+// Deprecated: after block 5713000
 message MsgAddOracleDeposit {
   string oracle_address = 1;
   cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];

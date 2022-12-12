@@ -465,7 +465,7 @@ IDSet represents a set of IDs
 <a name="fx.gravity.crosschain.v1.InitCrossChainParamsProposal"></a>
 
 ### InitCrossChainParamsProposal
-Deprecated after block 5713000
+Deprecated: after block 5713000
 
 
 | Field | Type | Label | Description |
@@ -615,7 +615,7 @@ request is > 10%
 | `slash_fraction` | [bytes](#bytes) |  |  |
 | `oracle_set_update_power_change_percent` | [bytes](#bytes) |  |  |
 | `ibc_transfer_timeout_height` | [uint64](#uint64) |  |  |
-| `oracles` | [string](#string) | repeated | Deprecated after block 5713000 |
+| `oracles` | [string](#string) | repeated | Deprecated: after block 5713000 |
 | `delegate_threshold` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 | `delegate_multiple` | [int64](#int64) |  |  |
 
@@ -719,7 +719,7 @@ be handled
 <a name="fx.gravity.crosschain.v1.MsgAddOracleDeposit"></a>
 
 ### MsgAddOracleDeposit
-Deprecated after block 5713000
+Deprecated: after block 5713000
 
 
 | Field | Type | Label | Description |
@@ -1123,7 +1123,7 @@ issued to the Payment address in question
 <a name="fx.gravity.crosschain.v1.MsgSetOrchestratorAddress"></a>
 
 ### MsgSetOrchestratorAddress
-Deprecated after block 5713000
+Deprecated: after block 5713000
 
 
 | Field | Type | Label | Description |
@@ -2663,7 +2663,7 @@ version. Replace ibc.applications.transfer.v1.Msg
 <a name="fx.gravity.v1.Attestation"></a>
 
 ### Attestation
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2681,7 +2681,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.BatchFees"></a>
 
 ### BatchFees
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2699,7 +2699,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.BridgeValidator"></a>
 
 ### BridgeValidator
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2715,7 +2715,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.ERC20ToDenom"></a>
 
 ### ERC20ToDenom
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2731,7 +2731,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.ERC20Token"></a>
 
 ### ERC20Token
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2747,7 +2747,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.LastObservedEthereumBlockHeight"></a>
 
 ### LastObservedEthereumBlockHeight
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2763,7 +2763,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MinBatchFee"></a>
 
 ### MinBatchFee
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2779,7 +2779,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.OutgoingTransferTx"></a>
 
 ### OutgoingTransferTx
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2798,7 +2798,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.OutgoingTxBatch"></a>
 
 ### OutgoingTxBatch
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2818,7 +2818,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.Valset"></a>
 
 ### Valset
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2837,7 +2837,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.ClaimType"></a>
 
 ### ClaimType
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
@@ -2866,7 +2866,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgCancelSendToEth"></a>
 
 ### MsgCancelSendToEth
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2882,7 +2882,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgCancelSendToEthResponse"></a>
 
 ### MsgCancelSendToEthResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -2892,7 +2892,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgConfirmBatch"></a>
 
 ### MsgConfirmBatch
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2911,7 +2911,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgConfirmBatchResponse"></a>
 
 ### MsgConfirmBatchResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -2921,7 +2921,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgDepositClaim"></a>
 
 ### MsgDepositClaim
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2943,7 +2943,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgDepositClaimResponse"></a>
 
 ### MsgDepositClaimResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -2953,7 +2953,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgFxOriginatedTokenClaim"></a>
 
 ### MsgFxOriginatedTokenClaim
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -2974,7 +2974,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgFxOriginatedTokenClaimResponse"></a>
 
 ### MsgFxOriginatedTokenClaimResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -2984,7 +2984,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgRequestBatch"></a>
 
 ### MsgRequestBatch
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3003,7 +3003,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgRequestBatchResponse"></a>
 
 ### MsgRequestBatchResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3013,7 +3013,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgSendToEth"></a>
 
 ### MsgSendToEth
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3031,7 +3031,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgSendToEthResponse"></a>
 
 ### MsgSendToEthResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3041,7 +3041,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgSetOrchestratorAddress"></a>
 
 ### MsgSetOrchestratorAddress
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3058,7 +3058,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgSetOrchestratorAddressResponse"></a>
 
 ### MsgSetOrchestratorAddressResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3068,7 +3068,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgValsetConfirm"></a>
 
 ### MsgValsetConfirm
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3086,7 +3086,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgValsetConfirmResponse"></a>
 
 ### MsgValsetConfirmResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3096,7 +3096,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgValsetUpdatedClaim"></a>
 
 ### MsgValsetUpdatedClaim
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3115,7 +3115,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgValsetUpdatedClaimResponse"></a>
 
 ### MsgValsetUpdatedClaimResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3125,7 +3125,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgWithdrawClaim"></a>
 
 ### MsgWithdrawClaim
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3144,7 +3144,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.MsgWithdrawClaimResponse"></a>
 
 ### MsgWithdrawClaimResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3160,7 +3160,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.Msg"></a>
 
 ### Msg
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
@@ -3187,7 +3187,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.Params"></a>
 
 ### Params
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3297,7 +3297,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryBatchFeeRequest"></a>
 
 ### QueryBatchFeeRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3312,7 +3312,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryBatchFeeResponse"></a>
 
 ### QueryBatchFeeResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3327,7 +3327,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryBatchRequestByNonceRequest"></a>
 
 ### QueryBatchRequestByNonceRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3383,7 +3383,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryCurrentValsetRequest"></a>
 
 ### QueryCurrentValsetRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3393,7 +3393,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryCurrentValsetResponse"></a>
 
 ### QueryCurrentValsetResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3649,7 +3649,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastPendingBatchRequestByAddrRequest"></a>
 
 ### QueryLastPendingBatchRequestByAddrRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3664,7 +3664,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastPendingBatchRequestByAddrResponse"></a>
 
 ### QueryLastPendingBatchRequestByAddrResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3679,7 +3679,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastPendingValsetRequestByAddrRequest"></a>
 
 ### QueryLastPendingValsetRequestByAddrRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3694,7 +3694,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastPendingValsetRequestByAddrResponse"></a>
 
 ### QueryLastPendingValsetRequestByAddrResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3709,7 +3709,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastValsetRequestsRequest"></a>
 
 ### QueryLastValsetRequestsRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3719,7 +3719,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastValsetRequestsResponse"></a>
 
 ### QueryLastValsetRequestsResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3734,7 +3734,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryOutgoingTxBatchesRequest"></a>
 
 ### QueryOutgoingTxBatchesRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3744,7 +3744,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryOutgoingTxBatchesResponse"></a>
 
 ### QueryOutgoingTxBatchesResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3759,7 +3759,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3769,7 +3769,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3840,7 +3840,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryValsetConfirmRequest"></a>
 
 ### QueryValsetConfirmRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3856,7 +3856,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryValsetConfirmResponse"></a>
 
 ### QueryValsetConfirmResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3871,7 +3871,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryValsetConfirmsByNonceRequest"></a>
 
 ### QueryValsetConfirmsByNonceRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3886,7 +3886,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryValsetConfirmsByNonceResponse"></a>
 
 ### QueryValsetConfirmsByNonceResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3901,7 +3901,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryValsetRequestRequest"></a>
 
 ### QueryValsetRequestRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3916,7 +3916,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryValsetRequestResponse"></a>
 
 ### QueryValsetRequestResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3937,7 +3937,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.Query"></a>
 
 ### Query
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
@@ -3980,7 +3980,7 @@ Deprecated after upgrade v3
 <a name="fx.other.GasPriceRequest"></a>
 
 ### GasPriceRequest
-
+Deprecated: GasPriceRequest
 
 
 
@@ -3990,7 +3990,7 @@ Deprecated after upgrade v3
 <a name="fx.other.GasPriceResponse"></a>
 
 ### GasPriceResponse
-
+Deprecated: GasPriceResponse
 
 
 | Field | Type | Label | Description |
@@ -4011,12 +4011,12 @@ Deprecated after upgrade v3
 <a name="fx.other.Query"></a>
 
 ### Query
-Deprecated
+Deprecated: Query
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `FxGasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/fx/other/gas_price|
-| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated | GET|/other/v1/gas_price|
+| `FxGasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated: Please use base query.GetGasPrice | GET|/fx/other/gas_price|
+| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated: Please use base query.GetGasPrice | GET|/other/v1/gas_price|
 
  <!-- end services -->
 

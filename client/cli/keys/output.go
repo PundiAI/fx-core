@@ -36,7 +36,7 @@ type KeyOutput struct {
 }
 
 // NewKeyOutput creates a default KeyOutput instance without Mnemonic, Threshold and PubKeys
-func NewKeyOutput(keyInfo keyring.Info, a sdk.Address) (KeyOutput, error) { // nolint:interfacer
+func NewKeyOutput(keyInfo keyring.Info, a sdk.Address) (KeyOutput, error) {
 	apk, err := codectypes.NewAnyWithValue(keyInfo.GetPubKey())
 	if err != nil {
 		return KeyOutput{}, err

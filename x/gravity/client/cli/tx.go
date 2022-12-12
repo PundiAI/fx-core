@@ -1,3 +1,4 @@
+// nolint
 package cli
 
 import (
@@ -264,7 +265,6 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			ethAddress := ethCrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
-			// nolint
 			batchRequestByNonceResp, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
 				Nonce:         nonce,
 				TokenContract: contractAddress,
@@ -276,7 +276,6 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				return fmt.Errorf("not found batch request by nonce!!!contractAddress:[%v], nonce:[%v]", contractAddress, nonce)
 			}
 			// Determine whether it has been confirmed
-			// nolint
 			batchConfirmResp, err := queryClient.BatchConfirm(cmd.Context(), &types.QueryBatchConfirmRequest{
 				Nonce:         nonce,
 				TokenContract: contractAddress,
@@ -290,7 +289,6 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				return clientCtx.PrintString(fmt.Sprintf("already confirm requestBatch!!!\n\tnonce:[%v]\n\ttokenContract:[%v]\n\torchestrator:[%v]\n\tethAddress:[%v]\n\tsignature:[%v]\n",
 					confirm.Nonce, confirm.TokenContract, confirm.Orchestrator, confirm.EthSigner, confirm.Signature))
 			}
-			// nolint
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
@@ -395,13 +393,11 @@ func CmdValidatorSetConfirm() *cobra.Command {
 			ethAddress := ethCrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
-			// nolint
 			valsetRequestResp, err := queryClient.ValsetRequest(cmd.Context(), &types.QueryValsetRequestRequest{Nonce: nonce})
 			if err != nil {
 				return err
 			}
 			// Determine whether it has been confirmed
-			// nolint
 			valsetConfirmResp, err := queryClient.ValsetConfirm(cmd.Context(), &types.QueryValsetConfirmRequest{
 				Nonce:   nonce,
 				Address: fromAddress.String(),
@@ -413,7 +409,6 @@ func CmdValidatorSetConfirm() *cobra.Command {
 				confirm := valsetConfirmResp.GetConfirm()
 				return fmt.Errorf("already confirm valset!!!\n\tnonce:[%v]\n\torchestrator:[%v]\n\tethAddress:[%v]\n\tsignature:[%v]\n", confirm.Nonce, confirm.Orchestrator, confirm.EthAddress, confirm.Signature)
 			}
-			// nolint
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err

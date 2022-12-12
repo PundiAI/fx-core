@@ -31,6 +31,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// Deprecated: GasPriceRequest
 type GasPriceRequest struct {
 }
 
@@ -67,6 +68,7 @@ func (m *GasPriceRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GasPriceRequest proto.InternalMessageInfo
 
+// Deprecated: GasPriceResponse
 type GasPriceResponse struct {
 	GasPrices github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=gas_prices,json=gasPrices,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"gas_prices" yaml:"gas_prices"`
 }
@@ -158,9 +160,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Deprecated
+	// Deprecated: Please use base query.GetGasPrice
 	FxGasPrice(ctx context.Context, in *GasPriceRequest, opts ...grpc.CallOption) (*GasPriceResponse, error)
-	// Deprecated
+	// Deprecated: Please use base query.GetGasPrice
 	GasPrice(ctx context.Context, in *GasPriceRequest, opts ...grpc.CallOption) (*GasPriceResponse, error)
 }
 
@@ -192,9 +194,9 @@ func (c *queryClient) GasPrice(ctx context.Context, in *GasPriceRequest, opts ..
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Deprecated
+	// Deprecated: Please use base query.GetGasPrice
 	FxGasPrice(context.Context, *GasPriceRequest) (*GasPriceResponse, error)
-	// Deprecated
+	// Deprecated: Please use base query.GetGasPrice
 	GasPrice(context.Context, *GasPriceRequest) (*GasPriceResponse, error)
 }
 

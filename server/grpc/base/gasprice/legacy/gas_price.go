@@ -6,9 +6,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Deprecated:
+// Deprecated: Querier
 type Querier struct{}
 
+// nolint
 var _ QueryServer = Querier{}
 
 func (q Querier) FxGasPrice(ctx context.Context, request *GasPriceRequest) (*GasPriceResponse, error) {

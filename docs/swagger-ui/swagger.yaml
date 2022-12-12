@@ -8739,7 +8739,7 @@ paths:
                     type: array
                     items:
                       type: string
-                    title: Deprecated after block 5713000
+                    title: 'Deprecated: after block 5713000'
                   delegate_threshold:
                     type: object
                     properties:
@@ -28361,7 +28361,7 @@ definitions:
         type: array
         items:
           type: string
-        title: Deprecated after block 5713000
+        title: 'Deprecated: after block 5713000'
       delegate_threshold:
         type: object
         properties:
@@ -29023,7 +29023,7 @@ definitions:
             type: array
             items:
               type: string
-            title: Deprecated after block 5713000
+            title: 'Deprecated: after block 5713000'
           delegate_threshold:
             type: object
             properties:

@@ -7,20 +7,22 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/functionx/fx-core/server/grpc/base/gasprice/legacy";
 
-// Deprecated
+// Deprecated: Query
 service Query {
-  // Deprecated
+  // Deprecated: Please use base query.GetGasPrice
   rpc FxGasPrice(GasPriceRequest) returns (GasPriceResponse) {
     option (google.api.http).get = "/fx/other/gas_price";
   }
-  // Deprecated
+  // Deprecated: Please use base query.GetGasPrice
   rpc GasPrice(GasPriceRequest) returns (GasPriceResponse) {
     option (google.api.http).get = "/other/v1/gas_price";
   }
 }
 
+// Deprecated: GasPriceRequest
 message GasPriceRequest {}
 
+// Deprecated: GasPriceResponse
 message GasPriceResponse {
   repeated cosmos.base.v1beta1.Coin gas_prices = 1 [
     (gogoproto.nullable) = false,

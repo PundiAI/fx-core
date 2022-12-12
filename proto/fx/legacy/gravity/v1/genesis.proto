@@ -8,7 +8,7 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/functionx/fx-core/x/gravity/types";
 
-// Deprecated after upgrade v3
+// Deprecated: after upgrade v3
 message Params {
   option (gogoproto.stringer) = false;
 

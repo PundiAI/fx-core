@@ -86,7 +86,6 @@ func StatusCommand() *cobra.Command {
 					VotingPower: status.ValidatorInfo.VotingPower,
 				},
 			}
-			//nolint
 			return PrintOutput(clientCtx, statusWithPk)
 		},
 	}

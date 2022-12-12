@@ -1658,7 +1658,7 @@ func (m *MsgBridgeTokenClaimResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgBridgeTokenClaimResponse proto.InternalMessageInfo
 
-// Deprecated after block 5713000
+// Deprecated: after block 5713000
 type MsgSetOrchestratorAddress struct {
 	OracleAddress   string     `protobuf:"bytes,1,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
 	BridgerAddress  string     `protobuf:"bytes,2,opt,name=bridger_address,json=bridgerAddress,proto3" json:"bridger_address,omitempty"`
@@ -1735,7 +1735,7 @@ func (m *MsgSetOrchestratorAddress) GetChainName() string {
 	return ""
 }
 
-// Deprecated after block 5713000
+// Deprecated: after block 5713000
 type MsgAddOracleDeposit struct {
 	OracleAddress string     `protobuf:"bytes,1,opt,name=oracle_address,json=oracleAddress,proto3" json:"oracle_address,omitempty"`
 	Amount        types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount"`
