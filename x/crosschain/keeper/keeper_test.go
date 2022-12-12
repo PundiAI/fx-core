@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -33,7 +32,6 @@ type KeeperTestSuite struct {
 	validator      []sdk.ValAddress
 	chainName      string
 	delegateAmount sdk.Int
-	queryClient    types.QueryClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -80,10 +78,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(types.MaxOracleSize, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
-
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.app.CrosschainKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
 
 	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
 	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
