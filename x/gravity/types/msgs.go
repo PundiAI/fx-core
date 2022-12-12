@@ -261,7 +261,7 @@ func (m *MsgCancelSendToEth) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-// EthereumClaim represents a claim on ethereum state
+// Deprecated: EthereumClaim represents a claim on ethereum state
 type EthereumClaim interface {
 	// GetEventNonce All Ethereum claims that we relay from the Gravity contract and into the module
 	// have a nonce that is monotonically increasing and unique, since this nonce is

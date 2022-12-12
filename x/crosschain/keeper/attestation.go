@@ -211,9 +211,9 @@ func (k Keeper) GetLastObservedEventNonce(ctx sdk.Context) uint64 {
 }
 
 // SetLastObservedEventNonce sets the latest observed event nonce
-func (k Keeper) SetLastObservedEventNonce(ctx sdk.Context, nonce uint64) {
+func (k Keeper) SetLastObservedEventNonce(ctx sdk.Context, eventNonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastObservedEventNonceKey, sdk.Uint64ToBigEndian(nonce))
+	store.Set(types.LastObservedEventNonceKey, sdk.Uint64ToBigEndian(eventNonce))
 }
 
 // GetLastObservedBlockHeight height gets the block height to of the last observed attestation from
@@ -274,9 +274,9 @@ func (k Keeper) DelLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAdd
 }
 
 // SetLastEventNonceByOracle sets the latest event nonce for a give oracle
-func (k Keeper) SetLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, nonce uint64) {
+func (k Keeper) SetLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, eventNonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetLastEventNonceByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(nonce))
+	store.Set(types.GetLastEventNonceByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(eventNonce))
 }
 
 func (k Keeper) UnpackAttestationClaim(att *types.Attestation) (types.ExternalClaim, error) {

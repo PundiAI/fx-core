@@ -1,13 +1,13 @@
 package v2
 
 import (
-	"github.com/functionx/fx-core/v3/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 func ethInitOracles(chainId string) []string {
-	if chainId == types.MainnetChainId {
+	if chainId == fxtypes.MainnetChainId {
 		return []string{}
-	} else if chainId == types.TestnetChainId {
+	} else if chainId == fxtypes.TestnetChainId {
 		return []string{}
 	} else {
 		panic("invalid chainId:" + chainId)

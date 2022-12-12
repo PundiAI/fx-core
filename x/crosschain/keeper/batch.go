@@ -104,10 +104,10 @@ func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
 
 // OutgoingTxBatchExecuted is run when the Cosmos chain detects that a batch has been executed on Ethereum
 // It frees all the transactions in the batch, then cancels all earlier batches
-func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, nonce uint64) {
-	batch := k.GetOutgoingTxBatch(ctx, tokenContract, nonce)
+func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, batchNonce uint64) {
+	batch := k.GetOutgoingTxBatch(ctx, tokenContract, batchNonce)
 	if batch == nil {
-		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", tokenContract, nonce))
+		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", tokenContract, batchNonce))
 	}
 
 	// Iterate through remaining batches
@@ -165,9 +165,9 @@ func (k Keeper) pickUnBatchedTx(ctx sdk.Context, tokenContract string, maxElemen
 }
 
 // GetOutgoingTxBatch loads a batch object. Returns nil when not exists.
-func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, tokenContract string, nonce uint64) *types.OutgoingTxBatch {
+func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, tokenContract string, batchNonce uint64) *types.OutgoingTxBatch {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetOutgoingTxBatchKey(tokenContract, nonce)
+	key := types.GetOutgoingTxBatchKey(tokenContract, batchNonce)
 	bz := store.Get(key)
 	if len(bz) == 0 {
 		return nil
@@ -182,8 +182,8 @@ func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, tokenContract string, nonce 
 }
 
 // CancelOutgoingTxBatch releases all TX in the batch and deletes the batch
-func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, tokenContract string, nonce uint64) error {
-	batch := k.GetOutgoingTxBatch(ctx, tokenContract, nonce)
+func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, tokenContract string, batchNonce uint64) error {
+	batch := k.GetOutgoingTxBatch(ctx, tokenContract, batchNonce)
 	if batch == nil {
 		return types.ErrUnknown
 	}
@@ -199,7 +199,7 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, tokenContract string, non
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(nonce)),
+		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(batchNonce)),
 	))
 	return nil
 }

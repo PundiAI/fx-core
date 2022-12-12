@@ -147,13 +147,13 @@ func GetOutgoingTxPoolKey(fee ERC20Token, id uint64) []byte {
 }
 
 // GetOutgoingTxBatchKey returns the following key format
-func GetOutgoingTxBatchKey(tokenContract string, nonce uint64) []byte {
-	return append(append(OutgoingTxBatchKey, []byte(tokenContract)...), sdk.Uint64ToBigEndian(nonce)...)
+func GetOutgoingTxBatchKey(tokenContract string, batchNonce uint64) []byte {
+	return append(append(OutgoingTxBatchKey, []byte(tokenContract)...), sdk.Uint64ToBigEndian(batchNonce)...)
 }
 
 // GetOutgoingTxBatchBlockKey returns the following key format
-func GetOutgoingTxBatchBlockKey(block uint64) []byte {
-	return append(OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(block)...)
+func GetOutgoingTxBatchBlockKey(blockHeight uint64) []byte {
+	return append(OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(blockHeight)...)
 }
 
 // GetBatchConfirmKey returns the following key format
@@ -162,18 +162,18 @@ func GetBatchConfirmKey(tokenContract string, batchNonce uint64, oracleAddr sdk.
 }
 
 // GetLastEventNonceByOracleKey returns the following key format
-func GetLastEventNonceByOracleKey(validator sdk.AccAddress) []byte {
-	return append(LastEventNonceByOracleKey, validator.Bytes()...)
+func GetLastEventNonceByOracleKey(oracleAddr sdk.AccAddress) []byte {
+	return append(LastEventNonceByOracleKey, oracleAddr.Bytes()...)
 }
 
 // GetLastEventBlockHeightByOracleKey returns the following key format
-func GetLastEventBlockHeightByOracleKey(oracle sdk.AccAddress) []byte {
-	return append(LastEventBlockHeightByOracleKey, oracle.Bytes()...)
+func GetLastEventBlockHeightByOracleKey(oracleAddr sdk.AccAddress) []byte {
+	return append(LastEventBlockHeightByOracleKey, oracleAddr.Bytes()...)
 }
 
 // GetDenomToTokenKey returns the following key format
-func GetDenomToTokenKey(token string) []byte {
-	return append(DenomToTokenKey, []byte(token)...)
+func GetDenomToTokenKey(tokenContract string) []byte {
+	return append(DenomToTokenKey, []byte(tokenContract)...)
 }
 
 // GetTokenToDenomKey returns the following key format
