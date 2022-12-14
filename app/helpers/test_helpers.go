@@ -2,9 +2,9 @@ package helpers
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"strconv"
@@ -14,13 +14,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsign "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -28,6 +28,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	etherminttypes "github.com/evmos/ethermint/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	ed255192 "github.com/tendermint/tendermint/crypto/ed25519"
@@ -60,12 +61,14 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 
 func Setup(isCheckTx bool, isShowLog bool) *app.App {
 	logger := log.NewNopLogger()
+	var traceStore io.Writer
 	if isShowLog {
 		logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+		traceStore = os.Stdout
 	}
 
 	myApp := app.New(logger, dbm.NewMemDB(),
-		nil, true, map[int64]bool{}, os.TempDir(), 5,
+		traceStore, true, map[int64]bool{}, os.TempDir(), 5,
 		app.MakeEncodingConfig(), app.EmptyAppOptions{},
 	)
 	if !isCheckTx {
@@ -102,22 +105,22 @@ func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tm
 	if initCoins == nil || initCoins.Len() <= 0 {
 		initCoins = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)))
 	}
-	validators := make([]*tmtypes.Validator, 0, validatorNum)
-	genAccs = make(authtypes.GenesisAccounts, 0)
-	balances = make([]banktypes.Balance, 0, validatorNum)
+	validators := make([]*tmtypes.Validator, validatorNum)
+	genAccs = make(authtypes.GenesisAccounts, validatorNum)
+	balances = make([]banktypes.Balance, validatorNum)
 	for i := 0; i < validatorNum; i++ {
 		validator := tmtypes.NewValidator(ed255192.GenPrivKey().PubKey(), 1)
-		validators = append(validators, validator)
+		validators[i] = validator
 
 		senderPrivKey := secp256k1.GenPrivKey()
 		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
-		genAccs = append(genAccs, acc)
+		genAccs[i] = acc
 
 		balance := banktypes.Balance{
 			Address: acc.GetAddress().String(),
 			Coins:   initCoins,
 		}
-		balances = append(balances, balance)
+		balances[i] = balance
 	}
 	return tmtypes.NewValidatorSet(validators), genAccs, balances
 }
@@ -215,8 +218,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	return myApp
 }
 
-// SetupWithGenesisAccounts initializes a new App with the provided genesis
-// accounts and possible balances.
+// SetupWithGenesisAccounts initializes a new App with the provided genesis accounts and possible balances.
 func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
 	myApp := Setup(true, false)
 	genesisState := DefGenesisState(myApp.AppCodec())
@@ -251,8 +253,6 @@ func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...ba
 	return myApp
 }
 
-type GenerateAccountStrategy func(int) []sdk.AccAddress
-
 // createRandomAccounts is a strategy used by addTestAddrs() in order to generated addresses in random order.
 func createRandomAccounts(accNum int) []sdk.AccAddress {
 	testAddrs := make([]sdk.AccAddress, accNum)
@@ -286,17 +286,7 @@ func createIncrementalAccounts(accNum int) []sdk.AccAddress {
 	return addresses
 }
 
-// AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
-func AddTestAddrsFromPubKeys(myApp *app.App, ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdk.Int) {
-	initCoins := sdk.NewCoins(sdk.NewCoin(myApp.StakingKeeper.BondDenom(ctx), accAmt))
-
-	for _, pk := range pubKeys {
-		initAccountWithCoins(myApp, ctx, sdk.AccAddress(pk.Address()), initCoins)
-	}
-}
-
-// AddTestAddrs constructs and returns accNum amount of accounts with an
-// initial balance of accAmt in random order
+// AddTestAddrs constructs and returns accNum amount of accounts with an initial balance of accAmt in random order
 func AddTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.AccAddress {
 	return addTestAddrs(myApp, ctx, accNum, accAmt, createRandomAccounts)
 }
@@ -305,19 +295,17 @@ func AddTestAddrsIncremental(myApp *app.App, ctx sdk.Context, accNum int, accAmt
 	return addTestAddrs(myApp, ctx, accNum, accAmt, createIncrementalAccounts)
 }
 
-func addTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, accAmt sdk.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
+func addTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, accAmt sdk.Int, strategy func(int) []sdk.AccAddress) []sdk.AccAddress {
 	testAddrs := strategy(accNum)
-
-	initCoins := sdk.NewCoins(sdk.NewCoin(myApp.StakingKeeper.BondDenom(ctx), accAmt))
-
 	for _, addr := range testAddrs {
-		initAccountWithCoins(myApp, ctx, addr, initCoins)
+		AddTestAddr(myApp, ctx, addr, accAmt)
 	}
-
 	return testAddrs
 }
 
-func initAccountWithCoins(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
+func AddTestAddr(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, accAmt sdk.Int) {
+	coins := sdk.NewCoins(sdk.NewCoin(myApp.StakingKeeper.BondDenom(ctx), accAmt))
+
 	err := myApp.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins)
 	if err != nil {
 		panic(err)
@@ -327,17 +315,6 @@ func initAccountWithCoins(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, 
 	if err != nil {
 		panic(err)
 	}
-}
-
-// ConvertAddrsToValAddrs converts the provided addresses to ValAddress.
-func ConvertAddrsToValAddrs(addrs []sdk.AccAddress) []sdk.ValAddress {
-	valAddrs := make([]sdk.ValAddress, len(addrs))
-
-	for i, addr := range addrs {
-		valAddrs[i] = sdk.ValAddress(addr)
-	}
-
-	return valAddrs
 }
 
 func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
@@ -371,28 +348,37 @@ func CheckBalance(t *testing.T, myApp *app.App, addr sdk.AccAddress, balances sd
 // block commitment with the given transaction. A test assertion is made using
 // the parameter 'expPass' against the result. A corresponding result is
 // returned.
-func SignCheckDeliver(t *testing.T, txCfg client.TxConfig, app *baseapp.BaseApp, header tmproto.Header, msgs []sdk.Msg,
-	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
+func SignCheckDeliver(t *testing.T, txCfg client.TxConfig, app *baseapp.BaseApp, header tmproto.Header,
+	msgs []sdk.Msg, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
+	var accNums, accSeqs []uint64
+	for _, key := range priv {
+		response := app.Query(abci.RequestQuery{
+			Data: legacy.Cdc.MustMarshalJSON(authtypes.QueryAccountRequest{
+				Address: sdk.AccAddress(key.PubKey().Address()).String(),
+			}),
+			Path:   "/custom/auth/account",
+			Height: 0,
+		})
+		var account authtypes.AccountI
+		if err := legacy.Cdc.UnmarshalJSON(response.Value, &account); err != nil {
+			account = new(etherminttypes.EthAccount)
+			if err1 := legacy.Cdc.UnmarshalJSON(response.Value, account); err1 != nil {
+				panic(fmt.Errorf("%s: %s", err.Error(), err1.Error()))
+			}
+		}
+		accNums = append(accNums, account.GetAccountNumber())
+		accSeqs = append(accSeqs, account.GetSequence())
+	}
 
-	tx, err := GenTx(
-		rand.New(rand.NewSource(time.Now().UnixNano())),
-		txCfg,
-		msgs,
-		sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
-		10000000,
-		chainID,
-		accNums,
-		accSeqs,
-		priv...,
-	)
+	gasPrice := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4).MulRaw(1e12))
+	tx, err := GenTx(txCfg, msgs, gasPrice, 10000000, header.ChainID, accNums, accSeqs, priv...)
 	require.NoError(t, err)
 	txBytes, err := txCfg.TxEncoder()(tx)
 	require.Nil(t, err)
 
 	// Must simulate now as CheckTx doesn't run Msgs anymore
 	_, res, err := app.Simulate(txBytes)
-
 	if expSimPass {
 		require.NoError(t, err)
 		require.NotNil(t, res)
@@ -404,7 +390,6 @@ func SignCheckDeliver(t *testing.T, txCfg client.TxConfig, app *baseapp.BaseApp,
 	// Simulate a sending a transaction and committing a block
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	gInfo, res, err := app.Deliver(txCfg.TxEncoder(), tx)
-
 	if expPass {
 		require.NoError(t, err)
 		require.NotNil(t, res)
@@ -419,43 +404,11 @@ func SignCheckDeliver(t *testing.T, txCfg client.TxConfig, app *baseapp.BaseApp,
 	return gInfo, res, err
 }
 
-// GenSequenceOfTxs generates a set of signed transactions of messages, such
-// that they differ only by having the sequence numbers incremented between
-// every transaction.
-func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums []uint64, initSeqNums []uint64, numToGenerate int, priv ...cryptotypes.PrivKey) ([]sdk.Tx, error) {
-	txs := make([]sdk.Tx, numToGenerate)
-	var err error
-	for i := 0; i < numToGenerate; i++ {
-		txs[i], err = GenTx(
-			rand.New(rand.NewSource(time.Now().UnixNano())),
-			txGen,
-			msgs,
-			sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
-			10000000,
-			"",
-			accNums,
-			initSeqNums,
-			priv...,
-		)
-		if err != nil {
-			break
-		}
-		incrementAllSequenceNumbers(initSeqNums)
-	}
-
-	return txs, err
-}
-
-func incrementAllSequenceNumbers(initSeqNums []uint64) {
-	for i := 0; i < len(initSeqNums); i++ {
-		initSeqNums[i]++
-	}
-}
-
 // GenTx generates a signed mock transaction.
-func GenTx(r *rand.Rand, gen client.TxConfig, msgs []sdk.Msg, feeAmt sdk.Coins, gas uint64, chainID string, accNums, accSeqs []uint64, priv ...cryptotypes.PrivKey) (sdk.Tx, error) {
+func GenTx(gen client.TxConfig, msgs []sdk.Msg, gasPrice sdk.Coin, gas uint64, chainID string, accNums, accSeqs []uint64, priv ...cryptotypes.PrivKey) (sdk.Tx, error) {
 	sigs := make([]signing.SignatureV2, len(priv))
 
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	memo := simulation.RandStringOfLength(r, simulation.RandIntBetween(r, 0, 100))
 
 	signMode := gen.SignModeHandler().DefaultMode()
@@ -482,7 +435,7 @@ func GenTx(r *rand.Rand, gen client.TxConfig, msgs []sdk.Msg, feeAmt sdk.Coins, 
 		return nil, err
 	}
 	tx.SetMemo(memo)
-	tx.SetFeeAmount(feeAmt)
+	tx.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(int64(gas)))))
 	tx.SetGasLimit(gas)
 
 	// 2nd round: once all signer infos are set, every signer can sign.
@@ -508,33 +461,4 @@ func GenTx(r *rand.Rand, gen client.TxConfig, msgs []sdk.Msg, feeAmt sdk.Coins, 
 	}
 
 	return tx.GetTx(), nil
-}
-
-// CreateTestPubKeys returns a total of numPubKeys public keys in ascending order.
-func CreateTestPubKeys(numPubKeys int) []cryptotypes.PubKey {
-	var publicKeys []cryptotypes.PubKey
-	var buffer bytes.Buffer
-
-	// start at 10 to avoid changing 1 to 01, 2 to 02, etc
-	for i := 100; i < (numPubKeys + 100); i++ {
-		numString := strconv.Itoa(i)
-		buffer.WriteString("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF") // base pubkey string
-		buffer.WriteString(numString)                                                       // adding on final two digits to make pubkeys unique
-		publicKeys = append(publicKeys, NewPubKeyFromHex(buffer.String()))
-		buffer.Reset()
-	}
-
-	return publicKeys
-}
-
-// NewPubKeyFromHex returns a PubKey from a hex string.
-func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
-	pkBytes, err := hex.DecodeString(pk)
-	if err != nil {
-		panic(err)
-	}
-	if len(pkBytes) != ed25519.PubKeySize {
-		panic(errors.Wrap(errors.ErrInvalidPubKey, "invalid pubkey size"))
-	}
-	return &ed25519.PubKey{Key: pkBytes}
 }
