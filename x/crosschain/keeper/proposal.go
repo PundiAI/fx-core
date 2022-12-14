@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
@@ -67,9 +69,33 @@ func (k Keeper) UpdateChainOraclesProposal(ctx sdk.Context, proposal *types.Upda
 	k.SetProposalOracle(ctx, &types.ProposalOracle{Oracles: proposal.Oracles})
 
 	for _, unbondedOracle := range unbondedOracleList {
-		if err := k.UnbondedOracle(ctx, unbondedOracle); err != nil {
+		if err := k.UnbondedOracleFromProposal(ctx, unbondedOracle); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func (k Keeper) UnbondedOracleFromProposal(ctx sdk.Context, oracle types.Oracle) error {
+
+	delegateAddr := oracle.GetDelegateAddress(k.moduleName)
+	valAddr := oracle.GetValidator()
+	delegation, found := k.stakingKeeper.GetDelegation(ctx, delegateAddr, valAddr)
+	if !found {
+		panic(sdkerrors.Wrap(types.ErrInvalid, "no delegation for (address, validator) tuple"))
+	}
+	completionTime, err := k.stakingKeeper.Undelegate(ctx, delegateAddr, valAddr, delegation.Shares)
+	if err != nil {
+		return err
+	}
+
+	oracle.Online = false
+	k.SetOracle(ctx, oracle)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		stakingtypes.EventTypeUnbond,
+		sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
+		sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+	))
 	return nil
 }

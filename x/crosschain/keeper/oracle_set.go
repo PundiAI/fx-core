@@ -138,12 +138,12 @@ func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(key []byte, val *type
 }
 
 // GetOracleSets returns all the oracle sets in state
-func (k Keeper) GetOracleSets(ctx sdk.Context) (out []*types.OracleSet) {
+func (k Keeper) GetOracleSets(ctx sdk.Context) (oracleSets types.OracleSets) {
 	k.IterateOracleSets(ctx, func(_ []byte, set *types.OracleSet) bool {
-		out = append(out, set)
+		oracleSets = append(oracleSets, set)
 		return false
 	})
-	sort.Sort(types.OracleSets(out))
+	sort.Sort(oracleSets)
 	return
 }
 
