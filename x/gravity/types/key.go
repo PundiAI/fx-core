@@ -56,10 +56,10 @@ var (
 	SequenceKeyPrefix = []byte{0xd}
 
 	// KeyLastTXPoolID indexes the lastTxPoolID
-	//KeyLastTXPoolID = append(SequenceKeyPrefix, []byte("lastTxPoolId")...)
+	KeyLastTXPoolID = append(SequenceKeyPrefix, []byte("lastTxPoolId")...)
 
 	// KeyLastOutgoingBatchID indexes the lastBatchID
-	//KeyLastOutgoingBatchID = append(SequenceKeyPrefix, []byte("lastBatchId")...)
+	KeyLastOutgoingBatchID = append(SequenceKeyPrefix, []byte("lastBatchId")...)
 
 	// ValidatorAddressByOrchestratorAddress indexes the validator keys for an orchestrator
 	ValidatorAddressByOrchestratorAddress = []byte{0xe}

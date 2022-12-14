@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -289,6 +290,12 @@ var (
 	_ EthereumClaim = &MsgFxOriginatedTokenClaim{}
 	_ EthereumClaim = &MsgValsetUpdatedClaim{}
 )
+
+func UnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) (EthereumClaim, error) {
+	var msg EthereumClaim
+	err := cdc.UnpackAny(att.Claim, &msg)
+	return msg, err
+}
 
 // GetType returns the type of the claim
 func (m *MsgDepositClaim) GetType() ClaimType {

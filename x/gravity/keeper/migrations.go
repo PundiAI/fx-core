@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
@@ -46,10 +47,16 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	gravityStore := multiStore.GetKVStore(m.gravityStoreKey)
 	ethStore := multiStore.GetKVStore(m.ethStoreKey)
 	paramsStore := multiStore.GetKVStore(m.paramsStoreKey)
-	v2.MigrateValidatorToOracle(ctx, m.cdc, gravityStore, ethStore, m.sk, m.bk)
 	if err := v2.MigrateParams(m.legacyAmino, paramsStore, ethtypes.ModuleName); err != nil {
 		return err
 	}
 	v2.MigrateStore(m.cdc, gravityStore, ethStore)
+	var metadatas []banktypes.Metadata
+	m.bk.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
+		metadatas = append(metadatas, metadata)
+		return false
+	})
+	v2.MigrateBridgeTokenFromMetaDatas(m.cdc, metadatas, ethStore)
+	v2.MigrateValidatorToOracle(ctx, m.cdc, gravityStore, ethStore, m.sk, m.bk)
 	return nil
 }
