@@ -40,8 +40,8 @@ to each module's documentation for the full set of events to query for. Each mod
 documents its respective events under 'xx_events.md'.
 
 Example:
-$ %s query txs --%s 'message.sender=cosmos1...&message.action=withdraw_delegator_reward' --page 1 --limit 30
-$ %s query txs --%s 'message.sender=cosmos1...&message.module=distribution' --page 1 --limit 30
+$ %s query txs --%s 'message.sender=fx1...&message.action=/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward'' --page 1 --limit 30
+$ %s query txs --%s 'message.sender=fx1...&message.module=distribution' --page 1 --limit 30
 `, eventFormat, version.AppName, flagEvents, version.AppName, flagEvents),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
