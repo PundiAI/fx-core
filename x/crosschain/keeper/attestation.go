@@ -52,7 +52,7 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 // and has not already been marked Observed, then calls processAttestation to actually apply it to the state,
 // and then marks it Observed and emits an event.
 func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
-	claim, err := k.UnpackAttestationClaim(att)
+	claim, err := types.UnpackAttestationClaim(k.cdc, att)
 	if err != nil {
 		panic("could not cast to claim")
 	}
@@ -155,7 +155,7 @@ func (k Keeper) GetAttestation(ctx sdk.Context, eventNonce uint64, claimHash []b
 
 // DeleteAttestation deletes an attestation given an event nonce and claim
 func (k Keeper) DeleteAttestation(ctx sdk.Context, att types.Attestation) {
-	claim, err := k.UnpackAttestationClaim(&att)
+	claim, err := types.UnpackAttestationClaim(k.cdc, &att)
 	if err != nil {
 		panic("Bad Attestation in DeleteAttestation")
 	}
@@ -167,7 +167,7 @@ func (k Keeper) DeleteAttestation(ctx sdk.Context, att types.Attestation) {
 func (k Keeper) GetAttestationMapping(ctx sdk.Context) (out map[uint64][]types.Attestation) {
 	out = make(map[uint64][]types.Attestation)
 	k.IterateAttestations(ctx, func(_ []byte, att types.Attestation) bool {
-		claim, err := k.UnpackAttestationClaim(&att)
+		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
 		if err != nil {
 			panic("couldn't cast to claim")
 		}
@@ -277,10 +277,4 @@ func (k Keeper) DelLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAdd
 func (k Keeper) SetLastEventNonceByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, eventNonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetLastEventNonceByOracleKey(oracleAddr), sdk.Uint64ToBigEndian(eventNonce))
-}
-
-func (k Keeper) UnpackAttestationClaim(att *types.Attestation) (types.ExternalClaim, error) {
-	var msg types.ExternalClaim
-	err := k.cdc.UnpackAny(att.Claim, &msg)
-	return msg, err
 }

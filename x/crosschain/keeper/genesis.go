@@ -84,7 +84,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 
 	// reset attestations in state
 	for _, att := range state.Attestations {
-		claim, err := k.UnpackAttestationClaim(&att)
+		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
 		if err != nil {
 			panic("couldn't cast to claim")
 		}
@@ -96,7 +96,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	// reset attestation state of specific validators
 	// this must be done after the above to be correct
 	for _, att := range state.Attestations {
-		claim, err := k.UnpackAttestationClaim(&att)
+		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
 		if err != nil {
 			panic("couldn't cast to claim")
 		}

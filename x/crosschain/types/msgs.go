@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
@@ -489,6 +490,12 @@ var (
 	_ ExternalClaim = &MsgSendToExternalClaim{}
 	_ ExternalClaim = &MsgOracleSetUpdatedClaim{}
 )
+
+func UnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) (ExternalClaim, error) {
+	var msg ExternalClaim
+	err := cdc.UnpackAny(att.Claim, &msg)
+	return msg, err
+}
 
 // MsgSendToFxClaim
 
