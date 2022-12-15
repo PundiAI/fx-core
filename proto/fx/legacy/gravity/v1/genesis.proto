@@ -45,3 +45,28 @@ message Params {
     (gogoproto.nullable) = false
   ];
 }
+
+// Deprecated: after upgrade v3
+message GenesisState {
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  uint64 last_observed_nonce = 2;
+  LastObservedEthereumBlockHeight last_observed_block_height = 3
+  [ (gogoproto.nullable) = false ];
+  repeated MsgSetOrchestratorAddress delegate_keys = 4
+  [ (gogoproto.nullable) = false ];
+  repeated Valset valsets = 5 [ (gogoproto.nullable) = false ];
+  repeated ERC20ToDenom erc20_to_denoms = 6 [ (gogoproto.nullable) = false ];
+  repeated OutgoingTransferTx unbatched_transfers = 7
+  [ (gogoproto.nullable) = false ];
+  repeated OutgoingTxBatch batches = 8 [ (gogoproto.nullable) = false ];
+  repeated MsgConfirmBatch batch_confirms = 9 [ (gogoproto.nullable) = false ];
+  repeated MsgValsetConfirm valset_confirms = 10
+  [ (gogoproto.nullable) = false ];
+  repeated Attestation attestations = 11 [ (gogoproto.nullable) = false ];
+  Valset last_observed_valset = 12 [ (gogoproto.nullable) = false ];
+  uint64 last_slashed_batch_block = 13;
+  uint64 last_slashed_valset_nonce = 14;
+  uint64 last_tx_pool_id = 15;
+  uint64 last_batch_id = 16;
+}
+

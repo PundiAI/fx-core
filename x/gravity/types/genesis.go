@@ -10,26 +10,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
-// Deprecated: after upgrade v3
-type GenesisState struct {
-	Params                  Params                          `json:"params"`
-	LastObservedNonce       uint64                          `json:"last_observed_nonce,omitempty"`
-	LastObservedBlockHeight LastObservedEthereumBlockHeight `json:"last_observed_block_height"`
-	DelegateKeys            []MsgSetOrchestratorAddress     `json:"delegate_keys"`
-	Valsets                 []Valset                        `json:"valsets"`
-	Erc20ToDenoms           []ERC20ToDenom                  `json:"erc20_to_denoms"`
-	UnbatchedTransfers      []OutgoingTransferTx            `json:"unbatched_transfers"`
-	Batches                 []OutgoingTxBatch               `json:"batches"`
-	BatchConfirms           []MsgConfirmBatch               `json:"batch_confirms"`
-	ValsetConfirms          []MsgValsetConfirm              `json:"valset_confirms"`
-	Attestations            []Attestation                   `json:"attestations"`
-	LastObservedValset      Valset                          `json:"last_observed_valset"`
-	LastSlashedBatchBlock   uint64                          `json:"last_slashed_batch_block,omitempty"`
-	LastSlashedValsetNonce  uint64                          `json:"last_slashed_valset_nonce,omitempty"`
-	LastTxPoolId            uint64                          `json:"last_tx_pool_id"`
-	LastBatchId             uint64                          `json:"last_batch_id"`
-}
-
 var (
 	// Ensure that params implements the proper interface
 	_ paramtypes.ParamSet = &Params{}

@@ -18,6 +18,7 @@ type AccountKeeper interface {
 
 // BankKeeper defines the expected bank keeper methods
 type BankKeeper interface {
+	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	IterateAllDenomMetaData(ctx sdk.Context, cb func(banktypes.Metadata) bool)

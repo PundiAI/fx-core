@@ -111,14 +111,14 @@ func (m *MsgValsetConfirm) GetSigners() []sdk.AccAddress {
 }
 
 // Route should return the name of the module
-func (m MsgSendToEth) Route() string { return RouterKey }
+func (m *MsgSendToEth) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgSendToEth) Type() string { return TypeMsgSendToEth }
+func (m *MsgSendToEth) Type() string { return TypeMsgSendToEth }
 
 // ValidateBasic runs stateless checks on the message
 // Checks if the Eth address is valid
-func (m MsgSendToEth) ValidateBasic() error {
+func (m *MsgSendToEth) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "sender address")
 	}
@@ -138,12 +138,12 @@ func (m MsgSendToEth) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgSendToEth) GetSignBytes() []byte {
+func (m *MsgSendToEth) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (m MsgSendToEth) GetSigners() []sdk.AccAddress {
+func (m *MsgSendToEth) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
 		panic(err)
@@ -153,13 +153,13 @@ func (m MsgSendToEth) GetSigners() []sdk.AccAddress {
 }
 
 // Route should return the name of the module
-func (m MsgRequestBatch) Route() string { return RouterKey }
+func (m *MsgRequestBatch) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
+func (m *MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
 
 // ValidateBasic performs stateless checks
-func (m MsgRequestBatch) ValidateBasic() error {
+func (m *MsgRequestBatch) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "sender address")
 	}
@@ -176,12 +176,12 @@ func (m MsgRequestBatch) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgRequestBatch) GetSignBytes() []byte {
+func (m *MsgRequestBatch) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (m MsgRequestBatch) GetSigners() []sdk.AccAddress {
+func (m *MsgRequestBatch) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
 		panic(err)
@@ -191,13 +191,13 @@ func (m MsgRequestBatch) GetSigners() []sdk.AccAddress {
 }
 
 // Route should return the name of the module
-func (m MsgConfirmBatch) Route() string { return RouterKey }
+func (m *MsgConfirmBatch) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
+func (m *MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
 
 // ValidateBasic performs stateless checks
-func (m MsgConfirmBatch) ValidateBasic() error {
+func (m *MsgConfirmBatch) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
@@ -218,12 +218,12 @@ func (m MsgConfirmBatch) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgConfirmBatch) GetSignBytes() []byte {
+func (m *MsgConfirmBatch) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (m MsgConfirmBatch) GetSigners() []sdk.AccAddress {
+func (m *MsgConfirmBatch) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
 	if err != nil {
 		panic(err)
@@ -332,11 +332,11 @@ func (m *MsgDepositClaim) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgDepositClaim) GetSignBytes() []byte {
+func (m *MsgDepositClaim) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgDepositClaim) GetClaimer() sdk.AccAddress {
+func (m *MsgDepositClaim) GetClaimer() sdk.AccAddress {
 	if err := m.ValidateBasic(); err != nil {
 		panic("MsgDepositClaim failed ValidateBasic! Should have been handled earlier")
 	}
@@ -349,7 +349,7 @@ func (m MsgDepositClaim) GetClaimer() sdk.AccAddress {
 }
 
 // GetSigners defines whose signature is required
-func (m MsgDepositClaim) GetSigners() []sdk.AccAddress {
+func (m *MsgDepositClaim) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
 	if err != nil {
 		panic(err)
@@ -359,10 +359,10 @@ func (m MsgDepositClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Type should return the action
-func (m MsgDepositClaim) Type() string { return TypeMsgDepositClaim }
+func (m *MsgDepositClaim) Type() string { return TypeMsgDepositClaim }
 
 // Route should return the name of the module
-func (m MsgDepositClaim) Route() string { return RouterKey }
+func (m *MsgDepositClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeDeposit.Hash
 func (m *MsgDepositClaim) ClaimHash() []byte {
@@ -402,11 +402,11 @@ func (m *MsgWithdrawClaim) ClaimHash() []byte {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgWithdrawClaim) GetSignBytes() []byte {
+func (m *MsgWithdrawClaim) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgWithdrawClaim) GetClaimer() sdk.AccAddress {
+func (m *MsgWithdrawClaim) GetClaimer() sdk.AccAddress {
 	err := m.ValidateBasic()
 	if err != nil {
 		panic("MsgWithdrawClaim failed ValidateBasic! Should have been handled earlier")
@@ -419,7 +419,7 @@ func (m MsgWithdrawClaim) GetClaimer() sdk.AccAddress {
 }
 
 // GetSigners defines whose signature is required
-func (m MsgWithdrawClaim) GetSigners() []sdk.AccAddress {
+func (m *MsgWithdrawClaim) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
 	if err != nil {
 		panic(err)
@@ -429,10 +429,10 @@ func (m MsgWithdrawClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Route should return the name of the module
-func (m MsgWithdrawClaim) Route() string { return RouterKey }
+func (m *MsgWithdrawClaim) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgWithdrawClaim) Type() string { return TypeMsgWithdrawClaim }
+func (m *MsgWithdrawClaim) Type() string { return TypeMsgWithdrawClaim }
 
 func (m *MsgFxOriginatedTokenClaim) Route() string {
 	return RouterKey
@@ -529,11 +529,11 @@ func (m *MsgValsetUpdatedClaim) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgValsetUpdatedClaim) GetSignBytes() []byte {
+func (m *MsgValsetUpdatedClaim) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgValsetUpdatedClaim) GetClaimer() sdk.AccAddress {
+func (m *MsgValsetUpdatedClaim) GetClaimer() sdk.AccAddress {
 	err := m.ValidateBasic()
 	if err != nil {
 		panic("MsgERC20DeployedClaim failed ValidateBasic! Should have been handled earlier")
@@ -547,7 +547,7 @@ func (m MsgValsetUpdatedClaim) GetClaimer() sdk.AccAddress {
 }
 
 // GetSigners defines whose signature is required
-func (m MsgValsetUpdatedClaim) GetSigners() []sdk.AccAddress {
+func (m *MsgValsetUpdatedClaim) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Orchestrator)
 	if err != nil {
 		panic(err)
@@ -557,13 +557,13 @@ func (m MsgValsetUpdatedClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Type should return the action
-func (m MsgValsetUpdatedClaim) Type() string { return TypeMsgValsetUpdatedClaim }
+func (m *MsgValsetUpdatedClaim) Type() string { return TypeMsgValsetUpdatedClaim }
 
 // Route should return the name of the module
-func (m MsgValsetUpdatedClaim) Route() string { return RouterKey }
+func (m *MsgValsetUpdatedClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeDeposit.Hash
-func (m MsgValsetUpdatedClaim) ClaimHash() []byte {
+func (m *MsgValsetUpdatedClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%d/%s/", m.ValsetNonce, m.EventNonce, m.BlockHeight, m.Members)
 	return tmhash.Sum([]byte(path))
 }

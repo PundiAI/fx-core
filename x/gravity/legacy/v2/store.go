@@ -26,13 +26,11 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	// key                                        			value
 	// prefix     external-address                			oracle-address
 	// [0x13][0xd98F9E3B1Bc6927700ce4A963429DC157dD4EBDf]   [0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9]
-	migratePrefix(gravityStore, ethStore, types.ValidatorByEthAddressKey, crosschaintypes.OracleAddressByExternalKey)
-
 	// gravity 0xe -> eth 0x14
 	// key                                        			value
 	// prefix     bridger-address                			oracle-address
 	// [0x14][0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9]    	[0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9]
-	migratePrefix(gravityStore, ethStore, types.ValidatorAddressByOrchestratorAddress, crosschaintypes.OracleAddressByBridgerKey)
+	// migrate on MigrateValidatorToOracle
 
 	// gravity 0x3 -> eth 0x15
 	// key                                        			value
@@ -158,11 +156,7 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 	defer oldStoreIter.Close()
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		key := oldStoreIter.Key()
-		newStoreKey := newPrefix
-		if len(key) > len(oldPrefix) {
-			newStoreKey = append(newPrefix, key[len(oldPrefix):]...)
-		}
-		ethStore.Set(newStoreKey, oldStoreIter.Value())
+		ethStore.Set(append(newPrefix, key...), oldStoreIter.Value())
 		oldStore.Delete(key)
 	}
 }
@@ -172,8 +166,8 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 	chainOracle := new(crosschaintypes.ProposalOracle)
 	totalPower := sdk.ZeroInt()
 
-	ethOracles := ethInitOracles(ctx.ChainID())
-	i := 0
+	ethOracles := EthInitOracles(ctx.ChainID())
+	index := 0
 	minDelegateAmount := sdk.DefaultPowerReduction.MulRaw(100)
 
 	oldStore := prefix.NewStore(gravityStore, types.ValidatorAddressByOrchestratorAddress)
@@ -181,35 +175,43 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
-		bridgerAddr := sdk.AccAddress(oldStoreIter.Key()[len(types.ValidatorAddressByOrchestratorAddress):])
+		bridgerAddr := sdk.AccAddress(oldStoreIter.Key())
 		oldOracleAddress := sdk.AccAddress(oldStoreIter.Value())
-		externalAddress := sdk.AccAddress(gravityStore.Get(append(types.EthAddressByValidatorKey, oldOracleAddress.Bytes()...)))
+		externalAddress := string(gravityStore.Get(append(types.EthAddressByValidatorKey, oldOracleAddress.Bytes()...)))
 		validator, found := stakingKeeper.GetValidator(ctx, oldOracleAddress.Bytes())
 		if !found {
-			ctx.Logger().Error("no found validator", "address", sdk.ValAddress(oldOracleAddress))
-			continue
+			//ctx.Logger().Error("no found validator", "address", sdk.ValAddress(oldOracleAddress))
+			//continue
+			panic(fmt.Sprintf("no found validator: %s", sdk.ValAddress(oldOracleAddress).String()))
 		}
 		oracle := crosschaintypes.Oracle{
 			BridgerAddress:    bridgerAddr.String(),
-			ExternalAddress:   externalAddress.String(),
+			ExternalAddress:   externalAddress,
 			StartHeight:       0,
 			DelegateValidator: oldOracleAddress.String(),
+			DelegateAmount:    sdk.ZeroInt(),
+			Online:            false,
+			OracleAddress:     oldOracleAddress.String(),
+			SlashTimes:        0,
 		}
-		if len(ethOracles) > 0 && validator.Tokens.GTE(minDelegateAmount) {
-			oracle.DelegateAmount = minDelegateAmount
-		}
-		oracle.OracleAddress = oldOracleAddress.String()
-		oracle.Online = !validator.Jailed
-		if len(ethOracles) > i {
-			oracle.OracleAddress = ethOracles[i]
-			balances := bankKeeper.GetAllBalances(ctx, oracle.GetOracle())
+		if len(ethOracles) > index {
+			oracle.OracleAddress = ethOracles[index]
+			oracleAddr := oracle.GetOracle()
+			balances := bankKeeper.GetAllBalances(ctx, oracleAddr)
 			if balances.AmountOf(fxtypes.DefaultDenom).GTE(minDelegateAmount) {
 				delegateAddr := oracle.GetDelegateAddress(ethtypes.ModuleName)
+				if err := bankKeeper.SendCoins(ctx, oracleAddr, delegateAddr,
+					sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, minDelegateAmount))); err != nil {
+					panic("send to coins error: " + err.Error())
+				}
 				newShares, err := stakingKeeper.Delegate(ctx,
 					delegateAddr, minDelegateAmount, stakingtypes.Unbonded, validator, true)
 				if err != nil {
 					panic("gravity migrate to eth error: " + err.Error())
 				}
+				oracle.StartHeight = ctx.BlockHeight()
+				oracle.DelegateAmount = minDelegateAmount
+				oracle.Online = true
 				ctx.EventManager().EmitEvents(sdk.Events{
 					sdk.NewEvent(
 						stakingtypes.EventTypeDelegate,
@@ -218,20 +220,18 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 						sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
 					),
 				})
-				oracle.StartHeight = ctx.BlockHeight()
-				oracle.DelegateAmount = minDelegateAmount
-				oracle.Online = true
-			} else {
-				oracle.Online = false
 			}
-			i = i + 1
 		}
+		index = index + 1
 
 		if oracle.Online {
 			totalPower = totalPower.Add(oracle.GetPower())
 		}
+		oracleAddress := oracle.GetOracle()
+		ethStore.Set(append(crosschaintypes.OracleAddressByExternalKey, []byte(oracle.ExternalAddress)...), oracleAddress.Bytes())
+		ethStore.Set(append(crosschaintypes.OracleAddressByBridgerKey, bridgerAddr.Bytes()...), oracleAddress.Bytes())
 		// SetOracle
-		ethStore.Set(crosschaintypes.GetOracleKey(oracle.GetOracle()), cdc.MustMarshal(&oracle))
+		ethStore.Set(crosschaintypes.GetOracleKey(oracleAddress), cdc.MustMarshal(&oracle))
 		oldStore.Delete(oldStoreIter.Key())
 
 		chainOracle.Oracles = append(chainOracle.Oracles, oracle.OracleAddress)
@@ -242,7 +242,7 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 		ethStore.Set(crosschaintypes.ProposalOracleKey, cdc.MustMarshal(chainOracle))
 	}
 	// setLastTotalPower eth 0x39
-	ethStore.Set(stakingtypes.LastTotalPowerKey, cdc.MustMarshal(&sdk.IntProto{Int: totalPower}))
+	ethStore.Set(crosschaintypes.LastTotalPowerKey, cdc.MustMarshal(&sdk.IntProto{Int: totalPower}))
 
 	// gravity 0x1 -> eth 0x12
 	deletePrefixKey(gravityStore, types.EthAddressByValidatorKey)
@@ -441,19 +441,22 @@ func migrateAttestation(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStor
 
 func migrateBridgeToken(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	token := gravityStore.Get(append(types.DenomToERC20Key, []byte(fxtypes.DefaultDenom)...))
-
-	ethStore.Set(crosschaintypes.GetTokenToDenomKey(fxtypes.DefaultDenom),
-		cdc.MustMarshal(&crosschaintypes.BridgeToken{
-			Token:      string(token),
-			ChannelIbc: "",
-		}),
-	)
-	ethStore.Set(crosschaintypes.GetDenomToTokenKey(string(token)),
-		cdc.MustMarshal(&crosschaintypes.BridgeToken{
-			Token:      fxtypes.DefaultDenom,
-			ChannelIbc: "",
-		}),
-	)
+	if len(token) > 0 {
+		ethStore.Set(crosschaintypes.GetTokenToDenomKey(fxtypes.DefaultDenom),
+			cdc.MustMarshal(&crosschaintypes.BridgeToken{
+				Denom:      fxtypes.DefaultDenom,
+				Token:      string(token),
+				ChannelIbc: "",
+			}),
+		)
+		ethStore.Set(crosschaintypes.GetDenomToTokenKey(string(token)),
+			cdc.MustMarshal(&crosschaintypes.BridgeToken{
+				Denom:      fxtypes.DefaultDenom,
+				Token:      string(token),
+				ChannelIbc: "",
+			}),
+		)
+	}
 	gravityStore.Delete(types.DenomToERC20Key)
 	gravityStore.Delete(types.ERC20ToDenomKey)
 }
@@ -467,13 +470,15 @@ func MigrateBridgeTokenFromMetaDatas(cdc codec.BinaryCodec, metaDatas []banktype
 					token := strings.TrimPrefix(denom, ethtypes.ModuleName)
 					ethStore.Set(crosschaintypes.GetTokenToDenomKey(denom),
 						cdc.MustMarshal(&crosschaintypes.BridgeToken{
+							Denom:      denom,
 							Token:      token,
 							ChannelIbc: "",
 						}),
 					)
 					ethStore.Set(crosschaintypes.GetDenomToTokenKey(token),
 						cdc.MustMarshal(&crosschaintypes.BridgeToken{
-							Token:      denom,
+							Denom:      denom,
+							Token:      token,
 							ChannelIbc: "",
 						}),
 					)

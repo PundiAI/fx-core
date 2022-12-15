@@ -46,15 +46,15 @@ func (suite *TestSuite) TestCodec() {
 			name: "OutgoingTransferTx",
 			oldValue: &types.OutgoingTransferTx{
 				Id:          rand.Uint64(),
-				Sender:      sdk.AccAddress(helpers.NewPriKey().PubKey().Address()).String(),
+				Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				DestAddress: helpers.GenerateAddress().String(),
 				Erc20Token: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().String(),
-					Amount:   sdk.NewInt(rand.Int63()),
+					Amount:   sdk.NewInt(rand.Int63() + 1),
 				},
 				Erc20Fee: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().String(),
-					Amount:   sdk.NewInt(rand.Int63()),
+					Amount:   sdk.NewInt(rand.Int63() + 1),
 				},
 			},
 			newValue: &crosschaintypes.OutgoingTransferTx{},
@@ -67,28 +67,28 @@ func (suite *TestSuite) TestCodec() {
 				Transactions: []*types.OutgoingTransferTx{
 					{
 						Id:          rand.Uint64(),
-						Sender:      sdk.AccAddress(helpers.NewPriKey().PubKey().Address()).String(),
+						Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 						DestAddress: helpers.GenerateAddress().String(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(rand.Int63()),
+							Amount:   sdk.NewInt(rand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(rand.Int63()),
+							Amount:   sdk.NewInt(rand.Int63() + 1),
 						},
 					},
 					{
 						Id:          rand.Uint64(),
-						Sender:      sdk.AccAddress(helpers.NewPriKey().PubKey().Address()).String(),
+						Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 						DestAddress: helpers.GenerateAddress().String(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(rand.Int63()),
+							Amount:   sdk.NewInt(rand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(rand.Int63()),
+							Amount:   sdk.NewInt(rand.Int63() + 1),
 						},
 					},
 				},

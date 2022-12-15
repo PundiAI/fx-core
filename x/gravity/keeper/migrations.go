@@ -22,9 +22,8 @@ type Migrator struct {
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(cdc codec.BinaryCodec,
-	legacyAmino *codec.LegacyAmino, paramsStoreKey sdk.StoreKey,
-	gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey,
+func NewMigrator(cdc codec.BinaryCodec, legacyAmino *codec.LegacyAmino,
+	paramsStoreKey sdk.StoreKey, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey,
 	sk v2.StakingKeeper, ak v2.AccountKeeper, bk v2.BankKeeper) Migrator {
 	return Migrator{
 		cdc:             cdc,
@@ -43,10 +42,9 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	if err := v2.MigrateBank(ctx, m.ak, m.bk, ethtypes.ModuleName); err != nil {
 		return err
 	}
-	multiStore := ctx.MultiStore()
-	gravityStore := multiStore.GetKVStore(m.gravityStoreKey)
-	ethStore := multiStore.GetKVStore(m.ethStoreKey)
-	paramsStore := multiStore.GetKVStore(m.paramsStoreKey)
+	gravityStore := ctx.MultiStore().GetKVStore(m.gravityStoreKey)
+	ethStore := ctx.MultiStore().GetKVStore(m.ethStoreKey)
+	paramsStore := ctx.MultiStore().GetKVStore(m.paramsStoreKey)
 	if err := v2.MigrateParams(m.legacyAmino, paramsStore, ethtypes.ModuleName); err != nil {
 		return err
 	}

@@ -206,6 +206,7 @@
     - [Msg](#fx.gravity.v1.Msg)
   
 - [fx/legacy/gravity/v1/genesis.proto](#fx/legacy/gravity/v1/genesis.proto)
+    - [GenesisState](#fx.gravity.v1.GenesisState)
     - [Params](#fx.gravity.v1.Params)
   
 - [fx/legacy/gravity/v1/query.proto](#fx/legacy/gravity/v1/query.proto)
@@ -3184,6 +3185,36 @@ Deprecated: after upgrade v3
 
 
 
+<a name="fx.gravity.v1.GenesisState"></a>
+
+### GenesisState
+Deprecated: after upgrade v3
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#fx.gravity.v1.Params) |  |  |
+| `last_observed_nonce` | [uint64](#uint64) |  |  |
+| `last_observed_block_height` | [LastObservedEthereumBlockHeight](#fx.gravity.v1.LastObservedEthereumBlockHeight) |  |  |
+| `delegate_keys` | [MsgSetOrchestratorAddress](#fx.gravity.v1.MsgSetOrchestratorAddress) | repeated |  |
+| `valsets` | [Valset](#fx.gravity.v1.Valset) | repeated |  |
+| `erc20_to_denoms` | [ERC20ToDenom](#fx.gravity.v1.ERC20ToDenom) | repeated |  |
+| `unbatched_transfers` | [OutgoingTransferTx](#fx.gravity.v1.OutgoingTransferTx) | repeated |  |
+| `batches` | [OutgoingTxBatch](#fx.gravity.v1.OutgoingTxBatch) | repeated |  |
+| `batch_confirms` | [MsgConfirmBatch](#fx.gravity.v1.MsgConfirmBatch) | repeated |  |
+| `valset_confirms` | [MsgValsetConfirm](#fx.gravity.v1.MsgValsetConfirm) | repeated |  |
+| `attestations` | [Attestation](#fx.gravity.v1.Attestation) | repeated |  |
+| `last_observed_valset` | [Valset](#fx.gravity.v1.Valset) |  |  |
+| `last_slashed_batch_block` | [uint64](#uint64) |  |  |
+| `last_slashed_valset_nonce` | [uint64](#uint64) |  |  |
+| `last_tx_pool_id` | [uint64](#uint64) |  |  |
+| `last_batch_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
 <a name="fx.gravity.v1.Params"></a>
 
 ### Params
@@ -3234,7 +3265,7 @@ Deprecated: after upgrade v3
 <a name="fx.gravity.v1.QueryBatchConfirmRequest"></a>
 
 ### QueryBatchConfirmRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3251,7 +3282,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryBatchConfirmResponse"></a>
 
 ### QueryBatchConfirmResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3266,7 +3297,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryBatchConfirmsRequest"></a>
 
 ### QueryBatchConfirmsRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3282,7 +3313,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryBatchConfirmsResponse"></a>
 
 ### QueryBatchConfirmsResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3343,7 +3374,7 @@ Deprecated: after upgrade v3
 <a name="fx.gravity.v1.QueryBatchRequestByNonceResponse"></a>
 
 ### QueryBatchRequestByNonceResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3358,7 +3389,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryBridgeTokensRequest"></a>
 
 ### QueryBridgeTokensRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3368,7 +3399,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryBridgeTokensResponse"></a>
 
 ### QueryBridgeTokensResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3408,7 +3439,7 @@ Deprecated: after upgrade v3
 <a name="fx.gravity.v1.QueryDelegateKeyByEthRequest"></a>
 
 ### QueryDelegateKeyByEthRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3423,7 +3454,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryDelegateKeyByEthResponse"></a>
 
 ### QueryDelegateKeyByEthResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3439,7 +3470,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryDelegateKeyByOrchestratorRequest"></a>
 
 ### QueryDelegateKeyByOrchestratorRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3454,7 +3485,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryDelegateKeyByOrchestratorResponse"></a>
 
 ### QueryDelegateKeyByOrchestratorResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3470,7 +3501,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryDelegateKeyByValidatorRequest"></a>
 
 ### QueryDelegateKeyByValidatorRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3485,7 +3516,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryDelegateKeyByValidatorResponse"></a>
 
 ### QueryDelegateKeyByValidatorResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3501,7 +3532,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryDenomToERC20Request"></a>
 
 ### QueryDenomToERC20Request
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3516,7 +3547,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryDenomToERC20Response"></a>
 
 ### QueryDenomToERC20Response
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3532,7 +3563,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryERC20ToDenomRequest"></a>
 
 ### QueryERC20ToDenomRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3547,7 +3578,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryERC20ToDenomResponse"></a>
 
 ### QueryERC20ToDenomResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3563,7 +3594,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastEventBlockHeightByAddrRequest"></a>
 
 ### QueryLastEventBlockHeightByAddrRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3578,7 +3609,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastEventBlockHeightByAddrResponse"></a>
 
 ### QueryLastEventBlockHeightByAddrResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3593,7 +3624,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastEventNonceByAddrRequest"></a>
 
 ### QueryLastEventNonceByAddrRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3608,7 +3639,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastEventNonceByAddrResponse"></a>
 
 ### QueryLastEventNonceByAddrResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3623,7 +3654,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastObservedBlockHeightRequest"></a>
 
 ### QueryLastObservedBlockHeightRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3633,7 +3664,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryLastObservedBlockHeightResponse"></a>
 
 ### QueryLastObservedBlockHeightResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3784,7 +3815,7 @@ Deprecated: after upgrade v3
 <a name="fx.gravity.v1.QueryPendingSendToEthRequest"></a>
 
 ### QueryPendingSendToEthRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3799,7 +3830,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryPendingSendToEthResponse"></a>
 
 ### QueryPendingSendToEthResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
@@ -3815,7 +3846,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryProjectedBatchTimeoutHeightRequest"></a>
 
 ### QueryProjectedBatchTimeoutHeightRequest
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 
@@ -3825,7 +3856,7 @@ Deprecated after upgrade v3
 <a name="fx.gravity.v1.QueryProjectedBatchTimeoutHeightResponse"></a>
 
 ### QueryProjectedBatchTimeoutHeightResponse
-Deprecated after upgrade v3
+Deprecated: after upgrade v3
 
 
 | Field | Type | Label | Description |
