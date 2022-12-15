@@ -110,10 +110,10 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 	}
 
 	// Iterate through remaining batches
-	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
+	k.IterateOutgoingTxBatches(ctx, func(iterBatch *types.OutgoingTxBatch) bool {
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
-		if batch.BatchNonce < batch.BatchNonce && batch.TokenContract == tokenContract {
-			_ = k.CancelOutgoingTxBatch(ctx, tokenContract, batch.BatchNonce)
+		if iterBatch.BatchNonce < batch.BatchNonce && iterBatch.TokenContract == tokenContract {
+			_ = k.CancelOutgoingTxBatch(ctx, tokenContract, iterBatch.BatchNonce)
 		}
 		return false
 	})
