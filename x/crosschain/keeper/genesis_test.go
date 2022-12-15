@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	"sort"
 	"testing"
 
@@ -84,8 +85,12 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		suite.Require().NoError(err)
 		suite.Require().EqualValues(100, len(batch.Transactions))
 		suite.Require().EqualValues(50+i, batch.Block)
-		suite.Require().True(batch.BatchTimeout > 14000)
-		suite.T().Log(i, batch.BatchTimeout)
+		//suite.T().Log(i, batch.BatchTimeout, suite.chainName)
+		if suite.chainName == ethtypes.ModuleName {
+			suite.Require().True(batch.BatchTimeout > 2800)
+		} else {
+			suite.Require().True(batch.BatchTimeout > 14000)
+		}
 		suite.Require().EqualValues(1+i, batch.BatchNonce)
 		suite.Require().Equal(bridgeToken.Token, batch.TokenContract)
 		suite.Require().Equal(bridgeToken.Token, batch.FeeReceive)

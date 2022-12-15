@@ -2,6 +2,8 @@ package keeper_test
 
 import (
 	"crypto/ecdsa"
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	"reflect"
 	"regexp"
 	"testing"
@@ -37,7 +39,11 @@ type KeeperTestSuite struct {
 func TestKeeperTestSuite(t *testing.T) {
 	compile, err := regexp.Compile("^Test")
 	require.NoError(t, err)
-	for _, moduleName := range []string{bsctypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName} {
+	subModules := []string{
+		bsctypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName,
+		ethtypes.ModuleName, avalanchetypes.ModuleName,
+	}
+	for _, moduleName := range subModules {
 		methodFinder := reflect.TypeOf(new(KeeperTestSuite))
 		for i := 0; i < methodFinder.NumMethod(); i++ {
 			method := methodFinder.Method(i)
@@ -69,6 +75,10 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 		return suite.app.PolygonKeeper
 	case trontypes.ModuleName:
 		return suite.app.TronKeeper.Keeper
+	case ethtypes.ModuleName:
+		return suite.app.EthKeeper
+	case avalanchetypes.ModuleName:
+		return suite.app.AvalancheKeeper
 	default:
 		panic("invalid chain name")
 	}

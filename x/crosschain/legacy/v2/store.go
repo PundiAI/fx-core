@@ -1,7 +1,6 @@
 package v2
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v1"
@@ -16,11 +15,10 @@ func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey) {
 }
 
 func MigratePruneKey(store sdk.KVStore, key []byte) {
-	prefixStore := prefix.NewStore(store, key)
-	iterator := prefixStore.Iterator(nil, nil)
+	iterator := sdk.KVStorePrefixIterator(store, key)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		prefixStore.Delete(iterator.Key())
+		store.Delete(iterator.Key())
 	}
 }

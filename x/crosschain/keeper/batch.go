@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -111,10 +110,10 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 	}
 
 	// Iterate through remaining batches
-	k.IterateOutgoingTxBatches(ctx, func(key []byte, iter_batch *types.OutgoingTxBatch) bool {
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
-		if iter_batch.BatchNonce < batch.BatchNonce && iter_batch.TokenContract == tokenContract {
-			_ = k.CancelOutgoingTxBatch(ctx, tokenContract, iter_batch.BatchNonce)
+		if batch.BatchNonce < batch.BatchNonce && batch.TokenContract == tokenContract {
+			_ = k.CancelOutgoingTxBatch(ctx, tokenContract, batch.BatchNonce)
 		}
 		return false
 	})
@@ -149,7 +148,7 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 func (k Keeper) pickUnBatchedTx(ctx sdk.Context, tokenContract string, maxElements uint, baseFee sdk.Int) ([]*types.OutgoingTransferTx, error) {
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
-	k.IterateUnbatchedTransactionsByContract(ctx, tokenContract, func(_ []byte, tx *types.OutgoingTransferTx) bool {
+	k.IterateUnbatchedTransactionsByContract(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
 		if tx.Fee.Amount.LT(baseFee) {
 			return true
 		}
@@ -205,15 +204,15 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, tokenContract string, bat
 }
 
 // IterateOutgoingTxBatches iterates through all outgoing batches in DESC order.
-func (k Keeper) IterateOutgoingTxBatches(ctx sdk.Context, cb func(key []byte, batch *types.OutgoingTxBatch) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTxBatchKey)
-	iter := prefixStore.ReverseIterator(nil, nil)
+func (k Keeper) IterateOutgoingTxBatches(ctx sdk.Context, cb func(batch *types.OutgoingTxBatch) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStoreReversePrefixIterator(store, types.OutgoingTxBatchKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var batch types.OutgoingTxBatch
 		k.cdc.MustUnmarshal(iter.Value(), &batch)
 		// cb returns true to stop early
-		if cb(iter.Key(), &batch) {
+		if cb(&batch) {
 			break
 		}
 	}
@@ -221,7 +220,7 @@ func (k Keeper) IterateOutgoingTxBatches(ctx sdk.Context, cb func(key []byte, ba
 
 // GetOutgoingTxBatches returns the outgoing tx batches
 func (k Keeper) GetOutgoingTxBatches(ctx sdk.Context) (out []*types.OutgoingTxBatch) {
-	k.IterateOutgoingTxBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		out = append(out, batch)
 		return false
 	})
@@ -232,7 +231,7 @@ func (k Keeper) GetOutgoingTxBatches(ctx sdk.Context) (out []*types.OutgoingTxBa
 func (k Keeper) GetLastOutgoingBatchByTokenType(ctx sdk.Context, token string) *types.OutgoingTxBatch {
 	var lastBatch *types.OutgoingTxBatch = nil
 	var lastNonce = uint64(0)
-	k.IterateOutgoingTxBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.TokenContract == token && batch.BatchNonce > lastNonce {
 			lastBatch = batch
 			lastNonce = batch.BatchNonce
@@ -262,7 +261,7 @@ func (k Keeper) GetLastSlashedBatchBlock(ctx sdk.Context) uint64 {
 // GetUnSlashedBatches returns all the unSlashed batches in state
 func (k Keeper) GetUnSlashedBatches(ctx sdk.Context, maxHeight uint64) (outgoingTxBatches types.OutgoingTxBatches) {
 	lastSlashedBatchBlock := k.GetLastSlashedBatchBlock(ctx)
-	k.IterateBatchBySlashedBatchBlock(ctx, lastSlashedBatchBlock, maxHeight, func(_ []byte, batch *types.OutgoingTxBatch) bool {
+	k.IterateBatchBySlashedBatchBlock(ctx, lastSlashedBatchBlock, maxHeight, func(batch *types.OutgoingTxBatch) bool {
 		if batch.Block > lastSlashedBatchBlock {
 			outgoingTxBatches = append(outgoingTxBatches, batch)
 		}
@@ -273,16 +272,18 @@ func (k Keeper) GetUnSlashedBatches(ctx sdk.Context, maxHeight uint64) (outgoing
 }
 
 // IterateBatchBySlashedBatchBlock iterates through all Batch by last slashed Batch block in ASC order
-func (k Keeper) IterateBatchBySlashedBatchBlock(ctx sdk.Context, lastSlashedBatchBlock uint64, maxHeight uint64, cb func([]byte, *types.OutgoingTxBatch) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTxBatchBlockKey)
-	iter := prefixStore.Iterator(sdk.Uint64ToBigEndian(lastSlashedBatchBlock), sdk.Uint64ToBigEndian(maxHeight))
+func (k Keeper) IterateBatchBySlashedBatchBlock(ctx sdk.Context, lastSlashedBatchBlock uint64, maxHeight uint64, cb func(*types.OutgoingTxBatch) bool) {
+	store := ctx.KVStore(k.storeKey)
+	startKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(lastSlashedBatchBlock)...)
+	endKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(maxHeight)...)
+	iter := store.Iterator(startKey, endKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
 		var Batch types.OutgoingTxBatch
 		k.cdc.MustUnmarshal(iter.Value(), &Batch)
 		// cb returns true to stop early
-		if cb(iter.Key(), &Batch) {
+		if cb(&Batch) {
 			break
 		}
 	}
@@ -313,17 +314,16 @@ func (k Keeper) SetBatchConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, batc
 
 // IterateBatchConfirmByNonceAndTokenContract iterates through all batch confirmations
 // MARK finish-batches: this is where the key is iterated in the old (presumed working) code
-func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce uint64, tokenContract string, cb func([]byte, types.MsgConfirmBatch) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.BatchConfirmKey)
-	prefixKey := append([]byte(tokenContract), sdk.Uint64ToBigEndian(nonce)...)
-	iter := prefixStore.Iterator(prefixRange(prefixKey))
+func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce uint64, tokenContract string, cb func(types.MsgConfirmBatch) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetBatchConfirmKey(tokenContract, nonce, []byte{}))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
 		confirm := types.MsgConfirmBatch{}
 		k.cdc.MustUnmarshal(iter.Value(), &confirm)
 		// cb returns true to stop early
-		if cb(iter.Key(), confirm) {
+		if cb(confirm) {
 			break
 		}
 	}
@@ -331,7 +331,7 @@ func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonc
 
 // GetBatchConfirmByNonceAndTokenContract returns the batch confirms
 func (k Keeper) GetBatchConfirmByNonceAndTokenContract(ctx sdk.Context, nonce uint64, tokenContract string) (out []types.MsgConfirmBatch) {
-	k.IterateBatchConfirmByNonceAndTokenContract(ctx, nonce, tokenContract, func(_ []byte, msg types.MsgConfirmBatch) bool {
+	k.IterateBatchConfirmByNonceAndTokenContract(ctx, nonce, tokenContract, func(msg types.MsgConfirmBatch) bool {
 		out = append(out, msg)
 		return false
 	})

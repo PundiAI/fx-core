@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -129,8 +128,8 @@ func (k Keeper) checkMigrateFrom(ctx sdk.Context, addr sdk.AccAddress) (authtype
 }
 
 func (k Keeper) IterateMigrateRecords(ctx sdk.Context, cb func(types.MigrateRecord) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixMigratedRecord)
-	iter := prefixStore.Iterator(nil, nil)
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.KeyPrefixMigratedRecord)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

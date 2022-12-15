@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -73,18 +72,17 @@ func (k Keeper) AddBridgeToken(ctx sdk.Context, token, channelIBC string) (strin
 }
 
 // IterateBridgeTokenToDenom iterates over token to denom relations
-func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func([]byte, *types.BridgeToken) bool) {
+func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func(*types.BridgeToken) bool) {
 	store := ctx.KVStore(k.storeKey)
-	prefixStore := prefix.NewStore(store, types.TokenToDenomKey)
-	iter := prefixStore.Iterator(nil, nil)
+	iter := sdk.KVStorePrefixIterator(store, types.TokenToDenomKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
 		var bridgeToken types.BridgeToken
 		k.cdc.MustUnmarshal(iter.Value(), &bridgeToken)
-		bridgeToken.Denom = string(iter.Key())
+		bridgeToken.Denom = string(iter.Key()[len(types.TokenToDenomKey):])
 		// cb returns true to stop early
-		if cb(iter.Key(), &bridgeToken) {
+		if cb(&bridgeToken) {
 			break
 		}
 	}

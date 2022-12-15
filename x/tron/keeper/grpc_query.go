@@ -55,7 +55,7 @@ func (k Keeper) BatchConfirms(c context.Context, req *crosschaintypes.QueryBatch
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	var confirms []*crosschaintypes.MsgConfirmBatch
-	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(_ []byte, c crosschaintypes.MsgConfirmBatch) bool {
+	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(c crosschaintypes.MsgConfirmBatch) bool {
 		confirms = append(confirms, &c)
 		return false
 	})

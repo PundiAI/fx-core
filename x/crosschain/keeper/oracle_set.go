@@ -5,7 +5,6 @@ import (
 	"math"
 	"sort"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -123,15 +122,15 @@ func (k Keeper) GetOracleSet(ctx sdk.Context, nonce uint64) *types.OracleSet {
 }
 
 // IterateOracleSets returns all oracleSetRequests
-func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(key []byte, val *types.OracleSet) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OracleSetRequestKey)
-	iter := prefixStore.ReverseIterator(nil, nil)
+func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(val *types.OracleSet) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.OracleSetRequestKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var oracleSet types.OracleSet
 		k.cdc.MustUnmarshal(iter.Value(), &oracleSet)
 		// cb returns true to stop early
-		if cb(iter.Key(), &oracleSet) {
+		if cb(&oracleSet) {
 			break
 		}
 	}
@@ -139,7 +138,7 @@ func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(key []byte, val *type
 
 // GetOracleSets returns all the oracle sets in state
 func (k Keeper) GetOracleSets(ctx sdk.Context) (oracleSets types.OracleSets) {
-	k.IterateOracleSets(ctx, func(_ []byte, set *types.OracleSet) bool {
+	k.IterateOracleSets(ctx, func(set *types.OracleSet) bool {
 		oracleSets = append(oracleSets, set)
 		return false
 	})
@@ -176,7 +175,7 @@ func (k Keeper) GetLastSlashedOracleSetNonce(ctx sdk.Context) uint64 {
 // GetUnSlashedOracleSets returns all the unSlashed oracle sets in state
 func (k Keeper) GetUnSlashedOracleSets(ctx sdk.Context, maxHeight uint64) (oracleSets types.OracleSets) {
 	lastSlashedOracleSetNonce := k.GetLastSlashedOracleSetNonce(ctx)
-	k.IterateOracleSetBySlashedOracleSetNonce(ctx, lastSlashedOracleSetNonce, maxHeight, func(_ []byte, oracleSet *types.OracleSet) bool {
+	k.IterateOracleSetBySlashedOracleSetNonce(ctx, lastSlashedOracleSetNonce, maxHeight, func(oracleSet *types.OracleSet) bool {
 		if oracleSet.Nonce > lastSlashedOracleSetNonce && maxHeight > oracleSet.Height {
 			oracleSets = append(oracleSets, oracleSet)
 		}
@@ -187,16 +186,18 @@ func (k Keeper) GetUnSlashedOracleSets(ctx sdk.Context, maxHeight uint64) (oracl
 }
 
 // IterateOracleSetBySlashedOracleSetNonce iterates through all oracleSet by last slashed oracleSet nonce in ASC order
-func (k Keeper) IterateOracleSetBySlashedOracleSetNonce(ctx sdk.Context, lastSlashedOracleSetNonce uint64, maxHeight uint64, cb func([]byte, *types.OracleSet) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OracleSetRequestKey)
-	iter := prefixStore.Iterator(sdk.Uint64ToBigEndian(lastSlashedOracleSetNonce), sdk.Uint64ToBigEndian(maxHeight))
+func (k Keeper) IterateOracleSetBySlashedOracleSetNonce(ctx sdk.Context, lastSlashedOracleSetNonce uint64, maxHeight uint64, cb func(*types.OracleSet) bool) {
+	store := ctx.KVStore(k.storeKey)
+	startKey := append(types.OracleSetRequestKey, sdk.Uint64ToBigEndian(lastSlashedOracleSetNonce)...)
+	endKey := append(types.OracleSetRequestKey, sdk.Uint64ToBigEndian(maxHeight)...)
+	iter := store.Iterator(startKey, endKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
 		var oracleSet types.OracleSet
 		k.cdc.MustUnmarshal(iter.Value(), &oracleSet)
 		// cb returns true to stop early
-		if cb(iter.Key(), &oracleSet) {
+		if cb(&oracleSet) {
 			break
 		}
 	}
@@ -223,10 +224,8 @@ func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, 
 
 // GetOracleSetConfirms returns all oracle set confirmations by nonce
 func (k Keeper) GetOracleSetConfirms(ctx sdk.Context, nonce uint64) (confirms []*types.MsgOracleSetConfirm) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OracleSetConfirmKey)
-	start, end := prefixRange(sdk.Uint64ToBigEndian(nonce))
-	iterator := prefixStore.Iterator(start, end)
-
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, append(types.OracleSetConfirmKey, sdk.Uint64ToBigEndian(nonce)...))
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -234,22 +233,21 @@ func (k Keeper) GetOracleSetConfirms(ctx sdk.Context, nonce uint64) (confirms []
 		k.cdc.MustUnmarshal(iterator.Value(), &confirm)
 		confirms = append(confirms, &confirm)
 	}
-
 	return confirms
 }
 
 // IterateOracleSetConfirmByNonce iterates through all oracleSet confirms by nonce in ASC order
 // MARK finish-batches: this is where the key is iterated in the old (presumed working) code
-func (k Keeper) IterateOracleSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb func([]byte, types.MsgOracleSetConfirm) bool) {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.OracleSetConfirmKey)
-	iter := prefixStore.Iterator(prefixRange(sdk.Uint64ToBigEndian(nonce)))
+func (k Keeper) IterateOracleSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(types.MsgOracleSetConfirm) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, append(types.OracleSetConfirmKey, sdk.Uint64ToBigEndian(nonce)...))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
 		confirm := types.MsgOracleSetConfirm{}
 		k.cdc.MustUnmarshal(iter.Value(), &confirm)
 		// cb returns true to stop early
-		if cb(iter.Key(), confirm) {
+		if cb(confirm) {
 			break
 		}
 	}

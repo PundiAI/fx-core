@@ -58,7 +58,7 @@ func (k Keeper) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOrac
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	var confirms []*types.MsgOracleSetConfirm
-	k.IterateOracleSetConfirmByNonce(sdk.UnwrapSDKContext(c), req.Nonce, func(_ []byte, c types.MsgOracleSetConfirm) bool {
+	k.IterateOracleSetConfirmByNonce(sdk.UnwrapSDKContext(c), req.Nonce, func(c types.MsgOracleSetConfirm) bool {
 		confirms = append(confirms, &c)
 		return false
 	})
@@ -94,7 +94,7 @@ func (k Keeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
 	var pendingOracleSetReq []*types.OracleSet
-	k.IterateOracleSets(sdkCtx, func(_ []byte, oracleSet *types.OracleSet) bool {
+	k.IterateOracleSets(sdkCtx, func(oracleSet *types.OracleSet) bool {
 		if oracle.StartHeight > int64(oracleSet.Height) {
 			return false
 		}
@@ -147,7 +147,7 @@ func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.Quer
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
 	var pendingBatchReq *types.OutgoingTxBatch
-	k.IterateOutgoingTxBatches(sdkCtx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
+	k.IterateOutgoingTxBatches(sdkCtx, func(batch *types.OutgoingTxBatch) bool {
 		// filter startHeight before confirm
 		if oracle.StartHeight > int64(batch.Block) {
 			return false
@@ -165,7 +165,7 @@ func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.Quer
 // OutgoingTxBatches queries the OutgoingTxBatches of the bsc module
 func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
 	var batches []*types.OutgoingTxBatch
-	k.IterateOutgoingTxBatches(sdk.UnwrapSDKContext(c), func(_ []byte, batch *types.OutgoingTxBatch) bool {
+	k.IterateOutgoingTxBatches(sdk.UnwrapSDKContext(c), func(batch *types.OutgoingTxBatch) bool {
 		batches = append(batches, batch)
 		return len(batches) == MaxResults
 	})
@@ -216,7 +216,7 @@ func (k Keeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRe
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	var confirms []*types.MsgConfirmBatch
-	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(_ []byte, c types.MsgConfirmBatch) bool {
+	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(c types.MsgConfirmBatch) bool {
 		confirms = append(confirms, &c)
 		return false
 	})
@@ -379,7 +379,7 @@ func (k Keeper) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryPro
 
 func (k Keeper) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
 	var bridgeTokens = make([]*types.BridgeToken, 0)
-	k.IterateBridgeTokenToDenom(sdk.UnwrapSDKContext(c), func(bytes []byte, token *types.BridgeToken) bool {
+	k.IterateBridgeTokenToDenom(sdk.UnwrapSDKContext(c), func(token *types.BridgeToken) bool {
 		bridgeTokens = append(bridgeTokens, token)
 		return false
 	})

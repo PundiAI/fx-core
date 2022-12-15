@@ -166,7 +166,7 @@ func (k Keeper) DeleteAttestation(ctx sdk.Context, att types.Attestation) {
 // GetAttestationMapping returns a mapping of eventNonce -> attestations at that nonce
 func (k Keeper) GetAttestationMapping(ctx sdk.Context) (out map[uint64][]types.Attestation) {
 	out = make(map[uint64][]types.Attestation)
-	k.IterateAttestations(ctx, func(_ []byte, att types.Attestation) bool {
+	k.IterateAttestations(ctx, func(att types.Attestation) bool {
 		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
 		if err != nil {
 			panic("couldn't cast to claim")
@@ -183,17 +183,16 @@ func (k Keeper) GetAttestationMapping(ctx sdk.Context) (out map[uint64][]types.A
 }
 
 // IterateAttestations iterates through all attestations
-func (k Keeper) IterateAttestations(ctx sdk.Context, cb func([]byte, types.Attestation) bool) {
+func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(types.Attestation) bool) {
 	store := ctx.KVStore(k.storeKey)
-	prefix := types.OracleAttestationKey
-	iter := store.Iterator(prefixRange(prefix))
+	iter := sdk.KVStorePrefixIterator(store, types.OracleAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
 		att := types.Attestation{}
 		k.cdc.MustUnmarshal(iter.Value(), &att)
 		// cb returns true to stop early
-		if cb(iter.Key(), att) {
+		if cb(att) {
 			return
 		}
 	}

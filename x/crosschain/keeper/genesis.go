@@ -156,7 +156,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 	for _, batch := range state.Batches {
 		state.BatchConfirms = append(state.BatchConfirms, k.GetBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract)...)
 	}
-	k.IterateBridgeTokenToDenom(ctx, func(key []byte, erc20ToDenom *types.BridgeToken) bool {
+	k.IterateBridgeTokenToDenom(ctx, func(erc20ToDenom *types.BridgeToken) bool {
 		state.BridgeTokens = append(state.BridgeTokens, *erc20ToDenom)
 		return false
 	})

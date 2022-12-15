@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"encoding/hex"
 	"fmt"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	"math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -241,7 +242,6 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 	require.EqualValues(suite.T(), math.MaxUint32, nonce1OracleSet.Members[0].Power)
 
 	gravityId := suite.Keeper().GetGravityID(suite.ctx)
-	require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 	if trontypes.ModuleName == suite.chainName {
 		checkpoint, err = trontypes.GetCheckpointOracleSet(nonce1OracleSet, gravityId)
@@ -367,7 +367,11 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	require.NotPanics(suite.T(), func() {
 		gravityId = suite.Keeper().GetGravityID(suite.ctx)
 	})
-	require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
+	if suite.chainName == ethtypes.ModuleName {
+		require.EqualValues(suite.T(), fmt.Sprintf("fx-bridge-%s", suite.chainName), gravityId)
+	} else {
+		require.EqualValues(suite.T(), fmt.Sprintf("fx-%s-bridge", suite.chainName), gravityId)
+	}
 	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
 	if trontypes.ModuleName == suite.chainName {
 		checkpoint, err = trontypes.GetCheckpointOracleSet(nonce1OracleSet, gravityId)

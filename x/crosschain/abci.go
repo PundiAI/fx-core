@@ -185,7 +185,7 @@ func attestationTally(ctx sdk.Context, k keeper.Keeper) {
 //	AND any deposit or withdraw has occurred to update the Ethereum block height.
 func cleanupTimedOutBatches(ctx sdk.Context, k keeper.Keeper) {
 	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
-	k.IterateOutgoingTxBatches(ctx, func(_ []byte, batch *types.OutgoingTxBatch) bool {
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.BatchTimeout < externalBlockHeight {
 			if err := k.CancelOutgoingTxBatch(ctx, batch.TokenContract, batch.BatchNonce); err != nil {
 				panic(fmt.Sprintf("Failed cancel out batch %s %d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
@@ -208,7 +208,7 @@ func pruneOracleSet(ctx sdk.Context, k keeper.Keeper, signedOracleSetsWindow uin
 	tooEarly := currentBlock < signedOracleSetsWindow
 	if lastObserved != nil && !tooEarly {
 		earliestToPrune := currentBlock - signedOracleSetsWindow
-		k.IterateOracleSets(ctx, func(_ []byte, set *types.OracleSet) bool {
+		k.IterateOracleSets(ctx, func(set *types.OracleSet) bool {
 			if set.Height < earliestToPrune && set.Nonce < lastObserved.Nonce {
 				k.DeleteOracleSet(ctx, set.Nonce)
 			}
