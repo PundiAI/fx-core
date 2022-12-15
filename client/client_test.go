@@ -274,7 +274,7 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 			wantRes: []interface{}{
 				func(height int64, err error) {
 					suite.NoError(err)
-					suite.True(height >= int64(10))
+					suite.True(height >= int64(1))
 				}},
 		},
 		{
