@@ -24,7 +24,6 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -308,7 +307,7 @@ func (suite *KeeperTestSuite) TestHookIBCManyToOne() {
 
 func (suite *KeeperTestSuite) TestHookIBCOneToMany() {
 	suite.mintToken(bsctypes.ModuleName, sdk.NewCoin(bscDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
-	suite.mintToken(gravitytypes.ModuleName, sdk.NewCoin(ethDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
+	suite.mintToken(ethtypes.ModuleName, sdk.NewCoin(ethDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
 	suite.mintToken(trontypes.ModuleName, sdk.NewCoin(tronDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18))))
 
 	addr1 := helpers.GenerateAddress()

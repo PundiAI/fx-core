@@ -92,7 +92,7 @@ var maccPerms = map[string][]string{
 	govtypes.ModuleName:            {authtypes.Burner},
 	ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	// used for secure addition and subtraction of balance using module account
-	gravitytypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
+	gravitytypes.ModuleName:   nil,
 	bsctypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 	polygontypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 	avalanchetypes.ModuleName: {authtypes.Minter, authtypes.Burner},
