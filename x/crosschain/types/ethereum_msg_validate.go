@@ -24,7 +24,7 @@ func (b EthereumMsgValidate) MsgBondedOracleValidate(m MsgBondedOracle) (err err
 	if err = fxtypes.ValidateEthereumAddress(m.ExternalAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "external address")
 	}
-	if m.DelegateAmount.IsNegative() {
+	if !m.DelegateAmount.IsValid() || m.DelegateAmount.IsNegative() {
 		return sdkerrors.Wrap(ErrInvalid, "delegate amount")
 	}
 	return nil
