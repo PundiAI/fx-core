@@ -627,9 +627,9 @@ func CmdGetERC20TokenToDenom() *cobra.Command {
 
 func CmdGetBridgeTokens() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bridge-tokens [chain-name]",
+		Use:   "bridge-tokens",
 		Short: "Query bridge token list",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
