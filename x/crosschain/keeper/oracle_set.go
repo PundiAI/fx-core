@@ -122,7 +122,7 @@ func (k Keeper) GetOracleSet(ctx sdk.Context, nonce uint64) *types.OracleSet {
 }
 
 // IterateOracleSets returns all oracleSetRequests
-func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(val *types.OracleSet) bool) {
+func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(*types.OracleSet) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.OracleSetRequestKey)
 	defer iter.Close()

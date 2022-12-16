@@ -172,10 +172,10 @@ func (k Keeper) GetAttestationMapping(ctx sdk.Context) (out map[uint64][]types.A
 			panic("couldn't cast to claim")
 		}
 
-		if val, ok := out[claim.GetEventNonce()]; !ok {
+		if atts, ok := out[claim.GetEventNonce()]; !ok {
 			out[claim.GetEventNonce()] = []types.Attestation{att}
 		} else {
-			out[claim.GetEventNonce()] = append(val, att)
+			out[claim.GetEventNonce()] = append(atts, att)
 		}
 		return false
 	})
