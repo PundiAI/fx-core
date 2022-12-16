@@ -25,13 +25,12 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
-	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 )
 
 const (
-	BankModuleTotalSupply   = "378604525462891000000000000"
-	GravityModuleInitAmount = "378600525462891000000000000"
+	InitTotalSupply     = "378604525462891000000000000"
+	EthModuleInitAmount = "378600525462891000000000000"
 )
 
 // GenesisState The genesis state of the blockchain is represented here as a map of raw json
@@ -44,13 +43,13 @@ const (
 type GenesisState map[string]json.RawMessage
 
 func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
-	fxTotalSupply, ok := sdk.NewIntFromString(BankModuleTotalSupply)
+	fxTotalSupply, ok := sdk.NewIntFromString(InitTotalSupply)
 	if !ok {
 		panic("invalid fx total supply")
 	}
-	gravityInitAmount, ok := sdk.NewIntFromString(GravityModuleInitAmount)
+	ethInitAmount, ok := sdk.NewIntFromString(EthModuleInitAmount)
 	if !ok {
-		panic("invalid gravity module init amount")
+		panic("invalid eth module init amount")
 	}
 
 	genesis := make(map[string]json.RawMessage)
@@ -106,8 +105,8 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 
 			state.Supply = sdk.NewCoins(sdk.NewCoin(denom, fxTotalSupply))
 			state.Balances = append(state.Balances, banktypes.Balance{
-				Address: authtypes.NewModuleAddress(gravitytypes.ModuleName).String(),
-				Coins:   sdk.NewCoins(sdk.NewCoin(denom, gravityInitAmount)),
+				Address: authtypes.NewModuleAddress(ethtypes.ModuleName).String(),
+				Coins:   sdk.NewCoins(sdk.NewCoin(denom, ethInitAmount)),
 			})
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case paramstypes.ModuleName:
@@ -121,8 +120,6 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			// only allowedClients tendermint
 			state.ClientGenesis.Params.AllowedClients = []string{exported.Tendermint}
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
-		case fxtransfertypes.CompatibleModuleName:
-			// ignore fx ibc transfer module
 		default:
 			genesis[b.Name()] = b.DefaultGenesis(cdc)
 		}
