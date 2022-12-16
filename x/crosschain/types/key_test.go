@@ -1,12 +1,14 @@
 package types_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/functionx/fx-core/v3/app/helpers"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
-	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 func TestGetBatchConfirmKey(t *testing.T) {

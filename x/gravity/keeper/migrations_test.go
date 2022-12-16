@@ -171,9 +171,8 @@ func (suite *MigrationTestSuite) checkBridgeToken(tokenContract string, bridgeTo
 	suite.NoError(err)
 	suite.Equal(len(response.BridgeTokens), bridgeTokenLen)
 	suite.Contains(response.BridgeTokens, &crosschaintypes.BridgeToken{
-		Token:      tokenContract,
-		Denom:      fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract),
-		ChannelIbc: "",
+		Token: tokenContract,
+		Denom: fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract),
 	})
 }
 
@@ -196,7 +195,6 @@ func (suite *MigrationTestSuite) TestSendToFxClaim() {
 	bridgeToken := suite.app.EthKeeper.GetDenomByBridgeToken(suite.ctx, suite.genesisState.Erc20ToDenoms[0].Denom)
 	suite.Equal(bridgeToken.Token, suite.genesisState.Erc20ToDenoms[0].Erc20)
 	suite.Equal(bridgeToken.Denom, fxtypes.DefaultDenom)
-	suite.Equal(bridgeToken.ChannelIbc, "")
 
 	suite.T().Log(bridgeToken.Token, bridgeToken.Denom)
 

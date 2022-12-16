@@ -422,8 +422,7 @@ func (suite *KeeperTestSuite) TestKeeper_TokenToDenom() {
 					Token:     suite.bridgeTokens[0].token,
 				}
 				response = &types.QueryTokenToDenomResponse{
-					Denom:      suite.bridgeTokens[0].denom,
-					ChannelIbc: "",
+					Denom: suite.bridgeTokens[0].denom,
 				}
 			},
 			expPass: true,
@@ -437,8 +436,7 @@ func (suite *KeeperTestSuite) TestKeeper_TokenToDenom() {
 				}
 
 				response = &types.QueryTokenToDenomResponse{
-					Denom:      suite.bridgeTokens[2].denom,
-					ChannelIbc: "transfer/channel-0",
+					Denom: suite.bridgeTokens[2].denom,
 				}
 			},
 			expPass: true,

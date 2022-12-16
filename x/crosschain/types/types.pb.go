@@ -375,8 +375,9 @@ func (m *LastObservedBlockHeight) GetBlockHeight() uint64 {
 
 // BridgeToken
 type BridgeToken struct {
-	Token      string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	Denom      string `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Denom string `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
+	//Deprecated: after upgrade v3
 	ChannelIbc string `protobuf:"bytes,3,opt,name=channel_ibc,json=channelIbc,proto3" json:"channel_ibc,omitempty"`
 }
 

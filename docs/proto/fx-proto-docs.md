@@ -409,7 +409,7 @@ BridgeToken
 | ----- | ---- | ----- | ----------- |
 | `token` | [string](#string) |  |  |
 | `denom` | [string](#string) |  |  |
-| `channel_ibc` | [string](#string) |  |  |
+| `channel_ibc` | [string](#string) |  | Deprecated: after upgrade v3 |
 
 
 
@@ -1489,7 +1489,6 @@ GenesisState struct
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `token` | [string](#string) |  |  |
-| `channel_ibc` | [string](#string) |  |  |
 
 
 
@@ -2015,7 +2014,6 @@ GenesisState struct
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  |  |
-| `channel_ibc` | [string](#string) |  |  |
 
 
 

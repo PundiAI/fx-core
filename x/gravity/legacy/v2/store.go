@@ -442,20 +442,8 @@ func migrateAttestation(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStor
 func migrateBridgeToken(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	token := gravityStore.Get(append(types.DenomToERC20Key, []byte(fxtypes.DefaultDenom)...))
 	if len(token) > 0 {
-		ethStore.Set(crosschaintypes.GetTokenToDenomKey(fxtypes.DefaultDenom),
-			cdc.MustMarshal(&crosschaintypes.BridgeToken{
-				Denom:      fxtypes.DefaultDenom,
-				Token:      string(token),
-				ChannelIbc: "",
-			}),
-		)
-		ethStore.Set(crosschaintypes.GetDenomToTokenKey(string(token)),
-			cdc.MustMarshal(&crosschaintypes.BridgeToken{
-				Denom:      fxtypes.DefaultDenom,
-				Token:      string(token),
-				ChannelIbc: "",
-			}),
-		)
+		ethStore.Set(crosschaintypes.GetTokenToDenomKey(fxtypes.DefaultDenom), token)
+		ethStore.Set(crosschaintypes.GetDenomToTokenKey(string(token)), []byte(fxtypes.DefaultDenom))
 	}
 	gravityStore.Delete(types.DenomToERC20Key)
 	gravityStore.Delete(types.ERC20ToDenomKey)
@@ -468,20 +456,8 @@ func MigrateBridgeTokenFromMetaDatas(cdc codec.BinaryCodec, metaDatas []banktype
 				denom := data.DenomUnits[0].Aliases[i]
 				if strings.HasPrefix(denom, ethtypes.ModuleName) {
 					token := strings.TrimPrefix(denom, ethtypes.ModuleName)
-					ethStore.Set(crosschaintypes.GetTokenToDenomKey(denom),
-						cdc.MustMarshal(&crosschaintypes.BridgeToken{
-							Denom:      denom,
-							Token:      token,
-							ChannelIbc: "",
-						}),
-					)
-					ethStore.Set(crosschaintypes.GetDenomToTokenKey(token),
-						cdc.MustMarshal(&crosschaintypes.BridgeToken{
-							Denom:      denom,
-							Token:      token,
-							ChannelIbc: "",
-						}),
-					)
+					ethStore.Set(crosschaintypes.GetTokenToDenomKey(denom), []byte(token))
+					ethStore.Set(crosschaintypes.GetDenomToTokenKey(token), []byte(denom))
 				}
 			}
 		}

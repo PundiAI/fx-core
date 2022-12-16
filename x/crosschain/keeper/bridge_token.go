@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -14,28 +13,26 @@ import (
 
 func (k Keeper) GetBridgeTokenDenom(ctx sdk.Context, tokenContract string) *types.BridgeToken {
 	store := ctx.KVStore(k.storeKey)
-
 	data := store.Get(types.GetDenomToTokenKey(tokenContract))
 	if len(data) <= 0 {
 		return nil
 	}
-	var bridgeToken types.BridgeToken
-	k.cdc.MustUnmarshal(data, &bridgeToken)
-	bridgeToken.Token = tokenContract
-	return &bridgeToken
+	return &types.BridgeToken{
+		Denom: string(data),
+		Token: tokenContract,
+	}
 }
 
 func (k Keeper) GetDenomByBridgeToken(ctx sdk.Context, denom string) *types.BridgeToken {
 	store := ctx.KVStore(k.storeKey)
-
 	data := store.Get(types.GetTokenToDenomKey(denom))
 	if len(data) <= 0 {
 		return nil
 	}
-	var bridgeToken types.BridgeToken
-	k.cdc.MustUnmarshal(data, &bridgeToken)
-	bridgeToken.Denom = denom
-	return &bridgeToken
+	return &types.BridgeToken{
+		Denom: denom,
+		Token: string(data),
+	}
 }
 
 func (k Keeper) HasBridgeToken(ctx sdk.Context, tokenContract string) bool {
@@ -43,47 +40,44 @@ func (k Keeper) HasBridgeToken(ctx sdk.Context, tokenContract string) bool {
 	return store.Has(types.GetDenomToTokenKey(tokenContract))
 }
 
-func (k Keeper) AddBridgeToken(ctx sdk.Context, token, channelIBC string) (string, error) {
+func (k Keeper) AddBridgeToken(ctx sdk.Context, token, denom string) {
 	store := ctx.KVStore(k.storeKey)
-	decodeChannelIBC, err := hex.DecodeString(channelIBC)
-	if err != nil {
-		return "", sdkerrors.Wrapf(err, "decode channel ibc err")
-	}
-
-	decodeChannelIBCStr := string(decodeChannelIBC)
-	denom := fmt.Sprintf("%s%s", k.moduleName, token)
-	if len(decodeChannelIBCStr) > 0 {
-		denomTrace := ibctransfertypes.DenomTrace{
-			Path:      decodeChannelIBCStr,
-			BaseDenom: denom,
-		}
-		k.ibcTransferKeeper.SetDenomTrace(ctx, denomTrace)
-		denom = denomTrace.IBCDenom()
-	}
-	store.Set(types.GetTokenToDenomKey(denom), k.cdc.MustMarshal(&types.BridgeToken{
-		Token:      token,
-		ChannelIbc: decodeChannelIBCStr,
-	}))
-	store.Set(types.GetDenomToTokenKey(token), k.cdc.MustMarshal(&types.BridgeToken{
-		Denom:      denom,
-		ChannelIbc: decodeChannelIBCStr,
-	}))
-	return denom, nil
+	store.Set(types.GetTokenToDenomKey(denom), []byte(token))
+	store.Set(types.GetDenomToTokenKey(token), []byte(denom))
 }
 
-// IterateBridgeTokenToDenom iterates over token to denom relations
 func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func(*types.BridgeToken) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.TokenToDenomKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		var bridgeToken types.BridgeToken
-		k.cdc.MustUnmarshal(iter.Value(), &bridgeToken)
-		bridgeToken.Denom = string(iter.Key()[len(types.TokenToDenomKey):])
+		bridgeToken := &types.BridgeToken{
+			Denom: string(iter.Key()[len(types.TokenToDenomKey):]),
+			Token: string(iter.Value()),
+		}
 		// cb returns true to stop early
-		if cb(&bridgeToken) {
+		if cb(bridgeToken) {
 			break
 		}
 	}
+}
+
+func (k Keeper) SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (string, error) {
+	channelPath, err := hex.DecodeString(channelIBC)
+	if err != nil {
+		return "", sdkerrors.Wrapf(err, "decode channel ibc err")
+	}
+
+	path := string(channelPath)
+	denom := fmt.Sprintf("%s%s", k.moduleName, token)
+	if len(path) > 0 {
+		denomTrace := ibctransfertypes.DenomTrace{
+			Path:      path,
+			BaseDenom: denom,
+		}
+		k.ibcTransferKeeper.SetDenomTrace(ctx, denomTrace)
+		denom = denomTrace.IBCDenom()
+	}
+	return denom, nil
 }

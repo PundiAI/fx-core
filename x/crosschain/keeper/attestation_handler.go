@@ -77,11 +77,12 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			}
 		}
 
-		coinDenom, err := k.AddBridgeToken(ctx, claim.TokenContract, claim.ChannelIbc)
+		denom, err := k.SetIbcDenomTrace(ctx, claim.TokenContract, claim.ChannelIbc)
 		if err != nil {
 			return err
 		}
-		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc, "coinDenom", coinDenom)
+		k.AddBridgeToken(ctx, claim.TokenContract, denom)
+		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc, "denom", denom)
 
 	case *types.MsgOracleSetUpdatedClaim:
 		observedOracleSet := types.OracleSet{

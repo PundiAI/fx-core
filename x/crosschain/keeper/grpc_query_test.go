@@ -1355,8 +1355,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_DenomToToken() {
 					Denom:     denom.Denom,
 				}
 				response = &types.QueryDenomToTokenResponse{
-					Token:      token,
-					ChannelIbc: "transfer/channel-0",
+					Token: token,
 				}
 			},
 			true,
@@ -1430,8 +1429,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 				}
 				denom := suite.app.BscKeeper.GetBridgeTokenDenom(suite.ctx, token)
 				response = &types.QueryTokenToDenomResponse{
-					Denom:      denom.Denom,
-					ChannelIbc: "transfer/channel-0",
+					Denom: denom.Denom,
 				}
 				expectedError = sdkerrors.Wrap(types.ErrEmpty, "bridge token is not exist")
 			},
@@ -1849,8 +1847,11 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 							Id:          1,
 							Sender:      bridgeAcc.String(),
 							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))), denom.Token),
-							Fee:         bridgeTokenFee,
+							Token: types.NewERC20Token(
+								sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))),
+								denom.Token,
+							),
+							Fee: bridgeTokenFee,
 						},
 					},
 				}
@@ -2233,9 +2234,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeTokens() {
 					suite.Require().Equal(bridgeTokenFromDenom.Denom, bridgeTokenFromToken.Denom)
 
 					newBridgeTokens[i] = &types.BridgeToken{
-						Token:      common.BytesToAddress(key.PubKey().Address()).String(),
-						Denom:      bridgeTokenFromToken.Denom,
-						ChannelIbc: channelIbc,
+						Token: common.BytesToAddress(key.PubKey().Address()).String(),
+						Denom: bridgeTokenFromToken.Denom,
 					}
 				}
 				return &types.QueryBridgeTokensResponse{BridgeTokens: newBridgeTokens}

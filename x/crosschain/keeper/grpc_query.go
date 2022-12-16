@@ -249,13 +249,12 @@ func (k Keeper) DenomToToken(c context.Context, req *types.QueryDenomToTokenRequ
 		return nil, status.Error(codes.NotFound, "bridge token")
 	}
 	return &types.QueryDenomToTokenResponse{
-		Token:      bridgeToken.Token,
-		ChannelIbc: bridgeToken.ChannelIbc,
+		Token: bridgeToken.Token,
 	}, nil
 }
 
 func (k Keeper) TokenToDenom(c context.Context, req *types.QueryTokenToDenomRequest) (*types.QueryTokenToDenomResponse, error) {
-	if err := fxtypes.ValidateEthereumAddress(req.GetToken()); err != nil {
+	if err := fxtypes.ValidateEthereumAddress(req.Token); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token address")
 	}
 	bridgeToken := k.GetBridgeTokenDenom(sdk.UnwrapSDKContext(c), req.Token)
@@ -263,8 +262,7 @@ func (k Keeper) TokenToDenom(c context.Context, req *types.QueryTokenToDenomRequ
 		return nil, status.Error(codes.NotFound, "bridge token")
 	}
 	return &types.QueryTokenToDenomResponse{
-		Denom:      bridgeToken.Denom,
-		ChannelIbc: bridgeToken.ChannelIbc,
+		Denom: bridgeToken.Denom,
 	}, nil
 }
 

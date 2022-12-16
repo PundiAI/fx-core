@@ -282,22 +282,9 @@ func CmdRequestBatch() *cobra.Command {
 					}
 				}
 			}
-			denom := args[1]
-			queryClient := types.NewQueryClient(clientCtx)
-			token, err := queryClient.DenomToToken(cmd.Context(), &types.QueryDenomToTokenRequest{
-				Denom:     denom,
-				ChainName: args[0],
-			})
-			if err != nil {
-				return err
-			}
-			err = clientCtx.PrintString(fmt.Sprintf("build-batch:\n\tdenom:%s\n\ttoken:%s\n\tchannelIBC:%s\n\n", denom, token.Token, token.ChannelIbc))
-			if err != nil {
-				fmt.Printf("print denom data err:%v\n", err)
-			}
 			msg := &types.MsgRequestBatch{
 				Sender:     clientCtx.GetFromAddress().String(),
-				Denom:      denom,
+				Denom:      args[1],
 				MinimumFee: minimumFee,
 				FeeReceive: feeReceive,
 				ChainName:  args[0],

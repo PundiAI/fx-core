@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"encoding/hex"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -47,9 +45,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 
 	for _, bridgeToken := range state.BridgeTokens {
 		// 0x26 0x27
-		if _, err := k.AddBridgeToken(ctx, bridgeToken.Token, hex.EncodeToString([]byte(bridgeToken.ChannelIbc))); err != nil {
-			panic(err)
-		}
+		k.AddBridgeToken(ctx, bridgeToken.Token, bridgeToken.Denom)
 	}
 	for _, confirm := range state.BatchConfirms {
 		for _, oracle := range state.Oracles {

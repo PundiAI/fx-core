@@ -205,7 +205,6 @@ message QueryTokenToDenomRequest {
 }
 message QueryTokenToDenomResponse {
   string denom = 1;
-  string channel_ibc = 2;
 }
 
 message QueryDenomToTokenRequest {
@@ -214,7 +213,6 @@ message QueryDenomToTokenRequest {
 }
 message QueryDenomToTokenResponse {
   string token = 1;
-  string channel_ibc = 2;
 }
 
 message QueryOracleByAddrRequest {

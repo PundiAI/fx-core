@@ -22,17 +22,17 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 	for i := 0; i < len(bridgeTokens); i++ {
 		contractAddress := helpers.GenerateAddress().Hex()
 		bridgeToken := types.BridgeToken{
-			Token:      contractAddress,
-			Denom:      fmt.Sprintf("%s%s", suite.chainName, contractAddress),
-			ChannelIbc: "",
+			Token: contractAddress,
+			Denom: fmt.Sprintf("%s%s", suite.chainName, contractAddress),
 		}
 		bridgeTokens[i] = bridgeToken
-		denom, err := suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken.Token, bridgeToken.ChannelIbc)
+		denom, err := suite.Keeper().SetIbcDenomTrace(suite.ctx, bridgeToken.Token, "")
 		require.NoError(suite.T(), err)
 		require.Equal(suite.T(), denom, bridgeToken.Denom)
+		suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken.Token, denom)
 
 		for _, bridger := range suite.bridgers {
-			voucher := sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(999))
+			voucher := sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(9990))
 			err := suite.app.BankKeeper.MintCoins(suite.ctx, suite.chainName, sdk.NewCoins(voucher))
 			require.NoError(suite.T(), err)
 

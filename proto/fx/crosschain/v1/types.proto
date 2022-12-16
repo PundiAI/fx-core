@@ -52,6 +52,7 @@ message LastObservedBlockHeight {
 message BridgeToken {
   string token = 1;
   string denom = 2;
+  //Deprecated: after upgrade v3
   string channel_ibc = 3;
 }
 

@@ -63,7 +63,7 @@ func (k Keeper) BatchConfirms(c context.Context, req *crosschaintypes.QueryBatch
 }
 
 func (k Keeper) TokenToDenom(c context.Context, req *crosschaintypes.QueryTokenToDenomRequest) (*crosschaintypes.QueryTokenToDenomResponse, error) {
-	if err := types.ValidateTronAddress(req.GetToken()); err != nil {
+	if err := types.ValidateTronAddress(req.Token); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token address")
 	}
 	bridgeToken := k.GetBridgeTokenDenom(sdk.UnwrapSDKContext(c), req.Token)
@@ -71,8 +71,7 @@ func (k Keeper) TokenToDenom(c context.Context, req *crosschaintypes.QueryTokenT
 		return nil, status.Error(codes.NotFound, "bridge token")
 	}
 	return &crosschaintypes.QueryTokenToDenomResponse{
-		Denom:      bridgeToken.Denom,
-		ChannelIbc: bridgeToken.ChannelIbc,
+		Denom: bridgeToken.Denom,
 	}, nil
 }
 
