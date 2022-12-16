@@ -453,6 +453,15 @@ func (suite *IntegrationTestSuite) TestTmClient() {
 		{
 			funcName: "BlockchainInfo",
 			params:   []interface{}{int64(1), int64(1)},
+			wantRes: []interface{}{
+				func(res1 *coreTypes.ResultBlockchainInfo, err1 error, res2 *coreTypes.ResultBlockchainInfo, err2 error) {
+					suite.NoError(err1)
+					suite.NoError(err2)
+					data1, _ := json.Marshal(res1.BlockMetas)
+					data2, _ := json.Marshal(res2.BlockMetas)
+					suite.Equal(data1, data2)
+				},
+			},
 		},
 		//StatusClient
 		{
