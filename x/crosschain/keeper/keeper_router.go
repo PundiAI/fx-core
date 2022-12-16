@@ -49,7 +49,7 @@ func NewModuleHandler(keeper Keeper) *ModuleHandler {
 
 var _ Router = (*router)(nil)
 
-// Router implements a cross chain EthereumMsgServer Handler router.
+// Router implements a crosschain Server Handler router.
 type Router interface {
 	AddRoute(name string, moduleHandler *ModuleHandler) (router Router)
 	HasRoute(name string) bool

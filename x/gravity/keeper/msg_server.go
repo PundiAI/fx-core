@@ -11,17 +11,17 @@ import (
 )
 
 type msgServer struct {
-	crosschainkeeper.EthereumMsgServer
+	crosschainkeeper.MsgServer
 }
 
 func NewMsgServerImpl(keeper crosschainkeeper.Keeper) types.MsgServer {
-	return &msgServer{EthereumMsgServer: crosschainkeeper.EthereumMsgServer{Keeper: keeper}}
+	return &msgServer{MsgServer: crosschainkeeper.MsgServer{Keeper: keeper}}
 }
 
 var _ types.MsgServer = msgServer{}
 
 func (k msgServer) ValsetConfirm(c context.Context, msg *types.MsgValsetConfirm) (*types.MsgValsetConfirmResponse, error) {
-	_, err := k.EthereumMsgServer.OracleSetConfirm(c, &crosschaintypes.MsgOracleSetConfirm{
+	_, err := k.MsgServer.OracleSetConfirm(c, &crosschaintypes.MsgOracleSetConfirm{
 		Nonce:           msg.Nonce,
 		BridgerAddress:  msg.Orchestrator,
 		ExternalAddress: msg.EthAddress,
@@ -32,7 +32,7 @@ func (k msgServer) ValsetConfirm(c context.Context, msg *types.MsgValsetConfirm)
 }
 
 func (k msgServer) SendToEth(c context.Context, msg *types.MsgSendToEth) (*types.MsgSendToEthResponse, error) {
-	_, err := k.EthereumMsgServer.SendToExternal(c, &crosschaintypes.MsgSendToExternal{
+	_, err := k.MsgServer.SendToExternal(c, &crosschaintypes.MsgSendToExternal{
 		Sender:    msg.Sender,
 		Dest:      msg.EthDest,
 		Amount:    msg.Amount,
@@ -43,7 +43,7 @@ func (k msgServer) SendToEth(c context.Context, msg *types.MsgSendToEth) (*types
 }
 
 func (k msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
-	_, err := k.EthereumMsgServer.RequestBatch(c, &crosschaintypes.MsgRequestBatch{
+	_, err := k.MsgServer.RequestBatch(c, &crosschaintypes.MsgRequestBatch{
 		Sender:     msg.Sender,
 		Denom:      msg.Denom,
 		MinimumFee: msg.MinimumFee,
@@ -55,7 +55,7 @@ func (k msgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 }
 
 func (k msgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
-	_, err := k.EthereumMsgServer.ConfirmBatch(c, &crosschaintypes.MsgConfirmBatch{
+	_, err := k.MsgServer.ConfirmBatch(c, &crosschaintypes.MsgConfirmBatch{
 		Nonce:           msg.Nonce,
 		TokenContract:   msg.TokenContract,
 		BridgerAddress:  msg.Orchestrator,
@@ -67,7 +67,7 @@ func (k msgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 }
 
 func (k msgServer) DepositClaim(c context.Context, msg *types.MsgDepositClaim) (*types.MsgDepositClaimResponse, error) {
-	_, err := k.EthereumMsgServer.SendToFxClaim(c, &crosschaintypes.MsgSendToFxClaim{
+	_, err := k.MsgServer.SendToFxClaim(c, &crosschaintypes.MsgSendToFxClaim{
 		EventNonce:     msg.EventNonce,
 		BlockHeight:    msg.BlockHeight,
 		TokenContract:  msg.TokenContract,
@@ -82,7 +82,7 @@ func (k msgServer) DepositClaim(c context.Context, msg *types.MsgDepositClaim) (
 }
 
 func (k msgServer) WithdrawClaim(c context.Context, msg *types.MsgWithdrawClaim) (*types.MsgWithdrawClaimResponse, error) {
-	_, err := k.EthereumMsgServer.SendToExternalClaim(c, &crosschaintypes.MsgSendToExternalClaim{
+	_, err := k.MsgServer.SendToExternalClaim(c, &crosschaintypes.MsgSendToExternalClaim{
 		EventNonce:     msg.EventNonce,
 		BlockHeight:    msg.BlockHeight,
 		BatchNonce:     msg.BatchNonce,
@@ -94,7 +94,7 @@ func (k msgServer) WithdrawClaim(c context.Context, msg *types.MsgWithdrawClaim)
 }
 
 func (k msgServer) CancelSendToEth(c context.Context, msg *types.MsgCancelSendToEth) (*types.MsgCancelSendToEthResponse, error) {
-	_, err := k.EthereumMsgServer.CancelSendToExternal(c, &crosschaintypes.MsgCancelSendToExternal{
+	_, err := k.MsgServer.CancelSendToExternal(c, &crosschaintypes.MsgCancelSendToExternal{
 		TransactionId: msg.TransactionId,
 		Sender:        msg.Sender,
 		ChainName:     ethtypes.ModuleName,
@@ -117,6 +117,6 @@ func (k msgServer) ValsetUpdateClaim(c context.Context, msg *types.MsgValsetUpda
 			ExternalAddress: msg.Members[i].EthAddress,
 		}
 	}
-	_, err := k.EthereumMsgServer.OracleSetUpdateClaim(c, msg2)
+	_, err := k.MsgServer.OracleSetUpdateClaim(c, msg2)
 	return &types.MsgValsetUpdatedClaimResponse{}, err
 }
