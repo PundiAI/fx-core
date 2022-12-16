@@ -50,7 +50,7 @@ func TestMigrationTestSuite(t *testing.T) {
 func (suite *MigrationTestSuite) SetupTest() {
 	rand.Seed(time.Now().UnixNano())
 
-	valNumber := rand.Intn(99) + 1
+	valNumber := rand.Intn(crosschaintypes.MaxOracleSize-1) + 1
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: suite.app.LastBlockHeight(), ChainID: fxtypes.TestnetChainId})
@@ -131,14 +131,14 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 		ChannelIbc:    "",
 		ChainName:     ethtypes.ModuleName,
 	}
-	for _, oracle := range onlineOracles {
-		msg.BridgerAddress = oracle.BridgerAddress
+	for _, onlineOracle := range onlineOracles {
+		msg.BridgerAddress = onlineOracle.BridgerAddress
 		_, err := suite.msgServer.BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), msg)
 		suite.NoError(err)
 	}
-	for _, oracle := range onlineOracles {
+	for _, onlineOracle := range onlineOracles {
 		msg.EventNonce = suite.genesisState.LastObservedNonce + 1
-		msg.BridgerAddress = oracle.BridgerAddress
+		msg.BridgerAddress = onlineOracle.BridgerAddress
 		_, err := suite.msgServer.BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), msg)
 		suite.NoError(err)
 	}
@@ -278,6 +278,9 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 	})
 	suite.NoError(err)
 
+	balances := suite.app.BankKeeper.GetBalance(suite.ctx, suite.valAddrs[0].Bytes(), denom)
+	suite.Equal(balances, sdk.NewCoin(denom, sdk.NewInt(98)))
+
 	response, err := suite.app.EthKeeper.BatchFees(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryBatchFeeRequest{})
 	suite.NoError(err)
 	suite.Equal(len(response.BatchFees), 1)
@@ -339,8 +342,8 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 		ChainName:     ethtypes.ModuleName,
 	}
 
-	for _, oracle := range onlineOracles {
-		msg.BridgerAddress = oracle.BridgerAddress
+	for _, onlineOracle := range onlineOracles {
+		msg.BridgerAddress = onlineOracle.BridgerAddress
 		_, err := suite.msgServer.SendToExternalClaim(sdk.WrapSDKContext(suite.ctx), msg)
 		suite.NoError(err)
 	}
@@ -351,4 +354,64 @@ func (suite *MigrationTestSuite) TestOracleSetConfirm() {
 		1. MsgOracleSetConfirm
 		2. MsgOracleSetUpdatedClaim
 	*/
+
+	suite.createDefGenesisState()
+	suite.genesisState.LastObservedBlockHeight = types.LastObservedEthereumBlockHeight{
+		FxBlockHeight:  uint64(suite.ctx.BlockHeight()),
+		EthBlockHeight: rand.Uint64(),
+	}
+
+	suite.InitGravityStore()
+	suite.NoError(suite.migrator.Migrate1to2(suite.ctx))
+
+	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.app.Commit()
+
+	onlineOracles := suite.app.EthKeeper.GetAllOracles(suite.ctx, true)
+	suite.True(onlineOracles.Len() > 0 && onlineOracles.Len() <= 20)
+
+	oracleSet := suite.app.EthKeeper.GetLatestOracleSet(suite.ctx)
+	suite.True(oracleSet.Height > 0)
+	suite.True(oracleSet.Nonce > 0)
+	suite.True(len(oracleSet.Members) > 0)
+	checkpoint, err := oracleSet.GetCheckpoint(suite.genesisState.Params.GravityId)
+	suite.NoError(err)
+
+	for i, bridger := range suite.bridgerAddrs {
+		var onlineOracle crosschaintypes.Oracle
+		for _, oracle := range onlineOracles {
+			if oracle.BridgerAddress == bridger.String() {
+				onlineOracle = oracle
+				break
+			}
+		}
+		if !onlineOracle.Online {
+			continue
+		}
+		externalAddress := crypto.PubkeyToAddress(suite.externals[i].PublicKey).String()
+		suite.Equal(externalAddress, onlineOracle.ExternalAddress)
+		signature, err := crosschaintypes.NewEthereumSignature(checkpoint, suite.externals[i])
+		suite.NoError(err)
+		_, err = suite.msgServer.OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.MsgOracleSetConfirm{
+			Nonce:           oracleSet.Nonce,
+			BridgerAddress:  onlineOracle.BridgerAddress,
+			ExternalAddress: externalAddress,
+			Signature:       hex.EncodeToString(signature),
+			ChainName:       ethtypes.ModuleName,
+		})
+		suite.NoError(err)
+	}
+
+	msg := &crosschaintypes.MsgOracleSetUpdatedClaim{
+		EventNonce:     suite.genesisState.LastObservedNonce,
+		BlockHeight:    suite.genesisState.LastObservedBlockHeight.EthBlockHeight + 1,
+		OracleSetNonce: oracleSet.Nonce,
+		Members:        oracleSet.Members,
+		ChainName:      ethtypes.ModuleName,
+	}
+	for _, onlineOracle := range onlineOracles {
+		msg.BridgerAddress = onlineOracle.BridgerAddress
+		_, err := suite.msgServer.OracleSetUpdateClaim(sdk.WrapSDKContext(suite.ctx), msg)
+		suite.NoError(err)
+	}
 }
