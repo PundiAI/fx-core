@@ -12,7 +12,7 @@ import (
 
 func MigrateParams(legacyAmino *codec.LegacyAmino, paramsStore sdk.KVStore, toModuleName string) error {
 	oldStore := prefix.NewStore(paramsStore, append([]byte(types.ModuleName), '/'))
-	gravityParams := &types.Params{} //nolint
+	gravityParams := &types.Params{} // nolint:staticcheck
 	isExist := false
 	for _, pair := range gravityParams.ParamSetPairs() {
 		bz := oldStore.Get(pair.Key)

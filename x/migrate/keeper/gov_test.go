@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	//check acc vote
 	vote, found := suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, acc)
 	suite.Require().True(found)
-	suite.Require().Equal(vote.Option, govtypes.OptionYes) // nolint
+	suite.Require().Equal(vote.Option, govtypes.OptionYes) // nolint:staticcheck
 
 	//check to address deposit vote
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
@@ -177,6 +177,6 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 
 	vote, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().True(found)
-	suite.Require().Equal(vote.Option, govtypes.OptionYes) // nolint
+	suite.Require().Equal(vote.Option, govtypes.OptionYes) // nolint:staticcheck
 
 }

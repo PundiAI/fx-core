@@ -1,4 +1,4 @@
-// nolint
+// nolint:staticcheck
 package keeper_test
 
 import (

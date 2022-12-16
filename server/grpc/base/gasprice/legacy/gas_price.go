@@ -9,7 +9,7 @@ import (
 // Deprecated: Querier
 type Querier struct{}
 
-// nolint
+// nolint:staticcheck
 var _ QueryServer = Querier{}
 
 func (q Querier) FxGasPrice(ctx context.Context, request *GasPriceRequest) (*GasPriceResponse, error) {

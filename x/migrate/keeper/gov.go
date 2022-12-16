@@ -112,7 +112,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to 
 				sdk.NewEvent(
 					types.EventTypeMigrateGovVote,
 					sdk.NewAttribute(types.AttributeKeyProposalId, fmt.Sprintf("%d", proposalID)),
-					sdk.NewAttribute(types.AttributeKeyVoteOption, fromVote.Option.String()), //nolint
+					sdk.NewAttribute(types.AttributeKeyVoteOption, fromVote.Option.String()), // nolint:staticcheck
 				),
 			)
 		}

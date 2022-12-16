@@ -18,7 +18,7 @@ const (
 
 // NewMsgTransfer creates a new MsgTransfer instance
 //
-//nolint:interfacer
+// nolint:interfacer
 func NewMsgTransfer(
 	sourcePort, sourceChannel string,
 	token sdk.Coin, sender string, receiver string,
