@@ -106,7 +106,6 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
-
 	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
 		return err
 	}

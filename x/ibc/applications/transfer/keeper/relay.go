@@ -260,7 +260,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData, ack channeltypes.Acknowledgement) error {
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
-		_, amount, fee, err := parseReceiveAndAmountByPacket(data)
+		amount, fee, err := parseAmountAndFeeByPacket(data)
 		if err != nil {
 			return err
 		}
@@ -269,7 +269,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 		if err = k.Keeper.OnAcknowledgementPacket(ctx, packet, ibcPacketData, ack); err != nil {
 			return err
 		}
-		return k.refundPacketTokenHook(ctx, packet, data)
+		return k.refundPacketTokenHook(ctx, packet, data, amount, fee)
 	default:
 		// the acknowledgement succeeded on the receiving chain so nothing
 		// needs to be executed and no error needs to be returned
@@ -280,7 +280,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 // OnTimeoutPacket refunds the sender since the original packet sent was
 // never received and has been timed out.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData) error {
-	_, amount, fee, err := parseReceiveAndAmountByPacket(data)
+	amount, fee, err := parseAmountAndFeeByPacket(data)
 	if err != nil {
 		return err
 	}
@@ -289,29 +289,18 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 	if err = k.Keeper.OnTimeoutPacket(ctx, packet, ibcPacketData); err != nil {
 		return err
 	}
-	return k.refundPacketTokenHook(ctx, packet, data)
+	return k.refundPacketTokenHook(ctx, packet, data, amount, fee)
 }
 
 // refundPacketToken will unescrow and send back the tokens back to sender
 // if the sending chain was the source chain. Otherwise, the sent tokens
 // were burnt in the original send so new tokens are minted and sent to
 // the sending address.
-func (k Keeper) refundPacketTokenHook(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData) error {
+func (k Keeper) refundPacketTokenHook(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketData, amount sdk.Int, fee sdk.Int) error {
 	// parse the denomination from the full denom path
 	trace := transfertypes.ParseDenomTrace(data.Denom)
 
-	amount, ok := sdk.NewIntFromString(data.Amount)
-	if !ok {
-		return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
-	}
-	// If the IBC router is not empty, the feeAmount refund is added.
-	if data.Router != "" {
-		feeAmount, ok := sdk.NewIntFromString(data.Fee)
-		if !ok {
-			return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer fee (%s) into sdk.Int", data.Amount)
-		}
-		amount = amount.Add(feeAmount)
-	}
+	amount = amount.Add(fee)
 	token := sdk.NewCoin(trace.IBCDenom(), amount)
 
 	// decode the sender address

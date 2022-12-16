@@ -81,7 +81,24 @@ func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccA
 		return nil, sdk.Int{}, sdk.Int{}, err
 	}
 	return receiverAddr, transferAmount, sdk.ZeroInt(), nil
+}
 
+func parseAmountAndFeeByPacket(data types.FungibleTokenPacketData) (sdk.Int, sdk.Int, error) {
+	// parse the transfer amount
+	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	if !ok {
+		return sdk.Int{}, sdk.Int{}, sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
+	}
+
+	feeAmount := sdk.ZeroInt()
+	if data.Router != "" {
+		fee, ok := sdk.NewIntFromString(data.Fee)
+		if !ok || fee.IsNegative() {
+			return sdk.Int{}, sdk.Int{}, sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
+		}
+		feeAmount = fee
+	}
+	return transferAmount, feeAmount, nil
 }
 
 func parsePacketAddress(ibcSender string) (sdk.AccAddress, error) {

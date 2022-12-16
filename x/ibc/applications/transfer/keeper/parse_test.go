@@ -67,6 +67,69 @@ func TestParseReceiveAndAmountByPacket(t *testing.T) {
 	}
 }
 
+func TestParseAmountAndFeeByPacket(t *testing.T) {
+	type expect struct {
+		amount sdk.Int
+		fee    sdk.Int
+	}
+	testCases := []struct {
+		name    string
+		packet  types.FungibleTokenPacketData
+		expPass bool
+		errStr  string
+		expect  expect
+	}{
+		{
+			"pass - no router only amount ",
+			types.FungibleTokenPacketData{Amount: "1"},
+			true, "",
+			expect{amount: sdk.NewInt(1), fee: sdk.ZeroInt()},
+		},
+		{
+			"error - amount is empty",
+			types.FungibleTokenPacketData{Amount: ""},
+			false,
+			"unable to parse transfer amount () into sdk.Int: invalid token amount",
+			expect{amount: sdk.Int{}, fee: sdk.Int{}},
+		},
+		{
+			"error - fee is empty",
+			types.FungibleTokenPacketData{Amount: "1", Fee: "", Router: "aaa"},
+			false,
+			"fee amount is invalid:: invalid token amount",
+			expect{amount: sdk.Int{}, fee: sdk.Int{}},
+		},
+		{
+			"error - fee is negative",
+			types.FungibleTokenPacketData{Amount: "1", Fee: "-1", Router: "aaa"},
+			false,
+			"fee amount is invalid:-1: invalid token amount",
+			expect{amount: sdk.Int{}, fee: sdk.Int{}},
+		},
+		{
+			"pass - fee is zero",
+			types.FungibleTokenPacketData{Amount: "1", Fee: "0", Router: "aaa"},
+			true,
+			"",
+			expect{amount: sdk.NewInt(1), fee: sdk.ZeroInt()},
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actualAmount, actualFee, err := parseAmountAndFeeByPacket(tc.packet)
+			if tc.expPass {
+				require.NoError(t, err, "valid test case %d failed: %v", i, err)
+			} else {
+				require.Error(t, err)
+				require.EqualValues(t, tc.errStr, err.Error())
+			}
+			require.EqualValues(t, tc.expect.amount.String(), actualAmount.String())
+			require.EqualValues(t, tc.expect.fee.String(), actualFee.String())
+		})
+	}
+}
+
 func TestParsePacketAddress(t *testing.T) {
 	testCases := []struct {
 		name    string
