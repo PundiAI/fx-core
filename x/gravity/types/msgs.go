@@ -53,7 +53,7 @@ func (m *MsgSetOrchestratorAddress) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
-	if err := fxtypes.ValidateEthereumAddress(m.EthAddress); err != nil {
+	if err = fxtypes.ValidateEthereumAddress(m.EthAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "ethereum address")
 	}
 	return nil
@@ -84,7 +84,7 @@ func (m *MsgValsetConfirm) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "orchestrator address")
 	}
-	if err := fxtypes.ValidateEthereumAddress(m.EthAddress); err != nil {
+	if err = fxtypes.ValidateEthereumAddress(m.EthAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "ethereum address")
 	}
 	if len(m.Signature) == 0 {
@@ -148,7 +148,6 @@ func (m *MsgSendToEth) GetSigners() []sdk.AccAddress {
 	if err != nil {
 		panic(err)
 	}
-
 	return []sdk.AccAddress{acc}
 }
 
@@ -186,7 +185,6 @@ func (m *MsgRequestBatch) GetSigners() []sdk.AccAddress {
 	if err != nil {
 		panic(err)
 	}
-
 	return []sdk.AccAddress{acc}
 }
 
@@ -210,8 +208,7 @@ func (m *MsgConfirmBatch) ValidateBasic() error {
 	if len(m.Signature) == 0 {
 		return sdkerrors.Wrap(crosschaintypes.ErrEmpty, "signature")
 	}
-	_, err := hex.DecodeString(m.Signature)
-	if err != nil {
+	if _, err := hex.DecodeString(m.Signature); err != nil {
 		return sdkerrors.Wrapf(crosschaintypes.ErrInvalid, "could not hex decode signature: %s", m.Signature)
 	}
 	return nil
@@ -337,10 +334,6 @@ func (m *MsgDepositClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgDepositClaim) GetClaimer() sdk.AccAddress {
-	if err := m.ValidateBasic(); err != nil {
-		panic("MsgDepositClaim failed ValidateBasic! Should have been handled earlier")
-	}
-
 	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
 	if err != nil {
 		panic(err)
@@ -354,7 +347,6 @@ func (m *MsgDepositClaim) GetSigners() []sdk.AccAddress {
 	if err != nil {
 		panic(err)
 	}
-
 	return []sdk.AccAddress{acc}
 }
 
@@ -407,10 +399,6 @@ func (m *MsgWithdrawClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgWithdrawClaim) GetClaimer() sdk.AccAddress {
-	err := m.ValidateBasic()
-	if err != nil {
-		panic("MsgWithdrawClaim failed ValidateBasic! Should have been handled earlier")
-	}
 	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
 	if err != nil {
 		panic(err)
@@ -424,7 +412,6 @@ func (m *MsgWithdrawClaim) GetSigners() []sdk.AccAddress {
 	if err != nil {
 		panic(err)
 	}
-
 	return []sdk.AccAddress{acc}
 }
 
@@ -475,10 +462,6 @@ func (m *MsgFxOriginatedTokenClaim) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgFxOriginatedTokenClaim) GetClaimer() sdk.AccAddress {
-	err := m.ValidateBasic()
-	if err != nil {
-		panic("MsgFxOriginatedTokenClaim failed ValidateBasic! Should have been handled earlier")
-	}
 	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
 	if err != nil {
 		panic(err)
@@ -494,9 +477,6 @@ func (m *MsgFxOriginatedTokenClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%s/%s/%s/%d/", m.TokenContract, m.Name, m.Symbol, m.Decimals)
 	return tmhash.Sum([]byte(path))
 }
-
-// EthereumClaim implementation for MsgValsetUpdatedClaim
-// ======================================================
 
 // GetType returns the type of the claim
 func (m *MsgValsetUpdatedClaim) GetType() ClaimType {
@@ -534,11 +514,6 @@ func (m *MsgValsetUpdatedClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgValsetUpdatedClaim) GetClaimer() sdk.AccAddress {
-	err := m.ValidateBasic()
-	if err != nil {
-		panic("MsgERC20DeployedClaim failed ValidateBasic! Should have been handled earlier")
-	}
-
 	val, err := sdk.AccAddressFromBech32(m.Orchestrator)
 	if err != nil {
 		panic(err)
@@ -552,7 +527,6 @@ func (m *MsgValsetUpdatedClaim) GetSigners() []sdk.AccAddress {
 	if err != nil {
 		panic(err)
 	}
-
 	return []sdk.AccAddress{acc}
 }
 
