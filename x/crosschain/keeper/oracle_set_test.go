@@ -2,10 +2,12 @@ package keeper_test
 
 import (
 	"fmt"
+	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
@@ -68,30 +70,30 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 }
 
 func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
-	for i := 1; i <= 3; i++ {
+	height := rand.Intn(1000) + 1
+	index := rand.Intn(100) + 1
+	for i := 1; i <= index; i++ {
 		suite.Keeper().StoreOracleSet(suite.ctx, &types.OracleSet{
 			Nonce: uint64(i),
 			Members: types.BridgeValidators{{
-				Power:           uint64(i),
-				ExternalAddress: fmt.Sprintf("0x%d", i),
+				Power:           rand.Uint64(),
+				ExternalAddress: helpers.GenerateAddress().Hex(),
 			}},
-			Height: uint64(1000 + i),
+			Height: uint64(height + i),
 		})
 	}
-	slashOracleSetHeight := 1003
-	sets := suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(slashOracleSetHeight))
+
+	sets := suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
 	require.NotNil(suite.T(), sets)
-	require.EqualValues(suite.T(), 2, sets.Len())
+	require.EqualValues(suite.T(), index-1, sets.Len())
 
 	suite.Keeper().SetLastSlashedOracleSetNonce(suite.ctx, 1)
-	slashOracleSetHeight = 1003
-	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(slashOracleSetHeight))
+	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
 	require.NotNil(suite.T(), sets)
-	require.EqualValues(suite.T(), 1, sets.Len())
+	require.EqualValues(suite.T(), index-2, sets.Len())
 
-	slashOracleSetHeight = 1004
-	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(slashOracleSetHeight))
+	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index+1))
 	require.NotNil(suite.T(), sets)
-	require.EqualValues(suite.T(), 2, sets.Len())
+	require.EqualValues(suite.T(), index-1, sets.Len())
 
 }

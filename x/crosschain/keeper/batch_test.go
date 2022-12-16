@@ -1,11 +1,10 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
@@ -47,8 +46,8 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 			BatchNonce: i,
 			Transactions: types.OutgoingTransferTxs{{
 				Id:          i,
-				Sender:      fmt.Sprintf("0x%d", i),
-				DestAddress: fmt.Sprintf("0x%d", i),
+				Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				DestAddress: helpers.GenerateAddress().Hex(),
 			}},
 		})
 		require.NoError(suite.T(), err)
@@ -65,12 +64,13 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 		suite.Keeper().SetOracle(suite.ctx, oracle)
 		suite.Keeper().SetOracleByBridger(suite.ctx, testCase.BridgerAddress, oracle.GetOracle())
 
-		pendingLastPendingBatchRequestByAddr, err := suite.Keeper().LastPendingBatchRequestByAddr(wrapSDKContext, &types.QueryLastPendingBatchRequestByAddrRequest{
-			BridgerAddress: testCase.BridgerAddress.String(),
-		})
+		response, err := suite.Keeper().LastPendingBatchRequestByAddr(wrapSDKContext,
+			&types.QueryLastPendingBatchRequestByAddrRequest{
+				BridgerAddress: testCase.BridgerAddress.String(),
+			})
 		require.NoError(suite.T(), err, testCase.Name)
-		require.NotNil(suite.T(), pendingLastPendingBatchRequestByAddr, testCase.Name)
-		require.NotNil(suite.T(), pendingLastPendingBatchRequestByAddr.Batch, testCase.Name)
-		require.EqualValues(suite.T(), testCase.ExpectStartHeight, pendingLastPendingBatchRequestByAddr.Batch.Block, testCase.Name)
+		require.NotNil(suite.T(), response, testCase.Name)
+		require.NotNil(suite.T(), response.Batch, testCase.Name)
+		require.EqualValues(suite.T(), testCase.ExpectStartHeight, response.Batch.Block, testCase.Name)
 	}
 }

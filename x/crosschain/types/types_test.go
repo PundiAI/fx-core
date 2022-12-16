@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"math/rand"
 	"reflect"
+	"sort"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -183,20 +184,16 @@ func TestBridgeValidators_Sort(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			spec.src.Sort()
+			sort.Sort(spec.src)
 			assert.Equal(t, spec.src, spec.exp)
-			shuffled := shuffled(spec.src)
-			shuffled.Sort()
-			assert.Equal(t, shuffled, spec.exp)
+
+			rand.Shuffle(len(spec.src), func(i, j int) {
+				spec.src[i], spec.src[j] = spec.src[j], spec.src[i]
+			})
+			sort.Sort(spec.src)
+			assert.Equal(t, spec.src, spec.exp)
 		})
 	}
-}
-
-func shuffled(v BridgeValidators) BridgeValidators {
-	rand.Shuffle(len(v), func(i, j int) {
-		v[i], v[j] = v[j], v[i]
-	})
-	return v
 }
 
 func TestOutgoingTxBatch_GetFees(t *testing.T) {

@@ -84,11 +84,25 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc, "coinDenom", coinDenom)
 
 	case *types.MsgOracleSetUpdatedClaim:
-		k.SetLastObservedOracleSet(ctx, types.OracleSet{
+		observedOracleSet := types.OracleSet{
 			Nonce:   claim.OracleSetNonce,
 			Members: claim.Members,
-		})
+		}
+		// check the contents of the validator set against the store
+		if claim.OracleSetNonce != 0 {
+			trustedOracleSet := k.GetOracleSet(ctx, claim.OracleSetNonce)
+			if trustedOracleSet == nil {
+				ctx.Logger().Error("Received attestation for a oracle set which does not exist in store", "oracleSetNonce", claim.OracleSetNonce, "claim", claim)
+				return sdkerrors.Wrapf(types.ErrInvalid, "attested oracleSet (%v) does not exist in store", claim.OracleSetNonce)
+			}
+			// overwrite the height, since it's not part of the claim
+			observedOracleSet.Height = trustedOracleSet.Height
 
+			if _, err := trustedOracleSet.Equal(observedOracleSet); err != nil {
+				panic(fmt.Sprintf("Potential bridge highjacking: observed oracleSet (%+v) does not match stored oracleSet (%+v)! %s", observedOracleSet, trustedOracleSet, err.Error()))
+			}
+		}
+		k.SetLastObservedOracleSet(ctx, observedOracleSet)
 	default:
 		return sdkerrors.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())
 	}

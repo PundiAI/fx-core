@@ -2,11 +2,11 @@ package keeper_test
 
 import (
 	"crypto/ecdsa"
-	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	"math/rand"
 	"reflect"
 	"regexp"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -15,9 +15,11 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -26,14 +28,13 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app            *app.App
-	ctx            sdk.Context
-	oracles        []sdk.AccAddress
-	bridgers       []sdk.AccAddress
-	externals      []*ecdsa.PrivateKey
-	validator      []sdk.ValAddress
-	chainName      string
-	delegateAmount sdk.Int
+	app       *app.App
+	ctx       sdk.Context
+	oracles   []sdk.AccAddress
+	bridgers  []sdk.AccAddress
+	externals []*ecdsa.PrivateKey
+	validator []sdk.ValAddress
+	chainName string
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -85,15 +86,17 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(types.MaxOracleSize, sdk.Coins{})
+	rand.Seed(time.Now().UnixNano())
+	valNumber := rand.Intn(types.MaxOracleSize-5) + 1
+
+	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
 
-	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.externals = helpers.CreateMultiECDSA(types.MaxOracleSize)
-	suite.delegateAmount = sdk.NewInt(10 * 1e3).MulRaw(1e18)
-	for i := 0; i < types.MaxOracleSize; i++ {
+	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber+2, sdk.NewInt(300*1e3).MulRaw(1e18))
+	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber+2, sdk.NewInt(300*1e3).MulRaw(1e18))
+	suite.externals = helpers.CreateMultiECDSA(valNumber + 2)
+	for i := 0; i < valNumber; i++ {
 		suite.validator = append(suite.validator, valAccounts[i].GetAddress().Bytes())
 	}
 

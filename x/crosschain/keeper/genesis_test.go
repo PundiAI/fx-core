@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"fmt"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	"sort"
 	"testing"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 )
 
 // Tests that batches and transactions are preserved during chain restart

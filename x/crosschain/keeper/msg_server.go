@@ -325,7 +325,6 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 	return &types.MsgUnbondedOracleResponse{}, nil
 }
 
-// SendToExternal handles MsgSendToExternal
 func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
@@ -371,7 +370,6 @@ func (s MsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelS
 	return &types.MsgCancelSendToExternalResponse{}, nil
 }
 
-// RequestBatch handles MsgRequestBatch
 func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
@@ -408,7 +406,6 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 	}, nil
 }
 
-// ConfirmBatch handles MsgConfirmBatch
 func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
@@ -447,7 +444,6 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 	return nil, nil
 }
 
-// OracleSetConfirm handles MsgOracleSetConfirm
 func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
@@ -483,9 +479,6 @@ func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetCo
 	return &types.MsgOracleSetConfirmResponse{}, nil
 }
 
-// SendToExternalClaim handles MsgSendToExternalClaim
-// executed aka 'observed' and had its slashing window expire) that will never be cleaned up in the end block. This
-// should not be a security risk as 'old' events can never execute but it does store spam in the chain.
 func (s MsgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := s.claimHandlerCommon(ctx, msg); err != nil {
@@ -494,9 +487,6 @@ func (s MsgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToEx
 	return &types.MsgSendToExternalClaimResponse{}, nil
 }
 
-// SendToFxClaim handles MsgSendToFxClaim
-// executed aka 'observed' and had it's slashing window expire) that will never be cleaned up in the endblocker. This
-// should not be a security risk as 'old' events can never execute but it does store spam in the chain.
 func (s MsgServer) SendToFxClaim(c context.Context, msg *types.MsgSendToFxClaim) (*types.MsgSendToFxClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	if err := s.claimHandlerCommon(ctx, msg); err != nil {

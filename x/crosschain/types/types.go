@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	math "math"
 	"math/big"
 	"sort"
@@ -34,15 +35,20 @@ func (m BridgeValidator) ValidateBasic() error {
 // BridgeValidators is the sorted set of validator data for Ethereum bridge MultiSig set
 type BridgeValidators []BridgeValidator
 
-// Sort sorts the validators by power
-func (b BridgeValidators) Sort() {
-	sort.Slice(b, func(i, j int) bool {
-		if b[i].Power == b[j].Power {
-			// Secondary sort on eth address in case powers are equal
-			return ethereumAddrLessThan(b[i].ExternalAddress, b[j].ExternalAddress)
-		}
-		return b[i].Power > b[j].Power
-	})
+func (b BridgeValidators) Len() int {
+	return len(b)
+}
+
+func (b BridgeValidators) Less(i, j int) bool {
+	if b[i].Power == b[j].Power {
+		// Secondary sort on eth address in case powers are equal
+		return bytes.Compare([]byte(b[i].ExternalAddress)[:], []byte(b[j].ExternalAddress)[:]) == -1
+	}
+	return b[i].Power > b[j].Power
+}
+
+func (b BridgeValidators) Swap(i, j int) {
+	b[i], b[j] = b[j], b[i]
 }
 
 // PowerDiff returns the difference in power between two bridge validator sets
@@ -127,20 +133,31 @@ func (b BridgeValidators) ValidateBasic() error {
 	return nil
 }
 
+func (b BridgeValidators) Equal(o BridgeValidators) bool {
+	if len(b) != len(o) {
+		return false
+	}
+
+	for i, bv := range b {
+		ov := o[i]
+		if bv.Power != ov.Power || bv.ExternalAddress != ov.ExternalAddress {
+			return false
+		}
+	}
+
+	return true
+}
+
 //////////////////////////////////////
 //          OracleSet(S)            //
 //////////////////////////////////////
 
 // NewOracleSet returns a new OracleSet
 func NewOracleSet(nonce, height uint64, members BridgeValidators) *OracleSet {
-	members.Sort()
-	var mem []BridgeValidator
-	for _, val := range members {
-		mem = append(mem, val)
-	}
+	sort.Sort(members)
 	return &OracleSet{
 		Nonce:   nonce,
-		Members: mem,
+		Members: members,
 		Height:  height,
 	}
 }
@@ -187,6 +204,22 @@ func (m OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// then need to adjust how many bytes you truncate off the front to get the output of abi.encode()
 	hash := crypto.Keccak256Hash(bytes[4:])
 	return hash.Bytes(), nil
+}
+
+func (m OracleSet) Equal(o OracleSet) (bool, error) {
+	if m.Height != o.Height {
+		return false, sdkerrors.Wrap(ErrInvalid, "oracle set heights mismatch")
+	}
+
+	if m.Nonce != o.Nonce {
+		return false, sdkerrors.Wrap(ErrInvalid, "oracle set nonce mismatch")
+	}
+
+	if !BridgeValidators(m.Members).Equal(o.Members) {
+		return false, sdkerrors.Wrap(ErrInvalid, "oracle set members mismatch")
+	}
+
+	return true, nil
 }
 
 type OracleSets []*OracleSet

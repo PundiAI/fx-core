@@ -1,18 +1,11 @@
 package types
 
 import (
-	"bytes"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
-
-// ethereumAddrLessThan migrates the Ethereum address less than function
-func ethereumAddrLessThan(e, o string) bool {
-	return bytes.Compare([]byte(e)[:], []byte(o)[:]) == -1
-}
 
 /////////////////////////
 //      ERC20Token     //
