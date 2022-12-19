@@ -7,9 +7,11 @@ import (
 	"reflect"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gogo/protobuf/proto"
 
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
@@ -58,10 +60,14 @@ func InitTestGravityDB(cdc codec.Codec, legacyAmino *codec.LegacyAmino, genesisS
 		gravityStore.Set(append(types.ERC20ToDenomKey, []byte(item.Erc20)...), []byte(item.Denom))
 	}
 
+	latestValsetNonce := uint64(0)
 	for _, vs := range genesisState.Valsets {
+		if vs.Nonce > latestValsetNonce {
+			latestValsetNonce = vs.Nonce
+		}
 		gravityStore.Set(append(types.ValsetRequestKey, sdk.Uint64ToBigEndian(vs.Nonce)...), cdc.MustMarshal(&vs))
-		gravityStore.Set(types.LatestValsetNonce, sdk.Uint64ToBigEndian(vs.Nonce))
 	}
+	gravityStore.Set(types.LatestValsetNonce, sdk.Uint64ToBigEndian(latestValsetNonce))
 
 	for _, conf := range genesisState.ValsetConfirms {
 		addr := sdk.MustAccAddressFromBech32(conf.Orchestrator)
@@ -100,36 +106,20 @@ func InitTestGravityDB(cdc codec.Codec, legacyAmino *codec.LegacyAmino, genesisS
 		gravityStore.Set(idxKey, cdc.MustMarshal(&idSet))
 	}
 
-	attMap := make(map[uint64][]types.Attestation)
 	for _, att := range genesisState.Attestations {
 		claim, err := types.UnpackAttestationClaim(cdc, &att)
 		if err != nil {
 			panic("couldn't cast to claim")
-		}
-		if val, ok := attMap[claim.GetEventNonce()]; !ok {
-			attMap[claim.GetEventNonce()] = []types.Attestation{att}
-		} else {
-			attMap[claim.GetEventNonce()] = append(val, att)
 		}
 
 		aKey := append(types.OracleAttestationKey, append(sdk.Uint64ToBigEndian(claim.GetEventNonce()), claim.ClaimHash()...)...)
 		gravityStore.Set(aKey, cdc.MustMarshal(&att))
 	}
 
-	getLastEventNonceByValidator := func(val sdk.ValAddress, attMap map[uint64][]types.Attestation) uint64 {
+	getLastEventNonceByValidator := func(val sdk.ValAddress) uint64 {
 		bytes := gravityStore.Get(append(types.LastEventNonceByValidatorKey, val.Bytes()...))
 		if len(bytes) == 0 {
 			lowestObserved := sdk.BigEndianToUint64(gravityStore.Get(types.LastObservedEventNonceKey))
-			if len(attMap) == 0 {
-				return lowestObserved
-			}
-			for nonce, atts := range attMap {
-				for att := range atts {
-					if atts[att].Observed && nonce < lowestObserved {
-						lowestObserved = nonce
-					}
-				}
-			}
 			if lowestObserved > 0 {
 				return lowestObserved - 1
 			} else {
@@ -149,7 +139,7 @@ func InitTestGravityDB(cdc codec.Codec, legacyAmino *codec.LegacyAmino, genesisS
 			if err != nil {
 				panic(err)
 			}
-			last := getLastEventNonceByValidator(val, attMap)
+			last := getLastEventNonceByValidator(val)
 			if claim.GetEventNonce() > last {
 				gravityStore.Set(append(types.LastEventNonceByValidatorKey, val.Bytes()...), sdk.Uint64ToBigEndian(claim.GetEventNonce()))
 				gravityStore.Set(append(types.LastEventBlockHeightByValidatorKey, val.Bytes()...), sdk.Uint64ToBigEndian(claim.GetBlockHeight()))
@@ -184,4 +174,12 @@ func TestParams() types.Params {
 		ValsetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
 	}
 	return params
+}
+
+func AttClaimToAny(msg proto.Message) *codectypes.Any {
+	anyMsg, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		panic(err)
+	}
+	return anyMsg
 }

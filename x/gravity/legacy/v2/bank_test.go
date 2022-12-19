@@ -7,13 +7,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/stretchr/testify/assert"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
-	"github.com/stretchr/testify/assert"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 func TestMigrateBank(t *testing.T) {

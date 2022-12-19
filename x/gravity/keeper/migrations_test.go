@@ -86,6 +86,59 @@ func (suite *MigrationTestSuite) InitGravityStore() {
 	v2.InitTestGravityDB(suite.app.AppCodec(), suite.app.LegacyAmino(), suite.genesisState, paramsStore, gravityStore)
 }
 
+func (suite *MigrationTestSuite) createDefGenesisState() {
+	suite.genesisState = types.GenesisState{
+		Params:            v2.TestParams(),
+		LastObservedNonce: rand.Uint64(),
+		Erc20ToDenoms: []types.ERC20ToDenom{
+			{
+				Erc20: helpers.GenerateAddress().Hex(),
+				Denom: fxtypes.DefaultDenom,
+			},
+		},
+	}
+	var votes []string
+	for i, addr := range suite.bridgerAddrs {
+		_, found := suite.app.StakingKeeper.GetValidator(suite.ctx, suite.valAddrs[i])
+		suite.True(found)
+		suite.genesisState.DelegateKeys = append(suite.genesisState.DelegateKeys, types.MsgSetOrchestratorAddress{
+			Validator:    suite.valAddrs[i].String(),
+			Orchestrator: addr.String(),
+			EthAddress:   crypto.PubkeyToAddress(suite.externals[i].PublicKey).String(),
+		})
+		votes = append(votes, suite.valAddrs[i].String())
+	}
+
+	suite.genesisState.Attestations = []types.Attestation{
+		{
+			Observed: true,
+			Votes:    votes,
+			Height:   rand.Uint64(),
+			Claim: v2.AttClaimToAny(&types.MsgDepositClaim{
+				EventNonce:    suite.genesisState.LastObservedNonce,
+				BlockHeight:   rand.Uint64(),
+				TokenContract: helpers.GenerateAddress().Hex(),
+				Amount:        sdk.NewInt(rand.Int63() + 1),
+				EthSender:     helpers.GenerateAddress().Hex(),
+				FxReceiver:    sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				TargetIbc:     "",
+				Orchestrator:  suite.bridgerAddrs[0].String(),
+			}),
+		},
+	}
+}
+
+func (suite *MigrationTestSuite) checkBridgeToken(tokenContract string, bridgeTokenLen int) {
+	response, err := suite.app.EthKeeper.BridgeTokens(sdk.WrapSDKContext(suite.ctx),
+		&crosschaintypes.QueryBridgeTokensRequest{})
+	suite.NoError(err)
+	suite.Equal(len(response.BridgeTokens), bridgeTokenLen)
+	suite.Contains(response.BridgeTokens, &crosschaintypes.BridgeToken{
+		Token: tokenContract,
+		Denom: fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract),
+	})
+}
+
 func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 	// MsgBridgeTokenClaim
 	suite.createDefGenesisState()
@@ -94,15 +147,6 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 	metadata := fxtypes.GetCrossChainMetadataManyToOne("Test Token", "TEST", uint32(rand.Intn(18)),
 		fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract))
 	suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
-
-	if rand.Uint64()%2 == 0 {
-		suite.genesisState.Erc20ToDenoms = []types.ERC20ToDenom{
-			{
-				Erc20: helpers.GenerateAddress().Hex(),
-				Denom: fxtypes.DefaultDenom,
-			},
-		}
-	}
 
 	suite.InitGravityStore()
 	suite.Equal(suite.app.EthKeeper.GetAllOracles(suite.ctx, false).Len(), 0)
@@ -122,7 +166,7 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 	suite.checkBridgeToken(tokenContract, len(suite.genesisState.Erc20ToDenoms)+1)
 
 	msg := &crosschaintypes.MsgBridgeTokenClaim{
-		EventNonce:    suite.genesisState.LastObservedNonce,
+		EventNonce:    suite.genesisState.LastObservedNonce + 1,
 		BlockHeight:   rand.Uint64(),
 		TokenContract: helpers.GenerateAddress().Hex(),
 		Name:          "Test token 2",
@@ -131,13 +175,11 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 		ChannelIbc:    "",
 		ChainName:     ethtypes.ModuleName,
 	}
+
 	for _, onlineOracle := range onlineOracles {
-		msg.BridgerAddress = onlineOracle.BridgerAddress
-		_, err := suite.msgServer.BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), msg)
-		suite.NoError(err)
-	}
-	for _, onlineOracle := range onlineOracles {
-		msg.EventNonce = suite.genesisState.LastObservedNonce + 1
+		lastEventNonce := suite.app.EthKeeper.GetLastEventNonceByOracle(suite.ctx, onlineOracle.GetOracle())
+		suite.Require().Equal(lastEventNonce, suite.genesisState.LastObservedNonce)
+
 		msg.BridgerAddress = onlineOracle.BridgerAddress
 		_, err := suite.msgServer.BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), msg)
 		suite.NoError(err)
@@ -147,33 +189,6 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 	suite.app.Commit()
 
 	suite.checkBridgeToken(tokenContract, len(suite.genesisState.Erc20ToDenoms)+2)
-}
-
-func (suite *MigrationTestSuite) createDefGenesisState() {
-	suite.genesisState = types.GenesisState{
-		Params:            v2.TestParams(),
-		LastObservedNonce: rand.Uint64(),
-	}
-	for i, addr := range suite.bridgerAddrs {
-		_, found := suite.app.StakingKeeper.GetValidator(suite.ctx, suite.valAddrs[i])
-		suite.True(found)
-		suite.genesisState.DelegateKeys = append(suite.genesisState.DelegateKeys, types.MsgSetOrchestratorAddress{
-			Validator:    suite.valAddrs[i].String(),
-			Orchestrator: addr.String(),
-			EthAddress:   crypto.PubkeyToAddress(suite.externals[i].PublicKey).String(),
-		})
-	}
-}
-
-func (suite *MigrationTestSuite) checkBridgeToken(tokenContract string, bridgeTokenLen int) {
-	response, err := suite.app.EthKeeper.BridgeTokens(sdk.WrapSDKContext(suite.ctx),
-		&crosschaintypes.QueryBridgeTokensRequest{})
-	suite.NoError(err)
-	suite.Equal(len(response.BridgeTokens), bridgeTokenLen)
-	suite.Contains(response.BridgeTokens, &crosschaintypes.BridgeToken{
-		Token: tokenContract,
-		Denom: fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract),
-	})
 }
 
 func (suite *MigrationTestSuite) TestSendToFxClaim() {
@@ -196,8 +211,6 @@ func (suite *MigrationTestSuite) TestSendToFxClaim() {
 	suite.Equal(bridgeToken.Token, suite.genesisState.Erc20ToDenoms[0].Erc20)
 	suite.Equal(bridgeToken.Denom, fxtypes.DefaultDenom)
 
-	suite.T().Log(bridgeToken.Token, bridgeToken.Denom)
-
 	msg := &crosschaintypes.MsgSendToFxClaim{
 		EventNonce:    suite.genesisState.LastObservedNonce,
 		BlockHeight:   rand.Uint64(),
@@ -212,11 +225,6 @@ func (suite *MigrationTestSuite) TestSendToFxClaim() {
 	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.MustAccAddressFromBech32(msg.Receiver))
 	suite.True(balances.IsZero())
 
-	for _, oracle := range onlineOracles {
-		msg.BridgerAddress = oracle.BridgerAddress
-		_, err := suite.msgServer.SendToFxClaim(sdk.WrapSDKContext(suite.ctx), msg)
-		suite.NoError(err)
-	}
 	for _, oracle := range onlineOracles {
 		msg.EventNonce = suite.genesisState.LastObservedNonce + 1
 		msg.BridgerAddress = oracle.BridgerAddress
@@ -333,7 +341,7 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 	}
 
 	msg := &crosschaintypes.MsgSendToExternalClaim{
-		EventNonce:    suite.genesisState.LastObservedNonce,
+		EventNonce:    suite.genesisState.LastObservedNonce + 1,
 		BlockHeight:   suite.genesisState.LastObservedBlockHeight.EthBlockHeight + 1,
 		BatchNonce:    txBatchesResponse.Batches[0].BatchNonce,
 		TokenContract: txBatchesResponse.Batches[0].TokenContract,
@@ -401,7 +409,7 @@ func (suite *MigrationTestSuite) TestOracleSetConfirm() {
 	}
 
 	msg := &crosschaintypes.MsgOracleSetUpdatedClaim{
-		EventNonce:     suite.genesisState.LastObservedNonce,
+		EventNonce:     suite.genesisState.LastObservedNonce + 1,
 		BlockHeight:    suite.genesisState.LastObservedBlockHeight.EthBlockHeight + 1,
 		OracleSetNonce: oracleSet.Nonce,
 		Members:        oracleSet.Members,

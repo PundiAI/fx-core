@@ -31,7 +31,7 @@ import (
 	etherminttypes "github.com/evmos/ethermint/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
-	ed255192 "github.com/tendermint/tendermint/crypto/ed25519"
+	tmed25519 "github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -109,7 +109,7 @@ func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tm
 	genAccs = make(authtypes.GenesisAccounts, validatorNum)
 	balances = make([]banktypes.Balance, validatorNum)
 	for i := 0; i < validatorNum; i++ {
-		validator := tmtypes.NewValidator(ed255192.GenPrivKey().PubKey(), 1)
+		validator := tmtypes.NewValidator(tmed25519.GenPrivKey().PubKey(), 1)
 		validators[i] = validator
 
 		senderPrivKey := secp256k1.GenPrivKey()
@@ -253,8 +253,8 @@ func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...ba
 	return myApp
 }
 
-// createRandomAccounts is a strategy used by addTestAddrs() in order to generated addresses in random order.
-func createRandomAccounts(accNum int) []sdk.AccAddress {
+// CreateRandomAccounts generated addresses in random order
+func CreateRandomAccounts(accNum int) []sdk.AccAddress {
 	testAddrs := make([]sdk.AccAddress, accNum)
 	for i := 0; i < accNum; i++ {
 		pk := ed25519.GenPrivKey().PubKey()
@@ -288,7 +288,7 @@ func createIncrementalAccounts(accNum int) []sdk.AccAddress {
 
 // AddTestAddrs constructs and returns accNum amount of accounts with an initial balance of accAmt in random order
 func AddTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.AccAddress {
-	return addTestAddrs(myApp, ctx, accNum, accAmt, createRandomAccounts)
+	return addTestAddrs(myApp, ctx, accNum, accAmt, CreateRandomAccounts)
 }
 
 func AddTestAddrsIncremental(myApp *app.App, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.AccAddress {
