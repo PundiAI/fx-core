@@ -50,8 +50,7 @@ func parseIBCCoinDenom(packet channeltypes.Packet, packetDenom string) string {
 		// construct the denomination trace from the full raw denomination
 		denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
 
-		voucherDenom := denomTrace.IBCDenom()
-		receiveDenom = voucherDenom
+		receiveDenom = denomTrace.IBCDenom()
 	}
 	return receiveDenom
 }
