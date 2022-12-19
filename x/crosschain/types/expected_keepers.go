@@ -1,12 +1,12 @@
 package types
 
 import (
+	"context"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -55,15 +55,7 @@ type IBCChannelKeeper interface {
 }
 
 type IBCTransferKeeper interface {
-	SendTransfer(
-		ctx sdk.Context,
-		sourcePort,
-		sourceChannel string,
-		token sdk.Coin,
-		sender sdk.AccAddress,
-		receiver string,
-		timeoutHeight clienttypes.Height,
-		timeoutTimestamp uint64,
-	) error
+	Transfer(goCtx context.Context, msg *tranfsertypes.MsgTransfer) (*tranfsertypes.MsgTransferResponse, error)
+
 	SetDenomTrace(ctx sdk.Context, denomTrace tranfsertypes.DenomTrace)
 }

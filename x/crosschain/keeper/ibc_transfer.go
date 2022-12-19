@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -56,17 +58,11 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 		RevisionHeight: destTimeoutHeight,
 	}
 
-	nextSequenceSend, found := k.ibcChannelKeeper.GetNextSequenceSend(ctx, targetIBC.SourcePort, targetIBC.SourceChannel)
-	if !found {
-		logger.Error("ibc channel next sequence send not found!!!", "sourcePort", targetIBC.SourcePort, "sourceChannel", targetIBC.SourceChannel)
-		return
-	}
-	logger.Info("crosschain start ibc transfer", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "destCurrentHeight", clientStateHeight.GetRevisionHeight(), "destTimeoutHeight", destTimeoutHeight, "nextSequenceSend", nextSequenceSend)
+	logger.Info("crosschain start ibc transfer", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "destCurrentHeight", clientStateHeight.GetRevisionHeight(), "destTimeoutHeight", destTimeoutHeight)
 
-	if err = k.ibcTransferKeeper.SendTransfer(ctx,
-		targetIBC.SourcePort, targetIBC.SourceChannel,
-		coin, receiveAddr, ibcReceiveAddress,
-		ibcTimeoutHeight, 0); err != nil {
+	transferMsg := transfertypes.NewMsgTransfer(targetIBC.SourcePort, targetIBC.SourceChannel, coin, receiveAddr.String(), ibcReceiveAddress, ibcTimeoutHeight, 0)
+	transferResponse, err := k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx), transferMsg)
+	if err != nil {
 		logger.Error("crosschain ibc transfer fail", "sender", receiveAddr, "receive", ibcReceiveAddress, "coin", coin, "err", err)
 		return
 	}
@@ -75,7 +71,7 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim
 		types.EventTypeIbcTransfer,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.EventNonce)),
-		sdk.NewAttribute(types.AttributeKeyIbcSendSequence, fmt.Sprint(nextSequenceSend)),
+		sdk.NewAttribute(types.AttributeKeyIbcSendSequence, fmt.Sprint(transferResponse.GetSequence())),
 		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, targetIBC.SourcePort),
 		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, targetIBC.SourceChannel),
 	))

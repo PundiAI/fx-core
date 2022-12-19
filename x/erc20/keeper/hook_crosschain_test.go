@@ -1,11 +1,14 @@
 package keeper_test
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"math"
 	"math/big"
 	"testing"
+
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
@@ -197,12 +200,11 @@ type IBCTransferSimulate struct {
 	T *testing.T
 }
 
-func (i *IBCTransferSimulate) SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
-	receiver string, timeoutHeight ibcclienttypes.Height, timeoutTimestamp uint64) error {
-	require.Equal(i.T, token.Amount.BigInt(), big.NewInt(1e18))
-	require.Equal(i.T, "transfer", sourcePort)
-	require.Equal(i.T, "channel-0", sourceChannel)
-	return nil
+func (i *IBCTransferSimulate) Transfer(goCtx context.Context, msg *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error) {
+	require.Equal(i.T, msg.Token.Amount.BigInt(), big.NewInt(1e18))
+	require.Equal(i.T, "transfer", msg.SourcePort)
+	require.Equal(i.T, "channel-0", msg.SourceChannel)
+	return &transfertypes.MsgTransferResponse{Sequence: 1}, nil
 }
 
 type IBCChannelSimulate struct {

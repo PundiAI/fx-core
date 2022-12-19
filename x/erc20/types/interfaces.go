@@ -1,15 +1,16 @@
 package types
 
 import (
-	context "context"
+	"context"
 	"math/big"
 	"time"
+
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -76,8 +77,7 @@ type CrossChainKeeper interface {
 }
 
 type IBCTransferKeeper interface {
-	SendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
-		receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64) error
+	Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error)
 }
 
 type IBCChannelKeeper interface {
