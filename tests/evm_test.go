@@ -5,10 +5,14 @@ import (
 	"math/big"
 	"reflect"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/tendermint/tendermint/libs/json"
 )
 
-func (suite *EvmTestSuite) TestWeb3Query() {
+func (suite *IntegrationTest) EVMWeb3Test() {
+	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+
 	tests := []struct {
 		name     string
 		funcName string
@@ -66,55 +70,55 @@ func (suite *EvmTestSuite) TestWeb3Query() {
 		{
 			name:     "eth_getBalance latest",
 			funcName: "BalanceAt",
-			params:   []interface{}{suite.HexAddress(), nil},
+			params:   []interface{}{suite.evm.HexAddress(), nil},
 			wantRes:  []interface{}{new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18)), nil},
 		},
 		{
 			name:     "eth_getBalance",
 			funcName: "BalanceAt",
-			params:   []interface{}{suite.HexAddress(), big.NewInt(1)},
+			params:   []interface{}{suite.evm.HexAddress(), big.NewInt(1)},
 			wantRes:  []interface{}{big.NewInt(0), nil},
 		},
 		{
 			name:     "eth_getStorageAt",
 			funcName: "StorageAt",
-			params:   []interface{}{suite.HexAddress(), common.Hash{}, nil},
+			params:   []interface{}{suite.evm.HexAddress(), common.Hash{}, nil},
 			wantRes:  []interface{}{[32]byte{}, nil},
 		},
 		{
 			name:     "eth_getCode",
 			funcName: "CodeAt",
-			params:   []interface{}{suite.HexAddress(), nil},
+			params:   []interface{}{suite.evm.HexAddress(), nil},
 			wantRes:  []interface{}{[]byte{}, nil},
 		},
 		{
 			name:     "eth_getTransactionCount",
 			funcName: "NonceAt",
-			params:   []interface{}{suite.HexAddress(), nil},
+			params:   []interface{}{suite.evm.HexAddress(), nil},
 			wantRes:  []interface{}{uint64(0), nil},
 		},
 		{
 			name:     "eth_getBalance pending",
 			funcName: "PendingBalanceAt",
-			params:   []interface{}{suite.HexAddress()},
+			params:   []interface{}{suite.evm.HexAddress()},
 			wantRes:  []interface{}{new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18)), nil},
 		},
 		{
 			name:     "eth_getStorageAt pending",
 			funcName: "PendingStorageAt",
-			params:   []interface{}{suite.HexAddress(), common.Hash{}},
+			params:   []interface{}{suite.evm.HexAddress(), common.Hash{}},
 			wantRes:  []interface{}{[32]byte{}, nil},
 		},
 		{
 			name:     "eth_getCode pending",
 			funcName: "PendingCodeAt",
-			params:   []interface{}{suite.HexAddress()},
+			params:   []interface{}{suite.evm.HexAddress()},
 			wantRes:  []interface{}{[]byte{}, nil},
 		},
 		{
 			name:     "eth_getTransactionCount pending",
 			funcName: "PendingNonceAt",
-			params:   []interface{}{suite.HexAddress()},
+			params:   []interface{}{suite.evm.HexAddress()},
 			wantRes:  []interface{}{big.NewInt(0), nil},
 		},
 		{
@@ -136,7 +140,7 @@ func (suite *EvmTestSuite) TestWeb3Query() {
 			wantRes:  []interface{}{big.NewInt(62500000000), nil},
 		},
 	}
-	client := suite.EthClient()
+	client := suite.evm.EthClient()
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			typeOf := reflect.TypeOf(client)
@@ -156,7 +160,8 @@ func (suite *EvmTestSuite) TestWeb3Query() {
 			results := method.Func.Call(params)
 			for i := 0; i < len(results); i++ {
 				if i == 0 && tt.wantRes[i] == nil {
-					suite.T().Log(results[i])
+					marshal, _ := json.Marshal(results[i].Interface())
+					suite.T().Log(i, tt.funcName, string(marshal))
 					continue
 				}
 				suite.EqualValues(

@@ -1,294 +1,102 @@
 package tests
 
 import (
-	"context"
 	"fmt"
 	"math/big"
-	"os"
-	"testing"
-	"time"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	gethcommon "github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v3/app/helpers"
-	"github.com/functionx/fx-core/v3/client"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/types/contract"
-	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
-type ERC20TestSuite struct {
-	*TestSuite
-	privKey cryptotypes.PrivKey
-}
+func (suite *IntegrationTest) ERC20Test() {
+	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
 
-func NewERC20WithTestSuite(ts *TestSuite) ERC20TestSuite {
-	return ERC20TestSuite{
-		TestSuite: ts,
-		privKey:   helpers.NewEthPrivKey(),
+	var aliases []string
+	for _, chain := range suite.crosschain {
+		denoms := chain.GetBridgeDenoms()
+		aliases = append(aliases, denoms...)
 	}
-}
+	suite.erc20.metadata.DenomUnits[0].Aliases = aliases
+	suite.T().Log(suite.erc20.metadata.DenomUnits[0].Aliases)
+	proposalId := suite.erc20.RegisterCoinProposal(suite.erc20.metadata)
+	suite.NoError(suite.network.WaitForNextBlock())
+	suite.CheckProposal(proposalId, govtypes.StatusPassed)
+	suite.erc20.CheckRegisterCoin(suite.erc20.metadata.Base)
 
-func (suite *ERC20TestSuite) SetupSuite() {
-	// set test env
-	suite.NoError(os.Setenv("GO_ENV", "testing"))
+	denom := suite.erc20.metadata.Base
+	tokenPair := suite.erc20.TokenPair(denom)
+	suite.Equal(tokenPair.Denom, denom)
+	suite.Equal(tokenPair.Enabled, true)
+	suite.Equal(tokenPair.ContractOwner, erc20types.OWNER_MODULE)
+	suite.T().Log("token pair", tokenPair.String())
 
-	suite.TestSuite.SetupSuite()
-	suite.Send(suite.Address(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
-}
+	for i, chain := range suite.crosschain {
+		bridgeDenom := chain.GetBridgeDenoms()[0]
+		tokenContract := chain.GetBridgeToken(bridgeDenom)
+		chain.SendToFxClaim(tokenContract, sdk.NewInt(200), "module/evm")
+		balance := suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress())
+		suite.Equal(balance, big.NewInt(200))
 
-func (suite *ERC20TestSuite) Address() sdk.AccAddress {
-	return suite.privKey.PubKey().Address().Bytes()
-}
+		suite.erc20.TransferERC20(chain.privKey, tokenPair.GetERC20Contract(), suite.erc20.HexAddress(), big.NewInt(100))
+		balance = suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress())
+		suite.Equal(balance, big.NewInt(100))
 
-func (suite *ERC20TestSuite) HexAddr() gethcommon.Address {
-	return gethcommon.BytesToAddress(suite.privKey.PubKey().Address())
-}
+		receive := suite.erc20.HexAddress().String()
+		if chain.chainName == trontypes.ModuleName {
+			receive = trontypes.AddressFromHex(receive)
+		}
+		suite.erc20.TransferCrossChain(suite.erc20.privKey, tokenPair.GetERC20Contract(), receive,
+			big.NewInt(50), big.NewInt(50), fmt.Sprintf("chain/%s", chain.chainName))
 
-func (suite *ERC20TestSuite) ERC20Query() erc20types.QueryClient {
-	return suite.GRPCClient().ERC20Query()
-}
-
-func (suite *ERC20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (proposalId uint64) {
-	content := &erc20types.RegisterCoinProposal{
-		Title:       fmt.Sprintf("register %s denom", md.Base),
-		Description: "bar",
-		Metadata:    md,
-	}
-	return suite.BroadcastProposalTx(content)
-}
-
-func (suite *ERC20TestSuite) ToggleTokenConversionProposal(denom string) (proposalId uint64) {
-	content := &erc20types.ToggleTokenConversionProposal{
-		Title:       fmt.Sprintf("update %s denom", denom),
-		Description: "update",
-		Token:       denom,
-	}
-	return suite.BroadcastProposalTx(content)
-}
-
-func (suite *ERC20TestSuite) UpdateDenomAliasProposal(denom, alias string) (proposalId uint64) {
-	content := &erc20types.UpdateDenomAliasProposal{
-		Title:       fmt.Sprintf("update %s denom %s alias", denom, alias),
-		Description: "update",
-		Denom:       denom,
-		Alias:       alias,
-	}
-	return suite.BroadcastProposalTx(content)
-}
-
-func (suite *ERC20TestSuite) CheckRegisterCoin(denom string, manyToOne ...bool) {
-	_, err := suite.ERC20Query().TokenPair(suite.ctx, &erc20types.QueryTokenPairRequest{Token: denom})
-	suite.NoError(err)
-	if len(manyToOne) > 0 && manyToOne[0] {
-		aliasesResp, err := suite.ERC20Query().DenomAliases(suite.ctx, &erc20types.QueryDenomAliasesRequest{Denom: denom})
+		resp, err := chain.CrosschainQuery().GetPendingSendToExternal(suite.ctx,
+			&crosschaintypes.QueryPendingSendToExternalRequest{
+				ChainName:     chain.chainName,
+				SenderAddress: suite.erc20.AccAddress().String(),
+			})
 		suite.NoError(err)
-		suite.T().Log("denom", denom, "alias", aliasesResp.Aliases)
-		for _, alias := range aliasesResp.Aliases {
-			aliasDenom, err := suite.ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: alias})
+		suite.Equal(1, len(resp.UnbatchedTransfers))
+		suite.Equal(int64(50), resp.UnbatchedTransfers[0].Token.Amount.Int64())
+		suite.Equal(int64(50), resp.UnbatchedTransfers[0].Fee.Amount.Int64())
+		suite.Equal(suite.erc20.AccAddress().String(), resp.UnbatchedTransfers[0].Sender)
+		if chain.chainName == trontypes.ModuleName {
+			suite.Equal(trontypes.AddressFromHex(suite.erc20.HexAddress().String()), resp.UnbatchedTransfers[0].DestAddress)
+		} else {
+			suite.Equal(suite.erc20.HexAddress().String(), resp.UnbatchedTransfers[0].DestAddress)
+		}
+
+		// convert
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
+		suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)), "")
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(denom, sdk.NewInt(50)))
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.ZeroInt()))
+
+		suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(denom, sdk.NewInt(50)), chain.chainName)
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
+
+		// todo why can't delete the last alias
+		if i < len(suite.crosschain)-1 {
+			// remove proposal
+			proposalId := suite.erc20.UpdateDenomAliasProposal(denom, bridgeDenom)
+			suite.NoError(suite.network.WaitForNextBlock())
+			suite.CheckProposal(proposalId, govtypes.StatusPassed)
+
+			// check remove
+			response, err := suite.erc20.ERC20Query().DenomAliases(suite.ctx, &erc20types.QueryDenomAliasesRequest{Denom: denom})
 			suite.NoError(err)
-			suite.Equal(denom, aliasDenom.Denom)
+			suite.Equal(len(suite.crosschain)-i-1, len(response.Aliases))
+
+			_, err = suite.erc20.ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: bridgeDenom})
+			suite.Error(err)
 		}
 	}
-}
 
-func (suite *ERC20TestSuite) TokenPair(denom string) erc20types.TokenPair {
-	pairResp, err := suite.ERC20Query().TokenPair(suite.ctx, &erc20types.QueryTokenPairRequest{Token: denom})
-	suite.NoError(err)
-	return pairResp.TokenPair
-}
-
-func (suite *ERC20TestSuite) EthClient() *ethclient.Client {
-	return suite.GetFirstValidtor().JSONRPCClient
-}
-
-func (suite *ERC20TestSuite) EthBalance(address gethcommon.Address) *big.Int {
-	amount, err := suite.EthClient().BalanceAt(suite.ctx, address, nil)
-	suite.NoError(err)
-	return amount
-}
-
-func (suite *ERC20TestSuite) BalanceOf(contractAddr, address gethcommon.Address) *big.Int {
-	caller, err := contract.NewFIP20(contractAddr, suite.EthClient())
-	suite.NoError(err)
-	balance, err := caller.BalanceOf(nil, address)
-	suite.NoError(err)
-	return balance
-}
-
-func (suite *ERC20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver sdk.AccAddress, coin sdk.Coin, target string) {
-	suite.BroadcastTx(private, &erc20types.MsgConvertDenom{
-		Sender:   sdk.AccAddress(private.PubKey().Address()).String(),
-		Receiver: receiver.String(),
-		Coin:     coin,
-		Target:   target,
-	})
-}
-
-func (suite *ERC20TestSuite) SendTransaction(tx *ethtypes.Transaction) {
-	err := suite.EthClient().SendTransaction(suite.ctx, tx)
-	suite.Require().NoError(err)
-
-	suite.T().Log("pending tx hash", tx.Hash())
-	ctx, cancel := context.WithTimeout(suite.ctx, 30*time.Second)
-	defer cancel()
-	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
-	suite.Require().NoError(err)
-	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
-}
-
-func (suite *ERC20TestSuite) Transfer(privateKey cryptotypes.PrivKey, recipient gethcommon.Address, value *big.Int) gethcommon.Hash {
-	suite.T().Logf("transfer to %s value %s\n", recipient.String(), value.String())
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &recipient, value, nil)
-	suite.Require().NoError(err)
-
-	suite.SendTransaction(ethTx)
-	return ethTx.Hash()
-}
-
-func (suite *ERC20TestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token, recipient gethcommon.Address, value *big.Int) gethcommon.Hash {
-	suite.T().Logf("transfer erc20 %s to %s value %s\n", token, recipient.String(), value.String())
-
-	pack, err := FIP20ABI.Pack("transfer", recipient, value)
-	suite.Require().NoError(err)
-
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
-	suite.Require().NoError(err)
-
-	suite.SendTransaction(ethTx)
-	return ethTx.Hash()
-}
-
-func (suite *ERC20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, token gethcommon.Address,
-	recipient string, amount, fee *big.Int, target string) gethcommon.Hash {
-	suite.T().Log("transfer cross chain", target)
-	pack, err := FIP20ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
-	suite.Require().NoError(err)
-
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
-	suite.Require().NoError(err)
-
-	suite.SendTransaction(ethTx)
-
-	return ethTx.Hash()
-}
-
-// crosschain with erc20 test suite
-type CrosschainERC20TestSuite struct {
-	*TestSuite
-	BSCCrossChain     CrosschainTestSuite
-	PolygonCrossChain CrosschainTestSuite
-	ERC20             ERC20TestSuite
-}
-
-func TestCrosschainERC20TestSuite(t *testing.T) {
-	testSuite := NewTestSuite()
-	crosschainERC20TestSuite := &CrosschainERC20TestSuite{
-		TestSuite:         testSuite,
-		BSCCrossChain:     NewCrosschainWithTestSuite(bsctypes.ModuleName, testSuite),
-		PolygonCrossChain: NewCrosschainWithTestSuite(polygontypes.ModuleName, testSuite),
-		ERC20:             NewERC20WithTestSuite(testSuite),
-	}
-	suite.Run(t, crosschainERC20TestSuite)
-}
-
-func NewCrosschainERC20TestSuite(ts *TestSuite) CrosschainERC20TestSuite {
-	return CrosschainERC20TestSuite{
-		TestSuite:         ts,
-		BSCCrossChain:     NewCrosschainWithTestSuite(bsctypes.ModuleName, ts),
-		PolygonCrossChain: NewCrosschainWithTestSuite(polygontypes.ModuleName, ts),
-		ERC20:             NewERC20WithTestSuite(ts),
-	}
-}
-
-func (suite *CrosschainERC20TestSuite) SetupSuite() {
-	// set test env
-	suite.NoError(os.Setenv("GO_ENV", "testing"))
-
-	suite.TestSuite.SetupSuite()
-
-	suite.Send(suite.BSCCrossChain.OracleAddr(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
-	suite.Send(suite.BSCCrossChain.BridgerFxAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
-	suite.Send(suite.BSCCrossChain.AccAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
-	suite.BSCCrossChain.params = suite.BSCCrossChain.QueryParams()
-
-	suite.Send(suite.PolygonCrossChain.OracleAddr(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
-	suite.Send(suite.PolygonCrossChain.BridgerFxAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
-	suite.Send(suite.PolygonCrossChain.AccAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
-	suite.PolygonCrossChain.params = suite.PolygonCrossChain.QueryParams()
-
-	suite.Send(suite.ERC20.Address(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
-}
-
-func (suite *CrosschainERC20TestSuite) InitCrossChain() {
-	// bsc crosschain
-	bscUSDTDenom := fmt.Sprintf("%s%s", suite.BSCCrossChain.chainName, bscUSDToken)
-
-	proposalId := suite.BSCCrossChain.SendUpdateChainOraclesProposal()
+	proposalId = suite.erc20.ToggleTokenConversionProposal(denom)
 	suite.NoError(suite.network.WaitForNextBlock())
 	suite.CheckProposal(proposalId, govtypes.StatusPassed)
 
-	suite.BSCCrossChain.BondedOracle()
-	suite.BSCCrossChain.SendOracleSetConfirm()
-
-	denom := suite.BSCCrossChain.AddBridgeTokenClaim("Tether USD", "USDT", 18, bscUSDToken, "")
-	suite.Equal(denom, bscUSDTDenom)
-
-	suite.BSCCrossChain.SendToFxClaim(bscUSDToken, sdk.NewInt(100).MulRaw(1e18), "")
-
-	// polygon crosschain
-	polygonUSDTDenom := fmt.Sprintf("%s%s", suite.PolygonCrossChain.chainName, polygonUSDToken)
-
-	proposalId = suite.PolygonCrossChain.SendUpdateChainOraclesProposal()
-	suite.NoError(suite.network.WaitForNextBlock())
-	suite.CheckProposal(proposalId, govtypes.StatusPassed)
-
-	suite.PolygonCrossChain.BondedOracle()
-	suite.PolygonCrossChain.SendOracleSetConfirm()
-
-	denom = suite.PolygonCrossChain.AddBridgeTokenClaim("Tether USD", "USDT", 18, polygonUSDToken, "")
-	suite.Equal(denom, polygonUSDTDenom)
-
-	suite.PolygonCrossChain.SendToFxClaim(polygonUSDToken, sdk.NewInt(100).MulRaw(1e18), "")
-}
-
-func (suite *CrosschainERC20TestSuite) InitRegisterCoinUSDT() {
-	bscUSDTDenom := fmt.Sprintf("%s%s", suite.BSCCrossChain.chainName, bscUSDToken)
-	polygonUSDTDenom := fmt.Sprintf("%s%s", suite.PolygonCrossChain.chainName, polygonUSDToken)
-	// erc20
-	usdtMetadata := banktypes.Metadata{
-		Description: "description of the token",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "usdt",
-				Exponent: uint32(0),
-				Aliases:  []string{bscUSDTDenom, polygonUSDTDenom},
-			}, {
-				Denom:    "USDT",
-				Exponent: uint32(18),
-			},
-		},
-		Base:    "usdt",
-		Display: "usdt",
-		Name:    "Tether USD",
-		Symbol:  "USDT",
-	}
-	proposalId := suite.ERC20.RegisterCoinProposal(usdtMetadata)
-	suite.NoError(suite.network.WaitForNextBlock())
-	suite.CheckProposal(proposalId, govtypes.StatusPassed)
-
-	suite.ERC20.CheckRegisterCoin(usdtMetadata.Base, true)
-
-	usdtTokenPair := suite.ERC20.TokenPair("usdt")
-	suite.T().Log("token pair", usdtTokenPair.String())
+	suite.False(suite.erc20.TokenPair(denom).Enabled)
 }

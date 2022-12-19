@@ -9,7 +9,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
@@ -361,7 +360,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 
 	for _, testData := range errMsgData {
 		if trontypes.ModuleName == suite.chainName {
-			testData.msg.ExternalAddress = tronAddress.Address(append([]byte{tronAddress.TronBytePrefix}, common.HexToAddress(testData.msg.ExternalAddress).Bytes()...)).String()
+			testData.msg.ExternalAddress = trontypes.AddressFromHex(testData.msg.ExternalAddress)
 		}
 		suite.T().Log(suite.chainName, testData.msg)
 		_, err = suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), testData.msg)

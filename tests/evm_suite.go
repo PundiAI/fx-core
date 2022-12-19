@@ -4,7 +4,6 @@ import (
 	"context"
 	"math/big"
 	"strings"
-	"testing"
 	"time"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -15,12 +14,11 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/client"
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	"github.com/functionx/fx-core/v3/types/contract"
 )
 
 var (
@@ -33,14 +31,14 @@ var (
 
 type EvmTestSuite struct {
 	*TestSuite
-	ethPrivKey cryptotypes.PrivKey
+	privKey cryptotypes.PrivKey
 }
 
-func TestEvmTestSuite(t *testing.T) {
-	suite.Run(t, &EvmTestSuite{
-		TestSuite:  NewTestSuite(),
-		ethPrivKey: helpers.NewEthPrivKey(),
-	})
+func NewEvmTestSuite(ts *TestSuite) EvmTestSuite {
+	return EvmTestSuite{
+		TestSuite: ts,
+		privKey:   helpers.NewEthPrivKey(),
+	}
 }
 
 func (suite *EvmTestSuite) SetupSuite() {
@@ -51,35 +49,19 @@ func (suite *EvmTestSuite) SetupSuite() {
 }
 
 func (suite *EvmTestSuite) AccAddress() sdk.AccAddress {
-	return sdk.AccAddress(suite.ethPrivKey.PubKey().Address())
+	return sdk.AccAddress(suite.privKey.PubKey().Address())
 }
 
-func (suite *EvmTestSuite) Erc20TokenAddress(denom string) common.Address {
-	pair, err := suite.GRPCClient().ERC20Query().TokenPair(suite.ctx, &erc20types.QueryTokenPairRequest{Token: denom})
-	suite.Require().NoError(err)
-	return pair.GetTokenPair().GetERC20Contract()
-}
-
-func (suite *EvmTestSuite) ConvertCoin(recipient common.Address, coin sdk.Coin) {
-	msg := erc20types.NewMsgConvertCoin(coin, recipient, suite.AccAddress())
-	suite.BroadcastTx(suite.ethPrivKey, msg)
-}
-
-func (suite *EvmTestSuite) ConvertERC20(token common.Address, amount sdk.Int, recipient sdk.AccAddress) {
-	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, suite.HexAddress())
-	suite.BroadcastTx(suite.ethPrivKey, msg)
+func (suite *EvmTestSuite) HexAddress() common.Address {
+	return common.BytesToAddress(suite.privKey.PubKey().Address())
 }
 
 func (suite *EvmTestSuite) EthClient() *ethclient.Client {
 	return suite.GetFirstValidtor().JSONRPCClient
 }
 
-func (suite *EvmTestSuite) HexAddress() common.Address {
-	return common.BytesToAddress(suite.ethPrivKey.PubKey().Address())
-}
-
 func (suite *EvmTestSuite) TransactOpts() *bind.TransactOpts {
-	ecdsa, err := crypto.ToECDSA(suite.ethPrivKey.Bytes())
+	ecdsa, err := crypto.ToECDSA(suite.privKey.Bytes())
 	suite.Require().NoError(err)
 
 	transactOpts, err := bind.NewKeyedTransactorWithChainID(ecdsa, fxtypes.EIP155ChainID())
@@ -94,31 +76,26 @@ func (suite *EvmTestSuite) Balance(addr common.Address) *big.Int {
 	return at
 }
 
+func (suite *EvmTestSuite) BalanceOf(contractAddr, address common.Address) *big.Int {
+	caller, err := contract.NewFIP20(contractAddr, suite.EthClient())
+	suite.NoError(err)
+	balance, err := caller.BalanceOf(nil, address)
+	suite.NoError(err)
+	return balance
+}
+
 func (suite *EvmTestSuite) BlockHeight() uint64 {
 	number, err := suite.EthClient().BlockNumber(suite.ctx)
 	suite.Require().NoError(err)
 	return number
 }
 
-func (suite *EvmTestSuite) Transfer(recipient common.Address, value *big.Int) common.Hash {
+func (suite *EvmTestSuite) Transfer(privateKey cryptotypes.PrivKey, recipient common.Address, value *big.Int) common.Hash {
 	suite.T().Logf("transfer to %s value %s\n", recipient.String(), value.String())
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.ethPrivKey, &recipient, value, nil)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &recipient, value, nil)
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
-	return ethTx.Hash()
-}
-
-func (suite *EvmTestSuite) TransferCrossChain(token common.Address, recipient string, amount, fee *big.Int, target string) common.Hash {
-	suite.T().Log("transfer cross chain", target)
-	pack, err := FIP20ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
-	suite.Require().NoError(err)
-
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.ethPrivKey, &token, nil, pack)
-	suite.Require().NoError(err)
-
-	suite.SendTransaction(ethTx)
-
 	return ethTx.Hash()
 }
 
@@ -126,7 +103,7 @@ func (suite *EvmTestSuite) WFXDeposit(address common.Address, amount *big.Int) c
 	pack, err := WFXABI.Pack("deposit")
 	suite.Require().NoError(err)
 
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.ethPrivKey, &address, amount, pack)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.privKey, &address, amount, pack)
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
@@ -138,7 +115,7 @@ func (suite *EvmTestSuite) WFXWithdraw(address, recipient common.Address, value 
 	pack, err := WFXABI.Pack("withdraw", recipient, value)
 	suite.Require().NoError(err)
 
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.ethPrivKey, &address, nil, pack)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), suite.privKey, &address, nil, pack)
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)

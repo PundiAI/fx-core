@@ -14,22 +14,13 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 )
 
-type MigrateTestSuite struct {
-	*TestSuite
-}
-
-func TestMigrateTestSuite(t *testing.T) {
-	suite.Run(t, &MigrateTestSuite{TestSuite: NewTestSuite()})
-}
-
-func (suite *MigrateTestSuite) MigrateAccount(fromPrivateKey, toPrivateKey cryptotypes.PrivKey) {
+func (suite *IntegrationTest) migrateAccount(fromPrivateKey, toPrivateKey cryptotypes.PrivKey) {
 	fromAddr := sdk.AccAddress(fromPrivateKey.PubKey().Address().Bytes())
 	toAddress := common.BytesToAddress(toPrivateKey.PubKey().Address())
 	suite.T().Log("migrate from", fromAddr.String(), "migrate to", toAddress.String())
@@ -42,7 +33,7 @@ func (suite *MigrateTestSuite) MigrateAccount(fromPrivateKey, toPrivateKey crypt
 	suite.T().Log("migrate account txHash", txResp.TxHash)
 }
 
-func (suite *MigrateTestSuite) TestDelegate() {
+func (suite *IntegrationTest) MigrateTestDelegate() {
 	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.Secp256k1Type, 0, 0)
 	suite.NoError(err)
 	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
@@ -70,7 +61,7 @@ func (suite *MigrateTestSuite) TestDelegate() {
 	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
 	suite.CheckBalance(toAccAddress, suite.NewCoin(sdk.ZeroInt()))
 
-	suite.MigrateAccount(fromPrivKey, toPrivKey)
+	suite.migrateAccount(fromPrivKey, toPrivKey)
 	amount = amount.Sub(sdk.NewInt(2).MulRaw(1e18))
 
 	suite.CheckBalance(fromAccAddress, suite.NewCoin(sdk.ZeroInt()))
@@ -94,7 +85,7 @@ func (suite *MigrateTestSuite) TestDelegate() {
 	suite.True(balances2.AmountOf(fxtypes.DefaultDenom).GT(amount))
 }
 
-func (suite *MigrateTestSuite) TestUnDelegate() {
+func (suite *IntegrationTest) MigrateTestUnDelegate() {
 	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.Secp256k1Type, 0, 0)
 	suite.NoError(err)
 	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
@@ -124,7 +115,7 @@ func (suite *MigrateTestSuite) TestUnDelegate() {
 	suite.NoError(err)
 	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
 
-	suite.MigrateAccount(fromPrivKey, toPrivKey)
+	suite.migrateAccount(fromPrivKey, toPrivKey)
 	amount = amount.Sub(sdk.NewInt(2).MulRaw(1e18))
 
 	balances2 := suite.QueryBalances(toAccAddress)

@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
 )
 
@@ -18,13 +19,18 @@ func ValidateTronAddress(addr string) error {
 		return fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", addr, len(addr), TronContractAddressLen)
 	}
 
-	tronAddress, err := common.DecodeCheck(addr)
+	tronAddr, err := common.DecodeCheck(addr)
 	if err != nil {
 		return fmt.Errorf("invalid address: %s", addr)
 	}
-	expectAddress := common.EncodeCheck(tronAddress[:])
+	expectAddress := common.EncodeCheck(tronAddr[:])
 	if expectAddress != addr {
 		return fmt.Errorf("invalid address got: %s, expected: %s", addr, expectAddress)
 	}
 	return nil
+}
+
+func AddressFromHex(str string) string {
+	bytes, _ := common.FromHex(str)
+	return tronAddress.Address(append([]byte{tronAddress.TronBytePrefix}, bytes...)).String()
 }

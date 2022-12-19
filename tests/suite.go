@@ -265,7 +265,7 @@ func (suite *TestSuite) QueryBalances(accAddress sdk.AccAddress) sdk.Coins {
 func (suite *TestSuite) CheckBalance(accAddress sdk.AccAddress, balance sdk.Coin) {
 	queryBalance, err := suite.GRPCClient().QueryBalance(accAddress.String(), balance.Denom)
 	suite.NoError(err)
-	suite.Equal(queryBalance, balance)
+	suite.Equal(queryBalance.String(), balance.String())
 }
 
 func (suite *TestSuite) SetWithdrawAddr(priv cryptotypes.PrivKey, withdrawAddr sdk.AccAddress) {
