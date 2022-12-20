@@ -38,10 +38,15 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	// 0x39
 	k.CommonSetOracleTotalPower(ctx)
 
+	latestOracleSetNonce := uint64(0)
 	for _, set := range state.OracleSets {
-		// 0x15 0x29
+		// 0x15 0x29 TODO
+		if set.Nonce > latestOracleSetNonce {
+			latestOracleSetNonce = set.Nonce
+		}
 		k.StoreOracleSet(ctx, &set)
 	}
+	k.SetLatestOracleSetNonce(ctx, latestOracleSetNonce)
 
 	for _, bridgeToken := range state.BridgeTokens {
 		// 0x26 0x27

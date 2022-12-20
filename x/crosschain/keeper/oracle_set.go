@@ -57,6 +57,7 @@ func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 		return
 	}
 	k.StoreOracleSet(ctx, currentOracleSet)
+	k.SetLatestOracleSetNonce(ctx, currentOracleSet.Nonce)
 
 	k.CommonSetOracleTotalPower(ctx)
 
@@ -79,7 +80,6 @@ func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 func (k Keeper) StoreOracleSet(ctx sdk.Context, oracleSet *types.OracleSet) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetOracleSetKey(oracleSet.Nonce), k.cdc.MustMarshal(oracleSet))
-	k.SetLatestOracleSetNonce(ctx, oracleSet.Nonce)
 }
 
 // HasOracleSetRequest returns true if a oracleSet defined by a nonce exists

@@ -61,9 +61,10 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 		suite.Keeper().SetOracle(suite.ctx, oracle)
 		suite.Keeper().SetOracleByBridger(suite.ctx, testCase.BridgerAddress, oracle.GetOracle())
 
-		pendingOracleSetRequestByAddr, err := suite.Keeper().LastPendingOracleSetRequestByAddr(wrapSDKContext, &types.QueryLastPendingOracleSetRequestByAddrRequest{
-			BridgerAddress: testCase.BridgerAddress.String(),
-		})
+		pendingOracleSetRequestByAddr, err := suite.Keeper().LastPendingOracleSetRequestByAddr(wrapSDKContext,
+			&types.QueryLastPendingOracleSetRequestByAddrRequest{
+				BridgerAddress: testCase.BridgerAddress.String(),
+			})
 		require.NoError(suite.T(), err)
 		require.EqualValues(suite.T(), testCase.ExpectOracleSetSize, len(pendingOracleSetRequestByAddr.OracleSets))
 	}
