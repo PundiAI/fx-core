@@ -85,16 +85,50 @@ func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
 	}
 
 	sets := suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
-	require.NotNil(suite.T(), sets)
-	require.EqualValues(suite.T(), index-1, sets.Len())
+	if index-1 == 0 {
+		require.Nil(suite.T(), sets)
+	} else {
+		require.EqualValues(suite.T(), index-1, sets.Len())
+	}
 
 	suite.Keeper().SetLastSlashedOracleSetNonce(suite.ctx, 1)
 	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
-	require.NotNil(suite.T(), sets)
-	require.EqualValues(suite.T(), index-2, sets.Len())
+	if index-2 == 0 {
+		require.Nil(suite.T(), sets)
+	} else {
+		require.EqualValues(suite.T(), index-2, sets.Len())
+	}
 
 	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index+1))
-	require.NotNil(suite.T(), sets)
-	require.EqualValues(suite.T(), index-1, sets.Len())
+	if index-1 == 0 {
+		require.Nil(suite.T(), sets)
+	} else {
+		require.EqualValues(suite.T(), index-1, sets.Len())
+	}
 
+}
+
+func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
+	index := rand.Intn(20) + 1
+	for i := uint64(1); i <= uint64(index); i++ {
+		for _, oracle := range suite.oracles {
+			suite.Keeper().SetOracleSetConfirm(suite.ctx, oracle,
+				&types.MsgOracleSetConfirm{
+					Nonce:           i,
+					BridgerAddress:  sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					ExternalAddress: helpers.GenerateAddress().Hex(),
+					Signature:       "",
+					ChainName:       suite.chainName,
+				},
+			)
+		}
+	}
+
+	index = rand.Intn(index-1) + 1
+	var confirms []*types.MsgOracleSetConfirm
+	suite.Keeper().IterateOracleSetConfirmByNonce(suite.ctx, uint64(index), func(confirm *types.MsgOracleSetConfirm) bool {
+		confirms = append(confirms, confirm)
+		return false
+	})
+	suite.Equal(len(confirms), len(suite.oracles), index)
 }

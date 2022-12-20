@@ -222,34 +222,29 @@ func (k Keeper) SetOracleSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, 
 	store.Set(key, k.cdc.MustMarshal(oracleSetConfirm))
 }
 
-// GetOracleSetConfirms returns all oracle set confirmations by nonce
-func (k Keeper) GetOracleSetConfirms(ctx sdk.Context, nonce uint64) (confirms []*types.MsgOracleSetConfirm) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, append(types.OracleSetConfirmKey, sdk.Uint64ToBigEndian(nonce)...))
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		confirm := types.MsgOracleSetConfirm{}
-		k.cdc.MustUnmarshal(iterator.Value(), &confirm)
-		confirms = append(confirms, &confirm)
-	}
-	return confirms
-}
-
-// IterateOracleSetConfirmByNonce iterates through all oracleSet confirms by nonce in ASC order
-// MARK finish-batches: this is where the key is iterated in the old (presumed working) code
-func (k Keeper) IterateOracleSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(types.MsgOracleSetConfirm) bool) {
+// IterateOracleSetConfirmByNonce iterates through all oracleSet confirms by nonce
+func (k Keeper) IterateOracleSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(*types.MsgOracleSetConfirm) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, append(types.OracleSetConfirmKey, sdk.Uint64ToBigEndian(nonce)...))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		confirm := types.MsgOracleSetConfirm{}
-		k.cdc.MustUnmarshal(iter.Value(), &confirm)
+		confirm := new(types.MsgOracleSetConfirm)
+		k.cdc.MustUnmarshal(iter.Value(), confirm)
 		// cb returns true to stop early
 		if cb(confirm) {
 			break
 		}
+	}
+}
+
+func (k Keeper) DeleteOracleSetConfirm(ctx sdk.Context, nonce uint64) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, append(types.OracleSetConfirmKey, sdk.Uint64ToBigEndian(nonce)...))
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		store.Delete(iter.Key())
 	}
 }
 

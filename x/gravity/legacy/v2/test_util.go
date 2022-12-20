@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+	"sort"
+	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -12,6 +14,7 @@ import (
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
+	"github.com/stretchr/testify/require"
 
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
@@ -182,4 +185,55 @@ func AttClaimToAny(msg proto.Message) *codectypes.Any {
 		panic(err)
 	}
 	return anyMsg
+}
+
+func ParseStore(t *testing.T, store store.KVStore) {
+	expected := map[byte][2]int{
+		types.EthAddressByValidatorKey[0]:              {20, 0},
+		types.ValidatorByEthAddressKey[0]:              {20, 0},
+		types.ValidatorAddressByOrchestratorAddress[0]: {20, 0},
+		types.LastEventBlockHeightByValidatorKey[0]:    {20, 0},
+		types.LastEventNonceByValidatorKey[0]:          {20, 0},
+		types.LastObservedEventNonceKey[0]:             {1, 0},
+		types.SequenceKeyPrefix[0]:                     {2, 0},
+		types.DenomToERC20Key[0]:                       {1, 0},
+		types.ERC20ToDenomKey[0]:                       {1, 0},
+		types.LastSlashedValsetNonce[0]:                {1, 0},
+		types.LatestValsetNonce[0]:                     {1, 0},
+		types.LastSlashedBatchBlock[0]:                 {0, 0},
+		types.LastUnBondingBlockHeight[0]:              {0, 0},
+		types.LastObservedEthereumBlockHeightKey[0]:    {1, 0},
+		types.LastObservedValsetKey[0]:                 {1, 0},
+		types.IbcSequenceHeightKey[0]:                  {-1, -1},
+		types.ValsetRequestKey[0]:                      {1, 0},
+		types.OracleAttestationKey[0]:                  {1, 0},
+		types.BatchConfirmKey[0]:                       {47180, 0},
+		types.ValsetConfirmKey[0]:                      {1460, 0},
+	}
+
+	tmp := map[uint64]struct{}{}
+	iterator := store.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		if x, ok := expected[iterator.Key()[0]]; ok {
+			if x[0] == -1 && x[1] == -1 {
+				continue
+			}
+			expected[iterator.Key()[0]] = [2]int{x[0], x[1] + 1}
+		} else {
+			t.Log(fmt.Sprintf("%x", iterator.Key()[0]), iterator.Key())
+		}
+		if types.ValsetConfirmKey[0] == iterator.Key()[0] {
+			tmp[sdk.BigEndianToUint64(iterator.Key()[1:9])] = struct{}{}
+		}
+	}
+	for k, x := range expected {
+		require.Equal(t, x[0], x[1], fmt.Sprintf("%x", k))
+	}
+	var ary []int
+	for k := range tmp {
+		ary = append(ary, int(k))
+	}
+	sort.Ints(ary)
+	t.Log(len(ary), ary)
 }

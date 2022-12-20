@@ -58,8 +58,8 @@ func (k Keeper) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOrac
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	var confirms []*types.MsgOracleSetConfirm
-	k.IterateOracleSetConfirmByNonce(sdk.UnwrapSDKContext(c), req.Nonce, func(c types.MsgOracleSetConfirm) bool {
-		confirms = append(confirms, &c)
+	k.IterateOracleSetConfirmByNonce(sdk.UnwrapSDKContext(c), req.Nonce, func(confirm *types.MsgOracleSetConfirm) bool {
+		confirms = append(confirms, confirm)
 		return false
 	})
 	return &types.QueryOracleSetConfirmsByNonceResponse{Confirms: confirms}, nil
@@ -216,8 +216,8 @@ func (k Keeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRe
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	var confirms []*types.MsgConfirmBatch
-	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(c types.MsgConfirmBatch) bool {
-		confirms = append(confirms, &c)
+	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(confirm *types.MsgConfirmBatch) bool {
+		confirms = append(confirms, confirm)
 		return false
 	})
 	return &types.QueryBatchConfirmsResponse{Confirms: confirms}, nil
@@ -319,25 +319,28 @@ func (k Keeper) GetPendingSendToExternal(c context.Context, req *types.QueryPend
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	batches := k.GetOutgoingTxBatches(ctx)
-	unbatchedTx := k.GetUnbatchedTransactions(ctx)
-	senderAddress := req.SenderAddress
+	var batches []*types.OutgoingTxBatch
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
+		batches = append(batches, batch)
+		return false
+	})
 	var res = &types.QueryPendingSendToExternalResponse{
 		TransfersInBatches: make([]*types.OutgoingTransferTx, 0),
 		UnbatchedTransfers: make([]*types.OutgoingTransferTx, 0),
 	}
 	for _, batch := range batches {
 		for _, tx := range batch.Transactions {
-			if tx.Sender == senderAddress {
+			if tx.Sender == req.SenderAddress {
 				res.TransfersInBatches = append(res.TransfersInBatches, tx)
 			}
 		}
 	}
-	for _, tx := range unbatchedTx {
-		if tx.Sender == senderAddress {
+	k.IterateUnbatchedTransactions(ctx, types.OutgoingTxPoolKey, func(tx *types.OutgoingTransferTx) bool {
+		if tx.Sender == req.SenderAddress {
 			res.UnbatchedTransfers = append(res.UnbatchedTransfers, tx)
 		}
-	}
+		return false
+	})
 	return res, nil
 }
 

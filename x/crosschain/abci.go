@@ -76,11 +76,11 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 
 	// Find all verifiers that meet the penalty to change the signature consensus
 	for _, oracleSet := range unSlashedOracleSets {
-		confirms := k.GetOracleSetConfirms(ctx, oracleSet.Nonce)
-		confirmOracleMap := make(map[string]bool, len(confirms))
-		for _, confirm := range confirms {
-			confirmOracleMap[confirm.ExternalAddress] = true
-		}
+		confirmOracleMap := make(map[string]struct{})
+		k.IterateOracleSetConfirmByNonce(ctx, oracleSet.Nonce, func(confirm *types.MsgOracleSetConfirm) bool {
+			confirmOracleMap[confirm.ExternalAddress] = struct{}{}
+			return false
+		})
 		for i := 0; i < len(oracles); i++ {
 			if uint64(oracles[i].StartHeight) > oracleSet.Height {
 				continue
@@ -92,6 +92,7 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 				hasSlash = true
 			}
 		}
+		k.DeleteOracleSetConfirm(ctx, oracleSet.Nonce)
 		// then we set the latest slashed oracleSet  nonce
 		k.SetLastSlashedOracleSetNonce(ctx, oracleSet.Nonce)
 	}
@@ -103,11 +104,11 @@ func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, sign
 	unSlashedBatches := k.GetUnSlashedBatches(ctx, maxHeight)
 
 	for _, batch := range unSlashedBatches {
-		confirms := k.GetBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract)
-		confirmOracleMap := make(map[string]bool, len(confirms))
-		for _, confirm := range confirms {
-			confirmOracleMap[confirm.ExternalAddress] = true
-		}
+		confirmOracleMap := make(map[string]struct{})
+		k.IterateBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract, func(confirm *types.MsgConfirmBatch) bool {
+			confirmOracleMap[confirm.ExternalAddress] = struct{}{}
+			return false
+		})
 		for i := 0; i < len(oracles); i++ {
 			if uint64(oracles[i].StartHeight) > batch.Block {
 				continue
@@ -119,6 +120,7 @@ func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, sign
 				hasSlash = true
 			}
 		}
+		k.DeleteBatchConfig(ctx, batch.BatchNonce, batch.TokenContract)
 		// then we set the latest slashed batch block
 		k.SetLastSlashedBatchBlock(ctx, batch.Block)
 	}
@@ -129,12 +131,22 @@ func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, sign
 // "Observe" those who have passed the threshold. Break the loop once we see
 // an attestation that has not passed the threshold
 func attestationTally(ctx sdk.Context, k keeper.Keeper) {
-	attMap := k.GetAttestationMapping(ctx)
-	// We make a slice with all the event nonces that are in the attestation mapping
-	nonces := make([]uint64, 0, len(attMap))
-	for k := range attMap {
-		nonces = append(nonces, k)
+	type attClaim struct {
+		*types.Attestation
+		types.ExternalClaim
 	}
+	attMap := make(map[uint64][]attClaim)
+	// We make a slice with all the event nonces that are in the attestation mapping
+	var nonces []uint64
+	k.IterateAttestationAndClaim(ctx, func(att *types.Attestation, claim types.ExternalClaim) bool {
+		if v, ok := attMap[claim.GetEventNonce()]; !ok {
+			attMap[claim.GetEventNonce()] = []attClaim{{att, claim}}
+			nonces = append(nonces, claim.GetEventNonce())
+		} else {
+			attMap[claim.GetEventNonce()] = append(v, attClaim{att, claim})
+		}
+		return false
+	})
 	// Then we sort it
 	sort.Slice(nonces, func(i, j int) bool {
 		return nonces[i] < nonces[j]
@@ -165,7 +177,7 @@ func attestationTally(ctx sdk.Context, k keeper.Keeper) {
 			// If no attestation becomes observed, when we get to the next nonce, every attestation in
 			// it will be skipped. The same will happen for every nonce after that.
 			if nonce == k.GetLastObservedEventNonce(ctx)+1 {
-				k.TryAttestation(ctx, &att)
+				k.TryAttestation(ctx, att.Attestation, att.ExternalClaim)
 			}
 		}
 	}
@@ -195,7 +207,6 @@ func cleanupTimedOutBatches(ctx sdk.Context, k keeper.Keeper) {
 	})
 }
 
-// pruneOracleSet
 func pruneOracleSet(ctx sdk.Context, k keeper.Keeper, signedOracleSetsWindow uint64) {
 	// Oracle set pruning
 	// prune all Oracle sets with a nonce less than the
@@ -223,15 +234,21 @@ func pruneOracleSet(ctx sdk.Context, k keeper.Keeper, signedOracleSetsWindow uin
 // but (A) pruning keeps the iteration small in the first place and (B) there is
 // already enough nuance in the other handler that it's best not to complicate it further
 func pruneAttestations(ctx sdk.Context, k keeper.Keeper) {
-	attMap := k.GetAttestationMapping(ctx)
+	claimMap := make(map[uint64][]types.ExternalClaim)
 	// We make a slice with all the event nonces that are in the attestation mapping
-	keys := make([]uint64, 0, len(attMap))
-	for k := range attMap {
-		keys = append(keys, k)
-	}
+	var nonces []uint64
+	k.IterateAttestationAndClaim(ctx, func(att *types.Attestation, claim types.ExternalClaim) bool {
+		if v, ok := claimMap[claim.GetEventNonce()]; !ok {
+			claimMap[claim.GetEventNonce()] = []types.ExternalClaim{claim}
+			nonces = append(nonces, claim.GetEventNonce())
+		} else {
+			claimMap[claim.GetEventNonce()] = append(v, claim)
+		}
+		return false
+	})
 	// Then we sort it
-	sort.Slice(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
+	sort.Slice(nonces, func(i, j int) bool {
+		return nonces[i] < nonces[j]
 	})
 
 	// we delete all attestations earlier than the current event nonce
@@ -247,14 +264,14 @@ func pruneAttestations(ctx sdk.Context, k keeper.Keeper) {
 	// This iterates over all keys (event nonces) in the attestation mapping. Each value contains
 	// a slice with one or more attestations at that event nonce. There can be multiple attestations
 	// at one event nonce when Oracles disagree about what event happened at that nonce.
-	for _, nonce := range keys {
+	for _, nonce := range nonces {
 		// This iterates over all attestations at a particular event nonce.
 		// They are ordered by when the first attestation at the event nonce was received.
 		// This order is not important.
-		for _, att := range attMap[nonce] {
+		for _, claim := range claimMap[nonce] {
 			// delete all before the cutoff
 			if nonce < cutoff {
-				k.DeleteAttestation(ctx, att)
+				k.DeleteAttestation(ctx, claim)
 			}
 		}
 	}

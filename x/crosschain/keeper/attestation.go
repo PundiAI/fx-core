@@ -51,11 +51,7 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 // TryAttestation checks if an attestation has enough votes to be applied to the consensus state
 // and has not already been marked Observed, then calls processAttestation to actually apply it to the state,
 // and then marks it Observed and emits an event.
-func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
-	claim, err := types.UnpackAttestationClaim(k.cdc, att)
-	if err != nil {
-		panic("could not cast to claim")
-	}
+func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim types.ExternalClaim) {
 	if att.Observed {
 		// We panic here because this should never happen
 		panic("attempting to process observed attestation")
@@ -76,7 +72,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation) {
 		oracle, found := k.GetOracle(ctx, oracleAddr)
 		if !found {
 			logger.Error("TryAttestation", "not found oracle", oracleAddr.String(), "claimEventNonce",
-				claim.GetEventNonce(), "claimType", claim.GetEventNonce(), "claimHeight", claim.GetBlockHeight())
+				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
 			continue
 		}
 		oraclePower := oracle.GetPower()
@@ -154,43 +150,40 @@ func (k Keeper) GetAttestation(ctx sdk.Context, eventNonce uint64, claimHash []b
 }
 
 // DeleteAttestation deletes an attestation given an event nonce and claim
-func (k Keeper) DeleteAttestation(ctx sdk.Context, att types.Attestation) {
-	claim, err := types.UnpackAttestationClaim(k.cdc, &att)
-	if err != nil {
-		panic("Bad Attestation in DeleteAttestation")
-	}
+func (k Keeper) DeleteAttestation(ctx sdk.Context, claim types.ExternalClaim) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash()))
 }
 
-// GetAttestationMapping returns a mapping of eventNonce -> attestations at that nonce
-func (k Keeper) GetAttestationMapping(ctx sdk.Context) (out map[uint64][]types.Attestation) {
-	out = make(map[uint64][]types.Attestation)
-	k.IterateAttestations(ctx, func(att types.Attestation) bool {
-		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
-		if err != nil {
-			panic("couldn't cast to claim")
-		}
-
-		if atts, ok := out[claim.GetEventNonce()]; !ok {
-			out[claim.GetEventNonce()] = []types.Attestation{att}
-		} else {
-			out[claim.GetEventNonce()] = append(atts, att)
-		}
-		return false
-	})
-	return
-}
-
-// IterateAttestations iterates through all attestations
-func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(types.Attestation) bool) {
+// IterateAttestationAndClaim iterates through all attestations
+func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attestation, types.ExternalClaim) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.OracleAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		att := types.Attestation{}
-		k.cdc.MustUnmarshal(iter.Value(), &att)
+		att := new(types.Attestation)
+		k.cdc.MustUnmarshal(iter.Value(), att)
+		claim, err := types.UnpackAttestationClaim(k.cdc, att)
+		if err != nil {
+			panic("couldn't cast to claim")
+		}
+		// cb returns true to stop early
+		if cb(att, claim) {
+			return
+		}
+	}
+}
+
+// IterateAttestations iterates through all attestations
+func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(*types.Attestation) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.OracleAttestationKey)
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		att := new(types.Attestation)
+		k.cdc.MustUnmarshal(iter.Value(), att)
 		// cb returns true to stop early
 		if cb(att) {
 			return
@@ -202,7 +195,6 @@ func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(types.Attestation) 
 func (k Keeper) GetLastObservedEventNonce(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bytes := store.Get(types.LastObservedEventNonceKey)
-
 	if len(bytes) == 0 {
 		return 0
 	}
@@ -220,7 +212,6 @@ func (k Keeper) SetLastObservedEventNonce(ctx sdk.Context, eventNonce uint64) {
 func (k Keeper) GetLastObservedBlockHeight(ctx sdk.Context) types.LastObservedBlockHeight {
 	store := ctx.KVStore(k.storeKey)
 	bytes := store.Get(types.LastObservedBlockHeightKey)
-
 	if len(bytes) == 0 {
 		return types.LastObservedBlockHeight{
 			ExternalBlockHeight: 0,

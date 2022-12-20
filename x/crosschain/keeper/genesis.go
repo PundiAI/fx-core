@@ -140,22 +140,28 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 	for _, oracleSet := range k.GetOracleSets(ctx) {
 		state.OracleSets = append(state.OracleSets, *oracleSet)
 	}
-	for _, batch := range k.GetOutgoingTxBatches(ctx) {
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		state.Batches = append(state.Batches, *batch)
-	}
-	for _, attestations := range k.GetAttestationMapping(ctx) {
-		state.Attestations = append(state.Attestations, attestations...)
-	}
+		return false
+	})
+	k.IterateAttestations(ctx, func(attestation *types.Attestation) bool {
+		state.Attestations = append(state.Attestations, *attestation)
+		return false
+	})
 	for _, tx := range k.GetUnbatchedTransactions(ctx) {
 		state.UnbatchedTransfers = append(state.UnbatchedTransfers, *tx)
 	}
 	for _, vs := range state.OracleSets {
-		for _, cfg := range k.GetOracleSetConfirms(ctx, vs.Nonce) {
-			state.OracleSetConfirms = append(state.OracleSetConfirms, *cfg)
-		}
+		k.IterateOracleSetConfirmByNonce(ctx, vs.Nonce, func(confirm *types.MsgOracleSetConfirm) bool {
+			state.OracleSetConfirms = append(state.OracleSetConfirms, *confirm)
+			return false
+		})
 	}
 	for _, batch := range state.Batches {
-		state.BatchConfirms = append(state.BatchConfirms, k.GetBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract)...)
+		k.IterateBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract, func(confirm *types.MsgConfirmBatch) bool {
+			state.BatchConfirms = append(state.BatchConfirms, *confirm)
+			return false
+		})
 	}
 	k.IterateBridgeTokenToDenom(ctx, func(erc20ToDenom *types.BridgeToken) bool {
 		state.BridgeTokens = append(state.BridgeTokens, *erc20ToDenom)
