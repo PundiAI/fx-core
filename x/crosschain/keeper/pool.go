@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
@@ -124,13 +125,17 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	totalToRefund.Amount = totalToRefund.Amount.Add(tx.Fee.Amount)
 	totalToRefundCoins := sdk.NewCoins(totalToRefund)
 
-	// If it is an ethereum-originated asset we have to mint it (see Handle in attestation_handler.go)
-	// mint coins in module for prep to send
-	if err = k.bankKeeper.MintCoins(ctx, k.moduleName, totalToRefundCoins); err != nil {
-		return sdkerrors.Wrapf(err, "mint vouchers coins: %s", totalToRefundCoins)
-	}
-	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
-		return sdkerrors.Wrap(err, "transfer vouchers")
+	if bridgeToken.Denom == fxtypes.DefaultDenom {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
+			return err
+		}
+	} else {
+		if err = k.bankKeeper.MintCoins(ctx, k.moduleName, totalToRefundCoins); err != nil {
+			return sdkerrors.Wrapf(err, "mint vouchers coins: %s", totalToRefundCoins)
+		}
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
+			return sdkerrors.Wrap(err, "transfer vouchers")
+		}
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
