@@ -96,7 +96,7 @@ func oracleSetSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, 
 		// then we set the latest slashed oracleSet  nonce
 		k.SetLastSlashedOracleSetNonce(ctx, oracleSet.Nonce)
 	}
-	return
+	return hasSlash
 }
 
 func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, signedWindow uint64) (hasSlash bool) {
@@ -124,7 +124,7 @@ func batchSlashing(ctx sdk.Context, k keeper.Keeper, oracles types.Oracles, sign
 		// then we set the latest slashed batch block
 		k.SetLastSlashedBatchBlock(ctx, batch.Block)
 	}
-	return
+	return hasSlash
 }
 
 // Iterate over all attestations currently being voted on in order of nonce and
