@@ -182,6 +182,6 @@ func GetTokenToDenomKey(denom string) []byte {
 }
 
 // GetPastExternalSignatureCheckpointKey returns the following key format
-func GetPastExternalSignatureCheckpointKey(checkpoint []byte) []byte {
-	return append(PastExternalSignatureCheckpointKey, checkpoint...)
+func GetPastExternalSignatureCheckpointKey(blockHeight uint64, checkpoint []byte) []byte {
+	return append(PastExternalSignatureCheckpointKey, append(sdk.Uint64ToBigEndian(blockHeight), checkpoint...)...)
 }
