@@ -8,8 +8,6 @@ import (
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-// TODO: Break into several smaller functions for clarity
-
 // Tally iterates over the votes and updates the tally of a proposal based on the voting power of the
 // voters
 func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes bool, burnDeposits bool, tallyResults types.TallyResult) {
@@ -96,7 +94,6 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 	}
 	tallyResults = types.NewTallyResultFromMap(results)
 
-	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.
 	// If there is no staked coins, the proposal fails
 	if keeper.sk.TotalBondedTokens(ctx).IsZero() {
 		return false, false, tallyResults

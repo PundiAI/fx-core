@@ -58,7 +58,7 @@ type AppConstructor = func(val Validator) servertypes.Application
 // in-process local testing network.
 type Config struct {
 	Codec             codec.Codec
-	LegacyAmino       *codec.LegacyAmino // TODO: Remove!
+	LegacyAmino       *codec.LegacyAmino
 	InterfaceRegistry codectypes.InterfaceRegistry
 	TxConfig          client.TxConfig
 	AccountRetriever  client.AccountRetriever
