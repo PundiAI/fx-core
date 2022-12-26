@@ -114,6 +114,7 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	// prefix           oracle-set-nonce
 	// [0x29]			[0 0 0 0 0 0 0 1]
 	migratePrefix(gravityStore, ethStore, types.LatestValsetNonce, crosschaintypes.LatestOracleSetNonce)
+	//ethStore.Set(crosschaintypes.LatestOracleSetNonce, sdk.Uint64ToBigEndian(10000000)) todo set custom nonce
 
 	// gravity 0x13 -> eth 0x30
 	// key         		value

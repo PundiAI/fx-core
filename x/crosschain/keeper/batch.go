@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -131,6 +130,7 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 	store.Set(key, k.cdc.MustMarshal(batch))
 
 	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
+	// TODO: need fix
 	if store.Has(blockKey) {
 		return sdkerrors.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] has batch request", batch.Block))
 	}
@@ -149,7 +149,7 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 func (k Keeper) pickUnBatchedTx(ctx sdk.Context, tokenContract string, maxElements uint, baseFee sdk.Int) ([]*types.OutgoingTransferTx, error) {
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
-	k.IterateUnbatchedTransactionsByContract(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
+	k.IterateUnbatchedTransactions(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
 		if tx.Fee.Amount.LT(baseFee) {
 			return true
 		}
@@ -215,7 +215,7 @@ func (k Keeper) IterateOutgoingTxBatches(ctx sdk.Context, cb func(batch *types.O
 	}
 }
 
-// GetOutgoingTxBatches returns the outgoing tx batches
+// GetOutgoingTxBatches used in testing
 func (k Keeper) GetOutgoingTxBatches(ctx sdk.Context) (out []*types.OutgoingTxBatch) {
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		out = append(out, batch)
@@ -256,14 +256,13 @@ func (k Keeper) GetLastSlashedBatchBlock(ctx sdk.Context) uint64 {
 
 // GetUnSlashedBatches returns all the unSlashed batches in state
 func (k Keeper) GetUnSlashedBatches(ctx sdk.Context, maxHeight uint64) (outgoingTxBatches types.OutgoingTxBatches) {
-	lastSlashedBatchBlock := k.GetLastSlashedBatchBlock(ctx)
+	lastSlashedBatchBlock := k.GetLastSlashedBatchBlock(ctx) + 1
 	k.IterateBatchByBlockHeight(ctx, lastSlashedBatchBlock, maxHeight, func(batch *types.OutgoingTxBatch) bool {
-		if batch.Block > lastSlashedBatchBlock {
-			outgoingTxBatches = append(outgoingTxBatches, batch)
-		}
+		outgoingTxBatches = append(outgoingTxBatches, batch)
 		return false
 	})
-	sort.Sort(outgoingTxBatches)
+	// TODO why sort
+	//sort.Sort(outgoingTxBatches)
 	return
 }
 

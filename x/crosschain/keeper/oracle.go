@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"sort"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -190,7 +188,8 @@ func (k Keeper) GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Ora
 		}
 		oracles = append(oracles, oracle)
 	}
-	sort.Sort(oracles)
+	// TODO why sort
+	//sort.Sort(oracles)
 	return oracles
 }
 

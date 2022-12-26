@@ -137,9 +137,10 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 		state.Oracles = append(state.Oracles, oracle)
 		return false
 	})
-	for _, oracleSet := range k.GetOracleSets(ctx) {
+	k.IterateOracleSets(ctx, false, func(oracleSet *types.OracleSet) bool {
 		state.OracleSets = append(state.OracleSets, *oracleSet)
-	}
+		return false
+	})
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		state.Batches = append(state.Batches, *batch)
 		return false
@@ -148,9 +149,10 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 		state.Attestations = append(state.Attestations, *attestation)
 		return false
 	})
-	for _, tx := range k.GetUnbatchedTransactions(ctx) {
+	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
 		state.UnbatchedTransfers = append(state.UnbatchedTransfers, *tx)
-	}
+		return false
+	})
 	for _, vs := range state.OracleSets {
 		k.IterateOracleSetConfirmByNonce(ctx, vs.Nonce, func(confirm *types.MsgOracleSetConfirm) bool {
 			state.OracleSetConfirms = append(state.OracleSetConfirms, *confirm)

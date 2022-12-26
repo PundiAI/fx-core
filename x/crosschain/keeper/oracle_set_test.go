@@ -1,14 +1,20 @@
 package keeper_test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
+	types2 "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
@@ -61,18 +67,18 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 		suite.Keeper().SetOracle(suite.ctx, oracle)
 		suite.Keeper().SetOracleByBridger(suite.ctx, testCase.BridgerAddress, oracle.GetOracle())
 
-		pendingOracleSetRequestByAddr, err := suite.Keeper().LastPendingOracleSetRequestByAddr(wrapSDKContext,
+		response, err := suite.Keeper().LastPendingOracleSetRequestByAddr(wrapSDKContext,
 			&types.QueryLastPendingOracleSetRequestByAddrRequest{
 				BridgerAddress: testCase.BridgerAddress.String(),
 			})
 		require.NoError(suite.T(), err)
-		require.EqualValues(suite.T(), testCase.ExpectOracleSetSize, len(pendingOracleSetRequestByAddr.OracleSets))
+		require.EqualValues(suite.T(), testCase.ExpectOracleSetSize, len(response.OracleSets))
 	}
 }
 
 func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
-	height := rand.Intn(1000) + 1
-	index := rand.Intn(100) + 1
+	height := 100
+	index := 10
 	for i := 1; i <= index; i++ {
 		suite.Keeper().StoreOracleSet(suite.ctx, &types.OracleSet{
 			Nonce: uint64(i),
@@ -83,29 +89,17 @@ func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
 			Height: uint64(height + i),
 		})
 	}
+	suite.Equal(uint64(0), suite.Keeper().GetLastSlashedOracleSetNonce(suite.ctx))
 
 	sets := suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
-	if index-1 == 0 {
-		require.Nil(suite.T(), sets)
-	} else {
-		require.EqualValues(suite.T(), index-1, sets.Len())
-	}
+	require.EqualValues(suite.T(), index-1, sets.Len())
 
 	suite.Keeper().SetLastSlashedOracleSetNonce(suite.ctx, 1)
 	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index))
-	if index-2 == 0 {
-		require.Nil(suite.T(), sets)
-	} else {
-		require.EqualValues(suite.T(), index-2, sets.Len())
-	}
+	require.EqualValues(suite.T(), index-2, sets.Len())
 
 	sets = suite.Keeper().GetUnSlashedOracleSets(suite.ctx, uint64(height+index+1))
-	if index-1 == 0 {
-		require.Nil(suite.T(), sets)
-	} else {
-		require.EqualValues(suite.T(), index-1, sets.Len())
-	}
-
+	require.EqualValues(suite.T(), index-1, sets.Len())
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
@@ -131,4 +125,119 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 		return false
 	})
 	suite.Equal(len(confirms), len(suite.oracles), index)
+}
+
+func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
+	var member []types.BridgeValidator
+	for i, external := range suite.externals {
+		externalAddr := crypto.PubkeyToAddress(external.PublicKey).String()
+		if suite.chainName == trontypes.ModuleName {
+			externalAddr = tronAddress.PubkeyToAddress(external.PublicKey).String()
+		}
+
+		member = append(member, types.BridgeValidator{
+			Power:           uint64(i),
+			ExternalAddress: externalAddr,
+		})
+	}
+	oracleSet := &types.OracleSet{
+		Nonce:   1,
+		Members: member,
+		Height:  100,
+	}
+	suite.Keeper().StoreOracleSet(suite.ctx, oracleSet)
+
+	for i, external := range suite.externals {
+		externalAddress := crypto.PubkeyToAddress(external.PublicKey).String()
+		gravityId := suite.Keeper().GetGravityID(suite.ctx)
+		checkpoint, err := oracleSet.GetCheckpoint(gravityId)
+		suite.NoError(err)
+		signature, err := types.NewEthereumSignature(checkpoint, external)
+		suite.NoError(err)
+		if trontypes.ModuleName == suite.chainName {
+			externalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
+
+			checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSet, gravityId)
+			require.NoError(suite.T(), err)
+
+			signature, err = trontypes.NewTronSignature(checkpoint, suite.externals[i])
+			require.NoError(suite.T(), err)
+		}
+
+		suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracles[i], &types.MsgOracleSetConfirm{
+			Nonce:           oracleSet.Nonce,
+			BridgerAddress:  suite.bridgers[i].String(),
+			ExternalAddress: externalAddress,
+			Signature:       hex.EncodeToString(signature),
+			ChainName:       suite.chainName,
+		})
+	}
+
+	params := suite.Keeper().GetParams(suite.ctx)
+	params.SignedWindow = 10
+	suite.Keeper().SetParams(suite.ctx, &params)
+	height := suite.Keeper().GetSignedWindow(suite.ctx) + oracleSet.Height + 1
+	for i := uint64(2); i <= height; i++ {
+		suite.app.BeginBlock(types2.RequestBeginBlock{
+			Header: tmproto.Header{Height: int64(i)},
+		})
+		suite.app.EndBlock(types2.RequestEndBlock{Height: int64(i)})
+		suite.app.Commit()
+	}
+
+	for _, oracle := range suite.oracles {
+		suite.Nil(suite.Keeper().GetOracleSetConfirm(suite.ctx, oracleSet.Nonce, oracle))
+	}
+}
+
+func (suite *KeeperTestSuite) TestKeeper_IterateOracleSet() {
+	var member []types.BridgeValidator
+	for i, external := range suite.externals {
+		member = append(member, types.BridgeValidator{
+			Power:           uint64(i),
+			ExternalAddress: crypto.PubkeyToAddress(external.PublicKey).String(),
+		})
+	}
+	for i := 1; i <= 10; i++ {
+		suite.Keeper().StoreOracleSet(suite.ctx, &types.OracleSet{
+			Nonce:   uint64(i),
+			Members: member,
+			Height:  uint64(i + 100),
+		})
+	}
+	var i = uint64(0)
+	oracleSets := types.OracleSets{}
+	suite.Keeper().IterateOracleSetByNonce(suite.ctx, 0, func(oracleSet *types.OracleSet) bool {
+		i = i + 1
+		suite.Equal(i, oracleSet.Nonce)
+		oracleSets = append(oracleSets, oracleSet)
+		return false
+	})
+	suite.Equal(len(oracleSets), 10)
+
+	oracleSets = types.OracleSets{}
+	suite.Keeper().IterateOracleSetByNonce(suite.ctx, 1, func(oracleSet *types.OracleSet) bool {
+		oracleSets = append(oracleSets, oracleSet)
+		return false
+	})
+	suite.Equal(len(oracleSets), 10)
+
+	oracleSets = types.OracleSets{}
+	suite.Keeper().IterateOracleSetByNonce(suite.ctx, 2, func(oracleSet *types.OracleSet) bool {
+		oracleSets = append(oracleSets, oracleSet)
+		return false
+	})
+	suite.Equal(len(oracleSets), 9)
+
+	suite.Keeper().IterateOracleSets(suite.ctx, true, func(oracleSet *types.OracleSet) bool {
+		suite.Equal(i, oracleSet.Nonce, oracleSet.Nonce)
+		i = i - 1
+		return false
+	})
+
+	suite.Keeper().IterateOracleSets(suite.ctx, false, func(oracleSet *types.OracleSet) bool {
+		i = i + 1
+		suite.Equal(i, oracleSet.Nonce)
+		return false
+	})
 }

@@ -17,25 +17,20 @@ const maxOracleSetRequestsReturned = 5
 
 var _ types.QueryServer = Keeper{}
 
-// Params queries the params of the bsc module
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	var params types.Params
 	k.paramSpace.GetParamSet(sdk.UnwrapSDKContext(c), &params)
 	return &types.QueryParamsResponse{Params: params}, nil
-
 }
 
-// CurrentOracleSet queries the CurrentOracleSet of the bsc module
 func (k Keeper) CurrentOracleSet(c context.Context, _ *types.QueryCurrentOracleSetRequest) (*types.QueryCurrentOracleSetResponse, error) {
 	return &types.QueryCurrentOracleSetResponse{OracleSet: k.GetCurrentOracleSet(sdk.UnwrapSDKContext(c))}, nil
 }
 
-// OracleSetRequest queries the OracleSetRequest of the bsc module
 func (k Keeper) OracleSetRequest(c context.Context, req *types.QueryOracleSetRequestRequest) (*types.QueryOracleSetRequestResponse, error) {
 	return &types.QueryOracleSetRequestResponse{OracleSet: k.GetOracleSet(sdk.UnwrapSDKContext(c), req.Nonce)}, nil
 }
 
-// OracleSetConfirm queries the OracleSetConfirm of the bsc module
 func (k Keeper) OracleSetConfirm(c context.Context, req *types.QueryOracleSetConfirmRequest) (*types.QueryOracleSetConfirmResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
 	if err != nil {
@@ -44,15 +39,14 @@ func (k Keeper) OracleSetConfirm(c context.Context, req *types.QueryOracleSetCon
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
-	sdkCtx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleAddressByBridgerKey(sdkCtx, bridgerAddr)
+	ctx := sdk.UnwrapSDKContext(c)
+	oracleAddr, found := k.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
-	return &types.QueryOracleSetConfirmResponse{Confirm: k.GetOracleSetConfirm(sdkCtx, req.Nonce, oracleAddr)}, nil
+	return &types.QueryOracleSetConfirmResponse{Confirm: k.GetOracleSetConfirm(ctx, req.Nonce, oracleAddr)}, nil
 }
 
-// OracleSetConfirmsByNonce queries the OracleSetConfirmsByNonce of the bsc module
 func (k Keeper) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOracleSetConfirmsByNonceRequest) (*types.QueryOracleSetConfirmsByNonceResponse, error) {
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
@@ -65,51 +59,46 @@ func (k Keeper) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOrac
 	return &types.QueryOracleSetConfirmsByNonceResponse{Confirms: confirms}, nil
 }
 
-// LastOracleSetRequests queries the LastOracleSetRequests of the bsc module
 func (k Keeper) LastOracleSetRequests(c context.Context, _ *types.QueryLastOracleSetRequestsRequest) (*types.QueryLastOracleSetRequestsResponse, error) {
-	oracleSets := k.GetOracleSets(sdk.UnwrapSDKContext(c))
-	retLen := 0
-	if len(oracleSets) < maxOracleSetRequestsReturned {
-		retLen = len(oracleSets)
-	} else {
-		retLen = maxOracleSetRequestsReturned
-	}
-	return &types.QueryLastOracleSetRequestsResponse{OracleSets: oracleSets[0:retLen]}, nil
+	var oraclesSets []*types.OracleSet
+	k.IterateOracleSets(sdk.UnwrapSDKContext(c), true, func(oracleSet *types.OracleSet) bool {
+		if len(oraclesSets) >= maxOracleSetRequestsReturned {
+			return true
+		}
+		oraclesSets = append(oraclesSets, oracleSet)
+		return false
+	})
+	return &types.QueryLastOracleSetRequestsResponse{OracleSets: oraclesSets}, nil
 }
 
-// LastPendingOracleSetRequestByAddr queries the LastPendingOracleSetRequestByAddr of the bsc module
 func (k Keeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.QueryLastPendingOracleSetRequestByAddrRequest) (*types.QueryLastPendingOracleSetRequestByAddrResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "bridger address")
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleAddressByBridgerKey(sdkCtx, bridgerAddr)
+	ctx := sdk.UnwrapSDKContext(c)
+	oracleAddr, found := k.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
-	oracle, found := k.GetOracle(sdkCtx, oracleAddr)
+	oracle, found := k.GetOracle(ctx, oracleAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
 	var pendingOracleSetReq []*types.OracleSet
-	k.IterateOracleSets(sdkCtx, func(oracleSet *types.OracleSet) bool {
+	k.IterateOracleSets(ctx, false, func(oracleSet *types.OracleSet) bool {
 		if oracle.StartHeight > int64(oracleSet.Height) {
 			return false
 		}
 		// found is true if the operatorAddr has signed the oracle set we are currently looking at
 		// if this oracle set has NOT been signed by oracleAddr, store it in pendingOracleSetReq and exit the loop
-		if found = k.GetOracleSetConfirm(sdkCtx, oracleSet.Nonce, oracleAddr) != nil; !found {
+		if found = k.GetOracleSetConfirm(ctx, oracleSet.Nonce, oracleAddr) != nil; !found {
 			pendingOracleSetReq = append(pendingOracleSetReq, oracleSet)
 		}
 		// if we have more than 100 unconfirmed requests in
 		// our array we should exit, pagination
-		if len(pendingOracleSetReq) > MaxResults {
-			return true
-		}
-		// return false to continue the loop
-		return false
+		return len(pendingOracleSetReq) == MaxResults
 	})
 	return &types.QueryLastPendingOracleSetRequestByAddrResponse{OracleSets: pendingOracleSetReq}, nil
 }
@@ -131,28 +120,27 @@ func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*
 	return &types.QueryBatchFeeResponse{BatchFees: allBatchFees}, nil
 }
 
-// LastPendingBatchRequestByAddr queries the LastPendingBatchRequestByAddr of the bsc module
 func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(req.GetBridgerAddress())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "bridger address")
 	}
-	sdkCtx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleAddressByBridgerKey(sdkCtx, bridgerAddr)
+	ctx := sdk.UnwrapSDKContext(c)
+	oracleAddr, found := k.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
-	oracle, found := k.GetOracle(sdkCtx, oracleAddr)
+	oracle, found := k.GetOracle(ctx, oracleAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
 	var pendingBatchReq *types.OutgoingTxBatch
-	k.IterateOutgoingTxBatches(sdkCtx, func(batch *types.OutgoingTxBatch) bool {
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		// filter startHeight before confirm
 		if oracle.StartHeight > int64(batch.Block) {
 			return false
 		}
-		foundConfirm := k.GetBatchConfirm(sdkCtx, batch.BatchNonce, batch.TokenContract, oracleAddr) != nil
+		foundConfirm := k.GetBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract, oracleAddr) != nil
 		if !foundConfirm {
 			pendingBatchReq = batch
 			return true
@@ -162,7 +150,6 @@ func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.Quer
 	return &types.QueryLastPendingBatchRequestByAddrResponse{Batch: pendingBatchReq}, nil
 }
 
-// OutgoingTxBatches queries the OutgoingTxBatches of the bsc module
 func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
 	var batches []*types.OutgoingTxBatch
 	k.IterateOutgoingTxBatches(sdk.UnwrapSDKContext(c), func(batch *types.OutgoingTxBatch) bool {
@@ -175,7 +162,6 @@ func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBat
 	return &types.QueryOutgoingTxBatchesResponse{Batches: batches}, nil
 }
 
-// BatchRequestByNonce queries the BatchRequestByNonce of the bsc module
 func (k Keeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
 	if err := fxtypes.ValidateEthereumAddress(req.GetTokenContract()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "token contract address")
@@ -198,12 +184,12 @@ func (k Keeper) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequ
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
-	sdkCtx := sdk.UnwrapSDKContext(c)
-	oracleAddr, found := k.GetOracleAddressByBridgerKey(sdkCtx, bridgerAddr)
+	ctx := sdk.UnwrapSDKContext(c)
+	oracleAddr, found := k.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
 	if !found {
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
-	confirm := k.GetBatchConfirm(sdkCtx, req.Nonce, req.TokenContract, oracleAddr)
+	confirm := k.GetBatchConfirm(ctx, req.Nonce, req.TokenContract, oracleAddr)
 	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
 }
 
@@ -335,7 +321,7 @@ func (k Keeper) GetPendingSendToExternal(c context.Context, req *types.QueryPend
 			}
 		}
 	}
-	k.IterateUnbatchedTransactions(ctx, types.OutgoingTxPoolKey, func(tx *types.OutgoingTransferTx) bool {
+	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
 		if tx.Sender == req.SenderAddress {
 			res.UnbatchedTransfers = append(res.UnbatchedTransfers, tx)
 		}

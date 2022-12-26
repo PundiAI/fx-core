@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 	"math"
-	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -121,11 +120,17 @@ func (k Keeper) GetOracleSet(ctx sdk.Context, nonce uint64) *types.OracleSet {
 	return &oracleSet
 }
 
-// IterateOracleSets returns all oracleSetRequests
-func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(*types.OracleSet) bool) {
+// IterateOracleSets returns all oracleSet
+func (k Keeper) IterateOracleSets(ctx sdk.Context, reverse bool, cb func(*types.OracleSet) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.OracleSetRequestKey)
+	var iter sdk.Iterator
+	if reverse {
+		iter = sdk.KVStoreReversePrefixIterator(store, types.OracleSetRequestKey)
+	} else {
+		iter = sdk.KVStorePrefixIterator(store, types.OracleSetRequestKey)
+	}
 	defer iter.Close()
+
 	for ; iter.Valid(); iter.Next() {
 		var oracleSet types.OracleSet
 		k.cdc.MustUnmarshal(iter.Value(), &oracleSet)
@@ -136,13 +141,12 @@ func (k Keeper) IterateOracleSets(ctx sdk.Context, cb func(*types.OracleSet) boo
 	}
 }
 
-// GetOracleSets returns all the oracle sets in state
+// GetOracleSets used in testing
 func (k Keeper) GetOracleSets(ctx sdk.Context) (oracleSets types.OracleSets) {
-	k.IterateOracleSets(ctx, func(set *types.OracleSet) bool {
+	k.IterateOracleSets(ctx, false, func(set *types.OracleSet) bool {
 		oracleSets = append(oracleSets, set)
 		return false
 	})
-	sort.Sort(oracleSets)
 	return
 }
 
@@ -168,40 +172,42 @@ func (k Keeper) GetLastSlashedOracleSetNonce(ctx sdk.Context) uint64 {
 	return sdk.BigEndianToUint64(data)
 }
 
-/////////////////////////////
-//   ORACLE SET CONFIRMS   //
-/////////////////////////////
-
 // GetUnSlashedOracleSets returns all the unSlashed oracle sets in state
 func (k Keeper) GetUnSlashedOracleSets(ctx sdk.Context, maxHeight uint64) (oracleSets types.OracleSets) {
-	lastSlashedOracleSetNonce := k.GetLastSlashedOracleSetNonce(ctx)
-	k.IterateOracleSetBySlashedOracleSetNonce(ctx, lastSlashedOracleSetNonce, maxHeight, func(oracleSet *types.OracleSet) bool {
-		if oracleSet.Nonce > lastSlashedOracleSetNonce && maxHeight > oracleSet.Height {
+	lastSlashedOracleSetNonce := k.GetLastSlashedOracleSetNonce(ctx) + 1
+	k.IterateOracleSetByNonce(ctx, lastSlashedOracleSetNonce, func(oracleSet *types.OracleSet) bool {
+		if maxHeight > oracleSet.Height {
 			oracleSets = append(oracleSets, oracleSet)
+			return false
 		}
-		return false
+		return true
 	})
-	sort.Sort(oracleSets)
+	// TODO why sort
+	//sort.Sort(oracleSets)
 	return
 }
 
-// IterateOracleSetBySlashedOracleSetNonce iterates through all oracleSet by last slashed oracleSet nonce in ASC order
-func (k Keeper) IterateOracleSetBySlashedOracleSetNonce(ctx sdk.Context, lastSlashedOracleSetNonce uint64, maxHeight uint64, cb func(*types.OracleSet) bool) {
+// IterateOracleSetByNonce iterates through all oracleSet by nonce
+func (k Keeper) IterateOracleSetByNonce(ctx sdk.Context, startNonce uint64, cb func(*types.OracleSet) bool) {
 	store := ctx.KVStore(k.storeKey)
-	startKey := append(types.OracleSetRequestKey, sdk.Uint64ToBigEndian(lastSlashedOracleSetNonce)...)
-	endKey := append(types.OracleSetRequestKey, sdk.Uint64ToBigEndian(maxHeight)...)
+	startKey := append(types.OracleSetRequestKey, sdk.Uint64ToBigEndian(startNonce)...)
+	endKey := append(types.OracleSetRequestKey, sdk.Uint64ToBigEndian(math.MaxUint64)...)
 	iter := store.Iterator(startKey, endKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		var oracleSet types.OracleSet
-		k.cdc.MustUnmarshal(iter.Value(), &oracleSet)
+		oracleSet := new(types.OracleSet)
+		k.cdc.MustUnmarshal(iter.Value(), oracleSet)
 		// cb returns true to stop early
-		if cb(&oracleSet) {
+		if cb(oracleSet) {
 			break
 		}
 	}
 }
+
+/////////////////////////////
+//   ORACLE SET CONFIRMS   //
+/////////////////////////////
 
 // GetOracleSetConfirm returns a oracleSet confirmation by a nonce and external address
 func (k Keeper) GetOracleSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sdk.AccAddress) *types.MsgOracleSetConfirm {

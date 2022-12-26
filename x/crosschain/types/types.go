@@ -191,7 +191,7 @@ func (m OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// the word 'checkpoint' needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	bytes, packErr := contractAbi.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
+	packBytes, packErr := contractAbi.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
 
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
@@ -202,7 +202,7 @@ func (m OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// we hash the resulting encoded bytes discarding the first 4 bytes these 4 bytes are the constant
 	// method name 'checkpoint'. If you where to replace the checkpoint constant in this code you would
 	// then need to adjust how many bytes you truncate off the front to get the output of abi.encode()
-	hash := crypto.Keccak256Hash(bytes[4:])
+	hash := crypto.Keccak256Hash(packBytes[4:])
 	return hash.Bytes(), nil
 }
 

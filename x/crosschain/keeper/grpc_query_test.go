@@ -20,8 +20,10 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 )
 
 type CrossChainGrpcTestSuite struct {
@@ -38,8 +40,12 @@ type CrossChainGrpcTestSuite struct {
 	queryClient types.QueryClient
 }
 
-func TestCrossChainGrpcTestSuite(t *testing.T) {
-	suite.Run(t, new(CrossChainGrpcTestSuite))
+func TestCrossChainGrpcTestSuite_bsc(t *testing.T) {
+	suite.Run(t, &CrossChainGrpcTestSuite{chainName: bsctypes.ModuleName})
+}
+
+func TestCrossChainGrpcTestSuite_eth(t *testing.T) {
+	suite.Run(t, &CrossChainGrpcTestSuite{chainName: ethtypes.ModuleName})
 }
 
 func (suite *CrossChainGrpcTestSuite) SetupTest() {
@@ -51,15 +57,21 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.app.CrosschainKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	suite.chainName = "bsc"
 	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
 	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.msgServer = keeper.NewMsgServerImpl(suite.app.BscKeeper)
+	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper())
 
 }
 
 func (suite *CrossChainGrpcTestSuite) Keeper() keeper.Keeper {
-	return suite.app.BscKeeper
+	switch suite.chainName {
+	case bsctypes.ModuleName:
+		return suite.app.BscKeeper
+	case ethtypes.ModuleName:
+		return suite.app.EthKeeper
+	default:
+		panic("invalid chain name")
+	}
 }
 
 func (suite *CrossChainGrpcTestSuite) TestKeeper_CurrentOracleSet() {
@@ -538,14 +550,14 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 				externalKey, _ := ethsecp256k1.GenerateKey()
 				externalAcc := common.BytesToAddress(externalKey.PubKey().Address())
 				token := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), 0).String()
-				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
+				err := suite.Keeper().AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 					TokenContract:  token,
 					BridgerAddress: suite.bridgers[0].String(),
 					ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 					ChainName:      suite.chainName,
 				})
 				suite.Require().NoError(err)
-				denom := suite.app.BscKeeper.GetBridgeTokenDenom(suite.ctx, token)
+				denom := suite.Keeper().GetBridgeTokenDenom(suite.ctx, token)
 				initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 				err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
 				suite.Require().NoError(err)
@@ -558,7 +570,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 					},
 				}
 				for i := uint64(1); i <= 3; i++ {
-					_, err := suite.app.BscKeeper.AddToOutgoingPool(
+					_, err := suite.Keeper().AddToOutgoingPool(
 						suite.ctx,
 						suite.bridgers[0],
 						externalAcc.String(),
@@ -567,7 +579,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 					suite.Require().NoError(err)
 				}
 				for i := uint64(1); i <= 2; i++ {
-					_, err := suite.app.BscKeeper.AddToOutgoingPool(
+					_, err := suite.Keeper().AddToOutgoingPool(
 						suite.ctx,
 						suite.bridgers[0],
 						externalAcc.String(),
@@ -600,14 +612,14 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 
 				for i := 0; i < 2; i++ {
 					token := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), uint64(i)).String()
-					err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
+					err := suite.Keeper().AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 						TokenContract:  token,
 						BridgerAddress: suite.bridgers[0].String(),
 						ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 						ChainName:      suite.chainName,
 					})
 					suite.Require().NoError(err)
-					denom := suite.app.BscKeeper.GetBridgeTokenDenom(suite.ctx, token)
+					denom := suite.Keeper().GetBridgeTokenDenom(suite.ctx, token)
 					bridgeTokenList = append(bridgeTokenList, denom)
 					initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 					err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
@@ -626,7 +638,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 					},
 				}
 				for i := uint64(1); i <= 2; i++ {
-					_, err := suite.app.BscKeeper.AddToOutgoingPool(
+					_, err := suite.Keeper().AddToOutgoingPool(
 						suite.ctx,
 						suite.bridgers[0],
 						externalAcc.String(),
@@ -634,7 +646,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 						sdk.NewCoin(bridgeTokenList[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
 					suite.Require().NoError(err)
 				}
-				_, err := suite.app.BscKeeper.AddToOutgoingPool(
+				_, err := suite.Keeper().AddToOutgoingPool(
 					suite.ctx,
 					suite.bridgers[0],
 					externalAcc.String(),
@@ -643,7 +655,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 				suite.Require().NoError(err)
 
 				for i := uint64(1); i <= 3; i++ {
-					_, err := suite.app.BscKeeper.AddToOutgoingPool(
+					_, err := suite.Keeper().AddToOutgoingPool(
 						suite.ctx,
 						suite.bridgers[0],
 						externalAcc.String(),
@@ -681,6 +693,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 			res, err := suite.Keeper().BatchFees(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
+				suite.T().Log(response.BatchFees)
+				suite.T().Log(res.BatchFees)
 				suite.Require().ElementsMatch(response.BatchFees, res.BatchFees)
 			} else {
 				suite.Require().Error(err)
@@ -1343,13 +1357,13 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_DenomToToken() {
 				key, _ := ethsecp256k1.GenerateKey()
 				token := common.BytesToAddress(key.PubKey().Address()).String()
 
-				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
+				err := suite.Keeper().AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 					TokenContract: token,
 					ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
 					Symbol:        "fxcoin",
 				})
 				suite.Require().NoError(err)
-				denom := suite.app.BscKeeper.GetBridgeTokenDenom(suite.ctx, token)
+				denom := suite.Keeper().GetBridgeTokenDenom(suite.ctx, token)
 				request = &types.QueryDenomToTokenRequest{
 					ChainName: suite.chainName,
 					Denom:     denom.Denom,
@@ -1417,7 +1431,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 			func() {
 				key, _ := ethsecp256k1.GenerateKey()
 				token := common.BytesToAddress(key.PubKey().Address()).String()
-				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
+				err := suite.Keeper().AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 					TokenContract: token,
 					ChannelIbc:    hex.EncodeToString([]byte("transfer/channel-0")),
 					Symbol:        "fxcoin",
@@ -1427,7 +1441,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 					ChainName: suite.chainName,
 					Token:     token,
 				}
-				denom := suite.app.BscKeeper.GetBridgeTokenDenom(suite.ctx, token)
+				denom := suite.Keeper().GetBridgeTokenDenom(suite.ctx, token)
 				response = &types.QueryTokenToDenomResponse{
 					Denom: denom.Denom,
 				}
@@ -1789,20 +1803,20 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 				externalAcc := common.BytesToAddress(externalKey.PubKey().Address())
 				token := crypto.CreateAddress(common.BytesToAddress(externalKey.PubKey().Address()), 0)
 				bridgeAcc := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-				err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
+				err := suite.Keeper().AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 					TokenContract:  token.String(),
 					BridgerAddress: suite.bridgers[0].String(),
 					ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 					ChainName:      suite.chainName,
 				})
 				suite.Require().NoError(err)
-				denom := suite.app.BscKeeper.GetBridgeTokenDenom(suite.ctx, token.String())
+				denom := suite.Keeper().GetBridgeTokenDenom(suite.ctx, token.String())
 				initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 				err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
 				suite.Require().NoError(err)
 				err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, bridgeAcc, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
 				suite.Require().NoError(err)
-				pool, err := suite.app.BscKeeper.AddToOutgoingPool(
+				pool, err := suite.Keeper().AddToOutgoingPool(
 					suite.ctx,
 					bridgeAcc,
 					externalAcc.String(),
@@ -1811,7 +1825,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 				)
 				suite.Require().NoError(err)
 				suite.Require().Equal(pool, uint64(1))
-				bridgeToken := suite.app.BscKeeper.GetDenomByBridgeToken(suite.ctx, denom.Denom)
+				bridgeToken := suite.Keeper().GetDenomByBridgeToken(suite.ctx, denom.Denom)
 				suite.Require().Equal(bridgeToken.Denom, denom.Denom)
 				suite.Require().Equal(bridgeToken.Token, denom.Token)
 				bridgeTokenFee := types.NewERC20Token(sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))), bridgeToken.Token)
@@ -2219,7 +2233,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeTokens() {
 					if i == 2 {
 						channelIbc = "transfer/channel-0"
 					}
-					err := suite.app.BscKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
+					err := suite.Keeper().AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
 						TokenContract:  common.BytesToAddress(key.PubKey().Address()).String(),
 						BridgerAddress: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 						ChannelIbc:     hex.EncodeToString([]byte(channelIbc)),
