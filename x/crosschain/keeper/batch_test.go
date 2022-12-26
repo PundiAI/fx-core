@@ -135,6 +135,8 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 	for _, oracle := range suite.oracles {
 		suite.Nil(suite.Keeper().GetBatchConfirm(suite.ctx, batch.BatchNonce, tokenContract, oracle))
 	}
+
+	suite.Equal(batch.Block, suite.Keeper().GetLastSlashedBatchBlock(suite.ctx))
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
@@ -165,4 +167,12 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
 		}
 		suite.NoError(suite.Keeper().StoreBatch(suite.ctx, batch))
 	}
+	var batchs []*types.OutgoingTxBatch
+	suite.Keeper().IterateBatchByBlockHeight(suite.ctx, 100+1, uint64(100+index+1),
+		func(batch *types.OutgoingTxBatch) bool {
+			batchs = append(batchs, batch)
+			return false
+		},
+	)
+	suite.Equal(len(batchs), index)
 }

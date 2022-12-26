@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 		}
 	}
 
-	index = rand.Intn(index-1) + 1
+	index = rand.Intn(index) + 1
 	var confirms []*types.MsgOracleSetConfirm
 	suite.Keeper().IterateOracleSetConfirmByNonce(suite.ctx, uint64(index), func(confirm *types.MsgOracleSetConfirm) bool {
 		confirms = append(confirms, confirm)

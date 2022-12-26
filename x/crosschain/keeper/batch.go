@@ -257,7 +257,7 @@ func (k Keeper) GetLastSlashedBatchBlock(ctx sdk.Context) uint64 {
 // GetUnSlashedBatches returns all the unSlashed batches in state
 func (k Keeper) GetUnSlashedBatches(ctx sdk.Context, maxHeight uint64) (outgoingTxBatches types.OutgoingTxBatches) {
 	lastSlashedBatchBlock := k.GetLastSlashedBatchBlock(ctx)
-	k.IterateBatchBySlashedBatchBlock(ctx, lastSlashedBatchBlock, maxHeight, func(batch *types.OutgoingTxBatch) bool {
+	k.IterateBatchByBlockHeight(ctx, lastSlashedBatchBlock, maxHeight, func(batch *types.OutgoingTxBatch) bool {
 		if batch.Block > lastSlashedBatchBlock {
 			outgoingTxBatches = append(outgoingTxBatches, batch)
 		}
@@ -267,11 +267,11 @@ func (k Keeper) GetUnSlashedBatches(ctx sdk.Context, maxHeight uint64) (outgoing
 	return
 }
 
-// IterateBatchBySlashedBatchBlock iterates through all Batch by last slashed Batch block
-func (k Keeper) IterateBatchBySlashedBatchBlock(ctx sdk.Context, lastSlashedBatchBlock uint64, maxHeight uint64, cb func(*types.OutgoingTxBatch) bool) {
+// IterateBatchByBlockHeight iterates through all Batch by block in the half-open interval [start,end)
+func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start uint64, end uint64, cb func(*types.OutgoingTxBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
-	startKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(lastSlashedBatchBlock)...)
-	endKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(maxHeight)...)
+	startKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(start)...)
+	endKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(end)...)
 	iter := store.Iterator(startKey, endKey)
 	defer iter.Close()
 
