@@ -28,7 +28,7 @@ type BankKeeper interface {
 }
 
 func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, bankKeeper BankKeeper,
-	oracles types.Oracles, proposalOracle types.ProposalOracle, delegateValAddr sdk.ValAddress) error {
+	oracles types.Oracles, delegateValAddr sdk.ValAddress) error {
 	if moduleName != bsctypes.ModuleName && moduleName != polygontypes.ModuleName && moduleName != trontypes.ModuleName {
 		return fmt.Errorf("not support module name: %s", moduleName)
 	}

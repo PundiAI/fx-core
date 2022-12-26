@@ -108,7 +108,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 			require.NoError(t, crosschainv2.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper,
 				myApp.BankKeeper, oracles, delegatorValidator.GetOperator()))
 			require.NoError(t, crosschainv3.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper,
-				myApp.BankKeeper, oracles, proposalOracle, delegatorValidator.GetOperator()))
+				myApp.BankKeeper, oracles, delegatorValidator.GetOperator()))
 
 			allDelegations := myApp.StakingKeeper.GetAllDelegations(ctx)
 			require.EqualValues(t, len(allDelegations), oracles.Len()+valSet.Size())

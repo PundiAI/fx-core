@@ -21,6 +21,5 @@ func (k Keeper) Migrate2to3(ctx sdk.Context) error {
 	}
 	validator := validatorsByPower[0].GetOperator()
 	oracles := k.GetAllOracles(ctx, false)
-	proposalOracle, _ := k.GetProposalOracle(ctx)
-	return crosschainv3.MigrateDepositToStaking(ctx, k.moduleName, k.stakingKeeper, k.bankKeeper, oracles, proposalOracle, validator)
+	return crosschainv3.MigrateDepositToStaking(ctx, k.moduleName, k.stakingKeeper, k.bankKeeper, oracles, validator)
 }
