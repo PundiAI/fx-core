@@ -138,7 +138,7 @@ func updateWFXLogicCode(ctx sdk.Context, k erc20keeper.Keeper) {
 func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 	logger := ctx.Logger()
 	denoms := GetAliasNullDenom()
-	logger.Info("update metadata alias null", "chain-id", fxtypes.ChainId(), "denoms", strings.Join(denoms, ","))
+	logger.Info("update metadata alias null", "chain-id", ctx.ChainID(), "denoms", strings.Join(denoms, ","))
 	for _, denom := range denoms {
 		md, found := bk.GetDenomMetaData(ctx, denom)
 		if !found || len(md.DenomUnits) != 2 || len(md.DenomUnits[1].Aliases) != 1 || md.DenomUnits[1].Aliases[0] != "null" {

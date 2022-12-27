@@ -123,7 +123,7 @@ func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *sd
 
 func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) {
 	logger := ctx.Logger()
-	logger.Info("update block params", "chainId", fxtypes.ChainId())
+	logger.Info("update block params", "chainId", ctx.ChainID())
 	baseappSubspace, found := pk.GetSubspace(baseapp.Paramspace)
 	if !found {
 		panic(fmt.Sprintf("unknown subspace: %s", baseapp.Paramspace))
@@ -194,7 +194,7 @@ func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
 		return
 	}
 	logger := ctx.Logger()
-	logger.Info("clear testnet metadata", "chainId", fxtypes.ChainId())
+	logger.Info("clear testnet metadata", "chainId", ctx.ChainID())
 	for _, md := range GetMetadata(ctx.ChainID()) {
 		//remove denom except FX
 		if md.Base == fxtypes.DefaultDenom {
@@ -223,10 +223,10 @@ func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 
 func clearTestnetModule(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 	logger := ctx.Logger()
-	if fxtypes.TestnetChainId != fxtypes.ChainId() {
+	if fxtypes.TestnetChainId != ctx.ChainID() {
 		return
 	}
-	logger.Info("clear kv store", "chainId", fxtypes.ChainId())
+	logger.Info("clear kv store", "chainId", ctx.ChainID())
 	cleanModules := []string{feemarkettypes.StoreKey, evmtypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey}
 	multiStore := ctx.MultiStore()
 	for _, storeName := range cleanModules {
