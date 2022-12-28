@@ -3,6 +3,10 @@ package transfer_test
 import (
 	"testing"
 
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+
+	fxibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
+
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -13,7 +17,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
-	ibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
 )
 
 var (
@@ -32,7 +35,11 @@ type TransferTestSuite struct {
 }
 
 func (suite *TransferTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.DoSetupTest(suite.T())
+}
+
+func (suite *TransferTestSuite) DoSetupTest(t *testing.T) {
+	suite.coordinator = fxibctesting.NewCoordinator(t, 1, 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
@@ -63,8 +70,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	coinToSendToB := sdk.NewCoin(fxtypes.DefaultDenom, amount)
 
 	// send from chainA to chainB
-	msg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coinToSendToB, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, defaultMsgRouter, sdk.NewCoin(coinToSendToB.GetDenom(), sdk.ZeroInt()))
-	res, err := suite.chainA.SendMsgs(msg)
+	fxIBCMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coinToSendToB, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, defaultMsgRouter, sdk.NewCoin(coinToSendToB.GetDenom(), sdk.ZeroInt()))
+	res, err := suite.chainA.SendMsgs(fxIBCMsg)
 	suite.Require().NoError(err) // message committed
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
@@ -89,8 +96,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.coordinator.Setup(pathBtoC)
 
 	// send from chainB to chainC
-	msg = types.NewMsgTransfer(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, defaultMsgRouter, sdk.NewCoin(coinSentFromAToB.GetDenom(), sdk.ZeroInt()))
-	res, err = suite.chainB.SendMsgs(msg)
+	ibcMsg := transfertypes.NewMsgTransfer(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0)
+	res, err = suite.chainB.SendMsgs(ibcMsg)
 	suite.Require().NoError(err) // message committed
 
 	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
@@ -113,8 +120,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().Zero(balance.Amount.Int64())
 
 	// send from chainC back to chainB
-	msg = types.NewMsgTransfer(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID, coinSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, defaultMsgRouter, sdk.NewCoin(coinSentFromBToC.GetDenom(), sdk.ZeroInt()))
-	res, err = suite.chainC.SendMsgs(msg)
+	ibcMsg = transfertypes.NewMsgTransfer(pathBtoC.EndpointB.ChannelConfig.PortID, pathBtoC.EndpointB.ChannelID, coinSentFromBToC, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0)
+	res, err = suite.chainC.SendMsgs(ibcMsg)
 	suite.Require().NoError(err) // message committed
 
 	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())

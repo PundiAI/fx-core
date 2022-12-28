@@ -11,6 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/simapp"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -461,4 +464,12 @@ func GenTx(gen client.TxConfig, msgs []sdk.Msg, gasPrice sdk.Coin, gas uint64, c
 	}
 
 	return tx.GetTx(), nil
+}
+
+// SetupTestingApp initializes the IBC-go testing application
+func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	db := dbm.NewMemDB()
+	cfg := app.MakeEncodingConfig()
+	resultApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, cfg, simapp.EmptyAppOptions{})
+	return resultApp, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cfg.Codec)
 }

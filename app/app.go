@@ -8,6 +8,10 @@ import (
 	"os"
 	"path/filepath"
 
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -38,7 +42,7 @@ import (
 	fxante "github.com/functionx/fx-core/v3/ante"
 	"github.com/functionx/fx-core/v3/app/keepers"
 	"github.com/functionx/fx-core/v3/app/upgrades"
-	"github.com/functionx/fx-core/v3/app/upgrades/v3"
+	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	_ "github.com/functionx/fx-core/v3/docs/statik"
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	gaspricelegacy "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy"
@@ -400,4 +404,16 @@ type EmptyAppOptions struct{}
 // Get implements AppOptions
 func (ao EmptyAppOptions) Get(o string) interface{} {
 	return nil
+}
+
+func (app *App) GetStakingKeeper() stakingkeeper.Keeper {
+	return app.StakingKeeper
+}
+
+func (app *App) GetIBCKeeper() *ibckeeper.Keeper {
+	return app.IBCKeeper
+}
+
+func (app *App) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+	return app.ScopedIBCKeeper
 }

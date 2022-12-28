@@ -3,6 +3,11 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/simapp"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+
+	fxibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
+
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -14,8 +19,6 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
-	ibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
-	"github.com/functionx/fx-core/v3/x/ibc/testing/simapp"
 )
 
 var (
@@ -88,7 +91,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				cap := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				// Release channel capability
-				_ = suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
+				_ = suite.GetApp(suite.chainA.App).ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
 				amount = sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))
 			}, true, false},
 	}
@@ -98,7 +101,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = fxibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 
 			tc.malleate()
@@ -125,7 +128,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.Require().NoError(err) // message committed
 			}
 
-			err = suite.chainA.GetSimApp().FxTransferKeeper.FxSendTransfer(
+			err = suite.GetApp(suite.chainA.App).FxTransferKeeper.FxSendTransfer(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, amount,
 				suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(0, 110), 0,
 				defaultMsgRouter, sdk.NewCoin(amount.GetDenom(), sdk.ZeroInt()), "",
@@ -180,12 +183,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 		// - coin being sent to module address on chainA
 		{"failure: receive on module account", func() {
-			receiver = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+			receiver = suite.GetApp(suite.chainA.App).AccountKeeper.GetModuleAddress(types.ModuleName).String()
 		}, false, false},
 
 		// - coin being sent back to original chain (chainB) to module address
 		{"failure: receive on module account on source chain", func() {
-			receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+			receiver = suite.GetApp(suite.chainB.App).AccountKeeper.GetModuleAddress(types.ModuleName).String()
 		}, true, false},
 	}
 
@@ -195,7 +198,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			path := NewTransferPath(suite.chainA, suite.chainB)
+			path := fxibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 			receiver = suite.chainB.SenderAccount.GetAddress().String() // must be explicitly changed in malleate
 
@@ -233,7 +236,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), receiver, defaultMsgRouter, sdk.ZeroInt().String())
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
-			err = suite.chainB.GetSimApp().FxTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+			err = suite.GetApp(suite.chainB.App).FxTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -272,7 +275,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			trace = transfertypes.ParseDenomTrace(fxtypes.DefaultDenom)
 			coin := sdk.NewCoin(fxtypes.DefaultDenom, amount)
 
-			suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+			suite.Require().NoError(simapp.FundAccount(suite.GetApp(suite.chainA.App).BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 		}, false, true},
 		{"unsuccessful refund from source", failedAck,
 			func() {
@@ -284,7 +287,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				trace = transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, fxtypes.DefaultDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(simapp.FundAccount(suite.GetApp(suite.chainA.App).BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 			}, false, true},
 	}
 
@@ -293,7 +296,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = fxibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 			amount = sdk.NewInt(100) // must be explicitly changed
 
@@ -302,12 +305,12 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), defaultMsgRouter, sdk.ZeroInt().String())
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
-			preCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
+			preCoin := suite.GetApp(suite.chainA.App).BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 
-			err := suite.chainA.GetSimApp().FxTransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, tc.ack)
+			err := suite.GetApp(suite.chainA.App).FxTransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, tc.ack)
 			if tc.expPass {
 				suite.Require().NoError(err)
-				postCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
+				postCoin := suite.GetApp(suite.chainA.App).BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 				deltaAmount := postCoin.Amount.Sub(preCoin.Amount)
 
 				if tc.success {
@@ -346,7 +349,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				trace = transfertypes.ParseDenomTrace(fxtypes.DefaultDenom)
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(simapp.FundAccount(suite.GetApp(suite.chainA.App).BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 			}, true},
 		{"successful timeout from external chain",
 			func() {
@@ -354,7 +357,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				trace = transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, fxtypes.DefaultDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(simapp.FundAccount(suite.chainA.GetSimApp(), suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(simapp.FundAccount(suite.GetApp(suite.chainA.App).BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
 			}, true},
 		{"no balance for coin denom",
 			func() {
@@ -378,7 +381,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = fxibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 			amount = sdk.NewInt(100) // must be explicitly changed
 			sender = suite.chainA.SenderAccount.GetAddress().String()
@@ -388,11 +391,11 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), sender, suite.chainB.SenderAccount.GetAddress().String(), defaultMsgRouter, sdk.ZeroInt().String())
 			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
 
-			preCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
+			preCoin := suite.GetApp(suite.chainA.App).BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 
-			err := suite.chainA.GetSimApp().FxTransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet, data)
+			err := suite.GetApp(suite.chainA.App).FxTransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet, data)
 
-			postCoin := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
+			postCoin := suite.GetApp(suite.chainA.App).BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), trace.IBCDenom())
 			deltaAmount := postCoin.Amount.Sub(preCoin.Amount)
 
 			if tc.expPass {

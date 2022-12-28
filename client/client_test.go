@@ -336,7 +336,7 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 					authtypes.NewBaseAccount(
 						feeCollectorAddr,
 						nil,
-						7,
+						1,
 						0,
 					),
 					authtypes.FeeCollectorName,

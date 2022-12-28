@@ -3,15 +3,17 @@ package keeper_test
 import (
 	"testing"
 
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+
+	"github.com/functionx/fx-core/v3/app"
+	fxibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
+
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
-	ibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
 )
 
 type KeeperTestSuite struct {
@@ -20,6 +22,7 @@ type KeeperTestSuite struct {
 	coordinator *ibctesting.Coordinator
 
 	// testing chains used for convenience and readability
+	// chainA/chainB is fxApp, chainC is simApp
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 	chainC *ibctesting.TestChain
@@ -27,37 +30,30 @@ type KeeperTestSuite struct {
 	queryClient types.QueryClient
 }
 
+var s *KeeperTestSuite
+
+func TestKeeperTestSuite(t *testing.T) {
+	s = new(KeeperTestSuite)
+	suite.Run(t, s)
+}
+
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.DoSetupTest(suite.T())
+}
+
+func (suite *KeeperTestSuite) DoSetupTest(t *testing.T) {
+	suite.coordinator = fxibctesting.NewCoordinator(t, 2, 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().IBCTransferKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.GetApp(suite.chainA.App).InterfaceRegistry())
+	transfertypes.RegisterQueryServer(queryHelper, suite.GetApp(suite.chainA.App).IBCTransferKeeper)
+	suite.queryClient = transfertypes.NewQueryClient(queryHelper)
 }
 
-func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointA.ChannelConfig.Version = transfertypes.Version
-	path.EndpointB.ChannelConfig.Version = transfertypes.Version
-
-	return path
-}
-
-func (suite *KeeperTestSuite) TestGetTransferAccount() {
-	expectedMaccAddr := sdk.AccAddress(crypto.AddressHash([]byte(types.ModuleName)))
-
-	macc := suite.chainA.GetSimApp().IBCTransferKeeper.GetTransferAccount(suite.chainA.GetContext())
-
-	suite.Require().NotNil(macc)
-	suite.Require().Equal(types.ModuleName, macc.GetName())
-	suite.Require().Equal(expectedMaccAddr, macc.GetAddress())
-}
-
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+func (suite *KeeperTestSuite) GetApp(testingApp ibctesting.TestingApp) *app.App {
+	result, ok := testingApp.(*app.App)
+	suite.Require().True(ok)
+	return result
 }

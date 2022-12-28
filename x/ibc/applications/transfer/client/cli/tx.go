@@ -40,7 +40,7 @@ as absolute or relative using the "absolute-timeouts" flag. Timeout height can b
 in the form {revision}-{height} using the "packet-timeout-height" flag. Relative timeouts are added to
 the block height and block timestamp queried from the latest consensus state corresponding
 to the counterparty channel. Any timeout set to 0 is disabled.`),
-		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [amount]", version.AppName),
+		Example: fmt.Sprintf("%s tx fx-ibc-transfer transfer [src-port] [src-channel] [receiver] [amount]", version.AppName),
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

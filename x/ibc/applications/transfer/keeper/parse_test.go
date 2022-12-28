@@ -154,8 +154,6 @@ func TestParsePacketAddress(t *testing.T) {
 				require.Error(t, err)
 				require.EqualValues(t, err.Error(), tc.err.Error())
 			}
-			t.Logf("%x", actualAddress.Bytes())
-			t.Logf("%x", tc.expect)
 			require.Truef(t, bytes.Equal(tc.expect, actualAddress.Bytes()), "expected %s, actual %s", sdk.AccAddress(tc.expect).String(), actualAddress.String())
 		})
 	}

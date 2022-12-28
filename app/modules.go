@@ -306,6 +306,7 @@ func orderEndBlockers() []string {
 func orderInitBlockers() []string {
 	return []string{
 		capabilitytypes.ModuleName,
+		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
@@ -321,7 +322,6 @@ func orderInitBlockers() []string {
 		//liquiditytypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
-		authtypes.ModuleName,
 		genutiltypes.ModuleName,
 		//routertypes.ModuleName,
 		paramstypes.ModuleName,
