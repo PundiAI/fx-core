@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -390,13 +389,6 @@ func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdk.Int {
 		kv[m.TokenContract] = m.BaseFee
 	}
 	return kv
-}
-
-func CovertIbcPacketReceiveAddressByPrefix(targetIbcPrefix string, receiver sdk.AccAddress) (ibcReceiveAddr string, err error) {
-	if strings.ToLower(targetIbcPrefix) == fxtypes.EthereumAddressPrefix {
-		return gethcommon.BytesToAddress(receiver.Bytes()).String(), nil
-	}
-	return bech32.ConvertAndEncode(targetIbcPrefix, receiver)
 }
 
 type OutgoingTransferTxs []*OutgoingTransferTx
