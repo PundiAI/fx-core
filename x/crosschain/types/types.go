@@ -5,11 +5,9 @@ import (
 	math "math"
 	"math/big"
 	"sort"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
@@ -163,12 +161,6 @@ func NewOracleSet(nonce, height uint64, members BridgeValidators) *OracleSet {
 
 // GetCheckpoint returns the checkpoint
 func (m OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
-	// error case here should not occur outside of testing since the above is a constant
-	contractAbi, err := abi.JSON(strings.NewReader(OracleSetCheckpointABIJSON))
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "bad ABI definition in code")
-	}
-
 	// the contract argument is not a arbitrary length array but a fixed length 32 byte
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
@@ -190,7 +182,7 @@ func (m OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// the word 'checkpoint' needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	packBytes, packErr := contractAbi.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
+	packBytes, packErr := oracleSetCheckpointABI.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
 
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
@@ -264,12 +256,6 @@ func (m OutgoingTxBatch) GetFees() sdk.Int {
 
 // GetCheckpoint gets the checkpoint signature from the given outgoing tx batch
 func (m OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) {
-
-	abiObj, err := abi.JSON(strings.NewReader(OutgoingBatchTxCheckpointABIJSON))
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "bad ABI definition in code")
-	}
-
 	// the contract argument is not a arbitrary length array but a fixed length 32 byte
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
@@ -297,7 +283,7 @@ func (m OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	// the methodName needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	abiEncodedBatch, err := abiObj.Pack("submitBatch",
+	abiEncodedBatch, err := outgoingBatchTxCheckpointABI.Pack("submitBatch",
 		gravityID,
 		batchMethodName,
 		txAmounts,

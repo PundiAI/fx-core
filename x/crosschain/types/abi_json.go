@@ -1,5 +1,11 @@
 package types
 
+import (
+	"strings"
+
+	"github.com/ethereum/go-ethereum/accounts/abi"
+)
+
 // The go-ethereum ABI encoder *only* encodes function calls and then it only encodes
 // function calls for which you provide an ABI json just like you would get out of the
 // solidity compiler with your compiled contract.
@@ -13,9 +19,13 @@ package types
 // 'function specification' that will encode the same arguments into a function call. We can then
 // truncate the first several bytes where the call name is encoded to finally get the equal of the
 
-const (
-	// OutgoingBatchTxCheckpointABIJSON checks the ETH ABI for compatibility of the OutgoingBatchTx message
-	OutgoingBatchTxCheckpointABIJSON = `[{
+var outgoingBatchTxCheckpointABI abi.ABI
+var oracleSetCheckpointABI abi.ABI
+
+func init() {
+	const (
+		// OutgoingBatchTxCheckpointABIJSON checks the ETH ABI for compatibility of the OutgoingBatchTx message
+		outgoingBatchTxCheckpointABIJSON = `[{
 		"name":"submitBatch",
 		"stateMutability":"nonpayable",
 		"type":"function",
@@ -35,8 +45,8 @@ const (
 		]
 	}]`
 
-	// OracleSetCheckpointABIJSON checks the ETH ABI for compatibility of the OracleSet update message
-	OracleSetCheckpointABIJSON = `[{
+		// OracleSetCheckpointABIJSON checks the ETH ABI for compatibility of the OracleSet update message
+		oracleSetCheckpointABIJSON = `[{
 		"name": "checkpoint",
 		"stateMutability": "pure",
 		"type": "function",
@@ -51,4 +61,15 @@ const (
 			{ "internalType": "bytes32", "name": "", "type": "bytes32" }
 		]
 	}]`
-)
+	)
+
+	var err error
+	outgoingBatchTxCheckpointABI, err = abi.JSON(strings.NewReader(outgoingBatchTxCheckpointABIJSON))
+	if err != nil {
+		panic(err.Error())
+	}
+	oracleSetCheckpointABI, err = abi.JSON(strings.NewReader(oracleSetCheckpointABIJSON))
+	if err != nil {
+		panic(err.Error())
+	}
+}
