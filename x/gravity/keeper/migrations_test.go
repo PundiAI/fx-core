@@ -194,12 +194,6 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 func (suite *MigrationTestSuite) TestSendToFxClaim() {
 	// MsgSendToFxClaim
 	suite.createDefGenesisState()
-	suite.genesisState.Erc20ToDenoms = []types.ERC20ToDenom{
-		{
-			Erc20: helpers.GenerateAddress().Hex(),
-			Denom: fxtypes.DefaultDenom,
-		},
-	}
 
 	suite.InitGravityStore()
 	suite.NoError(suite.migrator.Migrate1to2(suite.ctx))

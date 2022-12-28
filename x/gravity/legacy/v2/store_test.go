@@ -11,7 +11,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -26,6 +25,7 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
@@ -66,25 +66,6 @@ func (suite *TestSuite) SetupTest() {
 	encodingConfig := app.MakeEncodingConfig()
 	suite.cdc = encodingConfig.Codec
 	suite.legacyAmino = encodingConfig.Amino
-}
-
-func (suite *TestSuite) TestPrefixStore() {
-	suite.gravityStore.Set([]byte{1, 1}, []byte{1, 1})
-	suite.gravityStore.Set([]byte{1, 2}, []byte{2, 2})
-	suite.gravityStore.Set([]byte{1}, []byte{3, 3})
-
-	newStore := prefix.NewStore(suite.gravityStore, []byte{1})
-	newStore.Set([]byte{4}, []byte{4, 4})
-	iter := newStore.Iterator(nil, nil)
-	for ; iter.Valid(); iter.Next() {
-		suite.T().Log(iter.Key(), iter.Value())
-		newStore.Delete(iter.Key())
-	}
-
-	iterator := sdk.KVStorePrefixIterator(suite.gravityStore, []byte{1})
-	for ; iterator.Valid(); iterator.Next() {
-		suite.T().Log(iterator.Key(), iterator.Value())
-	}
 }
 
 func (suite *TestSuite) TestMigrateStore() {
@@ -290,6 +271,22 @@ func (suite *TestSuite) TestMigrateStoreByExportJson() {
 	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager())
 	v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
 
+	suite.Equal(len(ctx.EventManager().Events()), 20)
+	oracles := v2.EthInitOracles(fxtypes.TestnetChainId)
+	for _, oracleAddr := range oracles {
+		var oracle = new(crosschaintypes.Oracle)
+		value := suite.ethStore.Get(crosschaintypes.GetOracleKey(sdk.MustAccAddressFromBech32(oracleAddr)))
+		suite.cdc.MustUnmarshal(value, oracle)
+		found := false
+		for _, key := range suite.genesisState.DelegateKeys {
+			if key.Validator == oracle.DelegateValidator {
+				found = true
+				suite.Equal(key.EthAddress, oracle.ExternalAddress)
+			}
+		}
+		suite.True(found)
+	}
+
 	gravityStoreIter := suite.gravityStore.Iterator(nil, nil)
 	defer gravityStoreIter.Close()
 	for ; gravityStoreIter.Valid(); gravityStoreIter.Next() {
@@ -316,7 +313,7 @@ func (s testKeeper) GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coi
 func (s testKeeper) IterateAllDenomMetaData(ctx sdk.Context, cb func(banktypes.Metadata) bool) {}
 
 func (s testKeeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool) {
-	return stakingtypes.Validator{Jailed: false, Status: stakingtypes.Bonded}, true
+	return stakingtypes.Validator{Jailed: false, Status: stakingtypes.Bonded, OperatorAddress: addr.String()}, true
 }
 
 func (s testKeeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool) (newShares sdk.Dec, err error) {

@@ -187,7 +187,7 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 			BridgerAddress:    bridgerAddr.String(),
 			ExternalAddress:   externalAddress,
 			StartHeight:       0,
-			DelegateValidator: oldOracleAddress.String(),
+			DelegateValidator: validator.OperatorAddress,
 			DelegateAmount:    sdk.ZeroInt(),
 			Online:            false,
 			OracleAddress:     oldOracleAddress.String(),
@@ -448,8 +448,8 @@ func migrateBridgeToken(gravityStore, ethStore sdk.KVStore) {
 	gravityStore.Delete(append(types.ERC20ToDenomKey, []byte(token)...))
 }
 
-func MigrateBridgeTokenFromMetaDatas(metaDatas []banktypes.Metadata, ethStore sdk.KVStore) {
-	for _, data := range metaDatas {
+func MigrateBridgeTokenFromMetadatas(metadatas []banktypes.Metadata, ethStore sdk.KVStore) {
+	for _, data := range metadatas {
 		if len(data.DenomUnits) > 0 && len(data.DenomUnits[0].Aliases) > 0 {
 			for i := 0; i < len(data.DenomUnits[0].Aliases); i++ {
 				denom := data.DenomUnits[0].Aliases[i]

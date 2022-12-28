@@ -54,7 +54,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		metadatas = append(metadatas, metadata)
 		return false
 	})
-	v2.MigrateBridgeTokenFromMetaDatas(metadatas, ethStore)
+	v2.MigrateBridgeTokenFromMetadatas(metadatas, ethStore)
 	v2.MigrateValidatorToOracle(ctx, m.cdc, gravityStore, ethStore, m.sk, m.bk)
 	return nil
 }
