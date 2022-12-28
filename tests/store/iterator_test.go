@@ -10,7 +10,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
-func Benchmark_GetStoreValue1(b *testing.B) {
+func Benchmark_Iterator(b *testing.B) {
 	storeKey := sdk.NewKVStoreKey("test")
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
 	ms.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, nil)
@@ -23,39 +23,26 @@ func Benchmark_GetStoreValue1(b *testing.B) {
 		store.Set(key, []byte{1, 2, 3})
 	}
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		var data [][]byte
-		iter := sdk.KVStorePrefixIterator(store, []byte{0x1})
-		for ; iter.Valid(); iter.Next() {
-			iter.Value()
-			data = append(data, iter.Value())
+	b.Run("A", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			var data [][]byte
+			iter := sdk.KVStorePrefixIterator(store, []byte{0x1})
+			for ; iter.Valid(); iter.Next() {
+				iter.Value()
+				data = append(data, iter.Value())
+			}
+			assert.Equal(b, count, len(data))
 		}
-		assert.Equal(b, count, len(data))
-	}
-}
+	})
 
-func Benchmark_GetStoreValue2(b *testing.B) {
-	storeKey := sdk.NewKVStoreKey("test")
-	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
-	ms.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, nil)
-	assert.NoError(b, ms.LoadLatestVersion())
-	store := ms.GetKVStore(storeKey)
-
-	count := 10000
-	for i := 0; i < count; i++ {
-		key := append([]byte{0x1}, sdk.Uint64ToBigEndian(uint64(i))...)
-		store.Set(key, []byte{1, 2, 3})
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		var data [][]byte
-		for j := 0; j < count; j++ {
-			key := append([]byte{0x1}, sdk.Uint64ToBigEndian(uint64(i))...)
-			store.Get(key)
-			data = append(data, store.Get(key))
+	b.Run("B", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			var data [][]byte
+			for j := 0; j < count; j++ {
+				key := append([]byte{0x1}, sdk.Uint64ToBigEndian(uint64(i))...)
+				data = append(data, store.Get(key))
+			}
+			assert.Equal(b, count, len(data))
 		}
-		assert.Equal(b, count, len(data))
-	}
+	})
 }

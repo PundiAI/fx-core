@@ -291,7 +291,7 @@ func (suite *CrosschainTestSuite) SendToExternal(count int, amount sdk.Coin) uin
 	return 0
 }
 
-func (suite *CrosschainTestSuite) SendToExternalAndCancel(token string, coin sdk.Coin) {
+func (suite *CrosschainTestSuite) SendToExternalAndCancel(coin sdk.Coin) {
 	txId := suite.SendToExternal(1, coin)
 	suite.Greater(txId, uint64(0))
 

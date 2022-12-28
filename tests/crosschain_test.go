@@ -58,7 +58,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 		chain.SendBatchRequest(5)
 		chain.SendConfirmBatch()
 
-		chain.SendToExternalAndCancel(tokenAddress, sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
+		chain.SendToExternalAndCancel(sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
 		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
 
 		chain.SendFrom(chain.privKey, suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
