@@ -229,9 +229,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if route, exists := k.Router.GetRoute(data.Router); exists {
 		ibcAmount := sdk.NewCoin(receiveDenom, transferAmount)
 		ibcFee := sdk.NewCoin(receiveDenom, feeAmount)
-		ctx.Logger().Info("IBCTransfer", "transfer route sourceChannel", packet.GetSourceChannel(),
-			"destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "sender", receiver.String(),
-			"receive", data.Receiver, "amount", ibcAmount, "fee", ibcFee, "router", data.Router)
+
 		cacheCtx, writeFn := ctx.CacheContext()
 		err = route.TransferAfter(cacheCtx, receiver.String(), data.Receiver, ibcAmount, ibcFee)
 		routerEvent := sdk.NewEvent(types.EventTypeReceiveRoute,
@@ -243,7 +241,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			writeFn()
 			ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 		default:
-			ctx.Logger().Error("IBCTransfer", "transfer after route err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
+			ctx.Logger().Info("IBCTransfer,transfer after route err!!!", "sourceChannel", packet.GetSourceChannel(),
+				"destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "sender", receiver.String(),
+				"receive", data.Receiver, "amount", ibcAmount, "fee", ibcFee, "router", data.Router, "err", err)
 			routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRouteError, err.Error()))
 		}
 		ctx.EventManager().EmitEvent(routerEvent)
@@ -310,10 +310,8 @@ func (k Keeper) refundPacketTokenHook(ctx sdk.Context, packet channeltypes.Packe
 	}
 
 	if k.RefundHook != nil {
-		ctx.Logger().Info("ibc refund hook", "sourcePort", packet.SourcePort, "sourceChannel",
-			packet.SourceChannel, "sequence", fmt.Sprintf("%d", packet.Sequence), "sender", sender.String(), "token", token.String())
 		if err = k.RefundHook.RefundAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence, sender, data.Receiver, token); err != nil {
-			ctx.Logger().Error("refundPacketToken", "refund hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
+			ctx.Logger().Info("refundPacketToken", "refund hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
 		}
 	}
 	return nil
