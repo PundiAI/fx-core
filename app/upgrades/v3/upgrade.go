@@ -8,12 +8,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 
@@ -24,7 +26,6 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	evmlegacyv3 "github.com/functionx/fx-core/v3/x/evm/legacy/v3"
 )
 
 func CreateUpgradeHandler(
@@ -67,10 +68,9 @@ func CreateUpgradeHandler(
 func initAvalancheOracles(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keeper) {
 	var oracles []string
 	chainId := ctx.ChainID()
+	// todo need add oracles
 	if chainId == fxtypes.MainnetChainId {
-		oracles = []string{
-			"", "",
-		}
+		oracles = []string{}
 	} else if chainId == fxtypes.TestnetChainId {
 		oracles = []string{}
 	} else {
@@ -84,6 +84,7 @@ func initAvalancheOracles(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keep
 func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
 	var oracles []string
 	chainId := ctx.ChainID()
+	// todo need add oracles
 	if chainId == fxtypes.MainnetChainId {
 		oracles = []string{}
 	} else if chainId == fxtypes.TestnetChainId {
@@ -97,10 +98,28 @@ func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
 }
 
 func migrateRejectUnprotectedTx(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) {
-	err := evmlegacyv3.MigrateRejectUnprotectedTx(ctx, legacyAmino, paramsKey)
-	if err != nil {
-		panic(fmt.Sprintf("migrate param RejectUnprotectedTx error %s", err.Error()))
+	paramStoreKeyRejectUnprotectedTx := []byte("RejectUnprotectedTx")
+
+	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(evmtypes.ModuleName), '/'))
+	bzR := paramsStore.Get(paramStoreKeyRejectUnprotectedTx)
+
+	var rejectUnprotectedTx bool
+	if err := legacyAmino.UnmarshalJSON(bzR, &rejectUnprotectedTx); err != nil {
+		panic(err.Error())
 	}
+
+	allowUnprotectedTxs := !rejectUnprotectedTx
+	bzA, err := legacyAmino.MarshalJSON(allowUnprotectedTxs)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	ctx.Logger().Info("migrate params", "module", evmtypes.ModuleName,
+		"from", fmt.Sprintf("%s:%v", paramStoreKeyRejectUnprotectedTx, rejectUnprotectedTx),
+		"to", fmt.Sprintf("%s:%v", evmtypes.ParamStoreKeyAllowUnprotectedTxs, allowUnprotectedTxs))
+
+	paramsStore.Delete(paramStoreKeyRejectUnprotectedTx)
+	paramsStore.Set(evmtypes.ParamStoreKeyAllowUnprotectedTxs, bzA)
 }
 
 func runMigrations(ctx sdk.Context, fromVM module.VersionMap, mm *module.Manager, mc module.Configurator) module.VersionMap {
