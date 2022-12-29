@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -169,8 +170,12 @@ func (k Keeper) UpdateContractCode(ctx sdk.Context, contract fxtypes.Contract) e
 	if acc == nil {
 		return fmt.Errorf("account %s not found", contract.Address.String())
 	}
-	acc.CodeHash = crypto.Keccak256Hash(contract.Code).Bytes()
+	codeHash := crypto.Keccak256Hash(contract.Code).Bytes()
+	if bytes.Equal(codeHash, acc.CodeHash) {
+		return nil
+	}
 
+	acc.CodeHash = codeHash
 	k.evmKeeper.SetCode(ctx, acc.CodeHash, contract.Code)
 	if err := k.evmKeeper.SetAccount(ctx, contract.Address, *acc); err != nil {
 		return fmt.Errorf("evm set account %s error %s", contract.Address.String(), err.Error())
@@ -200,7 +205,7 @@ func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error 
 	for _, log := range res.Logs {
 		if log.Topics[0] == logApprovalSigHash.Hex() {
 			return sdkerrors.Wrapf(
-				types.ErrUnexpectedEvent, "unexpected Approval event",
+				types.ErrUnexpectedEvent, "Approval event",
 			)
 		}
 	}
