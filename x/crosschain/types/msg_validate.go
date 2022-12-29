@@ -10,11 +10,11 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
-var _ MsgValidateBasic = &EthereumMsgValidate{}
+var _ MsgValidateBasic = &MsgValidate{}
 
-type EthereumMsgValidate struct{}
+type MsgValidate struct{}
 
-func (b EthereumMsgValidate) MsgBondedOracleValidate(m MsgBondedOracle) (err error) {
+func (b MsgValidate) MsgBondedOracleValidate(m *MsgBondedOracle) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}
@@ -33,7 +33,7 @@ func (b EthereumMsgValidate) MsgBondedOracleValidate(m MsgBondedOracle) (err err
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgAddDelegateValidate(m MsgAddDelegate) (err error) {
+func (b MsgValidate) MsgAddDelegateValidate(m *MsgAddDelegate) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}
@@ -43,7 +43,7 @@ func (b EthereumMsgValidate) MsgAddDelegateValidate(m MsgAddDelegate) (err error
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgReDelegateValidate(m MsgReDelegate) (err error) {
+func (b MsgValidate) MsgReDelegateValidate(m *MsgReDelegate) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}
@@ -53,7 +53,7 @@ func (b EthereumMsgValidate) MsgReDelegateValidate(m MsgReDelegate) (err error) 
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgEditBridgerValidate(m MsgEditBridger) (err error) {
+func (b MsgValidate) MsgEditBridgerValidate(m *MsgEditBridger) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}
@@ -66,21 +66,21 @@ func (b EthereumMsgValidate) MsgEditBridgerValidate(m MsgEditBridger) (err error
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgWithdrawRewardValidate(m MsgWithdrawReward) (err error) {
+func (b MsgValidate) MsgWithdrawRewardValidate(m *MsgWithdrawReward) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgUnbondedOracleValidate(m MsgUnbondedOracle) (err error) {
+func (b MsgValidate) MsgUnbondedOracleValidate(m *MsgUnbondedOracle) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "oracle address")
 	}
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgOracleSetConfirmValidate(m MsgOracleSetConfirm) (err error) {
+func (b MsgValidate) MsgOracleSetConfirmValidate(m *MsgOracleSetConfirm) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "bridger address")
 	}
@@ -96,7 +96,7 @@ func (b EthereumMsgValidate) MsgOracleSetConfirmValidate(m MsgOracleSetConfirm) 
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgOracleSetUpdatedClaimValidate(m MsgOracleSetUpdatedClaim) (err error) {
+func (b MsgValidate) MsgOracleSetUpdatedClaimValidate(m *MsgOracleSetUpdatedClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "bridger address")
 	}
@@ -120,7 +120,7 @@ func (b EthereumMsgValidate) MsgOracleSetUpdatedClaimValidate(m MsgOracleSetUpda
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgBridgeTokenClaimValidate(m MsgBridgeTokenClaim) (err error) {
+func (b MsgValidate) MsgBridgeTokenClaimValidate(m *MsgBridgeTokenClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "bridger address")
 	}
@@ -145,7 +145,7 @@ func (b EthereumMsgValidate) MsgBridgeTokenClaimValidate(m MsgBridgeTokenClaim) 
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgSendToExternalClaimValidate(m MsgSendToExternalClaim) (err error) {
+func (b MsgValidate) MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "bridger address")
 	}
@@ -164,7 +164,7 @@ func (b EthereumMsgValidate) MsgSendToExternalClaimValidate(m MsgSendToExternalC
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgSendToFxClaimValidate(m MsgSendToFxClaim) (err error) {
+func (b MsgValidate) MsgSendToFxClaimValidate(m *MsgSendToFxClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "bridger address")
 	}
@@ -192,7 +192,7 @@ func (b EthereumMsgValidate) MsgSendToFxClaimValidate(m MsgSendToFxClaim) (err e
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgSendToExternalValidate(m MsgSendToExternal) (err error) {
+func (b MsgValidate) MsgSendToExternalValidate(m *MsgSendToExternal) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "sender address")
 	}
@@ -211,7 +211,7 @@ func (b EthereumMsgValidate) MsgSendToExternalValidate(m MsgSendToExternal) (err
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgCancelSendToExternalValidate(m MsgCancelSendToExternal) (err error) {
+func (b MsgValidate) MsgCancelSendToExternalValidate(m *MsgCancelSendToExternal) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "sender address")
 	}
@@ -221,7 +221,7 @@ func (b EthereumMsgValidate) MsgCancelSendToExternalValidate(m MsgCancelSendToEx
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgRequestBatchValidate(m MsgRequestBatch) (err error) {
+func (b MsgValidate) MsgRequestBatchValidate(m *MsgRequestBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "sender address")
 	}
@@ -240,7 +240,7 @@ func (b EthereumMsgValidate) MsgRequestBatchValidate(m MsgRequestBatch) (err err
 	return nil
 }
 
-func (b EthereumMsgValidate) MsgConfirmBatchValidate(m MsgConfirmBatch) (err error) {
+func (b MsgValidate) MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "bridger address")
 	}

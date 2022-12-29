@@ -81,24 +81,24 @@ var (
 )
 
 type MsgValidateBasic interface {
-	MsgBondedOracleValidate(m MsgBondedOracle) (err error)
-	MsgAddDelegateValidate(m MsgAddDelegate) (err error)
-	MsgReDelegateValidate(m MsgReDelegate) (err error)
-	MsgEditBridgerValidate(m MsgEditBridger) (err error)
-	MsgWithdrawRewardValidate(m MsgWithdrawReward) (err error)
-	MsgUnbondedOracleValidate(m MsgUnbondedOracle) (err error)
+	MsgBondedOracleValidate(m *MsgBondedOracle) (err error)
+	MsgAddDelegateValidate(m *MsgAddDelegate) (err error)
+	MsgReDelegateValidate(m *MsgReDelegate) (err error)
+	MsgEditBridgerValidate(m *MsgEditBridger) (err error)
+	MsgWithdrawRewardValidate(m *MsgWithdrawReward) (err error)
+	MsgUnbondedOracleValidate(m *MsgUnbondedOracle) (err error)
 
-	MsgOracleSetConfirmValidate(m MsgOracleSetConfirm) (err error)
-	MsgOracleSetUpdatedClaimValidate(m MsgOracleSetUpdatedClaim) (err error)
-	MsgBridgeTokenClaimValidate(m MsgBridgeTokenClaim) (err error)
-	MsgSendToExternalClaimValidate(m MsgSendToExternalClaim) (err error)
+	MsgOracleSetConfirmValidate(m *MsgOracleSetConfirm) (err error)
+	MsgOracleSetUpdatedClaimValidate(m *MsgOracleSetUpdatedClaim) (err error)
+	MsgBridgeTokenClaimValidate(m *MsgBridgeTokenClaim) (err error)
+	MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (err error)
 
-	MsgSendToFxClaimValidate(m MsgSendToFxClaim) (err error)
-	MsgSendToExternalValidate(m MsgSendToExternal) (err error)
+	MsgSendToFxClaimValidate(m *MsgSendToFxClaim) (err error)
+	MsgSendToExternalValidate(m *MsgSendToExternal) (err error)
 
-	MsgCancelSendToExternalValidate(m MsgCancelSendToExternal) (err error)
-	MsgRequestBatchValidate(m MsgRequestBatch) (err error)
-	MsgConfirmBatchValidate(m MsgConfirmBatch) (err error)
+	MsgCancelSendToExternalValidate(m *MsgCancelSendToExternal) (err error)
+	MsgRequestBatchValidate(m *MsgRequestBatch) (err error)
+	MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error)
 }
 
 var reModuleName *regexp.Regexp
@@ -130,11 +130,11 @@ func RegisterValidateBasic(chainName string, validate MsgValidateBasic) {
 
 // MsgBondedOracle
 
-func (m MsgBondedOracle) Route() string { return RouterKey }
+func (m *MsgBondedOracle) Route() string { return RouterKey }
 
-func (m MsgBondedOracle) Type() string { return TypeMsgBondedOracle }
+func (m *MsgBondedOracle) Type() string { return TypeMsgBondedOracle }
 
-func (m MsgBondedOracle) ValidateBasic() (err error) {
+func (m *MsgBondedOracle) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -145,11 +145,11 @@ func (m MsgBondedOracle) ValidateBasic() (err error) {
 	}
 }
 
-func (m MsgBondedOracle) GetSignBytes() []byte {
+func (m *MsgBondedOracle) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgBondedOracle) GetSigners() []sdk.AccAddress {
+func (m *MsgBondedOracle) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
 		panic(err)
@@ -165,7 +165,7 @@ func (m *MsgAddDelegate) Type() string {
 	return TypeMsgAddDelegate
 }
 
-func (m MsgAddDelegate) ValidateBasic() (err error) {
+func (m *MsgAddDelegate) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -196,7 +196,7 @@ func (m *MsgReDelegate) Type() string {
 	return TypeMsgReDelegate
 }
 
-func (m MsgReDelegate) ValidateBasic() (err error) {
+func (m *MsgReDelegate) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -221,11 +221,11 @@ func (m *MsgReDelegate) GetSigners() []sdk.AccAddress {
 
 // MsgEditBridger
 
-func (m MsgEditBridger) Route() string { return RouterKey }
+func (m *MsgEditBridger) Route() string { return RouterKey }
 
-func (m MsgEditBridger) Type() string { return TypeMsgEditBridger }
+func (m *MsgEditBridger) Type() string { return TypeMsgEditBridger }
 
-func (m MsgEditBridger) ValidateBasic() (err error) {
+func (m *MsgEditBridger) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -236,11 +236,11 @@ func (m MsgEditBridger) ValidateBasic() (err error) {
 	}
 }
 
-func (m MsgEditBridger) GetSignBytes() []byte {
+func (m *MsgEditBridger) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgEditBridger) GetSigners() []sdk.AccAddress {
+func (m *MsgEditBridger) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
 		panic(err)
@@ -250,11 +250,11 @@ func (m MsgEditBridger) GetSigners() []sdk.AccAddress {
 
 // MsgWithdrawReward
 
-func (m MsgWithdrawReward) Route() string { return RouterKey }
+func (m *MsgWithdrawReward) Route() string { return RouterKey }
 
-func (m MsgWithdrawReward) Type() string { return TypeMsgWithdrawReward }
+func (m *MsgWithdrawReward) Type() string { return TypeMsgWithdrawReward }
 
-func (m MsgWithdrawReward) ValidateBasic() (err error) {
+func (m *MsgWithdrawReward) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -265,11 +265,11 @@ func (m MsgWithdrawReward) ValidateBasic() (err error) {
 	}
 }
 
-func (m MsgWithdrawReward) GetSignBytes() []byte {
+func (m *MsgWithdrawReward) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgWithdrawReward) GetSigners() []sdk.AccAddress {
+func (m *MsgWithdrawReward) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
 		panic(err)
@@ -279,11 +279,11 @@ func (m MsgWithdrawReward) GetSigners() []sdk.AccAddress {
 
 // MsgUnbondedOracle
 
-func (m MsgUnbondedOracle) Route() string { return RouterKey }
+func (m *MsgUnbondedOracle) Route() string { return RouterKey }
 
-func (m MsgUnbondedOracle) Type() string { return TypeMsgUnbondedOracle }
+func (m *MsgUnbondedOracle) Type() string { return TypeMsgUnbondedOracle }
 
-func (m MsgUnbondedOracle) ValidateBasic() (err error) {
+func (m *MsgUnbondedOracle) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -294,11 +294,11 @@ func (m MsgUnbondedOracle) ValidateBasic() (err error) {
 	}
 }
 
-func (m MsgUnbondedOracle) GetSignBytes() []byte {
+func (m *MsgUnbondedOracle) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgUnbondedOracle) GetSigners() []sdk.AccAddress {
+func (m *MsgUnbondedOracle) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
 		panic(err)
@@ -309,13 +309,13 @@ func (m MsgUnbondedOracle) GetSigners() []sdk.AccAddress {
 // MsgOracleSetConfirm
 
 // Route should return the name of the module
-func (m MsgOracleSetConfirm) Route() string { return RouterKey }
+func (m *MsgOracleSetConfirm) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgOracleSetConfirm) Type() string { return TypeMsgOracleSetConfirm }
+func (m *MsgOracleSetConfirm) Type() string { return TypeMsgOracleSetConfirm }
 
 // ValidateBasic performs stateless checks
-func (m MsgOracleSetConfirm) ValidateBasic() (err error) {
+func (m *MsgOracleSetConfirm) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -327,12 +327,12 @@ func (m MsgOracleSetConfirm) ValidateBasic() (err error) {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgOracleSetConfirm) GetSignBytes() []byte {
+func (m *MsgOracleSetConfirm) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (m MsgOracleSetConfirm) GetSigners() []sdk.AccAddress {
+func (m *MsgOracleSetConfirm) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(err)
@@ -343,14 +343,14 @@ func (m MsgOracleSetConfirm) GetSigners() []sdk.AccAddress {
 // MsgSendToExternal
 
 // Route should return the name of the module
-func (m MsgSendToExternal) Route() string { return RouterKey }
+func (m *MsgSendToExternal) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgSendToExternal) Type() string { return TypeMsgSendToExternal }
+func (m *MsgSendToExternal) Type() string { return TypeMsgSendToExternal }
 
 // ValidateBasic runs stateless checks on the message
 // Checks if the Eth address is valid
-func (m MsgSendToExternal) ValidateBasic() (err error) {
+func (m *MsgSendToExternal) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -362,12 +362,12 @@ func (m MsgSendToExternal) ValidateBasic() (err error) {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgSendToExternal) GetSignBytes() []byte {
+func (m *MsgSendToExternal) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (m MsgSendToExternal) GetSigners() []sdk.AccAddress {
+func (m *MsgSendToExternal) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
 		panic(err)
@@ -378,13 +378,13 @@ func (m MsgSendToExternal) GetSigners() []sdk.AccAddress {
 // MsgRequestBatch
 
 // Route should return the name of the module
-func (m MsgRequestBatch) Route() string { return RouterKey }
+func (m *MsgRequestBatch) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
+func (m *MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
 
 // ValidateBasic performs stateless checks
-func (m MsgRequestBatch) ValidateBasic() (err error) {
+func (m *MsgRequestBatch) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -396,12 +396,12 @@ func (m MsgRequestBatch) ValidateBasic() (err error) {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgRequestBatch) GetSignBytes() []byte {
+func (m *MsgRequestBatch) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (m MsgRequestBatch) GetSigners() []sdk.AccAddress {
+func (m *MsgRequestBatch) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
 		panic(err)
@@ -412,13 +412,13 @@ func (m MsgRequestBatch) GetSigners() []sdk.AccAddress {
 // MsgConfirmBatch
 
 // Route should return the name of the module
-func (m MsgConfirmBatch) Route() string { return RouterKey }
+func (m *MsgConfirmBatch) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
+func (m *MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
 
 // ValidateBasic performs stateless checks
-func (m MsgConfirmBatch) ValidateBasic() (err error) {
+func (m *MsgConfirmBatch) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -430,12 +430,12 @@ func (m MsgConfirmBatch) ValidateBasic() (err error) {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgConfirmBatch) GetSignBytes() []byte {
+func (m *MsgConfirmBatch) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (m MsgConfirmBatch) GetSigners() []sdk.AccAddress {
+func (m *MsgConfirmBatch) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(err)
@@ -446,13 +446,13 @@ func (m MsgConfirmBatch) GetSigners() []sdk.AccAddress {
 // MsgCancelSendToExternal
 
 // Route should return the name of the module
-func (m MsgCancelSendToExternal) Route() string { return RouterKey }
+func (m *MsgCancelSendToExternal) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgCancelSendToExternal) Type() string { return TypeMsgCancelSendToExternal }
+func (m *MsgCancelSendToExternal) Type() string { return TypeMsgCancelSendToExternal }
 
 // ValidateBasic performs stateless checks
-func (m MsgCancelSendToExternal) ValidateBasic() (err error) {
+func (m *MsgCancelSendToExternal) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -464,12 +464,12 @@ func (m MsgCancelSendToExternal) ValidateBasic() (err error) {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgCancelSendToExternal) GetSignBytes() []byte {
+func (m *MsgCancelSendToExternal) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners defines whose signature is required
-func (m MsgCancelSendToExternal) GetSigners() []sdk.AccAddress {
+func (m *MsgCancelSendToExternal) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
 		panic(err)
@@ -516,12 +516,12 @@ func UnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) (Exter
 // MsgSendToFxClaim
 
 // GetType returns the type of the claim
-func (m MsgSendToFxClaim) GetType() ClaimType {
+func (m *MsgSendToFxClaim) GetType() ClaimType {
 	return CLAIM_TYPE_SEND_TO_FX
 }
 
 // ValidateBasic performs stateless checks
-func (m MsgSendToFxClaim) ValidateBasic() (err error) {
+func (m *MsgSendToFxClaim) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -533,11 +533,11 @@ func (m MsgSendToFxClaim) ValidateBasic() (err error) {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgSendToFxClaim) GetSignBytes() []byte {
+func (m *MsgSendToFxClaim) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgSendToFxClaim) GetClaimer() sdk.AccAddress {
+func (m *MsgSendToFxClaim) GetClaimer() sdk.AccAddress {
 	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(err)
@@ -546,7 +546,7 @@ func (m MsgSendToFxClaim) GetClaimer() sdk.AccAddress {
 }
 
 // GetSigners defines whose signature is required
-func (m MsgSendToFxClaim) GetSigners() []sdk.AccAddress {
+func (m *MsgSendToFxClaim) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(err)
@@ -555,13 +555,13 @@ func (m MsgSendToFxClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Type should return the action
-func (m MsgSendToFxClaim) Type() string { return TypeMsgSendToFxClaim }
+func (m *MsgSendToFxClaim) Type() string { return TypeMsgSendToFxClaim }
 
 // Route should return the name of the module
-func (m MsgSendToFxClaim) Route() string { return RouterKey }
+func (m *MsgSendToFxClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
-func (m MsgSendToFxClaim) ClaimHash() []byte {
+func (m *MsgSendToFxClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d%s/%s/%s/%s/%s", m.BlockHeight, m.EventNonce, m.TokenContract, m.Sender, m.Amount.String(), m.Receiver, m.TargetIbc)
 	return tmhash.Sum([]byte(path))
 }
@@ -569,12 +569,12 @@ func (m MsgSendToFxClaim) ClaimHash() []byte {
 // MsgSendToExternalClaim
 
 // GetType returns the claim type
-func (m MsgSendToExternalClaim) GetType() ClaimType {
+func (m *MsgSendToExternalClaim) GetType() ClaimType {
 	return CLAIM_TYPE_SEND_TO_EXTERNAL
 }
 
 // ValidateBasic performs stateless checks
-func (m MsgSendToExternalClaim) ValidateBasic() (err error) {
+func (m *MsgSendToExternalClaim) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -586,17 +586,17 @@ func (m MsgSendToExternalClaim) ValidateBasic() (err error) {
 }
 
 // ClaimHash Hash implements SendToFxBatch.Hash
-func (m MsgSendToExternalClaim) ClaimHash() []byte {
+func (m *MsgSendToExternalClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%s/%d/", m.BlockHeight, m.EventNonce, m.TokenContract, m.BatchNonce)
 	return tmhash.Sum([]byte(path))
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgSendToExternalClaim) GetSignBytes() []byte {
+func (m *MsgSendToExternalClaim) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgSendToExternalClaim) GetClaimer() sdk.AccAddress {
+func (m *MsgSendToExternalClaim) GetClaimer() sdk.AccAddress {
 	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(fmt.Sprintf("invalid address %s", m.BridgerAddress))
@@ -605,7 +605,7 @@ func (m MsgSendToExternalClaim) GetClaimer() sdk.AccAddress {
 }
 
 // GetSigners defines whose signature is required
-func (m MsgSendToExternalClaim) GetSigners() []sdk.AccAddress {
+func (m *MsgSendToExternalClaim) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(err)
@@ -614,18 +614,18 @@ func (m MsgSendToExternalClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Route should return the name of the module
-func (m MsgSendToExternalClaim) Route() string { return RouterKey }
+func (m *MsgSendToExternalClaim) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgSendToExternalClaim) Type() string { return TypeMsgSendToExternalClaim }
+func (m *MsgSendToExternalClaim) Type() string { return TypeMsgSendToExternalClaim }
 
 // MsgBridgeTokenClaim
 
-func (m MsgBridgeTokenClaim) Route() string { return RouterKey }
+func (m *MsgBridgeTokenClaim) Route() string { return RouterKey }
 
-func (m MsgBridgeTokenClaim) Type() string { return TypeMsgBridgeTokenClaim }
+func (m *MsgBridgeTokenClaim) Type() string { return TypeMsgBridgeTokenClaim }
 
-func (m MsgBridgeTokenClaim) ValidateBasic() (err error) {
+func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -636,11 +636,11 @@ func (m MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	}
 }
 
-func (m MsgBridgeTokenClaim) GetSignBytes() []byte {
+func (m *MsgBridgeTokenClaim) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgBridgeTokenClaim) GetSigners() []sdk.AccAddress {
+func (m *MsgBridgeTokenClaim) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(err)
@@ -648,7 +648,7 @@ func (m MsgBridgeTokenClaim) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-func (m MsgBridgeTokenClaim) GetClaimer() sdk.AccAddress {
+func (m *MsgBridgeTokenClaim) GetClaimer() sdk.AccAddress {
 	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(fmt.Sprintf("invalid address %s", m.BridgerAddress))
@@ -656,11 +656,11 @@ func (m MsgBridgeTokenClaim) GetClaimer() sdk.AccAddress {
 	return val
 }
 
-func (m MsgBridgeTokenClaim) GetType() ClaimType {
+func (m *MsgBridgeTokenClaim) GetType() ClaimType {
 	return CLAIM_TYPE_BRIDGE_TOKEN
 }
 
-func (m MsgBridgeTokenClaim) ClaimHash() []byte {
+func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d%s/%s/%s/%d/%s/", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals, m.ChannelIbc)
 	return tmhash.Sum([]byte(path))
 }
@@ -668,12 +668,12 @@ func (m MsgBridgeTokenClaim) ClaimHash() []byte {
 // MsgOracleSetUpdatedClaim
 
 // GetType returns the type of the claim
-func (m MsgOracleSetUpdatedClaim) GetType() ClaimType {
+func (m *MsgOracleSetUpdatedClaim) GetType() ClaimType {
 	return CLAIM_TYPE_ORACLE_SET_UPDATED
 }
 
 // ValidateBasic performs stateless checks
-func (m MsgOracleSetUpdatedClaim) ValidateBasic() (err error) {
+func (m *MsgOracleSetUpdatedClaim) ValidateBasic() (err error) {
 	if err = ValidateModuleName(m.ChainName); err != nil {
 		return sdkerrors.Wrap(ErrInvalid, "chain name")
 	}
@@ -685,11 +685,11 @@ func (m MsgOracleSetUpdatedClaim) ValidateBasic() (err error) {
 }
 
 // GetSignBytes encodes the message for signing
-func (m MsgOracleSetUpdatedClaim) GetSignBytes() []byte {
+func (m *MsgOracleSetUpdatedClaim) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m MsgOracleSetUpdatedClaim) GetClaimer() sdk.AccAddress {
+func (m *MsgOracleSetUpdatedClaim) GetClaimer() sdk.AccAddress {
 	val, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(fmt.Sprintf("invalid address %s", m.BridgerAddress))
@@ -698,7 +698,7 @@ func (m MsgOracleSetUpdatedClaim) GetClaimer() sdk.AccAddress {
 }
 
 // GetSigners defines whose signature is required
-func (m MsgOracleSetUpdatedClaim) GetSigners() []sdk.AccAddress {
+func (m *MsgOracleSetUpdatedClaim) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(err)
@@ -707,22 +707,22 @@ func (m MsgOracleSetUpdatedClaim) GetSigners() []sdk.AccAddress {
 }
 
 // Type should return the action
-func (m MsgOracleSetUpdatedClaim) Type() string { return TypeMsgOracleSetUpdatedClaim }
+func (m *MsgOracleSetUpdatedClaim) Type() string { return TypeMsgOracleSetUpdatedClaim }
 
 // Route should return the name of the module
-func (m MsgOracleSetUpdatedClaim) Route() string { return RouterKey }
+func (m *MsgOracleSetUpdatedClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
-func (m MsgOracleSetUpdatedClaim) ClaimHash() []byte {
+func (m *MsgOracleSetUpdatedClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%d/%v/", m.BlockHeight, m.OracleSetNonce, m.EventNonce, m.Members)
 	return tmhash.Sum([]byte(path))
 }
 
-func (m MsgSetOrchestratorAddress) ValidateBasic() (err error) {
+func (m *MsgSetOrchestratorAddress) ValidateBasic() (err error) {
 	return nil
 }
 
-func (m MsgSetOrchestratorAddress) GetSigners() []sdk.AccAddress {
+func (m *MsgSetOrchestratorAddress) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(err)
@@ -730,11 +730,11 @@ func (m MsgSetOrchestratorAddress) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
-func (m MsgAddOracleDeposit) ValidateBasic() (err error) {
+func (m *MsgAddOracleDeposit) ValidateBasic() (err error) {
 	return nil
 }
 
-func (m MsgAddOracleDeposit) GetSigners() []sdk.AccAddress {
+func (m *MsgAddOracleDeposit) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
 		panic(err)

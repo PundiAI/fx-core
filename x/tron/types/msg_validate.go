@@ -13,10 +13,10 @@ import (
 var _ crosschaintypes.MsgValidateBasic = &TronMsgValidate{}
 
 type TronMsgValidate struct {
-	crosschaintypes.EthereumMsgValidate
+	crosschaintypes.MsgValidate
 }
 
-func (b TronMsgValidate) MsgBondedOracleValidate(m crosschaintypes.MsgBondedOracle) (err error) {
+func (b TronMsgValidate) MsgBondedOracleValidate(m *crosschaintypes.MsgBondedOracle) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.OracleAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "oracle address")
 	}
@@ -32,7 +32,7 @@ func (b TronMsgValidate) MsgBondedOracleValidate(m crosschaintypes.MsgBondedOrac
 	return nil
 }
 
-func (b TronMsgValidate) MsgOracleSetConfirmValidate(m crosschaintypes.MsgOracleSetConfirm) (err error) {
+func (b TronMsgValidate) MsgOracleSetConfirmValidate(m *crosschaintypes.MsgOracleSetConfirm) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
 	}
@@ -48,7 +48,7 @@ func (b TronMsgValidate) MsgOracleSetConfirmValidate(m crosschaintypes.MsgOracle
 	return nil
 }
 
-func (b TronMsgValidate) MsgOracleSetUpdatedClaimValidate(m crosschaintypes.MsgOracleSetUpdatedClaim) (err error) {
+func (b TronMsgValidate) MsgOracleSetUpdatedClaimValidate(m *crosschaintypes.MsgOracleSetUpdatedClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
 	}
@@ -72,7 +72,7 @@ func (b TronMsgValidate) MsgOracleSetUpdatedClaimValidate(m crosschaintypes.MsgO
 	return nil
 }
 
-func (b TronMsgValidate) MsgBridgeTokenClaimValidate(m crosschaintypes.MsgBridgeTokenClaim) (err error) {
+func (b TronMsgValidate) MsgBridgeTokenClaimValidate(m *crosschaintypes.MsgBridgeTokenClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
 	}
@@ -97,7 +97,7 @@ func (b TronMsgValidate) MsgBridgeTokenClaimValidate(m crosschaintypes.MsgBridge
 	return nil
 }
 
-func (b TronMsgValidate) MsgSendToExternalClaimValidate(m crosschaintypes.MsgSendToExternalClaim) (err error) {
+func (b TronMsgValidate) MsgSendToExternalClaimValidate(m *crosschaintypes.MsgSendToExternalClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
 	}
@@ -116,7 +116,7 @@ func (b TronMsgValidate) MsgSendToExternalClaimValidate(m crosschaintypes.MsgSen
 	return nil
 }
 
-func (b TronMsgValidate) MsgSendToFxClaimValidate(m crosschaintypes.MsgSendToFxClaim) (err error) {
+func (b TronMsgValidate) MsgSendToFxClaimValidate(m *crosschaintypes.MsgSendToFxClaim) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
 	}
@@ -144,7 +144,7 @@ func (b TronMsgValidate) MsgSendToFxClaimValidate(m crosschaintypes.MsgSendToFxC
 	return nil
 }
 
-func (b TronMsgValidate) MsgSendToExternalValidate(m crosschaintypes.MsgSendToExternal) (err error) {
+func (b TronMsgValidate) MsgSendToExternalValidate(m *crosschaintypes.MsgSendToExternal) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "sender address")
 	}
@@ -163,7 +163,7 @@ func (b TronMsgValidate) MsgSendToExternalValidate(m crosschaintypes.MsgSendToEx
 	return nil
 }
 
-func (b TronMsgValidate) MsgRequestBatchValidate(m crosschaintypes.MsgRequestBatch) (err error) {
+func (b TronMsgValidate) MsgRequestBatchValidate(m *crosschaintypes.MsgRequestBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "sender address")
 	}
@@ -182,7 +182,7 @@ func (b TronMsgValidate) MsgRequestBatchValidate(m crosschaintypes.MsgRequestBat
 	return nil
 }
 
-func (b TronMsgValidate) MsgConfirmBatchValidate(m crosschaintypes.MsgConfirmBatch) (err error) {
+func (b TronMsgValidate) MsgConfirmBatchValidate(m *crosschaintypes.MsgConfirmBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.BridgerAddress); err != nil {
 		return sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
 	}

@@ -74,10 +74,10 @@ import (
 )
 
 func init() {
-	crosschaintypes.RegisterValidateBasic(bsctypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
-	crosschaintypes.RegisterValidateBasic(polygontypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
-	crosschaintypes.RegisterValidateBasic(avalanchetypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
-	crosschaintypes.RegisterValidateBasic(ethtypes.ModuleName, crosschaintypes.EthereumMsgValidate{})
+	crosschaintypes.RegisterValidateBasic(bsctypes.ModuleName, crosschaintypes.MsgValidate{})
+	crosschaintypes.RegisterValidateBasic(polygontypes.ModuleName, crosschaintypes.MsgValidate{})
+	crosschaintypes.RegisterValidateBasic(avalanchetypes.ModuleName, crosschaintypes.MsgValidate{})
+	crosschaintypes.RegisterValidateBasic(ethtypes.ModuleName, crosschaintypes.MsgValidate{})
 	crosschaintypes.RegisterValidateBasic(trontypes.ModuleName, trontypes.TronMsgValidate{})
 }
 

@@ -23,7 +23,7 @@ func NewERC20Token(amount sdk.Int, contract string) ERC20Token {
 }
 
 // ValidateBasic permforms stateless validation
-func (m ERC20Token) ValidateBasic() error {
+func (m *ERC20Token) ValidateBasic() error {
 	if err := fxtypes.ValidateEthereumAddress(m.Contract); err != nil {
 		return sdkerrors.Wrap(err, "invalid contract address")
 	}
@@ -38,7 +38,7 @@ func (m ERC20Token) ValidateBasic() error {
 //////////////////////////////////////
 
 // ValidateBasic performs stateless checks on validity
-func (m BridgeValidator) ValidateBasic() error {
+func (m *BridgeValidator) ValidateBasic() error {
 	if m.Power == 0 {
 		return sdkerrors.Wrap(ErrEmpty, "power")
 	}
@@ -179,7 +179,7 @@ func NewOracleSet(nonce, height uint64, members BridgeValidators) *OracleSet {
 }
 
 // GetCheckpoint returns the checkpoint
-func (m OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
+func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// the contract argument is not a arbitrary length array but a fixed length 32 byte
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
@@ -216,7 +216,7 @@ func (m OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	return hash.Bytes(), nil
 }
 
-func (m OracleSet) Equal(o OracleSet) (bool, error) {
+func (m *OracleSet) Equal(o OracleSet) (bool, error) {
 	if m.Height != o.Height {
 		return false, sdkerrors.Wrap(ErrInvalid, "oracle set heights mismatch")
 	}
@@ -265,7 +265,7 @@ func (v OutgoingTxBatches) Swap(i, j int) {
 }
 
 // GetFees returns the total fees contained within a given batch
-func (m OutgoingTxBatch) GetFees() sdk.Int {
+func (m *OutgoingTxBatch) GetFees() sdk.Int {
 	sum := sdk.ZeroInt()
 	for _, t := range m.Transactions {
 		sum = sum.Add(t.Fee.Amount)
@@ -274,7 +274,7 @@ func (m OutgoingTxBatch) GetFees() sdk.Int {
 }
 
 // GetCheckpoint gets the checkpoint signature from the given outgoing tx batch
-func (m OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) {
+func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) {
 	// the contract argument is not a arbitrary length array but a fixed length 32 byte
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
@@ -330,7 +330,7 @@ func (m OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) {
 //            Oracle(S)             //
 //////////////////////////////////////
 
-func (m Oracle) GetOracle() sdk.AccAddress {
+func (m *Oracle) GetOracle() sdk.AccAddress {
 	// oracle address can't be empty
 	addr, err := sdk.AccAddressFromBech32(m.OracleAddress)
 	if err != nil {
@@ -339,7 +339,7 @@ func (m Oracle) GetOracle() sdk.AccAddress {
 	return addr
 }
 
-func (m Oracle) GetBridger() sdk.AccAddress {
+func (m *Oracle) GetBridger() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(m.BridgerAddress)
 	if err != nil {
 		panic(err)
@@ -347,7 +347,7 @@ func (m Oracle) GetBridger() sdk.AccAddress {
 	return addr
 }
 
-func (m Oracle) GetValidator() sdk.ValAddress {
+func (m *Oracle) GetValidator() sdk.ValAddress {
 	addr, err := sdk.ValAddressFromBech32(m.DelegateValidator)
 	if err != nil {
 		panic(err)
@@ -355,18 +355,18 @@ func (m Oracle) GetValidator() sdk.ValAddress {
 	return addr
 }
 
-func (m Oracle) GetSlashAmount(slashFraction sdk.Dec) sdk.Int {
+func (m *Oracle) GetSlashAmount(slashFraction sdk.Dec) sdk.Int {
 	slashAmount := m.DelegateAmount.ToDec().Mul(slashFraction).MulInt64(m.SlashTimes).TruncateInt()
 	slashAmount = sdk.MinInt(slashAmount, m.DelegateAmount)
 	slashAmount = sdk.MaxInt(slashAmount, sdk.ZeroInt())
 	return slashAmount
 }
 
-func (m Oracle) GetPower() sdk.Int {
+func (m *Oracle) GetPower() sdk.Int {
 	return m.DelegateAmount.Quo(sdk.DefaultPowerReduction)
 }
 
-func (m Oracle) GetDelegateAddress(moduleName string) sdk.AccAddress {
+func (m *Oracle) GetDelegateAddress(moduleName string) sdk.AccAddress {
 	data := append(m.GetOracle(), []byte(moduleName)...)
 	return crypto.Keccak256(data)[12:]
 }
