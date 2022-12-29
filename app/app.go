@@ -47,6 +47,9 @@ import (
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	gaspricelegacy "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/crosschain"
+	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
@@ -303,6 +306,9 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 	}
 	gasprice.RegisterQueryServer(cfg.QueryServer(), gasprice.Querier{})
 	gaspricelegacy.RegisterQueryServer(cfg.QueryServer(), gaspricelegacy.Querier{}) // nolint:staticcheck
+
+	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainKeeper)
+	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainKeeper))
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
@@ -318,6 +324,8 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register gas price queries routes from grpc-gateway.
 	gasprice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	// Register crosschain queries routes from grpc-gateway.
+	crosschain.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)

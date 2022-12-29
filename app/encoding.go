@@ -9,11 +9,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-	cryptocodec "github.com/evmos/ethermint/crypto/codec"
+	ethermintcodec "github.com/evmos/ethermint/crypto/codec"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	ethermint "github.com/evmos/ethermint/types"
+	etherminttypes "github.com/evmos/ethermint/types"
 
 	fxlegacy "github.com/functionx/fx-core/v3/types/legacy"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -31,6 +32,13 @@ func MakeEncodingConfig() EncodingConfig {
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	fxlegacy.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+
+	registerCryptoEthSecp256k1(encodingConfig.Amino)
+	ethermintcodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	etherminttypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+
+	crosschaintypes.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	crosschaintypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }
 
@@ -38,27 +46,22 @@ func MakeEncodingConfig() EncodingConfig {
 func makeEncodingConfig() EncodingConfig {
 	amino := codec.NewLegacyAmino()
 	interfaceRegistry := types.NewInterfaceRegistry()
-	codec := codec.NewProtoCodec(interfaceRegistry)
-	txCfg := tx.NewTxConfig(codec, tx.DefaultSignModes)
+	cdc := codec.NewProtoCodec(interfaceRegistry)
+	txCfg := tx.NewTxConfig(cdc, tx.DefaultSignModes)
 
 	encodingConfig := EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
-		Codec:             codec,
+		Codec:             cdc,
 		TxConfig:          txCfg,
 		Amino:             amino,
 	}
 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	keyring.RegisterLegacyAminoCodec(amino)
-
-	RegisterCryptoEthSecp256k1(amino)
-	cryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	ethermint.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-
 	return encodingConfig
 }
 
-func RegisterCryptoEthSecp256k1(cdc *codec.LegacyAmino) {
+func registerCryptoEthSecp256k1(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&ethsecp256k1.PubKey{},
 		ethsecp256k1.PubKeyName, nil)
 	cdc.RegisterConcrete(&ethsecp256k1.PrivKey{},

@@ -55,7 +55,6 @@ import (
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	"github.com/functionx/fx-core/v3/x/bsc"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	"github.com/functionx/fx-core/v3/x/crosschain"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/erc20"
 	erc20client "github.com/functionx/fx-core/v3/x/erc20/client"
@@ -136,7 +135,6 @@ var ModuleBasics = module.NewBasicManager(
 	vesting.AppModuleBasic{},
 	// this line is used by starport scaffolding # stargate/app/moduleBasic
 	gravity.AppModuleBasic{},
-	crosschain.AppModuleBasic{},
 	bsc.AppModuleBasic{},
 	polygon.AppModuleBasic{},
 	avalanche.AppModuleBasic{},
@@ -175,7 +173,6 @@ func appModules(
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		gravity.NewAppModule(app.EthKeeper, app.GravityMigrator),
-		crosschain.NewAppModuleByRouter(app.CrosschainKeeper),
 		bsc.NewAppModule(app.BscKeeper),
 		polygon.NewAppModule(app.PolygonKeeper),
 		avalanche.NewAppModule(app.AvalancheKeeper),
