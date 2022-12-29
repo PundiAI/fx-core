@@ -14,8 +14,7 @@ import (
 //   - recipient address is not on the blocked list
 //   - bank module transfers are enabled for the Cosmos coin
 func (k Keeper) MintingEnabled(ctx sdk.Context, sender, receiver sdk.AccAddress, token string) (types.TokenPair, error) {
-	params := k.GetParams(ctx)
-	if !params.EnableErc20 {
+	if !k.GetEnableErc20(ctx) {
 		return types.TokenPair{}, sdkerrors.Wrap(types.ErrERC20Disabled, "module is currently disabled by governance")
 	}
 
@@ -40,7 +39,8 @@ func (k Keeper) MintingEnabled(ctx sdk.Context, sender, receiver sdk.AccAddress,
 	// NOTE: ignore amount as only denom is checked on IsSendEnabledCoin
 	coin := sdk.Coin{Denom: pair.Denom}
 
-	// check if minting to a recipient address other than the sender is enabled for for the given coin denom
+	// check if minting to a recipient address other than the sender is enabled for the given coin denom
+	// if coin disable and sender not equal receiver, can not convert denom
 	if !sender.Equals(receiver) && !k.bankKeeper.IsSendEnabledCoin(ctx, coin) {
 		return types.TokenPair{}, sdkerrors.Wrapf(banktypes.ErrSendDisabled, "minting '%s' coins to an external address is currently disabled", token)
 	}

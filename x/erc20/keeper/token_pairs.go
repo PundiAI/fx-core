@@ -67,9 +67,8 @@ func (k Keeper) RemoveTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	k.DeleteERC20Map(ctx, tokenPair.GetERC20Contract())
 	k.DeleteDenomMap(ctx, tokenPair.Denom)
 
-	//after support many to one, delete denom with alias
-	md, found := k.bankKeeper.GetDenomMetaData(ctx, tokenPair.Denom)
-	if found && types.IsManyToOneMetadata(md) {
+	//delete denom alias
+	if md, found := k.HasDenomAlias(ctx, tokenPair.Denom); found {
 		k.DeleteAliasesDenom(ctx, md.DenomUnits[0].Aliases...)
 	}
 }
