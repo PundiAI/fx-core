@@ -56,10 +56,3 @@ func GetMetadata(chainId string) []banktypes.Metadata {
 		return []banktypes.Metadata{mainnetWAVAXMetadata, mainnetSAVAXMetadata, mainnetQIMetadata, mainnetBAVAMetadata, mainnetWBTCMetadata}
 	}
 }
-
-func GetAliasNullDenom() []string {
-	if fxtypes.ChainId() == fxtypes.TestnetChainId {
-		return []string{}
-	}
-	return []string{DAIDenom, EURSDenom, LINKDenom, C98Denom}
-}

@@ -3,7 +3,6 @@ package v3
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/spf13/cobra"
@@ -137,17 +137,15 @@ func updateWFXLogicCode(ctx sdk.Context, k erc20keeper.Keeper) {
 
 func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 	logger := ctx.Logger()
-	denoms := GetAliasNullDenom()
-	logger.Info("update metadata alias null", "chain-id", ctx.ChainID(), "denoms", strings.Join(denoms, ","))
-	for _, denom := range denoms {
-		md, found := bk.GetDenomMetaData(ctx, denom)
-		if !found || len(md.DenomUnits) != 2 || len(md.DenomUnits[1].Aliases) != 1 || md.DenomUnits[1].Aliases[0] != "null" {
-			continue
+	bk.IterateAllDenomMetaData(ctx, func(md banktypes.Metadata) bool {
+		if len(md.DenomUnits) != 2 || len(md.DenomUnits[1].Aliases) != 1 || md.DenomUnits[1].Aliases[0] != "null" {
+			return false
 		}
-		logger.Info("update metadata alias null", "denom", denom)
+		logger.Info("update metadata alias null", "denom", md.Base)
 		md.DenomUnits[1].Aliases = []string{}
 		bk.SetDenomMetaData(ctx, md)
-	}
+		return false
+	})
 }
 
 // PreUpgradeCmd called by cosmovisor
