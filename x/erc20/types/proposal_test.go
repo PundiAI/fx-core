@@ -50,29 +50,6 @@ func (suite *ProposalTestSuite) TestCreateDenomDescription() {
 	}
 }
 
-func (suite *ProposalTestSuite) TestCreateDenom() {
-	testCases := []struct {
-		name      string
-		denom     string
-		expString string
-	}{
-		{
-			"with valid address",
-			"0xdAC17F958D2ee523a2206206994597C13D831ec7",
-			"erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7",
-		},
-		{
-			"with empty string",
-			"",
-			"erc20/",
-		},
-	}
-	for _, tc := range testCases {
-		desc := CreateDenom(tc.denom)
-		suite.Require().Equal(desc, tc.expString)
-	}
-}
-
 func (suite *ProposalTestSuite) TestValidateErc20Denom() {
 	testCases := []struct {
 		name    string
@@ -190,7 +167,7 @@ func (suite *ProposalTestSuite) TestRegisterCoinProposal() {
 			},
 		},
 		Name:    "coin",
-		Symbol:  "token",
+		Symbol:  "coin2",
 		Display: "coin",
 	}
 

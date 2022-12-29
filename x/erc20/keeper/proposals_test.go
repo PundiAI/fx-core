@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/crypto"
 
@@ -552,9 +553,8 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 
 			if tc.expPass {
 				suite.Require().NoError(tcErr, tc.name)
-				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.GetDenom())
+				md, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
 				suite.Require().True(found)
-				suite.Require().True(types.IsManyToOneMetadata(md))
 				suite.Require().Equal(md.DenomUnits[0].Aliases, tc.alias)
 				for _, alias := range tc.alias {
 					aliasRegistered := suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, alias)
@@ -628,7 +628,7 @@ func (suite *KeeperTestSuite) TestRegisterERC20() {
 			contractAddr, err = suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
 			suite.Require().NoError(err)
 			//suite.Commit()
-			coinName := types.CreateDenom(contractAddr.String())
+			coinName := strings.ToLower(erc20Symbol)
 			pair = types.NewTokenPair(contractAddr, coinName, true, types.OWNER_EXTERNAL)
 
 			tc.malleate()

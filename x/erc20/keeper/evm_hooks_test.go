@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 	"math/big"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -83,13 +84,13 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			contractAddr, err := suite.DeployContract(suite.address, "coin", "token", 18)
+			contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
 			suite.Require().NoError(err)
 			//suite.Commit()
 
 			tc.malleate(contractAddr)
 
-			balance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(suite.address.Bytes()), types.CreateDenom(contractAddr.String()))
+			balance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(suite.address.Bytes()), strings.ToLower(erc20Symbol))
 			//suite.Commit()
 			if tc.result {
 				// Check if the execution was successful
@@ -196,7 +197,7 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"correct transfer (non burn)",
 			func() {
-				contractAddr, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
+				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
 				suite.Require().NoError(err)
 				//suite.Commit()
 
@@ -220,7 +221,7 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"correct burn",
 			func() {
-				contractAddr, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
+				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
 				suite.Require().NoError(err)
 				//suite.Commit()
 
@@ -253,7 +254,7 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"Unspecified Owner",
 			func() {
-				contractAddr, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
+				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
 				suite.Require().NoError(err)
 				//suite.Commit()
 
@@ -280,7 +281,7 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"Fail Evm",
 			func() {
-				contractAddr, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
+				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
 				suite.Require().NoError(err)
 				//suite.Commit()
 

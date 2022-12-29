@@ -304,7 +304,7 @@ func (suite *KeeperTestSuite) TestAliasDenom() {
 			false,
 		},
 		{
-			"denom not found with alias",
+			"ok without denom alias",
 			func() {
 				req = &types.QueryAliasDenomRequest{Alias: bscDenom}
 				expRes = &types.QueryAliasDenomResponse{}

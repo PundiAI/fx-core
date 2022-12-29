@@ -185,7 +185,7 @@ func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
 
 // DeployContract deploys the ERC20MinterBurnerDecimalsContract.
 func (suite *KeeperTestSuite) DeployContract(from common.Address, name, symbol string, decimals uint8) (common.Address, error) {
-	return suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, from, name, symbol, decimals, false)
+	return suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, from, name, symbol, decimals)
 }
 
 func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation(name string, symbol string) common.Address {

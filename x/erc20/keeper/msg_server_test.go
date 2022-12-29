@@ -72,18 +72,6 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			false,
 			false,
 		},
-		{
-			"fail - deleted module account - force fail",
-			100,
-			10,
-			func(common.Address) {},
-			func() {
-				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, types.ModuleAddress.Bytes())
-				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
-			},
-			false,
-			false,
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
@@ -314,20 +302,6 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			false,
 			false,
 		},
-		{
-			"fail - no module address",
-			100,
-			10,
-			func(common.Address) {
-			},
-			func() {
-				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, types.ModuleAddress.Bytes())
-				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
-			},
-			contractMinterBurner,
-			false,
-			false,
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
@@ -339,7 +313,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			suite.Require().NotNil(contractAddr)
 			suite.Commit()
 
-			coinName := types.CreateDenom(contractAddr.String())
+			coinName := strings.ToLower(erc20Symbol)
 			sender := sdk.AccAddress(suite.address.Bytes())
 			msg := types.NewMsgConvertERC20(
 				sdk.NewInt(tc.transfer),
@@ -424,18 +398,6 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			contractMinterBurner,
 			false,
 		},
-		{
-			"fail - deleted module address - force fail",
-			100,
-			10,
-			func(common.Address) {},
-			func() {
-				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, types.ModuleAddress.Bytes())
-				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
-			},
-			contractMinterBurner,
-			false,
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
@@ -447,7 +409,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
 			pair, _ := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
 			coins := sdk.NewCoins(sdk.NewCoin(pair.Denom, sdk.NewInt(tc.mint)))
-			coinName := types.CreateDenom(contractAddr.String())
+			coinName := strings.ToLower(erc20Symbol)
 			sender := sdk.AccAddress(suite.address.Bytes())
 
 			// Precondition: Mint Coins to convert on sender account
@@ -572,9 +534,8 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				usdtMatedata, pair = suite.setupRegisterCoinUSDT()
 				suite.Require().NotNil(usdtMatedata)
 
-				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+				_, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
 				suite.Require().True(found)
-				suite.Require().True(types.IsManyToOneMetadata(md))
 
 				denom := suite.app.Erc20Keeper.GetAliasDenom(suite.ctx, usdtMatedata.DenomUnits[0].Aliases[0])
 				suite.Require().True(len(denom) > 0)
@@ -597,9 +558,8 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				usdtMatedata, pair = suite.setupRegisterCoinUSDT()
 				suite.Require().NotNil(usdtMatedata)
 
-				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+				_, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
 				suite.Require().True(found)
-				suite.Require().True(types.IsManyToOneMetadata(md))
 
 				denom := suite.app.Erc20Keeper.GetAliasDenom(suite.ctx, usdtMatedata.DenomUnits[0].Aliases[0])
 				suite.Require().True(len(denom) > 0)
@@ -625,9 +585,8 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				usdtMatedata, pair = suite.setupRegisterCoinUSDT()
 				suite.Require().NotNil(usdtMatedata)
 
-				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+				_, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
 				suite.Require().True(found)
-				suite.Require().True(types.IsManyToOneMetadata(md))
 
 				denom := suite.app.Erc20Keeper.GetAliasDenom(suite.ctx, usdtMatedata.DenomUnits[0].Aliases[0])
 				suite.Require().True(len(denom) > 0)
@@ -654,9 +613,8 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				suite.Require().NoError(err)
 				suite.Require().True(addAlias)
 
-				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+				_, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
 				suite.Require().True(found)
-				suite.Require().True(types.IsManyToOneMetadata(md))
 
 				denom := suite.app.Erc20Keeper.GetAliasDenom(suite.ctx, usdtMatedata.DenomUnits[0].Aliases[0])
 				suite.Require().True(len(denom) > 0)
@@ -683,9 +641,8 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				suite.Require().NoError(err)
 				suite.Require().True(addAlias)
 
-				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+				_, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
 				suite.Require().True(found)
-				suite.Require().True(types.IsManyToOneMetadata(md))
 
 				denom := suite.app.Erc20Keeper.GetAliasDenom(suite.ctx, usdtMatedata.DenomUnits[0].Aliases[0])
 				suite.Require().True(len(denom) > 0)
@@ -749,7 +706,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				return err
 			},
 			false,
-			"denom usdt not registered: invalid denom",
+			"not support with usdt: invalid metadata",
 		},
 		{
 			"denom not support many to one",
@@ -757,9 +714,8 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				usdtMatedata, pair = suite.setupRegisterCoinUSDTWithOutAlias()
 				suite.Require().NotNil(usdtMatedata)
 
-				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
-				suite.Require().True(found)
-				suite.Require().False(types.IsManyToOneMetadata(md))
+				_, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
+				suite.Require().False(found)
 
 				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", ethDenom, polygonDenom)
 			},
@@ -856,9 +812,8 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 		usdtMatedata, pair = suite.setupRegisterCoinUSDT(ethDenom, polygonDenom, tronDenom)
 		suite.Require().NotNil(usdtMatedata)
 
-		md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
+		_, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
 		suite.Require().True(found)
-		suite.Require().True(types.IsManyToOneMetadata(md))
 	}
 
 	ethUSDTCoin := sdk.NewCoin(ethDenom, sdk.NewInt(101))
@@ -948,7 +903,7 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 				return err
 			},
 			false,
-			"denom usdt not found: invalid metadata",
+			"denom usdt metadata not support: invalid metadata",
 		},
 		{
 			"metadata not support many to one",
@@ -956,9 +911,8 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 			func(_ *types.TokenPair) error {
 				usdtMatedata, pair = suite.setupRegisterCoinUSDTWithOutAlias()
 				suite.Require().NotNil(usdtMatedata)
-				md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, pair.Denom)
-				suite.Require().True(found)
-				suite.Require().False(types.IsManyToOneMetadata(md))
+				_, found := suite.app.Erc20Keeper.HasDenomAlias(suite.ctx, pair.Denom)
+				suite.Require().False(found)
 
 				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
 					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
@@ -989,25 +943,6 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 			},
 			false,
 			"target gravity denom not exist: invalid target",
-		},
-		{
-			"alias not registered",
-			registerFn,
-			func(pair *types.TokenPair) error {
-				usdtCopy := usdtMatedata
-				usdtCopy.DenomUnits[0].Aliases = append(usdtCopy.DenomUnits[0].Aliases, "bsc0x0000000000000000000000000000000000000000")
-				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, usdtCopy)
-
-				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
-					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
-					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
-					Coin:     usdt,
-					Target:   "bsc",
-				})
-				return err
-			},
-			false,
-			"alias bsc0x0000000000000000000000000000000000000000 not registered: invalid denom",
 		},
 	}
 
