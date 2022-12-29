@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/armon/go-metrics"
@@ -17,33 +15,13 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-// RelayTokenProcessing relay token from evm contract to chain address
-func (k Keeper) RelayTokenProcessing(ctx sdk.Context, _ common.Address, _ *common.Address, receipt *ethtypes.Receipt) error {
-	erc20ABI := fxtypes.GetERC20().ABI
-	for _, log := range receipt.Logs {
-		if !isRelayTokenEvent(erc20ABI, log) {
-			continue
-		}
-		pair, found := k.GetTokenPairByAddress(ctx, log.Address)
-		if !found {
-			continue
-		}
-		// check that conversion for the pair is enabled
-		if !pair.Enabled {
-			return fmt.Errorf("token pair not enable, contract %s, denom %s", pair.Erc20Address, pair.Denom)
-		}
+func (k Keeper) HookRelayToken(ctx sdk.Context, rtels []*RelayTokenEventLog, receipt *ethtypes.Receipt) error {
+	fip20ABI := fxtypes.GetERC20().ABI
+	for _, rtel := range rtels {
+		k.Logger(ctx).Info("relay token", "hash", receipt.TxHash.String(), "from", rtel.Event.From.Hex(),
+			"amount", rtel.Event.Value.String(), "denom", rtel.Pair.Denom, "token", rtel.Pair.Erc20Address)
 
-		amount, err := parseTransferAmount(erc20ABI, log.Data)
-		if err != nil {
-			return fmt.Errorf("parse transfer amount error %v", err.Error())
-		}
-		from := common.BytesToAddress(log.Topics[1].Bytes())
-
-		k.Logger(ctx).Info("relay token", "hash", receipt.TxHash.String(), "from", from.Hex(),
-			"amount", amount.String(), "denom", pair.Denom, "token", pair.Erc20Address)
-
-		err = k.ProcessRelayToken(ctx, erc20ABI, receipt.TxHash, pair, from, amount)
-		if err != nil {
+		if err := k.ProcessRelayToken(ctx, fip20ABI, receipt.TxHash, rtel.Pair, rtel.Event.From, rtel.Event.Value); err != nil {
 			k.Logger(ctx).Error("failed to relay token", "hash", receipt.TxHash.String(), "error", err.Error())
 			return err
 		}
@@ -52,24 +30,16 @@ func (k Keeper) RelayTokenProcessing(ctx sdk.Context, _ common.Address, _ *commo
 			[]string{types.ModuleName, "relay_token"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("erc20", pair.Erc20Address),
-				telemetry.NewLabel("denom", pair.Denom),
-				telemetry.NewLabel("amount", amount.String()),
+				telemetry.NewLabel("erc20", rtel.Pair.Erc20Address),
+				telemetry.NewLabel("denom", rtel.Pair.Denom),
+				telemetry.NewLabel("amount", rtel.Event.Value.String()),
 			},
 		)
 	}
 	return nil
 }
-func (k Keeper) GetTokenPairByAddress(ctx sdk.Context, address common.Address) (types.TokenPair, bool) {
-	//check contract is registered
-	pairID := k.GetERC20Map(ctx, address)
-	if len(pairID) == 0 {
-		// contract is not registered coin or fip20
-		return types.TokenPair{}, false
-	}
-	return k.GetTokenPair(ctx, pairID)
-}
-func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash common.Hash, pair types.TokenPair, from common.Address, amount *big.Int) error {
+
+func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash common.Hash, pair *types.TokenPair, from common.Address, amount *big.Int) error {
 	var err error
 	// create the corresponding sdk.Coin that is paired with FIP20
 	coins := sdk.Coins{{Denom: pair.Denom, Amount: sdk.NewIntFromBigInt(amount)}}
@@ -138,22 +108,34 @@ func isRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) bool {
 	return bytes.Equal(to.Bytes(), types.ModuleAddress.Bytes())
 }
 
-// parseTransferAmount parse transfer event data to big int
-func parseTransferAmount(fip20ABI abi.ABI, data []byte) (*big.Int, error) {
-	//relay amount
-	transferEvent, err := fip20ABI.Unpack(types.ERC20EventTransfer, data)
-	if err != nil {
-		return nil, fmt.Errorf("unpack transfer event error %v", err.Error())
+type RelayTokenEvent struct {
+	From  common.Address
+	To    common.Address
+	Value *big.Int
+}
+
+func ParseRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*RelayTokenEvent, bool, error) {
+	if !isRelayTokenEvent(fip20ABI, log) {
+		return nil, false, nil
 	}
-	if len(transferEvent) == 0 {
-		return nil, errors.New("invalid transfer event")
+
+	rt := new(RelayTokenEvent)
+	if log.Topics[0] != fip20ABI.Events[types.ERC20EventTransfer].ID {
+		return nil, false, nil
 	}
-	amount, ok := transferEvent[0].(*big.Int)
-	if !ok || amount == nil {
-		return nil, fmt.Errorf("invalid type of transfer event")
+	if len(log.Data) > 0 {
+		if err := fip20ABI.UnpackIntoInterface(rt, types.ERC20EventTransfer, log.Data); err != nil {
+			return nil, false, err
+		}
 	}
-	if amount.Sign() != 1 {
-		return nil, fmt.Errorf("invalid transfer amount %v", amount)
+	var indexed abi.Arguments
+	for _, arg := range fip20ABI.Events[types.ERC20EventTransfer].Inputs {
+		if arg.Indexed {
+			indexed = append(indexed, arg)
+		}
 	}
-	return amount, nil
+	if err := abi.ParseTopics(rt, indexed, log.Topics[1:]); err != nil {
+		return nil, false, err
+	}
+	return rt, true, nil
 }

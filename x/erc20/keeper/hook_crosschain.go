@@ -17,34 +17,27 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.Address, to *common.Address, receipt *ethtypes.Receipt) (err error) {
+func (k Keeper) HookTransferCrossChain(ctx sdk.Context, tcels []*TransferCrossChainEventLog, from common.Address, to *common.Address, receipt *ethtypes.Receipt) error {
 	logger := k.Logger(ctx)
-	fip20ABI := fxtypes.GetERC20().ABI
-	for _, log := range receipt.Logs {
-		tc, isOk, err := fxtypes.ParseTransferCrossChainEvent(fip20ABI, log)
-		if err != nil {
-			return err
-		}
-		if !isOk {
-			continue
-		}
-		pair, found := k.GetTokenPairByAddress(ctx, log.Address)
-		if !found {
-			continue
-		}
-		logger.Info("transfer cross", "tx-hash", receipt.TxHash.Hex(), "from", from.Hex(), "to", to.Hex(), "token", pair.Erc20Address, "denom", pair.Denom)
+	for _, tcel := range tcels {
+		logger.Info("transfer cross", "tx-hash", receipt.TxHash.Hex(),
+			"from", from.Hex(), "to", to.Hex(), "token", tcel.Pair.Erc20Address, "denom", tcel.Pair.Denom)
 
-		balances := k.bankKeeper.GetAllBalances(ctx, tc.From.Bytes())
-		if !balances.IsAllGTE(tc.TotalAmount(pair.Denom)) {
-			return fmt.Errorf("insufficient balance, have %s expected %s", balances.String(), tc.TotalAmount(pair.Denom).String())
+		balances := k.bankKeeper.GetAllBalances(ctx, tcel.Event.From.Bytes())
+		if !balances.IsAllGTE(tcel.Event.TotalAmount(tcel.Pair.Denom)) {
+			return fmt.Errorf("insufficient balance, have %s expected %s", balances.String(), tcel.Event.TotalAmount(tcel.Pair.Denom).String())
 		}
 
-		targetType, target := tc.GetTarget()
+		var err error
+		targetType, target := tcel.Event.GetTarget()
+		amount := tcel.Event.GetAmount(tcel.Pair.Denom)
+		fee := tcel.Event.GetFee(tcel.Pair.Denom)
+
 		switch targetType {
 		case fxtypes.FIP20TargetChain:
-			err = k.TransferChainHandler(ctx, tc.GetFrom(), tc.Recipient, tc.GetAmount(pair.Denom), tc.GetFee(pair.Denom), target, receipt)
+			err = k.TransferChainHandler(ctx, tcel.Event.GetFrom(), tcel.Event.Recipient, amount, fee, target, receipt)
 		case fxtypes.FIP20TargetIBC:
-			err = k.TransferIBCHandler(ctx, tc.GetFrom(), tc.Recipient, tc.GetAmount(pair.Denom), tc.GetFee(pair.Denom), target, receipt)
+			err = k.TransferIBCHandler(ctx, tcel.Event.GetFrom(), tcel.Event.Recipient, amount, fee, target, receipt)
 		default:
 			err = fmt.Errorf("traget unknown %d", targetType)
 		}
@@ -61,13 +54,13 @@ func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.A
 					sdk.NewAttribute(sdk.AttributeKeySender, from.String()),
 					sdk.NewAttribute(types.AttributeKeyTo, to.String()),
 					sdk.NewAttribute(types.AttributeKeyEvmTxHash, receipt.TxHash.String()),
-					sdk.NewAttribute(types.AttributeKeyFrom, tc.From.String()),
-					sdk.NewAttribute(types.AttributeKeyRecipient, tc.Recipient),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, tc.Amount.String()),
-					sdk.NewAttribute(sdk.AttributeKeyFee, tc.Fee.String()),
-					sdk.NewAttribute(types.AttributeKeyTarget, fxtypes.Byte32ToString(tc.Target)),
-					sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
-					sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+					sdk.NewAttribute(types.AttributeKeyFrom, tcel.Event.From.String()),
+					sdk.NewAttribute(types.AttributeKeyRecipient, tcel.Event.Recipient),
+					sdk.NewAttribute(sdk.AttributeKeyAmount, tcel.Event.Amount.String()),
+					sdk.NewAttribute(sdk.AttributeKeyFee, tcel.Event.Fee.String()),
+					sdk.NewAttribute(types.AttributeKeyTarget, fxtypes.Byte32ToString(tcel.Event.Target)),
+					sdk.NewAttribute(types.AttributeKeyTokenAddress, tcel.Pair.Erc20Address),
+					sdk.NewAttribute(types.AttributeKeyDenom, tcel.Pair.Denom),
 				),
 			},
 		)
@@ -76,11 +69,11 @@ func (k Keeper) RelayTransferCrossChainProcessing(ctx sdk.Context, from common.A
 			[]string{types.ModuleName, "relay_transfer_cross_chain"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel("erc20", pair.Erc20Address),
-				telemetry.NewLabel("denom", pair.Denom),
+				telemetry.NewLabel("erc20", tcel.Pair.Erc20Address),
+				telemetry.NewLabel("denom", tcel.Pair.Denom),
 				telemetry.NewLabel("type", targetType.String()),
 				telemetry.NewLabel("target", target),
-				telemetry.NewLabel("amount", tc.GetAmount(pair.Denom).String()),
+				telemetry.NewLabel("amount", tcel.Event.GetAmount(tcel.Pair.Denom).String()),
 			},
 		)
 	}
@@ -112,9 +105,9 @@ func (k Keeper) TransferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to stri
 	if !fee.IsZero() {
 		return fmt.Errorf("ibc transfer fee must be zero: %s", fee.Amount.String())
 	}
-	params := k.GetParams(ctx)
+	ibcTimeout := k.GetIbcTimeout(ctx)
 	ibcTimeoutHeight := ibcclienttypes.ZeroHeight()
-	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(params.IbcTimeout)
+	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(ibcTimeout)
 	transferMsg := transfertypes.NewMsgTransfer(targetIBC.SourcePort, targetIBC.SourceChannel, amount, from.String(), to, ibcTimeoutHeight, ibcTimeoutTimestamp)
 	transferResponse, err := k.IbcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx), transferMsg)
 	if err != nil {
@@ -138,6 +131,11 @@ func (k Keeper) SetIBCTransferHash(ctx sdk.Context, port, channel string, sequen
 	store.Set(types.GetIBCTransferKey(port, channel, sequence), hash.Bytes())
 }
 
+func (k Keeper) DeleteIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetIBCTransferKey(port, channel, sequence))
+}
+
 func (k Keeper) GetIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) (common.Hash, bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetIBCTransferKey(port, channel, sequence)
@@ -148,6 +146,6 @@ func (k Keeper) GetIBCTransferHash(ctx sdk.Context, port, channel string, sequen
 	return common.BytesToHash(value), true
 }
 
-func (k Keeper) HashIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) bool {
+func (k Keeper) HasIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) bool {
 	return ctx.KVStore(k.storeKey).Has(types.GetIBCTransferKey(port, channel, sequence))
 }

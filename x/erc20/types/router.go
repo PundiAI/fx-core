@@ -33,6 +33,7 @@ func (rtr Router) Sealed() bool {
 
 // AddRoute adds IBCModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
+// NOTE: do not add erc20 module, Avoid recursive calls
 func (rtr *Router) AddRoute(module string, hook TransactionHook) *Router {
 	if rtr.sealed {
 		panic(fmt.Sprintf("router sealed; cannot register %s route callbacks", module))
