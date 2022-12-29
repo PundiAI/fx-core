@@ -7,6 +7,7 @@ import (
 	"github.com/functionx/fx-core/v3/app/upgrades"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 )
 
@@ -30,6 +31,7 @@ var Upgrade = upgrades.Upgrade{
 			},
 			Deleted: []string{
 				"other",
+				crosschaintypes.ModuleName,
 			},
 		}
 	},
