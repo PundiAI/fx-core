@@ -95,19 +95,12 @@ func (im IBCMiddleware) OnRecvPacket(
 	if err := fxtransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
 	}
-
-	im.Logger(ctx).Debug("ibcrouter middleware OnRecvPacket",
-		"sequence", packet.Sequence,
-		"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-		"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-		"amount", data.Amount, "denom", data.Denom, "router", data.Router, "fee", data.Fee, "memo", data.Memo,
-	)
 	// check the packet has router
 	if len(data.Router) > 0 {
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	ack, err := handlerForwardTransferPacket(ctx, im, packet, transfertypes.NewFungibleTokenPacketData(data.GetDenom(), data.GetAmount(), data.GetSender(), data.GetReceiver()), relayer)
+	ack, err := handlerForwardTransferPacket(ctx, im, packet, data.ToIBCPacketData(), relayer)
 	if err != nil {
 		ack = transfertypes.NewErrorAcknowledgement(err)
 	}
@@ -193,12 +186,9 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet chan
 
 	newData := data
 	newData.Receiver = parsedReceiver.HostAccAddr.String()
-	bz, err := transfertypes.ModuleCdc.MarshalJSON(&newData)
-	if err != nil {
-		return nil, err
-	}
+
 	newPacket := packet
-	newPacket.Data = bz
+	newPacket.Data = newData.GetBytes()
 
 	ack := im.app.OnRecvPacket(ctx, newPacket, relayer)
 	if ack.Success() {
@@ -223,11 +213,7 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet chan
 		msgTransfer.Memo = newData.Memo
 
 		// send tokens to destination
-		_, err := im.transferKeeper.Transfer(
-			sdk.WrapSDKContext(ctx),
-			msgTransfer,
-		)
-		if err != nil {
+		if _, err = im.transferKeeper.Transfer(sdk.WrapSDKContext(ctx), msgTransfer); err != nil {
 			im.Logger(ctx).Error("ibcrouter middleware ForwardTransferPacket error",
 				"port", msgTransfer.SourcePort, "channel", msgTransfer.SourceChannel,
 				"sender", msgTransfer.Sender, "receiver", msgTransfer.Receiver,
