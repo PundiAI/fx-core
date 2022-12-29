@@ -101,30 +101,11 @@ type MsgValidateBasic interface {
 	MsgConfirmBatchValidate(m MsgConfirmBatch) (err error)
 }
 
-var (
-	// Denominations can be 3 ~ 128 characters long and support letters, followed by either
-	// a letter, a number or a separator ('/').
-	reModuleNameString = `[a-zA-Z][a-zA-Z0-9/]{1,32}`
-	reModuleName       *regexp.Regexp
-)
+var reModuleName *regexp.Regexp
 
 func init() {
-	SetModuleNameRegex(DefaultCoinDenomRegex)
-}
-
-// DefaultCoinDenomRegex returns the default regex string
-func DefaultCoinDenomRegex() string {
-	return reModuleNameString
-}
-
-// coinDenomRegex returns the current regex string and can be overwritten for custom validation
-var coinDenomRegex = DefaultCoinDenomRegex
-
-// SetModuleNameRegex allows for coin's custom validation by overriding the regular
-// expression string used for module name validation.
-func SetModuleNameRegex(reFn func() string) {
-	coinDenomRegex = reFn
-	reModuleName = regexp.MustCompile(fmt.Sprintf(`^%s$`, coinDenomRegex()))
+	reModuleNameString := `[a-zA-Z][a-zA-Z0-9/]{1,32}`
+	reModuleName = regexp.MustCompile(fmt.Sprintf(`^%s$`, reModuleNameString))
 }
 
 // ValidateModuleName is the default validation function for crosschain moduleName.

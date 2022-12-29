@@ -11,7 +11,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/functionx/fx-core/v3/app"
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
@@ -121,5 +126,17 @@ func TestEthereumMsgValidate_MsgOracleSetUpdatedClaimValidate(t *testing.T) {
 				require.EqualError(t, err, tt.wantErr)
 			}
 		})
+	}
+}
+
+func TestValidateModuleName(t *testing.T) {
+	for _, name := range []string{
+		ethtypes.ModuleName,
+		bsctypes.ModuleName,
+		polygontypes.ModuleName,
+		trontypes.ModuleName,
+		avalanchetypes.ModuleName,
+	} {
+		assert.NoError(t, types.ValidateModuleName(name))
 	}
 }
