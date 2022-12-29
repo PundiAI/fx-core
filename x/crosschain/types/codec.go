@@ -25,7 +25,8 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 
 		&MsgBondedOracle{},
 		&MsgAddDelegate{},
-		&MsgEditOracle{},
+		&MsgReDelegate{},
+		&MsgEditBridger{},
 		&MsgWithdrawReward{},
 
 		&MsgOracleSetConfirm{},
@@ -67,7 +68,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 	cdc.RegisterConcrete(&MsgBondedOracle{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBondedOracle"), nil)
 	cdc.RegisterConcrete(&MsgAddDelegate{}, fmt.Sprintf("%s/%s", ModuleName, "MsgAddDelegate"), nil)
-	cdc.RegisterConcrete(&MsgEditOracle{}, fmt.Sprintf("%s/%s", ModuleName, "MsgEditOracle"), nil)
+	cdc.RegisterConcrete(&MsgReDelegate{}, fmt.Sprintf("%s/%s", ModuleName, "MsgReDelegate"), nil)
+	cdc.RegisterConcrete(&MsgEditBridger{}, fmt.Sprintf("%s/%s", ModuleName, "MsgEditBridger"), nil)
 	cdc.RegisterConcrete(&MsgWithdrawReward{}, fmt.Sprintf("%s/%s", ModuleName, "MsgWithdrawReward"), nil)
 
 	cdc.RegisterConcrete(&MsgOracleSetConfirm{}, fmt.Sprintf("%s/%s", ModuleName, "MsgOracleSetConfirm"), nil)

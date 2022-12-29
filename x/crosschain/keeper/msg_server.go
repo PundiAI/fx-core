@@ -193,7 +193,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	return &types.MsgAddDelegateResponse{}, nil
 }
 
-func (s MsgServer) EditOracle(c context.Context, msg *types.MsgEditOracle) (*types.MsgEditOracleResponse, error) {
+func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*types.MsgReDelegateResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
@@ -232,7 +232,39 @@ func (s MsgServer) EditOracle(c context.Context, msg *types.MsgEditOracle) (*typ
 		sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
 		sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 	))
-	return &types.MsgEditOracleResponse{}, err
+	return &types.MsgReDelegateResponse{}, err
+}
+
+func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*types.MsgEditBridgerResponse, error) {
+	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+	}
+	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	oracle, found := s.GetOracle(ctx, oracleAddr)
+	if !found {
+		return nil, types.ErrNoFoundOracle
+	}
+	if !oracle.Online {
+		return nil, types.ErrOracleNotOnLine
+	}
+	if oracle.BridgerAddress == msg.BridgerAddress {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address is not changed")
+	}
+	oracle.BridgerAddress = msg.BridgerAddress
+	s.Keeper.SetOracle(ctx, oracle)
+	s.Keeper.SetOracleByBridger(ctx, bridgerAddr, oracleAddr)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OracleAddress),
+	))
+	return &types.MsgEditBridgerResponse{}, nil
 }
 
 func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {

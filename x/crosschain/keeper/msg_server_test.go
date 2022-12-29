@@ -13,6 +13,7 @@ import (
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
+	types2 "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -246,6 +247,75 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 	}
 	_, err = suite.MsgServer().AddDelegate(sdk.WrapSDKContext(suite.ctx), normalAddStakeMsg)
 	require.NoError(suite.T(), err)
+}
+
+func (suite *KeeperTestSuite) TestMsgEditBridger() {
+	for i := range suite.oracles {
+		bondedMsg := &types.MsgBondedOracle{
+			OracleAddress:    suite.oracles[i].String(),
+			BridgerAddress:   suite.bridgers[i].String(),
+			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
+			ValidatorAddress: suite.validator[i].String(),
+			DelegateAmount: sdk.Coin{
+				Denom:  fxtypes.DefaultDenom,
+				Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+			},
+			ChainName: suite.chainName,
+		}
+		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), bondedMsg)
+		suite.NoError(err)
+	}
+
+	token := helpers.GenerateAddress().Hex()
+	denom := fmt.Sprintf("%s%s", suite.chainName, token)
+	suite.Keeper().AddBridgeToken(suite.ctx, token, denom)
+
+	sendToMsg := &types.MsgSendToFxClaim{
+		EventNonce:    1,
+		BlockHeight:   100,
+		TokenContract: token,
+		Amount:        sdk.NewInt(int64(rand.Uint32())),
+		Sender:        helpers.GenerateAddress().Hex(),
+		Receiver:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		TargetIbc:     "",
+		ChainName:     suite.chainName,
+	}
+	for i := 0; i < len(suite.bridgers)/2; i++ {
+		sendToMsg.BridgerAddress = suite.bridgers[i].String()
+		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToMsg)
+		suite.NoError(err)
+	}
+
+	suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.app.Commit()
+	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
+	suite.app.BeginBlock(abci.RequestBeginBlock{Header: types2.Header{ChainID: suite.ctx.ChainID(), Height: suite.ctx.BlockHeight()}})
+
+	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.MustAccAddressFromBech32(sendToMsg.Receiver))
+	suite.Equal(balances.String(), sdk.NewCoins().String())
+
+	for i := 0; i < len(suite.oracles); i++ {
+		_, err := suite.MsgServer().EditBridger(sdk.WrapSDKContext(suite.ctx), &types.MsgEditBridger{
+			ChainName:      suite.chainName,
+			OracleAddress:  suite.oracles[i].String(),
+			BridgerAddress: sdk.AccAddress(suite.validator[i]).String(),
+		})
+		suite.NoError(err)
+
+		sendToMsg.BridgerAddress = sdk.AccAddress(suite.validator[i]).String()
+		_, err = suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToMsg)
+		if i < len(suite.oracles)/2 {
+			suite.ErrorContains(err, types.ErrNonContiguousEventNonce.Error())
+		} else {
+			suite.NoError(err)
+		}
+	}
+
+	suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+	suite.app.Commit()
+
+	balances = suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.MustAccAddressFromBech32(sendToMsg.Receiver))
+	suite.Equal(balances.String(), sdk.NewCoins(sdk.NewCoin(denom, sendToMsg.Amount)).String())
 }
 
 func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {

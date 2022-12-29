@@ -42,12 +42,14 @@
     - [MsgCancelSendToExternalResponse](#fx.gravity.crosschain.v1.MsgCancelSendToExternalResponse)
     - [MsgConfirmBatch](#fx.gravity.crosschain.v1.MsgConfirmBatch)
     - [MsgConfirmBatchResponse](#fx.gravity.crosschain.v1.MsgConfirmBatchResponse)
-    - [MsgEditOracle](#fx.gravity.crosschain.v1.MsgEditOracle)
-    - [MsgEditOracleResponse](#fx.gravity.crosschain.v1.MsgEditOracleResponse)
+    - [MsgEditBridger](#fx.gravity.crosschain.v1.MsgEditBridger)
+    - [MsgEditBridgerResponse](#fx.gravity.crosschain.v1.MsgEditBridgerResponse)
     - [MsgOracleSetConfirm](#fx.gravity.crosschain.v1.MsgOracleSetConfirm)
     - [MsgOracleSetConfirmResponse](#fx.gravity.crosschain.v1.MsgOracleSetConfirmResponse)
     - [MsgOracleSetUpdatedClaim](#fx.gravity.crosschain.v1.MsgOracleSetUpdatedClaim)
     - [MsgOracleSetUpdatedClaimResponse](#fx.gravity.crosschain.v1.MsgOracleSetUpdatedClaimResponse)
+    - [MsgReDelegate](#fx.gravity.crosschain.v1.MsgReDelegate)
+    - [MsgReDelegateResponse](#fx.gravity.crosschain.v1.MsgReDelegateResponse)
     - [MsgRequestBatch](#fx.gravity.crosschain.v1.MsgRequestBatch)
     - [MsgRequestBatchResponse](#fx.gravity.crosschain.v1.MsgRequestBatchResponse)
     - [MsgSendToExternal](#fx.gravity.crosschain.v1.MsgSendToExternal)
@@ -863,9 +865,9 @@ as well as an Bsc signature over this batch by the validator
 
 
 
-<a name="fx.gravity.crosschain.v1.MsgEditOracle"></a>
+<a name="fx.gravity.crosschain.v1.MsgEditBridger"></a>
 
-### MsgEditOracle
+### MsgEditBridger
 
 
 
@@ -873,16 +875,16 @@ as well as an Bsc signature over this batch by the validator
 | ----- | ---- | ----- | ----------- |
 | `chain_name` | [string](#string) |  |  |
 | `oracle_address` | [string](#string) |  |  |
-| `validator_address` | [string](#string) |  |  |
+| `bridger_address` | [string](#string) |  |  |
 
 
 
 
 
 
-<a name="fx.gravity.crosschain.v1.MsgEditOracleResponse"></a>
+<a name="fx.gravity.crosschain.v1.MsgEditBridgerResponse"></a>
 
-### MsgEditOracleResponse
+### MsgEditBridgerResponse
 
 
 
@@ -957,6 +959,33 @@ set has been updated.
 <a name="fx.gravity.crosschain.v1.MsgOracleSetUpdatedClaimResponse"></a>
 
 ### MsgOracleSetUpdatedClaimResponse
+
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgReDelegate"></a>
+
+### MsgReDelegate
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_name` | [string](#string) |  |  |
+| `oracle_address` | [string](#string) |  |  |
+| `validator_address` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgReDelegateResponse"></a>
+
+### MsgReDelegateResponse
 
 
 
@@ -1207,7 +1236,8 @@ Msg defines the state transitions possible within gravity
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `BondedOracle` | [MsgBondedOracle](#fx.gravity.crosschain.v1.MsgBondedOracle) | [MsgBondedOracleResponse](#fx.gravity.crosschain.v1.MsgBondedOracleResponse) |  | |
 | `AddDelegate` | [MsgAddDelegate](#fx.gravity.crosschain.v1.MsgAddDelegate) | [MsgAddDelegateResponse](#fx.gravity.crosschain.v1.MsgAddDelegateResponse) |  | |
-| `EditOracle` | [MsgEditOracle](#fx.gravity.crosschain.v1.MsgEditOracle) | [MsgEditOracleResponse](#fx.gravity.crosschain.v1.MsgEditOracleResponse) |  | |
+| `ReDelegate` | [MsgReDelegate](#fx.gravity.crosschain.v1.MsgReDelegate) | [MsgReDelegateResponse](#fx.gravity.crosschain.v1.MsgReDelegateResponse) |  | |
+| `EditBridger` | [MsgEditBridger](#fx.gravity.crosschain.v1.MsgEditBridger) | [MsgEditBridgerResponse](#fx.gravity.crosschain.v1.MsgEditBridgerResponse) |  | |
 | `WithdrawReward` | [MsgWithdrawReward](#fx.gravity.crosschain.v1.MsgWithdrawReward) | [MsgWithdrawRewardResponse](#fx.gravity.crosschain.v1.MsgWithdrawRewardResponse) |  | |
 | `UnbondedOracle` | [MsgUnbondedOracle](#fx.gravity.crosschain.v1.MsgUnbondedOracle) | [MsgUnbondedOracleResponse](#fx.gravity.crosschain.v1.MsgUnbondedOracleResponse) |  | |
 | `OracleSetConfirm` | [MsgOracleSetConfirm](#fx.gravity.crosschain.v1.MsgOracleSetConfirm) | [MsgOracleSetConfirmResponse](#fx.gravity.crosschain.v1.MsgOracleSetConfirmResponse) |  | |

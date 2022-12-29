@@ -11,7 +11,8 @@ option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 service Msg {
   rpc BondedOracle(MsgBondedOracle) returns (MsgBondedOracleResponse);
   rpc AddDelegate(MsgAddDelegate) returns (MsgAddDelegateResponse);
-  rpc EditOracle(MsgEditOracle) returns (MsgEditOracleResponse);
+  rpc ReDelegate(MsgReDelegate) returns (MsgReDelegateResponse);
+  rpc EditBridger(MsgEditBridger) returns (MsgEditBridgerResponse);
   rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
   rpc UnbondedOracle(MsgUnbondedOracle) returns (MsgUnbondedOracleResponse);
 
@@ -54,13 +55,21 @@ message MsgAddDelegate {
 
 message MsgAddDelegateResponse {}
 
-message MsgEditOracle {
+message MsgReDelegate {
   string chain_name = 1;
   string oracle_address = 2;
   string validator_address = 3;
 }
 
-message MsgEditOracleResponse {}
+message MsgReDelegateResponse {}
+
+message MsgEditBridger {
+  string chain_name = 1;
+  string oracle_address = 2;
+  string bridger_address = 3;
+}
+
+message MsgEditBridgerResponse {}
 
 message MsgUnbondedOracle {
   string chain_name = 1;

@@ -5236,6 +5236,7 @@ paths:
                       type: string
                     channel_ibc:
                       type: string
+                      title: 'Deprecated: after upgrade v3'
                   title: BridgeToken
         default:
           description: An unexpected error response
@@ -5443,8 +5444,6 @@ paths:
             type: object
             properties:
               denom:
-                type: string
-              channel_ibc:
                 type: string
         default:
           description: An unexpected error response
@@ -9457,8 +9456,6 @@ paths:
             type: object
             properties:
               token:
-                type: string
-              channel_ibc:
                 type: string
         default:
           description: An unexpected error response
@@ -28111,6 +28108,7 @@ definitions:
         type: string
       channel_ibc:
         type: string
+        title: 'Deprecated: after upgrade v3'
     title: BridgeToken
   fx.gravity.crosschain.v1.BridgeValidator:
     type: object
@@ -28549,6 +28547,7 @@ definitions:
               type: string
             channel_ibc:
               type: string
+              title: 'Deprecated: after upgrade v3'
           title: BridgeToken
   fx.gravity.crosschain.v1.QueryCurrentOracleSetResponse:
     type: object
@@ -28587,8 +28586,6 @@ definitions:
     type: object
     properties:
       token:
-        type: string
-      channel_ibc:
         type: string
   fx.gravity.crosschain.v1.QueryLastEventBlockHeightByAddrResponse:
     type: object
@@ -29119,8 +29116,6 @@ definitions:
     type: object
     properties:
       denom:
-        type: string
-      channel_ibc:
         type: string
   ibc.applications.transfer.v1.DenomTrace:
     type: object

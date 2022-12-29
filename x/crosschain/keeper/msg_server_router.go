@@ -37,11 +37,19 @@ func (k msgServer) AddDelegate(ctx context.Context, msg *types.MsgAddDelegate) (
 	}
 }
 
-func (k msgServer) EditOracle(ctx context.Context, msg *types.MsgEditOracle) (*types.MsgEditOracleResponse, error) {
+func (k msgServer) ReDelegate(ctx context.Context, msg *types.MsgReDelegate) (*types.MsgReDelegateResponse, error) {
 	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err
 	} else {
-		return queryServer.EditOracle(ctx, msg)
+		return queryServer.ReDelegate(ctx, msg)
+	}
+}
+
+func (k msgServer) EditBridger(ctx context.Context, msg *types.MsgEditBridger) (*types.MsgEditBridgerResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.EditBridger(ctx, msg)
 	}
 }
 

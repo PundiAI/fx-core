@@ -15,6 +15,7 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
@@ -87,15 +88,18 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	rand.Seed(time.Now().UnixNano())
-	valNumber := rand.Intn(types.MaxOracleSize-5) + 1
+	valNumber := rand.Intn(types.MaxOracleSize-3) + 3
 
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.ctx = suite.app.NewContext(false, tmproto.Header{
+		ChainID: fxtypes.MainnetChainId,
+		Height:  suite.app.LastBlockHeight() + 1,
+	})
 
-	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber+2, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber+2, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.externals = helpers.CreateMultiECDSA(valNumber + 2)
+	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewInt(300*1e3).MulRaw(1e18))
+	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewInt(300*1e3).MulRaw(1e18))
+	suite.externals = helpers.CreateMultiECDSA(valNumber)
 	for i := 0; i < valNumber; i++ {
 		suite.validator = append(suite.validator, valAccounts[i].GetAddress().Bytes())
 	}
