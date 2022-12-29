@@ -20,39 +20,7 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 )
 
-// FxSendTransfer handles transfer sending logic. There are 2 possible cases:
-//
-// 1. Sender chain is acting as the source zone. The coins are transferred
-// to an escrow address (i.e locked) on the sender chain and then transferred
-// to the receiving chain through IBC TAO logic. It is expected that the
-// receiving chain will mint vouchers to the receiving address.
-//
-// 2. Sender chain is acting as the sink zone. The coins (vouchers) are burned
-// on the sender chain and then transferred to the receiving chain though IBC
-// TAO logic. It is expected that the receiving chain, which had previously
-// sent the original denomination, will unescrow the fungible token and send
-// it to the receiving address.
-//
-// Another way of thinking of source and sink zones is through the token's
-// timeline. Each send to any chain other than the one it was previously
-// received from is a movement forwards in the token's timeline. This causes
-// trace to be added to the token's history and the destination port and
-// destination channel to be prefixed to the denomination. In these instances
-// the sender chain is acting as the source zone. When the token is sent back
-// to the chain it previously received from, the prefix is removed. This is
-// a backwards movement in the token's timeline and the sender chain
-// is acting as the sink zone.
-//
-// Example:
-// These steps of transfer occur: A -> B -> C -> A -> C -> B -> A
-//
-// 1. A -> B : sender chain is source zone. Denom upon receiving: 'B/denom'
-// 2. B -> C : sender chain is source zone. Denom upon receiving: 'C/B/denom'
-// 3. C -> A : sender chain is source zone. Denom upon receiving: 'A/C/B/denom'
-// 4. A -> C : sender chain is sink zone. Denom upon receiving: 'C/B/denom'
-// 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
-// 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
-func (k Keeper) FxSendTransfer(
+func (k Keeper) SendTransfer(
 	ctx sdk.Context,
 	sourcePort,
 	sourceChannel string,
@@ -189,7 +157,7 @@ func (k Keeper) sendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, 
 	return sequence, nil
 }
 
-// FxOnRecvPacket processes a cross chain fungible token transfer. If the
+// OnRecvPacket processes a cross chain fungible token transfer. If the
 // sender chain is the source of minted tokens then vouchers will be minted
 // and sent to the receiving address. Otherwise if the sender chain is sending
 // back tokens this chain originally transferred to it, the tokens are
