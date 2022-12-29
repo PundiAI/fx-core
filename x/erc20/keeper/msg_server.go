@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"math/big"
 	"strings"
 
 	"github.com/armon/go-metrics"
@@ -162,10 +161,6 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 	coins := sdk.Coins{msg.Coin}
 	erc20 := fxtypes.GetERC20().ABI
 	contract := pair.GetERC20Contract()
-	balanceToken, err := k.BalanceOf(ctx, contract, receiver)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance: %s", err.Error())
-	}
 
 	// Escrow Coins on module account
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins); err != nil {
@@ -173,7 +168,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 	}
 
 	// Mint Tokens and send to receiver
-	_, err = k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "mint", receiver, msg.Coin.Amount.BigInt())
+	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "mint", receiver, msg.Coin.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}
@@ -182,21 +177,6 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, contract.Bytes(), coins); err != nil {
 			return nil, sdkerrors.Wrap(err, "failed to transfer escrow coins to origin denom")
 		}
-	}
-
-	// Check expected Receiver balance after transfer execution
-	tokens := msg.Coin.Amount.BigInt()
-	balanceTokenAfter, err := k.BalanceOf(ctx, contract, receiver)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance: %s", err.Error())
-	}
-	exp := big.NewInt(0).Add(balanceToken, tokens)
-
-	if r := balanceTokenAfter.Cmp(exp); r != 0 {
-		return nil, sdkerrors.Wrapf(
-			types.ErrBalanceInvariance,
-			"invalid token balance - expected: %v, actual: %v", exp, balanceTokenAfter,
-		)
 	}
 
 	defer func() {
@@ -237,14 +217,9 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 
 	erc20 := fxtypes.GetERC20().ABI
 	contract := pair.GetERC20Contract()
-	balanceCoin := k.bankKeeper.GetBalance(ctx, receiver, pair.Denom)
-	balanceToken, err := k.BalanceOf(ctx, contract, sender)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance: %s", err.Error())
-	}
 
 	// Burn escrowed tokens
-	_, err = k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "burn", sender, msg.Amount.BigInt())
+	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "burn", sender, msg.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}
@@ -259,32 +234,6 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 	// Unescrow Coins and send to receiver
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, receiver, coins); err != nil {
 		return nil, err
-	}
-
-	// Check expected Receiver balance after transfer execution
-	balanceCoinAfter := k.bankKeeper.GetBalance(ctx, receiver, pair.Denom)
-	expCoin := balanceCoin.Add(coins[0])
-	if ok := balanceCoinAfter.IsEqual(expCoin); !ok {
-		return nil, sdkerrors.Wrapf(
-			types.ErrBalanceInvariance,
-			"invalid coin balance - expected: %v, actual: %v",
-			expCoin, balanceCoinAfter,
-		)
-	}
-
-	// Check expected Sender balance after transfer execution
-	tokens := coins[0].Amount.BigInt()
-	balanceTokenAfter, err := k.BalanceOf(ctx, contract, sender)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance: %s", err.Error())
-	}
-	expToken := big.NewInt(0).Sub(balanceToken, tokens)
-	if r := balanceTokenAfter.Cmp(expToken); r != 0 {
-		return nil, sdkerrors.Wrapf(
-			types.ErrBalanceInvariance,
-			"invalid token balance - expected: %v, actual: %v",
-			expToken, balanceTokenAfter,
-		)
 	}
 
 	defer func() {
@@ -326,11 +275,6 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 	coins := sdk.Coins{sdk.Coin{Denom: pair.Denom, Amount: msg.Amount}}
 	erc20 := fxtypes.GetERC20().ABI
 	contract := pair.GetERC20Contract()
-	balanceCoin := k.bankKeeper.GetBalance(ctx, receiver, pair.Denom)
-	balanceToken, err := k.BalanceOf(ctx, contract, types.ModuleAddress)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance: %s", err.Error())
-	}
 
 	// Escrow tokens on module account
 	transferData, err := erc20.Pack("transfer", types.ModuleAddress, msg.Amount.BigInt())
@@ -353,22 +297,6 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 		return nil, sdkerrors.Wrap(sdkerrors.ErrLogic, "failed to execute transfer")
 	}
 
-	// Check expected escrow balance after transfer execution
-	tokens := coins[0].Amount.BigInt()
-	balanceTokenAfter, err := k.BalanceOf(ctx, contract, types.ModuleAddress)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance: %s", err.Error())
-	}
-	expToken := big.NewInt(0).Add(balanceToken, tokens)
-
-	if r := balanceTokenAfter.Cmp(expToken); r != 0 {
-		return nil, sdkerrors.Wrapf(
-			types.ErrBalanceInvariance,
-			"invalid token balance - expected: %v, actual: %v",
-			expToken, balanceTokenAfter,
-		)
-	}
-
 	// Mint coins
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
 		return nil, err
@@ -377,18 +305,6 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 	// Send minted coins to the receiver
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, receiver, coins); err != nil {
 		return nil, err
-	}
-
-	// Check expected Receiver balance after transfer execution
-	balanceCoinAfter := k.bankKeeper.GetBalance(ctx, receiver, pair.Denom)
-	expCoin := balanceCoin.Add(coins[0])
-
-	if ok := balanceCoinAfter.IsEqual(expCoin); !ok {
-		return nil, sdkerrors.Wrapf(
-			types.ErrBalanceInvariance,
-			"invalid coin balance - expected: %v, actual: %v",
-			expCoin, balanceCoinAfter,
-		)
 	}
 
 	// Check for unexpected `appove` event in logs
@@ -436,10 +352,6 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 
 	erc20 := fxtypes.GetERC20().ABI
 	contract := pair.GetERC20Contract()
-	balanceToken, err := k.BalanceOf(ctx, contract, receiver)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance: %s", err.Error())
-	}
 
 	// Escrow Coins on module account
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins); err != nil {
@@ -460,21 +372,6 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 
 	if !unpackedRet.Value {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrLogic, "failed to execute unescrow tokens from user")
-	}
-
-	// Check expected Receiver balance after transfer execution
-	tokens := msg.Coin.Amount.BigInt()
-	balanceTokenAfter, err := k.BalanceOf(ctx, contract, receiver)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance: %s", err.Error())
-	}
-	exp := big.NewInt(0).Add(balanceToken, tokens)
-
-	if r := balanceTokenAfter.Cmp(exp); r != 0 {
-		return nil, sdkerrors.Wrapf(
-			types.ErrBalanceInvariance,
-			"invalid token balance - expected: %v, actual: %v", exp, balanceTokenAfter,
-		)
 	}
 
 	// Burn escrowed Coins
@@ -522,16 +419,13 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 //   - Burn escrowed Coins
 //   - Check if token balance increased by amount
 func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
-	//check if denom registered
+	// denom registered
 	if !k.IsDenomRegistered(ctx, coin.Denom) {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not registered", coin.Denom)
 	}
 	//check if metadata exist and support many to one
-	md, found := k.bankKeeper.GetDenomMetaData(ctx, coin.Denom)
+	md, found := k.HasDenomAlias(ctx, coin.Denom)
 	if !found {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s not found", coin.Denom)
-	}
-	if !types.IsManyToOneMetadata(md) {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s metadata not support", coin.Denom)
 	}
 
@@ -553,13 +447,6 @@ func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s denom not exist", target)
 	}
 
-	//check if alias not registered
-	if !k.IsAliasDenomRegistered(ctx, targetDenom) {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "alias %s not registered", targetDenom)
-	}
-
-	beforeBalances := k.bankKeeper.GetAllBalances(ctx, from)
-
 	var err error
 	targetCoin := sdk.NewCoin(targetDenom, coin.Amount)
 	// send symbol denom to module
@@ -576,14 +463,6 @@ func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
 		return sdk.Coin{}, sdkerrors.Wrapf(err, "burn coin %s failed", coin.String())
-	}
-
-	// check balances
-	afterBalances := k.bankKeeper.GetAllBalances(ctx, from)
-	if !beforeBalances.AmountOf(coin.Denom).Equal(afterBalances.AmountOf(coin.Denom).Add(coin.Amount)) ||
-		!beforeBalances.AmountOf(targetDenom).Equal(afterBalances.AmountOf(targetDenom).Sub(coin.Amount)) {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrBalanceInvariance,
-			"invalid token balance - convert denom %s to %s", coin.Denom, targetDenom)
 	}
 
 	ctx.EventManager().EmitEvents(
@@ -607,21 +486,19 @@ func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 //   - Mint Tokens and send to from address
 //   - Check if token balance increased by amount
 func (k Keeper) ConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
+	// denom not register
 	if k.IsDenomRegistered(ctx, coin.Denom) {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s already registered", coin.Denom)
 	}
+	// alias register
 	aliasDenomBytes := k.GetAliasDenom(ctx, coin.Denom)
 	if len(aliasDenomBytes) == 0 {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "alias %s not registered", coin.Denom)
 	}
-	if !k.IsDenomRegistered(ctx, string(aliasDenomBytes)) {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not registered", string(aliasDenomBytes))
-	}
-	if ok, err := k.IsManyToOneDenom(ctx, string(aliasDenomBytes)); err != nil || !ok {
+	// has denom alias
+	if _, found := k.HasDenomAlias(ctx, string(aliasDenomBytes)); !found {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "not support with %s", string(aliasDenomBytes))
 	}
-
-	beforeBalances := k.bankKeeper.GetAllBalances(ctx, from)
 
 	var err error
 	targetCoin := sdk.NewCoin(string(aliasDenomBytes), coin.Amount)
@@ -639,14 +516,6 @@ func (k Keeper) ConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin))
 	if err != nil {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrConvertDenomSymbolFailed, "send coin %s failed: %v", targetCoin.String(), err)
-	}
-
-	// check balances
-	afterBalances := k.bankKeeper.GetAllBalances(ctx, from)
-	if !beforeBalances.AmountOf(coin.Denom).Equal(afterBalances.AmountOf(coin.Denom).Add(coin.Amount)) ||
-		!beforeBalances.AmountOf(targetCoin.Denom).Equal(afterBalances.AmountOf(targetCoin.Denom).Sub(coin.Amount)) {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrBalanceInvariance,
-			"invalid token balance - convert denom %s to %s", coin.Denom, targetCoin.Denom)
 	}
 
 	ctx.EventManager().EmitEvents(
