@@ -46,11 +46,6 @@ func CreateDenomDescription(address string) string {
 	return fmt.Sprintf("Function X coin token representation of %s", address)
 }
 
-// CreateDenom generates a string the module name plus the address to avoid conflicts with names staring with a number
-func CreateDenom(address string) string {
-	return fmt.Sprintf("%s/%s", ModuleName, address)
-}
-
 // NewRegisterCoinProposal returns new instance of RegisterCoinProposal
 func NewRegisterCoinProposal(title, description string, coinMetadata banktypes.Metadata) govtypes.Content {
 	return &RegisterCoinProposal{
@@ -71,6 +66,10 @@ func (*RegisterCoinProposal) ProposalType() string {
 // ValidateBasic performs a stateless check of the proposal fields
 func (rtbp *RegisterCoinProposal) ValidateBasic() error {
 	if err := rtbp.Metadata.Validate(); err != nil {
+		return err
+	}
+
+	if err := ValidateMetadataErc20(rtbp.Metadata); err != nil {
 		return err
 	}
 
@@ -97,6 +96,29 @@ func validateIBC(metadata banktypes.Metadata) error {
 	if len(denomSplit) != 2 || denomSplit[0] != ibctransfertypes.DenomPrefix {
 		// NOTE: should be unaccessible (covered on ValidateIBCDenom)
 		return fmt.Errorf("invalid metadata. %s denomination should be prefixed with the format 'ibc/", metadata.Base)
+	}
+	return nil
+}
+
+func ValidateMetadataErc20(md banktypes.Metadata) error {
+	decimals := uint8(0)
+	for _, du := range md.DenomUnits {
+		if du.Denom == md.Symbol {
+			decimals = uint8(du.Exponent)
+			break
+		}
+	}
+	if md.Base == fxtypes.DefaultDenom {
+		decimals = fxtypes.DenomUnit
+	}
+	if len(md.Name) == 0 {
+		return fmt.Errorf("invalid name %s", md.Name)
+	}
+	if len(md.Symbol) == 0 {
+		return fmt.Errorf("invalid symbol %s", md.Symbol)
+	}
+	if decimals == 0 {
+		return fmt.Errorf("invalid decimals %d", decimals)
 	}
 	return nil
 }
