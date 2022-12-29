@@ -19,7 +19,7 @@ import (
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
 	//convert denom to many
-	targetCoin, err := k.ConvertDenomToMany(ctx, sender, amount.Add(fee))
+	targetCoin, err := k.erc20Keeper.RelayConvertDenomToMany(ctx, sender, amount.Add(fee), k.moduleName)
 	if err != nil {
 		return 0, err
 	}
@@ -324,18 +324,4 @@ func addFeeToMap(amt, fee types.ERC20Token, batchFeesMap map[string]*types.Batch
 			TotalAmount:   amt.Amount,
 		}
 	}
-}
-
-func (k Keeper) ConvertDenomToMany(ctx sdk.Context, sender sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
-	needConvert, _ := k.erc20Keeper.IsManyToOneDenom(ctx, coin.Denom)
-	if !needConvert {
-		return coin, nil
-	}
-	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.erc20Keeper.RelayConvertDenomToMany(cacheCtx, sender, coin, k.moduleName)
-	if err != nil {
-		return sdk.Coin{}, err
-	}
-	commit()
-	return targetCoin, nil
 }

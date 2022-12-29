@@ -9,5 +9,9 @@ type TransactionHook interface {
 }
 
 type RefundHook interface {
-	RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, receiver string, amount sdk.Coin) error
+	RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error
+}
+
+type AckHook interface {
+	AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) error
 }

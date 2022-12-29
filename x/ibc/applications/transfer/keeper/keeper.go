@@ -30,6 +30,7 @@ type Keeper struct {
 	scopedKeeper  capabilitykeeper.ScopedKeeper
 	Router        *types.Router
 	RefundHook    types.RefundHook
+	AckHook       types.AckHook
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
@@ -75,6 +76,11 @@ func (k Keeper) GetRouter() *types.Router {
 
 func (k Keeper) SetRefundHook(hook types.RefundHook) Keeper {
 	k.RefundHook = hook
+	return k
+}
+
+func (k Keeper) SetAckHook(hook types.AckHook) Keeper {
+	k.AckHook = hook
 	return k
 }
 

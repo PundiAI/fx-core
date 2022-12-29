@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"fmt"
+
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,13 +67,21 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, receiver string, amount sdk.Coin) error {
+func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error {
 	//check tx
-	if !k.HashIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
-		ctx.Logger().Info("ignore refund, transaction not belong to evm ibc transfer", "module", types.ModuleName)
+	if !k.HasIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
 		return nil
 	}
+	k.DeleteIBCTransferHash(ctx, sourcePort, sourceChannel, sequence)
 	return k.RelayConvertCoin(ctx, sender, common.BytesToAddress(sender.Bytes()), amount)
+}
+
+func (k Keeper) AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) error {
+	if !k.HasIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
+		return nil
+	}
+	k.DeleteIBCTransferHash(ctx, sourcePort, sourceChannel, sequence)
+	return nil
 }
 
 func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error {
@@ -99,11 +108,38 @@ func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receive
 	return err
 }
 
+func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata, bool) {
+	md, found := k.bankKeeper.GetDenomMetaData(ctx, denom)
+	// not register metadata
+	if !found {
+		return banktypes.Metadata{}, false
+	}
+	// not have denom units
+	if len(md.DenomUnits) == 0 {
+		return banktypes.Metadata{}, false
+	}
+	//not have alias
+	if len(md.DenomUnits[0].Aliases) == 0 {
+		return banktypes.Metadata{}, false
+	}
+	return md, true
+}
+
 func (k Keeper) RelayConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
 	return k.ConvertDenomToOne(ctx, from, coin)
 }
 func (k Keeper) RelayConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
-	return k.ConvertDenomToMany(ctx, from, coin, target)
+	if _, found := k.HasDenomAlias(ctx, coin.Denom); !found {
+		return coin, nil
+	}
+	// convert denom
+	cacheCtx, commit := ctx.CacheContext()
+	targetCoin, err := k.ConvertDenomToMany(cacheCtx, from, coin, target)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	commit()
+	return targetCoin, nil
 }
 
 // SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if
@@ -118,26 +154,14 @@ func (k Keeper) SetRouter(rtr *types.Router) Keeper {
 }
 
 func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error {
-	k.Logger(ctx).Debug("create contract with code", "address", addr.String(), "code", hex.EncodeToString(code[:32])+"..."+hex.EncodeToString(code[len(code)-32:]))
 	codeHash := crypto.Keccak256Hash(code)
+	k.Logger(ctx).Debug("create contract with code", "address", addr.String(), "code-hash", codeHash)
+
 	acc := k.evmKeeper.GetAccount(ctx, addr)
 	if acc == nil {
-		k.Logger(ctx).Info("create contract with code", "address", addr.String(), "action", "create")
 		acc = statedb.NewEmptyAccount()
-		acc.CodeHash = codeHash.Bytes()
-		k.evmKeeper.SetCode(ctx, acc.CodeHash, code)
-		return k.evmKeeper.SetAccount(ctx, addr, *acc)
 	}
-	k.Logger(ctx).Info("create contract with code", "address", addr.String(), "action", "update")
 	acc.CodeHash = codeHash.Bytes()
 	k.evmKeeper.SetCode(ctx, acc.CodeHash, code)
 	return k.evmKeeper.SetAccount(ctx, addr, *acc)
-}
-
-func (k Keeper) IsManyToOneDenom(ctx sdk.Context, denom string) (bool, error) {
-	md, found := k.bankKeeper.GetDenomMetaData(ctx, denom)
-	if !found {
-		return false, fmt.Errorf("denom %s not found", denom)
-	}
-	return types.IsManyToOneMetadata(md), nil
 }

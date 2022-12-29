@@ -70,10 +70,24 @@ var _ RefundHook = MultiRefundHook{}
 type MultiRefundHook []RefundHook
 
 func (mrh MultiRefundHook) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string,
-	sequence uint64, sender sdk.AccAddress, receiver string, amount sdk.Coin) error {
+	sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error {
 	for i := range mrh {
-		if err := mrh[i].RefundAfter(ctx, sourcePort, sourceChannel, sequence, sender, receiver, amount); err != nil {
+		if err := mrh[i].RefundAfter(ctx, sourcePort, sourceChannel, sequence, sender, amount); err != nil {
 			return sdkerrors.Wrapf(err, "Refund hook %T failed, error %s", mrh[i], err.Error())
+		}
+	}
+	return nil
+}
+
+var _ AckHook = MultiAckHook{}
+
+// MultiAckHook multi-ack hook
+type MultiAckHook []AckHook
+
+func (mrh MultiAckHook) AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) error {
+	for i := range mrh {
+		if err := mrh[i].AckAfter(ctx, sourcePort, sourceChannel, sequence); err != nil {
+			return sdkerrors.Wrapf(err, "Ack hook %T failed, error %s", mrh[i], err.Error())
 		}
 	}
 	return nil
