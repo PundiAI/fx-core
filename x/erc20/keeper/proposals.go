@@ -35,7 +35,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", coinMetadata.Base)
 	}
 
-	if len(coinMetadata.DenomUnits[0].Aliases) > 0 {
+	if len(coinMetadata.DenomUnits) > 0 && len(coinMetadata.DenomUnits[0].Aliases) > 0 {
 		for _, alias := range coinMetadata.DenomUnits[0].Aliases {
 			if alias == coinMetadata.Base || alias == coinMetadata.Display || alias == coinMetadata.Symbol {
 				return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "alias can not equal base, display or symbol")
