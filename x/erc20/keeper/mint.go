@@ -41,7 +41,7 @@ func (k Keeper) MintingEnabled(ctx sdk.Context, sender, receiver sdk.AccAddress,
 
 	// check if minting to a recipient address other than the sender is enabled for the given coin denom
 	// if coin disable and sender not equal receiver, can not convert denom
-	if !sender.Equals(receiver) && !k.bankKeeper.IsSendEnabledCoin(ctx, coin) {
+	if !k.bankKeeper.IsSendEnabledCoin(ctx, coin) {
 		return types.TokenPair{}, sdkerrors.Wrapf(banktypes.ErrSendDisabled, "minting '%s' coins to an external address is currently disabled", token)
 	}
 
