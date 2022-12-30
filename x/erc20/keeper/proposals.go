@@ -86,7 +86,7 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 
 	_, baseDenom, _, err := k.CreateCoinMetadata(ctx, contract)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
+		return nil, err
 	}
 
 	pair := types.NewTokenPair(contract, baseDenom, true, types.OWNER_EXTERNAL)
@@ -260,7 +260,7 @@ func (k Keeper) InitializeUpgradable(ctx sdk.Context, from, contract common.Addr
 	k.Logger(ctx).Info("initialize upgradable", "contract", contract.Hex())
 	_, err := k.CallEVM(ctx, abi, from, contract, true, "initialize", data...)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to initialize contract")
+		return err
 	}
 	return nil
 }

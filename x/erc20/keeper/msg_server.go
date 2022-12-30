@@ -279,7 +279,7 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 	// Escrow tokens on module account
 	transferData, err := erc20.Pack("transfer", types.ModuleAddress, msg.Amount.BigInt())
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrapf(types.ErrABIPack, "failed to pack transfer: %s", err.Error())
 	}
 
 	res, err := k.evmKeeper.CallEVMWithData(ctx, sender, &contract, transferData, true)
@@ -290,7 +290,7 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 	// Check unpackedRet execution
 	var unpackedRet types.ERC20BoolResponse
 	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
 	}
 
 	if !unpackedRet.Value {
@@ -367,7 +367,7 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	// Check unpackedRet execution
 	var unpackedRet types.ERC20BoolResponse
 	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
 	}
 
 	if !unpackedRet.Value {
@@ -452,17 +452,17 @@ func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 	// send symbol denom to module
 	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
-		return sdk.Coin{}, sdkerrors.Wrapf(err, "send coin %s to module failed", coin.String())
+		return sdk.Coin{}, err
 	}
 	// send alias denom to from addr
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin)) //ibc0xxx
 	if err != nil {
-		return sdk.Coin{}, sdkerrors.Wrapf(err, "send coin %s failed", targetCoin.String())
+		return sdk.Coin{}, err
 	}
 	// burn symbol coin
 	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
-		return sdk.Coin{}, sdkerrors.Wrapf(err, "burn coin %s failed", coin.String())
+		return sdk.Coin{}, err
 	}
 
 	ctx.EventManager().EmitEvents(
@@ -505,17 +505,17 @@ func (k Keeper) ConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk
 	// send alias denom to module
 	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrConvertDenomSymbolFailed, "send coin %s to module failed: %v", coin.String(), err)
+		return sdk.Coin{}, err
 	}
 	//mint symbol denom
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin))
 	if err != nil {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrConvertDenomSymbolFailed, "mint coin %s failed: %v", targetCoin.String(), err)
+		return sdk.Coin{}, err
 	}
 	//send symbol denom to from addr
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin))
 	if err != nil {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrConvertDenomSymbolFailed, "send coin %s failed: %v", targetCoin.String(), err)
+		return sdk.Coin{}, err
 	}
 
 	ctx.EventManager().EmitEvents(
