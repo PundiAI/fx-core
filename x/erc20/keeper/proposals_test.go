@@ -229,7 +229,7 @@ func (suite *KeeperTestSuite) TestRegisterCoin() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestRegisterCoinWithManyToOne() {
+func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 
 	metadata := banktypes.Metadata{
 		Description: "The cross chain token of the Function X",
@@ -294,6 +294,14 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithManyToOne() {
 			},
 			false,
 			"denom tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t already registered: invalid metadata",
+		},
+		{
+			"denom register as alias",
+			func() {
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "test", metadata.Base)
+			},
+			false,
+			"denom usdt already registered: invalid metadata",
 		},
 		{
 			"alias already registered",
@@ -603,6 +611,13 @@ func (suite *KeeperTestSuite) TestRegisterERC20() {
 			"denom already registered",
 			func() {
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, pair.Denom, pair.GetID())
+			},
+			false,
+		},
+		{
+			"alias already registered",
+			func() {
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "test", pair.Denom)
 			},
 			false,
 		},

@@ -306,7 +306,7 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) interf
 	erc20Config := fxtypes.GetERC20()
 	res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, false, "balanceOf", account)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	unpacked, err := erc20Config.ABI.Unpack("balanceOf", res.Ret)
