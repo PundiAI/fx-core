@@ -844,12 +844,42 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 			"",
 		},
 		{
+			"ok - same receiver",
+			registerFn,
+			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr1.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "gravity",
+				})
+				return err
+			},
+			true,
+			"",
+		},
+		{
 			"ok - polygon",
 			registerFn,
 			func(pair *types.TokenPair) error {
 				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
 					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
 					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "polygon",
+				})
+				return err
+			},
+			true,
+			"",
+		},
+		{
+			"ok - polygon - same receiver",
+			registerFn,
+			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr1.Bytes()).String(),
 					Coin:     usdt,
 					Target:   "polygon",
 				})
@@ -874,9 +904,26 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 			"",
 		},
 		{
-			"denom not registered",
-			nil,
+			"ok - tron - same receiver",
+			registerFn,
 			func(pair *types.TokenPair) error {
+				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
+					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
+					Receiver: sdk.AccAddress(addr1.Bytes()).String(),
+					Coin:     usdt,
+					Target:   "tron",
+				})
+				return err
+			},
+			true,
+			"",
+		},
+		{
+			"denom not registered",
+			registerFn,
+			func(pair *types.TokenPair) error {
+				suite.app.Erc20Keeper.DeleteDenomMap(suite.ctx, "usdt")
+
 				_, err = suite.app.Erc20Keeper.ConvertDenom(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertDenom{
 					Sender:   sdk.AccAddress(addr1.Bytes()).String(),
 					Receiver: sdk.AccAddress(addr2.Bytes()).String(),
@@ -903,7 +950,7 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 				return err
 			},
 			false,
-			"denom usdt metadata not support: invalid metadata",
+			"denom usdt not support: invalid denom",
 		},
 		{
 			"metadata not support many to one",
@@ -923,7 +970,7 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 				return err
 			},
 			false,
-			"denom usdt metadata not support: invalid metadata",
+			"denom usdt not support: invalid denom",
 		},
 		{
 			"target denom not exist",
@@ -988,6 +1035,11 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 			}
 
 			beforeAddr1UsdtBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), "usdt")
+
+			beforeAddr1EthBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), ethDenom)
+			beforeAddr1PolygonBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), polygonDenom)
+			beforeAddr1TronBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), tronDenom)
+
 			beforeAddr2EthBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), ethDenom)
 			beforeAddr2PolygonBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), polygonDenom)
 			beforeAddr2TronBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), tronDenom)
@@ -996,6 +1048,11 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 			tcErr := tc.malleate(pair)
 
 			afterAddr1UsdtBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), "usdt")
+
+			afterAddr1EthBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), ethDenom)
+			afterAddr1PolygonBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), polygonDenom)
+			afterAddr1TronBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr1.Bytes(), tronDenom)
+
 			afterAddr2EthBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), ethDenom)
 			afterAddr2PolygonBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), polygonDenom)
 			afterAddr2TronBalance := suite.app.BankKeeper.GetBalance(suite.ctx, addr2.Bytes(), tronDenom)
@@ -1003,13 +1060,20 @@ func (suite *KeeperTestSuite) TestConvertDenomWithTarget() {
 			if tc.expPass {
 				suite.Require().NoError(tcErr, tc.name)
 				suite.Require().Equal(beforeAddr1UsdtBalance, afterAddr1UsdtBalance.Add(usdt))
-				if strings.Contains(tc.name, "polygon") {
+				if strings.Contains(tc.name, "polygon") && strings.Contains(tc.name, "same receiver") {
+					suite.Require().Equal(afterAddr1PolygonBalance.Sub(beforeAddr1PolygonBalance).Amount, usdt.Amount)
+				} else if strings.Contains(tc.name, "polygon") {
 					suite.Require().Equal(afterAddr2PolygonBalance.Sub(beforeAddr2PolygonBalance).Amount, usdt.Amount)
+				} else if strings.Contains(tc.name, "tron") && strings.Contains(tc.name, "same receiver") {
+					suite.Require().Equal(afterAddr1TronBalance.Sub(beforeAddr1TronBalance).Amount, usdt.Amount)
 				} else if strings.Contains(tc.name, "tron") {
 					suite.Require().Equal(afterAddr2TronBalance.Sub(beforeAddr2TronBalance).Amount, usdt.Amount)
+				} else if strings.Contains(tc.name, "same receiver") {
+					suite.Require().Equal(afterAddr1EthBalance.Sub(beforeAddr1EthBalance).Amount, usdt.Amount)
 				} else {
 					suite.Require().Equal(afterAddr2EthBalance.Sub(beforeAddr2EthBalance).Amount, usdt.Amount)
 				}
+
 			} else {
 				suite.Require().Error(tcErr, tc.name)
 				suite.Require().EqualError(tcErr, tc.errMsg, tc.name)

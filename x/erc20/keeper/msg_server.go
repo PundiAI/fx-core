@@ -123,8 +123,17 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 		return nil, err
 	}
 
-	if err := k.SendCoins(ctx, sender, receiver, sdk.NewCoins(coin)); err != nil {
-		return nil, sdkerrors.Wrap(types.ErrConvertDenomSymbolFailed, err.Error())
+	if coin.Denom == msg.Coin.Denom {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not support", msg.Coin.Denom)
+	}
+
+	if !sender.Equals(receiver) {
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+			return nil, err
+		}
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, receiver, sdk.NewCoins(coin)); err != nil {
+			return nil, err
+		}
 	}
 
 	defer func() {
@@ -419,14 +428,15 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 //   - Burn escrowed Coins
 //   - Check if token balance increased by amount
 func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
+	// metadata has alias
+	md, found := k.HasDenomAlias(ctx, coin.Denom)
+	if !found {
+		return coin, nil
+	}
+
 	// denom registered
 	if !k.IsDenomRegistered(ctx, coin.Denom) {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not registered", coin.Denom)
-	}
-	//check if metadata exist and support many to one
-	md, found := k.HasDenomAlias(ctx, coin.Denom)
-	if !found {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s metadata not support", coin.Denom)
 	}
 
 	// convert target to denom prefix
@@ -531,16 +541,4 @@ func (k Keeper) ConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk
 	)
 
 	return targetCoin, nil
-}
-
-func (k Keeper) SendCoins(ctx sdk.Context, from, to sdk.AccAddress, coins sdk.Coins) error {
-	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
-		return err
-	}
-
-	if k.bankKeeper.BlockedAddr(to) {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", to.String())
-	}
-
-	return k.bankKeeper.SendCoins(ctx, from, to, coins)
 }

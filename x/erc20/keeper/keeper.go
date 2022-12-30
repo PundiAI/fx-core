@@ -129,9 +129,6 @@ func (k Keeper) RelayConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coi
 	return k.ConvertDenomToOne(ctx, from, coin)
 }
 func (k Keeper) RelayConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
-	if _, found := k.HasDenomAlias(ctx, coin.Denom); !found {
-		return coin, nil
-	}
 	// convert denom
 	cacheCtx, commit := ctx.CacheContext()
 	targetCoin, err := k.ConvertDenomToMany(cacheCtx, from, coin, target)
