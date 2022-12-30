@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,15 +14,12 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	ethermint "github.com/evmos/ethermint/types"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
-	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
-	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 )
@@ -31,12 +27,10 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	ctx                 sdk.Context
-	app                 *app.App
-	clientCtx           client.Context
-	secp256k1PrivKey    cryptotypes.PrivKey
-	ethsecp256k1PrivKey cryptotypes.PrivKey
-	queryClient         migratetypes.QueryClient
+	ctx              sdk.Context
+	app              *app.App
+	secp256k1PrivKey cryptotypes.PrivKey
+	queryClient      migratetypes.QueryClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -44,13 +38,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 // Test helpers
-func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
-	var err error
-	// account key
-	suite.secp256k1PrivKey = secp256k1.GenPrivKey()
-	suite.ethsecp256k1PrivKey, err = ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
-
+func (suite *KeeperTestSuite) SetupTest() {
 	// init app
 	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
 	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(3, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
@@ -64,6 +52,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	migratetypes.RegisterQueryServer(queryHelperEvm, suite.app.MigrateKeeper)
 	suite.queryClient = migratetypes.NewQueryClient(queryHelperEvm)
 
+	// account key
+	suite.secp256k1PrivKey = secp256k1.GenPrivKey()
 	acc := &ethermint.EthAccount{
 		BaseAccount: authtypes.NewBaseAccount(suite.secp256k1PrivKey.PubKey().Address().Bytes(), nil, 0, 0),
 		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
@@ -71,7 +61,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
-	err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(amount))
+	err := suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(amount))
 	suite.Require().NoError(err)
 	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
 	suite.Require().NoError(err)
@@ -80,20 +70,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	stakingParams := suite.app.StakingKeeper.GetParams(suite.ctx)
 	stakingParams.UnbondingTime = 5 * time.Minute
 	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
-
-	encodingConfig := app.MakeEncodingConfig()
-	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
-
-	// register coin
-	metadatas := append(v2.GetMetadata(suite.ctx.ChainID()), v3.GetMetadata(suite.ctx.ChainID())...)
-	for _, metadata := range metadatas {
-		_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
-		require.NoError(t, err)
-	}
-}
-
-func (suite *KeeperTestSuite) SetupTest() {
-	suite.DoSetupTest(suite.T())
 }
 
 func (suite *KeeperTestSuite) Commit() {
