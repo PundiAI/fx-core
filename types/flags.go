@@ -1,6 +1,6 @@
 package types
 
-var (
+const (
 	// BypassMinFeeMsgTypesKey defines the configuration key for the
 	// BypassMinFeeMsgTypes value.
 	// nolint: gosec

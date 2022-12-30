@@ -16,9 +16,7 @@ const (
 	EthereumAddressPrefix = "0x"
 )
 
-var (
-	EthereumAddressRegular = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
-)
+var ethereumAddressRegular = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
 
 // IsEmptyHash returns true if the hash corresponds to an empty ethereum hex hash.
 func IsEmptyHash(hash string) bool {
@@ -38,7 +36,7 @@ func ValidateEthereumAddress(address string) error {
 	if len(address) != EthereumContractAddressLen {
 		return fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", address, len(address), EthereumContractAddressLen)
 	}
-	if !EthereumAddressRegular.MatchString(address) {
+	if !ethereumAddressRegular.MatchString(address) {
 		return fmt.Errorf("invalid address (%s) doesn't pass regex", address)
 	}
 	// add ethereum address checksum check 2021-09-02.
