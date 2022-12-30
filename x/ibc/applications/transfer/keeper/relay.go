@@ -240,8 +240,6 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 		return k.refundPacketTokenHook(ctx, packet, data, amount, fee)
 	default:
 		if k.AckHook != nil {
-			ctx.Logger().Info("ibc ack hook", "sourcePort", packet.SourcePort, "sourceChannel",
-				packet.SourceChannel, "sequence", fmt.Sprintf("%d", packet.Sequence))
 			if err := k.AckHook.AckAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); err != nil {
 				ctx.Logger().Error("acknowledgement packet", "ack hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
 			}
