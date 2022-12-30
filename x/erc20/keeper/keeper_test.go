@@ -150,12 +150,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ethSigner = ethereumtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 
 	// init logic contract
-	for _, contract := range fxtypes.GetInitContracts() {
-		require.True(suite.T(), len(contract.Code) > 0)
-		require.True(suite.T(), contract.Address != common.HexToAddress(fxtypes.EmptyEvmAddress))
-		err := suite.app.Erc20Keeper.CreateContractWithCode(suite.ctx, contract.Address, contract.Code)
-		require.NoError(suite.T(), err)
-	}
+	//for _, contract := range fxtypes.GetInitContracts() {
+	//	require.True(suite.T(), len(contract.Code) > 0)
+	//	require.True(suite.T(), contract.Address != common.HexToAddress(fxtypes.EmptyEvmAddress))
+	//	err := suite.app.Erc20Keeper.CreateContractWithCode(suite.ctx, contract.Address, contract.Code)
+	//	require.NoError(suite.T(), err)
+	//}
 
 	// register coin
 	metadatas := append(v2.GetMetadata(suite.ctx.ChainID()), v3.GetMetadata(suite.ctx.ChainID())...)

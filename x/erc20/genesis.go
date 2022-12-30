@@ -30,7 +30,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper authkeeper.Acco
 	}
 
 	// init logic contract
-	for _, contract := range fxtypes.GetInitContracts() {
+	initContract := []fxtypes.Contract{fxtypes.GetERC20(), fxtypes.GetWFX()}
+	for _, contract := range initContract {
 		if len(contract.Code) <= 0 || contract.Address == common.HexToAddress(fxtypes.EmptyEvmAddress) {
 			panic(fmt.Sprintf("invalid contract: %s/%s", contract.Address.String(), contract.Version))
 		}

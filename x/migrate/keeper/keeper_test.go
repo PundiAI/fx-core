@@ -84,14 +84,6 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	encodingConfig := app.MakeEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 
-	// init logic contract
-	for _, contract := range fxtypes.GetInitContracts() {
-		require.True(t, len(contract.Code) > 0)
-		require.True(t, contract.Address != common.HexToAddress(fxtypes.EmptyEvmAddress))
-		err := suite.app.Erc20Keeper.CreateContractWithCode(suite.ctx, contract.Address, contract.Code)
-		require.NoError(t, err)
-	}
-
 	// register coin
 	metadatas := append(v2.GetMetadata(suite.ctx.ChainID()), v3.GetMetadata(suite.ctx.ChainID())...)
 	for _, metadata := range metadatas {

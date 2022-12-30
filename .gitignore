@@ -8,3 +8,4 @@ docker-compose.yml
 testnet
 dependency-graph.png
 debug.sh
+artifacts

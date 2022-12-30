@@ -72,7 +72,7 @@ func (suite *Erc20TestSuite) Erc20TokenAddress(denom string) common.Address {
 
 func (suite *Erc20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, token common.Address, recipient string, amount, fee *big.Int, target string) common.Hash {
 	suite.T().Log("transfer cross chain", target)
-	pack, err := FIP20ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
+	pack, err := fxtypes.GetERC20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
@@ -133,7 +133,7 @@ func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver 
 func (suite *Erc20TestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token, recipient common.Address, value *big.Int) common.Hash {
 	suite.T().Logf("transfer erc20 %s to %s value %s\n", token, recipient.String(), value.String())
 
-	pack, err := FIP20ABI.Pack("transfer", recipient, value)
+	pack, err := fxtypes.GetERC20().ABI.Pack("transfer", recipient, value)
 	suite.Require().NoError(err)
 
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
