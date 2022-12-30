@@ -108,7 +108,7 @@ func (k Keeper) UpdateContractCode(ctx sdk.Context, contract fxtypes.Contract) e
 	}
 	codeHash := crypto.Keccak256Hash(contract.Code).Bytes()
 	if bytes.Equal(codeHash, acc.CodeHash) {
-		return nil
+		return fmt.Errorf("update the same code: %s", contract.Address.String())
 	}
 
 	acc.CodeHash = codeHash
