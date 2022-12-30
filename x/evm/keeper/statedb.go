@@ -29,16 +29,16 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 		if err := ethAcct.SetCodeHash(codeHash); err != nil {
 			return err
 		}
-	}
-
-	if !ok && account.IsContract() {
-		if baseAcct, isBaseAccount := acct.(*authtypes.BaseAccount); isBaseAccount {
-			acct = &ethermint.EthAccount{
-				BaseAccount: baseAcct,
-				CodeHash:    codeHash.Hex(),
+	} else {
+		if account.IsContract() {
+			if baseAcct, isBaseAccount := acct.(*authtypes.BaseAccount); isBaseAccount {
+				acct = &ethermint.EthAccount{
+					BaseAccount: baseAcct,
+					CodeHash:    codeHash.Hex(),
+				}
+			} else {
+				return sdkerrors.Wrapf(types.ErrInvalidAccount, "type %T, address %s", acct, addr)
 			}
-		} else {
-			return sdkerrors.Wrapf(types.ErrInvalidAccount, "type %T, address %s", acct, addr)
 		}
 	}
 

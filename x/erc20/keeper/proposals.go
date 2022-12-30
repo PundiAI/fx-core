@@ -280,7 +280,7 @@ func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI
 	}
 
 	contractAddr := crypto.CreateAddress(from, nonce)
-	_, err = k.CallEVMWithData(ctx, from, nil, data, true)
+	_, err = k.evmKeeper.CallEVMWithData(ctx, from, nil, data, true)
 	if err != nil {
 		return common.Address{}, sdkerrors.Wrap(err, "failed to deploy contract")
 	}
