@@ -1,7 +1,5 @@
 package gov
 
-// DONTCOVER
-
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -52,6 +50,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // EndBlock returns the end blocker for the gov module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper)
+	am.keeper.EndBlocker(ctx)
 	return []abci.ValidatorUpdate{}
 }

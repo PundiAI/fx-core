@@ -5,7 +5,4 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
-// x/gov module sentinel errors
-var (
-	ErrInitialAmountTooLow = sdkerrors.Register(govtypes.ModuleName, 10, "initial amount too low")
-)
+var ErrInitialAmountTooLow = sdkerrors.Register(govtypes.ModuleName, 10, "initial amount too low")

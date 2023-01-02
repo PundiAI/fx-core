@@ -36,8 +36,8 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 
 	defer telemetry.IncrCounter(1, govtypes.ModuleName, "proposal")
 
-	if msg.GetInitialDeposit().IsAllLT(types.InitialDeposit) {
-		return nil, sdkerrors.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msg.GetInitialDeposit().String(), types.InitialDeposit.String())
+	if msg.GetInitialDeposit().IsAllLT(types.GetInitialDeposit()) {
+		return nil, sdkerrors.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msg.GetInitialDeposit(), types.GetInitialDeposit())
 	}
 
 	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())

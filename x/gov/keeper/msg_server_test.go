@@ -4,86 +4,93 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	types3 "github.com/functionx/fx-core/v3/x/gov/types"
+	"github.com/functionx/fx-core/v3/x/gov/types"
 )
 
 func (suite *KeeperTestSuite) TestSubmitProposal() {
-	errInitCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e2).MulRaw(1e18)}}
-	suite.Require().True(types3.InitialDeposit.IsAllGT(errInitCoins))
-	TestProposal := types.NewTextProposal("Test", "description")
-	errProposalMsg, err := types.NewMsgSubmitProposal(
+	errInitCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(100).MulRaw(1e18)}}
+	suite.True(types.GetInitialDeposit().IsAllGT(errInitCoins))
+	TestProposal := govtypes.NewTextProposal("Test", "description")
+	errProposalMsg, err := govtypes.NewMsgSubmitProposal(
 		TestProposal,
 		errInitCoins,
-		suite.addrs[0],
+		suite.newAddress(),
 	)
-	suite.Require().NoError(err)
-	_, err = suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), errProposalMsg)
-	suite.Require().Error(err)
-	suite.Require().EqualValues(fmt.Sprintf("%v is smaller than %v: initial amount too low", errInitCoins.String(), types3.InitialDeposit.String()), err.Error())
+	suite.NoError(err)
+	_, err = suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), errProposalMsg)
+	suite.Error(err)
+	suite.EqualValues(fmt.Sprintf("%v is smaller than %v: initial amount too low", errInitCoins, types.GetInitialDeposit()), err.Error())
 
 	successInitCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}
-	suite.Require().True(types3.InitialDeposit.IsAllLTE(successInitCoins))
-	successProposalMsg, err := types.NewMsgSubmitProposal(
-		types.NewTextProposal("Test", "description"),
+	suite.True(types.GetInitialDeposit().IsAllLTE(successInitCoins))
+	successProposalMsg, err := govtypes.NewMsgSubmitProposal(
+		govtypes.NewTextProposal("Test", "description"),
 		successInitCoins,
-		suite.addrs[0],
+		suite.newAddress(),
 	)
-	suite.Require().NoError(err)
-	_, err = suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), successProposalMsg)
-	suite.Require().NoError(err)
+	suite.NoError(err)
+	_, err = suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), successProposalMsg)
+	suite.NoError(err)
 
 	testCases := []struct {
 		testName       string
-		content        types.Content
+		content        govtypes.Content
 		initialDeposit sdk.Coin
-		status         types.ProposalStatus
+		status         govtypes.ProposalStatus
 		expectedErr    error
 	}{
 		{
 			testName:       "the deposit is less than the minimum amount",
 			content:        TestProposal,
 			initialDeposit: sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)},
-			status:         types.StatusDepositPeriod,
+			status:         govtypes.StatusDepositPeriod,
 			expectedErr:    nil,
 		},
 		{
 			testName:       "The deposit is greater than the minimum amount",
 			content:        TestProposal,
 			initialDeposit: sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
-			status:         types.StatusVotingPeriod,
+			status:         govtypes.StatusVotingPeriod,
 			expectedErr:    nil,
 		},
 		{
 			testName: "The deposit is greater than the minimum amount",
-			content: &types2.CommunityPoolSpendProposal{
+			content: &distributiontypes.CommunityPoolSpendProposal{
 				Title:       "community Pool Spend Proposal",
-				Description: "description", Recipient: suite.addrs[0].String(),
-				Amount: sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(2000 * 1e3).MulRaw(1e18)}}},
+				Description: "description",
+				Recipient:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				Amount:      sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(2000 * 1e3).MulRaw(1e18)}}},
 			initialDeposit: sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
-			status:         types.StatusDepositPeriod,
+			status:         govtypes.StatusDepositPeriod,
 			expectedErr:    nil,
 		},
 	}
 	for _, tc := range testCases {
-		testProposalMsg, err := types.NewMsgSubmitProposal(
+		if tc.content.ProposalType() == distributiontypes.ProposalTypeCommunityPoolSpend {
+			suite.addFundCommunityPool()
+		}
+		testProposalMsg, err := govtypes.NewMsgSubmitProposal(
 			tc.content,
 			sdk.Coins{tc.initialDeposit},
-			suite.addrs[0],
+			suite.newAddress(),
 		)
-		suite.Require().NoError(err)
-		proposalResponse, err := suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), testProposalMsg)
-		suite.Require().NoError(err)
+		suite.NoError(err)
+		proposalResponse, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), testProposalMsg)
+		suite.NoError(err)
 		proposal, found := suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposalResponse.ProposalId)
-		suite.Require().True(found)
-		suite.Require().EqualValues(tc.status, proposal.Status)
+		suite.True(found)
+		suite.EqualValues(tc.status, proposal.Status)
 	}
 }
 
 func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
+	suite.addFundCommunityPool()
+
 	testCases := []struct {
 		testName     string
 		amount       sdk.Coins
@@ -128,23 +135,25 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 		},
 	}
 	for _, tc := range testCases {
-		testProposalMsg, err := types.NewMsgSubmitProposal(
-			&types2.CommunityPoolSpendProposal{
+		testProposalMsg, err := govtypes.NewMsgSubmitProposal(
+			&distributiontypes.CommunityPoolSpendProposal{
 				Title:       "community Pool Spend Proposal",
-				Description: "description", Recipient: suite.addrs[0].String(),
-				Amount: tc.amount},
+				Description: "description",
+				Recipient:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				Amount:      tc.amount,
+			},
 			sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}},
-			suite.addrs[0],
+			suite.newAddress(),
 		)
-		suite.Require().NoError(err)
-		proposalResponse, err := suite.MsgServer().SubmitProposal(sdk.WrapSDKContext(suite.ctx), testProposalMsg)
-		suite.Require().NoError(err)
+		suite.NoError(err)
+		proposalResponse, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), testProposalMsg)
+		suite.NoError(err)
 		proposal, found := suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposalResponse.ProposalId)
-		suite.Require().True(found)
+		suite.True(found)
 		if tc.votingPeriod {
-			suite.Require().True(tc.expect.IsAllGTE(types3.EGFProposalMinDeposit(tc.amount)))
+			suite.True(tc.expect.IsAllGTE(types.EGFProposalMinDeposit(tc.amount)))
 			continue
 		}
-		suite.Require().True(sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}.IsEqual(proposal.TotalDeposit))
+		suite.True(sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}.IsEqual(proposal.TotalDeposit))
 	}
 }
