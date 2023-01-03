@@ -1,8 +1,13 @@
 package v3
 
 import (
+	"bytes"
 	"fmt"
 	"path/filepath"
+	"strconv"
+	"strings"
+
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -45,6 +50,9 @@ func CreateUpgradeHandler(
 
 		// migrate evm param RejectUnprotectedTx to AllowUnprotectedTxs
 		migrateRejectUnprotectedTx(cacheCtx, keepers.LegacyAmino, keepers.GetKey(paramstypes.StoreKey))
+
+		// delete erc20 expiration ibc transfer hash
+		deleteExpirationIBCTransferHash(ctx, keepers.Erc20Keeper, keepers.IBCKeeper)
 
 		// run migrations
 		toVM := runMigrations(cacheCtx, fromVM, mm, configurator)
@@ -165,6 +173,40 @@ func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 		bk.SetDenomMetaData(ctx, md)
 		return false
 	})
+}
+
+func deleteExpirationIBCTransferHash(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, ibcKeeper *ibckeeper.Keeper) {
+	logger := ctx.Logger()
+	counts := make(map[string]uint64, 10)
+
+	iter := erc20Keeper.IBCTransferHashIterator(ctx)
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		key := bytes.TrimPrefix(iter.Key(), erc20types.KeyPrefixIBCTransfer)
+		split := strings.Split(string(key), "/")
+		if len(split) != 3 {
+			panic(fmt.Sprintf("invalid key: %s", string(key)))
+		}
+		port := split[0]
+		channel := split[1]
+		sequence, err := strconv.ParseUint(split[2], 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("parse sequence %s error %s", split[2], err.Error()))
+		}
+
+		found := ibcKeeper.ChannelKeeper.HasPacketCommitment(ctx, port, channel, sequence)
+		if found {
+			continue
+		}
+		erc20Keeper.DeleteIBCTransferHash(ctx, port, channel, sequence)
+
+		// statistics count
+		counts[fmt.Sprintf("%s/%s", port, channel)] += 1
+	}
+	for portChannel, count := range counts {
+		logger.Info("delete expiration ibc transfer hash", "port/channel", portChannel, "count", strconv.FormatUint(count, 10))
+	}
 }
 
 // PreUpgradeCmd called by cosmovisor

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
@@ -148,4 +148,9 @@ func (k Keeper) GetIBCTransferHash(ctx sdk.Context, port, channel string, sequen
 
 func (k Keeper) HasIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) bool {
 	return ctx.KVStore(k.storeKey).Has(types.GetIBCTransferKey(port, channel, sequence))
+}
+
+func (k Keeper) IBCTransferHashIterator(ctx sdk.Context) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	return sdk.KVStorePrefixIterator(store, types.KeyPrefixIBCTransfer)
 }
