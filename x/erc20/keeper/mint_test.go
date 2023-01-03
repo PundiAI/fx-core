@@ -11,38 +11,43 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMintingEnabled() {
-	expPair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 
 	testCases := []struct {
 		name     string
-		malleate func()
+		malleate func() types.TokenPair
 		expPass  bool
 	}{
 		{
 			"intrarelaying is disabled globally",
-			func() {
+			func() types.TokenPair {
 				params := types.DefaultParams()
 				params.EnableErc20 = false
 				suite.app.Erc20Keeper.SetParams(suite.ctx, params)
+				return types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 			},
 			false,
 		},
 		{
 			"token pair not found",
-			func() {},
+			func() types.TokenPair {
+				return types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+			},
 			false,
 		},
 		{
 			"intrarelaying is disabled for the given pair",
-			func() {
+			func() types.TokenPair {
+				expPair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				expPair.Enabled = false
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
+				return expPair
 			},
 			false,
 		},
 		{
 			"token transfers are disabled",
-			func() {
+			func() types.TokenPair {
+				expPair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				expPair.Enabled = true
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
 
@@ -51,13 +56,16 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 					{Denom: expPair.Denom, Enabled: false},
 				}
 				suite.app.BankKeeper.SetParams(suite.ctx, params)
+				return expPair
 			},
 			false,
 		},
 		{
 			"ok",
-			func() {
+			func() types.TokenPair {
+				expPair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
+				return expPair
 			},
 			true,
 		},
@@ -67,7 +75,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			tc.malleate()
+			expPair := tc.malleate()
 
 			receiver := sdk.AccAddress(helpers.GenerateAddress().Bytes())
 			pair, err := suite.app.Erc20Keeper.MintingEnabled(suite.ctx, receiver, expPair.Erc20Address)

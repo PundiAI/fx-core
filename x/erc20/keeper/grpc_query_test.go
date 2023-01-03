@@ -11,91 +11,6 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-func (suite *KeeperTestSuite) TestTokenPairs() {
-	var (
-		req    *types.QueryTokenPairsRequest
-		expRes *types.QueryTokenPairsResponse
-	)
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			"metadata pairs registered",
-			func() {
-				req = &types.QueryTokenPairsRequest{}
-				expRes = &types.QueryTokenPairsResponse{Pagination: &query.PageResponse{}}
-
-				tokenPairs := getMetadataTokenPairs()
-				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: uint64(len(tokenPairs))},
-					TokenPairs: tokenPairs,
-				}
-			},
-			true,
-		},
-		{
-			"metadata +1 pair registered w/pagination",
-			func() {
-				req = &types.QueryTokenPairsRequest{
-					Pagination: &query.PageRequest{Limit: 10, CountTotal: true},
-				}
-				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
-				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
-
-				//clear erc20 address
-				pairs := clearTokenPairErc20Address(pair)
-				tokenPairs := getMetadataTokenPairs()
-				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: uint64(len(tokenPairs)) + 1},
-					TokenPairs: append(pairs, tokenPairs...),
-				}
-			},
-			true,
-		},
-		{
-			"metadata +2 pairs registered wo/pagination",
-			func() {
-				req = &types.QueryTokenPairsRequest{}
-				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
-				pair2 := types.NewTokenPair(helpers.GenerateAddress(), "coin2", true, types.OWNER_MODULE)
-				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
-				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
-
-				//clear erc20 address
-				pairs := clearTokenPairErc20Address(pair, pair2)
-				tokenPairs := getMetadataTokenPairs()
-				expRes = &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: uint64(len(tokenPairs)) + 2},
-					TokenPairs: append(pairs, tokenPairs...),
-				}
-			},
-			true,
-		},
-	}
-	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
-
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			tc.malleate()
-
-			res, err := suite.queryClient.TokenPairs(ctx, req)
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(expRes.Pagination, res.Pagination)
-				//clear erc20 address
-				newPairs := clearTokenPairErc20Address(res.TokenPairs...)
-				suite.Require().ElementsMatch(expRes.TokenPairs, newPairs)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
 func (suite *KeeperTestSuite) TestQueryParams() {
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	expParams := types.DefaultParams()
@@ -105,48 +20,53 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 	suite.Require().Equal(expParams, res.Params)
 }
 
-func (suite *KeeperTestSuite) TestTokenPair() {
-	var (
-		req    *types.QueryTokenPairRequest
-		expRes *types.QueryTokenPairResponse
-	)
-
+func (suite *KeeperTestSuite) TestTokenPairs() {
 	testCases := []struct {
 		name     string
-		malleate func()
+		malleate func() (*types.QueryTokenPairsRequest, *types.QueryTokenPairsResponse)
 		expPass  bool
 	}{
 		{
-			"invalid token address",
-			func() {
-				req = &types.QueryTokenPairRequest{}
-				expRes = &types.QueryTokenPairResponse{}
-			},
-			false,
-		},
-		{
-			"token pair not found",
-			func() {
-				req = &types.QueryTokenPairRequest{
-					Token: helpers.GenerateAddress().Hex(),
+			"metadata pairs registered",
+			func() (*types.QueryTokenPairsRequest, *types.QueryTokenPairsResponse) {
+				return &types.QueryTokenPairsRequest{}, &types.QueryTokenPairsResponse{
+					Pagination: &query.PageResponse{Total: 0},
+					TokenPairs: nil,
 				}
-				expRes = &types.QueryTokenPairResponse{}
 			},
-			false,
+			true,
 		},
 		{
-			"token pair found",
-			func() {
-				addr := helpers.GenerateAddress()
-				pair := types.NewTokenPair(addr, "coin", true, types.OWNER_MODULE)
+			"metadata +1 pair registered w/pagination",
+			func() (*types.QueryTokenPairsRequest, *types.QueryTokenPairsResponse) {
+				req := &types.QueryTokenPairsRequest{
+					Pagination: &query.PageRequest{Limit: 10, CountTotal: true},
+				}
+				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
-				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, addr, pair.GetID())
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, pair.Denom, pair.GetID())
 
-				req = &types.QueryTokenPairRequest{
-					Token: pair.Erc20Address,
+				expRes := &types.QueryTokenPairsResponse{
+					Pagination: &query.PageResponse{Total: 1},
+					TokenPairs: []types.TokenPair{pair},
 				}
-				expRes = &types.QueryTokenPairResponse{TokenPair: pair}
+				return req, expRes
+			},
+			true,
+		},
+		{
+			"metadata +2 pairs registered wo/pagination",
+			func() (*types.QueryTokenPairsRequest, *types.QueryTokenPairsResponse) {
+				req := &types.QueryTokenPairsRequest{}
+				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
+				pair2 := types.NewTokenPair(helpers.GenerateAddress(), "coin2", true, types.OWNER_MODULE)
+				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
+				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
+
+				expRes := &types.QueryTokenPairsResponse{
+					Pagination: &query.PageResponse{Total: 2},
+					TokenPairs: []types.TokenPair{pair, pair2},
+				}
+				return req, expRes
 			},
 			true,
 		},
@@ -155,10 +75,67 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			tc.malleate()
+			req, expRes := tc.malleate()
 
-			res, err := suite.queryClient.TokenPair(ctx, req)
+			res, err := suite.queryClient.TokenPairs(sdk.WrapSDKContext(suite.ctx), req)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expRes.Pagination, res.Pagination)
+				suite.Require().ElementsMatch(expRes.TokenPairs, res.TokenPairs)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestTokenPair() {
+	testCases := []struct {
+		name     string
+		malleate func() (*types.QueryTokenPairRequest, *types.QueryTokenPairResponse)
+		expPass  bool
+	}{
+		{
+			"invalid token address",
+			func() (*types.QueryTokenPairRequest, *types.QueryTokenPairResponse) {
+				return &types.QueryTokenPairRequest{}, &types.QueryTokenPairResponse{}
+			},
+			false,
+		},
+		{
+			"token pair not found",
+			func() (*types.QueryTokenPairRequest, *types.QueryTokenPairResponse) {
+				req := &types.QueryTokenPairRequest{
+					Token: helpers.GenerateAddress().Hex(),
+				}
+				expRes := &types.QueryTokenPairResponse{}
+				return req, expRes
+			},
+			false,
+		},
+		{
+			"token pair found",
+			func() (*types.QueryTokenPairRequest, *types.QueryTokenPairResponse) {
+				addr := helpers.GenerateAddress()
+				pair := types.NewTokenPair(addr, "coin", true, types.OWNER_MODULE)
+				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
+
+				req := &types.QueryTokenPairRequest{
+					Token: pair.Erc20Address,
+				}
+				expRes := &types.QueryTokenPairResponse{TokenPair: pair}
+				return req, expRes
+			},
+			true,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest() // reset
+
+			req, expRes := tc.malleate()
+
+			res, err := suite.queryClient.TokenPair(sdk.WrapSDKContext(suite.ctx), req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expRes, res)
@@ -170,47 +147,44 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 }
 
 func (suite *KeeperTestSuite) TestDenomAlias() {
-	var (
-		req    *types.QueryDenomAliasesRequest
-		expRes *types.QueryDenomAliasesResponse
-	)
-
 	testCases := []struct {
 		name     string
-		malleate func()
+		malleate func() (*types.QueryDenomAliasesRequest, *types.QueryDenomAliasesResponse)
 		expPass  bool
 	}{
 		{
 			"invalid format for denom",
-			func() {
-				req = &types.QueryDenomAliasesRequest{}
-				expRes = &types.QueryDenomAliasesResponse{}
+			func() (*types.QueryDenomAliasesRequest, *types.QueryDenomAliasesResponse) {
+				req := &types.QueryDenomAliasesRequest{}
+				expRes := &types.QueryDenomAliasesResponse{}
+				return req, expRes
 			},
 			false,
 		},
 		{
 			"not registered with denom",
-			func() {
-				req = &types.QueryDenomAliasesRequest{Denom: "usdt"}
-				expRes = &types.QueryDenomAliasesResponse{}
+			func() (*types.QueryDenomAliasesRequest, *types.QueryDenomAliasesResponse) {
+				req := &types.QueryDenomAliasesRequest{Denom: "usdt"}
+				expRes := &types.QueryDenomAliasesResponse{}
+				return req, expRes
 			},
 			false,
 		},
 		{
 			"metadata not found",
-			func() {
-				req = &types.QueryDenomAliasesRequest{Denom: "usdt"}
-				expRes = &types.QueryDenomAliasesResponse{}
-
+			func() (*types.QueryDenomAliasesRequest, *types.QueryDenomAliasesResponse) {
+				req := &types.QueryDenomAliasesRequest{Denom: "usdt"}
+				expRes := &types.QueryDenomAliasesResponse{}
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "usdt", []byte{})
+				return req, expRes
 			},
 			false,
 		},
 		{
 			"metadata not support many to one",
-			func() {
-				req = &types.QueryDenomAliasesRequest{Denom: "usdt"}
-				expRes = &types.QueryDenomAliasesResponse{}
+			func() (*types.QueryDenomAliasesRequest, *types.QueryDenomAliasesResponse) {
+				req := &types.QueryDenomAliasesRequest{Denom: "usdt"}
+				expRes := &types.QueryDenomAliasesResponse{}
 
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "usdt", []byte{})
 
@@ -231,35 +205,22 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 					Name:    "Tether USD",
 					Symbol:  "USDT",
 				})
+				return req, expRes
 			},
 			true,
 		},
 		{
 			"ok",
-			func() {
-				req = &types.QueryDenomAliasesRequest{Denom: "usdt"}
-				expRes = &types.QueryDenomAliasesResponse{Aliases: []string{bscDenom, polygonDenom}}
+			func() (*types.QueryDenomAliasesRequest, *types.QueryDenomAliasesResponse) {
+				metadata := newMetadata()
 
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "usdt", []byte{})
+				req := &types.QueryDenomAliasesRequest{Denom: metadata.Base}
+				expRes := &types.QueryDenomAliasesResponse{Aliases: metadata.DenomUnits[0].Aliases}
 
-				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, banktypes.Metadata{
-					Description: "The cross chain token of the Function X",
-					DenomUnits: []*banktypes.DenomUnit{
-						{
-							Denom:    "usdt",
-							Exponent: 0,
-							Aliases:  []string{bscDenom, polygonDenom},
-						},
-						{
-							Denom:    "USDT",
-							Exponent: 18,
-						},
-					},
-					Base:    "usdt",
-					Display: "usdt",
-					Name:    "Tether USD",
-					Symbol:  "USDT",
-				})
+				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, metadata.Base, []byte{})
+
+				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
+				return req, expRes
 			},
 			true,
 		},
@@ -269,11 +230,9 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			ctx := sdk.WrapSDKContext(suite.ctx)
+			req, expRes := tc.malleate()
 
-			tc.malleate()
-
-			res, err := suite.queryClient.DenomAliases(ctx, req)
+			res, err := suite.queryClient.DenomAliases(sdk.WrapSDKContext(suite.ctx), req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expRes, res)
@@ -285,39 +244,39 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 }
 
 func (suite *KeeperTestSuite) TestAliasDenom() {
-	var (
-		req    *types.QueryAliasDenomRequest
-		expRes *types.QueryAliasDenomResponse
-	)
-
 	testCases := []struct {
 		name     string
-		malleate func()
+		malleate func() (*types.QueryAliasDenomRequest, *types.QueryAliasDenomResponse)
 		expPass  bool
 	}{
 		{
 			"invalid format for alias",
-			func() {
-				req = &types.QueryAliasDenomRequest{}
-				expRes = &types.QueryAliasDenomResponse{}
+			func() (*types.QueryAliasDenomRequest, *types.QueryAliasDenomResponse) {
+				req := &types.QueryAliasDenomRequest{}
+				expRes := &types.QueryAliasDenomResponse{}
+				return req, expRes
 			},
 			false,
 		},
 		{
 			"ok without denom alias",
-			func() {
-				req = &types.QueryAliasDenomRequest{Alias: bscDenom}
-				expRes = &types.QueryAliasDenomResponse{}
+			func() (*types.QueryAliasDenomRequest, *types.QueryAliasDenomResponse) {
+				denom := fmt.Sprintf("test%s", helpers.GenerateAddress().String())
+				req := &types.QueryAliasDenomRequest{Alias: denom}
+				expRes := &types.QueryAliasDenomResponse{}
+				return req, expRes
 			},
 			false,
 		},
 		{
 			"ok",
-			func() {
-				req = &types.QueryAliasDenomRequest{Alias: bscDenom}
-				expRes = &types.QueryAliasDenomResponse{Denom: "usdt"}
+			func() (*types.QueryAliasDenomRequest, *types.QueryAliasDenomResponse) {
+				denom := fmt.Sprintf("test%s", helpers.GenerateAddress().String())
+				req := &types.QueryAliasDenomRequest{Alias: denom}
+				expRes := &types.QueryAliasDenomResponse{Denom: "usdt"}
 
-				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", bscDenom)
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", denom)
+				return req, expRes
 			},
 			true,
 		},
@@ -327,11 +286,9 @@ func (suite *KeeperTestSuite) TestAliasDenom() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			ctx := sdk.WrapSDKContext(suite.ctx)
+			req, expRes := tc.malleate()
 
-			tc.malleate()
-
-			res, err := suite.queryClient.AliasDenom(ctx, req)
+			res, err := suite.queryClient.AliasDenom(sdk.WrapSDKContext(suite.ctx), req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expRes, res)

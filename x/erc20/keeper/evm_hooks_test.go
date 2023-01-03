@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"fmt"
 	"math/big"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -27,24 +27,22 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				_, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
 
-				// Mint 10 tokens to suite.address (owner)
-				_ = suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
-				//suite.Commit()
+				// Mint 10 tokens
+				suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(10))
 
-				// Burn the 10 tokens of suite.address (owner)
-				_ = suite.BurnERC20Token(contractAddr, suite.address, big.NewInt(10))
+				// Burn the 10 tokens
+				suite.TransferERC20TokenToModule(contractAddr, suite.signer.Address(), big.NewInt(10))
 			},
 			true,
 		},
 		{
 			"unregistered pair",
 			func(contractAddr common.Address) {
-				// Mint 10 tokens to suite.address (owner)
-				_ = suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
-				//suite.Commit()
+				// Mint 10 tokens
+				suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(10))
 
-				// Burn the 10 tokens of suite.address (owner)
-				_ = suite.BurnERC20Token(contractAddr, suite.address, big.NewInt(10))
+				// Burn the 10 tokens
+				suite.TransferERC20TokenToModule(contractAddr, suite.signer.Address(), big.NewInt(10))
 			},
 			false,
 		},
@@ -54,8 +52,8 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				_, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
 
-				// Mint 10 tokens to suite.address (owner)
-				_ = suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
+				// Mint 10 tokens
+				suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(10))
 			},
 			false,
 		},
@@ -69,12 +67,11 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, pair.Denom, pair.GetID())
 				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, pair.GetERC20Contract(), pair.GetID())
-				// Mint 10 tokens to suite.address (owner)
-				_ = suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(10))
-				//suite.Commit()
+				// Mint 10 tokens
+				suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(10))
 
-				// Burn the 10 tokens of suite.address (owner)
-				_ = suite.BurnERC20Token(contractAddr, suite.address, big.NewInt(10))
+				// Burn the 10 tokens
+				suite.TransferERC20TokenToModule(contractAddr, suite.signer.Address(), big.NewInt(10))
 
 			},
 			false,
@@ -84,14 +81,12 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
+			contractAddr, err := suite.DeployContract(suite.signer.Address())
 			suite.Require().NoError(err)
-			//suite.Commit()
 
 			tc.malleate(contractAddr)
 
-			balance := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(suite.address.Bytes()), strings.ToLower(erc20Symbol))
-			//suite.Commit()
+			balance := suite.app.BankKeeper.GetBalance(suite.ctx, suite.signer.Address().Bytes(), "test")
 			if tc.result {
 				// Check if the execution was successful
 				suite.Require().Equal(int64(10), balance.Amount.Int64())
@@ -109,8 +104,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 		mint      int64
 		burn      int64
 		reconvert int64
-
-		result bool
+		result    bool
 	}{
 		{"correct execution", 100, 10, 5, true},
 	}
@@ -122,33 +116,32 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			suite.Require().NotNil(metadata)
 			suite.Require().NotNil(pair)
 
-			sender := sdk.AccAddress(suite.address.Bytes())
+			sender := sdk.AccAddress(suite.signer.Address().Bytes())
 			contractAddr := common.HexToAddress(pair.Erc20Address)
 
-			coins := sdk.NewCoins(sdk.NewCoin(cosmosTokenBase, sdk.NewInt(tc.mint)))
+			coins := sdk.NewCoins(sdk.NewCoin(metadata.Base, sdk.NewInt(tc.mint)))
 			suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins))
 			suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, sender, coins))
 
 			convertCoin := types.NewMsgConvertCoin(
-				sdk.NewCoin(cosmosTokenBase, sdk.NewInt(tc.burn)),
-				suite.address,
+				sdk.NewCoin(metadata.Base, sdk.NewInt(tc.burn)),
+				suite.signer.Address(),
 				sender,
 			)
 
 			ctx := sdk.WrapSDKContext(suite.ctx)
 			_, err := suite.app.Erc20Keeper.ConvertCoin(ctx, convertCoin)
 			suite.Require().NoError(err, tc.name)
-			//suite.Commit()
 
-			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.address)
+			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.signer.Address())
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
-			// Burn the 10 tokens of suite.address (owner)
-			_ = suite.BurnERC20Token(contractAddr, suite.address, big.NewInt(tc.reconvert))
+			// Burn the 10 tokens
+			suite.TransferERC20TokenToModule(contractAddr, suite.signer.Address(), big.NewInt(tc.reconvert))
 
-			balance = suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.address)
+			balance = suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.signer.Address())
 			cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 
 			if tc.result {
@@ -166,10 +159,10 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestEvmHooksForceError() {
-
+func (suite *KeeperTestSuite) TestPostTxProcessing() {
+	erc20ModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(types.ModuleName).Bytes())
 	msg := ethtypes.NewMessage(
-		types.ModuleAddress,
+		erc20ModuleAddr,
 		&common.Address{},
 		0,
 		big.NewInt(0), // amount
@@ -197,9 +190,8 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"correct transfer (non burn)",
 			func() {
-				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
+				contractAddr, err := suite.DeployContract(suite.signer.Address())
 				suite.Require().NoError(err)
-				//suite.Commit()
 
 				_, err = suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
@@ -221,14 +213,13 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"correct burn",
 			func() {
-				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
+				contractAddr, err := suite.DeployContract(suite.signer.Address())
 				suite.Require().NoError(err)
-				//suite.Commit()
 
 				pair, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
 
-				topics := []common.Hash{transferEvent.ID, account.Hash(), types.ModuleAddress.Hash()}
+				topics := []common.Hash{transferEvent.ID, account.Hash(), erc20ModuleAddr.Hash()}
 				log := ethtypes.Log{
 					Topics:  topics,
 					Data:    transferData,
@@ -254,9 +245,8 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"Unspecified Owner",
 			func() {
-				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
+				contractAddr, err := suite.DeployContract(suite.signer.Address())
 				suite.Require().NoError(err)
-				//suite.Commit()
 
 				pair, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
@@ -264,7 +254,7 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 				pair.ContractOwner = types.OWNER_UNSPECIFIED
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, *pair)
 
-				topics := []common.Hash{transferEvent.ID, account.Hash(), types.ModuleAddress.Hash()}
+				topics := []common.Hash{transferEvent.ID, account.Hash(), erc20ModuleAddr.Hash()}
 				log := ethtypes.Log{
 					Topics:  topics,
 					Data:    transferData,
@@ -281,9 +271,8 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"Fail Evm",
 			func() {
-				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
+				contractAddr, err := suite.DeployContract(suite.signer.Address())
 				suite.Require().NoError(err)
-				//suite.Commit()
 
 				pair, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
@@ -291,7 +280,7 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 				pair.ContractOwner = types.OWNER_MODULE
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, *pair)
 
-				topics := []common.Hash{transferEvent.ID, account.Hash(), types.ModuleAddress.Hash()}
+				topics := []common.Hash{transferEvent.ID, account.Hash(), erc20ModuleAddr.Hash()}
 				log := ethtypes.Log{
 					Topics:  topics,
 					Data:    transferData,
@@ -308,7 +297,7 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"No log address",
 			func() {
-				topics := []common.Hash{transferEvent.ID, account.Hash(), types.ModuleAddress.Hash()}
+				topics := []common.Hash{transferEvent.ID, account.Hash(), erc20ModuleAddr.Hash()}
 				log := ethtypes.Log{
 					Topics: topics,
 					Data:   transferData,
@@ -352,7 +341,7 @@ func (suite *KeeperTestSuite) TestEvmHooksForceError() {
 		{
 			"No log data",
 			func() {
-				topics := []common.Hash{transferEvent.ID, account.Hash(), types.ModuleAddress.Hash()}
+				topics := []common.Hash{transferEvent.ID, account.Hash(), erc20ModuleAddr.Hash()}
 				log := ethtypes.Log{
 					Topics: topics,
 				}

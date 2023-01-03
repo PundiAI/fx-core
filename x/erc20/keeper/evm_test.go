@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -10,38 +9,37 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestQueryERC20() {
-	var contract common.Address
 	testCases := []struct {
 		name     string
-		malleate func()
+		malleate func() common.Address
 		res      bool
 	}{
 		{
 			"erc20 not deployed",
-			func() { contract = common.Address{} },
+			func() common.Address { return common.Address{} },
 			false,
 		},
 		{
 			"ok",
-			func() { contract, _ = suite.DeployContract(suite.address, "coin", "token", erc20Decimals) },
+			func() common.Address {
+				contract, err := suite.DeployContract(suite.signer.Address())
+				suite.NoError(err)
+				return contract
+			},
 			true,
 		},
 	}
 	for _, tc := range testCases {
-		suite.SetupTest() // reset
-
-		tc.malleate()
-
-		res, err := suite.app.Erc20Keeper.QueryERC20(suite.ctx, contract)
-		if tc.res {
-			suite.Require().NoError(err)
-			suite.Require().Equal(
-				types.ERC20Data{Name: "coin", Symbol: "token", Decimals: erc20Decimals},
-				res,
-			)
-		} else {
-			suite.Require().Error(err)
-		}
+		suite.Run(tc.name, func() {
+			contract := tc.malleate()
+			res, err := suite.app.Erc20Keeper.QueryERC20(suite.ctx, contract)
+			if tc.res {
+				suite.Require().NoError(err)
+				suite.Require().Equal(types.ERC20Data{Name: "Test token", Symbol: "TEST", Decimals: 18}, res)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
@@ -63,19 +61,20 @@ func (suite *KeeperTestSuite) TestCallEVM() {
 		},
 	}
 	for _, tc := range testCases {
-		suite.SetupTest() // reset
-
-		erc20Config := fxtypes.GetERC20()
-		contract, err := suite.DeployContract(suite.address, "coin", "token", erc20Decimals)
-		suite.Require().NoError(err)
-		account := helpers.GenerateAddress()
-
-		res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, types.ModuleAddress, contract, true, tc.method, account)
-		if tc.expPass {
-			suite.Require().IsTypef(&evmtypes.MsgEthereumTxResponse{}, res, tc.name)
+		suite.Run(tc.name, func() {
+			contract, err := suite.DeployContract(suite.signer.Address())
 			suite.Require().NoError(err)
-		} else {
-			suite.Require().Error(err)
-		}
+
+			account := helpers.GenerateAddress()
+			erc20Config := fxtypes.GetERC20()
+			res, err := suite.app.Erc20Keeper.CallEVM(suite.ctx, erc20Config.ABI, contract, contract, true, tc.method, account)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+		})
 	}
 }

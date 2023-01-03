@@ -62,7 +62,7 @@ func (k Keeper) BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.
 
 	var balanceRes struct{ Value *big.Int }
 	if err := erc20.UnpackIntoInterface(&balanceRes, "balanceOf", res.Ret); err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack balanceOf: %s", err.Error())
 	}
 	return balanceRes.Value, nil
 }

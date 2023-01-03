@@ -4,256 +4,33 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/crypto"
-
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"golang.org/x/exp/slices"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-const (
-	contractMinterBurner = iota + 1
-)
-
-const (
-	erc20Name       = "Coin Token"
-	erc20Symbol     = "CTKN"
-	erc20Decimals   = uint8(18)
-	cosmosTokenBase = "acoin"
-	defaultExponent = uint32(18)
-)
-
-func (suite *KeeperTestSuite) setupRegisterERC20Pair(contractType int) common.Address {
-	suite.SetupTest()
-
-	var contractAddr common.Address
-	// Deploy contract
-	switch contractType {
-	default:
-		contractAddr, _ = suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
-	}
-	//suite.Commit()
-
-	_, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
+func (suite *KeeperTestSuite) setupRegisterERC20Pair() common.Address {
+	contractAddr, err := suite.DeployContract(suite.signer.Address())
+	suite.NoError(err)
+	_, err = suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 	suite.Require().NoError(err)
 	return contractAddr
 }
 
 func (suite *KeeperTestSuite) setupRegisterCoin() (banktypes.Metadata, *types.TokenPair) {
-	validMetadata := banktypes.Metadata{
-		Description: "description of the token",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    cosmosTokenBase,
-				Exponent: uint32(0),
-			}, {
-				Denom:    erc20Symbol,
-				Exponent: uint32(18),
-			},
-		},
-		Base:    cosmosTokenBase,
-		Display: cosmosTokenBase,
-		Name:    erc20Name,
-		Symbol:  erc20Symbol,
-	}
-
-	// pair := types.NewTokenPair(contractAddr, cosmosTokenBase, true, types.OWNER_MODULE)
-	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, validMetadata)
+	metadata := newMetadata()
+	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
 	suite.Require().NoError(err)
-	//suite.Commit()
-	return validMetadata, pair
-}
-
-func (suite *KeeperTestSuite) setupRegisterCoinUSDT(alias ...string) (banktypes.Metadata, *types.TokenPair) {
-	if len(alias) == 0 {
-		alias = []string{ethDenom, polygonDenom}
-	}
-	validMetadata := banktypes.Metadata{
-		Description: "description of the token",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "usdt",
-				Exponent: uint32(0),
-				Aliases:  alias,
-			}, {
-				Denom:    "USDT",
-				Exponent: uint32(18),
-			},
-		},
-		Base:    "usdt",
-		Display: "usdt",
-		Name:    "Tether USD",
-		Symbol:  "USDT",
-	}
-
-	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, validMetadata)
-	suite.Require().NoError(err)
-
-	return validMetadata, pair
-}
-
-func (suite *KeeperTestSuite) setupRegisterCoinUSDTWithOutAlias() (banktypes.Metadata, *types.TokenPair) {
-	validMetadata := banktypes.Metadata{
-		Description: "description of the token",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "usdt",
-				Exponent: uint32(0),
-			}, {
-				Denom:    "USDT",
-				Exponent: uint32(18),
-			},
-		},
-		Base:    "usdt",
-		Display: "usdt",
-		Name:    "Tether USD",
-		Symbol:  "USDT",
-	}
-
-	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, validMetadata)
-	suite.Require().NoError(err)
-
-	return validMetadata, pair
-}
-
-func (suite *KeeperTestSuite) TestRegisterCoin() {
-	metadata := banktypes.Metadata{
-		Description: "description",
-		// NOTE: Denom units MUST be increasing
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    cosmosTokenBase,
-				Exponent: uint32(0),
-			},
-			{
-				Denom:    erc20Symbol,
-				Exponent: uint32(defaultExponent),
-			},
-		},
-		Base:    cosmosTokenBase,
-		Display: cosmosTokenBase,
-		Name:    erc20Name,
-		Symbol:  erc20Symbol,
-	}
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			"intrarelaying is disabled globally",
-			func() {
-				params := types.DefaultParams()
-				params.EnableErc20 = false
-				suite.app.Erc20Keeper.SetParams(suite.ctx, params)
-			},
-			false,
-		},
-		{
-			"denom already registered",
-			func() {
-				regPair := types.NewTokenPair(helpers.GenerateAddress(), metadata.Base, true, types.OWNER_MODULE)
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, regPair.Denom, regPair.GetID())
-				//suite.Commit()
-			},
-			false,
-		},
-		{
-			"metadata different that stored",
-			func() {
-				metadata.Base = cosmosTokenBase
-				validMetadata := banktypes.Metadata{
-					Description: "description",
-					// NOTE: Denom units MUST be increasing
-					DenomUnits: []*banktypes.DenomUnit{
-						{
-							Denom:    cosmosTokenBase,
-							Exponent: uint32(0),
-						},
-						{
-							Denom:    "coin2",
-							Exponent: defaultExponent,
-						},
-					},
-					Base:    cosmosTokenBase,
-					Display: cosmosTokenBase,
-					Name:    erc20Name,
-					Symbol:  erc20Symbol,
-				}
-				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, validMetadata)
-			},
-			false,
-		},
-		{
-			"denom already registered alias",
-			func() {
-				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "usdt", metadata.Base)
-			},
-			false,
-		},
-		{
-			"ok",
-			func() {
-				metadata.Base = cosmosTokenBase
-			},
-			true,
-		},
-	}
-	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
-
-			tc.malleate()
-
-			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
-			//suite.Commit()
-
-			contractAddr := crypto.CreateAddress(types.ModuleAddress, suite.app.EvmKeeper.GetNonce(suite.ctx, types.ModuleAddress)-1)
-			expPair := &types.TokenPair{
-				Erc20Address:  contractAddr.String(),
-				Denom:         cosmosTokenBase,
-				Enabled:       true,
-				ContractOwner: 1,
-			}
-
-			if tc.expPass {
-				suite.Require().NoError(err, tc.name)
-				suite.Require().Equal(pair, expPair)
-			} else {
-				suite.Require().Error(err, tc.name)
-			}
-		})
-	}
+	return metadata, pair
 }
 
 func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
-
-	metadata := banktypes.Metadata{
-		Description: "The cross chain token of the Function X",
-		// NOTE: Denom units MUST be increasing
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "usdt",
-				Exponent: uint32(0),
-				Aliases:  []string{tronDenom, polygonDenom},
-			},
-			{
-				Denom:    "usdtd",
-				Exponent: 0,
-			},
-			{
-				Denom:    "USDT",
-				Exponent: 18,
-			},
-		},
-		Base:    "usdt",
-		Display: "usdtd",
-		Name:    "Tether USD",
-		Symbol:  "USDT",
-	}
+	metadata := newMetadata()
 
 	testCases := []struct {
 		name     string
@@ -289,11 +66,11 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 		{
 			"alias already registered denom",
 			func() {
-				regPair := types.NewTokenPair(helpers.GenerateAddress(), tronDenom, true, types.OWNER_MODULE)
+				regPair := types.NewTokenPair(helpers.GenerateAddress(), metadata.DenomUnits[0].Aliases[0], true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, regPair.Denom, regPair.GetID())
 			},
 			false,
-			"denom tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t already registered: invalid metadata",
+			fmt.Sprintf("denom %s already registered: invalid metadata", metadata.DenomUnits[0].Aliases[0]),
 		},
 		{
 			"denom register as alias",
@@ -306,15 +83,15 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 		{
 			"alias already registered",
 			func() {
-				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, metadata.Base, tronDenom)
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, metadata.Base, metadata.DenomUnits[0].Aliases[0])
 			},
 			false,
-			"alias tronTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t already registered: invalid metadata",
+			fmt.Sprintf("alias %s already registered: invalid metadata", metadata.DenomUnits[0].Aliases[0]),
 		},
 		{
 			"alias equal base",
 			func() {
-				metadata.DenomUnits[0].Aliases = []string{tronDenom, polygonDenom, "usdt"}
+				metadata.DenomUnits[0].Aliases = []string{"usdt"}
 			},
 			false,
 			"alias can not equal base, display or symbol: invalid metadata",
@@ -322,7 +99,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 		{
 			"alias equal display",
 			func() {
-				metadata.DenomUnits[0].Aliases = []string{tronDenom, polygonDenom, "usdtd"}
+				metadata.DenomUnits[0].Aliases = []string{"display usdt"}
 			},
 			false,
 			"alias can not equal base, display or symbol: invalid metadata",
@@ -330,7 +107,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 		{
 			"alias equal symbol",
 			func() {
-				metadata.DenomUnits[0].Aliases = []string{tronDenom, polygonDenom, "USDT"}
+				metadata.DenomUnits[0].Aliases = []string{"USDT"}
 			},
 			false,
 			"alias can not equal base, display or symbol: invalid metadata",
@@ -344,10 +121,11 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 
 			pair, tcErr := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
 
-			contractAddr := crypto.CreateAddress(types.ModuleAddress, suite.app.EvmKeeper.GetNonce(suite.ctx, types.ModuleAddress)-1)
+			erc20ModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(types.ModuleName).Bytes())
+			contractAddr := crypto.CreateAddress(erc20ModuleAddr, suite.app.EvmKeeper.GetNonce(suite.ctx, erc20ModuleAddr)-1)
 			expPair := &types.TokenPair{
 				Erc20Address:  contractAddr.String(),
-				Denom:         "usdt",
+				Denom:         metadata.Base,
 				Enabled:       true,
 				ContractOwner: 1,
 			}
@@ -355,8 +133,9 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 			if tc.expPass {
 				suite.Require().NoError(tcErr, tc.name)
 				suite.Require().Equal(pair, expPair)
-				suite.Require().True(suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, tronDenom))
-				suite.Require().True(suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, polygonDenom))
+				for _, alias := range metadata.DenomUnits[0].Aliases {
+					suite.Require().True(suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, alias))
+				}
 			} else {
 				suite.Require().Error(tcErr, tc.name)
 				suite.Require().EqualError(tcErr, tc.errMsg, tc.name)
@@ -366,30 +145,8 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 }
 
 func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
-
-	metadata := banktypes.Metadata{
-		Description: "The cross chain token of the Function X",
-		// NOTE: Denom units MUST be increasing
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "usdt",
-				Exponent: uint32(0),
-				Aliases:  []string{tronDenom, polygonDenom},
-			},
-			{
-				Denom:    "usdtd",
-				Exponent: 0,
-			},
-			{
-				Denom:    "USDT",
-				Exponent: 18,
-			},
-		},
-		Base:    "usdt",
-		Display: "usdtd",
-		Name:    "Tether USD",
-		Symbol:  "USDT",
-	}
+	denom := fmt.Sprintf("test%s", helpers.GenerateAddress().Hex())
+	metadata := newMetadata()
 
 	testCases := []struct {
 		name     string
@@ -401,7 +158,7 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 		{
 			name: "success - add alias",
 			malleate: func() error {
-				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "usdt", bscDenom)
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "usdt", denom)
 				if err != nil {
 					return err
 				}
@@ -410,13 +167,13 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 				return nil
 			},
 			expPass: true,
-			alias:   []string{tronDenom, polygonDenom, bscDenom},
+			alias:   append(metadata.DenomUnits[0].Aliases, denom),
 			errMsg:  "",
 		},
 		{
 			name: "success - delete alias",
 			malleate: func() error {
-				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "usdt", polygonDenom)
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "usdt", metadata.DenomUnits[0].Aliases[0])
 				if err != nil {
 					return err
 				}
@@ -424,13 +181,13 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 				return nil
 			},
 			expPass: true,
-			alias:   []string{tronDenom},
+			alias:   metadata.DenomUnits[0].Aliases[1:],
 			errMsg:  "",
 		},
 		{
 			name: "failed - denom not equal",
 			malleate: func() error {
-				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", polygonDenom)
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", denom)
 				if err != nil {
 					return err
 				}
@@ -461,7 +218,7 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 				if err != nil {
 					return err
 				}
-				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", polygonDenom)
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", denom)
 				if err != nil {
 					return err
 				}
@@ -477,7 +234,7 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 			malleate: func() error {
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "abc", []byte{})
 
-				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", bscDenom)
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", denom)
 				if err != nil {
 					return err
 				}
@@ -508,7 +265,7 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 				if err != nil {
 					return err
 				}
-				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", bscDenom)
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", denom)
 				if err != nil {
 					return err
 				}
@@ -522,7 +279,7 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 		{
 			name: "failed - aliases can not empty",
 			malleate: func() error {
-				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", tronDenom)
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "abc", denom)
 				if err != nil {
 					return err
 				}
@@ -536,9 +293,9 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 		{
 			name: "failed - alias denom not equal with update denom",
 			malleate: func() error {
-				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "abc", bscDenom)
+				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "abc", denom)
 
-				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "usdt", bscDenom)
+				addAlias, err := suite.app.Erc20Keeper.UpdateDenomAlias(suite.ctx, "usdt", denom)
 				if err != nil {
 					return err
 				}
@@ -550,7 +307,6 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 			errMsg:  "",
 		},
 	}
-
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
@@ -568,10 +324,10 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 					aliasRegistered := suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, alias)
 					suite.Require().True(aliasRegistered)
 				}
-				if len(metadata.DenomUnits[0].Aliases) > len(tc.alias) {
-					for _, alias := range metadata.DenomUnits[0].Aliases[len(tc.alias):] {
+				for _, alias := range metadata.DenomUnits[0].Aliases {
+					if !slices.Contains(tc.alias, alias) {
 						aliasRegistered := suite.app.Erc20Keeper.IsAliasDenomRegistered(suite.ctx, alias)
-						suite.Require().False(aliasRegistered)
+						suite.Require().False(aliasRegistered, alias)
 					}
 				}
 			} else {
@@ -582,18 +338,14 @@ func (suite *KeeperTestSuite) TestUpdateDenomAlias() {
 }
 
 func (suite *KeeperTestSuite) TestRegisterERC20() {
-	var (
-		contractAddr common.Address
-		pair         types.TokenPair
-	)
 	testCases := []struct {
 		name     string
-		malleate func()
+		malleate func(contractAddr common.Address)
 		expPass  bool
 	}{
 		{
 			"intrarelaying is disabled globally",
-			func() {
+			func(contractAddr common.Address) {
 				params := types.DefaultParams()
 				params.EnableErc20 = false
 				suite.app.Erc20Keeper.SetParams(suite.ctx, params)
@@ -602,28 +354,31 @@ func (suite *KeeperTestSuite) TestRegisterERC20() {
 		},
 		{
 			"token ERC20 already registered",
-			func() {
+			func(contractAddr common.Address) {
+				pair := types.NewTokenPair(contractAddr, "test", true, types.OWNER_EXTERNAL)
 				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, pair.GetERC20Contract(), pair.GetID())
 			},
 			false,
 		},
 		{
 			"denom already registered",
-			func() {
+			func(contractAddr common.Address) {
+				pair := types.NewTokenPair(contractAddr, "test", true, types.OWNER_EXTERNAL)
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, pair.Denom, pair.GetID())
 			},
 			false,
 		},
 		{
 			"alias already registered",
-			func() {
+			func(contractAddr common.Address) {
+				pair := types.NewTokenPair(contractAddr, "test", true, types.OWNER_EXTERNAL)
 				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "test", pair.Denom)
 			},
 			false,
 		},
 		{
 			"meta data already stored",
-			func() {
+			func(contractAddr common.Address) {
 				_, _, _, err := suite.app.Erc20Keeper.CreateCoinMetadata(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
 			},
@@ -631,7 +386,7 @@ func (suite *KeeperTestSuite) TestRegisterERC20() {
 		},
 		{
 			"ok",
-			func() {},
+			func(contractAddr common.Address) {},
 			true,
 		},
 	}
@@ -639,15 +394,12 @@ func (suite *KeeperTestSuite) TestRegisterERC20() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			var err error
-			contractAddr, err = suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
+			contractAddr, err := suite.DeployContract(suite.signer.Address())
 			suite.Require().NoError(err)
-			//suite.Commit()
-			coinName := strings.ToLower(erc20Symbol)
-			pair = types.NewTokenPair(contractAddr, coinName, true, types.OWNER_EXTERNAL)
 
-			tc.malleate()
+			tc.malleate(contractAddr)
 
+			coinName := "test"
 			_, err = suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 			metadata, _ := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, coinName)
 			if tc.expPass {
@@ -658,8 +410,8 @@ func (suite *KeeperTestSuite) TestRegisterERC20() {
 				// Denom units
 				suite.Require().Equal(len(metadata.DenomUnits), 2)
 				suite.Require().Equal(coinName, metadata.DenomUnits[0].Denom)
-				suite.Require().Equal(uint32(erc20Decimals), metadata.DenomUnits[1].Exponent)
-				suite.Require().Equal(erc20Symbol, metadata.DenomUnits[1].Denom)
+				suite.Require().Equal(uint32(18), metadata.DenomUnits[1].Exponent)
+				suite.Require().Equal(strings.ToUpper(coinName), metadata.DenomUnits[1].Denom)
 			} else {
 				suite.Require().Error(err, tc.name)
 			}
@@ -668,58 +420,59 @@ func (suite *KeeperTestSuite) TestRegisterERC20() {
 }
 
 func (suite *KeeperTestSuite) TestToggleRelay() {
-	var (
-		contractAddr common.Address
-		id           []byte
-		pair         types.TokenPair
-	)
-
 	testCases := []struct {
 		name         string
-		malleate     func()
+		malleate     func() ([]byte, common.Address)
 		expPass      bool
 		relayEnabled bool
 	}{
 		{
 			"token not registered",
-			func() {
-				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
+			func() ([]byte, common.Address) {
+				contractAddr, err := suite.DeployContract(suite.signer.Address())
 				suite.Require().NoError(err)
-				//suite.Commit()
-				pair = types.NewTokenPair(contractAddr, cosmosTokenBase, true, types.OWNER_MODULE)
+				return nil, contractAddr
 			},
 			false,
 			false,
 		},
 		{
 			"token not registered - pair not found",
-			func() {
-				contractAddr, err := suite.DeployContract(suite.address, erc20Name, erc20Symbol, erc20Decimals)
+			func() ([]byte, common.Address) {
+				contractAddr, err := suite.DeployContract(suite.signer.Address())
 				suite.Require().NoError(err)
 				//suite.Commit()
-				pair = types.NewTokenPair(contractAddr, cosmosTokenBase, true, types.OWNER_MODULE)
+				pair := types.NewTokenPair(contractAddr, "test", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, common.HexToAddress(pair.Erc20Address), pair.GetID())
+				return nil, contractAddr
 			},
 			false,
 			false,
 		},
 		{
 			"disable relay",
-			func() {
-				contractAddr = suite.setupRegisterERC20Pair(contractMinterBurner)
-				id = suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
-				pair, _ = suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
+			func() ([]byte, common.Address) {
+				contractAddr := suite.setupRegisterERC20Pair()
+				id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
+				_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
+				suite.True(found)
+				return id, contractAddr
 			},
 			true,
 			false,
 		},
 		{
 			"disable and enable relay",
-			func() {
-				contractAddr = suite.setupRegisterERC20Pair(contractMinterBurner)
-				id = suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
-				pair, _ = suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
-				pair, _ = suite.app.Erc20Keeper.ToggleRelay(suite.ctx, contractAddr.String())
+			func() ([]byte, common.Address) {
+				contractAddr := suite.setupRegisterERC20Pair()
+				id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
+				pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
+				suite.True(found)
+				pair1, err := suite.app.Erc20Keeper.ToggleRelay(suite.ctx, contractAddr.String())
+				suite.NoError(err)
+				pair.Enabled = !pair.Enabled
+				suite.Equal(pair, pair1)
+				return id, contractAddr
 			},
 			true,
 			true,
@@ -729,12 +482,13 @@ func (suite *KeeperTestSuite) TestToggleRelay() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 
-			tc.malleate()
+			id, contractAddr := tc.malleate()
+			if id != nil {
+				_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
+				suite.True(found)
+			}
 
-			var err error
-			pair, err = suite.app.Erc20Keeper.ToggleRelay(suite.ctx, contractAddr.String())
-			// Request the pair using the GetPairToken func to make sure that is updated on the db
-			pair, _ = suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
+			pair, err := suite.app.Erc20Keeper.ToggleRelay(suite.ctx, contractAddr.String())
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 				if tc.relayEnabled {
