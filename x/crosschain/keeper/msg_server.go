@@ -255,6 +255,10 @@ func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*t
 	if oracle.BridgerAddress == msg.BridgerAddress {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address is not changed")
 	}
+	if _, found := s.Keeper.GetOracleAddressByBridgerKey(ctx, bridgerAddr); found {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
+	}
+	s.Keeper.DelOracleByBridger(ctx, oracle.GetBridger())
 	oracle.BridgerAddress = msg.BridgerAddress
 	s.Keeper.SetOracle(ctx, oracle)
 	s.Keeper.SetOracleByBridger(ctx, bridgerAddr, oracleAddr)

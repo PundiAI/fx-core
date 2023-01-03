@@ -292,10 +292,17 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 	suite.app.BeginBlock(abci.RequestBeginBlock{Header: types2.Header{ChainID: suite.ctx.ChainID(), Height: suite.ctx.BlockHeight()}})
 
 	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.MustAccAddressFromBech32(sendToMsg.Receiver))
-	suite.Equal(balances.String(), sdk.NewCoins().String())
+	suite.Equal(balances.String(), sdk.NewCoins().String(), len(suite.bridgers))
 
 	for i := 0; i < len(suite.oracles); i++ {
 		_, err := suite.MsgServer().EditBridger(sdk.WrapSDKContext(suite.ctx), &types.MsgEditBridger{
+			ChainName:      suite.chainName,
+			OracleAddress:  suite.oracles[i].String(),
+			BridgerAddress: suite.bridgers[i].String(),
+		})
+		suite.Require().Error(err)
+
+		_, err = suite.MsgServer().EditBridger(sdk.WrapSDKContext(suite.ctx), &types.MsgEditBridger{
 			ChainName:      suite.chainName,
 			OracleAddress:  suite.oracles[i].String(),
 			BridgerAddress: sdk.AccAddress(suite.validator[i]).String(),
@@ -309,6 +316,10 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 		} else {
 			suite.NoError(err)
 		}
+	}
+	for _, bridger := range suite.bridgers {
+		_, found := suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
+		suite.False(found)
 	}
 
 	suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
