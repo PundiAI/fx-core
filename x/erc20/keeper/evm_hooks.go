@@ -24,8 +24,8 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 		return nil
 	}
 
-	el, failed := h.k.ParseEventLog(receipt)
-	if failed {
+	el, complete := ParseEventLog(receipt)
+	if !complete {
 		return errors.New("parse event log failed")
 	}
 

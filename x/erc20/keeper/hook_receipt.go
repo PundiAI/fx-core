@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"sync"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,52 +28,33 @@ type EventLog struct {
 	TransferCrossChain []*TransferCrossChainEventLog
 }
 
-func (k Keeper) ParseEventLog(receipt *ethtypes.Receipt) (EventLog, bool) {
+func ParseEventLog(receipt *ethtypes.Receipt) (EventLog, bool) {
 	fip20ABI := fxtypes.GetERC20().ABI
 
 	relayTokenEvents := make([]*RelayTokenEventLog, 0, len(receipt.Logs))
 	transferCrossChainEvents := make([]*TransferCrossChainEventLog, 0, len(receipt.Logs))
 
-	parseFailed := false
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+	for _, log := range receipt.Logs {
+		rt, rtOk, rtErr := ParseRelayTokenEvent(fip20ABI, log)
+		tc, tcOk, tcErr := fxtypes.ParseTransferCrossChainEvent(fip20ABI, log)
 
-	// parse relay token event
-	go func() {
-		defer wg.Done()
-		for _, log := range receipt.Logs {
-			rt, isOk, err := ParseRelayTokenEvent(fip20ABI, log)
-			if err != nil {
-				parseFailed = true
-				break
-			}
-			if !isOk {
-				continue
-			}
+		if rtErr != nil || tcErr != nil {
+			return EventLog{}, false
+		}
+		if !rtOk && !tcOk {
+			continue
+		}
+
+		if rtOk {
 			relayTokenEvents = append(relayTokenEvents, &RelayTokenEventLog{Event: rt, Log: log})
 		}
-	}()
-
-	// parse transfer cross chain event
-	go func() {
-		defer wg.Done()
-		for _, log := range receipt.Logs {
-			tc, isOk, err := fxtypes.ParseTransferCrossChainEvent(fip20ABI, log)
-			if err != nil {
-				parseFailed = true
-				break
-			}
-			if !isOk {
-				continue
-			}
+		if tcOk {
 			transferCrossChainEvents = append(transferCrossChainEvents, &TransferCrossChainEventLog{Event: tc, Log: log})
 		}
-	}()
-
-	wg.Wait()
+	}
 
 	el := EventLog{RelayToken: relayTokenEvents, TransferCrossChain: transferCrossChainEvents}
-	return el, parseFailed
+	return el, true
 }
 
 func (k Keeper) TokenPairEnable(ctx sdk.Context, eventLog EventLog) (EventLog, error) {
