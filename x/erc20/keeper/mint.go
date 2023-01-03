@@ -13,7 +13,7 @@ import (
 //   - minting is enabled for the given (erc20,coin) token pair
 //   - recipient address is not on the blocked list
 //   - bank module transfers are enabled for the Cosmos coin
-func (k Keeper) MintingEnabled(ctx sdk.Context, sender, receiver sdk.AccAddress, token string) (types.TokenPair, error) {
+func (k Keeper) MintingEnabled(ctx sdk.Context, receiver sdk.AccAddress, token string) (types.TokenPair, error) {
 	if !k.GetEnableErc20(ctx) {
 		return types.TokenPair{}, sdkerrors.Wrap(types.ErrERC20Disabled, "module is currently disabled by governance")
 	}
@@ -29,11 +29,11 @@ func (k Keeper) MintingEnabled(ctx sdk.Context, sender, receiver sdk.AccAddress,
 	}
 
 	if !pair.Enabled {
-		return types.TokenPair{}, sdkerrors.Wrapf(types.ErrERC20TokenPairDisabled, "minting token '%s' is not enabled by governance", token)
+		return pair, sdkerrors.Wrapf(types.ErrERC20TokenPairDisabled, "minting token '%s' is not enabled by governance", token)
 	}
 
 	if k.bankKeeper.BlockedAddr(receiver.Bytes()) {
-		return types.TokenPair{}, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive transactions", receiver)
+		return pair, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive transactions", receiver)
 	}
 
 	// NOTE: ignore amount as only denom is checked on IsSendEnabledCoin
@@ -42,7 +42,7 @@ func (k Keeper) MintingEnabled(ctx sdk.Context, sender, receiver sdk.AccAddress,
 	// check if minting to a recipient address other than the sender is enabled for the given coin denom
 	// if coin disable and sender not equal receiver, can not convert denom
 	if !k.bankKeeper.IsSendEnabledCoin(ctx, coin) {
-		return types.TokenPair{}, sdkerrors.Wrapf(banktypes.ErrSendDisabled, "minting '%s' coins to an external address is currently disabled", token)
+		return pair, sdkerrors.Wrapf(banktypes.ErrSendDisabled, "minting '%s' coins to an external address is currently disabled", token)
 	}
 
 	return pair, nil

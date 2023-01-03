@@ -11,10 +11,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMintingEnabled() {
-	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
-	receiver := sdk.AccAddress(helpers.GenerateAddress().Bytes())
 	expPair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
-	id := expPair.GetID()
 
 	testCases := []struct {
 		name     string
@@ -39,9 +36,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 			"intrarelaying is disabled for the given pair",
 			func() {
 				expPair.Enabled = false
-				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, expPair)
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, expPair.Denom, id)
-				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, expPair.GetERC20Contract(), id)
+				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
 			},
 			false,
 		},
@@ -49,9 +44,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 			"token transfers are disabled",
 			func() {
 				expPair.Enabled = true
-				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, expPair)
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, expPair.Denom, id)
-				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, expPair.GetERC20Contract(), id)
+				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
 
 				params := banktypes.DefaultParams()
 				params.SendEnabled = []*banktypes.SendEnabled{
@@ -62,19 +55,9 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 			false,
 		},
 		{
-			"token not registered",
-			func() {
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, expPair.Denom, id)
-				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, expPair.GetERC20Contract(), id)
-			},
-			false,
-		},
-		{
 			"ok",
 			func() {
-				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, expPair)
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, expPair.Denom, id)
-				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, expPair.GetERC20Contract(), id)
+				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, expPair)
 			},
 			true,
 		},
@@ -86,7 +69,8 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 
 			tc.malleate()
 
-			pair, err := suite.app.Erc20Keeper.MintingEnabled(suite.ctx, sender, receiver, expPair.Erc20Address)
+			receiver := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+			pair, err := suite.app.Erc20Keeper.MintingEnabled(suite.ctx, receiver, expPair.Erc20Address)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expPair, pair)

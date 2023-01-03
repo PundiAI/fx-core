@@ -23,11 +23,9 @@ var _ types.MsgServer = &Keeper{}
 func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*types.MsgConvertCoinResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Error checked during msg validation
 	receiver := common.HexToAddress(msg.Receiver)
-	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 
-	pair, err := k.MintingEnabled(ctx, sender, receiver.Bytes(), msg.Coin.Denom)
+	pair, err := k.MintingEnabled(ctx, receiver.Bytes(), msg.Coin.Denom)
 	if err != nil {
 		return nil, err
 	}
@@ -42,6 +40,7 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 		return &types.MsgConvertCoinResponse{}, nil
 	}
 
+	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 	newCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	// Check ownership and execute conversion
 	switch {
@@ -59,25 +58,9 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) (*types.MsgConvertERC20Response, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Error checked during msg validation
 	receiver := sdk.MustAccAddressFromBech32(msg.Receiver)
-	/* sender have two cases
-	* 1. cosmos - m/44'/118'/0'/0/0
-	* private key ---> cosmos address ---> hex sender
-	* hex sender convert from cosmos address
-	* private key can authenticate cosmos address in fxcore (verify with cosmos_spec256k1)
-	* private key can **NOT** authenticate hex sender address in EVM (verify with eth_spec256k1)
-	*
-	* 2. eth - m/44'/60'/0'/0/1
-	* private key ---> eth public key ---> hex sender ---> cosmos address
-	*						 | ---> cosmos public key
-	* cosmos address equal to hex sender, generate by eth public key
-	* private key can authenticate cosmos address in fxcore (verify with eth_spec256k1)
-	* private key can authenticate hex sender address in EVM (verify with eth_spec256k1)
-	 */
-	sender := common.HexToAddress(msg.Sender)
 
-	pair, err := k.MintingEnabled(ctx, sender.Bytes(), receiver, msg.ContractAddress)
+	pair, err := k.MintingEnabled(ctx, receiver, msg.ContractAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +75,7 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 		return &types.MsgConvertERC20Response{}, nil
 	}
 
+	sender := common.HexToAddress(msg.Sender)
 	newCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	// Check ownership
 	switch {
