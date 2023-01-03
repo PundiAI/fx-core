@@ -16,12 +16,6 @@ import (
 
 // QueryERC20 returns the data of a deployed ERC20 contract
 func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC20Data, error) {
-	var (
-		nameRes    types.ERC20StringResponse
-		symbolRes  types.ERC20StringResponse
-		decimalRes types.ERC20Uint8Response
-	)
-
 	erc20 := fxtypes.GetERC20().ABI
 
 	// Name
@@ -29,7 +23,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
-
+	var nameRes struct{ Value string }
 	if err := erc20.UnpackIntoInterface(&nameRes, "name", res.Ret); err != nil {
 		return types.ERC20Data{}, sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack name: %s", err.Error())
 	}
@@ -39,7 +33,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
-
+	var symbolRes struct{ Value string }
 	if err := erc20.UnpackIntoInterface(&symbolRes, "symbol", res.Ret); err != nil {
 		return types.ERC20Data{}, sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack symbol: %s", err.Error())
 	}
@@ -49,7 +43,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
-
+	var decimalRes struct{ Value uint8 }
 	if err := erc20.UnpackIntoInterface(&decimalRes, "decimals", res.Ret); err != nil {
 		return types.ERC20Data{}, sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack decimals: %s", err.Error())
 	}
@@ -66,7 +60,7 @@ func (k Keeper) BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.
 		return nil, err
 	}
 
-	var balanceRes types.ERC20Uint256Response
+	var balanceRes struct{ Value *big.Int }
 	if err := erc20.UnpackIntoInterface(&balanceRes, "balanceOf", res.Ret); err != nil {
 		return nil, err
 	}

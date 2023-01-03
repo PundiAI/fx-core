@@ -60,10 +60,10 @@ func (suite *Erc20TestSuite) CheckRegisterCoin(denom string) {
 	}
 }
 
-func (suite *Erc20TestSuite) TokenPair(denom string) erc20types.TokenPair {
+func (suite *Erc20TestSuite) TokenPair(denom string) *erc20types.TokenPair {
 	pairResp, err := suite.ERC20Query().TokenPair(suite.ctx, &erc20types.QueryTokenPairRequest{Token: denom})
 	suite.NoError(err)
-	return pairResp.TokenPair
+	return &pairResp.TokenPair
 }
 
 func (suite *Erc20TestSuite) Erc20TokenAddress(denom string) common.Address {

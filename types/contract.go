@@ -21,7 +21,6 @@ type Contract struct {
 	ABI     abi.ABI
 	Bin     []byte
 	Code    []byte
-	Version string
 }
 
 var (
@@ -34,19 +33,19 @@ var (
 		Address: common.HexToAddress(FIP20LogicAddress),
 		ABI:     mustABIJson(contract.FIP20ABI),
 		Bin:     mustDecodeHex(contract.FIP20Bin),
-		Code:    initERC20Code, Version: "v0.0.1",
+		Code:    initERC20Code,
 	}
 	wfxInit = Contract{
 		Address: common.HexToAddress(WFXLogicAddress),
 		ABI:     mustABIJson(contract.WFXABI),
 		Bin:     mustDecodeHex(contract.WFXBin),
-		Code:    initWFXCode, Version: "v0.0.2",
+		Code:    initWFXCode,
 	}
 	erc1967Proxy = Contract{
 		Address: common.Address{},
 		ABI:     mustABIJson(contract.ERC1967ProxyABI),
 		Bin:     mustDecodeHex(contract.ERC1967ProxyBin),
-		Code:    []byte{}, Version: "v0.0.1",
+		Code:    []byte{},
 	}
 )
 

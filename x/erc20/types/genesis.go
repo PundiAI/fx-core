@@ -20,11 +20,11 @@ func DefaultGenesisState() *GenesisState {
 
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
-func (gs GenesisState) Validate() error {
+func (m *GenesisState) Validate() error {
 	seenErc20 := make(map[string]bool)
 	seenDenom := make(map[string]bool)
 
-	for _, b := range gs.TokenPairs {
+	for _, b := range m.TokenPairs {
 		if seenErc20[b.Erc20Address] {
 			return fmt.Errorf("token ERC20 contract duplicated on genesis '%s'", b.Erc20Address)
 		}
@@ -40,5 +40,5 @@ func (gs GenesisState) Validate() error {
 		seenDenom[b.Denom] = true
 	}
 
-	return gs.Params.Validate()
+	return m.Params.Validate()
 }

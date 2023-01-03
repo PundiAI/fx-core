@@ -64,24 +64,24 @@ func (*RegisterCoinProposal) ProposalType() string {
 }
 
 // ValidateBasic performs a stateless check of the proposal fields
-func (rtbp *RegisterCoinProposal) ValidateBasic() error {
-	if err := rtbp.Metadata.Validate(); err != nil {
+func (m *RegisterCoinProposal) ValidateBasic() error {
+	if err := m.Metadata.Validate(); err != nil {
 		return err
 	}
 
-	if err := ValidateMetadataErc20(rtbp.Metadata); err != nil {
+	if err := ValidateMetadataErc20(m.Metadata); err != nil {
 		return err
 	}
 
-	if err := ibctransfertypes.ValidateIBCDenom(rtbp.Metadata.Base); err != nil {
+	if err := ibctransfertypes.ValidateIBCDenom(m.Metadata.Base); err != nil {
 		return err
 	}
 
-	if err := validateIBC(rtbp.Metadata); err != nil {
+	if err := validateIBC(m.Metadata); err != nil {
 		return err
 	}
 
-	return govtypes.ValidateAbstract(rtbp)
+	return govtypes.ValidateAbstract(m)
 }
 
 func validateIBC(metadata banktypes.Metadata) error {
@@ -153,11 +153,11 @@ func (*RegisterERC20Proposal) ProposalType() string {
 }
 
 // ValidateBasic performs a stateless check of the proposal fields
-func (rtbp *RegisterERC20Proposal) ValidateBasic() error {
-	if err := fxtypes.ValidateEthereumAddress(rtbp.Erc20Address); err != nil {
+func (m *RegisterERC20Proposal) ValidateBasic() error {
+	if err := fxtypes.ValidateEthereumAddress(m.Erc20Address); err != nil {
 		return sdkerrors.Wrap(err, "ERC20 address")
 	}
-	return govtypes.ValidateAbstract(rtbp)
+	return govtypes.ValidateAbstract(m)
 }
 
 // NewToggleTokenConversionProposal returns new instance of ToggleTokenConversionProposal
@@ -178,16 +178,16 @@ func (*ToggleTokenConversionProposal) ProposalType() string {
 }
 
 // ValidateBasic performs a stateless check of the proposal fields
-func (etrp *ToggleTokenConversionProposal) ValidateBasic() error {
+func (m *ToggleTokenConversionProposal) ValidateBasic() error {
 	// check if the token is a hex address, if not, check if it is a valid SDK
 	// denom
-	if err := fxtypes.ValidateEthereumAddress(etrp.Token); err != nil {
-		if err := sdk.ValidateDenom(etrp.Token); err != nil {
+	if err := fxtypes.ValidateEthereumAddress(m.Token); err != nil {
+		if err := sdk.ValidateDenom(m.Token); err != nil {
 			return err
 		}
 	}
 
-	return govtypes.ValidateAbstract(etrp)
+	return govtypes.ValidateAbstract(m)
 }
 
 // NewUpdateDenomAliasProposal returns new instance of UpdateDenomAliasProposal
@@ -209,12 +209,12 @@ func (*UpdateDenomAliasProposal) ProposalType() string {
 }
 
 // ValidateBasic performs a stateless check of the proposal fields
-func (udap *UpdateDenomAliasProposal) ValidateBasic() error {
-	if err := sdk.ValidateDenom(udap.Denom); err != nil {
+func (m *UpdateDenomAliasProposal) ValidateBasic() error {
+	if err := sdk.ValidateDenom(m.Denom); err != nil {
 		return err
 	}
-	if err := sdk.ValidateDenom(udap.Alias); err != nil {
+	if err := sdk.ValidateDenom(m.Alias); err != nil {
 		return err
 	}
-	return govtypes.ValidateAbstract(udap)
+	return govtypes.ValidateAbstract(m)
 }

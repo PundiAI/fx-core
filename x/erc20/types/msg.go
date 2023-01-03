@@ -32,16 +32,16 @@ func NewMsgConvertCoin(coin sdk.Coin, receiver common.Address, sender sdk.AccAdd
 }
 
 // Route should return the name of the module
-func (m MsgConvertCoin) Route() string { return RouterKey }
+func (m *MsgConvertCoin) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgConvertCoin) Type() string { return TypeMsgConvertCoin }
+func (m *MsgConvertCoin) Type() string { return TypeMsgConvertCoin }
 
 // ValidateBasic runs stateless checks on the message
-func (m MsgConvertCoin) ValidateBasic() error {
+func (m *MsgConvertCoin) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err)
 	}
 	if err = fxtypes.ValidateEthereumAddress(m.Receiver); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address %s", err.Error())
@@ -63,7 +63,7 @@ func (m *MsgConvertCoin) GetSignBytes() []byte {
 }
 
 // GetSigners defines whose signature is required
-func (m MsgConvertCoin) GetSigners() []sdk.AccAddress {
+func (m *MsgConvertCoin) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Sender)
 	return []sdk.AccAddress{addr}
 }
@@ -79,19 +79,19 @@ func NewMsgConvertERC20(amount sdk.Int, receiver sdk.AccAddress, contract, sende
 }
 
 // Route should return the name of the module
-func (m MsgConvertERC20) Route() string { return RouterKey }
+func (m *MsgConvertERC20) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
+func (m *MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
 
 // ValidateBasic runs stateless checks on the message
-func (m MsgConvertERC20) ValidateBasic() error {
+func (m *MsgConvertERC20) ValidateBasic() error {
 	if err := fxtypes.ValidateEthereumAddress(m.Sender); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err.Error())
 	}
 	_, err := sdk.AccAddressFromBech32(m.Receiver)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address %s", err)
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.ContractAddress); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid contract address %s", err.Error())
@@ -108,7 +108,7 @@ func (m *MsgConvertERC20) GetSignBytes() []byte {
 }
 
 // GetSigners defines whose signature is required
-func (m MsgConvertERC20) GetSigners() []sdk.AccAddress {
+func (m *MsgConvertERC20) GetSigners() []sdk.AccAddress {
 	addr := common.HexToAddress(m.Sender)
 	return []sdk.AccAddress{addr.Bytes()}
 }
@@ -123,19 +123,20 @@ func NewMsgConvertDenom(sender, receiver sdk.AccAddress, coin sdk.Coin, target s
 }
 
 // Route should return the name of the module
-func (m MsgConvertDenom) Route() string { return RouterKey }
+func (m *MsgConvertDenom) Route() string { return RouterKey }
 
 // Type should return the action
-func (m MsgConvertDenom) Type() string { return TypeMsgConvertDenom }
+func (m *MsgConvertDenom) Type() string { return TypeMsgConvertDenom }
 
 // ValidateBasic runs stateless checks on the message
-func (m MsgConvertDenom) ValidateBasic() error {
+func (m *MsgConvertDenom) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err.Error())
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Receiver); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address %s", err)
 	}
+	// todo denom validate
 	if !m.Coin.IsPositive() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, m.Coin.String())
 	}
@@ -148,7 +149,7 @@ func (m *MsgConvertDenom) GetSignBytes() []byte {
 }
 
 // GetSigners defines whose signature is required
-func (m MsgConvertDenom) GetSigners() []sdk.AccAddress {
+func (m *MsgConvertDenom) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Sender)
 	return []sdk.AccAddress{addr}
 }

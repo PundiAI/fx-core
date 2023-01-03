@@ -10,27 +10,24 @@ import (
 
 // GetAllTokenPairs - get all registered token tokenPairs
 func (k Keeper) GetAllTokenPairs(ctx sdk.Context) []types.TokenPair {
-	tokenPairs := []types.TokenPair{}
 
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefixTokenPair)
 	defer iterator.Close()
 
+	var tokenPairs []types.TokenPair
 	for ; iterator.Valid(); iterator.Next() {
 		var tokenPair types.TokenPair
 		k.cdc.MustUnmarshal(iterator.Value(), &tokenPair)
-
 		tokenPairs = append(tokenPairs, tokenPair)
 	}
-
 	return tokenPairs
 }
 
 // GetTokenPairID returns the pair id from either of the registered tokens.
 func (k Keeper) GetTokenPairID(ctx sdk.Context, token string) []byte {
 	if common.IsHexAddress(token) {
-		addr := common.HexToAddress(token)
-		return k.GetERC20Map(ctx, addr)
+		return k.GetERC20Map(ctx, common.HexToAddress(token))
 	}
 	return k.GetDenomMap(ctx, token)
 }
@@ -42,12 +39,12 @@ func (k Keeper) GetTokenPair(ctx sdk.Context, id []byte) (types.TokenPair, bool)
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
-	var tokenPair types.TokenPair
 	bz := store.Get(id)
 	if len(bz) == 0 {
 		return types.TokenPair{}, false
 	}
 
+	var tokenPair types.TokenPair
 	k.cdc.MustUnmarshal(bz, &tokenPair)
 	return tokenPair, true
 }

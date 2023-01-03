@@ -69,7 +69,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-func (p Params) Validate() error {
+func (p *Params) Validate() error {
 	if p.IbcTimeout <= 0 {
 		return fmt.Errorf("ibc timeout cannot be 0")
 	}

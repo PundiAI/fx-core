@@ -297,7 +297,7 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 	}
 
 	// Check unpackedRet execution
-	var unpackedRet types.ERC20BoolResponse
+	var unpackedRet struct{ Value bool }
 	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
 	}
@@ -374,7 +374,7 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	}
 
 	// Check unpackedRet execution
-	var unpackedRet types.ERC20BoolResponse
+	var unpackedRet struct{ Value bool }
 	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
 	}
