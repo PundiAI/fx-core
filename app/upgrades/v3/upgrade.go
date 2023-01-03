@@ -101,6 +101,9 @@ func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
 	} else {
 		panic("invalid chainId:" + chainId)
 	}
+	if len(oracles) <= 0 {
+		return
+	}
 	bscKeeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: oracles,
 	})
