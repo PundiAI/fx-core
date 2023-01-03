@@ -232,7 +232,7 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 					Symbol:  "USDT",
 				})
 			},
-			false,
+			true,
 		},
 		{
 			"ok",

@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
@@ -152,14 +151,4 @@ func (m *MsgConvertDenom) GetSignBytes() []byte {
 func (m *MsgConvertDenom) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Sender)
 	return []sdk.AccAddress{addr}
-}
-
-func IsManyToOneMetadata(md banktypes.Metadata) bool {
-	if len(md.DenomUnits) == 0 {
-		return false
-	}
-	if len(md.DenomUnits[0].Aliases) == 0 {
-		return false
-	}
-	return true
 }

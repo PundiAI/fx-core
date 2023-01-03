@@ -104,8 +104,8 @@ func (k Keeper) DenomAliases(c context.Context, req *types.QueryDenomAliasesRequ
 		return nil, status.Errorf(codes.NotFound, "metadata not found with denom '%s'", req.Denom)
 	}
 
-	if !types.IsManyToOneMetadata(md) {
-		return nil, status.Errorf(codes.InvalidArgument, "not support alias with denom '%s'", req.Denom)
+	if len(md.DenomUnits) == 0 {
+		return nil, status.Errorf(codes.NotFound, "not found alias with denom '%s'", req.Denom)
 	}
 
 	return &types.QueryDenomAliasesResponse{Aliases: md.DenomUnits[0].Aliases}, nil
