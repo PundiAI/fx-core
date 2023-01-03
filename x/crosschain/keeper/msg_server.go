@@ -555,7 +555,7 @@ func (s MsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleS
 	}
 	// Add the claim to the store
 	if _, err := s.Attest(ctx, oracleAddr, msg); err != nil {
-		return nil, sdkerrors.Wrap(err, "create attestation")
+		return nil, err
 	}
 
 	// Emit the handle message event
@@ -594,7 +594,7 @@ func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) 
 
 	// Add the claim to the store
 	if _, err := s.Attest(ctx, oracleAddr, msg); err != nil {
-		return sdkerrors.Wrap(err, "create attestation")
+		return err
 	}
 
 	// Emit the handle message event

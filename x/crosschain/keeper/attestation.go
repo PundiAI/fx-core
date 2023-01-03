@@ -14,7 +14,7 @@ import (
 func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.ExternalClaim) (*types.Attestation, error) {
 	anyClaim, err := codectypes.NewAnyWithValue(claim)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "msg to any")
+		return nil, sdkerrors.Wrap(types.ErrUnknown, "msg to any")
 	}
 	// Check that the nonce of this event is exactly one higher than the last nonce stored by this oracle.
 	// We check the event nonce in processAttestation as well, but checking it here gives individual eth signers a chance to retry,
