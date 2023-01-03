@@ -60,7 +60,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		k.bankKeeper.SetDenomMetaData(ctx, coinMetadata)
 	}
 
-	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, coinMetadata.Name, coinMetadata.Symbol, decimals)
+	addr, err := k.DeployUpgradableToken(ctx, k.moduleAddress, coinMetadata.Name, coinMetadata.Symbol, decimals)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name
 		return common.Address{}, err
 	}
 
-	_, err = k.CallEVM(ctx, tokenContract.ABI, from, contract, true, "initialize", name, symbol, decimals, types.ModuleAddress)
+	_, err = k.CallEVM(ctx, tokenContract.ABI, from, contract, true, "initialize", name, symbol, decimals, k.moduleAddress)
 	if err != nil {
 		return common.Address{}, err
 	}

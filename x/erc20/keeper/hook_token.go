@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bytes"
 	"math/big"
 
 	"github.com/armon/go-metrics"
@@ -46,8 +45,8 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash comm
 
 	switch pair.ContractOwner {
 	case types.OWNER_MODULE:
-		if _, err = k.CallEVM(ctx, fip20ABI, types.ModuleAddress, pair.GetERC20Contract(),
-			true, "burn", types.ModuleAddress, amount); err != nil {
+		if _, err = k.CallEVM(ctx, fip20ABI, k.moduleAddress, pair.GetERC20Contract(),
+			true, "burn", k.moduleAddress, amount); err != nil {
 			return err
 		}
 
@@ -87,45 +86,35 @@ func (k Keeper) ProcessRelayToken(ctx sdk.Context, fip20ABI abi.ABI, txHash comm
 	return nil
 }
 
-// isRelayTokenEvent check transfer event is relay token
-// transfer event ---> event Transfer(address indexed from, address indexed to, uint256 value);
-// address to must be equal ModuleAddress
-func isRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) bool {
-	// Note: the `Transfer` event contains 3 topics (id, from, to)
-	if len(log.Topics) != 3 {
-		return false
-	}
-	eventID := log.Topics[0] // event ID
-	event, err := fip20ABI.EventByID(eventID)
-	if err != nil {
-		return false
-	}
-	if !(event.Name == types.ERC20EventTransfer) {
-		return false
-	}
-	//transfer to module address
-	to := common.BytesToAddress(log.Topics[2].Bytes())
-	return bytes.Equal(to.Bytes(), types.ModuleAddress.Bytes())
-}
-
 type RelayTokenEvent struct {
 	From  common.Address
 	To    common.Address
 	Value *big.Int
 }
 
-func ParseRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*RelayTokenEvent, bool, error) {
-	if !isRelayTokenEvent(fip20ABI, log) {
-		return nil, false, nil
+// ParseRelayTokenEvent transfer event ---> event Transfer(address indexed from, address indexed to, uint256 value);
+func ParseRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*RelayTokenEvent, common.Address, error) {
+	// Note: the `Transfer` event contains 3 topics (id, from, to)
+	if len(log.Topics) != 3 {
+		return nil, common.Address{}, nil
 	}
+	eventID := log.Topics[0] // event ID
+	event, err := fip20ABI.EventByID(eventID)
+	if err != nil {
+		return nil, common.Address{}, nil
+	}
+	if !(event.Name == types.ERC20EventTransfer) {
+		return nil, common.Address{}, nil
+	}
+	toAddr := common.BytesToAddress(log.Topics[2].Bytes())
 
-	rt := new(RelayTokenEvent)
+	relayTokenEvent := new(RelayTokenEvent)
 	if log.Topics[0] != fip20ABI.Events[types.ERC20EventTransfer].ID {
-		return nil, false, nil
+		return nil, toAddr, nil
 	}
 	if len(log.Data) > 0 {
-		if err := fip20ABI.UnpackIntoInterface(rt, types.ERC20EventTransfer, log.Data); err != nil {
-			return nil, false, err
+		if err := fip20ABI.UnpackIntoInterface(relayTokenEvent, types.ERC20EventTransfer, log.Data); err != nil {
+			return nil, toAddr, err
 		}
 	}
 	var indexed abi.Arguments
@@ -134,8 +123,8 @@ func ParseRelayTokenEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*RelayTokenEvent
 			indexed = append(indexed, arg)
 		}
 	}
-	if err := abi.ParseTopics(rt, indexed, log.Topics[1:]); err != nil {
-		return nil, false, err
+	if err := abi.ParseTopics(relayTokenEvent, indexed, log.Topics[1:]); err != nil {
+		return nil, toAddr, err
 	}
-	return rt, true, nil
+	return relayTokenEvent, toAddr, nil
 }

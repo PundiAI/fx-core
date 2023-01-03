@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/common"
@@ -16,7 +15,6 @@ import (
 
 // AccountKeeper defines the expected interface needed to retrieve account info.
 type AccountKeeper interface {
-	GetModuleAccount(ctx sdk.Context, moduleName string) authtypes.ModuleAccountI
 	GetModuleAddress(moduleName string) sdk.AccAddress
 	GetSequence(sdk.Context, sdk.AccAddress) (uint64, error)
 }

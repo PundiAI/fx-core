@@ -30,6 +30,8 @@ type Keeper struct {
 	IbcChannelKeeper  types.IBCChannelKeeper
 
 	router *types.Router
+
+	moduleAddress common.Address
 }
 
 // NewKeeper creates new instances of the erc20 Keeper
@@ -57,6 +59,7 @@ func NewKeeper(
 		evmKeeper:         evmKeeper,
 		IbcTransferKeeper: ibcTransferKeeper,
 		IbcChannelKeeper:  ibcChannelKeeper,
+		moduleAddress:     common.BytesToAddress(ak.GetModuleAddress(types.ModuleName)),
 	}
 }
 

@@ -28,27 +28,27 @@ type EventLog struct {
 	TransferCrossChain []*TransferCrossChainEventLog
 }
 
-func ParseEventLog(receipt *ethtypes.Receipt) (EventLog, bool) {
+func ParseEventLog(receipt *ethtypes.Receipt, moduleAddress common.Address) (EventLog, bool) {
 	fip20ABI := fxtypes.GetERC20().ABI
 
 	relayTokenEvents := make([]*RelayTokenEventLog, 0, len(receipt.Logs))
 	transferCrossChainEvents := make([]*TransferCrossChainEventLog, 0, len(receipt.Logs))
 
 	for _, log := range receipt.Logs {
-		rt, rtOk, rtErr := ParseRelayTokenEvent(fip20ABI, log)
-		tc, tcOk, tcErr := fxtypes.ParseTransferCrossChainEvent(fip20ABI, log)
+		rt, toAddr, rtErr := ParseRelayTokenEvent(fip20ABI, log)
+		tc, tcErr := fxtypes.ParseTransferCrossChainEvent(fip20ABI, log)
 
 		if rtErr != nil || tcErr != nil {
 			return EventLog{}, false
 		}
-		if !rtOk && !tcOk {
+		if toAddr != moduleAddress && tc == nil {
 			continue
 		}
 
-		if rtOk {
+		if toAddr == moduleAddress {
 			relayTokenEvents = append(relayTokenEvents, &RelayTokenEventLog{Event: rt, Log: log})
 		}
-		if tcOk {
+		if tc != nil {
 			transferCrossChainEvents = append(transferCrossChainEvents, &TransferCrossChainEventLog{Event: tc, Log: log})
 		}
 	}

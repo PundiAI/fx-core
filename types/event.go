@@ -47,17 +47,17 @@ type TransferCrossChainEvent struct {
 	Target    [32]byte
 }
 
-func ParseTransferCrossChainEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*TransferCrossChainEvent, bool, error) {
+func ParseTransferCrossChainEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*TransferCrossChainEvent, error) {
 	if len(log.Topics) != 2 {
-		return nil, false, nil
+		return nil, nil
 	}
 	tc := new(TransferCrossChainEvent)
 	if log.Topics[0] != fip20ABI.Events[FIP20EventTransferCrossChain].ID {
-		return nil, false, nil
+		return nil, nil
 	}
 	if len(log.Data) > 0 {
 		if err := fip20ABI.UnpackIntoInterface(tc, FIP20EventTransferCrossChain, log.Data); err != nil {
-			return nil, false, err
+			return nil, err
 		}
 	}
 	var indexed abi.Arguments
@@ -67,9 +67,9 @@ func ParseTransferCrossChainEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*Transfe
 		}
 	}
 	if err := abi.ParseTopics(tc, indexed, log.Topics[1:]); err != nil {
-		return nil, false, err
+		return nil, err
 	}
-	return tc, true, nil
+	return tc, nil
 }
 
 func (event *TransferCrossChainEvent) GetFrom() sdk.AccAddress {

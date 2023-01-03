@@ -24,12 +24,12 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 		return nil
 	}
 
-	el, complete := ParseEventLog(receipt)
+	eventLog, complete := ParseEventLog(receipt, h.k.moduleAddress)
 	if !complete {
 		return errors.New("parse event log failed")
 	}
 
-	el, err := h.k.TokenPairEnable(ctx, el)
+	eventLog, err := h.k.TokenPairEnable(ctx, eventLog)
 	if err != nil {
 		return err
 	}
@@ -38,14 +38,13 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 	// NOTE: ConvertERC20NativeToken doesn't trigger PostTxProcessing
 
 	// hook relay token
-	if err := h.k.HookRelayToken(ctx, el.RelayToken, receipt); err != nil {
+	if err := h.k.HookRelayToken(ctx, eventLog.RelayToken, receipt); err != nil {
 		return err
 	}
 
 	// hook transfer cross chain(cross-chain,ibc...)
-	if err := h.k.HookTransferCrossChain(ctx, el.TransferCrossChain, msg.From(), msg.To(), receipt); err != nil {
+	if err := h.k.HookTransferCrossChain(ctx, eventLog.TransferCrossChain, msg.From(), msg.To(), receipt); err != nil {
 		return err
 	}
-
 	return nil
 }

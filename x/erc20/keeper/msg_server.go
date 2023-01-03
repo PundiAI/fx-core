@@ -177,7 +177,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 	}
 
 	// Mint Tokens and send to receiver
-	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "mint", receiver, msg.Coin.Amount.BigInt())
+	_, err := k.CallEVM(ctx, erc20, k.moduleAddress, contract, true, "mint", receiver, msg.Coin.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 	contract := pair.GetERC20Contract()
 
 	// Burn escrowed tokens
-	_, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "burn", sender, msg.Amount.BigInt())
+	_, err := k.CallEVM(ctx, erc20, k.moduleAddress, contract, true, "burn", sender, msg.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 	contract := pair.GetERC20Contract()
 
 	// Escrow tokens on module account
-	transferData, err := erc20.Pack("transfer", types.ModuleAddress, msg.Amount.BigInt())
+	transferData, err := erc20.Pack("transfer", k.moduleAddress, msg.Amount.BigInt())
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrABIPack, "failed to pack transfer: %s", err.Error())
 	}
@@ -368,7 +368,7 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	}
 
 	// Unescrow Tokens and send to receiver
-	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "transfer", receiver, msg.Coin.Amount.BigInt())
+	res, err := k.CallEVM(ctx, erc20, k.moduleAddress, contract, true, "transfer", receiver, msg.Coin.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}

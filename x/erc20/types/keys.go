@@ -2,14 +2,10 @@ package types
 
 import (
 	"fmt"
-
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // constants
 const (
-	// module name
 	ModuleName = "erc20"
 
 	// StoreKey to be used when creating the KVStore
@@ -18,13 +14,6 @@ const (
 	// RouterKey to be used for message routing
 	RouterKey = ModuleName
 )
-
-// ModuleAddress is the native module address for EVM
-var ModuleAddress common.Address
-
-func init() {
-	ModuleAddress = common.BytesToAddress(authtypes.NewModuleAddress(ModuleName).Bytes())
-}
 
 // prefix bytes for the EVM persistent store
 const (

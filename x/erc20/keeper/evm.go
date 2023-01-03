@@ -19,7 +19,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	erc20 := fxtypes.GetERC20().ABI
 
 	// Name
-	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "name")
+	res, err := k.CallEVM(ctx, erc20, k.moduleAddress, contract, false, "name")
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
@@ -29,7 +29,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	}
 
 	// Symbol
-	res, err = k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "symbol")
+	res, err = k.CallEVM(ctx, erc20, k.moduleAddress, contract, false, "symbol")
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
@@ -39,7 +39,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 	}
 
 	// Decimals
-	res, err = k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "decimals")
+	res, err = k.CallEVM(ctx, erc20, k.moduleAddress, contract, false, "decimals")
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
@@ -55,7 +55,7 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 func (k Keeper) BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.Int, error) {
 	erc20 := fxtypes.GetERC20().ABI
 
-	res, err := k.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "balanceOf", addr)
+	res, err := k.CallEVM(ctx, erc20, k.moduleAddress, contract, false, "balanceOf", addr)
 	if err != nil {
 		return nil, err
 	}
