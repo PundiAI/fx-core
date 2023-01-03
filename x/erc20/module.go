@@ -124,15 +124,14 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.ak, genesisState)
+	am.keeper.InitGenesis(ctx, am.ak, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the capability module's exported genesis state as raw JSON bytes.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(ExportGenesis(ctx, am.keeper))
+	return cdc.MustMarshalJSON(am.keeper.ExportGenesis(ctx))
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

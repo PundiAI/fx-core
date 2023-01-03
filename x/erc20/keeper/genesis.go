@@ -1,15 +1,14 @@
-package erc20
+package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	"github.com/functionx/fx-core/v3/x/erc20/keeper"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 // InitGenesis import module genesis
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper authkeeper.AccountKeeper, data types.GenesisState) {
+func (k Keeper) InitGenesis(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper, data types.GenesisState) {
 	k.SetParams(ctx, data.Params)
 
 	// ensure erc20 module account is set on genesis
@@ -19,15 +18,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper authkeeper.Acco
 	}
 
 	for _, pair := range data.TokenPairs {
-		id := pair.GetID()
-		k.SetTokenPair(ctx, pair)
-		k.SetDenomMap(ctx, pair.Denom, id)
-		k.SetERC20Map(ctx, pair.GetERC20Contract(), id)
+		k.AddTokenPair(ctx, pair)
 	}
 }
 
 // ExportGenesis export module status
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
 		Params:     k.GetParams(ctx),
 		TokenPairs: k.GetAllTokenPairs(ctx),

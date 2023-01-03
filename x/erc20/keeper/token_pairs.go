@@ -57,6 +57,16 @@ func (k Keeper) SetTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	store.Set(key, bz)
 }
 
+func (k Keeper) AddTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
+	id := tokenPair.GetID()
+	bz := k.cdc.MustMarshal(&tokenPair)
+	store.Set(id, bz)
+
+	k.SetDenomMap(ctx, tokenPair.Denom, id)
+	k.SetERC20Map(ctx, tokenPair.GetERC20Contract(), id)
+}
+
 // RemoveTokenPair removes a token pair.
 func (k Keeper) RemoveTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	id := tokenPair.GetID()
