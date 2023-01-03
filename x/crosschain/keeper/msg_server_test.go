@@ -17,7 +17,6 @@ import (
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/crosschain"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -443,7 +442,6 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 		if trontypes.ModuleName == suite.chainName {
 			testData.msg.ExternalAddress = trontypes.AddressFromHex(testData.msg.ExternalAddress)
 		}
-		suite.T().Log(suite.chainName, testData.msg)
 		_, err = suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), testData.msg)
 		require.ErrorIs(suite.T(), err, testData.err, testData.name)
 		require.EqualValues(suite.T(), err.Error(), testData.errReason, testData.name)
@@ -557,41 +555,41 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 			msg: &types.MsgBridgeTokenClaim{
 				EventNonce:     2,
 				BlockHeight:    1,
-				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:           "Pundix Token Purse",
-				Symbol:         "PURSE",
+				TokenContract:  helpers.GenerateAddress().String(),
+				Name:           "Test Token",
+				Symbol:         "TEST",
 				Decimals:       18,
 				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				ChainName:      suite.chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
-			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 2, 1, types.ErrNonContiguousEventNonce),
+			errReason: fmt.Sprintf("got %v, expected %v: %s", 2, 1, types.ErrNonContiguousEventNonce),
 		},
 		{
 			name: "error oracleSet nonce: 3",
 			msg: &types.MsgBridgeTokenClaim{
 				EventNonce:     3,
 				BlockHeight:    1,
-				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:           "Pundix Token Purse",
-				Symbol:         "PURSE",
+				TokenContract:  helpers.GenerateAddress().String(),
+				Name:           "Test Token",
+				Symbol:         "TEST",
 				Decimals:       18,
 				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				ChainName:      suite.chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
-			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 3, 1, types.ErrNonContiguousEventNonce),
+			errReason: fmt.Sprintf("got %v, expected %v: %s", 3, 1, types.ErrNonContiguousEventNonce),
 		},
 		{
 			name: "Normal claim msg: 1",
 			msg: &types.MsgBridgeTokenClaim{
 				EventNonce:     1,
 				BlockHeight:    1,
-				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:           "Pundix Token Purse",
-				Symbol:         "PURSE",
+				TokenContract:  helpers.GenerateAddress().String(),
+				Name:           "Test Token",
+				Symbol:         "TEST",
 				Decimals:       18,
 				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
@@ -605,38 +603,38 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 			msg: &types.MsgBridgeTokenClaim{
 				EventNonce:     1,
 				BlockHeight:    2,
-				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:           "Pundix Token Purse",
-				Symbol:         "PURSE",
+				TokenContract:  helpers.GenerateAddress().String(),
+				Name:           "Test Token",
+				Symbol:         "TEST",
 				Decimals:       18,
 				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				ChainName:      suite.chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
-			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 1, 2, types.ErrNonContiguousEventNonce),
+			errReason: fmt.Sprintf("got %v, expected %v: %s", 1, 2, types.ErrNonContiguousEventNonce),
 		},
 		{
 			name: "error oracleSet nonce: 3",
 			msg: &types.MsgBridgeTokenClaim{
 				EventNonce:     3,
 				BlockHeight:    2,
-				TokenContract:  "0x3f6795b8ABE0775a88973469909adE1405f7ac09",
-				Name:           "Pundix Token Purse",
-				Symbol:         "PURSE",
+				TokenContract:  helpers.GenerateAddress().String(),
+				Name:           "Test Token",
+				Symbol:         "TEST",
 				Decimals:       18,
 				BridgerAddress: suite.bridgers[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				ChainName:      suite.chainName,
 			},
 			err:       types.ErrNonContiguousEventNonce,
-			errReason: fmt.Sprintf("create attestation: got %v, expected %v: %s", 3, 2, types.ErrNonContiguousEventNonce),
+			errReason: fmt.Sprintf("got %v, expected %v: %s", 3, 2, types.ErrNonContiguousEventNonce),
 		},
 	}
 
 	for _, testData := range errMsgDatas {
 		if testData.msg.ChainName == trontypes.ModuleName {
-			testData.msg.TokenContract = "TFkTfM1YrxkruQg8DUgQNcYg6rfvHrs3ms"
+			testData.msg.TokenContract = trontypes.AddressFromHex(testData.msg.TokenContract)
 		}
 		err := testData.msg.ValidateBasic()
 		require.NoError(suite.T(), err)
@@ -679,7 +677,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 		require.NoError(suite.T(), err)
 	}
 
-	crosschain.EndBlocker(suite.ctx, suite.Keeper())
+	suite.Keeper().EndBlocker(suite.ctx)
 
 	var externalOracleMembers types.BridgeValidators
 	for i, key := range suite.externals {
@@ -709,15 +707,15 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 		require.NoError(suite.T(), err)
 	}
 
-	crosschain.EndBlocker(suite.ctx, suite.Keeper())
+	suite.Keeper().EndBlocker(suite.ctx)
 
 	// 3. add bridge token.
 	sendToFxSendAddr := crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex()
 	sendToFxReceiveAddr := suite.bridgers[0]
 	sendToFxAmount := sdk.NewIntWithDecimal(1000, 18)
-	sendToFxToken := "0x3f6795b8ABE0775a88973469909adE1405f7ac09"
+	sendToFxToken := helpers.GenerateAddress().String()
 	if trontypes.ModuleName == suite.chainName {
-		sendToFxToken = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+		sendToFxToken = trontypes.AddressFromHex(sendToFxToken)
 		sendToFxSendAddr = tronAddress.PubkeyToAddress(suite.externals[0].PublicKey).String()
 	}
 
@@ -726,7 +724,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle) + 1,
 			BlockHeight:    1,
 			TokenContract:  sendToFxToken,
-			Name:           "BSC USDT",
+			Name:           "Test USDT",
 			Symbol:         "USDT",
 			Decimals:       18,
 			BridgerAddress: suite.bridgers[i].String(),
@@ -737,7 +735,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 		require.NoError(suite.T(), err)
 	}
 
-	crosschain.EndBlocker(suite.ctx, suite.Keeper())
+	suite.Keeper().EndBlocker(suite.ctx)
 
 	bridgeDenomData := suite.Keeper().GetBridgeTokenDenom(suite.ctx, sendToFxToken)
 	require.NotNil(suite.T(), bridgeDenomData)
@@ -764,7 +762,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 		require.NoError(suite.T(), err)
 	}
 
-	crosschain.EndBlocker(suite.ctx, suite.Keeper())
+	suite.Keeper().EndBlocker(suite.ctx)
 
 	balance := suite.app.BankKeeper.GetBalance(suite.ctx, sendToFxReceiveAddr, tokenDenom)
 	require.NotNil(suite.T(), balance)

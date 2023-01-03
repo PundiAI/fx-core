@@ -75,6 +75,8 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 					types.ErrInvalid,
 					fmt.Sprintf("ERC20 decimals %d does not match denom decimals %d", claim.Decimals, fxtypes.DenomUnit))
 			}
+			k.AddBridgeToken(ctx, claim.TokenContract, claim.Symbol)
+			return nil
 		}
 
 		denom, err := k.SetIbcDenomTrace(ctx, claim.TokenContract, claim.ChannelIbc)
@@ -82,7 +84,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return err
 		}
 		k.AddBridgeToken(ctx, claim.TokenContract, denom)
-		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "channelIbc", claim.ChannelIbc, "denom", denom)
+		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "denom", denom, "channelIbc", claim.ChannelIbc)
 
 	case *types.MsgOracleSetUpdatedClaim:
 		observedOracleSet := types.OracleSet{

@@ -15,7 +15,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/functionx/fx-core/v3/x/bsc/types"
-	"github.com/functionx/fx-core/v3/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
@@ -135,6 +134,6 @@ func (am AppModule) ConsensusVersion() uint64 {
 
 // EndBlock implements app module
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	crosschain.EndBlocker(ctx, am.keeper)
+	am.keeper.EndBlocker(ctx)
 	return []abci.ValidatorUpdate{}
 }

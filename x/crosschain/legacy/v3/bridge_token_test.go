@@ -9,6 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -21,7 +22,8 @@ import (
 )
 
 func TestMigrateBridgeToken(t *testing.T) {
-	storeKey := sdk.NewKVStoreKey(ethtypes.ModuleName)
+	moduleName := ethtypes.ModuleName
+	storeKey := sdk.NewKVStoreKey(moduleName)
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
 	ms.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, nil)
 	assert.NoError(t, ms.LoadLatestVersion())
@@ -38,11 +40,14 @@ func TestMigrateBridgeToken(t *testing.T) {
 		bridgeToken := types.BridgeToken{
 			Token: helpers.GenerateAddress().Hex(),
 		}
-		bridgeToken.Denom = fmt.Sprintf("%s%s", ethtypes.ModuleName, bridgeToken.Token)
+		bridgeToken.Denom = fmt.Sprintf("%s%s", moduleName, bridgeToken.Token)
 		if i%5 == 0 {
 			bridgeToken.ChannelIbc = "transfer/channel-0"
+			bridgeToken.Denom = ibctransfertypes.DenomTrace{
+				Path:      bridgeToken.ChannelIbc,
+				BaseDenom: bridgeToken.Denom,
+			}.IBCDenom()
 		}
-		bridgeTokens = append(bridgeTokens, bridgeToken)
 		store.Set(types.GetTokenToDenomKey(bridgeToken.Denom),
 			cdc.MustMarshal(&types.BridgeToken{
 				Token:      bridgeToken.Token,
@@ -55,9 +60,13 @@ func TestMigrateBridgeToken(t *testing.T) {
 				ChannelIbc: bridgeToken.ChannelIbc,
 			}),
 		)
+		if i%5 == 0 {
+			bridgeToken.Denom = fmt.Sprintf("%s%s", moduleName, bridgeToken.Token)
+		}
+		bridgeTokens = append(bridgeTokens, bridgeToken)
 	}
 
-	v3.MigrateBridgeToken(cdc, store)
+	v3.MigrateBridgeToken(cdc, store, moduleName)
 
 	for _, bridgeToken := range bridgeTokens {
 		assert.Equal(t, store.Get(types.GetTokenToDenomKey(bridgeToken.Denom)), []byte(bridgeToken.Token))

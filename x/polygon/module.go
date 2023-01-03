@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v3/x/crosschain"
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	types "github.com/functionx/fx-core/v3/x/polygon/types"
@@ -131,6 +130,6 @@ func (am AppModule) ConsensusVersion() uint64 {
 
 // EndBlock implements app module
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	crosschain.EndBlocker(ctx, am.keeper)
+	am.keeper.EndBlocker(ctx)
 	return []abci.ValidatorUpdate{}
 }

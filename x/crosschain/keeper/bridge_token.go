@@ -3,11 +3,13 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
@@ -42,6 +44,10 @@ func (k Keeper) HasBridgeToken(ctx sdk.Context, tokenContract string) bool {
 
 func (k Keeper) AddBridgeToken(ctx sdk.Context, token, denom string) {
 	store := ctx.KVStore(k.storeKey)
+	// todo need remove after test completion
+	if denom != fxtypes.DefaultDenom && !strings.HasPrefix(denom, k.moduleName) {
+		panic("invalid denom: " + denom)
+	}
 	store.Set(types.GetTokenToDenomKey(denom), []byte(token))
 	store.Set(types.GetDenomToTokenKey(token), []byte(denom))
 }
@@ -77,7 +83,7 @@ func (k Keeper) SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (str
 			BaseDenom: denom,
 		}
 		k.ibcTransferKeeper.SetDenomTrace(ctx, denomTrace)
-		denom = denomTrace.IBCDenom()
+		//denom = denomTrace.IBCDenom()
 	}
 	return denom, nil
 }
