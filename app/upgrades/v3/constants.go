@@ -13,11 +13,6 @@ import (
 
 const (
 	UpgradeName = "fxv3"
-
-	DAIDenom  = "dai"
-	EURSDenom = "eurs"
-	LINKDenom = "link"
-	C98Denom  = "c98"
 )
 
 var Upgrade = upgrades.Upgrade{
