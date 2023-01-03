@@ -1,13 +1,9 @@
 package erc20
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/keeper"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
@@ -27,17 +23,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper authkeeper.Acco
 		k.SetTokenPair(ctx, pair)
 		k.SetDenomMap(ctx, pair.Denom, id)
 		k.SetERC20Map(ctx, pair.GetERC20Contract(), id)
-	}
-
-	// init logic contract
-	initContract := []fxtypes.Contract{fxtypes.GetERC20(), fxtypes.GetWFX()}
-	for _, contract := range initContract {
-		if len(contract.Code) <= 0 || contract.Address == common.HexToAddress(fxtypes.EmptyEvmAddress) {
-			panic(fmt.Sprintf("invalid contract: %s/%s", contract.Address.String(), contract.Version))
-		}
-		if err := k.CreateContractWithCode(ctx, contract.Address, contract.Code); err != nil {
-			panic(fmt.Sprintf("create contract %s/%s with code error %s", contract.Address.String(), contract.Version, err.Error()))
-		}
 	}
 }
 

@@ -31,6 +31,7 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	evmkeeper "github.com/functionx/fx-core/v3/x/evm/keeper"
 )
 
 func CreateUpgradeHandler(
@@ -43,7 +44,7 @@ func CreateUpgradeHandler(
 		cacheCtx, commit := ctx.CacheContext()
 
 		// update wfx logic code
-		updateWFXLogicCode(cacheCtx, keepers.Erc20Keeper)
+		updateWFXLogicCode(cacheCtx, keepers.EvmKeeper)
 
 		// update metadata alias null
 		updateMetadataAliasNull(cacheCtx, keepers.BankKeeper)
@@ -154,9 +155,9 @@ func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 	}
 }
 
-func updateWFXLogicCode(ctx sdk.Context, k erc20keeper.Keeper) {
+func updateWFXLogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
 	wfx := fxtypes.GetWFX()
-	err := k.UpdateContractCode(ctx, wfx)
+	err := k.UpdateContractCode(ctx, wfx.Address, wfx.Code)
 	if err != nil {
 		panic(fmt.Sprintf("update wfx logic code error: %s", err.Error()))
 	}

@@ -9,8 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/tendermint/tendermint/libs/log"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -148,17 +146,4 @@ func (k Keeper) SetRouter(rtr *types.Router) Keeper {
 	k.router = rtr
 	k.router.Seal()
 	return k
-}
-
-func (k Keeper) CreateContractWithCode(ctx sdk.Context, addr common.Address, code []byte) error {
-	codeHash := crypto.Keccak256Hash(code)
-	k.Logger(ctx).Debug("create contract with code", "address", addr.String(), "code-hash", codeHash)
-
-	acc := k.evmKeeper.GetAccount(ctx, addr)
-	if acc == nil {
-		acc = statedb.NewEmptyAccount()
-	}
-	acc.CodeHash = codeHash.Bytes()
-	k.evmKeeper.SetCode(ctx, acc.CodeHash, code)
-	return k.evmKeeper.SetAccount(ctx, addr, *acc)
 }

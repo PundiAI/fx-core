@@ -1,9 +1,6 @@
 package keeper
 
 import (
-	"bytes"
-	"encoding/hex"
-	"fmt"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -98,34 +95,6 @@ func (k Keeper) CallEVM(
 		return nil, sdkerrors.Wrapf(err, "contract call failed: method '%s', contract '%s'", method, contract)
 	}
 	return resp, nil
-}
-
-// UpdateContractCode update contract code and code-hash
-func (k Keeper) UpdateContractCode(ctx sdk.Context, contract fxtypes.Contract) error {
-	acc := k.evmKeeper.GetAccount(ctx, contract.Address)
-	if acc == nil {
-		return fmt.Errorf("account %s not found", contract.Address.String())
-	}
-	codeHash := crypto.Keccak256Hash(contract.Code).Bytes()
-	if bytes.Equal(codeHash, acc.CodeHash) {
-		return fmt.Errorf("update the same code: %s", contract.Address.String())
-	}
-
-	acc.CodeHash = codeHash
-	k.evmKeeper.SetCode(ctx, acc.CodeHash, contract.Code)
-	if err := k.evmKeeper.SetAccount(ctx, contract.Address, *acc); err != nil {
-		return fmt.Errorf("evm set account %s error %s", contract.Address.String(), err.Error())
-	}
-
-	k.Logger(ctx).Info("update contract code", "address", contract.Address.String(),
-		"version", contract.Version, "code-hash", hex.EncodeToString(acc.CodeHash))
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventUpdateContractCode,
-		sdk.NewAttribute(types.AttributeKeyContract, contract.Address.String()),
-		sdk.NewAttribute(types.AttributeKeyVersion, contract.Version),
-	))
-	return nil
 }
 
 // monitorApprovalEvent returns an error if the given transactions logs include

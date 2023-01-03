@@ -1,4 +1,4 @@
-package evm
+package keeper
 
 import (
 	"bytes"
@@ -11,16 +11,11 @@ import (
 	"github.com/evmos/ethermint/x/evm/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v3/x/evm/keeper"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 // InitGenesis initializes genesis state based on exported genesis
-func InitGenesis(
-	ctx sdk.Context,
-	k *keeper.Keeper,
-	accountKeeper types.AccountKeeper,
-	data types.GenesisState,
-) []abci.ValidatorUpdate {
+func (k *Keeper) InitGenesis(ctx sdk.Context, accountKeeper types.AccountKeeper, data types.GenesisState) []abci.ValidatorUpdate {
 	k.SetParams(ctx, data.Params)
 
 	// ensure evm module account is set
@@ -39,11 +34,7 @@ func InitGenesis(
 
 		ethAcct, ok := acc.(ethermint.EthAccountI)
 		if !ok {
-			panic(
-				fmt.Errorf("account %s must be an EthAccount interface, got %T",
-					account.Address, acc,
-				),
-			)
+			panic(fmt.Errorf("account %s must be an EthAccount interface, got %T", account.Address, acc))
 		}
 
 		code := common.Hex2Bytes(account.Code)
@@ -56,6 +47,17 @@ func InitGenesis(
 
 		for _, storage := range account.Storage {
 			k.SetState(ctx, address, common.HexToHash(storage.Key), common.HexToHash(storage.Value).Bytes())
+		}
+	}
+
+	// init logic contract
+	initContract := []fxtypes.Contract{fxtypes.GetERC20(), fxtypes.GetWFX()}
+	for _, contract := range initContract {
+		if len(contract.Code) <= 0 || contract.Address == common.HexToAddress(fxtypes.EmptyEvmAddress) {
+			panic(fmt.Sprintf("invalid contract: %s", contract.Address.String()))
+		}
+		if err := k.CreateContractWithCode(ctx, contract.Address, contract.Code); err != nil {
+			panic(fmt.Sprintf("create contract %s with code error %s", contract.Address.String(), err.Error()))
 		}
 	}
 
