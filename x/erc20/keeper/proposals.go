@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -63,7 +62,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 
 	addr, err := k.DeployUpgradableToken(ctx, types.ModuleAddress, coinMetadata.Name, coinMetadata.Symbol, decimals)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to create wrapped coin denom metadata for ERC20")
+		return nil, err
 	}
 
 	pair := types.NewTokenPair(addr, coinMetadata.Base, true, types.OWNER_MODULE)
@@ -232,67 +231,50 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 }
 
 func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8) (common.Address, error) {
-	tokenContract := fxtypes.GetERC20()
+	var tokenContract fxtypes.Contract
 	if symbol == fxtypes.DefaultDenom {
-		tokenContract, name, symbol = WrappedOriginDenom(name, symbol)
+		tokenContract = fxtypes.GetWFX()
+		name = fmt.Sprintf("Wrapped %s", name)
+		symbol = fmt.Sprintf("W%s", symbol)
+	} else {
+		tokenContract = fxtypes.GetERC20()
 	}
 	k.Logger(ctx).Info("deploy token", "name", name, "symbol", symbol, "decimals", decimals)
+
 	//deploy proxy
-	proxy, err := k.DeployERC1967Proxy(ctx, from, tokenContract.Address)
+	erc1967Proxy := fxtypes.GetERC1967Proxy()
+	contract, err := k.DeployContract(ctx, from, erc1967Proxy.ABI, erc1967Proxy.Bin, tokenContract.Address, []byte{})
 	if err != nil {
 		return common.Address{}, err
 	}
-	err = k.InitializeUpgradable(ctx, from, proxy, tokenContract.ABI, name, symbol, decimals, types.ModuleAddress)
-	return proxy, err
-}
 
-func (k Keeper) DeployERC1967Proxy(ctx sdk.Context, from, logicAddr common.Address, logicData ...byte) (common.Address, error) {
-	k.Logger(ctx).Info("deploy erc1967 proxy", "logic", logicAddr.String(), "data", hex.EncodeToString(logicData))
-	erc1967Proxy := fxtypes.GetERC1967Proxy()
-
-	if len(logicData) == 0 {
-		logicData = []byte{}
-	}
-	return k.DeployContract(ctx, from, erc1967Proxy.ABI, erc1967Proxy.Bin, logicAddr, logicData)
-}
-
-func (k Keeper) InitializeUpgradable(ctx sdk.Context, from, contract common.Address, abi abi.ABI, data ...interface{}) error {
-	k.Logger(ctx).Info("initialize upgradable", "contract", contract.Hex())
-	_, err := k.CallEVM(ctx, abi, from, contract, true, "initialize", data...)
+	_, err = k.CallEVM(ctx, tokenContract.ABI, from, contract, true, "initialize", name, symbol, decimals, types.ModuleAddress)
 	if err != nil {
-		return err
+		return common.Address{}, err
 	}
-	return nil
+	return contract, nil
 }
 
 func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, constructorData ...interface{}) (common.Address, error) {
-	ctorArgs, err := abi.Pack("", constructorData...)
+	args, err := abi.Pack("", constructorData...)
 	if err != nil {
 		return common.Address{}, sdkerrors.Wrap(err, "pack constructor data")
 	}
-	data := make([]byte, len(bin)+len(ctorArgs))
+	data := make([]byte, len(bin)+len(args))
 	copy(data[:len(bin)], bin)
-	copy(data[len(bin):], ctorArgs)
+	copy(data[len(bin):], args)
 
 	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
 		return common.Address{}, err
 	}
 
-	contractAddr := crypto.CreateAddress(from, nonce)
 	_, err = k.evmKeeper.CallEVMWithData(ctx, from, nil, data, true)
 	if err != nil {
-		return common.Address{}, sdkerrors.Wrap(err, "failed to deploy contract")
+		return common.Address{}, err
 	}
+	contractAddr := crypto.CreateAddress(from, nonce)
 	return contractAddr, nil
-}
-
-func WrappedOriginDenom(name, symbol string) (fxtypes.Contract, string, string) {
-	contract := fxtypes.GetWFX()
-	wrappedName := fmt.Sprintf("Wrapped %s", name)
-	wrappedSymbol := fmt.Sprintf("W%s", symbol)
-
-	return contract, wrappedName, wrappedSymbol
 }
 
 func getErc20Decimals(md banktypes.Metadata) (decimals uint8) {
