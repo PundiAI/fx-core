@@ -44,7 +44,7 @@ if [ ! -f ./build/ibc-go/README.md ]; then
 fi
 
 if [ ! -f ./build/ethermint/README.md ]; then
-  commit_hash=$(go list -m -f '{{.Replace.Version}}' github.com/evmos/ethermint | awk -F- '{print $1}')
+  commit_hash=$(go list -m -f '{{.Version}}' github.com/evmos/ethermint | awk -F- '{print $1}')
   if [ ! -f "./build/ethermint-proto.zip" ]; then
     wget -c "https://github.com/evmos/ethermint/archive/$commit_hash.zip" -O "./build/ethermint-proto.zip"
   fi
