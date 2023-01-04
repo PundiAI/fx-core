@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/server"
@@ -17,8 +16,7 @@ func NewFxZeroLogWrapper(logger server.ZeroLogWrapper, logTypes []string) FxZero
 	for _, logType := range logTypes {
 		filterLogMap[logType] = true
 	}
-	fmt.Printf(" ---------- filter log wrapper -------------")
-	fmt.Printf("filter log type:%v\n", strings.Join(logTypes, ","))
+	logger.Info("filter log", "logTypes", strings.Join(logTypes, ","))
 	return FxZeroLogWrapper{ZeroLogWrapper: logger, filterLogs: filterLogMap}
 }
 
@@ -29,11 +27,25 @@ type FxZeroLogWrapper struct {
 
 var _ tmlog.Logger = (*FxZeroLogWrapper)(nil)
 
+func (z FxZeroLogWrapper) Debug(msg string, keyVals ...interface{}) {
+	if exists, ok := z.filterLogs[msg]; exists || ok {
+		return
+	}
+	z.Logger.Debug().Fields(getLogFields(keyVals...)).Msg(msg)
+}
+
 func (z FxZeroLogWrapper) Info(msg string, keyVals ...interface{}) {
 	if exists, ok := z.filterLogs[msg]; exists || ok {
 		return
 	}
 	z.Logger.Info().Fields(getLogFields(keyVals...)).Msg(msg)
+}
+
+func (z FxZeroLogWrapper) Error(msg string, keyVals ...interface{}) {
+	if exists, ok := z.filterLogs[msg]; exists || ok {
+		return
+	}
+	z.Logger.Error().Fields(getLogFields(keyVals...)).Msg(msg)
 }
 
 func getLogFields(keyVals ...interface{}) map[string]interface{} {
