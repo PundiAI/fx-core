@@ -175,7 +175,8 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 			func() (*types.QueryDenomAliasesRequest, *types.QueryDenomAliasesResponse) {
 				req := &types.QueryDenomAliasesRequest{Denom: "usdt"}
 				expRes := &types.QueryDenomAliasesResponse{}
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "usdt", []byte{})
+				pair := types.NewTokenPair(helpers.GenerateAddress(), "usdt", true, types.OWNER_MODULE)
+				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 				return req, expRes
 			},
 			false,
@@ -186,7 +187,8 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 				req := &types.QueryDenomAliasesRequest{Denom: "usdt"}
 				expRes := &types.QueryDenomAliasesResponse{}
 
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, "usdt", []byte{})
+				pair := types.NewTokenPair(helpers.GenerateAddress(), "usdt", true, types.OWNER_MODULE)
+				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, banktypes.Metadata{
 					Description: "The cross chain token of the Function X",
@@ -217,7 +219,8 @@ func (suite *KeeperTestSuite) TestDenomAlias() {
 				req := &types.QueryDenomAliasesRequest{Denom: metadata.Base}
 				expRes := &types.QueryDenomAliasesResponse{Aliases: metadata.DenomUnits[0].Aliases}
 
-				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, metadata.Base, []byte{})
+				pair := types.NewTokenPair(helpers.GenerateAddress(), metadata.Base, true, types.OWNER_MODULE)
+				suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
 				return req, expRes

@@ -48,10 +48,7 @@ func (k Keeper) TokenPair(c context.Context, req *types.QueryTokenPairRequest) (
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-
-	// check if the token is a hex address, if not, check if it is a valid SDK
-	// denom
+	// check if the token is a hex address, if not, check if it is a valid SDK denom
 	if err := fxtypes.ValidateEthereumAddress(req.Token); err != nil {
 		if err := sdk.ValidateDenom(req.Token); err != nil {
 			return nil, status.Errorf(
@@ -61,12 +58,8 @@ func (k Keeper) TokenPair(c context.Context, req *types.QueryTokenPairRequest) (
 		}
 	}
 
-	id := k.GetTokenPairID(ctx, req.Token)
-	if len(id) == 0 {
-		return nil, status.Errorf(codes.NotFound, "token pair with token '%s'", req.Token)
-	}
-
-	pair, found := k.GetTokenPair(ctx, id)
+	ctx := sdk.UnwrapSDKContext(c)
+	pair, found := k.GetTokenPair(ctx, req.Token)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "token pair with token '%s'", req.Token)
 	}
@@ -86,13 +79,13 @@ func (k Keeper) DenomAliases(c context.Context, req *types.QueryDenomAliasesRequ
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	ctx := sdk.UnwrapSDKContext(c)
 
 	//check if it is a valid SDK denom
 	if err := sdk.ValidateDenom(req.Denom); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid format for denom %s", req.Denom)
 	}
 
+	ctx := sdk.UnwrapSDKContext(c)
 	if !k.IsDenomRegistered(ctx, req.Denom) {
 		return nil, status.Errorf(codes.NotFound, "not registered with denom '%s'", req.Denom)
 	}
@@ -115,13 +108,12 @@ func (k Keeper) AliasDenom(c context.Context, req *types.QueryAliasDenomRequest)
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-
 	// check if it is a valid SDK denom
 	if err := sdk.ValidateDenom(req.Alias); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid format for alias %s", req.Alias)
 	}
 
+	ctx := sdk.UnwrapSDKContext(c)
 	denom, found := k.GetAliasDenom(ctx, req.Alias)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "denom not found with alias '%s'", req.Alias)

@@ -142,16 +142,10 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 
 // ToggleRelay toggles relaying for a given token pair
 func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, error) {
-	id := k.GetTokenPairID(ctx, token)
-	if len(id) == 0 {
-		return types.TokenPair{}, sdkerrors.Wrapf(types.ErrTokenPairNotFound, "token '%s' not registered by id", token)
-	}
-
-	pair, found := k.GetTokenPair(ctx, id)
+	pair, found := k.GetTokenPair(ctx, token)
 	if !found {
 		return types.TokenPair{}, sdkerrors.Wrapf(types.ErrTokenPairNotFound, "token '%s' not registered", token)
 	}
-
 	pair.Enabled = !pair.Enabled
 
 	k.SetTokenPair(ctx, pair)

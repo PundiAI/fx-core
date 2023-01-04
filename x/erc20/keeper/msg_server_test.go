@@ -100,8 +100,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 				}
 
 				if tc.selfdestructed || !acc.IsContract() {
-					id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, erc20.String())
-					_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
+					_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, erc20.String())
 					suite.Require().False(found)
 				} else {
 					suite.Require().Equal(&types.MsgConvertCoinResponse{}, res)
@@ -298,8 +297,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 				}
 
 				if tc.selfdestructed || !acc.IsContract() {
-					id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
-					_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
+					_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, contractAddr.String())
 					suite.Require().False(found)
 				} else {
 					suite.Require().Equal(&types.MsgConvertERC20Response{}, res)
@@ -345,8 +343,8 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			contractAddr := suite.setupRegisterERC20Pair()
 			suite.Require().NotNil(contractAddr)
 
-			id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
-			pair, _ := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
+			pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, contractAddr.String())
+			suite.True(found)
 			coins := sdk.NewCoins(sdk.NewCoin(pair.Denom, sdk.NewInt(tc.mint)))
 			sender := sdk.AccAddress(suite.signer.Address().Bytes())
 

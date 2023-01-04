@@ -18,12 +18,7 @@ func (k Keeper) MintingEnabled(ctx sdk.Context, receiver sdk.AccAddress, token s
 		return types.TokenPair{}, sdkerrors.Wrap(types.ErrERC20Disabled, "module is currently disabled by governance")
 	}
 
-	id := k.GetTokenPairID(ctx, token)
-	if len(id) == 0 {
-		return types.TokenPair{}, sdkerrors.Wrapf(types.ErrTokenPairNotFound, "token '%s' not registered by id", token)
-	}
-
-	pair, found := k.GetTokenPair(ctx, id)
+	pair, found := k.GetTokenPair(ctx, token)
 	if !found {
 		return types.TokenPair{}, sdkerrors.Wrapf(types.ErrTokenPairNotFound, "token '%s' not registered", token)
 	}

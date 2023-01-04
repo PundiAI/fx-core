@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -23,63 +22,69 @@ func (k Keeper) GetAllTokenPairs(ctx sdk.Context) []types.TokenPair {
 	return tokenPairs
 }
 
-// GetTokenPairID returns the pair id from either of the registered tokens.
-func (k Keeper) GetTokenPairID(ctx sdk.Context, token string) []byte {
-	if common.IsHexAddress(token) {
-		return k.GetERC20Map(ctx, common.HexToAddress(token))
+// GetTokenPair - get registered token pair from the token or denom
+func (k Keeper) GetTokenPair(ctx sdk.Context, tokenOrDenom string) (types.TokenPair, bool) {
+	var id []byte
+	if common.IsHexAddress(tokenOrDenom) {
+		id = k.getERC20Map(ctx, common.HexToAddress(tokenOrDenom))
+	} else {
+		id = k.getDenomMap(ctx, tokenOrDenom)
 	}
-	return k.GetDenomMap(ctx, token)
-}
-
-func (k Keeper) GetTokenPairByAddress(ctx sdk.Context, address common.Address) (types.TokenPair, bool) {
-	pairID := k.GetERC20Map(ctx, address)
-	if len(pairID) == 0 {
-		return types.TokenPair{}, false
-	}
-	return k.GetTokenPair(ctx, pairID)
-}
-
-// GetTokenPair - get registered token pair from the identifier
-func (k Keeper) GetTokenPair(ctx sdk.Context, id []byte) (types.TokenPair, bool) {
 	if id == nil {
 		return types.TokenPair{}, false
 	}
+	return k.getTokenPair(ctx, id)
+}
 
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
-	bz := store.Get(id)
+func (k Keeper) GetTokenPairByAddress(ctx sdk.Context, address common.Address) (types.TokenPair, bool) {
+	pairID := k.getERC20Map(ctx, address)
+	if len(pairID) == 0 {
+		return types.TokenPair{}, false
+	}
+	return k.getTokenPair(ctx, pairID)
+}
+
+func (k Keeper) getTokenPair(ctx sdk.Context, id []byte) (types.TokenPair, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(append(types.KeyPrefixTokenPair, id...))
 	if len(bz) == 0 {
 		return types.TokenPair{}, false
 	}
-
 	var tokenPair types.TokenPair
 	k.cdc.MustUnmarshal(bz, &tokenPair)
 	return tokenPair, true
 }
 
-// SetTokenPair stores a token pair
-func (k Keeper) SetTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
-	key := tokenPair.GetID()
-	bz := k.cdc.MustMarshal(&tokenPair)
-	store.Set(key, bz)
+func (k Keeper) AddTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
+	store := ctx.KVStore(k.storeKey)
+	id := tokenPair.GetID()
+	// set pair
+	store.Set(append(types.KeyPrefixTokenPair, id...), k.cdc.MustMarshal(&tokenPair))
+
+	// set denom map
+	store.Set(append(types.KeyPrefixTokenPairByDenom, []byte(tokenPair.Denom)...), id)
+
+	// set erc20 map
+	store.Set(append(types.KeyPrefixTokenPairByERC20, tokenPair.GetERC20Contract().Bytes()...), id)
 }
 
-func (k Keeper) AddTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
-	id := tokenPair.GetID()
-	bz := k.cdc.MustMarshal(&tokenPair)
-	store.Set(id, bz)
-
-	k.SetDenomMap(ctx, tokenPair.Denom, id)
-	k.SetERC20Map(ctx, tokenPair.GetERC20Contract(), id)
+func (k Keeper) SetTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(append(types.KeyPrefixTokenPair, tokenPair.GetID()...), k.cdc.MustMarshal(&tokenPair))
 }
 
 // RemoveTokenPair removes a token pair.
 func (k Keeper) RemoveTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
+	store := ctx.KVStore(k.storeKey)
 	id := tokenPair.GetID()
-	k.DeleteTokenPair(ctx, id)
-	k.DeleteERC20Map(ctx, tokenPair.GetERC20Contract())
-	k.DeleteDenomMap(ctx, tokenPair.Denom)
+	// delete token pair
+	store.Delete(append(types.KeyPrefixTokenPair, id...))
+
+	// delete denom map
+	store.Delete(append(types.KeyPrefixTokenPairByDenom, []byte(tokenPair.Denom)...))
+
+	// delete erc20 map
+	store.Delete(append(types.KeyPrefixTokenPairByERC20, tokenPair.GetERC20Contract().Bytes()...))
 
 	//delete denom alias
 	if md, found := k.HasDenomAlias(ctx, tokenPair.Denom); found {
@@ -87,78 +92,42 @@ func (k Keeper) RemoveTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	}
 }
 
-// DeleteTokenPair deletes the token pair for the given id
-func (k Keeper) DeleteTokenPair(ctx sdk.Context, id []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
-	store.Delete(id)
-}
-
-// GetERC20Map returns the token pair id for the given address
-func (k Keeper) GetERC20Map(ctx sdk.Context, erc20 common.Address) []byte {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
-	return store.Get(erc20.Bytes())
-}
-
-// GetDenomMap returns the token pair id for the given denomination
-func (k Keeper) GetDenomMap(ctx sdk.Context, denom string) []byte {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByDenom)
-	return store.Get([]byte(denom))
-}
-
-// SetERC20Map sets the token pair id for the given address
-func (k Keeper) SetERC20Map(ctx sdk.Context, erc20 common.Address, id []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
-	store.Set(erc20.Bytes(), id)
-}
-
-// DeleteERC20Map deletes the token pair id for the given address
-func (k Keeper) DeleteERC20Map(ctx sdk.Context, erc20 common.Address) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
-	store.Delete(erc20.Bytes())
-}
-
-// SetDenomMap sets the token pair id for the denomination
-func (k Keeper) SetDenomMap(ctx sdk.Context, denom string, id []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByDenom)
-	store.Set([]byte(denom), id)
-}
-
-// DeleteDenomMap deletes the token pair id for the given denom
-func (k Keeper) DeleteDenomMap(ctx sdk.Context, denom string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByDenom)
-	store.Delete([]byte(denom))
-}
-
-// IsTokenPairRegistered - check if registered token tokenPair is registered
-func (k Keeper) IsTokenPairRegistered(ctx sdk.Context, id []byte) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
-	return store.Has(id)
+// getERC20Map returns the token pair id for the given address
+func (k Keeper) getERC20Map(ctx sdk.Context, erc20 common.Address) []byte {
+	store := ctx.KVStore(k.storeKey)
+	return store.Get(append(types.KeyPrefixTokenPairByERC20, erc20.Bytes()...))
 }
 
 // IsERC20Registered check if registered ERC20 token is registered
 func (k Keeper) IsERC20Registered(ctx sdk.Context, erc20 common.Address) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
-	return store.Has(erc20.Bytes())
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(append(types.KeyPrefixTokenPairByERC20, erc20.Bytes()...))
+}
+
+// getDenomMap returns the token pair id for the given denomination
+func (k Keeper) getDenomMap(ctx sdk.Context, denom string) []byte {
+	store := ctx.KVStore(k.storeKey)
+	return store.Get(append(types.KeyPrefixTokenPairByDenom, []byte(denom)...))
 }
 
 // IsDenomRegistered check if registered coin denom is registered
 func (k Keeper) IsDenomRegistered(ctx sdk.Context, denom string) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByDenom)
-	return store.Has([]byte(denom))
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(append(types.KeyPrefixTokenPairByDenom, []byte(denom)...))
 }
 
 // SetAliasesDenom sets the aliases for the denomination
 func (k Keeper) SetAliasesDenom(ctx sdk.Context, denom string, aliases ...string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
+	store := ctx.KVStore(k.storeKey)
 	for _, alias := range aliases {
-		store.Set([]byte(alias), []byte(denom))
+		store.Set(append(types.KeyPrefixAliasDenom, []byte(alias)...), []byte(denom))
 	}
 }
 
 // GetAliasDenom returns the denom for the given alias
 func (k Keeper) GetAliasDenom(ctx sdk.Context, alias string) (string, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
-	value := store.Get([]byte(alias))
+	store := ctx.KVStore(k.storeKey)
+	value := store.Get(append(types.KeyPrefixAliasDenom, []byte(alias)...))
 	if value == nil {
 		return "", false
 	}
@@ -167,14 +136,14 @@ func (k Keeper) GetAliasDenom(ctx sdk.Context, alias string) (string, bool) {
 
 // DeleteAliasesDenom deletes the denom-alias for the given alias
 func (k Keeper) DeleteAliasesDenom(ctx sdk.Context, aliases ...string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
+	store := ctx.KVStore(k.storeKey)
 	for _, alias := range aliases {
-		store.Delete([]byte(alias))
+		store.Delete(append(types.KeyPrefixAliasDenom, []byte(alias)...))
 	}
 }
 
 // IsAliasDenomRegistered check if registered coin alias is registered
 func (k Keeper) IsAliasDenomRegistered(ctx sdk.Context, alias string) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
-	return store.Has([]byte(alias))
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(append(types.KeyPrefixAliasDenom, []byte(alias)...))
 }

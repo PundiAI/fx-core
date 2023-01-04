@@ -8,7 +8,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-func (suite *KeeperTestSuite) TestGetTokenPairID() {
+func (suite *KeeperTestSuite) TestGetTokenPair() {
 	pair := types.NewTokenPair(helpers.GenerateAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
 	suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
 
@@ -22,88 +22,10 @@ func (suite *KeeperTestSuite) TestGetTokenPairID() {
 		{"invalid token", helpers.GenerateAddress().String(), nil},
 	}
 	for _, tc := range testCases {
-		id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, tc.token)
-		suite.Require().Equal(tc.expId, id, tc.name)
-	}
-}
-
-func (suite *KeeperTestSuite) TestGetTokenPair() {
-	pair := types.NewTokenPair(helpers.GenerateAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
-	suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
-
-	testCases := []struct {
-		name string
-		id   []byte
-		ok   bool
-	}{
-		{"nil id", nil, false},
-		{"valid id", pair.GetID(), true},
-		{"pair not found", []byte{}, false},
-	}
-	for _, tc := range testCases {
-		p, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, tc.id)
-		if tc.ok {
-			suite.Require().True(found, tc.name)
-			suite.Require().Equal(pair, p, tc.name)
-		} else {
-			suite.Require().False(found, tc.name)
-		}
-	}
-}
-
-func (suite *KeeperTestSuite) TestDeleteTokenPair() {
-	pair := types.NewTokenPair(helpers.GenerateAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
-	suite.app.Erc20Keeper.AddTokenPair(suite.ctx, pair)
-
-	testCases := []struct {
-		name     string
-		id       []byte
-		malleate func()
-		ok       bool
-	}{
-		{"nil id", nil, func() {}, false},
-		{"pair not found", []byte{}, func() {}, false},
-		{"valid id", pair.GetID(), func() {}, true},
-		{
-			"detete tokenpair",
-			pair.GetID(),
-			func() {
-				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
-			},
-			false,
-		},
-	}
-	for _, tc := range testCases {
-		tc.malleate()
-
-		p, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, tc.id)
-		if tc.ok {
-			suite.Require().True(found, tc.name)
-			suite.Require().Equal(pair, p, tc.name)
-		} else {
-			suite.Require().False(found, tc.name)
-		}
-	}
-}
-
-func (suite *KeeperTestSuite) TestIsTokenPairRegistered() {
-	pair := types.NewTokenPair(helpers.GenerateAddress(), fxtypes.DefaultDenom, true, types.OWNER_MODULE)
-	suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
-
-	testCases := []struct {
-		name string
-		id   []byte
-		ok   bool
-	}{
-		{"valid id", pair.GetID(), true},
-		{"pair not found", []byte{}, false},
-	}
-	for _, tc := range testCases {
-		found := suite.app.Erc20Keeper.IsTokenPairRegistered(suite.ctx, tc.id)
-		if tc.ok {
-			suite.Require().True(found, tc.name)
-		} else {
-			suite.Require().False(found, tc.name)
+		tokenPair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, tc.token)
+		if len(tc.expId) > 0 {
+			suite.True(found)
+			suite.Require().Equal(tc.expId, tokenPair.GetID(), tc.name)
 		}
 	}
 }
@@ -120,13 +42,9 @@ func (suite *KeeperTestSuite) TestIsERC20Registered() {
 	}{
 		{"nil erc20 address", common.Address{}, func() {}, false},
 		{"valid erc20 address", pair.GetERC20Contract(), func() {}, true},
-		{
-			"deleted erc20 map",
-			pair.GetERC20Contract(),
-			func() {
-				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
-			},
-			false,
+		{"deleted erc20 map", pair.GetERC20Contract(), func() {
+			suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
+		}, false,
 		},
 	}
 	for _, tc := range testCases {
@@ -153,13 +71,9 @@ func (suite *KeeperTestSuite) TestIsDenomRegistered() {
 	}{
 		{"empty denom", "", func() {}, false},
 		{"valid denom", pair.GetDenom(), func() {}, true},
-		{
-			"deleted denom map",
-			pair.GetDenom(),
-			func() {
-				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
-			},
-			false,
+		{"deleted denom map", pair.GetDenom(), func() {
+			suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
+		}, false,
 		},
 	}
 	for _, tc := range testCases {
