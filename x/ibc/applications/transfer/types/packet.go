@@ -66,7 +66,7 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }
 
-// GetBytes is a helper for serialising
+// ToIBCPacketData is a helper for serialising
 func (ftpd FungibleTokenPacketData) ToIBCPacketData() transfertypes.FungibleTokenPacketData {
 	result := transfertypes.NewFungibleTokenPacketData(ftpd.Denom, ftpd.Amount, ftpd.Sender, ftpd.Receiver)
 	result.Memo = ftpd.Memo
