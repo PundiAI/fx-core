@@ -2639,8 +2639,6 @@ https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#d
 MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
 ICS20 enabled chains. See ICS Spec here:
 https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
-Deprecated: This Msg is deprecated. It may be removed in the next version.
-Replace ibc.applications.transfer.v1.MsgTransfer
 
 
 | Field | Type | Label | Description |
@@ -2671,8 +2669,6 @@ Replace ibc.applications.transfer.v1.MsgTransfer
 
 ### Msg
 Msg defines the ibc/transfer Msg service.
-Deprecated: This service is deprecated. It may be removed in the next
-version. Replace ibc.applications.transfer.v1.Msg
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
