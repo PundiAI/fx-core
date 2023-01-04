@@ -24,6 +24,4 @@ const (
 	AttributeKeyTargetDenom  = "target_coin"
 	AttributeKeyAlias        = "alias"
 	AttributeKeyUpdateFlag   = "update_flag"
-
-	ERC20EventTransfer = "Transfer"
 )

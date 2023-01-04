@@ -85,13 +85,14 @@ func (k Keeper) AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequ
 	return nil
 }
 
+// TransferAfter ibc transfer after
 func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error {
 	sendAddr, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
 		return fmt.Errorf("invalid sender address %s, error %s", sender, err.Error())
 	}
 	if err = fxtypes.ValidateEthereumAddress(receive); err != nil {
-		return fmt.Errorf("invalid receiver address %s", err.Error())
+		return fmt.Errorf("invalid receiver address %s, error %s", receive, err.Error())
 	}
 	return k.RelayConvertCoin(ctx, sendAddr, common.HexToAddress(receive), coin.Add(fee))
 }
@@ -129,6 +130,7 @@ func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata
 func (k Keeper) RelayConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
 	return k.ConvertDenomToOne(ctx, from, coin)
 }
+
 func (k Keeper) RelayConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
 	// convert denom
 	cacheCtx, commit := ctx.CacheContext()

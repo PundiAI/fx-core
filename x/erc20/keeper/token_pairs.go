@@ -32,6 +32,14 @@ func (k Keeper) GetTokenPairID(ctx sdk.Context, token string) []byte {
 	return k.GetDenomMap(ctx, token)
 }
 
+func (k Keeper) GetTokenPairByAddress(ctx sdk.Context, address common.Address) (types.TokenPair, bool) {
+	pairID := k.GetERC20Map(ctx, address)
+	if len(pairID) == 0 {
+		return types.TokenPair{}, false
+	}
+	return k.GetTokenPair(ctx, pairID)
+}
+
 // GetTokenPair - get registered token pair from the identifier
 func (k Keeper) GetTokenPair(ctx sdk.Context, id []byte) (types.TokenPair, bool) {
 	if id == nil {

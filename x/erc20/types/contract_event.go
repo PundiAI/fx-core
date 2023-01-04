@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 
@@ -9,10 +8,13 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 const (
 	FIP20EventTransferCrossChain = "TransferCrossChain"
+	ERC20EventTransfer           = "Transfer"
 )
 
 const (
@@ -85,7 +87,7 @@ func (event *TransferCrossChainEvent) GetFee(denom string) sdk.Coin {
 }
 
 func (event *TransferCrossChainEvent) GetTarget() (Fip20TargetType, string) {
-	target := Byte32ToString(event.Target)
+	target := fxtypes.Byte32ToString(event.Target)
 	if strings.HasPrefix(target, FIP20TransferToChainPrefix) {
 		return FIP20TargetChain, strings.TrimPrefix(target, FIP20TransferToChainPrefix)
 	}
@@ -99,28 +101,45 @@ func (event *TransferCrossChainEvent) TotalAmount(denom string) sdk.Coins {
 	return sdk.NewCoins(event.GetAmount(denom)).Add(event.GetFee(denom))
 }
 
-func MustStrToByte32(str string) [32]byte {
-	byte32, err := StrToByte32(str)
-	if err != nil {
-		panic(err)
-	}
-	return byte32
+type TransferEvent struct {
+	From  common.Address
+	To    common.Address
+	Value *big.Int
 }
 
-func Byte32ToString(bytes [32]byte) string {
-	for i := len(bytes) - 1; i >= 0; i-- {
-		if bytes[i] != 0 {
-			return string(bytes[:i+1])
+// ParseTransferEvent transfer event ---> event Transfer(address indexed from, address indexed to, uint256 value);
+func ParseTransferEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*TransferEvent, common.Address, error) {
+	// Note: the `Transfer` event contains 3 topics (id, from, to)
+	if len(log.Topics) != 3 {
+		return nil, common.Address{}, nil
+	}
+	eventID := log.Topics[0] // event ID
+	event, err := fip20ABI.EventByID(eventID)
+	if err != nil {
+		return nil, common.Address{}, nil
+	}
+	if !(event.Name == ERC20EventTransfer) {
+		return nil, common.Address{}, nil
+	}
+	toAddr := common.BytesToAddress(log.Topics[2].Bytes())
+
+	transferEvent := new(TransferEvent)
+	if log.Topics[0] != fip20ABI.Events[ERC20EventTransfer].ID {
+		return nil, toAddr, nil
+	}
+	if len(log.Data) > 0 {
+		if err := fip20ABI.UnpackIntoInterface(transferEvent, ERC20EventTransfer, log.Data); err != nil {
+			return nil, toAddr, err
 		}
 	}
-	return ""
-}
-
-func StrToByte32(s string) ([32]byte, error) {
-	var out [32]byte
-	if len([]byte(s)) > 32 {
-		return out, fmt.Errorf("string too long")
+	var indexed abi.Arguments
+	for _, arg := range fip20ABI.Events[ERC20EventTransfer].Inputs {
+		if arg.Indexed {
+			indexed = append(indexed, arg)
+		}
 	}
-	copy(out[:], s)
-	return out, nil
+	if err := abi.ParseTopics(transferEvent, indexed, log.Topics[1:]); err != nil {
+		return nil, toAddr, err
+	}
+	return transferEvent, toAddr, nil
 }
