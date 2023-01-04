@@ -11,7 +11,6 @@ import (
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/erc20/keeper"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -206,7 +205,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err = keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err = suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().NoError(err)
 			},
 		},
@@ -229,7 +228,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err = keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err = suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().NoError(err)
 				sender := sdk.AccAddress(account.Bytes())
 				cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
@@ -264,7 +263,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err = keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err = suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().Error(err)
 			},
 		},
@@ -290,7 +289,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err = keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err = suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().Error(err)
 			},
 		},
@@ -306,7 +305,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err := keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err := suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().NoError(err)
 			},
 		},
@@ -322,7 +321,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err := keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err := suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().NoError(err)
 			},
 		},
@@ -334,7 +333,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err := keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err := suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().NoError(err)
 			},
 		},
@@ -349,7 +348,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err := keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err := suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().NoError(err)
 			},
 		},
@@ -366,7 +365,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err := keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err := suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().NoError(err)
 			},
 		},
@@ -382,7 +381,7 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 					Logs: []*ethtypes.Log{&log},
 				}
 
-				err := keeper.NewHooks(&suite.app.Erc20Keeper).PostTxProcessing(suite.ctx, msg, receipt)
+				err := suite.app.Erc20Keeper.EVMHooks().PostTxProcessing(suite.ctx, msg, receipt)
 				suite.Require().NoError(err)
 			},
 		},

@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/statedb"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -43,13 +42,4 @@ type EVMKeeper interface {
 
 type IBCTransferKeeper interface {
 	Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error)
-}
-
-type IBCChannelKeeper interface {
-	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
-	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
-}
-
-type TransactionHook interface {
-	TransferAfter(ctx sdk.Context, sender, receive string, coins, fee sdk.Coin) error
 }

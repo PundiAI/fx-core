@@ -6,6 +6,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+type TransactionHook interface {
+	TransferAfter(ctx sdk.Context, sender, receive string, coins, fee sdk.Coin) error
+}
+
 type Router struct {
 	routes map[string]TransactionHook
 	sealed bool
@@ -26,14 +30,10 @@ func (rtr *Router) Seal() {
 	rtr.sealed = true
 }
 
-// Sealed returns a boolean signifying if the Router is sealed or not.
 func (rtr *Router) Sealed() bool {
 	return rtr.sealed
 }
 
-// AddRoute adds IBCModule for a given module name. It returns the Router
-// so AddRoute calls can be linked. It will panic if the Router is sealed.
-// NOTE: do not add erc20 module, Avoid recursive calls
 func (rtr *Router) AddRoute(module string, hook TransactionHook) *Router {
 	if rtr.sealed {
 		panic(fmt.Sprintf("router sealed; cannot register %s route callbacks", module))
@@ -41,7 +41,7 @@ func (rtr *Router) AddRoute(module string, hook TransactionHook) *Router {
 	if !sdk.IsAlphaNumeric(module) {
 		panic("route expressions can only contain alphanumeric characters")
 	}
-	if rtr.HasRoute(module) {
+	if _, found := rtr.GetRoute(module); found {
 		panic(fmt.Sprintf("route %s has already been registered", module))
 	}
 
@@ -49,16 +49,7 @@ func (rtr *Router) AddRoute(module string, hook TransactionHook) *Router {
 	return rtr
 }
 
-// HasRoute returns true if the Router has a module registered or false otherwise.
-func (rtr *Router) HasRoute(module string) bool {
-	_, ok := rtr.routes[module]
-	return ok
-}
-
-// GetRoute returns a IBCModule for a given module.
 func (rtr *Router) GetRoute(module string) (TransactionHook, bool) {
-	if !rtr.HasRoute(module) {
-		return nil, false
-	}
-	return rtr.routes[module], true
+	hook, found := rtr.routes[module]
+	return hook, found
 }

@@ -191,10 +191,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		),
 	)
 
-	if data.Router == "" || !k.Router.HasRoute(data.Router) {
+	if data.Router == "" || k.router == nil {
 		return nil
 	}
-	if route, exists := k.Router.GetRoute(data.Router); exists {
+	if route, exists := k.router.GetRoute(data.Router); exists {
 		ibcAmount := sdk.NewCoin(receiveDenom, transferAmount)
 		ibcFee := sdk.NewCoin(receiveDenom, feeAmount)
 
@@ -239,8 +239,8 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 		}
 		return k.refundPacketTokenHook(ctx, packet, data, amount, fee)
 	default:
-		if k.AckHook != nil {
-			if err := k.AckHook.AckAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); err != nil {
+		if k.refundHook != nil {
+			if err := k.refundHook.AckAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); err != nil {
 				ctx.Logger().Error("acknowledgement packet", "ack hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
 			}
 		}
@@ -282,8 +282,8 @@ func (k Keeper) refundPacketTokenHook(ctx sdk.Context, packet channeltypes.Packe
 		return err
 	}
 
-	if k.RefundHook != nil {
-		if err = k.RefundHook.RefundAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence, sender, token); err != nil {
+	if k.refundHook != nil {
+		if err = k.refundHook.RefundAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence, sender, token); err != nil {
 			ctx.Logger().Info("refundPacketToken", "refund hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
 		}
 	}

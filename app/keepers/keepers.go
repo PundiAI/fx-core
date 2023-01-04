@@ -52,6 +52,7 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain"
@@ -67,7 +68,6 @@ import (
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
 	fxtransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
-	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter"
 	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
@@ -244,14 +244,29 @@ func NewAppKeeper(
 		appKeepers.ScopedIBCKeeper,
 	)
 
-	appKeepers.IBCTransferKeeper = ibctransferkeeper.NewKeeper(appCodec, appKeepers.keys[ibctransfertypes.StoreKey], appKeepers.GetSubspace(ibctransfertypes.ModuleName),
-		appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.ChannelKeeper, &appKeepers.IBCKeeper.PortKeeper,
-		appKeepers.AccountKeeper, appKeepers.BankKeeper, appKeepers.ScopedTransferKeeper)
+	appKeepers.IBCTransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[ibctransfertypes.StoreKey],
+		appKeepers.GetSubspace(ibctransfertypes.ModuleName),
+		appKeepers.IBCKeeper.ChannelKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper,
+		&appKeepers.IBCKeeper.PortKeeper,
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.ScopedTransferKeeper,
+	)
 
-	appKeepers.FxTransferKeeper = fxtransferkeeper.NewKeeper(appKeepers.IBCTransferKeeper,
-		appCodec, appKeepers.keys[ibctransfertypes.StoreKey], appKeepers.GetSubspace(ibctransfertypes.ModuleName),
-		appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.ChannelKeeper, &appKeepers.IBCKeeper.PortKeeper,
-		appKeepers.AccountKeeper, appKeepers.BankKeeper, appKeepers.ScopedTransferKeeper,
+	appKeepers.FxTransferKeeper = fxtransferkeeper.NewKeeper(
+		appKeepers.IBCTransferKeeper,
+		appCodec,
+		appKeepers.keys[ibctransfertypes.StoreKey],
+		appKeepers.GetSubspace(ibctransfertypes.ModuleName),
+		appKeepers.IBCKeeper.ChannelKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper,
+		&appKeepers.IBCKeeper.PortKeeper,
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.ScopedTransferKeeper,
 	)
 
 	appKeepers.FeeMarketKeeper = feemarketkeeper.NewKeeper(
@@ -284,7 +299,7 @@ func NewAppKeeper(
 		appKeepers.BankKeeper,
 		appKeepers.EvmKeeper,
 		appKeepers.IBCTransferKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper)
+	)
 
 	appKeepers.GravityMigrator = gravitykeeper.NewMigrator(
 		appCodec,
@@ -395,25 +410,20 @@ func NewAppKeeper(
 		govKeeper,
 	)
 
-	erc20TransferRouter := erc20types.NewRouter()
-	erc20TransferRouter.AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper)
-	erc20TransferRouter.AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper)
-	erc20TransferRouter.AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
-	erc20TransferRouter.AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper)
-	erc20TransferRouter.AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
-	appKeepers.Erc20Keeper = erc20Keeper.SetRouter(erc20TransferRouter)
-	appKeepers.EvmKeeper.SetHooks(erc20keeper.NewHooks(&appKeepers.Erc20Keeper))
+	transferRouter := fxtypes.NewRouter().
+		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
+		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
+		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
+		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
+		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
+	appKeepers.Erc20Keeper = erc20Keeper.SetRouter(*transferRouter)
 
-	ibcTransferRouter := fxtransfertypes.NewRouter()
-	ibcTransferRouter.AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper)
-	ibcTransferRouter.AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper)
-	ibcTransferRouter.AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
-	ibcTransferRouter.AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper)
-	ibcTransferRouter.AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
-	ibcTransferRouter.AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
-	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRouter(ibcTransferRouter)
+	appKeepers.EvmKeeper.SetHooks(appKeepers.Erc20Keeper.EVMHooks())
+
+	ibcTransferRouter := transferRouter.
+		AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
+	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRouter(*ibcTransferRouter)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
-	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetAckHook(appKeepers.Erc20Keeper)
 
 	ibcTransferModule := ibctransfer.NewIBCModule(appKeepers.IBCTransferKeeper)
 	transferIBCModule := fxtransfer.NewIBCMiddleware(appKeepers.FxTransferKeeper, ibcTransferModule)

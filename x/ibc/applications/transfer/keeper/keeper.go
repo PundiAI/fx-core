@@ -6,6 +6,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	"github.com/tendermint/tendermint/libs/log"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -28,9 +29,8 @@ type Keeper struct {
 	authKeeper    transfertypes.AccountKeeper
 	bankKeeper    transfertypes.BankKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
-	Router        *types.Router
-	RefundHook    types.RefundHook
-	AckHook       types.AckHook
+	router        *fxtypes.Router
+	refundHook    types.RefundHook
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
@@ -61,26 +61,17 @@ func NewKeeper(keeper ibctransferkeeper.Keeper,
 
 // SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
-func (k Keeper) SetRouter(rtr *types.Router) Keeper {
-	if k.Router != nil && k.Router.Sealed() {
+func (k Keeper) SetRouter(rtr fxtypes.Router) Keeper {
+	if k.router != nil && k.router.Sealed() {
 		panic("cannot reset a sealed router")
 	}
-	k.Router = rtr
-	k.Router.Seal()
+	k.router = &rtr
+	k.router.Seal()
 	return k
-}
-
-func (k Keeper) GetRouter() *types.Router {
-	return k.Router
 }
 
 func (k Keeper) SetRefundHook(hook types.RefundHook) Keeper {
-	k.RefundHook = hook
-	return k
-}
-
-func (k Keeper) SetAckHook(hook types.AckHook) Keeper {
-	k.AckHook = hook
+	k.refundHook = hook
 	return k
 }
 

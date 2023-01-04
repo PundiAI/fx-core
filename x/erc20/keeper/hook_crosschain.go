@@ -107,7 +107,7 @@ func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to strin
 	ibcTimeoutHeight := ibcclienttypes.ZeroHeight()
 	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(ibcTimeout)
 	transferMsg := transfertypes.NewMsgTransfer(targetIBC.SourcePort, targetIBC.SourceChannel, amount, from.String(), to, ibcTimeoutHeight, ibcTimeoutTimestamp)
-	transferResponse, err := h.k.IbcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx), transferMsg)
+	transferResponse, err := h.k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx), transferMsg)
 	if err != nil {
 		return err
 	}

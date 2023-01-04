@@ -12,6 +12,23 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
+func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error {
+	//check tx
+	if !k.HasIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
+		return nil
+	}
+	k.DeleteIBCTransferHash(ctx, sourcePort, sourceChannel, sequence)
+	return k.RelayConvertCoin(ctx, sender, common.BytesToAddress(sender.Bytes()), amount)
+}
+
+func (k Keeper) AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) error {
+	if !k.HasIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
+		return nil
+	}
+	k.DeleteIBCTransferHash(ctx, sourcePort, sourceChannel, sequence)
+	return nil
+}
+
 func (k Keeper) SetIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64, hash common.Hash) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetIBCTransferKey(port, channel, sequence), hash.Bytes())

@@ -12,11 +12,10 @@ import (
 
 // Hooks wrapper struct for erc20 keeper
 type Hooks struct {
-	k *Keeper
+	k Keeper
 }
 
-// NewHooks Return the wrapper struct
-func NewHooks(k *Keeper) Hooks {
+func (k Keeper) EVMHooks() Hooks {
 	return Hooks{k}
 }
 

@@ -3,12 +3,10 @@ package keeper
 import (
 	"fmt"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/libs/log"
@@ -23,15 +21,12 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	paramstore paramtypes.Subspace
 
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	evmKeeper     types.EVMKeeper
-	// fetch EIP1559 base fee and parameters
+	accountKeeper     types.AccountKeeper
+	bankKeeper        types.BankKeeper
+	evmKeeper         types.EVMKeeper
+	ibcTransferKeeper types.IBCTransferKeeper
 
-	IbcTransferKeeper types.IBCTransferKeeper
-	IbcChannelKeeper  types.IBCChannelKeeper
-
-	router *types.Router
+	router *fxtypes.Router
 
 	moduleAddress common.Address
 }
@@ -45,7 +40,6 @@ func NewKeeper(
 	bk types.BankKeeper,
 	evmKeeper types.EVMKeeper,
 	ibcTransferKeeper types.IBCTransferKeeper,
-	ibcChannelKeeper types.IBCChannelKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -59,8 +53,7 @@ func NewKeeper(
 		accountKeeper:     ak,
 		bankKeeper:        bk,
 		evmKeeper:         evmKeeper,
-		IbcTransferKeeper: ibcTransferKeeper,
-		IbcChannelKeeper:  ibcChannelKeeper,
+		ibcTransferKeeper: ibcTransferKeeper,
 		moduleAddress:     common.BytesToAddress(ak.GetModuleAddress(types.ModuleName)),
 	}
 }
@@ -70,21 +63,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error {
-	//check tx
-	if !k.HasIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
-		return nil
+func (k Keeper) SetRouter(rtr fxtypes.Router) Keeper {
+	if k.router != nil && k.router.Sealed() {
+		panic("cannot reset a sealed router")
 	}
-	k.DeleteIBCTransferHash(ctx, sourcePort, sourceChannel, sequence)
-	return k.RelayConvertCoin(ctx, sender, common.BytesToAddress(sender.Bytes()), amount)
-}
-
-func (k Keeper) AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) error {
-	if !k.HasIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
-		return nil
-	}
-	k.DeleteIBCTransferHash(ctx, sourcePort, sourceChannel, sequence)
-	return nil
+	k.router = &rtr
+	k.router.Seal()
+	return k
 }
 
 // TransferAfter ibc transfer after
@@ -112,23 +97,6 @@ func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receive
 	return err
 }
 
-func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata, bool) {
-	md, found := k.bankKeeper.GetDenomMetaData(ctx, denom)
-	// not register metadata
-	if !found {
-		return banktypes.Metadata{}, false
-	}
-	// not have denom units
-	if len(md.DenomUnits) == 0 {
-		return banktypes.Metadata{}, false
-	}
-	//not have alias
-	if len(md.DenomUnits[0].Aliases) == 0 {
-		return banktypes.Metadata{}, false
-	}
-	return md, true
-}
-
 func (k Keeper) RelayConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
 	return k.ConvertDenomToOne(ctx, from, coin)
 }
@@ -144,13 +112,19 @@ func (k Keeper) RelayConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, co
 	return targetCoin, nil
 }
 
-// SetRouter sets the Router in IBC Transfer Keeper and seals it. The method panics if
-// there is an existing router that's already sealed.
-func (k Keeper) SetRouter(rtr *types.Router) Keeper {
-	if k.router != nil && k.router.Sealed() {
-		panic("cannot reset a sealed router")
+func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata, bool) {
+	md, found := k.bankKeeper.GetDenomMetaData(ctx, denom)
+	// not register metadata
+	if !found {
+		return banktypes.Metadata{}, false
 	}
-	k.router = rtr
-	k.router.Seal()
-	return k
+	// not have denom units
+	if len(md.DenomUnits) == 0 {
+		return banktypes.Metadata{}, false
+	}
+	//not have alias
+	if len(md.DenomUnits[0].Aliases) == 0 {
+		return banktypes.Metadata{}, false
+	}
+	return md, true
 }
