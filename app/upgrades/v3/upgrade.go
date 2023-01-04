@@ -1,11 +1,9 @@
 package v3
 
 import (
-	"bytes"
 	"fmt"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 
@@ -172,7 +170,7 @@ func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 		if len(md.DenomUnits) != 2 || len(md.DenomUnits[1].Aliases) != 1 || md.DenomUnits[1].Aliases[0] != "null" {
 			return false
 		}
-		logger.Info("update metadata alias null", "denom", md.Base)
+		logger.Info("fix metadata alias", "denom", md.Base)
 		md.DenomUnits[1].Aliases = []string{}
 		bk.SetDenomMetaData(ctx, md)
 		return false
@@ -180,36 +178,19 @@ func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 }
 
 func deleteExpirationIBCTransferHash(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, ibcKeeper *ibckeeper.Keeper) {
-	logger := ctx.Logger()
 	counts := make(map[string]uint64, 10)
-
-	iter := erc20Keeper.IBCTransferHashIterator(ctx)
-	defer iter.Close()
-
-	for ; iter.Valid(); iter.Next() {
-		key := bytes.TrimPrefix(iter.Key(), erc20types.KeyPrefixIBCTransfer)
-		split := strings.Split(string(key), "/")
-		if len(split) != 3 {
-			panic(fmt.Sprintf("invalid key: %s", string(key)))
-		}
-		port := split[0]
-		channel := split[1]
-		sequence, err := strconv.ParseUint(split[2], 10, 64)
-		if err != nil {
-			panic(fmt.Sprintf("parse sequence %s error %s", split[2], err.Error()))
-		}
-
+	erc20Keeper.IterateIBCTransferHash(ctx, func(port, channel string, sequence uint64) bool {
 		found := ibcKeeper.ChannelKeeper.HasPacketCommitment(ctx, port, channel, sequence)
 		if found {
-			continue
+			return false
 		}
 		erc20Keeper.DeleteIBCTransferHash(ctx, port, channel, sequence)
-
 		// statistics count
 		counts[fmt.Sprintf("%s/%s", port, channel)] += 1
-	}
+		return false
+	})
 	for portChannel, count := range counts {
-		logger.Info("delete expiration ibc transfer hash", "port/channel", portChannel, "count", strconv.FormatUint(count, 10))
+		ctx.Logger().Info("delete expiration ibc transfer hash", "port/channel", portChannel, "count", strconv.FormatUint(count, 10))
 	}
 }
 
