@@ -80,48 +80,33 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "token ERC20 contract already registered: %s", contract.String())
 	}
 
-	_, baseDenom, _, err := k.CreateCoinMetadata(ctx, contract)
+	erc20Data, err := k.QueryERC20(ctx, contract)
 	if err != nil {
 		return nil, err
 	}
 
-	pair := types.NewTokenPair(contract, baseDenom, true, types.OWNER_EXTERNAL)
-	k.AddTokenPair(ctx, pair)
-	return &pair, nil
-}
-
-// CreateCoinMetadata generates the metadata to represent the ERC20 token on functionX.
-func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*banktypes.Metadata, string, string, error) {
-	strContract := contract.String()
-
-	erc20Data, err := k.QueryERC20(ctx, contract)
-	if err != nil {
-		return nil, "", "", err
-	}
-
 	// base denomination
 	base := strings.ToLower(erc20Data.Symbol)
+	if k.IsDenomRegistered(ctx, base) || erc20Data.Symbol == fxtypes.DefaultDenom {
+		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin denomination already registered: %s", erc20Data.Name)
+	}
+
+	// base not register as alias
+	if k.IsAliasDenomRegistered(ctx, base) {
+		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "alias %s already registered", base)
+	}
 
 	_, isExist := k.bankKeeper.GetDenomMetaData(ctx, base)
 	if isExist {
 		// metadata already exists; exit
-		return nil, "", "", sdkerrors.Wrap(types.ErrInternalTokenPair, "denom metadata already registered")
-	}
-
-	if k.IsDenomRegistered(ctx, base) {
-		return nil, "", "", sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin denomination already registered: %s", erc20Data.Name)
-	}
-
-	//base not register as alias
-	if k.IsAliasDenomRegistered(ctx, base) {
-		return nil, "", "", sdkerrors.Wrapf(types.ErrInternalTokenPair, "alias %s already registered", base)
+		return nil, sdkerrors.Wrap(types.ErrInternalTokenPair, "denom metadata already registered")
 	}
 
 	// create a bank denom metadata based on the ERC20 token ABI details
 	// metadata name is should always be the contract since it's the key
 	// to the bank store
 	metadata := banktypes.Metadata{
-		Description: types.CreateDenomDescription(strContract),
+		Description: types.CreateDenomDescription(contract.String()),
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    base,
@@ -146,12 +131,13 @@ func (k Keeper) CreateCoinMetadata(ctx sdk.Context, contract common.Address) (*b
 	}
 
 	if err := metadata.Validate(); err != nil {
-		return nil, "", "", sdkerrors.Wrapf(err, "FIP20 token data is invalid for contract %s", strContract)
+		return nil, sdkerrors.Wrapf(err, "FIP20 token data is invalid for contract %s", contract.String())
 	}
-
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 
-	return &metadata, base, metadata.Symbol, nil
+	pair := types.NewTokenPair(contract, metadata.Base, true, types.OWNER_EXTERNAL)
+	k.AddTokenPair(ctx, pair)
+	return &pair, nil
 }
 
 // ToggleRelay toggles relaying for a given token pair
@@ -194,12 +180,12 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 	oldAliases := md.DenomUnits[0].Aliases
 	newAliases := make([]string, 0, len(oldAliases)+1)
 
-	aliasDenomRegistered := k.GetAliasDenom(ctx, alias)
+	registeredDenom, found := k.GetAliasDenom(ctx, alias)
 	//check if the alias not register denom-alias
-	if len(aliasDenomRegistered) == 0 {
+	if !found {
 		newAliases = append(oldAliases, alias)
 		k.SetAliasesDenom(ctx, denom, alias)
-	} else if string(aliasDenomRegistered) == denom {
+	} else if registeredDenom == denom {
 		// check if the denom equal alias registered denom
 		for _, denomAlias := range oldAliases {
 			if denomAlias == alias {
@@ -215,7 +201,7 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 		//check if denom not equal alias registered denom, return error
 		return false, sdkerrors.Wrapf(types.ErrInvalidDenom,
 			"alias %s already registered, but denom expected: %s, actual: %s",
-			alias, string(aliasDenomRegistered), denom)
+			alias, registeredDenom, denom)
 	}
 
 	md.DenomUnits[0].Aliases = newAliases

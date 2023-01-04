@@ -441,10 +441,9 @@ func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s denom not exist", target)
 	}
 
-	var err error
 	targetCoin := sdk.NewCoin(targetDenom, coin.Amount)
 	// send symbol denom to module
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -485,19 +484,18 @@ func (k Keeper) ConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s already registered", coin.Denom)
 	}
 	// alias register
-	aliasDenomBytes := k.GetAliasDenom(ctx, coin.Denom)
-	if len(aliasDenomBytes) == 0 {
+	denom, found := k.GetAliasDenom(ctx, coin.Denom)
+	if !found {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "alias %s not registered", coin.Denom)
 	}
 	// has denom alias
-	if _, found := k.HasDenomAlias(ctx, string(aliasDenomBytes)); !found {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "not support with %s", string(aliasDenomBytes))
+	if _, found := k.HasDenomAlias(ctx, denom); !found {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "not support with %s", denom)
 	}
 
-	var err error
-	targetCoin := sdk.NewCoin(string(aliasDenomBytes), coin.Amount)
+	targetCoin := sdk.NewCoin(denom, coin.Amount)
 	// send alias denom to module
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
 		return sdk.Coin{}, err
 	}

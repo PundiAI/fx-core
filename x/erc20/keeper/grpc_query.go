@@ -25,7 +25,6 @@ func (k Keeper) TokenPairs(c context.Context, req *types.QueryTokenPairsRequest)
 
 	var pairs []types.TokenPair
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPair)
-
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
 		var pair types.TokenPair
 		if err := k.cdc.Unmarshal(value, &pair); err != nil {
@@ -63,7 +62,6 @@ func (k Keeper) TokenPair(c context.Context, req *types.QueryTokenPairRequest) (
 	}
 
 	id := k.GetTokenPairID(ctx, req.Token)
-
 	if len(id) == 0 {
 		return nil, status.Errorf(codes.NotFound, "token pair with token '%s'", req.Token)
 	}
@@ -124,10 +122,10 @@ func (k Keeper) AliasDenom(c context.Context, req *types.QueryAliasDenomRequest)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid format for alias %s", req.Alias)
 	}
 
-	aliasDenomBytes := k.GetAliasDenom(ctx, req.Alias)
-	if len(aliasDenomBytes) == 0 {
+	denom, found := k.GetAliasDenom(ctx, req.Alias)
+	if !found {
 		return nil, status.Errorf(codes.NotFound, "denom not found with alias '%s'", req.Alias)
 	}
 
-	return &types.QueryAliasDenomResponse{Denom: string(aliasDenomBytes)}, nil
+	return &types.QueryAliasDenomResponse{Denom: denom}, nil
 }

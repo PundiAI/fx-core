@@ -149,9 +149,13 @@ func (k Keeper) SetAliasesDenom(ctx sdk.Context, denom string, aliases ...string
 }
 
 // GetAliasDenom returns the denom for the given alias
-func (k Keeper) GetAliasDenom(ctx sdk.Context, alias string) []byte {
+func (k Keeper) GetAliasDenom(ctx sdk.Context, alias string) (string, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixAliasDenom)
-	return store.Get([]byte(alias))
+	value := store.Get([]byte(alias))
+	if value == nil {
+		return "", false
+	}
+	return string(value), true
 }
 
 // DeleteAliasesDenom deletes the denom-alias for the given alias

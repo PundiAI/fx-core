@@ -379,7 +379,7 @@ func (suite *KeeperTestSuite) TestRegisterERC20() {
 		{
 			"meta data already stored",
 			func(contractAddr common.Address) {
-				_, _, _, err := suite.app.Erc20Keeper.CreateCoinMetadata(suite.ctx, contractAddr)
+				_, err := suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
 				suite.Require().NoError(err)
 			},
 			false,
