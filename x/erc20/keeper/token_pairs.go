@@ -10,7 +10,6 @@ import (
 
 // GetAllTokenPairs - get all registered token tokenPairs
 func (k Keeper) GetAllTokenPairs(ctx sdk.Context) []types.TokenPair {
-
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefixTokenPair)
 	defer iterator.Close()

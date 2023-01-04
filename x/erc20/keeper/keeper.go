@@ -77,42 +77,19 @@ func (k Keeper) SetRouter(rtr fxtypes.Router) Keeper {
 
 // TransferAfter ibc transfer after
 func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error {
-	sendAddr, err := sdk.AccAddressFromBech32(sender)
+	_, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "sender address %s, error %s", sender, err.Error())
 	}
 	if err = fxtypes.ValidateEthereumAddress(receive); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address %s, error %s", receive, err.Error())
 	}
-	return k.RelayConvertCoin(ctx, sendAddr, common.HexToAddress(receive), coin.Add(fee))
-}
-
-func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
-	if !k.IsDenomRegistered(ctx, coin.Denom) {
-		return sdkerrors.Wrapf(types.ErrInvalidDenom, "denom(%s) not registered", coin.Denom)
-	}
-	msg := &types.MsgConvertCoin{
-		Coin:     coin,
-		Receiver: receiver.Hex(),
-		Sender:   sender.String(),
-	}
-	_, err := k.ConvertCoin(sdk.WrapSDKContext(ctx), msg)
+	_, err = k.ConvertCoin(sdk.WrapSDKContext(ctx), &types.MsgConvertCoin{
+		Coin:     coin.Add(fee),
+		Receiver: receive,
+		Sender:   sender,
+	})
 	return err
-}
-
-func (k Keeper) RelayConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
-	return k.ConvertDenomToOne(ctx, from, coin)
-}
-
-func (k Keeper) RelayConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
-	// convert denom
-	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.ConvertDenomToMany(cacheCtx, from, coin, target)
-	if err != nil {
-		return sdk.Coin{}, err
-	}
-	commit()
-	return targetCoin, nil
 }
 
 func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata, bool) {

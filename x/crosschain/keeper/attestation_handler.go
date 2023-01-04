@@ -20,23 +20,21 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		}
 
 		coin := sdk.NewCoin(bridgeToken.Denom, claim.Amount)
-		coins := sdk.NewCoins(coin)
-
 		receiveAddr, err := sdk.AccAddressFromBech32(claim.Receiver)
 		if err != nil {
 			return sdkerrors.Wrap(types.ErrInvalid, "receiver address")
 		}
 		if bridgeToken.Denom != fxtypes.DefaultDenom {
 			// If it is not fxcore originated, mint the coins (aka vouchers)
-			if err := k.bankKeeper.MintCoins(ctx, k.moduleName, coins); err != nil {
+			if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
 				return sdkerrors.Wrapf(err, "mint vouchers coins")
 			}
 		}
-		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiveAddr, coins); err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiveAddr, sdk.NewCoins(coin)); err != nil {
 			return sdkerrors.Wrap(err, "transfer vouchers")
 		}
 
-		k.HandlerRelayTransfer(ctx, claim, receiveAddr, coin)
+		k.HandlerRelayTransfer(ctx, claim.EventNonce, claim.TargetIbc, receiveAddr, coin)
 
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)

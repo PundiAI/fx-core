@@ -18,7 +18,7 @@ func (h Hooks) HookTransfer(ctx sdk.Context, relayTransfers []types.RelayTransfe
 		coins := sdk.Coins{{Denom: relay.Denom, Amount: sdk.NewIntFromBigInt(relay.Amount)}}
 
 		switch relay.ContractOwner {
-		case types.OWNER_MODULE:
+		case types.OWNER_MODULE: // native coin
 			if _, err := h.k.CallEVM(ctx, fip20ABI, h.k.moduleAddress, relay.TokenContract, true, "burn", h.k.moduleAddress, relay.Amount); err != nil {
 				return err
 			}
@@ -28,7 +28,7 @@ func (h Hooks) HookTransfer(ctx sdk.Context, relayTransfers []types.RelayTransfe
 					return err
 				}
 			}
-		case types.OWNER_EXTERNAL:
+		case types.OWNER_EXTERNAL: // native coin
 			if err := h.k.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
 				return err
 			}

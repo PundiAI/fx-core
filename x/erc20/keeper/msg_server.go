@@ -23,31 +23,30 @@ var _ types.MsgServer = &Keeper{}
 func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*types.MsgConvertCoinResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 	receiver := common.HexToAddress(msg.Receiver)
 
 	pair, err := k.MintingEnabled(ctx, receiver.Bytes(), msg.Coin.Denom)
 	if err != nil {
 		return nil, err
 	}
+	erc20 := common.HexToAddress(pair.Erc20Address)
 
 	// Remove token pair if contract is suicided
-	erc20 := common.HexToAddress(pair.Erc20Address)
-	acc := k.evmKeeper.GetAccountWithoutBalance(ctx, erc20)
-	if acc == nil || !acc.IsContract() {
+	if acc := k.evmKeeper.GetAccountWithoutBalance(ctx, erc20); acc == nil || !acc.IsContract() {
 		k.RemoveTokenPair(ctx, pair)
 		k.Logger(ctx).Debug("deleting selfdestructed token pair from state", "contract", pair.Erc20Address)
 		// NOTE: return nil error to persist the changes from the deletion
 		return &types.MsgConvertCoinResponse{}, nil
 	}
 
-	sender := sdk.MustAccAddressFromBech32(msg.Sender)
-	newCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	// Check ownership and execute conversion
+	newCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	switch {
 	case pair.IsNativeCoin():
-		return k.ConvertCoinNativeCoin(newCtx, pair, msg, receiver, sender) // case 1.1
+		return k.ConvertCoinNativeCoin(newCtx, pair, msg, receiver, sender)
 	case pair.IsNativeERC20():
-		return k.ConvertCoinNativeERC20(newCtx, pair, msg, receiver, sender) // case 2.2
+		return k.ConvertCoinNativeERC20(newCtx, pair, msg, receiver, sender)
 	default:
 		return nil, types.ErrUndefinedOwner
 	}
@@ -58,31 +57,30 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) (*types.MsgConvertERC20Response, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	sender := common.HexToAddress(msg.Sender)
 	receiver := sdk.MustAccAddressFromBech32(msg.Receiver)
 
 	pair, err := k.MintingEnabled(ctx, receiver, msg.ContractAddress)
 	if err != nil {
 		return nil, err
 	}
+	erc20 := common.HexToAddress(pair.Erc20Address)
 
 	// Remove token pair if contract is suicided
-	erc20 := common.HexToAddress(pair.Erc20Address)
-	acc := k.evmKeeper.GetAccountWithoutBalance(ctx, erc20)
-	if acc == nil || !acc.IsContract() {
+	if acc := k.evmKeeper.GetAccountWithoutBalance(ctx, erc20); acc == nil || !acc.IsContract() {
 		k.RemoveTokenPair(ctx, pair)
 		k.Logger(ctx).Debug("deleting selfdestructed token pair from state", "contract", pair.Erc20Address)
 		// NOTE: return nil error to persist the changes from the deletion
 		return &types.MsgConvertERC20Response{}, nil
 	}
 
-	sender := common.HexToAddress(msg.Sender)
+	// Check ownership and execute conversion
 	newCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-	// Check ownership
 	switch {
 	case pair.IsNativeCoin():
-		return k.ConvertERC20NativeCoin(newCtx, pair, msg, receiver, sender) // case 1.2
+		return k.ConvertERC20NativeCoin(newCtx, pair, msg, receiver, sender)
 	case pair.IsNativeERC20():
-		return k.ConvertERC20NativeToken(newCtx, pair, msg, receiver, sender) // case 2.1
+		return k.ConvertERC20NativeToken(newCtx, pair, msg, receiver, sender)
 	default:
 		return nil, types.ErrUndefinedOwner
 	}
@@ -126,7 +124,7 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel("denom", msg.Coin.Denom),
-				telemetry.NewLabel("target_denom", coin.Denom),
+				telemetry.NewLabel("target", msg.Target),
 			},
 		)
 	}()
@@ -405,20 +403,11 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 	return &types.MsgConvertCoinResponse{}, nil
 }
 
-// ConvertDenomToMany handles the Denom conversion flow for one to many
-// token pair:
-//   - Escrow Coins on module account
-//   - Unescrow Tokens that have been previously escrowed with ConvertDenomToMany and send to receiver
-//   - Burn escrowed Coins
-//   - Check if token balance increased by amount
 func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
-	// metadata has alias
 	md, found := k.HasDenomAlias(ctx, coin.Denom)
 	if !found {
 		return coin, nil
 	}
-
-	// denom registered
 	if !k.IsDenomRegistered(ctx, coin.Denom) {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not registered", coin.Denom)
 	}
@@ -448,7 +437,7 @@ func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 		return sdk.Coin{}, err
 	}
 	// send alias denom to from addr
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin)) //ibc0xxx
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin))
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -473,17 +462,10 @@ func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sd
 	return targetCoin, nil
 }
 
-// ConvertDenomToOne handles the Denom conversion flow for many to one
-// token pair:
-//   - Escrow Coins on module account (Coins are not burned)
-//   - Mint Tokens and send to from address
-//   - Check if token balance increased by amount
 func (k Keeper) ConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
-	// denom not register
 	if k.IsDenomRegistered(ctx, coin.Denom) {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s already registered", coin.Denom)
+		return sdk.Coin{}, nil
 	}
-	// alias register
 	denom, found := k.GetAliasDenom(ctx, coin.Denom)
 	if !found {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "alias %s not registered", coin.Denom)

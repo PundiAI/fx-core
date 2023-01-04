@@ -17,18 +17,37 @@ import (
 
 var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
 
-func (k Keeper) HandlerRelayTransfer(ctx sdk.Context, claim *types.MsgSendToFxClaim, receiver sdk.AccAddress, coin sdk.Coin) {
-	coin = k.handlerConvertDenom(ctx, receiver, coin)
-
-	if claim.TargetIbc == targetEvmPrefix {
-		k.handlerEvmTransfer(ctx, claim.EventNonce, receiver, coin)
+func (k Keeper) HandlerRelayTransfer(ctx sdk.Context, eventNonce uint64, targetIbc string, receiver sdk.AccAddress, coin sdk.Coin) {
+	cacheCtx, commit := ctx.CacheContext()
+	targetCoin, err := k.erc20Keeper.ConvertDenomToOne(cacheCtx, receiver, coin)
+	if err != nil {
+		k.Logger(ctx).Error("convert denom symbol", "address", receiver, "coin", coin, "error", err.Error())
 		return
 	}
-	target, ok := fxtypes.ParseHexTargetIBC(claim.TargetIbc)
+	commit()
+
+	if targetIbc == targetEvmPrefix {
+		k.handlerEvmTransfer(ctx, eventNonce, receiver, targetCoin)
+		return
+	}
+	target, ok := fxtypes.ParseHexTargetIBC(targetIbc)
 	if !ok {
 		return
 	}
-	k.handleIbcTransfer(ctx, claim.EventNonce, receiver, coin, target)
+	k.handleIbcTransfer(ctx, eventNonce, receiver, targetCoin, target)
+}
+
+func (k Keeper) handlerEvmTransfer(ctx sdk.Context, eventNonce uint64, receiver sdk.AccAddress, coin sdk.Coin) {
+	receiverEthAddr := common.BytesToAddress(receiver.Bytes())
+	if err := k.erc20Keeper.TransferAfter(ctx, receiver.String(), receiverEthAddr.String(), coin, sdk.Coin{}); err != nil {
+		k.Logger(ctx).Error("transfer convert denom failed", "error", err.Error())
+		return
+	}
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeEvmTransfer,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
+	))
 }
 
 func (k Keeper) handleIbcTransfer(ctx sdk.Context, eventNonce uint64, receive sdk.AccAddress, coin sdk.Coin, target fxtypes.TargetIBC) {
@@ -80,39 +99,6 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, eventNonce uint64, receive sd
 		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, target.SourcePort),
 		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, target.SourceChannel),
 	))
-}
-
-func (k Keeper) handlerEvmTransfer(ctx sdk.Context, eventNonce uint64, receiver sdk.AccAddress, coin sdk.Coin) {
-	logger := k.Logger(ctx)
-
-	receiverEthAddr := common.BytesToAddress(receiver.Bytes())
-	logger.Info("convert denom to fip20", "receiver", receiverEthAddr, "amount", coin)
-
-	// todo The same address is repeated as an argument
-	if err := k.erc20Keeper.RelayConvertCoin(ctx, receiver, receiverEthAddr, coin); err != nil {
-		logger.Error("evm transfer convert denom to fip20 failed", "error", err.Error())
-		return
-	}
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeEvmTransfer,
-		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
-	))
-}
-
-func (k Keeper) handlerConvertDenom(ctx sdk.Context, receiver sdk.AccAddress, coin sdk.Coin) sdk.Coin {
-	logger := k.Logger(ctx)
-
-	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.erc20Keeper.RelayConvertDenomToOne(cacheCtx, receiver, coin)
-	if err != nil {
-		logger.Error("convert denom symbol", "address", receiver, "coin", coin, "error", err.Error())
-		//if convert err, return default coin
-		return coin
-	}
-	commit()
-	logger.Info("convert denom symbol", "module", k.moduleName, "receiver", receiver, "denom", coin.Denom, "target", targetCoin.Denom)
-	return targetCoin
 }
 
 func covertIbcPacketReceiveAddress(targetIbcPrefix string, receiver sdk.AccAddress) (string, error) {
