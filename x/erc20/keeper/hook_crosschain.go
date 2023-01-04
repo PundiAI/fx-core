@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"fmt"
 	"strings"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -22,7 +23,7 @@ func (h Hooks) HookTransferCrossChain(ctx sdk.Context, relayTransferCrossChains 
 
 		balances := h.k.bankKeeper.GetAllBalances(ctx, relay.From.Bytes())
 		if !balances.IsAllGTE(relay.TotalAmount(relay.Denom)) {
-			return fmt.Errorf("insufficient balance, have %s expected %s", balances.String(), relay.TotalAmount(relay.Denom).String())
+			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "%s is smaller than %s", balances.String(), relay.TotalAmount(relay.Denom).String())
 		}
 
 		targetType, target := relay.GetTarget()
@@ -35,7 +36,7 @@ func (h Hooks) HookTransferCrossChain(ctx sdk.Context, relayTransferCrossChains 
 		case types.FIP20TargetIBC:
 			err = h.transferIBCHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target, txHash)
 		default:
-			err = fmt.Errorf("traget unknown %d", targetType)
+			err = sdkerrors.Wrapf(types.ErrInvalidTarget, "target type %s", targetType)
 		}
 		if err != nil {
 			logger.Error("failed to transfer cross chain", "tx-hash", txHash.Hex(), "error", err.Error())
@@ -78,11 +79,11 @@ func (h Hooks) HookTransferCrossChain(ctx sdk.Context, relayTransferCrossChains 
 func (h Hooks) transferChainHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string) error {
 	h.k.Logger(ctx).Info("transfer chain handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
 	if h.k.router == nil {
-		return fmt.Errorf("not set router")
+		return sdkerrors.Wrapf(types.ErrInvalidTarget, "not set router")
 	}
 	route, has := h.k.router.GetRoute(target)
 	if !has {
-		return fmt.Errorf("target %s not support", target)
+		return sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s not support", target)
 	}
 	return route.TransferAfter(ctx, from.String(), to, amount, fee)
 }
@@ -93,14 +94,14 @@ func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to strin
 
 	targetIBC, ok := fxtypes.ParseTargetIBC(target)
 	if !ok {
-		return fmt.Errorf("invalid target ibc %s", target)
+		return sdkerrors.Wrapf(types.ErrInvalidTarget, "invalid target ibc %s", target)
 	}
 	if err := validateIbcReceiveAddress(targetIBC.Prefix, to); err != nil {
 		logger.Error("validate ibc receive address", "address", to, "prefix", targetIBC.Prefix, "err", err.Error())
-		return fmt.Errorf("invalid to address %s", to)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
 	}
 	if !fee.IsZero() {
-		return fmt.Errorf("ibc transfer fee must be zero: %s", fee.Amount.String())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "ibc transfer fee must be zero: %s", fee.Amount.String())
 	}
 	ibcTimeout := h.k.GetIbcTimeout(ctx)
 	ibcTimeoutHeight := ibcclienttypes.ZeroHeight()

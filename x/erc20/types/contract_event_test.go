@@ -10,7 +10,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -62,8 +61,6 @@ func BenchmarkMultipleParseEventLog(b *testing.B) {
 }
 
 func parseEventLogConcurrencyTest(logs []*ethtypes.Log, moduleAddr common.Address) bool {
-	fip20ABI := fxtypes.GetERC20().ABI
-
 	complete := true
 	wg := sync.WaitGroup{}
 	wg.Add(2)
@@ -72,12 +69,13 @@ func parseEventLogConcurrencyTest(logs []*ethtypes.Log, moduleAddr common.Addres
 	go func() {
 		defer wg.Done()
 		for _, log := range logs {
-			rt, toAddr, err := types.ParseTransferEvent(fip20ABI, log)
+			rt, err := types.ParseTransferEvent(log)
 			if err != nil {
 				complete = false
 				break
 			}
-			if toAddr == moduleAddr {
+
+			if rt != nil && rt.To == moduleAddr {
 				continue
 			}
 			_ = rt
@@ -88,7 +86,7 @@ func parseEventLogConcurrencyTest(logs []*ethtypes.Log, moduleAddr common.Addres
 	go func() {
 		defer wg.Done()
 		for _, log := range logs {
-			tc, err := types.ParseTransferCrossChainEvent(fip20ABI, log)
+			tc, err := types.ParseTransferCrossChainEvent(log)
 			if err != nil {
 				complete = false
 				break
@@ -105,25 +103,24 @@ func parseEventLogConcurrencyTest(logs []*ethtypes.Log, moduleAddr common.Addres
 }
 
 func parseEventLogTest(logs []*ethtypes.Log, moduleAddress common.Address) bool {
-	fip20ABI := fxtypes.GetERC20().ABI
-
 	for _, log := range logs {
-		rt, toAddr, err := types.ParseTransferEvent(fip20ABI, log)
+		rt, err := types.ParseTransferEvent(log)
 		if err != nil {
 			return false
 		}
-		tc, err := types.ParseTransferCrossChainEvent(fip20ABI, log)
+		tc, err := types.ParseTransferCrossChainEvent(log)
 		if err != nil {
 			return false
 		}
-		if toAddr != moduleAddress && tc == nil {
+		if rt != nil && rt.To != moduleAddress && tc == nil {
 			continue
 		}
 
-		if toAddr == moduleAddress {
+		if rt != nil && rt.To == moduleAddress {
 			_ = rt
 		}
 		if tc != nil {
+			_ = tc
 		}
 	}
 	return true

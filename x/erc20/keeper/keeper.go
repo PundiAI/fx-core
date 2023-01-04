@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -89,17 +91,17 @@ func (k Keeper) AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequ
 func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error {
 	sendAddr, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
-		return fmt.Errorf("invalid sender address %s, error %s", sender, err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "sender address %s, error %s", sender, err.Error())
 	}
 	if err = fxtypes.ValidateEthereumAddress(receive); err != nil {
-		return fmt.Errorf("invalid receiver address %s, error %s", receive, err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address %s, error %s", receive, err.Error())
 	}
 	return k.RelayConvertCoin(ctx, sendAddr, common.HexToAddress(receive), coin.Add(fee))
 }
 
 func (k Keeper) RelayConvertCoin(ctx sdk.Context, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
 	if !k.IsDenomRegistered(ctx, coin.Denom) {
-		return fmt.Errorf("denom(%s) not registered", coin.Denom)
+		return sdkerrors.Wrapf(types.ErrInvalidDenom, "denom(%s) not registered", coin.Denom)
 	}
 	msg := &types.MsgConvertCoin{
 		Coin:     coin,

@@ -49,10 +49,11 @@ type TransferCrossChainEvent struct {
 	Target    [32]byte
 }
 
-func ParseTransferCrossChainEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*TransferCrossChainEvent, error) {
+func ParseTransferCrossChainEvent(log *ethtypes.Log) (*TransferCrossChainEvent, error) {
 	if len(log.Topics) != 2 {
 		return nil, nil
 	}
+	fip20ABI := fxtypes.GetERC20().ABI
 	tc := new(TransferCrossChainEvent)
 	if log.Topics[0] != fip20ABI.Events[FIP20EventTransferCrossChain].ID {
 		return nil, nil
@@ -108,28 +109,19 @@ type TransferEvent struct {
 }
 
 // ParseTransferEvent transfer event ---> event Transfer(address indexed from, address indexed to, uint256 value);
-func ParseTransferEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*TransferEvent, common.Address, error) {
+func ParseTransferEvent(log *ethtypes.Log) (*TransferEvent, error) {
 	// Note: the `Transfer` event contains 3 topics (id, from, to)
 	if len(log.Topics) != 3 {
-		return nil, common.Address{}, nil
+		return nil, nil
 	}
-	eventID := log.Topics[0] // event ID
-	event, err := fip20ABI.EventByID(eventID)
-	if err != nil {
-		return nil, common.Address{}, nil
-	}
-	if !(event.Name == ERC20EventTransfer) {
-		return nil, common.Address{}, nil
-	}
-	toAddr := common.BytesToAddress(log.Topics[2].Bytes())
-
-	transferEvent := new(TransferEvent)
+	fip20ABI := fxtypes.GetERC20().ABI
 	if log.Topics[0] != fip20ABI.Events[ERC20EventTransfer].ID {
-		return nil, toAddr, nil
+		return nil, nil
 	}
+	transferEvent := new(TransferEvent)
 	if len(log.Data) > 0 {
 		if err := fip20ABI.UnpackIntoInterface(transferEvent, ERC20EventTransfer, log.Data); err != nil {
-			return nil, toAddr, err
+			return nil, err
 		}
 	}
 	var indexed abi.Arguments
@@ -139,7 +131,7 @@ func ParseTransferEvent(fip20ABI abi.ABI, log *ethtypes.Log) (*TransferEvent, co
 		}
 	}
 	if err := abi.ParseTopics(transferEvent, indexed, log.Topics[1:]); err != nil {
-		return nil, toAddr, err
+		return nil, err
 	}
-	return transferEvent, toAddr, nil
+	return transferEvent, nil
 }

@@ -1,14 +1,12 @@
 package keeper
 
 import (
-	"errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -28,9 +26,9 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 		return nil
 	}
 
-	relayTransfers, relayTransferCrossChains, complete := h.ParseEventLog(ctx, receipt.Logs, h.k.moduleAddress)
-	if !complete {
-		return errors.New("parse event log failed")
+	relayTransfers, relayTransferCrossChains, err := h.ParseEventLog(ctx, receipt.Logs, h.k.moduleAddress)
+	if err != nil {
+		return err
 	}
 
 	// NOTE: PostTxProcessing doesn't trigger PostTxProcessing
@@ -48,26 +46,37 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 	return nil
 }
 
-func (h Hooks) ParseEventLog(ctx sdk.Context, logs []*ethtypes.Log, moduleAddress common.Address) ([]types.RelayTransfer, []types.RelayTransferCrossChain, bool) {
-	fip20ABI := fxtypes.GetERC20().ABI
-
+func (h Hooks) ParseEventLog(
+	ctx sdk.Context,
+	logs []*ethtypes.Log,
+	moduleAddress common.Address,
+) ([]types.RelayTransfer, []types.RelayTransferCrossChain, error) {
 	relayTransfers := make([]types.RelayTransfer, 0, len(logs))
 	relayTransferCrossChains := make([]types.RelayTransferCrossChain, 0, len(logs))
 
 	for _, log := range logs {
-		tr, toAddr, err := types.ParseTransferEvent(fip20ABI, log)
+		tr, err := types.ParseTransferEvent(log)
 		if err != nil {
-			return nil, nil, false
+			return nil, nil, sdkerrors.Wrapf(types.ErrUnexpectedEvent, "failed to parse transfer event: %s", err.Error())
 		}
-		tc, err := types.ParseTransferCrossChainEvent(fip20ABI, log)
+		tc, err := types.ParseTransferCrossChainEvent(log)
 		if err != nil {
-			return nil, nil, false
+			return nil, nil, sdkerrors.Wrapf(types.ErrUnexpectedEvent, "failed to parse transfer cross chain event: %s", err.Error())
 		}
-		pair, found := h.k.GetTokenPairByAddress(ctx, log.Address)
-		if !found || !pair.Enabled {
+
+		if (tr == nil || tr.To != moduleAddress) && tc == nil {
 			continue
 		}
-		if toAddr == moduleAddress {
+
+		pair, found := h.k.GetTokenPairByAddress(ctx, log.Address)
+		if !found {
+			continue
+		}
+		if !pair.Enabled {
+			return nil, nil, sdkerrors.Wrapf(types.ErrERC20TokenPairDisabled, "contract %s, denom %s", pair.Erc20Address, pair.Denom)
+		}
+
+		if tr != nil && tr.To == moduleAddress {
 			relayTransfers = append(relayTransfers, types.RelayTransfer{
 				From:          tr.From,
 				Amount:        tr.Value,
@@ -84,5 +93,5 @@ func (h Hooks) ParseEventLog(ctx sdk.Context, logs []*ethtypes.Log, moduleAddres
 			})
 		}
 	}
-	return relayTransfers, relayTransferCrossChains, true
+	return relayTransfers, relayTransferCrossChains, nil
 }
