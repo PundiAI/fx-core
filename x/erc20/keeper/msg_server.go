@@ -488,10 +488,6 @@ func (k Keeper) ConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk
 	if !found {
 		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "alias %s not registered", coin.Denom)
 	}
-	// has denom alias
-	if _, found := k.HasDenomAlias(ctx, denom); !found {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidMetadata, "not support with %s", denom)
-	}
 
 	targetCoin := sdk.NewCoin(denom, coin.Amount)
 	// send alias denom to module
