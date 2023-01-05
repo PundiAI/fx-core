@@ -1,15 +1,12 @@
 package keeper
 
 import (
-	"fmt"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
@@ -203,53 +200,6 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 
 	addFlag := len(newAliases) > len(oldAliases)
 	return addFlag, nil
-}
-
-func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8) (common.Address, error) {
-	var tokenContract fxtypes.Contract
-	if symbol == fxtypes.DefaultDenom {
-		tokenContract = fxtypes.GetWFX()
-		name = fmt.Sprintf("Wrapped %s", name)
-		symbol = fmt.Sprintf("W%s", symbol)
-	} else {
-		tokenContract = fxtypes.GetERC20()
-	}
-	k.Logger(ctx).Info("deploy token", "name", name, "symbol", symbol, "decimals", decimals)
-
-	//deploy proxy
-	erc1967Proxy := fxtypes.GetERC1967Proxy()
-	contract, err := k.DeployContract(ctx, from, erc1967Proxy.ABI, erc1967Proxy.Bin, tokenContract.Address, []byte{})
-	if err != nil {
-		return common.Address{}, err
-	}
-
-	_, err = k.CallEVM(ctx, tokenContract.ABI, from, contract, true, "initialize", name, symbol, decimals, k.moduleAddress)
-	if err != nil {
-		return common.Address{}, err
-	}
-	return contract, nil
-}
-
-func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, constructorData ...interface{}) (common.Address, error) {
-	args, err := abi.Pack("", constructorData...)
-	if err != nil {
-		return common.Address{}, sdkerrors.Wrap(err, "pack constructor data")
-	}
-	data := make([]byte, len(bin)+len(args))
-	copy(data[:len(bin)], bin)
-	copy(data[len(bin):], args)
-
-	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
-	if err != nil {
-		return common.Address{}, err
-	}
-
-	_, err = k.evmKeeper.CallEVMWithData(ctx, from, nil, data, true)
-	if err != nil {
-		return common.Address{}, err
-	}
-	contractAddr := crypto.CreateAddress(from, nonce)
-	return contractAddr, nil
 }
 
 func getErc20Decimals(md banktypes.Metadata) (decimals uint8) {

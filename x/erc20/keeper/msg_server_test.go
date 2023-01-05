@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 
-				balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.signer.Address())
+				balance := suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
 				cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 
 				acc := suite.app.EvmKeeper.GetAccountWithoutBalance(suite.ctx, erc20)
@@ -157,14 +157,14 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			suite.Require().NoError(err, tc.name)
 
 			//suite.Commit()
-			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.signer.Address())
+			balance := suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
 			tc.malleate()
 
-			contractAddr := common.HexToAddress(pair.Erc20Address)
+			contractAddr := pair.GetERC20Contract()
 			msgConvertERC20 := types.NewMsgConvertERC20(
 				sdk.NewInt(tc.reconvert),
 				sender,
@@ -421,11 +421,10 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 			suite.Require().Error(err, tc.name)
 
 			// Convert ERC20s back to Coins
-			contractAddr := common.HexToAddress(pair.Erc20Address)
 			msgConvertERC20 := types.NewMsgConvertERC20(
 				sdk.NewInt(tc.reconvert),
 				sender,
-				contractAddr,
+				pair.GetERC20Contract(),
 				suite.signer.Address(),
 			)
 			_, err = suite.app.Erc20Keeper.ConvertERC20(sdk.WrapSDKContext(suite.ctx), msgConvertERC20)

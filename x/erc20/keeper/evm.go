@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -67,6 +68,53 @@ func (k Keeper) BalanceOf(ctx sdk.Context, contract, addr common.Address) (*big.
 	return balanceRes.Value, nil
 }
 
+func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name, symbol string, decimals uint8) (common.Address, error) {
+	var tokenContract fxtypes.Contract
+	if symbol == fxtypes.DefaultDenom {
+		tokenContract = fxtypes.GetWFX()
+		name = fmt.Sprintf("Wrapped %s", name)
+		symbol = fmt.Sprintf("W%s", symbol)
+	} else {
+		tokenContract = fxtypes.GetERC20()
+	}
+	k.Logger(ctx).Info("deploy token", "name", name, "symbol", symbol, "decimals", decimals)
+
+	//deploy proxy
+	erc1967Proxy := fxtypes.GetERC1967Proxy()
+	contract, err := k.DeployContract(ctx, from, erc1967Proxy.ABI, erc1967Proxy.Bin, tokenContract.Address, []byte{})
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	_, err = k.CallEVM(ctx, tokenContract.ABI, from, contract, true, "initialize", name, symbol, decimals, k.moduleAddress)
+	if err != nil {
+		return common.Address{}, err
+	}
+	return contract, nil
+}
+
+func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, constructorData ...interface{}) (common.Address, error) {
+	args, err := abi.Pack("", constructorData...)
+	if err != nil {
+		return common.Address{}, sdkerrors.Wrap(err, "pack constructor data")
+	}
+	data := make([]byte, len(bin)+len(args))
+	copy(data[:len(bin)], bin)
+	copy(data[len(bin):], args)
+
+	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	_, err = k.evmKeeper.CallEVMWithData(ctx, from, nil, data, true)
+	if err != nil {
+		return common.Address{}, err
+	}
+	contractAddr := crypto.CreateAddress(from, nonce)
+	return contractAddr, nil
+}
+
 // CallEVM performs a smart contract method call using given args
 func (k Keeper) CallEVM(
 	ctx sdk.Context,
@@ -98,13 +146,12 @@ func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error 
 		return nil
 	}
 
-	logApprovalSig := []byte("Approval(address,address,uint256)")
-	logApprovalSigHash := crypto.Keccak256Hash(logApprovalSig)
+	logApprovalSigHash := crypto.Keccak256Hash([]byte("Approval(address,address,uint256)"))
 
 	for _, log := range res.Logs {
 		if log.Topics[0] == logApprovalSigHash.Hex() {
 			return sdkerrors.Wrapf(
-				types.ErrUnexpectedEvent, "Approval event",
+				types.ErrUnexpectedEvent, "approval event",
 			)
 		}
 	}
