@@ -83,9 +83,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	if err != nil {
 		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRecvError, err.Error()))
 	}
-	ctx.EventManager().EmitEvent(
-		event,
-	)
+	ctx.EventManager().EmitEvent(event)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -110,34 +108,28 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			transfertypes.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
-			sdk.NewAttribute(transfertypes.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(transfertypes.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(transfertypes.AttributeKeyAmount, data.Amount),
-			sdk.NewAttribute(transfertypes.AttributeKeyMemo, data.Memo),
-			sdk.NewAttribute(transfertypes.AttributeKeyAck, ack.String()),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		transfertypes.EventTypePacket,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+		sdk.NewAttribute(transfertypes.AttributeKeyReceiver, data.Receiver),
+		sdk.NewAttribute(transfertypes.AttributeKeyDenom, data.Denom),
+		sdk.NewAttribute(transfertypes.AttributeKeyAmount, data.Amount),
+		sdk.NewAttribute(transfertypes.AttributeKeyMemo, data.Memo),
+		sdk.NewAttribute(transfertypes.AttributeKeyAck, ack.String()),
+	))
 
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				transfertypes.EventTypePacket,
-				sdk.NewAttribute(transfertypes.AttributeKeyAckSuccess, string(resp.Result)),
-			),
-		)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			transfertypes.EventTypePacket,
+			sdk.NewAttribute(transfertypes.AttributeKeyAckSuccess, string(resp.Result)),
+		))
 	case *channeltypes.Acknowledgement_Error:
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				transfertypes.EventTypePacket,
-				sdk.NewAttribute(transfertypes.AttributeKeyAckError, resp.Error),
-			),
-		)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			transfertypes.EventTypePacket,
+			sdk.NewAttribute(transfertypes.AttributeKeyAckError, resp.Error),
+		))
 	}
 
 	return nil
@@ -158,16 +150,14 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			transfertypes.EventTypeTimeout,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(transfertypes.AttributeKeyRefundReceiver, data.Sender),
-			sdk.NewAttribute(transfertypes.AttributeKeyRefundDenom, data.Denom),
-			sdk.NewAttribute(transfertypes.AttributeKeyRefundAmount, data.Amount),
-			sdk.NewAttribute(transfertypes.AttributeKeyMemo, data.Memo),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		transfertypes.EventTypeTimeout,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(transfertypes.AttributeKeyRefundReceiver, data.Sender),
+		sdk.NewAttribute(transfertypes.AttributeKeyRefundDenom, data.Denom),
+		sdk.NewAttribute(transfertypes.AttributeKeyRefundAmount, data.Amount),
+		sdk.NewAttribute(transfertypes.AttributeKeyMemo, data.Memo),
+	))
 
 	return nil
 }

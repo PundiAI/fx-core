@@ -91,13 +91,11 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	// called when deposit has been added to a proposal, however the proposal may not be active
 	keeper.AfterProposalDeposit(ctx, proposalID, depositorAddr)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			govtypes.EventTypeProposalDeposit,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.String()),
-			sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		govtypes.EventTypeProposalDeposit,
+		sdk.NewAttribute(sdk.AttributeKeyAmount, depositAmount.String()),
+		sdk.NewAttribute(govtypes.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
+	))
 
 	keeper.SetDeposit(ctx, deposit)
 

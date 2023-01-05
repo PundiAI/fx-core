@@ -36,13 +36,11 @@ func handleRegisterCoinProposal(ctx sdk.Context, k keeper.Keeper, p *types.Regis
 	if err != nil {
 		return err
 	}
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeRegisterCoin,
-			sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRegisterCoin,
+		sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+	))
 
 	return nil
 }
@@ -52,13 +50,11 @@ func handleRegisterERC20Proposal(ctx sdk.Context, k keeper.Keeper, p *types.Regi
 	if err != nil {
 		return err
 	}
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeRegisterERC20,
-			sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRegisterERC20,
+		sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+	))
 
 	return nil
 }
@@ -69,13 +65,11 @@ func handleToggleConversionProposal(ctx sdk.Context, k keeper.Keeper, p *types.T
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeToggleTokenRelay,
-			sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
-			sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeToggleTokenRelay,
+		sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+	))
 
 	return nil
 }
@@ -85,13 +79,11 @@ func handleUpdateDenomAliasProposal(ctx sdk.Context, k keeper.Keeper, p *types.U
 	if err != nil {
 		return err
 	}
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeToggleTokenRelay,
-			sdk.NewAttribute(types.AttributeKeyDenom, p.Denom),
-			sdk.NewAttribute(types.AttributeKeyAlias, p.Alias),
-			sdk.NewAttribute(types.AttributeKeyUpdateFlag, strconv.FormatBool(addAlias)),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeToggleTokenRelay,
+		sdk.NewAttribute(types.AttributeKeyDenom, p.Denom),
+		sdk.NewAttribute(types.AttributeKeyAlias, p.Alias),
+		sdk.NewAttribute(types.AttributeKeyUpdateFlag, strconv.FormatBool(addAlias)),
+	))
 	return nil
 }

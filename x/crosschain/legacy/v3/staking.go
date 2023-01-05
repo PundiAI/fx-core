@@ -81,14 +81,12 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		//notice: Each delegate should be followed by an update of the validator `Tokens` and `DelegatorShares`
 		validator, _ = validator.AddTokensFromDel(oracle.DelegateAmount)
 
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				stakingtypes.EventTypeDelegate,
-				sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
-				sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
-			),
-		})
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			stakingtypes.EventTypeDelegate,
+			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
+			sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
+		))
 	}
 	return nil
 }

@@ -211,14 +211,12 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 				oracle.StartHeight = ctx.BlockHeight()
 				oracle.DelegateAmount = minDelegateAmount
 				oracle.Online = true
-				ctx.EventManager().EmitEvents(sdk.Events{
-					sdk.NewEvent(
-						stakingtypes.EventTypeDelegate,
-						sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
-						sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
-						sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
-					),
-				})
+				ctx.EventManager().EmitEvent(sdk.NewEvent(
+					stakingtypes.EventTypeDelegate,
+					sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
+					sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
+					sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
+				))
 			}
 		}
 		index = index + 1

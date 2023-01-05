@@ -67,12 +67,10 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 		)
 	}()
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeMigrate,
-			sdk.NewAttribute(types.AttributeKeyFrom, msg.From),
-			sdk.NewAttribute(types.AttributeKeyTo, msg.To),
-		),
-	})
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeMigrate,
+		sdk.NewAttribute(types.AttributeKeyFrom, msg.From),
+		sdk.NewAttribute(types.AttributeKeyTo, msg.To),
+	))
 	return &types.MsgMigrateAccountResponse{}, nil
 }

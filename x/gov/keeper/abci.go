@@ -23,13 +23,11 @@ func (keeper Keeper) EndBlocker(ctx sdk.Context) {
 		// called when proposal become inactive
 		keeper.AfterProposalFailedMinDeposit(ctx, proposal.ProposalId)
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeInactiveProposal,
-				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
-				sdk.NewAttribute(types.AttributeKeyProposalResult, types.AttributeValueProposalDropped),
-			),
-		)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeInactiveProposal,
+			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
+			sdk.NewAttribute(types.AttributeKeyProposalResult, types.AttributeValueProposalDropped),
+		))
 
 		logger.Info(
 			"proposal did not meet minimum deposit; deleted",
@@ -101,13 +99,11 @@ func (keeper Keeper) EndBlocker(ctx sdk.Context) {
 			"result", logMsg,
 		)
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeActiveProposal,
-				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
-				sdk.NewAttribute(types.AttributeKeyProposalResult, tagValue),
-			),
-		)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeActiveProposal,
+			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalId)),
+			sdk.NewAttribute(types.AttributeKeyProposalResult, tagValue),
+		))
 		return false
 	})
 }

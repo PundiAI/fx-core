@@ -54,16 +54,12 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 		return err
 	}
 
-	ctx.EventManager().EmitEvents(
-		sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeERC20Processing,
-				sdk.NewAttribute(sdk.AttributeKeySender, msg.From().String()),
-				sdk.NewAttribute(types.AttributeKeyTo, msgTo),
-				sdk.NewAttribute(types.AttributeKeyEvmTxHash, receipt.TxHash.String()),
-			),
-		},
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeERC20Processing,
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.From().String()),
+		sdk.NewAttribute(types.AttributeKeyTo, msgTo),
+		sdk.NewAttribute(types.AttributeKeyEvmTxHash, receipt.TxHash.String()),
+	))
 
 	return nil
 }

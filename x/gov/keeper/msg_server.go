@@ -45,13 +45,11 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetProposer().String()),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.GetProposer().String()),
+	))
 
 	submitEvent := sdk.NewEvent(govtypes.EventTypeSubmitProposal, sdk.NewAttribute(govtypes.AttributeKeyProposalType, msg.GetContent().ProposalType()))
 	if votingStarted {
@@ -85,21 +83,17 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*go
 		},
 	)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor),
+	))
 
 	if votingStarted {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				govtypes.EventTypeProposalDeposit,
-				sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", msg.ProposalId)),
-			),
-		)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			govtypes.EventTypeProposalDeposit,
+			sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", msg.ProposalId)),
+		))
 	}
 
 	return &govtypes.MsgDepositResponse{}, nil

@@ -48,14 +48,12 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		if i != 0 {
 			continue
 		}
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				stakingtypes.EventTypeDelegate,
-				sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
-				sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
-			),
-		})
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			stakingtypes.EventTypeDelegate,
+			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
+			sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
+		))
 	}
 	return nil
 }

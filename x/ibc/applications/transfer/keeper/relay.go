@@ -183,13 +183,11 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	receiveDenom := parseIBCCoinDenom(packet, data.GetDenom())
 
 	receiveCoin := sdk.NewCoin(receiveDenom, receiveAmount)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeReceive,
-			sdk.NewAttribute(transfertypes.AttributeKeyReceiver, receiver.String()),
-			sdk.NewAttribute(transfertypes.AttributeKeyAmount, receiveCoin.String()),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeReceive,
+		sdk.NewAttribute(transfertypes.AttributeKeyReceiver, receiver.String()),
+		sdk.NewAttribute(transfertypes.AttributeKeyAmount, receiveCoin.String()),
+	))
 
 	if data.Router == "" || k.router == nil {
 		return nil

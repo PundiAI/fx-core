@@ -42,20 +42,16 @@ func (h Hooks) HookTransferCrossChain(ctx sdk.Context, relayTransferCrossChains 
 			return err
 		}
 
-		ctx.EventManager().EmitEvents(
-			sdk.Events{
-				sdk.NewEvent(
-					types.EventTypeRelayTransferCrossChain,
-					sdk.NewAttribute(types.AttributeKeyFrom, relay.From.String()),
-					sdk.NewAttribute(types.AttributeKeyRecipient, relay.Recipient),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, relay.Amount.String()),
-					sdk.NewAttribute(sdk.AttributeKeyFee, relay.Fee.String()),
-					sdk.NewAttribute(types.AttributeKeyTarget, fxtypes.Byte32ToString(relay.Target)),
-					sdk.NewAttribute(types.AttributeKeyTokenAddress, relay.TokenContract.String()),
-					sdk.NewAttribute(types.AttributeKeyDenom, relay.Denom),
-				),
-			},
-		)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeRelayTransferCrossChain,
+			sdk.NewAttribute(types.AttributeKeyFrom, relay.From.String()),
+			sdk.NewAttribute(types.AttributeKeyRecipient, relay.Recipient),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, relay.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeyFee, relay.Fee.String()),
+			sdk.NewAttribute(types.AttributeKeyTarget, fxtypes.Byte32ToString(relay.Target)),
+			sdk.NewAttribute(types.AttributeKeyTokenAddress, relay.TokenContract.String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, relay.Denom),
+		))
 
 		telemetry.IncrCounterWithLabels(
 			[]string{types.ModuleName, "relay_transfer_cross_chain"},

@@ -24,11 +24,9 @@ func (m *BankMigrate) Execute(ctx sdk.Context, _ Keeper, from sdk.AccAddress, to
 	if balances.IsZero() {
 		return nil
 	}
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			migratetypes.EventTypeMigrateBankSend,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-		),
-	})
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		migratetypes.EventTypeMigrateBankSend,
+		sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
+	))
 	return m.bankKeeper.SendCoins(ctx, from, to.Bytes(), balances)
 }

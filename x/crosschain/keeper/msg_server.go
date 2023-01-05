@@ -100,13 +100,11 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	s.SetOracleByExternalAddress(ctx, msg.ExternalAddress, oracleAddr)
 	s.CommonSetOracleTotalPower(ctx)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OracleAddress),
-		),
-	})
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OracleAddress),
+	))
 
 	return &types.MsgBondedOracleResponse{}, nil
 }
@@ -296,13 +294,11 @@ func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawRewar
 	if err = s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, balances); err != nil {
 		return nil, err
 	}
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OracleAddress),
-		),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.OracleAddress),
+	))
 	return &types.MsgWithdrawRewardResponse{}, nil
 }
 
