@@ -11,7 +11,7 @@ const (
 	EventTypeRegisterERC20           = "register_erc20"
 	EventTypeToggleTokenRelay        = "toggle_token_relay"
 	EventTypeERC20Processing         = "erc20_processing"
-	EventTypeRelayToken              = "relay_token"
+	EventTypeRelayTransfer           = "relay_transfer"
 	EventTypeRelayTransferCrossChain = "relay_transfer_cross_chain"
 
 	AttributeKeyDenom        = "coin"

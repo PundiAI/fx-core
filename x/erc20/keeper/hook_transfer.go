@@ -41,18 +41,14 @@ func (h Hooks) HookTransfer(ctx sdk.Context, relayTransfers []types.RelayTransfe
 		if err := h.k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, coins); err != nil {
 			return err
 		}
-		ctx.EventManager().EmitEvents(
-			sdk.Events{
-				sdk.NewEvent(
-					types.EventTypeRelayToken,
-					sdk.NewAttribute(sdk.AttributeKeySender, relay.From.String()),
-					sdk.NewAttribute(types.AttributeKeyReceiver, sdk.AccAddress(recipient.Bytes()).String()),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, relay.Amount.String()),
-					sdk.NewAttribute(types.AttributeKeyDenom, relay.Denom),
-					sdk.NewAttribute(types.AttributeKeyTokenAddress, relay.TokenContract.String()),
-				),
-			},
-		)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeRelayTransfer,
+			sdk.NewAttribute(sdk.AttributeKeySender, relay.From.String()),
+			sdk.NewAttribute(types.AttributeKeyReceiver, sdk.AccAddress(recipient.Bytes()).String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, relay.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, relay.Denom),
+			sdk.NewAttribute(types.AttributeKeyTokenAddress, relay.TokenContract.String()),
+		))
 
 		telemetry.IncrCounterWithLabels(
 			[]string{types.ModuleName, "relay_transfer"},
