@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -51,7 +51,7 @@ func CreateUpgradeHandler(
 		migrateRejectUnprotectedTx(cacheCtx, keepers.LegacyAmino, keepers.GetKey(paramstypes.StoreKey))
 
 		// delete erc20 expiration ibc transfer hash
-		deleteExpirationIBCTransferHash(ctx, keepers.Erc20Keeper, keepers.IBCKeeper)
+		deleteExpirationIBCTransferHash(ctx, keepers.Erc20Keeper, keepers.IBCKeeper.ChannelKeeper)
 
 		// run migrations
 		toVM := runMigrations(cacheCtx, fromVM, mm, configurator)
@@ -177,10 +177,10 @@ func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 	})
 }
 
-func deleteExpirationIBCTransferHash(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, ibcKeeper *ibckeeper.Keeper) {
+func deleteExpirationIBCTransferHash(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, channelKeeper channelkeeper.Keeper) {
 	counts := make(map[string]uint64, 10)
 	erc20Keeper.IterateIBCTransferHash(ctx, func(port, channel string, sequence uint64) bool {
-		found := ibcKeeper.ChannelKeeper.HasPacketCommitment(ctx, port, channel, sequence)
+		found := channelKeeper.HasPacketCommitment(ctx, port, channel, sequence)
 		if found {
 			return false
 		}
