@@ -31,7 +31,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
-type TestClient interface {
+type rpcTestClient interface {
 	AppVersion() (string, error)
 	GetChainId() (chain string, err error)
 	GetBlockHeight() (int64, error)
@@ -48,17 +48,17 @@ type TestClient interface {
 	TxByHash(txHash string) (*sdk.TxResponse, error)
 }
 
-type IntegrationTestSuite struct {
+type rpcTestSuite struct {
 	suite.Suite
 
 	network *network.Network
 }
 
-func TestIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
+func TestRPCSuite(t *testing.T) {
+	suite.Run(t, new(rpcTestSuite))
 }
 
-func (suite *IntegrationTestSuite) SetupSuite() {
+func (suite *rpcTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
 	cfg := testutil.DefaultNetworkConfig()
@@ -73,7 +73,7 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.FirstValidatorTransferTo(1, sdk.NewInt(1_000).MulRaw(1e18))
 }
 
-func (suite *IntegrationTestSuite) TearDownSuite() {
+func (suite *rpcTestSuite) TearDownSuite() {
 	suite.T().Log("tearing down integration test suite")
 
 	// This is important and must be called to ensure other tests can create
@@ -81,32 +81,32 @@ func (suite *IntegrationTestSuite) TearDownSuite() {
 	suite.network.Cleanup()
 }
 
-func (suite *IntegrationTestSuite) GetFirstValidator() *network.Validator {
+func (suite *rpcTestSuite) GetFirstValidator() *network.Validator {
 	return suite.network.Validators[0]
 }
 
-func (suite *IntegrationTestSuite) GetFirstValiPrivKey() cryptotypes.PrivKey {
+func (suite *rpcTestSuite) GetFirstValiPrivKey() cryptotypes.PrivKey {
 	return suite.GetPrivKeyByIndex(hd.Secp256k1Type, 0)
 }
 
-func (suite *IntegrationTestSuite) GetPrivKeyByIndex(algo hd.PubKeyType, index uint32) cryptotypes.PrivKey {
+func (suite *rpcTestSuite) GetPrivKeyByIndex(algo hd.PubKeyType, index uint32) cryptotypes.PrivKey {
 	privKey, err := helpers.PrivKeyFromMnemonic(suite.network.Config.Mnemonics[0], algo, 0, index)
 	suite.NoError(err)
 	return privKey
 }
 
-func (suite *IntegrationTestSuite) GetClients() []TestClient {
+func (suite *rpcTestSuite) GetClients() []rpcTestClient {
 	validator := suite.GetFirstValidator()
 	suite.True(validator.AppConfig.GRPC.Enable)
 	grpcClient, err := grpc.NewClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
 	suite.NoError(err)
-	return []TestClient{
+	return []rpcTestClient{
 		grpcClient,
 		jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress)),
 	}
 }
 
-func (suite *IntegrationTestSuite) FirstValidatorTransferTo(index uint32, amount sdk.Int) {
+func (suite *rpcTestSuite) FirstValidatorTransferTo(index uint32, amount sdk.Int) {
 	validator := suite.GetFirstValidator()
 	suite.True(validator.AppConfig.GRPC.Enable)
 	grpcClient, err := grpc.NewClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
@@ -131,7 +131,7 @@ func (suite *IntegrationTestSuite) FirstValidatorTransferTo(index uint32, amount
 	suite.Equal(uint32(0), txResponse.Code)
 }
 
-func (suite *IntegrationTestSuite) TestClient_Tx() {
+func (suite *rpcTestSuite) TestClient_Tx() {
 	privKey := suite.GetPrivKeyByIndex(hd.Secp256k1Type, 1)
 
 	clients := suite.GetClients()
@@ -240,7 +240,7 @@ func (suite *IntegrationTestSuite) TestClient_Tx() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestClient_Query() {
+func (suite *rpcTestSuite) TestClient_Query() {
 	feeCollectorAddr, err := sdk.AccAddressFromHex("f1829676db577682e944fc3493d451b67ff3e29f")
 	suite.NoError(err)
 	tests := []struct {
@@ -403,7 +403,7 @@ func (suite *IntegrationTestSuite) TestClient_Query() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestTmClient() {
+func (suite *rpcTestSuite) TestTmClient() {
 	validator := suite.GetFirstValidator()
 	tmRPC := validator.RPCClient
 	callTmRPC := func(funcName string, params []interface{}) []reflect.Value {
@@ -557,7 +557,7 @@ func (suite *IntegrationTestSuite) TestTmClient() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestJsonRPC_ABCI_Query() {
+func (suite *rpcTestSuite) TestJsonRPC_ABCI_Query() {
 	// GetStakeValidators
 	validator := suite.GetFirstValidator()
 	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress))
