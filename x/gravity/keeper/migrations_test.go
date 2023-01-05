@@ -144,7 +144,7 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 	suite.createDefGenesisState()
 
 	tokenContract := helpers.GenerateAddress().Hex()
-	metadata := fxtypes.GetCrossChainMetadataManyToOne("Test Token", "TEST", uint32(rand.Intn(18)),
+	metadata := fxtypes.GetCrossChainMetadata("Test Token", "TEST", uint32(rand.Intn(18)),
 		fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract))
 	suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
 
@@ -249,7 +249,7 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 
 	tokenContract := helpers.GenerateAddress().Hex()
 	denom := fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract)
-	metadata := fxtypes.GetCrossChainMetadataManyToOne("Test Token", "TEST", uint32(rand.Intn(18)), denom)
+	metadata := fxtypes.GetCrossChainMetadata("Test Token", "TEST", uint32(rand.Intn(18)), denom)
 	suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
 
 	err := suite.app.BankKeeper.MintCoins(suite.ctx,

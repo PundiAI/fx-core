@@ -14,7 +14,7 @@ func TestGetMetadata_Validate(t *testing.T) {
 		return `[a-zA-Z][a-zA-Z0-9/-]{1,127}`
 	})
 
-	for _, m := range append(GetMetadata(fxtypes.MainnetChainId), GetMetadata(fxtypes.TestnetChainId)...) {
+	for _, m := range append(getMetadata(fxtypes.MainnetChainId), getMetadata(fxtypes.TestnetChainId)...) {
 		err := m.Validate()
 		assert.NoError(t, err)
 	}

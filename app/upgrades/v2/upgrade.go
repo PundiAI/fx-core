@@ -42,8 +42,8 @@ import (
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
-// CreateUpgradeHandler creates an SDK upgrade handler for v2
-func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, keepers *keepers.AppKeepers) upgradetypes.UpgradeHandler {
+// createUpgradeHandler creates an SDK upgrade handler for v2
+func createUpgradeHandler(mm *module.Manager, configurator module.Configurator, keepers *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		// cache context
 		cacheCtx, commit := ctx.CacheContext()
@@ -107,18 +107,18 @@ func ibcMigrate(ctx sdk.Context, ibcKeeper *ibckeeper.Keeper, transferKeeper ibc
 }
 
 func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *sdk.KVStoreKey) {
-	md := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
-	if err := md.Validate(); err != nil {
+	metaData := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
+	if err := metaData.Validate(); err != nil {
 		panic(fmt.Sprintf("invalid %s metadata", fxtypes.DefaultDenom))
 	}
 	logger := ctx.Logger()
-	logger.Info("update FX metadata", "metadata", md.String())
+	logger.Info("update FX metadata", "metadata", metaData.String())
 	//delete fx
 	fxDenom := strings.ToLower(fxtypes.DefaultDenom)
 	denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataKey(fxDenom))
 	denomMetaDataStore.Delete([]byte(fxDenom))
 	//set FX
-	bankKeeper.SetDenomMetaData(ctx, md)
+	bankKeeper.SetDenomMetaData(ctx, metaData)
 }
 
 func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) {
@@ -131,7 +131,7 @@ func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) {
 	var bp abci.BlockParams
 	baseappSubspace.Get(ctx, baseapp.ParamStoreKeyBlockParams, &bp)
 	logger.Info("update block params", "before update", bp.String())
-	bp.MaxGas = blockParamsMaxGas
+	bp.MaxGas = 30_000_000
 	baseappSubspace.Set(ctx, baseapp.ParamStoreKeyBlockParams, bp)
 	logger.Info("update block params", "after update", bp.String())
 }
@@ -195,7 +195,7 @@ func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
 	}
 	logger := ctx.Logger()
 	logger.Info("clear testnet metadata", "chainId", ctx.ChainID())
-	for _, md := range GetMetadata(ctx.ChainID()) {
+	for _, md := range getMetadata(ctx.ChainID()) {
 		//remove denom except FX
 		if md.Base == fxtypes.DefaultDenom {
 			continue
@@ -207,7 +207,7 @@ func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
 }
 
 func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
-	for _, metadata := range GetMetadata(ctx.ChainID()) {
+	for _, metadata := range getMetadata(ctx.ChainID()) {
 		ctx.Logger().Info("add metadata", "coin", metadata.String())
 		pair, err := k.RegisterCoin(ctx, metadata)
 		if err != nil {

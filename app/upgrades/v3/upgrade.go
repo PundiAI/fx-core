@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -18,6 +16,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
@@ -142,7 +141,7 @@ func runMigrations(ctx sdk.Context, fromVM module.VersionMap, mm *module.Manager
 }
 
 func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
-	for _, metadata := range GetMetadata(ctx.ChainID()) {
+	for _, metadata := range getMetadata(ctx.ChainID()) {
 		ctx.Logger().Info("add metadata", "coin", metadata.String())
 		pair, err := k.RegisterCoin(ctx, metadata)
 		if err != nil {
@@ -165,12 +164,11 @@ func updateWFXLogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
 }
 
 func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
-	logger := ctx.Logger()
 	bk.IterateAllDenomMetaData(ctx, func(md banktypes.Metadata) bool {
 		if len(md.DenomUnits) != 2 || len(md.DenomUnits[1].Aliases) != 1 || md.DenomUnits[1].Aliases[0] != "null" {
 			return false
 		}
-		logger.Info("fix metadata alias", "denom", md.Base)
+		ctx.Logger().Info("fix metadata alias", "denom", md.Base)
 		md.DenomUnits[1].Aliases = []string{}
 		bk.SetDenomMetaData(ctx, md)
 		return false
@@ -191,6 +189,27 @@ func deleteExpirationIBCTransferHash(ctx sdk.Context, erc20Keeper erc20keeper.Ke
 	})
 	for portChannel, count := range counts {
 		ctx.Logger().Info("delete expiration ibc transfer hash", "port/channel", portChannel, "count", strconv.FormatUint(count, 10))
+	}
+}
+
+func getMetadata(chainId string) []banktypes.Metadata {
+	if fxtypes.TestnetChainId == chainId {
+		return []banktypes.Metadata{
+			// TODO update testnet denom
+			fxtypes.GetCrossChainMetadata("Wrapped AVAX", "WAVAX", 18, "avalanche0x0000000000000000000000000000000000000001"),
+			fxtypes.GetCrossChainMetadata("Staked AVAX", "sAVAX", 18, "avalanche0x0000000000000000000000000000000000000002"),
+			fxtypes.GetCrossChainMetadata("BENQI", "QI", 18, "avalanche0x0000000000000000000000000000000000000003"),
+			fxtypes.GetCrossChainMetadata("BavaToken", "BAVA", 18, "avalanche0x0000000000000000000000000000000000000004"),
+			fxtypes.GetCrossChainMetadata("Wrapped BTC", "WBTC", 8, "eth0x0000000000000000000000000000000000000005"),
+		}
+	} else {
+		return []banktypes.Metadata{
+			fxtypes.GetCrossChainMetadata("Wrapped AVAX", "WAVAX", 18, "avalanche0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"),
+			fxtypes.GetCrossChainMetadata("Staked AVAX", "sAVAX", 18, "avalanche0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE"),
+			fxtypes.GetCrossChainMetadata("BENQI", "QI", 18, "avalanche0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"),
+			fxtypes.GetCrossChainMetadata("BavaToken", "BAVA", 18, "avalanche0xe19A1684873faB5Fb694CfD06607100A632fF21c"),
+			fxtypes.GetCrossChainMetadata("Wrapped BTC", "WBTC", 8, "eth0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"),
+		}
 	}
 }
 
