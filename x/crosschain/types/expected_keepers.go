@@ -20,7 +20,6 @@ type StakingKeeper interface {
 	BeginRedelegation(ctx sdk.Context, delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress, sharesAmount sdk.Dec) (completionTime time.Time, err error)
 	GetUnbondingDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (ubd stakingtypes.UnbondingDelegation, found bool)
 
-	// migrate v3
 	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
 	GetBondedValidatorsByPower(ctx sdk.Context) []stakingtypes.Validator
 }
@@ -42,13 +41,11 @@ type BankKeeper interface {
 
 type Erc20Keeper interface {
 	TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error
-	ConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error)
-	ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error)
+	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, bool, error)
 }
 
 type IBCChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
-	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 }
 
 type IBCTransferKeeper interface {

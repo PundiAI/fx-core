@@ -34,8 +34,11 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return sdkerrors.Wrap(err, "transfer vouchers")
 		}
 
-		k.HandlerRelayTransfer(ctx, claim.EventNonce, claim.TargetIbc, receiveAddr, coin)
-
+		cacheCtx, commit := ctx.CacheContext()
+		if err := k.RelayTransferHandler(cacheCtx, claim.EventNonce, claim.TargetIbc, receiveAddr, coin); err != nil {
+			return err
+		}
+		commit()
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
 

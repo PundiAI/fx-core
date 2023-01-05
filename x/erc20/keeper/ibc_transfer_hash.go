@@ -18,7 +18,7 @@ func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, s
 		return nil
 	}
 	k.DeleteIBCTransferHash(ctx, sourcePort, sourceChannel, sequence)
-	return k.TransferAfter(ctx, sender.String(), common.BytesToAddress(sender.Bytes()).String(), amount, sdk.Coin{})
+	return k.TransferAfter(ctx, sender.String(), common.BytesToAddress(sender.Bytes()).String(), amount, sdk.NewCoin(amount.Denom, sdk.ZeroInt()))
 }
 
 func (k Keeper) AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) error {

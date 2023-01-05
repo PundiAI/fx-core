@@ -38,18 +38,21 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 		logger.Error("erc20 processing", "hook-action", "parse event log", "error", err.Error())
 		return err
 	}
+	if len(relayTransfers) <= 0 && len(relayTransferCrossChains) <= 0 {
+		return nil
+	}
 
 	// NOTE: PostTxProcessing doesn't trigger PostTxProcessing
 	// NOTE: ConvertERC20NativeToken doesn't trigger PostTxProcessing
 
 	// hook transfer event
-	if err := h.HookTransfer(ctx, relayTransfers); err != nil {
+	if err := h.HookTransferEvent(ctx, relayTransfers); err != nil {
 		logger.Error("erc20 processing", "hook-action", "relay transfer event", "error", err.Error())
 		return err
 	}
 
 	// hook transferCrossChain(cross-chain,ibc...) event
-	if err := h.HookTransferCrossChain(ctx, relayTransferCrossChains, receipt.TxHash); err != nil {
+	if err := h.HookTransferCrossChainEvent(ctx, relayTransferCrossChains, receipt.TxHash); err != nil {
 		logger.Error("erc20 processing", "hook-action", "relay transfer cross chain event", "error", err.Error())
 		return err
 	}

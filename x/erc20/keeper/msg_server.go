@@ -8,6 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -93,27 +95,19 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 	receiver := sdk.MustAccAddressFromBech32(msg.Receiver)
 
-	var coin sdk.Coin
-	var err error
-	if len(msg.Target) > 0 {
-		// convert one to many
-		coin, err = k.ConvertDenomToMany(ctx, sender, msg.Coin, msg.Target)
-	} else {
-		coin, err = k.ConvertDenomToOne(ctx, sender, msg.Coin)
-	}
+	targetCoin, _, err := k.ConvertDenomToTarget(ctx, sender, msg.Coin, msg.Target)
 	if err != nil {
 		return nil, err
 	}
-
-	if coin.Denom == msg.Coin.Denom {
+	if targetCoin.Denom == msg.Coin.Denom {
 		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not support", msg.Coin.Denom)
 	}
 
 	if !sender.Equals(receiver) {
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
 			return nil, err
 		}
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, receiver, sdk.NewCoins(coin)); err != nil {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, receiver, sdk.NewCoins(targetCoin)); err != nil {
 			return nil, err
 		}
 	}
@@ -129,15 +123,11 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 		)
 	}()
 
-	ctx.EventManager().EmitEvents(
-		sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeConvertDenom,
-				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			),
-		},
-	)
+	//ctx.EventManager().EmitEvent(sdk.NewEvent(
+	//	types.EventTypeConvertDenom,
+	//	sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	//	sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+	//))
 
 	return &types.MsgConvertDenomResponse{}, nil
 }
@@ -181,18 +171,14 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, msg
 		)
 	}()
 
-	ctx.EventManager().EmitEvents(
-		sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeConvertCoin,
-				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, msg.Coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
-			),
-		},
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeConvertCoin,
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+		sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyDenom, msg.Coin.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+	))
 
 	return &types.MsgConvertCoinResponse{}, nil
 }
@@ -238,18 +224,14 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, ms
 		)
 	}()
 
-	ctx.EventManager().EmitEvents(
-		sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeConvertERC20,
-				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
-				sdk.NewAttribute(types.AttributeKeyTokenAddress, msg.ContractAddress),
-			),
-		},
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeConvertERC20,
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+		sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, msg.ContractAddress),
+	))
 
 	return &types.MsgConvertERC20Response{}, nil
 }
@@ -314,18 +296,14 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, m
 		)
 	}()
 
-	ctx.EventManager().EmitEvents(
-		sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeConvertERC20,
-				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
-				sdk.NewAttribute(types.AttributeKeyTokenAddress, msg.ContractAddress),
-			),
-		},
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeConvertERC20,
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+		sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, msg.ContractAddress),
+	))
 
 	return &types.MsgConvertERC20Response{}, nil
 }
@@ -387,118 +365,108 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, ms
 		)
 	}()
 
-	ctx.EventManager().EmitEvents(
-		sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeConvertCoin,
-				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, msg.Coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
-			),
-		},
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeConvertCoin,
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+		sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyDenom, msg.Coin.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+	))
 
 	return &types.MsgConvertCoinResponse{}, nil
 }
 
-func (k Keeper) ConvertDenomToMany(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
-	md, found := k.HasDenomAlias(ctx, coin.Denom)
-	if !found {
-		return coin, nil
+func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, bool, error) {
+	if coin.Denom == fxtypes.DefaultDenom {
+		if target == types.LegacyERC20Target || target == types.ModuleName {
+			return coin, true, nil
+		}
+		return coin, false, nil
 	}
-	if !k.IsDenomRegistered(ctx, coin.Denom) {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not registered", coin.Denom)
-	}
-
-	// convert target to denom prefix
-	denomPrefix := target
-	if target == gravitytypes.ModuleName {
-		denomPrefix = ethtypes.ModuleName
-	}
-
-	aliases := md.DenomUnits[0].Aliases
-	targetDenom := ""
-	for _, alias := range aliases {
-		if strings.HasPrefix(alias, denomPrefix) {
-			targetDenom = alias
-			break
+	var metadata banktypes.Metadata
+	if k.IsDenomRegistered(ctx, coin.Denom) {
+		// is base denom
+		var found bool
+		metadata, found = k.HasDenomAlias(ctx, coin.Denom)
+		if !found { // no convert required
+			return coin, false, nil
+		}
+	} else {
+		// is alias denom
+		denom, found := k.GetAliasDenom(ctx, coin.Denom)
+		if !found { // no convert required
+			return coin, false, nil
+		}
+		metadata, found = k.HasDenomAlias(ctx, denom)
+		if !found { // no convert required
+			return coin, false, nil
 		}
 	}
-	if len(targetDenom) == 0 {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s denom not exist", target)
+
+	targetDenom := ToTargetDenom(coin.Denom, target, metadata.Base, metadata.DenomUnits[0].Aliases)
+	if coin.Denom == targetDenom {
+		return coin, true, nil
 	}
 
 	targetCoin := sdk.NewCoin(targetDenom, coin.Amount)
-	// send symbol denom to module
+	// send denom to module
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
-		return sdk.Coin{}, err
+		return sdk.Coin{}, false, err
+	}
+	if coin.Denom == metadata.Base {
+		// burn coin
+		err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
+		if err != nil {
+			return sdk.Coin{}, false, err
+		}
+	} else if targetDenom == metadata.Base {
+		// mint denom
+		err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin))
+		if err != nil {
+			return sdk.Coin{}, false, err
+		}
 	}
 	// send alias denom to from addr
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin))
 	if err != nil {
-		return sdk.Coin{}, err
+		return sdk.Coin{}, false, err
 	}
-	// burn symbol coin
-	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
-	if err != nil {
-		return sdk.Coin{}, err
-	}
-
-	ctx.EventManager().EmitEvents(
-		sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeConvertDenomToMany,
-				sdk.NewAttribute(types.AttributeKeyFrom, from.String()),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
-			),
-		},
-	)
-
-	return targetCoin, nil
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeConvertDenom,
+		sdk.NewAttribute(types.AttributeKeyFrom, from.String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
+		sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+		sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
+	))
+	return targetCoin, true, nil
 }
 
-func (k Keeper) ConvertDenomToOne(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin) (sdk.Coin, error) {
-	if k.IsDenomRegistered(ctx, coin.Denom) {
-		return sdk.Coin{}, nil
+func ToTargetDenom(denom, target, base string, aliases []string) string {
+	// erc20
+	if len(target) <= 0 || target == types.LegacyERC20Target || target == types.ModuleName {
+		return base
 	}
-	denom, found := k.GetAliasDenom(ctx, coin.Denom)
-	if !found {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "alias %s not registered", coin.Denom)
-	}
-
-	targetCoin := sdk.NewCoin(denom, coin.Amount)
-	// send alias denom to module
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
-	if err != nil {
-		return sdk.Coin{}, err
-	}
-	//mint symbol denom
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin))
-	if err != nil {
-		return sdk.Coin{}, err
-	}
-	//send symbol denom to from addr
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin))
-	if err != nil {
-		return sdk.Coin{}, err
+	if len(aliases) <= 0 {
+		return denom
 	}
 
-	ctx.EventManager().EmitEvents(
-		sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeConvertDenomToOne,
-				sdk.NewAttribute(types.AttributeKeyFrom, from.String()),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
-				sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
-				sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
-			),
-		},
-	)
+	// cross-chain
+	if target == gravitytypes.ModuleName {
+		target = ethtypes.ModuleName
+	}
+	target = strings.TrimPrefix(target, "chain/")
 
-	return targetCoin, nil
+	// ibc
+	if strings.HasPrefix(target, ibchost.ModuleName) {
+		target = ibchost.ModuleName
+	}
+
+	for _, alias := range aliases {
+		if strings.HasPrefix(alias, target) {
+			return alias
+		}
+	}
+	return denom
 }

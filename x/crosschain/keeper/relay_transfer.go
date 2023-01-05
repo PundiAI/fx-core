@@ -9,60 +9,62 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-var targetEvmPrefix = hex.EncodeToString([]byte("module/evm"))
-
-func (k Keeper) HandlerRelayTransfer(ctx sdk.Context, eventNonce uint64, targetIbc string, receiver sdk.AccAddress, coin sdk.Coin) {
-	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.erc20Keeper.ConvertDenomToOne(cacheCtx, receiver, coin)
+func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetHex string, receiver sdk.AccAddress, coin sdk.Coin) error {
+	// ignore hex decode error
+	targetByte, _ := hex.DecodeString(targetHex)
+	target := string(targetByte)
+	targetCoin, isToERC20, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver, coin, target)
 	if err != nil {
-		k.Logger(ctx).Error("convert denom symbol", "address", receiver, "coin", coin, "error", err.Error())
-		return
+		return err
 	}
-	commit()
-
-	if targetIbc == targetEvmPrefix {
-		k.handlerEvmTransfer(ctx, eventNonce, receiver, targetCoin)
-		return
+	if strings.HasPrefix(target, ibchost.ModuleName) {
+		targetIBC, ok := fxtypes.ParseTargetIBC(target)
+		if !ok {
+			return nil
+		}
+		return k.transferIBCHandler(ctx, eventNonce, receiver, targetCoin, targetIBC)
 	}
-	target, ok := fxtypes.ParseHexTargetIBC(targetIbc)
-	if !ok {
-		return
+	if isToERC20 {
+		return k.transferErc20Handler(ctx, eventNonce, receiver, targetCoin)
 	}
-	k.handleIbcTransfer(ctx, eventNonce, receiver, targetCoin, target)
+	return nil
 }
 
-func (k Keeper) handlerEvmTransfer(ctx sdk.Context, eventNonce uint64, receiver sdk.AccAddress, coin sdk.Coin) {
+func (k Keeper) transferErc20Handler(ctx sdk.Context, eventNonce uint64, receiver sdk.AccAddress, coin sdk.Coin) error {
 	receiverEthAddr := common.BytesToAddress(receiver.Bytes())
-	if err := k.erc20Keeper.TransferAfter(ctx, receiver.String(), receiverEthAddr.String(), coin, sdk.Coin{}); err != nil {
+	if err := k.erc20Keeper.TransferAfter(ctx, receiver.String(), receiverEthAddr.String(), coin, sdk.NewCoin(coin.Denom, sdk.ZeroInt())); err != nil {
 		k.Logger(ctx).Error("transfer convert denom failed", "error", err.Error())
-		return
+		return err
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeEvmTransfer,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
 	))
+	return nil
 }
 
-func (k Keeper) handleIbcTransfer(ctx sdk.Context, eventNonce uint64, receive sdk.AccAddress, coin sdk.Coin, target fxtypes.TargetIBC) {
-	logger := k.Logger(ctx)
-
-	ibcReceiveAddress, err := covertIbcPacketReceiveAddress(target.Prefix, receive)
+func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive sdk.AccAddress, coin sdk.Coin, target fxtypes.TargetIBC) error {
+	var ibcReceiveAddress string
+	if strings.ToLower(target.Prefix) == fxtypes.EthereumAddressPrefix {
+		ibcReceiveAddress = common.BytesToAddress(receive.Bytes()).String()
+	}
+	var err error
+	ibcReceiveAddress, err = bech32.ConvertAndEncode(target.Prefix, receive)
 	if err != nil {
-		logger.Error("convert ibc transfer receive address error!!!", "error", err)
-		return
+		return err
 	}
 
 	_, clientState, err := k.ibcChannelKeeper.GetChannelClientState(ctx, target.SourcePort, target.SourceChannel)
 	if err != nil {
-		logger.Error("get channel client state error!!!", "error", err)
-		return
+		return err
 	}
 
 	ibcTransferTimeoutHeight := k.GetIbcTransferTimeoutHeight(ctx)
@@ -73,7 +75,7 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, eventNonce uint64, receive sd
 		RevisionHeight: destTimeoutHeight,
 	}
 
-	logger.Info("crosschain start ibc transfer", "sender", receive, "receive", ibcReceiveAddress,
+	k.Logger(ctx).Info("crosschain start ibc transfer", "sender", receive, "receive", ibcReceiveAddress,
 		"coin", coin, "destCurrentHeight", clientStateHeight.GetRevisionHeight(), "destTimeoutHeight", destTimeoutHeight)
 
 	transferMsg := transfertypes.NewMsgTransfer(
@@ -87,8 +89,7 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, eventNonce uint64, receive sd
 	)
 	transferResponse, err := k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx), transferMsg)
 	if err != nil {
-		logger.Error("ibc transfer failed", "error", err)
-		return
+		return err
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -99,11 +100,5 @@ func (k Keeper) handleIbcTransfer(ctx sdk.Context, eventNonce uint64, receive sd
 		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, target.SourcePort),
 		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, target.SourceChannel),
 	))
-}
-
-func covertIbcPacketReceiveAddress(targetIbcPrefix string, receiver sdk.AccAddress) (string, error) {
-	if strings.ToLower(targetIbcPrefix) == fxtypes.EthereumAddressPrefix {
-		return common.BytesToAddress(receiver.Bytes()).String(), nil
-	}
-	return bech32.ConvertAndEncode(targetIbcPrefix, receiver)
+	return err
 }

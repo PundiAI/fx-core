@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/hex"
 	"strings"
 )
 
@@ -9,14 +8,6 @@ type TargetIBC struct {
 	Prefix        string
 	SourcePort    string
 	SourceChannel string
-}
-
-func ParseHexTargetIBC(hexTargetIbc string) (TargetIBC, bool) {
-	targetIbcBytes, err := hex.DecodeString(hexTargetIbc)
-	if err != nil {
-		return TargetIBC{}, false
-	}
-	return ParseTargetIBC(string(targetIbcBytes))
 }
 
 func ParseTargetIBC(targetIbc string) (TargetIBC, bool) {

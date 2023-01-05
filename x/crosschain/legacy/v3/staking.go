@@ -15,7 +15,6 @@ import (
 )
 
 type StakingKeeper interface {
-	GetBondedValidatorsByPower(ctx sdk.Context) []stakingtypes.Validator
 	Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus,
 		validator stakingtypes.Validator, subtractAccount bool) (newShares sdk.Dec, err error)
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)

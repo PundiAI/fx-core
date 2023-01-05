@@ -2,7 +2,6 @@ package types
 
 import (
 	"math/big"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -15,31 +14,9 @@ import (
 const (
 	FIP20EventTransferCrossChain = "TransferCrossChain"
 	ERC20EventTransfer           = "Transfer"
+
+	LegacyERC20Target = "module/evm"
 )
-
-const (
-	FIP20TransferToChainPrefix = "chain/"
-	FIP20TransferToIBCPrefix   = "ibc/"
-)
-
-const (
-	FIP20TargetUnknown Fip20TargetType = iota
-	FIP20TargetChain
-	FIP20TargetIBC
-)
-
-type Fip20TargetType int
-
-func (tt Fip20TargetType) String() string {
-	switch tt {
-	case FIP20TargetChain:
-		return "chain"
-	case FIP20TargetIBC:
-		return "ibc"
-	default:
-		return "unknown"
-	}
-}
 
 type TransferCrossChainEvent struct {
 	From      common.Address
@@ -85,17 +62,6 @@ func (event *TransferCrossChainEvent) GetAmount(denom string) sdk.Coin {
 
 func (event *TransferCrossChainEvent) GetFee(denom string) sdk.Coin {
 	return sdk.NewCoin(denom, sdk.NewIntFromBigInt(event.Fee))
-}
-
-func (event *TransferCrossChainEvent) GetTarget() (Fip20TargetType, string) {
-	target := fxtypes.Byte32ToString(event.Target)
-	if strings.HasPrefix(target, FIP20TransferToChainPrefix) {
-		return FIP20TargetChain, strings.TrimPrefix(target, FIP20TransferToChainPrefix)
-	}
-	if strings.HasPrefix(target, FIP20TransferToIBCPrefix) {
-		return FIP20TargetIBC, strings.TrimPrefix(target, FIP20TransferToIBCPrefix)
-	}
-	return FIP20TargetUnknown, target
 }
 
 func (event *TransferCrossChainEvent) TotalAmount(denom string) sdk.Coins {

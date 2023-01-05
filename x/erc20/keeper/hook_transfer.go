@@ -9,7 +9,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-func (h Hooks) HookTransfer(ctx sdk.Context, relayTransfers []types.RelayTransfer) error {
+func (h Hooks) HookTransferEvent(ctx sdk.Context, relayTransfers []types.RelayTransfer) error {
 	fip20ABI := fxtypes.GetERC20().ABI
 	for _, relay := range relayTransfers {
 		h.k.Logger(ctx).Info("relay token", "from", relay.From.Hex(), "amount", relay.Amount.String(), "denom", relay.Denom, "token", relay.TokenContract)

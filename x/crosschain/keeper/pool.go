@@ -19,12 +19,10 @@ import (
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
 	//convert denom to many
-	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.erc20Keeper.ConvertDenomToMany(cacheCtx, sender, amount.Add(fee), k.moduleName)
+	targetCoin, _, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, amount.Add(fee), k.moduleName)
 	if err != nil {
 		return 0, err
 	}
-	commit()
 	amount.Denom = targetCoin.Denom
 	fee.Denom = targetCoin.Denom
 

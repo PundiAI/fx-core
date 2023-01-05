@@ -100,8 +100,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewInt(300*1e3).MulRaw(1e18))
 	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewInt(300*1e3).MulRaw(1e18))
 	suite.externals = helpers.CreateMultiECDSA(valNumber)
+
+	suite.validator = make([]sdk.ValAddress, valNumber)
 	for i := 0; i < valNumber; i++ {
-		suite.validator = append(suite.validator, valAccounts[i].GetAddress().Bytes())
+		suite.validator[i] = valAccounts[i].GetAddress().Bytes()
 	}
 
 	proposalOracle := &types.ProposalOracle{}
