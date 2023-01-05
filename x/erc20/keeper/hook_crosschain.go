@@ -37,6 +37,9 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 			target = strings.TrimPrefix(target, "chain/")
 			err = h.transferCrossChainHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target)
 		}
+		if err != nil {
+			return err
+		}
 
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeRelayTransferCrossChain,

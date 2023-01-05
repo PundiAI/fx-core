@@ -55,11 +55,12 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 	var ibcReceiveAddress string
 	if strings.ToLower(target.Prefix) == fxtypes.EthereumAddressPrefix {
 		ibcReceiveAddress = common.BytesToAddress(receive.Bytes()).String()
-	}
-	var err error
-	ibcReceiveAddress, err = bech32.ConvertAndEncode(target.Prefix, receive)
-	if err != nil {
-		return err
+	} else {
+		var err error
+		ibcReceiveAddress, err = bech32.ConvertAndEncode(target.Prefix, receive)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, clientState, err := k.ibcChannelKeeper.GetChannelClientState(ctx, target.SourcePort, target.SourceChannel)
