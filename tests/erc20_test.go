@@ -17,14 +17,17 @@ func (suite *IntegrationTest) ERC20Test() {
 
 	var aliases []string
 	for _, chain := range suite.crosschain {
-		denoms := chain.GetBridgeDenoms()
-		aliases = append(aliases, denoms...)
+		for _, bridgeToken := range chain.GetBridgeTokens() {
+			aliases = append(aliases, bridgeToken.Denom)
+		}
 	}
 	suite.erc20.metadata.DenomUnits[0].Aliases = aliases
 	suite.T().Log(suite.erc20.metadata.DenomUnits[0].Aliases)
+
 	proposalId := suite.erc20.RegisterCoinProposal(suite.erc20.metadata)
 	suite.NoError(suite.network.WaitForNextBlock())
 	suite.CheckProposal(proposalId, govtypes.StatusPassed)
+
 	suite.erc20.CheckRegisterCoin(suite.erc20.metadata.Base)
 
 	denom := suite.erc20.metadata.Base
@@ -35,9 +38,8 @@ func (suite *IntegrationTest) ERC20Test() {
 	suite.T().Log("token pair", tokenPair.String())
 
 	for i, chain := range suite.crosschain {
-		bridgeDenom := chain.GetBridgeDenoms()[0]
-		tokenContract := chain.GetBridgeToken(bridgeDenom)
-		chain.SendToFxClaim(tokenContract, sdk.NewInt(200), "module/evm")
+		bridgeToken := chain.GetBridgeTokens()[0]
+		chain.SendToFxClaim(bridgeToken.Token, sdk.NewInt(200), erc20types.LegacyERC20Target)
 		balance := suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress())
 		suite.Equal(balance, big.NewInt(200))
 
@@ -69,18 +71,17 @@ func (suite *IntegrationTest) ERC20Test() {
 		}
 
 		// convert
-		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
-		suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)), "")
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(50)))
+		suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(50)), "")
 		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(denom, sdk.NewInt(50)))
-		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.ZeroInt()))
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.ZeroInt()))
 
 		suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(denom, sdk.NewInt(50)), chain.chainName)
-		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(50)))
 
-		// todo why can't delete the last alias
 		if i < len(suite.crosschain)-1 {
 			// remove proposal
-			proposalId := suite.erc20.UpdateDenomAliasProposal(denom, bridgeDenom)
+			proposalId := suite.erc20.UpdateDenomAliasProposal(denom, bridgeToken.Denom)
 			suite.NoError(suite.network.WaitForNextBlock())
 			suite.CheckProposal(proposalId, govtypes.StatusPassed)
 
@@ -89,7 +90,7 @@ func (suite *IntegrationTest) ERC20Test() {
 			suite.NoError(err)
 			suite.Equal(len(suite.crosschain)-i-1, len(response.Aliases))
 
-			_, err = suite.erc20.ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: bridgeDenom})
+			_, err = suite.erc20.ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: bridgeToken.Denom})
 			suite.Error(err)
 		}
 	}

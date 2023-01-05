@@ -13,6 +13,7 @@ import (
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -133,25 +134,12 @@ func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decim
 	return bridgeToken.Denom
 }
 
-func (suite *CrosschainTestSuite) GetBridgeDenoms() (denoms []string) {
+func (suite *CrosschainTestSuite) GetBridgeTokens() (denoms []*crosschaintypes.BridgeToken) {
 	response, err := suite.CrosschainQuery().BridgeTokens(suite.ctx, &crosschaintypes.QueryBridgeTokensRequest{
 		ChainName: suite.chainName,
 	})
 	suite.NoError(err)
-	for _, token := range response.BridgeTokens {
-		denoms = append(denoms, token.Denom)
-	}
-	return denoms
-}
-
-func (suite *CrosschainTestSuite) GetBridgeToken(denom string) string {
-	response, err := suite.CrosschainQuery().DenomToToken(suite.ctx, &crosschaintypes.QueryDenomToTokenRequest{
-		ChainName: suite.chainName,
-		Denom:     denom,
-	})
-	suite.NoError(err)
-	return response.Token
-
+	return response.BridgeTokens
 }
 
 func (suite *CrosschainTestSuite) BondedOracle() {
@@ -251,7 +239,7 @@ func (suite *CrosschainTestSuite) SendToFxClaim(token string, amount sdk.Int, ta
 		Token:     token,
 	})
 	suite.NoError(err)
-	if len(targetIbc) <= 0 {
+	if bridgeToken.Denom == fxtypes.DefaultDenom && len(targetIbc) <= 0 {
 		balances := suite.QueryBalances(suite.AccAddress())
 		suite.True(balances.IsAllGTE(sdk.NewCoins(sdk.NewCoin(bridgeToken.Denom, amount))))
 	}
