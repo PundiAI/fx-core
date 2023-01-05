@@ -411,11 +411,12 @@ func NewAppKeeper(
 	)
 
 	transferRouter := fxtypes.NewRouter().
+		AddRoute(gravitytypes.ModuleName, appKeepers.EthKeeper). // legacy router
+		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
-		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
-		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
-		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper)
+		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).
+		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
 	appKeepers.Erc20Keeper = erc20Keeper.SetRouter(*transferRouter)
 
 	appKeepers.EvmKeeper.SetHooks(appKeepers.Erc20Keeper.EVMHooks())
