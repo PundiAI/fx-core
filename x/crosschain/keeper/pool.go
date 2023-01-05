@@ -23,6 +23,10 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	if err != nil {
 		return 0, err
 	}
+	bridgeToken := k.GetDenomByBridgeToken(ctx, targetCoin.Denom)
+	if bridgeToken == nil {
+		return 0, sdkerrors.Wrap(types.ErrInvalid, "bridge token is not exist")
+	}
 	amount.Denom = targetCoin.Denom
 	fee.Denom = targetCoin.Denom
 
@@ -30,13 +34,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 
 	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
 	// If there is, lock the coins.
-
-	bridgeToken := k.GetDenomByBridgeToken(ctx, amount.Denom)
-	if bridgeToken == nil {
-		return 0, sdkerrors.Wrap(types.ErrInvalid, "bridge token is not exist")
-	}
-
-	if bridgeToken.Denom == fxtypes.DefaultDenom {
+	if amount.Denom == fxtypes.DefaultDenom {
 		// lock coins in module
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, totalInVouchers); err != nil {
 			return 0, err
