@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -75,25 +75,15 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	if msg.DelegateAmount.Amount.GT(threshold.Amount.Mul(sdk.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
-	validator, found := s.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
-		return nil, stakingtypes.ErrNoValidatorFound
-	}
 
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
-	if err := s.bankKeeper.SendCoins(ctx, oracleAddr, delegateAddr, sdk.NewCoins(msg.DelegateAmount)); err != nil {
+	if err = s.bankKeeper.SendCoins(ctx, oracleAddr, delegateAddr, sdk.NewCoins(msg.DelegateAmount)); err != nil {
 		return nil, err
 	}
-	newShares, err := s.stakingKeeper.Delegate(ctx, delegateAddr, msg.DelegateAmount.Amount, stakingtypes.Unbonded, validator, true)
-	if err != nil {
+	msgDelegate := stakingtypes.NewMsgDelegate(delegateAddr, valAddr, msg.DelegateAmount)
+	if _, err = s.stakingMsgServer.Delegate(sdk.WrapSDKContext(ctx), msgDelegate); err != nil {
 		return nil, err
 	}
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		stakingtypes.EventTypeDelegate,
-		sdk.NewAttribute(stakingtypes.AttributeKeyValidator, msg.ValidatorAddress),
-		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.DelegateAmount.String()),
-		sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
-	))
 
 	s.SetOracle(ctx, oracle)
 	s.SetOracleByBridger(ctx, bridgerAddr, oracleAddr)
@@ -122,10 +112,6 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	if !found {
 		return nil, types.ErrNoFoundOracle
 	}
-	validator, found := s.stakingKeeper.GetValidator(ctx, oracle.GetValidator())
-	if !found {
-		return nil, stakingtypes.ErrNoValidatorFound
-	}
 
 	threshold := s.GetOracleDelegateThreshold(ctx)
 
@@ -133,8 +119,10 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, threshold.Denom)
 	}
 
+	// 100  - 50
+	// 50 + 50
 	slashAmount := sdk.NewCoin(fxtypes.DefaultDenom, oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
-	if slashAmount.IsPositive() && msg.Amount.Amount.LTE(slashAmount.Amount) {
+	if slashAmount.IsPositive() && msg.Amount.Amount.LT(slashAmount.Amount) {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "not sufficient slash amount")
 	}
 
@@ -149,38 +137,35 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	}
 
 	if slashAmount.IsPositive() {
-		if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
+		if err = s.bankKeeper.SendCoinsFromAccountToModule(ctx, oracleAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
 			return nil, err
 		}
-		if err := s.bankKeeper.BurnCoins(ctx, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
+		if err = s.bankKeeper.BurnCoins(ctx, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
 			return nil, err
 		}
 	}
 
-	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
-	if err := s.bankKeeper.SendCoins(ctx, oracleAddr, delegateAddr, sdk.NewCoins(delegateCoin)); err != nil {
-		return nil, err
-	}
-	newShares, err := s.stakingKeeper.Delegate(ctx, delegateAddr, delegateCoin.Amount, stakingtypes.Unbonded, validator, true)
-	if err != nil {
-		return nil, err
+	if delegateCoin.IsPositive() {
+		delegateAddr := oracle.GetDelegateAddress(s.moduleName)
+		if err = s.bankKeeper.SendCoins(ctx, oracleAddr, delegateAddr, sdk.NewCoins(delegateCoin)); err != nil {
+			return nil, err
+		}
+		msgDelegate := stakingtypes.NewMsgDelegate(delegateAddr, oracle.GetValidator(), delegateCoin)
+		if _, err = s.stakingMsgServer.Delegate(c, msgDelegate); err != nil {
+			return nil, err
+		}
 	}
 
 	if !oracle.Online {
 		oracle.Online = true
 		oracle.StartHeight = ctx.BlockHeight()
 	}
+	oracle.SlashTimes = 0
 
 	s.SetOracle(ctx, oracle)
 	s.CommonSetOracleTotalPower(ctx)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			stakingtypes.EventTypeDelegate,
-			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, delegateCoin.Amount.String()),
-			sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
-		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
@@ -196,6 +181,10 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
 	}
+	valDstAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
+	}
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
@@ -207,29 +196,16 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 	if oracle.DelegateValidator == msg.ValidatorAddress {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address is not changed")
 	}
-
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
 	valSrcAddress := oracle.GetValidator()
-
-	valDestAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
-	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
-	}
-	delegation, found := s.stakingKeeper.GetDelegation(ctx, delegateAddr, valSrcAddress)
-	if !found {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "no delegation for (address, validator) tuple")
-	}
-	completionTime, err := s.stakingKeeper.BeginRedelegation(ctx, delegateAddr, valSrcAddress, valDestAddress, delegation.Shares)
+	delegateToken, err := s.Keeper.GetOracleDelegateToken(ctx, delegateAddr, valSrcAddress)
 	if err != nil {
 		return nil, err
 	}
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		stakingtypes.EventTypeRedelegate,
-		sdk.NewAttribute(stakingtypes.AttributeKeySrcValidator, oracle.DelegateValidator),
-		sdk.NewAttribute(stakingtypes.AttributeKeyDstValidator, msg.ValidatorAddress),
-		sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
-		sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
-	))
+	msgBeginRedelegate := stakingtypes.NewMsgBeginRedelegate(delegateAddr, valSrcAddress, valDstAddress, sdk.NewCoin(fxtypes.DefaultDenom, delegateToken))
+	if _, err = s.stakingMsgServer.BeginRedelegate(c, msgBeginRedelegate); err != nil {
+		return nil, err
+	}
 	return &types.MsgReDelegateResponse{}, err
 }
 
@@ -284,12 +260,13 @@ func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawRewar
 	}
 
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
-	if _, err := s.distributionKeeper.WithdrawDelegationRewards(ctx, delegateAddr, oracle.GetValidator()); err != nil {
+	msgWithdrawDelegatorReward := distributiontypes.NewMsgWithdrawDelegatorReward(delegateAddr, oracle.GetValidator())
+	if _, err = s.distributionKeeper.WithdrawDelegatorReward(c, msgWithdrawDelegatorReward); err != nil {
 		return nil, err
 	}
 	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
 	if !balances.IsAllPositive() {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "rewards")
+		return nil, sdkerrors.Wrap(types.ErrInvalid, "rewards is empty")
 	}
 	if err = s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, balances); err != nil {
 		return nil, err
@@ -320,7 +297,7 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 	}
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
 	validatorAddr := oracle.GetValidator()
-	if _, found := s.stakingKeeper.GetUnbondingDelegation(ctx, delegateAddr, validatorAddr); found {
+	if _, found = s.stakingKeeper.GetUnbondingDelegation(ctx, delegateAddr, validatorAddr); found {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "exist unbonding delegation")
 	}
 	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
@@ -329,10 +306,10 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 		if balances.AmountOf(fxtypes.DefaultDenom).LT(slashAmount.Amount) {
 			return nil, sdkerrors.Wrap(types.ErrInvalid, "not sufficient slash amount")
 		}
-		if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, delegateAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
+		if err = s.bankKeeper.SendCoinsFromAccountToModule(ctx, delegateAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
 			return nil, err
 		}
-		if err := s.bankKeeper.BurnCoins(ctx, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
+		if err = s.bankKeeper.BurnCoins(ctx, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
 			return nil, err
 		}
 	}
@@ -344,7 +321,7 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 		}
 	}
 	if sendCoins.IsAllPositive() {
-		if err := s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, sendCoins); err != nil {
+		if err = s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, sendCoins); err != nil {
 			return nil, err
 		}
 	}

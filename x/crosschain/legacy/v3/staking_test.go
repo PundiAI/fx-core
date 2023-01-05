@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -107,7 +109,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 
 			require.NoError(t, crosschainv2.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper,
 				myApp.BankKeeper, oracles, delegatorValidator.GetOperator()))
-			require.NoError(t, crosschainv3.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper,
+			require.NoError(t, crosschainv3.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper, stakingkeeper.NewMsgServerImpl(myApp.StakingKeeper),
 				myApp.BankKeeper, oracles, delegatorValidator.GetOperator()))
 
 			allDelegations := myApp.StakingKeeper.GetAllDelegations(ctx)

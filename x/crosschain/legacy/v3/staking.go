@@ -15,8 +15,7 @@ import (
 )
 
 type StakingKeeper interface {
-	Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus,
-		validator stakingtypes.Validator, subtractAccount bool) (newShares sdk.Dec, err error)
+	GetBondedValidatorsByPower(ctx sdk.Context) []stakingtypes.Validator
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
 	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
 	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
@@ -26,7 +25,7 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
-func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, bankKeeper BankKeeper,
+func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, stakingMsgServer types.StakingMsgServer, bankKeeper BankKeeper,
 	oracles types.Oracles, delegateValAddr sdk.ValAddress) error {
 	if moduleName != bsctypes.ModuleName && moduleName != polygontypes.ModuleName && moduleName != trontypes.ModuleName {
 		return fmt.Errorf("not support module name: %s", moduleName)
@@ -65,27 +64,22 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 			panic("invalid validator status")
 		}
 
+		delegateCoin := sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount)
 		if err := bankKeeper.SendCoinsFromModuleToAccount(ctx,
-			sendName, delegateAddr, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount))); err != nil {
+			sendName, delegateAddr, sdk.NewCoins(delegateCoin)); err != nil {
 			return err
 		}
 		if !oracle.Online {
 			continue
 		}
 
-		newShares, err := stakingKeeper.Delegate(ctx, delegateAddr, oracle.DelegateAmount, stakingtypes.Unbonded, validator, true)
+		msgDelegate := stakingtypes.NewMsgDelegate(delegateAddr, validator.GetOperator(), delegateCoin)
+		_, err := stakingMsgServer.Delegate(sdk.WrapSDKContext(ctx), msgDelegate)
 		if err != nil {
 			return err
 		}
 		//notice: Each delegate should be followed by an update of the validator `Tokens` and `DelegatorShares`
 		validator, _ = validator.AddTokensFromDel(oracle.DelegateAmount)
-
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			stakingtypes.EventTypeDelegate,
-			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, oracle.DelegateValidator),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, oracle.DelegateAmount.String()),
-			sdk.NewAttribute(stakingtypes.AttributeKeyNewShares, newShares.String()),
-		))
 	}
 	return nil
 }
