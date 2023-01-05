@@ -16,10 +16,10 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-func (h Hooks) HookTransferCrossChain(ctx sdk.Context, relayTransferCrossChains []types.RelayTransferCrossChain, from common.Address, to *common.Address, txHash common.Hash) (err error) {
+func (h Hooks) HookTransferCrossChain(ctx sdk.Context, relayTransferCrossChains []types.RelayTransferCrossChain, txHash common.Hash) (err error) {
 	logger := h.k.Logger(ctx)
 	for _, relay := range relayTransferCrossChains {
-		logger.Info("transfer cross", "tx-hash", txHash.Hex(), "from", from.Hex(), "to", to.Hex(), "token", relay.TokenContract.String(), "denom", relay.Denom)
+		logger.Info("transfer cross chain", "token", relay.TokenContract.String(), "denom", relay.Denom)
 
 		balances := h.k.bankKeeper.GetAllBalances(ctx, relay.From.Bytes())
 		if !balances.IsAllGTE(relay.TotalAmount(relay.Denom)) {
@@ -39,7 +39,6 @@ func (h Hooks) HookTransferCrossChain(ctx sdk.Context, relayTransferCrossChains 
 			err = sdkerrors.Wrapf(types.ErrInvalidTarget, "target type %s", targetType)
 		}
 		if err != nil {
-			logger.Error("failed to transfer cross chain", "tx-hash", txHash.Hex(), "error", err.Error())
 			return err
 		}
 
@@ -47,9 +46,6 @@ func (h Hooks) HookTransferCrossChain(ctx sdk.Context, relayTransferCrossChains 
 			sdk.Events{
 				sdk.NewEvent(
 					types.EventTypeRelayTransferCrossChain,
-					sdk.NewAttribute(sdk.AttributeKeySender, from.String()),
-					sdk.NewAttribute(types.AttributeKeyTo, to.String()),
-					sdk.NewAttribute(types.AttributeKeyEvmTxHash, txHash.String()),
 					sdk.NewAttribute(types.AttributeKeyFrom, relay.From.String()),
 					sdk.NewAttribute(types.AttributeKeyRecipient, relay.Recipient),
 					sdk.NewAttribute(sdk.AttributeKeyAmount, relay.Amount.String()),
@@ -79,7 +75,7 @@ func (h Hooks) HookTransferCrossChain(ctx sdk.Context, relayTransferCrossChains 
 func (h Hooks) transferChainHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string) error {
 	h.k.Logger(ctx).Info("transfer chain handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
 	if h.k.router == nil {
-		return sdkerrors.Wrapf(types.ErrInvalidTarget, "not set router")
+		return sdkerrors.Wrapf(types.ErrInternalRouter, "transfer chain router not set")
 	}
 	route, has := h.k.router.GetRoute(target)
 	if !has {
@@ -97,7 +93,6 @@ func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to strin
 		return sdkerrors.Wrapf(types.ErrInvalidTarget, "invalid target ibc %s", target)
 	}
 	if err := validateIbcReceiveAddress(targetIBC.Prefix, to); err != nil {
-		logger.Error("validate ibc receive address", "address", to, "prefix", targetIBC.Prefix, "err", err.Error())
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
 	}
 	if !fee.IsZero() {

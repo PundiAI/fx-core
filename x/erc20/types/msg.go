@@ -130,14 +130,16 @@ func (m *MsgConvertDenom) Type() string { return TypeMsgConvertDenom }
 // ValidateBasic runs stateless checks on the message
 func (m *MsgConvertDenom) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err.Error())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "sender address: %s", err.Error())
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Receiver); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address %s", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address: %s", err.Error())
 	}
-	// todo denom validate
+	if err := sdk.ValidateDenom(m.Coin.Denom); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "denom: %s", err.Error())
+	}
 	if !m.Coin.IsPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, m.Coin.String())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount: %s", m.Coin.Amount.String())
 	}
 	return nil
 }
