@@ -67,6 +67,9 @@ func (k Keeper) SetRouter(rtr fxtypes.Router) Keeper {
 	if k.router != nil && k.router.Sealed() {
 		panic("cannot reset a sealed router")
 	}
+	if _, found := rtr.GetRoute(types.ModuleName); found {
+		panic("cannot set current module")
+	}
 	k.router = &rtr
 	k.router.Seal()
 	return k
