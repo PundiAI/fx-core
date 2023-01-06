@@ -196,11 +196,11 @@ func getMetadata(chainId string) []banktypes.Metadata {
 	if fxtypes.TestnetChainId == chainId {
 		return []banktypes.Metadata{
 			// TODO update testnet denom
-			fxtypes.GetCrossChainMetadata("Wrapped AVAX", "WAVAX", 18, "avalanche0x0000000000000000000000000000000000000001"),
-			fxtypes.GetCrossChainMetadata("Staked AVAX", "sAVAX", 18, "avalanche0x0000000000000000000000000000000000000002"),
-			fxtypes.GetCrossChainMetadata("BENQI", "QI", 18, "avalanche0x0000000000000000000000000000000000000003"),
-			fxtypes.GetCrossChainMetadata("BavaToken", "BAVA", 18, "avalanche0x0000000000000000000000000000000000000004"),
-			fxtypes.GetCrossChainMetadata("Wrapped BTC", "WBTC", 8, "eth0x0000000000000000000000000000000000000005"),
+			fxtypes.GetCrossChainMetadata("Wrapped AVAX", "WAVAX", 18, "avalanche0xd0fABb17BD2999A4A9fDF0F05c2386e7dF6519bb"),
+			fxtypes.GetCrossChainMetadata("Staked AVAX", "sAVAX", 18, "avalanche0x57b1E4C85B0f141aDE38b5573907BA8eF9aC2298"),
+			fxtypes.GetCrossChainMetadata("BENQI", "QI", 18, "avalanche0xeb62B336778ac9E9CF1Aacfd268E0Eb013019DC5"),
+			fxtypes.GetCrossChainMetadata("BavaToken", "BAVA", 18, "avalanche0x52583B59A9458667b82358A7ac07b6d26f83A2A4"),
+			fxtypes.GetCrossChainMetadata("Wrapped BTC", "WBTC", 8, "eth0x6895a336ccC9086aD026a83B93073960622b35B4"),
 		}
 	} else {
 		return []banktypes.Metadata{
