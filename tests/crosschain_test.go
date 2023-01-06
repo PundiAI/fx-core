@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
@@ -25,10 +26,19 @@ func (suite *IntegrationTest) CrossChainTest() {
 		tokenChannelIBC := ""
 		if chain.chainName == bsctypes.ModuleName {
 			tokenChannelIBC = "transfer/channel-0"
-			bridgeDenom = ibctransfertypes.DenomTrace{
-				Path:      tokenChannelIBC,
-				BaseDenom: bridgeDenom,
-			}.IBCDenom()
+
+			suite.erc20.metadata.DenomUnits[0].Aliases = []string{
+				ibctransfertypes.DenomTrace{
+					Path:      tokenChannelIBC,
+					BaseDenom: bridgeDenom,
+				}.IBCDenom(),
+				bridgeDenom,
+			}
+			suite.T().Log(suite.erc20.metadata.DenomUnits[0].Aliases)
+
+			proposalId := suite.erc20.RegisterCoinProposal(suite.erc20.metadata)
+			suite.NoError(suite.network.WaitForNextBlock())
+			suite.CheckProposal(proposalId, govtypes.StatusPassed)
 		}
 
 		proposalId := chain.SendUpdateChainOraclesProposal()
@@ -42,14 +52,22 @@ func (suite *IntegrationTest) CrossChainTest() {
 			uint64(suite.erc20.TokenDecimals()), tokenAddress, tokenChannelIBC)
 		suite.Equal(denom, bridgeDenom)
 
-		chain.SendToFxClaim(tokenAddress, sdk.NewInt(100), "")
-		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(100)))
-		// todo need create ibc channel
-		//if len(tokenChannelIBC) > 0 {
-		//	chain.SendToFxClaim(tokenAddress, sdk.NewInt(100), fmt.Sprintf("px/%s", tokenChannelIBC))
-		//	ibcTransferAddr := authtypes.NewModuleAddress(ibctransfertypes.ModuleName)
-		//	chain.CheckBalance(ibcTransferAddr, sdk.NewCoin(bridgeDenom, sdk.NewInt(100)))
-		//}
+		if len(tokenChannelIBC) > 0 {
+			tokenChannelIBC = fmt.Sprintf("px/%s", tokenChannelIBC)
+		}
+		if len(tokenChannelIBC) > 0 {
+			// todo need create ibc channel
+			chain.SendToFxClaim(tokenAddress, sdk.NewInt(100), tokenChannelIBC)
+			chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(0)))
+			chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(suite.erc20.metadata.DenomUnits[0].Aliases[0], sdk.NewInt(0)))
+
+			ibcTransferAddr := authtypes.NewModuleAddress(ibctransfertypes.ModuleName)
+			chain.CheckBalance(ibcTransferAddr, sdk.NewCoin(bridgeDenom, sdk.NewInt(0)))
+			chain.CheckBalance(ibcTransferAddr, sdk.NewCoin(suite.erc20.metadata.DenomUnits[0].Aliases[0], sdk.NewInt(0)))
+		} else {
+			chain.SendToFxClaim(tokenAddress, sdk.NewInt(100), "")
+			chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(100)))
+		}
 
 		txId := chain.SendToExternal(5, sdk.NewCoin(bridgeDenom, sdk.NewInt(10)))
 		suite.True(txId > 0)

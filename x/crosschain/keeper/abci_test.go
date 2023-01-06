@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -21,13 +20,10 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	normalMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
-		ExternalAddress:  crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex(),
+		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[0].PublicKey),
 		ValidatorAddress: suite.validator[0].String(),
 		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
 		ChainName:        suite.chainName,
-	}
-	if trontypes.ModuleName == suite.chainName {
-		normalMsg.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[0].PublicKey).String()
 	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
 	require.NoError(suite.T(), err)
@@ -89,13 +85,10 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
-			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
+			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[i].PublicKey),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
-		}
-		if trontypes.ModuleName == suite.chainName {
-			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
 		}
 		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
@@ -208,13 +201,10 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
-			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
+			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[i].PublicKey),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
-		}
-		if trontypes.ModuleName == suite.chainName {
-			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
 		}
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
 		require.NoError(suite.T(), err)
@@ -412,13 +402,10 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
-			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
+			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[i].PublicKey),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
-		}
-		if trontypes.ModuleName == suite.chainName {
-			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
 		}
 		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
@@ -432,10 +419,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 
 	oracle := suite.oracles[0]
 	bridger := suite.bridgers[0]
-	externalAddress := crypto.PubkeyToAddress(suite.externals[0].PublicKey).Hex()
-	if trontypes.ModuleName == suite.chainName {
-		externalAddress = tronAddress.PubkeyToAddress(suite.externals[0].PublicKey).String()
-	}
+	externalAddress := suite.PubKeyToExternalAddr(suite.externals[0].PublicKey)
 
 	oracleAddr, found := suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
 	require.True(suite.T(), found)
@@ -486,13 +470,10 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
-			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
+			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[i].PublicKey),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
-		}
-		if trontypes.ModuleName == suite.chainName {
-			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
 		}
 		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
@@ -511,7 +492,7 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 
 	gravityId := suite.Keeper().GetGravityID(suite.ctx)
 	for i := 0; i < len(suite.oracles)-1; i++ {
-		externalAddress := crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex()
+		externalAddress := suite.PubKeyToExternalAddr(suite.externals[i].PublicKey)
 
 		checkpoint, err := oracleSets[0].GetCheckpoint(gravityId)
 		require.NoError(suite.T(), err)
@@ -519,8 +500,6 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 		require.NoError(suite.T(), err)
 
 		if trontypes.ModuleName == suite.chainName {
-			externalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
-
 			checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSets[0], gravityId)
 			require.NoError(suite.T(), err)
 
@@ -563,13 +542,10 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 		msgBondedOracle := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracles[i].String(),
 			BridgerAddress:   suite.bridgers[i].String(),
-			ExternalAddress:  crypto.PubkeyToAddress(suite.externals[i].PublicKey).Hex(),
+			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[i].PublicKey),
 			ValidatorAddress: suite.validator[i].String(),
 			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
-		}
-		if trontypes.ModuleName == suite.chainName {
-			msgBondedOracle.ExternalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
 		}
 		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)

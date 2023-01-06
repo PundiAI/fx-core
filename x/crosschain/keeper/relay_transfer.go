@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -20,17 +19,13 @@ import (
 func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetHex string, receiver sdk.AccAddress, coin sdk.Coin) error {
 	// ignore hex decode error
 	targetByte, _ := hex.DecodeString(targetHex)
-	target := string(targetByte)
-	targetCoin, isToERC20, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver, coin, target)
+	target := fxtypes.ParseFxTarget(string(targetByte))
+	targetCoin, isToERC20, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver, coin, target.GetTarget())
 	if err != nil {
 		return err
 	}
-	if strings.HasPrefix(target, ibchost.ModuleName) {
-		targetIBC, ok := fxtypes.ParseTargetIBC(target)
-		if !ok {
-			return nil
-		}
-		return k.transferIBCHandler(ctx, eventNonce, receiver, targetCoin, targetIBC)
+	if target.IsIBC() {
+		return k.transferIBCHandler(ctx, eventNonce, receiver, targetCoin, target)
 	}
 	if isToERC20 {
 		return k.transferErc20Handler(ctx, eventNonce, receiver, targetCoin)
@@ -52,7 +47,7 @@ func (k Keeper) transferErc20Handler(ctx sdk.Context, eventNonce uint64, receive
 	return nil
 }
 
-func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive sdk.AccAddress, coin sdk.Coin, target fxtypes.TargetIBC) error {
+func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive sdk.AccAddress, coin sdk.Coin, target fxtypes.FxTarget) error {
 	var ibcReceiveAddress string
 	if strings.ToLower(target.Prefix) == fxtypes.EthereumAddressPrefix {
 		ibcReceiveAddress = common.BytesToAddress(receive.Bytes()).String()

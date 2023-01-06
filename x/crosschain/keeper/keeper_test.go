@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	rand.Seed(time.Now().UnixNano())
-	valNumber := rand.Intn(types.MaxOracleSize-3) + 3
+	valNumber := rand.Intn(types.MaxOracleSize-4) + 4
 
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)

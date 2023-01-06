@@ -78,30 +78,30 @@ func (h Hooks) transferCrossChainHandler(ctx sdk.Context, from sdk.AccAddress, t
 	return route.TransferAfter(ctx, from.String(), to, amount, fee)
 }
 
-func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string, txHash common.Hash) error {
-	h.k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
+func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, targetStr string, txHash common.Hash) error {
+	h.k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", targetStr)
 	if !fee.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "ibc transfer fee must be zero: %s", fee.Amount.String())
 	}
 
-	targetIBC, ok := fxtypes.ParseTargetIBC(target)
-	if !ok {
-		return sdkerrors.Wrapf(types.ErrInvalidTarget, "invalid target ibc %s", target)
+	target := fxtypes.ParseFxTarget(targetStr)
+	if !target.IsIBC() {
+		return sdkerrors.Wrapf(types.ErrInvalidTarget, "invalid target ibc %s", targetStr)
 	}
-	if strings.ToLower(targetIBC.Prefix) == fxtypes.EthereumAddressPrefix {
+	if strings.ToLower(target.Prefix) == fxtypes.EthereumAddressPrefix {
 		if err := fxtypes.ValidateEthereumAddress(to); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
 		}
 	}
-	if _, err := sdk.GetFromBech32(to, targetIBC.Prefix); err != nil {
+	if _, err := sdk.GetFromBech32(to, target.Prefix); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
 	}
 
 	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(h.k.GetIbcTimeout(ctx))
 	transferResponse, err := h.k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx),
 		transfertypes.NewMsgTransfer(
-			targetIBC.SourcePort,
-			targetIBC.SourceChannel,
+			target.SourcePort,
+			target.SourceChannel,
 			amount,
 			from.String(),
 			to,
@@ -112,6 +112,6 @@ func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to strin
 	if err != nil {
 		return err
 	}
-	h.k.SetIBCTransferHash(ctx, targetIBC.SourcePort, targetIBC.SourceChannel, transferResponse.GetSequence(), txHash)
+	h.k.SetIBCTransferHash(ctx, target.SourcePort, target.SourceChannel, transferResponse.GetSequence(), txHash)
 	return nil
 }

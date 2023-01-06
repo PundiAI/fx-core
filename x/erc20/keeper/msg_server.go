@@ -379,20 +379,25 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 	}
 	if coin.Denom == metadata.Base {
 		// burn coin
-		err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
-		if err != nil {
+		if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 			return sdk.Coin{}, false, err
 		}
 	} else if targetDenom == metadata.Base {
 		// mint denom
-		err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin))
-		if err != nil {
+		if err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
+			return sdk.Coin{}, false, err
+		}
+	} else {
+		if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+			return sdk.Coin{}, false, err
+		}
+
+		if err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
 			return sdk.Coin{}, false, err
 		}
 	}
 	// send alias denom to from addr
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin))
-	if err != nil {
+	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin)); err != nil {
 		return sdk.Coin{}, false, err
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

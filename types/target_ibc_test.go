@@ -1,9 +1,11 @@
-package types
+package types_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/v3/types"
 )
 
 func TestParseTargetIBC(t *testing.T) {
@@ -15,12 +17,12 @@ func TestParseTargetIBC(t *testing.T) {
 	}
 	testCases := []struct {
 		name      string
-		targetIBC string
+		targetStr string
 		expect    expect
 	}{
 		{
-			name:      "normal ibc data hex fx/transfer/channel-0 to targetIBC ",
-			targetIBC: "fx/transfer/channel-0",
+			name:      "normal ibc data hex fx/transfer/channel-0 to targetStr ",
+			targetStr: "fx/transfer/channel-0",
 			expect: expect{
 				prefix:  "fx",
 				port:    "transfer",
@@ -29,8 +31,8 @@ func TestParseTargetIBC(t *testing.T) {
 			},
 		},
 		{
-			name:      "normal ibc data hex 0x/transfer/channel-0 to targetIBC ",
-			targetIBC: "0x/transfer/channel-0",
+			name:      "normal ibc data hex 0x/transfer/channel-0 to targetStr ",
+			targetStr: "0x/transfer/channel-0",
 			expect: expect{
 				prefix:  "0x",
 				port:    "transfer",
@@ -39,8 +41,8 @@ func TestParseTargetIBC(t *testing.T) {
 			},
 		},
 		{
-			name:      "normal ibc data hex upper prefix 0X/transfer/channel-0 to targetIBC ",
-			targetIBC: "0X/transfer/channel-0",
+			name:      "normal ibc data hex upper prefix 0X/transfer/channel-0 to targetStr ",
+			targetStr: "0X/transfer/channel-0",
 			expect: expect{
 				prefix:  "0X",
 				port:    "transfer",
@@ -50,7 +52,7 @@ func TestParseTargetIBC(t *testing.T) {
 		},
 		{
 			name:      "no prefix ibc data /transfer/channel-0",
-			targetIBC: "/transfer/channel-0",
+			targetStr: "/transfer/channel-0",
 			expect: expect{
 				prefix:  "",
 				port:    "transfer",
@@ -60,7 +62,7 @@ func TestParseTargetIBC(t *testing.T) {
 		},
 		{
 			name:      "no prefix and no port ibc data /channel-0",
-			targetIBC: "/channel-0",
+			targetStr: "/channel-0",
 			expect: expect{
 				prefix:  "",
 				port:    "",
@@ -70,7 +72,7 @@ func TestParseTargetIBC(t *testing.T) {
 		},
 		{
 			name:      "empty ibc data ''",
-			targetIBC: "''",
+			targetStr: "''",
 			expect: expect{
 				prefix:  "",
 				port:    "",
@@ -80,7 +82,7 @@ func TestParseTargetIBC(t *testing.T) {
 		},
 		{
 			name:      "two slash ibc data //",
-			targetIBC: "//",
+			targetStr: "//",
 			expect: expect{
 				prefix:  "",
 				port:    "",
@@ -91,13 +93,13 @@ func TestParseTargetIBC(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		targetIBC, isOk := ParseTargetIBC(tc.targetIBC)
-		require.EqualValues(t, tc.expect.ok, isOk, tc.name)
+		target := types.ParseFxTarget(tc.targetStr)
+		require.EqualValues(t, tc.expect.ok, target.IsIBC(), tc.name)
 		if !tc.expect.ok {
 			return
 		}
-		require.EqualValues(t, tc.expect.prefix, targetIBC.Prefix, tc.name)
-		require.EqualValues(t, tc.expect.port, targetIBC.SourcePort, tc.name)
-		require.EqualValues(t, tc.expect.channel, targetIBC.SourceChannel, tc.name)
+		require.EqualValues(t, tc.expect.prefix, target.Prefix, tc.name)
+		require.EqualValues(t, tc.expect.port, target.SourcePort, tc.name)
+		require.EqualValues(t, tc.expect.channel, target.SourceChannel, tc.name)
 	}
 }
