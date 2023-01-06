@@ -71,6 +71,16 @@ func (k *Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.M
 
 // EstimateGas implements eth_estimateGas rpc api.
 func (k *Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*types.EstimateGasResponse, error) {
+	return k.estimateGas(c, req, true)
+}
+
+// EstimateGasWithoutHook implements eth_estimateGas rpc api without evm hook.
+func (k *Keeper) EstimateGasWithoutHook(c context.Context, req *types.EthCallRequest) (*types.EstimateGasResponse, error) {
+	return k.estimateGas(c, req, false)
+}
+
+// estimateGas implements eth_estimateGas rpc api with enable hook flag.
+func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enableHook bool) (*types.EstimateGasResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -145,7 +155,7 @@ func (k *Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*typ
 			return true, nil, err // Bail out
 		}
 		// rsp success and hooks not nil, check tx with PostTxProcessing
-		if !rsp.Failed() && k.hasHooks {
+		if enableHook && !rsp.Failed() && k.hasHooks {
 			var (
 				bloom        *big.Int
 				bloomReceipt ethtypes.Bloom
@@ -171,7 +181,6 @@ func (k *Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*typ
 			}
 
 			receipt := &ethtypes.Receipt{
-				//Type: //TODO Unable to determine the type
 				PostState:         nil,
 				Status:            ethtypes.ReceiptStatusSuccessful,
 				CumulativeGasUsed: cumulativeGasUsed,
