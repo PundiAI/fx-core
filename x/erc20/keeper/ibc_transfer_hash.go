@@ -12,44 +12,35 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-func (k Keeper) RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error {
-	//check tx
-	if !k.HasIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
+func (k Keeper) RefundAfter(ctx sdk.Context, port, channel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error {
+	// check exist
+	if !k.DeleteIBCTransferHash(ctx, port, channel, sequence) {
 		return nil
 	}
-	k.DeleteIBCTransferHash(ctx, sourcePort, sourceChannel, sequence)
 	return k.TransferAfter(ctx, sender.String(), common.BytesToAddress(sender.Bytes()).String(), amount, sdk.NewCoin(amount.Denom, sdk.ZeroInt()))
 }
 
-func (k Keeper) AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) error {
-	if !k.HasIBCTransferHash(ctx, sourcePort, sourceChannel, sequence) {
-		return nil
-	}
-	k.DeleteIBCTransferHash(ctx, sourcePort, sourceChannel, sequence)
+func (k Keeper) AckAfter(ctx sdk.Context, port, channel string, sequence uint64) error {
+	k.DeleteIBCTransferHash(ctx, port, channel, sequence)
 	return nil
 }
 
 func (k Keeper) SetIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64, hash common.Hash) {
+	// todo delete unused port and hash
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetIBCTransferKey(port, channel, sequence), hash.Bytes())
 }
 
-func (k Keeper) DeleteIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) {
+func (k Keeper) DeleteIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) bool {
+	if !k.hasIBCTransferHash(ctx, port, channel, sequence) {
+		return false
+	}
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetIBCTransferKey(port, channel, sequence))
+	return true
 }
 
-func (k Keeper) GetIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) (common.Hash, bool) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetIBCTransferKey(port, channel, sequence)
-	if !store.Has(key) {
-		return common.Hash{}, false
-	}
-	value := store.Get(key)
-	return common.BytesToHash(value), true
-}
-
-func (k Keeper) HasIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) bool {
+func (k Keeper) hasIBCTransferHash(ctx sdk.Context, port, channel string, sequence uint64) bool {
 	return ctx.KVStore(k.storeKey).Has(types.GetIBCTransferKey(port, channel, sequence))
 }
 
