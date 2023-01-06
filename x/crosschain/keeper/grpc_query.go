@@ -12,11 +12,6 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-const (
-	MaxResults                   = 100
-	maxOracleSetRequestsReturned = 5
-)
-
 var _ types.QueryServer = Keeper{}
 
 func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
@@ -64,7 +59,7 @@ func (k Keeper) OracleSetConfirmsByNonce(c context.Context, req *types.QueryOrac
 func (k Keeper) LastOracleSetRequests(c context.Context, _ *types.QueryLastOracleSetRequestsRequest) (*types.QueryLastOracleSetRequestsResponse, error) {
 	var oraclesSets []*types.OracleSet
 	k.IterateOracleSets(sdk.UnwrapSDKContext(c), true, func(oracleSet *types.OracleSet) bool {
-		if len(oraclesSets) >= maxOracleSetRequestsReturned {
+		if len(oraclesSets) >= types.MaxOracleSetRequestsResults {
 			return true
 		}
 		oraclesSets = append(oraclesSets, oracleSet)
@@ -100,7 +95,7 @@ func (k Keeper) LastPendingOracleSetRequestByAddr(c context.Context, req *types.
 		}
 		// if we have more than 100 unconfirmed requests in
 		// our array we should exit, pagination
-		return len(pendingOracleSetReq) == MaxResults
+		return len(pendingOracleSetReq) == types.MaxResults
 	})
 	return &types.QueryLastPendingOracleSetRequestByAddrResponse{OracleSets: pendingOracleSetReq}, nil
 }
@@ -118,7 +113,7 @@ func (k Keeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*
 			return nil, status.Error(codes.InvalidArgument, "token contract")
 		}
 	}
-	allBatchFees := k.GetAllBatchFees(sdk.UnwrapSDKContext(c), MaxResults, req.MinBatchFees)
+	allBatchFees := k.GetAllBatchFees(sdk.UnwrapSDKContext(c), types.MaxResults, req.MinBatchFees)
 	return &types.QueryBatchFeeResponse{BatchFees: allBatchFees}, nil
 }
 
@@ -156,7 +151,7 @@ func (k Keeper) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoingTxBat
 	var batches []*types.OutgoingTxBatch
 	k.IterateOutgoingTxBatches(sdk.UnwrapSDKContext(c), func(batch *types.OutgoingTxBatch) bool {
 		batches = append(batches, batch)
-		return len(batches) == MaxResults
+		return len(batches) == types.MaxResults
 	})
 	sort.Slice(batches, func(i, j int) bool {
 		return batches[i].BatchTimeout < batches[j].BatchTimeout

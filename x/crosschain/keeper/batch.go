@@ -10,8 +10,6 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-const OutgoingTxBatchSize = 100
-
 // BuildOutgoingTxBatch starts the following process chain:
 //   - find bridged denominator for given voucher type
 //   - determine if a an unExecuted batch is already waiting for this token type, if so confirm the new batch would

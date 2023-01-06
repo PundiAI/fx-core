@@ -14,6 +14,10 @@ import (
 const (
 	MaxOracleSize                  = 100
 	DefaultOracleDelegateThreshold = 10
+	OutgoingTxBatchSize            = 100
+	MaxResults                     = 100
+	MaxOracleSetRequestsResults    = 5
+	MaxKeepEventSize               = 100
 )
 
 var (

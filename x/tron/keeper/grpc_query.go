@@ -7,7 +7,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -27,7 +26,7 @@ func (k Keeper) BatchFees(c context.Context, req *crosschaintypes.QueryBatchFeeR
 			return nil, status.Error(codes.InvalidArgument, "token contract")
 		}
 	}
-	allBatchFees := k.GetAllBatchFees(sdk.UnwrapSDKContext(c), crosschainkeeper.MaxResults, req.MinBatchFees)
+	allBatchFees := k.GetAllBatchFees(sdk.UnwrapSDKContext(c), crosschaintypes.MaxResults, req.MinBatchFees)
 	return &crosschaintypes.QueryBatchFeeResponse{BatchFees: allBatchFees}, nil
 }
 

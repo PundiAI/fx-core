@@ -253,12 +253,11 @@ func pruneAttestations(ctx sdk.Context, k Keeper) {
 	// we delete all attestations earlier than the current event nonce
 	// minus some buffer value. This buffer value is purely to allow
 	// frontends and other UI components to view recent oracle history
-	const eventsToKeep = 100
 	lastNonce := k.GetLastObservedEventNonce(ctx)
-	if lastNonce <= eventsToKeep {
+	if lastNonce <= types.MaxKeepEventSize {
 		return
 	}
-	cutoff := lastNonce - eventsToKeep
+	cutoff := lastNonce - types.MaxKeepEventSize
 
 	// This iterates over all keys (event nonces) in the attestation mapping. Each value contains
 	// a slice with one or more attestations at that event nonce. There can be multiple attestations
