@@ -1,21 +1,15 @@
 package keeper_test
 
 import (
-	"crypto/ecdsa"
-	"crypto/sha256"
 	"encoding/hex"
 	"math/big"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcutil/base58"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -23,69 +17,37 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
-	"github.com/functionx/fx-core/v3/x/tron/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app *app.App
-	ctx sdk.Context
+	app       *app.App
+	ctx       sdk.Context
+	msgServer crosschaintypes.MsgServer
 
-	bridgeAcc    sdk.AccAddress
-	bridgeTokens []BridgeToken
-
-	oracleAddressList       []sdk.AccAddress
-	orchestratorAddressList []sdk.AccAddress
-	externalAccList         []*ExternalAcc
-
-	msgServer   types.MsgServer
-	queryClient types.QueryClient
-}
-
-type BridgeToken struct {
-	token string
-	denom string
-}
-
-type ExternalAcc struct {
-	key     *ecdsa.PrivateKey
-	address string
+	signer *helpers.Signer
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) DoSetupTest() {
-	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
-	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(2,
-		sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
-
-	suite.bridgeAcc = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	suite.bridgeTokens = make([]BridgeToken, 0)
-	suite.externalAccList = make([]*ExternalAcc, 0)
-
-	for i := 0; i < 3; i++ {
-		suite.bridgeTokens = append(suite.bridgeTokens, BridgeToken{token: GenTronContractAddress()})
-	}
-
-	balances = append(balances, banktypes.Balance{
-		Address: suite.bridgeAcc.String(),
-		Coins: sdk.NewCoins(
-			sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(20000)))),
-		),
+func (suite *KeeperTestSuite) SetupTest() {
+	rand.Seed(time.Now().UnixNano())
+	valNumber := rand.Intn(100-1) + 1
+	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
+	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
+	suite.ctx = suite.app.NewContext(false, tmproto.Header{
+		ChainID:         fxtypes.MainnetChainId,
+		Height:          suite.app.LastBlockHeight() + 1,
+		ProposerAddress: valSet.Proposer.Address.Bytes(),
 	})
-
-	suite.app = helpers.SetupWithGenesisValSet(suite.T(), validator, genesisAccounts, balances...)
-	suite.ctx = suite.app.NewContext(false, tmproto.Header{})
-
-	suite.oracleAddressList = helpers.AddTestAddrsIncremental(suite.app, suite.ctx, 4, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())))
-	suite.orchestratorAddressList = helpers.AddTestAddrsIncremental(suite.app, suite.ctx, 4, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())))
-
-	suite.app.TronKeeper.SetParams(suite.ctx, &types.Params{
-		GravityId:                         "tron",
+	suite.app.TronKeeper.SetParams(suite.ctx, &crosschaintypes.Params{
+		GravityId:                         "fx-bridge-tron",
 		AverageBlockTime:                  5000,
 		ExternalBatchTimeout:              43200000,
 		AverageExternalBlockTime:          3000,
@@ -93,100 +55,94 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 		SlashFraction:                     sdk.NewDec(1).Quo(sdk.NewDec(1000)),
 		OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
 		IbcTransferTimeoutHeight:          10000,
-		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
-		DelegateMultiple:                  10,
+		DelegateThreshold: sdk.NewCoin(fxtypes.DefaultDenom,
+			sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
+		DelegateMultiple: 10,
 	})
+	suite.msgServer = tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
+	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
+	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))))
+}
 
-	for index, oracleAddress := range suite.oracleAddressList {
-		dbOracleAddress, found := suite.app.TronKeeper.GetOracleAddressByBridgerKey(suite.ctx, suite.orchestratorAddressList[index])
-		require.False(suite.T(), found)
-		require.Empty(suite.T(), dbOracleAddress)
-
-		address, key := GenTronAccountAddress()
-		suite.externalAccList = append(suite.externalAccList, &ExternalAcc{
-			key:     key,
-			address: address,
-		})
-
-		newOracle := types.Oracle{
-			OracleAddress:   oracleAddress.String(),
-			BridgerAddress:  suite.orchestratorAddressList[index].String(),
-			ExternalAddress: suite.externalAccList[index].address,
-			StartHeight:     3,
-		}
-
-		if index == 0 {
-			suite.app.TronKeeper.SetOracle(suite.ctx, newOracle)
-		}
-		suite.app.TronKeeper.SetOracleByBridger(suite.ctx, suite.orchestratorAddressList[index], oracleAddress)
-
-		dbOracleAddress, found = suite.app.TronKeeper.GetOracleAddressByBridgerKey(suite.ctx, suite.orchestratorAddressList[index])
-		require.True(suite.T(), found)
-		require.EqualValues(suite.T(), oracleAddress, dbOracleAddress)
-
-		suite.app.TronKeeper.SetOracleByExternalAddress(suite.ctx, suite.externalAccList[index].address, oracleAddress)
+func (suite *KeeperTestSuite) NewOutgoingTxBatch() *crosschaintypes.OutgoingTxBatch {
+	batchNonce := rand.Uint64()
+	tokenContract := trontypes.AddressFromHex(helpers.GenerateAddress().Hex())
+	newOutgoingTx := &crosschaintypes.OutgoingTxBatch{
+		BatchNonce: batchNonce,
+		Transactions: []*crosschaintypes.OutgoingTransferTx{
+			{
+				Sender:      suite.signer.AccAddress().String(),
+				DestAddress: trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
+				Token: crosschaintypes.ERC20Token{
+					Contract: tokenContract,
+					Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
+				},
+				Fee: crosschaintypes.ERC20Token{
+					Contract: tokenContract,
+					Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
+				},
+			},
+		},
+		TokenContract: tokenContract,
+		FeeReceive:    trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
+		Block:         batchNonce,
 	}
+	err := suite.app.TronKeeper.StoreBatch(suite.ctx, newOutgoingTx)
+	suite.Require().NoError(err)
+	return newOutgoingTx
+}
 
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.app.TronKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
+func (suite *KeeperTestSuite) NewOracleByBridger() (sdk.AccAddress, sdk.AccAddress, cryptotypes.PrivKey) {
+	oracle := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	bridger := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	externalKey := helpers.NewEthPrivKey()
+	externalAddress := trontypes.AddressFromHex(externalKey.PubKey().Address().String())
+	newOracle := crosschaintypes.Oracle{
+		OracleAddress:   oracle.String(),
+		BridgerAddress:  bridger.String(),
+		ExternalAddress: externalAddress,
+	}
+	suite.app.TronKeeper.SetOracle(suite.ctx, newOracle)
+	suite.app.TronKeeper.SetOracleByBridger(suite.ctx, bridger, oracle)
+	oracleAddress, found := suite.app.TronKeeper.GetOracleAddressByBridgerKey(suite.ctx, bridger)
+	require.True(suite.T(), found)
+	require.EqualValues(suite.T(), oracle, oracleAddress)
+	suite.app.TronKeeper.SetOracleByExternalAddress(suite.ctx, externalAddress, oracle)
+	return oracle, bridger, externalKey
+}
 
-	for index, token := range suite.bridgeTokens {
-		channalIbc := ""
-		if index == 2 {
-			channalIbc = hex.EncodeToString([]byte("transfer/channel-0"))
+func (suite *KeeperTestSuite) NewOracleSet(externalKey cryptotypes.PrivKey) *crosschaintypes.OracleSet {
+	newOracleSet := crosschaintypes.NewOracleSet(rand.Uint64(), rand.Uint64(), crosschaintypes.BridgeValidators{
+		{
+			Power:           rand.Uint64(),
+			ExternalAddress: trontypes.AddressFromHex(externalKey.PubKey().Address().String()),
+		},
+	})
+	suite.app.TronKeeper.StoreOracleSet(suite.ctx, newOracleSet)
+	return newOracleSet
+}
+
+func (suite *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []crosschaintypes.BridgeToken {
+	bridgeTokens := make([]crosschaintypes.BridgeToken, 0)
+	for i := 0; i < 3; i++ {
+		bridgeTokens = append(bridgeTokens, crosschaintypes.BridgeToken{Token: trontypes.AddressFromHex(helpers.GenerateAddress().Hex())})
+		channelIBC := ""
+		if i == 2 {
+			channelIBC = hex.EncodeToString([]byte("transfer/channel-0"))
 		}
-		err := suite.app.TronKeeper.AttestationHandler(suite.ctx, &types.MsgBridgeTokenClaim{
-			TokenContract:  token.token,
-			BridgerAddress: suite.orchestratorAddressList[0].String(),
-			ChannelIbc:     channalIbc,
-			ChainName:      "tron",
+		err := suite.app.TronKeeper.AttestationHandler(suite.ctx, &crosschaintypes.MsgBridgeTokenClaim{
+			TokenContract:  bridgeTokens[i].Token,
+			BridgerAddress: bridger.String(),
+			ChannelIbc:     channelIBC,
 		})
 		suite.Require().NoError(err)
-		denom := suite.app.TronKeeper.GetBridgeTokenDenom(suite.ctx, token.token)
-		suite.bridgeTokens[index].denom = denom.Denom
-		err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
-		suite.Require().NoError(err)
-		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.bridgeAcc, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
-		suite.Require().NoError(err)
+		denom := suite.app.TronKeeper.GetBridgeTokenDenom(suite.ctx, bridgeTokens[i].Token)
+		bridgeTokens[i].Denom = denom.Denom
+		bridgeDenom := sdk.NewCoins(sdk.NewCoin(bridgeTokens[i].Denom, sdk.NewInt(1e6).MulRaw(1e18)))
+		err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, bridgeDenom)
+		suite.NoError(err)
+		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.signer.AccAddress(), bridgeDenom)
+		suite.NoError(err)
 	}
-
-	suite.msgServer = keeper.NewMsgServerImpl(suite.app.TronKeeper)
-}
-
-func (suite *KeeperTestSuite) SetupTest() {
-	suite.DoSetupTest()
-}
-
-func GenTronContractAddress() string {
-	key, _ := crypto.GenerateKey()
-	address := crypto.PubkeyToAddress(key.PublicKey)
-	rand.Seed(time.Now().Unix())
-	contract := crypto.CreateAddress(address, uint64(rand.Intn(100))).Bytes()
-	contract = append([]byte{byte(0x41)}, contract...)
-
-	return EncodeCheck(contract)
-}
-
-func GenTronAccountAddress() (string, *ecdsa.PrivateKey) {
-	key, _ := crypto.GenerateKey()
-	address := crypto.PubkeyToAddress(key.PublicKey)
-	addressBytes := append([]byte{byte(0x41)}, address.Bytes()...)
-
-	return EncodeCheck(addressBytes), key
-}
-
-func EncodeCheck(input []byte) string {
-	h256h0 := sha256.New()
-	h256h0.Write(input)
-	h0 := h256h0.Sum(nil)
-
-	h256h1 := sha256.New()
-	h256h1.Write(h0)
-	h1 := h256h1.Sum(nil)
-
-	inputCheck := input
-	inputCheck = append(inputCheck, h1[:4]...)
-
-	return base58.Encode(inputCheck)
+	return bridgeTokens
 }
