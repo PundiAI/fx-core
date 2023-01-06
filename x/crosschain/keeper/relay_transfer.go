@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -63,32 +64,21 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 		}
 	}
 
-	_, clientState, err := k.ibcChannelKeeper.GetChannelClientState(ctx, target.SourcePort, target.SourceChannel)
-	if err != nil {
-		return err
-	}
+	// Note: Height is fixed for 5 seconds
+	ibcTransferTimeoutHeight := k.GetIbcTransferTimeoutHeight(ctx) * 5
+	ibcTimeoutTime := ctx.BlockTime().Add(time.Second * time.Duration(ibcTransferTimeoutHeight))
 
-	ibcTransferTimeoutHeight := k.GetIbcTransferTimeoutHeight(ctx)
-	clientStateHeight := clientState.GetLatestHeight()
-	destTimeoutHeight := clientStateHeight.GetRevisionHeight() + ibcTransferTimeoutHeight
-	ibcTimeoutHeight := ibcclienttypes.Height{
-		RevisionNumber: clientStateHeight.GetRevisionNumber(),
-		RevisionHeight: destTimeoutHeight,
-	}
-
-	k.Logger(ctx).Info("crosschain start ibc transfer", "sender", receive, "receive", ibcReceiveAddress,
-		"coin", coin, "destCurrentHeight", clientStateHeight.GetRevisionHeight(), "destTimeoutHeight", destTimeoutHeight)
-
-	transferMsg := transfertypes.NewMsgTransfer(
-		target.SourcePort,
-		target.SourceChannel,
-		coin,
-		receive.String(),
-		ibcReceiveAddress,
-		ibcTimeoutHeight,
-		0,
+	response, err := k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx),
+		transfertypes.NewMsgTransfer(
+			target.SourcePort,
+			target.SourceChannel,
+			coin,
+			receive.String(),
+			ibcReceiveAddress,
+			ibcclienttypes.ZeroHeight(),
+			uint64(ibcTimeoutTime.UnixNano()),
+		),
 	)
-	transferResponse, err := k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx), transferMsg)
 	if err != nil {
 		return err
 	}
@@ -97,7 +87,7 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 		types.EventTypeIbcTransfer,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(eventNonce)),
-		sdk.NewAttribute(types.AttributeKeyIbcSendSequence, fmt.Sprint(transferResponse.GetSequence())),
+		sdk.NewAttribute(types.AttributeKeyIbcSendSequence, fmt.Sprint(response.GetSequence())),
 		sdk.NewAttribute(types.AttributeKeyIbcSourcePort, target.SourcePort),
 		sdk.NewAttribute(types.AttributeKeyIbcSourceChannel, target.SourceChannel),
 	))

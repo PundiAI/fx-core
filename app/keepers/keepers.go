@@ -323,7 +323,6 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
@@ -336,7 +335,6 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
 	appKeepers.AvalancheKeeper = crosschainkeeper.NewKeeper(
@@ -349,7 +347,6 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
@@ -362,7 +359,6 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper)
 
 	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
@@ -375,7 +371,6 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper,
 		erc20Keeper))
 
 	// add cross-chain router

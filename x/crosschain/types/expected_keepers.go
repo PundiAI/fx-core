@@ -10,7 +10,6 @@ import (
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tranfsertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 )
 
 type StakingKeeper interface {
@@ -49,10 +48,6 @@ type BankKeeper interface {
 type Erc20Keeper interface {
 	TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error
 	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, bool, error)
-}
-
-type IBCChannelKeeper interface {
-	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
 
 type IBCTransferKeeper interface {
