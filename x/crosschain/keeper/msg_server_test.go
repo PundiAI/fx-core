@@ -287,10 +287,17 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 			})
 			require.NoError(t, err)
 
+			oracleDelegateThreshold := suite.Keeper().GetOracleDelegateThreshold(suite.ctx)
+			oracleDelegateMultiple := suite.Keeper().GetOracleDelegateMultiple(suite.ctx)
+			maxDelegateAmount := oracleDelegateThreshold.Amount.Mul(sdk.NewInt(oracleDelegateMultiple)).Sub(initDelegateAmount)
 			msg := &types.MsgAddDelegate{
 				ChainName:     suite.chainName,
 				OracleAddress: suite.oracles[oracleIndex].String(),
-				Amount:        sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(rand.Int63n(100000)+1).MulRaw(1e18)),
+				Amount: sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(
+					rand.Int63n(maxDelegateAmount.QuoRaw(1e18).Int64())+1,
+				).
+					MulRaw(1e18).
+					Sub(sdk.NewInt(1))),
 			}
 			testCase.preRun(msg)
 
