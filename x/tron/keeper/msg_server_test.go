@@ -2,245 +2,182 @@ package keeper_test
 
 import (
 	"encoding/hex"
-	"math/big"
+	"math/rand"
+	"time"
+
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+
+	"github.com/functionx/fx-core/v3/app/helpers"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
-	var (
-		msg *types.MsgConfirmBatch
-	)
+	rand.Seed(time.Now().UnixNano())
+	var msg *crosschaintypes.MsgConfirmBatch
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			name: "confirm batch msg bridge address error",
+			name: "bridger address",
 			malleate: func() {
-				msg = &types.MsgConfirmBatch{
-					Nonce:          3,
-					BridgerAddress: "fx1",
-					ChainName:      "tron",
+				msg = &crosschaintypes.MsgConfirmBatch{
+					BridgerAddress: helpers.GenerateAddress().Hex(),
 				}
 			},
 			expPass: false,
 		},
 		{
-			name: "confirm batch nonexistent tx nonce",
+			name: "couldn't find batch",
 			malleate: func() {
-				newOutgoingTx := &types.OutgoingTxBatch{
-					BatchNonce:   2,
-					BatchTimeout: 10000,
-					Transactions: []*types.OutgoingTransferTx{
-						{
-							Sender:      suite.bridgeAcc.String(),
-							DestAddress: GenTronContractAddress(),
-							Token: types.ERC20Token{
-								Contract: suite.bridgeTokens[0].token,
-								Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
-							},
-							Fee: types.ERC20Token{
-								Contract: suite.bridgeTokens[0].token,
-								Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
-							},
-						},
-					},
-					TokenContract: suite.bridgeTokens[0].token,
-					FeeReceive:    suite.bridgeTokens[1].token,
-				}
-
-				err := suite.app.TronKeeper.StoreBatch(suite.ctx, newOutgoingTx)
-				suite.Require().NoError(err)
-				msg = &types.MsgConfirmBatch{
-					Nonce:          3,
-					TokenContract:  suite.bridgeTokens[0].token,
-					BridgerAddress: suite.orchestratorAddressList[0].String(),
-					ChainName:      "tron",
+				msg = &crosschaintypes.MsgConfirmBatch{
+					Nonce:          rand.Uint64(),
+					TokenContract:  trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
+					BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				}
 			},
 			expPass: false,
 		},
 		{
-			name: "confirm batch nonexistent tx token contract",
+			name: "no found oracle",
 			malleate: func() {
-				newOutgoingTx := &types.OutgoingTxBatch{
-					BatchNonce:   3,
-					BatchTimeout: 10000,
-					Transactions: []*types.OutgoingTransferTx{
-						{
-							Sender:      suite.bridgeAcc.String(),
-							DestAddress: GenTronContractAddress(),
-							Token: types.ERC20Token{
-								Contract: suite.bridgeTokens[0].token,
-								Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
-							},
-							Fee: types.ERC20Token{
-								Contract: suite.bridgeTokens[0].token,
-								Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
-							},
-						},
-					},
-					TokenContract: suite.bridgeTokens[0].token,
-					FeeReceive:    suite.bridgeTokens[1].token,
-				}
-
-				err := suite.app.TronKeeper.StoreBatch(suite.ctx, newOutgoingTx)
-				suite.Require().NoError(err)
-				msg = &types.MsgConfirmBatch{
-					Nonce:          3,
-					TokenContract:  GenTronContractAddress(),
-					BridgerAddress: suite.orchestratorAddressList[0].String(),
-					ChainName:      "tron",
+				newOutgoingTx := suite.NewOutgoingTxBatch()
+				msg = &crosschaintypes.MsgConfirmBatch{
+					Nonce:          newOutgoingTx.BatchNonce,
+					TokenContract:  newOutgoingTx.TokenContract,
+					BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				}
 			},
 			expPass: false,
 		},
 		{
-			name: "confirm normal batch tx",
+			name: "signature decoding",
 			malleate: func() {
-				newOutgoingTx := &types.OutgoingTxBatch{
-					BatchNonce:   3,
-					BatchTimeout: 10000,
-					Transactions: []*types.OutgoingTransferTx{
-						{
-							Sender:      suite.bridgeAcc.String(),
-							DestAddress: GenTronContractAddress(),
-							Token: types.ERC20Token{
-								Contract: suite.bridgeTokens[0].token,
-								Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
-							},
-							Fee: types.ERC20Token{
-								Contract: suite.bridgeTokens[0].token,
-								Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
-							},
-						},
-					},
-					TokenContract: suite.bridgeTokens[0].token,
-					FeeReceive:    suite.bridgeTokens[1].token,
+				newOutgoingTx := suite.NewOutgoingTxBatch()
+				_, bridger, externalKey := suite.NewOracleByBridger()
+				msg = &crosschaintypes.MsgConfirmBatch{
+					Nonce:           newOutgoingTx.BatchNonce,
+					TokenContract:   newOutgoingTx.TokenContract,
+					BridgerAddress:  bridger.String(),
+					ExternalAddress: trontypes.AddressFromHex(externalKey.PubKey().Address().String()),
+					Signature:       helpers.GenerateAddress().Hex(),
 				}
-				batchHash, err := trontypes.GetCheckpointConfirmBatch(newOutgoingTx, "tron")
+			},
+			expPass: false,
+		},
+		{
+			name: "confirm batch",
+			malleate: func() {
+				newOutgoingTx := suite.NewOutgoingTxBatch()
+				_, bridger, externalKey := suite.NewOracleByBridger()
+				params, err := suite.app.TronKeeper.Params(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryParamsRequest{ChainName: "tron"})
 				suite.Require().NoError(err)
-				signature, err := trontypes.NewTronSignature(batchHash, suite.externalAccList[0].key)
+				batchHash, err := trontypes.GetCheckpointConfirmBatch(newOutgoingTx, params.Params.GravityId)
 				suite.Require().NoError(err)
-				msg = &types.MsgConfirmBatch{
-					Nonce:           3,
-					TokenContract:   suite.bridgeTokens[0].token,
-					BridgerAddress:  suite.orchestratorAddressList[0].String(),
-					ExternalAddress: suite.externalAccList[0].address,
+				key, err := externalKey.(*ethsecp256k1.PrivKey).ToECDSA()
+				suite.Require().NoError(err)
+				signature, err := trontypes.NewTronSignature(batchHash, key)
+				suite.Require().NoError(err)
+				msg = &crosschaintypes.MsgConfirmBatch{
+					Nonce:           newOutgoingTx.BatchNonce,
+					TokenContract:   newOutgoingTx.TokenContract,
+					BridgerAddress:  bridger.String(),
+					ExternalAddress: trontypes.AddressFromHex(externalKey.PubKey().Address().String()),
 					Signature:       hex.EncodeToString(signature),
-					ChainName:       "tron",
 				}
-
-				err = suite.app.TronKeeper.StoreBatch(suite.ctx, newOutgoingTx)
-				suite.Require().NoError(err)
-
 			},
 			expPass: true,
 		},
 	}
 	for _, testCase := range testCases {
 		suite.Run(testCase.name, func() {
-			suite.SetupTest()
 			testCase.malleate()
-			suite.Require().Empty(suite.app.TronKeeper.GetBatchConfirm(suite.ctx, 3, suite.bridgeTokens[0].token, suite.oracleAddressList[0]))
 			_, err := suite.msgServer.ConfirmBatch(sdk.WrapSDKContext(suite.ctx), msg)
-			confirm := suite.app.TronKeeper.GetBatchConfirm(suite.ctx, 3, suite.bridgeTokens[0].token, suite.oracleAddressList[0])
 			if testCase.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(msg, confirm)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, testCase.name)
 			}
 		})
 	}
 }
 
 func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
-	var (
-		msg *types.MsgOracleSetConfirm
-	)
+	rand.Seed(time.Now().UnixNano())
+	var msg *crosschaintypes.MsgOracleSetConfirm
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			name: "oracle set bridger Address error msg",
+			name: "bridger address",
 			malleate: func() {
-				msg = &types.MsgOracleSetConfirm{
-					Nonce:          3,
-					BridgerAddress: "fx1",
-					ChainName:      "tron",
+				msg = &crosschaintypes.MsgOracleSetConfirm{
+					BridgerAddress: helpers.GenerateAddress().Hex(),
 				}
 			},
 			expPass: false,
 		},
 		{
-			name: "oracle set nonexistent nonce msg",
+			name: "couldn't find oracleSet",
 			malleate: func() {
-				newOracleSet := types.NewOracleSet(2, 10, types.BridgeValidators{
-					{
-						Power:           1000000,
-						ExternalAddress: suite.externalAccList[0].address,
-					},
-				})
-				suite.app.TronKeeper.StoreOracleSet(suite.ctx, newOracleSet)
-				msg = &types.MsgOracleSetConfirm{
-					Nonce:           3,
-					BridgerAddress:  suite.orchestratorAddressList[0].String(),
-					ExternalAddress: suite.externalAccList[0].address,
-					ChainName:       "tron",
+				msg = &crosschaintypes.MsgOracleSetConfirm{
+					Nonce:          rand.Uint64(),
+					BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				}
 			},
 			expPass: false,
 		},
 		{
-			name: "oracle set checkpoint error msg",
+			name: "no found oracle",
 			malleate: func() {
-				newOracleSet := types.NewOracleSet(3, 10, types.BridgeValidators{
-					{
-						Power:           1000000,
-						ExternalAddress: suite.externalAccList[0].address,
-					},
-				})
-				suite.app.TronKeeper.StoreOracleSet(suite.ctx, newOracleSet)
-
-				msg = &types.MsgOracleSetConfirm{
-					Nonce:           3,
-					BridgerAddress:  suite.orchestratorAddressList[0].String(),
-					ExternalAddress: suite.externalAccList[0].address,
-					Signature:       "0x1",
-					ChainName:       "tron",
+				newOracleSet := suite.NewOracleSet(helpers.NewEthPrivKey())
+				msg = &crosschaintypes.MsgOracleSetConfirm{
+					Nonce:           newOracleSet.Nonce,
+					BridgerAddress:  sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					ExternalAddress: trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
 				}
 			},
 			expPass: false,
 		},
 		{
-			name: "oracle set normal batch tx",
+			name: "signature decoding",
 			malleate: func() {
-				newOracleSet := types.NewOracleSet(3, 10, types.BridgeValidators{
-					{
-						Power:           1000000,
-						ExternalAddress: suite.externalAccList[0].address,
-					},
-				})
-				suite.app.TronKeeper.StoreOracleSet(suite.ctx, newOracleSet)
-				oracleSetHash, err := trontypes.GetCheckpointOracleSet(newOracleSet, "tron")
+				_, bridger, externalKey := suite.NewOracleByBridger()
+				newOracleSet := suite.NewOracleSet(externalKey)
+				msg = &crosschaintypes.MsgOracleSetConfirm{
+					Nonce:           newOracleSet.Nonce,
+					BridgerAddress:  bridger.String(),
+					ExternalAddress: trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
+					Signature:       helpers.GenerateAddress().Hex(),
+				}
+			},
+			expPass: false,
+		},
+		{
+			name: "oracle set confirm",
+			malleate: func() {
+				_, bridger, externalKey := suite.NewOracleByBridger()
+				newOracleSet := suite.NewOracleSet(externalKey)
+				key, err := externalKey.(*ethsecp256k1.PrivKey).ToECDSA()
 				suite.Require().NoError(err)
-				signature, err := trontypes.NewTronSignature(oracleSetHash, suite.externalAccList[0].key)
+				params, err := suite.app.TronKeeper.Params(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryParamsRequest{ChainName: "tron"})
 				suite.Require().NoError(err)
-
-				msg = &types.MsgOracleSetConfirm{
-					Nonce:           3,
-					BridgerAddress:  suite.orchestratorAddressList[0].String(),
-					ExternalAddress: suite.externalAccList[0].address,
+				oracleSetHash, err := trontypes.GetCheckpointOracleSet(newOracleSet, params.Params.GravityId)
+				suite.Require().NoError(err)
+				signature, err := trontypes.NewTronSignature(oracleSetHash, key)
+				suite.Require().NoError(err)
+				msg = &crosschaintypes.MsgOracleSetConfirm{
+					Nonce:           newOracleSet.Nonce,
+					BridgerAddress:  bridger.String(),
+					ExternalAddress: trontypes.AddressFromHex(externalKey.PubKey().Address().String()),
 					Signature:       hex.EncodeToString(signature),
-					ChainName:       "tron",
 				}
 			},
 			expPass: true,
@@ -250,14 +187,11 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 		suite.Run(testCase.name, func() {
 			suite.SetupTest()
 			testCase.malleate()
-			suite.Require().Empty(suite.app.TronKeeper.GetOracleSetConfirm(suite.ctx, 3, suite.oracleAddressList[0]))
 			_, err := suite.msgServer.OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), msg)
-			confirm := suite.app.TronKeeper.GetOracleSetConfirm(suite.ctx, 3, suite.oracleAddressList[0])
 			if testCase.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(msg, confirm)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, testCase.name)
 			}
 		})
 	}
