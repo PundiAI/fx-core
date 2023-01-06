@@ -75,6 +75,7 @@ func (k Keeper) SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (str
 		return "", sdkerrors.Wrapf(err, "decode channel ibc err")
 	}
 
+	// todo need check path
 	path := string(channelPath)
 	denom := fmt.Sprintf("%s%s", k.moduleName, token)
 	if len(path) > 0 {
@@ -83,7 +84,6 @@ func (k Keeper) SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (str
 			BaseDenom: denom,
 		}
 		k.ibcTransferKeeper.SetDenomTrace(ctx, denomTrace)
-		//denom = denomTrace.IBCDenom()
 	}
 	return denom, nil
 }
