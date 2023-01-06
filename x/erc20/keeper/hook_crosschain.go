@@ -79,8 +79,7 @@ func (h Hooks) transferCrossChainHandler(ctx sdk.Context, from sdk.AccAddress, t
 }
 
 func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string, txHash common.Hash) error {
-	logger := h.k.Logger(ctx)
-	logger.Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
+	h.k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
 	if !fee.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "ibc transfer fee must be zero: %s", fee.Amount.String())
 	}
@@ -98,11 +97,18 @@ func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to strin
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
 	}
 
-	ibcTimeout := h.k.GetIbcTimeout(ctx)
-	ibcTimeoutHeight := ibcclienttypes.ZeroHeight()
-	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(ibcTimeout)
-	transferMsg := transfertypes.NewMsgTransfer(targetIBC.SourcePort, targetIBC.SourceChannel, amount, from.String(), to, ibcTimeoutHeight, ibcTimeoutTimestamp)
-	transferResponse, err := h.k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx), transferMsg)
+	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(h.k.GetIbcTimeout(ctx))
+	transferResponse, err := h.k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx),
+		transfertypes.NewMsgTransfer(
+			targetIBC.SourcePort,
+			targetIBC.SourceChannel,
+			amount,
+			from.String(),
+			to,
+			ibcclienttypes.ZeroHeight(),
+			ibcTimeoutTimestamp,
+		),
+	)
 	if err != nil {
 		return err
 	}
