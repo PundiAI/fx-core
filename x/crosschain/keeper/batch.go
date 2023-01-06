@@ -130,7 +130,7 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 	store.Set(key, k.cdc.MustMarshal(batch))
 
 	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
-	// TODO: need fix
+	// Note: Only one OutgoingTxBatch can be submitted in a block
 	if store.Has(blockKey) {
 		return sdkerrors.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] has batch request", batch.Block))
 	}
@@ -261,8 +261,6 @@ func (k Keeper) GetUnSlashedBatches(ctx sdk.Context, maxHeight uint64) (outgoing
 		outgoingTxBatches = append(outgoingTxBatches, batch)
 		return false
 	})
-	// TODO why sort
-	// sort.Sort(outgoingTxBatches)
 	return
 }
 

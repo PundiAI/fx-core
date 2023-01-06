@@ -182,8 +182,6 @@ func (k Keeper) GetUnSlashedOracleSets(ctx sdk.Context, maxHeight uint64) (oracl
 		}
 		return true
 	})
-	// TODO why sort
-	// sort.Sort(oracleSets)
 	return
 }
 
