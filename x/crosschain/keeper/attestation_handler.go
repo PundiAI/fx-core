@@ -36,7 +36,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 
 		cacheCtx, commit := ctx.CacheContext()
 		if err = k.RelayTransferHandler(cacheCtx, claim.EventNonce, claim.TargetIbc, receiveAddr, coin); err != nil {
-			return err
+			return nil
 		}
 		commit()
 		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
