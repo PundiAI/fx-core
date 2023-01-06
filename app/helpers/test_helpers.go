@@ -475,6 +475,11 @@ func GenTx(gen client.TxConfig, msgs []sdk.Msg, gasPrice sdk.Coin, gas uint64, c
 func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	cfg := app.MakeEncodingConfig()
-	resultApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, cfg, simapp.EmptyAppOptions{})
+	resultApp := app.New(log.NewNopLogger(), db,
+		nil, true, map[int64]bool{}, os.TempDir(), 5, cfg, simapp.EmptyAppOptions{})
 	return resultApp, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cfg.Codec)
+}
+
+func IsLocalTest() bool {
+	return os.Getenv("LOCAL_TEST") == "true"
 }

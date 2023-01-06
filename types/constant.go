@@ -1,7 +1,10 @@
 package types
 
 import (
+	stdlog "log"
 	"math/big"
+	"os"
+	"path/filepath"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -14,6 +17,9 @@ const (
 	DenomUnit    = 18
 )
 
+// defaultNodeHome default home directories for the application daemon
+var defaultNodeHome string
+
 func init() {
 	sdk.SetCoinDenomRegex(func() string {
 		return `[a-zA-Z][a-zA-Z0-9/-]{1,127}`
@@ -21,6 +27,22 @@ func init() {
 
 	// votingPower = delegateToken / sdk.PowerReduction  --  sdk.TokensToConsensusPower(tokens Int)
 	sdk.DefaultPowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil))
+
+	fxHome := os.ExpandEnv("$FX_HOME")
+	if len(fxHome) > 0 {
+		defaultNodeHome = fxHome
+		return
+	}
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		stdlog.Println("Failed to get home dir %2", err)
+	}
+
+	defaultNodeHome = filepath.Join(userHomeDir, "."+Name)
+}
+
+func GetDefaultNodeHome() string {
+	return defaultNodeHome
 }
 
 func SetConfig(isCosmosCoinType bool) {

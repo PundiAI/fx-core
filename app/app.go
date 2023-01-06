@@ -3,14 +3,14 @@ package app
 import (
 	"fmt"
 	"io"
-	stdlog "log"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	"github.com/gorilla/mux"
+	"github.com/rakyll/statik/fs"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -28,10 +28,7 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	srvflags "github.com/evmos/ethermint/server/flags"
-	"github.com/gorilla/mux"
-	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -55,12 +52,7 @@ import (
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
 )
 
-var (
-	// DefaultNodeHome default home directories for the application daemon
-	DefaultNodeHome string
-
-	Upgrades = []upgrades.Upgrade{v3.Upgrade}
-)
+var Upgrades = []upgrades.Upgrade{v3.Upgrade}
 
 var _ servertypes.Application = (*App)(nil)
 
@@ -80,20 +72,6 @@ type App struct {
 	// simulation manager
 	sm           *module.SimulationManager
 	configurator module.Configurator
-}
-
-func init() {
-	fxHome := os.ExpandEnv("$FX_HOME")
-	if len(fxHome) > 0 {
-		DefaultNodeHome = fxHome
-		return
-	}
-	userHomeDir, err := os.UserHomeDir()
-	if err != nil {
-		stdlog.Println("Failed to get home dir %2", err)
-	}
-
-	DefaultNodeHome = filepath.Join(userHomeDir, "."+fxtypes.Name)
 }
 
 func New(
@@ -267,10 +245,8 @@ func (app *App) BlockedModuleAccountAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 
 	// remove module accounts that are ALLOWED to received funds
-	//
 	// TODO: Blocked on updating to v0.46.x
 	// delete(modAccAddrs, authtypes.NewModuleAddress(grouptypes.ModuleName).String())
-	//delete(modAccAddrs, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	return modAccAddrs
 }
@@ -330,7 +306,12 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
-		RegisterSwaggerAPI(apiSvr.Router)
+		statikFS, err := fs.New()
+		if err != nil {
+			panic(err)
+		}
+		staticServer := http.FileServer(statikFS)
+		apiSvr.Router.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
 	}
 }
 

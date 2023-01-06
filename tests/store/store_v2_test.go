@@ -1,7 +1,6 @@
 package store_test
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -12,21 +11,23 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func TestLocalStoreInV2(t *testing.T) {
-	if os.Getenv("LOCAL_TEST") != "true" {
+	if !helpers.IsLocalTest() {
 		t.Skip("skipping local test")
 	}
 	logger := log.NewNopLogger()
-	db, err := sdk.NewLevelDB("application", filepath.Join(app.DefaultNodeHome, "data"))
+	db, err := sdk.NewLevelDB("application", filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
 	require.NoError(t, err)
 
 	appEncodingCfg := app.MakeEncodingConfig()
 	myApp := app.New(logger, db,
-		nil, true, map[int64]bool{}, app.DefaultNodeHome, 0,
+		nil, true, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		appEncodingCfg, app.EmptyAppOptions{},
 	)
 	ctx := myApp.NewUncachedContext(false, tmproto.Header{Height: myApp.LastBlockHeight()})

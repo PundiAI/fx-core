@@ -18,6 +18,7 @@ import (
 	"github.com/tendermint/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -35,20 +36,20 @@ func TestNewDefaultGenesisByDenom(t *testing.T) {
 }
 
 func TestResetExportGenesisValidator(t *testing.T) {
-	if os.Getenv("LOCAL_TEST") != "true" {
+	if !helpers.IsLocalTest() {
 		t.Skip("skipping local test: ", t.Name())
 	}
 	t.Log("run reset export genesis validator")
 	fxtypes.SetConfig(false)
 
-	genesisFile := filepath.Join(app.DefaultNodeHome, "config", "genesis.json")
+	genesisFile := filepath.Join(fxtypes.GetDefaultNodeHome(), "config", "genesis.json")
 	genesisDoc, err := types.GenesisDocFromFile(genesisFile)
 	assert.NoError(t, err)
 
 	appState := app.GenesisState{}
 	assert.NoError(t, json.Unmarshal(genesisDoc.AppState, &appState))
 
-	keyJSONBytes, err := os.ReadFile(filepath.Join(app.DefaultNodeHome, "config", "priv_validator_key.json"))
+	keyJSONBytes, err := os.ReadFile(filepath.Join(fxtypes.GetDefaultNodeHome(), "config", "priv_validator_key.json"))
 	assert.NoError(t, err)
 
 	pvKey := privval.FilePVKey{}

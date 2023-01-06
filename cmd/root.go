@@ -55,13 +55,13 @@ func NewRootCmd() *cobra.Command {
 		WithOutput(os.Stdout).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
-		WithHomeDir(app.DefaultNodeHome).
+		WithHomeDir(fxtypes.GetDefaultNodeHome()).
 		WithViper("FX").
 		WithKeyringOptions(hd.EthSecp256k1Option())
 
 	rootCmd := &cobra.Command{
 		Use:   fxtypes.Name + "d",
-		Short: "FunctionX Core Chain App",
+		Short: "FunctionX Core BlockChain App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
@@ -92,7 +92,7 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	initRootCmd(rootCmd, encodingConfig)
+	initRootCmd(rootCmd, encodingConfig, fxtypes.GetDefaultNodeHome())
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        fxtypes.ChainId(),
 		flags.FlagKeyringBackend: keyring.BackendOS,
@@ -103,13 +103,13 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
+func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defaultNodeHome string) {
 	rootCmd.AddCommand(
-		cli.InitCmd(app.DefaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Codec), app.CustomConsensusParams()),
-		cli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
-		cli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		cli.InitCmd(defaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Codec), app.CustomConsensusParams()),
+		cli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
+		cli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		cli.AddGenesisAccountCmd(app.DefaultNodeHome),
+		cli.AddGenesisAccountCmd(defaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(),
 		cli.Debug(),
@@ -121,15 +121,15 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig) {
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		keyCommands(app.DefaultNodeHome),
+		keyCommands(defaultNodeHome),
 		cli.StatusCommand(),
 		queryCommand(),
 		txCommand(),
-		cli.ExportSateCmd(appCreator.appExport, app.DefaultNodeHome),
+		cli.ExportSateCmd(appCreator.appExport, defaultNodeHome),
 		version.NewVersionCommand(),
-		server.NewRollbackCmd(appCreator.newApp, app.DefaultNodeHome),
+		server.NewRollbackCmd(appCreator.newApp, defaultNodeHome),
 		tendermintCommand(),
-		startCommand(appCreator.newApp, app.DefaultNodeHome),
+		startCommand(appCreator.newApp, defaultNodeHome),
 		v3.PreUpgradeCmd(),
 	)
 
