@@ -9,6 +9,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -111,4 +113,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 		proposalOracle.Oracles = append(proposalOracle.Oracles, oracle.String())
 	}
 	suite.Keeper().SetProposalOracle(suite.ctx, proposalOracle)
+}
+
+func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string {
+	if trontypes.ModuleName == suite.chainName {
+		return tronAddress.PubkeyToAddress(publicKey).String()
+	}
+	return crypto.PubkeyToAddress(publicKey).Hex()
 }

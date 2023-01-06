@@ -26,6 +26,8 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 		return nil, sdkerrors.Wrapf(types.ErrNonContiguousEventNonce, "got %v, expected %v", claim.GetEventNonce(), lastEventNonce+1)
 	}
 
+	gasMeter := ctx.GasMeter()
+	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	// Tries to get an attestation with the same eventNonce and claim as the claim that was submitted.
 	att := k.GetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash())
 
@@ -42,6 +44,8 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 	att.Votes = append(att.Votes, oracleAddr.String())
 
 	k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
+
+	ctx = ctx.WithGasMeter(gasMeter)
 	k.SetLastEventNonceByOracle(ctx, oracleAddr, claim.GetEventNonce())
 	k.SetLastEventBlockHeightByOracle(ctx, oracleAddr, claim.GetBlockHeight())
 
