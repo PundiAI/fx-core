@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibcgotesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
@@ -12,14 +16,6 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
-
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-
 	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 

@@ -3,22 +3,18 @@ package ibctesting
 import (
 	"testing"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-
-	"github.com/stretchr/testify/require"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	ibcgotesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/cosmos/ibc-go/v3/testing/mock"
+	"github.com/stretchr/testify/require"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 // ChainIDPrefix defines the default chain ID prefix for Evmos test chains

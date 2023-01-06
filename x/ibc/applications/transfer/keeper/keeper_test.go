@@ -3,17 +3,14 @@ package keeper_test
 import (
 	"testing"
 
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
-
-	"github.com/functionx/fx-core/v3/app"
-	fxibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
-
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	fxibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
 )
 
 type KeeperTestSuite struct {

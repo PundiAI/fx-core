@@ -4,14 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/version"
-
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/version"
+	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	"github.com/spf13/cobra"
 )
 
 func GetCmdDenomToIBcDenom() *cobra.Command {

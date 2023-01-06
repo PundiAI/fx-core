@@ -3,13 +3,11 @@ package transfer_test
 import (
 	"testing"
 
-	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
-
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
 func TestUnmarshalJSON(t *testing.T) {

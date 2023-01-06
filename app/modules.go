@@ -39,17 +39,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ibctransfer "github.com/cosmos/ibc-go/v3/modules/apps/transfer"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v3/modules/core"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-
-	fxibctransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
-	fxibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
-
-	ibctransfer "github.com/cosmos/ibc-go/v3/modules/apps/transfer"
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
 	"github.com/functionx/fx-core/v3/x/avalanche"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
@@ -65,6 +61,8 @@ import (
 	fxgov "github.com/functionx/fx-core/v3/x/gov"
 	"github.com/functionx/fx-core/v3/x/gravity"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
+	fxibctransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
+	fxibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 	"github.com/functionx/fx-core/v3/x/migrate"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	"github.com/functionx/fx-core/v3/x/polygon"

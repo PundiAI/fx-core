@@ -5,22 +5,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/functionx/fx-core/v3/app/helpers"
-	"github.com/functionx/fx-core/v3/types"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/require"
-
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/types"
 )
 
 var DefaultTestingAppInit = helpers.SetupTestingApp

@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	_ "github.com/functionx/fx-core/v3/types"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/stretchr/testify/require"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	_ "github.com/functionx/fx-core/v3/types"
 )
 
 // define constants used for testing

@@ -3,9 +3,9 @@ package parser_test
 import (
 	"testing"
 
-	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter/parser"
-
 	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter/parser"
 )
 
 func TestParseReceiverDataTransfer(t *testing.T) {
