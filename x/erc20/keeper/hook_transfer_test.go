@@ -36,17 +36,6 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
 				totalCanMint := randTotalMint(md)
 				suite.ModuleMintERC20Token(pair.GetERC20Contract(), singerAddr, totalCanMint)
-				suite.TransferERC20TokenToModule(pair.GetERC20Contract(), singerAddr, totalCanMint)
-				return []types.RelayTransfer{}, []string{}
-			},
-			result: true,
-		},
-		{
-			name: "ok - transfer to module with hook",
-			pair: nativePairFn,
-			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
-				totalCanMint := randTotalMint(md)
-				suite.ModuleMintERC20Token(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				suite.TransferERC20TokenToModuleWithoutHook(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				relay := types.RelayTransfer{
 					From:          singerAddr,
@@ -60,7 +49,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 			result: true,
 		},
 		{
-			name: "ok - transfer multiple to module with hook",
+			name: "ok - transfer multiple to module",
 			pair: nativePairFn,
 			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
 				totalCanMint := randTotalMint(md)
@@ -219,12 +208,33 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 			// relay event
 			relays, errArgs := tc.relays(md, pair, signer.Address())
 			// hook transfer
+			beforeBalance := suite.app.BankKeeper.GetBalance(suite.ctx, signer.AccAddress(), pair.GetDenom())
+			beforeModuleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, suite.app.Erc20Keeper.ModuleAddress().Bytes(), pair.GetDenom())
+			beforeContractBalance := suite.app.BankKeeper.GetBalance(suite.ctx, pair.GetERC20Contract().Bytes(), pair.GetDenom())
 			err := suite.app.Erc20Keeper.EVMHooks().HookTransferEvent(suite.ctx, relays)
 			// check result
 			if tc.result {
+				// check error
 				suite.Require().NoError(err)
+				// check balance
+				relayAmt := big.NewInt(0)
+				for _, r := range relays {
+					relayAmt = relayAmt.Add(relayAmt, r.Amount)
+				}
+				balance := suite.app.BankKeeper.GetBalance(suite.ctx, signer.AccAddress(), pair.GetDenom())
+				suite.Require().Equal(relayAmt, balance.Sub(beforeBalance).Amount.BigInt())
+				// check module and contract balance
+				if pair.GetDenom() == fxtypes.DefaultDenom {
+					contractBalance := suite.app.BankKeeper.GetBalance(suite.ctx, pair.GetERC20Contract().Bytes(), pair.GetDenom())
+					suite.Require().Equal(relayAmt, beforeContractBalance.Sub(contractBalance).Amount.BigInt())
+				} else {
+					moduleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, suite.app.Erc20Keeper.ModuleAddress().Bytes(), pair.GetDenom())
+					suite.Require().Equal(relayAmt, beforeModuleBalance.Sub(moduleBalance).Amount.BigInt())
+				}
 			} else {
+				// check error
 				suite.Require().Error(err)
+				// check error msg
 				suite.Require().EqualError(err, tc.error(errArgs))
 			}
 		})

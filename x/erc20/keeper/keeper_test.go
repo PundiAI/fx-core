@@ -176,7 +176,7 @@ func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata,
 	if len(md.DenomUnits) > 0 && len(md.DenomUnits[0].Aliases) > 0 {
 		// add alias to erc20 module
 		for _, alias := range md.DenomUnits[0].Aliases {
-			//add alias for erc20 module
+			// add alias for erc20 module
 			coins := sdk.NewCoins(sdk.NewCoin(alias, amt))
 			helpers.AddTestAddr(suite.app, suite.ctx, generateAddress.Bytes(), coins)
 			err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, generateAddress.Bytes(), types.ModuleName, coins)
@@ -208,7 +208,6 @@ func (suite *KeeperTestSuite) MintERC20Token(contractAddr, from, to common.Addre
 }
 
 func (suite *KeeperTestSuite) ModuleMintERC20Token(contractAddr, to common.Address, amount *big.Int) {
-	suite.T().Log("amount", amount.String())
 	erc20 := fxtypes.GetERC20()
 	transferData, err := erc20.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
