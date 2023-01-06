@@ -11,7 +11,8 @@ import (
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          "fxv3",
-	CreateUpgradeHandler: CreateUpgradeHandler,
+	CreateUpgradeHandler: createUpgradeHandler,
+	PreUpgradeCmd:        preUpgradeCmd(),
 	StoreUpgrades: func() *store.StoreUpgrades {
 		return &store.StoreUpgrades{
 			Added: []string{

@@ -7,9 +7,7 @@ import (
 
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -38,8 +36,6 @@ import (
 
 	fxante "github.com/functionx/fx-core/v3/ante"
 	"github.com/functionx/fx-core/v3/app/keepers"
-	"github.com/functionx/fx-core/v3/app/upgrades"
-	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	_ "github.com/functionx/fx-core/v3/docs/statik"
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	gaspricelegacy "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy"
@@ -51,8 +47,6 @@ import (
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
 )
-
-var Upgrades = []upgrades.Upgrade{v3.Upgrade}
 
 var _ servertypes.Application = (*App)(nil)
 
@@ -323,48 +317,6 @@ func (app *App) RegisterTxService(clientCtx client.Context) {
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
-}
-
-// configure store loader that checks if version == upgradeHeight and applies store upgrades
-func (app *App) setupUpgradeStoreLoaders() {
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		return
-	}
-
-	for _, upgrade := range Upgrades {
-		if upgradeInfo.Name == upgrade.UpgradeName {
-			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, upgrade.StoreUpgrades()))
-		}
-	}
-}
-
-func (app *App) setupUpgradeHandlers() {
-	for _, upgrade := range Upgrades {
-		app.UpgradeKeeper.SetUpgradeHandler(
-			upgrade.UpgradeName,
-			upgrade.CreateUpgradeHandler(
-				app.mm,
-				app.configurator,
-				app.AppKeepers,
-			),
-		)
-	}
-}
-
-// RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(rtr *mux.Router) {
-	statikFS, err := fs.New()
-	if err != nil {
-		panic(err)
-	}
-
-	staticServer := http.FileServer(statikFS)
-	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
 }
 
 // TestingApp functions

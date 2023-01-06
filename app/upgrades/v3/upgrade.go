@@ -31,7 +31,7 @@ import (
 	evmkeeper "github.com/functionx/fx-core/v3/x/evm/keeper"
 )
 
-func CreateUpgradeHandler(
+func createUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 	keepers *keepers.AppKeepers,
@@ -212,8 +212,8 @@ func getMetadata(chainId string) []banktypes.Metadata {
 	}
 }
 
-// PreUpgradeCmd called by cosmovisor
-func PreUpgradeCmd() *cobra.Command {
+// preUpgradeCmd called by cosmovisor
+func preUpgradeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pre-upgrade",
 		Short: "fxv3 pre-upgrade, called by cosmovisor, before migrations upgrade",

@@ -273,8 +273,8 @@ func needInitGenesis(ctx sdk.Context, module string, paramsKey *sdk.KVStoreKey) 
 	return false
 }
 
-// PreUpgradeCmd called by cosmovisor
-func PreUpgradeCmd() *cobra.Command {
+// preUpgradeCmd called by cosmovisor
+func preUpgradeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pre-upgrade",
 		Short: "fxv2 pre-upgrade, called by cosmovisor, before migrations upgrade",

@@ -27,6 +27,7 @@ import (
 // Upgrade nolint
 var Upgrade = upgrades.Upgrade{
 	CreateUpgradeHandler: createUpgradeHandler,
+	PreUpgradeCmd:        preUpgradeCmd(),
 	StoreUpgrades: func() *store.StoreUpgrades {
 		if fxtypes.ChainId() == fxtypes.TestnetChainId {
 			return &store.StoreUpgrades{

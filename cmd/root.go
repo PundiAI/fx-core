@@ -32,7 +32,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v3/app"
-	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	"github.com/functionx/fx-core/v3/client/cli"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
@@ -130,7 +129,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		server.NewRollbackCmd(appCreator.newApp, defaultNodeHome),
 		tendermintCommand(),
 		startCommand(appCreator.newApp, defaultNodeHome),
-		v3.PreUpgradeCmd(),
+		app.GetUpgrades().GetLatest().PreUpgradeCmd,
 	)
 
 	// add rosetta
