@@ -18,23 +18,18 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 		denoms := suite.GenerateCrossChainDenoms()
 		return suite.DeployNativeRelayToken("TEST", denoms...)
 	}
-	randTotalMint := func(md banktypes.Metadata) *big.Int {
-		amt := big.NewInt(int64(tmrand.Uint32() + 1))
-		return suite.MintLockNativeTokenToModule(md, sdk.NewIntFromBigInt(amt))
-	}
 
 	testCases := []struct {
 		name   string
 		pair   func() (types.TokenPair, banktypes.Metadata)
-		relays func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string)
+		relays func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransfer, []string)
 		error  func(args []string) string
 		result bool
 	}{
 		{
 			name: "ok - transfer to module",
 			pair: nativePairFn,
-			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
-				totalCanMint := randTotalMint(md)
+			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransfer, []string) {
 				suite.ModuleMintERC20Token(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				suite.TransferERC20TokenToModuleWithoutHook(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				relay := types.RelayTransfer{
@@ -51,8 +46,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 		{
 			name: "ok - transfer multiple to module",
 			pair: nativePairFn,
-			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
-				totalCanMint := randTotalMint(md)
+			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransfer, []string) {
 				suite.ModuleMintERC20Token(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				suite.TransferERC20TokenToModuleWithoutHook(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				relayAmt1 := big.NewInt(0).Div(totalCanMint, big.NewInt(2))
@@ -78,8 +72,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 		{
 			name: "failed - burn amount exceeds balance",
 			pair: nativePairFn,
-			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
-				totalCanMint := randTotalMint(md)
+			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransfer, []string) {
 				suite.ModuleMintERC20Token(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				suite.TransferERC20TokenToModuleWithoutHook(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				relay := types.RelayTransfer{
@@ -99,8 +92,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 		{
 			name: "failed - module insufficient funds",
 			pair: nativePairFn,
-			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
-				totalCanMint := randTotalMint(md)
+			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransfer, []string) {
 				// mint more than total can mint
 				moreTotalMint := big.NewInt(0).Add(totalCanMint, big.NewInt(1))
 				suite.ModuleMintERC20Token(pair.GetERC20Contract(), singerAddr, moreTotalMint)
@@ -108,7 +100,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 
 				relay := types.RelayTransfer{
 					From:          singerAddr,
-					Amount:        big.NewInt(0).Add(totalCanMint, big.NewInt(1)),
+					Amount:        moreTotalMint,
 					TokenContract: pair.GetERC20Contract(),
 					Denom:         pair.Denom,
 					ContractOwner: pair.ContractOwner,
@@ -128,8 +120,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 			pair: func() (types.TokenPair, banktypes.Metadata) {
 				return suite.DeployFXRelayToken()
 			},
-			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
-				totalCanMint := randTotalMint(md)
+			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransfer, []string) {
 				// transfer FX to contract address
 				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(totalCanMint))
 				err := suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, pair.GetERC20Contract().Bytes(), sdk.NewCoins(coin))
@@ -153,9 +144,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 			pair: func() (types.TokenPair, banktypes.Metadata) {
 				return suite.DeployFXRelayToken()
 			},
-			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
-				totalCanMint := randTotalMint(md)
-
+			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransfer, []string) {
 				suite.ModuleMintERC20Token(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				suite.TransferERC20TokenToModuleWithoutHook(pair.GetERC20Contract(), singerAddr, totalCanMint)
 
@@ -179,8 +168,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 		{
 			name: "failed - undefined owner",
 			pair: nativePairFn,
-			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address) ([]types.RelayTransfer, []string) {
-				totalCanMint := randTotalMint(md)
+			relays: func(md banktypes.Metadata, pair types.TokenPair, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransfer, []string) {
 				suite.ModuleMintERC20Token(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				suite.TransferERC20TokenToModuleWithoutHook(pair.GetERC20Contract(), singerAddr, totalCanMint)
 				relay := types.RelayTransfer{
@@ -205,8 +193,10 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 			signer := suite.RandSigner()
 			// token pair
 			pair, md := tc.pair()
+			// mint lock token
+			totalMint := suite.MintLockNativeTokenToModule(md, sdk.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
 			// relay event
-			relays, errArgs := tc.relays(md, pair, signer.Address())
+			relays, errArgs := tc.relays(md, pair, signer.Address(), totalMint)
 			// hook transfer
 			beforeBalance := suite.app.BankKeeper.GetBalance(suite.ctx, signer.AccAddress(), pair.GetDenom())
 			beforeModuleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, suite.app.Erc20Keeper.ModuleAddress().Bytes(), pair.GetDenom())
@@ -214,7 +204,6 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 			err := suite.app.Erc20Keeper.EVMHooks().HookTransferEvent(suite.ctx, relays)
 			// check result
 			if tc.result {
-				// check error
 				suite.Require().NoError(err)
 				// check balance
 				relayAmt := big.NewInt(0)
@@ -232,7 +221,6 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 					suite.Require().Equal(relayAmt, beforeModuleBalance.Sub(moduleBalance).Amount.BigInt())
 				}
 			} else {
-				// check error
 				suite.Require().Error(err)
 				// check error msg
 				suite.Require().EqualError(err, tc.error(errArgs))
