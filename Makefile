@@ -164,9 +164,9 @@ test:
 
 protoVer=v0.2
 protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
-containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
-containerProtoGenSwagger=cosmos-sdk-proto-gen-swagger-$(protoVer)
-containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
+containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
+containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
+containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
 
 proto-format:
 	@echo "Formatting Protobuf files"
