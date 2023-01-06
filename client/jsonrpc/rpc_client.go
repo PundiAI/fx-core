@@ -44,7 +44,7 @@ func NewWsClient(ctx context.Context, url string) (*WSClient, error) {
 	}
 	conn.SetReadLimit(1024 * 1000 * 100)
 
-	var ws = &WSClient{
+	ws := &WSClient{
 		ctx:          ctx,
 		conn:         conn,
 		quit:         make(chan struct{}),
@@ -137,7 +137,7 @@ func (ws *WSClient) SubscribeEvent(ctx context.Context, query string, event chan
 	if err != nil {
 		return
 	}
-	var response = make(chan RPCResponse, len(event))
+	response := make(chan RPCResponse, len(event))
 	ws.addResponseChan(id, query, response)
 
 	go func() {
@@ -201,7 +201,7 @@ func (ws *WSClient) Unsubscribe(subId string) {
 	if !ws.running() {
 		return
 	}
-	var res = new(map[string]interface{})
+	res := new(map[string]interface{})
 	if err := ws.Call(ws.ctx, "unsubscribe", map[string]interface{}{"query": query}, res); err != nil {
 		ws.Logger.Debug("Failed to unsubscribe", "error", err.Error())
 	}

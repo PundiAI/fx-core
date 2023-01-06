@@ -308,7 +308,6 @@ type ERC1967ProxyAdminChanged struct {
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_ERC1967Proxy *ERC1967ProxyFilterer) FilterAdminChanged(opts *bind.FilterOpts) (*ERC1967ProxyAdminChangedIterator, error) {
-
 	logs, sub, err := _ERC1967Proxy.contract.FilterLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -320,7 +319,6 @@ func (_ERC1967Proxy *ERC1967ProxyFilterer) FilterAdminChanged(opts *bind.FilterO
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_ERC1967Proxy *ERC1967ProxyFilterer) WatchAdminChanged(opts *bind.WatchOpts, sink chan<- *ERC1967ProxyAdminChanged) (event.Subscription, error) {
-
 	logs, sub, err := _ERC1967Proxy.contract.WatchLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -442,7 +440,6 @@ type ERC1967ProxyBeaconUpgraded struct {
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_ERC1967Proxy *ERC1967ProxyFilterer) FilterBeaconUpgraded(opts *bind.FilterOpts, beacon []common.Address) (*ERC1967ProxyBeaconUpgradedIterator, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -459,7 +456,6 @@ func (_ERC1967Proxy *ERC1967ProxyFilterer) FilterBeaconUpgraded(opts *bind.Filte
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_ERC1967Proxy *ERC1967ProxyFilterer) WatchBeaconUpgraded(opts *bind.WatchOpts, sink chan<- *ERC1967ProxyBeaconUpgraded, beacon []common.Address) (event.Subscription, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -586,7 +582,6 @@ type ERC1967ProxyUpgraded struct {
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_ERC1967Proxy *ERC1967ProxyFilterer) FilterUpgraded(opts *bind.FilterOpts, implementation []common.Address) (*ERC1967ProxyUpgradedIterator, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)
@@ -603,7 +598,6 @@ func (_ERC1967Proxy *ERC1967ProxyFilterer) FilterUpgraded(opts *bind.FilterOpts,
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_ERC1967Proxy *ERC1967ProxyFilterer) WatchUpgraded(opts *bind.WatchOpts, sink chan<- *ERC1967ProxyUpgraded, implementation []common.Address) (event.Subscription, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)

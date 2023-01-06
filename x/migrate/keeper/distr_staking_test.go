@@ -40,30 +40,30 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 	val1 := validators[0]
 
-	//acc delegate
+	// acc delegate
 	_, err := suite.app.StakingKeeper.Delegate(suite.ctx, acc, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
 
-	//check acc delegate
+	// check acc delegate
 	delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
 	suite.Require().True(found)
 	shares := delegation.Shares
 
-	//check eth acc delegate
+	// check eth acc delegate
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().False(found)
 
-	//commit block
+	// commit block
 	suite.ctx = commitBlock(suite.T(), suite.ctx, suite.app)
 	suite.ctx = commitBlock(suite.T(), suite.ctx, suite.app)
 
-	//check reward
+	// check reward
 	rewards1, err := GetDelegateRewards(suite.ctx, suite.app, acc, val1.GetOperator())
 	suite.Require().NoError(err)
 	rewards2, err := GetDelegateRewards(suite.ctx, suite.app, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().Equal("delegation does not exist", err.Error())
 
-	//migrate
+	// migrate
 	migrateKeeper := suite.app.MigrateKeeper
 	m := migratekeeper.NewDistrStakingMigrate(suite.app.GetKey(distritypes.StoreKey), suite.app.GetKey(stakingtypes.StoreKey), suite.app.StakingKeeper)
 	err = m.Validate(suite.ctx, migrateKeeper, acc, ethAcc)
@@ -71,16 +71,16 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	err = m.Execute(suite.ctx, migrateKeeper, acc, ethAcc)
 	suite.Require().NoError(err)
 
-	//check eth acc delegate
+	// check eth acc delegate
 	delegation, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().True(found)
 	suite.Require().Equal(shares, delegation.Shares)
 
-	//check acc delegate
+	// check acc delegate
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
 	suite.Require().False(found)
 
-	//check reward
+	// check reward
 	rewards3, err := GetDelegateRewards(suite.ctx, suite.app, acc, val1.GetOperator())
 	suite.Require().Equal("delegation does not exist", err.Error())
 	suite.Require().Equal(rewards2, rewards3)
@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 	val1 := validators[0]
 
-	//delegate
+	// delegate
 	delegateAmount := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))
 	_, err := suite.app.StakingKeeper.Delegate(suite.ctx, acc, delegateAmount, stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().False(found)
 
-	//undelegate
+	// undelegate
 	completionTime, err := suite.app.StakingKeeper.Undelegate(suite.ctx, acc, val1.GetOperator(), del.Shares.Quo(sdk.NewDec(10)))
 	suite.Require().NoError(err)
 
@@ -179,7 +179,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 	val1, val2 := validators[0], validators[1]
 
-	//delegate
+	// delegate
 	_, err := suite.app.StakingKeeper.Delegate(suite.ctx, acc, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
 
@@ -189,7 +189,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, ethAcc.Bytes(), val1.GetOperator())
 	suite.Require().False(found)
 
-	//redelegate
+	// redelegate
 	var completionTime time.Time
 	entries := suite.app.StakingKeeper.MaxEntries(suite.ctx)
 	for i := 0; i < int(entries); i++ {

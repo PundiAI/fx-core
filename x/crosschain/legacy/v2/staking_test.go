@@ -20,7 +20,7 @@ import (
 
 func TestMigrateDepositToStaking(t *testing.T) {
 	newOracles := func(number int, validatorAddr string) types.Oracles {
-		var oracles = make(types.Oracles, number)
+		oracles := make(types.Oracles, number)
 		for i := 0; i < len(oracles); i++ {
 			oracles[i] = types.Oracle{
 				OracleAddress:     sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String(),

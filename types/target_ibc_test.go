@@ -18,7 +18,8 @@ func TestParseTargetIBC(t *testing.T) {
 		targetIBC string
 		expect    expect
 	}{
-		{name: "normal ibc data hex fx/transfer/channel-0 to targetIBC ",
+		{
+			name:      "normal ibc data hex fx/transfer/channel-0 to targetIBC ",
 			targetIBC: "fx/transfer/channel-0",
 			expect: expect{
 				prefix:  "fx",
@@ -27,7 +28,8 @@ func TestParseTargetIBC(t *testing.T) {
 				ok:      true,
 			},
 		},
-		{name: "normal ibc data hex 0x/transfer/channel-0 to targetIBC ",
+		{
+			name:      "normal ibc data hex 0x/transfer/channel-0 to targetIBC ",
 			targetIBC: "0x/transfer/channel-0",
 			expect: expect{
 				prefix:  "0x",
@@ -36,7 +38,8 @@ func TestParseTargetIBC(t *testing.T) {
 				ok:      true,
 			},
 		},
-		{name: "normal ibc data hex upper prefix 0X/transfer/channel-0 to targetIBC ",
+		{
+			name:      "normal ibc data hex upper prefix 0X/transfer/channel-0 to targetIBC ",
 			targetIBC: "0X/transfer/channel-0",
 			expect: expect{
 				prefix:  "0X",
@@ -45,7 +48,8 @@ func TestParseTargetIBC(t *testing.T) {
 				ok:      true,
 			},
 		},
-		{name: "no prefix ibc data /transfer/channel-0",
+		{
+			name:      "no prefix ibc data /transfer/channel-0",
 			targetIBC: "/transfer/channel-0",
 			expect: expect{
 				prefix:  "",
@@ -54,7 +58,8 @@ func TestParseTargetIBC(t *testing.T) {
 				ok:      true,
 			},
 		},
-		{name: "no prefix and no port ibc data /channel-0",
+		{
+			name:      "no prefix and no port ibc data /channel-0",
 			targetIBC: "/channel-0",
 			expect: expect{
 				prefix:  "",
@@ -63,7 +68,8 @@ func TestParseTargetIBC(t *testing.T) {
 				ok:      false,
 			},
 		},
-		{name: "empty ibc data ''",
+		{
+			name:      "empty ibc data ''",
 			targetIBC: "''",
 			expect: expect{
 				prefix:  "",
@@ -72,7 +78,8 @@ func TestParseTargetIBC(t *testing.T) {
 				ok:      false,
 			},
 		},
-		{name: "two slash ibc data //",
+		{
+			name:      "two slash ibc data //",
 			targetIBC: "//",
 			expect: expect{
 				prefix:  "",

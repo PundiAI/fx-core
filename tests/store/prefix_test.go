@@ -28,7 +28,7 @@ func TestPrefixStore(t *testing.T) {
 	iter := newStore.Iterator(nil, nil)
 	for ; iter.Valid(); iter.Next() {
 		t.Log(iter.Key(), iter.Value())
-		//newStore.Delete(iter.Key())
+		// newStore.Delete(iter.Key())
 	}
 
 	iterator := sdk.KVStorePrefixIterator(store, []byte{1})

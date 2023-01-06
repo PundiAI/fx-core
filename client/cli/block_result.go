@@ -120,7 +120,7 @@ func TxResponseToMap(cdc codec.JSONCodec, txResponse *sdk.TxResponse) map[string
 	if err != nil {
 		return nil
 	}
-	var txMsgData = sdk.TxMsgData{
+	txMsgData := sdk.TxMsgData{
 		Data: make([]*sdk.MsgData, 0),
 	}
 	if err := proto.Unmarshal(txData, &txMsgData); err != nil {
@@ -154,7 +154,7 @@ func TxResultToMap(txResult *types.ResponseDeliverTx) map[string]interface{} {
 			"attributes": AttributesToMap(event.Attributes),
 		})
 	}
-	var txMsgData = sdk.TxMsgData{
+	txMsgData := sdk.TxMsgData{
 		Data: make([]*sdk.MsgData, 0),
 	}
 	if err := proto.Unmarshal(txResult.Data, &txMsgData); err != nil {

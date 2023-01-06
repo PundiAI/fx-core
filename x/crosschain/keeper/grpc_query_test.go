@@ -61,7 +61,6 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
 	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
 	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper())
-
 }
 
 func (suite *CrossChainGrpcTestSuite) Keeper() keeper.Keeper {
@@ -1394,7 +1393,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_DenomToToken() {
 }
 
 func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
-
 	var (
 		request       *types.QueryTokenToDenomRequest
 		response      *types.QueryTokenToDenomResponse
@@ -1756,7 +1754,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 					ChainName:     suite.chainName,
 					SenderAddress: common.BytesToAddress(externalKey.PubKey().Address()).String(),
 				}
-
 			},
 			false,
 		},
@@ -2063,14 +2060,15 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 					ChainName: suite.chainName,
 				}
 				response = &types.QueryOraclesResponse{
-					Oracles: []types.Oracle{{
-						OracleAddress:   suite.oracles[0].String(),
-						BridgerAddress:  suite.bridgers[0].String(),
-						ExternalAddress: externalAcc.String(),
-						DelegateAmount:  sdk.ZeroInt(),
-						StartHeight:     10,
-						Online:          false,
-					},
+					Oracles: []types.Oracle{
+						{
+							OracleAddress:   suite.oracles[0].String(),
+							BridgerAddress:  suite.bridgers[0].String(),
+							ExternalAddress: externalAcc.String(),
+							DelegateAmount:  sdk.ZeroInt(),
+							StartHeight:     10,
+							Online:          false,
+						},
 					},
 				}
 			},
@@ -2127,7 +2125,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 						},
 					},
 				}
-
 			},
 			true,
 		},
@@ -2225,7 +2222,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BridgeTokens() {
 		{
 			name: "query bridge tokens",
 			malleate: func() *types.QueryBridgeTokensResponse {
-
 				newBridgeTokens := make([]*types.BridgeToken, 3)
 
 				for i := 0; i < 3; i++ {

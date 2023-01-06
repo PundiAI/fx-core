@@ -19,8 +19,10 @@ import (
 // 'function specification' that will encode the same arguments into a function call. We can then
 // truncate the first several bytes where the call name is encoded to finally get the equal of the
 
-var outgoingBatchTxCheckpointABI abi.ABI
-var oracleSetCheckpointABI abi.ABI
+var (
+	outgoingBatchTxCheckpointABI abi.ABI
+	oracleSetCheckpointABI       abi.ABI
+)
 
 func init() {
 	const (

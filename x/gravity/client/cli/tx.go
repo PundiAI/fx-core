@@ -293,7 +293,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var outgoingTxBatch = &crosschaintypes.OutgoingTxBatch{
+			outgoingTxBatch := &crosschaintypes.OutgoingTxBatch{
 				BatchNonce:    batchRequestByNonceResp.Batch.BatchNonce,
 				BatchTimeout:  batchRequestByNonceResp.Batch.BatchTimeout,
 				Transactions:  make([]*crosschaintypes.OutgoingTransferTx, len(batchRequestByNonceResp.Batch.Transactions)),
@@ -332,7 +332,8 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				Signature:     hex.EncodeToString(signature),
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		}}
+		},
+	}
 
 	cmd.Flags().String(flagEthKeyType, "keystore", "eth private key type(keystore|hex), default:keystore")
 	cmd.Flags().String(flagEthKeystore, "", "eth keystore file")
@@ -439,7 +440,8 @@ func CmdValidatorSetConfirm() *cobra.Command {
 				Signature:    hex.EncodeToString(signature),
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		}}
+		},
+	}
 
 	cmd.Flags().String(flagEthKeyType, "keystore", "eth private key type(keystore|hex), default:keystore")
 	cmd.Flags().String(flagEthKeystore, "", "eth keystore file")

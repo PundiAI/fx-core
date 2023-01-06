@@ -14,7 +14,6 @@ import (
 )
 
 func (suite *TestSuite) TestCodec() {
-
 	testCases := []struct {
 		name     string
 		oldValue codec.ProtoMarshaler
@@ -102,7 +101,6 @@ func (suite *TestSuite) TestCodec() {
 
 	for _, test := range testCases {
 		suite.Run(test.name, func() {
-
 			suite.cdc.MustUnmarshal(suite.cdc.MustMarshal(test.oldValue), test.newValue)
 
 			valueOf1 := reflect.Indirect(reflect.ValueOf(test.oldValue))
@@ -115,11 +113,11 @@ func (suite *TestSuite) TestCodec() {
 							if object.Field(n).Kind() == reflect.Pointer || valueOf1.Field(i).Kind() == reflect.Struct {
 								subObject := reflect.Indirect(object.Field(n))
 								for m := 0; m < subObject.NumField(); m++ {
-									//suite.T().Log(subObject.Field(m).Interface(), reflect.Indirect(valueOf2.Field(i).Index(j)).Field(n).Field(m).Interface())
+									// suite.T().Log(subObject.Field(m).Interface(), reflect.Indirect(valueOf2.Field(i).Index(j)).Field(n).Field(m).Interface())
 									suite.Equal(subObject.Field(m).Interface(), reflect.Indirect(valueOf2.Field(i).Index(j)).Field(n).Field(m).Interface())
 								}
 							} else {
-								//suite.T().Log(object.Field(n).Interface(), reflect.Indirect(valueOf2.Field(i).Index(j)).Field(n).Interface())
+								// suite.T().Log(object.Field(n).Interface(), reflect.Indirect(valueOf2.Field(i).Index(j)).Field(n).Interface())
 								suite.Equal(object.Field(n).Interface(), reflect.Indirect(valueOf2.Field(i).Index(j)).Field(n).Interface())
 							}
 						}
@@ -127,11 +125,11 @@ func (suite *TestSuite) TestCodec() {
 				} else if valueOf1.Field(i).Kind() == reflect.Pointer || valueOf1.Field(i).Kind() == reflect.Struct {
 					object := reflect.Indirect(valueOf1.Field(i))
 					for n := 0; n < object.NumField(); n++ {
-						//suite.T().Log(object.Field(n).Interface(), valueOf2.Field(i).Field(n).Interface())
+						// suite.T().Log(object.Field(n).Interface(), valueOf2.Field(i).Field(n).Interface())
 						suite.Equal(object.Field(n).Interface(), valueOf2.Field(i).Field(n).Interface())
 					}
 				} else {
-					//suite.T().Log(valueOf1.Field(i).Interface(), valueOf2.Field(i).Interface())
+					// suite.T().Log(valueOf1.Field(i).Interface(), valueOf2.Field(i).Interface())
 					suite.Equal(valueOf1.Field(i).Interface(), valueOf2.Field(i).Interface())
 				}
 			}

@@ -232,7 +232,7 @@ func DecodeSimulateTxCmd() *cobra.Command {
 				return err
 			}
 
-			var simulateReq = new(tx.SimulateRequest)
+			simulateReq := new(tx.SimulateRequest)
 			if err := proto.Unmarshal(txBytes, simulateReq); err != nil {
 				return err
 			}
@@ -362,7 +362,6 @@ $ %s debug addr fx1e0jnq2sun3dzjh8p2xq95kk0expwmd7sd7r5ye
 
 					if err3 != nil {
 						return fmt.Errorf("expected hex or bech32. Got errors: hex: %v, bech32 acc: %v, bech32 val: %v", err, err2, err3)
-
 					}
 				}
 			}

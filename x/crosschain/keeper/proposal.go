@@ -32,7 +32,7 @@ func (k Keeper) UpdateChainOraclesProposal(ctx sdk.Context, proposal *types.Upda
 	}
 
 	var unbondedOracleList []types.Oracle
-	var totalPower, deleteTotalPower = sdk.ZeroInt(), sdk.ZeroInt()
+	totalPower, deleteTotalPower := sdk.ZeroInt(), sdk.ZeroInt()
 
 	allOracles := k.GetAllOracles(ctx, false)
 	proposalOracle, _ := k.GetProposalOracle(ctx)

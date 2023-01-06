@@ -194,7 +194,6 @@ func (_WFX *WFXTransactorRaw) Transact(opts *bind.TransactOpts, method string, p
 func (_WFX *WFXCaller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _WFX.contract.Call(opts, &out, "allowance", owner, spender)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -202,7 +201,6 @@ func (_WFX *WFXCaller) Allowance(opts *bind.CallOpts, owner common.Address, spen
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -225,7 +223,6 @@ func (_WFX *WFXCallerSession) Allowance(owner common.Address, spender common.Add
 func (_WFX *WFXCaller) BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _WFX.contract.Call(opts, &out, "balanceOf", account)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -233,7 +230,6 @@ func (_WFX *WFXCaller) BalanceOf(opts *bind.CallOpts, account common.Address) (*
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -256,7 +252,6 @@ func (_WFX *WFXCallerSession) BalanceOf(account common.Address) (*big.Int, error
 func (_WFX *WFXCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
 	var out []interface{}
 	err := _WFX.contract.Call(opts, &out, "decimals")
-
 	if err != nil {
 		return *new(uint8), err
 	}
@@ -264,7 +259,6 @@ func (_WFX *WFXCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
 	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
 
 	return out0, err
-
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -287,7 +281,6 @@ func (_WFX *WFXCallerSession) Decimals() (uint8, error) {
 func (_WFX *WFXCaller) Module(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _WFX.contract.Call(opts, &out, "module")
-
 	if err != nil {
 		return *new(common.Address), err
 	}
@@ -295,7 +288,6 @@ func (_WFX *WFXCaller) Module(opts *bind.CallOpts) (common.Address, error) {
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
-
 }
 
 // Module is a free data retrieval call binding the contract method 0xb86d5298.
@@ -318,7 +310,6 @@ func (_WFX *WFXCallerSession) Module() (common.Address, error) {
 func (_WFX *WFXCaller) Name(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
 	err := _WFX.contract.Call(opts, &out, "name")
-
 	if err != nil {
 		return *new(string), err
 	}
@@ -326,7 +317,6 @@ func (_WFX *WFXCaller) Name(opts *bind.CallOpts) (string, error) {
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
-
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -349,7 +339,6 @@ func (_WFX *WFXCallerSession) Name() (string, error) {
 func (_WFX *WFXCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _WFX.contract.Call(opts, &out, "owner")
-
 	if err != nil {
 		return *new(common.Address), err
 	}
@@ -357,7 +346,6 @@ func (_WFX *WFXCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
-
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -380,7 +368,6 @@ func (_WFX *WFXCallerSession) Owner() (common.Address, error) {
 func (_WFX *WFXCaller) ProxiableUUID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
 	err := _WFX.contract.Call(opts, &out, "proxiableUUID")
-
 	if err != nil {
 		return *new([32]byte), err
 	}
@@ -388,7 +375,6 @@ func (_WFX *WFXCaller) ProxiableUUID(opts *bind.CallOpts) ([32]byte, error) {
 	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
 
 	return out0, err
-
 }
 
 // ProxiableUUID is a free data retrieval call binding the contract method 0x52d1902d.
@@ -411,7 +397,6 @@ func (_WFX *WFXCallerSession) ProxiableUUID() ([32]byte, error) {
 func (_WFX *WFXCaller) Symbol(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
 	err := _WFX.contract.Call(opts, &out, "symbol")
-
 	if err != nil {
 		return *new(string), err
 	}
@@ -419,7 +404,6 @@ func (_WFX *WFXCaller) Symbol(opts *bind.CallOpts) (string, error) {
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
-
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -442,7 +426,6 @@ func (_WFX *WFXCallerSession) Symbol() (string, error) {
 func (_WFX *WFXCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
 	err := _WFX.contract.Call(opts, &out, "totalSupply")
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -450,7 +433,6 @@ func (_WFX *WFXCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -860,7 +842,6 @@ type WFXAdminChanged struct {
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_WFX *WFXFilterer) FilterAdminChanged(opts *bind.FilterOpts) (*WFXAdminChangedIterator, error) {
-
 	logs, sub, err := _WFX.contract.FilterLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -872,7 +853,6 @@ func (_WFX *WFXFilterer) FilterAdminChanged(opts *bind.FilterOpts) (*WFXAdminCha
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_WFX *WFXFilterer) WatchAdminChanged(opts *bind.WatchOpts, sink chan<- *WFXAdminChanged) (event.Subscription, error) {
-
 	logs, sub, err := _WFX.contract.WatchLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -996,7 +976,6 @@ type WFXApproval struct {
 //
 // Solidity: event Approval(address indexed owner, address indexed spender, uint256 value)
 func (_WFX *WFXFilterer) FilterApproval(opts *bind.FilterOpts, owner []common.Address, spender []common.Address) (*WFXApprovalIterator, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1017,7 +996,6 @@ func (_WFX *WFXFilterer) FilterApproval(opts *bind.FilterOpts, owner []common.Ad
 //
 // Solidity: event Approval(address indexed owner, address indexed spender, uint256 value)
 func (_WFX *WFXFilterer) WatchApproval(opts *bind.WatchOpts, sink chan<- *WFXApproval, owner []common.Address, spender []common.Address) (event.Subscription, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1148,7 +1126,6 @@ type WFXBeaconUpgraded struct {
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_WFX *WFXFilterer) FilterBeaconUpgraded(opts *bind.FilterOpts, beacon []common.Address) (*WFXBeaconUpgradedIterator, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -1165,7 +1142,6 @@ func (_WFX *WFXFilterer) FilterBeaconUpgraded(opts *bind.FilterOpts, beacon []co
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_WFX *WFXFilterer) WatchBeaconUpgraded(opts *bind.WatchOpts, sink chan<- *WFXBeaconUpgraded, beacon []common.Address) (event.Subscription, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -1293,7 +1269,6 @@ type WFXDeposit struct {
 //
 // Solidity: event Deposit(address indexed from, uint256 value)
 func (_WFX *WFXFilterer) FilterDeposit(opts *bind.FilterOpts, from []common.Address) (*WFXDepositIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1310,7 +1285,6 @@ func (_WFX *WFXFilterer) FilterDeposit(opts *bind.FilterOpts, from []common.Addr
 //
 // Solidity: event Deposit(address indexed from, uint256 value)
 func (_WFX *WFXFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *WFXDeposit, from []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1438,7 +1412,6 @@ type WFXOwnershipTransferred struct {
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 func (_WFX *WFXFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*WFXOwnershipTransferredIterator, error) {
-
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
 		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
@@ -1459,7 +1432,6 @@ func (_WFX *WFXFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previ
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 func (_WFX *WFXFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *WFXOwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
-
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
 		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
@@ -1592,7 +1564,6 @@ type WFXTransfer struct {
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 value)
 func (_WFX *WFXFilterer) FilterTransfer(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*WFXTransferIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1613,7 +1584,6 @@ func (_WFX *WFXFilterer) FilterTransfer(opts *bind.FilterOpts, from []common.Add
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 value)
 func (_WFX *WFXFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan<- *WFXTransfer, from []common.Address, to []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1748,7 +1718,6 @@ type WFXTransferCrossChain struct {
 //
 // Solidity: event TransferCrossChain(address indexed from, string recipient, uint256 amount, uint256 fee, bytes32 target)
 func (_WFX *WFXFilterer) FilterTransferCrossChain(opts *bind.FilterOpts, from []common.Address) (*WFXTransferCrossChainIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1765,7 +1734,6 @@ func (_WFX *WFXFilterer) FilterTransferCrossChain(opts *bind.FilterOpts, from []
 //
 // Solidity: event TransferCrossChain(address indexed from, string recipient, uint256 amount, uint256 fee, bytes32 target)
 func (_WFX *WFXFilterer) WatchTransferCrossChain(opts *bind.WatchOpts, sink chan<- *WFXTransferCrossChain, from []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1892,7 +1860,6 @@ type WFXUpgraded struct {
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_WFX *WFXFilterer) FilterUpgraded(opts *bind.FilterOpts, implementation []common.Address) (*WFXUpgradedIterator, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)
@@ -1909,7 +1876,6 @@ func (_WFX *WFXFilterer) FilterUpgraded(opts *bind.FilterOpts, implementation []
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_WFX *WFXFilterer) WatchUpgraded(opts *bind.WatchOpts, sink chan<- *WFXUpgraded, implementation []common.Address) (event.Subscription, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)
@@ -2038,7 +2004,6 @@ type WFXWithdraw struct {
 //
 // Solidity: event Withdraw(address indexed from, address indexed to, uint256 value)
 func (_WFX *WFXFilterer) FilterWithdraw(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*WFXWithdrawIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -2059,7 +2024,6 @@ func (_WFX *WFXFilterer) FilterWithdraw(opts *bind.FilterOpts, from []common.Add
 //
 // Solidity: event Withdraw(address indexed from, address indexed to, uint256 value)
 func (_WFX *WFXFilterer) WatchWithdraw(opts *bind.WatchOpts, sink chan<- *WFXWithdraw, from []common.Address, to []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)

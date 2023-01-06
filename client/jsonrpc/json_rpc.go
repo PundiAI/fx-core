@@ -320,7 +320,7 @@ func (c *NodeRPC) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	var resp = struct {
+	resp := struct {
 		GasInfo struct {
 			GasWanted string `json:"gas_wanted"`
 			GasUsed   string `json:"gas_used"`
@@ -583,7 +583,8 @@ func (c *NodeRPC) Tx(hash []byte) (*coreTypes.ResultTx, error) {
 }
 
 func (c *NodeRPC) TxSearch(query string, page, perPage int, orderBy string) (
-	*coreTypes.ResultTxSearch, error) {
+	*coreTypes.ResultTxSearch, error,
+) {
 	result := new(coreTypes.ResultTxSearch)
 	params := map[string]interface{}{"query": query, "prove": false, "page": strconv.Itoa(page), "per_page": strconv.Itoa(perPage), "order_by": orderBy}
 	err := c.caller.Call(c.ctx, "tx_search", params, result)

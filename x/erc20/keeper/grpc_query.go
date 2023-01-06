@@ -80,7 +80,7 @@ func (k Keeper) DenomAliases(c context.Context, req *types.QueryDenomAliasesRequ
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	//check if it is a valid SDK denom
+	// check if it is a valid SDK denom
 	if err := sdk.ValidateDenom(req.Denom); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid format for denom %s", req.Denom)
 	}

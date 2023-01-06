@@ -25,7 +25,6 @@ import (
 )
 
 func TestMigrateOracle(t *testing.T) {
-
 	type args struct {
 		moduleName   string
 		oracleNumber int
@@ -68,7 +67,6 @@ func TestMigrateOracle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			oracleAddrs := make([]sdk.AccAddress, tt.args.oracleNumber)
 			for i := 0; i < len(oracleAddrs); i++ {
 				oracleAddrs[i] = secp256k1.GenPrivKey().PubKey().Bytes()
@@ -82,7 +80,7 @@ func TestMigrateOracle(t *testing.T) {
 				key, _ := crypto.GenerateKey()
 				externalAddrs[i] = crypto.PubkeyToAddress(key.PublicKey)
 			}
-			var legacyOracles = make([]*crosschainv1.LegacyOracle, len(oracleAddrs))
+			legacyOracles := make([]*crosschainv1.LegacyOracle, len(oracleAddrs))
 			for i := 0; i < len(oracleAddrs); i++ {
 				legacyOracles[i] = &crosschainv1.LegacyOracle{
 					OracleAddress:       oracleAddrs[i].String(),

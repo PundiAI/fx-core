@@ -24,7 +24,8 @@ type Migrator struct {
 // NewMigrator returns a new Migrator.
 func NewMigrator(cdc codec.BinaryCodec, legacyAmino *codec.LegacyAmino,
 	paramsStoreKey sdk.StoreKey, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey,
-	sk v2.StakingKeeper, ak v2.AccountKeeper, bk v2.BankKeeper) Migrator {
+	sk v2.StakingKeeper, ak v2.AccountKeeper, bk v2.BankKeeper,
+) Migrator {
 	return Migrator{
 		cdc:             cdc,
 		sk:              sk,

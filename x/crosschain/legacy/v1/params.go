@@ -6,8 +6,10 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-var ParamOracleDepositThreshold = []byte("OracleDepositThreshold")
-var ParamStoreOracles = []byte("Oracles")
+var (
+	ParamOracleDepositThreshold = []byte("OracleDepositThreshold")
+	ParamStoreOracles           = []byte("Oracles")
+)
 
 func GetParamSetPairs(params *types.Params) paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{

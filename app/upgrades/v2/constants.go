@@ -80,7 +80,7 @@ var (
 )
 
 func getMetadata(chainId string) []banktypes.Metadata {
-	var fxMetaData = fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
+	fxMetaData := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
 	if fxtypes.TestnetChainId == chainId {
 		return []banktypes.Metadata{
 			fxMetaData,

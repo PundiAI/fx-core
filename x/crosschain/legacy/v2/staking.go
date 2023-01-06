@@ -42,8 +42,8 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		if err != nil {
 			return err
 		}
-		//notice: Each delegate should be followed by an update of the validator `Tokens` and `DelegatorShares`
-		//validator, _ = validator.AddTokensFromDel(oracle.DelegateAmount)
+		// notice: Each delegate should be followed by an update of the validator `Tokens` and `DelegatorShares`
+		// validator, _ = validator.AddTokensFromDel(oracle.DelegateAmount)
 
 		if i != 0 {
 			continue

@@ -24,7 +24,7 @@ func TestIntegrationTest(t *testing.T) {
 		TestSuite: testSuite,
 		crosschain: []CrosschainTestSuite{
 			// todo fix ibc token
-			//NewCrosschainWithTestSuite(bsctypes.ModuleName, testSuite),
+			// NewCrosschainWithTestSuite(bsctypes.ModuleName, testSuite),
 			NewCrosschainWithTestSuite(polygontypes.ModuleName, testSuite),
 			NewCrosschainWithTestSuite(trontypes.ModuleName, testSuite),
 			NewCrosschainWithTestSuite(avalanchetypes.ModuleName, testSuite),

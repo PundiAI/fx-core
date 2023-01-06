@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
 	suite.Require().NoError(err)
 
-	//update staking unbonding time
+	// update staking unbonding time
 	stakingParams := suite.app.StakingKeeper.GetParams(suite.ctx)
 	stakingParams.UnbondingTime = 5 * time.Minute
 	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)

@@ -86,7 +86,7 @@ func (k Keeper) RemoveTokenPair(ctx sdk.Context, tokenPair types.TokenPair) {
 	// delete erc20 map
 	store.Delete(append(types.KeyPrefixTokenPairByERC20, tokenPair.GetERC20Contract().Bytes()...))
 
-	//delete denom alias
+	// delete denom alias
 	if md, found := k.HasDenomAlias(ctx, tokenPair.Denom); found {
 		k.DeleteAliasesDenom(ctx, md.DenomUnits[0].Aliases...)
 	}

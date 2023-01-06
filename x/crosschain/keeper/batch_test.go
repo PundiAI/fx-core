@@ -14,7 +14,6 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
-
 	testCases := []struct {
 		Name              string
 		OracleAddress     sdk.AccAddress

@@ -115,17 +115,17 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 	toEthAcc := common.BytesToAddress(ethKeys[1].PubKey().Address().Bytes())
 
-	//add proposal
+	// add proposal
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
 	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
 	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 	suite.Require().NoError(err)
 
-	//acc deposit
+	// acc deposit
 	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, acc, amount)
 	suite.Require().NoError(err)
 
-	//eth acc deposit
+	// eth acc deposit
 	_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes(), amount)
 	suite.Require().NoError(err)
 
@@ -133,21 +133,21 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, acc, govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
 	suite.Require().NoError(err)
 
-	//check acc deposit
+	// check acc deposit
 	deposit1, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit1.Amount)
-	//check eth acc deposit
+	// check eth acc deposit
 	deposit2, found := suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(amount, deposit2.Amount)
 
-	//check acc vote
+	// check acc vote
 	vote, found := suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, acc)
 	suite.Require().True(found)
 	suite.Require().Equal(vote.Option, govtypes.OptionYes) // nolint:staticcheck
 
-	//check to address deposit vote
+	// check to address deposit vote
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().False(found)
 
@@ -178,5 +178,4 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	vote, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().True(found)
 	suite.Require().Equal(vote.Option, govtypes.OptionYes) // nolint:staticcheck
-
 }

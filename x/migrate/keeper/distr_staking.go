@@ -25,23 +25,23 @@ func NewDistrStakingMigrate(distrKey, stakingKey sdk.StoreKey, stakingKeeper typ
 }
 
 func (m *DistrStakingMigrate) Validate(ctx sdk.Context, k Keeper, from sdk.AccAddress, to common.Address) error {
-	//check validator
+	// check validator
 	if _, found := m.stakingKeeper.GetValidator(ctx, sdk.ValAddress(from)); found {
 		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", from.String())
 	}
 	if _, found := m.stakingKeeper.GetValidator(ctx, sdk.ValAddress(to.Bytes())); found {
 		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", to.String())
 	}
-	//check delegation
+	// check delegation
 	if delegations := m.stakingKeeper.GetDelegatorDelegations(ctx, to.Bytes(), 1); len(delegations) > 0 {
 		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has delegation record", to.String())
 	}
-	//check undelegatetion
+	// check undelegatetion
 	undelegations := m.stakingKeeper.GetUnbondingDelegations(ctx, to.Bytes(), 1)
 	if len(undelegations) > 0 {
 		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has undelegate record", to.String())
 	}
-	//check redelegation
+	// check redelegation
 	redelegations := m.stakingKeeper.GetRedelegations(ctx, to.Bytes(), 1)
 	if len(redelegations) > 0 {
 		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has redelegation record", to.String())
@@ -60,19 +60,19 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 	//}
 	events := make([]sdk.Event, 0, 10)
 
-	//migrate delegate info
+	// migrate delegate info
 	delegateIterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.GetDelegationsKey(from))
 	defer delegateIterator.Close()
 	for ; delegateIterator.Valid(); delegateIterator.Next() {
 		info := stakingtypes.MustUnmarshalDelegation(k.cdc, delegateIterator.Value())
 
-		//distribution starting info
+		// distribution starting info
 		key := distrtypes.GetDelegatorStartingInfoKey(info.GetValidatorAddr(), from)
 		startingInfo := distrStore.Get(key)
 		distrStore.Delete(key)
 		distrStore.Set(distrtypes.GetDelegatorStartingInfoKey(info.GetValidatorAddr(), to.Bytes()), startingInfo)
 
-		//staking delegate
+		// staking delegate
 		info.DelegatorAddress = sdk.AccAddress(to.Bytes()).String()
 		stakingStore.Delete(delegateIterator.Key())
 		stakingStore.Set(stakingtypes.GetDelegationKey(to.Bytes(), info.GetValidatorAddr()), stakingtypes.MustMarshalDelegation(k.cdc, info))
@@ -85,7 +85,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 		)
 	}
 
-	//migrate unbonding delegation
+	// migrate unbonding delegation
 	unbondingDelegationIterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.GetUBDsKey(from))
 	defer unbondingDelegationIterator.Close()
 	for ; unbondingDelegationIterator.Valid(); unbondingDelegationIterator.Next() {
@@ -102,7 +102,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 		stakingStore.Delete(stakingtypes.GetUBDByValIndexKey(from, valAddr))
 		stakingStore.Set(stakingtypes.GetUBDByValIndexKey(to.Bytes(), valAddr), []byte{})
 
-		//migrate unbonding queue
+		// migrate unbonding queue
 		for _, entry := range ubd.Entries {
 			var ubdFlag bool
 			UBDQueue := m.stakingKeeper.GetUBDQueueTimeSlice(ctx, entry.CompletionTime)
@@ -127,7 +127,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 		)
 	}
 
-	//migrate redelegate
+	// migrate redelegate
 	redelegateIterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.GetREDsKey(from))
 	defer redelegateIterator.Close()
 	for ; redelegateIterator.Valid(); redelegateIterator.Next() {
@@ -152,7 +152,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 		stakingStore.Delete(stakingtypes.GetREDByValDstIndexKey(from, valSrcAddr, valDstAddr))
 		stakingStore.Set(stakingtypes.GetREDByValDstIndexKey(to.Bytes(), valSrcAddr, valDstAddr), []byte{})
 
-		//migrate redelegate queue
+		// migrate redelegate queue
 		for _, entry := range red.Entries {
 			var redFlag bool
 			redQueue := m.stakingKeeper.GetRedelegationQueueTimeSlice(ctx, entry.CompletionTime)

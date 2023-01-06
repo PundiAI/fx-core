@@ -88,7 +88,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 
 	tallyParams := keeper.GetTallyParams(ctx)
 	proposalContent := proposal.GetContent()
-	erc20ProposalQuorum := sdk.NewDecWithPrec(25, 2) //25%
+	erc20ProposalQuorum := sdk.NewDecWithPrec(25, 2) // 25%
 	if proposalContent.ProposalRoute() == erc20types.RouterKey && tallyParams.Quorum.GT(erc20ProposalQuorum) {
 		tallyParams.Quorum = erc20ProposalQuorum
 	}

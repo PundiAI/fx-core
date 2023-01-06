@@ -19,9 +19,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
-var (
-	defaultMsgRouter = ""
-)
+var defaultMsgRouter = ""
 
 type TransferTestSuite struct {
 	suite.Suite

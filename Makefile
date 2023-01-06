@@ -127,11 +127,7 @@ $(INSTALL_DIR):
 run-local: install
 	@./develop/run_fxcore.sh init
 
-draw-deps:
-	@# requires brew install graphviz or apt-get install graphviz go get github.com/RobotsAndPencils/goviz
-	@goviz -i github.com/functionx/fx-core/app -d 2 | dot -Tpng -o dependency-graph.png
-
-.PHONY: build build-win install docker go.sum run-local draw-deps
+.PHONY: build build-win install docker go.sum run-local
 
 ###############################################################################
 ###                                Linting                                  ###
@@ -139,14 +135,16 @@ draw-deps:
 
 lint:
 	@echo "--> Running linter"
-	@golangci-lint --version | grep 1.49.0 || (echo "\033[91mPlease switch golangci-lint version to v1.49.0\033[0m" && exit 1)
-	golangci-lint run -v --go=1.18 --timeout 5m
-	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' -not -name "statik.go" | xargs gofmt -d -s
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@go install mvdan.cc/gofumpt@latest
+	golangci-lint run -v --go=1.18 --timeout 10m
+	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -path "docs/statik/statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -d
 
 format:
-	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' -not -name "statik.go" | xargs gofmt -w -s
-	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' -not -name "statik.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' -not -name "statik.go" | xargs goimports -w -local github.com/functionx/fx-core
+	@echo "Installing gofumpt..."
+	@go install mvdan.cc/gofumpt@latest
+	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -path "docs/statik/statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -w -l
+	golangci-lint run --fix
 
 .PHONY: format lint
 
@@ -156,7 +154,7 @@ format:
 
 test:
 	@echo "--> Running tests"
-	@go test -mod=readonly $(ARGS) $(shell go list ./...)
+	go test -mod=readonly $(ARGS) $(shell go list ./...)
 
 .PHONY: test
 
@@ -188,11 +186,6 @@ proto-swagger-gen:
 
 .PHONY: proto-format proto-gen proto-swagger-gen
 
-# Install the runsim binary with a temporary workaround of entering an outside
-# directory as the "go get" command ignores the -mod option and will polute the
-# go.{mod, sum} files.
-#
-# ref: https://github.com/golang/go/issues/30515
 statik: $(STATIK)
 $(STATIK):
 	@echo "Installing statik..."

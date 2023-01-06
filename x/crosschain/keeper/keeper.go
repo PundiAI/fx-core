@@ -27,7 +27,8 @@ type Keeper struct {
 // NewKeeper returns a new instance of the gravity keeper
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
 	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionKeeper, bankKeeper types.BankKeeper,
-	ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper) Keeper {
+	ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper,
+) Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}

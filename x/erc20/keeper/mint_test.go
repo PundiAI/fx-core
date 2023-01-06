@@ -11,7 +11,6 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMintingEnabled() {
-
 	testCases := []struct {
 		name     string
 		malleate func() types.TokenPair

@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) sendEvmTx(contractAddr, from common.Address, data 
 	suite.Require().NoError(err)
 
 	// Mint the max gas to the FeeCollector to ensure balance in case of refund
-	//suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
+	// suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
 
 	ercTransferTx := evm.NewTx(
 		chainID,
@@ -299,7 +299,7 @@ func newMetadata() banktypes.Metadata {
 				Aliases: []string{
 					fmt.Sprintf("%s%s", bsctypes.ModuleName, helpers.GenerateAddress().String()),
 					fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddress().String()),
-					//fmt.Sprintf("%s%s", "ibc/", helpers.GenerateAddress().String()),
+					// fmt.Sprintf("%s%s", "ibc/", helpers.GenerateAddress().String()),
 				},
 			}, {
 				Denom:    "USDT",

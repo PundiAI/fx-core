@@ -9,7 +9,6 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestKeeper_PastExternalSignatureCheckpoint() {
-
 	var checkpointCache [][]byte
 	for i := 0; i < 10; i++ {
 		checkpoint := crypto.Keccak256Hash(helpers.GenerateAddress().Bytes()).Bytes()
@@ -18,7 +17,7 @@ func (suite *KeeperTestSuite) TestKeeper_PastExternalSignatureCheckpoint() {
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	}
 
-	var index = 0
+	index := 0
 	suite.Keeper().IteratePastExternalSignatureCheckpoint(suite.ctx, 0, math.MaxUint64, func(checkpoint []byte) bool {
 		suite.Equal(checkpointCache[index], checkpoint)
 		index = index + 1

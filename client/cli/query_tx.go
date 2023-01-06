@@ -85,7 +85,7 @@ $ %s query txs --%s 'message.sender=fx1...&message.module=distribution' --page 1
 			if err != nil {
 				return err
 			}
-			var txsArray = make([]interface{}, 0)
+			txsArray := make([]interface{}, 0)
 			for i := 0; i < len(txsResult.Txs); i++ {
 				txsArray = append(txsArray, TxResponseToMap(clientCtx.Codec, txsResult.Txs[i]))
 			}

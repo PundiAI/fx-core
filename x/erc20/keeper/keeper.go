@@ -107,7 +107,7 @@ func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata
 	if len(md.DenomUnits) == 0 {
 		return banktypes.Metadata{}, false
 	}
-	//not have alias
+	// not have alias
 	if len(md.DenomUnits[0].Aliases) == 0 {
 		return banktypes.Metadata{}, false
 	}

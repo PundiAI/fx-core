@@ -189,7 +189,7 @@ func (k Keeper) GetAllOracles(ctx sdk.Context, isOnline bool) (oracles types.Ora
 		oracles = append(oracles, oracle)
 	}
 	// TODO why sort
-	//sort.Sort(oracles)
+	// sort.Sort(oracles)
 	return oracles
 }
 

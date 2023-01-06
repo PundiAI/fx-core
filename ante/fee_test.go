@@ -12,7 +12,6 @@ import (
 )
 
 func (suite *AnteTestSuite) TestMempoolFeeDecorator() {
-
 	clientCtx := NewClientCtx()
 	txBuilder := clientCtx.TxConfig.NewTxBuilder()
 	mfd := ante.NewMempoolFeeDecorator([]string{

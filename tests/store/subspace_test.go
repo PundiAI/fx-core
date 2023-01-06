@@ -42,7 +42,7 @@ func Benchmark_Subspace(b *testing.B) {
 
 	b.Run("B", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			var newParams = new(erc20types.Params)
+			newParams := new(erc20types.Params)
 			subspace.GetParamSet(ctx, newParams)
 			assert.Equal(b, true, params.EnableErc20)
 		}

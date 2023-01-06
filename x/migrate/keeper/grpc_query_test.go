@@ -117,9 +117,7 @@ func (suite *KeeperTestSuite) TestMigrateRecord() {
 }
 
 func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
-	var (
-		req *types.QueryMigrateCheckAccountRequest
-	)
+	var req *types.QueryMigrateCheckAccountRequest
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -198,7 +196,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
-				//delegate
+				// delegate
 				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, from, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
@@ -219,7 +217,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
-				//delegate
+				// delegate
 				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
@@ -240,7 +238,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
-				//delegate
+				// delegate
 				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, from, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
@@ -264,7 +262,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
-				//delegate
+				// delegate
 				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
@@ -291,7 +289,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1, val2 := validators[0], validators[1]
-				//delegate
+				// delegate
 				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, from, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
@@ -315,7 +313,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1, val2 := validators[0], validators[1]
-				//delegate
+				// delegate
 				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
@@ -553,7 +551,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
-				//suite.T().Log(err)
+				// suite.T().Log(err)
 			}
 		})
 	}

@@ -50,7 +50,7 @@ func tendermintCommand() *cobra.Command {
 		tmcmd.ResetStateCmd,
 		tmcmd.GenValidatorCmd,
 		tmcmd.GenNodeKeyCmd,
-		//tmcmd.ResetPrivValidatorCmd,
+		// tmcmd.ResetPrivValidatorCmd,
 	)
 	return tendermintCmd
 }

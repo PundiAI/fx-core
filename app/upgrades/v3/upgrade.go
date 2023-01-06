@@ -64,7 +64,7 @@ func CreateUpgradeHandler(
 		// register coin
 		registerCoin(cacheCtx, keepers.Erc20Keeper)
 
-		//commit upgrade
+		// commit upgrade
 		commit()
 		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 		return toVM, nil

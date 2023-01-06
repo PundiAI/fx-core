@@ -17,7 +17,6 @@ import (
 
 // Tests that batches and transactions are preserved during chain restart
 func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
-
 	bridgeTokens := make([]types.BridgeToken, 10)
 	for i := 0; i < len(bridgeTokens); i++ {
 		contractAddress := helpers.GenerateAddress().Hex()
@@ -85,7 +84,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		suite.Require().NoError(err)
 		suite.Require().EqualValues(100, len(batch.Transactions))
 		suite.Require().EqualValues(50+i, batch.Block)
-		//suite.T().Log(i, batch.BatchTimeout, suite.chainName)
+		// suite.T().Log(i, batch.BatchTimeout, suite.chainName)
 		if suite.chainName == ethtypes.ModuleName {
 			suite.Require().True(batch.BatchTimeout > 2800)
 		} else {

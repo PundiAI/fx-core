@@ -14,9 +14,7 @@ import (
 
 const TypeMsgMigrateAccount = "migrate_account"
 
-var (
-	_ sdk.Msg = &MsgMigrateAccount{}
-)
+var _ sdk.Msg = &MsgMigrateAccount{}
 
 // NewMsgMigrateAccount returns a new MsgMigrateAccount
 func NewMsgMigrateAccount(from sdk.AccAddress, to common.Address, signature string) *MsgMigrateAccount {
@@ -39,18 +37,18 @@ func (m *MsgMigrateAccount) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
-	//check to address
+	// check to address
 	if err := fxtypes.ValidateEthereumAddress(m.To); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	toAddress := common.HexToAddress(m.To)
 
-	//check same account
+	// check same account
 	if bytes.Equal(fromAddress.Bytes(), toAddress.Bytes()) {
 		return sdkerrors.Wrap(ErrSameAccount, m.From)
 	}
 
-	//check signature
+	// check signature
 	if len(m.Signature) == 0 {
 		return sdkerrors.Wrap(ErrInvalidSignature, "signature is empty")
 	}

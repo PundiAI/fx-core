@@ -18,7 +18,7 @@ import (
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
-	//convert denom to many
+	// convert denom to many
 	targetCoin, _, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, amount.Add(fee), k.moduleName)
 	if err != nil {
 		return 0, err
@@ -285,7 +285,7 @@ func (k Keeper) createBatchFees(ctx sdk.Context, maxElements uint, minBatchFees 
 
 		baseFee, ok := baseFees[fee.Contract]
 		if ok && fee.Amount.LT(baseFee) {
-			return false //sort by token address and fee, behind have other token
+			return false // sort by token address and fee, behind have other token
 		}
 
 		if txCountMap[fee.Contract] < int(maxElements) {

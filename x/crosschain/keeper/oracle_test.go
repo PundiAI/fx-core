@@ -5,7 +5,6 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestOracleAndBridger() {
-
 	for _, oracle := range suite.oracles {
 		require.True(suite.T(), suite.Keeper().IsProposalOracle(suite.ctx, oracle.String()))
 	}

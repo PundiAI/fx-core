@@ -227,7 +227,7 @@ func (k Keeper) GetOutgoingTxBatches(ctx sdk.Context) (out []*types.OutgoingTxBa
 // GetLastOutgoingBatchByTokenType gets the latest outgoing tx batch by token type
 func (k Keeper) GetLastOutgoingBatchByTokenType(ctx sdk.Context, token string) *types.OutgoingTxBatch {
 	var lastBatch *types.OutgoingTxBatch = nil
-	var lastNonce = uint64(0)
+	lastNonce := uint64(0)
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.TokenContract == token && batch.BatchNonce > lastNonce {
 			lastBatch = batch
@@ -262,7 +262,7 @@ func (k Keeper) GetUnSlashedBatches(ctx sdk.Context, maxHeight uint64) (outgoing
 		return false
 	})
 	// TODO why sort
-	//sort.Sort(outgoingTxBatches)
+	// sort.Sort(outgoingTxBatches)
 	return
 }
 

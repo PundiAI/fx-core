@@ -47,7 +47,6 @@ func ParseReceiverData(receiverData string) (*ParsedReceiver, error) {
 	sep3 := strings.Split(sep2[1], "/")
 	if len(sep3) != 2 {
 		return nil, fmt.Errorf("formatting incorrect, need: '{address_on_this_chain}|{portid}/{channelid}:{final_dest_address}', got: '%s'", receiverData)
-
 	}
 	port := sep3[0]
 	channel := sep3[1]

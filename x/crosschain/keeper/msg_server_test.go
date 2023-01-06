@@ -416,7 +416,6 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 }
 
 func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
-
 	normalMsg := &types.MsgBondedOracle{
 		OracleAddress:    suite.oracles[0].String(),
 		BridgerAddress:   suite.bridgers[0].String(),
@@ -732,13 +731,11 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 		}
 		require.EqualValues(suite.T(), testData.errReason, err.Error(), testData.name)
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
-
 	// 1. First sets up a valid validator
-	var totalPower = sdk.ZeroInt()
+	totalPower := sdk.ZeroInt()
 	var delegateAmounts []sdk.Int
 	for i, oracle := range suite.oracles {
 		normalMsg := &types.MsgBondedOracle{

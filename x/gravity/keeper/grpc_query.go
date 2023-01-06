@@ -111,7 +111,7 @@ func (k queryServer) ValsetConfirmsByNonce(c context.Context, req *types.QueryVa
 	if err != nil {
 		return nil, err
 	}
-	var confirms = make([]*types.MsgValsetConfirm, len(response.Confirms))
+	confirms := make([]*types.MsgValsetConfirm, len(response.Confirms))
 	for i := 0; i < len(response.Confirms); i++ {
 		confirms[i] = &types.MsgValsetConfirm{
 			Nonce:        response.Confirms[i].Nonce,
@@ -153,7 +153,7 @@ func (k queryServer) LastPendingValsetRequestByAddr(c context.Context, req *type
 	if err != nil {
 		return nil, err
 	}
-	var valsets = make([]*types.Valset, len(response.OracleSets))
+	valsets := make([]*types.Valset, len(response.OracleSets))
 	for i := 0; i < len(response.OracleSets); i++ {
 		valsets[i] = &types.Valset{
 			Nonce:   response.OracleSets[i].Nonce,
@@ -172,7 +172,7 @@ func (k queryServer) LastPendingValsetRequestByAddr(c context.Context, req *type
 }
 
 func (k queryServer) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
-	var minBatchFees = make([]crosschaintypes.MinBatchFee, len(req.MinBatchFees))
+	minBatchFees := make([]crosschaintypes.MinBatchFee, len(req.MinBatchFees))
 	for i := 0; i < len(req.MinBatchFees); i++ {
 		minBatchFees[i] = crosschaintypes.MinBatchFee{
 			TokenContract: req.MinBatchFees[i].TokenContract,
@@ -207,7 +207,7 @@ func (k queryServer) LastPendingBatchRequestByAddr(c context.Context, req *types
 		return nil, err
 	}
 
-	var outgoingTxBatch = &types.OutgoingTxBatch{
+	outgoingTxBatch := &types.OutgoingTxBatch{
 		BatchNonce:    response.Batch.BatchNonce,
 		BatchTimeout:  response.Batch.BatchTimeout,
 		Transactions:  make([]*types.OutgoingTransferTx, len(response.Batch.Transactions)),
@@ -238,7 +238,7 @@ func (k queryServer) OutgoingTxBatches(c context.Context, _ *types.QueryOutgoing
 	if err != nil {
 		return nil, err
 	}
-	var batches = make([]*types.OutgoingTxBatch, len(response.Batches))
+	batches := make([]*types.OutgoingTxBatch, len(response.Batches))
 	for i := 0; i < len(response.Batches); i++ {
 		batches[i] = &types.OutgoingTxBatch{
 			BatchNonce:    response.Batches[i].BatchNonce,
@@ -276,7 +276,7 @@ func (k queryServer) BatchRequestByNonce(c context.Context, req *types.QueryBatc
 	if err != nil {
 		return nil, err
 	}
-	var outgoingTxBatch = &types.OutgoingTxBatch{
+	outgoingTxBatch := &types.OutgoingTxBatch{
 		BatchNonce:    response.Batch.BatchNonce,
 		BatchTimeout:  response.Batch.BatchTimeout,
 		Transactions:  make([]*types.OutgoingTransferTx, len(response.Batch.Transactions)),
@@ -330,7 +330,7 @@ func (k queryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfi
 	if err != nil {
 		return nil, err
 	}
-	var confirms = make([]*types.MsgConfirmBatch, len(response.Confirms))
+	confirms := make([]*types.MsgConfirmBatch, len(response.Confirms))
 	for i := 0; i < len(response.Confirms); i++ {
 		confirms[i] = &types.MsgConfirmBatch{
 			Nonce:         response.Confirms[i].Nonce,
@@ -427,7 +427,7 @@ func (k queryServer) GetPendingSendToEth(c context.Context, req *types.QueryPend
 		return nil, err
 	}
 
-	var res = &types.QueryPendingSendToEthResponse{
+	res := &types.QueryPendingSendToEthResponse{
 		TransfersInBatches: make([]*types.OutgoingTransferTx, len(response.TransfersInBatches)),
 		UnbatchedTransfers: make([]*types.OutgoingTransferTx, len(response.UnbatchedTransfers)),
 	}
@@ -481,7 +481,7 @@ func (k queryServer) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensR
 	if err != nil {
 		return nil, err
 	}
-	var bridgeTokens = make([]*types.ERC20ToDenom, len(response.BridgeTokens))
+	bridgeTokens := make([]*types.ERC20ToDenom, len(response.BridgeTokens))
 	for i := 0; i < len(response.BridgeTokens); i++ {
 		bridgeTokens[i] = &types.ERC20ToDenom{
 			Erc20: response.BridgeTokens[i].Token,

@@ -59,7 +59,7 @@ func NewKeyOutput(keyInfo keyring.Info, a sdk.Address) (KeyOutput, error) {
 }
 
 func checksumHex(addr []byte) []byte {
-	var buf = make([]byte, len(addr)*2)
+	buf := make([]byte, len(addr)*2)
 	hex.Encode(buf, addr)
 	buf = append([]byte("0x"), buf...)
 

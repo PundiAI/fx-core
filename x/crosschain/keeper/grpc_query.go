@@ -12,8 +12,10 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-const MaxResults = 100
-const maxOracleSetRequestsReturned = 5
+const (
+	MaxResults                   = 100
+	maxOracleSetRequestsReturned = 5
+)
 
 var _ types.QueryServer = Keeper{}
 
@@ -310,7 +312,7 @@ func (k Keeper) GetPendingSendToExternal(c context.Context, req *types.QueryPend
 		batches = append(batches, batch)
 		return false
 	})
-	var res = &types.QueryPendingSendToExternalResponse{
+	res := &types.QueryPendingSendToExternalResponse{
 		TransfersInBatches: make([]*types.OutgoingTransferTx, 0),
 		UnbatchedTransfers: make([]*types.OutgoingTransferTx, 0),
 	}
@@ -365,7 +367,7 @@ func (k Keeper) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryPro
 }
 
 func (k Keeper) BridgeTokens(c context.Context, _ *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
-	var bridgeTokens = make([]*types.BridgeToken, 0)
+	bridgeTokens := make([]*types.BridgeToken, 0)
 	k.IterateBridgeTokenToDenom(sdk.UnwrapSDKContext(c), func(token *types.BridgeToken) bool {
 		bridgeTokens = append(bridgeTokens, token)
 		return false

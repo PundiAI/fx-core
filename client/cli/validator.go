@@ -110,11 +110,11 @@ func UnsafeRestPrivValidatorCmd() *cobra.Command {
 			}
 			pvKeyFile := serverCtx.Config.PrivValidatorKeyFile()
 			_ = os.Remove(pvKeyFile)
-			if err := tmos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {
+			if err := tmos.EnsureDir(filepath.Dir(pvKeyFile), 0o777); err != nil {
 				return err
 			}
 			pvStateFile := serverCtx.Config.PrivValidatorStateFile()
-			if err := tmos.EnsureDir(filepath.Dir(pvStateFile), 0777); err != nil {
+			if err := tmos.EnsureDir(filepath.Dir(pvStateFile), 0o777); err != nil {
 				return err
 			}
 			keyType := serverCtx.Viper.GetString(flagKeyType)
@@ -168,7 +168,7 @@ func UnsafeResetNodeKeyCmd() *cobra.Command {
 			}
 			nodeKeyFile := serverCtx.Config.NodeKeyFile()
 			_ = os.Remove(nodeKeyFile)
-			if err := tmos.EnsureDir(filepath.Dir(nodeKeyFile), 0777); err != nil {
+			if err := tmos.EnsureDir(filepath.Dir(nodeKeyFile), 0o777); err != nil {
 				return err
 			}
 

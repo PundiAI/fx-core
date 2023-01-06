@@ -166,7 +166,7 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet chan
 			return nil, sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse forward transfer amount (%s) into sdk.Int", data.Amount)
 		}
 
-		var token = sdk.NewCoin(denom, transferAmount)
+		token := sdk.NewCoin(denom, transferAmount)
 		msgTransfer := transfertypes.NewMsgTransfer(
 			parsedReceiver.Port,
 			parsedReceiver.Channel,

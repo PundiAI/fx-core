@@ -313,7 +313,6 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 		big.NewInt(int64(m.BatchTimeout)),
 		gethcommon.HexToAddress(m.FeeReceive),
 	)
-
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
 	if err != nil {

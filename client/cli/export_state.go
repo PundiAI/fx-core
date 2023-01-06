@@ -62,7 +62,7 @@ func ExportSateCmd(appExporter types.AppExporter, defaultNodeHome string) *cobra
 			traceWriterFile, _ := cmd.Flags().GetString(flagTraceStore)
 			var traceWriter io.Writer
 			if traceWriterFile != "" {
-				traceWriter, err = os.OpenFile(traceWriterFile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+				traceWriter, err = os.OpenFile(traceWriterFile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o666)
 				if err != nil {
 					return err
 				}

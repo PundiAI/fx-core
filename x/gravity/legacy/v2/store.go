@@ -21,7 +21,6 @@ import (
 // MigrateStore performs in-place store migrations from v1 to v2.
 // migrate data from gravity module
 func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
-
 	// gravity 0x2 -> eth 0x13
 	// key                                        			value
 	// prefix     external-address                			oracle-address
@@ -114,7 +113,7 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	// prefix           oracle-set-nonce
 	// [0x29]			[0 0 0 0 0 0 0 1]
 	migratePrefix(gravityStore, ethStore, types.LatestValsetNonce, crosschaintypes.LatestOracleSetNonce)
-	//ethStore.Set(crosschaintypes.LatestOracleSetNonce, sdk.Uint64ToBigEndian(10000000)) todo set custom nonce
+	// ethStore.Set(crosschaintypes.LatestOracleSetNonce, sdk.Uint64ToBigEndian(10000000)) todo set custom nonce
 
 	// gravity 0x13 -> eth 0x30
 	// key         		value
@@ -163,7 +162,6 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 }
 
 func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, stakingKeeper StakingKeeper, bankKeeper BankKeeper) {
-
 	chainOracle := new(crosschaintypes.ProposalOracle)
 	totalPower := sdk.ZeroInt()
 
@@ -258,7 +256,6 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 }
 
 func migrateOutgoingTxPool(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
-
 	oldStore := prefix.NewStore(gravityStore, types.OutgoingTxPoolKey)
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()

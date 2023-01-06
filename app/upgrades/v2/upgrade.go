@@ -70,7 +70,7 @@ func createUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		// 7. register coin
 		registerCoin(cacheCtx, keepers.Erc20Keeper)
 
-		//commit upgrade
+		// commit upgrade
 		commit()
 		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
@@ -113,11 +113,11 @@ func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *sd
 	}
 	logger := ctx.Logger()
 	logger.Info("update FX metadata", "metadata", metaData.String())
-	//delete fx
+	// delete fx
 	fxDenom := strings.ToLower(fxtypes.DefaultDenom)
 	denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataKey(fxDenom))
 	denomMetaDataStore.Delete([]byte(fxDenom))
-	//set FX
+	// set FX
 	bankKeeper.SetDenomMetaData(ctx, metaData)
 }
 
@@ -156,13 +156,14 @@ func migrationsOrder(modules []string) []string {
 }
 
 func runMigrations(ctx sdk.Context, paramsKey *sdk.KVStoreKey, fromVersion module.VersionMap,
-	mm *module.Manager, configurator module.Configurator) module.VersionMap {
+	mm *module.Manager, configurator module.Configurator,
+) module.VersionMap {
 	if len(fromVersion) != 0 {
 		panic("invalid from version map")
 	}
 
 	for n, m := range mm.Modules {
-		//NOTE: fromVM empty
+		// NOTE: fromVM empty
 		if initGenesis[n] {
 			continue
 		}
@@ -171,7 +172,7 @@ func runMigrations(ctx sdk.Context, paramsKey *sdk.KVStoreKey, fromVersion modul
 			continue
 		}
 		if v, ok := runMigrates[n]; ok {
-			//migrate module
+			// migrate module
 			fromVersion[n] = v
 			continue
 		}
@@ -196,7 +197,7 @@ func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
 	logger := ctx.Logger()
 	logger.Info("clear testnet metadata", "chainId", ctx.ChainID())
 	for _, md := range getMetadata(ctx.ChainID()) {
-		//remove denom except FX
+		// remove denom except FX
 		if md.Base == fxtypes.DefaultDenom {
 			continue
 		}

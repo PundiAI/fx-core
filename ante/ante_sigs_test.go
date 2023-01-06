@@ -11,7 +11,6 @@ import (
 )
 
 func (suite *AnteTestSuite) TestSignatures() {
-
 	privKey := helpers.NewEthPrivKey()
 	to := helpers.GenerateAddress()
 	from := common.BytesToAddress(privKey.PubKey().Address())

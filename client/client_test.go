@@ -143,7 +143,8 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 				privKey.PubKey().Address().Bytes(),
 				toAddress,
 				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))),
-			)},
+			),
+		},
 		)
 		suite.NoError(err)
 
@@ -181,7 +182,8 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 				privKey.PubKey().Address().Bytes(),
 				ethAddress,
 				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10).MulRaw(1e18))),
-			)},
+			),
+		},
 		)
 		suite.NoError(err)
 
@@ -210,7 +212,8 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 				ethPrivKey.PubKey().Address().Bytes(),
 				toAddress,
 				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))),
-			)},
+			),
+		},
 		)
 		suite.NoError(err)
 
@@ -275,7 +278,8 @@ func (suite *rpcTestSuite) TestClient_Query() {
 				func(height int64, err error) {
 					suite.NoError(err)
 					suite.True(height >= int64(1))
-				}},
+				},
+			},
 		},
 		{
 			funcName: "QuerySupply",
@@ -433,19 +437,19 @@ func (suite *rpcTestSuite) TestTmClient() {
 		return results
 	}
 
-	var height = int64(1)
-	var limit = 1
+	height := int64(1)
+	limit := 1
 	tests := []struct {
 		funcName string
 		params   []interface{}
 		wantRes  []interface{}
 	}{
-		//ABCIClient
+		// ABCIClient
 		{
 			funcName: "ABCIInfo",
 			params:   []interface{}{},
 		},
-		//HistoryClient
+		// HistoryClient
 		{
 			funcName: "Genesis",
 			params:   []interface{}{},
@@ -463,7 +467,7 @@ func (suite *rpcTestSuite) TestTmClient() {
 				},
 			},
 		},
-		//StatusClient
+		// StatusClient
 		{
 			funcName: "Status",
 			params:   []interface{}{},
@@ -476,7 +480,7 @@ func (suite *rpcTestSuite) TestTmClient() {
 				},
 			},
 		},
-		//NetworkClient
+		// NetworkClient
 		{
 			funcName: "NetInfo",
 			params:   []interface{}{},
@@ -510,7 +514,7 @@ func (suite *rpcTestSuite) TestTmClient() {
 			funcName: "Health",
 			params:   []interface{}{},
 		},
-		//MempoolClient
+		// MempoolClient
 		{
 			funcName: "UnconfirmedTxs",
 			params:   []interface{}{&limit},

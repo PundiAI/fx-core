@@ -54,7 +54,7 @@ func (k Keeper) MigrateCheckAccount(goCtx context.Context, req *types.QueryMigra
 	to := common.HexToAddress(req.To)
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	//check migrated
+	// check migrated
 	if k.HasMigrateRecord(ctx, from) {
 		return nil, status.Errorf(codes.AlreadyExists, "address %s has been migrated", req.From)
 	}

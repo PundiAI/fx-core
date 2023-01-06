@@ -54,7 +54,6 @@ func (suite *AnteTestSuite) GetContext(height int64) sdk.Context {
 }
 
 func (suite *AnteTestSuite) SetupTest() {
-
 	suite.app = helpers.Setup(false, false)
 
 	// account key

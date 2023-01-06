@@ -12,9 +12,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/migrate/types"
 )
 
-var (
-	_ types.MsgServer = &Keeper{}
-)
+var _ types.MsgServer = &Keeper{}
 
 func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccount) (*types.MsgMigrateAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -25,7 +23,7 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 	}
 	toAddress := common.HexToAddress(msg.To)
 
-	//check migrated
+	// check migrated
 	if k.HasMigrateRecord(ctx, fromAddress) {
 		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.From)
 	}
@@ -33,19 +31,19 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.To)
 	}
 
-	//check from address
+	// check from address
 	_, err = k.checkMigrateFrom(ctx, fromAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	//migrate Validate
+	// migrate Validate
 	for _, m := range k.GetMigrateI() {
 		if err := m.Validate(ctx, k, fromAddress, toAddress); err != nil {
 			return nil, sdkerrors.Wrap(types.ErrMigrateValidate, err.Error())
 		}
 	}
-	//migrate Execute
+	// migrate Execute
 	for _, m := range k.GetMigrateI() {
 		err := m.Execute(ctx, k, fromAddress, toAddress)
 		if err != nil {
@@ -53,7 +51,7 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 		}
 	}
 
-	//set record
+	// set record
 	k.SetMigrateRecord(ctx, fromAddress, toAddress)
 
 	defer func() {

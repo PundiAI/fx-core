@@ -402,7 +402,7 @@ func NewUpdateDenomAliasProposalCmd() *cobra.Command {
 
 			ctx := context.Background()
 
-			//check denom metadata exist
+			// check denom metadata exist
 			bankQueryClient := banktypes.NewQueryClient(cliCtx)
 			_, err = bankQueryClient.DenomMetadata(ctx, &banktypes.QueryDenomMetadataRequest{Denom: denom})
 			if err != nil {

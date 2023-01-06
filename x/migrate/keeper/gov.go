@@ -28,7 +28,7 @@ func (m *GovMigrate) Validate(ctx sdk.Context, _ Keeper, from sdk.AccAddress, to
 	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(votingParams.VotingPeriod))
 	defer activeIter.Close()
 	for ; activeIter.Valid(); activeIter.Next() {
-		//check vote
+		// check vote
 		proposalID, _ := govtypes.SplitActiveProposalQueueKey(activeIter.Key())
 		_, fromVoteFound := m.govKeeper.GetVote(ctx, proposalID, from)
 		_, toVoteFound := m.govKeeper.GetVote(ctx, proposalID, to.Bytes())
@@ -48,7 +48,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to 
 	defer inactiveIter.Close()
 	for ; inactiveIter.Valid(); inactiveIter.Next() {
 		proposalID, _ := govtypes.SplitInactiveProposalQueueKey(inactiveIter.Key())
-		//migrate deposit
+		// migrate deposit
 		if fromDeposit, fromFound := m.govKeeper.GetDeposit(ctx, proposalID, from); fromFound {
 			amount := fromDeposit.Amount
 			toDeposit, toFound := m.govKeeper.GetDeposit(ctx, proposalID, to.Bytes())
@@ -76,7 +76,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to 
 	defer activeIter.Close()
 	for ; activeIter.Valid(); activeIter.Next() {
 		proposalID, _ := govtypes.SplitActiveProposalQueueKey(activeIter.Key())
-		//migrate deposit
+		// migrate deposit
 		if fromDeposit, depositFound := m.govKeeper.GetDeposit(ctx, proposalID, from); depositFound {
 			amount := fromDeposit.Amount
 			toDeposit, toFound := m.govKeeper.GetDeposit(ctx, proposalID, to.Bytes())
@@ -97,7 +97,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to 
 			govStore.Delete(govtypes.DepositKey(proposalID, from))
 			govStore.Set(govtypes.DepositKey(proposalID, to.Bytes()), k.cdc.MustMarshal(&fromDeposit))
 		}
-		//migrate vote
+		// migrate vote
 		if fromVote, voteFound := m.govKeeper.GetVote(ctx, proposalID, from); voteFound {
 			_, toFound := m.govKeeper.GetVote(ctx, proposalID, to.Bytes())
 			if toFound {
@@ -107,7 +107,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to 
 			govStore.Delete(govtypes.VoteKey(proposalID, from))
 			govStore.Set(govtypes.VoteKey(proposalID, to.Bytes()), k.cdc.MustMarshal(&fromVote))
 
-			//add events
+			// add events
 			events = append(events,
 				sdk.NewEvent(
 					types.EventTypeMigrateGovVote,

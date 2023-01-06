@@ -112,7 +112,7 @@ func TestResetExportGenesisValidator(t *testing.T) {
 		}
 	}
 
-	//slashingGenesisState
+	// slashingGenesisState
 	slashingGenesisState := new(slashingtypes.GenesisState)
 	cdc.MustUnmarshalJSON(appState[slashingtypes.ModuleName], slashingGenesisState)
 

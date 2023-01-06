@@ -91,51 +91,67 @@ func (cli *Client) WithGasPrices(gasPrices sdk.Coins) {
 func (cli *Client) AuthQuery() authtypes.QueryClient {
 	return authtypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) AuthzQuery() authz.QueryClient {
 	return authz.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) BankQuery() banktypes.QueryClient {
 	return banktypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) DistrQuery() distrtypes.QueryClient {
 	return distrtypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) EvidenceQuery() evidencetypes.QueryClient {
 	return evidencetypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) FeegrantQuery() feegrant.QueryClient {
 	return feegrant.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) GovQuery() govtypes.QueryClient {
 	return govtypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) MintQuery() minttypes.QueryClient {
 	return minttypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) SlashingQuery() slashingtypes.QueryClient {
 	return slashingtypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) StakingQuery() stakingtypes.QueryClient {
 	return stakingtypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) UpgradeQuery() upgradetypes.QueryClient {
 	return upgradetypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) ServiceClient() tx.ServiceClient {
 	return tx.NewServiceClient(cli.ClientConn)
 }
+
 func (cli *Client) TMServiceClient() tmservice.ServiceClient {
 	return tmservice.NewServiceClient(cli.ClientConn)
 }
+
 func (cli *Client) ERC20Query() erc20types.QueryClient {
 	return erc20types.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) EVMQuery() evmtypes.QueryClient {
 	return evmtypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) CrosschainQuery() crosschaintypes.QueryClient {
 	return crosschaintypes.NewQueryClient(cli.ClientConn)
 }
+
 func (cli *Client) MigrateQuery() migratetypes.QueryClient {
 	return migratetypes.NewQueryClient(cli.ClientConn)
 }

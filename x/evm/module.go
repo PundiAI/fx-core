@@ -16,9 +16,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/evm/keeper"
 )
 
-var (
-	_ module.AppModule = AppModule{}
-)
+var _ module.AppModule = AppModule{}
 
 // ____________________________________________________________________________
 

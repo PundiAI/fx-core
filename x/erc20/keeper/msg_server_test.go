@@ -20,13 +20,16 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 		expPass        bool
 		selfdestructed bool
 	}{
-		{"ok - sufficient funds",
+		{
+			"ok - sufficient funds",
 			100,
 			10,
 			func(common.Address) {},
 			true,
-			false},
-		{"ok - equal funds",
+			false,
+		},
+		{
+			"ok - equal funds",
 			10,
 			10,
 			func(common.Address) {},
@@ -46,12 +49,14 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 		//	true,
 		//	true,
 		//},
-		{"fail - insufficient funds",
+		{
+			"fail - insufficient funds",
 			0,
 			10,
 			func(common.Address) {},
 			false,
-			false},
+			false,
+		},
 		{
 			"fail - minting disabled",
 			100,
@@ -156,7 +161,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), msg)
 			suite.Require().NoError(err, tc.name)
 
-			//suite.Commit()
+			// suite.Commit()
 			balance := suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
@@ -271,7 +276,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 
 			tc.malleate(contractAddr)
 			suite.Require().NotNil(contractAddr)
-			//suite.Commit()
+			// suite.Commit()
 
 			suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(tc.mint))
 
@@ -356,7 +361,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			suite.Require().Equal(sdk.NewInt(tc.mint), cosmosBalance.Amount)
 
 			// Precondition: Mint escrow tokens on module account
-			//suite.GrantERC20Token(contractAddr, suite.signer.Address(), types.ModuleAddress, "MINTER_ROLE")
+			// suite.GrantERC20Token(contractAddr, suite.signer.Address(), types.ModuleAddress, "MINTER_ROLE")
 			erc20ModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(types.ModuleName).Bytes())
 			suite.MintERC20Token(contractAddr, suite.signer.Address(), erc20ModuleAddr, big.NewInt(tc.mint))
 			tokenBalance := suite.BalanceOf(contractAddr, erc20ModuleAddr)

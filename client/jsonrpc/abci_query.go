@@ -72,7 +72,7 @@ func (c *NodeRPC) GetGasPrices() (sdk.Coins, error) {
 	if err != nil {
 		return sdk.Coins{}, err
 	}
-	var response = new(gasprice.GetGasPriceResponse)
+	response := new(gasprice.GetGasPriceResponse)
 	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
 		return nil, err
 	}

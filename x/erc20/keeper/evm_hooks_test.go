@@ -69,7 +69,6 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 
 				// Burn the 10 tokens
 				suite.TransferERC20TokenToModule(contractAddr, suite.signer.Address(), big.NewInt(10))
-
 			},
 			false,
 		},
@@ -232,7 +231,6 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 
 				tokens, _ := transferEvent[0].(*big.Int)
 				suite.Require().Equal(cosmosBalance.Amount.String(), tokens.String())
-
 			},
 		},
 		{
@@ -385,7 +383,6 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 			suite.SetupTest() // reset
 
 			tc.test()
-
 		})
 	}
 }

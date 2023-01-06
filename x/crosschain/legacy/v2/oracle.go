@@ -11,7 +11,6 @@ import (
 )
 
 func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey, stakingKeeper StakingKeeper) (types.Oracles, sdk.ValAddress, error) {
-
 	validatorsByPower := stakingKeeper.GetBondedValidatorsByPower(ctx)
 	if len(validatorsByPower) <= 0 {
 		panic("no found bonded validator")

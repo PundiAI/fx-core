@@ -11,9 +11,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
-	var (
-		msg *types.MsgConfirmBatch
-	)
+	var msg *types.MsgConfirmBatch
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -138,7 +136,6 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 
 				err = suite.app.TronKeeper.StoreBatch(suite.ctx, newOutgoingTx)
 				suite.Require().NoError(err)
-
 			},
 			expPass: true,
 		},
@@ -161,9 +158,7 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 }
 
 func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
-	var (
-		msg *types.MsgOracleSetConfirm
-	)
+	var msg *types.MsgOracleSetConfirm
 	testCases := []struct {
 		name     string
 		malleate func()

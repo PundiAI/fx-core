@@ -97,8 +97,8 @@ func NewRootCmd() *cobra.Command {
 		flags.FlagChainID:        fxtypes.ChainId(),
 		flags.FlagKeyringBackend: keyring.BackendOS,
 		flags.FlagGas:            "100000",
-		//flags.FlagGas:            "auto",
-		//flags.FlagGasAdjustment:  "1.5",
+		// flags.FlagGas:            "auto",
+		// flags.FlagGasAdjustment:  "1.5",
 	})
 	return rootCmd
 }
@@ -254,8 +254,8 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 // appExport creates a new simapp (optionally at a given height)
 func (a appCreator) appExport(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
-
+	appOpts servertypes.AppOptions,
+) (servertypes.ExportedApp, error) {
 	var anApp *app.App
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {

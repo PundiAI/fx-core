@@ -42,9 +42,10 @@ func (suite *KeeperTestSuite) TestIsERC20Registered() {
 	}{
 		{"nil erc20 address", common.Address{}, func() {}, false},
 		{"valid erc20 address", pair.GetERC20Contract(), func() {}, true},
-		{"deleted erc20 map", pair.GetERC20Contract(), func() {
-			suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
-		}, false,
+		{
+			"deleted erc20 map", pair.GetERC20Contract(), func() {
+				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
+			}, false,
 		},
 	}
 	for _, tc := range testCases {
@@ -71,9 +72,10 @@ func (suite *KeeperTestSuite) TestIsDenomRegistered() {
 	}{
 		{"empty denom", "", func() {}, false},
 		{"valid denom", pair.GetDenom(), func() {}, true},
-		{"deleted denom map", pair.GetDenom(), func() {
-			suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
-		}, false,
+		{
+			"deleted denom map", pair.GetDenom(), func() {
+				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, pair)
+			}, false,
 		},
 	}
 	for _, tc := range testCases {

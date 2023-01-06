@@ -45,7 +45,6 @@ func BenchmarkMultipleParseEventLog(b *testing.B) {
 				complete := parseEventLogTest(logs, moduleAddr)
 				require.True(b, complete)
 			}
-
 		}
 	})
 

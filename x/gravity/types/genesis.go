@@ -10,10 +10,8 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
-var (
-	// Ensure that params implements the proper interface
-	_ paramtypes.ParamSet = &Params{}
-)
+// Ensure that params implements the proper interface
+var _ paramtypes.ParamSet = &Params{}
 
 func (m *Params) ValidateBasic() error {
 	if err := validateGravityID(m.GravityId); err != nil {
@@ -76,7 +74,7 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		ParamsStoreKeyContractHash = []byte("ContractHash")
 
 		// ParamsStoreKeyStartThreshold stores the start threshold
-		//ParamsStoreKeyStartThreshold = []byte("StartThreshold")
+		// ParamsStoreKeyStartThreshold = []byte("StartThreshold")
 
 		// ParamsStoreKeyBridgeContractAddress stores the contract address
 		ParamsStoreKeyBridgeContractAddress = []byte("BridgeContractAddress")
@@ -120,7 +118,7 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		// ParamStoreIbcTransferTimeoutHeight gravity and ibc transfer timeout height
 		ParamStoreIbcTransferTimeoutHeight = []byte("ParamStoreIbcTransferTimeoutHeight")
 
-		//ParamStoreValsetUpdatePowerChangePercent valset update pwer change percent
+		// ParamStoreValsetUpdatePowerChangePercent valset update pwer change percent
 		ParamStoreValsetUpdatePowerChangePercent = []byte("ParamStoreValsetUpdatePowerChangePercent")
 	)
 	return paramtypes.ParamSetPairs{

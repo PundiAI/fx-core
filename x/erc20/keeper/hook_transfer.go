@@ -36,7 +36,7 @@ func (h Hooks) HookTransferEvent(ctx sdk.Context, relayTransfers []types.RelayTr
 			return types.ErrUndefinedOwner
 		}
 
-		//sender receive relay amount
+		// sender receive relay amount
 		recipient := sdk.AccAddress(relay.From.Bytes())
 		if err := h.k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, coins); err != nil {
 			return err

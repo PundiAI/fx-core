@@ -26,7 +26,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Base)
 	}
 
-	//base not register as alias
+	// base not register as alias
 	if k.IsAliasDenomRegistered(ctx, coinMetadata.Base) {
 		return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", coinMetadata.Base)
 	}
@@ -172,7 +172,7 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 	newAliases := make([]string, 0, len(oldAliases)+1)
 
 	registeredDenom, found := k.GetAliasDenom(ctx, alias)
-	//check if the alias not register denom-alias
+	// check if the alias not register denom-alias
 	if !found {
 		newAliases = append(oldAliases, alias)
 		k.SetAliasesDenom(ctx, denom, alias)
@@ -189,7 +189,7 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 		}
 		k.DeleteAliasesDenom(ctx, alias)
 	} else {
-		//check if denom not equal alias registered denom, return error
+		// check if denom not equal alias registered denom, return error
 		return false, sdkerrors.Wrapf(types.ErrInvalidDenom,
 			"alias %s already registered, but denom expected: %s, actual: %s",
 			alias, registeredDenom, denom)

@@ -205,7 +205,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSet() {
 			Height:  uint64(i + 100),
 		})
 	}
-	var i = uint64(0)
+	i := uint64(0)
 	oracleSets := types.OracleSets{}
 	suite.Keeper().IterateOracleSetByNonce(suite.ctx, 0, func(oracleSet *types.OracleSet) bool {
 		i = i + 1

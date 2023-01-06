@@ -53,25 +53,25 @@ func GetMigrateAccountCmd() *cobra.Command {
 
 			ctx := context.Background()
 
-			//check migrate
+			// check migrate
 			queryClient := types.NewQueryClient(cliCtx)
 			if _, err := queryClient.MigrateCheckAccount(ctx, &types.QueryMigrateCheckAccountRequest{From: fromAddress.String(), To: hexAddress.String()}); err != nil {
 				return err
 			}
 
-			//convert coin
+			// convert coin
 			msgs, err := getConvertCoinMsg(cliCtx, ctx, fromAddress, toAddress)
 			if err != nil {
 				return err
 			}
 
-			//migrate account
+			// migrate account
 			msg, err := getMigrateAccountMsg(cliCtx, fromAddress, hexAddress)
 			if err != nil {
 				return err
 			}
 			msgs = append(msgs, msg)
-			//sign and broadcast tx
+			// sign and broadcast tx
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msgs...)
 		},
 	}
@@ -80,7 +80,7 @@ func GetMigrateAccountCmd() *cobra.Command {
 }
 
 func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.AccAddress) ([]sdk.Msg, error) {
-	//query balances
+	// query balances
 	bankClient := banktypes.NewQueryClient(cliCtx)
 	respBalances, err := bankClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{Address: from.String()})
 	if err != nil {
@@ -89,7 +89,7 @@ func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.
 	if len(respBalances.Balances) == 0 {
 		return nil, nil
 	}
-	//query pairs
+	// query pairs
 	erc20Client := erc20types.NewQueryClient(cliCtx)
 	respPairs, err := erc20Client.TokenPairs(ctx, &erc20types.QueryTokenPairsRequest{})
 	if err != nil {

@@ -274,7 +274,7 @@ func (suite *TestSuite) TestMigrateStoreByExportJson() {
 	suite.Equal(len(ctx.EventManager().Events()), 20)
 	oracles := v2.EthInitOracles(fxtypes.TestnetChainId)
 	for _, oracleAddr := range oracles {
-		var oracle = new(crosschaintypes.Oracle)
+		oracle := new(crosschaintypes.Oracle)
 		value := suite.ethStore.Get(crosschaintypes.GetOracleKey(sdk.MustAccAddressFromBech32(oracleAddr)))
 		suite.cdc.MustUnmarshal(value, oracle)
 		found := false
@@ -295,8 +295,7 @@ func (suite *TestSuite) TestMigrateStoreByExportJson() {
 	}
 }
 
-type testKeeper struct {
-}
+type testKeeper struct{}
 
 func (s testKeeper) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
 	return nil

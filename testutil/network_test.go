@@ -52,16 +52,16 @@ func (suite *IntegrationTestSuite) TestSuite() {
 	suite.Require().Equal(sdk.GetConfig().GetCoinType(), uint32(sdk.CoinType))
 
 	validator := suite.network.Validators[0]
-	//keyringDir := validator.ClientCtx.KeyringDir
-	//file, err := os.ReadFile(filepath.Join(keyringDir, "key_seed.json"))
-	//suite.Require().NoError(err)
+	// keyringDir := validator.ClientCtx.KeyringDir
+	// file, err := os.ReadFile(filepath.Join(keyringDir, "key_seed.json"))
+	// suite.Require().NoError(err)
 
-	//var data map[string]string
-	//err = json.Unmarshal(file, &data)
-	//suite.Require().NoError(err)
+	// var data map[string]string
+	// err = json.Unmarshal(file, &data)
+	// suite.Require().NoError(err)
 
 	mnemonic := suite.network.Config.Mnemonics[0]
-	//suite.Equal(mnemonic, data["secret"])
+	// suite.Equal(mnemonic, data["secret"])
 
 	info, err := validator.ClientCtx.Keyring.Key("node0")
 	suite.NoError(err)

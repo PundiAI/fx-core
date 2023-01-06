@@ -53,10 +53,8 @@ var (
 	ParamOracleDelegateMultiple = []byte("OracleDelegateMultiple")
 )
 
-var (
-	// Ensure that params implements the proper interface
-	_ paramtypes.ParamSet = &Params{}
-)
+// Ensure that params implements the proper interface
+var _ paramtypes.ParamSet = &Params{}
 
 func DefaultParams() Params {
 	return Params{

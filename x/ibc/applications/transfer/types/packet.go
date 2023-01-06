@@ -10,13 +10,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-var (
-	// DefaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
-	// relative to the current block timestamp of the counterparty chain provided by the client
-	// state. The timeout is disabled when set to 0. The default is currently set to a 12-hour
-	// timeout.
-	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(12) * time.Hour).Nanoseconds())
-)
+// DefaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
+// relative to the current block timestamp of the counterparty chain provided by the client
+// state. The timeout is disabled when set to 0. The default is currently set to a 12-hour
+// timeout.
+var DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(12) * time.Hour).Nanoseconds())
 
 // NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(denom, amount, sender, receiver, router string, fee string,

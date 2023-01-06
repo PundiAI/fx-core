@@ -22,7 +22,7 @@ type Keeper struct {
 	cdc codec.BinaryCodec
 	// Store key required for the Fee Market Prefix KVStore.
 	storeKey sdk.StoreKey
-	//account keeper
+	// account keeper
 	accountKeeper types.AccountKeeper
 	// Migrate handlers
 	migrateI []MigrateI

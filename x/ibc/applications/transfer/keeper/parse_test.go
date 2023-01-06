@@ -27,25 +27,46 @@ func TestParseReceiveAndAmountByPacket(t *testing.T) {
 		err     error
 		expect  expect
 	}{
-		{"no router - expect address is receive", types.FungibleTokenPacketData{Receiver: sdk.AccAddress("receive1").String(), Amount: "1", Fee: "0"}, true, nil,
+		{
+			"no router - expect address is receive",
+			types.FungibleTokenPacketData{Receiver: sdk.AccAddress("receive1").String(), Amount: "1", Fee: "0"},
+			true, nil,
 			expect{address: sdk.AccAddress("receive1"), amount: sdk.NewIntFromUint64(1), fee: sdk.NewIntFromUint64(0)},
 		},
-		{"no router - expect fee is 0, input 1", types.FungibleTokenPacketData{Receiver: sdk.AccAddress("receive1").String(), Amount: "1", Fee: "0"}, true, nil,
+		{
+			"no router - expect fee is 0, input 1",
+			types.FungibleTokenPacketData{Receiver: sdk.AccAddress("receive1").String(), Amount: "1", Fee: "0"},
+			true, nil,
 			expect{address: sdk.AccAddress("receive1"), amount: sdk.NewIntFromUint64(1), fee: sdk.NewIntFromUint64(0)},
 		},
-		{"router - expect address is sender", types.FungibleTokenPacketData{Sender: sdk.AccAddress("sender1").String(), Receiver: sdk.AccAddress("receive1").String(), Amount: "1", Fee: "0", Router: "erc20"}, true, nil,
+		{
+			"router - expect address is sender",
+			types.FungibleTokenPacketData{Sender: sdk.AccAddress("sender1").String(), Receiver: sdk.AccAddress("receive1").String(), Amount: "1", Fee: "0", Router: "erc20"},
+			true, nil,
 			expect{address: sdk.AccAddress("sender1"), amount: sdk.NewIntFromUint64(1), fee: sdk.NewIntFromUint64(0)},
 		},
-		{"router - expect fee is 1, input 1", types.FungibleTokenPacketData{Sender: sdk.AccAddress("sender1").String(), Receiver: sdk.AccAddress("receive1").String(), Amount: "1", Fee: "1", Router: "erc20"}, true, nil,
+		{
+			"router - expect fee is 1, input 1",
+			types.FungibleTokenPacketData{Sender: sdk.AccAddress("sender1").String(), Receiver: sdk.AccAddress("receive1").String(), Amount: "1", Fee: "1", Router: "erc20"},
+			true, nil,
 			expect{address: sdk.AccAddress("sender1"), amount: sdk.NewIntFromUint64(1), fee: sdk.NewIntFromUint64(1)},
 		},
-		{"router - expect address is sender, input eip address", types.FungibleTokenPacketData{Sender: "0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820", Receiver: "0xa5d890DA1b82B69383DbB5768B42138e0Ee435c8", Amount: "1", Fee: "1", Router: "erc20"}, true, nil,
+		{
+			"router - expect address is sender, input eip address",
+			types.FungibleTokenPacketData{Sender: "0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820", Receiver: "0xa5d890DA1b82B69383DbB5768B42138e0Ee435c8", Amount: "1", Fee: "1", Router: "erc20"},
+			true, nil,
 			expect{address: common.HexToAddress("0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820").Bytes(), amount: sdk.NewIntFromUint64(1), fee: sdk.NewIntFromUint64(1)},
 		},
-		{"router - expect address is sender, input eip address", types.FungibleTokenPacketData{Sender: "0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820", Receiver: "0xa5d890DA1b82B69383DbB5768B42138e0Ee435c8", Amount: "1", Fee: "1", Router: "erc20"}, true, nil,
+		{
+			"router - expect address is sender, input eip address",
+			types.FungibleTokenPacketData{Sender: "0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820", Receiver: "0xa5d890DA1b82B69383DbB5768B42138e0Ee435c8", Amount: "1", Fee: "1", Router: "erc20"},
+			true, nil,
 			expect{address: common.HexToAddress("0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820").Bytes(), amount: sdk.NewIntFromUint64(1), fee: sdk.NewIntFromUint64(1)},
 		},
-		{"error router - expect error, sender eip address is lowercase", types.FungibleTokenPacketData{Sender: "0x50194ffc34db0fb3de90a4ee75db66e868ad7820", Receiver: "0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820", Amount: "1", Fee: "1", Router: "erc20"}, false,
+		{
+			"error router - expect error, sender eip address is lowercase",
+			types.FungibleTokenPacketData{Sender: "0x50194ffc34db0fb3de90a4ee75db66e868ad7820", Receiver: "0x50194ffc34DB0fb3De90A4eE75dB66e868AD7820", Amount: "1", Fee: "1", Router: "erc20"},
+			false,
 			fmt.Errorf("decoding bech32 failed: invalid character not part of charset: 98"),
 			expect{address: []byte{}, amount: sdk.Int{}, fee: sdk.Int{}},
 		},

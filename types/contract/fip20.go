@@ -194,7 +194,6 @@ func (_FIP20 *FIP20TransactorRaw) Transact(opts *bind.TransactOpts, method strin
 func (_FIP20 *FIP20Caller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _FIP20.contract.Call(opts, &out, "allowance", owner, spender)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -202,7 +201,6 @@ func (_FIP20 *FIP20Caller) Allowance(opts *bind.CallOpts, owner common.Address, 
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -225,7 +223,6 @@ func (_FIP20 *FIP20CallerSession) Allowance(owner common.Address, spender common
 func (_FIP20 *FIP20Caller) BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _FIP20.contract.Call(opts, &out, "balanceOf", account)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -233,7 +230,6 @@ func (_FIP20 *FIP20Caller) BalanceOf(opts *bind.CallOpts, account common.Address
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -256,7 +252,6 @@ func (_FIP20 *FIP20CallerSession) BalanceOf(account common.Address) (*big.Int, e
 func (_FIP20 *FIP20Caller) Decimals(opts *bind.CallOpts) (uint8, error) {
 	var out []interface{}
 	err := _FIP20.contract.Call(opts, &out, "decimals")
-
 	if err != nil {
 		return *new(uint8), err
 	}
@@ -264,7 +259,6 @@ func (_FIP20 *FIP20Caller) Decimals(opts *bind.CallOpts) (uint8, error) {
 	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
 
 	return out0, err
-
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -287,7 +281,6 @@ func (_FIP20 *FIP20CallerSession) Decimals() (uint8, error) {
 func (_FIP20 *FIP20Caller) Module(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _FIP20.contract.Call(opts, &out, "module")
-
 	if err != nil {
 		return *new(common.Address), err
 	}
@@ -295,7 +288,6 @@ func (_FIP20 *FIP20Caller) Module(opts *bind.CallOpts) (common.Address, error) {
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
-
 }
 
 // Module is a free data retrieval call binding the contract method 0xb86d5298.
@@ -318,7 +310,6 @@ func (_FIP20 *FIP20CallerSession) Module() (common.Address, error) {
 func (_FIP20 *FIP20Caller) Name(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
 	err := _FIP20.contract.Call(opts, &out, "name")
-
 	if err != nil {
 		return *new(string), err
 	}
@@ -326,7 +317,6 @@ func (_FIP20 *FIP20Caller) Name(opts *bind.CallOpts) (string, error) {
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
-
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -349,7 +339,6 @@ func (_FIP20 *FIP20CallerSession) Name() (string, error) {
 func (_FIP20 *FIP20Caller) Owner(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _FIP20.contract.Call(opts, &out, "owner")
-
 	if err != nil {
 		return *new(common.Address), err
 	}
@@ -357,7 +346,6 @@ func (_FIP20 *FIP20Caller) Owner(opts *bind.CallOpts) (common.Address, error) {
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
-
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -380,7 +368,6 @@ func (_FIP20 *FIP20CallerSession) Owner() (common.Address, error) {
 func (_FIP20 *FIP20Caller) ProxiableUUID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
 	err := _FIP20.contract.Call(opts, &out, "proxiableUUID")
-
 	if err != nil {
 		return *new([32]byte), err
 	}
@@ -388,7 +375,6 @@ func (_FIP20 *FIP20Caller) ProxiableUUID(opts *bind.CallOpts) ([32]byte, error) 
 	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
 
 	return out0, err
-
 }
 
 // ProxiableUUID is a free data retrieval call binding the contract method 0x52d1902d.
@@ -411,7 +397,6 @@ func (_FIP20 *FIP20CallerSession) ProxiableUUID() ([32]byte, error) {
 func (_FIP20 *FIP20Caller) Symbol(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
 	err := _FIP20.contract.Call(opts, &out, "symbol")
-
 	if err != nil {
 		return *new(string), err
 	}
@@ -419,7 +404,6 @@ func (_FIP20 *FIP20Caller) Symbol(opts *bind.CallOpts) (string, error) {
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
-
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -442,7 +426,6 @@ func (_FIP20 *FIP20CallerSession) Symbol() (string, error) {
 func (_FIP20 *FIP20Caller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
 	err := _FIP20.contract.Call(opts, &out, "totalSupply")
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -450,7 +433,6 @@ func (_FIP20 *FIP20Caller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -776,7 +758,6 @@ type FIP20AdminChanged struct {
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_FIP20 *FIP20Filterer) FilterAdminChanged(opts *bind.FilterOpts) (*FIP20AdminChangedIterator, error) {
-
 	logs, sub, err := _FIP20.contract.FilterLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -788,7 +769,6 @@ func (_FIP20 *FIP20Filterer) FilterAdminChanged(opts *bind.FilterOpts) (*FIP20Ad
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_FIP20 *FIP20Filterer) WatchAdminChanged(opts *bind.WatchOpts, sink chan<- *FIP20AdminChanged) (event.Subscription, error) {
-
 	logs, sub, err := _FIP20.contract.WatchLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -912,7 +892,6 @@ type FIP20Approval struct {
 //
 // Solidity: event Approval(address indexed owner, address indexed spender, uint256 value)
 func (_FIP20 *FIP20Filterer) FilterApproval(opts *bind.FilterOpts, owner []common.Address, spender []common.Address) (*FIP20ApprovalIterator, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -933,7 +912,6 @@ func (_FIP20 *FIP20Filterer) FilterApproval(opts *bind.FilterOpts, owner []commo
 //
 // Solidity: event Approval(address indexed owner, address indexed spender, uint256 value)
 func (_FIP20 *FIP20Filterer) WatchApproval(opts *bind.WatchOpts, sink chan<- *FIP20Approval, owner []common.Address, spender []common.Address) (event.Subscription, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1064,7 +1042,6 @@ type FIP20BeaconUpgraded struct {
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_FIP20 *FIP20Filterer) FilterBeaconUpgraded(opts *bind.FilterOpts, beacon []common.Address) (*FIP20BeaconUpgradedIterator, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -1081,7 +1058,6 @@ func (_FIP20 *FIP20Filterer) FilterBeaconUpgraded(opts *bind.FilterOpts, beacon 
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_FIP20 *FIP20Filterer) WatchBeaconUpgraded(opts *bind.WatchOpts, sink chan<- *FIP20BeaconUpgraded, beacon []common.Address) (event.Subscription, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -1209,7 +1185,6 @@ type FIP20OwnershipTransferred struct {
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 func (_FIP20 *FIP20Filterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*FIP20OwnershipTransferredIterator, error) {
-
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
 		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
@@ -1230,7 +1205,6 @@ func (_FIP20 *FIP20Filterer) FilterOwnershipTransferred(opts *bind.FilterOpts, p
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 func (_FIP20 *FIP20Filterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *FIP20OwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
-
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
 		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
@@ -1363,7 +1337,6 @@ type FIP20Transfer struct {
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 value)
 func (_FIP20 *FIP20Filterer) FilterTransfer(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*FIP20TransferIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1384,7 +1357,6 @@ func (_FIP20 *FIP20Filterer) FilterTransfer(opts *bind.FilterOpts, from []common
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 value)
 func (_FIP20 *FIP20Filterer) WatchTransfer(opts *bind.WatchOpts, sink chan<- *FIP20Transfer, from []common.Address, to []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1519,7 +1491,6 @@ type FIP20TransferCrossChain struct {
 //
 // Solidity: event TransferCrossChain(address indexed from, string recipient, uint256 amount, uint256 fee, bytes32 target)
 func (_FIP20 *FIP20Filterer) FilterTransferCrossChain(opts *bind.FilterOpts, from []common.Address) (*FIP20TransferCrossChainIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1536,7 +1507,6 @@ func (_FIP20 *FIP20Filterer) FilterTransferCrossChain(opts *bind.FilterOpts, fro
 //
 // Solidity: event TransferCrossChain(address indexed from, string recipient, uint256 amount, uint256 fee, bytes32 target)
 func (_FIP20 *FIP20Filterer) WatchTransferCrossChain(opts *bind.WatchOpts, sink chan<- *FIP20TransferCrossChain, from []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1663,7 +1633,6 @@ type FIP20Upgraded struct {
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_FIP20 *FIP20Filterer) FilterUpgraded(opts *bind.FilterOpts, implementation []common.Address) (*FIP20UpgradedIterator, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)
@@ -1680,7 +1649,6 @@ func (_FIP20 *FIP20Filterer) FilterUpgraded(opts *bind.FilterOpts, implementatio
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_FIP20 *FIP20Filterer) WatchUpgraded(opts *bind.WatchOpts, sink chan<- *FIP20Upgraded, implementation []common.Address) (event.Subscription, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)

@@ -26,7 +26,8 @@ type BankKeeper interface {
 }
 
 func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper StakingKeeper, stakingMsgServer types.StakingMsgServer, bankKeeper BankKeeper,
-	oracles types.Oracles, delegateValAddr sdk.ValAddress) error {
+	oracles types.Oracles, delegateValAddr sdk.ValAddress,
+) error {
 	if moduleName != bsctypes.ModuleName && moduleName != polygontypes.ModuleName && moduleName != trontypes.ModuleName {
 		return fmt.Errorf("not support module name: %s", moduleName)
 	}
@@ -78,7 +79,7 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		if err != nil {
 			return err
 		}
-		//notice: Each delegate should be followed by an update of the validator `Tokens` and `DelegatorShares`
+		// notice: Each delegate should be followed by an update of the validator `Tokens` and `DelegatorShares`
 		validator, _ = validator.AddTokensFromDel(oracle.DelegateAmount)
 	}
 	return nil
