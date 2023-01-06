@@ -440,7 +440,7 @@ func migrateBridgeToken(gravityStore, ethStore sdk.KVStore) {
 	ethStore.Set(crosschaintypes.GetTokenToDenomKey(fxtypes.DefaultDenom), token)
 	ethStore.Set(crosschaintypes.GetDenomToTokenKey(string(token)), []byte(fxtypes.DefaultDenom))
 	gravityStore.Delete(append(types.DenomToERC20Key, []byte(fxtypes.DefaultDenom)...))
-	gravityStore.Delete(append(types.ERC20ToDenomKey, []byte(token)...))
+	gravityStore.Delete(append(types.ERC20ToDenomKey, token...))
 }
 
 func MigrateBridgeTokenFromMetadatas(metadatas []banktypes.Metadata, ethStore sdk.KVStore) {

@@ -16,7 +16,7 @@ import (
 
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	types "github.com/functionx/fx-core/v3/x/polygon/types"
+	"github.com/functionx/fx-core/v3/x/polygon/types"
 )
 
 // type check to ensure the interface is properly implemented

@@ -77,7 +77,7 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 }
 
 func TestMsgMigrateAccountGetSignBytes(t *testing.T) {
-	addr1 := sdk.AccAddress([]byte("input"))
+	addr1 := sdk.AccAddress("input")
 	addr2 := common.BytesToAddress([]byte("output"))
 	sign := "0x1"
 	msg := types.NewMsgMigrateAccount(addr1, addr2, sign)

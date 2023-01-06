@@ -23,7 +23,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
-var DefaultTestingAppInit func() (ibctesting.TestingApp, map[string]json.RawMessage) = helpers.SetupTestingApp
+var DefaultTestingAppInit = helpers.SetupTestingApp
 
 // SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts
 // that also act as delegators. For simplicity, each validator is bonded with a delegation

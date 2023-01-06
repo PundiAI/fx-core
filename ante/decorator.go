@@ -133,7 +133,7 @@ func signatureDataToBz(data signing.SignatureData) ([][]byte, error) {
 	case *signing.SingleSignatureData:
 		return [][]byte{data.Signature}, nil
 	case *signing.MultiSignatureData:
-		sigs := [][]byte{}
+		var sigs [][]byte
 		var err error
 
 		for _, d := range data.Signatures {

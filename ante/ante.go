@@ -42,7 +42,6 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		}
 
 		// handle as totally normal Cosmos SDK tx
-
 		switch tx.(type) {
 		case sdk.Tx:
 			anteHandler = newNormalTxAnteHandler(options)
@@ -72,8 +71,6 @@ func Recover(logger tmlog.Logger, err *error) {
 		}
 	}
 }
-
-var _ ante.SignatureVerificationGasConsumer = DefaultSigVerificationGasConsumer
 
 // DefaultSigVerificationGasConsumer is the default implementation of SignatureVerificationGasConsumer. It consumes gas
 // for signature verification based upon the public key type. The cost is fetched from the given params and is matched

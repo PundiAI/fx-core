@@ -2,7 +2,7 @@ package bsc
 
 import (
 	"encoding/json"
-	fmt "fmt"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"

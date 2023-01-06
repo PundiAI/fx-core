@@ -11,4 +11,5 @@ type MigrateHandler func(ctx sdk.Context, k Keeper, from sdk.AccAddress, to comm
 type MigrateI interface {
 	Validate(ctx sdk.Context, k Keeper, from sdk.AccAddress, to common.Address) error
 	Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to common.Address) error
+	// todo replace the parameter Keeper with codec
 }

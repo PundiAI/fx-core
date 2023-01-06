@@ -99,9 +99,9 @@ func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enabl
 
 	// Binary search the gas requirement, as it may be higher than the amount used
 	var (
-		lo  = ethparams.TxGas - 1
-		hi  uint64
-		cap uint64
+		lo     = ethparams.TxGas - 1
+		hi     uint64
+		gasCap uint64
 	)
 
 	// Determine the highest gas limit can be used during the estimation.
@@ -123,7 +123,7 @@ func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enabl
 	if req.GasCap != 0 && hi > req.GasCap {
 		hi = req.GasCap
 	}
-	cap = hi
+	gasCap = hi
 
 	cfg, err := k.EVMConfig(ctx)
 	if err != nil {
@@ -210,7 +210,7 @@ func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enabl
 	}
 
 	// Reject the transaction as invalid if it still fails at the highest allowance
-	if hi == cap {
+	if hi == gasCap {
 		failed, result, err := executable(hi)
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
@@ -223,7 +223,7 @@ func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enabl
 				return nil, status.Error(codes.Internal, result.VmError)
 			}
 			// Otherwise, the specified gas cap is too low
-			return nil, status.Error(codes.Internal, fmt.Sprintf("gas required exceeds allowance (%d)", cap))
+			return nil, status.Error(codes.Internal, fmt.Sprintf("gas required exceeds allowance (%d)", gasCap))
 		}
 	}
 	return &types.EstimateGasResponse{Gas: hi}, nil

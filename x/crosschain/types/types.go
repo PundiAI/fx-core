@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	math "math"
+	"math"
 	"math/big"
 	"sort"
 

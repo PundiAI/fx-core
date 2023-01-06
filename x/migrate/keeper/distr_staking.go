@@ -24,12 +24,12 @@ func NewDistrStakingMigrate(distrKey, stakingKey sdk.StoreKey, stakingKeeper typ
 	}
 }
 
-func (m *DistrStakingMigrate) Validate(ctx sdk.Context, k Keeper, from sdk.AccAddress, to common.Address) error {
+func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ Keeper, from sdk.AccAddress, to common.Address) error {
 	// check validator
 	if _, found := m.stakingKeeper.GetValidator(ctx, sdk.ValAddress(from)); found {
 		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", from.String())
 	}
-	if _, found := m.stakingKeeper.GetValidator(ctx, sdk.ValAddress(to.Bytes())); found {
+	if _, found := m.stakingKeeper.GetValidator(ctx, to.Bytes()); found {
 		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", to.String())
 	}
 	// check delegation

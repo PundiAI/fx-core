@@ -297,24 +297,24 @@ func (suite *TestSuite) TestMigrateStoreByExportJson() {
 
 type testKeeper struct{}
 
-func (s testKeeper) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
+func (s testKeeper) SendCoins(sdk.Context, sdk.AccAddress, sdk.AccAddress, sdk.Coins) error {
 	return nil
 }
 
-func (s testKeeper) SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error {
+func (s testKeeper) SendCoinsFromModuleToModule(sdk.Context, string, string, sdk.Coins) error {
 	return nil
 }
 
-func (s testKeeper) GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins {
+func (s testKeeper) GetAllBalances(sdk.Context, sdk.AccAddress) sdk.Coins {
 	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)))
 }
 
-func (s testKeeper) IterateAllDenomMetaData(ctx sdk.Context, cb func(banktypes.Metadata) bool) {}
+func (s testKeeper) IterateAllDenomMetaData(sdk.Context, func(banktypes.Metadata) bool) {}
 
-func (s testKeeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool) {
+func (s testKeeper) GetValidator(_ sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool) {
 	return stakingtypes.Validator{Jailed: false, Status: stakingtypes.Bonded, OperatorAddress: addr.String()}, true
 }
 
-func (s testKeeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdk.Int, tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool) (newShares sdk.Dec, err error) {
+func (s testKeeper) Delegate(sdk.Context, sdk.AccAddress, sdk.Int, stakingtypes.BondStatus, stakingtypes.Validator, bool) (newShares sdk.Dec, err error) {
 	return sdk.NewDec(1), nil
 }

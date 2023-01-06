@@ -9,7 +9,4 @@ const (
 
 	// RouterKey is the message route for IBC transfer
 	RouterKey = CompatibleModuleName
-
-	// QuerierRoute is the querier route for IBC transfer
-	QuerierRoute = CompatibleModuleName
 )
