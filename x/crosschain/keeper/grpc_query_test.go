@@ -20,6 +20,7 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -57,8 +58,8 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.app.CrosschainKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewInt(300*1e3).MulRaw(1e18))
+	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
+	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
 	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper())
 
 }

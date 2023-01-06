@@ -68,10 +68,10 @@ func (suite *MigrationTestSuite) SetupTest() {
 	suite.msgServer = crosschainkeeper.NewMsgServerImpl(suite.app.EthKeeper)
 
 	for _, addr := range v2.EthInitOracles(suite.ctx.ChainID()) {
-		helpers.AddTestAddr(suite.app, suite.ctx, sdk.MustAccAddressFromBech32(addr), sdk.NewInt(10_000).MulRaw(1e18))
+		helpers.AddTestAddr(suite.app, suite.ctx, sdk.MustAccAddressFromBech32(addr), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
 	}
 
-	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewInt(100).MulRaw(1e18))
+	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).MulRaw(1e18))))
 	suite.externals = helpers.CreateMultiECDSA(valNumber)
 	suite.Equal(len(suite.bridgerAddrs), len(valAccounts), valNumber)
 	suite.valAddrs = make([]sdk.ValAddress, len(suite.bridgerAddrs))

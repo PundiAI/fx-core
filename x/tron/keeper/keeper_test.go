@@ -81,8 +81,8 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), validator, genesisAccounts, balances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{})
 
-	suite.oracleAddressList = helpers.AddTestAddrsIncremental(suite.app, suite.ctx, 4, sdk.ZeroInt())
-	suite.orchestratorAddressList = helpers.AddTestAddrsIncremental(suite.app, suite.ctx, 4, sdk.ZeroInt())
+	suite.oracleAddressList = helpers.AddTestAddrsIncremental(suite.app, suite.ctx, 4, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())))
+	suite.orchestratorAddressList = helpers.AddTestAddrsIncremental(suite.app, suite.ctx, 4, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt())))
 
 	suite.app.TronKeeper.SetParams(suite.ctx, &types.Params{
 		GravityId:                         "tron",

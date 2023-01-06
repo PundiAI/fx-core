@@ -297,25 +297,23 @@ func createIncrementalAccounts(accNum int) []sdk.AccAddress {
 }
 
 // AddTestAddrs constructs and returns accNum amount of accounts with an initial balance of accAmt in random order
-func AddTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.AccAddress {
-	return addTestAddrs(myApp, ctx, accNum, accAmt, CreateRandomAccounts)
+func AddTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, coins sdk.Coins) []sdk.AccAddress {
+	return addTestAddrs(myApp, ctx, accNum, coins, CreateRandomAccounts)
 }
 
-func AddTestAddrsIncremental(myApp *app.App, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.AccAddress {
-	return addTestAddrs(myApp, ctx, accNum, accAmt, createIncrementalAccounts)
+func AddTestAddrsIncremental(myApp *app.App, ctx sdk.Context, accNum int, coins sdk.Coins) []sdk.AccAddress {
+	return addTestAddrs(myApp, ctx, accNum, coins, createIncrementalAccounts)
 }
 
-func addTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, accAmt sdk.Int, strategy func(int) []sdk.AccAddress) []sdk.AccAddress {
+func addTestAddrs(myApp *app.App, ctx sdk.Context, accNum int, coin sdk.Coins, strategy func(int) []sdk.AccAddress) []sdk.AccAddress {
 	testAddrs := strategy(accNum)
 	for _, addr := range testAddrs {
-		AddTestAddr(myApp, ctx, addr, accAmt)
+		AddTestAddr(myApp, ctx, addr, coin)
 	}
 	return testAddrs
 }
 
-func AddTestAddr(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, accAmt sdk.Int) {
-	coins := sdk.NewCoins(sdk.NewCoin(myApp.StakingKeeper.BondDenom(ctx), accAmt))
-
+func AddTestAddr(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
 	err := myApp.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins)
 	if err != nil {
 		panic(err)

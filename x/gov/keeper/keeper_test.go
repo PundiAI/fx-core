@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) addFundCommunityPool() {
 	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
 	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(5 * 1e8).MulRaw(1e18)}
-	helpers.AddTestAddr(suite.app, suite.ctx, sender, coin.Amount)
+	helpers.AddTestAddr(suite.app, suite.ctx, sender, sdk.NewCoins(coin))
 	err := suite.app.DistrKeeper.FundCommunityPool(suite.ctx, sdk.NewCoins(coin), sender)
 	suite.NoError(err)
 }
@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) addFundCommunityPool() {
 func (suite *KeeperTestSuite) newAddress() sdk.AccAddress {
 	address := sdk.AccAddress(helpers.GenerateAddress().Bytes())
 	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(50_000).MulRaw(1e18)}
-	helpers.AddTestAddr(suite.app, suite.ctx, address, coin.Amount)
+	helpers.AddTestAddr(suite.app, suite.ctx, address, sdk.NewCoins(coin))
 	return address
 }
 

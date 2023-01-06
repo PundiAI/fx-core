@@ -97,8 +97,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 		Height:  suite.app.LastBlockHeight() + 1,
 	})
 
-	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewInt(300*1e3).MulRaw(1e18))
-	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewInt(300*1e3).MulRaw(1e18))
+	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
+	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
 	suite.externals = helpers.CreateMultiECDSA(valNumber)
 
 	suite.validator = make([]sdk.ValAddress, valNumber)
