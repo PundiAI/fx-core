@@ -8,8 +8,6 @@ import (
 	"testing"
 	"time"
 
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -32,6 +30,7 @@ import (
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 type KeeperTestSuite struct {
@@ -122,7 +121,14 @@ func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
 }
 
 func (suite *KeeperTestSuite) DeployContract(from common.Address) (common.Address, error) {
-	return suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, from, "Test token", "TEST", 18)
+	contract, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
+	suite.Require().NoError(err)
+
+	_, err = suite.app.Erc20Keeper.CallEVM(suite.ctx, fxtypes.GetERC20().ABI, suite.app.Erc20Keeper.ModuleAddress(), contract, true, "transferOwnership", from)
+	if err != nil {
+		return common.Address{}, err
+	}
+	return contract, nil
 }
 
 func (suite *KeeperTestSuite) DeployFXRelayToken() (types.TokenPair, banktypes.Metadata) {
