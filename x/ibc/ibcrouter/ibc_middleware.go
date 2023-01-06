@@ -120,23 +120,6 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	var data fxtransfertypes.FungibleTokenPacketData
-	if err := fxtransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		im.Logger(ctx).Error("ibcrouter middleware OnAcknowledgementPacket error parsing packet data from ack packet",
-			"sequence", packet.Sequence,
-			"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-			"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-			"error", err,
-		)
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-	}
-
-	im.Logger(ctx).Debug("ibcrouter middleware OnAcknowledgementPacket",
-		"sequence", packet.Sequence,
-		"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-		"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-		"amount", data.Amount, "denom", data.Denom, "router", data.Router, "fee", data.Fee, "memo", data.Memo,
-	)
 	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
@@ -145,23 +128,6 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	var data fxtransfertypes.FungibleTokenPacketData
-	if err := fxtransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		im.Logger(ctx).Error("ibcrouter middleware OnTimeoutPacket error parsing packet data from ack packet",
-			"sequence", packet.Sequence,
-			"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-			"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-			"error", err,
-		)
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
-	}
-
-	im.Logger(ctx).Debug("ibcrouter middleware OnTimeoutPacket",
-		"sequence", packet.Sequence,
-		"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-		"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-		"amount", data.Amount, "denom", data.Denom, "router", data.Router, "fee", data.Fee, "memo", data.Memo,
-	)
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
@@ -214,12 +180,6 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet chan
 
 		// send tokens to destination
 		if _, err = im.transferKeeper.Transfer(sdk.WrapSDKContext(ctx), msgTransfer); err != nil {
-			im.Logger(ctx).Error("ibcrouter middleware ForwardTransferPacket error",
-				"port", msgTransfer.SourcePort, "channel", msgTransfer.SourceChannel,
-				"sender", msgTransfer.Sender, "receiver", msgTransfer.Receiver,
-				"amount", msgTransfer.Token.Amount.String(), "denom", msgTransfer.Token.Denom, "memo", msgTransfer.Memo,
-				"error", err,
-			)
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
 		}
 	}
