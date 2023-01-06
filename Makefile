@@ -154,7 +154,10 @@ format:
 
 test:
 	@echo "--> Running tests"
-	go test -mod=readonly $(ARGS) $(shell go list ./...)
+	go test -mod=readonly ./...
+
+test-count:
+	go test -mod=readonly -count 1 ./...
 
 .PHONY: test
 
