@@ -90,7 +90,7 @@ func TestMigrateParams(t *testing.T) {
 				ConsensusParams: helpers.DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
 			})
-			ctx := myApp.BaseApp.NewContext(false, tmproto.Header{Time: time.Now()})
+			ctx := myApp.NewContext(false, tmproto.Header{Time: time.Now()})
 
 			paramsKey := myApp.GetKey(paramstypes.ModuleName)
 			paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(tt.args.moduleName), '/'))

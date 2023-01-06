@@ -48,7 +48,7 @@ func TestAnteTestSuite(t *testing.T) {
 //}
 
 func (suite *AnteTestSuite) GetContext(height int64) sdk.Context {
-	ctx := suite.app.BaseApp.NewContext(false, tmproto.Header{Height: height, ChainID: suite.chainId, ProposerAddress: suite.consAddress, Time: time.Now().UTC()})
+	ctx := suite.app.NewContext(false, tmproto.Header{Height: height, ChainID: suite.chainId, ProposerAddress: suite.consAddress, Time: time.Now().UTC()})
 	context, _ := ctx.CacheContext()
 	return context
 }

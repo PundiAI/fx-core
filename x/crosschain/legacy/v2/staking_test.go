@@ -70,7 +70,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 			valSet, genAccs, balances := helpers.GenerateGenesisValidator(20, nil)
 			myApp := helpers.SetupWithGenesisValSet(t, valSet, genAccs, balances...)
 
-			ctx := myApp.BaseApp.NewContext(false, tmproto.Header{Time: time.Now()})
+			ctx := myApp.NewContext(false, tmproto.Header{Time: time.Now()})
 			validators := myApp.StakingKeeper.GetBondedValidatorsByPower(ctx)
 			require.Equal(t, len(validators), 20)
 			delegatorValidator := validators[0]

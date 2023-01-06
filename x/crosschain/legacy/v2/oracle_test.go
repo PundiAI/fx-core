@@ -100,7 +100,7 @@ func TestMigrateOracle(t *testing.T) {
 
 			valSet, genAccs, balances := helpers.GenerateGenesisValidator(50, nil)
 			myApp := helpers.SetupWithGenesisValSet(t, valSet, genAccs, balances...)
-			ctx := myApp.BaseApp.NewContext(false, tmproto.Header{Time: time.Now()})
+			ctx := myApp.NewContext(false, tmproto.Header{Time: time.Now()})
 
 			storeKey := myApp.GetKey(tt.args.moduleName)
 			store := ctx.KVStore(storeKey)

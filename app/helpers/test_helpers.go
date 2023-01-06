@@ -350,7 +350,7 @@ func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
 
 // CheckBalance checks the balance of an account.
 func CheckBalance(t *testing.T, myApp *app.App, addr sdk.AccAddress, balances sdk.Coins) {
-	ctxCheck := myApp.BaseApp.NewContext(true, tmproto.Header{})
+	ctxCheck := myApp.NewContext(true, tmproto.Header{})
 	require.True(t, balances.IsEqual(myApp.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
 

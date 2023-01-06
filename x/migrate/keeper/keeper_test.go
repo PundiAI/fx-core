@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(3, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), validator, genesisAccounts, balances...)
 
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: validator.Validators[0].Address, Time: time.Now().UTC()})
+	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: validator.Validators[0].Address, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
@@ -81,7 +81,7 @@ func (suite *KeeperTestSuite) Commit() {
 	})
 
 	// update ctx
-	suite.ctx = suite.app.BaseApp.NewContext(false, header)
+	suite.ctx = suite.app.NewContext(false, header)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	migratetypes.RegisterQueryServer(queryHelper, suite.app.MigrateKeeper)
