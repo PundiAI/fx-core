@@ -63,6 +63,11 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
+// ModuleAddress return erc20 module address
+func (k Keeper) ModuleAddress() common.Address {
+	return k.moduleAddress
+}
+
 func (k Keeper) SetRouter(rtr fxtypes.Router) Keeper {
 	if k.router != nil && k.router.Sealed() {
 		panic("cannot reset a sealed router")
