@@ -18,7 +18,6 @@ func TestUpgradeStateOnGenesis(t *testing.T) {
 	modules := myApp.GetModules()
 	require.Equal(t, len(vm), len(modules))
 	for k, module := range modules {
-		t.Log(module.Name(), module.ConsensusVersion())
 		require.Equal(t, k, module.Name())
 		require.Equal(t, vm[module.Name()], module.ConsensusVersion())
 	}

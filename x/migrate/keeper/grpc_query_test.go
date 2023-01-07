@@ -550,8 +550,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				// suite.T().Log(err)
+				suite.Require().Error(err, err)
 			}
 		})
 	}

@@ -693,8 +693,6 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 			res, err := suite.Keeper().BatchFees(sdk.WrapSDKContext(suite.ctx), request)
 			if testCase.expPass {
 				suite.Require().NoError(err)
-				suite.T().Log(response.BatchFees)
-				suite.T().Log(res.BatchFees)
 				suite.Require().ElementsMatch(response.BatchFees, res.BatchFees)
 			} else {
 				suite.Require().Error(err)

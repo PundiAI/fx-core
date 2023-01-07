@@ -117,7 +117,6 @@ func TestResetExportGenesisValidator(t *testing.T) {
 	slashingGenesisState := new(slashingtypes.GenesisState)
 	cdc.MustUnmarshalJSON(appState[slashingtypes.ModuleName], slashingGenesisState)
 
-	t.Log(sdk.ConsAddress(validatorConsAddress).String())
 	for i := 0; i < len(slashingGenesisState.SigningInfos); i++ {
 		if slashingGenesisState.SigningInfos[i].Address == sdk.ConsAddress(validatorConsAddress).String() {
 			slashingGenesisState.SigningInfos[i].Address = sdk.ConsAddress(pvKey.Address.Bytes()).String()

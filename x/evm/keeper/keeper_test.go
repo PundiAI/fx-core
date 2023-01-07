@@ -203,8 +203,7 @@ func (suite *KeeperTestSuite) TestCallEVMWithData() {
 			if tc.expPass {
 				suite.NoError(err)
 			} else {
-				suite.T().Log(err)
-				suite.Error(err)
+				suite.Error(err, err)
 			}
 		})
 	}
