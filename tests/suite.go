@@ -6,7 +6,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -20,6 +19,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/proto/tendermint/types"
+	tmclient "github.com/tendermint/tendermint/rpc/client"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/client/grpc"
@@ -49,6 +49,33 @@ func NewTestSuite() *TestSuite {
 	return testSuite
 }
 
+func (suite *TestSuite) SetupSuite() {
+	if !suite.useLocalNetwork {
+		return
+	}
+	suite.T().Log("setting up integration test suite")
+
+	cfg := testutil.DefaultNetworkConfig()
+	cfg.NumValidators = 1
+	//cfg.EnableTMLogging = true
+
+	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
+	suite.Require().NoError(err)
+	suite.network, err = network.New(suite.T(), baseDir, cfg)
+	suite.Require().NoError(err)
+}
+
+func (suite *TestSuite) TearDownSuite() {
+	if !suite.useLocalNetwork {
+		return
+	}
+	suite.T().Log("tearing down integration test suite")
+
+	// This is important and must be called to ensure other tests can create
+	// a network!
+	suite.network.Cleanup()
+}
+
 func (suite *TestSuite) WithNetwork(network *network.Network) {
 	suite.network = network
 }
@@ -68,34 +95,6 @@ func (suite *TestSuite) IsUseLocalNetwork() bool {
 func (suite *TestSuite) getNextProposalId() uint64 {
 	suite.proposalId = suite.proposalId + 1
 	return suite.proposalId
-}
-
-func (suite *TestSuite) SetupSuite() {
-	if !suite.useLocalNetwork {
-		return
-	}
-	suite.T().Log("setting up integration test suite")
-
-	cfg := testutil.DefaultNetworkConfig()
-	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
-	cfg.NumValidators = 1
-	cfg.VotingPeriod = 100 * time.Nanosecond
-
-	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
-	suite.Require().NoError(err)
-	suite.network, err = network.New(suite.T(), baseDir, cfg)
-	suite.Require().NoError(err)
-}
-
-func (suite *TestSuite) TearDownSuite() {
-	if !suite.useLocalNetwork {
-		return
-	}
-	suite.T().Log("tearing down integration test suite")
-
-	// This is important and must be called to ensure other tests can create
-	// a network!
-	suite.network.Cleanup()
 }
 
 func (suite *TestSuite) GetFirstValidtor() *network.Validator {
@@ -129,6 +128,10 @@ func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
 	return rpc
 }
 
+func (suite *TestSuite) ValNodeClient() tmclient.Client {
+	return suite.GetFirstValidtor().RPCClient
+}
+
 func (suite *TestSuite) GetFirstValiAddr() sdk.ValAddress {
 	return suite.GetFirstValiPrivKey().PubKey().Address().Bytes()
 }
@@ -139,6 +142,12 @@ func (suite *TestSuite) GetStakingDenom() string {
 
 func (suite *TestSuite) NewCoin(amount sdk.Int) sdk.Coin {
 	return sdk.NewCoin(suite.GetStakingDenom(), amount)
+}
+
+func (suite *TestSuite) GetMetadata(denom string) banktypes.Metadata {
+	response, err := suite.GRPCClient().BankQuery().DenomMetadata(suite.ctx, &banktypes.QueryDenomMetadataRequest{Denom: denom})
+	suite.NoError(err)
+	return response.Metadata
 }
 
 func (suite *TestSuite) BlockNumber() int64 {
@@ -170,7 +179,9 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	suite.NoError(err)
 	suite.True(balances.AmountOf(suite.GetStakingDenom()).GT(sdk.NewInt(2).MulRaw(1e18)))
 
-	grpcClient.WithGasPrices(sdk.NewCoins(sdk.NewCoin(suite.GetStakingDenom(), sdk.NewInt(4_000).MulRaw(1e9))))
+	gasPrices, err := sdk.ParseCoinsNormalized(suite.network.Config.MinGasPrices)
+	suite.NoError(err)
+	grpcClient.WithGasPrices(gasPrices)
 	txRaw, err := grpcClient.BuildTxV2(privKey, msgList, 500000, "", 0)
 	suite.NoError(err)
 
@@ -178,20 +189,20 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	suite.NoError(err)
 	// txResponse might be nil, but error is also nil
 	suite.NotNil(txResponse)
+	suite.T().Log("broadcast tx", "msg:", sdk.MsgTypeURL(msgList[0]), "txHash:", txResponse.TxHash)
 	return txResponse
 }
 
-func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content) (proposalId uint64) {
-	proposal, err := govtypes.NewMsgSubmitProposal(
+func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content, expectedStatus ...govtypes.ProposalStatus) (*sdk.TxResponse, uint64) {
+	proposalMsg, err := govtypes.NewMsgSubmitProposal(
 		content,
 		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
 		suite.GetFirstValiAddr().Bytes(),
 	)
 	suite.NoError(err)
-	proposalId = suite.getNextProposalId()
+	proposalId := suite.getNextProposalId()
 	voteMsg := govtypes.NewMsgVote(suite.GetFirstValiAddr().Bytes(), proposalId, govtypes.OptionYes)
-	txResponse := suite.BroadcastTx(suite.GetFirstValiPrivKey(), proposal, voteMsg)
-	suite.T().Log("proposal submit txHash", txResponse.TxHash, txResponse.RawLog)
+	txResponse := suite.BroadcastTx(suite.GetFirstValiPrivKey(), proposalMsg, voteMsg)
 	for _, log := range txResponse.Logs {
 		for _, event := range log.Events {
 			if event.Type != "proposal_deposit" {
@@ -208,10 +219,17 @@ func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content) (proposalI
 			}
 		}
 	}
-	return proposalId
+	_, err = suite.network.WaitForHeight(txResponse.Height + 2)
+	suite.NoError(err)
+	status := govtypes.StatusPassed
+	if len(expectedStatus) > 0 {
+		status = expectedStatus[0]
+	}
+	suite.CheckProposal(proposalId, status)
+	return txResponse, proposalId
 }
 
-func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) {
+func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) *sdk.TxResponse {
 	valAddr := sdk.ValAddress(valPriv.PubKey().Address())
 	selfDelegate := sdk.NewCoin(suite.GetStakingDenom(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100)))
 	minSelfDelegate := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1))
@@ -230,8 +248,7 @@ func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) {
 	ed25519PrivKey := ed25519.GenPrivKeyFromSecret(valAddr.Bytes())
 	msg, err := stakingtypes.NewMsgCreateValidator(valAddr, ed25519PrivKey.PubKey(), selfDelegate, description, rates, minSelfDelegate)
 	suite.NoError(err)
-	txResponse := suite.BroadcastTx(valPriv, msg)
-	suite.T().Log("create validator txHash", txResponse.TxHash)
+	return suite.BroadcastTx(valPriv, msg)
 }
 
 func (suite *TestSuite) QueryValidatorByToken() sdk.ValAddress {
@@ -247,13 +264,14 @@ func (suite *TestSuite) QueryValidatorByToken() sdk.ValAddress {
 	return valAddr
 }
 
-func (suite *TestSuite) Send(toAddress sdk.AccAddress, amount sdk.Coin) {
-	suite.SendFrom(suite.GetFirstValiPrivKey(), toAddress, amount)
+func (suite *TestSuite) Send(toAddress sdk.AccAddress, amount sdk.Coin) *sdk.TxResponse {
+	return suite.SendFrom(suite.GetFirstValiPrivKey(), toAddress, amount)
 }
 
-func (suite *TestSuite) SendFrom(priv cryptotypes.PrivKey, toAddress sdk.AccAddress, amount sdk.Coin) {
+func (suite *TestSuite) SendFrom(priv cryptotypes.PrivKey, toAddress sdk.AccAddress, amount sdk.Coin) *sdk.TxResponse {
 	txResponse := suite.BroadcastTx(priv, banktypes.NewMsgSend(priv.PubKey().Address().Bytes(), toAddress, sdk.NewCoins(amount)))
-	suite.T().Log("send txHash", txResponse.TxHash)
+	suite.True(txResponse.GasUsed < 100_000, txResponse.GasUsed)
+	return txResponse
 }
 
 func (suite *TestSuite) QueryBalances(accAddress sdk.AccAddress) sdk.Coins {
@@ -268,10 +286,9 @@ func (suite *TestSuite) CheckBalance(accAddress sdk.AccAddress, balance sdk.Coin
 	suite.Equal(queryBalance.String(), balance.String())
 }
 
-func (suite *TestSuite) SetWithdrawAddr(priv cryptotypes.PrivKey, withdrawAddr sdk.AccAddress) {
+func (suite *TestSuite) SetWithdrawAddr(priv cryptotypes.PrivKey, withdrawAddr sdk.AccAddress) *sdk.TxResponse {
 	fromAddr := sdk.AccAddress(priv.PubKey().Address().Bytes())
-	txResponse := suite.BroadcastTx(priv, distritypes.NewMsgSetWithdrawAddress(fromAddr, withdrawAddr))
-	suite.T().Log("set withdraw txHash", txResponse.TxHash)
+	return suite.BroadcastTx(priv, distritypes.NewMsgSetWithdrawAddress(fromAddr, withdrawAddr))
 }
 
 func (suite *TestSuite) CheckWithdrawAddr(delegatorAddr, withdrawAddr sdk.AccAddress) {
@@ -282,9 +299,8 @@ func (suite *TestSuite) CheckWithdrawAddr(delegatorAddr, withdrawAddr sdk.AccAdd
 	suite.Equal(withdrawAddressResp.WithdrawAddress, withdrawAddr.String())
 }
 
-func (suite *TestSuite) Delegate(priv cryptotypes.PrivKey, valAddress sdk.ValAddress, amount sdk.Coin) {
-	txResponse := suite.BroadcastTx(priv, stakingtypes.NewMsgDelegate(priv.PubKey().Address().Bytes(), valAddress, amount))
-	suite.T().Log("delegate txHash", txResponse.TxHash)
+func (suite *TestSuite) Delegate(priv cryptotypes.PrivKey, valAddress sdk.ValAddress, amount sdk.Coin) *sdk.TxResponse {
+	return suite.BroadcastTx(priv, stakingtypes.NewMsgDelegate(priv.PubKey().Address().Bytes(), valAddress, amount))
 }
 
 func (suite *TestSuite) CheckDelegate(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, delegation sdk.Coin) {
@@ -300,12 +316,11 @@ func (suite *TestSuite) CheckDelegate(delegatorAddr sdk.AccAddress, validatorAdd
 	}
 }
 
-func (suite *TestSuite) WithdrawReward(priv cryptotypes.PrivKey, valAddress sdk.ValAddress) {
-	txResponse := suite.BroadcastTx(priv, distritypes.NewMsgWithdrawDelegatorReward(priv.PubKey().Address().Bytes(), valAddress))
-	suite.T().Log("withdraw reward txHash", txResponse.TxHash)
+func (suite *TestSuite) WithdrawReward(priv cryptotypes.PrivKey, valAddress sdk.ValAddress) *sdk.TxResponse {
+	return suite.BroadcastTx(priv, distritypes.NewMsgWithdrawDelegatorReward(priv.PubKey().Address().Bytes(), valAddress))
 }
 
-func (suite *TestSuite) Undelegate(priv cryptotypes.PrivKey, valAddress sdk.ValAddress, amount sdk.Coin) string {
+func (suite *TestSuite) Undelegate(priv cryptotypes.PrivKey, valAddress sdk.ValAddress, amount sdk.Coin) *sdk.TxResponse {
 	if amount.IsZero() {
 		delegation, err := suite.GRPCClient().StakingQuery().Delegation(suite.ctx, &stakingtypes.QueryDelegationRequest{
 			DelegatorAddr: sdk.AccAddress(priv.PubKey().Address().Bytes()).String(),
@@ -314,9 +329,7 @@ func (suite *TestSuite) Undelegate(priv cryptotypes.PrivKey, valAddress sdk.ValA
 		suite.NoError(err)
 		amount = delegation.DelegationResponse.Balance
 	}
-	txResponse := suite.BroadcastTx(priv, stakingtypes.NewMsgUndelegate(priv.PubKey().Address().Bytes(), valAddress, amount))
-	suite.T().Log("undelegate txHash", txResponse.TxHash)
-	return txResponse.TxHash
+	return suite.BroadcastTx(priv, stakingtypes.NewMsgUndelegate(priv.PubKey().Address().Bytes(), valAddress, amount))
 }
 
 func (suite *TestSuite) CheckUndelegate(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, entries ...stakingtypes.UnbondingDelegationEntry) {
@@ -325,10 +338,13 @@ func (suite *TestSuite) CheckUndelegate(delegatorAddr sdk.AccAddress, validatorA
 		ValidatorAddr: validatorAddr.String(),
 	})
 	suite.NoError(err)
-	suite.T().Log(undelegationResp.Unbond.Entries)
+	suite.Equal(len(undelegationResp.Unbond.Entries), len(entries))
+	for i, entry := range undelegationResp.Unbond.Entries {
+		suite.Equal(entry.String(), entries[i].String())
+	}
 }
 
-func (suite *TestSuite) Redelegate(priv cryptotypes.PrivKey, valSrc, valDest sdk.ValAddress, all bool) {
+func (suite *TestSuite) Redelegate(priv cryptotypes.PrivKey, valSrc, valDest sdk.ValAddress, all bool) *sdk.TxResponse {
 	amt := sdk.NewInt(1)
 	if all {
 		delegation, err := suite.GRPCClient().StakingQuery().Delegation(suite.ctx, &stakingtypes.QueryDelegationRequest{
@@ -339,14 +355,20 @@ func (suite *TestSuite) Redelegate(priv cryptotypes.PrivKey, valSrc, valDest sdk
 		amt = delegation.DelegationResponse.Balance.Amount
 	}
 	msg := stakingtypes.NewMsgBeginRedelegate(priv.PubKey().Address().Bytes(), valSrc, valDest, sdk.NewCoin(suite.GetStakingDenom(), amt))
-	txResponse := suite.BroadcastTx(priv, msg)
-	suite.T().Log("redelegate txHash", txResponse.TxHash)
+	return suite.BroadcastTx(priv, msg)
 }
 
-func (suite *TestSuite) CheckRedelegate(delegatorAddr sdk.AccAddress, entries []stakingtypes.RedelegationResponses) {
+func (suite *TestSuite) CheckRedelegate(delegatorAddr sdk.AccAddress, redelegationResponses stakingtypes.RedelegationResponses) {
 	redelegationResp, err := suite.GRPCClient().StakingQuery().Redelegations(suite.ctx, &stakingtypes.QueryRedelegationsRequest{DelegatorAddr: delegatorAddr.String()})
 	suite.NoError(err)
-	suite.T().Log(redelegationResp.RedelegationResponses)
+	suite.Equal(len(redelegationResp.RedelegationResponses), len(redelegationResponses))
+	for i, item := range redelegationResp.RedelegationResponses {
+		suite.Equal(item.Redelegation.String(), redelegationResponses[i].Redelegation.String())
+		for j, entry := range item.Entries {
+			suite.Equal(entry.RedelegationEntry.String(), redelegationResponses[i].Entries[j].RedelegationEntry.String())
+			suite.Equal(entry.Balance.String(), redelegationResponses[i].Entries[j].Balance.String())
+		}
+	}
 }
 
 func (suite *TestSuite) CheckProposals(depositor sdk.AccAddress) govtypes.Proposals {
@@ -358,9 +380,8 @@ func (suite *TestSuite) CheckProposals(depositor sdk.AccAddress) govtypes.Propos
 	return proposalsResp.Proposals
 }
 
-func (suite *TestSuite) ProposalDeposit(priv cryptotypes.PrivKey, proposalID uint64, amount sdk.Coin) {
-	txResponse := suite.BroadcastTx(priv, govtypes.NewMsgDeposit(priv.PubKey().Address().Bytes(), proposalID, sdk.NewCoins(amount)))
-	suite.T().Log("proposal deposit txHash", txResponse.TxHash)
+func (suite *TestSuite) ProposalDeposit(priv cryptotypes.PrivKey, proposalID uint64, amount sdk.Coin) *sdk.TxResponse {
+	return suite.BroadcastTx(priv, govtypes.NewMsgDeposit(priv.PubKey().Address().Bytes(), proposalID, sdk.NewCoins(amount)))
 }
 
 func (suite *TestSuite) CheckDeposit(proposalId uint64, depositor sdk.AccAddress, amount sdk.Coin) {
@@ -372,9 +393,8 @@ func (suite *TestSuite) CheckDeposit(proposalId uint64, depositor sdk.AccAddress
 	suite.Equal(depositResp.Deposit.Amount, amount)
 }
 
-func (suite *TestSuite) ProposalVote(priv cryptotypes.PrivKey, proposalID uint64, option govtypes.VoteOption) {
-	txResponse := suite.BroadcastTx(priv, govtypes.NewMsgVote(priv.PubKey().Address().Bytes(), proposalID, option))
-	suite.T().Log("proposal vote txHash", txResponse.TxHash)
+func (suite *TestSuite) ProposalVote(priv cryptotypes.PrivKey, proposalID uint64, option govtypes.VoteOption) *sdk.TxResponse {
+	return suite.BroadcastTx(priv, govtypes.NewMsgVote(priv.PubKey().Address().Bytes(), proposalID, option))
 }
 
 func (suite *TestSuite) CheckProposal(proposalId uint64, status govtypes.ProposalStatus) govtypes.Proposal {

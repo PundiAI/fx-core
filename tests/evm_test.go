@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/tendermint/tendermint/libs/json"
 )
 
 func (suite *IntegrationTest) EVMWeb3Test() {
@@ -160,8 +159,8 @@ func (suite *IntegrationTest) EVMWeb3Test() {
 			results := method.Func.Call(params)
 			for i := 0; i < len(results); i++ {
 				if i == 0 && tt.wantRes[i] == nil {
-					marshal, _ := json.Marshal(results[i].Interface())
-					suite.T().Log(i, tt.funcName, string(marshal))
+					//marshal, _ := json.Marshal(results[i].Interface())
+					//suite.T().Log(i, tt.name, string(marshal))
 					continue
 				}
 				suite.EqualValues(

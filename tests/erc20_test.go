@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
@@ -21,21 +20,17 @@ func (suite *IntegrationTest) ERC20Test() {
 			aliases = append(aliases, bridgeToken.Denom)
 		}
 	}
-	suite.erc20.metadata.DenomUnits[0].Aliases = aliases
-	suite.T().Log(suite.erc20.metadata.DenomUnits[0].Aliases)
+	suite.erc20.DenomUnits[0].Aliases = aliases
 
-	proposalId := suite.erc20.RegisterCoinProposal(suite.erc20.metadata)
-	suite.NoError(suite.network.WaitForNextBlock())
-	suite.CheckProposal(proposalId, govtypes.StatusPassed)
+	suite.erc20.RegisterCoinProposal(suite.erc20.Metadata)
 
-	suite.erc20.CheckRegisterCoin(suite.erc20.metadata.Base)
+	suite.erc20.CheckRegisterCoin(suite.erc20.Base)
 
-	denom := suite.erc20.metadata.Base
+	denom := suite.erc20.Base
 	tokenPair := suite.erc20.TokenPair(denom)
 	suite.Equal(tokenPair.Denom, denom)
 	suite.Equal(tokenPair.Enabled, true)
 	suite.Equal(tokenPair.ContractOwner, erc20types.OWNER_MODULE)
-	suite.T().Log("token pair", tokenPair.String())
 
 	for i, chain := range suite.crosschain {
 		bridgeToken := chain.GetBridgeTokens()[0]
@@ -81,9 +76,7 @@ func (suite *IntegrationTest) ERC20Test() {
 
 		if i < len(suite.crosschain)-1 {
 			// remove proposal
-			proposalId := suite.erc20.UpdateDenomAliasProposal(denom, bridgeToken.Denom)
-			suite.NoError(suite.network.WaitForNextBlock())
-			suite.CheckProposal(proposalId, govtypes.StatusPassed)
+			suite.erc20.UpdateDenomAliasProposal(denom, bridgeToken.Denom)
 
 			// check remove
 			response, err := suite.erc20.ERC20Query().DenomAliases(suite.ctx, &erc20types.QueryDenomAliasesRequest{Denom: denom})
@@ -95,9 +88,7 @@ func (suite *IntegrationTest) ERC20Test() {
 		}
 	}
 
-	proposalId = suite.erc20.ToggleTokenConversionProposal(denom)
-	suite.NoError(suite.network.WaitForNextBlock())
-	suite.CheckProposal(proposalId, govtypes.StatusPassed)
+	suite.erc20.ToggleTokenConversionProposal(denom)
 
 	suite.False(suite.erc20.TokenPair(denom).Enabled)
 }

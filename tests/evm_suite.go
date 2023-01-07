@@ -80,16 +80,15 @@ func (suite *EvmTestSuite) BlockHeight() uint64 {
 	return number
 }
 
-func (suite *EvmTestSuite) Transfer(privateKey cryptotypes.PrivKey, recipient common.Address, value *big.Int) common.Hash {
-	suite.T().Logf("transfer to %s value %s\n", recipient.String(), value.String())
+func (suite *EvmTestSuite) Transfer(privateKey cryptotypes.PrivKey, recipient common.Address, value *big.Int) *ethtypes.Transaction {
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &recipient, value, nil)
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
-	return ethTx.Hash()
+	return ethTx
 }
 
-func (suite *EvmTestSuite) WFXDeposit(address common.Address, amount *big.Int) common.Hash {
+func (suite *EvmTestSuite) WFXDeposit(address common.Address, amount *big.Int) *ethtypes.Transaction {
 	pack, err := fxtypes.GetWFX().ABI.Pack("deposit")
 	suite.Require().NoError(err)
 
@@ -98,10 +97,10 @@ func (suite *EvmTestSuite) WFXDeposit(address common.Address, amount *big.Int) c
 
 	suite.SendTransaction(ethTx)
 
-	return ethTx.Hash()
+	return ethTx
 }
 
-func (suite *EvmTestSuite) WFXWithdraw(address, recipient common.Address, value *big.Int) common.Hash {
+func (suite *EvmTestSuite) WFXWithdraw(address, recipient common.Address, value *big.Int) *ethtypes.Transaction {
 	pack, err := fxtypes.GetWFX().ABI.Pack("withdraw", recipient, value)
 	suite.Require().NoError(err)
 
@@ -110,15 +109,14 @@ func (suite *EvmTestSuite) WFXWithdraw(address, recipient common.Address, value 
 
 	suite.SendTransaction(ethTx)
 
-	return ethTx.Hash()
+	return ethTx
 }
 
 func (suite *EvmTestSuite) SendTransaction(tx *ethtypes.Transaction) {
 	err := suite.EthClient().SendTransaction(suite.ctx, tx)
 	suite.Require().NoError(err)
 
-	suite.T().Log("pending tx hash", tx.Hash())
-	ctx, cancel := context.WithTimeout(suite.ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
 	defer cancel()
 	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
 	suite.Require().NoError(err)

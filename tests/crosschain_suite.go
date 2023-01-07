@@ -106,12 +106,12 @@ func (suite *CrosschainTestSuite) queryObserverExternalBlockHeight() uint64 {
 }
 
 func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decimals uint64, token, channelIBC string) string {
-	bridgeToken, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
+	response, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
 		ChainName: suite.chainName,
 		Token:     token,
 	})
 	suite.ErrorContains(err, "code = NotFound desc = bridge token")
-	suite.Nil(bridgeToken)
+	suite.Nil(response)
 
 	suite.BroadcastTx(suite.bridgerPrivKey, &crosschaintypes.MsgBridgeTokenClaim{
 		EventNonce:     suite.queryFxLastEventNonce(),
@@ -125,13 +125,13 @@ func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decim
 		ChainName:      suite.chainName,
 	})
 
-	bridgeToken, err = suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
+	response, err = suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
 		ChainName: suite.chainName,
 		Token:     token,
 	})
 	suite.NoError(err)
-	suite.T().Log("bridge token", bridgeToken)
-	return bridgeToken.Denom
+	suite.Equal(fmt.Sprintf("%s%s", suite.chainName, token), response.Denom)
+	return response.Denom
 }
 
 func (suite *CrosschainTestSuite) GetBridgeTokens() (denoms []*crosschaintypes.BridgeToken) {
@@ -152,7 +152,7 @@ func (suite *CrosschainTestSuite) BondedOracle() {
 	suite.Error(err, crosschaintypes.ErrNoFoundOracle)
 	suite.Nil(response)
 
-	suite.BroadcastTx(suite.oraclePrivKey, &crosschaintypes.MsgBondedOracle{
+	txResponse := suite.BroadcastTx(suite.oraclePrivKey, &crosschaintypes.MsgBondedOracle{
 		OracleAddress:    suite.OracleAddr().String(),
 		BridgerAddress:   suite.BridgerAddr().String(),
 		ExternalAddress:  suite.ExternalAddr(),
@@ -168,10 +168,19 @@ func (suite *CrosschainTestSuite) BondedOracle() {
 		},
 	)
 	suite.NoError(err)
-	suite.T().Log("oracle", response.Oracle)
+	suite.Equal(crosschaintypes.Oracle{
+		OracleAddress:     suite.OracleAddr().String(),
+		BridgerAddress:    suite.BridgerAddr().String(),
+		ExternalAddress:   suite.ExternalAddr(),
+		DelegateAmount:    suite.params.DelegateThreshold.Amount,
+		StartHeight:       txResponse.Height,
+		Online:            true,
+		DelegateValidator: suite.GetFirstValiAddr().String(),
+		SlashTimes:        0,
+	}, *response.Oracle)
 }
 
-func (suite *CrosschainTestSuite) SendUpdateChainOraclesProposal() (proposalId uint64) {
+func (suite *CrosschainTestSuite) SendUpdateChainOraclesProposal() (*sdk.TxResponse, uint64) {
 	content := &crosschaintypes.UpdateChainOraclesProposal{
 		Title:       fmt.Sprintf("Update %s cross chain oracle", suite.chainName),
 		Description: "foo",

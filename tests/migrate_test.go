@@ -5,14 +5,14 @@ import (
 	"testing"
 	"time"
 
-	hd2 "github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	"github.com/evmos/ethermint/crypto/hd"
+	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
@@ -23,18 +23,16 @@ import (
 func (suite *IntegrationTest) migrateAccount(fromPrivateKey, toPrivateKey cryptotypes.PrivKey) {
 	fromAddr := sdk.AccAddress(fromPrivateKey.PubKey().Address().Bytes())
 	toAddress := common.BytesToAddress(toPrivateKey.PubKey().Address())
-	suite.T().Log("migrate from", fromAddr.String(), "migrate to", toAddress.String())
 
 	migrateSign, err := toPrivateKey.Sign(migratetypes.MigrateAccountSignatureHash(fromAddr, toAddress.Bytes()))
 	suite.NoError(err)
 
 	msg := migratetypes.NewMsgMigrateAccount(fromAddr, toAddress, hex.EncodeToString(migrateSign))
-	txResp := suite.BroadcastTx(fromPrivateKey, msg)
-	suite.T().Log("migrate account txHash", txResp.TxHash)
+	suite.BroadcastTx(fromPrivateKey, msg)
 }
 
 func (suite *IntegrationTest) MigrateTestDelegate() {
-	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.Secp256k1Type, 0, 0)
+	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.Secp256k1Type, 0, 0)
 	suite.NoError(err)
 	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
 	amount := sdk.NewInt(20).MulRaw(1e18)
@@ -56,7 +54,7 @@ func (suite *IntegrationTest) MigrateTestDelegate() {
 
 	// ===> migration
 
-	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.EthSecp256k1Type, 0, 0)
+	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.EthSecp256k1Type, 0, 0)
 	suite.NoError(err)
 	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
 	suite.CheckBalance(toAccAddress, suite.NewCoin(sdk.ZeroInt()))
@@ -86,21 +84,22 @@ func (suite *IntegrationTest) MigrateTestDelegate() {
 }
 
 func (suite *IntegrationTest) MigrateTestUnDelegate() {
-	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.Secp256k1Type, 0, 0)
+	fromPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.Secp256k1Type, 0, 0)
 	suite.NoError(err)
 	fromAccAddress := fromPrivKey.PubKey().Address().Bytes()
 	amount := sdk.NewInt(20).MulRaw(1e18)
 	suite.Send(fromAccAddress, suite.NewCoin(amount))
 
 	valAddress := suite.QueryValidatorByToken()
-	delegateAmount := suite.NewCoin(sdk.NewInt(1).MulRaw(1e18))
+	delegateAmount := suite.NewCoin(sdk.NewInt(2).MulRaw(1e18))
 	suite.Delegate(fromPrivKey, valAddress, delegateAmount)
-	amount = amount.Sub(sdk.NewInt(3).MulRaw(1e18))
+	amount = amount.Sub(sdk.NewInt(2 + 2).MulRaw(1e18))
 
-	txHash := suite.Undelegate(fromPrivKey, valAddress, suite.NewCoin(sdk.ZeroInt()))
 	delegateAmount = delegateAmount.Sub(suite.NewCoin(sdk.NewInt(1).MulRaw(1e18)))
+	txResponse := suite.Undelegate(fromPrivKey, valAddress, delegateAmount)
 	amount = amount.Sub(sdk.NewInt(2).MulRaw(1e18))
-	block := suite.QueryBlockByTxHash(txHash)
+
+	block := suite.QueryBlockByTxHash(txResponse.TxHash)
 	unbondingDelegationEntry := stakingtypes.UnbondingDelegationEntry{
 		CreationHeight: block.Header.Height,
 		CompletionTime: block.Header.Time.Add(21 * 24 * time.Hour),
@@ -111,7 +110,7 @@ func (suite *IntegrationTest) MigrateTestUnDelegate() {
 
 	// ===> migration
 
-	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd.EthSecp256k1Type, 0, 0)
+	toPrivKey, err := helpers.PrivKeyFromMnemonic(helpers.NewMnemonic(), hd2.EthSecp256k1Type, 0, 0)
 	suite.NoError(err)
 	toAccAddress := sdk.AccAddress(toPrivKey.PubKey().Address().Bytes())
 

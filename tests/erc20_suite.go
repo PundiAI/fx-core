@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/functionx/fx-core/v3/client"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -15,13 +16,13 @@ import (
 )
 
 type Erc20TestSuite struct {
-	metadata banktypes.Metadata
+	banktypes.Metadata
 	EvmTestSuite
 }
 
 func NewErc20TestSuite(ts *TestSuite) Erc20TestSuite {
 	return Erc20TestSuite{
-		metadata: banktypes.Metadata{
+		Metadata: banktypes.Metadata{
 			Description: "description of the token",
 			DenomUnits: []*banktypes.DenomUnit{
 				{
@@ -42,7 +43,7 @@ func NewErc20TestSuite(ts *TestSuite) Erc20TestSuite {
 }
 
 func (suite *Erc20TestSuite) TokenDecimals() uint32 {
-	return suite.metadata.DenomUnits[1].Exponent
+	return suite.Metadata.DenomUnits[1].Exponent
 }
 
 func (suite *Erc20TestSuite) ERC20Query() erc20types.QueryClient {
@@ -52,12 +53,16 @@ func (suite *Erc20TestSuite) ERC20Query() erc20types.QueryClient {
 func (suite *Erc20TestSuite) CheckRegisterCoin(denom string) {
 	aliasesResp, err := suite.ERC20Query().DenomAliases(suite.ctx, &erc20types.QueryDenomAliasesRequest{Denom: denom})
 	suite.NoError(err)
-	suite.T().Log("denom", denom, "alias", aliasesResp.Aliases)
 	for _, alias := range aliasesResp.Aliases {
 		aliasDenom, err := suite.ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: alias})
 		suite.NoError(err)
 		suite.Equal(denom, aliasDenom.Denom)
 	}
+	pair := suite.TokenPair(denom)
+	suite.NotNil(pair)
+	metadata := suite.GetMetadata(denom)
+	suite.True(len(metadata.DenomUnits) > 0)
+	suite.Equal(metadata.DenomUnits[0].Aliases, aliasesResp.Aliases)
 }
 
 func (suite *Erc20TestSuite) TokenPair(denom string) *erc20types.TokenPair {
@@ -70,30 +75,7 @@ func (suite *Erc20TestSuite) Erc20TokenAddress(denom string) common.Address {
 	return suite.TokenPair(denom).GetERC20Contract()
 }
 
-func (suite *Erc20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, token common.Address, recipient string, amount, fee *big.Int, target string) common.Hash {
-	suite.T().Log("transfer cross chain", target)
-	pack, err := fxtypes.GetERC20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
-	suite.Require().NoError(err)
-
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
-	suite.Require().NoError(err)
-
-	suite.SendTransaction(ethTx)
-
-	return ethTx.Hash()
-}
-
-func (suite *Erc20TestSuite) ConvertCoin(recipient common.Address, coin sdk.Coin) {
-	msg := erc20types.NewMsgConvertCoin(coin, recipient, suite.AccAddress())
-	suite.BroadcastTx(suite.privKey, msg)
-}
-
-func (suite *Erc20TestSuite) ConvertERC20(token common.Address, amount sdk.Int, recipient sdk.AccAddress) {
-	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, suite.HexAddress())
-	suite.BroadcastTx(suite.privKey, msg)
-}
-
-func (suite *Erc20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (proposalId uint64) {
+func (suite *Erc20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (*sdk.TxResponse, uint64) {
 	content := &erc20types.RegisterCoinProposal{
 		Title:       fmt.Sprintf("register %s denom", md.Base),
 		Description: "bar",
@@ -102,7 +84,7 @@ func (suite *Erc20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (propos
 	return suite.BroadcastProposalTx(content)
 }
 
-func (suite *Erc20TestSuite) ToggleTokenConversionProposal(denom string) (proposalId uint64) {
+func (suite *Erc20TestSuite) ToggleTokenConversionProposal(denom string) (*sdk.TxResponse, uint64) {
 	content := &erc20types.ToggleTokenConversionProposal{
 		Title:       fmt.Sprintf("update %s denom", denom),
 		Description: "update",
@@ -111,7 +93,7 @@ func (suite *Erc20TestSuite) ToggleTokenConversionProposal(denom string) (propos
 	return suite.BroadcastProposalTx(content)
 }
 
-func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (proposalId uint64) {
+func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (*sdk.TxResponse, uint64) {
 	content := &erc20types.UpdateDenomAliasProposal{
 		Title:       fmt.Sprintf("update %s denom %s alias", denom, alias),
 		Description: "update",
@@ -121,8 +103,18 @@ func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (prop
 	return suite.BroadcastProposalTx(content)
 }
 
-func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver sdk.AccAddress, coin sdk.Coin, target string) {
-	suite.BroadcastTx(private, &erc20types.MsgConvertDenom{
+func (suite *Erc20TestSuite) ConvertCoin(recipient common.Address, coin sdk.Coin) *sdk.TxResponse {
+	msg := erc20types.NewMsgConvertCoin(coin, recipient, suite.AccAddress())
+	return suite.BroadcastTx(suite.privKey, msg)
+}
+
+func (suite *Erc20TestSuite) ConvertERC20(token common.Address, amount sdk.Int, recipient sdk.AccAddress) *sdk.TxResponse {
+	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, suite.HexAddress())
+	return suite.BroadcastTx(suite.privKey, msg)
+}
+
+func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver sdk.AccAddress, coin sdk.Coin, target string) *sdk.TxResponse {
+	return suite.BroadcastTx(private, &erc20types.MsgConvertDenom{
 		Sender:   sdk.AccAddress(private.PubKey().Address()).String(),
 		Receiver: receiver.String(),
 		Coin:     coin,
@@ -130,9 +122,19 @@ func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver 
 	})
 }
 
-func (suite *Erc20TestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token, recipient common.Address, value *big.Int) common.Hash {
-	suite.T().Logf("transfer erc20 %s to %s value %s\n", token, recipient.String(), value.String())
+func (suite *Erc20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
+	pack, err := fxtypes.GetERC20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
+	suite.Require().NoError(err)
 
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
+	suite.Require().NoError(err)
+
+	suite.SendTransaction(ethTx)
+
+	return ethTx
+}
+
+func (suite *Erc20TestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token, recipient common.Address, value *big.Int) *ethtypes.Transaction {
 	pack, err := fxtypes.GetERC20().ABI.Pack("transfer", recipient, value)
 	suite.Require().NoError(err)
 
@@ -140,5 +142,5 @@ func (suite *Erc20TestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
-	return ethTx.Hash()
+	return ethTx
 }
