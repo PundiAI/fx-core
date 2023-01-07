@@ -3,6 +3,7 @@ package testutil_test
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,16 +29,15 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
 	cfg := testutil.DefaultNetworkConfig()
-	cfg.NumValidators = 1
-	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
+	// cfg.EnableTMLogging = true
 
 	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
-	//_, err := suite.network.WaitForHeight(1)
-	//suite.Require().NoError(err)
+	_, err = suite.network.WaitForHeight(1)
+	suite.Require().NoError(err)
 }
 
 func (suite *IntegrationTestSuite) TearDownSuite() {
@@ -48,31 +48,49 @@ func (suite *IntegrationTestSuite) TearDownSuite() {
 	suite.network.Cleanup()
 }
 
-func (suite *IntegrationTestSuite) TestSuite() {
-	suite.Require().Equal(sdk.GetConfig().GetCoinType(), uint32(sdk.CoinType))
+func (suite *IntegrationTestSuite) TestNetworkLiveness() {
+	height := int64(3)
+	latestHeight, err := suite.network.LatestHeight()
+	suite.NoError(err, "latest height failed")
+	suite.GreaterOrEqual(height, latestHeight)
 
-	validator := suite.network.Validators[0]
-	// keyringDir := validator.ClientCtx.KeyringDir
-	// file, err := os.ReadFile(filepath.Join(keyringDir, "key_seed.json"))
-	// suite.Require().NoError(err)
+	height, err = suite.network.WaitForHeightWithTimeout(height, time.Second*3)
+	suite.NoError(err, "expected to reach 200 blocks; got %d", height)
 
-	// var data map[string]string
-	// err = json.Unmarshal(file, &data)
-	// suite.Require().NoError(err)
+	latestHeight, err = suite.network.LatestHeight()
+	suite.NoError(err, "latest height failed")
+	suite.GreaterOrEqual(latestHeight, height)
+}
 
-	mnemonic := suite.network.Config.Mnemonics[0]
-	// suite.Equal(mnemonic, data["secret"])
+func (suite *IntegrationTestSuite) TestValidatorInfo() {
+	suite.Equal(sdk.GetConfig().GetCoinType(), uint32(sdk.CoinType))
 
-	info, err := validator.ClientCtx.Keyring.Key("node0")
-	suite.NoError(err)
-	suite.Equal(info.GetAddress(), validator.Address)
-	suite.Equal(info.GetAlgo(), hd.Secp256k1Type)
-	suite.Equal(info.GetType().String(), "local")
+	suite.Equal(len(suite.network.Config.Mnemonics), suite.network.Config.NumValidators)
+	for i := 0; i < suite.network.Config.NumValidators; i++ {
 
-	keyringAlgos1, _ := validator.ClientCtx.Keyring.SupportedAlgorithms()
-	suite.Equal(keyringAlgos1, hd2.SupportedAlgorithms)
+		validator := suite.network.Validators[i]
+		// keyringDir := validator.ClientCtx.KeyringDir
+		// file, err := os.ReadFile(filepath.Join(keyringDir, "key_seed.json"))
+		// suite.NoError(err)
 
-	privKey, err := helpers.PrivKeyFromMnemonic(mnemonic, hd.Secp256k1Type, 0, 0)
-	suite.NoError(err)
-	suite.Require().Equal(validator.Address.String(), sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
+		// var data map[string]string
+		// err = json.Unmarshal(file, &data)
+		// suite.NoError(err)
+
+		mnemonic := suite.network.Config.Mnemonics[i]
+		// suite.Equal(mnemonic, data["secret"])
+
+		info, err := validator.ClientCtx.Keyring.Key(validator.Moniker)
+		suite.NoError(err)
+		suite.Equal(info.GetAddress(), validator.Address)
+		suite.Equal(info.GetAlgo(), hd.PubKeyType(suite.network.Config.SigningAlgo))
+		suite.Equal(info.GetType().String(), "local")
+
+		keyringAlgos1, _ := validator.ClientCtx.Keyring.SupportedAlgorithms()
+		suite.Equal(keyringAlgos1, hd2.SupportedAlgorithms)
+
+		privKey, err := helpers.PrivKeyFromMnemonic(mnemonic, hd.Secp256k1Type, 0, 0)
+		suite.NoError(err)
+		suite.Equal(validator.Address.Bytes(), privKey.PubKey().Address().Bytes())
+	}
 }

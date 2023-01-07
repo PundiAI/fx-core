@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -62,6 +63,7 @@ func (suite *rpcTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
 	cfg := testutil.DefaultNetworkConfig()
+	cfg.TimeoutCommit = time.Millisecond
 	cfg.NumValidators = 1
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())
 
@@ -264,7 +266,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 		{
 			funcName: "GetAddressPrefix",
 			params:   []interface{}{},
-			wantRes:  []interface{}{"cosmos", nil},
+			wantRes:  []interface{}{"fx", nil},
 		},
 		{
 			funcName: "AppVersion",
@@ -292,10 +294,6 @@ func (suite *rpcTestSuite) TestClient_Query() {
 							sdk.Coin{
 								Denom:  fxtypes.DefaultDenom,
 								Amount: sdk.NewInt(500_000).MulRaw(1e18),
-							},
-							sdk.Coin{
-								Denom:  "node0token",
-								Amount: sdk.NewInt(100_000).MulRaw(1e18),
 							},
 						},
 					)
@@ -367,10 +365,6 @@ func (suite *rpcTestSuite) TestClient_Query() {
 					sdk.Coin{
 						Denom:  fxtypes.DefaultDenom,
 						Amount: sdk.NewInt(488998).MulRaw(1e18),
-					},
-					sdk.Coin{
-						Denom:  "node0token",
-						Amount: sdk.NewInt(100_000).MulRaw(1e18),
 					},
 				},
 				nil,

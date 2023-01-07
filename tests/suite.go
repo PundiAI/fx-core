@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -56,8 +57,9 @@ func (suite *TestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
 	cfg := testutil.DefaultNetworkConfig()
+	cfg.TimeoutCommit = time.Millisecond
 	cfg.NumValidators = 1
-	//cfg.EnableTMLogging = true
+	// cfg.EnableTMLogging = true
 
 	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
 	suite.Require().NoError(err)

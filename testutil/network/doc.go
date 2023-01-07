@@ -27,42 +27,42 @@ A typical testing flow might look like the following:
 		network *network.Network
 	}
 
-	func (s *IntegrationTestSuite) SetupSuite() {
-		s.T().Log("setting up integration test suite")
+	func TestIntegrationTestSuite(t *testing.T) {
+		suite.Run(t, new(IntegrationTestSuite))
+	}
+
+	func (suite *IntegrationTestSuite) SetupSuite() {
+		suite.T().Log("setting up integration test suite")
 
 		cfg := testutil.DefaultNetworkConfig()
 		cfg.NumValidators = 1
 
-		baseDir, err := ioutil.TempDir(s.T().TempDir(), cfg.ChainID)
-		s.Require().NoError(err)
-		s.T().Logf("created temporary directory: %s", baseDir)
+		baseDir, err := ioutil.TempDir(suite.T().TempDir(), cfg.ChainID)
+		suite.Require().NoError(err)
+		suite.T().Logf("created temporary directory: %s", baseDir)
 
-		s.network, err = network.New(s.T(), baseDir, cfg)
-		s.Require().NoError(err)
+		suite.network, err = network.New(suite.T(), baseDir, cfg)
+		suite.Require().NoError(err)
 
-		_, err = s.network.WaitForHeight(1)
-		s.Require().NoError(err)
+		_, err = suite.network.WaitForHeight(1)
+		suite.Require().NoError(err)
 	}
 
-	func (s *IntegrationTestSuite) TearDownSuite() {
-		s.T().Log("tearing down integration test suite")
+	func (suite *IntegrationTestSuite) TearDownSuite() {
+		suite.T().Log("tearing down integration test suite")
 
 		// This is important and must be called to ensure other tests can create
 		// a network!
-		s.network.Cleanup()
+		suite.network.Cleanup()
 	}
 
-	func (s *IntegrationTestSuite) TestQueryBalancesRequestHandlerFn() {
-		val := s.network.Validators[0]
+	func (suite *IntegrationTestSuite) TestQueryBalancesRequestHandlerFn() {
+		val := suite.network.Validators[0]
 		baseURL := val.APIAddress
 
 		// Use baseURL to make API HTTP requests or use val.RPCClient to make direct
 		// Tendermint RPC calls.
 		// ...
-	}
-
-	func TestIntegrationTestSuite(t *testing.T) {
-		suite.Run(t, new(IntegrationTestSuite))
 	}
 */
 package network

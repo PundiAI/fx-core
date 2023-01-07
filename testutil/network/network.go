@@ -1,13 +1,11 @@
 package network
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -83,7 +81,6 @@ type Config struct {
 	SigningAlgo       string                     // signing algorithm for keys
 	KeyringOptions    []keyring.Option           // keyring configuration options
 	PrintMnemonic     bool                       // print the mnemonic of first validator as log output for testing
-	VotingPeriod      time.Duration              //  Length of the voting period.
 }
 
 type (
@@ -170,72 +167,72 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 	if !ethermint.IsValidChainID(fxtypes.ChainIdWithEIP155()) {
 		return nil, fmt.Errorf("invalid chain-id: %s", cfg.ChainID)
 	}
-
-	network := &Network{
-		Logger:     l,
-		BaseDir:    baseDir,
-		Validators: make([]*Validator, cfg.NumValidators),
-		Config:     cfg,
-	}
-
 	l.Logf("preparing test network with chain-id \"%s\"\n", cfg.ChainID)
 
-	monikers := make([]string, cfg.NumValidators)
-	nodeIDs := make([]string, cfg.NumValidators)
-	valPubKeys := make([]cryptotypes.PubKey, cfg.NumValidators)
-
 	var (
+		network = &Network{
+			Logger:     l,
+			BaseDir:    baseDir,
+			Validators: make([]*Validator, cfg.NumValidators),
+			Config:     cfg,
+		}
+
+		nodeIDs    = make([]string, network.Config.NumValidators)
+		valPubKeys = make([]cryptotypes.PubKey, network.Config.NumValidators)
+
 		genAccounts []authtypes.GenesisAccount
 		genBalances []banktypes.Balance
 		genFiles    []string
+		startTime   = time.Now()
 	)
-
-	buf := bufio.NewReader(os.Stdin)
+	if network.Config.NumValidators > 1 {
+		if network.Config.TimeoutCommit > 0 && network.Config.TimeoutCommit < 500*time.Millisecond {
+			return nil, fmt.Errorf("timeout commit is too small")
+		}
+	}
 
 	// generate private keys, node IDs, and initial transactions
-	for i := 0; i < cfg.NumValidators; i++ {
-		appCfg := fxcfg.DefaultConfig()
-		appCfg.Pruning = cfg.PruningStrategy
-		appCfg.MinGasPrices = cfg.MinGasPrices
-		appCfg.API.Enable = true
-		appCfg.API.Swagger = false
-		appCfg.Telemetry.Enabled = false
-		appCfg.Telemetry.GlobalLabels = [][]string{{"chain_id", cfg.ChainID}}
-
+	for i := 0; i < network.Config.NumValidators; i++ {
 		ctx := server.NewDefaultContext()
+		ctx.Logger = log.NewNopLogger()
 		tmCfg := ctx.Config
 		tmCfg.DBBackend = string(db.MemDBBackend)
-		tmCfg.Consensus = tmcfg.TestConsensusConfig()
-		tmCfg.Consensus.SkipTimeoutCommit = false
-		tmCfg.Consensus.TimeoutCommit = cfg.TimeoutCommit
-
-		// Only allow the first validator to expose an RPC, API and gRPC
-		// server/client due to Tendermint in-process constraints.
-		apiAddr := ""
+		if network.Config.NumValidators == 1 {
+			tmCfg.Consensus = tmcfg.TestConsensusConfig()
+		}
+		if network.Config.TimeoutCommit > 0 {
+			tmCfg.Consensus.SkipTimeoutCommit = false
+			tmCfg.Consensus.TimeoutCommit = network.Config.TimeoutCommit
+		}
 		tmCfg.RPC.ListenAddress = ""
+		tmCfg.Instrumentation.Prometheus = false
+
+		appCfg := fxcfg.DefaultConfig()
+		appCfg.Pruning = network.Config.PruningStrategy
+		appCfg.MinGasPrices = network.Config.MinGasPrices
+		appCfg.Telemetry.Enabled = false
+		appCfg.Telemetry.GlobalLabels = [][]string{{"chain_id", network.Config.ChainID}}
+		appCfg.Rosetta.Enable = false
+		appCfg.API.Enable = false
+		appCfg.API.Swagger = false
 		appCfg.GRPC.Enable = false
 		appCfg.GRPCWeb.Enable = false
-		apiListenAddr := ""
+		appCfg.JSONRPC.Enable = false
+
 		if i == 0 {
-			if cfg.APIAddress != "" {
-				apiListenAddr = cfg.APIAddress
+			if network.Config.APIAddress != "" {
+				appCfg.API.Address = network.Config.APIAddress
 			} else {
-				var err error
-				apiListenAddr, _, err = server.FreeTCPAddr()
+				apiAddr, _, err := server.FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
+				appCfg.API.Address = apiAddr
 			}
+			appCfg.API.Enable = true
 
-			appCfg.API.Address = apiListenAddr
-			apiURL, err := url.Parse(apiListenAddr)
-			if err != nil {
-				return nil, err
-			}
-			apiAddr = fmt.Sprintf("http://%s:%s", apiURL.Hostname(), apiURL.Port())
-
-			if cfg.RPCAddress != "" {
-				tmCfg.RPC.ListenAddress = cfg.RPCAddress
+			if network.Config.RPCAddress != "" {
+				tmCfg.RPC.ListenAddress = network.Config.RPCAddress
 			} else {
 				rpcAddr, _, err := server.FreeTCPAddr()
 				if err != nil {
@@ -244,8 +241,8 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 				tmCfg.RPC.ListenAddress = rpcAddr
 			}
 
-			if cfg.GRPCAddress != "" {
-				appCfg.GRPC.Address = cfg.GRPCAddress
+			if network.Config.GRPCAddress != "" {
+				appCfg.GRPC.Address = network.Config.GRPCAddress
 			} else {
 				_, grpcPort, err := server.FreeTCPAddr()
 				if err != nil {
@@ -262,8 +259,8 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			//appCfg.GRPCWeb.Address = fmt.Sprintf("0.0.0.0:%s", grpcWebPort)
 			//appCfg.GRPCWeb.Enable = true
 
-			if cfg.JSONRPCAddress != "" {
-				appCfg.JSONRPC.Address = cfg.JSONRPCAddress
+			if network.Config.JSONRPCAddress != "" {
+				appCfg.JSONRPC.Address = network.Config.JSONRPCAddress
 			} else {
 				_, jsonRPCPort, err := server.FreeTCPAddr()
 				if err != nil {
@@ -273,46 +270,43 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			}
 			appCfg.JSONRPC.Enable = true
 			appCfg.JSONRPC.API = config.GetAPINamespaces()
-		}
 
-		logger := log.NewNopLogger()
-		if cfg.EnableTMLogging {
-			logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-			logger, _ = tmflags.ParseLogLevel("info", logger, tmcfg.DefaultLogLevel)
+			if network.Config.EnableTMLogging {
+				ctx.Logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+				var err error
+				ctx.Logger, err = tmflags.ParseLogLevel("info", ctx.Logger, tmcfg.DefaultLogLevel)
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
-
-		ctx.Logger = logger
 
 		nodeDirName := fmt.Sprintf("node%d", i)
-		nodeDir := filepath.Join(network.BaseDir, nodeDirName, strings.ToLower(cfg.ChainID))
-		clientDir := filepath.Join(network.BaseDir, nodeDirName, strings.ToLower(cfg.ChainID))
-		gentxsDir := filepath.Join(network.BaseDir, "gentxs")
+		nodeDir := filepath.Join(network.BaseDir, nodeDirName, strings.ToLower(network.Config.ChainID))
+		clientDir := filepath.Join(network.BaseDir, nodeDirName, strings.ToLower(network.Config.ChainID))
 
-		err := os.MkdirAll(filepath.Join(nodeDir, "config"), 0o750)
-		if err != nil {
+		if err := os.MkdirAll(filepath.Join(nodeDir, "config"), 0o750); err != nil {
 			return nil, err
 		}
 
-		err = os.MkdirAll(clientDir, 0o750)
-		if err != nil {
+		if err := os.MkdirAll(clientDir, 0o750); err != nil {
 			return nil, err
 		}
 
 		tmCfg.SetRoot(nodeDir)
 		tmCfg.Moniker = nodeDirName
-		monikers[i] = nodeDirName
 
-		proxyAddr, _, err := server.FreeTCPAddr()
+		//proxyAddr, _, err := server.FreeTCPAddr()
+		//if err != nil {
+		//	return nil, err
+		//}
+		//tmCfg.ProxyApp = proxyAddr
+
+		_, p2pPort, err := server.FreeTCPAddr()
 		if err != nil {
 			return nil, err
 		}
-		tmCfg.ProxyApp = proxyAddr
-
-		p2pAddr, _, err := server.FreeTCPAddr()
-		if err != nil {
-			return nil, err
-		}
-		tmCfg.P2P.ListenAddress = p2pAddr
+		tmCfg.P2P.ListenAddress = fmt.Sprintf("127.0.0.1:%s", p2pPort)
 		tmCfg.P2P.AddrBookStrict = false
 		tmCfg.P2P.AllowDuplicateIP = true
 
@@ -323,30 +317,33 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		nodeIDs[i] = nodeID
 		valPubKeys[i] = pubKey
 
-		kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientDir, buf, cfg.KeyringOptions...)
+		kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientDir, nil, network.Config.KeyringOptions...)
 		if err != nil {
 			return nil, err
 		}
 
 		keyringAlgos, _ := kb.SupportedAlgorithms()
-		algo, err := keyring.NewSigningAlgoFromString(cfg.SigningAlgo, keyringAlgos)
+		algo, err := keyring.NewSigningAlgoFromString(network.Config.SigningAlgo, keyringAlgos)
 		if err != nil {
 			return nil, err
 		}
 
 		var mnemonic string
-		if i < len(cfg.Mnemonics) {
-			mnemonic = cfg.Mnemonics[i]
+		if i < len(network.Config.Mnemonics) {
+			mnemonic = network.Config.Mnemonics[i]
 		}
 
-		addr, secret, err := testutil.GenerateSaveCoinKey(kb, nodeDirName, mnemonic, true, algo)
+		valAddr, secret, err := testutil.GenerateSaveCoinKey(kb, nodeDirName, mnemonic, true, algo)
 		if err != nil {
 			return nil, err
+		}
+		if i >= len(network.Config.Mnemonics) {
+			network.Config.Mnemonics = append(network.Config.Mnemonics, secret)
 		}
 
 		// if PrintMnemonic is set to true, we print the first validator node's secret to the network's logger
 		// for debugging and manual testing
-		if cfg.PrintMnemonic && i == 0 {
+		if network.Config.PrintMnemonic && i == 0 {
 			printMnemonic(l, secret)
 		}
 
@@ -357,45 +354,32 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		}
 
 		// save private key seed words
-		err = WriteFile(fmt.Sprintf("%v.json", "key_seed"), clientDir, infoBz)
+		err = writeFile(fmt.Sprintf("%v.json", "key_seed"), clientDir, infoBz)
 		if err != nil {
 			return nil, err
 		}*/
 
-		balances := sdk.NewCoins(
-			sdk.NewCoin(fmt.Sprintf("%stoken", nodeDirName), cfg.AccountTokens),
-			sdk.NewCoin(cfg.BondDenom, cfg.StakingTokens),
-		)
+		balances := sdk.NewCoins(sdk.NewCoin(network.Config.BondDenom, network.Config.StakingTokens))
 
 		genFiles = append(genFiles, tmCfg.GenesisFile())
-		genBalances = append(genBalances, banktypes.Balance{Address: addr.String(), Coins: balances.Sort()})
-		genAccounts = append(genAccounts, authtypes.NewBaseAccount(addr, nil, 0, 0))
-
-		commission, err := sdk.NewDecFromStr("0.5")
-		if err != nil {
-			return nil, err
-		}
+		genBalances = append(genBalances, banktypes.Balance{Address: valAddr.String(), Coins: balances.Sort()})
+		genAccounts = append(genAccounts, authtypes.NewBaseAccount(valAddr, nil, 0, 0))
 
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
-			sdk.ValAddress(addr),
+			sdk.ValAddress(valAddr),
 			valPubKeys[i],
-			sdk.NewCoin(cfg.BondDenom, cfg.BondedTokens),
+			sdk.NewCoin(network.Config.BondDenom, network.Config.BondedTokens),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
-			stakingtypes.NewCommissionRates(commission, sdk.OneDec(), sdk.OneDec()),
+			stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.OneDec(), sdk.OneDec()), // 5%
 			sdk.OneInt(),
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		p2pURL, err := url.Parse(p2pAddr)
-		if err != nil {
-			return nil, err
-		}
-
-		memo := fmt.Sprintf("%s@%s:%s", nodeIDs[i], p2pURL.Hostname(), p2pURL.Port())
-		fee := sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, sdk.NewInt(0)))
-		txBuilder := cfg.TxConfig.NewTxBuilder()
+		memo := fmt.Sprintf("%s@%s", nodeIDs[i], tmCfg.P2P.ListenAddress)
+		fee := sdk.NewCoins(sdk.NewCoin(network.Config.BondDenom, sdk.NewInt(0)))
+		txBuilder := network.Config.TxConfig.NewTxBuilder()
 		err = txBuilder.SetMsgs(createValMsg)
 		if err != nil {
 			return nil, err
@@ -406,21 +390,22 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 
 		txFactory := tx.Factory{}
 		txFactory = txFactory.
-			WithChainID(cfg.ChainID).
+			WithChainID(network.Config.ChainID).
 			WithMemo(memo).
 			WithKeybase(kb).
-			WithTxConfig(cfg.TxConfig)
+			WithTxConfig(network.Config.TxConfig)
 
-		if err := tx.Sign(txFactory, nodeDirName, txBuilder, true); err != nil {
+		if err = tx.Sign(txFactory, nodeDirName, txBuilder, true); err != nil {
 			return nil, err
 		}
 
-		txBz, err := cfg.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
+		txBz, err := network.Config.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
 		if err != nil {
 			return nil, err
 		}
 
-		if err := WriteFile(fmt.Sprintf("%v.json", nodeDirName), gentxsDir, txBz); err != nil {
+		gentxsDir := filepath.Join(network.BaseDir, "gentxs")
+		if err = writeFile(fmt.Sprintf("%v.json", nodeDirName), gentxsDir, txBz); err != nil {
 			return nil, err
 		}
 
@@ -429,8 +414,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 
 		ctx.Viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 		ctx.Viper.SetConfigFile(filepath.Join(nodeDir, "config/app.toml"))
-		err = ctx.Viper.ReadInConfig()
-		if err != nil {
+		if err = ctx.Viper.ReadInConfig(); err != nil {
 			return nil, err
 		}
 
@@ -438,12 +422,13 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			WithKeyringDir(clientDir).
 			WithKeyring(kb).
 			WithHomeDir(tmCfg.RootDir).
-			WithChainID(cfg.ChainID).
-			WithInterfaceRegistry(cfg.InterfaceRegistry).
-			WithCodec(cfg.Codec).
-			WithLegacyAmino(cfg.LegacyAmino).
-			WithTxConfig(cfg.TxConfig).
-			WithAccountRetriever(cfg.AccountRetriever)
+			WithChainID(network.Config.ChainID).
+			WithInterfaceRegistry(network.Config.InterfaceRegistry).
+			WithCodec(network.Config.Codec).
+			WithLegacyAmino(network.Config.LegacyAmino).
+			WithTxConfig(network.Config.TxConfig).
+			WithAccountRetriever(network.Config.AccountRetriever).
+			WithKeyringOptions(network.Config.KeyringOptions...)
 
 		network.Validators[i] = &Validator{
 			AppConfig:  appCfg,
@@ -455,36 +440,32 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			Moniker:    nodeDirName,
 			RPCAddress: tmCfg.RPC.ListenAddress,
 			P2PAddress: tmCfg.P2P.ListenAddress,
-			APIAddress: apiAddr,
-			Address:    addr,
-			ValAddress: sdk.ValAddress(addr),
+			APIAddress: appCfg.API.Address,
+			Address:    valAddr,
+			ValAddress: sdk.ValAddress(valAddr),
 		}
 	}
 
-	err := initGenFiles(cfg, genAccounts, genBalances, genFiles)
-	if err != nil {
-		return nil, err
-	}
-	err = collectGenFiles(cfg, network.Validators, network.BaseDir)
-	if err != nil {
+	if err := initGenFiles(network.Config, genAccounts, genBalances, genFiles); err != nil {
 		return nil, err
 	}
 
-	now := time.Now()
+	if err := collectGenFiles(network.Config, network.Validators, network.BaseDir); err != nil {
+		return nil, err
+	}
+
 	l.Log("starting test network...")
 	for _, v := range network.Validators {
-		err := startInProcess(cfg, v)
-		if err != nil {
+		if err := startInProcess(network.Config, v); err != nil {
 			return nil, err
 		}
 	}
-
-	l.Log("started test network", time.Since(now).Seconds())
 
 	// Ensure we cleanup incase any test was abruptly halted (e.g. SIGINT) as any
 	// defer in a test would not be called.
 	server.TrapSignal(network.Cleanup)
 
+	l.Logf("started test network %fs", time.Since(startTime).Seconds())
 	return network, nil
 }
 
@@ -513,7 +494,7 @@ func (n *Network) WaitForHeight(h int64) (int64, error) {
 // WaitForHeightWithTimeout is the same as WaitForHeight except the caller can
 // provide a custom timeout.
 func (n *Network) WaitForHeightWithTimeout(h int64, t time.Duration) (int64, error) {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(n.Config.TimeoutCommit)
 	timeout := time.After(t)
 
 	if len(n.Validators) == 0 {
@@ -567,31 +548,37 @@ func (n *Network) Cleanup() {
 	}()
 
 	n.Logger.Log("cleaning up test network...")
-
+	startTime := time.Now()
 	for _, v := range n.Validators {
 		if v.tmNode != nil && v.tmNode.IsRunning() {
-			_ = v.tmNode.Stop()
+			if err := v.tmNode.Stop(); err != nil {
+				n.Logger.Log("tendermint node stop", "error", err.Error())
+			}
 		}
 
 		if v.api != nil {
-			_ = v.api.Close()
+			if err := v.api.Close(); err != nil {
+				n.Logger.Log("api close", "error", err.Error())
+			}
 		}
 
 		if v.grpc != nil {
 			v.grpc.Stop()
 			if v.grpcWeb != nil {
-				_ = v.grpcWeb.Close()
+				if err := v.grpcWeb.Close(); err != nil {
+					n.Logger.Log("grpc-web close", "error", err.Error())
+				}
 			}
 		}
 
 		if v.jsonrpc != nil {
-			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
+			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 5*time.Second)
 			if err := v.jsonrpc.Shutdown(shutdownCtx); err != nil {
-				v.tmNode.Logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
+				n.Logger.Log("HTTP server shutdown produced a warning", "error", err.Error())
 			} else {
-				v.tmNode.Logger.Info("HTTP server shut down, waiting 5 sec")
+				n.Logger.Log("HTTP server shut down, waiting...")
 				select {
-				case <-time.Tick(5 * time.Second):
+				case <-time.Tick(1 * time.Second):
 				case <-v.jsonrpcDone:
 				}
 			}
@@ -600,50 +587,10 @@ func (n *Network) Cleanup() {
 	}
 
 	if n.Config.CleanupDir {
-		_ = os.RemoveAll(n.BaseDir)
-	}
-
-	n.Logger.Log("finished cleaning up test network")
-}
-
-// printMnemonic prints a provided mnemonic seed phrase on a network logger
-// for debugging and manual testing
-func printMnemonic(l Logger, secret string) {
-	lines := []string{
-		"THIS MNEMONIC IS FOR TESTING PURPOSES ONLY",
-		"DO NOT USE IN PRODUCTION",
-		"",
-		strings.Join(strings.Fields(secret)[0:8], " "),
-		strings.Join(strings.Fields(secret)[8:16], " "),
-		strings.Join(strings.Fields(secret)[16:24], " "),
-	}
-
-	lineLengths := make([]int, len(lines))
-	for i, line := range lines {
-		lineLengths[i] = len(line)
-	}
-
-	maxLineLength := 0
-	for _, lineLen := range lineLengths {
-		if lineLen > maxLineLength {
-			maxLineLength = lineLen
+		if err := os.RemoveAll(n.BaseDir); err != nil {
+			n.Logger.Log("remove base dir", "error", err.Error())
 		}
 	}
 
-	l.Log("\n")
-	l.Log(strings.Repeat("+", maxLineLength+8))
-	for _, line := range lines {
-		l.Logf("++  %s  ++\n", centerText(line, maxLineLength))
-	}
-	l.Log(strings.Repeat("+", maxLineLength+8))
-	l.Log("\n")
-}
-
-// centerText centers text across a fixed width, filling either side with whitespace buffers
-func centerText(text string, width int) string {
-	textLen := len(text)
-	leftBuffer := strings.Repeat(" ", (width-textLen)/2)
-	rightBuffer := strings.Repeat(" ", (width-textLen)/2+(width-textLen)%2)
-
-	return fmt.Sprintf("%s%s%s", leftBuffer, text, rightBuffer)
+	n.Logger.Logf("finished cleaning up test network %fs", time.Since(startTime).Seconds())
 }
