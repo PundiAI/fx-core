@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/cli"
 
-	keys3 "github.com/functionx/fx-core/v3/client/cli/keys"
+	fxkeys "github.com/functionx/fx-core/v3/client/cli/keys"
 )
 
 // Commands registers a sub-tree of commands to interact with
@@ -40,12 +40,12 @@ The pass backend requires GnuPG: https://gnupg.org/
 	}
 
 	cmd.AddCommand(
-		keys3.AddKeyCommand(),
-		keys3.ExportKeyCommand(),
-		keys3.ImportKeyCommand(),
-		keys3.ListKeysCmd(),
-		keys3.ShowKeysCmd(),
-		keys3.ParseAddressCommand(),
+		fxkeys.AddKeyCommand(),
+		fxkeys.ExportKeyCommand(),
+		fxkeys.ImportKeyCommand(),
+		fxkeys.ListKeysCmd(),
+		fxkeys.ShowKeysCmd(),
+		fxkeys.ParseAddressCommand(),
 		keys.DeleteKeyCommand(),
 		keys.MigrateCommand(),
 		keys.MnemonicKeyCommand(),

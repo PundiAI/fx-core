@@ -10,7 +10,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	etherminttypes "github.com/evmos/ethermint/types"
 	"github.com/gogo/protobuf/proto"
-	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
@@ -79,15 +79,15 @@ func (c *NodeRPC) GetGasPrices() (sdk.Coins, error) {
 	return response.GasPrices, nil
 }
 
-func (c *NodeRPC) Store(path string) (*coreTypes.ResultABCIQuery, error) {
+func (c *NodeRPC) Store(path string) (*ctypes.ResultABCIQuery, error) {
 	return c.ABCIQueryIsOk("/store/"+path, nil)
 }
 
-func (c *NodeRPC) PeersByAddressPort(port string) (*coreTypes.ResultABCIQuery, error) {
+func (c *NodeRPC) PeersByAddressPort(port string) (*ctypes.ResultABCIQuery, error) {
 	return c.ABCIQueryIsOk("/p2p/filter/addr/"+port, nil)
 }
 
-func (c *NodeRPC) PeersById(id string) (*coreTypes.ResultABCIQuery, error) {
+func (c *NodeRPC) PeersById(id string) (*ctypes.ResultABCIQuery, error) {
 	return c.ABCIQueryIsOk("/p2p/filter/id/"+id, nil)
 }
 

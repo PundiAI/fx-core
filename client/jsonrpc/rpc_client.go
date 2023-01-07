@@ -13,10 +13,10 @@ import (
 	"sync"
 	"time"
 
-	libTypes "github.com/tendermint/tendermint/libs/bytes"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
-	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"nhooyr.io/websocket"
 )
 
@@ -132,7 +132,7 @@ func (ws *WSClient) Close() {
 }
 
 // SubscribeEvent Experiment
-func (ws *WSClient) SubscribeEvent(ctx context.Context, query string, event chan<- coreTypes.ResultEvent) (err error) {
+func (ws *WSClient) SubscribeEvent(ctx context.Context, query string, event chan<- ctypes.ResultEvent) (err error) {
 	id, err := ws.send(ctx, "subscribe", map[string]interface{}{"query": query})
 	if err != nil {
 		return
@@ -149,7 +149,7 @@ func (ws *WSClient) SubscribeEvent(ctx context.Context, query string, event chan
 					ws.Logger.Error("response error", "code", resp.Error.Code, "data", resp.Error.Data, "msg", resp.Error.Message)
 					continue
 				}
-				var res coreTypes.ResultEvent
+				var res ctypes.ResultEvent
 				if err = tmjson.Unmarshal(resp.Result, &res); err != nil {
 					ws.Logger.Error("Parse result event", "error", err)
 				}
@@ -165,11 +165,11 @@ func (ws *WSClient) SubscribeEvent(ctx context.Context, query string, event chan
 	return nil
 }
 
-func (ws *WSClient) BlockResults(height int64) (*coreTypes.ResultBlockResults, error) {
+func (ws *WSClient) BlockResults(height int64) (*ctypes.ResultBlockResults, error) {
 	if !ws.running() {
 		return nil, nil
 	}
-	result := new(coreTypes.ResultBlockResults)
+	result := new(ctypes.ResultBlockResults)
 	if err := ws.Call(ws.ctx, "block_results", map[string]interface{}{"height": fmt.Sprintf("%d", height)}, result); err != nil {
 		ws.Logger.Error("Failed to Call block_results", "error", err.Error())
 		return nil, err
@@ -213,8 +213,8 @@ func (ws *WSClient) TxSearch(
 	page,
 	perPage *int,
 	orderBy string,
-) (*coreTypes.ResultTxSearch, error) {
-	result := new(coreTypes.ResultTxSearch)
+) (*ctypes.ResultTxSearch, error) {
+	result := new(ctypes.ResultTxSearch)
 	params := map[string]interface{}{
 		"query":    query,
 		"prove":    prove,
@@ -232,15 +232,15 @@ func (ws *WSClient) TxSearch(
 	return result, err
 }
 
-func (ws *WSClient) ABCIQuery(path string, data libTypes.HexBytes) (*coreTypes.ResultABCIQuery, error) {
-	result := new(coreTypes.ResultABCIQuery)
+func (ws *WSClient) ABCIQuery(path string, data tmbytes.HexBytes) (*ctypes.ResultABCIQuery, error) {
+	result := new(ctypes.ResultABCIQuery)
 	params := map[string]interface{}{"path": path, "data": data, "height": "0", "prove": false}
 	err := ws.Call(ws.ctx, "abci_query", params, result)
 	return result, err
 }
 
-func (ws *WSClient) Status() (*coreTypes.ResultStatus, error) {
-	result := new(coreTypes.ResultStatus)
+func (ws *WSClient) Status() (*ctypes.ResultStatus, error) {
+	result := new(ctypes.ResultStatus)
 	err := ws.Call(ws.ctx, "status", map[string]interface{}{}, result)
 	return result, err
 }

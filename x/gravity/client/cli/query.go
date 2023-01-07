@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	gethCommon "github.com/ethereum/go-ethereum/common"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 	abcitype "github.com/tendermint/tendermint/abci/types"
 
@@ -165,10 +165,10 @@ func CmdGetDelegateKeyByEth() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
-			if !gethCommon.IsHexAddress(args[0]) {
+			if !gethcommon.IsHexAddress(args[0]) {
 				return fmt.Errorf("target address is invalid!address:[%s]", args[0])
 			}
-			if !gethCommon.IsHexAddress(args[0]) {
+			if !gethcommon.IsHexAddress(args[0]) {
 				return fmt.Errorf("contract address is invalid!address:[%s]", args[0])
 			}
 			res, err := queryClient.GetDelegateKeyByEth(cmd.Context(), &types.QueryDelegateKeyByEthRequest{
@@ -386,7 +386,7 @@ func CmdBatchConfirm() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
-			if !gethCommon.IsHexAddress(args[0]) {
+			if !gethcommon.IsHexAddress(args[0]) {
 				return fmt.Errorf("contract address is invalid!address:[%s]", args[0])
 			}
 			nonce, err := strconv.ParseUint(args[1], 10, 64)
@@ -425,7 +425,7 @@ func CmdBatchConfirms() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if !gethCommon.IsHexAddress(args[0]) {
+			if !gethcommon.IsHexAddress(args[0]) {
 				return fmt.Errorf("contract address is invalid!address:[%s]", args[0])
 			}
 			res, err := queryClient.BatchConfirms(cmd.Context(), &types.QueryBatchConfirmsRequest{
@@ -608,7 +608,7 @@ func CmdGetERC20TokenToDenom() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			contractAddress := args[0]
-			if !gethCommon.IsHexAddress(contractAddress) {
+			if !gethcommon.IsHexAddress(contractAddress) {
 				return fmt.Errorf("invalid contract address:%s", contractAddress)
 			}
 

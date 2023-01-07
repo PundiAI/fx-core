@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	types2 "github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -69,7 +69,7 @@ func TestResetExportGenesisValidator(t *testing.T) {
 	pubkey, err := cryptocodec.FromTmPubKeyInterface(pvKey.PubKey)
 	assert.NoError(t, err)
 
-	pubAny, err := types2.NewAnyWithValue(pubkey)
+	pubAny, err := codectypes.NewAnyWithValue(pubkey)
 	assert.NoError(t, err)
 
 	for i := 0; i < len(stakingGenesisState.Validators); i++ {

@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -56,7 +56,7 @@ func (suite *CrosschainTestSuite) OracleAddr() sdk.AccAddress {
 
 func (suite *CrosschainTestSuite) ExternalAddr() string {
 	if suite.chainName == trontypes.ModuleName {
-		return tronAddress.PubkeyToAddress(suite.externalPrivKey.PublicKey).String()
+		return tronaddress.PubkeyToAddress(suite.externalPrivKey.PublicKey).String()
 	}
 	return ethcrypto.PubkeyToAddress(suite.externalPrivKey.PublicKey).String()
 }

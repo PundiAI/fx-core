@@ -24,7 +24,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
-	gethCommon "github.com/ethereum/go-ethereum/common"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
@@ -250,10 +250,10 @@ func ChecksumEthAddressCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			if !gethCommon.IsHexAddress(args[0]) {
+			if !gethcommon.IsHexAddress(args[0]) {
 				return fmt.Errorf("not hex address:%s", args[0])
 			}
-			return clientCtx.PrintString(fmt.Sprintf("%s\n", gethCommon.HexToAddress(args[0]).Hex()))
+			return clientCtx.PrintString(fmt.Sprintf("%s\n", gethcommon.HexToAddress(args[0]).Hex()))
 		},
 	}
 	return cmd

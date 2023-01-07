@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
-	types2 "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -375,7 +375,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 	suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 	suite.app.Commit()
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-	suite.app.BeginBlock(abci.RequestBeginBlock{Header: types2.Header{ChainID: suite.ctx.ChainID(), Height: suite.ctx.BlockHeight()}})
+	suite.app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{ChainID: suite.ctx.ChainID(), Height: suite.ctx.BlockHeight()}})
 
 	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.MustAccAddressFromBech32(sendToMsg.Receiver))
 	suite.Require().Equal(balances.String(), sdk.NewCoins().String(), len(suite.bridgers))

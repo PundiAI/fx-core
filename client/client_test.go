@@ -22,7 +22,7 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
-	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/client/grpc"
@@ -452,7 +452,7 @@ func (suite *rpcTestSuite) TestTmClient() {
 			funcName: "BlockchainInfo",
 			params:   []interface{}{int64(1), int64(1)},
 			wantRes: []interface{}{
-				func(res1 *coreTypes.ResultBlockchainInfo, err1 error, res2 *coreTypes.ResultBlockchainInfo, err2 error) {
+				func(res1 *ctypes.ResultBlockchainInfo, err1 error, res2 *ctypes.ResultBlockchainInfo, err2 error) {
 					suite.NoError(err1)
 					suite.NoError(err2)
 					data1, _ := json.Marshal(res1.BlockMetas)
@@ -466,7 +466,7 @@ func (suite *rpcTestSuite) TestTmClient() {
 			funcName: "Status",
 			params:   []interface{}{},
 			wantRes: []interface{}{
-				func(res1 *coreTypes.ResultStatus, err1 error, res2 *coreTypes.ResultStatus, err2 error) {
+				func(res1 *ctypes.ResultStatus, err1 error, res2 *ctypes.ResultStatus, err2 error) {
 					suite.NoError(err1)
 					suite.NoError(err2)
 					suite.EqualValues(res1.NodeInfo, res2.NodeInfo)
@@ -483,7 +483,7 @@ func (suite *rpcTestSuite) TestTmClient() {
 			funcName: "DumpConsensusState",
 			params:   []interface{}{},
 			wantRes: []interface{}{
-				func(res1 *coreTypes.ResultDumpConsensusState, err1 error, res2 *coreTypes.ResultDumpConsensusState, err2 error) {
+				func(res1 *ctypes.ResultDumpConsensusState, err1 error, res2 *ctypes.ResultDumpConsensusState, err2 error) {
 					suite.NoError(err1)
 					suite.NoError(err2)
 					suite.EqualValues(len(res1.Peers), len(res2.Peers))
@@ -494,7 +494,7 @@ func (suite *rpcTestSuite) TestTmClient() {
 			funcName: "ConsensusState",
 			params:   []interface{}{},
 			wantRes: []interface{}{
-				func(_ *coreTypes.ResultConsensusState, err1 error, _ *coreTypes.ResultConsensusState, err2 error) {
+				func(_ *ctypes.ResultConsensusState, err1 error, _ *ctypes.ResultConsensusState, err2 error) {
 					suite.NoError(err1)
 					suite.NoError(err2)
 				},

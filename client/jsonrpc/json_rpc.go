@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/btcsuite/btcutil/bech32"
-	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
@@ -18,8 +18,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
-	tmBytes "github.com/tendermint/tendermint/libs/bytes"
-	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"github.com/tendermint/tendermint/types"
 )
 
@@ -150,9 +150,9 @@ func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRa
 		c.chainId = chainId
 	}
 
-	txBodyMessage := make([]*codecTypes.Any, 0)
+	txBodyMessage := make([]*codectypes.Any, 0)
 	for i := 0; i < len(msgs); i++ {
-		msgAnyValue, err := codecTypes.NewAnyWithValue(msgs[i])
+		msgAnyValue, err := codectypes.NewAnyWithValue(msgs[i])
 		if err != nil {
 			return nil, err
 		}
@@ -171,7 +171,7 @@ func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRa
 		return nil, err
 	}
 
-	pubAny, err := codecTypes.NewAnyWithValue(privKey.PubKey())
+	pubAny, err := codectypes.NewAnyWithValue(privKey.PubKey())
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +291,7 @@ func (c *NodeRPC) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.T
 	}
 }
 
-func (c *NodeRPC) BroadcastTxRawCommit(txRaw *tx.TxRaw) (*coreTypes.ResultBroadcastTxCommit, error) {
+func (c *NodeRPC) BroadcastTxRawCommit(txRaw *tx.TxRaw) (*ctypes.ResultBroadcastTxCommit, error) {
 	txBytes, err := proto.Marshal(txRaw)
 	if err != nil {
 		return nil, err
@@ -351,8 +351,8 @@ func (c *NodeRPC) AppVersion() (string, error) {
 	return string(result.Response.Value), nil
 }
 
-func (c *NodeRPC) ABCIQueryIsOk(path string, data tmBytes.HexBytes) (*coreTypes.ResultABCIQuery, error) {
-	result := new(coreTypes.ResultABCIQuery)
+func (c *NodeRPC) ABCIQueryIsOk(path string, data tmbytes.HexBytes) (*ctypes.ResultABCIQuery, error) {
+	result := new(ctypes.ResultABCIQuery)
 	params := map[string]interface{}{"path": path, "data": data, "height": strconv.FormatInt(c.height, 10), "prove": false}
 	err := c.caller.Call(c.ctx, "abci_query", params, result)
 	if err != nil {
@@ -367,8 +367,8 @@ func (c *NodeRPC) ABCIQueryIsOk(path string, data tmBytes.HexBytes) (*coreTypes.
 
 // Tendermint API
 
-func (c *NodeRPC) Status() (*coreTypes.ResultStatus, error) {
-	result := new(coreTypes.ResultStatus)
+func (c *NodeRPC) Status() (*ctypes.ResultStatus, error) {
+	result := new(ctypes.ResultStatus)
 	err := c.caller.Call(c.ctx, "status", map[string]interface{}{}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "Status")
@@ -376,8 +376,8 @@ func (c *NodeRPC) Status() (*coreTypes.ResultStatus, error) {
 	return result, nil
 }
 
-func (c *NodeRPC) ABCIInfo() (*coreTypes.ResultABCIInfo, error) {
-	result := new(coreTypes.ResultABCIInfo)
+func (c *NodeRPC) ABCIInfo() (*ctypes.ResultABCIInfo, error) {
+	result := new(ctypes.ResultABCIInfo)
 	err := c.caller.Call(c.ctx, "abci_info", map[string]interface{}{}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "ABCIInfo")
@@ -385,8 +385,8 @@ func (c *NodeRPC) ABCIInfo() (*coreTypes.ResultABCIInfo, error) {
 	return result, nil
 }
 
-func (c *NodeRPC) ABCIQuery(path string, data tmBytes.HexBytes) (*coreTypes.ResultABCIQuery, error) {
-	result := new(coreTypes.ResultABCIQuery)
+func (c *NodeRPC) ABCIQuery(path string, data tmbytes.HexBytes) (*ctypes.ResultABCIQuery, error) {
+	result := new(ctypes.ResultABCIQuery)
 	params := map[string]interface{}{"path": path, "data": data, "height": strconv.FormatInt(c.height, 10), "prove": false}
 	err := c.caller.Call(c.ctx, "abci_query", params, result)
 	if err != nil {
@@ -395,8 +395,8 @@ func (c *NodeRPC) ABCIQuery(path string, data tmBytes.HexBytes) (*coreTypes.Resu
 	return result, nil
 }
 
-func (c *NodeRPC) BroadcastTxCommit(tx types.Tx) (*coreTypes.ResultBroadcastTxCommit, error) {
-	result := new(coreTypes.ResultBroadcastTxCommit)
+func (c *NodeRPC) BroadcastTxCommit(tx types.Tx) (*ctypes.ResultBroadcastTxCommit, error) {
+	result := new(ctypes.ResultBroadcastTxCommit)
 	err := c.caller.Call(c.ctx, "broadcast_tx_commit", map[string]interface{}{"tx": tx}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "broadcast_tx_commit")
@@ -404,16 +404,16 @@ func (c *NodeRPC) BroadcastTxCommit(tx types.Tx) (*coreTypes.ResultBroadcastTxCo
 	return result, nil
 }
 
-func (c *NodeRPC) BroadcastTxAsync(tx types.Tx) (*coreTypes.ResultBroadcastTx, error) {
+func (c *NodeRPC) BroadcastTxAsync(tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
 	return c.broadcastTX("broadcast_tx_async", tx)
 }
 
-func (c *NodeRPC) BroadcastTxSync(tx types.Tx) (*coreTypes.ResultBroadcastTx, error) {
+func (c *NodeRPC) BroadcastTxSync(tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
 	return c.broadcastTX("broadcast_tx_sync", tx)
 }
 
-func (c *NodeRPC) broadcastTX(route string, tx types.Tx) (*coreTypes.ResultBroadcastTx, error) {
-	result := new(coreTypes.ResultBroadcastTx)
+func (c *NodeRPC) broadcastTX(route string, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
+	result := new(ctypes.ResultBroadcastTx)
 	err := c.caller.Call(c.ctx, route, map[string]interface{}{"tx": tx}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, route)
@@ -421,8 +421,8 @@ func (c *NodeRPC) broadcastTX(route string, tx types.Tx) (*coreTypes.ResultBroad
 	return result, nil
 }
 
-func (c *NodeRPC) UnconfirmedTxs(limit int) (*coreTypes.ResultUnconfirmedTxs, error) {
-	result := new(coreTypes.ResultUnconfirmedTxs)
+func (c *NodeRPC) UnconfirmedTxs(limit int) (*ctypes.ResultUnconfirmedTxs, error) {
+	result := new(ctypes.ResultUnconfirmedTxs)
 	params := map[string]interface{}{"limit": strconv.Itoa(limit)}
 	err := c.caller.Call(c.ctx, "unconfirmed_txs", params, result)
 	if err != nil {
@@ -434,8 +434,8 @@ func (c *NodeRPC) UnconfirmedTxs(limit int) (*coreTypes.ResultUnconfirmedTxs, er
 	return result, nil
 }
 
-func (c *NodeRPC) NumUnconfirmedTxs() (*coreTypes.ResultUnconfirmedTxs, error) {
-	result := new(coreTypes.ResultUnconfirmedTxs)
+func (c *NodeRPC) NumUnconfirmedTxs() (*ctypes.ResultUnconfirmedTxs, error) {
+	result := new(ctypes.ResultUnconfirmedTxs)
 	err := c.caller.Call(c.ctx, "num_unconfirmed_txs", map[string]interface{}{}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "num_unconfirmed_txs")
@@ -443,32 +443,32 @@ func (c *NodeRPC) NumUnconfirmedTxs() (*coreTypes.ResultUnconfirmedTxs, error) {
 	return result, nil
 }
 
-func (c *NodeRPC) NetInfo() (*coreTypes.ResultNetInfo, error) {
-	result := new(coreTypes.ResultNetInfo)
+func (c *NodeRPC) NetInfo() (*ctypes.ResultNetInfo, error) {
+	result := new(ctypes.ResultNetInfo)
 	err := c.caller.Call(c.ctx, "net_info", map[string]interface{}{}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "NetInfo")
 	}
 	if len(result.Peers) <= 0 {
-		result.Peers = make([]coreTypes.Peer, 0)
+		result.Peers = make([]ctypes.Peer, 0)
 	}
 	return result, nil
 }
 
-func (c *NodeRPC) DumpConsensusState() (*coreTypes.ResultDumpConsensusState, error) {
-	result := new(coreTypes.ResultDumpConsensusState)
+func (c *NodeRPC) DumpConsensusState() (*ctypes.ResultDumpConsensusState, error) {
+	result := new(ctypes.ResultDumpConsensusState)
 	err := c.caller.Call(c.ctx, "dump_consensus_state", map[string]interface{}{}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "DumpConsensusState")
 	}
 	if len(result.Peers) <= 0 {
-		result.Peers = make([]coreTypes.PeerStateInfo, 0)
+		result.Peers = make([]ctypes.PeerStateInfo, 0)
 	}
 	return result, nil
 }
 
-func (c *NodeRPC) ConsensusState() (*coreTypes.ResultConsensusState, error) {
-	result := new(coreTypes.ResultConsensusState)
+func (c *NodeRPC) ConsensusState() (*ctypes.ResultConsensusState, error) {
+	result := new(ctypes.ResultConsensusState)
 	err := c.caller.Call(c.ctx, "consensus_state", map[string]interface{}{}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "ConsensusState")
@@ -476,8 +476,8 @@ func (c *NodeRPC) ConsensusState() (*coreTypes.ResultConsensusState, error) {
 	return result, nil
 }
 
-func (c *NodeRPC) ConsensusParams(height int64) (*coreTypes.ResultConsensusParams, error) {
-	result := new(coreTypes.ResultConsensusParams)
+func (c *NodeRPC) ConsensusParams(height int64) (*ctypes.ResultConsensusParams, error) {
+	result := new(ctypes.ResultConsensusParams)
 	params := map[string]interface{}{"height": strconv.FormatInt(height, 10)}
 	if height <= 0 {
 		params = map[string]interface{}{}
@@ -489,8 +489,8 @@ func (c *NodeRPC) ConsensusParams(height int64) (*coreTypes.ResultConsensusParam
 	return result, nil
 }
 
-func (c *NodeRPC) Health() (*coreTypes.ResultHealth, error) {
-	result := new(coreTypes.ResultHealth)
+func (c *NodeRPC) Health() (*ctypes.ResultHealth, error) {
+	result := new(ctypes.ResultHealth)
 	err := c.caller.Call(c.ctx, "health", map[string]interface{}{}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "Health")
@@ -498,8 +498,8 @@ func (c *NodeRPC) Health() (*coreTypes.ResultHealth, error) {
 	return result, nil
 }
 
-func (c *NodeRPC) BlockchainInfo(minHeight, maxHeight int64) (*coreTypes.ResultBlockchainInfo, error) {
-	result := new(coreTypes.ResultBlockchainInfo)
+func (c *NodeRPC) BlockchainInfo(minHeight, maxHeight int64) (*ctypes.ResultBlockchainInfo, error) {
+	result := new(ctypes.ResultBlockchainInfo)
 	params := map[string]interface{}{
 		"minHeight": strconv.FormatInt(minHeight, 10),
 		"maxHeight": strconv.FormatInt(maxHeight, 10),
@@ -511,8 +511,8 @@ func (c *NodeRPC) BlockchainInfo(minHeight, maxHeight int64) (*coreTypes.ResultB
 	return result, nil
 }
 
-func (c *NodeRPC) Genesis() (*coreTypes.ResultGenesis, error) {
-	result := new(coreTypes.ResultGenesis)
+func (c *NodeRPC) Genesis() (*ctypes.ResultGenesis, error) {
+	result := new(ctypes.ResultGenesis)
 	err := c.caller.Call(c.ctx, "genesis", map[string]interface{}{}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "Genesis")
@@ -520,8 +520,8 @@ func (c *NodeRPC) Genesis() (*coreTypes.ResultGenesis, error) {
 	return result, nil
 }
 
-func (c *NodeRPC) Block(height int64) (*coreTypes.ResultBlock, error) {
-	result := new(coreTypes.ResultBlock)
+func (c *NodeRPC) Block(height int64) (*ctypes.ResultBlock, error) {
+	result := new(ctypes.ResultBlock)
 	params := map[string]interface{}{}
 	if height > 0 {
 		params = map[string]interface{}{"height": strconv.FormatInt(height, 10)}
@@ -533,8 +533,8 @@ func (c *NodeRPC) Block(height int64) (*coreTypes.ResultBlock, error) {
 	return result, nil
 }
 
-func (c *NodeRPC) BlockResults(height int64) (*coreTypes.ResultBlockResults, error) {
-	result := new(coreTypes.ResultBlockResults)
+func (c *NodeRPC) BlockResults(height int64) (*ctypes.ResultBlockResults, error) {
+	result := new(ctypes.ResultBlockResults)
 	params := map[string]interface{}{}
 	if height > 0 {
 		params = map[string]interface{}{"height": strconv.FormatInt(height, 10)}
@@ -546,8 +546,8 @@ func (c *NodeRPC) BlockResults(height int64) (*coreTypes.ResultBlockResults, err
 	return result, nil
 }
 
-func (c *NodeRPC) Commit(height int64) (*coreTypes.ResultCommit, error) {
-	result := new(coreTypes.ResultCommit)
+func (c *NodeRPC) Commit(height int64) (*ctypes.ResultCommit, error) {
+	result := new(ctypes.ResultCommit)
 	params := map[string]interface{}{}
 	if height > 0 {
 		params = map[string]interface{}{"height": height}
@@ -559,8 +559,8 @@ func (c *NodeRPC) Commit(height int64) (*coreTypes.ResultCommit, error) {
 	return result, nil
 }
 
-func (c *NodeRPC) Validators(height int64, page, perPage int) (*coreTypes.ResultValidators, error) {
-	result := new(coreTypes.ResultValidators)
+func (c *NodeRPC) Validators(height int64, page, perPage int) (*ctypes.ResultValidators, error) {
+	result := new(ctypes.ResultValidators)
 	params := map[string]interface{}{}
 	if height > 0 {
 		params = map[string]interface{}{"height": height, "page": page, "per_page": perPage}
@@ -572,8 +572,8 @@ func (c *NodeRPC) Validators(height int64, page, perPage int) (*coreTypes.Result
 	return result, nil
 }
 
-func (c *NodeRPC) Tx(hash []byte) (*coreTypes.ResultTx, error) {
-	result := new(coreTypes.ResultTx)
+func (c *NodeRPC) Tx(hash []byte) (*ctypes.ResultTx, error) {
+	result := new(ctypes.ResultTx)
 	params := map[string]interface{}{"hash": hash, "prove": false}
 	err := c.caller.Call(c.ctx, "tx", params, result)
 	if err != nil {
@@ -583,9 +583,9 @@ func (c *NodeRPC) Tx(hash []byte) (*coreTypes.ResultTx, error) {
 }
 
 func (c *NodeRPC) TxSearch(query string, page, perPage int, orderBy string) (
-	*coreTypes.ResultTxSearch, error,
+	*ctypes.ResultTxSearch, error,
 ) {
-	result := new(coreTypes.ResultTxSearch)
+	result := new(ctypes.ResultTxSearch)
 	params := map[string]interface{}{"query": query, "prove": false, "page": strconv.Itoa(page), "per_page": strconv.Itoa(perPage), "order_by": orderBy}
 	err := c.caller.Call(c.ctx, "tx_search", params, result)
 	if err != nil {
@@ -594,8 +594,8 @@ func (c *NodeRPC) TxSearch(query string, page, perPage int, orderBy string) (
 	return result, nil
 }
 
-func (c *NodeRPC) BroadcastEvidence(ev types.Evidence) (*coreTypes.ResultBroadcastEvidence, error) {
-	result := new(coreTypes.ResultBroadcastEvidence)
+func (c *NodeRPC) BroadcastEvidence(ev types.Evidence) (*ctypes.ResultBroadcastEvidence, error) {
+	result := new(ctypes.ResultBroadcastEvidence)
 	err := c.caller.Call(c.ctx, "broadcast_evidence", map[string]interface{}{"evidence": ev}, result)
 	if err != nil {
 		return nil, errors.Wrap(err, "BroadcastEvidence")

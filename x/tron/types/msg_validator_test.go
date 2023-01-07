@@ -9,9 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	gethCommon "github.com/ethereum/go-ethereum/common"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/functionx/fx-core/v3/app"
@@ -22,7 +22,7 @@ import (
 
 func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalOracleAddress := addressBytes.String()
 	normalOrchestratorAddress := addressBytes.String()
@@ -242,7 +242,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 
 func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalOracleAddress := addressBytes.String()
 	var err error
@@ -360,7 +360,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 
 func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalFxAddress := addressBytes.String()
 	var err error
@@ -519,11 +519,11 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 
 func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	zeroTronAddress := make([]byte, 0)
-	zeroTronAddress = append(zeroTronAddress, tronAddress.TronBytePrefix)
-	zeroTronAddress = append(zeroTronAddress, gethCommon.HexToAddress("0x0000000000000000000000000000000000000000").Bytes()...)
+	zeroTronAddress = append(zeroTronAddress, tronaddress.TronBytePrefix)
+	zeroTronAddress = append(zeroTronAddress, gethcommon.HexToAddress("0x0000000000000000000000000000000000000000").Bytes()...)
 	normalFxAddress := addressBytes.String()
 	var err error
 	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
@@ -666,7 +666,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
-				TokenContract:  tronAddress.Address(zeroTronAddress).String(),
+				TokenContract:  tronaddress.Address(zeroTronAddress).String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				Name:           "TRX",
 				Symbol:         "TRX",
@@ -692,7 +692,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 
 func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalFxAddress := addressBytes.String()
 	var err error
@@ -890,7 +890,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 
 func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalFxAddress := addressBytes.String()
 	var err error
@@ -1075,7 +1075,7 @@ func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
 
 func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalFxAddress := addressBytes.String()
 	var err error
@@ -1196,7 +1196,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 
 func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalFxAddress := addressBytes.String()
 	var err error
@@ -1306,7 +1306,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 
 func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronAddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalOracleAddress := addressBytes.String()
 	var err error

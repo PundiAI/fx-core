@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	tranfsertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	gethCommon "github.com/ethereum/go-ethereum/common"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 	abcitype "github.com/tendermint/tendermint/abci/types"
@@ -281,10 +281,10 @@ func CmdGetOracleByExternalAddr() *cobra.Command {
 
 			externalAddress := args[1]
 			if strings.HasPrefix(externalAddress, "0x") {
-				if !gethCommon.IsHexAddress(externalAddress) {
+				if !gethcommon.IsHexAddress(externalAddress) {
 					return fmt.Errorf("target address is invalid!address: [%s]", externalAddress)
 				}
-				externalAddress = gethCommon.HexToAddress(externalAddress).Hex()
+				externalAddress = gethcommon.HexToAddress(externalAddress).Hex()
 			}
 
 			res, err := queryClient.GetOracleByExternalAddr(cmd.Context(), &types.QueryOracleByExternalAddrRequest{
@@ -521,10 +521,10 @@ func CmdBatchConfirm() *cobra.Command {
 
 			tokenContract := args[1]
 			if strings.HasPrefix(tokenContract, "0x") {
-				if !gethCommon.IsHexAddress(tokenContract) {
+				if !gethcommon.IsHexAddress(tokenContract) {
 					return fmt.Errorf("contract address is invalid!address:[%s]", tokenContract)
 				}
-				tokenContract = gethCommon.HexToAddress(tokenContract).Hex()
+				tokenContract = gethcommon.HexToAddress(tokenContract).Hex()
 			}
 
 			nonce, err := strconv.ParseUint(args[2], 10, 64)
@@ -561,10 +561,10 @@ func CmdBatchConfirms() *cobra.Command {
 
 			tokenContract := args[1]
 			if strings.HasPrefix(tokenContract, "0x") {
-				if !gethCommon.IsHexAddress(tokenContract) {
+				if !gethcommon.IsHexAddress(tokenContract) {
 					return fmt.Errorf("contract address is invalid!address:[%s]", tokenContract)
 				}
-				tokenContract = gethCommon.HexToAddress(tokenContract).Hex()
+				tokenContract = gethcommon.HexToAddress(tokenContract).Hex()
 			}
 			nonce, err := strconv.Atoi(args[2])
 			if err != nil {
@@ -765,10 +765,10 @@ func CmdGetExternalTokenToDenom() *cobra.Command {
 
 			tokenAddress := args[1]
 			if strings.HasPrefix(tokenAddress, "0x") {
-				if !gethCommon.IsHexAddress(tokenAddress) {
+				if !gethcommon.IsHexAddress(tokenAddress) {
 					return fmt.Errorf("invalid contract address:%s", tokenAddress)
 				}
-				tokenAddress = gethCommon.HexToAddress(tokenAddress).Hex()
+				tokenAddress = gethcommon.HexToAddress(tokenAddress).Hex()
 			}
 
 			res, err := queryClient.TokenToDenom(cmd.Context(), &types.QueryTokenToDenomRequest{
