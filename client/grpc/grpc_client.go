@@ -511,6 +511,10 @@ func (cli *Client) TxByHash(txHash string) (*sdk.TxResponse, error) {
 	return resp.TxResponse, nil
 }
 
+func (cli *Client) BuildTxV3(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
+	return cli.BuildTxV2(privKey, msgs, 0, "", 0)
+}
+
 func (cli *Client) BuildTxV2(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
 	return cli.BuildTxV1(privKey, sdk.AccAddress(privKey.PubKey().Address().Bytes()).String(), msgs, gasLimit, memo, timeout)
 }
