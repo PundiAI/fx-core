@@ -139,7 +139,7 @@ var ModuleBasics = module.NewBasicManager(
 	eth.AppModuleBasic{},
 	tron.AppModuleBasic{},
 	fxevm.AppModuleBasic{},
-	FeeMarketAppModule{},
+	feemarket.AppModuleBasic{},
 	erc20.AppModuleBasic{},
 	migrate.AppModuleBasic{},
 )
@@ -177,8 +177,8 @@ func appModules(
 		eth.NewAppModule(app.EthKeeper),
 		tron.NewAppModule(app.TronKeeper),
 		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.legacyAmino, app.GetKey(paramstypes.StoreKey)),
-		FeeMarketAppModule{feemarket.NewAppModule(app.FeeMarketKeeper)},
-		erc20.NewAppModule(app.Erc20Keeper, app.AccountKeeper),
+		feemarket.NewAppModule(app.FeeMarketKeeper),
+		erc20.NewAppModule(app.Erc20Keeper, app.AccountKeeper)
 		migrate.NewAppModule(app.MigrateKeeper),
 		fxibctransfer.NewAppModule(app.FxTransferKeeper),
 		ibctransfer.NewAppModule(app.IBCTransferKeeper),

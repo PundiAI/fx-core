@@ -18,8 +18,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	"github.com/cosmos/ibc-go/v3/modules/core/types"
-	"github.com/evmos/ethermint/x/feemarket"
+	coretypes "github.com/cosmos/ibc-go/v3/modules/core/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -116,9 +115,15 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 				genesis[b.Name()] = state
 			}
 		case ibchost.ModuleName:
-			state := types.DefaultGenesisState()
+			state := coretypes.DefaultGenesisState()
 			// only allowedClients tendermint
 			state.ClientGenesis.Params.AllowedClients = []string{exported.Tendermint}
+			genesis[b.Name()] = cdc.MustMarshalJSON(state)
+		case feemarkettypes.ModuleName:
+			state := feemarkettypes.DefaultGenesisState()
+			state.Params.BaseFee = sdk.NewInt(500_000_000_000)
+			state.Params.MinGasPrice = sdk.NewDec(500_000_000_000)
+			state.Params.MinGasMultiplier = sdk.ZeroDec()
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		default:
 			genesis[b.Name()] = b.DefaultGenesis(cdc)
@@ -136,17 +141,4 @@ func CustomConsensusParams() *tmproto.ConsensusParams {
 	result.Evidence.MaxBytes = 100000
 	result.Evidence.MaxAgeDuration = 172800000000000
 	return result
-}
-
-type FeeMarketAppModule struct {
-	feemarket.AppModule
-}
-
-// DefaultGenesis returns default genesis state as raw bytes for the fee market module.
-func (FeeMarketAppModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	genesisState := feemarkettypes.DefaultGenesisState()
-	genesisState.Params.BaseFee = sdk.NewInt(500_000_000_000)
-	genesisState.Params.MinGasPrice = sdk.NewDec(500_000_000_000)
-	genesisState.Params.MinGasMultiplier = sdk.ZeroDec()
-	return cdc.MustMarshalJSON(genesisState)
 }
