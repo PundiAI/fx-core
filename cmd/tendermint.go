@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"time"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	"github.com/tendermint/tendermint/config"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/store"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -107,8 +110,17 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config)
 	}
 	defer blockStoreDB.Close()
 	blockStore := store.NewBlockStore(blockStoreDB)
-	if genesisDoc.GenesisTime.Equal(genesisTime) && blockStore.Height() <= 0 {
-		return errors.New("invalid version: Sync block from scratch please use use fxcored v1.1.x")
+	if genesisDoc.GenesisTime.Equal(genesisTime) {
+		data, _ := tmjson.Marshal(genesisDoc)
+		hash := md5.Sum(data)
+		if hex.EncodeToString(hash[:]) != "81fa9e07c345b217736add7822a4891d" {
+			return nil
+		}
+		// todo: Deleted before release
+		if blockStore.Height() < 5_713_000 {
+			return errors.New("invalid version: Sync block from scratch please use use fxcored v1.x.x")
+		}
+		return errors.New("invalid version: Sync block from scratch please use use fxcored v2.x.x")
 	}
 	return nil
 }
