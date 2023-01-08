@@ -76,6 +76,7 @@ func (m *RegisterCoinProposal) ValidateBasic() error {
 		return err
 	}
 
+	// todo: Redundant validation or move to fxtypes.ValidateMetadata
 	if err := validateIBC(m.Metadata); err != nil {
 		return err
 	}
