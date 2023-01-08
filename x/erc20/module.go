@@ -10,7 +10,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/functionx/fx-core/v3/x/erc20/client/cli"
 	"github.com/functionx/fx-core/v3/x/erc20/keeper"
+	v2 "github.com/functionx/fx-core/v3/x/erc20/legacy/v2"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -80,16 +80,16 @@ func (AppModuleBasic) RegisterInterfaces(interfaceRegistry codectypes.InterfaceR
 // AppModule implements the AppModule interface for the capability module.
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
-	ak     authkeeper.AccountKeeper
+	keeper        keeper.Keeper
+	channelKeeper v2.Channelkeeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(kepper keeper.Keeper, ak authkeeper.AccountKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, channelKeeper v2.Channelkeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         kepper,
-		ak:             ak,
+		keeper:         keeper,
+		channelKeeper:  channelKeeper,
 	}
 }
 
@@ -117,7 +117,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	_ = keeper.NewMigrator(am.keeper)
+	migrator := keeper.NewMigrator(am.keeper, am.channelKeeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, migrator.Migrate2to3); err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis performs the capability module's genesis initialization It returns
@@ -125,7 +128,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	am.keeper.InitGenesis(ctx, am.ak, genesisState)
+	am.keeper.InitGenesis(ctx, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
@@ -136,5 +139,5 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 1
+	return 2
 }

@@ -178,7 +178,7 @@ func appModules(
 		tron.NewAppModule(app.TronKeeper),
 		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.legacyAmino, app.GetKey(paramstypes.StoreKey)),
 		feemarket.NewAppModule(app.FeeMarketKeeper),
-		erc20.NewAppModule(app.Erc20Keeper, app.AccountKeeper)
+		erc20.NewAppModule(app.Erc20Keeper, app.IBCKeeper.ChannelKeeper),
 		migrate.NewAppModule(app.MigrateKeeper),
 		fxibctransfer.NewAppModule(app.FxTransferKeeper),
 		ibctransfer.NewAppModule(app.IBCTransferKeeper),

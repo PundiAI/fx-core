@@ -3,7 +3,6 @@ package v3
 import (
 	"fmt"
 	"path/filepath"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -13,7 +12,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 
@@ -41,9 +39,6 @@ func createUpgradeHandler(
 
 		// update metadata alias null
 		updateMetadataAliasNull(cacheCtx, keepers.BankKeeper)
-
-		// delete erc20 expiration ibc transfer hash
-		deleteExpirationIBCTransferHash(ctx, keepers.Erc20Keeper, keepers.IBCKeeper.ChannelKeeper)
 
 		// run migrations
 		toVM := runMigrations(cacheCtx, fromVM, mm, configurator)
@@ -141,23 +136,6 @@ func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 		bk.SetDenomMetaData(ctx, md)
 		return false
 	})
-}
-
-func deleteExpirationIBCTransferHash(ctx sdk.Context, erc20Keeper erc20keeper.Keeper, channelKeeper channelkeeper.Keeper) {
-	counts := make(map[string]uint64, 10)
-	erc20Keeper.IterateIBCTransferHash(ctx, func(port, channel string, sequence uint64) bool {
-		found := channelKeeper.HasPacketCommitment(ctx, port, channel, sequence)
-		if found {
-			return false
-		}
-		erc20Keeper.DeleteIBCTransferHash(ctx, port, channel, sequence)
-		// statistics count
-		counts[fmt.Sprintf("%s/%s", port, channel)] += 1
-		return false
-	})
-	for portChannel, count := range counts {
-		ctx.Logger().Info("delete expiration ibc transfer hash", "port/channel", portChannel, "count", strconv.FormatUint(count, 10))
-	}
 }
 
 func getMetadata(chainId string) []banktypes.Metadata {
