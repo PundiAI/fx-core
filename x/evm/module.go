@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/evmos/ethermint/x/evm"
-	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -15,33 +14,45 @@ import (
 	"github.com/functionx/fx-core/v3/x/evm/keeper"
 )
 
-var _ module.AppModule = AppModule{}
+var (
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
+)
 
-// ____________________________________________________________________________
-
-// AppModule implements an application module for the evm module.
-type AppModule struct {
-	evm.AppModule
-	keeper *keeper.Keeper
-	ak     types.AccountKeeper
-}
-
-// NewAppModule creates a new AppModule object
-func NewAppModule(k *keeper.Keeper, ak types.AccountKeeper) AppModule {
-	return AppModule{
-		AppModule: evm.NewAppModule(k.Keeper, ak),
-		keeper:    k,
-		ak:        ak,
-	}
+// AppModuleBasic defines the basic application module used by the evm module.
+type AppModuleBasic struct {
+	evm.AppModuleBasic
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the evm
 // module.
-func (am AppModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+func (am AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	genesisState := types.DefaultGenesisState()
 	genesisState.Params.EvmDenom = fxtypes.DefaultDenom
 	return cdc.MustMarshalJSON(genesisState)
 }
+
+// AppModule implements an application module for the evm module.
+type AppModule struct {
+	AppModuleBasic
+	keeper         *keeper.Keeper
+	accountKeeper  types.AccountKeeper
+	legacyAmino    *codec.LegacyAmino
+	paramsStoreKey sdk.StoreKey
+}
+
+// NewAppModule creates a new AppModule object
+func NewAppModule(k *keeper.Keeper, accountKeeper types.AccountKeeper, legacyAmino *codec.LegacyAmino, paramsStoreKey sdk.StoreKey) AppModule {
+	return AppModule{
+		AppModuleBasic: AppModuleBasic{},
+		keeper:         k,
+		accountKeeper:  accountKeeper,
+		legacyAmino:    legacyAmino,
+		paramsStoreKey: paramsStoreKey,
+	}
+}
+
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
@@ -49,13 +60,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	m := evmkeeper.NewMigrator(*am.keeper.Keeper)
-	err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
-	if err != nil {
-		panic(err)
-	}
-	err = cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3)
-	if err != nil {
+	migrator := keeper.NewMigrator(am.keeper, am.legacyAmino, am.paramsStoreKey)
+	if err := cfg.RegisterMigration(types.ModuleName, 2, migrator.Migrate2to3); err != nil {
 		panic(err)
 	}
 }
@@ -63,6 +69,14 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // Deprecated: Route returns the message routing key
 func (am AppModule) Route() sdk.Route {
 	return sdk.Route{}
+}
+
+// QuerierRoute implements app module
+func (AppModule) QuerierRoute() string { return "" }
+
+// LegacyQuerierHandler returns no sdk.Querier
+func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
+	return nil
 }
 
 // BeginBlock returns the begin block for the evm module.
@@ -76,6 +90,18 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	var genesisState types.GenesisState
 
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	am.keeper.InitGenesis(ctx, am.ak, genesisState)
+	am.keeper.InitGenesis(ctx, am.accountKeeper, genesisState)
 	return []abci.ValidatorUpdate{}
+}
+
+// ExportGenesis returns the exported genesis state as raw bytes for the evm
+// module.
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	state := evm.ExportGenesis(ctx, am.keeper.Keeper, am.accountKeeper)
+	return cdc.MustMarshalJSON(state)
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 {
+	return 3
 }

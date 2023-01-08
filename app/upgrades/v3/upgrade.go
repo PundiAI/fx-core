@@ -6,18 +6,14 @@ import (
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	channelkeeper "github.com/cosmos/ibc-go/v3/modules/core/04-channel/keeper"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 
@@ -45,9 +41,6 @@ func createUpgradeHandler(
 
 		// update metadata alias null
 		updateMetadataAliasNull(cacheCtx, keepers.BankKeeper)
-
-		// migrate evm param RejectUnprotectedTx to AllowUnprotectedTxs
-		migrateRejectUnprotectedTx(cacheCtx, keepers.LegacyAmino, keepers.GetKey(paramstypes.StoreKey))
 
 		// delete erc20 expiration ibc transfer hash
 		deleteExpirationIBCTransferHash(ctx, keepers.Erc20Keeper, keepers.IBCKeeper.ChannelKeeper)
@@ -104,31 +97,6 @@ func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
 	bscKeeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: oracles,
 	})
-}
-
-func migrateRejectUnprotectedTx(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) {
-	paramStoreKeyRejectUnprotectedTx := []byte("RejectUnprotectedTx")
-
-	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(evmtypes.ModuleName), '/'))
-	bzR := paramsStore.Get(paramStoreKeyRejectUnprotectedTx)
-
-	var rejectUnprotectedTx bool
-	if err := legacyAmino.UnmarshalJSON(bzR, &rejectUnprotectedTx); err != nil {
-		panic(err.Error())
-	}
-
-	allowUnprotectedTxs := !rejectUnprotectedTx
-	bzA, err := legacyAmino.MarshalJSON(allowUnprotectedTxs)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	ctx.Logger().Info("migrate params", "module", evmtypes.ModuleName,
-		"from", fmt.Sprintf("%s:%v", paramStoreKeyRejectUnprotectedTx, rejectUnprotectedTx),
-		"to", fmt.Sprintf("%s:%v", evmtypes.ParamStoreKeyAllowUnprotectedTxs, allowUnprotectedTxs))
-
-	paramsStore.Delete(paramStoreKeyRejectUnprotectedTx)
-	paramsStore.Set(evmtypes.ParamStoreKeyAllowUnprotectedTxs, bzA)
 }
 
 func runMigrations(ctx sdk.Context, fromVM module.VersionMap, mm *module.Manager, mc module.Configurator) module.VersionMap {
