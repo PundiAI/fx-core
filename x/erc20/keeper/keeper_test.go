@@ -12,6 +12,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v3/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	localhosttypes "github.com/cosmos/ibc-go/v3/modules/light-clients/09-localhost/types"
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
@@ -22,6 +32,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
@@ -139,19 +150,33 @@ func (suite *KeeperTestSuite) DeployFXRelayToken() (types.TokenPair, banktypes.M
 	return *pair, fxToken
 }
 
-func (suite *KeeperTestSuite) GenerateCrossChainDenoms() []string {
-	modules := []string{"eth", "bsc", "polygon", "tron", "avalanche"}
+func (suite *KeeperTestSuite) CrossChainKeepers() map[string]CrossChainKeeper {
+	keepers := make(map[string]CrossChainKeeper)
+	keepers["eth"] = suite.app.EthKeeper
+	keepers["bsc"] = suite.app.BscKeeper
+	keepers["polygon"] = suite.app.PolygonKeeper
+	keepers["tron"] = suite.app.TronKeeper
+	keepers["avalanche"] = suite.app.AvalancheKeeper
+	return keepers
+}
 
-	count := rand.Intn(len(modules)-1) + 1
+func (suite *KeeperTestSuite) GenerateCrossChainDenoms() []string {
+	keepers := suite.CrossChainKeepers()
+	modules := make([]string, 0, len(keepers))
+	for m := range keepers {
+		modules = append(modules, m)
+	}
+	count := tmrand.Intn(len(modules)-1) + 1
 
 	denoms := make([]string, len(modules))
 	for index, m := range modules {
-		address := helpers.GenerateAddress().String()
-		if m == "tron" {
-			address = trontypes.AddressFromHex(address)
-		}
+		address := suite.RandAddress(m)
+
 		denom := fmt.Sprintf("%s%s", m, address)
 		denoms[index] = denom
+
+		k := keepers[m]
+		k.AddBridgeToken(suite.ctx, address, fmt.Sprintf("%s%s", m, address))
 	}
 	if count >= len(modules) {
 		return denoms
@@ -244,6 +269,48 @@ func (suite *KeeperTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr
 	suite.Require().NoError(err)
 }
 
+func (suite *KeeperTestSuite) RandAddress(module string) string {
+	addr := helpers.GenerateAddress().String()
+	if module == "tron" {
+		addr = trontypes.AddressFromHex(addr)
+	}
+	return addr
+}
+
+func (suite *KeeperTestSuite) RandTransferChannel() (portID, channelID string) {
+	portID = "transfer"
+	channelID = fmt.Sprintf("channel-%d", tmrand.Intn(100))
+	connectionID := connectiontypes.FormatConnectionIdentifier(uint64(tmrand.Intn(100)))
+	clientID := clienttypes.FormatClientIdentifier(exported.Localhost, uint64(tmrand.Intn(100)))
+
+	revision := clienttypes.ParseChainID(suite.ctx.ChainID())
+	localHostClient := localhosttypes.NewClientState(
+		suite.ctx.ChainID(), clienttypes.NewHeight(revision, uint64(suite.ctx.BlockHeight())),
+	)
+	suite.app.IBCKeeper.ClientKeeper.SetClientState(suite.ctx, clientID, localHostClient)
+
+	prevConsState := &ibctmtypes.ConsensusState{
+		Timestamp:          suite.ctx.BlockTime(),
+		NextValidatorsHash: suite.ctx.BlockHeader().NextValidatorsHash,
+	}
+	height := clienttypes.NewHeight(0, uint64(suite.ctx.BlockHeight()))
+	suite.app.IBCKeeper.ClientKeeper.SetClientConsensusState(suite.ctx, clientID, height, prevConsState)
+
+	channelCapability, err := suite.app.ScopedIBCKeeper.NewCapability(suite.ctx, host.ChannelCapabilityPath(portID, channelID))
+	suite.Require().NoError(err)
+	err = suite.app.ScopedTransferKeeper.ClaimCapability(suite.ctx, capabilitytypes.NewCapability(channelCapability.Index), host.ChannelCapabilityPath(portID, channelID))
+	suite.Require().NoError(err)
+
+	connectionEnd := connectiontypes.NewConnectionEnd(connectiontypes.OPEN, clientID, connectiontypes.Counterparty{ClientId: "clientidtwo", ConnectionId: "connection-1", Prefix: commitmenttypes.NewMerklePrefix([]byte("prefix"))}, []*connectiontypes.Version{ibctesting.ConnectionVersion}, 500)
+	suite.app.IBCKeeper.ConnectionKeeper.SetConnection(suite.ctx, connectionID, connectionEnd)
+
+	channel := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(portID, channelID), []string{connectionID}, ibctesting.DefaultChannelVersion)
+	suite.app.IBCKeeper.ChannelKeeper.SetChannel(suite.ctx, portID, channelID, channel)
+	suite.app.IBCKeeper.ChannelKeeper.SetNextSequenceSend(suite.ctx, portID, channelID, uint64(tmrand.Intn(10000)))
+
+	return portID, channelID
+}
+
 func (suite *KeeperTestSuite) sendEvmTx(contractAddr, from common.Address, data []byte) *evm.MsgEthereumTx {
 	chainID := suite.app.EvmKeeper.ChainID()
 
@@ -316,4 +383,8 @@ func newMetadata() banktypes.Metadata {
 		Name:    "Tether USD",
 		Symbol:  "USDT",
 	}
+}
+
+type CrossChainKeeper interface {
+	AddBridgeToken(ctx sdk.Context, token, denom string)
 }

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/armon/go-metrics"
@@ -31,6 +32,7 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 
 		target := fxtypes.Byte32ToString(relay.Target)
 		if strings.HasPrefix(target, ibchost.ModuleName) {
+			target = strings.TrimPrefix(target, fmt.Sprintf("%s/", ibchost.ModuleName))
 			err = h.transferIBCHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target, txHash)
 		} else {
 			target = strings.TrimPrefix(target, "chain/")
@@ -57,7 +59,7 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 			[]metrics.Label{
 				telemetry.NewLabel("erc20", relay.TokenContract.String()),
 				telemetry.NewLabel("denom", relay.Denom),
-				telemetry.NewLabel("target", target),
+				telemetry.NewLabel("target", fxtypes.Byte32ToString(relay.Target)),
 				telemetry.NewLabel("amount", relay.GetAmount(relay.Denom).String()),
 			},
 		)
