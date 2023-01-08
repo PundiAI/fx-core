@@ -108,7 +108,9 @@ func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 		ctx.Logger().Info("add metadata", "coin", metadata.String())
 		pair, err := k.RegisterCoin(ctx, metadata)
 		if err != nil {
-			panic(fmt.Sprintf("register %s: %s", metadata.Base, err.Error()))
+			// run time error, non-fatal, print info
+			ctx.Logger().Error("failed to register coin", "denom", metadata.Base, "error", err.Error())
+			continue
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			erc20types.EventTypeRegisterCoin,

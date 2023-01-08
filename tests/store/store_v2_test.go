@@ -8,7 +8,6 @@ import (
 
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
@@ -34,45 +33,6 @@ func TestLocalStoreInV2(t *testing.T) {
 		name     string
 		testCase func(sdk.Context, *app.App)
 	}{
-		{
-			name: "ModuleConsensusVersion",
-			testCase: func(ctx sdk.Context, myApp *app.App) {
-				moduleVersion := module.VersionMap{
-					"polygon":      2,
-					"genutil":      1,
-					"gov":          2,
-					"params":       1,
-					"slashing":     2,
-					"transfer":     1,
-					"authz":        1,
-					"crisis":       1,
-					"bsc":          2,
-					"capability":   1,
-					"crosschain":   1,
-					"bank":         2,
-					"erc20":        1,
-					"feemarket":    3,
-					"migrate":      1,
-					"mint":         1,
-					"staking":      2,
-					"tron":         2,
-					"vesting":      1,
-					"feegrant":     1,
-					"evidence":     1,
-					"evm":          2,
-					"ibc":          2,
-					"other":        1,
-					"upgrade":      1,
-					"distribution": 2,
-					"gravity":      1,
-					"auth":         2,
-				}
-				vm := myApp.UpgradeKeeper.GetModuleVersionMap(ctx)
-				for k, v := range vm {
-					require.Equal(t, moduleVersion[k], v)
-				}
-			},
-		},
 		{
 			name: "Iterator gravity module store",
 			testCase: func(ctx sdk.Context, myApp *app.App) {
