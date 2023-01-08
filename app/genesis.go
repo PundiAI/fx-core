@@ -63,7 +63,7 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case slashingtypes.ModuleName:
 			state := slashingtypes.DefaultGenesisState()
-			state.Params.MinSignedPerWindow = sdk.NewDecWithPrec(5, 2)
+			state.Params.MinSignedPerWindow = sdk.NewDecWithPrec(5, 2) // 5%
 			state.Params.SignedBlocksWindow = 20000
 			state.Params.SlashFractionDoubleSign = sdk.NewDec(1).Quo(sdk.NewDec(20))
 			state.Params.SlashFractionDowntime = sdk.NewDec(1).Quo(sdk.NewDec(1000))
@@ -81,7 +81,7 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			}
 			state.DepositParams.MaxDepositPeriod = time.Hour * 24 * 14
 			state.VotingParams.VotingPeriod = time.Hour * 24 * 14
-			state.TallyParams.Quorum = sdk.NewDecWithPrec(4, 1)
+			state.TallyParams.Quorum = sdk.NewDecWithPrec(4, 1) // 40%
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case crisistypes.ModuleName:
 			state := crisistypes.DefaultGenesisState()
@@ -92,11 +92,11 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 		case minttypes.ModuleName:
 			state := minttypes.DefaultGenesisState()
 			state.Params.MintDenom = denom
-			state.Params.InflationMin = sdk.NewDecWithPrec(17, 2)
-			state.Params.InflationMax = sdk.NewDecWithPrec(416762, 6)
-			state.Params.GoalBonded = sdk.NewDecWithPrec(51, 2)
-			state.Params.InflationRateChange = sdk.NewDecWithPrec(30, 2)
-			state.Minter.Inflation = sdk.NewDecWithPrec(35, 2)
+			state.Params.InflationMin = sdk.NewDecWithPrec(17, 2)        // 17%
+			state.Params.InflationMax = sdk.NewDecWithPrec(416762, 6)    // 41.6762%
+			state.Params.GoalBonded = sdk.NewDecWithPrec(51, 2)          // 51%
+			state.Params.InflationRateChange = sdk.NewDecWithPrec(30, 2) // 30%
+			state.Minter.Inflation = sdk.NewDecWithPrec(35, 2)           // 35%
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case banktypes.ModuleName:
 			state := banktypes.DefaultGenesisState()

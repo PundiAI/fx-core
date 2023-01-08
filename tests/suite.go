@@ -243,9 +243,9 @@ func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) *sdk.TxResp
 		Details:         "",
 	}
 	rates := stakingtypes.CommissionRates{
-		Rate:          sdk.NewDecWithPrec(2, 2),
-		MaxRate:       sdk.NewDecWithPrec(50, 2),
-		MaxChangeRate: sdk.NewDecWithPrec(2, 2),
+		Rate:          sdk.NewDecWithPrec(2, 2),  // 2%
+		MaxRate:       sdk.NewDecWithPrec(50, 2), // 5%
+		MaxChangeRate: sdk.NewDecWithPrec(2, 2),  // 2%
 	}
 	ed25519PrivKey := ed25519.GenPrivKeyFromSecret(valAddr.Bytes())
 	msg, err := stakingtypes.NewMsgCreateValidator(valAddr, ed25519PrivKey.PubKey(), selfDelegate, description, rates, minSelfDelegate)

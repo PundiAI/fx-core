@@ -14,7 +14,7 @@ const (
 
 func EGFProposalMinDeposit(claimCoin sdk.Coins) sdk.Coins {
 	var (
-		ClaimRatio          = sdk.NewDecWithPrec(1, 1)
+		ClaimRatio          = sdk.NewDecWithPrec(1, 1) // 10%
 		EGFDepositThreshold = sdk.NewInt(10_000).Mul(sdk.NewInt(1e18))
 	)
 

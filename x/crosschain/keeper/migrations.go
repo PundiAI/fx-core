@@ -10,7 +10,7 @@ import (
 func (k Keeper) Migrate2to3(ctx sdk.Context) error {
 	// update params
 	k.paramSpace.Set(ctx, types.ParamsStoreKeySignedWindow, uint64(30_000))
-	k.paramSpace.Set(ctx, types.ParamsStoreSlashFraction, sdk.NewDecWithPrec(8, 1))
+	k.paramSpace.Set(ctx, types.ParamsStoreSlashFraction, sdk.NewDecWithPrec(8, 1)) // 80%
 
 	crosschainv3.MigrateBridgeToken(k.cdc, ctx.KVStore(k.storeKey), k.moduleName)
 
