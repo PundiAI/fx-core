@@ -1,16 +1,15 @@
-package migrate
+package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/migrate/keeper"
 	"github.com/functionx/fx-core/v3/x/migrate/types"
 )
 
 // InitGenesis import module genesis
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, state types.GenesisState) {
+func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, record := range state.MigrateRecords {
 		fromAddr, err := sdk.AccAddressFromBech32(record.From)
 		if err != nil {
@@ -24,7 +23,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, state types.GenesisState) {
 }
 
 // ExportGenesis export module status
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	genesisState := &types.GenesisState{}
 	k.IterateMigrateRecords(ctx, func(record types.MigrateRecord) bool {
 		genesisState.MigrateRecords = append(genesisState.MigrateRecords, record)
