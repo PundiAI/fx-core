@@ -68,7 +68,7 @@ func (m *RegisterCoinProposal) ValidateBasic() error {
 		return err
 	}
 
-	if err := ValidateMetadataErc20(m.Metadata); err != nil {
+	if err := fxtypes.ValidateMetadata(m.Metadata); err != nil {
 		return err
 	}
 
@@ -95,29 +95,6 @@ func validateIBC(metadata banktypes.Metadata) error {
 	if len(denomSplit) != 2 || denomSplit[0] != ibctransfertypes.DenomPrefix {
 		// NOTE: should be unaccessible (covered on ValidateIBCDenom)
 		return fmt.Errorf("invalid metadata. %s denomination should be prefixed with the format 'ibc/", metadata.Base)
-	}
-	return nil
-}
-
-func ValidateMetadataErc20(md banktypes.Metadata) error {
-	decimals := uint8(0)
-	for _, du := range md.DenomUnits {
-		if du.Denom == md.Symbol {
-			decimals = uint8(du.Exponent)
-			break
-		}
-	}
-	if md.Base == fxtypes.DefaultDenom {
-		decimals = fxtypes.DenomUnit
-	}
-	if len(md.Name) == 0 {
-		return fmt.Errorf("invalid name %s", md.Name)
-	}
-	if len(md.Symbol) == 0 {
-		return fmt.Errorf("invalid symbol %s", md.Symbol)
-	}
-	if decimals == 0 {
-		return fmt.Errorf("invalid decimals %d", decimals)
 	}
 	return nil
 }
