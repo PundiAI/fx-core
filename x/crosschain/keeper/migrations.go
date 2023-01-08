@@ -14,6 +14,7 @@ func (k Keeper) Migrate2to3(ctx sdk.Context) error {
 
 	kvStore := ctx.KVStore(k.storeKey)
 	crosschainv3.MigrateBridgeToken(k.cdc, kvStore, k.moduleName)
+	ctx.Logger().Info("bridge token has been migrated successfully", "module", k.moduleName)
 
 	crosschainv3.PruneEvidence(kvStore)
 	crosschainv3.PruneBatchConfirmKey(k.cdc, kvStore)

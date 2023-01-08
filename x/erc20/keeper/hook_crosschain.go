@@ -18,9 +18,8 @@ import (
 )
 
 func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossChains []types.RelayTransferCrossChain, txHash common.Hash) (err error) {
-	logger := h.k.Logger(ctx)
 	for _, relay := range relayTransferCrossChains {
-		logger.Info("transfer cross chain", "token", relay.TokenContract.String(), "denom", relay.Denom)
+		h.k.Logger(ctx).Info("transfer cross chain", "token", relay.TokenContract.String(), "denom", relay.Denom)
 
 		balances := h.k.bankKeeper.GetAllBalances(ctx, relay.From.Bytes())
 		if !balances.IsAllGTE(relay.TotalAmount(relay.Denom)) {

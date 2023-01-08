@@ -77,7 +77,7 @@ func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name
 	} else {
 		tokenContract = fxtypes.GetERC20()
 	}
-	k.Logger(ctx).Info("deploy token", "name", name, "symbol", symbol, "decimals", decimals)
+	k.Logger(ctx).Info("deploy token contract", "name", name, "symbol", symbol, "decimals", decimals)
 
 	// deploy proxy
 	erc1967Proxy := fxtypes.GetERC1967Proxy()

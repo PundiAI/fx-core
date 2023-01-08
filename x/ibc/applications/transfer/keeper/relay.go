@@ -233,7 +233,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 	default:
 		if k.refundHook != nil {
 			if err := k.refundHook.AckAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); err != nil {
-				ctx.Logger().Error("acknowledgement packet", "ack hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
+				k.Logger(ctx).Error("acknowledgement packet", "ack hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
 			}
 		}
 		// the acknowledgement succeeded on the receiving chain so nothing
@@ -276,7 +276,7 @@ func (k Keeper) refundPacketTokenHook(ctx sdk.Context, packet channeltypes.Packe
 
 	if k.refundHook != nil {
 		if err = k.refundHook.RefundAfter(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence, sender, token); err != nil {
-			ctx.Logger().Info("refundPacketToken", "refund hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
+			k.Logger(ctx).Info("refundPacketToken", "refund hook err!!!sourceChannel", packet.GetSourceChannel(), "destChannel", packet.GetDestChannel(), "sequence", packet.GetSequence(), "err", err)
 		}
 	}
 	return nil

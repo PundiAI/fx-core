@@ -35,7 +35,6 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 	if !found {
 		return stakingtypes.ErrNoValidatorFound
 	}
-	logger := ctx.Logger().With("module", "x/"+moduleName)
 
 	for i, oracle := range oracles {
 		if i == 0 {
@@ -50,7 +49,7 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 
 		delegation, found := stakingKeeper.GetDelegation(ctx, delegateAddr, delegateValAddr)
 		if !found {
-			logger.Info("no found delegating on migrate", "delegate", delegateAddr, "validator", delegateValAddr.String())
+			ctx.Logger().Info("no found delegating on migrate", "module", moduleName, "delegate", delegateAddr, "validator", delegateValAddr.String())
 			continue
 		}
 		stakingKeeper.RemoveDelegation(ctx, delegation)
@@ -81,6 +80,7 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		}
 		// notice: Each delegate should be followed by an update of the validator `Tokens` and `DelegatorShares`
 		validator, _ = validator.AddTokensFromDel(oracle.DelegateAmount)
+		ctx.Logger().Info("fix bridge-oracle delegate successfully", "module", moduleName, "oracleAddress", oracle.OracleAddress)
 	}
 	return nil
 }

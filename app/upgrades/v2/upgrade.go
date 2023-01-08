@@ -111,8 +111,7 @@ func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *sd
 	if err := metaData.Validate(); err != nil {
 		panic(fmt.Sprintf("invalid %s metadata", fxtypes.DefaultDenom))
 	}
-	logger := ctx.Logger()
-	logger.Info("update FX metadata", "metadata", metaData.String())
+	ctx.Logger().Info("update FX metadata", "module", "upgrade", "metadata", metaData.String())
 	// delete fx
 	fxDenom := strings.ToLower(fxtypes.DefaultDenom)
 	denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataKey(fxDenom))
@@ -122,18 +121,17 @@ func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *sd
 }
 
 func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) {
-	logger := ctx.Logger()
-	logger.Info("update block params", "chainId", ctx.ChainID())
+	ctx.Logger().Info("update block params", "module", "upgrade", "chainId", ctx.ChainID())
 	baseappSubspace, found := pk.GetSubspace(baseapp.Paramspace)
 	if !found {
 		panic(fmt.Sprintf("unknown subspace: %s", baseapp.Paramspace))
 	}
 	var bp abci.BlockParams
 	baseappSubspace.Get(ctx, baseapp.ParamStoreKeyBlockParams, &bp)
-	logger.Info("update block params", "before update", bp.String())
+	ctx.Logger().Info("update block params", "module", "upgrade", "before update", bp.String())
 	bp.MaxGas = 30_000_000
 	baseappSubspace.Set(ctx, baseapp.ParamStoreKeyBlockParams, bp)
-	logger.Info("update block params", "after update", bp.String())
+	ctx.Logger().Info("update block params", "module", "upgrade", "after update", bp.String())
 }
 
 func migrationsOrder(modules []string) []string {
@@ -182,7 +180,7 @@ func runMigrations(ctx sdk.Context, paramsKey *sdk.KVStoreKey, fromVersion modul
 	if mm.OrderMigrations == nil {
 		mm.OrderMigrations = migrationsOrder(mm.ModuleNames())
 	}
-	ctx.Logger().Info("start to run module v2 migrations...")
+	ctx.Logger().Info("start to run v2 migrations...", "module", "upgrade")
 	toVersion, err := mm.RunMigrations(ctx, configurator, fromVersion)
 	if err != nil {
 		panic(fmt.Sprintf("run migrations: %s", err.Error()))
@@ -194,14 +192,13 @@ func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
 	if fxtypes.TestnetChainId != ctx.ChainID() {
 		return
 	}
-	logger := ctx.Logger()
-	logger.Info("clear testnet metadata", "chainId", ctx.ChainID())
+	ctx.Logger().Info("clear testnet metadata", "module", "upgrade", "chainId", ctx.ChainID())
 	for _, md := range getMetadata(ctx.ChainID()) {
 		// remove denom except FX
 		if md.Base == fxtypes.DefaultDenom {
 			continue
 		}
-		logger.Info("clear testnet metadata", "metadata", md.String())
+		ctx.Logger().Info("clear testnet metadata", "module", "upgrade", "metadata", md.String())
 		denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataKey(md.Base))
 		denomMetaDataStore.Delete([]byte(md.Base))
 	}
@@ -209,11 +206,11 @@ func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
 
 func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 	for _, metadata := range getMetadata(ctx.ChainID()) {
-		ctx.Logger().Info("add metadata", "coin", metadata.String())
 		pair, err := k.RegisterCoin(ctx, metadata)
 		if err != nil {
 			panic(fmt.Sprintf("register %s: %s", metadata.Base, err.Error()))
 		}
+		ctx.Logger().Info("add metadata successfully", "module", "upgrade", "metadata", metadata.String())
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			erc20types.EventTypeRegisterCoin,
 			sdk.NewAttribute(erc20types.AttributeKeyDenom, pair.Denom),
@@ -223,15 +220,14 @@ func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 }
 
 func clearTestnetModule(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
-	logger := ctx.Logger()
 	if fxtypes.TestnetChainId != ctx.ChainID() {
 		return
 	}
-	logger.Info("clear kv store", "chainId", ctx.ChainID())
+	ctx.Logger().Info("clear kv store", "module", "upgrade", "chainId", ctx.ChainID())
 	cleanModules := []string{feemarkettypes.StoreKey, evmtypes.StoreKey, erc20types.StoreKey, migratetypes.StoreKey}
 	multiStore := ctx.MultiStore()
 	for _, storeName := range cleanModules {
-		logger.Info("clear kv store", "storesName", storeName)
+		ctx.Logger().Info("clear kv store", "module", "upgrade", "storesName", storeName)
 		startTime := time.Now()
 		storeKey, ok := keys[storeName]
 		if !ok {
@@ -241,7 +237,7 @@ func clearTestnetModule(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 		if err := deleteKVStore(kvStore); err != nil {
 			panic(fmt.Sprintf("failed to delete store %s: %s", storeName, err.Error()))
 		}
-		logger.Info("clear kv store done", "storesName", storeName, "consumeMs", time.Now().UnixNano()-startTime.UnixNano())
+		ctx.Logger().Info("clear kv store done", "module", "upgrade", "storesName", storeName, "consumeMs", time.Now().UnixNano()-startTime.UnixNano())
 	}
 }
 

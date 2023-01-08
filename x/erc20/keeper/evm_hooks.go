@@ -24,18 +24,17 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 	if !h.k.GetEnableErc20(ctx) || !h.k.GetEnableEVMHook(ctx) {
 		return nil
 	}
-	logger := h.k.Logger(ctx)
 
 	msgTo := receipt.ContractAddress.String()
 	if msg.To() != nil {
 		msgTo = msg.To().String()
 	}
 
-	logger.Info("erc20 processing", "hash", receipt.TxHash.String(), "from", msg.From().String(), "to", msgTo)
+	h.k.Logger(ctx).Info("erc20 processing", "hash", receipt.TxHash.String(), "from", msg.From().String(), "to", msgTo)
 
 	relayTransfers, relayTransferCrossChains, err := h.ParseEventLog(ctx, receipt.Logs, h.k.moduleAddress)
 	if err != nil {
-		logger.Error("erc20 processing", "hook-action", "parse event log", "error", err.Error())
+		h.k.Logger(ctx).Error("erc20 processing", "hook-action", "parse event log", "error", err.Error())
 		return err
 	}
 	if len(relayTransfers) <= 0 && len(relayTransferCrossChains) <= 0 {
@@ -47,13 +46,13 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 
 	// hook transfer event
 	if err := h.HookTransferEvent(ctx, relayTransfers); err != nil {
-		logger.Error("erc20 processing", "hook-action", "relay transfer event", "error", err.Error())
+		h.k.Logger(ctx).Error("erc20 processing", "hook-action", "relay transfer event", "error", err.Error())
 		return err
 	}
 
 	// hook transferCrossChain(cross-chain,ibc...) event
 	if err := h.HookTransferCrossChainEvent(ctx, relayTransferCrossChains, receipt.TxHash); err != nil {
-		logger.Error("erc20 processing", "hook-action", "relay transfer cross chain event", "error", err.Error())
+		h.k.Logger(ctx).Error("erc20 processing", "hook-action", "relay transfer cross chain event", "error", err.Error())
 		return err
 	}
 

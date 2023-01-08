@@ -41,7 +41,7 @@ func createUpgradeHandler(
 		updateMetadataAliasNull(cacheCtx, keepers.BankKeeper)
 
 		// run migrations
-		toVM := runMigrations(cacheCtx, fromVM, mm, configurator)
+		toVM := runMigrations(cacheCtx, mm, configurator, fromVM)
 
 		// init avalanche oracles
 		initAvalancheOracles(cacheCtx, keepers.AvalancheKeeper)
@@ -70,6 +70,10 @@ func initAvalancheOracles(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keep
 	} else {
 		panic("invalid chainId:" + chainId)
 	}
+	if len(oracles) <= 0 {
+		return
+	}
+	ctx.Logger().Info("init module avalanche oracles", "module", "upgrade", "number", len(oracles))
 	avalancheKeeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: oracles,
 	})
@@ -89,13 +93,14 @@ func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
 	if len(oracles) <= 0 {
 		return
 	}
+	ctx.Logger().Info("update module bsc oracles to", "module", "upgrade", "number", len(oracles))
 	bscKeeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: oracles,
 	})
 }
 
-func runMigrations(ctx sdk.Context, fromVM module.VersionMap, mm *module.Manager, mc module.Configurator) module.VersionMap {
-	ctx.Logger().Info("start to run module v3 migrations...")
+func runMigrations(ctx sdk.Context, mm *module.Manager, mc module.Configurator, fromVM module.VersionMap) module.VersionMap {
+	ctx.Logger().Info("start to run v3 migrations...", "module", "upgrade")
 	toVM, err := mm.RunMigrations(ctx, mc, fromVM)
 	if err != nil {
 		panic(fmt.Sprintf("run migrations: %s", err.Error()))
@@ -105,13 +110,13 @@ func runMigrations(ctx sdk.Context, fromVM module.VersionMap, mm *module.Manager
 
 func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 	for _, metadata := range getMetadata(ctx.ChainID()) {
-		ctx.Logger().Info("add metadata", "coin", metadata.String())
 		pair, err := k.RegisterCoin(ctx, metadata)
 		if err != nil {
 			// run time error, non-fatal, print info
-			ctx.Logger().Error("failed to register coin", "denom", metadata.Base, "error", err.Error())
+			ctx.Logger().Error("failed to register coin", "module", "upgrade", "denom", metadata.Base, "error", err.Error())
 			continue
 		}
+		ctx.Logger().Info("add metadata successfully", "module", "upgrade", "metadata", metadata.String())
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			erc20types.EventTypeRegisterCoin,
 			sdk.NewAttribute(erc20types.AttributeKeyDenom, pair.Denom),
@@ -122,10 +127,10 @@ func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 
 func updateWFXLogicCode(ctx sdk.Context, k *evmkeeper.Keeper) {
 	wfx := fxtypes.GetWFX()
-	err := k.UpdateContractCode(ctx, wfx.Address, wfx.Code)
-	if err != nil {
+	if err := k.UpdateContractCode(ctx, wfx.Address, wfx.Code); err != nil {
 		panic(fmt.Sprintf("update wfx logic code error: %s", err.Error()))
 	}
+	ctx.Logger().Info("update WFX contract", "module", "upgrade", "codeHash", wfx.CodeHash())
 }
 
 func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
@@ -133,7 +138,7 @@ func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 		if len(md.DenomUnits) != 2 || len(md.DenomUnits[1].Aliases) != 1 || md.DenomUnits[1].Aliases[0] != "null" {
 			return false
 		}
-		ctx.Logger().Info("fix metadata alias", "denom", md.Base)
+		ctx.Logger().Info("fix metadata alias", "module", "upgrade", "denom", md.Base)
 		md.DenomUnits[1].Aliases = []string{}
 		bk.SetDenomMetaData(ctx, md)
 		return false

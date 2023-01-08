@@ -35,7 +35,7 @@ func isNeedOracleSetRequest(ctx sdk.Context, k Keeper) (*types.OracleSet, bool) 
 	}
 	// 2. Oracle slash
 	if k.GetLastOracleSlashBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
-		ctx.Logger().Info("oracle set change", "has oracle slash in block", ctx.BlockHeight())
+		k.Logger(ctx).Info("oracle set change", "has oracle slash in block", ctx.BlockHeight())
 		return currentOracleSet, true
 	}
 	// 3. Power diff
@@ -50,7 +50,7 @@ func isNeedOracleSetRequest(ctx sdk.Context, k Keeper) (*types.OracleSet, bool) 
 		oracleSetUpdatePowerChangePercent = sdk.OneDec()
 	}
 	if powerDiffDec.GTE(oracleSetUpdatePowerChangePercent) {
-		ctx.Logger().Info("oracle set change", "change threshold", oracleSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
+		k.Logger(ctx).Info("oracle set change", "change threshold", oracleSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
 		return currentOracleSet, true
 	}
 	return currentOracleSet, false

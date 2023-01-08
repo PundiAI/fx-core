@@ -250,7 +250,7 @@ func (suite *TestSuite) TestMigrateStore() {
 
 	v2.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
 	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore)
-	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager())
+	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager()).WithLogger(log.NewNopLogger())
 	v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
 
 	gravityStoreIter := suite.gravityStore.Iterator(nil, nil)
@@ -268,7 +268,7 @@ func (suite *TestSuite) TestMigrateStoreByExportJson() {
 
 	v2.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
 	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore)
-	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager())
+	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager()).WithLogger(log.NewNopLogger())
 	v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
 
 	suite.Equal(len(ctx.EventManager().Events()), 20)

@@ -40,6 +40,7 @@ func NewMigrator(cdc codec.BinaryCodec, legacyAmino *codec.LegacyAmino,
 
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
+	ctx.Logger().Info("migrating module gravity to module eth", "module", "gravity")
 	if err := v2.MigrateBank(ctx, m.ak, m.bk, ethtypes.ModuleName); err != nil {
 		return err
 	}
@@ -49,13 +50,16 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	if err := v2.MigrateParams(m.legacyAmino, paramsStore, ethtypes.ModuleName); err != nil {
 		return err
 	}
+	ctx.Logger().Info("params has been migrated successfully", "module", "gravity")
 	v2.MigrateStore(m.cdc, gravityStore, ethStore)
+	ctx.Logger().Info("store key has been migrated successfully", "module", "gravity")
 	var metadatas []banktypes.Metadata
 	m.bk.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
 		metadatas = append(metadatas, metadata)
 		return false
 	})
 	v2.MigrateBridgeTokenFromMetadatas(metadatas, ethStore)
+	ctx.Logger().Info("bridge token has been migrated successfully", "module", "gravity")
 	v2.MigrateValidatorToOracle(ctx, m.cdc, gravityStore, ethStore, m.sk, m.bk)
 	return nil
 }

@@ -60,7 +60,6 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		// We panic here because this should never happen
 		panic("attempting to process observed attestation")
 	}
-	logger := k.Logger(ctx)
 	// If the attestation has not yet been Observed, sum up the votes and see if it is ready to apply to the state.
 	// This conditional stops the attestation from accidentally being applied twice.
 	// Sum the current powers of all validators who have voted and see if it passes the current threshold
@@ -75,7 +74,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		}
 		oracle, found := k.GetOracle(ctx, oracleAddr)
 		if !found {
-			logger.Error("TryAttestation", "not found oracle", oracleAddr.String(), "claimEventNonce",
+			k.Logger(ctx).Error("TryAttestation", "not found oracle", oracleAddr.String(), "claimEventNonce",
 				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
 			continue
 		}

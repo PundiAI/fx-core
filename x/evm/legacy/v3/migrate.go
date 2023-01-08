@@ -26,8 +26,8 @@ func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sd
 		panic(err.Error())
 	}
 
-	ctx.Logger().Info("migrate params", "module", evmtypes.ModuleName,
-		"from", fmt.Sprintf("%s:%v", paramStoreKeyRejectUnprotectedTx, rejectUnprotectedTx),
+	ctx.Logger().Info("migrating evm module params", "module", "evm",
+		"form", fmt.Sprintf("%s:%v", paramStoreKeyRejectUnprotectedTx, rejectUnprotectedTx),
 		"to", fmt.Sprintf("%s:%v", evmtypes.ParamStoreKeyAllowUnprotectedTxs, allowUnprotectedTxs))
 
 	paramsStore.Delete(paramStoreKeyRejectUnprotectedTx)

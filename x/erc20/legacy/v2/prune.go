@@ -29,6 +29,7 @@ func PruneExpirationIBCTransferHash(ctx sdk.Context, erc20Keeper erc20Keeper, ch
 		return false
 	})
 	for portChannel, count := range counts {
-		ctx.Logger().Info("delete expiration ibc transfer hash", "port/channel", portChannel, "count", strconv.FormatUint(count, 10))
+		ctx.Logger().Info("delete expiration ibc transfer hash", "module", "erc20",
+			portChannel, strconv.FormatUint(count, 10))
 	}
 }

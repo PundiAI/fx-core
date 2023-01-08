@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/functionx/fx-core/v3/types/contract"
 )
@@ -21,6 +22,10 @@ type Contract struct {
 	ABI     abi.ABI
 	Bin     []byte
 	Code    []byte
+}
+
+func (c Contract) CodeHash() common.Hash {
+	return crypto.Keccak256Hash(c.Code)
 }
 
 var (
