@@ -22,7 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -245,16 +245,16 @@ func writeSignedGenTx(clientCtx client.Context, outputDocument string, tx sdk.Tx
 }
 
 // BuildCreateValidatorMsg makes a new MsgCreateValidator.
-func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValidatorConfig, txBldr tx.Factory) (tx.Factory, sdk.Msg, error) {
-	amounstStr := config.Amount
-	amount, err := sdk.ParseCoinNormalized(amounstStr)
+func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValidatorConfig, txFactory tx.Factory) (tx.Factory, sdk.Msg, error) {
+	amountStr := config.Amount
+	amount, err := sdk.ParseCoinNormalized(amountStr)
 	if err != nil {
-		return txBldr, nil, err
+		return txFactory, nil, err
 	}
 
 	valAddr := clientCtx.GetFromAddress()
 
-	description := types2.NewDescription(
+	description := stakingtypes.NewDescription(
 		config.Moniker,
 		config.Identity,
 		config.Website,
@@ -268,7 +268,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValida
 	maxChangeRateStr := config.CommissionMaxChangeRate
 	commissionRates, err := buildCommissionRates(rateStr, maxRateStr, maxChangeRateStr)
 	if err != nil {
-		return txBldr, nil, err
+		return txFactory, nil, err
 	}
 
 	// get the initial validator min self delegation
@@ -276,19 +276,19 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValida
 	minSelfDelegation, ok := sdk.NewIntFromString(msbStr)
 
 	if !ok {
-		return txBldr, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
+		return txFactory, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
-	msg, err := types2.NewMsgCreateValidator(
+	msg, err := stakingtypes.NewMsgCreateValidator(
 		sdk.ValAddress(valAddr), config.PubKey, amount, description, commissionRates, minSelfDelegation,
 	)
 	if err != nil {
-		return txBldr, msg, err
+		return txFactory, msg, err
 	}
-	return txBldr, msg, nil
+	return txFactory, msg, nil
 }
 
-func buildCommissionRates(rateStr, maxRateStr, maxChangeRateStr string) (commission types2.CommissionRates, err error) {
+func buildCommissionRates(rateStr, maxRateStr, maxChangeRateStr string) (commission stakingtypes.CommissionRates, err error) {
 	if rateStr == "" || maxRateStr == "" || maxChangeRateStr == "" {
 		return commission, errors.New("must specify all validator commission parameters")
 	}
@@ -308,7 +308,7 @@ func buildCommissionRates(rateStr, maxRateStr, maxChangeRateStr string) (commiss
 		return commission, err
 	}
 
-	commission = types2.NewCommissionRates(rate, maxRate, maxChangeRate)
+	commission = stakingtypes.NewCommissionRates(rate, maxRate, maxChangeRate)
 
 	return commission, nil
 }

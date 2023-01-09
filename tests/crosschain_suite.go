@@ -156,7 +156,7 @@ func (suite *CrosschainTestSuite) BondedOracle() {
 		OracleAddress:    suite.OracleAddr().String(),
 		BridgerAddress:   suite.BridgerAddr().String(),
 		ExternalAddress:  suite.ExternalAddr(),
-		ValidatorAddress: suite.GetFirstValiAddr().String(),
+		ValidatorAddress: suite.GetFirstValAddr().String(),
 		DelegateAmount:   suite.params.DelegateThreshold,
 		ChainName:        suite.chainName,
 	})
@@ -175,7 +175,7 @@ func (suite *CrosschainTestSuite) BondedOracle() {
 		DelegateAmount:    suite.params.DelegateThreshold.Amount,
 		StartHeight:       txResponse.Height,
 		Online:            true,
-		DelegateValidator: suite.GetFirstValiAddr().String(),
+		DelegateValidator: suite.GetFirstValAddr().String(),
 		SlashTimes:        0,
 	}, *response.Oracle)
 }

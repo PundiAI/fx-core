@@ -44,7 +44,7 @@ var (
 	// ParamsStoreSlashFraction stores the slash fraction oracle set
 	ParamsStoreSlashFraction = []byte("SlashFraction")
 
-	// ParamStoreOracleSetUpdatePowerChangePercent oracle set update pwer change percent
+	// ParamStoreOracleSetUpdatePowerChangePercent oracle set update power change percent
 	ParamStoreOracleSetUpdatePowerChangePercent = []byte("OracleSetUpdatePowerChangePercent")
 
 	// ParamStoreIbcTransferTimeoutHeight gravity and ibc transfer timeout height

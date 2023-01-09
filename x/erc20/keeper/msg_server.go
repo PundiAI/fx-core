@@ -169,11 +169,11 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 		)
 	}()
 
-	//ctx.EventManager().EmitEvent(sdk.NewEvent(
+	// ctx.EventManager().EmitEvent(sdk.NewEvent(
 	//	types.EventTypeConvertDenom,
 	//	sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 	//	sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-	//))
+	// ))
 
 	return &types.MsgConvertDenomResponse{}, nil
 }
@@ -247,7 +247,7 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, se
 //   - Send minted coins to the receiver
 //   - Check if coin balance increased by amount
 //   - Check if token balance decreased by amount
-//   - Check for unexpected `appove` event in logs
+//   - Check for unexpected `approve` event in logs
 func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdk.Int) error {
 	erc20 := fxtypes.GetERC20().ABI
 
@@ -285,7 +285,7 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 		return err
 	}
 
-	// Check for unexpected `appove` event in logs
+	// Check for unexpected `approve` event in logs
 	if err = k.monitorApprovalEvent(res); err != nil {
 		return err
 	}
@@ -298,7 +298,7 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 //   - Unescrow Tokens that have been previously escrowed with ConvertERC20 and send to receiver
 //   - Burn escrowed Coins
 //   - Check if token balance increased by amount
-//   - Check for unexpected `appove` event in logs
+//   - Check for unexpected `approve` event in logs
 func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, sender sdk.AccAddress, receiver common.Address, coin sdk.Coin) error {
 	// NOTE: ignore validation from NewCoin constructor
 	coins := sdk.Coins{coin}
@@ -332,7 +332,7 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 		return sdkerrors.Wrap(err, "failed to burn coins")
 	}
 
-	// Check for unexpected `appove` event in logs
+	// Check for unexpected `approve` event in logs
 	if err = k.monitorApprovalEvent(res); err != nil {
 		return err
 	}

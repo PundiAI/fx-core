@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
 )
 
@@ -32,5 +32,5 @@ func ValidateTronAddress(addr string) error {
 
 func AddressFromHex(str string) string {
 	bytes, _ := common.FromHex(str)
-	return tronAddress.Address(append([]byte{tronAddress.TronBytePrefix}, bytes...)).String()
+	return tronaddress.Address(append([]byte{tronaddress.TronBytePrefix}, bytes...)).String()
 }

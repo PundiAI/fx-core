@@ -23,22 +23,22 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 	}{
 		{
 			Name:              "oracle start height with 1, expect oracle set block 3",
-			OracleAddress:     suite.oracles[0],
-			BridgerAddress:    suite.bridgers[0],
+			OracleAddress:     suite.oracleAddrs[0],
+			BridgerAddress:    suite.bridgerAddrs[0],
 			StartHeight:       1,
 			ExpectStartHeight: 3,
 		},
 		{
 			Name:              "oracle start height with 2, expect oracle set block 2",
-			OracleAddress:     suite.oracles[1],
-			BridgerAddress:    suite.bridgers[1],
+			OracleAddress:     suite.oracleAddrs[1],
+			BridgerAddress:    suite.bridgerAddrs[1],
 			StartHeight:       2,
 			ExpectStartHeight: 3,
 		},
 		{
 			Name:              "oracle start height with 3, expect oracle set block 1",
-			OracleAddress:     suite.oracles[2],
-			BridgerAddress:    suite.bridgers[2],
+			OracleAddress:     suite.oracleAddrs[2],
+			BridgerAddress:    suite.bridgerAddrs[2],
 			StartHeight:       3,
 			ExpectStartHeight: 3,
 		},
@@ -114,9 +114,9 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 		TokenContract: tokenContract,
 		ChainName:     suite.chainName,
 	}
-	for i, oracle := range suite.oracles {
-		msgConfirmBatch.BridgerAddress = suite.bridgers[i].String()
-		msgConfirmBatch.ExternalAddress = crypto.PubkeyToAddress(suite.externals[i].PublicKey).String()
+	for i, oracle := range suite.oracleAddrs {
+		msgConfirmBatch.BridgerAddress = suite.bridgerAddrs[i].String()
+		msgConfirmBatch.ExternalAddress = crypto.PubkeyToAddress(suite.externalPris[i].PublicKey).String()
 		suite.Keeper().SetBatchConfirm(suite.ctx, oracle, msgConfirmBatch)
 	}
 	params := suite.Keeper().GetParams(suite.ctx)
@@ -131,7 +131,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 		suite.app.Commit()
 	}
 
-	for _, oracle := range suite.oracles {
+	for _, oracle := range suite.oracleAddrs {
 		suite.Nil(suite.Keeper().GetBatchConfirm(suite.ctx, batch.BatchNonce, tokenContract, oracle))
 	}
 

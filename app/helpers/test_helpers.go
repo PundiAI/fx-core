@@ -334,11 +334,11 @@ func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
 		return nil, fmt.Errorf("bech encoding doesn't match reference")
 	}
 
-	bechres, err := sdk.AccAddressFromBech32(bech)
+	accAddr, err := sdk.AccAddressFromBech32(bech)
 	if err != nil {
 		return nil, err
 	}
-	if !bytes.Equal(bechres, res) {
+	if !bytes.Equal(accAddr, res) {
 		return nil, err
 	}
 

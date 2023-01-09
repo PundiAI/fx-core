@@ -35,7 +35,7 @@ func init() {
 }
 
 // SetPubKeyDecorator sets PubKeys in context for any signer which does not already have pubkey set
-// PubKeys must be set in context for all signers before any other sigverify decorators run
+// PubKeys must be set in context for all signers before any other sigVerify decorators run
 // CONTRACT: Tx must implement SigVerifiableTx interface
 type SetPubKeyDecorator struct {
 	ak ante.AccountKeeper
@@ -47,7 +47,7 @@ func NewSetPubKeyDecorator(ak ante.AccountKeeper) SetPubKeyDecorator {
 	}
 }
 
-func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+func (s SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	sigTx, ok := tx.(authsigning.SigVerifiableTx)
 	if !ok {
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "invalid tx type")
@@ -73,7 +73,7 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 				"pubKey does not match signer address %s with signer index: %d", signers[i], i)
 		}
 
-		acc, err := ante.GetSignerAcc(ctx, spkd.ak, signers[i])
+		acc, err := ante.GetSignerAcc(ctx, s.ak, signers[i])
 		if err != nil {
 			return ctx, err
 		}
@@ -86,7 +86,7 @@ func (spkd SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate b
 		if err != nil {
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
 		}
-		spkd.ak.SetAccount(ctx, acc)
+		s.ak.SetAccount(ctx, acc)
 	}
 
 	// Also emit the following events, so that txs can be indexed by these

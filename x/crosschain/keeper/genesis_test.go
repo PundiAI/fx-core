@@ -30,7 +30,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		require.Equal(suite.T(), denom, bridgeToken.Denom)
 		suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken.Token, denom)
 
-		for _, bridger := range suite.bridgers {
+		for _, bridger := range suite.bridgerAddrs {
 			voucher := sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(9990))
 			err := suite.app.BankKeeper.MintCoins(suite.ctx, suite.chainName, sdk.NewCoins(voucher))
 			require.NoError(suite.T(), err)
@@ -52,8 +52,8 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		// Receivers should get a balance of many token types since i % len(receivers) is usually different than i % len(contracts)
 		fee := fees[i%len(fees)] // fee for this transaction
 		amount := amounts[i%len(amounts)]
-		sender := suite.bridgers[i%len(suite.bridgers)]
-		receiver := crypto.PubkeyToAddress(suite.externals[i%len(suite.externals)].PublicKey).String()
+		sender := suite.bridgerAddrs[i%len(suite.bridgerAddrs)]
+		receiver := crypto.PubkeyToAddress(suite.externalPris[i%len(suite.externalPris)].PublicKey).String()
 		bridgeToken := bridgeTokens[i%len(bridgeTokens)]
 
 		amountToken := sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(int64(amount)))

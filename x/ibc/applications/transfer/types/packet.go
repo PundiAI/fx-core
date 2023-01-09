@@ -15,7 +15,7 @@ import (
 // timeout.
 var DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(12) * time.Hour).Nanoseconds())
 
-// NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance
+// NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(denom, amount, sender, receiver, router string, fee string,
 ) FungibleTokenPacketData {
 	return FungibleTokenPacketData{

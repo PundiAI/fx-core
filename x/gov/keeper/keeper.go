@@ -61,11 +61,11 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	var minDeposit sdk.Coins
 	isEGF := types.CommunityPoolSpendByRouter == proposal.ProposalRoute() && types.ProposalTypeCommunityPoolSpend == proposal.ProposalType()
 	if isEGF {
-		cpsp, ok := proposal.GetContent().(*distrtypes.CommunityPoolSpendProposal)
+		cp, ok := proposal.GetContent().(*distrtypes.CommunityPoolSpendProposal)
 		if !ok {
 			return false, sdkerrors.Wrapf(govtypes.ErrInvalidProposalType, "%d", proposalID)
 		}
-		minDeposit = types.EGFProposalMinDeposit(cpsp.Amount)
+		minDeposit = types.EGFProposalMinDeposit(cp.Amount)
 	} else {
 		minDeposit = keeper.GetDepositParams(ctx).MinDeposit
 	}

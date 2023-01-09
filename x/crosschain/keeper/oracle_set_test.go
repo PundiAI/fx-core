@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	tronAddress "github.com/fbsobreira/gotron-sdk/pkg/address"
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	types2 "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -26,20 +26,20 @@ func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
 		ExpectOracleSetSize int
 	}{
 		{
-			OracleAddress:       suite.oracles[0],
-			BridgerAddress:      suite.bridgers[0],
+			OracleAddress:       suite.oracleAddrs[0],
+			BridgerAddress:      suite.bridgerAddrs[0],
 			StartHeight:         1,
 			ExpectOracleSetSize: 3,
 		},
 		{
-			OracleAddress:       suite.oracles[1],
-			BridgerAddress:      suite.bridgers[1],
+			OracleAddress:       suite.oracleAddrs[1],
+			BridgerAddress:      suite.bridgerAddrs[1],
 			StartHeight:         2,
 			ExpectOracleSetSize: 2,
 		},
 		{
-			OracleAddress:       suite.oracles[2],
-			BridgerAddress:      suite.bridgers[2],
+			OracleAddress:       suite.oracleAddrs[2],
+			BridgerAddress:      suite.bridgerAddrs[2],
 			StartHeight:         3,
 			ExpectOracleSetSize: 1,
 		},
@@ -105,7 +105,7 @@ func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
 func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 	index := rand.Intn(20) + 1
 	for i := uint64(1); i <= uint64(index); i++ {
-		for _, oracle := range suite.oracles {
+		for _, oracle := range suite.oracleAddrs {
 			suite.Keeper().SetOracleSetConfirm(suite.ctx, oracle,
 				&types.MsgOracleSetConfirm{
 					Nonce:           i,
@@ -124,15 +124,15 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 		confirms = append(confirms, confirm)
 		return false
 	})
-	suite.Equal(len(confirms), len(suite.oracles), index)
+	suite.Equal(len(confirms), len(suite.oracleAddrs), index)
 }
 
 func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 	var member []types.BridgeValidator
-	for i, external := range suite.externals {
+	for i, external := range suite.externalPris {
 		externalAddr := crypto.PubkeyToAddress(external.PublicKey).String()
 		if suite.chainName == trontypes.ModuleName {
-			externalAddr = tronAddress.PubkeyToAddress(external.PublicKey).String()
+			externalAddr = tronaddress.PubkeyToAddress(external.PublicKey).String()
 		}
 
 		member = append(member, types.BridgeValidator{
@@ -147,7 +147,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 	}
 	suite.Keeper().StoreOracleSet(suite.ctx, oracleSet)
 
-	for i, external := range suite.externals {
+	for i, external := range suite.externalPris {
 		externalAddress := crypto.PubkeyToAddress(external.PublicKey).String()
 		gravityId := suite.Keeper().GetGravityID(suite.ctx)
 		checkpoint, err := oracleSet.GetCheckpoint(gravityId)
@@ -155,18 +155,18 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 		signature, err := types.NewEthereumSignature(checkpoint, external)
 		suite.NoError(err)
 		if trontypes.ModuleName == suite.chainName {
-			externalAddress = tronAddress.PubkeyToAddress(suite.externals[i].PublicKey).String()
+			externalAddress = tronaddress.PubkeyToAddress(suite.externalPris[i].PublicKey).String()
 
 			checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSet, gravityId)
 			require.NoError(suite.T(), err)
 
-			signature, err = trontypes.NewTronSignature(checkpoint, suite.externals[i])
+			signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[i])
 			require.NoError(suite.T(), err)
 		}
 
-		suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracles[i], &types.MsgOracleSetConfirm{
+		suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracleAddrs[i], &types.MsgOracleSetConfirm{
 			Nonce:           oracleSet.Nonce,
-			BridgerAddress:  suite.bridgers[i].String(),
+			BridgerAddress:  suite.bridgerAddrs[i].String(),
 			ExternalAddress: externalAddress,
 			Signature:       hex.EncodeToString(signature),
 			ChainName:       suite.chainName,
@@ -185,14 +185,14 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 		suite.app.Commit()
 	}
 
-	for _, oracle := range suite.oracles {
+	for _, oracle := range suite.oracleAddrs {
 		suite.Nil(suite.Keeper().GetOracleSetConfirm(suite.ctx, oracleSet.Nonce, oracle))
 	}
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateOracleSet() {
 	var member []types.BridgeValidator
-	for i, external := range suite.externals {
+	for i, external := range suite.externalPris {
 		member = append(member, types.BridgeValidator{
 			Power:           uint64(i),
 			ExternalAddress: crypto.PubkeyToAddress(external.PublicKey).String(),

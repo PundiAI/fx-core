@@ -87,7 +87,7 @@ func (suite *rpcTestSuite) GetFirstValidator() *network.Validator {
 	return suite.network.Validators[0]
 }
 
-func (suite *rpcTestSuite) GetFirstValiPrivKey() cryptotypes.PrivKey {
+func (suite *rpcTestSuite) GetFirstValPrivKey() cryptotypes.PrivKey {
 	return suite.GetPrivKeyByIndex(hd.Secp256k1Type, 0)
 }
 
@@ -113,7 +113,7 @@ func (suite *rpcTestSuite) FirstValidatorTransferTo(index uint32, amount sdk.Int
 	suite.True(validator.AppConfig.GRPC.Enable)
 	grpcClient, err := grpc.NewClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
 	suite.NoError(err)
-	valKey := suite.GetFirstValiPrivKey()
+	valKey := suite.GetFirstValPrivKey()
 	nextValKey := suite.GetPrivKeyByIndex(hd.Secp256k1Type, index)
 	txRaw, err := grpcClient.BuildTxV2(valKey,
 		[]sdk.Msg{

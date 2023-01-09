@@ -119,7 +119,7 @@ func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enabl
 
 	// TODO: Recap the highest gas limit with account's available balance.
 
-	// Recap the highest gas allowance with specified gascap.
+	// Recap the highest gas allowance with specified gasCap.
 	if req.GasCap != 0 && hi > req.GasCap {
 		hi = req.GasCap
 	}
@@ -137,7 +137,7 @@ func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enabl
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
 
 	// Create a helper to check if a gas allowance results in an executable transaction
-	executable := func(gas uint64) (vmerror bool, rsp *types.MsgEthereumTxResponse, err error) {
+	executable := func(gas uint64) (vmError bool, rsp *types.MsgEthereumTxResponse, err error) {
 		args.Gas = (*hexutil.Uint64)(&gas)
 
 		msg, err := args.ToMessage(req.GasCap, cfg.BaseFee)

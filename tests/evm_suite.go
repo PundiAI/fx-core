@@ -47,7 +47,7 @@ func (suite *EvmTestSuite) HexAddress() common.Address {
 }
 
 func (suite *EvmTestSuite) EthClient() *ethclient.Client {
-	return suite.GetFirstValidtor().JSONRPCClient
+	return suite.GetFirstValidator().JSONRPCClient
 }
 
 func (suite *EvmTestSuite) TransactOpts() *bind.TransactOpts {

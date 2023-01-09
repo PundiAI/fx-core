@@ -122,7 +122,7 @@ func (k Keeper) sendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, 
 
 		if err = k.bankKeeper.BurnCoins(ctx, transfertypes.ModuleName, sdk.NewCoins(token)); err != nil {
 			// NOTE: should not happen as the module account was
-			// retrieved on the step above and it has enough balace
+			// retrieved on the step above and it has enough balance
 			// to burn.
 			panic(fmt.Sprintf("cannot burn coins after a successful send to a module account: %v", err))
 		}

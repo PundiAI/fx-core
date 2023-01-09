@@ -30,8 +30,8 @@ func (suite *KeeperTestSuite) TestKeeper_Tally() {
 	poolBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.app.StakingKeeper.GetBondedPool(suite.ctx).GetAddress())
 	suite.Equal(sdk.NewInt(int64(len(suite.valAddr)*100)).MulRaw(1e18).String(), poolBalances[0].Amount.String(), len(suite.valAddr))
 
-	for _, votoer := range suite.valAddr {
-		err := suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, votoer.Bytes(), types.NewNonSplitVoteOption(types.OptionYes))
+	for _, voterAddr := range suite.valAddr {
+		err := suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, voterAddr.Bytes(), types.NewNonSplitVoteOption(types.OptionYes))
 		suite.NoError(err)
 	}
 

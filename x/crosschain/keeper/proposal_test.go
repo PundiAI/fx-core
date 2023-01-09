@@ -17,13 +17,13 @@ func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 		Oracles:     []string{},
 		ChainName:   suite.chainName,
 	}
-	for _, oracle := range suite.oracles {
+	for _, oracle := range suite.oracleAddrs {
 		updateOracle.Oracles = append(updateOracle.Oracles, oracle.String())
 	}
 
 	err := suite.Keeper().UpdateChainOraclesProposal(suite.ctx, updateOracle)
 	require.NoError(suite.T(), err)
-	for _, oracle := range suite.oracles {
+	for _, oracle := range suite.oracleAddrs {
 		require.True(suite.T(), suite.Keeper().IsProposalOracle(suite.ctx, oracle.String()))
 	}
 

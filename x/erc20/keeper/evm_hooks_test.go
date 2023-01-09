@@ -347,8 +347,8 @@ func (suite *KeeperTestSuite) TestPostTxProcessing() {
 		{
 			"Non transfer event",
 			func() {
-				aprovalEvent := erc20.Events["Approval"]
-				topics := []common.Hash{aprovalEvent.ID, account.Hash(), account.Hash()}
+				approvalEvent := erc20.Events["Approval"]
+				topics := []common.Hash{approvalEvent.ID, account.Hash(), account.Hash()}
 				log := ethtypes.Log{
 					Topics: topics,
 					Data:   transferData,

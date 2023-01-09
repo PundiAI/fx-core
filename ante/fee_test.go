@@ -19,7 +19,7 @@ func (suite *AnteTestSuite) TestMempoolFeeDecorator() {
 		sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
 		sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
 	}, 300_000)
-	antehandler := sdk.ChainAnteDecorators(mfd)
+	anteHandler := sdk.ChainAnteDecorators(mfd)
 	priv1, _, addr1 := testdata.KeyTestPubAddr()
 
 	msg := testdata.NewTestMsg(addr1)
@@ -40,8 +40,8 @@ func (suite *AnteTestSuite) TestMempoolFeeDecorator() {
 	minGasPrice := []sdk.DecCoin{sdk.NewDecCoinFromDec(fxtypes.DefaultDenom, sdk.NewDec(200))}
 	ctx = ctx.WithMinGasPrices(minGasPrice).WithIsCheckTx(true)
 
-	// antehandler errors with insufficient fees
-	_, err = antehandler(ctx, tx, false)
+	// anteHandler errors with insufficient fees
+	_, err = anteHandler(ctx, tx, false)
 	suite.Require().Error(err, "expected error due to low fee")
 
 	// ensure no fees for certain IBC msgs
@@ -51,12 +51,12 @@ func (suite *AnteTestSuite) TestMempoolFeeDecorator() {
 
 	oracleTx, err := suite.CreateEmptyTestTx(txBuilder, privs, accNums, accSeqs)
 	suite.Require().NoError(err)
-	_, err = antehandler(ctx, oracleTx, false)
+	_, err = anteHandler(ctx, oracleTx, false)
 	suite.Require().NoError(err, "expected min fee bypass for IBC messages")
 
 	ctx = ctx.WithIsCheckTx(false)
 
-	// antehandler should not error since we do not check min gas prices in DeliverTx
-	_, err = antehandler(ctx, tx, false)
+	// anteHandler should not error since we do not check min gas prices in DeliverTx
+	_, err = anteHandler(ctx, tx, false)
 	suite.Require().NoError(err, "unexpected error during DeliverTx")
 }

@@ -100,11 +100,11 @@ func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.
 		supportDenom[p.Denom] = true
 	}
 
-	respMetadatas, err := bankClient.DenomsMetadata(ctx, &banktypes.QueryDenomsMetadataRequest{})
+	response, err := bankClient.DenomsMetadata(ctx, &banktypes.QueryDenomsMetadataRequest{})
 	if err != nil {
 		return nil, err
 	}
-	for _, md := range respMetadatas.Metadatas {
+	for _, md := range response.Metadatas {
 		for _, alias := range md.DenomUnits[0].Aliases {
 			supportDenom[alias] = true
 		}
@@ -117,7 +117,7 @@ func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.
 		}
 
 		var manyToOneDenom string
-		for _, md := range respMetadatas.Metadatas {
+		for _, md := range response.Metadatas {
 			if md.Base == b.Denom {
 				break
 			}

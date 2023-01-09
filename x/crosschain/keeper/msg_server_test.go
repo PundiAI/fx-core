@@ -100,12 +100,12 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 	for _, testCase := range testCases {
 		suite.T().Run(testCase.name, func(t *testing.T) {
 			suite.SetupTest()
-			oracleIndex := rand.Intn(len(suite.oracles))
+			oracleIndex := rand.Intn(len(suite.oracleAddrs))
 			msg := &types.MsgBondedOracle{
-				OracleAddress:    suite.oracles[oracleIndex].String(),
-				BridgerAddress:   suite.bridgers[oracleIndex].String(),
-				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[oracleIndex].PublicKey),
-				ValidatorAddress: suite.validator[oracleIndex].String(),
+				OracleAddress:    suite.oracleAddrs[oracleIndex].String(),
+				BridgerAddress:   suite.bridgerAddrs[oracleIndex].String(),
+				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[oracleIndex].PublicKey),
+				ValidatorAddress: suite.valAddrs[oracleIndex].String(),
 				DelegateAmount: sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
 					Amount: sdk.NewInt((rand.Int63n(3) + 1) * 10_000).MulRaw(1e18),
@@ -151,7 +151,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 
 			// check delegate
 			oracleDelegateAddr := oracle.GetDelegateAddress(suite.chainName)
-			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, oracleDelegateAddr, suite.validator[oracleIndex])
+			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, oracleDelegateAddr, suite.valAddrs[oracleIndex])
 			suite.True(found)
 			suite.Require().EqualValues(oracleDelegateAddr.String(), delegation.DelegatorAddress)
 			suite.Require().EqualValues(msg.ValidatorAddress, delegation.ValidatorAddress)
@@ -269,14 +269,14 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 	for _, testCase := range testCases {
 		suite.T().Run(testCase.name, func(t *testing.T) {
 			suite.SetupTest()
-			oracleIndex := rand.Intn(len(suite.oracles))
+			oracleIndex := rand.Intn(len(suite.oracleAddrs))
 
 			// init bonded oracle
 			_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
-				OracleAddress:    suite.oracles[oracleIndex].String(),
-				BridgerAddress:   suite.bridgers[oracleIndex].String(),
-				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[oracleIndex].PublicKey),
-				ValidatorAddress: suite.validator[oracleIndex].String(),
+				OracleAddress:    suite.oracleAddrs[oracleIndex].String(),
+				BridgerAddress:   suite.bridgerAddrs[oracleIndex].String(),
+				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[oracleIndex].PublicKey),
+				ValidatorAddress: suite.valAddrs[oracleIndex].String(),
 				DelegateAmount: sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
 					Amount: initDelegateAmount,
@@ -290,7 +290,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 			maxDelegateAmount := oracleDelegateThreshold.Amount.Mul(sdk.NewInt(oracleDelegateMultiple)).Sub(initDelegateAmount)
 			msg := &types.MsgAddDelegate{
 				ChainName:     suite.chainName,
-				OracleAddress: suite.oracles[oracleIndex].String(),
+				OracleAddress: suite.oracleAddrs[oracleIndex].String(),
 				Amount: sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(
 					rand.Int63n(maxDelegateAmount.QuoRaw(1e18).Int64())+1,
 				).
@@ -324,7 +324,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 
 			// check delegate
 			oracleDelegateAddr := oracle.GetDelegateAddress(suite.chainName)
-			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, oracleDelegateAddr, suite.validator[oracleIndex])
+			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, oracleDelegateAddr, suite.valAddrs[oracleIndex])
 			suite.True(found)
 			suite.Require().EqualValues(oracleDelegateAddr.String(), delegation.DelegatorAddress)
 			suite.Require().EqualValues(oracle.DelegateValidator, delegation.ValidatorAddress)
@@ -334,12 +334,12 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 }
 
 func (suite *KeeperTestSuite) TestMsgEditBridger() {
-	for i := range suite.oracles {
+	for i := range suite.oracleAddrs {
 		bondedMsg := &types.MsgBondedOracle{
-			OracleAddress:    suite.oracles[i].String(),
-			BridgerAddress:   suite.bridgers[i].String(),
-			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[i].PublicKey),
-			ValidatorAddress: suite.validator[i].String(),
+			OracleAddress:    suite.oracleAddrs[i].String(),
+			BridgerAddress:   suite.bridgerAddrs[i].String(),
+			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
+			ValidatorAddress: suite.valAddrs[i].String(),
 			DelegateAmount: sdk.Coin{
 				Denom:  fxtypes.DefaultDenom,
 				Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
@@ -366,8 +366,8 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 		TargetIbc:     "",
 		ChainName:     suite.chainName,
 	}
-	for i := 0; i < len(suite.bridgers)/2; i++ {
-		sendToMsg.BridgerAddress = suite.bridgers[i].String()
+	for i := 0; i < len(suite.bridgerAddrs)/2; i++ {
+		sendToMsg.BridgerAddress = suite.bridgerAddrs[i].String()
 		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToMsg)
 		suite.NoError(err)
 	}
@@ -378,32 +378,32 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 	suite.app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{ChainID: suite.ctx.ChainID(), Height: suite.ctx.BlockHeight()}})
 
 	balances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.MustAccAddressFromBech32(sendToMsg.Receiver))
-	suite.Require().Equal(balances.String(), sdk.NewCoins().String(), len(suite.bridgers))
+	suite.Require().Equal(balances.String(), sdk.NewCoins().String(), len(suite.bridgerAddrs))
 
-	for i := 0; i < len(suite.oracles); i++ {
+	for i := 0; i < len(suite.oracleAddrs); i++ {
 		_, err := suite.MsgServer().EditBridger(sdk.WrapSDKContext(suite.ctx), &types.MsgEditBridger{
 			ChainName:      suite.chainName,
-			OracleAddress:  suite.oracles[i].String(),
-			BridgerAddress: suite.bridgers[i].String(),
+			OracleAddress:  suite.oracleAddrs[i].String(),
+			BridgerAddress: suite.bridgerAddrs[i].String(),
 		})
 		suite.Require().Error(err)
 
 		_, err = suite.MsgServer().EditBridger(sdk.WrapSDKContext(suite.ctx), &types.MsgEditBridger{
 			ChainName:      suite.chainName,
-			OracleAddress:  suite.oracles[i].String(),
-			BridgerAddress: sdk.AccAddress(suite.validator[i]).String(),
+			OracleAddress:  suite.oracleAddrs[i].String(),
+			BridgerAddress: sdk.AccAddress(suite.valAddrs[i]).String(),
 		})
 		suite.NoError(err)
 
-		sendToMsg.BridgerAddress = sdk.AccAddress(suite.validator[i]).String()
+		sendToMsg.BridgerAddress = sdk.AccAddress(suite.valAddrs[i]).String()
 		_, err = suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), sendToMsg)
-		if i < len(suite.oracles)/2 {
+		if i < len(suite.oracleAddrs)/2 {
 			suite.Require().ErrorContains(err, types.ErrNonContiguousEventNonce.Error())
 		} else {
 			suite.Require().NoError(err)
 		}
 	}
-	for _, bridger := range suite.bridgers {
+	for _, bridger := range suite.bridgerAddrs {
 		_, found := suite.Keeper().GetOracleAddressByBridgerKey(suite.ctx, bridger)
 		suite.False(found)
 	}
@@ -417,10 +417,10 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 
 func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 	normalMsg := &types.MsgBondedOracle{
-		OracleAddress:    suite.oracles[0].String(),
-		BridgerAddress:   suite.bridgers[0].String(),
-		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[0].PublicKey),
-		ValidatorAddress: suite.validator[0].String(),
+		OracleAddress:    suite.oracleAddrs[0].String(),
+		BridgerAddress:   suite.bridgerAddrs[0].String(),
+		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
+		ValidatorAddress: suite.valAddrs[0].String(),
 		DelegateAmount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
 			Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
@@ -454,14 +454,14 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 	}
 	require.NoError(suite.T(), err)
 
-	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[0])
+	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[0])
 	if trontypes.ModuleName == suite.chainName {
-		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externals[0])
+		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[0])
 	}
 	require.NoError(suite.T(), err)
-	external2Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[1])
+	external2Signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[1])
 	if trontypes.ModuleName == suite.chainName {
-		external2Signature, err = trontypes.NewTronSignature(checkpoint, suite.externals[1])
+		external2Signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[1])
 	}
 	require.NoError(suite.T(), err)
 
@@ -475,8 +475,8 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 			name: "Error oracleSet nonce",
 			msg: &types.MsgOracleSetConfirm{
 				Nonce:           0,
-				BridgerAddress:  suite.bridgers[0].String(),
-				ExternalAddress: suite.PubKeyToExternalAddr(suite.externals[0].PublicKey),
+				BridgerAddress:  suite.bridgerAddrs[0].String(),
+				ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 				Signature:       hex.EncodeToString(external1Signature),
 				ChainName:       suite.chainName,
 			},
@@ -487,8 +487,8 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 			name: "not oracle msg",
 			msg: &types.MsgOracleSetConfirm{
 				Nonce:           nonce1OracleSet.Nonce,
-				BridgerAddress:  suite.bridgers[0].String(),
-				ExternalAddress: suite.PubKeyToExternalAddr(suite.externals[1].PublicKey),
+				BridgerAddress:  suite.bridgerAddrs[0].String(),
+				ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[1].PublicKey),
 				Signature:       hex.EncodeToString(external2Signature),
 				ChainName:       suite.chainName,
 			},
@@ -499,8 +499,8 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 			name: "sign not match external-1  external-sign-2",
 			msg: &types.MsgOracleSetConfirm{
 				Nonce:           nonce1OracleSet.Nonce,
-				BridgerAddress:  suite.bridgers[0].String(),
-				ExternalAddress: suite.PubKeyToExternalAddr(suite.externals[0].PublicKey),
+				BridgerAddress:  suite.bridgerAddrs[0].String(),
+				ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 				Signature:       hex.EncodeToString(external2Signature),
 				ChainName:       suite.chainName,
 			},
@@ -511,13 +511,13 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 			name: "bridger address not match",
 			msg: &types.MsgOracleSetConfirm{
 				Nonce:           nonce1OracleSet.Nonce,
-				BridgerAddress:  suite.bridgers[1].String(),
-				ExternalAddress: suite.PubKeyToExternalAddr(suite.externals[0].PublicKey),
+				BridgerAddress:  suite.bridgerAddrs[1].String(),
+				ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 				Signature:       hex.EncodeToString(external1Signature),
 				ChainName:       suite.chainName,
 			},
 			err:       types.ErrInvalid,
-			errReason: fmt.Sprintf("got %s, expected %s: %s", suite.bridgers[1].String(), suite.bridgers[0].String(), types.ErrInvalid),
+			errReason: fmt.Sprintf("got %s, expected %s: %s", suite.bridgerAddrs[1].String(), suite.bridgerAddrs[0].String(), types.ErrInvalid),
 		},
 	}
 
@@ -529,7 +529,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 
 	normalOracleSetConfirmMsg := &types.MsgOracleSetConfirm{
 		Nonce:           nonce1OracleSet.Nonce,
-		BridgerAddress:  suite.bridgers[0].String(),
+		BridgerAddress:  suite.bridgerAddrs[0].String(),
 		ExternalAddress: normalMsg.ExternalAddress,
 		Signature:       hex.EncodeToString(external1Signature),
 		ChainName:       suite.chainName,
@@ -543,10 +543,10 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 
 func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	normalMsg := &types.MsgBondedOracle{
-		OracleAddress:    suite.oracles[0].String(),
-		BridgerAddress:   suite.bridgers[0].String(),
-		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[0].PublicKey),
-		ValidatorAddress: suite.validator[0].String(),
+		OracleAddress:    suite.oracleAddrs[0].String(),
+		BridgerAddress:   suite.bridgerAddrs[0].String(),
+		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
+		ValidatorAddress: suite.valAddrs[0].String(),
 		DelegateAmount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
 			Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
@@ -581,20 +581,20 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 	require.NoError(suite.T(), err)
 
 	// oracle Online!!!
-	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracles[0])
+	oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[0])
 	require.True(suite.T(), found)
 	oracle.Online = true
 	suite.Keeper().SetOracle(suite.ctx, oracle)
 
-	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externals[0])
+	external1Signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[0])
 	if trontypes.ModuleName == suite.chainName {
-		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externals[0])
+		external1Signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[0])
 	}
 	require.NoError(suite.T(), err)
 
 	normalOracleSetConfirmMsg := &types.MsgOracleSetConfirm{
 		Nonce:           latestOracleSetNonce,
-		BridgerAddress:  suite.bridgers[0].String(),
+		BridgerAddress:  suite.bridgerAddrs[0].String(),
 		ExternalAddress: normalMsg.ExternalAddress,
 		Signature:       hex.EncodeToString(external1Signature),
 		ChainName:       suite.chainName,
@@ -640,10 +640,10 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgBridgeTokenClaim)
 				suite.True(ok)
-				for i, oracle := range suite.oracles {
+				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1
-					msg.BridgerAddress = suite.bridgers[i].String()
+					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 					_, err := suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
 					require.NoError(suite.T(), err)
@@ -668,10 +668,10 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgSendToFxClaim)
 				suite.True(ok)
-				for i, oracle := range suite.oracles {
+				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1
-					msg.BridgerAddress = suite.bridgers[i].String()
+					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 					_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
 					require.NoError(suite.T(), err)
@@ -684,7 +684,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			name: "OracleSetUpdateClaim",
 			buildMsg: func() types.ExternalClaim {
 				var externalOracleMembers types.BridgeValidators
-				for _, key := range suite.externals {
+				for _, key := range suite.externalPris {
 					bridgeVal := types.BridgeValidator{
 						Power:           tmrand.Uint64(),
 						ExternalAddress: suite.PubKeyToExternalAddr(key.PublicKey),
@@ -701,10 +701,10 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgOracleSetUpdatedClaim)
 				suite.True(ok)
-				for i, oracle := range suite.oracles {
+				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1
-					msg.BridgerAddress = suite.bridgers[i].String()
+					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 					_, err := suite.MsgServer().OracleSetUpdateClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
 					require.NoError(suite.T(), err)
@@ -726,10 +726,10 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 			execute: func(claimMsg types.ExternalClaim) (minGas, maxGas, avgGas uint64) {
 				msg, ok := claimMsg.(*types.MsgSendToExternalClaim)
 				suite.True(ok)
-				for i, oracle := range suite.oracles {
+				for i, oracle := range suite.oracleAddrs {
 					eventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle)
 					msg.EventNonce = eventNonce + 1
-					msg.BridgerAddress = suite.bridgers[i].String()
+					msg.BridgerAddress = suite.bridgerAddrs[i].String()
 					ctxWithGasMeter := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 					_, err := suite.MsgServer().SendToExternalClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
 					require.NoError(suite.T(), err)
@@ -742,12 +742,12 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 
 	for _, testCase := range testCases {
 		suite.SetupTest()
-		for i, oracle := range suite.oracles {
+		for i, oracle := range suite.oracleAddrs {
 			msg := &types.MsgBondedOracle{
 				OracleAddress:    oracle.String(),
-				BridgerAddress:   suite.bridgers[i].String(),
-				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[i].PublicKey),
-				ValidatorAddress: suite.validator[0].String(),
+				BridgerAddress:   suite.bridgerAddrs[i].String(),
+				ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
+				ValidatorAddress: suite.valAddrs[0].String(),
 				DelegateAmount: sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
 					Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
@@ -769,10 +769,10 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 
 func (suite *KeeperTestSuite) TestClaimTest() {
 	normalMsg := &types.MsgBondedOracle{
-		OracleAddress:    suite.oracles[0].String(),
-		BridgerAddress:   suite.bridgers[0].String(),
-		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[0].PublicKey),
-		ValidatorAddress: suite.validator[0].String(),
+		OracleAddress:    suite.oracleAddrs[0].String(),
+		BridgerAddress:   suite.bridgerAddrs[0].String(),
+		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
+		ValidatorAddress: suite.valAddrs[0].String(),
 		DelegateAmount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
 			Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
@@ -782,12 +782,12 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
 	require.NoError(suite.T(), err)
 
-	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracles[0])
+	oracleLastEventNonce := suite.Keeper().GetLastEventNonceByOracle(suite.ctx, suite.oracleAddrs[0])
 	require.EqualValues(suite.T(), 0, oracleLastEventNonce)
 
 	randomPrivateKey, err := crypto.GenerateKey()
 	suite.Require().NoError(err)
-	errMsgDatas := []struct {
+	testMsgs := []struct {
 		name      string
 		msg       *types.MsgBridgeTokenClaim
 		err       error
@@ -802,7 +802,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 				Name:           "Test Token",
 				Symbol:         "TEST",
 				Decimals:       18,
-				BridgerAddress: suite.bridgers[0].String(),
+				BridgerAddress: suite.bridgerAddrs[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				ChainName:      suite.chainName,
 			},
@@ -818,7 +818,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 				Name:           "Test Token",
 				Symbol:         "TEST",
 				Decimals:       18,
-				BridgerAddress: suite.bridgers[0].String(),
+				BridgerAddress: suite.bridgerAddrs[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				ChainName:      suite.chainName,
 			},
@@ -834,7 +834,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 				Name:           "Test Token",
 				Symbol:         "TEST",
 				Decimals:       18,
-				BridgerAddress: suite.bridgers[0].String(),
+				BridgerAddress: suite.bridgerAddrs[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				ChainName:      suite.chainName,
 			},
@@ -850,7 +850,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 				Name:           "Test Token",
 				Symbol:         "TEST",
 				Decimals:       18,
-				BridgerAddress: suite.bridgers[0].String(),
+				BridgerAddress: suite.bridgerAddrs[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				ChainName:      suite.chainName,
 			},
@@ -866,7 +866,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 				Name:           "Test Token",
 				Symbol:         "TEST",
 				Decimals:       18,
-				BridgerAddress: suite.bridgers[0].String(),
+				BridgerAddress: suite.bridgerAddrs[0].String(),
 				ChannelIbc:     hex.EncodeToString([]byte("transfer/channel-0")),
 				ChainName:      suite.chainName,
 			},
@@ -875,7 +875,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 		},
 	}
 
-	for _, testData := range errMsgDatas {
+	for _, testData := range testMsgs {
 		err = testData.msg.ValidateBasic()
 		require.NoError(suite.T(), err)
 		_, err = suite.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), testData.msg)
@@ -891,20 +891,20 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 1. First sets up a valid validator
 	totalPower := sdk.ZeroInt()
 	var delegateAmounts []sdk.Int
-	for i, oracle := range suite.oracles {
+	for i, oracle := range suite.oracleAddrs {
 		normalMsg := &types.MsgBondedOracle{
 			OracleAddress:    oracle.String(),
-			BridgerAddress:   suite.bridgers[i].String(),
-			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externals[i].PublicKey),
-			ValidatorAddress: suite.validator[0].String(),
+			BridgerAddress:   suite.bridgerAddrs[i].String(),
+			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
+			ValidatorAddress: suite.valAddrs[0].String(),
 			DelegateAmount: sdk.Coin{
 				Denom:  fxtypes.DefaultDenom,
 				Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 			},
 			ChainName: suite.chainName,
 		}
-		if len(suite.validator) > i {
-			normalMsg.ValidatorAddress = suite.validator[i].String()
+		if len(suite.valAddrs) > i {
+			normalMsg.ValidatorAddress = suite.valAddrs[i].String()
 		}
 		delegateAmounts = append(delegateAmounts, normalMsg.DelegateAmount.Amount)
 		totalPower = totalPower.Add(normalMsg.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction))
@@ -915,7 +915,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	suite.Keeper().EndBlocker(suite.ctx)
 
 	var externalOracleMembers types.BridgeValidators
-	for i, key := range suite.externals {
+	for i, key := range suite.externalPris {
 		power := delegateAmounts[i].Quo(sdk.DefaultPowerReduction).MulRaw(math.MaxUint32).Quo(totalPower)
 		bridgeVal := types.BridgeValidator{
 			Power:           power.Uint64(),
@@ -926,13 +926,13 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	sort.Sort(externalOracleMembers)
 
 	// 2. oracle update claim
-	for i := range suite.oracles {
+	for i := range suite.oracleAddrs {
 		normalMsg := &types.MsgOracleSetUpdatedClaim{
 			EventNonce:     1,
 			BlockHeight:    1,
 			OracleSetNonce: 1,
 			Members:        externalOracleMembers,
-			BridgerAddress: suite.bridgers[i].String(),
+			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChainName:      suite.chainName,
 		}
 		_, err := suite.MsgServer().OracleSetUpdateClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
@@ -942,14 +942,14 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	suite.Keeper().EndBlocker(suite.ctx)
 
 	// 3. add bridge token.
-	sendToFxSendAddr := suite.PubKeyToExternalAddr(suite.externals[0].PublicKey)
-	sendToFxReceiveAddr := suite.bridgers[0]
+	sendToFxSendAddr := suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey)
+	sendToFxReceiveAddr := suite.bridgerAddrs[0]
 	sendToFxAmount := sdk.NewIntWithDecimal(1000, 18)
 	randomPrivateKey, err := crypto.GenerateKey()
 	suite.Require().NoError(err)
 	sendToFxToken := suite.PubKeyToExternalAddr(randomPrivateKey.PublicKey)
 
-	for i, oracle := range suite.oracles {
+	for i, oracle := range suite.oracleAddrs {
 		normalMsg := &types.MsgBridgeTokenClaim{
 			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle) + 1,
 			BlockHeight:    1,
@@ -957,7 +957,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			Name:           "Test USDT",
 			Symbol:         "USDT",
 			Decimals:       18,
-			BridgerAddress: suite.bridgers[i].String(),
+			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChannelIbc:     "",
 			ChainName:      suite.chainName,
 		}
@@ -976,7 +976,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	require.EqualValues(suite.T(), sendToFxToken, bridgeTokenData.Token)
 
 	// 4. sendToFx.
-	for i, oracle := range suite.oracles {
+	for i, oracle := range suite.oracleAddrs {
 		normalMsg := &types.MsgSendToFxClaim{
 			EventNonce:     suite.Keeper().GetLastEventNonceByOracle(suite.ctx, oracle) + 1,
 			BlockHeight:    1,
@@ -985,7 +985,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			Sender:         sendToFxSendAddr,
 			Receiver:       sendToFxReceiveAddr.String(),
 			TargetIbc:      "",
-			BridgerAddress: suite.bridgers[i].String(),
+			BridgerAddress: suite.bridgerAddrs[i].String(),
 			ChainName:      suite.chainName,
 		}
 		_, err := suite.MsgServer().SendToFxClaim(sdk.WrapSDKContext(suite.ctx), normalMsg)
@@ -1051,7 +1051,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 
 	for _, testCase := range testCases {
 		_, err := suite.MsgServer().RequestBatch(sdk.WrapSDKContext(suite.ctx), &types.MsgRequestBatch{
-			Sender:     suite.bridgers[0].String(),
+			Sender:     suite.bridgerAddrs[0].String(),
 			Denom:      tokenDenom,
 			MinimumFee: sdk.NewInt(1),
 			FeeReceive: "0x0000000000000000000000000000000000000000",

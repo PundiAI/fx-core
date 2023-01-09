@@ -31,13 +31,13 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app       *app.App
-	ctx       sdk.Context
-	oracles   []sdk.AccAddress
-	bridgers  []sdk.AccAddress
-	externals []*ecdsa.PrivateKey
-	validator []sdk.ValAddress
-	chainName string
+	app          *app.App
+	ctx          sdk.Context
+	oracleAddrs  []sdk.AccAddress
+	bridgerAddrs []sdk.AccAddress
+	externalPris []*ecdsa.PrivateKey
+	valAddrs     []sdk.ValAddress
+	chainName    string
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -99,17 +99,17 @@ func (suite *KeeperTestSuite) SetupTest() {
 		Height:  suite.app.LastBlockHeight() + 1,
 	})
 
-	suite.oracles = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
-	suite.bridgers = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
-	suite.externals = helpers.CreateMultiECDSA(valNumber)
+	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
+	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
+	suite.externalPris = helpers.CreateMultiECDSA(valNumber)
 
-	suite.validator = make([]sdk.ValAddress, valNumber)
+	suite.valAddrs = make([]sdk.ValAddress, valNumber)
 	for i := 0; i < valNumber; i++ {
-		suite.validator[i] = valAccounts[i].GetAddress().Bytes()
+		suite.valAddrs[i] = valAccounts[i].GetAddress().Bytes()
 	}
 
 	proposalOracle := &types.ProposalOracle{}
-	for _, oracle := range suite.oracles {
+	for _, oracle := range suite.oracleAddrs {
 		proposalOracle.Oracles = append(proposalOracle.Oracles, oracle.String())
 	}
 	suite.Keeper().SetProposalOracle(suite.ctx, proposalOracle)

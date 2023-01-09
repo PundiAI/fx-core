@@ -46,7 +46,7 @@ var (
 	// Deprecated: BatchConfirmKey indexes validator confirmations by token contract address
 	BatchConfirmKey = []byte{0xa}
 
-	// Deprecated: LastEventNonceByValidatorKey indexes lateset event nonce by validator
+	// Deprecated: LastEventNonceByValidatorKey indexes latest event nonce by validator
 	LastEventNonceByValidatorKey = []byte{0xb}
 
 	// Deprecated: LastObservedEventNonceKey indexes the latest event nonce
@@ -91,6 +91,6 @@ var (
 	// Deprecated: IbcSequenceHeightKey  indexes the gravity -> ibc sequence block height
 	IbcSequenceHeightKey = []byte{0x17}
 
-	// Deprecated: LastEventBlockHeightByValidatorKey indexes lateset event blockHeight by validator
+	// Deprecated: LastEventBlockHeightByValidatorKey indexes latest event blockHeight by validator
 	LastEventBlockHeightByValidatorKey = []byte{0x18}
 )

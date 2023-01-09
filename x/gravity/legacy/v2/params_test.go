@@ -27,16 +27,16 @@ func TestMigrateParams(t *testing.T) {
 	ms.MountStoreWithDB(paramsStoreKey, sdk.StoreTypeIAVL, nil)
 	assert.NoError(t, ms.LoadLatestVersion())
 
-	amnio := app.MakeEncodingConfig().Amino
+	amino := app.MakeEncodingConfig().Amino
 	paramsStore := ms.GetKVStore(paramsStoreKey)
 	oldStore := prefix.NewStore(paramsStore, append([]byte(types.ModuleName), '/'))
 	gravityParams := v2.TestParams()
 	for _, pair := range gravityParams.ParamSetPairs() {
-		bz, err := amnio.MarshalJSON(pair.Value)
+		bz, err := amino.MarshalJSON(pair.Value)
 		assert.NoError(t, err)
 		oldStore.Set(pair.Key, bz)
 	}
 
-	err := v2.MigrateParams(amnio, paramsStore, ethtypes.StoreKey)
+	err := v2.MigrateParams(amino, paramsStore, ethtypes.StoreKey)
 	assert.NoError(t, err)
 }

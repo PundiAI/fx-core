@@ -118,7 +118,7 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		// ParamStoreIbcTransferTimeoutHeight gravity and ibc transfer timeout height
 		ParamStoreIbcTransferTimeoutHeight = []byte("ParamStoreIbcTransferTimeoutHeight")
 
-		// ParamStoreValsetUpdatePowerChangePercent valset update pwer change percent
+		// ParamStoreValsetUpdatePowerChangePercent valset update power change percent
 		ParamStoreValsetUpdatePowerChangePercent = []byte("ParamStoreValsetUpdatePowerChangePercent")
 	)
 	return paramtypes.ParamSetPairs{

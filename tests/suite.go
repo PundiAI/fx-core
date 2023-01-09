@@ -99,11 +99,11 @@ func (suite *TestSuite) getNextProposalId() uint64 {
 	return suite.proposalId
 }
 
-func (suite *TestSuite) GetFirstValidtor() *network.Validator {
+func (suite *TestSuite) GetFirstValidator() *network.Validator {
 	return suite.network.Validators[0]
 }
 
-func (suite *TestSuite) GetFirstValiPrivKey() cryptotypes.PrivKey {
+func (suite *TestSuite) GetFirstValPrivKey() cryptotypes.PrivKey {
 	privKey, err := helpers.PrivKeyFromMnemonic(suite.network.Config.Mnemonics[0], hd.Secp256k1Type, 0, 0)
 	suite.NoError(err)
 	return privKey
@@ -112,7 +112,7 @@ func (suite *TestSuite) GetFirstValiPrivKey() cryptotypes.PrivKey {
 func (suite *TestSuite) GRPCClient() *grpc.Client {
 	grpcUrl := "http://localhost:9090"
 	if suite.useLocalNetwork {
-		grpcUrl = fmt.Sprintf("http://%s", suite.GetFirstValidtor().AppConfig.GRPC.Address)
+		grpcUrl = fmt.Sprintf("http://%s", suite.GetFirstValidator().AppConfig.GRPC.Address)
 	}
 	client, err := grpc.NewClient(grpcUrl)
 	suite.NoError(err)
@@ -123,7 +123,7 @@ func (suite *TestSuite) GRPCClient() *grpc.Client {
 func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
 	nodeUrl := "http://localhost:26657"
 	if suite.useLocalNetwork {
-		nodeUrl = suite.GetFirstValidtor().RPCAddress
+		nodeUrl = suite.GetFirstValidator().RPCAddress
 	}
 	rpc := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(nodeUrl))
 	rpc.WithContext(suite.ctx)
@@ -131,11 +131,11 @@ func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
 }
 
 func (suite *TestSuite) ValNodeClient() tmclient.Client {
-	return suite.GetFirstValidtor().RPCClient
+	return suite.GetFirstValidator().RPCClient
 }
 
-func (suite *TestSuite) GetFirstValiAddr() sdk.ValAddress {
-	return suite.GetFirstValiPrivKey().PubKey().Address().Bytes()
+func (suite *TestSuite) GetFirstValAddr() sdk.ValAddress {
+	return suite.GetFirstValPrivKey().PubKey().Address().Bytes()
 }
 
 func (suite *TestSuite) GetStakingDenom() string {
@@ -199,12 +199,12 @@ func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content, expectedSt
 	proposalMsg, err := govtypes.NewMsgSubmitProposal(
 		content,
 		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
-		suite.GetFirstValiAddr().Bytes(),
+		suite.GetFirstValAddr().Bytes(),
 	)
 	suite.NoError(err)
 	proposalId := suite.getNextProposalId()
-	voteMsg := govtypes.NewMsgVote(suite.GetFirstValiAddr().Bytes(), proposalId, govtypes.OptionYes)
-	txResponse := suite.BroadcastTx(suite.GetFirstValiPrivKey(), proposalMsg, voteMsg)
+	voteMsg := govtypes.NewMsgVote(suite.GetFirstValAddr().Bytes(), proposalId, govtypes.OptionYes)
+	txResponse := suite.BroadcastTx(suite.GetFirstValPrivKey(), proposalMsg, voteMsg)
 	for _, log := range txResponse.Logs {
 		for _, event := range log.Events {
 			if event.Type != "proposal_deposit" {
@@ -267,7 +267,7 @@ func (suite *TestSuite) QueryValidatorByToken() sdk.ValAddress {
 }
 
 func (suite *TestSuite) Send(toAddress sdk.AccAddress, amount sdk.Coin) *sdk.TxResponse {
-	return suite.SendFrom(suite.GetFirstValiPrivKey(), toAddress, amount)
+	return suite.SendFrom(suite.GetFirstValPrivKey(), toAddress, amount)
 }
 
 func (suite *TestSuite) SendFrom(priv cryptotypes.PrivKey, toAddress sdk.AccAddress, amount sdk.Coin) *sdk.TxResponse {
@@ -335,13 +335,13 @@ func (suite *TestSuite) Undelegate(priv cryptotypes.PrivKey, valAddress sdk.ValA
 }
 
 func (suite *TestSuite) CheckUndelegate(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, entries ...stakingtypes.UnbondingDelegationEntry) {
-	undelegationResp, err := suite.GRPCClient().StakingQuery().UnbondingDelegation(suite.ctx, &stakingtypes.QueryUnbondingDelegationRequest{
+	response, err := suite.GRPCClient().StakingQuery().UnbondingDelegation(suite.ctx, &stakingtypes.QueryUnbondingDelegationRequest{
 		DelegatorAddr: delegatorAddr.String(),
 		ValidatorAddr: validatorAddr.String(),
 	})
 	suite.NoError(err)
-	suite.Equal(len(undelegationResp.Unbond.Entries), len(entries))
-	for i, entry := range undelegationResp.Unbond.Entries {
+	suite.Equal(len(response.Unbond.Entries), len(entries))
+	for i, entry := range response.Unbond.Entries {
 		suite.Equal(entry.String(), entries[i].String())
 	}
 }

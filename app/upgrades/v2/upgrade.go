@@ -122,15 +122,15 @@ func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *sd
 
 func updateBlockParams(ctx sdk.Context, pk paramskeeper.Keeper) {
 	ctx.Logger().Info("update block params", "module", "upgrade", "chainId", ctx.ChainID())
-	baseappSubspace, found := pk.GetSubspace(baseapp.Paramspace)
+	baseAppSubspace, found := pk.GetSubspace(baseapp.Paramspace)
 	if !found {
 		panic(fmt.Sprintf("unknown subspace: %s", baseapp.Paramspace))
 	}
 	var bp abci.BlockParams
-	baseappSubspace.Get(ctx, baseapp.ParamStoreKeyBlockParams, &bp)
+	baseAppSubspace.Get(ctx, baseapp.ParamStoreKeyBlockParams, &bp)
 	ctx.Logger().Info("update block params", "module", "upgrade", "before update", bp.String())
 	bp.MaxGas = 30_000_000
-	baseappSubspace.Set(ctx, baseapp.ParamStoreKeyBlockParams, bp)
+	baseAppSubspace.Set(ctx, baseapp.ParamStoreKeyBlockParams, bp)
 	ctx.Logger().Info("update block params", "module", "upgrade", "after update", bp.String())
 }
 
