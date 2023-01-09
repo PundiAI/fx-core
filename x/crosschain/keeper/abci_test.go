@@ -73,8 +73,11 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
 	allBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.MustAccAddressFromBech32(sendToFxClaim.Receiver))
-	tokenName := fmt.Sprintf("%s%s", suite.chainName, bridgeToken)
-	require.EqualValues(suite.T(), fmt.Sprintf("%s%s", sendToFxClaim.Amount.String(), tokenName), allBalances.String())
+	denom := fmt.Sprintf("%s%s", suite.chainName, bridgeToken)
+	trace, err := fxtypes.GetIbcDenomTrace(denom, addBridgeTokenClaim.ChannelIbc)
+	suite.NoError(err)
+	denom = trace.IBCDenom()
+	require.EqualValues(suite.T(), fmt.Sprintf("%s%s", sendToFxClaim.Amount.String(), denom), allBalances.String())
 }
 
 func (suite *KeeperTestSuite) TestOracleUpdate() {

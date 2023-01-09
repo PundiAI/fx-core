@@ -1,7 +1,11 @@
 package types
 
 import (
+	"encoding/hex"
 	"strings"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 )
 
 type FxTarget struct {
@@ -36,4 +40,18 @@ func (i FxTarget) GetTarget() string {
 
 func (i FxTarget) IsIBC() bool {
 	return i.isIBC
+}
+
+func GetIbcDenomTrace(denom string, channelIBC string) (ibctransfertypes.DenomTrace, error) {
+	channelPath, err := hex.DecodeString(channelIBC)
+	if err != nil {
+		return ibctransfertypes.DenomTrace{}, sdkerrors.Wrapf(err, "decode channel ibc err")
+	}
+
+	// todo need check path
+	path := string(channelPath)
+	return ibctransfertypes.DenomTrace{
+		Path:      path,
+		BaseDenom: denom,
+	}, nil
 }
