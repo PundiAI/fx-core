@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/armon/go-metrics"
@@ -10,7 +9,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -29,12 +27,12 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 		amount := relay.GetAmount(relay.Denom)
 		fee := relay.GetFee(relay.Denom)
 
-		target := fxtypes.Byte32ToString(relay.Target)
-		if strings.HasPrefix(target, ibchost.ModuleName) {
-			target = strings.TrimPrefix(target, fmt.Sprintf("%s/", ibchost.ModuleName))
+		fxTarget := fxtypes.Byte32ToString(relay.Target)
+		target := fxtypes.ParseFxTarget(fxTarget)
+
+		if target.IsIBC() {
 			err = h.transferIBCHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target, txHash)
 		} else {
-			target = strings.TrimPrefix(target, "chain/")
 			err = h.transferCrossChainHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target)
 		}
 		if err != nil {
@@ -66,27 +64,22 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 	return nil
 }
 
-func (h Hooks) transferCrossChainHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target string) error {
-	h.k.Logger(ctx).Info("transfer cross-chain handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target)
+func (h Hooks) transferCrossChainHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target fxtypes.FxTarget) error {
+	h.k.Logger(ctx).Info("transfer cross-chain handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target.GetTarget())
 	if h.k.router == nil {
 		return sdkerrors.Wrapf(types.ErrInternalRouter, "transfer chain router not set")
 	}
-	route, has := h.k.router.GetRoute(target)
+	route, has := h.k.router.GetRoute(target.GetTarget())
 	if !has {
-		return sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s not support", target)
+		return sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s not support", target.GetTarget())
 	}
 	return route.TransferAfter(ctx, from.String(), to, amount, fee)
 }
 
-func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, targetStr string, txHash common.Hash) error {
-	h.k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", targetStr)
+func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target fxtypes.FxTarget, txHash common.Hash) error {
+	h.k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target.GetTarget())
 	if !fee.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "ibc transfer fee must be zero: %s", fee.Amount.String())
-	}
-
-	target := fxtypes.ParseFxTarget(targetStr)
-	if !target.IsIBC() {
-		return sdkerrors.Wrapf(types.ErrInvalidTarget, "invalid target ibc %s", targetStr)
 	}
 	if strings.ToLower(target.Prefix) == fxtypes.EthereumAddressPrefix {
 		if err := fxtypes.ValidateEthereumAddress(to); err != nil {
