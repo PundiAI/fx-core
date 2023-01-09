@@ -21,6 +21,8 @@ func NewMigrator(keeper Keeper, channelKeeper v2.Channelkeeper) Migrator {
 }
 
 func (k Migrator) Migrate2to3(ctx sdk.Context) error {
-	v2.PruneExpirationIBCTransferHash(ctx, k.keeper, k.channelKeeper)
+	kvStore := ctx.KVStore(k.keeper.storeKey)
+	v2.PruneExpirationIBCTransferRelation(ctx, kvStore, k.channelKeeper)
+	v2.MigrateIBCTransferRelation(ctx, kvStore, k.keeper)
 	return nil
 }

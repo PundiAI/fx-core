@@ -121,7 +121,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 			// relay event
 			relays, errArgs := tc.relays(pair, md, signer.Address(), totalMint)
 			// hook transfer cross chain
-			err := suite.app.Erc20Keeper.EVMHooks().HookTransferCrossChainEvent(suite.ctx, relays, common.Hash{})
+			err := suite.app.Erc20Keeper.EVMHooks().HookTransferCrossChainEvent(suite.ctx, relays)
 			// check result
 			if tc.result {
 				suite.Require().NoError(err)
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 			// relay event
 			relays, errArgs := tc.relays(pair, md, signer.Address(), totalMint)
 			// hook transfer cross chain
-			err := suite.app.Erc20Keeper.EVMHooks().HookTransferCrossChainEvent(suite.ctx, relays, common.Hash{})
+			err := suite.app.Erc20Keeper.EVMHooks().HookTransferCrossChainEvent(suite.ctx, relays)
 			// check result
 			if tc.result {
 				suite.Require().NoError(err)

@@ -9,13 +9,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossChains []types.RelayTransferCrossChain, txHash common.Hash) (err error) {
+func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossChains []types.RelayTransferCrossChain) (err error) {
 	for _, relay := range relayTransferCrossChains {
 		h.k.Logger(ctx).Info("transfer cross chain", "token", relay.TokenContract.String(), "denom", relay.Denom)
 
@@ -31,7 +30,7 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 		target := fxtypes.ParseFxTarget(fxTarget)
 
 		if target.IsIBC() {
-			err = h.transferIBCHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target, txHash)
+			err = h.transferIBCHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target)
 		} else {
 			err = h.transferCrossChainHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target)
 		}
@@ -76,7 +75,7 @@ func (h Hooks) transferCrossChainHandler(ctx sdk.Context, from sdk.AccAddress, t
 	return route.TransferAfter(ctx, from.String(), to, amount, fee)
 }
 
-func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target fxtypes.FxTarget, txHash common.Hash) error {
+func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target fxtypes.FxTarget) error {
 	h.k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target.GetTarget())
 	if !fee.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "ibc transfer fee must be zero: %s", fee.Amount.String())
@@ -105,6 +104,6 @@ func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to strin
 	if err != nil {
 		return err
 	}
-	h.k.SetIBCTransferHash(ctx, target.SourcePort, target.SourceChannel, transferResponse.GetSequence(), txHash)
+	h.k.SetIBCTransferRelation(ctx, target.SourceChannel, transferResponse.GetSequence())
 	return nil
 }

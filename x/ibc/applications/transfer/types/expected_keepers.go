@@ -5,6 +5,6 @@ import (
 )
 
 type RefundHook interface {
-	RefundAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error
-	AckAfter(ctx sdk.Context, sourcePort, sourceChannel string, sequence uint64) error
+	RefundAfter(ctx sdk.Context, sourceChannel string, sequence uint64, sender sdk.AccAddress, amount sdk.Coin) error
+	AckAfter(ctx sdk.Context, sourceChannel string, sequence uint64) error
 }

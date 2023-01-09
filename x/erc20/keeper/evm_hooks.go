@@ -51,7 +51,7 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 	}
 
 	// hook transferCrossChain(cross-chain,ibc...) event
-	if err := h.HookTransferCrossChainEvent(ctx, relayTransferCrossChains, receipt.TxHash); err != nil {
+	if err := h.HookTransferCrossChainEvent(ctx, relayTransferCrossChains); err != nil {
 		h.k.Logger(ctx).Error("erc20 processing", "hook-action", "relay transfer cross chain event", "error", err.Error())
 		return err
 	}
