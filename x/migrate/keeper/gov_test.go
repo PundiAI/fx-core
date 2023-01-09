@@ -36,11 +36,10 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, ethAcc.Bytes())
 	suite.Require().False(found)
 
-	migrateKeeper := suite.app.MigrateKeeper
 	m := migratekeeper.NewGovMigrate(suite.app.GetKey(govtypes.StoreKey), suite.app.GovKeeper)
-	err = m.Validate(suite.ctx, migrateKeeper, acc, ethAcc)
+	err = m.Validate(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, migrateKeeper, acc, ethAcc)
+	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
 
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
@@ -85,11 +84,10 @@ func (suite *KeeperTestSuite) TestMigrateGovActive() {
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().False(found)
 
-	migrateKeeper := suite.app.MigrateKeeper
 	m := migratekeeper.NewGovMigrate(suite.app.GetKey(govtypes.StoreKey), suite.app.GovKeeper)
-	err = m.Validate(suite.ctx, migrateKeeper, acc, toEthAcc)
+	err = m.Validate(suite.ctx, suite.app.AppCodec(), acc, toEthAcc)
 	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, migrateKeeper, acc, toEthAcc)
+	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, toEthAcc)
 	suite.Require().NoError(err)
 
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)
@@ -154,11 +152,10 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 	_, found = suite.app.GovKeeper.GetVote(suite.ctx, proposal.ProposalId, toEthAcc.Bytes())
 	suite.Require().False(found)
 
-	migrateKeeper := suite.app.MigrateKeeper
 	m := migratekeeper.NewGovMigrate(suite.app.GetKey(govtypes.StoreKey), suite.app.GovKeeper)
-	err = m.Validate(suite.ctx, migrateKeeper, acc, toEthAcc)
+	err = m.Validate(suite.ctx, suite.app.AppCodec(), acc, toEthAcc)
 	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, migrateKeeper, acc, toEthAcc)
+	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, toEthAcc)
 	suite.Require().NoError(err)
 
 	_, found = suite.app.GovKeeper.GetDeposit(suite.ctx, proposal.ProposalId, acc)

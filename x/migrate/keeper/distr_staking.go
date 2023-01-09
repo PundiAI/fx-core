@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -24,7 +25,7 @@ func NewDistrStakingMigrate(distrKey, stakingKey sdk.StoreKey, stakingKeeper typ
 	}
 }
 
-func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ Keeper, from sdk.AccAddress, to common.Address) error {
+func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	// check validator
 	if _, found := m.stakingKeeper.GetValidator(ctx, sdk.ValAddress(from)); found {
 		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", from.String())
@@ -49,22 +50,17 @@ func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ Keeper, from sdk.AccAd
 	return nil
 }
 
-func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to common.Address) error {
+func (m *DistrStakingMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	stakingStore := ctx.KVStore(m.stakingKey)
 	distrStore := ctx.KVStore(m.distrKey)
 
-	//migrate distribution withdraw address
-	//if bz := distrStore.Get(distrtypes.GetDelegatorWithdrawAddrKey(from)); bz != nil {
-	//	distrStore.Delete(distrtypes.GetDelegatorWithdrawAddrKey(from))
-	//	distrStore.Set(distrtypes.GetDelegatorWithdrawAddrKey(to), bz)
-	//}
 	events := make([]sdk.Event, 0, 10)
 
 	// migrate delegate info
 	delegateIterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.GetDelegationsKey(from))
 	defer delegateIterator.Close()
 	for ; delegateIterator.Valid(); delegateIterator.Next() {
-		info := stakingtypes.MustUnmarshalDelegation(k.cdc, delegateIterator.Value())
+		info := stakingtypes.MustUnmarshalDelegation(cdc, delegateIterator.Value())
 
 		// distribution starting info
 		key := distrtypes.GetDelegatorStartingInfoKey(info.GetValidatorAddr(), from)
@@ -75,7 +71,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 		// staking delegate
 		info.DelegatorAddress = sdk.AccAddress(to.Bytes()).String()
 		stakingStore.Delete(delegateIterator.Key())
-		stakingStore.Set(stakingtypes.GetDelegationKey(to.Bytes(), info.GetValidatorAddr()), stakingtypes.MustMarshalDelegation(k.cdc, info))
+		stakingStore.Set(stakingtypes.GetDelegationKey(to.Bytes(), info.GetValidatorAddr()), stakingtypes.MustMarshalDelegation(cdc, info))
 
 		events = append(events,
 			sdk.NewEvent(
@@ -89,7 +85,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 	unbondingDelegationIterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.GetUBDsKey(from))
 	defer unbondingDelegationIterator.Close()
 	for ; unbondingDelegationIterator.Valid(); unbondingDelegationIterator.Next() {
-		ubd := stakingtypes.MustUnmarshalUBD(k.cdc, unbondingDelegationIterator.Value())
+		ubd := stakingtypes.MustUnmarshalUBD(cdc, unbondingDelegationIterator.Value())
 		ubd.DelegatorAddress = sdk.AccAddress(to.Bytes()).String()
 
 		valAddr, err := sdk.ValAddressFromBech32(ubd.ValidatorAddress)
@@ -97,7 +93,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 			panic(err)
 		}
 		stakingStore.Delete(unbondingDelegationIterator.Key())
-		stakingStore.Set(stakingtypes.GetUBDKey(to.Bytes(), valAddr), stakingtypes.MustMarshalUBD(k.cdc, ubd))
+		stakingStore.Set(stakingtypes.GetUBDKey(to.Bytes(), valAddr), stakingtypes.MustMarshalUBD(cdc, ubd))
 
 		stakingStore.Delete(stakingtypes.GetUBDByValIndexKey(from, valAddr))
 		stakingStore.Set(stakingtypes.GetUBDByValIndexKey(to.Bytes(), valAddr), []byte{})
@@ -114,7 +110,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 			}
 			if ubdFlag {
 				key := stakingtypes.GetUnbondingDelegationTimeKey(entry.CompletionTime)
-				value := k.cdc.MustMarshal(&stakingtypes.DVPairs{Pairs: UBDQueue})
+				value := cdc.MustMarshal(&stakingtypes.DVPairs{Pairs: UBDQueue})
 				stakingStore.Set(key, value)
 			}
 		}
@@ -131,7 +127,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 	redelegateIterator := sdk.KVStorePrefixIterator(stakingStore, stakingtypes.GetREDsKey(from))
 	defer redelegateIterator.Close()
 	for ; redelegateIterator.Valid(); redelegateIterator.Next() {
-		red := stakingtypes.MustUnmarshalRED(k.cdc, redelegateIterator.Value())
+		red := stakingtypes.MustUnmarshalRED(cdc, redelegateIterator.Value())
 		red.DelegatorAddress = sdk.AccAddress(to.Bytes()).String()
 
 		valSrcAddr, err := sdk.ValAddressFromBech32(red.ValidatorSrcAddress)
@@ -144,7 +140,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 		}
 
 		stakingStore.Delete(redelegateIterator.Key())
-		stakingStore.Set(stakingtypes.GetREDKey(to.Bytes(), valSrcAddr, valDstAddr), stakingtypes.MustMarshalRED(k.cdc, red))
+		stakingStore.Set(stakingtypes.GetREDKey(to.Bytes(), valSrcAddr, valDstAddr), stakingtypes.MustMarshalRED(cdc, red))
 
 		stakingStore.Delete(stakingtypes.GetREDByValSrcIndexKey(from, valSrcAddr, valDstAddr))
 		stakingStore.Set(stakingtypes.GetREDByValSrcIndexKey(to.Bytes(), valSrcAddr, valDstAddr), []byte{})
@@ -164,7 +160,7 @@ func (m *DistrStakingMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAdd
 			}
 			if redFlag {
 				key := stakingtypes.GetRedelegationTimeKey(entry.CompletionTime)
-				value := k.cdc.MustMarshal(&stakingtypes.DVVTriplets{Triplets: redQueue})
+				value := cdc.MustMarshal(&stakingtypes.DVVTriplets{Triplets: redQueue})
 				stakingStore.Set(key, value)
 			}
 		}

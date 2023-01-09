@@ -62,7 +62,7 @@ func (k Keeper) MigrateCheckAccount(goCtx context.Context, req *types.QueryMigra
 		return nil, status.Errorf(codes.AlreadyExists, "address %s has been migrated", req.To)
 	}
 	for _, m := range k.GetMigrateI() {
-		if err := m.Validate(ctx, k, from, to); err != nil {
+		if err := m.Validate(ctx, k.cdc, from, to); err != nil {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 	}

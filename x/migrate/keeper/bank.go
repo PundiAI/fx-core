@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -15,11 +16,11 @@ func NewBankMigrate(bk migratetypes.BankKeeper) MigrateI {
 	return &BankMigrate{bankKeeper: bk}
 }
 
-func (m *BankMigrate) Validate(_ sdk.Context, _ Keeper, _ sdk.AccAddress, _ common.Address) error {
+func (m *BankMigrate) Validate(_ sdk.Context, _ codec.BinaryCodec, _ sdk.AccAddress, _ common.Address) error {
 	return nil
 }
 
-func (m *BankMigrate) Execute(ctx sdk.Context, _ Keeper, from sdk.AccAddress, to common.Address) error {
+func (m *BankMigrate) Execute(ctx sdk.Context, _ codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	balances := m.bankKeeper.GetAllBalances(ctx, from)
 	if balances.IsZero() {
 		return nil

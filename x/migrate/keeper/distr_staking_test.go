@@ -64,11 +64,10 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	suite.Require().Equal("delegation does not exist", err.Error())
 
 	// migrate
-	migrateKeeper := suite.app.MigrateKeeper
 	m := migratekeeper.NewDistrStakingMigrate(suite.app.GetKey(distritypes.StoreKey), suite.app.GetKey(stakingtypes.StoreKey), suite.app.StakingKeeper)
-	err = m.Validate(suite.ctx, migrateKeeper, acc, ethAcc)
+	err = m.Validate(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, migrateKeeper, acc, ethAcc)
+	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
 
 	// check eth acc delegate
@@ -129,11 +128,10 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	suite.Require().Equal(1, len(slice))
 	suite.Require().Equal(acc.String(), slice[0].DelegatorAddress)
 
-	migrateKeeper := suite.app.MigrateKeeper
 	m := migratekeeper.NewDistrStakingMigrate(suite.app.GetKey(distritypes.StoreKey), suite.app.GetKey(stakingtypes.StoreKey), suite.app.StakingKeeper)
-	err = m.Validate(suite.ctx, migrateKeeper, acc, ethAcc)
+	err = m.Validate(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, migrateKeeper, acc, ethAcc)
+	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
 
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())
@@ -207,11 +205,10 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	suite.Require().Equal(int(entries), len(queue))
 	suite.Require().Equal(queue[0].DelegatorAddress, acc.String())
 
-	migrateKeeper := suite.app.MigrateKeeper
 	m := migratekeeper.NewDistrStakingMigrate(suite.app.GetKey(distritypes.StoreKey), suite.app.GetKey(stakingtypes.StoreKey), suite.app.StakingKeeper)
-	err = m.Validate(suite.ctx, migrateKeeper, acc, ethAcc)
+	err = m.Validate(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, migrateKeeper, acc, ethAcc)
+	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
 
 	_, found = suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())

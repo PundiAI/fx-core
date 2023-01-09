@@ -39,13 +39,13 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 
 	// migrate Validate
 	for _, m := range k.GetMigrateI() {
-		if err := m.Validate(ctx, k, fromAddress, toAddress); err != nil {
+		if err := m.Validate(ctx, k.cdc, fromAddress, toAddress); err != nil {
 			return nil, sdkerrors.Wrap(types.ErrMigrateValidate, err.Error())
 		}
 	}
 	// migrate Execute
 	for _, m := range k.GetMigrateI() {
-		err := m.Execute(ctx, k, fromAddress, toAddress)
+		err := m.Execute(ctx, k.cdc, fromAddress, toAddress)
 		if err != nil {
 			return nil, sdkerrors.Wrap(types.ErrMigrateExecute, err.Error())
 		}

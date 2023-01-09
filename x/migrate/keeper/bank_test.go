@@ -24,11 +24,10 @@ func (suite *KeeperTestSuite) TestMigrateBank() {
 	b2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc.Bytes())
 	require.NotEmpty(suite.T(), b2)
 
-	migrateKeeper := suite.app.MigrateKeeper
 	m := migratekeeper.NewBankMigrate(suite.app.BankKeeper)
-	err := m.Validate(suite.ctx, migrateKeeper, acc, ethAcc)
+	err := m.Validate(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
-	err = m.Execute(suite.ctx, migrateKeeper, acc, ethAcc)
+	err = m.Execute(suite.ctx, suite.app.AppCodec(), acc, ethAcc)
 	suite.Require().NoError(err)
 
 	bb1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)

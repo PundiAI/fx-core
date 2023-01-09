@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -23,7 +24,7 @@ func NewGovMigrate(govKey sdk.StoreKey, govKeeper types.GovKeeper) MigrateI {
 	}
 }
 
-func (m *GovMigrate) Validate(ctx sdk.Context, _ Keeper, from sdk.AccAddress, to common.Address) error {
+func (m *GovMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	votingParams := m.govKeeper.GetVotingParams(ctx)
 	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(votingParams.VotingPeriod))
 	defer activeIter.Close()
@@ -39,7 +40,7 @@ func (m *GovMigrate) Validate(ctx sdk.Context, _ Keeper, from sdk.AccAddress, to
 	return nil
 }
 
-func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to common.Address) error {
+func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	govStore := ctx.KVStore(m.govKey)
 	events := make([]sdk.Event, 0, 10)
 
@@ -67,7 +68,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to 
 			fromDeposit.Depositor = sdk.AccAddress(to.Bytes()).String()
 			fromDeposit.Amount = amount
 			govStore.Delete(govtypes.DepositKey(fromDeposit.ProposalId, from))
-			govStore.Set(govtypes.DepositKey(fromDeposit.ProposalId, to.Bytes()), k.cdc.MustMarshal(&fromDeposit))
+			govStore.Set(govtypes.DepositKey(fromDeposit.ProposalId, to.Bytes()), cdc.MustMarshal(&fromDeposit))
 		}
 	}
 
@@ -95,7 +96,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to 
 			fromDeposit.Depositor = sdk.AccAddress(to.Bytes()).String()
 			fromDeposit.Amount = amount
 			govStore.Delete(govtypes.DepositKey(proposalID, from))
-			govStore.Set(govtypes.DepositKey(proposalID, to.Bytes()), k.cdc.MustMarshal(&fromDeposit))
+			govStore.Set(govtypes.DepositKey(proposalID, to.Bytes()), cdc.MustMarshal(&fromDeposit))
 		}
 		// migrate vote
 		if fromVote, voteFound := m.govKeeper.GetVote(ctx, proposalID, from); voteFound {
@@ -105,7 +106,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, k Keeper, from sdk.AccAddress, to 
 			}
 			fromVote.Voter = sdk.AccAddress(to.Bytes()).String()
 			govStore.Delete(govtypes.VoteKey(proposalID, from))
-			govStore.Set(govtypes.VoteKey(proposalID, to.Bytes()), k.cdc.MustMarshal(&fromVote))
+			govStore.Set(govtypes.VoteKey(proposalID, to.Bytes()), cdc.MustMarshal(&fromVote))
 
 			// add events
 			events = append(events,
