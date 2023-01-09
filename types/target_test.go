@@ -233,13 +233,16 @@ func TestParseTargetIBC(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		target := types.ParseFxTarget(tc.targetStr)
-		require.EqualValues(t, tc.expect.isIBC, target.IsIBC(), tc.name)
-		require.EqualValues(t, tc.expect.target, target.GetTarget(), tc.name)
-		if tc.expect.isIBC {
-			require.EqualValues(t, tc.expect.prefix, target.Prefix, tc.name)
-			require.EqualValues(t, tc.expect.port, target.SourcePort, tc.name)
-			require.EqualValues(t, tc.expect.channel, target.SourceChannel, tc.name)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			target := types.ParseFxTarget(tc.targetStr)
+			require.EqualValues(t, tc.expect.isIBC, target.IsIBC(), tc.name)
+			if tc.expect.isIBC {
+				require.EqualValues(t, tc.expect.prefix, target.Prefix, tc.name)
+				require.EqualValues(t, tc.expect.port, target.SourcePort, tc.name)
+				require.EqualValues(t, tc.expect.channel, target.SourceChannel, tc.name)
+			} else {
+				require.EqualValues(t, tc.expect.target, target.GetTarget(), tc.name)
+			}
+		})
 	}
 }
