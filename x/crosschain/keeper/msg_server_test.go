@@ -334,6 +334,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 }
 
 func (suite *KeeperTestSuite) TestMsgEditBridger() {
+	delegateAmount := sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18)
 	for i := range suite.oracleAddrs {
 		bondedMsg := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracleAddrs[i].String(),
@@ -342,7 +343,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 			ValidatorAddress: suite.valAddrs[i].String(),
 			DelegateAmount: sdk.Coin{
 				Denom:  fxtypes.DefaultDenom,
-				Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+				Amount: delegateAmount,
 			},
 			ChainName: suite.chainName,
 		}
