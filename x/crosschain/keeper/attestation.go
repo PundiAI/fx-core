@@ -100,7 +100,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 
 		err = k.processAttestation(ctx, claim)
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeContractEvnet,
+			types.EventTypeContractEvent,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType().String()),
 			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.GetEventNonce())),

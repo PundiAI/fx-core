@@ -1,7 +1,7 @@
 package types
 
 const (
-	EventTypeContractEvnet = "observation"
+	EventTypeContractEvent = "observation"
 	AttributeKeyClaimType  = "claim_type"
 	AttributeKeyEventNonce = "event_nonce"
 	AttributeKeyClaimHash  = "claim_hash"
