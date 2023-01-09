@@ -12,10 +12,12 @@ import (
 
 const (
 	LegacyERC20Target = "module/evm"
-	LegacyChainPrefix = "chain/"
+	ERC20Target       = "erc20"
+	GravityTarget     = "gravity"
+	EthTarget         = "eth"
 
-	ERC20Target = "erc20"
-	IBCPrefix   = "ibc/"
+	LegacyChainPrefix = "chain/"
+	IBCPrefix         = "ibc/"
 )
 
 type FxTarget struct {
@@ -29,9 +31,13 @@ type FxTarget struct {
 func ParseFxTarget(targetStr string) FxTarget {
 	// module evm
 	if targetStr == LegacyERC20Target {
-		targetStr = ERC20Target
+		return FxTarget{isIBC: false, target: ERC20Target}
 	}
 	targetStr = strings.TrimPrefix(targetStr, LegacyChainPrefix)
+	// cross-chain
+	if targetStr == GravityTarget {
+		return FxTarget{isIBC: false, target: EthTarget}
+	}
 
 	// ibc prefix
 	if strings.HasPrefix(targetStr, IBCPrefix) {

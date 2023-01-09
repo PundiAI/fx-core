@@ -23,11 +23,16 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "%s is smaller than %s", balances.String(), relay.TotalAmount(relay.Denom).String())
 		}
 
-		amount := relay.GetAmount(relay.Denom)
-		fee := relay.GetFee(relay.Denom)
-
 		targetStr := fxtypes.Byte32ToString(relay.Target)
 		fxTarget := fxtypes.ParseFxTarget(targetStr)
+
+		targetCoin, err := h.k.ConvertDenomToTarget(ctx, relay.GetFrom(), relay.GetAmount(relay.Denom).Add(relay.GetFee(relay.Denom)), fxTarget.GetTarget())
+		if err != nil {
+			return err
+		}
+
+		amount := relay.GetAmount(targetCoin.Denom)
+		fee := relay.GetFee(targetCoin.Denom)
 
 		if fxTarget.IsIBC() {
 			err = h.transferIBCHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, fxTarget)

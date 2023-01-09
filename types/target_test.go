@@ -88,7 +88,7 @@ func TestParseTargetIBC(t *testing.T) {
 			name:      "chain prefix",
 			targetStr: "chain/gravity",
 			expect: expect{
-				target: "gravity",
+				target: "eth",
 				isIBC:  false,
 			},
 		},
@@ -104,7 +104,7 @@ func TestParseTargetIBC(t *testing.T) {
 			name:      "module",
 			targetStr: "gravity",
 			expect: expect{
-				target: "gravity",
+				target: "eth",
 				isIBC:  false,
 			},
 		},

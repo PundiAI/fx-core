@@ -46,7 +46,7 @@ type BankKeeper interface {
 
 type Erc20Keeper interface {
 	TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error
-	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, bool, error)
+	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error)
 }
 
 type IBCTransferKeeper interface {

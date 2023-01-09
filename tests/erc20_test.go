@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -34,7 +35,7 @@ func (suite *IntegrationTest) ERC20Test() {
 
 	for i, chain := range suite.crosschain {
 		bridgeToken := chain.GetBridgeTokens()[0]
-		chain.SendToFxClaim(bridgeToken.Token, sdk.NewInt(200), erc20types.LegacyERC20Target)
+		chain.SendToFxClaim(bridgeToken.Token, sdk.NewInt(200), fxtypes.LegacyERC20Target)
 		balance := suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress())
 		suite.Equal(balance, big.NewInt(200))
 

@@ -14,8 +14,6 @@ import (
 const (
 	FIP20EventTransferCrossChain = "TransferCrossChain"
 	ERC20EventTransfer           = "Transfer"
-
-	LegacyERC20Target = "module/evm"
 )
 
 type TransferCrossChainEvent struct {

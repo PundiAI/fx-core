@@ -18,17 +18,10 @@ import (
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
-	// convert denom to many
-	targetCoin, _, err := k.erc20Keeper.ConvertDenomToTarget(ctx, sender, amount.Add(fee), k.moduleName)
-	if err != nil {
-		return 0, err
-	}
-	bridgeToken := k.GetDenomByBridgeToken(ctx, targetCoin.Denom)
+	bridgeToken := k.GetDenomByBridgeToken(ctx, amount.Denom)
 	if bridgeToken == nil {
 		return 0, sdkerrors.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
-	amount.Denom = targetCoin.Denom
-	fee.Denom = targetCoin.Denom
 
 	totalInVouchers := sdk.NewCoins(amount.Add(fee))
 

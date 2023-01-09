@@ -14,8 +14,6 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 var _ types.MsgServer = &Keeper{}
@@ -141,7 +139,8 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 	receiver := sdk.MustAccAddressFromBech32(msg.Receiver)
 
-	targetCoin, _, err := k.ConvertDenomToTarget(ctx, sender, msg.Coin, msg.Target)
+	fxTarget := fxtypes.ParseFxTarget(msg.Target)
+	targetCoin, err := k.ConvertDenomToTarget(ctx, sender, msg.Coin, fxTarget.GetTarget())
 	if err != nil {
 		return nil, err
 	}
@@ -339,12 +338,12 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 	return nil
 }
 
-func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, bool, error) {
+func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
 	if coin.Denom == fxtypes.DefaultDenom {
-		if target == types.LegacyERC20Target || target == types.ModuleName {
-			return coin, true, nil
+		if target == types.ModuleName {
+			return coin, nil
 		}
-		return coin, false, nil
+		return coin, nil
 	}
 	var metadata banktypes.Metadata
 	if k.IsDenomRegistered(ctx, coin.Denom) {
@@ -352,53 +351,47 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 		var found bool
 		metadata, found = k.HasDenomAlias(ctx, coin.Denom)
 		if !found { // no convert required
-			return coin, false, nil
+			return coin, nil
 		}
 	} else {
 		// is alias denom
 		denom, found := k.GetAliasDenom(ctx, coin.Denom)
 		if !found { // no convert required
-			return coin, false, nil
+			return coin, nil
 		}
 		metadata, found = k.HasDenomAlias(ctx, denom)
 		if !found { // no convert required
-			return coin, false, nil
+			return coin, nil
 		}
 	}
 
 	targetDenom := ToTargetDenom(coin.Denom, target, metadata.Base, metadata.DenomUnits[0].Aliases)
 	if coin.Denom == targetDenom {
-		return coin, true, nil
+		return coin, nil
 	}
 
 	targetCoin := sdk.NewCoin(targetDenom, coin.Amount)
 	// send denom to module
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
-		return sdk.Coin{}, false, err
+		return sdk.Coin{}, err
 	}
+
 	if coin.Denom == metadata.Base {
 		// burn coin
 		if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
-			return sdk.Coin{}, false, err
+			return sdk.Coin{}, err
 		}
 	} else if targetDenom == metadata.Base {
 		// mint denom
 		if err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
-			return sdk.Coin{}, false, err
-		}
-	} else {
-		if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
-			return sdk.Coin{}, false, err
-		}
-
-		if err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
-			return sdk.Coin{}, false, err
+			return sdk.Coin{}, err
 		}
 	}
+
 	// send alias denom to from addr
 	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin)); err != nil {
-		return sdk.Coin{}, false, err
+		return sdk.Coin{}, err
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeConvertDenom,
@@ -407,23 +400,17 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 		sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
 		sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
 	))
-	return targetCoin, true, nil
+	return targetCoin, nil
 }
 
 func ToTargetDenom(denom, target, base string, aliases []string) string {
 	// erc20
-	if len(target) <= 0 || target == types.LegacyERC20Target || target == types.ModuleName {
+	if len(target) <= 0 || target == types.ModuleName {
 		return base
 	}
 	if len(aliases) <= 0 {
 		return denom
 	}
-
-	// cross-chain
-	if target == gravitytypes.ModuleName {
-		target = ethtypes.ModuleName
-	}
-	target = strings.TrimPrefix(target, "chain/")
 
 	// ibc
 	if strings.HasPrefix(target, ibchost.ModuleName) {
