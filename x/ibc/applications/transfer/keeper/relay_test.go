@@ -15,8 +15,13 @@ import (
 	"github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app"
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
 	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
@@ -93,6 +98,22 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			senderAddr,
 			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
 		},
+		{
+			name: "error - normal - transferAfter return error, receive address is error",
+			malleate: func(packet *channeltypes.Packet) {
+				packetData := fxtransfertypes.FungibleTokenPacketData{}
+				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
+				packetData.Receiver = rand.Str(20)
+				routes := []string{ethtypes.ModuleName, bsctypes.ModuleName, trontypes.ModuleName, polygontypes.ModuleName, avalanchetypes.ModuleName}
+				packetData.Router = routes[rand.Int63n(int64(len(routes)))]
+				packet.Data = packetData.GetBytes()
+			},
+			expPass:       false,
+			errorStr:      "ABCI code: 2: error handling packet on destination chain: see events for details",
+			checkBalance:  true,
+			checkCoinAddr: senderAddr,
+			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdk.ZeroInt())),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -109,10 +130,16 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			}, 0)
 			tc.malleate(&packet)
 
-			ackI := fxIBCMiddleware.OnRecvPacket(suite.chainA.GetContext(), packet, nil)
+			cacheCtx, writeFn := suite.chainA.GetContext().CacheContext()
+			ackI := fxIBCMiddleware.OnRecvPacket(cacheCtx, packet, nil)
+			if ackI == nil || ackI.Success() {
+				// write application state changes for asynchronous and successful acknowledgements
+				writeFn()
+			}
 			suite.Require().NotNil(ackI)
 
 			ack, ok := ackI.(channeltypes.Acknowledgement)
+			suite.chainA.GetContext().EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 			if tc.expPass {
 				suite.Require().Truef(ack.Success(), "error:%s,packetData:%s", ack.GetError(), string(packet.GetData()))
