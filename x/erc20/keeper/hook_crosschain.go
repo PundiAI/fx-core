@@ -26,13 +26,13 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 		amount := relay.GetAmount(relay.Denom)
 		fee := relay.GetFee(relay.Denom)
 
-		fxTarget := fxtypes.Byte32ToString(relay.Target)
-		target := fxtypes.ParseFxTarget(fxTarget)
+		targetStr := fxtypes.Byte32ToString(relay.Target)
+		fxTarget := fxtypes.ParseFxTarget(targetStr)
 
-		if target.IsIBC() {
-			err = h.transferIBCHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target)
+		if fxTarget.IsIBC() {
+			err = h.transferIBCHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, fxTarget)
 		} else {
-			err = h.transferCrossChainHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, target)
+			err = h.transferCrossChainHandler(ctx, relay.GetFrom(), relay.Recipient, amount, fee, fxTarget)
 		}
 		if err != nil {
 			return err
@@ -63,37 +63,37 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 	return nil
 }
 
-func (h Hooks) transferCrossChainHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target fxtypes.FxTarget) error {
-	h.k.Logger(ctx).Info("transfer cross-chain handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target.GetTarget())
+func (h Hooks) transferCrossChainHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, fxTarget fxtypes.FxTarget) error {
+	h.k.Logger(ctx).Info("transfer cross-chain handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", fxTarget.GetTarget())
 	if h.k.router == nil {
 		return sdkerrors.Wrapf(types.ErrInternalRouter, "transfer chain router not set")
 	}
-	route, has := h.k.router.GetRoute(target.GetTarget())
+	route, has := h.k.router.GetRoute(fxTarget.GetTarget())
 	if !has {
-		return sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s not support", target.GetTarget())
+		return sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s not support", fxTarget.GetTarget())
 	}
 	return route.TransferAfter(ctx, from.String(), to, amount, fee)
 }
 
-func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, target fxtypes.FxTarget) error {
-	h.k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", target.GetTarget())
+func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, fxTarget fxtypes.FxTarget) error {
+	h.k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", fxTarget.GetTarget())
 	if !fee.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "ibc transfer fee must be zero: %s", fee.Amount.String())
 	}
-	if strings.ToLower(target.Prefix) == fxtypes.EthereumAddressPrefix {
+	if strings.ToLower(fxTarget.Prefix) == fxtypes.EthereumAddressPrefix {
 		if err := fxtypes.ValidateEthereumAddress(to); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
 		}
 	}
-	if _, err := sdk.GetFromBech32(to, target.Prefix); err != nil {
+	if _, err := sdk.GetFromBech32(to, fxTarget.Prefix); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
 	}
 
 	ibcTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + uint64(h.k.GetIbcTimeout(ctx))
 	transferResponse, err := h.k.ibcTransferKeeper.Transfer(sdk.WrapSDKContext(ctx),
 		transfertypes.NewMsgTransfer(
-			target.SourcePort,
-			target.SourceChannel,
+			fxTarget.SourcePort,
+			fxTarget.SourceChannel,
 			amount,
 			from.String(),
 			to,
@@ -104,6 +104,6 @@ func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to strin
 	if err != nil {
 		return err
 	}
-	h.k.SetIBCTransferRelation(ctx, target.SourceChannel, transferResponse.GetSequence())
+	h.k.SetIBCTransferRelation(ctx, fxTarget.SourceChannel, transferResponse.GetSequence())
 	return nil
 }

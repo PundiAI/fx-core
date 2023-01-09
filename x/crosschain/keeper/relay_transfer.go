@@ -19,13 +19,13 @@ import (
 func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetHex string, receiver sdk.AccAddress, coin sdk.Coin) error {
 	// ignore hex decode error
 	targetByte, _ := hex.DecodeString(targetHex)
-	target := fxtypes.ParseFxTarget(string(targetByte))
-	targetCoin, isToERC20, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver, coin, target.GetTarget())
+	fxTarget := fxtypes.ParseFxTarget(string(targetByte))
+	targetCoin, isToERC20, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver, coin, fxTarget.GetTarget())
 	if err != nil {
 		return err
 	}
-	if target.IsIBC() {
-		return k.transferIBCHandler(ctx, eventNonce, receiver, targetCoin, target)
+	if fxTarget.IsIBC() {
+		return k.transferIBCHandler(ctx, eventNonce, receiver, targetCoin, fxTarget)
 	}
 	if isToERC20 {
 		return k.transferErc20Handler(ctx, eventNonce, receiver, targetCoin)
