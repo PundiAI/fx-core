@@ -10,6 +10,7 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/testutil"
 	"github.com/functionx/fx-core/v3/testutil/network"
@@ -28,8 +29,10 @@ func TestIntegrationTestSuite(t *testing.T) {
 func (suite *IntegrationTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
-	cfg := testutil.DefaultNetworkConfig()
-	// cfg.EnableTMLogging = true
+	encCfg := app.MakeEncodingConfig()
+	cfg := testutil.DefaultNetworkConfig(encCfg, func(config *network.Config) {
+		// NOTE: cfg.EnableTMLogging = true
+	})
 
 	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)
 	suite.Require().NoError(err)

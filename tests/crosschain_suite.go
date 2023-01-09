@@ -105,7 +105,7 @@ func (suite *CrosschainTestSuite) queryObserverExternalBlockHeight() uint64 {
 	return response.ExternalBlockHeight
 }
 
-func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decimals uint64, token, channelIBC string) string {
+func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decimals uint64, token, channelIBCHex string) string {
 	response, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
 		ChainName: suite.chainName,
 		Token:     token,
@@ -121,7 +121,7 @@ func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decim
 		Symbol:         symbol,
 		Decimals:       decimals,
 		BridgerAddress: suite.BridgerAddr().String(),
-		ChannelIbc:     hex.EncodeToString([]byte(channelIBC)),
+		ChannelIbc:     channelIBCHex,
 		ChainName:      suite.chainName,
 	})
 
@@ -130,7 +130,17 @@ func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decim
 		Token:     token,
 	})
 	suite.NoError(err)
-	suite.Equal(fmt.Sprintf("%s%s", suite.chainName, token), response.Denom)
+	if len(channelIBCHex) > 0 {
+		bridgeDenom := fmt.Sprintf("%s%s", suite.chainName, token)
+		trace, err := fxtypes.GetIbcDenomTrace(bridgeDenom, channelIBCHex)
+		suite.NoError(err)
+
+		bridgeDenom = trace.IBCDenom()
+		suite.Equal(bridgeDenom, response.Denom)
+	} else {
+		suite.Equal(fmt.Sprintf("%s%s", suite.chainName, token), response.Denom)
+	}
+
 	return response.Denom
 }
 
@@ -140,6 +150,16 @@ func (suite *CrosschainTestSuite) GetBridgeTokens() (denoms []*crosschaintypes.B
 	})
 	suite.NoError(err)
 	return response.BridgeTokens
+}
+
+func (suite *CrosschainTestSuite) GetBridgeDenomByToken(token string) (denom string) {
+	response, err := suite.CrosschainQuery().TokenToDenom(suite.ctx, &crosschaintypes.QueryTokenToDenomRequest{
+		ChainName: suite.chainName,
+		Token:     token,
+	})
+	suite.NoError(err)
+	suite.NotEmpty(response.Denom)
+	return response.Denom
 }
 
 func (suite *CrosschainTestSuite) BondedOracle() {

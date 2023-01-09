@@ -1,13 +1,17 @@
 package tests
 
 import (
+	"encoding/hex"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	"github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -20,48 +24,39 @@ func (suite *IntegrationTest) CrossChainTest() {
 		if chain.chainName == trontypes.ModuleName {
 			tokenAddress = trontypes.AddressFromHex(tokenAddress)
 		}
+		metadata := fxtypes.GetCrossChainMetadata("test token", strings.ToUpper(rand.Str(5)), 18)
 
 		bridgeDenom := fmt.Sprintf("%s%s", chain.chainName, tokenAddress)
-		tokenChannelIBC := ""
+		channelIBCHex := ""
 		if chain.chainName == bsctypes.ModuleName {
-			tokenChannelIBC = "transfer/channel-0"
-			ibcDenom := ibctransfertypes.DenomTrace{
-				Path:      tokenChannelIBC,
-				BaseDenom: bridgeDenom,
-			}.IBCDenom()
-			suite.erc20.DenomUnits[0].Aliases = []string{
-				ibcDenom,
-				bridgeDenom,
-			}
+			channelIBCHex = hex.EncodeToString([]byte("transfer/channel-0"))
+			trace, err := fxtypes.GetIbcDenomTrace(bridgeDenom, channelIBCHex)
+			suite.NoError(err)
+			bridgeDenom = trace.IBCDenom()
+			metadata = fxtypes.GetCrossChainMetadata("ibc token", bridgeDenom, 18)
 
-			suite.erc20.RegisterCoinProposal(suite.erc20.Metadata)
+			suite.erc20.RegisterCoinProposal(metadata)
 		}
-
 		chain.SendUpdateChainOraclesProposal()
 
 		chain.BondedOracle()
 		chain.SendOracleSetConfirm()
 
-		denom := chain.AddBridgeTokenClaim(suite.erc20.Name, suite.erc20.Symbol,
-			uint64(suite.erc20.TokenDecimals()), tokenAddress, tokenChannelIBC)
-		suite.Equal(denom, bridgeDenom)
+		chain.AddBridgeTokenClaim(metadata.Name, metadata.Symbol,
+			uint64(metadata.DenomUnits[1].Exponent), tokenAddress, channelIBCHex)
 
-		if len(tokenChannelIBC) > 0 {
-			tokenChannelIBC = fmt.Sprintf("px/%s", tokenChannelIBC)
-		}
-		if len(tokenChannelIBC) > 0 {
-			// todo need create ibc channel
-			chain.SendToFxClaim(tokenAddress, sdk.NewInt(100), tokenChannelIBC)
+		if len(channelIBCHex) > 0 {
+			channelIbc, err := hex.DecodeString(channelIBCHex)
+			suite.NoError(err)
+			target := fmt.Sprintf("px/%s", string(channelIbc))
+			chain.SendToFxClaim(tokenAddress, sdk.NewInt(100), target)
 			chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(0)))
-			chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(suite.erc20.DenomUnits[0].Aliases[0], sdk.NewInt(0)))
 
 			ibcTransferAddr := authtypes.NewModuleAddress(ibctransfertypes.ModuleName)
 			chain.CheckBalance(ibcTransferAddr, sdk.NewCoin(bridgeDenom, sdk.NewInt(0)))
-			chain.CheckBalance(ibcTransferAddr, sdk.NewCoin(suite.erc20.DenomUnits[0].Aliases[0], sdk.NewInt(0)))
-		} else {
-			chain.SendToFxClaim(tokenAddress, sdk.NewInt(100), "")
-			chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(100)))
 		}
+		chain.SendToFxClaim(tokenAddress, sdk.NewInt(100), "")
+		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(100)))
 
 		txId := chain.SendToExternal(5, sdk.NewCoin(bridgeDenom, sdk.NewInt(10)))
 		suite.True(txId > 0)
@@ -72,7 +67,5 @@ func (suite *IntegrationTest) CrossChainTest() {
 
 		chain.SendToExternalAndCancel(sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
 		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
-
-		chain.SendFrom(chain.privKey, suite.erc20.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
 	}
 }

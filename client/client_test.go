@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
+	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/client/grpc"
 	"github.com/functionx/fx-core/v3/client/jsonrpc"
@@ -62,7 +63,7 @@ func TestRPCSuite(t *testing.T) {
 func (suite *rpcTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
-	cfg := testutil.DefaultNetworkConfig()
+	cfg := testutil.DefaultNetworkConfig(app.MakeEncodingConfig())
 	cfg.TimeoutCommit = time.Millisecond
 	cfg.NumValidators = 1
 	cfg.Mnemonics = append(cfg.Mnemonics, helpers.NewMnemonic())

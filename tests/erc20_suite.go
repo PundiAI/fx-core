@@ -16,34 +16,13 @@ import (
 )
 
 type Erc20TestSuite struct {
-	banktypes.Metadata
 	EvmTestSuite
 }
 
 func NewErc20TestSuite(ts *TestSuite) Erc20TestSuite {
 	return Erc20TestSuite{
-		Metadata: banktypes.Metadata{
-			Description: "description of the token",
-			DenomUnits: []*banktypes.DenomUnit{
-				{
-					Denom:    "usdt",
-					Exponent: uint32(0),
-				}, {
-					Denom:    "USDT",
-					Exponent: uint32(6),
-				},
-			},
-			Base:    "usdt",
-			Display: "usdt",
-			Name:    "Tether USD",
-			Symbol:  "USDT",
-		},
 		EvmTestSuite: NewEvmTestSuite(ts),
 	}
-}
-
-func (suite *Erc20TestSuite) TokenDecimals() uint32 {
-	return suite.Metadata.DenomUnits[1].Exponent
 }
 
 func (suite *Erc20TestSuite) ERC20Query() erc20types.QueryClient {
@@ -108,9 +87,9 @@ func (suite *Erc20TestSuite) ConvertCoin(recipient common.Address, coin sdk.Coin
 	return suite.BroadcastTx(suite.privKey, msg)
 }
 
-func (suite *Erc20TestSuite) ConvertERC20(token common.Address, amount sdk.Int, recipient sdk.AccAddress) *sdk.TxResponse {
+func (suite *Erc20TestSuite) ConvertERC20(private cryptotypes.PrivKey, token common.Address, amount sdk.Int, recipient sdk.AccAddress) *sdk.TxResponse {
 	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, suite.HexAddress())
-	return suite.BroadcastTx(suite.privKey, msg)
+	return suite.BroadcastTx(private, msg)
 }
 
 func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver sdk.AccAddress, coin sdk.Coin, target string) *sdk.TxResponse {

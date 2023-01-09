@@ -32,7 +32,7 @@ func TestUseExportGenesisDataRunNode(t *testing.T) {
 		t.Skip("skipping local test", t.Name())
 	}
 	// set sdk.Config and get network config
-	networkConfig := testutil.DefaultNetworkConfig()
+	networkConfig := testutil.DefaultNetworkConfig(app.MakeEncodingConfig())
 
 	genesisDoc := GetGenesisDocFromAppData(t)
 	// genesisFile := filepath.Join(fxtypes.GetDefaultNodeHome(), "config", "genesis.json")

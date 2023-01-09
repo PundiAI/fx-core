@@ -22,6 +22,7 @@ import (
 	"github.com/tendermint/tendermint/proto/tendermint/types"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 
+	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/client/grpc"
 	"github.com/functionx/fx-core/v3/client/jsonrpc"
@@ -56,7 +57,10 @@ func (suite *TestSuite) SetupSuite() {
 	}
 	suite.T().Log("setting up integration test suite")
 
-	cfg := testutil.DefaultNetworkConfig()
+	encCfg := app.MakeEncodingConfig()
+	cfg := testutil.DefaultNetworkConfig(encCfg, func(config *network.Config) {
+		config.GenesisState = testutil.IbcGenesisState(encCfg.Codec, config.GenesisState)
+	})
 	cfg.TimeoutCommit = time.Millisecond
 	cfg.NumValidators = 1
 	// cfg.EnableTMLogging = true
@@ -285,7 +289,7 @@ func (suite *TestSuite) QueryBalances(accAddress sdk.AccAddress) sdk.Coins {
 func (suite *TestSuite) CheckBalance(accAddress sdk.AccAddress, balance sdk.Coin) {
 	queryBalance, err := suite.GRPCClient().QueryBalance(accAddress.String(), balance.Denom)
 	suite.NoError(err)
-	suite.Equal(queryBalance.String(), balance.String())
+	suite.Equal(balance.String(), queryBalance.String())
 }
 
 func (suite *TestSuite) SetWithdrawAddr(priv cryptotypes.PrivKey, withdrawAddr sdk.AccAddress) *sdk.TxResponse {
