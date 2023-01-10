@@ -88,7 +88,7 @@ func (suite *Erc20TestSuite) ConvertCoin(recipient common.Address, coin sdk.Coin
 }
 
 func (suite *Erc20TestSuite) ConvertERC20(private cryptotypes.PrivKey, token common.Address, amount sdk.Int, recipient sdk.AccAddress) *sdk.TxResponse {
-	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, suite.HexAddress())
+	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, common.BytesToAddress(private.PubKey().Address().Bytes()))
 	return suite.BroadcastTx(private, msg)
 }
 

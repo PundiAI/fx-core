@@ -79,29 +79,26 @@ func (suite *IntegrationTest) ERC20Test() {
 			suite.Equal(suite.erc20.HexAddress().String(), resp.UnbatchedTransfers[0].DestAddress)
 		}
 
-		// convert
-		//suite.erc20.ConvertERC20(chain.privKey, tokenPair.GetERC20Contract(), sdk.NewInt(50), suite.erc20.AccAddress())
-		//suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(50)))
-		//
-		//suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(50)), "")
-		//suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(metadata.Base, sdk.NewInt(50)))
-		//suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.ZeroInt()))
-		//
-		//suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(metadata.Base, sdk.NewInt(50)), chain.chainName)
-		//suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(50)))
-		//
-		//if i < len(suite.crosschain)-1 {
-		//	// remove proposal
-		//	suite.erc20.UpdateDenomAliasProposal(metadata.Base, bridgeToken.Denom)
-		//
-		//	// check remove
-		//	response, err := suite.erc20.ERC20Query().DenomAliases(suite.ctx, &erc20types.QueryDenomAliasesRequest{Denom: metadata.Base})
-		//	suite.NoError(err)
-		//	suite.Equal(len(suite.crosschain)-i-1, len(response.Aliases))
-		//
-		//	_, err = suite.erc20.ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: bridgeToken.Denom})
-		//	suite.Error(err)
-		//}
+		// covert chain.address erc20 token to native token: metadata.base
+		suite.erc20.ConvertERC20(chain.privKey, tokenPair.GetERC20Contract(), sdk.NewInt(50), suite.erc20.AccAddress())
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(metadata.Base, sdk.NewInt(50)))
+
+		// covert erc20.addr metadata.base
+		suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(metadata.Base, sdk.NewInt(50)), chain.chainName)
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(50)))
+
+		if i < len(suite.crosschain)-1 {
+			// remove proposal
+			suite.erc20.UpdateDenomAliasProposal(metadata.Base, bridgeToken.Denom)
+
+			// check remove
+			response, err := suite.erc20.ERC20Query().DenomAliases(suite.ctx, &erc20types.QueryDenomAliasesRequest{Denom: metadata.Base})
+			suite.NoError(err)
+			suite.Equal(len(suite.crosschain)-i-1, len(response.Aliases))
+
+			_, err = suite.erc20.ERC20Query().AliasDenom(suite.ctx, &erc20types.QueryAliasDenomRequest{Alias: bridgeToken.Denom})
+			suite.Error(err)
+		}
 	}
 
 	suite.erc20.ToggleTokenConversionProposal(metadata.Base)
