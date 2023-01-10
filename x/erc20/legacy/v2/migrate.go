@@ -8,7 +8,6 @@ import (
 )
 
 type erc20Keeper interface {
-	DeleteIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) bool
 	SetIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64)
 }
 

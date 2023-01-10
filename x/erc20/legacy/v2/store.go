@@ -15,9 +15,10 @@ func iterateIBCTransferRelationLegacy(store sdk.KVStore, cb func(port, channel s
 	iter := sdk.KVStorePrefixIterator(store, types.KeyPrefixIBCTransfer)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		port, channel, sequence, found := parseIBCTransferKeyLegacy(iter.Key())
-		if !found {
-			panic(fmt.Sprintf("failed to parse ibc transfer key: %s", string(iter.Key())))
+		keyStr := string(bytes.TrimPrefix(iter.Key(), types.KeyPrefixIBCTransfer))
+		port, channel, sequence, ok := ParseIBCTransferKeyLegacy(keyStr)
+		if !ok {
+			panic(fmt.Sprintf("failed to parse ibc transfer key: %s", keyStr))
 		}
 		if cb(port, channel, sequence) {
 			return
@@ -35,12 +36,7 @@ func getIBCTransferKeyLegacy(sourcePort, sourceChannel string, sequence uint64) 
 	return append(types.KeyPrefixIBCTransfer, []byte(key)...)
 }
 
-func parseIBCTransferKeyLegacy(key []byte) (string, string, uint64, bool) {
-	if bytes.HasPrefix(key, types.KeyPrefixIBCTransfer) {
-		return "", "", 0, false
-	}
-	keyStr := string(bytes.TrimPrefix(key, types.KeyPrefixIBCTransfer))
-
+func ParseIBCTransferKeyLegacy(keyStr string) (string, string, uint64, bool) {
 	split := strings.Split(keyStr, "/")
 	if len(split) != 3 {
 		return "", "", 0, false
