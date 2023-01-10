@@ -173,20 +173,23 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	receiveAmount := transferAmount.Add(feeAmount)
 	packetData := transfertypes.NewFungibleTokenPacketData(data.GetDenom(), receiveAmount.String(), data.GetSender(), receiver.String())
 	packetData.Memo = data.Memo
-	if err = k.Keeper.OnRecvPacket(ctx, packet, packetData); err != nil {
+	onRecvPacketCtxWithNewEvent := ctx.WithEventManager(sdk.NewEventManager())
+	if err = k.Keeper.OnRecvPacket(onRecvPacketCtxWithNewEvent, packet, packetData); err != nil {
 		return err
 	}
 
 	receiveDenom := parseIBCCoinDenom(packet, data.GetDenom())
 
 	receiveCoin := sdk.NewCoin(receiveDenom, receiveAmount)
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
+	onRecvPacketCtxWithNewEvent.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeReceive,
 		sdk.NewAttribute(transfertypes.AttributeKeyReceiver, receiver.String()),
 		sdk.NewAttribute(transfertypes.AttributeKeyAmount, receiveCoin.String()),
 	))
 
 	if data.Router == "" || k.router == nil {
+		// NOTE: if not router, emit onRecvPacketCtx event, only error is nil emit
+		ctx.EventManager().EmitEvents(onRecvPacketCtxWithNewEvent.EventManager().Events())
 		return nil
 	}
 	route, exists := k.router.GetRoute(data.Router)
@@ -196,13 +199,17 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	ibcAmount := sdk.NewCoin(receiveDenom, transferAmount)
 	ibcFee := sdk.NewCoin(receiveDenom, feeAmount)
 
-	err = route.TransferAfter(ctx, receiver.String(), data.Receiver, ibcAmount, ibcFee)
+	routerCtxWithNewEvent := ctx.WithEventManager(sdk.NewEventManager())
+	err = route.TransferAfter(routerCtxWithNewEvent, receiver.String(), data.Receiver, ibcAmount, ibcFee)
 	routerEvent := sdk.NewEvent(types.EventTypeReceiveRoute,
 		sdk.NewAttribute(types.AttributeKeyRoute, data.Router),
 		sdk.NewAttribute(types.AttributeKeyRouteSuccess, fmt.Sprintf("%t", err == nil)),
 	)
 	if err != nil {
 		routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRouteError, err.Error()))
+	} else {
+		ctx.EventManager().EmitEvents(onRecvPacketCtxWithNewEvent.EventManager().Events())
+		ctx.EventManager().EmitEvents(routerCtxWithNewEvent.EventManager().Events())
 	}
 	ctx.EventManager().EmitEvent(routerEvent)
 	return err
