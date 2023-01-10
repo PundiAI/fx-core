@@ -94,7 +94,7 @@ func TestLocalStoreInV2(t *testing.T) {
 					crosschaintypes.OracleAttestationKey[0]:               {{101, 0}, {103, 0}, {103, 0}},
 					crosschaintypes.PastExternalSignatureCheckpointKey[0]: {{505, 0}, {80, 0}, {55, 0}},
 					crosschaintypes.BatchConfirmKey[0]:                    {{1006, 0}, {700, 0}, {450, 0}},
-					crosschaintypes.LastProposalBlockHeight[0]:            {{-1, -1}, {-1, -1}, {-1, -1}},
+					crosschaintypes.LastProposalBlockHeight[0]:            {{1, 0}, {1, 0}, {1, 0}},
 				}, kvStores...)
 			},
 		},
