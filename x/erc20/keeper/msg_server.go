@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/armon/go-metrics"
@@ -9,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -362,7 +363,7 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 		}
 	}
 
-	targetDenom := ToTargetDenom(coin.Denom, metadata.Base, metadata.DenomUnits[0].Aliases, fxTarget)
+	targetDenom := k.ToTargetDenom(ctx, coin.Denom, metadata.Base, metadata.DenomUnits[0].Aliases, fxTarget)
 	if coin.Denom == targetDenom {
 		return coin, nil
 	}
@@ -400,7 +401,7 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 	return targetCoin, nil
 }
 
-func ToTargetDenom(denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string {
+func (k Keeper) ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string {
 	// erc20
 	if len(fxTarget.GetTarget()) <= 0 || fxTarget.GetTarget() == types.ModuleName {
 		return base
@@ -409,14 +410,25 @@ func ToTargetDenom(denom, base string, aliases []string, fxTarget fxtypes.FxTarg
 		return denom
 	}
 
-	// ibc
-	target := fxTarget.GetTarget()
-	if fxTarget.IsIBC() {
-		target = ibchost.ModuleName
-	}
-
 	for _, alias := range aliases {
-		if strings.HasPrefix(alias, target) {
+		if fxTarget.IsIBC() && strings.HasPrefix(alias, ibctransfertypes.DenomPrefix+"/") {
+			hexHash := strings.TrimPrefix(alias, ibctransfertypes.DenomPrefix+"/")
+			hash, err := ibctransfertypes.ParseHexHash(hexHash)
+			if err != nil {
+				k.Logger(ctx).Info("invalid ibc denom", "denom", alias)
+				continue
+			}
+			denomTrace, found := k.ibcTransferKeeper.GetDenomTrace(ctx, hash)
+			if !found {
+				continue
+			}
+			if !strings.HasPrefix(denomTrace.GetPath(), fmt.Sprintf("%s/%s", fxTarget.SourcePort, fxTarget.SourceChannel)) {
+				continue
+			}
+			return alias
+		}
+
+		if strings.HasPrefix(alias, fxTarget.GetTarget()) {
 			return alias
 		}
 	}

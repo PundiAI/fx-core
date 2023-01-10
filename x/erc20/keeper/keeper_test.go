@@ -13,6 +13,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
@@ -309,6 +310,15 @@ func (suite *KeeperTestSuite) RandTransferChannel() (portID, channelID string) {
 	suite.app.IBCKeeper.ChannelKeeper.SetNextSequenceSend(suite.ctx, portID, channelID, uint64(tmrand.Intn(10000)))
 
 	return portID, channelID
+}
+
+func (suite *KeeperTestSuite) AddIBCToken(portID, channelID string) string {
+	denomTrace := ibctransfertypes.DenomTrace{
+		Path:      fmt.Sprintf("%s/%s", portID, channelID),
+		BaseDenom: "test",
+	}
+	suite.app.IBCTransferKeeper.SetDenomTrace(suite.ctx, denomTrace)
+	return denomTrace.IBCDenom()
 }
 
 func (suite *KeeperTestSuite) sendEvmTx(contractAddr, from common.Address, data []byte) *evm.MsgEthereumTx {

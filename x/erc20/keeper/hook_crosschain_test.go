@@ -134,28 +134,19 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 }
 
 func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
-	pairTokenIBCFn := func() (types.TokenPair, banktypes.Metadata, *big.Int) {
-		denoms := suite.GenerateCrossChainDenoms()
-		pair, md := suite.DeployNativeRelayToken("TEST", denoms...)
-		totalMint := suite.MintLockNativeTokenToModule(md, sdk.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
-		return pair, md, totalMint
-	}
-
 	testCases := []struct {
-		name      string
-		pairToken func() (types.TokenPair, banktypes.Metadata, *big.Int)
-		relays    func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransferCrossChain, []string)
-		error     func(args []string) string
-		result    bool
+		name   string
+		relays func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string)
+		error  func(args []string) string
+		result bool
 	}{
 		{
-			name:      "ok - ibc",
-			pairToken: pairTokenIBCFn,
-			relays: func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
+			name: "ok - ibc token",
+			relays: func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
 				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(totalCanMint))))
-				prefix := "px" //"evmos"
-				sourcePort, sourceChannel := suite.RandTransferChannel()
+				prefix := "px" // "evmos"
+
 				recipient, _ := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
 				relayAmount := big.NewInt(0).Div(totalCanMint, big.NewInt(int64(len(md.GetDenomUnits()[0].GetAliases()))))
 
@@ -175,16 +166,50 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 			},
 			result: true,
 		},
+		{
+			name: "ok - base token",
+			relays: func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
+				// add relay token
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(totalCanMint))))
+				prefix := "px" // "evmos"
+				sourcePort1, sourceChannel1 := suite.RandTransferChannel()
+
+				recipient, _ := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
+				relayAmount := big.NewInt(0).Div(totalCanMint, big.NewInt(int64(len(md.GetDenomUnits()[0].GetAliases()))))
+
+				relay := types.RelayTransferCrossChain{
+					TransferCrossChainEvent: &types.TransferCrossChainEvent{
+						From:      singerAddr,
+						Recipient: recipient,
+						Amount:    relayAmount,
+						Fee:       big.NewInt(0),
+						Target:    fxtypes.MustStrToByte32(fmt.Sprintf("ibc/%s/%s/%s", prefix, sourcePort1, sourceChannel1)),
+					},
+					TokenContract: pair.GetERC20Contract(),
+					Denom:         pair.GetDenom(),
+					ContractOwner: pair.ContractOwner,
+				}
+				return []types.RelayTransferCrossChain{relay}, nil
+			},
+			result: true,
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest() // reset
 			signer := suite.RandSigner()
+			// set port channel
+			sourcePort, sourceChannel := suite.RandTransferChannel()
+			// add ibc token
+			ibcToken := suite.AddIBCToken(sourcePort, sourceChannel)
 			// token pair
-			pair, md, totalMint := tc.pairToken()
+			denoms := suite.GenerateCrossChainDenoms()
+			pair, md := suite.DeployNativeRelayToken("TEST", append(denoms, ibcToken)...)
+			// mint and lock token
+			totalMint := suite.MintLockNativeTokenToModule(md, sdk.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
 			// relay event
-			relays, errArgs := tc.relays(pair, md, signer.Address(), totalMint)
+			relays, errArgs := tc.relays(pair, md, signer.Address(), totalMint, sourcePort, sourceChannel)
 			// hook transfer cross chain
 			err := suite.app.Erc20Keeper.EVMHooks().HookTransferCrossChainEvent(suite.ctx, relays)
 			// check result

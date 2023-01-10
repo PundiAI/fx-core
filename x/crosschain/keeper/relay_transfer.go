@@ -37,7 +37,7 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 	}
 
 	// FX denom
-	if coin.Denom == fxtypes.DefaultDenom && fxTarget.GetTarget() == "" {
+	if coin.Denom == fxtypes.DefaultDenom && len(fxTarget.GetTarget()) <= 0 {
 		return nil
 	}
 

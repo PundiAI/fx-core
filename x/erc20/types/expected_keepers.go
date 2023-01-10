@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/statedb"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 )
 
 // AccountKeeper defines the expected interface needed to retrieve account info.
@@ -43,4 +44,5 @@ type EVMKeeper interface {
 
 type IBCTransferKeeper interface {
 	Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error)
+	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (types.DenomTrace, bool)
 }
