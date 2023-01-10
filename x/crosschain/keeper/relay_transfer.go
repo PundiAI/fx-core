@@ -21,19 +21,10 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 	targetByte, _ := hex.DecodeString(targetHex)
 	fxTarget := fxtypes.ParseFxTarget(string(targetByte))
 
-	// 1. convert to base denom
-	cacheCtx, commit := ctx.CacheContext()
-	targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver, coin, "")
-	if err != nil {
-		return err
-	}
-	commit()
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-
 	if fxTarget.IsIBC() {
-		// 2. transfer to ibc
-		cacheCtx, commit = ctx.CacheContext()
-		targetIBCCoin, err1 := k.erc20Keeper.ConvertDenomToTarget(cacheCtx, receiver, targetCoin, fxTarget.GetTarget())
+		// transfer to ibc
+		cacheCtx, commit := ctx.CacheContext()
+		targetIBCCoin, err1 := k.erc20Keeper.ConvertDenomToTarget(cacheCtx, receiver, coin, fxTarget)
 		var err2 error
 		if err1 == nil {
 			if err2 = k.transferIBCHandler(cacheCtx, eventNonce, receiver, targetIBCCoin, fxTarget); err2 == nil {
@@ -45,14 +36,14 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 		k.Logger(ctx).Info("failed to transfer ibc", "err1", err1, "err2", err2)
 	}
 
-	// 3. FX denom
-	if targetCoin.Denom == fxtypes.DefaultDenom && fxTarget.GetTarget() == "" {
+	// FX denom
+	if coin.Denom == fxtypes.DefaultDenom && fxTarget.GetTarget() == "" {
 		return nil
 	}
 
-	// 4. transfer to evm
-	cacheCtx, commit = ctx.CacheContext()
-	if err = k.transferErc20Handler(cacheCtx, eventNonce, receiver, targetCoin); err != nil {
+	// transfer to evm
+	cacheCtx, commit := ctx.CacheContext()
+	if err := k.transferErc20Handler(cacheCtx, eventNonce, receiver, coin); err != nil {
 		return err
 	}
 	commit()

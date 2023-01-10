@@ -26,7 +26,7 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 		targetStr := fxtypes.Byte32ToString(relay.Target)
 		fxTarget := fxtypes.ParseFxTarget(targetStr)
 
-		targetCoin, err := h.k.ConvertDenomToTarget(ctx, relay.GetFrom(), relay.GetAmount(relay.Denom).Add(relay.GetFee(relay.Denom)), fxTarget.GetTarget())
+		targetCoin, err := h.k.ConvertDenomToTarget(ctx, relay.GetFrom(), relay.GetAmount(relay.Denom).Add(relay.GetFee(relay.Denom)), fxTarget)
 		if err != nil {
 			return err
 		}

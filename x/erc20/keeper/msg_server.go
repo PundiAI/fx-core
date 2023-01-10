@@ -140,7 +140,7 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 	receiver := sdk.MustAccAddressFromBech32(msg.Receiver)
 
 	fxTarget := fxtypes.ParseFxTarget(msg.Target)
-	targetCoin, err := k.ConvertDenomToTarget(ctx, sender, msg.Coin, fxTarget.GetTarget())
+	targetCoin, err := k.ConvertDenomToTarget(ctx, sender, msg.Coin, fxTarget)
 	if err != nil {
 		return nil, err
 	}
@@ -338,11 +338,8 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 	return nil
 }
 
-func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, target string) (sdk.Coin, error) {
+func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error) {
 	if coin.Denom == fxtypes.DefaultDenom {
-		if target == types.ModuleName {
-			return coin, nil
-		}
 		return coin, nil
 	}
 	var metadata banktypes.Metadata
@@ -365,7 +362,7 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 		}
 	}
 
-	targetDenom := ToTargetDenom(coin.Denom, target, metadata.Base, metadata.DenomUnits[0].Aliases)
+	targetDenom := ToTargetDenom(coin.Denom, metadata.Base, metadata.DenomUnits[0].Aliases, fxTarget)
 	if coin.Denom == targetDenom {
 		return coin, nil
 	}
@@ -403,9 +400,9 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 	return targetCoin, nil
 }
 
-func ToTargetDenom(denom, target, base string, aliases []string) string {
+func ToTargetDenom(denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string {
 	// erc20
-	if len(target) <= 0 || target == types.ModuleName {
+	if len(fxTarget.GetTarget()) <= 0 || fxTarget.GetTarget() == types.ModuleName {
 		return base
 	}
 	if len(aliases) <= 0 {
@@ -413,7 +410,8 @@ func ToTargetDenom(denom, target, base string, aliases []string) string {
 	}
 
 	// ibc
-	if strings.HasPrefix(target, ibchost.ModuleName) {
+	target := fxTarget.GetTarget()
+	if fxTarget.IsIBC() {
 		target = ibchost.ModuleName
 	}
 

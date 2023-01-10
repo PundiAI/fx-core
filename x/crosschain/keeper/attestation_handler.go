@@ -34,7 +34,18 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return sdkerrors.Wrap(err, "transfer vouchers")
 		}
 
-		if err = k.RelayTransferHandler(ctx, claim.EventNonce, claim.TargetIbc, receiveAddr, coin); err != nil {
+		// convert to base denom
+		cacheCtx, commit := ctx.CacheContext()
+		targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiveAddr, coin, fxtypes.ParseFxTarget(fxtypes.ERC20Target))
+		if err != nil {
+			k.Logger(ctx).Info("failed to convert base denom", "error", err)
+			return nil
+		}
+		commit()
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+
+		// relay transfer
+		if err = k.RelayTransferHandler(ctx, claim.EventNonce, claim.TargetIbc, receiveAddr, targetCoin); err != nil {
 			k.Logger(ctx).Info("failed to relay transfer", "err", err)
 			return nil
 		}

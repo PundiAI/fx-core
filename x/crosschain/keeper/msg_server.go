@@ -343,7 +343,8 @@ func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// convert denom to many
-	targetCoin, err := s.erc20Keeper.ConvertDenomToTarget(ctx, sender, msg.Amount.Add(msg.BridgeFee), s.moduleName)
+	fxTarget := fxtypes.ParseFxTarget(s.moduleName)
+	targetCoin, err := s.erc20Keeper.ConvertDenomToTarget(ctx, sender, msg.Amount.Add(msg.BridgeFee), fxTarget)
 	if err != nil {
 		return nil, err
 	}
