@@ -8,7 +8,6 @@ import (
 
 // SetPastExternalSignatureCheckpoint puts the checkpoint of a oracle set, batch into a set
 // in order to prove later that it existed at one point.
-// todo: Saved data is not used
 func (k Keeper) SetPastExternalSignatureCheckpoint(ctx sdk.Context, checkpoint []byte) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetPastExternalSignatureCheckpointKey(uint64(ctx.BlockHeight()), checkpoint), []byte{0x1})
@@ -17,7 +16,9 @@ func (k Keeper) SetPastExternalSignatureCheckpoint(ctx sdk.Context, checkpoint [
 // IteratePastExternalSignatureCheckpoint iterates through all PastExternalSignatureCheckpoint in the half-open interval [start,end)
 func (k Keeper) IteratePastExternalSignatureCheckpoint(ctx sdk.Context, start uint64, end uint64, cb func([]byte) bool) {
 	store := ctx.KVStore(k.storeKey)
+	// nolint:staticcheck
 	startKey := append(types.PastExternalSignatureCheckpointKey, sdk.Uint64ToBigEndian(start)...)
+	// nolint:staticcheck
 	endKey := append(types.PastExternalSignatureCheckpointKey, sdk.Uint64ToBigEndian(end)...)
 	iter := store.Iterator(startKey, endKey)
 	defer iter.Close()

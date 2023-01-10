@@ -86,7 +86,7 @@ func (k Keeper) DelOracleByExternalAddress(ctk sdk.Context, externalAddress stri
 	store.Delete(oracleAddr)
 }
 
-//   ORACLE TOTAL POWER    //
+// --- ORACLE TOTAL POWER --- //
 
 // GetLastTotalPower Load the last total oracle power.
 func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {

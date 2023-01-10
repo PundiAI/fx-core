@@ -56,11 +56,11 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive 
 		return nil, err
 	}
 
-	checkpoint, err := batch.GetCheckpoint(k.GetGravityID(ctx))
-	if err != nil {
-		panic(err)
-	}
-	k.SetPastExternalSignatureCheckpoint(ctx, checkpoint)
+	// checkpoint, err := batch.GetCheckpoint(k.GetGravityID(ctx))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// k.SetPastExternalSignatureCheckpoint(ctx, checkpoint)
 
 	eventBatchNonceTxIds := strings.Builder{}
 	eventBatchNonceTxIds.WriteString(fmt.Sprintf("%d", selectedTx[0].Id))

@@ -9,7 +9,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-//   ORACLE SET REQUESTS   //
+// --- ORACLE SET REQUESTS --- //
 
 // GetCurrentOracleSet gets powers from the store and normalizes them
 // into an integer percentage with a resolution of uint32 Max meaning
@@ -58,12 +58,11 @@ func (k Keeper) AddOracleSetRequest(ctx sdk.Context, currentOracleSet *types.Ora
 
 	k.CommonSetOracleTotalPower(ctx)
 
-	gravityId := k.GetGravityID(ctx)
-	checkpoint, err := currentOracleSet.GetCheckpoint(gravityId)
-	if err != nil {
-		panic(err)
-	}
-	k.SetPastExternalSignatureCheckpoint(ctx, checkpoint)
+	// checkpoint, err := currentOracleSet.GetCheckpoint(k.GetGravityID(ctx))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// k.SetPastExternalSignatureCheckpoint(ctx, checkpoint)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOracleSetUpdate,
@@ -201,7 +200,7 @@ func (k Keeper) IterateOracleSetByNonce(ctx sdk.Context, startNonce uint64, cb f
 	}
 }
 
-//   ORACLE SET CONFIRMS   //
+// --- ORACLE SET CONFIRMS --- //
 
 // GetOracleSetConfirm returns a oracleSet confirmation by a nonce and external address
 func (k Keeper) GetOracleSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sdk.AccAddress) *types.MsgOracleSetConfirm {

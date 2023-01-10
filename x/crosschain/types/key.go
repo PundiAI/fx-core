@@ -89,7 +89,7 @@ var (
 	// LastEventBlockHeightByOracleKey indexes latest event blockHeight by oracle
 	LastEventBlockHeightByOracleKey = []byte{0x35}
 
-	// PastExternalSignatureCheckpointKey indexes eth signature checkpoints that have existed
+	// Deprecated: PastExternalSignatureCheckpointKey indexes eth signature checkpoints that have existed
 	PastExternalSignatureCheckpointKey = []byte{0x36}
 
 	// LastOracleSlashBlockHeight indexes the last oracle slash block height
@@ -186,5 +186,6 @@ func GetTokenToDenomKey(denom string) []byte {
 
 // GetPastExternalSignatureCheckpointKey returns the following key format
 func GetPastExternalSignatureCheckpointKey(blockHeight uint64, checkpoint []byte) []byte {
+	// nolint:staticcheck
 	return append(PastExternalSignatureCheckpointKey, append(sdk.Uint64ToBigEndian(blockHeight), checkpoint...)...)
 }
