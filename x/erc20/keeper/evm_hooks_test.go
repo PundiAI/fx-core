@@ -27,10 +27,10 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				suite.Require().NoError(err)
 
 				// Mint 10 tokens
-				suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(10))
+				suite.MintERC20Token(suite.signer, contractAddr, suite.signer.Address(), big.NewInt(10))
 
 				// Burn the 10 tokens
-				suite.TransferERC20TokenToModule(contractAddr, suite.signer.Address(), big.NewInt(10))
+				suite.TransferERC20TokenToModule(suite.signer, contractAddr, big.NewInt(10))
 			},
 			true,
 		},
@@ -38,10 +38,10 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 			"unregistered pair",
 			func(contractAddr common.Address) {
 				// Mint 10 tokens
-				suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(10))
+				suite.MintERC20Token(suite.signer, contractAddr, suite.signer.Address(), big.NewInt(10))
 
 				// Burn the 10 tokens
-				suite.TransferERC20TokenToModule(contractAddr, suite.signer.Address(), big.NewInt(10))
+				suite.TransferERC20TokenToModule(suite.signer, contractAddr, big.NewInt(10))
 			},
 			false,
 		},
@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				suite.Require().NoError(err)
 
 				// Mint 10 tokens
-				suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(10))
+				suite.MintERC20Token(suite.signer, contractAddr, suite.signer.Address(), big.NewInt(10))
 			},
 			false,
 		},
@@ -65,10 +65,10 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterERC20() {
 				suite.app.Erc20Keeper.RemoveTokenPair(suite.ctx, *pair)
 
 				// Mint 10 tokens
-				suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(10))
+				suite.MintERC20Token(suite.signer, contractAddr, suite.signer.Address(), big.NewInt(10))
 
 				// Burn the 10 tokens
-				suite.TransferERC20TokenToModule(contractAddr, suite.signer.Address(), big.NewInt(10))
+				suite.TransferERC20TokenToModule(suite.signer, contractAddr, big.NewInt(10))
 			},
 			false,
 		},
@@ -132,7 +132,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
-			suite.TransferERC20TokenToModule(pair.GetERC20Contract(), suite.signer.Address(), big.NewInt(tc.reconvert))
+			suite.TransferERC20TokenToModule(suite.signer, pair.GetERC20Contract(), big.NewInt(tc.reconvert))
 			balance = suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
 			cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 

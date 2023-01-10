@@ -20,7 +20,8 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 
 		balances := h.k.bankKeeper.GetAllBalances(ctx, relay.From.Bytes())
 		if !balances.IsAllGTE(relay.TotalAmount(relay.Denom)) {
-			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "%s is smaller than %s", balances.String(), relay.TotalAmount(relay.Denom).String())
+			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "%s is smaller than %s",
+				sdk.NewCoin(relay.Denom, balances.AmountOf(relay.Denom)).String(), relay.TotalAmount(relay.Denom).String())
 		}
 
 		targetStr := fxtypes.Byte32ToString(relay.Target)

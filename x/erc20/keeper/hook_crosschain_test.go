@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
@@ -17,37 +16,24 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestHookCrossChainChain() {
-	pairTokenFn := func() (types.TokenPair, banktypes.Metadata, *big.Int) {
-		denoms := suite.GenerateCrossChainDenoms()
-		pair, md := suite.DeployNativeRelayToken("TEST", denoms...)
-		totalMint := suite.MintLockNativeTokenToModule(md, sdk.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
-		return pair, md, totalMint
-	}
-
 	testCases := []struct {
-		name      string
-		pairToken func() (types.TokenPair, banktypes.Metadata, *big.Int)
-		relays    func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransferCrossChain, []string)
-		error     func(args []string) string
-		result    bool
+		name   string
+		relays func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string)
+		error  func(args []string) string
+		result bool
 	}{
 		{
-			name:      "ok - chain/module",
-			pairToken: pairTokenFn,
-			relays: func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
-				// add relay token
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(totalCanMint))))
-				relayAmount := big.NewInt(0).Div(totalCanMint, big.NewInt(int64(len(md.GetDenomUnits()[0].GetAliases()))))
-
-				modules, _ := moduleDenom(md.GetDenomUnits()[0].GetAliases(), suite.CrossChainKeepers())
-
+			name: "ok - module",
+			relays: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				moduleName := md.RandModule()
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
 						From:      singerAddr,
-						Recipient: suite.RandAddress(modules[0]),
-						Amount:    relayAmount,
+						Recipient: suite.RandAddress(moduleName),
+						Amount:    randMint,
 						Fee:       big.NewInt(0),
-						Target:    fxtypes.MustStrToByte32(fmt.Sprintf("chain/%s", modules[0])),
+						Target:    fxtypes.MustStrToByte32(moduleName),
 					},
 					TokenContract: pair.GetERC20Contract(),
 					Denom:         pair.GetDenom(),
@@ -58,57 +44,120 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 			result: true,
 		},
 		{
-			name:      "ok - module",
-			pairToken: pairTokenFn,
-			relays: func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
+			name: "failed - from address insufficient funds",
+			relays: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(totalCanMint))))
-				relayAmount := big.NewInt(0).Div(totalCanMint, big.NewInt(int64(len(md.GetDenomUnits()[0].GetAliases()))))
-				modules, _ := moduleDenom(md.GetDenomUnits()[0].GetAliases(), suite.CrossChainKeepers())
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				moduleName := md.RandModule()
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
 						From:      singerAddr,
-						Recipient: suite.RandAddress(modules[0]),
-						Amount:    relayAmount,
-						Fee:       big.NewInt(0),
-						Target:    fxtypes.MustStrToByte32(modules[0]),
+						Recipient: suite.RandAddress(moduleName),
+						Amount:    randMint,
+						Fee:       big.NewInt(1),
+						Target:    fxtypes.MustStrToByte32(moduleName),
 					},
 					TokenContract: pair.GetERC20Contract(),
 					Denom:         pair.GetDenom(),
 					ContractOwner: pair.ContractOwner,
 				}
-				return []types.RelayTransferCrossChain{relay}, nil
+				return []types.RelayTransferCrossChain{relay}, []string{
+					fmt.Sprintf("%s%s", randMint.String(), pair.GetDenom()),
+					fmt.Sprintf("%s%s", big.NewInt(0).Add(randMint, big.NewInt(1)).String(), pair.GetDenom()),
+				}
 			},
-			result: true,
+			error: func(args []string) string {
+				return fmt.Sprintf("%s is smaller than %s: insufficient funds", args[0], args[1])
+			},
+			result: false,
 		},
 		{
-			name:      "ok - all",
-			pairToken: pairTokenFn,
-			relays: func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
+			name: "failed - module insufficient funds",
+			relays: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(totalCanMint))))
-				relayAmount := big.NewInt(0).Div(totalCanMint, big.NewInt(int64(len(md.GetDenomUnits()[0].GetAliases()))))
-				modules, _ := moduleDenom(md.GetDenomUnits()[0].GetAliases(), suite.CrossChainKeepers())
-				relays := make([]types.RelayTransferCrossChain, 0, len(modules))
-				for _, m := range modules {
-					relay := types.RelayTransferCrossChain{
-						TransferCrossChainEvent: &types.TransferCrossChainEvent{
-							From:      singerAddr,
-							Recipient: suite.RandAddress(m),
-							Amount:    relayAmount,
-							Fee:       big.NewInt(0),
-							Target:    fxtypes.MustStrToByte32(m),
-						},
-						TokenContract: pair.GetERC20Contract(),
-						Denom:         pair.GetDenom(),
-						ContractOwner: pair.ContractOwner,
-					}
-					relays = append(relays, relay)
+				addAmount := big.NewInt(0).Add(randMint, big.NewInt(1))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(addAmount))))
+				moduleName := md.RandModule()
+				expectedModuleName := moduleName
+				if moduleName == "gravity" {
+					expectedModuleName = "eth"
 				}
 
-				return relays, nil
+				relay := types.RelayTransferCrossChain{
+					TransferCrossChainEvent: &types.TransferCrossChainEvent{
+						From:      singerAddr,
+						Recipient: suite.RandAddress(moduleName),
+						Amount:    addAmount,
+						Fee:       big.NewInt(0),
+						Target:    fxtypes.MustStrToByte32(moduleName),
+					},
+					TokenContract: pair.GetERC20Contract(),
+					Denom:         pair.GetDenom(),
+					ContractOwner: pair.ContractOwner,
+				}
+				return []types.RelayTransferCrossChain{relay}, []string{
+					fmt.Sprintf("%s%s", big.NewInt(0).Sub(addAmount, big.NewInt(1)).String(), md.GetDenom(expectedModuleName)),
+					fmt.Sprintf("%s%s", addAmount.String(), md.GetDenom(expectedModuleName)),
+				}
 			},
-			result: true,
+			error: func(args []string) string {
+				return fmt.Sprintf("%s is smaller than %s: insufficient funds", args[0], args[1])
+			},
+			result: false,
+		},
+		{
+			name: "failed - target not support",
+			relays: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
+				// add relay token
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+
+				unknownChain := "chainabc"
+				relay := types.RelayTransferCrossChain{
+					TransferCrossChainEvent: &types.TransferCrossChainEvent{
+						From:      singerAddr,
+						Recipient: suite.RandAddress(unknownChain),
+						Amount:    randMint,
+						Fee:       big.NewInt(0),
+						Target:    fxtypes.MustStrToByte32(unknownChain),
+					},
+					TokenContract: pair.GetERC20Contract(),
+					Denom:         pair.GetDenom(),
+					ContractOwner: pair.ContractOwner,
+				}
+				return []types.RelayTransferCrossChain{relay}, []string{"chainabc"}
+			},
+			error: func(args []string) string {
+				return fmt.Sprintf("target %s not support: invalid target", args[0])
+			},
+			result: false,
+		},
+		{
+			name: "failed - bridge token is not exist",
+			relays: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+
+				randDenom := fmt.Sprintf("t%st", strings.ToLower(tmrand.Str(5)))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(randDenom, sdk.NewIntFromBigInt(randMint))))
+
+				moduleName := md.RandModule()
+				relay := types.RelayTransferCrossChain{
+					TransferCrossChainEvent: &types.TransferCrossChainEvent{
+						From:      singerAddr,
+						Recipient: suite.RandAddress(moduleName),
+						Amount:    randMint,
+						Fee:       big.NewInt(0),
+						Target:    fxtypes.MustStrToByte32(moduleName),
+					},
+					TokenContract: pair.GetERC20Contract(),
+					Denom:         randDenom,
+					ContractOwner: pair.ContractOwner,
+				}
+				return []types.RelayTransferCrossChain{relay}, []string{}
+			},
+			error: func(args []string) string {
+				return "bridge token is not exist: invalid"
+			},
+			result: false,
 		},
 	}
 
@@ -117,11 +166,15 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
-			pair, md, totalMint := tc.pairToken()
+			md := suite.GenerateCrossChainDenoms()
+			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+			suite.NoError(err)
+			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
+			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdk.NewIntFromBigInt(randMint))
 			// relay event
-			relays, errArgs := tc.relays(pair, md, signer.Address(), totalMint)
+			relays, errArgs := tc.relays(*pair, md, signer.Address(), randMint)
 			// hook transfer cross chain
-			err := suite.app.Erc20Keeper.EVMHooks().HookTransferCrossChainEvent(suite.ctx, relays)
+			err = suite.app.Erc20Keeper.EVMHooks().HookTransferCrossChainEvent(suite.ctx, relays)
 			// check result
 			if tc.result {
 				suite.Require().NoError(err)
@@ -136,25 +189,24 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 	testCases := []struct {
 		name   string
-		relays func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string)
+		relays func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string)
 		error  func(args []string) string
 		result bool
 	}{
 		{
 			name: "ok - ibc token",
-			relays: func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
+			relays: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(totalCanMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
 				prefix := "px" // "evmos"
 
 				recipient, _ := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
-				relayAmount := big.NewInt(0).Div(totalCanMint, big.NewInt(int64(len(md.GetDenomUnits()[0].GetAliases()))))
 
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
 						From:      singerAddr,
 						Recipient: recipient,
-						Amount:    relayAmount,
+						Amount:    randMint,
 						Fee:       big.NewInt(0),
 						Target:    fxtypes.MustStrToByte32(fmt.Sprintf("ibc/%s/%s/%s", prefix, sourcePort, sourceChannel)),
 					},
@@ -168,20 +220,18 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 		},
 		{
 			name: "ok - base token",
-			relays: func(pair types.TokenPair, md banktypes.Metadata, singerAddr common.Address, totalCanMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
+			relays: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(totalCanMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
 				prefix := "px" // "evmos"
 				sourcePort1, sourceChannel1 := suite.RandTransferChannel()
-
 				recipient, _ := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
-				relayAmount := big.NewInt(0).Div(totalCanMint, big.NewInt(int64(len(md.GetDenomUnits()[0].GetAliases()))))
 
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
 						From:      singerAddr,
 						Recipient: recipient,
-						Amount:    relayAmount,
+						Amount:    randMint,
 						Fee:       big.NewInt(0),
 						Target:    fxtypes.MustStrToByte32(fmt.Sprintf("ibc/%s/%s/%s", prefix, sourcePort1, sourceChannel1)),
 					},
@@ -204,14 +254,15 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 			// add ibc token
 			ibcToken := suite.AddIBCToken(sourcePort, sourceChannel)
 			// token pair
-			denoms := suite.GenerateCrossChainDenoms()
-			pair, md := suite.DeployNativeRelayToken("TEST", append(denoms, ibcToken)...)
-			// mint and lock token
-			totalMint := suite.MintLockNativeTokenToModule(md, sdk.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
+			md := suite.GenerateCrossChainDenoms(ibcToken)
+			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+			suite.NoError(err)
+			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
+			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdk.NewIntFromBigInt(randMint))
 			// relay event
-			relays, errArgs := tc.relays(pair, md, signer.Address(), totalMint, sourcePort, sourceChannel)
+			relays, errArgs := tc.relays(*pair, md, signer.Address(), randMint, sourcePort, sourceChannel)
 			// hook transfer cross chain
-			err := suite.app.Erc20Keeper.EVMHooks().HookTransferCrossChainEvent(suite.ctx, relays)
+			err = suite.app.Erc20Keeper.EVMHooks().HookTransferCrossChainEvent(suite.ctx, relays)
 			// check result
 			if tc.result {
 				suite.Require().NoError(err)
@@ -221,17 +272,4 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 			}
 		})
 	}
-}
-
-func moduleDenom(denom []string, module map[string]CrossChainKeeper) ([]string, []string) {
-	modules, denoms := make([]string, 0, len(module)), make([]string, 0, len(denom))
-	for m := range module {
-		for _, d := range denom {
-			if strings.HasPrefix(d, m) {
-				modules = append(modules, m)
-				denoms = append(denoms, d)
-			}
-		}
-	}
-	return modules, denoms
 }

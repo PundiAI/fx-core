@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			true,
 			false,
 		},
-		//{
+		// {
 		//	"ok - suicided contract",
 		//	10,
 		//	10,
@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 		//	},
 		//	true,
 		//	true,
-		//},
+		// },
 		{
 			"fail - insufficient funds",
 			0,
@@ -226,7 +226,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			true,
 			false,
 		},
-		//{
+		// {
 		//	"ok - suicided contract",
 		//	10,
 		//	10,
@@ -238,7 +238,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 		//	},
 		//	true,
 		//	true,
-		//},
+		// },
 		{
 			"fail - insufficient funds - callEVM",
 			0,
@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			suite.Require().NotNil(contractAddr)
 			// suite.Commit()
 
-			suite.MintERC20Token(contractAddr, suite.signer.Address(), suite.signer.Address(), big.NewInt(tc.mint))
+			suite.MintERC20Token(suite.signer, contractAddr, suite.signer.Address(), big.NewInt(tc.mint))
 
 			receiver := sdk.AccAddress(suite.signer.Address().Bytes())
 			msg := types.NewMsgConvertERC20(
@@ -363,7 +363,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			// Precondition: Mint escrow tokens on module account
 			// suite.GrantERC20Token(contractAddr, suite.signer.Address(), types.ModuleAddress, "MINTER_ROLE")
 			erc20ModuleAddr := common.BytesToAddress(authtypes.NewModuleAddress(types.ModuleName).Bytes())
-			suite.MintERC20Token(contractAddr, suite.signer.Address(), erc20ModuleAddr, big.NewInt(tc.mint))
+			suite.MintERC20Token(suite.signer, contractAddr, erc20ModuleAddr, big.NewInt(tc.mint))
 			tokenBalance := suite.BalanceOf(contractAddr, erc20ModuleAddr)
 			suite.Require().Equal(big.NewInt(tc.mint), tokenBalance)
 

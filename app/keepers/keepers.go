@@ -75,6 +75,14 @@ import (
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
+type CrossChainKeepers struct {
+	BscKeeper       crosschainkeeper.Keeper
+	PolygonKeeper   crosschainkeeper.Keeper
+	AvalancheKeeper crosschainkeeper.Keeper
+	EthKeeper       crosschainkeeper.Keeper
+	TronKeeper      tronkeeper.Keeper
+}
+
 type AppKeepers struct {
 	// keys to access the substores
 	keys    map[string]*sdk.KVStoreKey
@@ -108,11 +116,7 @@ type AppKeepers struct {
 
 	GravityMigrator  gravitykeeper.Migrator
 	CrosschainKeeper crosschainkeeper.RouterKeeper
-	BscKeeper        crosschainkeeper.Keeper
-	PolygonKeeper    crosschainkeeper.Keeper
-	AvalancheKeeper  crosschainkeeper.Keeper
-	EthKeeper        crosschainkeeper.Keeper
-	TronKeeper       tronkeeper.Keeper
+	CrossChainKeepers
 
 	EvmKeeper       *fxevmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
