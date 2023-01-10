@@ -280,9 +280,7 @@ func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start uint64, end uin
 	}
 }
 
-/////////////////////////////
-//      BATCH CONFIRMS     //
-/////////////////////////////
+// --- BATCH CONFIRMS --- //
 
 // GetBatchConfirm returns a batch confirmation given its nonce, the token contract, and a oracle address
 func (k Keeper) GetBatchConfirm(ctx sdk.Context, batchNonce uint64, tokenContract string, oracleAddr sdk.AccAddress) *types.MsgConfirmBatch {

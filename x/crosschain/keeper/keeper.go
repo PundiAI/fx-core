@@ -53,9 +53,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+k.moduleName)
 }
 
-/////////////////////////////
-//       PARAMETERS        //
-/////////////////////////////
+// --- PARAMETERS --- //
 
 // GetParams returns the parameters from the store
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {

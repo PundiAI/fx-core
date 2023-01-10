@@ -14,9 +14,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
-/////////////////////////
-//      ERC20Token     //
-/////////////////////////
+// --- ERC20Token --- //
 
 func NewERC20Token(amount sdk.Int, contract string) ERC20Token {
 	return ERC20Token{Amount: amount, Contract: contract}
@@ -33,9 +31,7 @@ func (m *ERC20Token) ValidateBasic() error {
 	return nil
 }
 
-//////////////////////////////////////
-//      BRIDGE VALIDATOR(S)         //
-//////////////////////////////////////
+// --- BRIDGE VALIDATOR(S) --- //
 
 // ValidateBasic performs stateless checks on validity
 func (m *BridgeValidator) ValidateBasic() error {
@@ -164,9 +160,7 @@ func (b BridgeValidators) Equal(o BridgeValidators) bool {
 	return true
 }
 
-//////////////////////////////////////
-//          OracleSet(S)            //
-//////////////////////////////////////
+// --- OracleSet(S) --- //
 
 // NewOracleSet returns a new OracleSet
 func NewOracleSet(nonce, height uint64, members BridgeValidators) *OracleSet {
@@ -246,9 +240,7 @@ func (v OracleSets) Swap(i, j int) {
 	v[i], v[j] = v[j], v[i]
 }
 
-//////////////////////////////////////
-//         OutgoingTxBatch          //
-//////////////////////////////////////
+// --- OutgoingTxBatch --- //
 
 type OutgoingTxBatches []*OutgoingTxBatch
 
@@ -325,9 +317,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	return crypto.Keccak256Hash(abiEncodedBatch[4:]).Bytes(), nil
 }
 
-//////////////////////////////////////
-//            Oracle(S)             //
-//////////////////////////////////////
+// --- Oracle(S) --- //
 
 func (m *Oracle) GetOracle() sdk.AccAddress {
 	// oracle address can't be empty

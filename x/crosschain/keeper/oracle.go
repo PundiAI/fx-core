@@ -6,9 +6,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-/////////////////////////////
-//    PROPOSAL ORACLE      //
-/////////////////////////////
+// --- PROPOSAL ORACLE --- //
 
 func (k Keeper) SetProposalOracle(ctx sdk.Context, proposalOracle *types.ProposalOracle) {
 	store := ctx.KVStore(k.storeKey)
@@ -38,9 +36,7 @@ func (k Keeper) IsProposalOracle(ctx sdk.Context, oracleAddr string) bool {
 	return false
 }
 
-/////////////////////////////
-//     ADDRESS Bridger     //
-/////////////////////////////
+// --- ADDRESS Bridger --- //
 
 // SetOracleByBridger sets the bridger key for a given oracle
 func (k Keeper) SetOracleByBridger(ctx sdk.Context, bridgerAddr, oracleAddr sdk.AccAddress) {
@@ -65,9 +61,7 @@ func (k Keeper) DelOracleByBridger(ctx sdk.Context, bridgerAddr sdk.AccAddress) 
 	store.Delete(key)
 }
 
-/////////////////////////////
-//    External ADDRESS     //
-/////////////////////////////
+// --- External ADDRESS --- //
 
 // SetOracleByExternalAddress sets the external address for a given oracle
 func (k Keeper) SetOracleByExternalAddress(ctx sdk.Context, externalAddress string, oracleAddr sdk.AccAddress) {
@@ -92,9 +86,7 @@ func (k Keeper) DelOracleByExternalAddress(ctk sdk.Context, externalAddress stri
 	store.Delete(oracleAddr)
 }
 
-/////////////////////////////
 //   ORACLE TOTAL POWER    //
-/////////////////////////////
 
 // GetLastTotalPower Load the last total oracle power.
 func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {
@@ -126,9 +118,7 @@ func (k Keeper) CommonSetOracleTotalPower(ctx sdk.Context) {
 	k.SetLastTotalPower(ctx, totalPower)
 }
 
-/////////////////////////////
-//        ORACLES          //
-/////////////////////////////
+// --- ORACLES --- //
 
 func (k Keeper) IterateOracle(ctx sdk.Context, cb func(oracle types.Oracle) bool) {
 	store := ctx.KVStore(k.storeKey)

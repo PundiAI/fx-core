@@ -9,9 +9,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-/////////////////////////////
 //   ORACLE SET REQUESTS   //
-/////////////////////////////
 
 // GetCurrentOracleSet gets powers from the store and normalizes them
 // into an integer percentage with a resolution of uint32 Max meaning
@@ -203,9 +201,7 @@ func (k Keeper) IterateOracleSetByNonce(ctx sdk.Context, startNonce uint64, cb f
 	}
 }
 
-/////////////////////////////
 //   ORACLE SET CONFIRMS   //
-/////////////////////////////
 
 // GetOracleSetConfirm returns a oracleSet confirmation by a nonce and external address
 func (k Keeper) GetOracleSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sdk.AccAddress) *types.MsgOracleSetConfirm {
