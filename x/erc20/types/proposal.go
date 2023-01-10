@@ -100,18 +100,6 @@ func validateIBC(metadata banktypes.Metadata) error {
 	return nil
 }
 
-// ValidateErc20Denom checks if a denom is a valid erc20/
-// denomination
-func ValidateErc20Denom(denom string) error {
-	denomSplit := strings.SplitN(denom, "/", 2)
-
-	if len(denomSplit) != 2 || denomSplit[0] != ModuleName {
-		return fmt.Errorf("invalid denom. %s denomination should be prefixed with the format 'erc20/", denom)
-	}
-
-	return fxtypes.ValidateEthereumAddress(denomSplit[1])
-}
-
 // NewRegisterERC20Proposal returns new instance of RegisterERC20Proposal
 func NewRegisterERC20Proposal(title, description, erc20Addr string) govtypes.Content {
 	return &RegisterERC20Proposal{

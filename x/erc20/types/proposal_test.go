@@ -50,49 +50,6 @@ func (suite *ProposalTestSuite) TestCreateDenomDescription() {
 	}
 }
 
-func (suite *ProposalTestSuite) TestValidateErc20Denom() {
-	testCases := []struct {
-		name    string
-		denom   string
-		expPass bool
-	}{
-		{
-			"- instead of /",
-			"erc20-0xdAC17F958D2ee523a2206206994597C13D831ec7",
-			false,
-		},
-		{
-			"without /",
-			"conversionCoin",
-			false,
-		},
-		{
-			"// instead of /",
-			"erc20//0xdAC17F958D2ee523a2206206994597C13D831ec7",
-			false,
-		},
-		{
-			"multiple /",
-			"erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7/test",
-			false,
-		},
-		{
-			"pass",
-			"erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7",
-			true,
-		},
-	}
-	for _, tc := range testCases {
-		err := ValidateErc20Denom(tc.denom)
-
-		if tc.expPass {
-			suite.Require().Nil(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
-	}
-}
-
 func (suite *ProposalTestSuite) TestRegisterERC20Proposal() {
 	testCases := []struct {
 		msg         string

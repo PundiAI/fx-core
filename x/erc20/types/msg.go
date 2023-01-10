@@ -44,11 +44,8 @@ func (m *MsgConvertCoin) ValidateBasic() error {
 	if err = fxtypes.ValidateEthereumAddress(m.Receiver); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address %s", err.Error())
 	}
-	// todo: use sdk.ValidateDenom
-	if err = ValidateErc20Denom(m.Coin.Denom); err != nil {
-		if err = ibctransfertypes.ValidateIBCDenom(m.Coin.Denom); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid coin denom %s", err.Error())
-		}
+	if err = ibctransfertypes.ValidateIBCDenom(m.Coin.Denom); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid coin denom %s", err.Error())
 	}
 	if !m.Coin.Amount.IsPositive() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, m.Coin.Amount.String())
