@@ -189,22 +189,23 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if data.Router == "" || k.router == nil {
 		return nil
 	}
-	if route, exists := k.router.GetRoute(data.Router); exists {
-		ibcAmount := sdk.NewCoin(receiveDenom, transferAmount)
-		ibcFee := sdk.NewCoin(receiveDenom, feeAmount)
-
-		err = route.TransferAfter(ctx, receiver.String(), data.Receiver, ibcAmount, ibcFee)
-		routerEvent := sdk.NewEvent(types.EventTypeReceiveRoute,
-			sdk.NewAttribute(types.AttributeKeyRoute, data.Router),
-			sdk.NewAttribute(types.AttributeKeyRouteSuccess, fmt.Sprintf("%t", err == nil)),
-		)
-		if err != nil {
-			routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRouteError, err.Error()))
-		}
-		ctx.EventManager().EmitEvent(routerEvent)
-		return err
+	route, exists := k.router.GetRoute(data.Router)
+	if !exists {
+		return sdkerrors.Wrap(types.ErrRouterNotFound, data.Router)
 	}
-	return nil
+	ibcAmount := sdk.NewCoin(receiveDenom, transferAmount)
+	ibcFee := sdk.NewCoin(receiveDenom, feeAmount)
+
+	err = route.TransferAfter(ctx, receiver.String(), data.Receiver, ibcAmount, ibcFee)
+	routerEvent := sdk.NewEvent(types.EventTypeReceiveRoute,
+		sdk.NewAttribute(types.AttributeKeyRoute, data.Router),
+		sdk.NewAttribute(types.AttributeKeyRouteSuccess, fmt.Sprintf("%t", err == nil)),
+	)
+	if err != nil {
+		routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRouteError, err.Error()))
+	}
+	ctx.EventManager().EmitEvent(routerEvent)
+	return err
 }
 
 // OnAcknowledgementPacket responds to the the success or failure of a packet

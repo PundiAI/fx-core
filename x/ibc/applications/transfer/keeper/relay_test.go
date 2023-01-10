@@ -17,6 +17,7 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
 	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
@@ -33,6 +34,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		Path:      "transfer/channel-0",
 		BaseDenom: baseDenom,
 	}
+
 	testCases := []struct {
 		name          string
 		malleate      func(fxIbcTransferMsg *channeltypes.Packet)
@@ -68,35 +70,23 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
 		},
 		{
-			"pass - normal - router is not empty",
+			"pass - normal - router is bsc, sender is 0xAddress",
 			func(packet *channeltypes.Packet) {
-				packetData := fxtransfertypes.FungibleTokenPacketData{}
-				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
-				packetData.Router = rand.Str(8)
-				packetData.Fee = sdk.ZeroInt().String()
-				packet.Data = packetData.GetBytes()
-			},
-			true,
-			"",
-			true,
-			senderAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
-		},
-		{
-			"pass - normal - router is not empty, sender is 0xAddress",
-			func(packet *channeltypes.Packet) {
+				bscKeeper := suite.GetApp(suite.chainA.App).BscKeeper
+				bscKeeper.AddBridgeToken(suite.chainA.GetContext(), common.BytesToAddress(rand.Bytes(20)).String(), ibcDenomTrace.IBCDenom())
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Sender = common.BytesToAddress(senderAddr.Bytes()).String()
-				packetData.Router = rand.Str(8)
+				packetData.Router = bsctypes.ModuleName
 				packetData.Fee = sdk.ZeroInt().String()
+				packetData.Receiver = common.BytesToAddress(receiveAddr).String()
 				packet.Data = packetData.GetBytes()
 			},
 			true,
 			"",
 			true,
 			senderAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
+			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdk.ZeroInt())),
 		},
 		{
 			name: "error - normal - transferAfter return error, receive address is error",
@@ -104,7 +94,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Receiver = rand.Str(20)
-				routes := []string{ethtypes.ModuleName, bsctypes.ModuleName, trontypes.ModuleName, polygontypes.ModuleName, avalanchetypes.ModuleName}
+				routes := []string{ethtypes.ModuleName, bsctypes.ModuleName, trontypes.ModuleName, polygontypes.ModuleName, avalanchetypes.ModuleName, erc20types.ModuleName}
 				packetData.Router = routes[rand.Int63n(int64(len(routes)))]
 				packet.Data = packetData.GetBytes()
 			},
@@ -113,6 +103,22 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			checkBalance:  true,
 			checkCoinAddr: senderAddr,
 			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdk.ZeroInt())),
+		},
+		{
+			"error - normal - router not exists",
+			func(packet *channeltypes.Packet) {
+				packetData := fxtransfertypes.FungibleTokenPacketData{}
+				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
+				packetData.Router = rand.Str(8)
+				packetData.Fee = sdk.ZeroInt().String()
+				packet.Data = packetData.GetBytes()
+			},
+			false,
+			// 103: router not found error
+			"ABCI code: 103: error handling packet on destination chain: see events for details",
+			true,
+			senderAddr,
+			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdk.ZeroInt())),
 		},
 	}
 
