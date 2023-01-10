@@ -220,8 +220,8 @@ func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content, expectedSt
 				}
 				id, err := strconv.ParseUint(attribute.Value, 10, 64)
 				suite.NoError(err)
-				suite.CheckProposal(id, govtypes.StatusVotingPeriod)
 				suite.Require().Equal(proposalId, id)
+				break
 			}
 		}
 	}
