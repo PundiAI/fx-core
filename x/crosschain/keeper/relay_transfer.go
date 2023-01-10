@@ -21,15 +21,18 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 	targetByte, _ := hex.DecodeString(targetHex)
 	fxTarget := fxtypes.ParseFxTarget(string(targetByte))
 
-	// 1. convert to base denom //todo
+	// 1. convert to base denom
+	cacheCtx, commit := ctx.CacheContext()
 	targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(ctx, receiver, coin, "")
 	if err != nil {
 		return err
 	}
+	commit()
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 	if fxTarget.IsIBC() {
 		// 2. transfer to ibc
-		cacheCtx, commit := ctx.CacheContext()
+		cacheCtx, commit = ctx.CacheContext()
 		targetIBCCoin, err1 := k.erc20Keeper.ConvertDenomToTarget(cacheCtx, receiver, targetCoin, fxTarget.GetTarget())
 		var err2 error
 		if err1 == nil {
@@ -48,7 +51,7 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 	}
 
 	// 4. transfer to evm
-	cacheCtx, commit := ctx.CacheContext()
+	cacheCtx, commit = ctx.CacheContext()
 	if err = k.transferErc20Handler(cacheCtx, eventNonce, receiver, targetCoin); err != nil {
 		return err
 	}
