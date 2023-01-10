@@ -183,8 +183,8 @@ func (suite *TestSuite) TestMigrateStore() {
 			types.MsgConfirmBatch{
 				Nonce:         rand.Uint64(),
 				TokenContract: helpers.GenerateAddress().Hex(),
-				EthSigner:     helpers.GenerateAddress().Hex(),
-				Orchestrator:  sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				EthSigner:     delegateKeys[1%20].EthAddress,
+				Orchestrator:  delegateKeys[1%20].Orchestrator,
 				Signature:     hex.EncodeToString(tmrand.Bytes(65)),
 			},
 		)
@@ -193,8 +193,8 @@ func (suite *TestSuite) TestMigrateStore() {
 			suite.genesisState.ValsetConfirms,
 			types.MsgValsetConfirm{
 				Nonce:        rand.Uint64(),
-				Orchestrator: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-				EthAddress:   helpers.GenerateAddress().Hex(),
+				Orchestrator: delegateKeys[i%20].Orchestrator,
+				EthAddress:   delegateKeys[i%20].EthAddress,
 				Signature:    hex.EncodeToString(tmrand.Bytes(65)),
 			},
 		)
@@ -249,9 +249,10 @@ func (suite *TestSuite) TestMigrateStore() {
 	}
 
 	v2.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
-	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore)
+
 	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager()).WithLogger(log.NewNopLogger())
 	v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
+	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore)
 
 	gravityStoreIter := suite.gravityStore.Iterator(nil, nil)
 	defer gravityStoreIter.Close()
@@ -267,9 +268,10 @@ func (suite *TestSuite) TestMigrateStoreByExportJson() {
 	suite.cdc.MustUnmarshalJSON(data, &suite.genesisState)
 
 	v2.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
-	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore)
+
 	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager()).WithLogger(log.NewNopLogger())
 	v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
+	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore)
 
 	suite.Equal(len(ctx.EventManager().Events()), 20)
 	oracles := v2.EthInitOracles(fxtypes.TestnetChainId)

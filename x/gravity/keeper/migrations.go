@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
 )
@@ -51,8 +52,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		return err
 	}
 	ctx.Logger().Info("params has been migrated successfully", "module", "gravity")
-	v2.MigrateStore(m.cdc, gravityStore, ethStore)
-	ctx.Logger().Info("store key has been migrated successfully", "module", "gravity")
+
 	var metadatas []banktypes.Metadata
 	m.bk.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
 		metadatas = append(metadatas, metadata)
@@ -60,6 +60,11 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	})
 	v2.MigrateBridgeTokenFromMetadatas(metadatas, ethStore)
 	ctx.Logger().Info("bridge token has been migrated successfully", "module", "gravity")
+
 	v2.MigrateValidatorToOracle(ctx, m.cdc, gravityStore, ethStore, m.sk, m.bk)
+
+	v2.MigrateStore(m.cdc, gravityStore, ethStore)
+	ctx.Logger().Info("store key has been migrated successfully", "module", "gravity",
+		"LatestOracleSetNonce", sdk.BigEndianToUint64(ethStore.Get(crosschaintypes.LatestOracleSetNonce)))
 	return nil
 }

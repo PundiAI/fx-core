@@ -137,7 +137,7 @@ func (k Keeper) LastPendingBatchRequestByAddr(c context.Context, req *types.Quer
 		if oracle.StartHeight > int64(batch.Block) {
 			return false
 		}
-		foundConfirm := k.GetBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract, oracleAddr) != nil
+		foundConfirm := k.GetBatchConfirm(ctx, batch.TokenContract, batch.BatchNonce, oracleAddr) != nil
 		if !foundConfirm {
 			pendingBatchReq = batch
 			return true
@@ -186,7 +186,7 @@ func (k Keeper) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequ
 	if !found {
 		return nil, status.Error(codes.NotFound, "oracle")
 	}
-	confirm := k.GetBatchConfirm(ctx, req.Nonce, req.TokenContract, oracleAddr)
+	confirm := k.GetBatchConfirm(ctx, req.TokenContract, req.Nonce, oracleAddr)
 	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
 }
 

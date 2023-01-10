@@ -264,7 +264,7 @@ func (k Keeper) GetLastObservedOracleSet(ctx sdk.Context) *types.OracleSet {
 }
 
 // SetLastObservedOracleSet updates the last observed oracle set in the store
-func (k Keeper) SetLastObservedOracleSet(ctx sdk.Context, oracleSet types.OracleSet) {
+func (k Keeper) SetLastObservedOracleSet(ctx sdk.Context, oracleSet *types.OracleSet) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastObservedOracleSetKey, k.cdc.MustMarshal(&oracleSet))
+	store.Set(types.LastObservedOracleSetKey, k.cdc.MustMarshal(oracleSet))
 }

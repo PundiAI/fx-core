@@ -448,7 +448,7 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 		return nil, err
 	}
 	// check if we already have this confirm
-	if s.GetBatchConfirm(ctx, msg.Nonce, msg.TokenContract, oracleAddr) != nil {
+	if s.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(types.ErrDuplicate, "signature")
 	}
 	s.SetBatchConfirm(ctx, oracleAddr, msg)

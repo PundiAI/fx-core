@@ -50,7 +50,7 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 		return nil, err
 	}
 	// check if we already have this confirm
-	if s.GetBatchConfirm(ctx, msg.Nonce, msg.TokenContract, oracleAddr) != nil {
+	if s.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, oracleAddr) != nil {
 		return nil, sdkerrors.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
 	s.SetBatchConfirm(ctx, oracleAddr, msg)

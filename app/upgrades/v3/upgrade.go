@@ -28,35 +28,27 @@ import (
 func createUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
-	keepers *keepers.AppKeepers,
+	app *keepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		// cache context
 		cacheCtx, commit := ctx.CacheContext()
 
-		// update wfx logic code
-		updateWFXLogicCode(cacheCtx, keepers.EvmKeeper)
+		updateWFXLogicCode(cacheCtx, app.EvmKeeper)
 
-		// update metadata alias null
-		updateMetadataAliasNull(cacheCtx, keepers.BankKeeper)
+		updateMetadataAliasNull(cacheCtx, app.BankKeeper)
 
-		// run migrations
 		ctx.Logger().Info("start to run v3 migrations...", "module", "upgrade")
-		toVM, err := mm.RunMigrations(ctx, configurator, fromVM)
+		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
 			panic(fmt.Sprintf("run migrations: %s", err.Error()))
 		}
 
-		// init avalanche oracles
-		initAvalancheOracles(cacheCtx, keepers.AvalancheKeeper)
+		initAvalancheOracles(cacheCtx, app.AvalancheKeeper)
 
-		// update bsc oracles
-		updateBSCOracles(cacheCtx, keepers.BscKeeper)
+		updateBSCOracles(cacheCtx, app.BscKeeper)
 
-		// register coin
-		registerCoin(cacheCtx, keepers.Erc20Keeper)
+		registerCoin(cacheCtx, app.Erc20Keeper)
 
-		// commit upgrade
 		commit()
 		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 		return toVM, nil

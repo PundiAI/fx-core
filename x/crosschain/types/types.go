@@ -210,7 +210,7 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	return hash.Bytes(), nil
 }
 
-func (m *OracleSet) Equal(o OracleSet) (bool, error) {
+func (m *OracleSet) Equal(o *OracleSet) (bool, error) {
 	if m.Height != o.Height {
 		return false, sdkerrors.Wrap(ErrInvalid, "oracle set heights mismatch")
 	}

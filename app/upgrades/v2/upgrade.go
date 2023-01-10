@@ -43,23 +43,23 @@ import (
 )
 
 // createUpgradeHandler creates an SDK upgrade handler for v2
-func createUpgradeHandler(mm *module.Manager, configurator module.Configurator, keepers *keepers.AppKeepers) upgradetypes.UpgradeHandler {
+func createUpgradeHandler(mm *module.Manager, configurator module.Configurator, app *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		// cache context
 		cacheCtx, commit := ctx.CacheContext()
 
-		kvStoreKeyMap := keepers.GetKVStoreKey()
+		kvStoreKeyMap := app.GetKVStoreKey()
 		// 1. clear testnet module data
 		clearTestnetModule(cacheCtx, kvStoreKeyMap)
 
 		// 2. update FX metadata
-		updateFXMetadata(cacheCtx, keepers.BankKeeper, kvStoreKeyMap[banktypes.StoreKey])
+		updateFXMetadata(cacheCtx, app.BankKeeper, kvStoreKeyMap[banktypes.StoreKey])
 
 		// 3. update block params (max_gas:3000000000)
-		updateBlockParams(cacheCtx, keepers.ParamsKeeper)
+		updateBlockParams(cacheCtx, app.ParamsKeeper)
 
 		// 4. migrate ibc cosmos-sdk/x/ibc -> ibc-go v3.1.0
-		ibcMigrate(cacheCtx, keepers.IBCKeeper, keepers.IBCTransferKeeper)
+		ibcMigrate(cacheCtx, app.IBCKeeper, app.IBCTransferKeeper)
 
 		// 5. run migrations
 		toVersion := runMigrations(cacheCtx, kvStoreKeyMap[paramstypes.StoreKey], fromVM, mm, configurator)
@@ -68,7 +68,7 @@ func createUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		clearTestnetDenom(cacheCtx, kvStoreKeyMap[banktypes.StoreKey])
 
 		// 7. register coin
-		registerCoin(cacheCtx, keepers.Erc20Keeper)
+		registerCoin(cacheCtx, app.Erc20Keeper)
 
 		// commit upgrade
 		commit()

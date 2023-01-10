@@ -6,8 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
-	types2 "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -119,23 +117,12 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 		msgConfirmBatch.ExternalAddress = crypto.PubkeyToAddress(suite.externalPris[i].PublicKey).String()
 		suite.Keeper().SetBatchConfirm(suite.ctx, oracle, msgConfirmBatch)
 	}
-	params := suite.Keeper().GetParams(suite.ctx)
-	params.SignedWindow = 10
-	suite.Keeper().SetParams(suite.ctx, &params)
-	height := suite.Keeper().GetSignedWindow(suite.ctx) + batch.Block + 1
-	for i := uint64(2); i <= height; i++ {
-		suite.app.BeginBlock(types2.RequestBeginBlock{
-			Header: tmproto.Header{Height: int64(i)},
-		})
-		suite.app.EndBlock(types2.RequestEndBlock{Height: int64(i)})
-		suite.app.Commit()
-	}
+	suite.Keeper().OutgoingTxBatchExecuted(suite.ctx, batch.TokenContract, batch.BatchNonce)
 
 	for _, oracle := range suite.oracleAddrs {
-		suite.Nil(suite.Keeper().GetBatchConfirm(suite.ctx, batch.BatchNonce, tokenContract, oracle))
+		suite.Nil(suite.Keeper().GetBatchConfirm(suite.ctx, batch.TokenContract, batch.BatchNonce, oracle))
 	}
-
-	suite.Equal(batch.Block, suite.Keeper().GetLastSlashedBatchBlock(suite.ctx))
+	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.ctx, batch.TokenContract, batch.BatchNonce))
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {

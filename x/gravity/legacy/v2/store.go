@@ -51,17 +51,18 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 
 	// gravity 0x6 and 0x7 -> eth 0x18
 	// key                                       				 				value
-	// prefix            token-address            		 fee_amount(byte32) 	IDSet -delete-
-	// [0x7][0xb4fA5979babd8Bb7e427157d0d353Cf205F43752][1000000000000]			[object marshal bytes] delete
 	// prefix            id											 			OutgoingTransferTx
-	// [0x18][0 0 0 0 0 0 0 1]													[object marshal bytes]
+	// [0x6][0 0 0 0 0 0 0 1]													[object marshal bytes]
+	// prefix            token-address            		 fee_amount(byte32) 	IDSet -delete-
+	// [0x7][0xb4fA5979babd8Bb7e427157d0d353Cf205F43752][1000000000000][id]		[object marshal bytes] delete
 	migrateOutgoingTxPool(cdc, gravityStore, ethStore)
 
 	// gravity 0x8 -> eth 0x20
 	// key                                       				 			value
 	// prefix            token-address            		 nonce		 		OutgoingTxBatch
 	// [0x20][0xb4fA5979babd8Bb7e427157d0d353Cf205F43752][0 0 0 0 0 0 0 1]	[object marshal bytes]
-	migratePrefix(gravityStore, ethStore, types.OutgoingTxBatchKey, crosschaintypes.OutgoingTxBatchKey)
+	// migratePrefix(gravityStore, ethStore, types.OutgoingTxBatchKey, crosschaintypes.OutgoingTxBatchKey)
+	outgoingTxBatches := migrateOutgoingTxBatch(cdc, gravityStore, ethStore)
 
 	// gravity 0x9 -> eth 0x21
 	// key                                  value
@@ -73,7 +74,7 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	// key                                  																			value
 	// prefix           token-address                		batch-nonce            oracle-address						MsgConfirmBatch
 	// [0x22][0xb4fA5979babd8Bb7e427157d0d353Cf205F43752][0 0 0 0 0 0 0 1][fx1mx8euwcmc6f8wqxwf2trg2wuz47af67lads8yg]	[object marshal bytes]
-	migrateConfirmBatch(cdc, gravityStore, ethStore)
+	migrateConfirmBatch(cdc, gravityStore, ethStore, outgoingTxBatches)
 
 	// gravity 0xb -> eth 0x23
 	// key                                  					value
@@ -113,7 +114,6 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	// prefix           oracle-set-nonce
 	// [0x29]			[0 0 0 0 0 0 0 1]
 	migratePrefix(gravityStore, ethStore, types.LatestValsetNonce, crosschaintypes.LatestOracleSetNonce)
-	// ethStore.Set(crosschaintypes.LatestOracleSetNonce, sdk.Uint64ToBigEndian(10000000)) todo set custom nonce
 
 	// gravity 0x13 -> eth 0x30
 	// key         		value
@@ -154,6 +154,7 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
+
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		key := oldStoreIter.Key()
 		ethStore.Set(append(newPrefix, key...), oldStoreIter.Value())
@@ -262,6 +263,7 @@ func migrateOutgoingTxPool(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVS
 	defer oldStoreIter.Close()
 
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
+		// NOTE: migrate key, value is compatible
 		var transact crosschaintypes.OutgoingTransferTx
 		cdc.MustUnmarshal(oldStoreIter.Value(), &transact)
 
@@ -272,12 +274,15 @@ func migrateOutgoingTxPool(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVS
 	oldStore2 := prefix.NewStore(gravityStore, types.SecondIndexOutgoingTxFeeKey)
 	oldStoreIter2 := oldStore2.Iterator(nil, nil)
 	defer oldStoreIter2.Close()
+
 	for ; oldStoreIter2.Valid(); oldStoreIter2.Next() {
 		oldStore2.Delete(oldStoreIter2.Key())
 	}
 }
 
 func migrateOracleSetConfirm(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
+	lastSlashedValsetNonce := sdk.BigEndianToUint64(gravityStore.Get(types.LastSlashedValsetNonce))
+
 	oldStore := prefix.NewStore(gravityStore, types.ValsetConfirmKey)
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
@@ -293,24 +298,47 @@ func migrateOracleSetConfirm(cdc codec.BinaryCodec, gravityStore, ethStore sdk.K
 		}
 		bridgeAddr := key[8:]
 		oracleAddr := ethStore.Get(crosschaintypes.GetOracleAddressByBridgerKey(bridgeAddr))
-		if len(oracleAddr) >= 20 {
+		if len(oracleAddr) != 20 {
 			panic(fmt.Sprintf("invalid oracle address: %v", oracleAddr))
 		}
 
-		ethStore.Set(crosschaintypes.GetOracleSetConfirmKey(msg.Nonce, oracleAddr),
-			cdc.MustMarshal(&crosschaintypes.MsgOracleSetConfirm{
-				Nonce:           msg.Nonce,
-				BridgerAddress:  msg.Orchestrator,
-				ExternalAddress: msg.EthAddress,
-				Signature:       msg.Signature,
-				ChainName:       ethtypes.ModuleName,
-			}),
-		)
+		if msg.Nonce > lastSlashedValsetNonce {
+			// Only the Confirm that is being processed is migrated
+			ethStore.Set(crosschaintypes.GetOracleSetConfirmKey(msg.Nonce, oracleAddr),
+				cdc.MustMarshal(&crosschaintypes.MsgOracleSetConfirm{
+					Nonce:           msg.Nonce,
+					BridgerAddress:  msg.Orchestrator,
+					ExternalAddress: msg.EthAddress,
+					Signature:       msg.Signature,
+					ChainName:       ethtypes.ModuleName,
+				}),
+			)
+		}
+
 		oldStore.Delete(oldStoreIter.Key())
 	}
 }
 
-func migrateConfirmBatch(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
+func migrateOutgoingTxBatch(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) []*types.OutgoingTxBatch {
+	oldStore := prefix.NewStore(gravityStore, types.OutgoingTxBatchKey)
+	oldStoreIter := oldStore.Iterator(nil, nil)
+	defer oldStoreIter.Close()
+
+	var outgoingTxBatchs = make([]*types.OutgoingTxBatch, 0)
+	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
+		var batch types.OutgoingTxBatch
+		cdc.MustUnmarshal(oldStoreIter.Value(), &batch)
+		outgoingTxBatchs = append(outgoingTxBatchs, &batch)
+
+		// NOTE: value is compatible
+		ethStore.Set(crosschaintypes.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce), oldStoreIter.Value())
+		oldStore.Delete(oldStoreIter.Key())
+	}
+	return outgoingTxBatchs
+}
+
+func migrateConfirmBatch(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, outgoingTxBaths []*types.OutgoingTxBatch) {
+
 	oldStore := prefix.NewStore(gravityStore, types.BatchConfirmKey)
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
@@ -330,20 +358,24 @@ func migrateConfirmBatch(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVSto
 		}
 		bridgeAddr := key[len(msg.TokenContract)+8:]
 		oracleAddr := ethStore.Get(crosschaintypes.GetOracleAddressByBridgerKey(bridgeAddr))
-		if len(oracleAddr) >= 20 {
+		if len(oracleAddr) != 20 {
 			panic(fmt.Sprintf("invalid oracle address: %v", oracleAddr))
 		}
-
-		ethStore.Set(crosschaintypes.GetBatchConfirmKey(msg.TokenContract, msg.Nonce, oracleAddr),
-			cdc.MustMarshal(&crosschaintypes.MsgConfirmBatch{
-				Nonce:           msg.Nonce,
-				TokenContract:   msg.TokenContract,
-				BridgerAddress:  msg.Orchestrator,
-				ExternalAddress: msg.EthSigner,
-				Signature:       msg.Signature,
-				ChainName:       ethtypes.ModuleName,
-			}),
-		)
+		for _, bath := range outgoingTxBaths {
+			// Only the Confirm that is being processed is migrated
+			if bath.BatchNonce == msg.Nonce && bath.TokenContract == msg.TokenContract {
+				ethStore.Set(crosschaintypes.GetBatchConfirmKey(msg.TokenContract, msg.Nonce, oracleAddr),
+					cdc.MustMarshal(&crosschaintypes.MsgConfirmBatch{
+						Nonce:           msg.Nonce,
+						TokenContract:   msg.TokenContract,
+						BridgerAddress:  msg.Orchestrator,
+						ExternalAddress: msg.EthSigner,
+						Signature:       msg.Signature,
+						ChainName:       ethtypes.ModuleName,
+					}),
+				)
+			}
+		}
 
 		oldStore.Delete(oldStoreIter.Key())
 	}
@@ -463,6 +495,7 @@ func deletePrefixKey(gravityStore sdk.KVStore, prefixKey []byte) {
 	oldStore := prefix.NewStore(gravityStore, prefixKey)
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
+
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		oldStore.Delete(oldStoreIter.Key())
 	}

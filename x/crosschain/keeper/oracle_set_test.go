@@ -172,6 +172,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 			ChainName:       suite.chainName,
 		})
 	}
+	suite.Keeper().SetLastObservedOracleSet(suite.ctx, &types.OracleSet{Nonce: oracleSet.Nonce + 1})
 
 	params := suite.Keeper().GetParams(suite.ctx)
 	params.SignedWindow = 10

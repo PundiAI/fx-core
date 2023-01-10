@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 	}
 
 	updateOracle.Oracles = []string{}
-	number := rand.Intn(102)
+	number := rand.Intn(100)
 	for i := 0; i < number; i++ {
 		updateOracle.Oracles = append(updateOracle.Oracles, sdk.AccAddress(helpers.GenerateAddress().Bytes()).String())
 	}

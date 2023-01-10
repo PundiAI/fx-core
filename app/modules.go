@@ -176,7 +176,7 @@ func appModules(
 		avalanche.NewAppModule(app.AvalancheKeeper),
 		eth.NewAppModule(app.EthKeeper),
 		tron.NewAppModule(app.TronKeeper),
-		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.legacyAmino, app.GetKey(paramstypes.StoreKey)),
+		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.LegacyAmino(), app.GetKey(paramstypes.StoreKey)),
 		feemarket.NewAppModule(app.FeeMarketKeeper),
 		erc20.NewAppModule(app.Erc20Keeper, app.IBCKeeper.ChannelKeeper),
 		migrate.NewAppModule(app.MigrateKeeper),

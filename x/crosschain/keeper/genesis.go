@@ -19,7 +19,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	k.SetProposalOracle(ctx, &state.ProposalOracle)
 
 	// 0x33
-	k.SetLastObservedOracleSet(ctx, state.LastObservedOracleSet)
+	k.SetLastObservedOracleSet(ctx, &state.LastObservedOracleSet)
 
 	// 0x28
 	k.SetLastSlashedOracleSetNonce(ctx, state.LastSlashedOracleSetNonce)

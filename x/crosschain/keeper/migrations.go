@@ -12,13 +12,8 @@ func (k Keeper) Migrate2to3(ctx sdk.Context) error {
 	k.paramSpace.Set(ctx, types.ParamsStoreKeySignedWindow, uint64(30_000))
 	k.paramSpace.Set(ctx, types.ParamsStoreSlashFraction, sdk.NewDecWithPrec(8, 1)) // 80%
 
-	kvStore := ctx.KVStore(k.storeKey)
-	crosschainv3.MigrateBridgeToken(k.cdc, kvStore, k.moduleName)
-	ctx.Logger().Info("bridge token has been migrated successfully", "module", k.moduleName)
-
-	crosschainv3.PruneEvidence(kvStore)
-	crosschainv3.PruneBatchConfirmKey(k.cdc, kvStore)
-	crosschainv3.PruneOracleSetConfirmKey(k.cdc, kvStore)
+	crosschainv3.PruneStore(k.cdc, ctx.KVStore(k.storeKey))
+	ctx.Logger().Info("prune store has been successfully", "module", k.moduleName)
 
 	// fix oracle delegate
 	validatorsByPower := k.stakingKeeper.GetBondedValidatorsByPower(ctx)

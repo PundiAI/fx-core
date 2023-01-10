@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -55,8 +54,6 @@ type App struct {
 	*baseapp.BaseApp
 	*keepers.AppKeepers
 
-	legacyAmino       *codec.LegacyAmino
-	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
 
 	// the module manager
@@ -94,8 +91,6 @@ func New(
 
 	myApp := &App{
 		BaseApp:           bApp,
-		legacyAmino:       legacyAmino,
-		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
 	}
 	// Setup keepers
@@ -139,7 +134,7 @@ func New(
 	myApp.mm.RegisterInvariants(&myApp.CrisisKeeper)
 	myApp.mm.RegisterRoutes(myApp.Router(), myApp.QueryRouter(), encodingConfig.Amino)
 
-	myApp.configurator = module.NewConfigurator(myApp.appCodec, myApp.MsgServiceRouter(), myApp.GRPCQueryRouter())
+	myApp.configurator = module.NewConfigurator(myApp.AppCodec(), myApp.MsgServiceRouter(), myApp.GRPCQueryRouter())
 	myApp.RegisterServices(myApp.configurator)
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
@@ -213,7 +208,7 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 
 	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
-	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
+	return app.mm.InitGenesis(ctx, app.AppCodec(), genesisState)
 }
 
 // LoadHeight loads a particular height
@@ -241,18 +236,6 @@ func (app *App) BlockedModuleAccountAddrs() map[string]bool {
 	// delete(modAccAddrs, authtypes.NewModuleAddress(grouptypes.ModuleName).String())
 
 	return modAccAddrs
-}
-
-// LegacyAmino NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
-func (app *App) LegacyAmino() *codec.LegacyAmino {
-	return app.legacyAmino
-}
-
-// AppCodec NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
-func (app *App) AppCodec() codec.Codec {
-	return app.appCodec
 }
 
 // InterfaceRegistry returns InterfaceRegistry

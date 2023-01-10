@@ -98,7 +98,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "denom", denom, "channelIbc", claim.ChannelIbc)
 
 	case *types.MsgOracleSetUpdatedClaim:
-		observedOracleSet := types.OracleSet{
+		observedOracleSet := &types.OracleSet{
 			Nonce:   claim.OracleSetNonce,
 			Members: claim.Members,
 		}

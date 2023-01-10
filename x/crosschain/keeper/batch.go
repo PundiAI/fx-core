@@ -119,6 +119,7 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, batch)
+	k.DeleteBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract)
 }
 
 // StoreBatch stores a transaction batch
@@ -283,7 +284,7 @@ func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start uint64, end uin
 // --- BATCH CONFIRMS --- //
 
 // GetBatchConfirm returns a batch confirmation given its nonce, the token contract, and a oracle address
-func (k Keeper) GetBatchConfirm(ctx sdk.Context, batchNonce uint64, tokenContract string, oracleAddr sdk.AccAddress) *types.MsgConfirmBatch {
+func (k Keeper) GetBatchConfirm(ctx sdk.Context, tokenContract string, batchNonce uint64, oracleAddr sdk.AccAddress) *types.MsgConfirmBatch {
 	store := ctx.KVStore(k.storeKey)
 	entity := store.Get(types.GetBatchConfirmKey(tokenContract, batchNonce, oracleAddr))
 	if entity == nil {
@@ -317,7 +318,7 @@ func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, batc
 	}
 }
 
-func (k Keeper) DeleteBatchConfig(ctx sdk.Context, batchNonce uint64, tokenContract string) {
+func (k Keeper) DeleteBatchConfirm(ctx sdk.Context, batchNonce uint64, tokenContract string) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.GetBatchConfirmKey(tokenContract, batchNonce, []byte{}))
 	defer iter.Close()

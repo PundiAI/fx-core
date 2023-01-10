@@ -9,6 +9,8 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
+// todo need refactor
+
 // EndBlocker is called at the end of every block
 func (k Keeper) EndBlocker(ctx sdk.Context) {
 	signedWindow := k.GetSignedWindow(ctx)
@@ -91,7 +93,6 @@ func oracleSetSlashing(ctx sdk.Context, k Keeper, oracles types.Oracles, signedW
 				hasSlash = true
 			}
 		}
-		k.DeleteOracleSetConfirm(ctx, oracleSet.Nonce)
 		// then we set the latest slashed oracleSet  nonce
 		k.SetLastSlashedOracleSetNonce(ctx, oracleSet.Nonce)
 	}
@@ -119,7 +120,6 @@ func batchSlashing(ctx sdk.Context, k Keeper, oracles types.Oracles, signedWindo
 				hasSlash = true
 			}
 		}
-		k.DeleteBatchConfig(ctx, batch.BatchNonce, batch.TokenContract)
 		// then we set the latest slashed batch block
 		k.SetLastSlashedBatchBlock(ctx, batch.Block)
 	}
@@ -219,8 +219,9 @@ func pruneOracleSet(ctx sdk.Context, k Keeper, signedOracleSetsWindow uint64) {
 	if lastObserved != nil && !tooEarly {
 		earliestToPrune := currentBlock - signedOracleSetsWindow
 		k.IterateOracleSets(ctx, false, func(set *types.OracleSet) bool {
-			if set.Height < earliestToPrune && set.Nonce < lastObserved.Nonce {
+			if earliestToPrune >= set.Height && lastObserved.Nonce >= set.Nonce {
 				k.DeleteOracleSet(ctx, set.Nonce)
+				k.DeleteOracleSetConfirm(ctx, set.Nonce)
 			}
 			return false
 		})

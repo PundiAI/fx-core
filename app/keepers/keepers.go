@@ -84,6 +84,9 @@ type CrossChainKeepers struct {
 }
 
 type AppKeepers struct {
+	legacyAmino *codec.LegacyAmino
+	appCodec    codec.Codec
+
 	// keys to access the substores
 	keys    map[string]*sdk.KVStoreKey
 	tkeys   map[string]*sdk.TransientStoreKey
@@ -124,8 +127,6 @@ type AppKeepers struct {
 	MigrateKeeper   migratekeeper.Keeper
 
 	TransferModule ibctransfer.AppModule
-
-	LegacyAmino *codec.LegacyAmino
 }
 
 func NewAppKeeper(
@@ -139,7 +140,10 @@ func NewAppKeeper(
 	invCheckPeriod uint,
 	appOpts servertypes.AppOptions,
 ) *AppKeepers {
-	appKeepers := &AppKeepers{LegacyAmino: legacyAmino}
+	appKeepers := &AppKeepers{
+		legacyAmino: legacyAmino,
+		appCodec:    appCodec,
+	}
 
 	// Set keys KVStoreKey, TransientStoreKey, MemoryStoreKey
 	appKeepers.GenerateKeys()
@@ -472,6 +476,18 @@ func NewAppKeeper(
 func (appKeepers *AppKeepers) GetSubspace(moduleName string) paramstypes.Subspace {
 	subspace, _ := appKeepers.ParamsKeeper.GetSubspace(moduleName)
 	return subspace
+}
+
+// LegacyAmino NOTE: This is solely to be used for testing purposes as it may be desirable
+// for modules to register their own custom testing types.
+func (appKeepers *AppKeepers) LegacyAmino() *codec.LegacyAmino {
+	return appKeepers.legacyAmino
+}
+
+// AppCodec NOTE: This is solely to be used for testing purposes as it may be desirable
+// for modules to register their own custom testing types.
+func (appKeepers *AppKeepers) AppCodec() codec.Codec {
+	return appKeepers.appCodec
 }
 
 // initParamsKeeper init params keeper and its subspaces
