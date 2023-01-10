@@ -29,7 +29,7 @@ type CrosschainTestSuite struct {
 }
 
 func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestSuite {
-	key, err := ethcrypto.GenerateKey()
+	externalPrivKey, err := ethcrypto.GenerateKey()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -38,7 +38,7 @@ func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestS
 		chainName:       chainName,
 		oraclePrivKey:   helpers.NewPriKey(),
 		bridgerPrivKey:  helpers.NewPriKey(),
-		externalPrivKey: key,
+		externalPrivKey: externalPrivKey,
 		privKey:         helpers.NewEthPrivKey(),
 	}
 }

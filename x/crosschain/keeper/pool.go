@@ -144,7 +144,6 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 }
 
 // AddUnbatchedTx creates a new transaction in the pool
-// WARNING: Do not make this function public
 func (k Keeper) AddUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.OutgoingTransferTx) error {
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingTxPoolKey(outgoingTransferTx.Fee, outgoingTransferTx.Id)
@@ -157,7 +156,6 @@ func (k Keeper) AddUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.Outgoi
 }
 
 // removeUnbatchedTXIndex removes the tx from the pool
-// WARNING: Do not make this function public
 func (k Keeper) removeUnbatchedTx(ctx sdk.Context, fee types.ERC20Token, txID uint64) error {
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingTxPoolKey(fee, txID)

@@ -49,6 +49,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			k.Logger(ctx).Info("failed to relay transfer", "err", err)
 			return nil
 		}
+
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
 
@@ -117,6 +118,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			}
 		}
 		k.SetLastObservedOracleSet(ctx, observedOracleSet)
+
 	default:
 		return sdkerrors.Wrapf(types.ErrInvalid, "event type: %s", claim.GetType())
 	}

@@ -33,28 +33,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
-func NoSupplyGenesisState(cdc codec.Codec) app.GenesisState {
-	genesisState := app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cdc)
-
-	// reset supply
-	bankState := banktypes.DefaultGenesisState()
-	bankState.DenomMetadata = []banktypes.Metadata{fxtypes.GetFXMetaData(fxtypes.DefaultDenom)}
-	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
-
-	var govGenState govtypes.GenesisState
-	cdc.MustUnmarshalJSON(genesisState[govtypes.ModuleName], &govGenState)
-	govGenState.VotingParams.VotingPeriod = time.Millisecond
-
-	genesisState[govtypes.ModuleName] = cdc.MustMarshalJSON(&govGenState)
-
-	var evmGenState evmtypes.GenesisState
-	cdc.MustUnmarshalJSON(genesisState[evmtypes.ModuleName], &evmGenState)
-	evmGenState.Params.EvmDenom = fxtypes.DefaultDenom
-	genesisState[evmtypes.ModuleName] = cdc.MustMarshalJSON(&evmGenState)
-
-	return genesisState
-}
-
 // DefaultNetworkConfig returns a sane default configuration suitable for nearly all
 // testing requirements.
 func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *network.Config)) network.Config {
@@ -95,6 +73,28 @@ func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *networ
 		opt(&cfg)
 	}
 	return cfg
+}
+
+func NoSupplyGenesisState(cdc codec.Codec) app.GenesisState {
+	genesisState := app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cdc)
+
+	// reset supply
+	bankState := banktypes.DefaultGenesisState()
+	bankState.DenomMetadata = []banktypes.Metadata{fxtypes.GetFXMetaData(fxtypes.DefaultDenom)}
+	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
+
+	var govGenState govtypes.GenesisState
+	cdc.MustUnmarshalJSON(genesisState[govtypes.ModuleName], &govGenState)
+	govGenState.VotingParams.VotingPeriod = time.Millisecond
+
+	genesisState[govtypes.ModuleName] = cdc.MustMarshalJSON(&govGenState)
+
+	var evmGenState evmtypes.GenesisState
+	cdc.MustUnmarshalJSON(genesisState[evmtypes.ModuleName], &evmGenState)
+	evmGenState.Params.EvmDenom = fxtypes.DefaultDenom
+	genesisState[evmtypes.ModuleName] = cdc.MustMarshalJSON(&evmGenState)
+
+	return genesisState
 }
 
 func IbcGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.GenesisState {

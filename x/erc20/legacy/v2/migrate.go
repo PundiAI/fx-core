@@ -17,7 +17,7 @@ type migrateRelation struct {
 }
 
 func MigrateIBCTransferRelation(ctx sdk.Context, store sdk.KVStore, erc20Keeper erc20Keeper) {
-	counts := make(map[string]uint64, 10)
+	counts := make(map[string]uint64)
 	migrates := make([]migrateRelation, 0)
 
 	iterateIBCTransferRelationLegacy(store, func(port, channel string, sequence uint64) bool {

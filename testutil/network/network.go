@@ -180,9 +180,9 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		nodeIDs    = make([]string, network.Config.NumValidators)
 		valPubKeys = make([]cryptotypes.PubKey, network.Config.NumValidators)
 
-		genAccounts []authtypes.GenesisAccount
-		genBalances []banktypes.Balance
-		genFiles    []string
+		genAccounts = make([]authtypes.GenesisAccount, network.Config.NumValidators)
+		genBalances = make([]banktypes.Balance, network.Config.NumValidators)
+		genFiles    = make([]string, network.Config.NumValidators)
 		startTime   = time.Now()
 	)
 	if network.Config.NumValidators > 1 {
@@ -252,12 +252,12 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			}
 			appCfg.GRPC.Enable = true
 
-			//_, grpcWebPort, err := server.FreeTCPAddr()
-			//if err != nil {
+			// _, grpcWebPort, err := server.FreeTCPAddr()
+			// if err != nil {
 			//	return nil, err
-			//}
-			//appCfg.GRPCWeb.Address = fmt.Sprintf("0.0.0.0:%s", grpcWebPort)
-			//appCfg.GRPCWeb.Enable = true
+			// }
+			// appCfg.GRPCWeb.Address = fmt.Sprintf("0.0.0.0:%s", grpcWebPort)
+			// appCfg.GRPCWeb.Enable = true
 
 			if network.Config.JSONRPCAddress != "" {
 				appCfg.JSONRPC.Address = network.Config.JSONRPCAddress
@@ -296,11 +296,11 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		tmCfg.SetRoot(nodeDir)
 		tmCfg.Moniker = nodeDirName
 
-		//proxyAddr, _, err := server.FreeTCPAddr()
-		//if err != nil {
+		// proxyAddr, _, err := server.FreeTCPAddr()
+		// if err != nil {
 		//	return nil, err
-		//}
-		//tmCfg.ProxyApp = proxyAddr
+		// }
+		// tmCfg.ProxyApp = proxyAddr
 
 		_, p2pPort, err := server.FreeTCPAddr()
 		if err != nil {
@@ -361,9 +361,9 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 
 		balances := sdk.NewCoins(sdk.NewCoin(network.Config.BondDenom, network.Config.StakingTokens))
 
-		genFiles = append(genFiles, tmCfg.GenesisFile())
-		genBalances = append(genBalances, banktypes.Balance{Address: valAddr.String(), Coins: balances.Sort()})
-		genAccounts = append(genAccounts, authtypes.NewBaseAccount(valAddr, nil, 0, 0))
+		genFiles[i] = tmCfg.GenesisFile()
+		genBalances[i] = banktypes.Balance{Address: valAddr.String(), Coins: balances.Sort()}
+		genAccounts[i] = authtypes.NewBaseAccount(valAddr, nil, 0, 0)
 
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
 			sdk.ValAddress(valAddr),

@@ -12,7 +12,7 @@ type Channelkeeper interface {
 }
 
 func PruneExpirationIBCTransferRelation(ctx sdk.Context, store sdk.KVStore, channelKeeper Channelkeeper) {
-	counts := make(map[string]uint64, 10)
+	counts := make(map[string]uint64)
 	iterateIBCTransferRelationLegacy(store, func(port, channel string, sequence uint64) bool {
 		found := channelKeeper.HasPacketCommitment(ctx, port, channel, sequence)
 		if found {

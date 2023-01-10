@@ -31,7 +31,7 @@ import (
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
-func (appKeepers *AppKeepers) GenerateKeys() {
+func (appKeepers *AppKeepers) generateKeys() {
 	// Define what keys will be used in the cosmos-sdk key/value store.
 	// Cosmos-SDK modules each have a "key" that allows the application to reference what they've stored on the chain.
 	appKeepers.keys = sdk.NewKVStoreKeys(

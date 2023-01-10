@@ -146,7 +146,7 @@ func NewAppKeeper(
 	}
 
 	// Set keys KVStoreKey, TransientStoreKey, MemoryStoreKey
-	appKeepers.GenerateKeys()
+	appKeepers.generateKeys()
 
 	appKeepers.ParamsKeeper = initParamsKeeper(
 		appCodec,
@@ -176,7 +176,8 @@ func NewAppKeeper(
 		appCodec,
 		appKeepers.keys[authtypes.StoreKey],
 		appKeepers.GetSubspace(authtypes.ModuleName),
-		authtypes.ProtoBaseAccount, maccPerms,
+		authtypes.ProtoBaseAccount,
+		maccPerms,
 	)
 	appKeepers.AuthzKeeper = authzkeeper.NewKeeper(
 		appKeepers.keys[authzkeeper.StoreKey],

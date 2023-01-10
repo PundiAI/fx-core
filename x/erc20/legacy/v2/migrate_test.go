@@ -19,7 +19,7 @@ import (
 
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	v2 "github.com/functionx/fx-core/v3/x/erc20/legacy/v2"
-	types "github.com/functionx/fx-core/v3/x/erc20/types"
+	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 type MigrateTestSuite struct {
