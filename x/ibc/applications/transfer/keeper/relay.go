@@ -193,19 +193,15 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		ibcAmount := sdk.NewCoin(receiveDenom, transferAmount)
 		ibcFee := sdk.NewCoin(receiveDenom, feeAmount)
 
-		eventManager := ctx.EventManager()
 		err = route.TransferAfter(ctx, receiver.String(), data.Receiver, ibcAmount, ibcFee)
 		routerEvent := sdk.NewEvent(types.EventTypeReceiveRoute,
 			sdk.NewAttribute(types.AttributeKeyRoute, data.Router),
 			sdk.NewAttribute(types.AttributeKeyRouteSuccess, fmt.Sprintf("%t", err == nil)),
 		)
 		if err != nil {
-			// NOTE: reset eventManager, only emit router error event, exclude other event
-			eventManager = sdk.NewEventManager()
 			routerEvent = routerEvent.AppendAttributes(sdk.NewAttribute(types.AttributeKeyRouteError, err.Error()))
 		}
-		eventManager.EmitEvent(routerEvent)
-		ctx.WithEventManager(eventManager)
+		ctx.EventManager().EmitEvent(routerEvent)
 		return err
 	}
 	return nil
