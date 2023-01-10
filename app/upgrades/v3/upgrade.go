@@ -41,7 +41,11 @@ func createUpgradeHandler(
 		updateMetadataAliasNull(cacheCtx, keepers.BankKeeper)
 
 		// run migrations
-		toVM := runMigrations(cacheCtx, mm, configurator, fromVM)
+		ctx.Logger().Info("start to run v3 migrations...", "module", "upgrade")
+		toVM, err := mm.RunMigrations(ctx, configurator, fromVM)
+		if err != nil {
+			panic(fmt.Sprintf("run migrations: %s", err.Error()))
+		}
 
 		// init avalanche oracles
 		initAvalancheOracles(cacheCtx, keepers.AvalancheKeeper)
@@ -66,7 +70,13 @@ func initAvalancheOracles(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keep
 	if chainId == fxtypes.MainnetChainId {
 		oracles = []string{}
 	} else if chainId == fxtypes.TestnetChainId {
-		oracles = []string{}
+		oracles = []string{
+			"fx1q4avdlyhxhzq3l2ngux2tpmz7jwl5mnkycnxve",
+			"fx13s5dyfagdyv2vcf25gw5rl849w5e93kztf5t5f",
+			"fx1wmakpdj7u3cf9anqq0u552qnm2uef50fgj7wnz",
+			"fx1ehd44azw0cu8u2kljhkfkccfc4xkjpl7nlredz",
+			"fx1fcytwf6netk6nvftan5wnu7jsv06x0gxuq4avf",
+		}
 	} else {
 		panic("invalid chainId:" + chainId)
 	}
@@ -80,32 +90,27 @@ func initAvalancheOracles(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keep
 }
 
 func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
-	var oracles []string
-	chainId := ctx.ChainID()
-	// todo need add oracles
-	if chainId == fxtypes.MainnetChainId {
-		oracles = []string{}
-	} else if chainId == fxtypes.TestnetChainId {
-		oracles = []string{}
-	} else {
-		panic("invalid chainId:" + chainId)
-	}
+	oracles := getBSCOracles(ctx.ChainID())
 	if len(oracles) <= 0 {
 		return
+	}
+	// append old oracle
+	proposalOracle, _ := bscKeeper.GetProposalOracle(ctx)
+	for _, oracle1 := range proposalOracle.Oracles {
+		var isExist bool
+		for _, oracle2 := range oracles {
+			if oracle1 == oracle2 {
+				isExist = true
+			}
+		}
+		if !isExist {
+			oracles = append(oracles, oracle1)
+		}
 	}
 	ctx.Logger().Info("update module bsc oracles to", "module", "upgrade", "number", len(oracles))
 	bscKeeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: oracles,
 	})
-}
-
-func runMigrations(ctx sdk.Context, mm *module.Manager, mc module.Configurator, fromVM module.VersionMap) module.VersionMap {
-	ctx.Logger().Info("start to run v3 migrations...", "module", "upgrade")
-	toVM, err := mm.RunMigrations(ctx, mc, fromVM)
-	if err != nil {
-		panic(fmt.Sprintf("run migrations: %s", err.Error()))
-	}
-	return toVM
 }
 
 func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
@@ -154,7 +159,7 @@ func getMetadata(chainId string) []banktypes.Metadata {
 			fxtypes.GetCrossChainMetadata("BavaToken", "BAVA", 18, "avalanche0x52583B59A9458667b82358A7ac07b6d26f83A2A4"),
 			fxtypes.GetCrossChainMetadata("Wrapped BTC", "WBTC", 8, "eth0x6895a336ccC9086aD026a83B93073960622b35B4"),
 		}
-	} else {
+	} else if chainId == fxtypes.MainnetChainId {
 		return []banktypes.Metadata{
 			fxtypes.GetCrossChainMetadata("Wrapped AVAX", "WAVAX", 18, "avalanche0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"),
 			fxtypes.GetCrossChainMetadata("Staked AVAX", "sAVAX", 18, "avalanche0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE"),
@@ -162,7 +167,28 @@ func getMetadata(chainId string) []banktypes.Metadata {
 			fxtypes.GetCrossChainMetadata("BavaToken", "BAVA", 18, "avalanche0xe19A1684873faB5Fb694CfD06607100A632fF21c"),
 			fxtypes.GetCrossChainMetadata("Wrapped BTC", "WBTC", 8, "eth0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"),
 		}
+	} else {
+		panic("invalid chainId:" + chainId)
 	}
+}
+
+func getBSCOracles(chainId string) []string {
+	var oracles []string
+	// todo need add oracles
+	if chainId == fxtypes.MainnetChainId {
+		oracles = []string{}
+	} else if chainId == fxtypes.TestnetChainId {
+		oracles = []string{
+			"fx1v55r4dl0l35ra4hgjsp9hq4skzkpc6z7hvnrcv",
+			"fx1l2nqwmhw8xw2y68yzucs4nvs2mxdd7ff5jn53e",
+			"fx1vavhtkdycrxrsa5gfr53gn90xktvma4ystd8na",
+			"fx1cajtzkv5mu2jhl5q7c6qwqxh2d0zlylyuppf2f",
+			"fx1zfvcvl4hk7rl0zgesuqx7n37zr0q6c9hpjk4jc",
+		}
+	} else {
+		panic("invalid chainId:" + chainId)
+	}
+	return oracles
 }
 
 // preUpgradeCmd called by cosmovisor
