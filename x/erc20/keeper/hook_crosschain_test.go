@@ -290,7 +290,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 
 				return []types.RelayTransferCrossChain{relay}, []string{
 					recipient,
-					fmt.Sprintf("invalid address (%s) of the wrong length exp (%d) actual (42): invalid address", recipient, len(recipient)),
+					fmt.Sprintf("invalid address (%s) of the wrong length exp (42) actual (%d): invalid address", recipient, len(recipient)),
 				}
 			},
 			error: func(args []string) string {

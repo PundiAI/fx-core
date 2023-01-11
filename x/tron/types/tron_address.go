@@ -16,7 +16,8 @@ func ValidateTronAddress(addr string) error {
 		return fmt.Errorf("empty")
 	}
 	if len(addr) != TronContractAddressLen {
-		return fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", addr, len(addr), TronContractAddressLen)
+		// todo: is need return address in the error message?
+		return fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", addr, TronContractAddressLen, len(addr))
 	}
 
 	tronAddr, err := common.DecodeCheck(addr)

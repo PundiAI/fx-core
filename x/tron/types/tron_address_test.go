@@ -1,10 +1,12 @@
-package types
+package types_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func TestValidateTronAddress(t *testing.T) {
@@ -24,13 +26,13 @@ func TestValidateTronAddress(t *testing.T) {
 			testName:   "address length not match",
 			value:      "abcdddddd",
 			expectPass: false,
-			err:        fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", "abcdddddd", len("abcdddddd"), TronContractAddressLen),
+			err:        fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", "abcdddddd", types.TronContractAddressLen, len("abcdddddd")),
 		},
 		{
 			testName:   "address length great than tron address",
 			value:      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666",
 			expectPass: false,
-			err:        fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666", len("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666"), TronContractAddressLen),
+			err:        fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666", types.TronContractAddressLen, len("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666")),
 		},
 		{
 			testName:   "lowercase address",
@@ -54,7 +56,7 @@ func TestValidateTronAddress(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.testName, func(t *testing.T) {
-			err := ValidateTronAddress(testCase.value)
+			err := types.ValidateTronAddress(testCase.value)
 			if testCase.expectPass {
 				require.NoError(t, err)
 				return

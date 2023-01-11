@@ -2,13 +2,17 @@ package types_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	_ "github.com/functionx/fx-core/v3/app"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
@@ -20,10 +24,14 @@ import (
 )
 
 func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
-	addrTooLong := sdk.AccAddress("Accidentally used 268 bytes pubkey test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content test content")
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
+	require.NoError(t, err)
 	addr := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
 	chainName := "bsc"
-	invalidChainName := "foo"
+	invalidChainName := fmt.Sprintf("a%sb", tmrand.Str(5))
+	externalAddr := common.BytesToAddress(tmrand.Bytes(20)).Hex()
+
 	tests := []struct {
 		name    string
 		msg     *types.MsgBondedOracle
@@ -31,53 +39,44 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 	}{
 		{
 			"invalid chain name", &types.MsgBondedOracle{
-				OracleAddress:   addrTooLong.String(),
-				BridgerAddress:  addr.String(),
-				ExternalAddress: "0x312469f0a5782Ab0f2b3aD223C6798bFd630d61D",
-				DelegateAmount:  sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(1)},
-				ChainName:       invalidChainName,
+				ChainName: invalidChainName,
 			},
-			fmt.Sprintf("Unrecognized cross chain type: %v: unknown request", invalidChainName),
+			"unrecognized cross chain name: invalid request",
 		},
 		{
 			"invalid oracle address", &types.MsgBondedOracle{
-				OracleAddress:   addrTooLong.String(),
-				BridgerAddress:  addr.String(),
-				ExternalAddress: "0x312469f0a5782Ab0f2b3aD223C6798bFd630d61D",
-				DelegateAmount:  sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(1)},
-				ChainName:       chainName,
+				ChainName:     chainName,
+				OracleAddress: errPrefixAddress,
 			},
-			"oracle address: invalid",
+			fmt.Sprintf("invalid oracle address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
 			"invalid bridger address", &types.MsgBondedOracle{
-				OracleAddress:   addr.String(),
-				BridgerAddress:  addrTooLong.String(),
-				ExternalAddress: "0x312469f0a5782Ab0f2b3aD223C6798bFd630d61D",
-				DelegateAmount:  sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(1)},
-				ChainName:       chainName,
+				ChainName:      chainName,
+				OracleAddress:  addr.String(),
+				BridgerAddress: errPrefixAddress,
 			},
-			"bridger address: invalid",
+			fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
 			"invalid external address", &types.MsgBondedOracle{
+				ChainName:       chainName,
 				OracleAddress:   addr.String(),
 				BridgerAddress:  addr.String(),
-				ExternalAddress: "0x312469f0a5782Ab0f2b3aD223C6798bF",
+				ExternalAddress: strings.ToUpper(externalAddr),
 				DelegateAmount:  sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(1)},
-				ChainName:       chainName,
 			},
-			"external address: invalid",
+			fmt.Sprintf("invalid external address: invalid address (%s) doesn't pass regex: invalid address", strings.ToUpper(externalAddr)),
 		},
 		{
 			"invalid delegate amount", &types.MsgBondedOracle{
+				ChainName:       chainName,
 				OracleAddress:   addr.String(),
 				BridgerAddress:  addr.String(),
 				ExternalAddress: "0x312469f0a5782Ab0f2b3aD223C6798bFd630d61D",
 				DelegateAmount:  sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(-1)},
-				ChainName:       chainName,
 			},
-			"delegate amount: invalid",
+			"invalid delegation amount: invalid request",
 		},
 	}
 	for _, tt := range tests {
@@ -102,7 +101,7 @@ func TestEthereumMsgValidate_MsgOracleSetUpdatedClaimValidate(t *testing.T) {
 		wantErr string
 	}{
 		{
-			"invalid event nonce", &types.MsgOracleSetUpdatedClaim{
+			"err - zero event nonce", &types.MsgOracleSetUpdatedClaim{
 				EventNonce:     0,
 				BlockHeight:    100,
 				OracleSetNonce: 10,
@@ -113,9 +112,9 @@ func TestEthereumMsgValidate_MsgOracleSetUpdatedClaimValidate(t *testing.T) {
 				BridgerAddress: addr.String(),
 				ChainName:      "bsc",
 			},
-			"event nonce: unknown",
+			"zero event nonce: invalid request",
 		}, {
-			"empty members", &types.MsgOracleSetUpdatedClaim{
+			"err - empty members", &types.MsgOracleSetUpdatedClaim{
 				EventNonce:     100,
 				BlockHeight:    100,
 				OracleSetNonce: 10,
@@ -123,7 +122,7 @@ func TestEthereumMsgValidate_MsgOracleSetUpdatedClaimValidate(t *testing.T) {
 				BridgerAddress: addr.String(),
 				ChainName:      "bsc",
 			},
-			"members: empty",
+			"empty members: invalid request",
 		},
 	}
 	for _, tt := range tests {

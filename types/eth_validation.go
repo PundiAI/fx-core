@@ -34,7 +34,8 @@ func ValidateEthereumAddress(address string) error {
 		return fmt.Errorf("empty")
 	}
 	if len(address) != EthereumContractAddressLen {
-		return fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", address, len(address), EthereumContractAddressLen)
+		// todo: is need return address in the error message?
+		return fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", address, EthereumContractAddressLen, len(address))
 	}
 	if !ethereumAddressRegular.MatchString(address) {
 		return fmt.Errorf("invalid address (%s) doesn't pass regex", address)

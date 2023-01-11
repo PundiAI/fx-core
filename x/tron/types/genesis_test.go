@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"reflect"
@@ -8,6 +8,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func TestDefaultGenesisState(t *testing.T) {
@@ -35,7 +36,7 @@ func TestDefaultGenesisState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := DefaultGenesisState(); !reflect.DeepEqual(got, tt.want) {
+			if got := types.DefaultGenesisState(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("DefaultGenesisState() = %v, want %v", got, tt.want)
 			}
 		})

@@ -82,10 +82,10 @@ func (k Keeper) SetRouter(rtr fxtypes.Router) Keeper {
 func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error {
 	_, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "sender address %s, error %s", sender, err.Error())
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err.Error())
 	}
 	if err = fxtypes.ValidateEthereumAddress(receive); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address %s, error %s", receive, err.Error())
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receive address: %s", err.Error())
 	}
 	_, err = k.ConvertCoin(sdk.WrapSDKContext(ctx), &types.MsgConvertCoin{
 		Coin:     coin.Add(fee),

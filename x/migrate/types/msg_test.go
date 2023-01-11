@@ -41,9 +41,6 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 	data := append([]byte("----------------------------------length 64 and latest less than"), []byte{0x1}...)
 	errSignStr := hex.EncodeToString(data)
 
-	errPubKey, _ := crypto.SigToPub(types.MigrateAccountSignatureHash(addr1, addr2.Bytes()), data)
-	errAddr := crypto.PubkeyToAddress(*errPubKey)
-
 	cases := []struct {
 		name        string
 		expectedErr string // empty means no error expected
@@ -51,17 +48,17 @@ func TestMsgMigrateAccountValidation(t *testing.T) {
 	}{
 		{"valid migrate", "", types.NewMsgMigrateAccount(addr1, addr2, validSignHex)},
 
-		{"empty from address", "empty address string is not allowed: invalid address", types.NewMsgMigrateAccount(addrEmpty, addr2, emptySign)},
-		{"invalid from address", "address max length is 255, got 268: unknown address: invalid address", types.NewMsgMigrateAccount(addrTooLong, addr2, emptySign)},
+		{"empty from address", "invalid from address: empty address string is not allowed: invalid address", types.NewMsgMigrateAccount(addrEmpty, addr2, emptySign)},
+		{"invalid from address", "invalid from address: address max length is 255, got 268: unknown address: invalid address", types.NewMsgMigrateAccount(addrTooLong, addr2, emptySign)},
 
-		{"empty to address", "empty: invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "", Signature: emptySign}},
-		{"invalid to address", "invalid address (1234567890) of the wrong length exp (10) actual (42): invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "1234567890", Signature: emptySign}},
+		{"empty to address", "invalid to address: empty: invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "", Signature: emptySign}},
+		{"invalid to address", "invalid to address: invalid address (1234567890) of the wrong length exp (42) actual (10): invalid address", &types.MsgMigrateAccount{From: addr1.String(), To: "1234567890", Signature: emptySign}},
 
-		{"same from address to address", fmt.Sprintf("%s: same account", addr1.String()), types.NewMsgMigrateAccount(addr1, common.BytesToAddress(addr1.Bytes()), emptySign)},
+		{"same from address to address", "same account: invalid request", types.NewMsgMigrateAccount(addr1, common.BytesToAddress(addr1.Bytes()), emptySign)},
 
-		{"empty sign", "signature is empty: invalid signature", types.NewMsgMigrateAccount(addr1, addr2, emptySign)},
-		{"invalid sign", "could not hex decode signature: xx xxx: invalid signature", types.NewMsgMigrateAccount(addr1, addr2, invalidSign)},
-		{"signature key not equal to address", fmt.Sprintf("signature key not equal to address, expected %s, got %s: invalid signature", addr2.String(), errAddr.String()), types.NewMsgMigrateAccount(addr1, addr2, errSignStr)},
+		{"empty sign", "empty signature: invalid request", types.NewMsgMigrateAccount(addr1, addr2, emptySign)},
+		{"invalid sign", "could not hex decode signature: invalid request", types.NewMsgMigrateAccount(addr1, addr2, invalidSign)},
+		{"signature key not equal to address", "signature key not equal to address: invalid request", types.NewMsgMigrateAccount(addr1, addr2, errSignStr)},
 	}
 
 	for _, tc := range cases {

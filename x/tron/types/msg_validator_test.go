@@ -9,25 +9,27 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	_ "github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalOracleAddress := addressBytes.String()
-	normalOrchestratorAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+	normalExternalAddress := helpers.GenerateAddressByModule(trontypes.ModuleName)
+	normalOracleAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
+
+	externalAddressLenth := trontypes.TronContractAddressLen
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
@@ -37,108 +39,121 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgBondedOracle{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err chain name",
+			testName: "err - invalid chain name",
 			msg: &types.MsgBondedOracle{
-				ChainName: "111",
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
 		},
 		{
-			testName: "err oracle address",
+			testName: "err - empty oracle address",
 			msg: &types.MsgBondedOracle{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "oracle address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid oracle address: empty address string is not allowed: invalid address",
 		},
 		{
-			testName: "err oracle address",
+			testName: "err - error prefix oracle address",
 			msg: &types.MsgBondedOracle{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "oracle address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid oracle address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err bridger address",
+			testName: "err - empty bridger address",
 			msg: &types.MsgBondedOracle{
 				ChainName:      trontypes.ModuleName,
 				OracleAddress:  normalOracleAddress,
 				BridgerAddress: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "bridger address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
 		},
 		{
-			testName: "err bridger address",
+			testName: "err - invalid bridger address",
 			msg: &types.MsgBondedOracle{
 				ChainName:      trontypes.ModuleName,
 				OracleAddress:  normalOracleAddress,
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "bridger address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err external address",
+			testName: "err - empty external address",
 			msg: &types.MsgBondedOracle{
 				ChainName:       trontypes.ModuleName,
 				OracleAddress:   normalOracleAddress,
-				BridgerAddress:  normalOrchestratorAddress,
+				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid external address: empty: invalid address",
 		},
 		{
-			testName: "err external address",
+			testName: "err - invalid external address",
 			msg: &types.MsgBondedOracle{
 				ChainName:       trontypes.ModuleName,
 				OracleAddress:   normalOracleAddress,
-				BridgerAddress:  normalOrchestratorAddress,
-				ExternalAddress: "err external address",
+				BridgerAddress:  normalBridgeAddress,
+				ExternalAddress: "error external address",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid external address: invalid address (%s) of the wrong length exp (%d) actual (%d): invalid address", "error external address", externalAddressLenth, len("error external address")),
 		},
 		{
-			testName: "err deposit amount",
+			testName: "error - oracle address is same bridge address",
 			msg: &types.MsgBondedOracle{
 				ChainName:       trontypes.ModuleName,
 				OracleAddress:   normalOracleAddress,
-				BridgerAddress:  normalOrchestratorAddress,
+				BridgerAddress:  normalOracleAddress,
 				ExternalAddress: normalExternalAddress,
-				DelegateAmount:  sdk.NewCoin("demo", sdk.NewInt(0)),
+				DelegateAmount:  sdk.NewCoin(fmt.Sprintf("a%sb", tmrand.Str(5)), sdk.NewInt(0)),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "delegate amount", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "same address: invalid request",
+		},
+		{
+			testName: "success - zero delegate amount",
+			msg: &types.MsgBondedOracle{
+				ChainName:       trontypes.ModuleName,
+				OracleAddress:   normalOracleAddress,
+				BridgerAddress:  normalBridgeAddress,
+				ExternalAddress: normalExternalAddress,
+				DelegateAmount:  sdk.NewCoin(fmt.Sprintf("a%sb", tmrand.Str(5)), sdk.NewInt(0)),
+			},
+			expectPass: true,
+			err:        nil,
+			errReason:  "",
 		},
 		{
 			testName: "success",
 			msg: &types.MsgBondedOracle{
 				ChainName:       trontypes.ModuleName,
 				OracleAddress:   normalOracleAddress,
-				BridgerAddress:  normalOrchestratorAddress,
+				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: normalExternalAddress,
 				DelegateAmount:  sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1)),
 			},
@@ -149,22 +164,24 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalOracleAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+	normalOracleAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5)))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
+
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
@@ -174,46 +191,66 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgAddDelegate{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err oracle address",
+			testName: "err - invalid chain name",
+			msg: &types.MsgAddDelegate{
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "err - empty oracle address",
+			msg: &types.MsgAddDelegate{
+				ChainName:     trontypes.ModuleName,
+				OracleAddress: "",
+				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1)},
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid oracle address: empty address string is not allowed: invalid address",
+		},
+		{
+			testName: "err - error prefix address oracle address",
 			msg: &types.MsgAddDelegate{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: errPrefixAddress,
 				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1)},
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "oracle address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid oracle address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err amount",
+			testName: "err - zero delegate amount",
 			msg: &types.MsgAddDelegate{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: normalOracleAddress,
 				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(0)},
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "amount", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid amount: invalid request",
 		},
 		{
-			testName: "err amount",
+			testName: "err - negative delegate amount",
 			msg: &types.MsgAddDelegate{
 				ChainName:     trontypes.ModuleName,
 				OracleAddress: normalOracleAddress,
 				Amount:        sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(-1)},
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "amount", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid amount: invalid request",
 		},
 		{
 			testName: "success",
@@ -229,25 +266,25 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalOracleAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
-	require.NoError(t, err)
+	normalExternalAddress := helpers.GenerateAddressByModule(trontypes.ModuleName)
+	normalOracleAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgOracleSetConfirm
@@ -256,59 +293,67 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgOracleSetConfirm{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err bridger address",
+			testName: "err - invalid chain name",
+			msg: &types.MsgOracleSetConfirm{
+				ChainName: tmrand.Str(10),
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "err - empty bridger address",
+			msg: &types.MsgOracleSetConfirm{
+				ChainName:      trontypes.ModuleName,
+				BridgerAddress: "",
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
+		},
+		{
+			testName: "err - err address prefix bridger address",
 			msg: &types.MsgOracleSetConfirm{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "bridger address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err external address",
+			testName: "err - empty external address",
 			msg: &types.MsgOracleSetConfirm{
 				ChainName:       trontypes.ModuleName,
 				BridgerAddress:  normalOracleAddress,
 				ExternalAddress: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid external address: empty: invalid address",
 		},
 		{
-			testName: "err external address",
+			testName: "err - error external address",
 			msg: &types.MsgOracleSetConfirm{
 				ChainName:       trontypes.ModuleName,
 				BridgerAddress:  normalOracleAddress,
 				ExternalAddress: strings.ToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid external address: invalid address: %s: invalid address", strings.ToUpper(normalExternalAddress)),
 		},
 		{
-			testName: "err external address",
-			msg: &types.MsgOracleSetConfirm{
-				ChainName:       trontypes.ModuleName,
-				BridgerAddress:  normalOracleAddress,
-				ExternalAddress: strings.ToLower(normalExternalAddress),
-			},
-			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
-		},
-		{
-			testName: "err signature",
+			testName: "err - empty signature",
 			msg: &types.MsgOracleSetConfirm{
 				ChainName:       trontypes.ModuleName,
 				BridgerAddress:  normalOracleAddress,
@@ -316,20 +361,20 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 				Signature:       "",
 			},
 			expectPass: false,
-			err:        types.ErrEmpty,
-			errReason:  fmt.Sprintf("signature: %s", types.ErrEmpty),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "empty signature: invalid request",
 		},
 		{
-			testName: "err signature: hex.decode error",
+			testName: "err - signature: hex.decode error",
 			msg: &types.MsgOracleSetConfirm{
 				ChainName:       trontypes.ModuleName,
 				BridgerAddress:  normalOracleAddress,
 				ExternalAddress: normalExternalAddress,
-				Signature:       "kkkkk",
+				Signature:       tmrand.Str(100),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("could not hex decode signature: %s: %s", "kkkkk", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "could not hex decode signature: invalid request",
 		},
 		{
 			testName: "success",
@@ -347,25 +392,25 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalFxAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
-	require.NoError(t, err)
+	normalExternalAddress := helpers.GenerateAddressByModule(trontypes.ModuleName)
+	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgOracleSetUpdatedClaim
@@ -374,40 +419,59 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgOracleSetUpdatedClaim{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err bridger address",
+			testName: "err - invalid chain name",
+			msg: &types.MsgOracleSetUpdatedClaim{
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "err - empty bridge address",
+			msg: &types.MsgOracleSetUpdatedClaim{
+				ChainName:      trontypes.ModuleName,
+				BridgerAddress: "",
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
+		},
+		{
+			testName: "err - error prefix address oracle address",
 			msg: &types.MsgOracleSetUpdatedClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "bridger address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err members",
+			testName: "err - empty members",
 			msg: &types.MsgOracleSetUpdatedClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Members:        nil,
 			},
 			expectPass: false,
-			err:        types.ErrEmpty,
-			errReason:  fmt.Sprintf("%s: %s", "members", types.ErrEmpty),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "empty members: invalid request",
 		},
 		{
-			testName: "err members: member external error",
+			testName: "err - empty member external address",
 			msg: &types.MsgOracleSetUpdatedClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Members: types.BridgeValidators{
 					{
 						Power:           1,
@@ -416,14 +480,14 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid external address: empty: invalid address",
 		},
 		{
-			testName: "err members: member external power",
+			testName: "err - zero member external power",
 			msg: &types.MsgOracleSetUpdatedClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Members: types.BridgeValidators{
 					{
 						Power:           0,
@@ -432,14 +496,14 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectPass: false,
-			err:        types.ErrEmpty,
-			errReason:  fmt.Sprintf("%s: %s", "member power", types.ErrEmpty),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero power: invalid request",
 		},
 		{
-			testName: "err members: member external error",
+			testName: "err - invalid member external error",
 			msg: &types.MsgOracleSetUpdatedClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Members: types.BridgeValidators{
 					{
 						Power:           1,
@@ -448,14 +512,14 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid external address: invalid address: %s: invalid address", strings.ToLower(normalExternalAddress)),
 		},
 		{
 			testName: "err event nonce",
 			msg: &types.MsgOracleSetUpdatedClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Members: types.BridgeValidators{
 					{
 						Power:           1,
@@ -465,14 +529,14 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				EventNonce: 0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "event nonce", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero event nonce: invalid request",
 		},
 		{
 			testName: "err block height",
 			msg: &types.MsgOracleSetUpdatedClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Members: types.BridgeValidators{
 					{
 						Power:           1,
@@ -483,14 +547,14 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 				BlockHeight: 0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "block height", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero block height: invalid request",
 		},
 		{
 			testName: "success",
 			msg: &types.MsgOracleSetUpdatedClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Members: types.BridgeValidators{
 					{
 						Power:           1,
@@ -506,27 +570,28 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
+	normalExternalAddress := helpers.GenerateAddressByModule(trontypes.ModuleName)
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	zeroTronAddress := make([]byte, 0)
 	zeroTronAddress = append(zeroTronAddress, tronaddress.TronBytePrefix)
 	zeroTronAddress = append(zeroTronAddress, gethcommon.HexToAddress("0x0000000000000000000000000000000000000000").Bytes()...)
 	normalFxAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
@@ -536,73 +601,92 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err bridger address",
+			testName: "err - invalid chain name",
+			msg: &types.MsgBridgeTokenClaim{
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "err - empty bridge address",
+			msg: &types.MsgBridgeTokenClaim{
+				ChainName:      trontypes.ModuleName,
+				BridgerAddress: "",
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
+		},
+		{
+			testName: "err - error prefix address oracle address",
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "bridger address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err tokenContract address",
+			testName: "err - empty tokenContract address",
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
 				TokenContract:  "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "token contract", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid token contract: empty: invalid address",
 		},
 		{
-			testName: "err tokenContract address",
+			testName: "err - invalid tokenContract address",
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
 				TokenContract:  strings.ToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "token contract", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid token contract: invalid address: %s: invalid address", strings.ToUpper(normalExternalAddress)),
 		},
 		{
-			testName: "err channelIBC: not hex.decode channelIBC",
+			testName: "err - invalid channelIBC",
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
 				TokenContract:  normalExternalAddress,
-				ChannelIbc:     "kkkkk",
+				ChannelIbc:     tmrand.Str(100),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("could not decode hex channelIbc string: %s: %s", "kkkkk", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "could not decode hex channelIbc string: invalid request",
 		},
 		{
-			testName: "err name",
+			testName: "err - empty name",
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
 				TokenContract:  normalExternalAddress,
 				ChannelIbc:     "",
-				Name:           "",
+				Name:           "empty token name: invalid request",
 			},
 			expectPass: false,
-			err:        types.ErrEmpty,
-			errReason:  fmt.Sprintf("token name: %s", types.ErrEmpty),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "empty token symbol: invalid request",
 		},
 		{
-			testName: "err symbol",
+			testName: "err - empty symbol",
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
@@ -612,11 +696,11 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				Symbol:         "",
 			},
 			expectPass: false,
-			err:        types.ErrEmpty,
-			errReason:  fmt.Sprintf("token symbol: %s", types.ErrEmpty),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "empty token symbol: invalid request",
 		},
 		{
-			testName: "err event nonce",
+			testName: "err - zero event nonce",
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
@@ -627,11 +711,11 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				EventNonce:     0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "event nonce", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero event nonce: invalid request",
 		},
 		{
-			testName: "err block height",
+			testName: "err - zero block height",
 			msg: &types.MsgBridgeTokenClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
@@ -643,8 +727,8 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 				BlockHeight:    0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "block height", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero block height: invalid request",
 		},
 		{
 			testName: "success",
@@ -679,24 +763,24 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalFxAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+	normalExternalAddress := helpers.GenerateAddressByModule(trontypes.ModuleName)
+	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
@@ -706,167 +790,185 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgSendToFxClaim{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err bridger address",
+			testName: "err - invalid chain name",
+			msg: &types.MsgSendToFxClaim{
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "err - empty bridge address",
+			msg: &types.MsgSendToFxClaim{
+				ChainName:      trontypes.ModuleName,
+				BridgerAddress: "",
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
+		},
+		{
+			testName: "err - error prefix address bridger address",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "bridger address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err sender address",
+			testName: "err - empty sender address",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         "",
-				TokenContract:  "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "sender address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid sender address: empty: invalid address",
 		},
 		{
-			testName: "err sender address",
+			testName: "err - invalid sender address",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         strings.ToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "sender address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid sender address: invalid address: %s: invalid address", strings.ToUpper(normalExternalAddress)),
 		},
 		{
-			testName: "err tokenContract address",
+			testName: "err - tokenContract address",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         normalExternalAddress,
 				TokenContract:  "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "token contract", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid token contract: empty: invalid address",
 		},
 		{
-			testName: "err tokenContract address",
+			testName: "err - invalid tokenContract address",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         normalExternalAddress,
 				TokenContract:  strings.ToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "token contract", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid token contract: invalid address: %s: invalid address", strings.ToUpper(normalExternalAddress)),
 		},
 		{
-			testName: "err receiver address",
+			testName: "err - invalid receiver address",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         normalExternalAddress,
 				TokenContract:  normalExternalAddress,
 				Receiver:       errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "receiver address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid receiver address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err amount",
+			testName: "err - empty amount",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         normalExternalAddress,
 				TokenContract:  normalExternalAddress,
-				Receiver:       normalFxAddress,
+				Receiver:       normalBridgeAddress,
 				Amount:         sdk.Int{},
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "amount cannot be negative", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid amount: invalid request",
 		},
 		{
-			testName: "err amount",
+			testName: "err - negative amount",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         normalExternalAddress,
 				TokenContract:  normalExternalAddress,
-				Receiver:       normalFxAddress,
+				Receiver:       normalBridgeAddress,
 				Amount:         sdk.ZeroInt().Sub(sdk.NewInt(10000)),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "amount cannot be negative", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid amount: invalid request",
 		},
 		{
-			testName: "err channelIBC: not hex.decode channelIBC",
+			testName: "err - invalid channel ibc",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         normalExternalAddress,
 				TokenContract:  normalExternalAddress,
-				Receiver:       normalFxAddress,
+				Receiver:       normalBridgeAddress,
 				Amount:         sdk.ZeroInt(),
-				TargetIbc:      "kkkkk",
+				TargetIbc:      tmrand.Str(100),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("could not decode hex targetIbc string: %s: %s", "kkkkk", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "could not decode hex targetIbc: invalid request",
 		},
 		{
-			testName: "err event nonce",
+			testName: "err - zero event nonce",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         normalExternalAddress,
 				TokenContract:  normalExternalAddress,
-				Receiver:       normalFxAddress,
+				Receiver:       normalBridgeAddress,
 				Amount:         sdk.ZeroInt(),
 				TargetIbc:      "",
 				EventNonce:     0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "event nonce", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero event nonce: invalid request",
 		},
 		{
 			testName: "err block height",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         normalExternalAddress,
 				TokenContract:  normalExternalAddress,
-				Receiver:       normalFxAddress,
+				Receiver:       normalBridgeAddress,
 				Amount:         sdk.ZeroInt(),
 				EventNonce:     1,
 				BlockHeight:    0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "block height", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero block height: invalid request",
 		},
 		{
 			testName: "success",
 			msg: &types.MsgSendToFxClaim{
 				ChainName:      trontypes.ModuleName,
-				BridgerAddress: normalFxAddress,
+				BridgerAddress: normalBridgeAddress,
 				Sender:         normalExternalAddress,
 				TokenContract:  normalExternalAddress,
-				Receiver:       normalFxAddress,
+				Receiver:       normalBridgeAddress,
 				Amount:         sdk.ZeroInt(),
 				TargetIbc:      hex.EncodeToString([]byte("bc/transfer/channel-0")),
 				EventNonce:     1,
@@ -877,24 +979,25 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalFxAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+	normalExternalAddress := helpers.GenerateAddressByModule(trontypes.ModuleName)
+	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
+	require.NoError(t, err)
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
@@ -904,48 +1007,57 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgSendToExternal{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err sender address",
+			testName: "err - invalid chain name",
+			msg: &types.MsgSendToExternal{
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "err - error prefix sender address",
 			msg: &types.MsgSendToExternal{
 				ChainName: trontypes.ModuleName,
 				Sender:    errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "sender address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid sender address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err dest address",
+			testName: "err - empty dest address",
 			msg: &types.MsgSendToExternal{
 				ChainName: trontypes.ModuleName,
 				Sender:    normalFxAddress,
 				Dest:      "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "dest", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid dest address: empty: invalid address",
 		},
 		{
-			testName: "err dest address",
+			testName: "err - invalid dest address",
 			msg: &types.MsgSendToExternal{
 				ChainName: trontypes.ModuleName,
 				Sender:    normalFxAddress,
 				Dest:      strings.ToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "dest", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid dest address: invalid address: %s: invalid address", strings.ToUpper(normalExternalAddress)),
 		},
 		{
-			testName: "err amount",
+			testName: "err - empty amount",
 			msg: &types.MsgSendToExternal{
 				ChainName: trontypes.ModuleName,
 				Sender:    normalFxAddress,
@@ -953,21 +1065,21 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				Amount:    sdk.NewCoin("demo", sdk.NewInt(0)),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "amount", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid amount: invalid request",
 		},
 		{
-			testName: "err bridge fee: amount coin name != bridgeFee coin name",
+			testName: "err - bridge fee denom not match amount denom",
 			msg: &types.MsgSendToExternal{
 				ChainName: trontypes.ModuleName,
 				Sender:    normalFxAddress,
 				Dest:      normalExternalAddress,
-				Amount:    sdk.NewCoin("demo1", sdk.NewInt(1)),
-				BridgeFee: sdk.NewCoin("demo2", sdk.NewInt(0)),
+				Amount:    sdk.NewCoin(fmt.Sprintf("a%sb", strings.ToLower(tmrand.Str(4))), sdk.NewInt(1)),
+				BridgeFee: sdk.NewCoin(fmt.Sprintf("a%sb", strings.ToLower(tmrand.Str(5))), sdk.NewInt(0)),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("fee and amount must be the same type %s != %s: %s", "demo1", "demo2", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "bridge fee denom not equal amount denom: invalid request",
 		},
 		{
 			testName: "err bridge fee",
@@ -979,8 +1091,8 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				BridgeFee: sdk.NewCoin("demo", sdk.NewInt(0)),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "bridge fee", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid bridge fee: invalid request",
 		},
 		{
 			testName: "success",
@@ -996,22 +1108,23 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalFxAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
@@ -1021,34 +1134,34 @@ func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgCancelSendToExternal{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err sender address",
+			testName: "err - invalid sender address",
 			msg: &types.MsgCancelSendToExternal{
 				ChainName: trontypes.ModuleName,
 				Sender:    errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "sender address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid sender address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err transaction id",
+			testName: "err - zero transaction id",
 			msg: &types.MsgCancelSendToExternal{
 				ChainName:     trontypes.ModuleName,
 				Sender:        normalFxAddress,
 				TransactionId: 0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "transaction id", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero transaction id: invalid request",
 		},
 		{
 			testName: "success",
@@ -1062,24 +1175,24 @@ func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalFxAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+	normalExternalAddress := helpers.GenerateAddressByModule(trontypes.ModuleName)
+	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
@@ -1089,48 +1202,57 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgSendToExternalClaim{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err bridger address",
+			testName: "err - invalid chain name",
+			msg: &types.MsgSendToExternalClaim{
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "err - error prefix bridger address",
 			msg: &types.MsgSendToExternalClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "bridger address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err tokenContract address",
+			testName: "err - empty tokenContract address",
 			msg: &types.MsgSendToExternalClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
 				TokenContract:  "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "token contract", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid token contract: empty: invalid address",
 		},
 		{
-			testName: "err tokenContract address",
+			testName: "err - invalid tokenContract address toUpper",
 			msg: &types.MsgSendToExternalClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
 				TokenContract:  strings.ToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "token contract", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid token contract: invalid address: %s: invalid address", strings.ToUpper(normalExternalAddress)),
 		},
 		{
-			testName: "err event nonce",
+			testName: "err - zero event nonce",
 			msg: &types.MsgSendToExternalClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
@@ -1138,11 +1260,11 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				EventNonce:     0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "event nonce", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero event nonce: invalid request",
 		},
 		{
-			testName: "err block height",
+			testName: "err - zero block height",
 			msg: &types.MsgSendToExternalClaim{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: normalFxAddress,
@@ -1151,8 +1273,8 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				BlockHeight:    0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "block height", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero block height: invalid request",
 		},
 		{
 			testName: "err batch nonce",
@@ -1165,8 +1287,8 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 				BatchNonce:     0,
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("%s: %s", "batch nonce", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "zero batch nonce: invalid request",
 		},
 		{
 			testName: "success",
@@ -1183,24 +1305,24 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalFxAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+	normalExternalAddress := helpers.GenerateAddressByModule(trontypes.ModuleName)
+	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
@@ -1210,79 +1332,88 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgRequestBatch{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err sender address",
+			testName: "err - invalid chain name",
+			msg: &types.MsgRequestBatch{
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "err - error prefix sender address",
 			msg: &types.MsgRequestBatch{
 				ChainName: trontypes.ModuleName,
 				Sender:    errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "sender address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid sender address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err denom",
+			testName: "err - empty denom",
 			msg: &types.MsgRequestBatch{
 				ChainName: trontypes.ModuleName,
-				Sender:    normalFxAddress,
+				Sender:    normalBridgeAddress,
 				Denom:     "",
 			},
 			expectPass: false,
-			err:        types.ErrUnknown,
-			errReason:  fmt.Sprintf("denom: %s", types.ErrUnknown),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "empty denom: invalid request",
 		},
 		{
-			testName: "err tokenContract address",
+			testName: "err - invalid minimum fee - negative",
 			msg: &types.MsgRequestBatch{
 				ChainName:  trontypes.ModuleName,
-				Sender:     normalFxAddress,
+				Sender:     normalBridgeAddress,
 				Denom:      "demo",
 				MinimumFee: sdk.NewInt(-1),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("minimum fee: %s", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid minimum fee: invalid request",
 		},
 		{
 			testName: "err fee receive",
 			msg: &types.MsgRequestBatch{
 				ChainName:  trontypes.ModuleName,
-				Sender:     normalFxAddress,
+				Sender:     normalBridgeAddress,
 				Denom:      "demo",
 				MinimumFee: sdk.NewInt(1),
 				FeeReceive: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "fee receive address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid fee receive address: empty: invalid address",
 		},
 		{
 			testName: "err fee receive",
 			msg: &types.MsgRequestBatch{
 				ChainName:  trontypes.ModuleName,
-				Sender:     normalFxAddress,
+				Sender:     normalBridgeAddress,
 				Denom:      "demo",
 				MinimumFee: sdk.NewInt(1),
 				FeeReceive: strings.ToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "fee receive address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid fee receive address: invalid address: %s: invalid address", strings.ToUpper(normalExternalAddress)),
 		},
 
 		{
 			testName: "success",
 			msg: &types.MsgRequestBatch{
 				ChainName:  trontypes.ModuleName,
-				Sender:     normalFxAddress,
+				Sender:     normalBridgeAddress,
 				Denom:      "demo",
 				MinimumFee: sdk.NewInt(1),
 				FeeReceive: normalExternalAddress,
@@ -1293,25 +1424,26 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
 func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	normalExternalAddress := tronaddress.PubkeyToAddress(key.PublicKey).String()
-	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	normalOracleAddress := addressBytes.String()
-	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+	normalExternalAddress := helpers.GenerateAddressByModule(trontypes.ModuleName)
+	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgConfirmBatch
@@ -1320,127 +1452,123 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.MsgConfirmBatch{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
 		},
 		{
-			testName: "err bridger address",
+			testName: "err - invalid chain name",
+			msg: &types.MsgConfirmBatch{
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "unrecognized cross chain name: invalid request",
+		},
+		{
+			testName: "err - empty bridge address",
+			msg: &types.MsgConfirmBatch{
+				ChainName:      trontypes.ModuleName,
+				BridgerAddress: "",
+			},
+			expectPass: false,
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid bridger address: empty address string is not allowed: invalid address",
+		},
+		{
+			testName: "err - error prefix address bridger address",
 			msg: &types.MsgConfirmBatch{
 				ChainName:      trontypes.ModuleName,
 				BridgerAddress: errPrefixAddress,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "bridger address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid bridger address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
 		},
 		{
-			testName: "err external address",
+			testName: "err - empty external address",
 			msg: &types.MsgConfirmBatch{
 				ChainName:       trontypes.ModuleName,
-				BridgerAddress:  normalOracleAddress,
+				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid external address: empty: invalid address",
 		},
 		{
-			testName: "err external address",
+			testName: "err - invalid external address",
 			msg: &types.MsgConfirmBatch{
 				ChainName:       trontypes.ModuleName,
-				BridgerAddress:  normalOracleAddress,
+				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: strings.ToUpper(normalExternalAddress),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid external address: invalid address: %s: invalid address", strings.ToUpper(normalExternalAddress)),
 		},
 		{
-			testName: "err external address",
+			testName: "err - empty token contract address",
 			msg: &types.MsgConfirmBatch{
 				ChainName:       trontypes.ModuleName,
-				BridgerAddress:  normalOracleAddress,
-				ExternalAddress: strings.ToLower(normalExternalAddress),
-			},
-			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "external address", types.ErrInvalid),
-		},
-		{
-			testName: "err token contract address",
-			msg: &types.MsgConfirmBatch{
-				ChainName:       trontypes.ModuleName,
-				BridgerAddress:  normalOracleAddress,
+				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: normalExternalAddress,
 				TokenContract:   "",
 				Nonce:           0,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "token contract", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  "invalid token contract: empty: invalid address",
 		},
 		{
-			testName: "err token contract address",
+			testName: "err - invalid token contract address",
 			msg: &types.MsgConfirmBatch{
 				ChainName:       trontypes.ModuleName,
-				BridgerAddress:  normalOracleAddress,
+				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: normalExternalAddress,
 				TokenContract:   strings.ToUpper(normalExternalAddress),
 				Nonce:           0,
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "token contract", types.ErrInvalid),
-		},
-		{
-			testName: "err external address",
-			msg: &types.MsgConfirmBatch{
-				ChainName:       trontypes.ModuleName,
-				BridgerAddress:  normalOracleAddress,
-				ExternalAddress: normalExternalAddress,
-				TokenContract:   strings.ToLower(normalExternalAddress),
-			},
-			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "token contract", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid token contract: invalid address: %s: invalid address", strings.ToUpper(normalExternalAddress)),
 		},
 		{
 			testName: "err signature",
 			msg: &types.MsgConfirmBatch{
 				ChainName:       trontypes.ModuleName,
-				BridgerAddress:  normalOracleAddress,
+				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: normalExternalAddress,
 				TokenContract:   normalExternalAddress,
 				Signature:       "",
 			},
 			expectPass: false,
-			err:        types.ErrEmpty,
-			errReason:  fmt.Sprintf("signature: %s", types.ErrEmpty),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "empty signature: invalid request",
 		},
 		{
 			testName: "err signature: hex.decode error",
 			msg: &types.MsgConfirmBatch{
 				Nonce:           0,
 				ChainName:       trontypes.ModuleName,
-				BridgerAddress:  normalOracleAddress,
+				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: normalExternalAddress,
 				TokenContract:   normalExternalAddress,
-				Signature:       "gggg",
+				Signature:       tmrand.Str(100),
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("could not hex decode signature: %s: %s", "gggg", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  "could not hex decode signature: invalid request",
 		},
 		{
 			testName: "success",
 			msg: &types.MsgConfirmBatch{
 				Nonce:           0,
-				BridgerAddress:  normalOracleAddress,
+				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: normalExternalAddress,
 				TokenContract:   normalExternalAddress,
 				Signature:       hex.EncodeToString([]byte("abcd")),
@@ -1453,14 +1581,16 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }
 
@@ -1543,13 +1673,15 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		err = testCase.msg.ValidateBasic()
-		if testCase.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.NotNil(t, err, testCase.testName)
-			require.ErrorIs(t, err, testCase.err, testCase.testName)
-			require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
-		}
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err, testCase.testName)
+				require.Error(t, err, testCase.err, testCase.testName)
+				require.EqualValues(t, testCase.errReason, err.Error(), testCase.testName)
+			}
+		})
 	}
 }

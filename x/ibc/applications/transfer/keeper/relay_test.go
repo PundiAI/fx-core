@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packet.Data = packetData.GetBytes()
 			},
 			expPass:       false,
-			errorStr:      "ABCI code: 2: error handling packet on destination chain: see events for details",
+			errorStr:      "ABCI code: 7: error handling packet on destination chain: see events for details",
 			checkBalance:  true,
 			checkCoinAddr: senderAddr,
 			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdk.ZeroInt())),
@@ -124,41 +124,44 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			chain := suite.GetApp(suite.chainA.App)
-			transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
-			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
-			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String())
-			// only use timeout height
-			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
-				RevisionNumber: 100,
-				RevisionHeight: 100000,
-			}, 0)
-			tc.malleate(&packet)
+			for xxx := 0; xxx < 100; xxx++ {
 
-			cacheCtx, writeFn := suite.chainA.GetContext().CacheContext()
-			ackI := fxIBCMiddleware.OnRecvPacket(cacheCtx, packet, nil)
-			if ackI == nil || ackI.Success() {
-				// write application state changes for asynchronous and successful acknowledgements
-				writeFn()
-			}
-			suite.Require().NotNil(ackI)
+				suite.SetupTest()
+				chain := suite.GetApp(suite.chainA.App)
+				transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
+				fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
+				packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String())
+				// only use timeout height
+				packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
+					RevisionNumber: 100,
+					RevisionHeight: 100000,
+				}, 0)
+				tc.malleate(&packet)
 
-			ack, ok := ackI.(channeltypes.Acknowledgement)
-			suite.chainA.GetContext().EventManager().EmitEvents(cacheCtx.EventManager().Events())
+				cacheCtx, writeFn := suite.chainA.GetContext().CacheContext()
+				ackI := fxIBCMiddleware.OnRecvPacket(cacheCtx, packet, nil)
+				if ackI == nil || ackI.Success() {
+					// write application state changes for asynchronous and successful acknowledgements
+					writeFn()
+				}
+				suite.Require().NotNil(ackI)
 
-			if tc.expPass {
-				suite.Require().Truef(ack.Success(), "error:%s,packetData:%s", ack.GetError(), string(packet.GetData()))
-			} else {
-				suite.Require().False(ack.Success())
-				suite.Require().True(ok)
-				suite.Require().Equalf(tc.errorStr, ack.GetError(), "packetData:%s", string(packet.GetData()))
-			}
+				ack, ok := ackI.(channeltypes.Acknowledgement)
+				suite.chainA.GetContext().EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
-			if tc.checkBalance {
-				bankKeeper := suite.GetApp(suite.chainA.App).BankKeeper
-				actualCoins := bankKeeper.GetAllBalances(suite.chainA.GetContext(), tc.checkCoinAddr)
-				suite.Require().True(tc.expCoins.IsEqual(actualCoins), "exp:%s,actual:%s", tc.expCoins, actualCoins)
+				if tc.expPass {
+					suite.Require().Truef(ack.Success(), "error:%s,packetData:%s", ack.GetError(), string(packet.GetData()))
+				} else {
+					suite.Require().False(ack.Success())
+					suite.Require().True(ok)
+					suite.Require().Equalf(tc.errorStr, ack.GetError(), "packetData:%s", string(packet.GetData()))
+				}
+
+				if tc.checkBalance {
+					bankKeeper := suite.GetApp(suite.chainA.App).BankKeeper
+					actualCoins := bankKeeper.GetAllBalances(suite.chainA.GetContext(), tc.checkCoinAddr)
+					suite.Require().True(tc.expCoins.IsEqual(actualCoins), "exp:%s,actual:%s", tc.expCoins, actualCoins)
+				}
 			}
 		})
 	}
