@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 )
 
 func NewMnemonic() string {
@@ -90,6 +91,15 @@ func NewEthPrivKey() cryptotypes.PrivKey {
 // GenerateAddress generates an Ethereum address.
 func GenerateAddress() common.Address {
 	return common.BytesToAddress(NewEthPrivKey().PubKey().Address())
+}
+
+// GenerateAddressByModule generates an Ethereum or Tron address.
+func GenerateAddressByModule(module string) string {
+	addr := GenerateAddress()
+	if module == "tron" {
+		return tronaddress.Address(append([]byte{tronaddress.TronBytePrefix}, addr.Bytes()...)).String()
+	}
+	return addr.String()
 }
 
 // NewPubKeyFromHex returns a PubKey from a hex string.

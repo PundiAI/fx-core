@@ -192,7 +192,7 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 	denoms := make([]string, len(modules))
 	denomModules := make([]string, len(modules))
 	for index, m := range modules {
-		address := suite.RandAddress(m)
+		address := helpers.GenerateAddressByModule(m)
 
 		denom := fmt.Sprintf("%s%s", m, address)
 		denoms[index] = denom

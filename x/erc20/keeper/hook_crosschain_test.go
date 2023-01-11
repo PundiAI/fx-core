@@ -30,7 +30,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
 						From:      singerAddr,
-						Recipient: suite.RandAddress(moduleName),
+						Recipient: helpers.GenerateAddressByModule(moduleName),
 						Amount:    randMint,
 						Fee:       big.NewInt(0),
 						Target:    fxtypes.MustStrToByte32(moduleName),
@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
 						From:      singerAddr,
-						Recipient: suite.RandAddress(moduleName),
+						Recipient: helpers.GenerateAddressByModule(moduleName),
 						Amount:    randMint,
 						Fee:       big.NewInt(1),
 						Target:    fxtypes.MustStrToByte32(moduleName),
@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
 						From:      singerAddr,
-						Recipient: suite.RandAddress(moduleName),
+						Recipient: helpers.GenerateAddressByModule(moduleName),
 						Amount:    addAmount,
 						Fee:       big.NewInt(0),
 						Target:    fxtypes.MustStrToByte32(moduleName),
@@ -115,7 +115,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
 						From:      singerAddr,
-						Recipient: suite.RandAddress(unknownChain),
+						Recipient: helpers.GenerateAddressByModule(unknownChain),
 						Amount:    randMint,
 						Fee:       big.NewInt(0),
 						Target:    fxtypes.MustStrToByte32(unknownChain),
@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
 						From:      singerAddr,
-						Recipient: suite.RandAddress(moduleName),
+						Recipient: helpers.GenerateAddressByModule(moduleName),
 						Amount:    randMint,
 						Fee:       big.NewInt(0),
 						Target:    fxtypes.MustStrToByte32(moduleName),

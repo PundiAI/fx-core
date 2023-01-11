@@ -484,7 +484,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
-					aliases = append(aliases, fmt.Sprintf("%s%s", module, suite.RandAddress(module)))
+					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
 				}
 				base := denom
 				return denom, base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), ibcDenom
@@ -499,7 +499,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
-					aliases = append(aliases, fmt.Sprintf("%s%s", module, suite.RandAddress(module)))
+					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
 				}
 				base := denom
 				return denom, base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), denom
@@ -515,7 +515,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				i, idx, idxModule, idxDenom := 0, tmrand.Intn(len(keepers)), "", ""
 				aliases := make([]string, 0)
 				for module := range keepers {
-					randToken := fmt.Sprintf("%s%s", module, suite.RandAddress(module))
+					randToken := fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module))
 					aliases = append(aliases, randToken)
 					if i == idx {
 						idxModule = module
@@ -540,7 +540,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					if i == idx {
 						idxModule = module
 					} else {
-						randToken := fmt.Sprintf("%s%s", module, suite.RandAddress(module))
+						randToken := fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module))
 						aliases = append(aliases, randToken)
 					}
 					i++
@@ -557,7 +557,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
-					aliases = append(aliases, fmt.Sprintf("%s%s", module, suite.RandAddress(module)))
+					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
 				}
 				base := randDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), ibcDenom
@@ -572,7 +572,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				keepers := suite.CrossChainKeepers()
 
 				for module := range keepers {
-					aliases = append(aliases, fmt.Sprintf("%s%s", module, suite.RandAddress(module)))
+					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
 				}
 				base := randDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), aliases[0]
@@ -591,7 +591,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				}
 				aliases := make([]string, 0)
 				for module := range keepers {
-					randToken := fmt.Sprintf("%s%s", module, suite.RandAddress(module))
+					randToken := fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module))
 					aliases = append(aliases, randToken)
 					if i == idx {
 						idxModule = module
@@ -619,7 +619,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					if i == idx {
 						idxModule = module
 					} else {
-						randToken := fmt.Sprintf("%s%s", module, suite.RandAddress(module))
+						randToken := fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module))
 						aliases = append(aliases, randToken)
 					}
 					i++
