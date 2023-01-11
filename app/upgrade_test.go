@@ -1,19 +1,25 @@
 package app_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/helpers"
+	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
 	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
@@ -39,6 +45,7 @@ func Test_Upgrade(t *testing.T) {
 				Name: v3.Upgrade.UpgradeName,
 				Info: "local test upgrade v3",
 			},
+			LocalStoreBlockHeight: 7654832,
 		},
 	}
 
@@ -47,20 +54,30 @@ func Test_Upgrade(t *testing.T) {
 
 	appEncodingCfg := app.MakeEncodingConfig()
 	// logger := log.NewNopLogger()
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+	logger := log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowInfo())
 	myApp := app.New(logger, db,
 		nil, true, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		appEncodingCfg, app.EmptyAppOptions{},
 	)
 	ctx := myApp.NewUncachedContext(false, tmproto.Header{
-		ChainID: fxtypes.ChainId(),
-		Height:  myApp.LastBlockHeight(),
+		ChainID:         fxtypes.ChainId(),
+		Height:          myApp.LastBlockHeight(),
+		ProposerAddress: tmrand.Bytes(20),
 	})
+	validators := myApp.StakingKeeper.GetAllValidators(ctx)
+	assert.True(t, len(validators) > 0)
+	var pubkey cryptotypes.PubKey
+	assert.NoError(t, myApp.AppCodec().UnpackAny(validators[0].ConsensusPubkey, &pubkey))
+	ctx = ctx.WithProposer(pubkey.Address().Bytes())
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			if testCase.LocalStoreBlockHeight > 0 {
 				require.Equal(t, ctx.BlockHeight(), int64(testCase.LocalStoreBlockHeight))
+				for moduleName, keys := range v2.GetModuleKey() {
+					kvStore := ctx.MultiStore().GetKVStore(myApp.GetKey(moduleName))
+					checkStoreKey(t, moduleName, keys, kvStore)
+				}
 			}
 			checkVersionMap(t, ctx, myApp, getConsensusVersion(testCase.fromVersion))
 
@@ -72,8 +89,16 @@ func Test_Upgrade(t *testing.T) {
 			// require.NoError(t, err)
 
 			checkVersionMap(t, ctx, myApp, getConsensusVersion(testCase.toVersion))
+
+			if testCase.LocalStoreBlockHeight > 0 {
+				for moduleName, keys := range v3.GetModuleKey() {
+					kvStore := ctx.MultiStore().GetKVStore(myApp.GetKey(moduleName))
+					checkStoreKey(t, moduleName, keys, kvStore)
+				}
+			}
 		})
 	}
+	// myApp.CommitMultiStore().Commit()
 }
 
 func checkVersionMap(t *testing.T, ctx sdk.Context, myApp *app.App, versionMap module.VersionMap) {
@@ -132,4 +157,24 @@ func getConsensusVersion(appVersion int) (versionMap module.VersionMap) {
 		}
 	}
 	return versionMap
+}
+
+func checkStoreKey(t *testing.T, name string, keys map[byte][2]int, kvStores storetypes.KVStore) {
+	iterator := kvStores.Iterator(nil, nil)
+	for ; iterator.Valid(); iterator.Next() {
+		x, ok := keys[iterator.Key()[0]]
+		assert.True(t, ok, fmt.Sprintf("%x", iterator.Key()[0]), iterator.Value())
+		if ok {
+			if x[0] == -1 && x[1] == -1 {
+				// ignore
+				continue
+			}
+			// set result
+			keys[iterator.Key()[0]] = [2]int{x[0], x[1] + 1}
+		}
+	}
+	iterator.Close()
+	for k, x := range keys {
+		assert.Equal(t, x[0], x[1], fmt.Sprintf("%s: %x", name, k))
+	}
 }
