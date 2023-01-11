@@ -36,18 +36,15 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 		k.Logger(ctx).Info("failed to transfer ibc", "err1", err1, "err2", err2)
 	}
 
-	// FX denom
-	if coin.Denom == fxtypes.DefaultDenom && len(fxTarget.GetTarget()) <= 0 {
-		return nil
+	if fxTarget.GetTarget() == fxtypes.ERC20Target {
+		// transfer to evm
+		cacheCtx, commit := ctx.CacheContext()
+		if err := k.transferErc20Handler(cacheCtx, eventNonce, receiver, coin); err != nil {
+			return err
+		}
+		commit()
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	}
-
-	// transfer to evm
-	cacheCtx, commit := ctx.CacheContext()
-	if err := k.transferErc20Handler(cacheCtx, eventNonce, receiver, coin); err != nil {
-		return err
-	}
-	commit()
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	return nil
 }
 
