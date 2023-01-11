@@ -11,6 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -283,6 +284,22 @@ func (suite *KeeperTestSuite) RandAddress(module string) string {
 		addr = trontypes.AddressFromHex(addr)
 	}
 	return addr
+}
+
+func (suite *KeeperTestSuite) RandPrefixAndAddress() (string, string) {
+	hex := tmrand.Intn(10) < 3
+	if hex {
+		return "0x", helpers.GenerateAddress().Hex()
+	}
+	// TODO rand prefix and address
+	// prefixLen := tmrand.Intn(10) + 2
+	// prefixLen = 12
+	// prefix := strings.ToLower(tmrand.Str(prefixLen))
+	// accAddress, err := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
+	// suite.Require().NoError(err)
+	prefix := "px"
+	accAddress, _ := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
+	return prefix, accAddress
 }
 
 func (suite *KeeperTestSuite) RandTransferChannel() (portID, channelID string) {
