@@ -91,7 +91,7 @@ Example:
 			if err != nil {
 				return err
 			}
-			if err = generateFxChainDockerComposeYml(valNum, chainID, startingIPAddress, dockerImage); err != nil {
+			if err = generateFxChainDockerComposeYml(valNum, chainID, outputDir, startingIPAddress, dockerImage); err != nil {
 				return err
 			}
 			return clientCtx.PrintString("Please run: docker-compose up -d\n")
@@ -215,7 +215,7 @@ func initTestnet(
 		}
 
 		txBuilder := clientCtx.TxConfig.NewTxBuilder()
-		if err := txBuilder.SetMsgs(createValMsg); err != nil {
+		if err = txBuilder.SetMsgs(createValMsg); err != nil {
 			return err
 		}
 
@@ -278,7 +278,7 @@ func initTestnet(
 
 	// generate empty genesis files for each validator and save
 	for _, gen := range genFiles {
-		if err := genDoc.SaveAs(gen); err != nil {
+		if err = genDoc.SaveAs(gen); err != nil {
 			return err
 		}
 	}
@@ -321,7 +321,7 @@ func initTestnet(
 		genFile := serverCtx.Config.GenesisFile()
 
 		// overwrite each validator's genesis file to have a canonical genesis time
-		if err := genutil.ExportGenesisFileWithTime(genFile, chainID, nil, appState, genTime); err != nil {
+		if err = genutil.ExportGenesisFileWithTime(genFile, chainID, nil, appState, genTime); err != nil {
 			return err
 		}
 	}
@@ -329,18 +329,7 @@ func initTestnet(
 	return clientCtx.PrintString(fmt.Sprintf("Successfully initialized %d node directories\n", valNum))
 }
 
-func getIP(i int, startingIPAddr string) (ip string, err error) {
-	if len(startingIPAddr) == 0 {
-		ip, err = server.ExternalIP()
-		if err != nil {
-			return "", err
-		}
-		return ip, nil
-	}
-	return calculateIP(startingIPAddr, i)
-}
-
-func calculateIP(ip string, i int) (string, error) {
+func getIP(i int, ip string) (string, error) {
 	ipv4 := net.ParseIP(ip).To4()
 	if ipv4 == nil {
 		return "", fmt.Errorf("%v: non ipv4 address", ip)
@@ -405,7 +394,7 @@ networks:
       - subnet: {{.Subnet}}
 `
 
-func generateFxChainDockerComposeYml(numValidators int, chainId, startingIPAddress, dockerImage string) error {
+func generateFxChainDockerComposeYml(numValidators int, chainId, outputDir, startingIPAddress, dockerImage string) error {
 	data := map[string]interface{}{
 		"NetworkName": fmt.Sprintf("%s-net", chainId),
 		"Subnet":      fmt.Sprintf("%s/16", calculateSubnet(startingIPAddress)),
@@ -420,12 +409,14 @@ func generateFxChainDockerComposeYml(numValidators int, chainId, startingIPAddre
 		if i == 0 {
 			ports = append(ports, "1317:1317")
 			ports = append(ports, "9090:9090")
+			ports = append(ports, "8545:8545")
+			ports = append(ports, "8546:8546")
 		}
 		services = append(services, map[string]interface{}{
 			"Image":         dockerImage,
 			"ContainerName": fmt.Sprintf("%s-node%d", chainId, i),
 			"IPv4Address":   ip,
-			"Volumes":       fmt.Sprintf("./testnet/node%d/%s:/root/.%s", i, chainId, chainId),
+			"Volumes":       fmt.Sprintf("%s/node%d/%s:/root/.%s", outputDir, i, chainId, chainId),
 			"Ports":         ports,
 		})
 	}
