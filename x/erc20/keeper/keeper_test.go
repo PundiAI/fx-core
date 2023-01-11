@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) CrossChainKeepers() map[string]CrossChainKeeper {
 		chainName := strings.TrimSuffix(strings.TrimPrefix(gravityID, "fx-"), "-bridge")
 		cck := value.Field(i).Interface().(CrossChainKeeper)
 		if chainName == "bridge-eth" {
-			keepers["gravity"] = cck
+			// keepers["gravity"] = cck
 			keepers["eth"] = cck
 		} else {
 			keepers[chainName] = cck

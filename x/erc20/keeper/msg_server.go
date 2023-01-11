@@ -146,7 +146,7 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 		return nil, err
 	}
 	if targetCoin.Denom == msg.Coin.Denom {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not support", msg.Coin.Denom)
+		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "convert to source denom: %s", msg.Coin.Denom)
 	}
 
 	if !sender.Equals(receiver) {
@@ -168,12 +168,6 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 			},
 		)
 	}()
-
-	// ctx.EventManager().EmitEvent(sdk.NewEvent(
-	//	types.EventTypeConvertDenom,
-	//	sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-	//	sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-	// ))
 
 	return &types.MsgConvertDenomResponse{}, nil
 }
