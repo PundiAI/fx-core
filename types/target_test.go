@@ -55,10 +55,8 @@ func TestParseTargetIBC(t *testing.T) {
 			name:      "no prefix ibc data /transfer/channel-0",
 			targetStr: "/transfer/channel-0",
 			expect: expect{
-				prefix:  "",
-				port:    "transfer",
-				channel: "channel-0",
-				isIBC:   true,
+				target: "/transfer/channel-0",
+				isIBC:  false,
 			},
 		},
 		{
@@ -81,7 +79,8 @@ func TestParseTargetIBC(t *testing.T) {
 			name:      "two slash ibc data //",
 			targetStr: "//",
 			expect: expect{
-				isIBC: true,
+				target: "//",
+				isIBC:  false,
 			},
 		},
 		{
@@ -130,28 +129,24 @@ func TestParseTargetIBC(t *testing.T) {
 			name:      "ibc prefix with channel/prefix, but empty address prefix",
 			targetStr: "ibc/0/",
 			expect: expect{
-				port:    "transfer",
-				channel: "channel-0",
-				isIBC:   true,
+				target: "ibc/0/",
+				isIBC:  false,
 			},
 		},
 		{
 			name:      "ibc prefix with channel/prefix, but empty channel sequence",
 			targetStr: "ibc//px",
 			expect: expect{
-				prefix:  "px",
-				port:    "transfer",
-				channel: "channel-",
-				isIBC:   true,
+				target: "ibc//px",
+				isIBC:  false,
 			},
 		},
 		{
 			name:      "ibc prefix with channel/prefix, but empty channel sequence and address prefix",
 			targetStr: "ibc//",
 			expect: expect{
-				port:    "transfer",
-				channel: "channel-",
-				isIBC:   true,
+				target: "ibc//",
+				isIBC:  false,
 			},
 		},
 		{
@@ -168,58 +163,56 @@ func TestParseTargetIBC(t *testing.T) {
 			name:      "ibc prefix with prefix/port/channel, but empty address prefix",
 			targetStr: "ibc//transfer/channel-0",
 			expect: expect{
-				port:    "transfer",
-				channel: "channel-0",
-				isIBC:   true,
+				target: "/transfer/channel-0",
+				isIBC:  false,
 			},
 		},
 		{
 			name:      "ibc prefix with prefix/port/channel, but empty port",
 			targetStr: "ibc/px//channel-0",
 			expect: expect{
-				prefix:  "px",
-				channel: "channel-0",
-				isIBC:   true,
+				target: "px//channel-0",
+				isIBC:  false,
 			},
 		},
 		{
 			name:      "ibc prefix with prefix/port/channel, but empty channel",
 			targetStr: "ibc/px/transfer/",
 			expect: expect{
-				prefix: "px",
-				port:   "transfer",
-				isIBC:  true,
+				target: "px/transfer/",
+				isIBC:  false,
 			},
 		},
 		{
 			name:      "ibc prefix with prefix/port/channel, but empty port and address prefix",
 			targetStr: "ibc///channel-0",
 			expect: expect{
-				channel: "channel-0",
-				isIBC:   true,
+				target: "//channel-0",
+				isIBC:  false,
 			},
 		},
 		{
 			name:      "ibc prefix with prefix/port/channel, but empty port and channel",
 			targetStr: "ibc/px//",
 			expect: expect{
-				prefix: "px",
-				isIBC:  true,
+				target: "px//",
+				isIBC:  false,
 			},
 		},
 		{
 			name:      "ibc prefix with prefix/port/channel, but empty prefix and channel",
 			targetStr: "ibc//transfer/",
 			expect: expect{
-				port:  "transfer",
-				isIBC: true,
+				target: "/transfer/",
+				isIBC:  false,
 			},
 		},
 		{
 			name:      "ibc prefix with prefix/port/channel, but empty all",
 			targetStr: "ibc///",
 			expect: expect{
-				isIBC: true,
+				target: "//",
+				isIBC:  false,
 			},
 		},
 		{

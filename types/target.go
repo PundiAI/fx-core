@@ -44,12 +44,16 @@ func ParseFxTarget(targetStr string) FxTarget {
 		ibcData := strings.Split(targetStr, "/")
 		if len(ibcData) == 3 {
 			// ibc/{channelId}/{prefix} -> ibc/0/px
-			return FxTarget{
+			fxTarget := FxTarget{
 				isIBC:         true,
 				Prefix:        ibcData[2],
 				SourcePort:    ibctransfertypes.ModuleName,
 				SourceChannel: fmt.Sprintf("%s%s", channeltypes.ChannelPrefix, ibcData[1]),
 			}
+			if !fxTarget.IBCValidate() {
+				return FxTarget{isIBC: false, target: targetStr}
+			}
+			return fxTarget
 		} else if len(ibcData) == 4 {
 			// ibc/{prefix}/transfer/channel-{id} -> ibc/px/transfer/channel-0
 			targetStr = strings.TrimPrefix(targetStr, IBCPrefix)
@@ -61,12 +65,16 @@ func ParseFxTarget(targetStr string) FxTarget {
 	// px/transfer/channel-0
 	ibcData := strings.Split(targetStr, "/")
 	if len(ibcData) == 3 {
-		return FxTarget{
+		fxTarget := FxTarget{
 			isIBC:         true,
 			Prefix:        ibcData[0],
 			SourcePort:    ibcData[1],
 			SourceChannel: ibcData[2],
 		}
+		if !fxTarget.IBCValidate() {
+			return FxTarget{isIBC: false, target: targetStr}
+		}
+		return fxTarget
 	}
 
 	return FxTarget{isIBC: false, target: targetStr}
@@ -81,6 +89,22 @@ func (i FxTarget) GetTarget() string {
 
 func (i FxTarget) IsIBC() bool {
 	return i.isIBC
+}
+
+func (i FxTarget) IBCValidate() bool {
+	if !i.isIBC {
+		return false
+	}
+	if i.SourcePort != ibctransfertypes.ModuleName {
+		return false
+	}
+	if !channeltypes.IsValidChannelID(i.SourceChannel) {
+		return false
+	}
+	if len(strings.TrimSpace(i.Prefix)) == 0 {
+		return false
+	}
+	return true
 }
 
 func GetIbcDenomTrace(denom string, channelIBC string) (ibctransfertypes.DenomTrace, error) {
