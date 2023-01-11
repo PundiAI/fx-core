@@ -3,13 +3,13 @@ package keeper_test
 import (
 	"encoding/hex"
 	"fmt"
-	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	types2 "github.com/tendermint/tendermint/abci/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
 		suite.Keeper().StoreOracleSet(suite.ctx, &types.OracleSet{
 			Nonce: uint64(i),
 			Members: types.BridgeValidators{{
-				Power:           rand.Uint64(),
+				Power:           tmrand.Uint64(),
 				ExternalAddress: helpers.GenerateAddress().Hex(),
 			}},
 			Height: uint64(height + i),
@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestGetUnSlashedOracleSets() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
-	index := rand.Intn(20) + 1
+	index := tmrand.Intn(20) + 1
 	for i := uint64(1); i <= uint64(index); i++ {
 		for _, oracle := range suite.oracleAddrs {
 			suite.Keeper().SetOracleSetConfirm(suite.ctx, oracle,
@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 		}
 	}
 
-	index = rand.Intn(index) + 1
+	index = tmrand.Intn(index) + 1
 	var confirms []*types.MsgOracleSetConfirm
 	suite.Keeper().IterateOracleSetConfirmByNonce(suite.ctx, uint64(index), func(confirm *types.MsgOracleSetConfirm) bool {
 		confirms = append(confirms, confirm)

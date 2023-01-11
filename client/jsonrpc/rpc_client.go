@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
@@ -16,6 +15,7 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"nhooyr.io/websocket"
 )
@@ -251,7 +251,7 @@ func (ws *WSClient) Call(ctx context.Context, method string, params map[string]i
 		return
 	}
 
-	reqId := fmt.Sprintf("go-%s", RandomString(8))
+	reqId := fmt.Sprintf("go-%s", tmrand.Str(8))
 	body, err := json.Marshal(NewRPCRequest(reqId, method, payload))
 	if err != nil {
 		return
@@ -293,7 +293,7 @@ func (ws *WSClient) send(ctx context.Context, method string, params map[string]i
 		return
 	}
 
-	reqId = fmt.Sprintf("go-%s", RandomString(8))
+	reqId = fmt.Sprintf("go-%s", tmrand.Str(8))
 	body, err := json.Marshal(NewRPCRequest(reqId, method, payload))
 	if err != nil {
 		return
@@ -393,7 +393,7 @@ func (cli *FastClient) Call(ctx context.Context, method string, params map[strin
 		return
 	}
 
-	reqId := fmt.Sprintf("go-%s", RandomString(8))
+	reqId := fmt.Sprintf("go-%s", tmrand.Str(8))
 	body, err := json.Marshal(NewRPCRequest(reqId, method, payload))
 	if err != nil {
 		return
@@ -439,14 +439,4 @@ func (cli *FastClient) Call(ctx context.Context, method string, params map[strin
 		return fmt.Errorf("response code: %d, data: %s, msg: %s", rpcResp.Error.Code, rpcResp.Error.Data, rpcResp.Error.Message)
 	}
 	return tmjson.Unmarshal(rpcResp.Result, result)
-}
-
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
-
-func RandomString(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[rand.New(rand.NewSource(time.Now().UnixNano())).Intn(len(letterRunes))]
-	}
-	return string(b)
 }

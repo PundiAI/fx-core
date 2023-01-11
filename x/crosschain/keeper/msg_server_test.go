@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math"
-	"math/rand"
 	"sort"
 	"testing"
 
@@ -74,7 +73,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 			name: "error - delegate amount less than threshold amount",
 			preRun: func(msg *types.MsgBondedOracle) {
 				delegateThreshold := suite.Keeper().GetOracleDelegateThreshold(suite.ctx)
-				msg.DelegateAmount.Amount = delegateThreshold.Amount.Sub(sdk.NewInt(rand.Int63() - 1))
+				msg.DelegateAmount.Amount = delegateThreshold.Amount.Sub(sdk.NewInt(tmrand.Int63() - 1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountBelowMinimum.Error(),
@@ -85,7 +84,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				delegateThreshold := suite.Keeper().GetOracleDelegateThreshold(suite.ctx)
 				delegateMultiple := suite.Keeper().GetOracleDelegateMultiple(suite.ctx)
 				maxDelegateAmount := delegateThreshold.Amount.Mul(sdk.NewInt(delegateMultiple))
-				msg.DelegateAmount.Amount = maxDelegateAmount.Add(sdk.NewInt(rand.Int63() - 1))
+				msg.DelegateAmount.Amount = maxDelegateAmount.Add(sdk.NewInt(tmrand.Int63() - 1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountAboveMaximum.Error(),
@@ -100,7 +99,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 	for _, testCase := range testCases {
 		suite.T().Run(testCase.name, func(t *testing.T) {
 			suite.SetupTest()
-			oracleIndex := rand.Intn(len(suite.oracleAddrs))
+			oracleIndex := tmrand.Intn(len(suite.oracleAddrs))
 			msg := &types.MsgBondedOracle{
 				OracleAddress:    suite.oracleAddrs[oracleIndex].String(),
 				BridgerAddress:   suite.bridgerAddrs[oracleIndex].String(),
@@ -108,7 +107,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				ValidatorAddress: suite.valAddrs[oracleIndex].String(),
 				DelegateAmount: sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
-					Amount: sdk.NewInt((rand.Int63n(3) + 1) * 10_000).MulRaw(1e18),
+					Amount: sdk.NewInt((tmrand.Int63n(3) + 1) * 10_000).MulRaw(1e18),
 				},
 				ChainName: suite.chainName,
 			}
@@ -193,7 +192,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				suite.Keeper().SetOracle(suite.ctx, oracle)
 				slashFraction := suite.Keeper().GetSlashFraction(suite.ctx)
 				slashAmount := initDelegateAmount.ToDec().Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
-				randomAmount := rand.Int63n(slashAmount.QuoRaw(1e18).Int64()) + 1
+				randomAmount := tmrand.Int63n(slashAmount.QuoRaw(1e18).Int64()) + 1
 				msg.Amount.Amount = sdk.NewInt(randomAmount).MulRaw(1e18).Sub(sdk.NewInt(1))
 			},
 			pass: false,
@@ -203,10 +202,10 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 			name: "error - delegate amount less than threshold amount",
 			preRun: func(msg *types.MsgAddDelegate) {
 				params := suite.Keeper().GetParams(suite.ctx)
-				addDelegateThreshold := rand.Int63n(100000) + 1
+				addDelegateThreshold := tmrand.Int63n(100000) + 1
 				params.DelegateThreshold.Amount = initDelegateAmount.Add(sdk.NewInt(addDelegateThreshold).MulRaw(1e18))
 				suite.Keeper().SetParams(suite.ctx, &params)
-				msg.Amount.Amount = sdk.NewInt(rand.Int63n(addDelegateThreshold) + 1).MulRaw(1e18).Sub(sdk.NewInt(1))
+				msg.Amount.Amount = sdk.NewInt(tmrand.Int63n(addDelegateThreshold) + 1).MulRaw(1e18).Sub(sdk.NewInt(1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountBelowMinimum.Error(),
@@ -217,7 +216,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				delegateThreshold := suite.Keeper().GetOracleDelegateThreshold(suite.ctx)
 				delegateMultiple := suite.Keeper().GetOracleDelegateMultiple(suite.ctx)
 				maxDelegateAmount := delegateThreshold.Amount.Mul(sdk.NewInt(delegateMultiple))
-				msg.Amount.Amount = maxDelegateAmount.Add(sdk.NewInt(rand.Int63() - 1))
+				msg.Amount.Amount = maxDelegateAmount.Add(sdk.NewInt(tmrand.Int63() - 1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountAboveMaximum.Error(),
@@ -269,7 +268,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 	for _, testCase := range testCases {
 		suite.T().Run(testCase.name, func(t *testing.T) {
 			suite.SetupTest()
-			oracleIndex := rand.Intn(len(suite.oracleAddrs))
+			oracleIndex := tmrand.Intn(len(suite.oracleAddrs))
 
 			// init bonded oracle
 			_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), &types.MsgBondedOracle{
@@ -292,7 +291,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				ChainName:     suite.chainName,
 				OracleAddress: suite.oracleAddrs[oracleIndex].String(),
 				Amount: sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(
-					rand.Int63n(maxDelegateAmount.QuoRaw(1e18).Int64())+1,
+					tmrand.Int63n(maxDelegateAmount.QuoRaw(1e18).Int64())+1,
 				).
 					MulRaw(1e18).
 					Sub(sdk.NewInt(1))),
@@ -334,7 +333,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 }
 
 func (suite *KeeperTestSuite) TestMsgEditBridger() {
-	delegateAmount := sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18)
+	delegateAmount := sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)
 	for i := range suite.oracleAddrs {
 		bondedMsg := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracleAddrs[i].String(),
@@ -361,7 +360,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 		EventNonce:    1,
 		BlockHeight:   100,
 		TokenContract: token,
-		Amount:        sdk.NewInt(int64(rand.Uint32())),
+		Amount:        sdk.NewInt(int64(tmrand.Uint32())),
 		Sender:        suite.PubKeyToExternalAddr(privateKey.PublicKey),
 		Receiver:      sdk.AccAddress(tmrand.Bytes(20)).String(),
 		TargetIbc:     "",
@@ -424,7 +423,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 		ValidatorAddress: suite.valAddrs[0].String(),
 		DelegateAmount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
-			Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+			Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 		},
 		ChainName: suite.chainName,
 	}
@@ -550,7 +549,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 		ValidatorAddress: suite.valAddrs[0].String(),
 		DelegateAmount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
-			Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+			Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 		},
 		ChainName: suite.chainName,
 	}
@@ -694,7 +693,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 				}
 				return &types.MsgOracleSetUpdatedClaim{
 					BlockHeight:    tmrand.Uint64(),
-					OracleSetNonce: rand.Uint64(),
+					OracleSetNonce: tmrand.Uint64(),
 					Members:        externalOracleMembers,
 					ChainName:      suite.chainName,
 				}
@@ -751,7 +750,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 				ValidatorAddress: suite.valAddrs[0].String(),
 				DelegateAmount: sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
-					Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+					Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 				},
 				ChainName: suite.chainName,
 			}
@@ -776,7 +775,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 		ValidatorAddress: suite.valAddrs[0].String(),
 		DelegateAmount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
-			Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+			Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 		},
 		ChainName: suite.chainName,
 	}
@@ -900,7 +899,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			ValidatorAddress: suite.valAddrs[0].String(),
 			DelegateAmount: sdk.Coin{
 				Denom:  fxtypes.DefaultDenom,
-				Amount: sdk.NewInt((rand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+				Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 			},
 			ChainName: suite.chainName,
 		}

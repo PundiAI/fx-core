@@ -3,21 +3,20 @@ package v2
 
 import (
 	"fmt"
-	"math/rand"
 	"reflect"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
-	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
-func InitTestGravityDB(cdc codec.Codec, legacyAmino *codec.LegacyAmino, genesisState types.GenesisState, paramsStore, gravityStore store.KVStore) {
+func InitTestGravityDB(cdc codec.Codec, legacyAmino *codec.LegacyAmino, genesisState types.GenesisState, paramsStore, gravityStore sdk.KVStore) {
 	paramsPrefixStore := prefix.NewStore(paramsStore, append([]byte(types.ModuleName), '/'))
 	for _, pair := range genesisState.Params.ParamSetPairs() {
 		v := reflect.Indirect(reflect.ValueOf(pair.Value)).Interface()
@@ -151,8 +150,8 @@ func InitTestGravityDB(cdc codec.Codec, legacyAmino *codec.LegacyAmino, genesisS
 	gravityStore.Set(types.KeyLastOutgoingBatchID, sdk.Uint64ToBigEndian(genesisState.LastBatchId))
 
 	// add deprecated key
-	gravityStore.Set(types.LastUnBondingBlockHeight, sdk.Uint64ToBigEndian(rand.Uint64()))
-	gravityStore.Set(append(types.IbcSequenceHeightKey, []byte(fmt.Sprintf("%s/%s/%d", "transfer", "channel-1", rand.Uint64()))...), sdk.Uint64ToBigEndian(rand.Uint64()))
+	gravityStore.Set(types.LastUnBondingBlockHeight, sdk.Uint64ToBigEndian(tmrand.Uint64()))
+	gravityStore.Set(append(types.IbcSequenceHeightKey, []byte(fmt.Sprintf("%s/%s/%d", "transfer", "channel-1", tmrand.Uint64()))...), sdk.Uint64ToBigEndian(tmrand.Uint64()))
 }
 
 func TestParams() types.Params {

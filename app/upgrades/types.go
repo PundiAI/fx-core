@@ -1,7 +1,7 @@
 package upgrades
 
 import (
-	store "github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -22,7 +22,7 @@ type Upgrade struct {
 	CreateUpgradeHandler func(*module.Manager, module.Configurator, *keepers.AppKeepers) upgradetypes.UpgradeHandler
 
 	// Store upgrades, should be used for any new modules introduced, new modules deleted, or store names renamed.
-	StoreUpgrades func() *store.StoreUpgrades
+	StoreUpgrades func() *storetypes.StoreUpgrades
 
 	PreUpgradeCmd *cobra.Command
 }

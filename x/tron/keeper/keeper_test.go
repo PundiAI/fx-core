@@ -3,15 +3,14 @@ package keeper_test
 import (
 	"encoding/hex"
 	"math/big"
-	"math/rand"
 	"testing"
-	"time"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
@@ -37,8 +36,8 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	rand.Seed(time.Now().UnixNano())
-	valNumber := rand.Intn(100-1) + 1
+	valNumber := tmrand.Intn(99) + 1
+
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
@@ -65,7 +64,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) NewOutgoingTxBatch() *crosschaintypes.OutgoingTxBatch {
-	batchNonce := rand.Uint64()
+	batchNonce := tmrand.Uint64()
 	tokenContract := trontypes.AddressFromHex(helpers.GenerateAddress().Hex())
 	newOutgoingTx := &crosschaintypes.OutgoingTxBatch{
 		BatchNonce: batchNonce,
@@ -112,9 +111,9 @@ func (suite *KeeperTestSuite) NewOracleByBridger() (sdk.AccAddress, sdk.AccAddre
 }
 
 func (suite *KeeperTestSuite) NewOracleSet(externalKey cryptotypes.PrivKey) *crosschaintypes.OracleSet {
-	newOracleSet := crosschaintypes.NewOracleSet(rand.Uint64(), rand.Uint64(), crosschaintypes.BridgeValidators{
+	newOracleSet := crosschaintypes.NewOracleSet(tmrand.Uint64(), tmrand.Uint64(), crosschaintypes.BridgeValidators{
 		{
-			Power:           rand.Uint64(),
+			Power:           tmrand.Uint64(),
 			ExternalAddress: trontypes.AddressFromHex(externalKey.PubKey().Address().String()),
 		},
 	})

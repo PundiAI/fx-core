@@ -107,12 +107,15 @@ func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
 
 func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 	for _, metadata := range getMetadata(ctx.ChainID()) {
-		pair, err := k.RegisterCoin(ctx, metadata)
+		cacheCtx, commit := ctx.CacheContext()
+		pair, err := k.RegisterCoin(cacheCtx, metadata)
 		if err != nil {
 			// run time error, non-fatal, print info
 			ctx.Logger().Error("failed to register coin", "module", "upgrade", "denom", metadata.Base, "error", err.Error())
 			continue
 		}
+		commit()
+		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 		ctx.Logger().Info("add metadata successfully", "module", "upgrade", "metadata", metadata.String())
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			erc20types.EventTypeRegisterCoin,

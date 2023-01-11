@@ -1,9 +1,7 @@
 package v2_test
 
 import (
-	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -20,7 +18,6 @@ import (
 )
 
 func TestMigrateParams(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
 	paramsStoreKey := sdk.NewKVStoreKey(paramstypes.ModuleName)
 
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())

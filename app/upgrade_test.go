@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -159,7 +158,7 @@ func getConsensusVersion(appVersion int) (versionMap module.VersionMap) {
 	return versionMap
 }
 
-func checkStoreKey(t *testing.T, name string, keys map[byte][2]int, kvStores storetypes.KVStore) {
+func checkStoreKey(t *testing.T, name string, keys map[byte][2]int, kvStores sdk.KVStore) {
 	iterator := kvStores.Iterator(nil, nil)
 	for ; iterator.Valid(); iterator.Next() {
 		x, ok := keys[iterator.Key()[0]]

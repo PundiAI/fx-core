@@ -2,11 +2,10 @@ package keeper_test
 
 import (
 	"encoding/hex"
-	"math/rand"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -33,7 +32,7 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			name: "couldn't find batch",
 			malleate: func() {
 				msg = &crosschaintypes.MsgConfirmBatch{
-					Nonce:          rand.Uint64(),
+					Nonce:          tmrand.Uint64(),
 					TokenContract:  trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
 					BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				}
@@ -105,7 +104,6 @@ func (suite *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 }
 
 func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
-	rand.Seed(time.Now().UnixNano())
 	var msg *crosschaintypes.MsgOracleSetConfirm
 	testCases := []struct {
 		name     string
@@ -125,7 +123,7 @@ func (suite *KeeperTestSuite) Test_msgServer_OracleSetConfirm() {
 			name: "couldn't find oracleSet",
 			malleate: func() {
 				msg = &crosschaintypes.MsgOracleSetConfirm{
-					Nonce:          rand.Uint64(),
+					Nonce:          tmrand.Uint64(),
 					BridgerAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				}
 			},

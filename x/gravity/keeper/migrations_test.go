@@ -5,15 +5,14 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	"math/rand"
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
@@ -47,9 +46,8 @@ func TestMigrationTestSuite(t *testing.T) {
 }
 
 func (suite *MigrationTestSuite) SetupTest() {
-	rand.Seed(time.Now().UnixNano())
+	valNumber := tmrand.Intn(99) + 1
 
-	valNumber := rand.Intn(crosschaintypes.MaxOracleSize-1) + 1
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: suite.app.LastBlockHeight(), ChainID: fxtypes.TestnetChainId})
@@ -88,7 +86,7 @@ func (suite *MigrationTestSuite) InitGravityStore() {
 func (suite *MigrationTestSuite) createDefGenesisState() {
 	suite.genesisState = types.GenesisState{
 		Params:            v2.TestParams(),
-		LastObservedNonce: rand.Uint64(),
+		LastObservedNonce: tmrand.Uint64(),
 		Erc20ToDenoms: []types.ERC20ToDenom{
 			{
 				Erc20: helpers.GenerateAddress().Hex(),
@@ -112,12 +110,12 @@ func (suite *MigrationTestSuite) createDefGenesisState() {
 		{
 			Observed: true,
 			Votes:    votes,
-			Height:   rand.Uint64(),
+			Height:   tmrand.Uint64(),
 			Claim: v2.AttClaimToAny(&types.MsgDepositClaim{
 				EventNonce:    suite.genesisState.LastObservedNonce,
-				BlockHeight:   rand.Uint64(),
+				BlockHeight:   tmrand.Uint64(),
 				TokenContract: helpers.GenerateAddress().Hex(),
-				Amount:        sdk.NewInt(rand.Int63() + 1),
+				Amount:        sdk.NewInt(tmrand.Int63() + 1),
 				EthSender:     helpers.GenerateAddress().Hex(),
 				FxReceiver:    sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				TargetIbc:     "",
@@ -143,7 +141,7 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 	suite.createDefGenesisState()
 
 	tokenContract := helpers.GenerateAddress().Hex()
-	metadata := fxtypes.GetCrossChainMetadata("Test Token", "TEST", uint32(rand.Intn(18)),
+	metadata := fxtypes.GetCrossChainMetadata("Test Token", "TEST", uint32(tmrand.Intn(18)),
 		fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract))
 	suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
 
@@ -166,11 +164,11 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 
 	msg := &crosschaintypes.MsgBridgeTokenClaim{
 		EventNonce:    suite.genesisState.LastObservedNonce + 1,
-		BlockHeight:   rand.Uint64(),
+		BlockHeight:   tmrand.Uint64(),
 		TokenContract: helpers.GenerateAddress().Hex(),
 		Name:          "Test token 2",
 		Symbol:        "TEST2",
-		Decimals:      uint64(rand.Intn(18) + 1),
+		Decimals:      uint64(tmrand.Intn(18) + 1),
 		ChannelIbc:    "",
 		ChainName:     ethtypes.ModuleName,
 	}
@@ -206,7 +204,7 @@ func (suite *MigrationTestSuite) TestSendToFxClaim() {
 
 	msg := &crosschaintypes.MsgSendToFxClaim{
 		EventNonce:    suite.genesisState.LastObservedNonce,
-		BlockHeight:   rand.Uint64(),
+		BlockHeight:   tmrand.Uint64(),
 		TokenContract: bridgeToken.Token,
 		Amount:        sdk.NewInt(1),
 		Sender:        helpers.GenerateAddress().Hex(),
@@ -243,12 +241,12 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 	suite.createDefGenesisState()
 	suite.genesisState.LastObservedBlockHeight = types.LastObservedEthereumBlockHeight{
 		FxBlockHeight:  uint64(suite.ctx.BlockHeight()),
-		EthBlockHeight: rand.Uint64(),
+		EthBlockHeight: tmrand.Uint64(),
 	}
 
 	tokenContract := helpers.GenerateAddress().Hex()
 	denom := fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract)
-	metadata := fxtypes.GetCrossChainMetadata("Test Token", "TEST", uint32(rand.Intn(18)), denom)
+	metadata := fxtypes.GetCrossChainMetadata("Test Token", "TEST", uint32(tmrand.Intn(18)), denom)
 	suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
 
 	err := suite.app.BankKeeper.MintCoins(suite.ctx,
@@ -357,7 +355,7 @@ func (suite *MigrationTestSuite) TestOracleSetConfirm() {
 	suite.createDefGenesisState()
 	suite.genesisState.LastObservedBlockHeight = types.LastObservedEthereumBlockHeight{
 		FxBlockHeight:  uint64(suite.ctx.BlockHeight()),
-		EthBlockHeight: rand.Uint64(),
+		EthBlockHeight: tmrand.Uint64(),
 	}
 
 	suite.InitGravityStore()

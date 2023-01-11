@@ -2,8 +2,6 @@ package keeper_test
 
 import (
 	"math/big"
-	"math/rand"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -168,7 +166,6 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
-	rand.Seed(time.Now().UnixNano())
 	var (
 		request  *types.QueryBatchRequestByNonceRequest
 		response *types.QueryBatchRequestByNonceResponse

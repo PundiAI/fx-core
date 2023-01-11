@@ -4,10 +4,8 @@ package v2_test
 import (
 	"encoding/hex"
 	"fmt"
-	"math/rand"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -47,7 +45,6 @@ func TestTestSuite(t *testing.T) {
 }
 
 func (suite *TestSuite) SetupTest() {
-	rand.Seed(time.Now().UnixNano())
 
 	gravityStoreKey := sdk.NewKVStoreKey(types.ModuleName)
 	paramsStoreKey := sdk.NewKVStoreKey(paramstypes.ModuleName)
@@ -71,10 +68,10 @@ func (suite *TestSuite) SetupTest() {
 func (suite *TestSuite) TestMigrateStore() {
 	suite.genesisState = types.GenesisState{
 		Params:            v2.TestParams(),
-		LastObservedNonce: rand.Uint64(),
+		LastObservedNonce: tmrand.Uint64(),
 		LastObservedBlockHeight: types.LastObservedEthereumBlockHeight{
-			FxBlockHeight:  rand.Uint64(),
-			EthBlockHeight: rand.Uint64(),
+			FxBlockHeight:  tmrand.Uint64(),
+			EthBlockHeight: tmrand.Uint64(),
 		},
 		Erc20ToDenoms: []types.ERC20ToDenom{
 			{
@@ -82,10 +79,10 @@ func (suite *TestSuite) TestMigrateStore() {
 				Denom: fxtypes.DefaultDenom,
 			},
 		},
-		LastSlashedBatchBlock:  rand.Uint64(),
-		LastSlashedValsetNonce: rand.Uint64(),
-		LastTxPoolId:           rand.Uint64(),
-		LastBatchId:            rand.Uint64(),
+		LastSlashedBatchBlock:  tmrand.Uint64(),
+		LastSlashedValsetNonce: tmrand.Uint64(),
+		LastTxPoolId:           tmrand.Uint64(),
+		LastBatchId:            tmrand.Uint64(),
 	}
 
 	bridgerAddrs := helpers.CreateRandomAccounts(20)
@@ -106,74 +103,74 @@ func (suite *TestSuite) TestMigrateStore() {
 		)
 		votes = append(votes, sdk.ValAddress(valAddrs[i].Bytes()).String())
 		members = append(members, &types.BridgeValidator{
-			Power:      rand.Uint64(),
+			Power:      tmrand.Uint64(),
 			EthAddress: common.BytesToAddress(externals[i].Bytes()).String(),
 		})
 	}
 	suite.genesisState.DelegateKeys = delegateKeys
 
-	index := rand.Intn(100)
+	index := tmrand.Intn(100)
 	for i := 0; i < index; i++ {
 		suite.genesisState.Valsets = append(
 			suite.genesisState.Valsets,
 			types.Valset{
-				Nonce:   rand.Uint64(),
+				Nonce:   tmrand.Uint64(),
 				Members: members,
-				Height:  rand.Uint64(),
+				Height:  tmrand.Uint64(),
 			},
 		)
 
 		suite.genesisState.UnbatchedTransfers = append(
 			suite.genesisState.UnbatchedTransfers,
 			types.OutgoingTransferTx{
-				Id:          rand.Uint64(),
+				Id:          tmrand.Uint64(),
 				Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				DestAddress: helpers.GenerateAddress().Hex(),
 				Erc20Token: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().Hex(),
-					Amount:   sdk.NewInt(rand.Int63() + 1),
+					Amount:   sdk.NewInt(tmrand.Int63() + 1),
 				},
 				Erc20Fee: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().Hex(),
-					Amount:   sdk.NewInt(rand.Int63() + 1),
+					Amount:   sdk.NewInt(tmrand.Int63() + 1),
 				},
 			},
 		)
 		suite.genesisState.Batches = append(
 			suite.genesisState.Batches,
 			types.OutgoingTxBatch{
-				BatchNonce:   rand.Uint64(),
-				BatchTimeout: rand.Uint64(),
+				BatchNonce:   tmrand.Uint64(),
+				BatchTimeout: tmrand.Uint64(),
 				Transactions: []*types.OutgoingTransferTx{
 					{
-						Id:          rand.Uint64(),
+						Id:          tmrand.Uint64(),
 						Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 						DestAddress: helpers.GenerateAddress().Hex(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().Hex(),
-							Amount:   sdk.NewInt(rand.Int63() + 1),
+							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().Hex(),
-							Amount:   sdk.NewInt(rand.Int63() + 1),
+							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 					},
 					{
-						Id:          rand.Uint64(),
+						Id:          tmrand.Uint64(),
 						Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 						DestAddress: helpers.GenerateAddress().Hex(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().Hex(),
-							Amount:   sdk.NewInt(rand.Int63() + 1),
+							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().Hex(),
-							Amount:   sdk.NewInt(rand.Int63() + 1),
+							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 					},
 				},
 				TokenContract: helpers.GenerateAddress().Hex(),
-				Block:         rand.Uint64(),
+				Block:         tmrand.Uint64(),
 				FeeReceive:    helpers.GenerateAddress().Hex(),
 			},
 		)
@@ -181,7 +178,7 @@ func (suite *TestSuite) TestMigrateStore() {
 		suite.genesisState.BatchConfirms = append(
 			suite.genesisState.BatchConfirms,
 			types.MsgConfirmBatch{
-				Nonce:         rand.Uint64(),
+				Nonce:         tmrand.Uint64(),
 				TokenContract: helpers.GenerateAddress().Hex(),
 				EthSigner:     delegateKeys[1%20].EthAddress,
 				Orchestrator:  delegateKeys[1%20].Orchestrator,
@@ -192,7 +189,7 @@ func (suite *TestSuite) TestMigrateStore() {
 		suite.genesisState.ValsetConfirms = append(
 			suite.genesisState.ValsetConfirms,
 			types.MsgValsetConfirm{
-				Nonce:        rand.Uint64(),
+				Nonce:        tmrand.Uint64(),
 				Orchestrator: delegateKeys[i%20].Orchestrator,
 				EthAddress:   delegateKeys[i%20].EthAddress,
 				Signature:    hex.EncodeToString(tmrand.Bytes(65)),
@@ -204,12 +201,12 @@ func (suite *TestSuite) TestMigrateStore() {
 		{
 			Observed: true,
 			Votes:    votes,
-			Height:   rand.Uint64(),
+			Height:   tmrand.Uint64(),
 			Claim: v2.AttClaimToAny(&types.MsgDepositClaim{
-				EventNonce:    rand.Uint64(),
-				BlockHeight:   rand.Uint64(),
+				EventNonce:    tmrand.Uint64(),
+				BlockHeight:   tmrand.Uint64(),
 				TokenContract: helpers.GenerateAddress().Hex(),
-				Amount:        sdk.NewInt(rand.Int63() + 1),
+				Amount:        sdk.NewInt(tmrand.Int63() + 1),
 				EthSender:     helpers.GenerateAddress().Hex(),
 				FxReceiver:    sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				TargetIbc:     "",
@@ -219,11 +216,11 @@ func (suite *TestSuite) TestMigrateStore() {
 		{
 			Observed: true,
 			Votes:    votes,
-			Height:   rand.Uint64(),
+			Height:   tmrand.Uint64(),
 			Claim: v2.AttClaimToAny(&types.MsgWithdrawClaim{
-				EventNonce:    rand.Uint64(),
-				BlockHeight:   rand.Uint64(),
-				BatchNonce:    rand.Uint64(),
+				EventNonce:    tmrand.Uint64(),
+				BlockHeight:   tmrand.Uint64(),
+				BatchNonce:    tmrand.Uint64(),
 				TokenContract: helpers.GenerateAddress().Hex(),
 				Orchestrator:  sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 			}),
@@ -231,11 +228,11 @@ func (suite *TestSuite) TestMigrateStore() {
 		{
 			Observed: true,
 			Votes:    votes,
-			Height:   rand.Uint64(),
+			Height:   tmrand.Uint64(),
 			Claim: v2.AttClaimToAny(&types.MsgValsetUpdatedClaim{
-				EventNonce:   rand.Uint64(),
-				BlockHeight:  rand.Uint64(),
-				ValsetNonce:  rand.Uint64(),
+				EventNonce:   tmrand.Uint64(),
+				BlockHeight:  tmrand.Uint64(),
+				ValsetNonce:  tmrand.Uint64(),
 				Members:      members,
 				Orchestrator: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 			}),
@@ -243,9 +240,9 @@ func (suite *TestSuite) TestMigrateStore() {
 	}
 
 	suite.genesisState.LastObservedValset = types.Valset{
-		Nonce:   rand.Uint64(),
+		Nonce:   tmrand.Uint64(),
 		Members: members,
-		Height:  rand.Uint64(),
+		Height:  tmrand.Uint64(),
 	}
 
 	v2.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)

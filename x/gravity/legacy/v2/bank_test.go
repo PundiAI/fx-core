@@ -2,12 +2,12 @@ package v2_test
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/assert"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
@@ -19,14 +19,14 @@ import (
 
 func TestMigrateBank(t *testing.T) {
 	app := helpers.Setup(false, false)
-	ctx := app.NewContext(false, tmproto.Header{Height: int64(rand.Uint32())})
+	ctx := app.NewContext(false, tmproto.Header{Height: int64(tmrand.Uint32())})
 
-	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(int64(rand.Uint32()))))
-	index := rand.Intn(100) + 1
+	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(int64(tmrand.Uint32()))))
+	index := tmrand.Intn(100) + 1
 	for i := 0; i < index; i++ {
 		coins = coins.Add(sdk.Coin{
 			Denom:  fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddress().Hex()),
-			Amount: sdk.NewInt(int64(rand.Uint32())),
+			Amount: sdk.NewInt(int64(tmrand.Uint32())),
 		})
 	}
 	coins = coins.Sort()

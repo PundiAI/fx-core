@@ -1,7 +1,7 @@
 package v2
 
 import (
-	store "github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -28,16 +28,16 @@ import (
 var Upgrade = upgrades.Upgrade{
 	CreateUpgradeHandler: createUpgradeHandler,
 	PreUpgradeCmd:        preUpgradeCmd(),
-	StoreUpgrades: func() *store.StoreUpgrades {
+	StoreUpgrades: func() *storetypes.StoreUpgrades {
 		if fxtypes.ChainId() == fxtypes.TestnetChainId {
-			return &store.StoreUpgrades{
+			return &storetypes.StoreUpgrades{
 				Added: []string{
 					feegrant.StoreKey,
 					authzkeeper.StoreKey,
 				},
 			}
 		}
-		return &store.StoreUpgrades{
+		return &storetypes.StoreUpgrades{
 			Added: []string{
 				feemarkettypes.StoreKey,
 				evmtypes.StoreKey,

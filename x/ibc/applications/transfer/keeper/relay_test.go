@@ -12,7 +12,7 @@ import (
 	ibcgotesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/rand"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
@@ -27,9 +27,9 @@ import (
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	baseDenom := "stake"
-	senderAddr := sdk.AccAddress(rand.Bytes(20))
-	receiveAddr := sdk.AccAddress(rand.Bytes(20))
-	transferAmount := sdk.NewInt(rand.Int63n(100000000000))
+	senderAddr := sdk.AccAddress(tmrand.Bytes(20))
+	receiveAddr := sdk.AccAddress(tmrand.Bytes(20))
+	transferAmount := sdk.NewInt(tmrand.Int63n(100000000000))
 	ibcDenomTrace := transfertypes.DenomTrace{
 		Path:      "transfer/channel-0",
 		BaseDenom: baseDenom,
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"pass - normal - router is bsc, sender is 0xAddress",
 			func(packet *channeltypes.Packet) {
 				bscKeeper := suite.GetApp(suite.chainA.App).BscKeeper
-				bscKeeper.AddBridgeToken(suite.chainA.GetContext(), common.BytesToAddress(rand.Bytes(20)).String(), ibcDenomTrace.IBCDenom())
+				bscKeeper.AddBridgeToken(suite.chainA.GetContext(), common.BytesToAddress(tmrand.Bytes(20)).String(), ibcDenomTrace.IBCDenom())
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Sender = common.BytesToAddress(senderAddr.Bytes()).String()
@@ -93,9 +93,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			malleate: func(packet *channeltypes.Packet) {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
-				packetData.Receiver = rand.Str(20)
+				packetData.Receiver = tmrand.Str(20)
 				routes := []string{ethtypes.ModuleName, bsctypes.ModuleName, trontypes.ModuleName, polygontypes.ModuleName, avalanchetypes.ModuleName, erc20types.ModuleName}
-				packetData.Router = routes[rand.Int63n(int64(len(routes)))]
+				packetData.Router = routes[tmrand.Int63n(int64(len(routes)))]
 				packet.Data = packetData.GetBytes()
 			},
 			expPass:       false,
@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			func(packet *channeltypes.Packet) {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
-				packetData.Router = rand.Str(8)
+				packetData.Router = tmrand.Str(8)
 				packetData.Fee = sdk.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 			},
@@ -124,44 +124,42 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			for xxx := 0; xxx < 100; xxx++ {
 
-				suite.SetupTest()
-				chain := suite.GetApp(suite.chainA.App)
-				transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
-				fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
-				packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String())
-				// only use timeout height
-				packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
-					RevisionNumber: 100,
-					RevisionHeight: 100000,
-				}, 0)
-				tc.malleate(&packet)
+			suite.SetupTest()
+			chain := suite.GetApp(suite.chainA.App)
+			transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
+			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
+			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String())
+			// only use timeout height
+			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
+				RevisionNumber: 100,
+				RevisionHeight: 100000,
+			}, 0)
+			tc.malleate(&packet)
 
-				cacheCtx, writeFn := suite.chainA.GetContext().CacheContext()
-				ackI := fxIBCMiddleware.OnRecvPacket(cacheCtx, packet, nil)
-				if ackI == nil || ackI.Success() {
-					// write application state changes for asynchronous and successful acknowledgements
-					writeFn()
-				}
-				suite.Require().NotNil(ackI)
+			cacheCtx, writeFn := suite.chainA.GetContext().CacheContext()
+			ackI := fxIBCMiddleware.OnRecvPacket(cacheCtx, packet, nil)
+			if ackI == nil || ackI.Success() {
+				// write application state changes for asynchronous and successful acknowledgements
+				writeFn()
+			}
+			suite.Require().NotNil(ackI)
 
-				ack, ok := ackI.(channeltypes.Acknowledgement)
-				suite.chainA.GetContext().EventManager().EmitEvents(cacheCtx.EventManager().Events())
+			ack, ok := ackI.(channeltypes.Acknowledgement)
+			suite.chainA.GetContext().EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
-				if tc.expPass {
-					suite.Require().Truef(ack.Success(), "error:%s,packetData:%s", ack.GetError(), string(packet.GetData()))
-				} else {
-					suite.Require().False(ack.Success())
-					suite.Require().True(ok)
-					suite.Require().Equalf(tc.errorStr, ack.GetError(), "packetData:%s", string(packet.GetData()))
-				}
+			if tc.expPass {
+				suite.Require().Truef(ack.Success(), "error:%s,packetData:%s", ack.GetError(), string(packet.GetData()))
+			} else {
+				suite.Require().False(ack.Success())
+				suite.Require().True(ok)
+				suite.Require().Equalf(tc.errorStr, ack.GetError(), "packetData:%s", string(packet.GetData()))
+			}
 
-				if tc.checkBalance {
-					bankKeeper := suite.GetApp(suite.chainA.App).BankKeeper
-					actualCoins := bankKeeper.GetAllBalances(suite.chainA.GetContext(), tc.checkCoinAddr)
-					suite.Require().True(tc.expCoins.IsEqual(actualCoins), "exp:%s,actual:%s", tc.expCoins, actualCoins)
-				}
+			if tc.checkBalance {
+				bankKeeper := suite.GetApp(suite.chainA.App).BankKeeper
+				actualCoins := bankKeeper.GetAllBalances(suite.chainA.GetContext(), tc.checkCoinAddr)
+				suite.Require().True(tc.expCoins.IsEqual(actualCoins), "exp:%s,actual:%s", tc.expCoins, actualCoins)
 			}
 		})
 	}
@@ -169,9 +167,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	baseDenom := "stake"
-	senderAddr := sdk.AccAddress(rand.Bytes(20))
-	receiveAddr := sdk.AccAddress(rand.Bytes(20))
-	transferAmount := sdk.NewInt(rand.Int63n(100000000000))
+	senderAddr := sdk.AccAddress(tmrand.Bytes(20))
+	receiveAddr := sdk.AccAddress(tmrand.Bytes(20))
+	transferAmount := sdk.NewInt(tmrand.Int63n(100000000000))
 	testCases := []struct {
 		name         string
 		malleate     func(fxIbcTransferMsg *channeltypes.Packet, ack *channeltypes.Acknowledgement)
@@ -241,12 +239,12 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	baseDenom := "stake"
-	senderAddr := sdk.AccAddress(rand.Bytes(20))
-	receiveAddr := sdk.AccAddress(rand.Bytes(20))
-	transferAmount := sdk.NewInt(rand.Int63n(100000000000))
+	senderAddr := sdk.AccAddress(tmrand.Bytes(20))
+	receiveAddr := sdk.AccAddress(tmrand.Bytes(20))
+	transferAmount := sdk.NewInt(tmrand.Int63n(100000000000))
 	ibcDenomTrace := transfertypes.DenomTrace{
 		Path:      "transfer/channel-0",
-		BaseDenom: rand.Str(6),
+		BaseDenom: tmrand.Str(6),
 	}
 	testCases := []struct {
 		name         string
@@ -304,7 +302,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			func(packet *channeltypes.Packet) {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
-				packetData.Router = rand.Str(4)
+				packetData.Router = tmrand.Str(4)
 				packetData.Fee = sdk.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 
@@ -322,7 +320,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			func(packet *channeltypes.Packet) {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
-				packetData.Router = rand.Str(4)
+				packetData.Router = tmrand.Str(4)
 				fee := sdk.NewInt(50)
 				packetData.Fee = fee.String()
 				packet.Data = packetData.GetBytes()

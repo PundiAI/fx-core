@@ -1,7 +1,6 @@
 package v3
 
 import (
-	"math/rand"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,6 +10,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	dbm "github.com/tendermint/tm-db"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -46,7 +46,7 @@ func Test_updateBSCOracles(t *testing.T) {
 	keeper := crosschainkeeper.NewKeeper(protoCodec, t.Name(), storeKey,
 		subspace, nil, nil, nil, nil, nil, nil)
 	updateOracles := getBSCOracles(ctx.ChainID())
-	oldOracleNum := rand.Intn(len(updateOracles))
+	oldOracleNum := tmrand.Intn(len(updateOracles))
 	keeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: updateOracles[:oldOracleNum],
 	})

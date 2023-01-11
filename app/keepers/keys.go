@@ -1,7 +1,6 @@
 package keepers
 
 import (
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -54,35 +53,35 @@ func (appKeepers *AppKeepers) generateKeys() {
 	appKeepers.memKeys = sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 }
 
-func (appKeepers *AppKeepers) GetKVStoreKey() map[string]*storetypes.KVStoreKey {
+func (appKeepers *AppKeepers) GetKVStoreKey() map[string]*sdk.KVStoreKey {
 	return appKeepers.keys
 }
 
-func (appKeepers *AppKeepers) GetTransientStoreKey() map[string]*storetypes.TransientStoreKey {
+func (appKeepers *AppKeepers) GetTransientStoreKey() map[string]*sdk.TransientStoreKey {
 	return appKeepers.tkeys
 }
 
-func (appKeepers *AppKeepers) GetMemoryStoreKey() map[string]*storetypes.MemoryStoreKey {
+func (appKeepers *AppKeepers) GetMemoryStoreKey() map[string]*sdk.MemoryStoreKey {
 	return appKeepers.memKeys
 }
 
 // GetKey returns the KVStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (appKeepers *AppKeepers) GetKey(storeKey string) *storetypes.KVStoreKey {
+func (appKeepers *AppKeepers) GetKey(storeKey string) *sdk.KVStoreKey {
 	return appKeepers.keys[storeKey]
 }
 
 // GetTKey returns the TransientStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (appKeepers *AppKeepers) GetTKey(storeKey string) *storetypes.TransientStoreKey {
+func (appKeepers *AppKeepers) GetTKey(storeKey string) *sdk.TransientStoreKey {
 	return appKeepers.tkeys[storeKey]
 }
 
 // GetMemKey returns the MemStoreKey for the provided mem key.
 //
 // NOTE: This is solely used for testing purposes.
-func (appKeepers *AppKeepers) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
+func (appKeepers *AppKeepers) GetMemKey(storeKey string) *sdk.MemoryStoreKey {
 	return appKeepers.memKeys[storeKey]
 }

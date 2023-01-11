@@ -1,11 +1,10 @@
 package keeper_test
 
 import (
-	"math/rand"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -126,7 +125,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
-	index := rand.Intn(100)
+	index := tmrand.Intn(100)
 	for i := 1; i <= index; i++ {
 		tokenContract := helpers.GenerateAddress().Hex()
 		batch := &types.OutgoingTxBatch{

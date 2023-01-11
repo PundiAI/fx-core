@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
-	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -188,7 +187,7 @@ func runMigrations(ctx sdk.Context, paramsKey *sdk.KVStoreKey, fromVersion modul
 	return toVersion
 }
 
-func clearTestnetDenom(ctx sdk.Context, bankKey *types.KVStoreKey) {
+func clearTestnetDenom(ctx sdk.Context, bankKey *sdk.KVStoreKey) {
 	if fxtypes.TestnetChainId != ctx.ChainID() {
 		return
 	}
@@ -219,7 +218,7 @@ func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 	}
 }
 
-func clearTestnetModule(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
+func clearTestnetModule(ctx sdk.Context, keys map[string]*sdk.KVStoreKey) {
 	if fxtypes.TestnetChainId != ctx.ChainID() {
 		return
 	}
@@ -241,7 +240,7 @@ func clearTestnetModule(ctx sdk.Context, keys map[string]*types.KVStoreKey) {
 	}
 }
 
-func deleteKVStore(kv types.KVStore) error {
+func deleteKVStore(kv sdk.KVStore) error {
 	// Note that we cannot write while iterating, so load all keys here, delete below
 	var keys [][]byte
 	itr := kv.Iterator(nil, nil)

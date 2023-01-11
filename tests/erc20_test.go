@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/libs/rand"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -19,7 +19,7 @@ func (suite *IntegrationTest) ERC20Test() {
 	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
 
 	decimals := 18
-	metadata := fxtypes.GetCrossChainMetadata("test token", strings.ToUpper(fmt.Sprintf("a%sb", rand.Str(5))), uint32(decimals))
+	metadata := fxtypes.GetCrossChainMetadata("test token", strings.ToUpper(fmt.Sprintf("a%sb", tmrand.Str(5))), uint32(decimals))
 
 	var aliases []string
 	var bridgeTokens []crosschaintypes.BridgeToken

@@ -1,10 +1,9 @@
 package keeper_test
 
 import (
-	"math/rand"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -28,7 +27,7 @@ func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 	}
 
 	updateOracle.Oracles = []string{}
-	number := rand.Intn(100)
+	number := tmrand.Intn(100)
 	for i := 0; i < number; i++ {
 		updateOracle.Oracles = append(updateOracle.Oracles, sdk.AccAddress(helpers.GenerateAddress().Bytes()).String())
 	}
@@ -36,7 +35,7 @@ func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 	require.NoError(suite.T(), err)
 
 	updateOracle.Oracles = []string{}
-	number = rand.Intn(2) + 101
+	number = tmrand.Intn(2) + 101
 	for i := 0; i < number; i++ {
 		updateOracle.Oracles = append(updateOracle.Oracles, sdk.AccAddress(helpers.GenerateAddress().Bytes()).String())
 	}

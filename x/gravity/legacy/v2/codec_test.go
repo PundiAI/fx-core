@@ -2,11 +2,11 @@
 package v2_test
 
 import (
-	"math/rand"
 	"reflect"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -22,38 +22,38 @@ func (suite *TestSuite) TestCodec() {
 		{
 			name: "OracleSet",
 			oldValue: &types.Valset{
-				Nonce: rand.Uint64(),
+				Nonce: tmrand.Uint64(),
 				Members: []*types.BridgeValidator{
 					{
-						Power:      rand.Uint64(),
+						Power:      tmrand.Uint64(),
 						EthAddress: helpers.GenerateAddress().String(),
 					},
 					{
-						Power:      rand.Uint64(),
+						Power:      tmrand.Uint64(),
 						EthAddress: helpers.GenerateAddress().String(),
 					},
 					{
-						Power:      rand.Uint64(),
+						Power:      tmrand.Uint64(),
 						EthAddress: helpers.GenerateAddress().String(),
 					},
 				},
-				Height: rand.Uint64(),
+				Height: tmrand.Uint64(),
 			},
 			newValue: &crosschaintypes.OracleSet{},
 		},
 		{
 			name: "OutgoingTransferTx",
 			oldValue: &types.OutgoingTransferTx{
-				Id:          rand.Uint64(),
+				Id:          tmrand.Uint64(),
 				Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				DestAddress: helpers.GenerateAddress().String(),
 				Erc20Token: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().String(),
-					Amount:   sdk.NewInt(rand.Int63() + 1),
+					Amount:   sdk.NewInt(tmrand.Int63() + 1),
 				},
 				Erc20Fee: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().String(),
-					Amount:   sdk.NewInt(rand.Int63() + 1),
+					Amount:   sdk.NewInt(tmrand.Int63() + 1),
 				},
 			},
 			newValue: &crosschaintypes.OutgoingTransferTx{},
@@ -61,38 +61,38 @@ func (suite *TestSuite) TestCodec() {
 		{
 			name: "OutgoingTxBatch",
 			oldValue: &types.OutgoingTxBatch{
-				BatchNonce:   rand.Uint64(),
-				BatchTimeout: rand.Uint64(),
+				BatchNonce:   tmrand.Uint64(),
+				BatchTimeout: tmrand.Uint64(),
 				Transactions: []*types.OutgoingTransferTx{
 					{
-						Id:          rand.Uint64(),
+						Id:          tmrand.Uint64(),
 						Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 						DestAddress: helpers.GenerateAddress().String(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(rand.Int63() + 1),
+							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(rand.Int63() + 1),
+							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 					},
 					{
-						Id:          rand.Uint64(),
+						Id:          tmrand.Uint64(),
 						Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 						DestAddress: helpers.GenerateAddress().String(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(rand.Int63() + 1),
+							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(rand.Int63() + 1),
+							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 					},
 				},
 				TokenContract: helpers.GenerateAddress().String(),
-				Block:         rand.Uint64(),
+				Block:         tmrand.Uint64(),
 				FeeReceive:    helpers.GenerateAddress().String(),
 			},
 			newValue: &crosschaintypes.OutgoingTxBatch{},

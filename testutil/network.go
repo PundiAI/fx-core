@@ -25,7 +25,7 @@ import (
 	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/tendermint/tendermint/libs/rand"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v3/app"
@@ -109,7 +109,7 @@ func IbcGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesis
 	// 1. ibc client state
 	clientState.Clients = []clienttypes.IdentifiedClientState{
 		clienttypes.NewIdentifiedClientState(clientId, &ibctmtypes.ClientState{
-			ChainId:      rand.Str(10),
+			ChainId:      tmrand.Str(10),
 			LatestHeight: clienttypes.NewHeight(0, 1),
 			// if ibc timeout  ctx.BlockTime() > TrustingPeriod + consensusStateAny.Timestamp
 			TrustingPeriod: time.Hour,
@@ -121,13 +121,13 @@ func IbcGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesis
 			ClientId: clientId,
 			ConsensusStates: []clienttypes.ConsensusStateWithHeight{
 				clienttypes.NewConsensusStateWithHeight(clienttypes.NewHeight(0, 1),
-					ibctmtypes.NewConsensusState(time.Now(), types.NewMerkleRoot(rand.Bytes(32)), nil),
+					ibctmtypes.NewConsensusState(time.Now(), types.NewMerkleRoot(tmrand.Bytes(32)), nil),
 				),
 			},
 		},
 	}
 
-	counterparty := connectiontypes.NewCounterparty(clientId, connectionId, types.NewMerklePrefix(rand.Bytes(32)))
+	counterparty := connectiontypes.NewCounterparty(clientId, connectionId, types.NewMerklePrefix(tmrand.Bytes(32)))
 	// 2. ibc connection state
 	connState := connectiontypes.DefaultGenesisState()
 	connState.Connections = []connectiontypes.IdentifiedConnection{

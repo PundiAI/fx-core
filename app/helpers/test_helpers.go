@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"os"
 	"strconv"
 	"testing"
@@ -22,7 +21,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsign "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -35,6 +33,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmed25519 "github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/libs/log"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
@@ -415,9 +414,6 @@ func SignCheckDeliver(t *testing.T, txCfg client.TxConfig, app *baseapp.BaseApp,
 func GenTx(gen client.TxConfig, msgs []sdk.Msg, gasPrice sdk.Coin, gas uint64, chainID string, accNums, accSeqs []uint64, priv ...cryptotypes.PrivKey) (sdk.Tx, error) {
 	sigs := make([]signing.SignatureV2, len(priv))
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	memo := simulation.RandStringOfLength(r, simulation.RandIntBetween(r, 0, 100))
-
 	signMode := gen.SignModeHandler().DefaultMode()
 
 	// 1st round: set SignatureV2 with empty signatures, to set correct
@@ -441,7 +437,7 @@ func GenTx(gen client.TxConfig, msgs []sdk.Msg, gasPrice sdk.Coin, gas uint64, c
 	if err != nil {
 		return nil, err
 	}
-	tx.SetMemo(memo)
+	tx.SetMemo(tmrand.Str(100))
 	tx.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(int64(gas)))))
 	tx.SetGasLimit(gas)
 

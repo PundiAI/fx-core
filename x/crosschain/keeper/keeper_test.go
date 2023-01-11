@@ -2,17 +2,16 @@ package keeper_test
 
 import (
 	"crypto/ecdsa"
-	"math/rand"
 	"reflect"
 	"regexp"
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
@@ -89,8 +88,7 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	rand.Seed(time.Now().UnixNano())
-	valNumber := rand.Intn(types.MaxOracleSize-4) + 4
+	valNumber := tmrand.Intn(types.MaxOracleSize-4) + 4
 
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)

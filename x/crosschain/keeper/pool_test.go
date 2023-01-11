@@ -2,9 +2,9 @@ package keeper_test
 
 import (
 	"fmt"
-	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -17,7 +17,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
 	denom := fmt.Sprintf("%s%s", suite.chainName, bridgeToken)
 	suite.Equal(sdk.NewCoin(denom, sdk.ZeroInt()), suite.app.BankKeeper.GetSupply(suite.ctx, denom))
 
-	sendAmount := sdk.NewCoin(denom, sdk.NewInt(int64(rand.Uint32()*2)))
+	sendAmount := sdk.NewCoin(denom, sdk.NewInt(int64(tmrand.Uint32()*2)))
 	err := suite.app.BankKeeper.MintCoins(suite.ctx, suite.chainName, sdk.NewCoins(sendAmount))
 	suite.NoError(err)
 	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, suite.chainName, sender, sdk.NewCoins(sendAmount))
@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing2() {
 	denom := fxtypes.DefaultDenom
 	supply := suite.app.BankKeeper.GetSupply(suite.ctx, denom)
 
-	sendAmount := sdk.NewCoin(denom, sdk.NewInt(int64(rand.Uint32()*2)))
+	sendAmount := sdk.NewCoin(denom, sdk.NewInt(int64(tmrand.Uint32()*2)))
 	err := suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, suite.chainName, sender, sdk.NewCoins(sendAmount))
 	if suite.chainName != ethtypes.ModuleName {
 		suite.Error(err)

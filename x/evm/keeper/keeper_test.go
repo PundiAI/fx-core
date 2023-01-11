@@ -3,9 +3,7 @@ package keeper_test
 import (
 	"fmt"
 	"math/big"
-	"math/rand"
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -13,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/suite"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
@@ -33,9 +32,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	rand.Seed(time.Now().UnixNano())
-
-	valNumber := rand.Intn(100-1) + 1
+	valNumber := tmrand.Intn(100-1) + 1
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
