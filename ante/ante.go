@@ -21,7 +21,7 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return func(ctx sdk.Context, tx sdk.Tx, sim bool) (newCtx sdk.Context, err error) {
 		var anteHandler sdk.AnteHandler
 
-		defer Recover(ctx.Logger(), &err)
+		defer anteRecover(ctx.Logger())
 
 		txWithExtensions, ok := tx.(ante.HasExtensionOptionsTx)
 		if ok {
@@ -53,10 +53,8 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	}
 }
 
-func Recover(logger tmlog.Logger, err *error) {
+func anteRecover(logger tmlog.Logger) {
 	if r := recover(); r != nil {
-		//*err = sdkerrors.Wrapf(sdkerrors.ErrPanic, "%v", r)
-
 		if e, ok := r.(error); ok {
 			logger.Error(
 				"ante handler panicked",

@@ -23,6 +23,10 @@ func NewSigner(sk cryptotypes.PrivKey) *Signer {
 	}
 }
 
+func (s Signer) PrivKey() cryptotypes.PrivKey {
+	return s.privKey
+}
+
 func (s Signer) Address() common.Address {
 	return common.BytesToAddress(s.privKey.PubKey().Address())
 }

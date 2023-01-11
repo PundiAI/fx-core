@@ -31,14 +31,13 @@ func (suite *AnteTestSuite) TestMempoolFeeDecorator() {
 	txBuilder.SetGasLimit(gasLimit)
 
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
-	ctx := suite.GetContext(3)
 
 	tx, err := suite.CreateEmptyTestTx(txBuilder, privs, accNums, accSeqs)
 	suite.Require().NoError(err)
 
 	// Set high gas price so standard test fee fails
 	minGasPrice := []sdk.DecCoin{sdk.NewDecCoinFromDec(fxtypes.DefaultDenom, sdk.NewDec(200))}
-	ctx = ctx.WithMinGasPrices(minGasPrice).WithIsCheckTx(true)
+	ctx := suite.ctx.WithMinGasPrices(minGasPrice).WithIsCheckTx(true)
 
 	// anteHandler errors with insufficient fees
 	_, err = anteHandler(ctx, tx, false)

@@ -19,12 +19,12 @@ func (suite *AnteTestSuite) TestSignatures() {
 	acc.Nonce = 1
 	acc.Balance = big.NewInt(10000000000)
 
-	suite.Require().NoError(suite.app.EvmKeeper.SetAccount(suite.GetContext(2), from, *acc))
+	suite.Require().NoError(suite.app.EvmKeeper.SetAccount(suite.ctx, from, *acc))
 	msgEthereumTx := evmtypes.NewTx(suite.app.EvmKeeper.ChainID(), 1, &to, big.NewInt(10), 100000, big.NewInt(1), nil, nil, nil, nil)
 	msgEthereumTx.From = from.Hex()
 
 	// CreateTestTx will sign the msgEthereumTx but not sign the cosmos tx since we have signCosmosTx as false
-	tx := suite.CreateTestTx(NewClientCtx(), msgEthereumTx, privKey, 1, false)
+	tx := suite.CreateTestTx(msgEthereumTx, privKey, 1, false)
 	sigs, err := tx.GetSignaturesV2()
 	suite.Require().NoError(err)
 
