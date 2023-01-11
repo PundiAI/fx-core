@@ -9,26 +9,24 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-// todo need refactor
-
 // EndBlocker is called at the end of every block
 func (k Keeper) EndBlocker(ctx sdk.Context) {
 	signedWindow := k.GetSignedWindow(ctx)
-	slashing(ctx, k, signedWindow)
-	attestationTally(ctx, k)
-	cleanupTimedOutBatches(ctx, k)
-	createOracleSetRequest(ctx, k)
-	pruneOracleSet(ctx, k, signedWindow)
-	pruneAttestations(ctx, k)
+	k.slashing(ctx, signedWindow)
+	k.attestationTally(ctx)
+	k.cleanupTimedOutBatches(ctx)
+	k.createOracleSetRequest(ctx)
+	k.pruneOracleSet(ctx, signedWindow)
+	k.pruneAttestations(ctx)
 }
 
-func createOracleSetRequest(ctx sdk.Context, k Keeper) {
-	if currentOracleSet, isNeed := isNeedOracleSetRequest(ctx, k); isNeed {
+func (k Keeper) createOracleSetRequest(ctx sdk.Context) {
+	if currentOracleSet, isNeed := k.isNeedOracleSetRequest(ctx); isNeed {
 		k.AddOracleSetRequest(ctx, currentOracleSet)
 	}
 }
 
-func isNeedOracleSetRequest(ctx sdk.Context, k Keeper) (*types.OracleSet, bool) {
+func (k Keeper) isNeedOracleSetRequest(ctx sdk.Context) (*types.OracleSet, bool) {
 	currentOracleSet := k.GetCurrentOracleSet(ctx)
 	// 1. get latest OracleSet
 	latestOracleSet := k.GetLatestOracleSet(ctx)
@@ -58,20 +56,20 @@ func isNeedOracleSetRequest(ctx sdk.Context, k Keeper) (*types.OracleSet, bool) 
 	return currentOracleSet, false
 }
 
-func slashing(ctx sdk.Context, k Keeper, signedWindow uint64) {
+func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 	if uint64(ctx.BlockHeight()) <= signedWindow {
 		return
 	}
 	// Slash oracle for not confirming oracle set requests, batch requests
 	oracles := k.GetAllOracles(ctx, true)
-	oracleSetHasSlash := oracleSetSlashing(ctx, k, oracles, signedWindow)
-	batchHasSlash := batchSlashing(ctx, k, oracles, signedWindow)
+	oracleSetHasSlash := k.oracleSetSlashing(ctx, oracles, signedWindow)
+	batchHasSlash := k.batchSlashing(ctx, oracles, signedWindow)
 	if oracleSetHasSlash || batchHasSlash {
 		k.CommonSetOracleTotalPower(ctx)
 	}
 }
 
-func oracleSetSlashing(ctx sdk.Context, k Keeper, oracles types.Oracles, signedWindow uint64) (hasSlash bool) {
+func (k Keeper) oracleSetSlashing(ctx sdk.Context, oracles types.Oracles, signedWindow uint64) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
 	unSlashedOracleSets := k.GetUnSlashedOracleSets(ctx, maxHeight)
 
@@ -99,7 +97,7 @@ func oracleSetSlashing(ctx sdk.Context, k Keeper, oracles types.Oracles, signedW
 	return hasSlash
 }
 
-func batchSlashing(ctx sdk.Context, k Keeper, oracles types.Oracles, signedWindow uint64) (hasSlash bool) {
+func (k Keeper) batchSlashing(ctx sdk.Context, oracles types.Oracles, signedWindow uint64) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
 	unSlashedBatches := k.GetUnSlashedBatches(ctx, maxHeight)
 
@@ -129,7 +127,7 @@ func batchSlashing(ctx sdk.Context, k Keeper, oracles types.Oracles, signedWindo
 // Iterate over all attestations currently being voted on in order of nonce and
 // "Observe" those who have passed the threshold. Break the loop once we see
 // an attestation that has not passed the threshold
-func attestationTally(ctx sdk.Context, k Keeper) {
+func (k Keeper) attestationTally(ctx sdk.Context) {
 	type attClaim struct {
 		*types.Attestation
 		types.ExternalClaim
@@ -194,7 +192,7 @@ func attestationTally(ctx sdk.Context, k Keeper) {
 //	here is the Ethereum block height at the time of the last SendToExternal or SendToFx to be observed. It's very important we do not
 //	project, if we do a slowdown on ethereum could cause a double spend. Instead timeouts will *only* occur after the timeout period
 //	AND any deposit or withdraw has occurred to update the Ethereum block height.
-func cleanupTimedOutBatches(ctx sdk.Context, k Keeper) {
+func (k Keeper) cleanupTimedOutBatches(ctx sdk.Context) {
 	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.BatchTimeout < externalBlockHeight {
@@ -206,7 +204,7 @@ func cleanupTimedOutBatches(ctx sdk.Context, k Keeper) {
 	})
 }
 
-func pruneOracleSet(ctx sdk.Context, k Keeper, signedOracleSetsWindow uint64) {
+func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {
 	// Oracle set pruning
 	// prune all Oracle sets with a nonce less than the
 	// last observed nonce, they can't be submitted any longer
@@ -233,7 +231,7 @@ func pruneOracleSet(ctx sdk.Context, k Keeper, signedOracleSetsWindow uint64) {
 // use. This could be combined with create attestation and save some computation
 // but (A) pruning keeps the iteration small in the first place and (B) there is
 // already enough nuance in the other handler that it's best not to complicate it further
-func pruneAttestations(ctx sdk.Context, k Keeper) {
+func (k Keeper) pruneAttestations(ctx sdk.Context) {
 	claimMap := make(map[uint64][]types.ExternalClaim)
 	// We make a slice with all the event nonces that are in the attestation mapping
 	var nonces []uint64
