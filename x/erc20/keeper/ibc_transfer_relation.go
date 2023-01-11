@@ -12,7 +12,14 @@ func (k Keeper) RefundAfter(ctx sdk.Context, channel string, sequence uint64, se
 	if !k.DeleteIBCTransferRelation(ctx, channel, sequence) {
 		return nil
 	}
-	return k.TransferAfter(ctx, sender.String(), common.BytesToAddress(sender.Bytes()).String(), amount, sdk.NewCoin(amount.Denom, sdk.ZeroInt()))
+	cacheCtx, commit := ctx.CacheContext()
+	if err := k.TransferAfter(cacheCtx, sender.String(), common.BytesToAddress(sender.Bytes()).String(),
+		amount, sdk.NewCoin(amount.Denom, sdk.ZeroInt())); err != nil {
+		return err
+	}
+	commit()
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+	return nil
 }
 
 func (k Keeper) AckAfter(ctx sdk.Context, channel string, sequence uint64) error {
