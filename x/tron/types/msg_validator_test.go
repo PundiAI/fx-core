@@ -304,7 +304,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgOracleSetConfirm{
-				ChainName: tmrand.Str(10),
+				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
