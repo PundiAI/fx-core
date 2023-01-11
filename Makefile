@@ -112,8 +112,8 @@ build: go.sum
 build-win:
 	@$(MAKE) build
 
-#build-linux:
-#	@GOOS=linux GOARCH=amd64 $(MAKE) build
+build-linux:
+	@GOOS=linux GOARCH=amd64 $(MAKE) build
 
 INSTALL_DIR := $(shell go env GOPATH)/bin
 install: build $(INSTALL_DIR)

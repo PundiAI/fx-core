@@ -9,3 +9,4 @@ testnet
 dependency-graph.png
 debug.sh
 artifacts
+local.Dockerfile
