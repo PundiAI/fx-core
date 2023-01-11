@@ -23,6 +23,8 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
+const mainnetGenesisHash = "81fa9e07c345b217736add7822a4891d"
+
 func tendermintCommand() *cobra.Command {
 	tendermintCmd := &cobra.Command{
 		Use:   "tendermint",
@@ -113,7 +115,7 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config)
 	if genesisDoc.GenesisTime.Equal(genesisTime) {
 		data, _ := tmjson.Marshal(genesisDoc)
 		hash := md5.Sum(data)
-		if hex.EncodeToString(hash[:]) != "81fa9e07c345b217736add7822a4891d" {
+		if hex.EncodeToString(hash[:]) != mainnetGenesisHash {
 			return nil
 		}
 		// todo: Deleted before release
