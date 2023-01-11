@@ -124,7 +124,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-
 			suite.SetupTest()
 			chain := suite.GetApp(suite.chainA.App)
 			transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)

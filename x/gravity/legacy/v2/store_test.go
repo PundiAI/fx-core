@@ -45,7 +45,6 @@ func TestTestSuite(t *testing.T) {
 }
 
 func (suite *TestSuite) SetupTest() {
-
 	gravityStoreKey := sdk.NewKVStoreKey(types.ModuleName)
 	paramsStoreKey := sdk.NewKVStoreKey(paramstypes.ModuleName)
 	ethStoreKey := sdk.NewKVStoreKey(ethtypes.ModuleName)

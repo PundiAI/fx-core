@@ -1,3 +1,4 @@
+// nolint:staticcheck
 package v3
 
 import (

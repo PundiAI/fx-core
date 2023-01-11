@@ -1,3 +1,4 @@
+// nolint:staticcheck
 package v2
 
 import (
@@ -138,6 +139,7 @@ func getTronKey() map[byte][2]int {
 		crosschaintypes.LastProposalBlockHeight[0]:            {1, 0},
 	}
 }
+
 func getErc20Key() map[byte][2]int {
 	return map[byte][2]int{
 		erc20types.KeyPrefixTokenPair[0]:        {12, 0},
