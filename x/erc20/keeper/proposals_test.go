@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 				suite.app.Erc20Keeper.SetAliasesDenom(suite.ctx, "test", metadata.Base)
 			},
 			false,
-			"denom usdt already registered: invalid metadata",
+			"alias usdt already registered: invalid metadata",
 		},
 		{
 			"alias already registered",

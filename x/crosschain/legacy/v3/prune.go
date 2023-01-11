@@ -31,7 +31,7 @@ func pruneBatchConfirmKey(cdc codec.BinaryCodec, store sdk.KVStore) {
 	for ; iter.Valid(); iter.Next() {
 		confirm := new(types.MsgConfirmBatch)
 		cdc.MustUnmarshal(iter.Value(), confirm)
-		var found = false
+		found := false
 		for _, batch := range batchs {
 			if batch.BatchNonce == confirm.Nonce && batch.TokenContract == confirm.TokenContract {
 				found = true

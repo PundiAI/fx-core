@@ -351,6 +351,8 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 		if !found { // no convert required
 			return coin, nil
 		}
+
+		// NOTE: metadata must exist, and alias must exist
 		metadata, found = k.HasDenomAlias(ctx, denom)
 		if !found { // no convert required
 			return coin, nil

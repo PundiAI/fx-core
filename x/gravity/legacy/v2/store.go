@@ -324,7 +324,7 @@ func migrateOutgoingTxBatch(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KV
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
 
-	var outgoingTxBatchs = make([]*types.OutgoingTxBatch, 0)
+	outgoingTxBatchs := make([]*types.OutgoingTxBatch, 0)
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		var batch types.OutgoingTxBatch
 		cdc.MustUnmarshal(oldStoreIter.Value(), &batch)
@@ -338,7 +338,6 @@ func migrateOutgoingTxBatch(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KV
 }
 
 func migrateConfirmBatch(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, outgoingTxBaths []*types.OutgoingTxBatch) {
-
 	oldStore := prefix.NewStore(gravityStore, types.BatchConfirmKey)
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()

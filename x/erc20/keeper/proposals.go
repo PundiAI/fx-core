@@ -28,7 +28,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 
 	// base not register as alias
 	if k.IsAliasDenomRegistered(ctx, coinMetadata.Base) {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", coinMetadata.Base)
+		return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "alias %s already registered", coinMetadata.Base)
 	}
 
 	if len(coinMetadata.DenomUnits) > 0 && len(coinMetadata.DenomUnits[0].Aliases) > 0 {
@@ -84,7 +84,7 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 
 	// base denomination
 	base := strings.ToLower(erc20Data.Symbol)
-	if k.IsDenomRegistered(ctx, base) || erc20Data.Symbol == fxtypes.DefaultDenom {
+	if erc20Data.Symbol == fxtypes.DefaultDenom || k.IsDenomRegistered(ctx, base) {
 		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin denomination already registered: %s", erc20Data.Name)
 	}
 
