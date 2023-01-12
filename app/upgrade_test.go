@@ -1,15 +1,23 @@
 package app_test
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -22,6 +30,7 @@ import (
 	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
 	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 func Test_Upgrade(t *testing.T) {
@@ -89,6 +98,8 @@ func Test_Upgrade(t *testing.T) {
 			// require.NoError(t, err)
 
 			checkVersionMap(t, ctx, myApp, getConsensusVersion(testCase.toVersion))
+
+			checkDataAfterMigrateV3(t, ctx, myApp)
 
 			if testCase.LocalStoreBlockHeight > 0 {
 				for moduleName, keys := range v3.GetModuleKey() {
@@ -193,4 +204,98 @@ func checkStoreKey(t *testing.T, name string, keys map[byte][2]int, kvStores sdk
 	for k, x := range keys {
 		assert.Equal(t, x[0], x[1], fmt.Sprintf("%s: %x", name, k))
 	}
+}
+
+// check v3 upgrade data
+
+func checkDataAfterMigrateV3(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	checkWFXLogicUpgrade(t, ctx, myApp)
+	checkMetadataAliasNull(t, ctx, myApp)
+	checkV3RegisterCoin(t, ctx, myApp)
+	checkV3IBCTransferRelation(t, ctx, myApp)
+	checkV3NewEvmParams(t, ctx, myApp)
+}
+
+func checkWFXLogicUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	// check wfx logic upgrade
+	wfxLogicAcc := myApp.EvmKeeper.GetAccount(ctx, fxtypes.GetWFX().Address)
+	require.True(t, wfxLogicAcc.IsContract())
+
+	wfxLogic := fxtypes.GetWFX()
+	codeHash := crypto.Keccak256Hash(wfxLogic.Code)
+	require.Equal(t, codeHash.Bytes(), wfxLogicAcc.CodeHash)
+
+	code := myApp.EvmKeeper.GetCode(ctx, codeHash)
+	require.Equal(t, wfxLogic.Code, code)
+}
+
+func checkMetadataAliasNull(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	// check metadata alias null string
+	myApp.BankKeeper.IterateAllDenomMetaData(ctx, func(md banktypes.Metadata) bool {
+		if len(md.DenomUnits) != 2 {
+			return false
+		}
+		if len(md.DenomUnits[1].Aliases) == 0 || len(md.DenomUnits[1].Aliases) > 1 {
+			return false
+		}
+		for _, alias := range md.DenomUnits[1].Aliases {
+			require.NotEqual(t, "null", alias)
+		}
+		return false
+	})
+}
+
+func checkV3RegisterCoin(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	// check register coin
+	mds := v3.GetMetadata(ctx.ChainID())
+	codeHash := common.HexToHash("0xf8572bdecc4c287eec1a748169288993aaf0feed1f988dbefe28deb9321ee970")
+	for _, md := range mds {
+		tokenPair, found := myApp.Erc20Keeper.GetTokenPair(ctx, md.Base)
+		require.True(t, found)
+		require.Equal(t, tokenPair.GetDenom(), md.Base)
+		require.True(t, tokenPair.Enabled)
+		require.Equal(t, erc20types.OWNER_MODULE, tokenPair.ContractOwner)
+
+		tokenPairAddress := tokenPair.GetERC20Contract()
+		tokenPairAcc := myApp.EvmKeeper.GetAccount(ctx, tokenPairAddress)
+		tokenPairCode := myApp.EvmKeeper.GetCode(ctx, common.BytesToHash(tokenPairAcc.CodeHash))
+		require.Equal(t, codeHash, crypto.Keccak256Hash(tokenPairCode))
+	}
+}
+
+func checkV3IBCTransferRelation(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	kvStore := ctx.MultiStore().GetKVStore(myApp.GetKey(erc20types.StoreKey))
+
+	iter := sdk.KVStorePrefixIterator(kvStore, erc20types.KeyPrefixIBCTransfer)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		keyStr := string(bytes.TrimPrefix(iter.Key(), erc20types.KeyPrefixIBCTransfer))
+
+		channel, sequence, ok := parseIBCTransferKey(keyStr)
+		require.True(t, ok)
+
+		found := myApp.IBCKeeper.ChannelKeeper.HasPacketCommitment(ctx, ibctransfertypes.ModuleName, channel, sequence)
+		require.True(t, found)
+	}
+}
+
+func checkV3NewEvmParams(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	params := myApp.EvmKeeper.GetParams(ctx)
+	defaultParams := evmtypes.DefaultParams()
+	defaultParams.EvmDenom = fxtypes.DefaultDenom
+	require.Equal(t, defaultParams.String(), params.String())
+}
+
+func parseIBCTransferKey(keyStr string) (string, uint64, bool) {
+	split := strings.Split(keyStr, "/")
+	if len(split) != 2 {
+		return "", 0, false
+	}
+
+	channel := split[0]
+	sequence, err := strconv.ParseUint(split[1], 10, 64)
+	if err != nil {
+		return "", 0, false
+	}
+	return channel, sequence, true
 }

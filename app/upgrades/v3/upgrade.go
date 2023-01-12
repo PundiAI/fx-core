@@ -106,7 +106,7 @@ func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
 }
 
 func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
-	for _, metadata := range getMetadata(ctx.ChainID()) {
+	for _, metadata := range GetMetadata(ctx.ChainID()) {
 		cacheCtx, commit := ctx.CacheContext()
 		pair, err := k.RegisterCoin(cacheCtx, metadata)
 		if err != nil {
@@ -145,7 +145,7 @@ func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 	})
 }
 
-func getMetadata(chainId string) []banktypes.Metadata {
+func GetMetadata(chainId string) []banktypes.Metadata {
 	if fxtypes.TestnetChainId == chainId {
 		return []banktypes.Metadata{
 			fxtypes.GetCrossChainMetadata("Wrapped AVAX", "WAVAX", 18, "avalanche0xd0fABb17BD2999A4A9fDF0F05c2386e7dF6519bb"),

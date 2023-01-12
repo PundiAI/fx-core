@@ -18,12 +18,12 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-func Test_getMetadata(t *testing.T) {
+func Test_GetMetadata(t *testing.T) {
 	sdk.SetCoinDenomRegex(func() string {
 		return `[a-zA-Z][a-zA-Z0-9/-]{1,127}`
 	})
 
-	for _, metadata := range append(getMetadata(fxtypes.MainnetChainId), getMetadata(fxtypes.TestnetChainId)...) {
+	for _, metadata := range append(GetMetadata(fxtypes.MainnetChainId), GetMetadata(fxtypes.TestnetChainId)...) {
 		assert.NoError(t, metadata.Validate())
 		assert.NoError(t, fxtypes.ValidateMetadata(metadata))
 	}
