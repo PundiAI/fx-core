@@ -15,9 +15,9 @@ builds:
     goarch:
       - amd64
     flags:
-        - -tags=cgo
+      - -tags=cgo netgo ledger
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger
   - id: "fxcore-darwin-arm64"
     main: ./cmd/fxcored
     binary: bin/fxcored
@@ -30,9 +30,9 @@ builds:
     goarch:
       - arm64
     flags:
-      - -tags=cgo
+      - -tags=cgo netgo ledger
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger
   - id: "fxcore-linux"
     main: ./cmd/fxcored
     binary: bin/fxcored
@@ -45,9 +45,9 @@ builds:
     goarch:
       - amd64
     flags:
-      - -tags=cgo
+      - -tags=cgo netgo ledger
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger
   - id: "fxcore-linux-arm64"
     main: ./cmd/fxcored
     binary: bin/fxcored
@@ -60,9 +60,9 @@ builds:
     goarch:
       - arm64
     flags:
-      - -tags=cgo
+      - -tags=cgo netgo ledger
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger
   - id: "fxcore-windows"
     main: ./cmd/fxcored
     binary: bin/fxcored
@@ -75,10 +75,10 @@ builds:
     goarch:
       - amd64
     flags:
-      - -tags=cgo
+      - -tags=cgo netgo ledger
       - -buildmode=exe
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=fxcore -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger
 
 archives:
 - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
