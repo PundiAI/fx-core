@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -31,22 +32,21 @@ func IsZeroEthereumAddress(address string) bool {
 // ValidateEthereumAddress validates the ethereum address strings
 func ValidateEthereumAddress(address string) error {
 	if address == "" {
-		return fmt.Errorf("empty")
+		return errors.New("empty")
 	}
 	if len(address) != EthereumContractAddressLen {
-		// todo: is need return address in the error message?
-		return fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", address, EthereumContractAddressLen, len(address))
+		return errors.New("wrong length")
 	}
 	if !ethereumAddressRegular.MatchString(address) {
-		return fmt.Errorf("invalid address (%s) doesn't pass regex", address)
+		return errors.New("invalid format")
 	}
 	// add ethereum address checksum check 2021-09-02.
 	if !common.IsHexAddress(address) {
-		return fmt.Errorf("invalid address: %s", address)
+		return errors.New("doesn't pass format validation")
 	}
-	ethAddress := common.HexToAddress(address).Hex()
-	if ethAddress != address {
-		return fmt.Errorf("invalid address got: %s, expected: %s", address, ethAddress)
+	expectAddress := common.HexToAddress(address).Hex()
+	if expectAddress != address {
+		return errors.New(fmt.Sprintf("mismatch expected: %s, got: %s", expectAddress, address))
 	}
 	return nil
 }

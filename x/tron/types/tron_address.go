@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
@@ -11,22 +12,21 @@ import (
 const TronContractAddressLen = 34
 
 // ValidateTronAddress validates the ethereum address strings
-func ValidateTronAddress(addr string) error {
-	if addr == "" {
-		return fmt.Errorf("empty")
+func ValidateTronAddress(address string) error {
+	if address == "" {
+		return errors.New("empty")
 	}
-	if len(addr) != TronContractAddressLen {
-		// todo: is need return address in the error message?
-		return fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", addr, TronContractAddressLen, len(addr))
+	if len(address) != TronContractAddressLen {
+		return errors.New("wrong length")
 	}
 
-	tronAddr, err := common.DecodeCheck(addr)
+	tronAddr, err := common.DecodeCheck(address)
 	if err != nil {
-		return fmt.Errorf("invalid address: %s", addr)
+		return errors.New("doesn't pass format validation")
 	}
 	expectAddress := common.EncodeCheck(tronAddr[:])
-	if expectAddress != addr {
-		return fmt.Errorf("invalid address got: %s, expected: %s", addr, expectAddress)
+	if expectAddress != address {
+		return errors.New(fmt.Sprintf("mismatch expected: %s, got: %s", expectAddress, address))
 	}
 	return nil
 }

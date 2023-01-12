@@ -38,7 +38,7 @@ func (m *MsgMigrateAccount) ValidateBasic() error {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid from address: %s", err)
 	}
 	// check to address
-	if err := fxtypes.ValidateEthereumAddress(m.To); err != nil {
+	if err = fxtypes.ValidateEthereumAddress(m.To); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
 	}
 	toAddress := common.HexToAddress(m.To)
