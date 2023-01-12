@@ -13,22 +13,16 @@ func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sd
 	paramStoreKeyRejectUnprotectedTx := []byte("RejectUnprotectedTx")
 
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(evmtypes.ModuleName), '/'))
-	bzR := paramsStore.Get(paramStoreKeyRejectUnprotectedTx)
 
-	var rejectUnprotectedTx bool
-	if err := legacyAmino.UnmarshalJSON(bzR, &rejectUnprotectedTx); err != nil {
-		panic(err.Error())
-	}
-
-	allowUnprotectedTxs := !rejectUnprotectedTx
+	allowUnprotectedTxs := evmtypes.DefaultAllowUnprotectedTxs
 	bzA, err := legacyAmino.MarshalJSON(allowUnprotectedTxs)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	ctx.Logger().Info("migrating evm module params", "module", "evm",
-		"form", fmt.Sprintf("%s:%v", paramStoreKeyRejectUnprotectedTx, rejectUnprotectedTx),
-		"to", fmt.Sprintf("%s:%v", evmtypes.ParamStoreKeyAllowUnprotectedTxs, allowUnprotectedTxs))
+		"delete", string(paramStoreKeyRejectUnprotectedTx),
+		"add", fmt.Sprintf("%s:%v", evmtypes.ParamStoreKeyAllowUnprotectedTxs, allowUnprotectedTxs))
 
 	paramsStore.Delete(paramStoreKeyRejectUnprotectedTx)
 	paramsStore.Set(evmtypes.ParamStoreKeyAllowUnprotectedTxs, bzA)
