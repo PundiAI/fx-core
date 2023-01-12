@@ -59,23 +59,23 @@ func (m *UpdateChainOraclesProposal) ProposalType() string {
 
 func (m *UpdateChainOraclesProposal) ValidateBasic() error {
 	if err := ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "chain name")
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid chain name")
 	}
 	if err := govtypes.ValidateAbstract(m); err != nil {
 		return err
 	}
 
 	if len(m.Oracles) == 0 {
-		return sdkerrors.Wrap(ErrEmpty, "oracles")
+		return sdkerrors.ErrInvalidRequest.Wrap("empty oracles")
 	}
 
 	oraclesMap := make(map[string]bool)
 	for _, addr := range m.Oracles {
 		if _, err := sdk.AccAddressFromBech32(addr); err != nil {
-			return sdkerrors.Wrap(ErrInvalid, "oracle address")
+			return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
 		}
 		if oraclesMap[addr] {
-			return sdkerrors.Wrap(ErrDuplicate, "oracle address")
+			return ErrDuplicate.Wrapf("oracle address: %s", addr)
 		}
 		oraclesMap[addr] = true
 	}
