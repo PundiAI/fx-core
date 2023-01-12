@@ -12,6 +12,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -97,6 +98,22 @@ func Test_Upgrade(t *testing.T) {
 			}
 		})
 	}
+	exportedApp, err := myApp.ExportAppStateAndValidators(false, []string{})
+	assert.NoError(t, err)
+	genesisState := app.GenesisState{}
+	assert.NoError(t, tmjson.Unmarshal(exportedApp.AppState, &genesisState))
+	for moduleName, appState := range genesisState {
+		for key := range v3.GetModuleKey() {
+			if key == moduleName {
+				t.Log("-------------------", moduleName)
+				t.Log(string(appState))
+			}
+		}
+	}
+	conParamsBytes, err := tmjson.MarshalIndent(exportedApp.ConsensusParams, "", "  ")
+	assert.NoError(t, err)
+	t.Log(string(conParamsBytes))
+
 	// myApp.CommitMultiStore().Commit()
 }
 

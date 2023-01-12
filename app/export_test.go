@@ -1,7 +1,6 @@
 package app_test
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"sort"
@@ -38,7 +37,7 @@ func TestUseExportGenesisDataRunNode(t *testing.T) {
 	// genesisFile := filepath.Join(fxtypes.GetDefaultNodeHome(), "config", "genesis.json")
 	// assert.NoError(t, genesisDoc.SaveAs(genesisFile))
 	appState := app.GenesisState{}
-	assert.NoError(t, json.Unmarshal(genesisDoc.AppState, &appState))
+	assert.NoError(t, tmjson.Unmarshal(genesisDoc.AppState, &appState))
 
 	networkConfig.TimeoutCommit = time.Millisecond
 	networkConfig.NumValidators = 1
@@ -75,7 +74,7 @@ func GetGenesisDocFromAppData(t *testing.T) *types.GenesisDoc {
 	}
 
 	appState := app.GenesisState{}
-	assert.NoError(t, json.Unmarshal(genesisDoc.AppState, &appState))
+	assert.NoError(t, tmjson.Unmarshal(genesisDoc.AppState, &appState))
 
 	keyJSONBytes, err := os.ReadFile(filepath.Join(fxtypes.GetDefaultNodeHome(), "config", "priv_validator_key.json"))
 	assert.NoError(t, err)
@@ -154,7 +153,7 @@ func GetGenesisDocFromAppData(t *testing.T) *types.GenesisDoc {
 	}
 	appState[slashingtypes.ModuleName] = cdc.MustMarshalJSON(slashingGenesisState)
 
-	genesisDoc.AppState, err = json.Marshal(appState)
+	genesisDoc.AppState, err = tmjson.Marshal(appState)
 	assert.NoError(t, err)
 	return genesisDoc
 }
