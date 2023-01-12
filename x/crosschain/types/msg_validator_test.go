@@ -1598,7 +1598,9 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalOracleAddress := addressBytes.String()
 	var err error
-	errPrefixAddress, err := bech32.ConvertAndEncode("demo", addressBytes)
+
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
 	testCases := []struct {
 		testName   string
@@ -1608,41 +1610,42 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 		errReason  string
 	}{
 		{
-			testName: "err chain name",
+			testName: "err - empty chain name",
 			msg: &types.UpdateChainOraclesProposal{
 				ChainName: "",
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "chain name", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  fmt.Sprintf("invalid chain name: %s", sdkerrors.ErrInvalidRequest),
 		},
 		{
-			testName: "err oracle",
+			testName: "err - empty oracle",
 			msg: &types.UpdateChainOraclesProposal{
 				ChainName:   trontypes.ModuleName,
-				Title:       "test title",
-				Description: "test description",
+				Title:       tmrand.Str(20),
+				Description: tmrand.Str(20),
 			},
 			expectPass: false,
-			err:        types.ErrEmpty,
-			errReason:  fmt.Sprintf("%s: %s", "oracles", types.ErrEmpty),
+			err:        sdkerrors.ErrInvalidRequest,
+			errReason:  fmt.Sprintf("empty oracles: %s", sdkerrors.ErrInvalidRequest),
 		},
 		{
 			testName: "err external address",
 			msg: &types.UpdateChainOraclesProposal{
 				ChainName:   trontypes.ModuleName,
-				Title:       "test title",
-				Description: "test description",
+				Title:       tmrand.Str(20),
+				Description: tmrand.Str(20),
 				Oracles: []string{
 					strings.ToUpper(errPrefixAddress),
 				},
 			},
 			expectPass: false,
-			err:        types.ErrInvalid,
-			errReason:  fmt.Sprintf("%s: %s", "oracle address", types.ErrInvalid),
+			err:        sdkerrors.ErrInvalidAddress,
+			errReason: fmt.Sprintf("invalid oracle address: invalid Bech32 prefix; expected %s, got %s: %s",
+				sdk.Bech32MainPrefix, randomAddrPrefix, sdkerrors.ErrInvalidAddress),
 		},
 		{
-			testName: "err oracle",
+			testName: "err - duplicate oracle",
 			msg: &types.UpdateChainOraclesProposal{
 				ChainName:   trontypes.ModuleName,
 				Title:       "test title",
@@ -1654,7 +1657,7 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 			},
 			expectPass: false,
 			err:        types.ErrDuplicate,
-			errReason:  fmt.Sprintf("oracle address: %s", types.ErrDuplicate),
+			errReason:  fmt.Sprintf("oracle address: %s: %s", normalOracleAddress, types.ErrDuplicate),
 		},
 		{
 			testName: "success",
