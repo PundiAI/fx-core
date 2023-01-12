@@ -18,9 +18,9 @@ import (
 )
 
 func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
+	ethAnteHandler := newEthAnteHandler(options)
+	anteHandler := newNormalTxAnteHandler(options)
 	return func(ctx sdk.Context, tx sdk.Tx, sim bool) (newCtx sdk.Context, err error) {
-		var anteHandler sdk.AnteHandler
-
 		defer anteRecover(ctx.Logger())
 
 		txWithExtensions, ok := tx.(ante.HasExtensionOptionsTx)
@@ -30,26 +30,25 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 				switch typeURL := opts[0].GetTypeUrl(); typeURL {
 				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
 					// handle as *evmtypes.MsgEthereumTx
-					anteHandler = newEthAnteHandler(options)
+					return ethAnteHandler(ctx, tx, sim)
 				default:
 					return ctx, sdkerrors.Wrapf(
 						sdkerrors.ErrUnknownExtensionOptions,
 						"rejecting tx with unsupported extension option: %s", typeURL,
 					)
 				}
-				return anteHandler(ctx, tx, sim)
 			}
 		}
 
 		// handle as totally normal Cosmos SDK tx
 		switch tx.(type) {
 		case sdk.Tx:
-			anteHandler = newNormalTxAnteHandler(options)
+			return anteHandler(ctx, tx, sim)
 		default:
-			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid transaction type: %T", tx)
+			return ctx, sdkerrors.Wrapf(
+				sdkerrors.ErrUnknownRequest,
+				"invalid transaction type: %T", tx)
 		}
-
-		return anteHandler(ctx, tx, sim)
 	}
 }
 
