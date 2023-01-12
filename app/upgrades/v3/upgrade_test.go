@@ -10,7 +10,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	dbm "github.com/tendermint/tm-db"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -30,6 +29,7 @@ func Test_GetMetadata(t *testing.T) {
 }
 
 func Test_updateBSCOracles(t *testing.T) {
+	fxtypes.SetConfig(false)
 	storeKey := sdk.NewKVStoreKey(t.Name())
 
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
@@ -46,14 +46,19 @@ func Test_updateBSCOracles(t *testing.T) {
 	keeper := crosschainkeeper.NewKeeper(protoCodec, t.Name(), storeKey,
 		subspace, nil, nil, nil, nil, nil, nil)
 	updateOracles := getBSCOracles(ctx.ChainID())
-	oldOracleNum := tmrand.Intn(len(updateOracles))
 	keeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
-		Oracles: updateOracles[:oldOracleNum],
+		Oracles: updateOracles,
 	})
+	for _, oracle := range updateOracles {
+		keeper.SetOracle(ctx, crosschaintypes.Oracle{
+			OracleAddress: oracle,
+			Online:        true,
+		})
+	}
 
 	updateBSCOracles(ctx, keeper)
 
 	proposalOracle, found := keeper.GetProposalOracle(ctx)
 	assert.True(t, found)
-	assert.Equal(t, len(updateOracles), len(proposalOracle.Oracles))
+	assert.Equal(t, 5, len(proposalOracle.Oracles))
 }

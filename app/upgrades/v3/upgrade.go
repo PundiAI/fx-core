@@ -43,7 +43,7 @@ func createUpgradeHandler(
 			panic(fmt.Sprintf("run migrations: %s", err.Error()))
 		}
 
-		initAvalancheOracles(cacheCtx, app.AvalancheKeeper)
+		initAvalanche(cacheCtx, app.AvalancheKeeper)
 
 		updateBSCOracles(cacheCtx, app.BscKeeper)
 
@@ -55,14 +55,19 @@ func createUpgradeHandler(
 	}
 }
 
-func initAvalancheOracles(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keeper) {
-	var oracles []string
+func initAvalanche(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keeper) {
+	if ctx.ChainID() == fxtypes.TestnetChainId {
+		params := avalancheKeeper.GetParams(ctx)
+		params.GravityId = fmt.Sprintf("%s-test", params.GravityId)
+		avalancheKeeper.SetParams(ctx, &params)
+	}
+	var newOracles []string
 	chainId := ctx.ChainID()
 	// todo need add oracles
 	if chainId == fxtypes.MainnetChainId {
-		oracles = []string{}
+		newOracles = []string{}
 	} else if chainId == fxtypes.TestnetChainId {
-		oracles = []string{
+		newOracles = []string{
 			"fx1q4avdlyhxhzq3l2ngux2tpmz7jwl5mnkycnxve",
 			"fx13s5dyfagdyv2vcf25gw5rl849w5e93kztf5t5f",
 			"fx1wmakpdj7u3cf9anqq0u552qnm2uef50fgj7wnz",
@@ -71,6 +76,17 @@ func initAvalancheOracles(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keep
 		}
 	} else {
 		panic("invalid chainId:" + chainId)
+	}
+	if len(newOracles) <= 0 {
+		return
+	}
+	oracles := make([]string, 0, len(newOracles))
+	for _, oracle := range newOracles {
+		if _, err := sdk.AccAddressFromBech32(oracle); err != nil {
+			ctx.Logger().Error("parse avalanche oracle address error", "module", "upgrade", "error", err.Error())
+			continue
+		}
+		oracles = append(oracles, oracle)
 	}
 	if len(oracles) <= 0 {
 		return
@@ -82,22 +98,34 @@ func initAvalancheOracles(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keep
 }
 
 func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
-	oracles := getBSCOracles(ctx.ChainID())
-	if len(oracles) <= 0 {
+	newOracles := getBSCOracles(ctx.ChainID())
+	if len(newOracles) <= 0 {
 		return
 	}
 	// append old oracle
-	proposalOracle, _ := bscKeeper.GetProposalOracle(ctx)
-	for _, oracle1 := range proposalOracle.Oracles {
+	onlineOracles := bscKeeper.GetAllOracles(ctx, true)
+	for _, onlineOracle := range onlineOracles {
 		var isExist bool
-		for _, oracle2 := range oracles {
-			if oracle1 == oracle2 {
+		for _, newOracle := range newOracles {
+			if onlineOracle.OracleAddress == newOracle {
 				isExist = true
+				break
 			}
 		}
 		if !isExist {
-			oracles = append(oracles, oracle1)
+			newOracles = append(newOracles, onlineOracle.OracleAddress)
 		}
+	}
+	oracles := make([]string, 0, len(newOracles))
+	for _, oracle := range newOracles {
+		if _, err := sdk.AccAddressFromBech32(oracle); err != nil {
+			ctx.Logger().Error("parse bsc oracle address error", "module", "upgrade", "error", err.Error())
+			continue
+		}
+		oracles = append(oracles, oracle)
+	}
+	if len(oracles) <= 0 {
+		return
 	}
 	ctx.Logger().Info("update module bsc oracles to", "module", "upgrade", "number", len(oracles))
 	bscKeeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{

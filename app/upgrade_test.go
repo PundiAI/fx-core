@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -22,7 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
@@ -31,6 +31,7 @@ import (
 	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	gravityv2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
 )
 
 func Test_Upgrade(t *testing.T) {
@@ -62,22 +63,22 @@ func Test_Upgrade(t *testing.T) {
 	require.NoError(t, err)
 
 	appEncodingCfg := app.MakeEncodingConfig()
-	// logger := log.NewNopLogger()
-	logger := log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowInfo())
-	myApp := app.New(logger, db,
-		nil, true, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
+	myApp := app.New(
+		log.NewFilter(log.NewTMLogger(os.Stdout), log.AllowInfo()),
+		db, nil, true, map[int64]bool{}, fxtypes.GetDefaultNodeHome(), 0,
 		appEncodingCfg, app.EmptyAppOptions{},
 	)
-	ctx := myApp.NewUncachedContext(false, tmproto.Header{
-		ChainID:         fxtypes.ChainId(),
-		Height:          myApp.LastBlockHeight(),
-		ProposerAddress: tmrand.Bytes(20),
+	ctx := newContext(t, myApp)
+
+	checkStakingPool(t, ctx, myApp, true)
+
+	initEthOracleBalances(t, ctx, myApp)
+
+	var totalSupplies sdk.Coins
+	myApp.BankKeeper.IterateTotalSupply(ctx, func(coin sdk.Coin) bool {
+		totalSupplies = append(totalSupplies, coin)
+		return false
 	})
-	validators := myApp.StakingKeeper.GetAllValidators(ctx)
-	assert.True(t, len(validators) > 0)
-	var pubkey cryptotypes.PubKey
-	assert.NoError(t, myApp.AppCodec().UnpackAny(validators[0].ConsensusPubkey, &pubkey))
-	ctx = ctx.WithProposer(pubkey.Address().Bytes())
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -109,6 +110,73 @@ func Test_Upgrade(t *testing.T) {
 			}
 		})
 	}
+
+	myApp.BankKeeper.IterateTotalSupply(ctx, func(coin sdk.Coin) bool {
+		assert.Equal(t, totalSupplies.AmountOf(coin.Denom).String(), coin.Amount.String())
+		return false
+	})
+
+	checkStakingPool(t, ctx, myApp, false)
+
+	myApp.EthKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+
+	exportAppState(t, myApp)
+
+	// optional: save to the database
+	// myApp.CommitMultiStore().Commit()
+}
+
+func initEthOracleBalances(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	oracles := gravityv2.EthInitOracles(ctx.ChainID())
+	for _, oracle := range oracles {
+		addr := sdk.MustAccAddressFromBech32(oracle)
+		err := myApp.BankKeeper.SendCoinsFromModuleToAccount(ctx, distributiontypes.ModuleName, addr,
+			sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
+		assert.NoError(t, err)
+	}
+}
+
+func newContext(t *testing.T, myApp *app.App) sdk.Context {
+	ctx := myApp.NewUncachedContext(false, tmproto.Header{
+		ChainID: fxtypes.ChainId(),
+		Height:  myApp.LastBlockHeight(),
+	})
+	// set the first validator to proposer
+	validators := myApp.StakingKeeper.GetAllValidators(ctx)
+	assert.True(t, len(validators) > 0)
+	var pubkey cryptotypes.PubKey
+	assert.NoError(t, myApp.AppCodec().UnpackAny(validators[0].ConsensusPubkey, &pubkey))
+	ctx = ctx.WithProposer(pubkey.Address().Bytes())
+	return ctx
+}
+
+func checkStakingPool(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBefore bool) {
+	validators := myApp.StakingKeeper.GetAllValidators(ctx)
+	totalBonded := sdk.ZeroInt()
+	totalNotBounded := sdk.ZeroInt()
+	for _, validator := range validators {
+		if validator.IsBonded() {
+			totalBonded = totalBonded.Add(validator.Tokens)
+		} else {
+			totalNotBounded = totalNotBounded.Add(validator.Tokens)
+		}
+	}
+	bondDenom := myApp.StakingKeeper.BondDenom(ctx)
+	bondedPool := myApp.StakingKeeper.GetBondedPool(ctx)
+	notBondedPool := myApp.StakingKeeper.GetNotBondedPool(ctx)
+	bondedPoolAmount := myApp.BankKeeper.GetBalance(ctx, bondedPool.GetAddress(), bondDenom).Amount
+	notBondedPoolAmount := myApp.BankKeeper.GetBalance(ctx, notBondedPool.GetAddress(), bondDenom).Amount
+	if isUpgradeBefore {
+		bondedPoolAmount = bondedPoolAmount.Add(sdk.NewInt(190_000).MulRaw(1e18))
+		assert.Equal(t, bondedPoolAmount.String(), totalBonded.String())
+		assert.Equal(t, notBondedPoolAmount.String(), totalNotBounded.String())
+	} else {
+		assert.Equal(t, bondedPoolAmount.String(), totalBonded.String())
+		assert.Equal(t, notBondedPoolAmount.String(), totalNotBounded.String())
+	}
+}
+
+func exportAppState(t *testing.T, myApp *app.App) {
 	exportedApp, err := myApp.ExportAppStateAndValidators(false, []string{})
 	assert.NoError(t, err)
 	genesisState := app.GenesisState{}
