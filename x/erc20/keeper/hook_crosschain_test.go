@@ -288,10 +288,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 					ContractOwner: pair.ContractOwner,
 				}
 
-				return []types.RelayTransferCrossChain{relay}, []string{
-					recipient,
-					fmt.Sprintf("invalid address (%s) of the wrong length exp (42) actual (%d): invalid address", recipient, len(recipient)),
-				}
+				return []types.RelayTransferCrossChain{relay}, []string{recipient, "wrong length: invalid address"}
 			},
 			error: func(args []string) string {
 				return fmt.Sprintf("invalid to address %s, error %s", args[0], args[1])

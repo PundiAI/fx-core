@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,43 +13,42 @@ func TestValidateTronAddress(t *testing.T) {
 		testName   string
 		value      string
 		expectPass bool
-		err        error
+		errStr     string
 	}{
 		{
 			testName:   "empty address",
 			value:      "",
 			expectPass: false,
-			err:        fmt.Errorf("empty"),
+			errStr:     "empty",
 		},
 		{
 			testName:   "address length not match",
 			value:      "abcdddddd",
 			expectPass: false,
-			err:        fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", "abcdddddd", types.TronContractAddressLen, len("abcdddddd")),
+			errStr:     "wrong length",
 		},
 		{
 			testName:   "address length great than tron address",
 			value:      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666",
 			expectPass: false,
-			err:        fmt.Errorf("invalid address (%s) of the wrong length exp (%d) actual (%d)", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666", types.TronContractAddressLen, len("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t6666")),
+			errStr:     "wrong length",
 		},
 		{
 			testName:   "lowercase address",
 			value:      "tr7nhqjekqxgtci8q8zy4pl8otszgjlj6t",
 			expectPass: false,
-			err:        fmt.Errorf("invalid address: %s", "tr7nhqjekqxgtci8q8zy4pl8otszgjlj6t"),
+			errStr:     "doesn't pass format validation",
 		},
 		{
 			testName:   "uppercase address",
 			value:      "TR7NHQJEKQXGTCI8Q8ZY4PL8OTSZGJLJ6T",
 			expectPass: false,
-			err:        fmt.Errorf("invalid address: %s", "TR7NHQJEKQXGTCI8Q8ZY4PL8OTSZGJLJ6T"),
+			errStr:     "doesn't pass format validation",
 		},
 		{
 			testName:   "normal address",
 			value:      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
 			expectPass: true,
-			err:        nil,
 		},
 	}
 
@@ -61,7 +59,7 @@ func TestValidateTronAddress(t *testing.T) {
 				require.NoError(t, err)
 				return
 			}
-			require.EqualValues(t, err.Error(), testCase.err.Error())
+			require.EqualValues(t, testCase.errStr, err.Error(), testCase.value)
 		})
 	}
 }
