@@ -15,6 +15,10 @@ func (k Keeper) Migrate2to3(ctx sdk.Context) error {
 	crosschainv3.PruneStore(k.cdc, ctx.KVStore(k.storeKey))
 	ctx.Logger().Info("prune store has been successfully", "module", k.moduleName)
 
+	kvStore := ctx.KVStore(k.storeKey)
+	crosschainv3.MigrateBridgeToken(k.cdc, kvStore)
+	ctx.Logger().Info("bridge token has been migrated successfully", "module", k.moduleName)
+
 	// fix oracle delegate
 	validatorsByPower := k.stakingKeeper.GetBondedValidatorsByPower(ctx)
 	if len(validatorsByPower) <= 0 {

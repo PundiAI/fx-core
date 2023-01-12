@@ -19,4 +19,11 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeToken() {
 	suite.EqualValues(bridgeToken, suite.Keeper().GetBridgeTokenDenom(suite.ctx, tokenContract))
 
 	suite.EqualValues(bridgeToken, suite.Keeper().GetDenomByBridgeToken(suite.ctx, denom))
+
+	suite.Keeper().IterateBridgeTokenToDenom(suite.ctx, func(bt *types.BridgeToken) bool {
+		suite.Equal(bt.Token, tokenContract)
+		suite.Equal(bt.Denom, denom)
+		suite.T().Log(bt.Token, bt.Denom)
+		return false
+	})
 }
