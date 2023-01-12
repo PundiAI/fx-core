@@ -46,7 +46,7 @@ func ValidateEthereumAddress(address string) error {
 	}
 	expectAddress := common.HexToAddress(address).Hex()
 	if expectAddress != address {
-		return errors.New(fmt.Sprintf("mismatch expected: %s, got: %s", expectAddress, address))
+		return fmt.Errorf("mismatch expected: %s, got: %s", expectAddress, address)
 	}
 	return nil
 }

@@ -26,7 +26,7 @@ func ValidateTronAddress(address string) error {
 	}
 	expectAddress := common.EncodeCheck(tronAddr[:])
 	if expectAddress != address {
-		return errors.New(fmt.Sprintf("mismatch expected: %s, got: %s", expectAddress, address))
+		return fmt.Errorf("mismatch expected: %s, got: %s", expectAddress, address)
 	}
 	return nil
 }

@@ -102,6 +102,15 @@ func GenerateAddressByModule(module string) string {
 	return addr.String()
 }
 
+// GenerateZeroAddressByModule generates an Ethereum or Tron zero address.
+func GenerateZeroAddressByModule(module string) string {
+	addr := common.HexToAddress(common.Address{}.Hex())
+	if module == "tron" {
+		return tronaddress.Address(append([]byte{tronaddress.TronBytePrefix}, addr.Bytes()...)).String()
+	}
+	return addr.String()
+}
+
 // NewPubKeyFromHex returns a PubKey from a hex string.
 func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 	pkBytes, err := hex.DecodeString(pk)
