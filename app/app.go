@@ -53,14 +53,9 @@ var _ servertypes.Application = (*App)(nil)
 type App struct {
 	*baseapp.BaseApp
 	*keepers.AppKeepers
-
 	interfaceRegistry types.InterfaceRegistry
-
-	// the module manager
-	mm *module.Manager
-	// simulation manager
-	sm           *module.SimulationManager
-	configurator module.Configurator
+	mm                *module.Manager
+	configurator      module.Configurator
 }
 
 func New(
@@ -136,13 +131,6 @@ func New(
 
 	myApp.configurator = module.NewConfigurator(myApp.AppCodec(), myApp.MsgServiceRouter(), myApp.GRPCQueryRouter())
 	myApp.RegisterServices(myApp.configurator)
-
-	// create the simulation manager and define the order of the modules for deterministic simulations
-	//
-	// NOTE: this is not required apps that don't use the simulator for fuzz testing
-	// transactions
-	myApp.sm = module.NewSimulationManager(simulationModules(myApp, encodingConfig, skipGenesisInvariants)...)
-	myApp.sm.RegisterStoreDecoders()
 
 	// initialize stores
 	myApp.MountKVStores(myApp.GetKVStoreKey())
@@ -245,7 +233,7 @@ func (app *App) InterfaceRegistry() types.InterfaceRegistry {
 
 // SimulationManager implements the SimulationApp interface
 func (app *App) SimulationManager() *module.SimulationManager {
-	return app.sm
+	return &module.SimulationManager{}
 }
 
 func (app *App) RegisterServices(cfg module.Configurator) {

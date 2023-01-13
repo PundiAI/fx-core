@@ -79,7 +79,6 @@ func (suite *AnteTestSuite) NewTxContract() *evmtypes.MsgEthereumTx {
 }
 
 func (suite *AnteTestSuite) TestNewEthAccountVerificationDecorator() {
-
 	addr := helpers.GenerateAddress()
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	tx.From = addr.Hex()
@@ -165,7 +164,6 @@ func (suite *AnteTestSuite) TestNewEthAccountVerificationDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
-
 	addr := helpers.GenerateAddress()
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	tx.From = addr.Hex()
@@ -221,7 +219,6 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
-
 	addr := helpers.GenerateAddress()
 
 	txGasLimit := uint64(1000)
@@ -324,7 +321,6 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 }
 
 func (suite *AnteTestSuite) TestCanTransferDecorator() {
-
 	tx := evmtypes.NewTxContract(
 		suite.app.EvmKeeper.ChainID(),
 		1,
@@ -407,7 +403,6 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
-
 	signer := helpers.NewSigner(helpers.NewEthPrivKey())
 	to := helpers.GenerateAddress()
 

@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -182,33 +181,6 @@ func appModules(
 		erc20.NewAppModule(app.Erc20Keeper, app.IBCKeeper.ChannelKeeper),
 		migrate.NewAppModule(app.MigrateKeeper),
 		fxibctransfer.NewAppModule(app.FxTransferKeeper),
-		ibctransfer.NewAppModule(app.IBCTransferKeeper),
-	}
-}
-
-// simulationModules returns modules for simulation manager
-// define the order of the modules for deterministic simulations
-func simulationModules(
-	app *App,
-	encodingConfig EncodingConfig,
-	_ bool,
-) []module.AppModuleSimulation {
-	appCodec := encodingConfig.Codec
-
-	return []module.AppModuleSimulation{
-		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts),
-		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
-		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
-		fxgov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
-		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		params.NewAppModule(app.ParamsKeeper),
-		evidence.NewAppModule(app.EvidenceKeeper),
-		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-		ibc.NewAppModule(app.IBCKeeper),
 		ibctransfer.NewAppModule(app.IBCTransferKeeper),
 	}
 }
