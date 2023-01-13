@@ -50,9 +50,9 @@ func (suite *IntegrationTest) ERC20Test() {
 		balance := suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress())
 		suite.Equal(balance, big.NewInt(200))
 
-		suite.erc20.TransferERC20(chain.privKey, tokenPair.GetERC20Contract(), suite.erc20.HexAddress(), big.NewInt(100))
 		balance = suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress())
-		suite.Equal(balance, big.NewInt(100))
+		suite.erc20.TransferERC20(chain.privKey, tokenPair.GetERC20Contract(), suite.erc20.HexAddress(), big.NewInt(100))
+		suite.Equal(big.NewInt(0).Add(balance, big.NewInt(100)), suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress()))
 
 		receive := suite.erc20.HexAddress().String()
 		if chain.chainName == trontypes.ModuleName {
@@ -84,6 +84,16 @@ func (suite *IntegrationTest) ERC20Test() {
 		// covert erc20.addr metadata.base
 		suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(metadata.Base, sdk.NewInt(50)), chain.chainName)
 		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(50)))
+
+		// send to chain.address
+		baseTokenBalanceAmount := suite.QueryBalances(chain.AccAddress()).AmountOf(metadata.Base)
+		chain.SendToFxClaim(bridgeToken.Token, sdk.NewInt(100), "")
+		suite.CheckBalance(chain.AccAddress(), sdk.NewCoin(metadata.Base, baseTokenBalanceAmount.Add(sdk.NewInt(100))))
+
+		// convert native token(metadata base) to erc20 token
+		balance = suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress())
+		suite.erc20.ConvertCoin(chain.privKey, suite.erc20.HexAddress(), sdk.NewCoin(metadata.Base, sdk.NewInt(50)))
+		suite.Equal(suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress()), big.NewInt(0).Add(balance, big.NewInt(50)))
 
 		if i < len(suite.crosschain)-1 {
 			// remove proposal

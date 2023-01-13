@@ -96,7 +96,7 @@ func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (*sdk
 func (suite *Erc20TestSuite) ConvertCoin(private cryptotypes.PrivKey, recipient common.Address, coin sdk.Coin) *sdk.TxResponse {
 	suite.True(suite.DenomBalanceGTE(sdk.AccAddress(private.PubKey().Address()), coin))
 	msg := erc20types.NewMsgConvertCoin(coin, recipient, sdk.AccAddress(private.PubKey().Address()))
-	txResponse := suite.BroadcastTx(suite.privKey, msg)
+	txResponse := suite.BroadcastTx(private, msg)
 	suite.TokenBalanceGTE(recipient, suite.Erc20TokenAddress(coin.Denom), coin.Amount.BigInt())
 	return txResponse
 }
@@ -125,7 +125,7 @@ func (suite *Erc20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, 
 	pack, err := fxtypes.GetERC20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
 	suite.Require().NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
-	suite.Require().NoError(err)
+	suite.Require().NoError(err, target)
 	suite.SendTransaction(ethTx)
 	return ethTx
 }
