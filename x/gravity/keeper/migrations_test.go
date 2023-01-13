@@ -64,7 +64,7 @@ func (suite *MigrationTestSuite) SetupTest() {
 	)
 	suite.msgServer = crosschainkeeper.NewMsgServerImpl(suite.app.EthKeeper)
 
-	for _, addr := range v2.EthInitOracles(suite.ctx.ChainID()) {
+	for _, addr := range v2.GetEthOracleAddrs(suite.ctx.ChainID()) {
 		helpers.AddTestAddr(suite.app, suite.ctx, sdk.MustAccAddressFromBech32(addr), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
 	}
 

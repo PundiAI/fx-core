@@ -134,7 +134,7 @@ func Test_Upgrade(t *testing.T) {
 }
 
 func initEthOracleBalances(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	oracles := gravityv2.EthInitOracles(ctx.ChainID())
+	oracles := gravityv2.GetEthOracleAddrs(ctx.ChainID())
 	for _, oracle := range oracles {
 		addr := sdk.MustAccAddressFromBech32(oracle)
 		err := myApp.BankKeeper.SendCoinsFromModuleToAccount(ctx, distributiontypes.ModuleName, addr,

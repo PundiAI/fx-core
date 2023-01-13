@@ -270,7 +270,7 @@ func (suite *TestSuite) TestMigrateStoreByExportJson() {
 	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore)
 
 	suite.Equal(len(ctx.EventManager().Events()), 20)
-	oracles := v2.EthInitOracles(fxtypes.TestnetChainId)
+	oracles := v2.GetEthOracleAddrs(fxtypes.TestnetChainId)
 	for _, oracleAddr := range oracles {
 		oracle := new(crosschaintypes.Oracle)
 		value := suite.ethStore.Get(crosschaintypes.GetOracleKey(sdk.MustAccAddressFromBech32(oracleAddr)))

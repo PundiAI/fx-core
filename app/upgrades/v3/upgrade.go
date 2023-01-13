@@ -63,9 +63,19 @@ func initAvalanche(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keeper) {
 	}
 	var newOracles []string
 	chainId := ctx.ChainID()
-	// todo need add oracles
 	if chainId == fxtypes.MainnetChainId {
-		newOracles = []string{}
+		newOracles = []string{
+			"fx1y45zkm5fedeglz5vc9kf48x3dlfdc8mm7vgyss",
+			"fx13yc08ua0vzlccefzk8pwae3lsr40rten7s067f",
+			"fx18q29l6rlfp6c4h447233sth5vcwgcwx2fnhgrp",
+			"fx1qd08zkx9mz6qzwm7w2m9n6uzhzzegcwpzfyyaa",
+			"fx1p8utlnwa9uyul6pg5hkhw47hvpsgedg66nke8f",
+			"fx1cdet8s7dfmuxeu535uvcs9hx2ldl064eq2lzyt",
+			"fx1htxadktncppq685v93vz8exdzhsvu060n9d5n6",
+			"fx1j4feg7g6qr27v6ytm0avj5wh0mrydsl8pcvjqj",
+			"fx1am8zdzjk0z47tjtw83k47s48e3g8v2l3yh0vqe",
+			"fx1905t0cyarp890gcp752fq3kpd3t3fnwf397f57",
+		}
 	} else if chainId == fxtypes.TestnetChainId {
 		newOracles = []string{
 			"fx1q4avdlyhxhzq3l2ngux2tpmz7jwl5mnkycnxve",
@@ -98,7 +108,7 @@ func initAvalanche(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keeper) {
 }
 
 func updateBSCOracles(ctx sdk.Context, bscKeeper crosschainkeeper.Keeper) {
-	newOracles := getBSCOracles(ctx.ChainID())
+	newOracles := getBSCOracleAddrs(ctx.ChainID())
 	if len(newOracles) <= 0 {
 		return
 	}
@@ -173,6 +183,35 @@ func updateMetadataAliasNull(ctx sdk.Context, bk bankkeeper.Keeper) {
 	})
 }
 
+func getBSCOracleAddrs(chainId string) []string {
+	var oracles []string
+	if chainId == fxtypes.MainnetChainId {
+		oracles = []string{
+			"fx1qa9h4hm6parfw4250mydjc9guf42u8c80c30wd",
+			"fx1klx55m5pwphmfz0lwtszztm8wm5jewe6cv9prr",
+			"fx13tj0ck5huf5dw0mue62vcsg2rken86lmtkynst",
+			"fx10mhm00rg9hrdukl32jyypjt2rvredmfxcr2e43",
+			"fx129h996ynl62z9hqh44fjc4pz46q0w4xcesvvlg",
+			"fx1udd9lctranrs48ekf8t4cck9tdgvpew4r2cmag",
+			"fx1589zrr7tld7usp25hn8p0clmv37nejzyhcyrj3",
+			"fx170ev804dcn0vuvw9d25mwuyx6xy4cp9n2w2ykt",
+			"fx1fkq2tmwcpuxdd0wv8t60y884gtpvjp43c937x2",
+			"fx1sr9x23zt6sag0hdalgv8wu3m283kwuzpghthc3",
+		}
+	} else if chainId == fxtypes.TestnetChainId {
+		oracles = []string{
+			"fx1v55r4dl0l35ra4hgjsp9hq4skzkpc6z7hvnrcv",
+			"fx1l2nqwmhw8xw2y68yzucs4nvs2mxdd7ff5jn53e",
+			"fx1vavhtkdycrxrsa5gfr53gn90xktvma4ystd8na",
+			"fx1cajtzkv5mu2jhl5q7c6qwqxh2d0zlylyuppf2f",
+			"fx1zfvcvl4hk7rl0zgesuqx7n37zr0q6c9hpjk4jc",
+		}
+	} else {
+		panic("invalid chainId:" + chainId)
+	}
+	return oracles
+}
+
 func GetMetadata(chainId string) []banktypes.Metadata {
 	if fxtypes.TestnetChainId == chainId {
 		return []banktypes.Metadata{
@@ -193,25 +232,6 @@ func GetMetadata(chainId string) []banktypes.Metadata {
 	} else {
 		panic("invalid chainId:" + chainId)
 	}
-}
-
-func getBSCOracles(chainId string) []string {
-	var oracles []string
-	// todo need add oracles
-	if chainId == fxtypes.MainnetChainId {
-		oracles = []string{}
-	} else if chainId == fxtypes.TestnetChainId {
-		oracles = []string{
-			"fx1v55r4dl0l35ra4hgjsp9hq4skzkpc6z7hvnrcv",
-			"fx1l2nqwmhw8xw2y68yzucs4nvs2mxdd7ff5jn53e",
-			"fx1vavhtkdycrxrsa5gfr53gn90xktvma4ystd8na",
-			"fx1cajtzkv5mu2jhl5q7c6qwqxh2d0zlylyuppf2f",
-			"fx1zfvcvl4hk7rl0zgesuqx7n37zr0q6c9hpjk4jc",
-		}
-	} else {
-		panic("invalid chainId:" + chainId)
-	}
-	return oracles
 }
 
 // preUpgradeCmd called by cosmovisor

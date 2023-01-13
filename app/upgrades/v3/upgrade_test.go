@@ -45,7 +45,7 @@ func Test_updateBSCOracles(t *testing.T) {
 	subspace := paramtypes.NewSubspace(protoCodec, nil, nil, nil, t.Name())
 	keeper := crosschainkeeper.NewKeeper(protoCodec, t.Name(), storeKey,
 		subspace, nil, nil, nil, nil, nil, nil)
-	updateOracles := getBSCOracles(ctx.ChainID())
+	updateOracles := getBSCOracleAddrs(ctx.ChainID())
 	keeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: updateOracles,
 	})

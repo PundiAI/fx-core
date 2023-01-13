@@ -166,7 +166,7 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 	chainOracle := new(crosschaintypes.ProposalOracle)
 	totalPower := sdk.ZeroInt()
 
-	ethOracles := EthInitOracles(ctx.ChainID())
+	ethOracles := GetEthOracleAddrs(ctx.ChainID())
 	ctx.Logger().Info("migrating validator to oracle", "module", "gravity", "number", len(ethOracles))
 	index := 0
 	minDelegateAmount := sdk.DefaultPowerReduction.MulRaw(100)
