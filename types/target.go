@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -110,11 +111,24 @@ func (i FxTarget) IBCValidate() bool {
 func GetIbcDenomTrace(denom string, channelIBC string) (ibctransfertypes.DenomTrace, error) {
 	channelPath, err := hex.DecodeString(channelIBC)
 	if err != nil {
-		return ibctransfertypes.DenomTrace{}, sdkerrors.Wrapf(err, "decode channel ibc err")
+		return ibctransfertypes.DenomTrace{}, sdkerrors.Wrapf(err, "decode hex channel-ibc err")
 	}
 
-	// todo need check path
+	// transfer/channel-0
 	path := string(channelPath)
+	if len(path) > 0 {
+		pathSplit := strings.Split(path, "/")
+		if len(pathSplit) != 2 {
+			return ibctransfertypes.DenomTrace{}, errors.New("invalid params channel-ibc")
+		}
+		if pathSplit[0] != "transfer" {
+			return ibctransfertypes.DenomTrace{}, errors.New("invalid source port")
+		}
+		if !channeltypes.IsValidChannelID(pathSplit[1]) {
+			return ibctransfertypes.DenomTrace{}, errors.New("invalid source channel")
+		}
+	}
+
 	return ibctransfertypes.DenomTrace{
 		Path:      path,
 		BaseDenom: denom,

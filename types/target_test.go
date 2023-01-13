@@ -1,11 +1,15 @@
 package types_test
 
 import (
+	"encoding/hex"
+	"fmt"
 	"testing"
 
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v3/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 func TestParseTargetIBC(t *testing.T) {
@@ -227,7 +231,7 @@ func TestParseTargetIBC(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			target := types.ParseFxTarget(tc.targetStr)
+			target := fxtypes.ParseFxTarget(tc.targetStr)
 			require.EqualValues(t, tc.expect.isIBC, target.IsIBC(), tc.name)
 			if tc.expect.isIBC {
 				require.EqualValues(t, tc.expect.prefix, target.Prefix, tc.name)
@@ -236,6 +240,119 @@ func TestParseTargetIBC(t *testing.T) {
 			} else {
 				require.EqualValues(t, tc.expect.target, target.GetTarget(), tc.name)
 			}
+		})
+	}
+}
+
+func TestGetIbcDenomTrace(t *testing.T) {
+	type args struct {
+		denom      string
+		channelIBC string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    ibctransfertypes.DenomTrace
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "ok",
+			args: args{
+				denom:      fxtypes.DefaultDenom,
+				channelIBC: hex.EncodeToString([]byte("transfer/channel-0")),
+			},
+			want: ibctransfertypes.DenomTrace{
+				Path:      "transfer/channel-0",
+				BaseDenom: fxtypes.DefaultDenom,
+			},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.NoError(t, err)
+				return true
+			},
+		},
+		{
+			name: "ok empty",
+			args: args{
+				denom:      fxtypes.DefaultDenom,
+				channelIBC: "",
+			},
+			want: ibctransfertypes.DenomTrace{
+				Path:      "",
+				BaseDenom: fxtypes.DefaultDenom,
+			},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.NoError(t, err)
+				return true
+			},
+		},
+		{
+			name: "error decode hex",
+			args: args{
+				denom:      fxtypes.DefaultDenom,
+				channelIBC: "transfer/channel-0",
+			},
+			want: ibctransfertypes.DenomTrace{},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.ErrorContains(t, err, "decode hex channel-ibc err")
+				return true
+			},
+		},
+		{
+			name: "error split channel-ibc",
+			args: args{
+				denom:      fxtypes.DefaultDenom,
+				channelIBC: hex.EncodeToString([]byte("channel-0")),
+			},
+			want: ibctransfertypes.DenomTrace{},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.Equal(t, err.Error(), "invalid params channel-ibc")
+				return true
+			},
+		},
+		{
+			name: "error source port",
+			args: args{
+				denom:      fxtypes.DefaultDenom,
+				channelIBC: hex.EncodeToString([]byte("tran/channel-0")),
+			},
+			want: ibctransfertypes.DenomTrace{},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.Equal(t, err.Error(), "invalid source port")
+				return true
+			},
+		},
+		{
+			name: "error source channel",
+			args: args{
+				denom:      fxtypes.DefaultDenom,
+				channelIBC: hex.EncodeToString([]byte("transfer/chan-0")),
+			},
+			want: ibctransfertypes.DenomTrace{},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.Equal(t, err.Error(), "invalid source channel")
+				return true
+			},
+		},
+		{
+			name: "error source channel-index",
+			args: args{
+				denom:      fxtypes.DefaultDenom,
+				channelIBC: hex.EncodeToString([]byte("transfer/channel-x")),
+			},
+			want: ibctransfertypes.DenomTrace{},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.Equal(t, err.Error(), "invalid source channel")
+				return true
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := fxtypes.GetIbcDenomTrace(tt.args.denom, tt.args.channelIBC)
+			if !tt.wantErr(t, err, fmt.Sprintf("GetIbcDenomTrace(%v, %v)", tt.args.denom, tt.args.channelIBC)) {
+				return
+			}
+			assert.Equalf(t, tt.want, got, "GetIbcDenomTrace(%v, %v)", tt.args.denom, tt.args.channelIBC)
 		})
 	}
 }
