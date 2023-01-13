@@ -38,6 +38,7 @@ func TestIntegrationTest(t *testing.T) {
 func (suite *IntegrationTest) TestRun() {
 	suite.CrossChainTest()
 	suite.ERC20Test()
+	suite.ERC20IBCChainTokenTest()
 	suite.EVMWeb3Test()
 	suite.MigrateTestDelegate()
 	suite.MigrateTestUnDelegate()
