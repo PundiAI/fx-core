@@ -37,12 +37,28 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-* Support 0x prefix txhash in query tx command
-* Query Oracle delegate Address in crosschain module 
+* Support Avalanche C-chain cross-chain
+* Support cross-chain tokens: AVAX, SAVAX, QI, BAVA and WBTC (erc20)
+* Support IBC standard transfer transaction
+* Support the From address as 0x address when IBC cross-chain
+* Migrate the gravity module to the eth module (unify all cross-chain logic)
+* The fee must be empty when calling the contract Transfercrosschain method for ibc cross-chain
+* When the contract self-destructs, the contract code cannot be deleted
+* The EthereumTx transaction gas limit must be greater than 0
+* The EthereumTx transaction From must be empty
+* Upgrade WFX contract to support cross-chain transfer of FX Token contract
 
 ### Bug Fixes 
 
+* Fix bridge oracle address delegation invalid
+* Fix the bug that the alias field of metadata is set to "null"
 * Fix keys command parse address
+
+### Improvements
+
+* Bump go-ethereum version to v1.10.19
+* Bump cosmos-sdk to v0.45.11
+* Bump tendermint to v0.34.23
 
 ## [v2.4.1-2] - 2022-10-14
 
