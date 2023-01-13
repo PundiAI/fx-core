@@ -3,6 +3,7 @@ package app_test
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -73,6 +75,8 @@ func Test_Upgrade(t *testing.T) {
 
 	checkStakingPool(t, ctx, myApp, true)
 
+	checkTotalSupply(t, ctx, myApp)
+
 	initEthOracleBalances(t, ctx, myApp)
 
 	var totalSupplies sdk.Coins
@@ -118,6 +122,8 @@ func Test_Upgrade(t *testing.T) {
 	})
 
 	checkStakingPool(t, ctx, myApp, false)
+
+	checkTotalSupply(t, ctx, myApp)
 
 	myApp.EthKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 
@@ -193,6 +199,64 @@ func checkStakingPool(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBe
 		assert.Equal(t, bondedPoolAmount.String(), totalBonded.String())
 		assert.Equal(t, notBondedPoolAmount.String(), totalNotBounded.Add(undelegateAmount).String())
 	}
+}
+
+func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	// chain total supply
+	totalSupply := sdk.NewCoins()
+	myApp.BankKeeper.IterateTotalSupply(ctx, func(coin sdk.Coin) bool {
+		totalSupply = totalSupply.Add(coin)
+		return false
+	})
+
+	// all lock token
+	erc20Balances := myApp.BankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(erc20types.ModuleName))
+
+	// all contract
+	allTokenPairs := myApp.Erc20Keeper.GetAllTokenPairs(ctx)
+
+	// NOTE: testnet upgrade evm, erc20 twice, history balance not remove
+	erc20V1TestnetBalanceStr := []string{
+		"1000000000000000100000000eth0x2870405E4ABF9FcCDc93d9cC83c09788296d8354", "1100773800000eth0xD69133f9A0206b3340d9622F2eBc4571022b3b5f",
+		"1000293000000000000000000eth0xd9EEd31F5731DfC3Ca18f09B487e200F50a6343B", "1000100000000eth0xeC822cd1238d946Cf0f73be57359c5cAa5512a9D",
+		"1002123400000000000000000ibc/4757BC3AA2C696F7083C825BD3951AE3D1631F2A272EA7AFB9B3E1CCCA8560D4", "166500000000000000000polygon0x326C977E6efc84E512bB9C30f76E30c160eD06FB",
+		"1001000000000tronTK1pM7NtkLohgRgKA6LeocW2znwJ8JtLrQ", "38100000000000000000tronTLBaRhANQoJFTqre9Nf1mjuwNWjCJeYqUL", "145000000tronTXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj",
+	}
+	erc20V1TestnetBalances, err := sdk.ParseCoinsNormalized(strings.Join(erc20V1TestnetBalanceStr, ","))
+	require.NoError(t, err)
+
+	// contract totalSupply
+	for _, pair := range allTokenPairs {
+		res, err := myApp.Erc20Keeper.CallEVM(ctx, fxtypes.GetERC20().ABI, myApp.Erc20Keeper.ModuleAddress(),
+			pair.GetERC20Contract(), false, "totalSupply")
+		assert.NoError(t, err)
+
+		var totalSupplyRes struct{ Value *big.Int }
+		err = fxtypes.GetERC20().ABI.UnpackIntoInterface(&totalSupplyRes, "totalSupply", res.Ret)
+		assert.NoError(t, err)
+
+		denomBalance := erc20Balances.AmountOf(pair.GetDenom())
+		if pair.GetDenom() == fxtypes.DefaultDenom {
+			assert.True(t, 0 == denomBalance.Uint64())
+			denomBalance = myApp.BankKeeper.GetBalance(ctx, pair.GetERC20Contract().Bytes(), pair.GetDenom()).Amount
+		}
+		if ctx.ChainID() == fxtypes.TestnetChainId {
+			v1Balance := erc20V1TestnetBalances.AmountOf(pair.GetDenom())
+			denomBalance = denomBalance.Sub(v1Balance)
+		}
+		assert.Equal(t, totalSupplyRes.Value.String(), denomBalance.BigInt().String(), pair.GetDenom())
+	}
+
+	// usdt totalSupply
+	usdtTotalSupply := totalSupply.AmountOf("usdt")
+	usdtMD, found := myApp.BankKeeper.GetDenomMetaData(ctx, "usdt")
+	assert.True(t, found)
+	chainUSDTTotalSupply := sdk.ZeroInt()
+	for _, alias := range usdtMD.DenomUnits[0].Aliases {
+		balance := myApp.BankKeeper.GetBalance(ctx, myApp.Erc20Keeper.ModuleAddress().Bytes(), alias)
+		chainUSDTTotalSupply = chainUSDTTotalSupply.Add(balance.Amount)
+	}
+	assert.Equal(t, usdtTotalSupply.String(), chainUSDTTotalSupply.String(), "usdt")
 }
 
 func exportAppState(t *testing.T, myApp *app.App) {
