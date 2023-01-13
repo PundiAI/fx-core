@@ -247,8 +247,8 @@ func (suite *TestSuite) TestMigrateStore() {
 	v2.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
 
 	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager()).WithLogger(log.NewNopLogger())
-	v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
-	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore)
+	oracleMap := v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
+	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore, oracleMap)
 
 	gravityStoreIter := suite.gravityStore.Iterator(nil, nil)
 	defer gravityStoreIter.Close()
@@ -265,12 +265,16 @@ func (suite *TestSuite) TestMigrateStoreByExportJson() {
 
 	v2.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
 
+	oracles := v2.GetEthOracleAddrs(fxtypes.TestnetChainId)
+
 	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager()).WithLogger(log.NewNopLogger())
-	v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
-	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore)
+	oracleMap := v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
+	suite.Equal(len(oracles), len(oracleMap))
+
+	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore, oracleMap)
 
 	suite.Equal(len(ctx.EventManager().Events()), 20)
-	oracles := v2.GetEthOracleAddrs(fxtypes.TestnetChainId)
+
 	for _, oracleAddr := range oracles {
 		oracle := new(crosschaintypes.Oracle)
 		value := suite.ethStore.Get(crosschaintypes.GetOracleKey(sdk.MustAccAddressFromBech32(oracleAddr)))

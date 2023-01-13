@@ -20,7 +20,7 @@ import (
 
 // MigrateStore performs in-place store migrations from v1 to v2.
 // migrate data from gravity module
-func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
+func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, oracleMap map[string]string) {
 	// gravity 0x2 -> eth 0x13
 	// key                                        			value
 	// prefix     external-address                			oracle-address
@@ -47,7 +47,7 @@ func MigrateStore(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
 	// key                                       				 									value
 	// prefix     nonce                             claim-details-hash								Attestation
 	// [0x5][0 0 0 0 0 0 0 1][fd1af8cec6c67fcf156f1b61fdf91ebc04d05484d007436e75342fc05bbff35a]		[object marshal bytes]
-	migrateAttestation(cdc, gravityStore, ethStore)
+	migrateAttestation(cdc, gravityStore, ethStore, oracleMap)
 
 	// gravity 0x6 and 0x7 -> eth 0x18
 	// key                                       				 				value
@@ -162,7 +162,8 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 	}
 }
 
-func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, stakingKeeper StakingKeeper, bankKeeper BankKeeper) {
+func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, stakingKeeper StakingKeeper, bankKeeper BankKeeper) map[string]string {
+	oldOracleMap := make(map[string]string)
 	chainOracle := new(crosschaintypes.ProposalOracle)
 	totalPower := sdk.ZeroInt()
 
@@ -224,6 +225,8 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 		if oracle.Online {
 			totalPower = totalPower.Add(oracle.GetPower())
 		}
+		oldOracleMap[sdk.ValAddress(oldStoreIter.Value()).String()] = oracle.OracleAddress
+
 		oracleAddress := oracle.GetOracle()
 		ethStore.Set(append(crosschaintypes.OracleAddressByExternalKey, []byte(oracle.ExternalAddress)...), oracleAddress.Bytes())
 		ethStore.Set(append(crosschaintypes.OracleAddressByBridgerKey, bridgerAddr.Bytes()...), oracleAddress.Bytes())
@@ -255,6 +258,8 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 	deletePrefixKey(gravityStore, types.EthAddressByValidatorKey)
 	// delete 0x2
 	deletePrefixKey(gravityStore, types.ValidatorByEthAddressKey)
+
+	return oldOracleMap
 }
 
 func migrateOutgoingTxPool(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
@@ -393,7 +398,7 @@ func migrateLastObservedBlockHeight(cdc codec.BinaryCodec, gravityStore, ethStor
 	gravityStore.Delete(types.LastObservedEthereumBlockHeightKey)
 }
 
-func migrateAttestation(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore) {
+func migrateAttestation(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, oracleMap map[string]string) {
 	oldStore := prefix.NewStore(gravityStore, types.OracleAttestationKey)
 	oldStoreIter := oldStore.Iterator(nil, nil)
 	defer oldStoreIter.Close()
@@ -401,6 +406,12 @@ func migrateAttestation(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStor
 	for ; oldStoreIter.Valid(); oldStoreIter.Next() {
 		var att types.Attestation
 		cdc.MustUnmarshal(oldStoreIter.Value(), &att)
+
+		for i := 0; i < len(att.Votes); i++ {
+			if newOracle, ok := oracleMap[att.Votes[i]]; ok {
+				att.Votes[i] = newOracle
+			}
+		}
 
 		claim, err := types.UnpackAttestationClaim(cdc, &att)
 		if err != nil {
@@ -455,7 +466,7 @@ func migrateAttestation(cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStor
 		}
 
 		// new claim hash
-		ethStore.Set(crosschaintypes.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash()),
+		ethStore.Set(crosschaintypes.GetAttestationKey(newClaim.GetEventNonce(), newClaim.ClaimHash()),
 			cdc.MustMarshal(&crosschaintypes.Attestation{
 				Observed: att.Observed,
 				Votes:    att.Votes,

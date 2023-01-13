@@ -61,9 +61,9 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	v2.MigrateBridgeTokenFromMetadatas(metadatas, ethStore)
 	ctx.Logger().Info("bridge token has been migrated successfully", "module", "gravity")
 
-	v2.MigrateValidatorToOracle(ctx, m.cdc, gravityStore, ethStore, m.sk, m.bk)
+	oracleMap := v2.MigrateValidatorToOracle(ctx, m.cdc, gravityStore, ethStore, m.sk, m.bk)
 
-	v2.MigrateStore(m.cdc, gravityStore, ethStore)
+	v2.MigrateStore(m.cdc, gravityStore, ethStore, oracleMap)
 	ctx.Logger().Info("store key has been migrated successfully", "module", "gravity",
 		"LatestOracleSetNonce", sdk.BigEndianToUint64(ethStore.Get(crosschaintypes.LatestOracleSetNonce)))
 	return nil
