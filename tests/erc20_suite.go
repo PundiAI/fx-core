@@ -120,11 +120,11 @@ func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver 
 	return txResponse
 }
 
-func (suite *Erc20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
-	suite.TokenBalanceGTE(common.BytesToAddress(privateKey.PubKey().Address().Bytes()), token, new(big.Int).Add(amount, fee))
+func (suite *Erc20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, tokenContract common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
+	suite.TokenBalanceGTE(common.BytesToAddress(privateKey.PubKey().Address().Bytes()), tokenContract, new(big.Int).Add(amount, fee))
 	pack, err := fxtypes.GetERC20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
 	suite.Require().NoError(err)
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &tokenContract, nil, pack)
 	suite.Require().NoError(err, target)
 	suite.SendTransaction(ethTx)
 	return ethTx

@@ -66,6 +66,12 @@ func (suite *EvmTestSuite) Balance(addr common.Address) *big.Int {
 	return at
 }
 
+func (suite *EvmTestSuite) CodeAt(addr common.Address) []byte {
+	at, err := suite.EthClient().CodeAt(suite.ctx, addr, nil)
+	suite.Require().NoError(err)
+	return at
+}
+
 func (suite *EvmTestSuite) TotalSupply(contractAddr common.Address) *big.Int {
 	caller, err := contract.NewFIP20(contractAddr, suite.EthClient())
 	suite.NoError(err)
@@ -112,37 +118,46 @@ func (suite *EvmTestSuite) Transfer(privateKey cryptotypes.PrivKey, recipient co
 	return ethTx
 }
 
-func (suite *EvmTestSuite) WFXDeposit(privateKey cryptotypes.PrivKey, address common.Address, value *big.Int) *ethtypes.Transaction {
-	suite.True(suite.Balance(common.BytesToAddress(privateKey.PubKey().Address().Bytes())).Cmp(value) >= 0)
+func (suite *EvmTestSuite) WFXDeposit(privateKey cryptotypes.PrivKey, wfx common.Address, value *big.Int) *ethtypes.Transaction {
+	testAddress := common.BytesToAddress(privateKey.PubKey().Address().Bytes())
+	expectBalance := new(big.Int).Add(suite.BalanceOf(wfx, testAddress), value)
+	expectTotalSupply := new(big.Int).Add(suite.TotalSupply(wfx), value)
+
+	suite.True(suite.Balance(testAddress).Cmp(value) >= 0)
 	pack, err := fxtypes.GetWFX().ABI.Pack("deposit")
 	suite.Require().NoError(err)
-
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &address, value, pack)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &wfx, value, pack)
 	suite.Require().NoError(err)
-
 	suite.SendTransaction(ethTx)
-	suite.True(suite.BalanceOf(address, common.BytesToAddress(privateKey.PubKey().Address().Bytes())).Cmp(value) >= 0)
-	suite.True(suite.TotalSupply(address).Cmp(value) >= 0)
+
+	suite.CheckBalanceOf(wfx, testAddress, expectBalance)
+	suite.True(suite.TotalSupply(wfx).Cmp(expectTotalSupply) == 0)
 	return ethTx
 }
 
-func (suite *EvmTestSuite) WFXWithdraw(privateKey cryptotypes.PrivKey, address, recipient common.Address, value *big.Int) *ethtypes.Transaction {
-	suite.True(suite.TotalSupply(address).Cmp(value) >= 0)
-	suite.True(suite.BalanceOf(address, common.BytesToAddress(privateKey.PubKey().Address().Bytes())).Cmp(value) >= 0)
+func (suite *EvmTestSuite) WFXWithdraw(privateKey cryptotypes.PrivKey, wfx, recipient common.Address, value *big.Int) *ethtypes.Transaction {
+	testAddress := common.BytesToAddress(privateKey.PubKey().Address().Bytes())
+	expectWfxBalance := new(big.Int).Sub(suite.BalanceOf(wfx, testAddress), value)
+	expectTotalSupply := new(big.Int).Sub(suite.TotalSupply(wfx), value)
+	expectFxbalance := new(big.Int).Add(suite.Balance(recipient), value)
+
+	suite.True(suite.BalanceOf(wfx, testAddress).Cmp(value) >= 0)
 	pack, err := fxtypes.GetWFX().ABI.Pack("withdraw", recipient, value)
 	suite.Require().NoError(err)
-
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &address, nil, pack)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &wfx, nil, pack)
 	suite.Require().NoError(err)
-
 	suite.SendTransaction(ethTx)
 
-	suite.True(suite.Balance(recipient).Cmp(value) >= 0)
+	suite.CheckBalanceOf(wfx, testAddress, expectWfxBalance)
+	suite.CheckBalance(recipient.Bytes(), sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(expectFxbalance)))
+	suite.True(suite.TotalSupply(wfx).Cmp(expectTotalSupply) == 0)
 	return ethTx
 }
 
 func (suite *EvmTestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token, recipient common.Address, value *big.Int) *ethtypes.Transaction {
-	suite.True(suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes())).Cmp(value) >= 0)
+	testAddress := common.BytesToAddress(privateKey.PubKey().Address().Bytes())
+	expectFromBalance := new(big.Int).Sub(suite.BalanceOf(token, testAddress), value)
+	expectToBalance := new(big.Int).Add(suite.BalanceOf(token, recipient), value)
 
 	pack, err := fxtypes.GetERC20().ABI.Pack("transfer", recipient, value)
 	suite.Require().NoError(err)
@@ -151,11 +166,15 @@ func (suite *EvmTestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token, 
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
-	suite.True(suite.BalanceOf(token, recipient).Cmp(value) >= 0)
+	suite.CheckBalanceOf(token, testAddress, expectFromBalance)
+	suite.CheckBalanceOf(token, recipient, expectToBalance)
 	return ethTx
 }
 
 func (suite *EvmTestSuite) ApproveERC20(privateKey cryptotypes.PrivKey, token, spender common.Address, value *big.Int) *ethtypes.Transaction {
+	testAddress := common.BytesToAddress(privateKey.PubKey().Address().Bytes())
+	expectAllowance := value
+
 	pack, err := fxtypes.GetERC20().ABI.Pack("approve", spender, value)
 	suite.Require().NoError(err)
 
@@ -163,11 +182,16 @@ func (suite *EvmTestSuite) ApproveERC20(privateKey cryptotypes.PrivKey, token, s
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
-	suite.True(suite.Allowance(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()), spender).Cmp(value) >= 0)
+
+	suite.True(suite.Allowance(token, testAddress, spender).Cmp(expectAllowance) == 0)
 	return ethTx
 }
 
 func (suite *EvmTestSuite) TransferFromERC20(privateKey cryptotypes.PrivKey, token, sender, recipient common.Address, value *big.Int) *ethtypes.Transaction {
+	testAddress := common.BytesToAddress(privateKey.PubKey().Address().Bytes())
+	expectAllowance := new(big.Int).Sub(suite.Allowance(token, sender, testAddress), value)
+	expectSenderBalanceOf := new(big.Int).Sub(suite.BalanceOf(token, sender), value)
+	expectRecipientBalanceOf := new(big.Int).Add(suite.BalanceOf(token, recipient), value)
 	pack, err := fxtypes.GetERC20().ABI.Pack("transferFrom", sender, recipient, value)
 	suite.Require().NoError(err)
 
@@ -175,33 +199,65 @@ func (suite *EvmTestSuite) TransferFromERC20(privateKey cryptotypes.PrivKey, tok
 	suite.Require().NoError(err)
 
 	suite.SendTransaction(ethTx)
-	suite.True(suite.BalanceOf(token, recipient).Cmp(value) >= 0)
+
+	suite.True(suite.Allowance(token, sender, testAddress).Cmp(expectAllowance) == 0)
+	suite.CheckBalanceOf(token, sender, expectSenderBalanceOf)
+	suite.CheckBalanceOf(token, recipient, expectRecipientBalanceOf)
 	return ethTx
 }
 
+func (suite *EvmTestSuite) WFXTransferCrossChain(privateKey cryptotypes.PrivKey, wfx common.Address, recipient string, totalAmount, fxAmount, fee *big.Int, target string) {
+	sender := common.BytesToAddress(privateKey.PubKey().Address().Bytes())
+	suite.True(suite.Balance(sender).Cmp(fxAmount) > 0)
+	suite.True(new(big.Int).Add(suite.Balance(sender), suite.BalanceOf(wfx, sender)).Cmp(new(big.Int).Add(totalAmount, fee)) > 0)
+	var expectBalance *big.Int
+	if totalAmount.Cmp(fxAmount) > 0 {
+		suite.True(suite.BalanceOf(wfx, sender).Cmp(new(big.Int).Sub(new(big.Int).Add(totalAmount, fee), fxAmount)) >= 0)
+		expectBalance = new(big.Int).Sub(suite.BalanceOf(wfx, sender), new(big.Int).Sub(new(big.Int).Add(totalAmount, fee), fxAmount))
+	} else if totalAmount.Cmp(fxAmount) == 0 {
+		expectBalance = new(big.Int).Sub(suite.BalanceOf(wfx, sender), fee)
+	} else {
+		if new(big.Int).Sub(fxAmount, totalAmount).Cmp(fee) >= 0 {
+			expectBalance = new(big.Int).Add(suite.BalanceOf(wfx, sender), new(big.Int).Sub(fxAmount, new(big.Int).Add(totalAmount, fee)))
+		} else {
+			expectBalance = new(big.Int).Sub(suite.BalanceOf(wfx, sender), new(big.Int).Sub(new(big.Int).Add(totalAmount, fee), fxAmount))
+		}
+	}
+	pack, err := fxtypes.GetWFX().ABI.Pack("transferCrossChain", recipient, totalAmount, fee, fxtypes.MustStrToByte32(target))
+	suite.Require().NoError(err)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &wfx, fxAmount, pack)
+	suite.Require().NoError(err)
+	suite.SendTransaction(ethTx)
+	suite.CheckBalanceOf(wfx, sender, expectBalance)
+}
+
 func (suite *EvmTestSuite) MintERC20(privateKey cryptotypes.PrivKey, token, account common.Address, value *big.Int) *ethtypes.Transaction {
+	expectBalanceOf := new(big.Int).Add(suite.BalanceOf(token, account), value)
+	expectTotalSupply := new(big.Int).Add(suite.TotalSupply(token), value)
+
 	pack, err := fxtypes.GetERC20().ABI.Pack("mint", account, value)
 	suite.Require().NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
 	suite.Require().NoError(err)
 	suite.SendTransaction(ethTx)
-	suite.True(suite.BalanceOf(token, account).Cmp(value) >= 0)
-	suite.True(suite.TotalSupply(token).Cmp(value) >= 0)
+
+	suite.CheckBalanceOf(token, account, expectBalanceOf)
+	suite.True(suite.TotalSupply(token).Cmp(expectTotalSupply) == 0)
 	return ethTx
 }
 
 func (suite *EvmTestSuite) BurnERC20(privateKey cryptotypes.PrivKey, token, account common.Address, value *big.Int) *ethtypes.Transaction {
-	beforeBalance := suite.BalanceOf(token, account)
-	suite.True(beforeBalance.Cmp(value) >= 0)
-	beforeTotalSupply := suite.TotalSupply(token)
-	suite.True(beforeTotalSupply.Cmp(value) >= 0)
+	expectBalanceOf := new(big.Int).Sub(suite.BalanceOf(token, account), value)
+	expectTotalSupply := new(big.Int).Sub(suite.TotalSupply(token), value)
+
 	pack, err := fxtypes.GetERC20().ABI.Pack("burn", account, value)
 	suite.Require().NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
 	suite.Require().NoError(err)
 	suite.SendTransaction(ethTx)
-	suite.True(new(big.Int).Sub(beforeBalance, suite.BalanceOf(token, account)).Cmp(value) == 0)
-	suite.True(new(big.Int).Sub(beforeTotalSupply, suite.TotalSupply(token)).Cmp(value) == 0)
+
+	suite.CheckBalanceOf(account, token, expectBalanceOf)
+	suite.True(suite.TotalSupply(token).Cmp(expectTotalSupply) == 0)
 	return ethTx
 }
 
@@ -233,12 +289,22 @@ func (suite *EvmTestSuite) IsApprovedForAll(contractAddr, owner, operator common
 	return isApproved
 }
 
+func (suite *EvmTestSuite) GetApproved(contractAddr common.Address, id *big.Int) common.Address {
+	caller, err := contract.NewERC721Token(contractAddr, suite.EthClient())
+	suite.NoError(err)
+	approved, err := caller.GetApproved(nil, id)
+	suite.NoError(err)
+	return approved
+}
+
 func (suite *EvmTestSuite) SafeMintERC721(privateKey cryptotypes.PrivKey, contractAddr, account common.Address) *ethtypes.Transaction {
+	expectBalanceOf := new(big.Int).Add(suite.BalanceOf(contractAddr, account), big.NewInt(1))
 	pack, err := GetERC721().ABI.Pack("safeMint", account)
 	suite.NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &contractAddr, nil, pack)
 	suite.Require().NoError(err)
 	suite.SendTransaction(ethTx)
+	suite.CheckBalanceOfERC721(contractAddr, account, expectBalanceOf)
 	return ethTx
 }
 
@@ -248,6 +314,8 @@ func (suite *EvmTestSuite) ApproveERC721(privateKey cryptotypes.PrivKey, contrac
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &contractAddr, nil, pack)
 	suite.Require().NoError(err)
 	suite.SendTransaction(ethTx)
+
+	suite.True(suite.GetApproved(contractAddr, id).Hex() == operator.Hex())
 	return ethTx
 }
 
@@ -257,15 +325,23 @@ func (suite *EvmTestSuite) SetApprovalForAll(privateKey cryptotypes.PrivKey, con
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &contractAddr, nil, pack)
 	suite.Require().NoError(err)
 	suite.SendTransaction(ethTx)
+	suite.True(suite.IsApprovedForAll(contractAddr, common.BytesToAddress(privateKey.PubKey().Address().Bytes()), operator))
 	return ethTx
 }
 
 func (suite *EvmTestSuite) SafeTransferFrom(privateKey cryptotypes.PrivKey, contractAddr, from, to common.Address, id *big.Int) *ethtypes.Transaction {
+	expectFromBalanceOf := new(big.Int).Sub(suite.BalanceOf(contractAddr, from), big.NewInt(1))
+	expectToBalanceOf := new(big.Int).Add(suite.BalanceOf(contractAddr, to), big.NewInt(1))
+
 	pack, err := GetERC721().ABI.Pack("safeTransferFrom", from, to, id)
 	suite.NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &contractAddr, nil, pack)
 	suite.Require().NoError(err)
 	suite.SendTransaction(ethTx)
+
+	suite.CheckBalanceOfERC721(contractAddr, from, expectFromBalanceOf)
+	suite.CheckBalanceOfERC721(contractAddr, to, expectToBalanceOf)
+
 	return ethTx
 }
 
