@@ -13,17 +13,6 @@ import (
 )
 
 func (suite *AnteTestSuite) TestGasWantedDecorator() {
-	suite.SetupTest()
-	suite.ctx = suite.ctx.WithBlockHeight(1)
-
-	params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-	params.EnableHeight = 1
-	params.NoBaseFee = false
-	suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
-
-	dec := ante.NewGasWantedDecorator(suite.app.EvmKeeper, suite.app.FeeMarketKeeper)
-	to := helpers.GenerateAddress()
-
 	testCases := []struct {
 		name              string
 		expectedGasWanted uint64
@@ -48,6 +37,7 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			TestGasLimit,
 			func() sdk.Tx {
 				signer := helpers.NewSigner(helpers.NewEthPrivKey())
+				to := helpers.GenerateAddress()
 				msg := suite.BuildTestEthTx(signer.Address(), to, nil, make([]byte, 0), big.NewInt(0), nil, nil, nil)
 				return suite.CreateTestTx(msg, signer.PrivKey(), 1, false)
 			},
@@ -57,6 +47,7 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			TestGasLimit,
 			func() sdk.Tx {
 				signer := helpers.NewSigner(helpers.NewEthPrivKey())
+				to := helpers.GenerateAddress()
 				emptyAccessList := ethtypes.AccessList{}
 				msg := suite.BuildTestEthTx(signer.Address(), to, nil, make([]byte, 0), big.NewInt(0), nil, nil, &emptyAccessList)
 				return suite.CreateTestTx(msg, signer.PrivKey(), 1, false)
@@ -67,12 +58,22 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			TestGasLimit,
 			func() sdk.Tx {
 				signer := helpers.NewSigner(helpers.NewEthPrivKey())
+				to := helpers.GenerateAddress()
 				emptyAccessList := ethtypes.AccessList{}
 				msg := suite.BuildTestEthTx(signer.Address(), to, nil, make([]byte, 0), big.NewInt(0), big.NewInt(100), big.NewInt(50), &emptyAccessList)
 				return suite.CreateTestTx(msg, signer.PrivKey(), 1, false)
 			},
 		},
 	}
+	suite.SetupTest()
+	suite.ctx = suite.ctx.WithBlockHeight(1)
+
+	params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
+	params.EnableHeight = 1
+	params.NoBaseFee = false
+	suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
+
+	dec := ante.NewGasWantedDecorator(suite.app.EvmKeeper, suite.app.FeeMarketKeeper)
 
 	// cumulative gas wanted from all test transactions in the same block
 	var expectedGasWanted uint64
