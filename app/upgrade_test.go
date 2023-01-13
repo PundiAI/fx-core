@@ -58,7 +58,7 @@ func Test_Upgrade(t *testing.T) {
 				Name: v3.Upgrade.UpgradeName,
 				Info: "local test upgrade v3",
 			},
-			LocalStoreBlockHeight: 7654832,
+			// LocalStoreBlockHeight: 0,
 		},
 	}
 

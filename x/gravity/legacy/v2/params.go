@@ -33,9 +33,9 @@ func MigrateParams(legacyAmino *codec.LegacyAmino, paramsStore sdk.KVStore, toMo
 	}
 	params := crosschaintypes.Params{
 		GravityId:                         gravityParams.GravityId,
-		AverageBlockTime:                  gravityParams.AverageBlockTime,
+		AverageBlockTime:                  7000,
 		ExternalBatchTimeout:              gravityParams.TargetBatchTimeout,
-		AverageExternalBlockTime:          gravityParams.AverageEthBlockTime,
+		AverageExternalBlockTime:          12000,
 		SignedWindow:                      30_000,
 		SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 		OracleSetUpdatePowerChangePercent: gravityParams.ValsetUpdatePowerChangePercent,

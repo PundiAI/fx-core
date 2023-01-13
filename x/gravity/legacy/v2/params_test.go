@@ -52,9 +52,9 @@ func TestMigrateParams(t *testing.T) {
 	}
 	assert.EqualValues(t, &crosschaintypes.Params{
 		GravityId:                         gravityParams.GravityId,
-		AverageBlockTime:                  gravityParams.AverageBlockTime,
+		AverageBlockTime:                  7000,
 		ExternalBatchTimeout:              gravityParams.TargetBatchTimeout,
-		AverageExternalBlockTime:          gravityParams.AverageEthBlockTime,
+		AverageExternalBlockTime:          12000,
 		SignedWindow:                      30_000,
 		SlashFraction:                     sdk.MustNewDecFromStr("0.8"),
 		OracleSetUpdatePowerChangePercent: gravityParams.ValsetUpdatePowerChangePercent,
