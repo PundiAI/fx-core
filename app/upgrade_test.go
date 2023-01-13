@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -137,8 +138,12 @@ func initEthOracleBalances(t *testing.T, ctx sdk.Context, myApp *app.App) {
 }
 
 func newContext(t *testing.T, myApp *app.App) sdk.Context {
+	chainID := fxtypes.MainnetChainId
+	if os.Getenv("CHAIN_ID") == fxtypes.TestnetChainId {
+		chainID = fxtypes.TestnetChainId
+	}
 	ctx := myApp.NewUncachedContext(false, tmproto.Header{
-		ChainID: fxtypes.ChainId(),
+		ChainID: chainID,
 		Height:  myApp.LastBlockHeight(),
 	})
 	// set the first validator to proposer
@@ -161,18 +166,32 @@ func checkStakingPool(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBe
 			totalNotBounded = totalNotBounded.Add(validator.Tokens)
 		}
 	}
+
+	undelegateAmount := sdk.ZeroInt()
+	myApp.StakingKeeper.IterateUnbondingDelegations(ctx, func(index int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
+		for _, entry := range ubd.Entries {
+			undelegateAmount = undelegateAmount.Add(entry.Balance)
+		}
+		return false
+	})
+
 	bondDenom := myApp.StakingKeeper.BondDenom(ctx)
 	bondedPool := myApp.StakingKeeper.GetBondedPool(ctx)
 	notBondedPool := myApp.StakingKeeper.GetNotBondedPool(ctx)
 	bondedPoolAmount := myApp.BankKeeper.GetBalance(ctx, bondedPool.GetAddress(), bondDenom).Amount
 	notBondedPoolAmount := myApp.BankKeeper.GetBalance(ctx, notBondedPool.GetAddress(), bondDenom).Amount
+
 	if isUpgradeBefore {
-		bondedPoolAmount = bondedPoolAmount.Add(sdk.NewInt(190_000).MulRaw(1e18))
+		if ctx.ChainID() == fxtypes.TestnetChainId {
+			totalBonded = totalBonded.Add(sdk.NewInt(90_000).MulRaw(1e18))
+		} else {
+			totalBonded = totalBonded.Add(sdk.NewInt(190_000).MulRaw(1e18))
+		}
 		assert.Equal(t, bondedPoolAmount.String(), totalBonded.String())
-		assert.Equal(t, notBondedPoolAmount.String(), totalNotBounded.String())
+		assert.Equal(t, notBondedPoolAmount.String(), totalNotBounded.Add(undelegateAmount).String())
 	} else {
 		assert.Equal(t, bondedPoolAmount.String(), totalBonded.String())
-		assert.Equal(t, notBondedPoolAmount.String(), totalNotBounded.String())
+		assert.Equal(t, notBondedPoolAmount.String(), totalNotBounded.Add(undelegateAmount).String())
 	}
 }
 
