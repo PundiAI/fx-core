@@ -41,4 +41,7 @@ func (suite *IntegrationTest) TestRun() {
 	suite.EVMWeb3Test()
 	suite.MigrateTestDelegate()
 	suite.MigrateTestUnDelegate()
+	suite.WFXTest()
+	suite.ERC20TokenTest()
+	suite.ERC721Test()
 }

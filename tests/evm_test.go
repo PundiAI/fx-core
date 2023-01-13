@@ -5,9 +5,122 @@ import (
 	"math/big"
 	"reflect"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/client"
+	"github.com/functionx/fx-core/v3/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )
+
+func (suite *IntegrationTest) WFXTest() {
+	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetWFX().Bin)
+	suite.NoError(err)
+	suite.evm.SendTransaction(tx)
+	logic := crypto.CreateAddress(common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()), tx.Nonce())
+	proxy := suite.deployProxy(suite.evm.privKey, logic, []byte{})
+	pack, err := types.GetWFX().ABI.Pack("initialize", "Wrapped Function X", "WFX", uint8(18), common.BytesToAddress([]byte(evmtypes.ModuleName)))
+	suite.NoError(err)
+	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, &proxy, nil, pack)
+	suite.NoError(err)
+	suite.evm.SendTransaction(tx)
+	key := helpers.NewEthPrivKey()
+	suite.Send(key.PubKey().Address().Bytes(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	suite.evm.WFXDeposit(key, proxy, new(big.Int).Mul(big.NewInt(tmrand.Int63n(19)+81), big.NewInt(1e18)))
+	suite.evm.WFXWithdraw(key, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(tmrand.Int63n(29)+1), big.NewInt(1e18)))
+	suite.evm.TransferERC20(key, proxy, helpers.GenerateAddress(), new(big.Int).Mul(big.NewInt(tmrand.Int63n(19)+1), big.NewInt(1e18)))
+	spenderKey := helpers.NewEthPrivKey()
+	suite.Send(spenderKey.PubKey().Address().Bytes(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	suite.evm.ApproveERC20(key, proxy, common.BytesToAddress(spenderKey.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(tmrand.Int63n(10)+20), big.NewInt(1e18)))
+	suite.evm.TransferFromERC20(spenderKey, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), helpers.GenerateAddress(), new(big.Int).Mul(big.NewInt(tmrand.Int63n(19)+1), big.NewInt(1e18)))
+}
+
+func (suite *IntegrationTest) ERC20TokenTest() {
+	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetERC20().Bin)
+	suite.NoError(err)
+	suite.evm.SendTransaction(tx)
+	logic := crypto.CreateAddress(common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()), tx.Nonce())
+	proxy := suite.deployProxy(suite.evm.privKey, logic, []byte{})
+	pack, err := types.GetERC20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress([]byte(evmtypes.ModuleName)))
+	suite.NoError(err)
+	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, &proxy, nil, pack)
+	suite.NoError(err)
+	suite.evm.SendTransaction(tx)
+
+	key := helpers.NewEthPrivKey()
+	suite.Send(key.PubKey().Address().Bytes(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	suite.evm.MintERC20(suite.evm.privKey, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18)))
+	suite.evm.CheckBalanceOf(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18)))
+
+	transferAmount := new(big.Int).Mul(big.NewInt(tmrand.Int63n(19)+1), big.NewInt(1e18))
+	recipient := helpers.GenerateAddress()
+
+	suite.evm.TransferERC20(key, proxy, recipient, transferAmount)
+	suite.evm.CheckBalanceOf(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), new(big.Int).Sub(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18)), transferAmount))
+	suite.evm.CheckBalanceOf(proxy, recipient, transferAmount)
+
+	spenderKey := helpers.NewEthPrivKey()
+	approveAmount := new(big.Int).Mul(big.NewInt(tmrand.Int63n(10)+20), big.NewInt(1e18))
+	transferFromAmount := new(big.Int).Mul(big.NewInt(tmrand.Int63n(19)+1), big.NewInt(1e18))
+	suite.Send(spenderKey.PubKey().Address().Bytes(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	suite.evm.ApproveERC20(key, proxy, common.BytesToAddress(spenderKey.PubKey().Address().Bytes()), approveAmount)
+	suite.evm.CheckAllowance(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), common.BytesToAddress(spenderKey.PubKey().Address().Bytes()), approveAmount)
+	suite.evm.TransferFromERC20(spenderKey, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), helpers.GenerateAddress(), transferFromAmount)
+	suite.evm.CheckAllowance(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), common.BytesToAddress(spenderKey.PubKey().Address().Bytes()), new(big.Int).Sub(approveAmount, transferFromAmount))
+}
+
+func (suite *IntegrationTest) ERC721Test() {
+	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, GetERC721().Bin)
+	suite.NoError(err)
+	suite.evm.SendTransaction(tx)
+	logic := crypto.CreateAddress(common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()), tx.Nonce())
+	proxy := suite.deployProxy(suite.evm.privKey, logic, []byte{})
+	pack, err := GetERC721().ABI.Pack("initialize")
+	suite.NoError(err)
+	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, &proxy, nil, pack)
+	suite.NoError(err)
+	suite.evm.SendTransaction(tx)
+
+	key := helpers.NewEthPrivKey()
+	suite.Send(key.PubKey().Address().Bytes(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	suite.evm.SafeMintERC721(suite.evm.privKey, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()))
+	suite.evm.CheckBalanceOfERC721(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), big.NewInt(1))
+	approvekey := helpers.NewEthPrivKey()
+	suite.Send(approvekey.PubKey().Address().Bytes(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+
+	suite.evm.ApproveERC721(key, proxy, common.BytesToAddress(approvekey.PubKey().Address().Bytes()), big.NewInt(0))
+	suite.evm.SafeTransferFrom(approvekey, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), helpers.GenerateAddress(), big.NewInt(0))
+	suite.evm.CheckBalanceOfERC721(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), big.NewInt(0))
+
+	suite.evm.SafeMintERC721(suite.evm.privKey, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()))
+	suite.evm.CheckBalanceOfERC721(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), big.NewInt(1))
+	suite.evm.SafeTransferFrom(key, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), helpers.GenerateAddress(), big.NewInt(1))
+	suite.evm.CheckBalanceOfERC721(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), big.NewInt(0))
+
+	suite.evm.SafeMintERC721(suite.evm.privKey, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()))
+	suite.evm.CheckBalanceOfERC721(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), big.NewInt(1))
+	suite.evm.SetApprovalForAll(key, proxy, common.BytesToAddress(approvekey.PubKey().Address().Bytes()), true)
+	suite.True(suite.evm.IsApprovedForAll(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), common.BytesToAddress(approvekey.PubKey().Address().Bytes())))
+
+	suite.evm.SafeTransferFrom(key, proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), helpers.GenerateAddress(), big.NewInt(2))
+	suite.evm.CheckBalanceOfERC721(proxy, common.BytesToAddress(key.PubKey().Address().Bytes()), big.NewInt(0))
+}
+
+func (suite *IntegrationTest) deployProxy(privateKey cryptotypes.PrivKey, logic common.Address, initData []byte) common.Address {
+	input, err := types.GetERC1967Proxy().ABI.Pack("", logic, initData)
+	suite.NoError(err)
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), privateKey, nil, nil, append(types.GetERC1967Proxy().Bin, input...))
+	suite.NoError(err)
+	suite.evm.SendTransaction(tx)
+	return crypto.CreateAddress(common.BytesToAddress(privateKey.PubKey().Address().Bytes()), tx.Nonce())
+}
 
 func (suite *IntegrationTest) EVMWeb3Test() {
 	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))

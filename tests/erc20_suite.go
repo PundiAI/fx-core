@@ -54,6 +54,17 @@ func (suite *Erc20TestSuite) Erc20TokenAddress(denom string) common.Address {
 	return suite.TokenPair(denom).GetERC20Contract()
 }
 
+func (suite *Erc20TestSuite) DenomFromErc20(address common.Address) string {
+	pairs, err := suite.ERC20Query().TokenPairs(suite.ctx, &erc20types.QueryTokenPairsRequest{})
+	suite.NoError(err)
+	for _, pair := range pairs.TokenPairs {
+		if pair.Erc20Address == address.String() {
+			return pair.Denom
+		}
+	}
+	return ""
+}
+
 func (suite *Erc20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (*sdk.TxResponse, uint64) {
 	content := &erc20types.RegisterCoinProposal{
 		Title:       fmt.Sprintf("register %s denom", md.Base),
@@ -82,44 +93,49 @@ func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (*sdk
 	return suite.BroadcastProposalTx(content)
 }
 
-func (suite *Erc20TestSuite) ConvertCoin(recipient common.Address, coin sdk.Coin) *sdk.TxResponse {
-	msg := erc20types.NewMsgConvertCoin(coin, recipient, suite.AccAddress())
-	return suite.BroadcastTx(suite.privKey, msg)
+func (suite *Erc20TestSuite) ConvertCoin(private cryptotypes.PrivKey, recipient common.Address, coin sdk.Coin) *sdk.TxResponse {
+	suite.True(suite.DenomBalanceGTE(sdk.AccAddress(private.PubKey().Address()), coin))
+	msg := erc20types.NewMsgConvertCoin(coin, recipient, sdk.AccAddress(private.PubKey().Address()))
+	txResponse := suite.BroadcastTx(suite.privKey, msg)
+	suite.TokenBalanceGTE(recipient, suite.Erc20TokenAddress(coin.Denom), coin.Amount.BigInt())
+	return txResponse
 }
 
 func (suite *Erc20TestSuite) ConvertERC20(private cryptotypes.PrivKey, token common.Address, amount sdk.Int, recipient sdk.AccAddress) *sdk.TxResponse {
+	suite.True(suite.TokenBalanceGTE(common.BytesToAddress(private.PubKey().Address().Bytes()), token, amount.BigInt()))
 	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, common.BytesToAddress(private.PubKey().Address().Bytes()))
-	return suite.BroadcastTx(private, msg)
+	txResponse := suite.BroadcastTx(private, msg)
+	suite.True(suite.DenomBalanceGTE(recipient, sdk.NewCoin(suite.DenomFromErc20(token), amount)))
+	return txResponse
 }
 
 func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver sdk.AccAddress, coin sdk.Coin, target string) *sdk.TxResponse {
-	return suite.BroadcastTx(private, &erc20types.MsgConvertDenom{
+	suite.True(suite.DenomBalanceGTE(sdk.AccAddress(private.PubKey().Address()), coin))
+	txResponse := suite.BroadcastTx(private, &erc20types.MsgConvertDenom{
 		Sender:   sdk.AccAddress(private.PubKey().Address()).String(),
 		Receiver: receiver.String(),
 		Coin:     coin,
 		Target:   target,
 	})
+	return txResponse
 }
 
 func (suite *Erc20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
+	suite.TokenBalanceGTE(common.BytesToAddress(privateKey.PubKey().Address().Bytes()), token, new(big.Int).Add(amount, fee))
 	pack, err := fxtypes.GetERC20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
 	suite.Require().NoError(err)
-
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
 	suite.Require().NoError(err)
-
 	suite.SendTransaction(ethTx)
-
 	return ethTx
 }
 
-func (suite *Erc20TestSuite) TransferERC20(privateKey cryptotypes.PrivKey, token, recipient common.Address, value *big.Int) *ethtypes.Transaction {
-	pack, err := fxtypes.GetERC20().ABI.Pack("transfer", recipient, value)
-	suite.Require().NoError(err)
+func (suite *Erc20TestSuite) DenomBalanceGTE(account sdk.AccAddress, coin sdk.Coin) bool {
+	balance := suite.QueryBalances(account)
+	return balance.AmountOf(coin.Denom).GTE(coin.Amount)
+}
 
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
-	suite.Require().NoError(err)
-
-	suite.SendTransaction(ethTx)
-	return ethTx
+func (suite *Erc20TestSuite) TokenBalanceGTE(account common.Address, token common.Address, amount *big.Int) bool {
+	balance := suite.BalanceOf(token, account)
+	return balance.Cmp(amount) >= 0
 }
