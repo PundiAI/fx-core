@@ -1,17 +1,20 @@
 package keeper_test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -43,6 +46,54 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 			},
 			result: true,
 		},
+		{
+			name: "ok - bsc ibc token",
+			malleate: func(_ types.TokenPair, _ Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
+				sourcePort, sourceChannel := suite.RandTransferChannel()
+				tokenAddress := helpers.GenerateAddress()
+				denom, err := suite.CrossChainKeepers()[bsctypes.ModuleName].SetIbcDenomTrace(suite.ctx, tokenAddress.Hex(), hex.EncodeToString([]byte(fmt.Sprintf("%s/%s", sourcePort, sourceChannel))))
+				suite.Require().NoError(err)
+				suite.CrossChainKeepers()[bsctypes.ModuleName].AddBridgeToken(suite.ctx, tokenAddress.Hex(), denom)
+
+				symbol := helpers.NewRandSymbol()
+				ibcMD := banktypes.Metadata{
+					Description: "The cross chain token of the Function X",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    denom,
+							Exponent: 0,
+						},
+						{
+							Denom:    symbol,
+							Exponent: 18,
+						},
+					},
+					Base:    denom,
+					Display: denom,
+					Name:    fmt.Sprintf("%s Token", symbol),
+					Symbol:  symbol,
+				}
+				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
+				suite.Require().NoError(err)
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(denom, sdk.NewIntFromBigInt(randMint))))
+
+				relay := types.RelayTransferCrossChain{
+					TransferCrossChainEvent: &types.TransferCrossChainEvent{
+						From:      singerAddr,
+						Recipient: helpers.GenerateAddressByModule(bsctypes.ModuleName),
+						Amount:    randMint,
+						Fee:       big.NewInt(0),
+						Target:    fxtypes.MustStrToByte32("chain/" + bsctypes.ModuleName),
+					},
+					TokenContract: pair.GetERC20Contract(),
+					Denom:         pair.GetDenom(),
+					ContractOwner: pair.ContractOwner,
+				}
+				return []types.RelayTransferCrossChain{relay}, nil
+			},
+			result: true,
+		},
+
 		{
 			name: "failed - from address insufficient funds",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {

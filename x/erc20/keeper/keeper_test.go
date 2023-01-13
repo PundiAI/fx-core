@@ -404,4 +404,5 @@ func (m Metadata) GetMetadata() banktypes.Metadata {
 
 type CrossChainKeeper interface {
 	AddBridgeToken(ctx sdk.Context, token, denom string)
+	SetIbcDenomTrace(ctx sdk.Context, token, channelIBC string) (string, error)
 }
