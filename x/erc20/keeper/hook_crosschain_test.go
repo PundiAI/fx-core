@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
 
-				randDenom := fmt.Sprintf("t%st", strings.ToLower(tmrand.Str(5)))
+				randDenom := helpers.NewRandDenom()
 				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(randDenom, sdk.NewIntFromBigInt(randMint))))
 
 				moduleName := md.RandModule()

@@ -24,20 +24,19 @@ import (
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
-var modules = []string{ethtypes.ModuleName, bsctypes.ModuleName, trontypes.ModuleName, polygontypes.ModuleName, avalanchetypes.ModuleName}
-
 const (
 	tronAddressErr = ": doesn't pass format validation: invalid address"
 )
 
 func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	normalOracleAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgBondedOracle
@@ -57,7 +56,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgBondedOracle{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandSymbol(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -137,7 +136,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				OracleAddress:   normalOracleAddress,
 				BridgerAddress:  normalOracleAddress,
 				ExternalAddress: normalExternalAddress,
-				DelegateAmount:  sdk.NewCoin(fmt.Sprintf("a%sb", tmrand.Str(5)), sdk.NewInt(0)),
+				DelegateAmount:  sdk.NewCoin(helpers.NewRandDenom(), sdk.NewInt(0)),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -150,7 +149,7 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 				OracleAddress:   normalOracleAddress,
 				BridgerAddress:  normalBridgeAddress,
 				ExternalAddress: normalExternalAddress,
-				DelegateAmount:  sdk.NewCoin(fmt.Sprintf("a%sb", tmrand.Str(5)), sdk.NewInt(0)),
+				DelegateAmount:  sdk.NewCoin(helpers.NewRandDenom(), sdk.NewInt(0)),
 			},
 			expectPass: true,
 			err:        nil,
@@ -189,12 +188,12 @@ func TestMsgBondedOracle_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalOracleAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
-	randomAddrPrefix := strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5)))
+	randomAddrPrefix := helpers.NewRandDenom()
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
-
 	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgAddDelegate
@@ -214,7 +213,7 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgAddDelegate{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -295,11 +294,12 @@ func TestMsgAddDelegate_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	normalOracleAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
+	require.NoError(t, err)
 
 	testCases := []struct {
 		testName   string
@@ -320,7 +320,7 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgOracleSetConfirm{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -426,11 +426,12 @@ func TestMsgOracleSetConfirm_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
+	require.NoError(t, err)
 
 	testCases := []struct {
 		testName   string
@@ -451,7 +452,7 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgOracleSetUpdatedClaim{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -609,13 +610,14 @@ func TestMsgOracleSetUpdatedClaim_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	addressBytes := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	normalFxAddress := addressBytes.String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgBridgeTokenClaim
@@ -635,7 +637,7 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgBridgeTokenClaim{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -804,12 +806,13 @@ func TestMsgBridgeTokenClaim_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgSendToFxClaim
@@ -829,7 +832,7 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgSendToFxClaim{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -1026,14 +1029,14 @@ func TestMsgSendToFxClaim_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	t.Logf("normal external address:%s", normalExternalAddress)
 	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
-	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgSendToExternal
@@ -1053,7 +1056,7 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgSendToExternal{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -1110,8 +1113,8 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 				ChainName: moduleName,
 				Sender:    normalFxAddress,
 				Dest:      normalExternalAddress,
-				Amount:    sdk.NewCoin(fmt.Sprintf("a%sb", strings.ToLower(tmrand.Str(4))), sdk.NewInt(1)),
-				BridgeFee: sdk.NewCoin(fmt.Sprintf("a%sb", strings.ToLower(tmrand.Str(5))), sdk.NewInt(0)),
+				Amount:    sdk.NewCoin(helpers.NewRandDenom(), sdk.NewInt(1)),
+				BridgeFee: sdk.NewCoin(helpers.NewRandDenom(), sdk.NewInt(0)),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -1161,11 +1164,12 @@ func TestMsgSendToExternal_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgCancelSendToExternal
@@ -1232,12 +1236,13 @@ func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgSendToExternalClaim
@@ -1257,7 +1262,7 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgSendToExternalClaim{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -1367,12 +1372,13 @@ func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.MsgRequestBatch
@@ -1392,7 +1398,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgRequestBatch{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -1491,7 +1497,7 @@ func TestMsgRequestBatch_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)
 	normalBridgeAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
@@ -1517,7 +1523,7 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 		{
 			testName: "err - invalid chain name",
 			msg: &types.MsgConfirmBatch{
-				ChainName: strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5))),
+				ChainName: helpers.NewRandDenom(),
 			},
 			expectPass: false,
 			err:        sdkerrors.ErrInvalidRequest,
@@ -1653,11 +1659,12 @@ func TestMsgConfirmBatch_ValidateBasic(t *testing.T) {
 }
 
 func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
-	moduleName := modules[tmrand.Intn(len(modules))]
+	moduleName := getRandModule()
 	normalOracleAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
 	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
 	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
 	require.NoError(t, err)
+
 	testCases := []struct {
 		testName   string
 		msg        *types.UpdateChainOraclesProposal
@@ -1760,4 +1767,9 @@ func externalAddressToUpper(address string) string {
 		return fmt.Sprintf("%s%s", address[0:1], strings.ToLower(address[1:]))
 	}
 	panic(fmt.Sprintf("not support address prefix: %s", address))
+}
+
+func getRandModule() string {
+	modules := []string{ethtypes.ModuleName, bsctypes.ModuleName, trontypes.ModuleName, polygontypes.ModuleName, avalanchetypes.ModuleName}
+	return modules[tmrand.Intn(len(modules))]
 }

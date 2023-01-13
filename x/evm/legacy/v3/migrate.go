@@ -14,6 +14,7 @@ func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sd
 
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(evmtypes.ModuleName), '/'))
 
+	// NOTE: Default Allow Unprotected txs is false
 	allowUnprotectedTxs := evmtypes.DefaultAllowUnprotectedTxs
 	bzA, err := legacyAmino.MarshalJSON(allowUnprotectedTxs)
 	if err != nil {

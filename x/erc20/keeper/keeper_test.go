@@ -44,7 +44,6 @@ import (
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 type KeeperTestSuite struct {
@@ -154,33 +153,6 @@ func (suite *KeeperTestSuite) CrossChainKeepers() map[string]CrossChainKeeper {
 	return keepers
 }
 
-type Metadata struct {
-	metadata   banktypes.Metadata
-	modules    []string
-	notModules []string
-}
-
-func (m Metadata) RandModule() string {
-	return m.modules[tmrand.Intn(len(m.modules))]
-}
-
-func (m Metadata) GetModules() []string {
-	return m.modules
-}
-
-func (m Metadata) GetDenom(moduleName string) string {
-	for _, denom := range m.metadata.DenomUnits[0].Aliases {
-		if strings.HasPrefix(denom, moduleName) {
-			return denom
-		}
-	}
-	return ""
-}
-
-func (m Metadata) GetMetadata() banktypes.Metadata {
-	return m.metadata
-}
-
 func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Metadata {
 	keepers := suite.CrossChainKeepers()
 	modules := make([]string, 0, len(keepers))
@@ -204,8 +176,7 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 	if count >= len(modules) {
 		count = len(modules) - 1
 	}
-	symbol := fmt.Sprintf("T%sT", strings.ToUpper(tmrand.Str(5)))
-	metadata := fxtypes.GetCrossChainMetadata("Test Token", symbol, 18, append(denoms[:count], addDenoms...)...)
+	metadata := fxtypes.GetCrossChainMetadata("Test Token", helpers.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
 	return Metadata{metadata: metadata, modules: denomModules[:count], notModules: denomModules[count:]}
 }
 
@@ -278,27 +249,13 @@ func (suite *KeeperTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr
 	suite.Require().NoError(err)
 }
 
-func (suite *KeeperTestSuite) RandAddress(module string) string {
-	addr := helpers.GenerateAddress().String()
-	if module == "tron" {
-		addr = trontypes.AddressFromHex(addr)
-	}
-	return addr
-}
-
 func (suite *KeeperTestSuite) RandPrefixAndAddress() (string, string) {
-	hex := tmrand.Intn(10) < 3
-	if hex {
+	if tmrand.Intn(10)%2 == 0 {
 		return "0x", helpers.GenerateAddress().Hex()
 	}
-	// TODO rand prefix and address
-	// prefixLen := tmrand.Intn(10) + 2
-	// prefixLen = 12
-	// prefix := strings.ToLower(tmrand.Str(prefixLen))
-	// accAddress, err := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
-	// suite.Require().NoError(err)
-	prefix := "px"
-	accAddress, _ := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
+	prefix := strings.ToLower(tmrand.Str(5))
+	accAddress, err := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
+	suite.NoError(err)
 	return prefix, accAddress
 }
 
@@ -416,6 +373,33 @@ func newMetadata() banktypes.Metadata {
 		Name:    "Tether USD",
 		Symbol:  "USDT",
 	}
+}
+
+type Metadata struct {
+	metadata   banktypes.Metadata
+	modules    []string
+	notModules []string
+}
+
+func (m Metadata) RandModule() string {
+	return m.modules[tmrand.Intn(len(m.modules))]
+}
+
+func (m Metadata) GetModules() []string {
+	return m.modules
+}
+
+func (m Metadata) GetDenom(moduleName string) string {
+	for _, denom := range m.metadata.DenomUnits[0].Aliases {
+		if strings.HasPrefix(denom, moduleName) {
+			return denom
+		}
+	}
+	return ""
+}
+
+func (m Metadata) GetMetadata() banktypes.Metadata {
+	return m.metadata
 }
 
 type CrossChainKeeper interface {

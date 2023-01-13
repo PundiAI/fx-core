@@ -445,9 +445,6 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 }
 
 func (suite *KeeperTestSuite) TestToTargetDenom() {
-	randDenom := func() string {
-		return fmt.Sprintf("t%st", strings.ToLower(tmrand.Str(tmrand.Intn(10)+1)))
-	}
 	testCases := []struct {
 		name     string
 		malleate func() (string, string, []string, fxtypes.FxTarget, string)
@@ -455,7 +452,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 		{
 			name: "empty target, expect base",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
-				denom := randDenom()
+				denom := helpers.NewRandDenom()
 				base := denom
 				return denom, base, []string{}, fxtypes.ParseFxTarget(""), denom
 			},
@@ -463,7 +460,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 		{
 			name: "erc20 target, expect base",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
-				denom := randDenom()
+				denom := helpers.NewRandDenom()
 				base := denom
 				return denom, base, []string{}, fxtypes.ParseFxTarget("erc20"), denom
 			},
@@ -471,7 +468,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 		{
 			name: "base, empty alias, expect denom",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
-				denom := randDenom()
+				denom := helpers.NewRandDenom()
 				return denom, "", []string{}, fxtypes.ParseFxTarget("eth"), denom
 			},
 		},
@@ -480,7 +477,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				portID, channelID := suite.RandTransferChannel()
 				ibcDenom := suite.AddIBCToken(portID, channelID)
-				denom := randDenom()
+				denom := helpers.NewRandDenom()
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
@@ -495,7 +492,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				_, channelID := suite.RandTransferChannel()
 				ibcDenom := fmt.Sprintf("ibc/%s", strings.ToUpper(hex.EncodeToString(tmrand.Bytes(32))))
-				denom := randDenom()
+				denom := helpers.NewRandDenom()
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
@@ -510,7 +507,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				portID, channelID := suite.RandTransferChannel()
 				ibcDenom := suite.AddIBCToken(portID, channelID)
-				denom := randDenom()
+				denom := helpers.NewRandDenom()
 				keepers := suite.CrossChainKeepers()
 				i, idx, idxModule, idxDenom := 0, tmrand.Intn(len(keepers)), "", ""
 				aliases := make([]string, 0)
@@ -532,7 +529,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				portID, channelID := suite.RandTransferChannel()
 				ibcDenom := suite.AddIBCToken(portID, channelID)
-				denom := randDenom()
+				denom := helpers.NewRandDenom()
 				keepers := suite.CrossChainKeepers()
 				i, idx, idxModule := 0, tmrand.Intn(len(keepers)), ""
 				aliases := make([]string, 0)
@@ -559,7 +556,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				for module := range keepers {
 					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
 				}
-				base := randDenom()
+				base := helpers.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), ibcDenom
 			},
 		},
@@ -574,7 +571,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				for module := range keepers {
 					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
 				}
-				base := randDenom()
+				base := helpers.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), aliases[0]
 			},
 		},
@@ -599,7 +596,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					}
 					i++
 				}
-				base := randDenom()
+				base := helpers.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), idxDenom
 			},
 		},
@@ -624,7 +621,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					}
 					i++
 				}
-				base := randDenom()
+				base := helpers.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), aliases[0]
 			},
 		},
@@ -776,7 +773,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 			name: "ok - not register",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
 				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
-				randDenom := fmt.Sprintf("t%st", strings.ToLower(tmrand.Str(tmrand.Intn(10)+1)))
+				randDenom := helpers.NewRandDenom()
 
 				originCoin := sdk.NewCoin(randDenom, amt)
 				expCoin := sdk.NewCoin(randDenom, amt)

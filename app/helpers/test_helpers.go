@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -477,4 +478,12 @@ func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 
 func IsLocalTest() bool {
 	return os.Getenv("LOCAL_TEST") == "true"
+}
+
+func NewRandSymbol() string {
+	return strings.ToUpper(fmt.Sprintf("a%sb", tmrand.Str(5)))
+}
+
+func NewRandDenom() string {
+	return strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5)))
 }

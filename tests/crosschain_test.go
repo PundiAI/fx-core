@@ -3,12 +3,10 @@ package tests
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -24,7 +22,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 		if chain.chainName == trontypes.ModuleName {
 			tokenAddress = trontypes.AddressFromHex(tokenAddress)
 		}
-		metadata := fxtypes.GetCrossChainMetadata("test token", strings.ToUpper(tmrand.Str(5)), 18)
+		metadata := fxtypes.GetCrossChainMetadata("test token", helpers.NewRandSymbol(), 18)
 
 		bridgeDenom := fmt.Sprintf("%s%s", chain.chainName, tokenAddress)
 		channelIBCHex := ""
