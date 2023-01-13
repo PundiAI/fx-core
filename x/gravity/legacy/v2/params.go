@@ -36,8 +36,8 @@ func MigrateParams(legacyAmino *codec.LegacyAmino, paramsStore sdk.KVStore, toMo
 		AverageBlockTime:                  gravityParams.AverageBlockTime,
 		ExternalBatchTimeout:              gravityParams.TargetBatchTimeout,
 		AverageExternalBlockTime:          gravityParams.AverageEthBlockTime,
-		SignedWindow:                      gravityParams.SignedValsetsWindow,
-		SlashFraction:                     gravityParams.SlashFractionValset,
+		SignedWindow:                      30_000,
+		SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 		OracleSetUpdatePowerChangePercent: gravityParams.ValsetUpdatePowerChangePercent,
 		IbcTransferTimeoutHeight:          gravityParams.IbcTransferTimeoutHeight,
 		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).Mul(sdk.DefaultPowerReduction)),

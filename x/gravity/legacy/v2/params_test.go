@@ -12,6 +12,8 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v3/app"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
@@ -34,6 +36,31 @@ func TestMigrateParams(t *testing.T) {
 		oldStore.Set(pair.Key, bz)
 	}
 
-	err := v2.MigrateParams(amino, paramsStore, ethtypes.StoreKey)
+	err := v2.MigrateParams(amino, paramsStore, ethtypes.ModuleName)
 	assert.NoError(t, err)
+
+	newStore := prefix.NewStore(paramsStore, append([]byte(ethtypes.ModuleName), '/'))
+	ethParams := &crosschaintypes.Params{}
+	for _, pair := range ethParams.ParamSetPairs() {
+		bz := newStore.Get(pair.Key)
+		if len(bz) <= 0 {
+			continue
+		}
+		if err := amino.UnmarshalJSON(bz, pair.Value); err != nil {
+			panic(err)
+		}
+	}
+	assert.EqualValues(t, &crosschaintypes.Params{
+		GravityId:                         gravityParams.GravityId,
+		AverageBlockTime:                  gravityParams.AverageBlockTime,
+		ExternalBatchTimeout:              gravityParams.TargetBatchTimeout,
+		AverageExternalBlockTime:          gravityParams.AverageEthBlockTime,
+		SignedWindow:                      30_000,
+		SlashFraction:                     sdk.MustNewDecFromStr("0.8"),
+		OracleSetUpdatePowerChangePercent: gravityParams.ValsetUpdatePowerChangePercent,
+		IbcTransferTimeoutHeight:          gravityParams.IbcTransferTimeoutHeight,
+		Oracles:                           nil,
+		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
+		DelegateMultiple:                  10,
+	}, ethParams)
 }
