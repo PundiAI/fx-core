@@ -217,7 +217,7 @@ func (k Keeper) pruneOracleSet(ctx sdk.Context, signedOracleSetsWindow uint64) {
 	if lastObserved != nil && !tooEarly {
 		earliestToPrune := currentBlock - signedOracleSetsWindow
 		k.IterateOracleSets(ctx, false, func(set *types.OracleSet) bool {
-			if earliestToPrune >= set.Height && lastObserved.Nonce >= set.Nonce {
+			if earliestToPrune > set.Height && lastObserved.Nonce > set.Nonce {
 				k.DeleteOracleSet(ctx, set.Nonce)
 				k.DeleteOracleSetConfirm(ctx, set.Nonce)
 			}
