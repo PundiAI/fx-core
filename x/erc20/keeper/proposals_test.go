@@ -11,6 +11,7 @@ import (
 	"golang.org/x/exp/slices"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -111,6 +112,22 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 			},
 			false,
 			"alias can not equal base, display or symbol: invalid metadata",
+		},
+		{
+			"alias empty",
+			func() {
+				metadata.DenomUnits[0].Aliases = []string{}
+			},
+			true,
+			"",
+		},
+		{
+			"fx",
+			func() {
+				metadata = fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
+			},
+			true,
+			"",
 		},
 	}
 	for _, tc := range testCases {
