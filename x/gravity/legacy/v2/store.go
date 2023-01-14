@@ -497,6 +497,12 @@ func MigrateBridgeTokenFromMetadatas(metadatas []banktypes.Metadata, ethStore sd
 					ethStore.Set(crosschaintypes.GetDenomToTokenKey(token), []byte(denom))
 				}
 			}
+		} else {
+			if strings.HasPrefix(data.Base, ethtypes.ModuleName) {
+				token := strings.TrimPrefix(data.Base, ethtypes.ModuleName)
+				ethStore.Set(crosschaintypes.GetTokenToDenomKey(data.Base), []byte(token))
+				ethStore.Set(crosschaintypes.GetDenomToTokenKey(token), []byte(data.Base))
+			}
 		}
 	}
 }
