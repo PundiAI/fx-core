@@ -33,8 +33,14 @@ import (
 	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
 	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	"github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	gravityv2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
+	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func Test_Upgrade(t *testing.T) {
@@ -126,6 +132,10 @@ func Test_Upgrade(t *testing.T) {
 	checkTotalSupply(t, ctx, myApp)
 
 	myApp.EthKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+	myApp.BscKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+	myApp.TronKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+	myApp.PolygonKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
+	myApp.AvalancheKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 
 	exportAppState(t, myApp)
 
@@ -365,6 +375,7 @@ func checkDataAfterMigrateV3(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	checkV3RegisterCoin(t, ctx, myApp)
 	checkV3IBCTransferRelation(t, ctx, myApp)
 	checkV3NewEvmParams(t, ctx, myApp)
+	checkCrosschainOracleDelegate(t, ctx, myApp)
 }
 
 func checkWFXLogicUpgrade(t *testing.T, ctx sdk.Context, myApp *app.App) {
@@ -449,4 +460,34 @@ func parseIBCTransferKey(keyStr string) (string, uint64, bool) {
 		return "", 0, false
 	}
 	return channel, sequence, true
+}
+
+func checkCrosschainOracleDelegate(t *testing.T, ctx sdk.Context, myApp *app.App) {
+	checkOracleDelegateFn := func(moduleName string, oracles types.Oracles, delegateThreshold sdk.Coin) {
+		for _, oracle := range oracles {
+			delegations := myApp.StakingKeeper.GetDelegatorDelegations(ctx, oracle.GetOracle(), 2)
+			for _, delegation := range delegations {
+				assert.EqualValuesf(t, delegateThreshold.Amount, delegation.GetShares(), "%s: check oracle delegate: %s", moduleName, oracle.OracleAddress)
+			}
+		}
+	}
+	delegateThreshold := myApp.EthKeeper.GetOracleDelegateThreshold(ctx)
+	oracles := myApp.EthKeeper.GetAllOracles(ctx, true)
+	checkOracleDelegateFn(ethtypes.ModuleName, oracles, delegateThreshold)
+
+	delegateThreshold = myApp.BscKeeper.GetOracleDelegateThreshold(ctx)
+	oracles = myApp.BscKeeper.GetAllOracles(ctx, true)
+	checkOracleDelegateFn(bsctypes.ModuleName, oracles, delegateThreshold)
+
+	delegateThreshold = myApp.TronKeeper.GetOracleDelegateThreshold(ctx)
+	oracles = myApp.TronKeeper.GetAllOracles(ctx, true)
+	checkOracleDelegateFn(trontypes.ModuleName, oracles, delegateThreshold)
+
+	delegateThreshold = myApp.PolygonKeeper.GetOracleDelegateThreshold(ctx)
+	oracles = myApp.PolygonKeeper.GetAllOracles(ctx, true)
+	checkOracleDelegateFn(polygontypes.ModuleName, oracles, delegateThreshold)
+
+	delegateThreshold = myApp.AvalancheKeeper.GetOracleDelegateThreshold(ctx)
+	oracles = myApp.AvalancheKeeper.GetAllOracles(ctx, true)
+	checkOracleDelegateFn(avalanchetypes.ModuleName, oracles, delegateThreshold)
 }
