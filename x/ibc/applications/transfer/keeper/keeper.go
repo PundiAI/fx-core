@@ -28,6 +28,7 @@ type Keeper struct {
 	authKeeper    transfertypes.AccountKeeper
 	bankKeeper    transfertypes.BankKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
+	erc20Keeper   types.Erc20Keeper
 	router        *fxtypes.Router
 	refundHook    types.RefundHook
 }
@@ -70,6 +71,11 @@ func (k Keeper) SetRouter(rtr fxtypes.Router) Keeper {
 
 func (k Keeper) SetRefundHook(hook types.RefundHook) Keeper {
 	k.refundHook = hook
+	return k
+}
+
+func (k Keeper) SetErc20Keeper(erc20Keeper types.Erc20Keeper) Keeper {
+	k.erc20Keeper = erc20Keeper
 	return k
 }
 

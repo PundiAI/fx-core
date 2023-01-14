@@ -14,6 +14,7 @@ import (
 	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	coretypes "github.com/cosmos/ibc-go/v3/modules/core/types"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
@@ -196,8 +197,15 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if !exists {
 		return sdkerrors.Wrap(types.ErrRouterNotFound, data.Router)
 	}
-	ibcAmount := sdk.NewCoin(receiveDenom, transferAmount)
-	ibcFee := sdk.NewCoin(receiveDenom, feeAmount)
+
+	fxTarget := fxtypes.ParseFxTarget(data.Router)
+	targetCoin, err := k.erc20Keeper.ConvertDenomToTarget(onRecvPacketCtxWithNewEvent, receiver, receiveCoin, fxTarget)
+	if err != nil {
+		return err
+	}
+
+	ibcAmount := sdk.NewCoin(targetCoin.GetDenom(), transferAmount)
+	ibcFee := sdk.NewCoin(targetCoin.GetDenom(), feeAmount)
 
 	routerCtxWithNewEvent := ctx.WithEventManager(sdk.NewEventManager())
 	err = route.TransferAfter(routerCtxWithNewEvent, receiver.String(), data.Receiver, ibcAmount, ibcFee)

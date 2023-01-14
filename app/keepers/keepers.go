@@ -433,6 +433,7 @@ func NewAppKeeper(
 		AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRouter(*ibcTransferRouter)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
+	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetErc20Keeper(appKeepers.Erc20Keeper)
 
 	ibcTransferModule := ibctransfer.NewIBCModule(appKeepers.IBCTransferKeeper)
 	transferIBCModule := fxtransfer.NewIBCMiddleware(appKeepers.FxTransferKeeper, ibcTransferModule)
