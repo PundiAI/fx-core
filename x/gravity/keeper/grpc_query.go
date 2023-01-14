@@ -432,7 +432,7 @@ func (k queryServer) GetPendingSendToEth(c context.Context, req *types.QueryPend
 		UnbatchedTransfers: make([]*types.OutgoingTransferTx, len(response.UnbatchedTransfers)),
 	}
 	for i := 0; i < len(response.TransfersInBatches); i++ {
-		res.UnbatchedTransfers[i] = &types.OutgoingTransferTx{
+		res.TransfersInBatches[i] = &types.OutgoingTransferTx{
 			Id:          response.TransfersInBatches[i].Id,
 			Sender:      response.TransfersInBatches[i].Sender,
 			DestAddress: response.TransfersInBatches[i].DestAddress,
@@ -446,6 +446,22 @@ func (k queryServer) GetPendingSendToEth(c context.Context, req *types.QueryPend
 			},
 		}
 	}
+	for i := 0; i < len(response.UnbatchedTransfers); i++ {
+		res.UnbatchedTransfers[i] = &types.OutgoingTransferTx{
+			Id:          response.UnbatchedTransfers[i].Id,
+			Sender:      response.UnbatchedTransfers[i].Sender,
+			DestAddress: response.UnbatchedTransfers[i].DestAddress,
+			Erc20Token: &types.ERC20Token{
+				Contract: response.UnbatchedTransfers[i].Token.Contract,
+				Amount:   response.UnbatchedTransfers[i].Token.Amount,
+			},
+			Erc20Fee: &types.ERC20Token{
+				Contract: response.UnbatchedTransfers[i].Fee.Contract,
+				Amount:   response.UnbatchedTransfers[i].Fee.Amount,
+			},
+		}
+	}
+
 	return res, nil
 }
 
