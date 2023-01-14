@@ -58,9 +58,13 @@ func (suite *TestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
 	encCfg := app.MakeEncodingConfig()
-	cfg := testutil.DefaultNetworkConfig(encCfg, func(config *network.Config) {
+	ibcGenesisOpt := func(config *network.Config) {
 		config.GenesisState = testutil.IbcGenesisState(encCfg.Codec, config.GenesisState)
-	})
+	}
+	bankGenesisOpt := func(config *network.Config) {
+		config.GenesisState = testutil.BankGenesisState(encCfg.Codec, config.GenesisState)
+	}
+	cfg := testutil.DefaultNetworkConfig(encCfg, ibcGenesisOpt, bankGenesisOpt)
 	cfg.TimeoutCommit = time.Millisecond
 	cfg.NumValidators = 1
 	// cfg.EnableTMLogging = true

@@ -137,7 +137,7 @@ func (suite *CrosschainTestSuite) AddBridgeTokenClaim(name, symbol string, decim
 
 		bridgeDenom = trace.IBCDenom()
 		suite.Equal(bridgeDenom, response.Denom)
-	} else {
+	} else if response.Denom != fxtypes.DefaultDenom {
 		suite.Equal(fmt.Sprintf("%s%s", suite.chainName, token), response.Denom)
 	}
 

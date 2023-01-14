@@ -93,7 +93,7 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "alias %s already registered", base)
 	}
 
-	_, isExist := k.bankKeeper.GetDenomMetaData(ctx, base)
+	_, isExist := k.bankKeeper.GetDenomMetaData(ctx, base) // TODO if register must be equal
 	if isExist {
 		// metadata already exists; exit
 		return nil, sdkerrors.Wrap(types.ErrInternalTokenPair, "denom metadata already registered")

@@ -252,7 +252,7 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 	}
 
 	contract := pair.GetERC20Contract()
-	res, err := k.evmKeeper.CallEVMWithData(ctx, sender, &contract, transferData, true)
+	res, err := k.evmKeeper.CallEVMWithData(ctx, sender, &contract, transferData, true) // TODO replace with CallEVM
 	if err != nil {
 		return err
 	}

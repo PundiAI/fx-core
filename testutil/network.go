@@ -31,6 +31,7 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/testutil/network"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 )
 
 // DefaultNetworkConfig returns a sane default configuration suitable for nearly all
@@ -155,6 +156,14 @@ func IbcGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesis
 		ConnectionGenesis: connState,
 		ChannelGenesis:    channelState,
 	})
+	return genesisState
+}
+
+func BankGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.GenesisState {
+	bankState := banktypes.DefaultGenesisState()
+	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e8).Mul(sdk.NewInt(1e18))))
+	bankState.Balances = append(bankState.Balances, banktypes.Balance{Address: authtypes.NewModuleAddress(ethtypes.ModuleName).String(), Coins: coins})
+	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
 	return genesisState
 }
 

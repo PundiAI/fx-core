@@ -3,6 +3,7 @@ package tests
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -11,6 +12,7 @@ import (
 	"github.com/functionx/fx-core/v3/app/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
@@ -65,5 +67,24 @@ func (suite *IntegrationTest) CrossChainTest() {
 
 		chain.SendToExternalAndCancel(sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
 		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
+
+		if chain.chainName == ethtypes.ModuleName {
+			fxTokenAddress := helpers.GenerateAddress().Hex()
+			fxMD := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
+			suite.erc20.RegisterCoinProposal(fxMD)
+			chain.AddBridgeTokenClaim(fxMD.Name, fxMD.Symbol, fxtypes.DenomUnit, fxTokenAddress, "")
+
+			// send fx to chain
+			balance := suite.QueryBalances(chain.AccAddress())
+			chain.SendToFxClaim(fxTokenAddress, sdk.NewInt(100), "")
+			chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, balance.AmountOf(fxtypes.DefaultDenom).Add(sdk.NewInt(100))))
+
+			// send fx to evm
+			fxPair := suite.erc20.TokenPair(fxtypes.DefaultDenom)
+			erc20Balance := suite.erc20.BalanceOf(fxPair.GetERC20Contract(), chain.HexAddress())
+			chain.SendToFxClaim(fxTokenAddress, sdk.NewInt(100), fxtypes.ERC20Target)
+			chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, balance.AmountOf(fxtypes.DefaultDenom).Add(sdk.NewInt(100))))
+			suite.Equal(big.NewInt(0).Add(erc20Balance, big.NewInt(100)), suite.erc20.BalanceOf(fxPair.GetERC20Contract(), chain.HexAddress()))
+		}
 	}
 }
