@@ -130,10 +130,13 @@ func (suite *KeeperTestSuite) Commit(args ...int64) {
 		suite.app.EndBlock(abci.RequestEndBlock{Height: i})
 		suite.app.Commit()
 		i++
-		suite.ctx = suite.ctx.WithBlockHeight(i)
+		header := suite.ctx.BlockHeader()
+		header.Height = i
 		suite.app.BeginBlock(abci.RequestBeginBlock{
-			Header: tmproto.Header{Height: i},
+			Header: header,
 		})
+		suite.ctx = suite.app.NewContext(false, header)
+		//suite.ctx = suite.ctx.WithBlockHeight(i)
 	}
 }
 
