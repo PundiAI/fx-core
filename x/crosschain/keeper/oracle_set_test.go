@@ -6,15 +6,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
-	types2 "github.com/tendermint/tendermint/abci/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestLastPendingOracleSetRequestByAddr() {
@@ -130,11 +126,7 @@ func (suite *KeeperTestSuite) TestKeeper_IterateOracleSetConfirmByNonce() {
 func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 	var member []types.BridgeValidator
 	for i, external := range suite.externalPris {
-		externalAddr := crypto.PubkeyToAddress(external.PublicKey).String()
-		if suite.chainName == trontypes.ModuleName {
-			externalAddr = tronaddress.PubkeyToAddress(external.PublicKey).String()
-		}
-
+		externalAddr := suite.PubKeyToExternalAddr(external.PublicKey)
 		member = append(member, types.BridgeValidator{
 			Power:           uint64(i),
 			ExternalAddress: externalAddr,
@@ -143,49 +135,38 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 	oracleSet := &types.OracleSet{
 		Nonce:   1,
 		Members: member,
-		Height:  100,
+		Height:  uint64(suite.ctx.BlockHeight()),
 	}
 	suite.Keeper().StoreOracleSet(suite.ctx, oracleSet)
 
 	for i, external := range suite.externalPris {
-		externalAddress := crypto.PubkeyToAddress(external.PublicKey).String()
-		gravityId := suite.Keeper().GetGravityID(suite.ctx)
-		checkpoint, err := oracleSet.GetCheckpoint(gravityId)
-		suite.NoError(err)
-		signature, err := types.NewEthereumSignature(checkpoint, external)
-		suite.NoError(err)
-		if trontypes.ModuleName == suite.chainName {
-			externalAddress = tronaddress.PubkeyToAddress(suite.externalPris[i].PublicKey).String()
-
-			checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSet, gravityId)
-			require.NoError(suite.T(), err)
-
-			signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[i])
-			require.NoError(suite.T(), err)
-		}
-
-		suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracleAddrs[i], &types.MsgOracleSetConfirm{
-			Nonce:           oracleSet.Nonce,
-			BridgerAddress:  suite.bridgerAddrs[i].String(),
-			ExternalAddress: externalAddress,
-			Signature:       hex.EncodeToString(signature),
-			ChainName:       suite.chainName,
-		})
+		externalAddress, signature := suite.SignOracleSetConfirm(external, oracleSet)
+		suite.Keeper().SetOracleSetConfirm(suite.ctx, suite.oracleAddrs[i],
+			&types.MsgOracleSetConfirm{
+				Nonce:           oracleSet.Nonce,
+				BridgerAddress:  suite.bridgerAddrs[i].String(),
+				ExternalAddress: externalAddress,
+				Signature:       hex.EncodeToString(signature),
+				ChainName:       suite.chainName,
+			},
+		)
 	}
-	suite.Keeper().SetLastObservedOracleSet(suite.ctx, &types.OracleSet{Nonce: oracleSet.Nonce + 1})
+	suite.Keeper().SetLastObservedOracleSet(suite.ctx,
+		&types.OracleSet{
+			Nonce: oracleSet.Nonce + 1,
+		},
+	)
 
 	params := suite.Keeper().GetParams(suite.ctx)
 	params.SignedWindow = 10
 	suite.Keeper().SetParams(suite.ctx, &params)
-	height := suite.Keeper().GetSignedWindow(suite.ctx) + oracleSet.Height + 1
-	for i := uint64(2); i <= height; i++ {
-		suite.app.BeginBlock(types2.RequestBeginBlock{
-			Header: tmproto.Header{Height: int64(i)},
-		})
-		suite.app.EndBlock(types2.RequestEndBlock{Height: int64(i)})
-		suite.app.Commit()
+
+	//suite.Commit()
+	for _, oracle := range suite.oracleAddrs {
+		suite.NotNil(suite.Keeper().GetOracleSetConfirm(suite.ctx, oracleSet.Nonce, oracle))
 	}
 
+	suite.Commit(int64(params.SignedWindow + 1))
 	for _, oracle := range suite.oracleAddrs {
 		suite.Nil(suite.Keeper().GetOracleSetConfirm(suite.ctx, oracleSet.Nonce, oracle))
 	}

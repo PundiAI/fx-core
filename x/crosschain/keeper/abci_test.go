@@ -493,22 +493,8 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 	require.NotNil(suite.T(), oracleSets)
 	require.EqualValues(suite.T(), 1, len(oracleSets))
 
-	gravityId := suite.Keeper().GetGravityID(suite.ctx)
 	for i := 0; i < len(suite.oracleAddrs)-1; i++ {
-		externalAddress := suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey)
-
-		checkpoint, err := oracleSets[0].GetCheckpoint(gravityId)
-		require.NoError(suite.T(), err)
-		signature, err := types.NewEthereumSignature(checkpoint, suite.externalPris[i])
-		require.NoError(suite.T(), err)
-
-		if trontypes.ModuleName == suite.chainName {
-			checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSets[0], gravityId)
-			require.NoError(suite.T(), err)
-
-			signature, err = trontypes.NewTronSignature(checkpoint, suite.externalPris[i])
-			require.NoError(suite.T(), err)
-		}
+		externalAddress, signature := suite.SignOracleSetConfirm(suite.externalPris[i], oracleSets[0])
 		oracleSetConfirm := &types.MsgOracleSetConfirm{
 			Nonce:           oracleSets[0].Nonce,
 			BridgerAddress:  suite.bridgerAddrs[i].String(),
@@ -517,7 +503,7 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 			ChainName:       suite.chainName,
 		}
 		require.NoError(suite.T(), oracleSetConfirm.ValidateBasic())
-		_, err = suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), oracleSetConfirm)
+		_, err := suite.MsgServer().OracleSetConfirm(sdk.WrapSDKContext(suite.ctx), oracleSetConfirm)
 		require.NoError(suite.T(), err)
 	}
 

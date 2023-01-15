@@ -11,6 +11,7 @@ import (
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -118,4 +119,39 @@ func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) st
 		return tronaddress.PubkeyToAddress(publicKey).String()
 	}
 	return crypto.PubkeyToAddress(publicKey).Hex()
+}
+
+func (suite *KeeperTestSuite) Commit(args ...int64) {
+	nextHeight := suite.ctx.BlockHeight() + 1
+	if len(args) > 0 {
+		nextHeight = suite.ctx.BlockHeight() + args[0]
+	}
+	for i := suite.ctx.BlockHeight(); i <= nextHeight; {
+		suite.app.EndBlock(abci.RequestEndBlock{Height: i})
+		suite.app.Commit()
+		i++
+		suite.ctx = suite.ctx.WithBlockHeight(i)
+		suite.app.BeginBlock(abci.RequestBeginBlock{
+			Header: tmproto.Header{Height: i},
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, oracleSet *types.OracleSet) (string, []byte) {
+	externalAddress := crypto.PubkeyToAddress(external.PublicKey).String()
+	gravityId := suite.Keeper().GetGravityID(suite.ctx)
+	checkpoint, err := oracleSet.GetCheckpoint(gravityId)
+	suite.NoError(err)
+	signature, err := types.NewEthereumSignature(checkpoint, external)
+	suite.NoError(err)
+	if trontypes.ModuleName == suite.chainName {
+		externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
+
+		checkpoint, err = trontypes.GetCheckpointOracleSet(oracleSet, gravityId)
+		require.NoError(suite.T(), err)
+
+		signature, err = trontypes.NewTronSignature(checkpoint, external)
+		require.NoError(suite.T(), err)
+	}
+	return externalAddress, signature
 }
