@@ -95,7 +95,7 @@ func Test_Upgrade(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			if testCase.LocalStoreBlockHeight > 0 {
 				require.Equal(t, ctx.BlockHeight(), int64(testCase.LocalStoreBlockHeight))
-				for moduleName, keys := range v2.GetModuleKey() {
+				for moduleName, keys := range v2.GetModuleKey(ctx.ChainID()) {
 					kvStore := ctx.MultiStore().GetKVStore(myApp.GetKey(moduleName))
 					checkStoreKey(t, moduleName, keys, kvStore)
 				}
@@ -114,7 +114,7 @@ func Test_Upgrade(t *testing.T) {
 			checkDataAfterMigrateV3(t, ctx, myApp)
 
 			if testCase.LocalStoreBlockHeight > 0 {
-				for moduleName, keys := range v3.GetModuleKey() {
+				for moduleName, keys := range v3.GetModuleKey(ctx.ChainID()) {
 					kvStore := ctx.MultiStore().GetKVStore(myApp.GetKey(moduleName))
 					checkStoreKey(t, moduleName, keys, kvStore)
 				}
@@ -137,7 +137,7 @@ func Test_Upgrade(t *testing.T) {
 	myApp.PolygonKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.AvalancheKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 
-	exportAppState(t, myApp)
+	exportAppState(t, ctx, myApp)
 
 	// optional: save to the database
 	// myApp.CommitMultiStore().Commit()
@@ -269,13 +269,13 @@ func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	assert.Equal(t, usdtTotalSupply.String(), chainUSDTTotalSupply.String(), "usdt")
 }
 
-func exportAppState(t *testing.T, myApp *app.App) {
+func exportAppState(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	exportedApp, err := myApp.ExportAppStateAndValidators(false, []string{})
 	assert.NoError(t, err)
 	genesisState := app.GenesisState{}
 	assert.NoError(t, tmjson.Unmarshal(exportedApp.AppState, &genesisState))
 	for moduleName, appState := range genesisState {
-		for key := range v3.GetModuleKey() {
+		for key := range v3.GetModuleKey(ctx.ChainID()) {
 			if key == moduleName {
 				t.Log("-------------------", moduleName)
 				t.Log(string(appState))
