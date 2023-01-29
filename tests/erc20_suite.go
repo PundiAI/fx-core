@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/tendermint/tendermint/crypto"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -94,48 +96,70 @@ func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (*sdk
 }
 
 func (suite *Erc20TestSuite) ConvertCoin(private cryptotypes.PrivKey, recipient common.Address, coin sdk.Coin) *sdk.TxResponse {
-	suite.True(suite.DenomBalanceGTE(sdk.AccAddress(private.PubKey().Address()), coin))
+	fromAddress := sdk.AccAddress(private.PubKey().Address())
+	beforeBalance := suite.QueryBalances(fromAddress).AmountOf(coin.Denom)
+	beforeBalanceOf := suite.BalanceOf(suite.Erc20TokenAddress(coin.Denom), recipient)
 	msg := erc20types.NewMsgConvertCoin(coin, recipient, sdk.AccAddress(private.PubKey().Address()))
 	txResponse := suite.BroadcastTx(private, msg)
-	suite.TokenBalanceGTE(recipient, suite.Erc20TokenAddress(coin.Denom), coin.Amount.BigInt())
+	afterBalance := suite.QueryBalances(fromAddress).AmountOf(coin.Denom)
+	afterBalanceOf := suite.BalanceOf(suite.Erc20TokenAddress(coin.Denom), recipient)
+	suite.Require().True(beforeBalance.Sub(afterBalance).Equal(coin.Amount))
+	suite.Require().True(new(big.Int).Sub(afterBalanceOf, beforeBalanceOf).Cmp(coin.Amount.BigInt()) == 0)
 	return txResponse
 }
 
 func (suite *Erc20TestSuite) ConvertERC20(private cryptotypes.PrivKey, token common.Address, amount sdk.Int, recipient sdk.AccAddress) *sdk.TxResponse {
-	suite.True(suite.TokenBalanceGTE(common.BytesToAddress(private.PubKey().Address().Bytes()), token, amount.BigInt()))
+	beforeBalance := suite.QueryBalances(recipient).AmountOf(suite.DenomFromErc20(token))
+	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(private.PubKey().Address().Bytes()))
 	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, common.BytesToAddress(private.PubKey().Address().Bytes()))
 	txResponse := suite.BroadcastTx(private, msg)
-	suite.True(suite.DenomBalanceGTE(recipient, sdk.NewCoin(suite.DenomFromErc20(token), amount)))
+	afterBalance := suite.QueryBalances(recipient).AmountOf(suite.DenomFromErc20(token))
+	afterBalanceOf := suite.BalanceOf(token, common.BytesToAddress(private.PubKey().Address().Bytes()))
+	suite.Require().True(afterBalance.Sub(beforeBalance).Equal(amount))
+	suite.Require().True(new(big.Int).Sub(beforeBalanceOf, afterBalanceOf).Cmp(amount.BigInt()) == 0)
 	return txResponse
 }
 
 func (suite *Erc20TestSuite) ConvertDenom(private cryptotypes.PrivKey, receiver sdk.AccAddress, coin sdk.Coin, target string) *sdk.TxResponse {
-	suite.True(suite.DenomBalanceGTE(sdk.AccAddress(private.PubKey().Address()), coin))
+	fromAddress := sdk.AccAddress(private.PubKey().Address())
+	beforeBalance := suite.QueryBalances(fromAddress).AmountOf(coin.Denom)
 	txResponse := suite.BroadcastTx(private, &erc20types.MsgConvertDenom{
-		Sender:   sdk.AccAddress(private.PubKey().Address()).String(),
+		Sender:   fromAddress.String(),
 		Receiver: receiver.String(),
 		Coin:     coin,
 		Target:   target,
 	})
+	afterBalance := suite.QueryBalances(fromAddress).AmountOf(coin.Denom)
+	suite.Require().True(beforeBalance.Sub(afterBalance).Equal(coin.Amount))
 	return txResponse
 }
 
 func (suite *Erc20TestSuite) TransferCrossChain(privateKey cryptotypes.PrivKey, token common.Address, recipient string, amount, fee *big.Int, target string) *ethtypes.Transaction {
-	suite.TokenBalanceGTE(common.BytesToAddress(privateKey.PubKey().Address().Bytes()), token, new(big.Int).Add(amount, fee))
+	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
 	pack, err := fxtypes.GetERC20().ABI.Pack("transferCrossChain", recipient, amount, fee, fxtypes.MustStrToByte32(target))
 	suite.Require().NoError(err)
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
 	suite.Require().NoError(err, target)
 	suite.SendTransaction(ethTx)
+	afterBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
+	suite.Require().True(new(big.Int).Sub(beforeBalanceOf, afterBalanceOf).Cmp(new(big.Int).Add(amount, fee)) == 0)
 	return ethTx
 }
 
-func (suite *Erc20TestSuite) DenomBalanceGTE(account sdk.AccAddress, coin sdk.Coin) bool {
-	balance := suite.QueryBalances(account)
-	return balance.AmountOf(coin.Denom).GTE(coin.Amount)
-}
+func (suite *Erc20TestSuite) TransferToModule(privateKey cryptotypes.PrivKey, token common.Address, amount *big.Int) *ethtypes.Transaction {
+	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
+	beforeBalance := suite.QueryBalances(sdk.AccAddress(privateKey.PubKey().Address())).AmountOf(suite.DenomFromErc20(token))
 
-func (suite *Erc20TestSuite) TokenBalanceGTE(account common.Address, token common.Address, amount *big.Int) bool {
-	balance := suite.BalanceOf(token, account)
-	return balance.Cmp(amount) >= 0
+	moduleAddress := common.BytesToAddress(crypto.AddressHash([]byte(erc20types.ModuleName)))
+	pack, err := fxtypes.GetERC20().ABI.Pack("transfer", moduleAddress, amount)
+	suite.Require().NoError(err)
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
+	suite.Require().NoError(err)
+	suite.SendTransaction(ethTx)
+	afterBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
+	afterBalance := suite.QueryBalances(sdk.AccAddress(privateKey.PubKey().Address())).AmountOf(suite.DenomFromErc20(token))
+
+	suite.Require().True(new(big.Int).Sub(beforeBalanceOf, afterBalanceOf).Cmp(amount) == 0)
+	suite.Require().True(afterBalance.Sub(beforeBalance).Equal(sdk.NewIntFromBigInt(amount)))
+	return ethTx
 }
