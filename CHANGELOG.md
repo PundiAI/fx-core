@@ -35,6 +35,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v3.0.0] - 2023-01-14
+
 ### Features
 
 * Support Avalanche C-chain cross-chain
