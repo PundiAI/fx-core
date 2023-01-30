@@ -136,7 +136,6 @@ func (suite *KeeperTestSuite) Commit(args ...int64) {
 			Header: header,
 		})
 		suite.ctx = suite.app.NewContext(false, header)
-		//suite.ctx = suite.ctx.WithBlockHeight(i)
 	}
 }
 

@@ -10,3 +10,4 @@ dependency-graph.png
 debug.sh
 artifacts
 local.Dockerfile
+debug.json

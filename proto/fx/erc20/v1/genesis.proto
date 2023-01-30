@@ -2,7 +2,6 @@ syntax = "proto3";
 package fx.erc20.v1;
 
 import "gogoproto/gogo.proto";
-import "cosmos/bank/v1beta1/bank.proto";
 import "google/protobuf/duration.proto";
 import "fx/erc20/v1/erc20.proto";
 
