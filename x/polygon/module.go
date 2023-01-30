@@ -21,8 +21,9 @@ import (
 
 // type check to ensure the interface is properly implemented
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule         = AppModule{}
+	_ module.AppModuleBasic    = AppModuleBasic{}
+	_ module.EndBlockAppModule = AppModule{}
 )
 
 // AppModuleBasic object for module implementation

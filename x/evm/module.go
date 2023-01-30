@@ -15,8 +15,10 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.BeginBlockAppModule = AppModule{}
+	_ module.EndBlockAppModule   = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the evm module.
@@ -82,6 +84,12 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 // BeginBlock returns the begin block for the evm module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 	am.keeper.BeginBlock(ctx, req)
+}
+
+// EndBlock returns the end blocker for the evm module. It returns no validator
+// updates.
+func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return am.keeper.EndBlock(ctx, req)
 }
 
 // InitGenesis performs genesis initialization for the evm module. It returns

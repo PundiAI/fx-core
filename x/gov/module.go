@@ -12,7 +12,10 @@ import (
 	"github.com/functionx/fx-core/v3/x/gov/keeper"
 )
 
-var _ module.AppModule = AppModule{}
+var (
+	_ module.AppModule         = AppModule{}
+	_ module.EndBlockAppModule = AppModule{}
+)
 
 // AppModule implements an application module for the gov module.
 type AppModule struct {
