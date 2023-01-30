@@ -52,3 +52,7 @@ type IBCTransferKeeper interface {
 
 	SetDenomTrace(ctx sdk.Context, denomTrace tranfsertypes.DenomTrace)
 }
+
+type AccountKeeper interface {
+	GetModuleAddress(name string) sdk.AccAddress
+}

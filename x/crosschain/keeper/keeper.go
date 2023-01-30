@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -26,13 +28,18 @@ type Keeper struct {
 
 // NewKeeper returns a new instance of the gravity keeper
 func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
-	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionKeeper, bankKeeper types.BankKeeper,
-	ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper,
+	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionKeeper,
+	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper, ak types.AccountKeeper,
 ) Keeper {
+	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
-	// set KeyTable if it has not already been set
+
+	if addr := ak.GetModuleAddress(moduleName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", moduleName))
+	}
+
 	return Keeper{
 		moduleName: moduleName,
 		cdc:        cdc,

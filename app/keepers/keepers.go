@@ -125,8 +125,6 @@ type AppKeepers struct {
 	FeeMarketKeeper feemarketkeeper.Keeper
 	Erc20Keeper     erc20keeper.Keeper
 	MigrateKeeper   migratekeeper.Keeper
-
-	TransferModule ibctransfer.AppModule
 }
 
 func NewAppKeeper(
@@ -241,7 +239,8 @@ func NewAppKeeper(
 		appKeepers.keys[upgradetypes.StoreKey],
 		appCodec,
 		homePath,
-		bApp)
+		bApp,
+	)
 
 	appKeepers.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
@@ -331,7 +330,9 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper)
+		erc20Keeper,
+		appKeepers.AccountKeeper,
+	)
 
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -343,7 +344,9 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper)
+		erc20Keeper,
+		appKeepers.AccountKeeper,
+	)
 
 	appKeepers.AvalancheKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -355,7 +358,9 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper)
+		erc20Keeper,
+		appKeepers.AccountKeeper,
+	)
 
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -367,7 +372,9 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper)
+		erc20Keeper,
+		appKeepers.AccountKeeper,
+	)
 
 	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
 		appCodec,
@@ -379,7 +386,9 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper))
+		erc20Keeper,
+		appKeepers.AccountKeeper,
+	))
 
 	// add cross-chain router
 	crosschainRouter := crosschainkeeper.NewRouter()

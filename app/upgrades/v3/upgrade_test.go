@@ -43,8 +43,8 @@ func Test_updateBSCOracles(t *testing.T) {
 		WithGasMeter(sdk.NewInfiniteGasMeter())
 	protoCodec := codec.NewProtoCodec(types.NewInterfaceRegistry())
 	subspace := paramtypes.NewSubspace(protoCodec, nil, nil, nil, t.Name())
-	keeper := crosschainkeeper.NewKeeper(protoCodec, t.Name(), storeKey,
-		subspace, nil, nil, nil, nil, nil, nil)
+	keeper := crosschainkeeper.NewKeeper(protoCodec, t.Name(), storeKey, subspace,
+		nil, nil, nil, nil, nil, nil, ak{})
 	updateOracles := getBSCOracleAddrs(ctx.ChainID())
 	keeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: updateOracles,
@@ -61,4 +61,10 @@ func Test_updateBSCOracles(t *testing.T) {
 	proposalOracle, found := keeper.GetProposalOracle(ctx)
 	assert.True(t, found)
 	assert.Equal(t, 5, len(proposalOracle.Oracles))
+}
+
+type ak struct{}
+
+func (ak) GetModuleAddress(name string) sdk.AccAddress {
+	return sdk.AccAddress(name)
 }
