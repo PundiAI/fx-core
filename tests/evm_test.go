@@ -8,10 +8,11 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/functionx/fx-core/v3/app/helpers"
-	"github.com/functionx/fx-core/v3/client"
-	"github.com/functionx/fx-core/v3/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
+
+	"github.com/functionx/fx-core/v3/client"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
+	"github.com/functionx/fx-core/v3/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"

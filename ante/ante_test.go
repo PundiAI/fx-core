@@ -29,7 +29,7 @@ import (
 
 	fxante "github.com/functionx/fx-core/v3/ante"
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
+	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -39,7 +39,7 @@ type AnteTestSuite struct {
 	app         *app.App
 	anteHandler sdk.AnteHandler
 	ctx         sdk.Context
-	signer      *helpers.Signer
+	signer      *helpers2.Signer
 }
 
 func TestAnteTestSuite(t *testing.T) {
@@ -54,7 +54,7 @@ func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
 
 func (suite *AnteTestSuite) SetupTest() {
 	valConsPriv := ed25519.GenPrivKey()
-	suite.app = helpers.Setup(false, false)
+	suite.app = helpers2.Setup(false, false)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
 		Height:          suite.app.LastBlockHeight(),
 		ChainID:         fxtypes.ChainId(),
@@ -65,9 +65,9 @@ func (suite *AnteTestSuite) SetupTest() {
 		WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt()))).
 		WithBlockGasMeter(sdk.NewGasMeter(1e18)).
 		WithGasMeter(sdk.NewInfiniteGasMeter())
-	suite.signer = helpers.NewSigner(helpers.NewPriKey())
+	suite.signer = helpers2.NewSigner(helpers2.NewPriKey())
 
-	valAddr := helpers.GenerateAddress().Bytes()
+	valAddr := helpers2.GenerateAddress().Bytes()
 	validator, err := stakingtypes.NewValidator(valAddr, valConsPriv.PubKey(), stakingtypes.Description{})
 	suite.Require().NoError(err)
 
@@ -96,14 +96,14 @@ func (suite *AnteTestSuite) SetupTest() {
 func (suite *AnteTestSuite) TestAnteHandler() {
 	testCases := []struct {
 		name      string
-		txFn      func(signer helpers.Signer) sdk.Tx
+		txFn      func(signer helpers2.Signer) sdk.Tx
 		checkTx   bool
 		reCheckTx bool
 		expPass   bool
 	}{
 		{
 			"success - DeliverTx (contract)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -124,7 +124,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"success - CheckTx (contract)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -145,7 +145,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"success - ReCheckTx (contract)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -166,8 +166,8 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"success - DeliverTx",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -189,8 +189,8 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"success - CheckTx",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -212,8 +212,8 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"success - ReCheckTx",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -235,8 +235,8 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"success - CheckTx (cosmos tx not signed)",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -258,8 +258,8 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"fail - CheckTx (cosmos tx is not valid)",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -283,8 +283,8 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"fail - CheckTx (memo too long)",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -307,8 +307,8 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"fail - CheckTx (ExtensionOptionsEthereumTx not set)",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -332,10 +332,10 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		// should be part of consensus
 		{
 			"fail - DeliverTx (cosmos tx signed)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
-				to := helpers.GenerateAddress()
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -357,10 +357,10 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"fail - DeliverTx (cosmos tx with memo)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
-				to := helpers.GenerateAddress()
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -383,10 +383,10 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"fail - DeliverTx (cosmos tx with timeoutheight)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
-				to := helpers.GenerateAddress()
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -409,10 +409,10 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"fail - DeliverTx (invalid fee amount)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
-				to := helpers.GenerateAddress()
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -441,11 +441,11 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"fail - DeliverTx (invalid fee gaslimit)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, signer.AccAddress())
 				suite.Require().NoError(err)
 
-				to := helpers.GenerateAddress()
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					nonce,
@@ -471,7 +471,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		},
 		{
 			"fails - invalid from",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				msg := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -500,7 +500,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			params.MinGasPrice = sdk.ZeroDec()
 			suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 
-			signer := helpers.NewSigner(helpers.NewEthPrivKey())
+			signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
 
 			acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, signer.Address().Bytes())
 			suite.Require().NoError(acc.SetSequence(1))
@@ -526,7 +526,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 	testCases := []struct {
 		name           string
-		txFn           func(signer helpers.Signer) sdk.Tx
+		txFn           func(signer helpers2.Signer) sdk.Tx
 		enableLondonHF bool
 		checkTx        bool
 		reCheckTx      bool
@@ -534,7 +534,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 	}{
 		{
 			"success - DeliverTx (contract)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -556,7 +556,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		},
 		{
 			"success - CheckTx (contract)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -578,7 +578,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		},
 		{
 			"success - ReCheckTx (contract)",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -600,8 +600,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		},
 		{
 			"success - DeliverTx",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -624,8 +624,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		},
 		{
 			"success - CheckTx",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -648,8 +648,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		},
 		{
 			"success - ReCheckTx",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -672,8 +672,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		},
 		{
 			"success - CheckTx (cosmos tx not signed)",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -696,8 +696,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		},
 		{
 			"fail - CheckTx (cosmos tx is not valid)",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -722,8 +722,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		},
 		{
 			"fail - CheckTx (memo too long)",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -747,7 +747,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		},
 		{
 			"fail - DynamicFeeTx without london hark fork",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -789,7 +789,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				suite.app.EvmKeeper.SetParams(suite.ctx, ethParams)
 			}
 
-			signer := helpers.NewSigner(helpers.NewEthPrivKey())
+			signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
 			acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, signer.Address().Bytes())
 			suite.Require().NoError(acc.SetSequence(1))
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
@@ -810,14 +810,14 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 	testCases := []struct {
 		name         string
-		txFn         func(signer helpers.Signer) sdk.Tx
+		txFn         func(signer helpers2.Signer) sdk.Tx
 		enableCall   bool
 		enableCreate bool
 		expErr       error
 	}{
 		{
 			"fail - Contract Creation Disabled",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -839,7 +839,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 		},
 		{
 			"success - Contract Creation Enabled",
-			func(signer helpers.Signer) sdk.Tx {
+			func(signer helpers2.Signer) sdk.Tx {
 				signedContractTx := evmtypes.NewTxContract(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -861,8 +861,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 		},
 		{
 			"fail - EVM Call Disabled",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -885,8 +885,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 		},
 		{
 			"success - EVM Call Enabled",
-			func(signer helpers.Signer) sdk.Tx {
-				to := helpers.GenerateAddress()
+			func(signer helpers2.Signer) sdk.Tx {
+				to := helpers2.GenerateAddress()
 				signedTx := evmtypes.NewTx(
 					suite.app.EvmKeeper.ChainID(),
 					1,
@@ -922,7 +922,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			ethParams.EnableCreate = tc.enableCreate
 			suite.app.EvmKeeper.SetParams(suite.ctx, ethParams)
 
-			signer := helpers.NewSigner(helpers.NewEthPrivKey())
+			signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
 			acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, signer.Address().Bytes())
 			suite.Require().NoError(acc.SetSequence(1))
 			suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
@@ -964,7 +964,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(msg *evmtypes.MsgEthereumTx, pri
 	}
 
 	ethSigner := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
-	err = msg.Sign(ethSigner, helpers.NewSigner(priv))
+	err = msg.Sign(ethSigner, helpers2.NewSigner(priv))
 	suite.Require().NoError(err)
 
 	msg.From = ""

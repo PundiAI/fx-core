@@ -7,7 +7,7 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )

@@ -25,10 +25,10 @@ import (
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/client/grpc"
 	"github.com/functionx/fx-core/v3/client/jsonrpc"
 	"github.com/functionx/fx-core/v3/testutil"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	"github.com/functionx/fx-core/v3/testutil/network"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )

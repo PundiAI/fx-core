@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v3/app/helpers"
+	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
@@ -452,7 +452,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 		{
 			name: "empty target, expect base",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
-				denom := helpers.NewRandDenom()
+				denom := helpers2.NewRandDenom()
 				base := denom
 				return denom, base, []string{}, fxtypes.ParseFxTarget(""), denom
 			},
@@ -460,7 +460,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 		{
 			name: "erc20 target, expect base",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
-				denom := helpers.NewRandDenom()
+				denom := helpers2.NewRandDenom()
 				base := denom
 				return denom, base, []string{}, fxtypes.ParseFxTarget("erc20"), denom
 			},
@@ -468,7 +468,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 		{
 			name: "base, empty alias, expect denom",
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
-				denom := helpers.NewRandDenom()
+				denom := helpers2.NewRandDenom()
 				return denom, "", []string{}, fxtypes.ParseFxTarget("eth"), denom
 			},
 		},
@@ -477,11 +477,11 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				portID, channelID := suite.RandTransferChannel()
 				ibcDenom := suite.AddIBCToken(portID, channelID)
-				denom := helpers.NewRandDenom()
+				denom := helpers2.NewRandDenom()
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
-					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
+					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers2.GenerateAddressByModule(module)))
 				}
 				base := denom
 				return denom, base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), ibcDenom
@@ -492,11 +492,11 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				_, channelID := suite.RandTransferChannel()
 				ibcDenom := fmt.Sprintf("ibc/%s", strings.ToUpper(hex.EncodeToString(tmrand.Bytes(32))))
-				denom := helpers.NewRandDenom()
+				denom := helpers2.NewRandDenom()
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
-					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
+					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers2.GenerateAddressByModule(module)))
 				}
 				base := denom
 				return denom, base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), denom
@@ -507,12 +507,12 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				portID, channelID := suite.RandTransferChannel()
 				ibcDenom := suite.AddIBCToken(portID, channelID)
-				denom := helpers.NewRandDenom()
+				denom := helpers2.NewRandDenom()
 				keepers := suite.CrossChainKeepers()
 				i, idx, idxModule, idxDenom := 0, tmrand.Intn(len(keepers)), "", ""
 				aliases := make([]string, 0)
 				for module := range keepers {
-					randToken := fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module))
+					randToken := fmt.Sprintf("%s%s", module, helpers2.GenerateAddressByModule(module))
 					aliases = append(aliases, randToken)
 					if i == idx {
 						idxModule = module
@@ -529,7 +529,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 			malleate: func() (string, string, []string, fxtypes.FxTarget, string) {
 				portID, channelID := suite.RandTransferChannel()
 				ibcDenom := suite.AddIBCToken(portID, channelID)
-				denom := helpers.NewRandDenom()
+				denom := helpers2.NewRandDenom()
 				keepers := suite.CrossChainKeepers()
 				i, idx, idxModule := 0, tmrand.Intn(len(keepers)), ""
 				aliases := make([]string, 0)
@@ -537,7 +537,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					if i == idx {
 						idxModule = module
 					} else {
-						randToken := fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module))
+						randToken := fmt.Sprintf("%s%s", module, helpers2.GenerateAddressByModule(module))
 						aliases = append(aliases, randToken)
 					}
 					i++
@@ -554,9 +554,9 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				aliases := make([]string, 0)
 				keepers := suite.CrossChainKeepers()
 				for module := range keepers {
-					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
+					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers2.GenerateAddressByModule(module)))
 				}
-				base := helpers.NewRandDenom()
+				base := helpers2.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), ibcDenom
 			},
 		},
@@ -569,9 +569,9 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				keepers := suite.CrossChainKeepers()
 
 				for module := range keepers {
-					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module)))
+					aliases = append(aliases, fmt.Sprintf("%s%s", module, helpers2.GenerateAddressByModule(module)))
 				}
-				base := helpers.NewRandDenom()
+				base := helpers2.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(fmt.Sprintf("ibc/%s/px", strings.TrimPrefix(channelID, ibcchanneltypes.ChannelPrefix))), aliases[0]
 			},
 		},
@@ -588,7 +588,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 				}
 				aliases := make([]string, 0)
 				for module := range keepers {
-					randToken := fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module))
+					randToken := fmt.Sprintf("%s%s", module, helpers2.GenerateAddressByModule(module))
 					aliases = append(aliases, randToken)
 					if i == idx {
 						idxModule = module
@@ -596,7 +596,7 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					}
 					i++
 				}
-				base := helpers.NewRandDenom()
+				base := helpers2.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), idxDenom
 			},
 		},
@@ -616,12 +616,12 @@ func (suite *KeeperTestSuite) TestToTargetDenom() {
 					if i == idx {
 						idxModule = module
 					} else {
-						randToken := fmt.Sprintf("%s%s", module, helpers.GenerateAddressByModule(module))
+						randToken := fmt.Sprintf("%s%s", module, helpers2.GenerateAddressByModule(module))
 						aliases = append(aliases, randToken)
 					}
 					i++
 				}
-				base := helpers.NewRandDenom()
+				base := helpers2.NewRandDenom()
 				return aliases[0], base, append(aliases, ibcDenom), fxtypes.ParseFxTarget(idxModule), aliases[0]
 			},
 		},
@@ -653,7 +653,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				expCoin := originCoin
 				fxTarget := fxtypes.ParseFxTarget("")
 
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
 
 				return originCoin, expCoin, fxTarget, nil
 			},
@@ -674,7 +674,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				expCoin := originCoin
 				fxTarget := fxtypes.ParseFxTarget("")
 
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
 
 				return originCoin, expCoin, fxTarget, nil
 			},
@@ -693,7 +693,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				expCoin := originCoin
 				fxTarget := fxtypes.ParseFxTarget(md.GetModules()[0]) // or empty
 
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
 
 				return originCoin, expCoin, fxTarget, nil
 			},
@@ -713,7 +713,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				fxTarget := fxtypes.ParseFxTarget(md.GetModules()[0])
 
 				mintAmt := sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), amt))
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, mintAmt)
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, mintAmt)
 
 				return originCoin, expCoin, fxTarget, []string{mintAmt.String(), originCoin.String()}
 			},
@@ -736,7 +736,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				fxTarget := fxtypes.ParseFxTarget(md.GetModules()[0])
 
 				mintAmt := sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), amt))
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, mintAmt)
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, mintAmt)
 
 				return originCoin, expCoin, fxTarget, []string{sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], sdk.NewInt(0)).String(), expCoin.String()}
 			},
@@ -759,7 +759,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				fxTarget := fxtypes.ParseFxTarget(md.GetModules()[0])
 
 				mintAmt := sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), amt))
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, mintAmt)
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, mintAmt)
 
 				// mint alias token to erc20 module
 				err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(expCoin))
@@ -773,7 +773,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 			name: "ok - not register",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
 				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
-				randDenom := helpers.NewRandDenom()
+				randDenom := helpers2.NewRandDenom()
 
 				originCoin := sdk.NewCoin(randDenom, amt)
 				expCoin := sdk.NewCoin(randDenom, amt)
@@ -833,7 +833,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				expCoin := sdk.NewCoin(md.GetMetadata().Base, amt)
 				fxTarget := fxtypes.ParseFxTarget("erc20") // or empty
 
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
 
 				return originCoin, expCoin, fxTarget, []string{}
 			},
@@ -855,7 +855,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				expCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[1], amt)
 				fxTarget := fxtypes.ParseFxTarget(md.GetModules()[1])
 
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
 
 				return originCoin, expCoin, fxTarget, []string{sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[1], sdk.NewInt(0)).String(), expCoin.String()}
 			},
@@ -880,7 +880,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				expCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[1], amt)
 				fxTarget := fxtypes.ParseFxTarget(md.GetModules()[1])
 
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
 				err = suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(expCoin))
 				suite.Require().NoError(err)
 
@@ -935,7 +935,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				coin := sdk.NewCoin(md.GetMetadata().Base, amt)
 				expCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
 
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(coin))
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(coin))
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(expCoin))
 				suite.Require().NoError(err)
 
@@ -950,7 +950,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 				coin := sdk.NewCoin(md.GetMetadata().Base, amt)
 				expCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
 
-				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(coin))
+				helpers2.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(coin))
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, sdk.NewCoins(expCoin))
 				suite.Require().NoError(err)
 

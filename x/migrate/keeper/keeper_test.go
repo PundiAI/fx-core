@@ -19,7 +19,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 )

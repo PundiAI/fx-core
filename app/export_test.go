@@ -20,8 +20,8 @@ import (
 	"github.com/tendermint/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
 	"github.com/functionx/fx-core/v3/testutil"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	"github.com/functionx/fx-core/v3/testutil/network"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )

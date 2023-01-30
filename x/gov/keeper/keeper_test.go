@@ -12,7 +12,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
+	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/gov/keeper"
 	"github.com/functionx/fx-core/v3/x/gov/types"
@@ -34,8 +34,8 @@ func TestKeeperTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) SetupTest() {
 	valNumber := tmrand.Intn(99) + 1
 
-	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
-	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
+	valSet, valAccounts, valBalances := helpers2.GenerateGenesisValidator(valNumber, sdk.Coins{})
+	suite.app = helpers2.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
 		ChainID:         fxtypes.MainnetChainId,
 		Height:          suite.app.LastBlockHeight() + 1,
@@ -49,17 +49,17 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) addFundCommunityPool() {
-	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	sender := sdk.AccAddress(helpers2.GenerateAddress().Bytes())
 	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(5 * 1e8).MulRaw(1e18)}
-	helpers.AddTestAddr(suite.app, suite.ctx, sender, sdk.NewCoins(coin))
+	helpers2.AddTestAddr(suite.app, suite.ctx, sender, sdk.NewCoins(coin))
 	err := suite.app.DistrKeeper.FundCommunityPool(suite.ctx, sdk.NewCoins(coin), sender)
 	suite.NoError(err)
 }
 
 func (suite *KeeperTestSuite) newAddress() sdk.AccAddress {
-	address := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	address := sdk.AccAddress(helpers2.GenerateAddress().Bytes())
 	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(50_000).MulRaw(1e18)}
-	helpers.AddTestAddr(suite.app, suite.ctx, address, sdk.NewCoins(coin))
+	helpers2.AddTestAddr(suite.app, suite.ctx, address, sdk.NewCoins(coin))
 	return address
 }
 
@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) TestEGFDepositsLessThan1000() {
 	communityPoolSpendProposal := &distributiontypes.CommunityPoolSpendProposal{
 		Title:       "community Pool Spend Proposal",
 		Description: "description",
-		Recipient:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		Recipient:   sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
 		Amount:      egfCoins,
 	}
 	minDeposit := types.EGFProposalMinDeposit(egfCoins)
@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) TestEGFDepositsMoreThan1000() {
 	communityPoolSpendProposal := &distributiontypes.CommunityPoolSpendProposal{
 		Title:       "community Pool Spend Proposal",
 		Description: "description",
-		Recipient:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		Recipient:   sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
 		Amount:      egfCoins,
 	}
 	minDeposit := types.EGFProposalMinDeposit(egfCoins)
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 	communityPoolSpendProposal := &distributiontypes.CommunityPoolSpendProposal{
 		Title:       "community Pool Spend Proposal",
 		Description: "description",
-		Recipient:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		Recipient:   sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
 		Amount:      egfCoins,
 	}
 	minDeposit := types.EGFProposalMinDeposit(egfCoins)

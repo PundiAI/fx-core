@@ -16,7 +16,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
+	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
@@ -91,16 +91,16 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 func (suite *KeeperTestSuite) SetupTest() {
 	valNumber := tmrand.Intn(types.MaxOracleSize-4) + 4
 
-	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
-	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
+	valSet, valAccounts, valBalances := helpers2.GenerateGenesisValidator(valNumber, sdk.Coins{})
+	suite.app = helpers2.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
 		ChainID: fxtypes.MainnetChainId,
 		Height:  suite.app.LastBlockHeight() + 1,
 	})
 
-	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
-	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
-	suite.externalPris = helpers.CreateMultiECDSA(valNumber)
+	suite.oracleAddrs = helpers2.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
+	suite.bridgerAddrs = helpers2.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
+	suite.externalPris = helpers2.CreateMultiECDSA(valNumber)
 
 	suite.valAddrs = make([]sdk.ValAddress, valNumber)
 	for i := 0; i < valNumber; i++ {

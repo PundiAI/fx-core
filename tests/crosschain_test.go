@@ -9,7 +9,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 
-	"github.com/functionx/fx-core/v3/app/helpers"
+	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
@@ -20,11 +20,11 @@ func (suite *IntegrationTest) CrossChainTest() {
 	for _, chain := range suite.crosschain {
 		chain.Init()
 
-		tokenAddress := helpers.GenerateAddress().Hex()
+		tokenAddress := helpers2.GenerateAddress().Hex()
 		if chain.chainName == trontypes.ModuleName {
 			tokenAddress = trontypes.AddressFromHex(tokenAddress)
 		}
-		metadata := fxtypes.GetCrossChainMetadata("test token", helpers.NewRandSymbol(), 18)
+		metadata := fxtypes.GetCrossChainMetadata("test token", helpers2.NewRandSymbol(), 18)
 
 		bridgeDenom := fmt.Sprintf("%s%s", chain.chainName, tokenAddress)
 		channelIBCHex := ""
@@ -69,7 +69,7 @@ func (suite *IntegrationTest) CrossChainTest() {
 		chain.CheckBalance(chain.AccAddress(), sdk.NewCoin(bridgeDenom, sdk.NewInt(50)))
 
 		if chain.chainName == ethtypes.ModuleName {
-			fxTokenAddress := helpers.GenerateAddress().Hex()
+			fxTokenAddress := helpers2.GenerateAddress().Hex()
 			fxMD := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
 			suite.erc20.RegisterCoinProposal(fxMD)
 			chain.AddBridgeTokenClaim(fxMD.Name, fxMD.Symbol, fxtypes.DenomUnit, fxTokenAddress, "")

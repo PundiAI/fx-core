@@ -12,12 +12,12 @@ import (
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/functionx/fx-core/v3/app/helpers"
+	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
 )
 
 func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 	getTx := func() sdk.Tx {
-		signer := helpers.NewSigner(helpers.NewEthPrivKey())
+		signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
 		unprotectedTx := evmtypes.NewTxContract(nil, 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 		unprotectedTx.From = signer.Address().String()
 		suite.Require().NoError(unprotectedTx.Sign(ethtypes.HomesteadSigner{}, signer))
@@ -35,7 +35,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 		{
 			"invalid sender",
 			func() sdk.Tx {
-				addr := helpers.GenerateAddress()
+				addr := helpers2.GenerateAddress()
 				return evmtypes.NewTx(suite.app.EvmKeeper.ChainID(), 1, &addr, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 			},
 			true,
@@ -43,7 +43,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 			false,
 		},
 		{"successful signature verification", func() sdk.Tx {
-			signer := helpers.NewSigner(helpers.NewEthPrivKey())
+			signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
 
 			signedTx := suite.NewTxContract()
 			signedTx.From = signer.Address().String()
@@ -79,7 +79,7 @@ func (suite *AnteTestSuite) NewTxContract() *evmtypes.MsgEthereumTx {
 }
 
 func (suite *AnteTestSuite) TestNewEthAccountVerificationDecorator() {
-	addr := helpers.GenerateAddress()
+	addr := helpers2.GenerateAddress()
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	tx.From = addr.Hex()
 
@@ -164,7 +164,7 @@ func (suite *AnteTestSuite) TestNewEthAccountVerificationDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
-	addr := helpers.GenerateAddress()
+	addr := helpers2.GenerateAddress()
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	tx.From = addr.Hex()
 
@@ -219,7 +219,7 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
-	addr := helpers.GenerateAddress()
+	addr := helpers2.GenerateAddress()
 
 	txGasLimit := uint64(1000)
 	tx := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 1, big.NewInt(10), txGasLimit, big.NewInt(1), nil, nil, nil, nil)
@@ -344,7 +344,7 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 		&ethtypes.AccessList{},
 	)
 
-	signer := helpers.NewSigner(helpers.NewEthPrivKey())
+	signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
 
 	tx.From = signer.Address().Hex()
 	ethSigner := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
@@ -403,8 +403,8 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
-	signer := helpers.NewSigner(helpers.NewEthPrivKey())
-	to := helpers.GenerateAddress()
+	signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
+	to := helpers2.GenerateAddress()
 
 	contract := evmtypes.NewTxContract(suite.app.EvmKeeper.ChainID(), 0, big.NewInt(10), 1000, big.NewInt(1), nil, nil, nil, nil)
 	contract.From = signer.Address().Hex()

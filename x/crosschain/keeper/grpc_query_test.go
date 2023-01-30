@@ -19,7 +19,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
+	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
@@ -50,16 +50,16 @@ func TestCrossChainGrpcTestSuite_eth(t *testing.T) {
 }
 
 func (suite *CrossChainGrpcTestSuite) SetupTest() {
-	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(types.MaxOracleSize, sdk.Coins{})
-	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
+	valSet, valAccounts, valBalances := helpers2.GenerateGenesisValidator(types.MaxOracleSize, sdk.Coins{})
+	suite.app = helpers2.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.CrosschainKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
-	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
+	suite.oracleAddrs = helpers2.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
+	suite.bridgerAddrs = helpers2.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
 	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper())
 }
 
@@ -882,7 +882,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 				newBatchList := make([]*types.OutgoingTxBatch, 0)
 				for i := 0; i < 10; i++ {
 					suite.ctx = suite.ctx.WithBlockHeight(int64(i + 3))
-					token := helpers.GenerateAddress().String()
+					token := helpers2.GenerateAddress().String()
 					newOutgoingTx := &types.OutgoingTxBatch{
 						BatchNonce:   uint64(i + 3),
 						BatchTimeout: uint64(1000),
@@ -890,14 +890,14 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 							{
 								Id:          uint64(i),
 								Sender:      sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-								DestAddress: helpers.GenerateAddress().String(),
+								DestAddress: helpers2.GenerateAddress().String(),
 								Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
 								Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
 							},
 						},
 						TokenContract: token,
 						Block:         uint64(i + 3),
-						FeeReceive:    helpers.GenerateAddress().String(),
+						FeeReceive:    helpers2.GenerateAddress().String(),
 					}
 					err := suite.Keeper().StoreBatch(suite.ctx, newOutgoingTx)
 					suite.Require().NoError(err)
@@ -912,7 +912,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 			malleate: func() *types.QueryOutgoingTxBatchesResponse {
 				for i := 1; i < 110; i++ {
 					suite.ctx = suite.ctx.WithBlockHeight(int64(i))
-					token := helpers.GenerateAddress().String()
+					token := helpers2.GenerateAddress().String()
 					newOutgoingTx := &types.OutgoingTxBatch{
 						BatchNonce:   uint64(i),
 						BatchTimeout: uint64(1000 + i),
@@ -920,14 +920,14 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 							{
 								Id:          uint64(i),
 								Sender:      sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-								DestAddress: helpers.GenerateAddress().String(),
+								DestAddress: helpers2.GenerateAddress().String(),
 								Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
 								Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
 							},
 						},
 						TokenContract: token,
 						Block:         uint64(i),
-						FeeReceive:    helpers.GenerateAddress().String(),
+						FeeReceive:    helpers2.GenerateAddress().String(),
 					}
 					err := suite.Keeper().StoreBatch(suite.ctx, newOutgoingTx)
 					suite.Require().NoError(err)
@@ -1938,7 +1938,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastEventBlockHeightByAddr() {
 				_, err := suite.msgServer.BridgeTokenClaim(sdk.WrapSDKContext(suite.ctx), &types.MsgBridgeTokenClaim{
 					EventNonce:     1,
 					BlockHeight:    100,
-					TokenContract:  helpers.GenerateAddress().String(),
+					TokenContract:  helpers2.GenerateAddress().String(),
 					Name:           "test token",
 					Symbol:         "tt",
 					Decimals:       18,

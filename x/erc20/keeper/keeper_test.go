@@ -39,7 +39,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/helpers"
+	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
@@ -52,7 +52,7 @@ type KeeperTestSuite struct {
 	ctx         sdk.Context
 	app         *app.App
 	queryClient types.QueryClient
-	signer      *helpers.Signer
+	signer      *helpers2.Signer
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -64,10 +64,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
 	require.NoError(suite.T(), err)
-	suite.signer = helpers.NewSigner(priv)
+	suite.signer = helpers2.NewSigner(priv)
 
-	set, accs, balances := helpers.GenerateGenesisValidator(100, nil)
-	suite.app = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
+	set, accs, balances := helpers2.GenerateGenesisValidator(100, nil)
+	suite.app = helpers2.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
 
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
 		Height:          suite.app.LastBlockHeight(),
@@ -82,7 +82,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.app.Erc20Keeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))))
+	helpers2.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))))
 }
 
 func (suite *KeeperTestSuite) Commit() {
@@ -103,10 +103,10 @@ func (suite *KeeperTestSuite) StateDB() *statedb.StateDB {
 	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes())))
 }
 
-func (suite *KeeperTestSuite) RandSigner() *helpers.Signer {
-	privKey := helpers.NewEthPrivKey()
-	helpers.AddTestAddr(suite.app, suite.ctx, privKey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))))
-	return helpers.NewSigner(privKey)
+func (suite *KeeperTestSuite) RandSigner() *helpers2.Signer {
+	privKey := helpers2.NewEthPrivKey()
+	helpers2.AddTestAddr(suite.app, suite.ctx, privKey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))))
+	return helpers2.NewSigner(privKey)
 }
 
 func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
@@ -164,7 +164,7 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 	denoms := make([]string, len(modules))
 	denomModules := make([]string, len(modules))
 	for index, m := range modules {
-		address := helpers.GenerateAddressByModule(m)
+		address := helpers2.GenerateAddressByModule(m)
 
 		denom := fmt.Sprintf("%s%s", m, address)
 		denoms[index] = denom
@@ -176,12 +176,12 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 	if count >= len(modules) {
 		count = len(modules) - 1
 	}
-	metadata := fxtypes.GetCrossChainMetadata("Test Token", helpers.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
+	metadata := fxtypes.GetCrossChainMetadata("Test Token", helpers2.NewRandSymbol(), 18, append(denoms[:count], addDenoms...)...)
 	return Metadata{metadata: metadata, modules: denomModules[:count], notModules: denomModules[count:]}
 }
 
 func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata, amt sdk.Int) *big.Int {
-	generateAddress := helpers.GenerateAddress()
+	generateAddress := helpers2.GenerateAddress()
 
 	count := 1
 	if len(md.DenomUnits) > 0 && len(md.DenomUnits[0].Aliases) > 0 {
@@ -189,7 +189,7 @@ func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata,
 		for _, alias := range md.DenomUnits[0].Aliases {
 			// add alias for erc20 module
 			coins := sdk.NewCoins(sdk.NewCoin(alias, amt))
-			helpers.AddTestAddr(suite.app, suite.ctx, generateAddress.Bytes(), coins)
+			helpers2.AddTestAddr(suite.app, suite.ctx, generateAddress.Bytes(), coins)
 			err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, generateAddress.Bytes(), types.ModuleName, coins)
 			suite.Require().NoError(err)
 		}
@@ -198,7 +198,7 @@ func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata,
 
 	// add denom to erc20 module
 	coin := sdk.NewCoin(md.Base, amt.Mul(sdk.NewInt(int64(count))))
-	helpers.AddTestAddr(suite.app, suite.ctx, generateAddress.Bytes(), sdk.NewCoins(coin))
+	helpers2.AddTestAddr(suite.app, suite.ctx, generateAddress.Bytes(), sdk.NewCoins(coin))
 	err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, generateAddress.Bytes(), types.ModuleName, sdk.NewCoins(coin))
 	suite.Require().NoError(err)
 
@@ -211,7 +211,7 @@ func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) *big.I
 	return balance
 }
 
-func (suite *KeeperTestSuite) MintERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
+func (suite *KeeperTestSuite) MintERC20Token(signer *helpers2.Signer, contractAddr, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
 	erc20 := fxtypes.GetERC20()
 	transferData, err := erc20.ABI.Pack("mint", to, amount)
 	suite.Require().NoError(err)
@@ -225,14 +225,14 @@ func (suite *KeeperTestSuite) ModuleMintERC20Token(contractAddr, to common.Addre
 	suite.moduleSendEvmTx(contractAddr, transferData)
 }
 
-func (suite *KeeperTestSuite) TransferERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
+func (suite *KeeperTestSuite) TransferERC20Token(signer *helpers2.Signer, contractAddr, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
 	erc20 := fxtypes.GetERC20()
 	transferData, err := erc20.ABI.Pack("transfer", to, amount)
 	suite.Require().NoError(err)
 	return suite.sendEvmTx(signer, contractAddr, transferData)
 }
 
-func (suite *KeeperTestSuite) TransferERC20TokenToModule(signer *helpers.Signer, contractAddr common.Address, amount *big.Int) *evm.MsgEthereumTx {
+func (suite *KeeperTestSuite) TransferERC20TokenToModule(signer *helpers2.Signer, contractAddr common.Address, amount *big.Int) *evm.MsgEthereumTx {
 	erc20 := fxtypes.GetERC20()
 	moduleAddress := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
 	transferData, err := erc20.ABI.Pack("transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
@@ -251,7 +251,7 @@ func (suite *KeeperTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr
 
 func (suite *KeeperTestSuite) RandPrefixAndAddress() (string, string) {
 	if tmrand.Intn(10)%2 == 0 {
-		return "0x", helpers.GenerateAddress().Hex()
+		return "0x", helpers2.GenerateAddress().Hex()
 	}
 	prefix := strings.ToLower(tmrand.Str(5))
 	accAddress, err := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
@@ -302,7 +302,7 @@ func (suite *KeeperTestSuite) AddIBCToken(portID, channelID string) string {
 	return denomTrace.IBCDenom()
 }
 
-func (suite *KeeperTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr common.Address, data []byte) *evm.MsgEthereumTx {
+func (suite *KeeperTestSuite) sendEvmTx(signer *helpers2.Signer, contractAddr common.Address, data []byte) *evm.MsgEthereumTx {
 	chainID := suite.app.EvmKeeper.ChainID()
 	from := signer.Address()
 
@@ -359,8 +359,8 @@ func newMetadata() banktypes.Metadata {
 				Denom:    "usdt",
 				Exponent: uint32(0),
 				Aliases: []string{
-					fmt.Sprintf("%s%s", bsctypes.ModuleName, helpers.GenerateAddress().String()),
-					fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddress().String()),
+					fmt.Sprintf("%s%s", bsctypes.ModuleName, helpers2.GenerateAddress().String()),
+					fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers2.GenerateAddress().String()),
 					// fmt.Sprintf("%s%s", "ibc/", helpers.GenerateAddress().String()),
 				},
 			}, {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v3/app/helpers"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_PastExternalSignatureCheckpoint() {

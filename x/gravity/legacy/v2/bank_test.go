@@ -10,7 +10,7 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v3/app/helpers"
+	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
@@ -18,14 +18,14 @@ import (
 )
 
 func TestMigrateBank(t *testing.T) {
-	app := helpers.Setup(false, false)
+	app := helpers2.Setup(false, false)
 	ctx := app.NewContext(false, tmproto.Header{Height: int64(tmrand.Uint32())})
 
 	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(int64(tmrand.Uint32()))))
 	index := tmrand.Intn(100) + 1
 	for i := 0; i < index; i++ {
 		coins = coins.Add(sdk.Coin{
-			Denom:  fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddress().Hex()),
+			Denom:  fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers2.GenerateAddress().Hex()),
 			Amount: sdk.NewInt(int64(tmrand.Uint32())),
 		})
 	}
