@@ -86,10 +86,15 @@ func (k Keeper) DeployUpgradableToken(ctx sdk.Context, from common.Address, name
 		return common.Address{}, err
 	}
 
-	_, err = k.CallEVM(ctx, tokenContract.ABI, from, contract, true, "initialize", name, symbol, decimals, k.moduleAddress)
+	resp, err := k.CallEVM(ctx, tokenContract.ABI, from, contract, true, "initialize", name, symbol, decimals, k.moduleAddress)
 	if err != nil {
 		return common.Address{}, err
 	}
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventInitializeContract,
+		sdk.NewAttribute(types.AttributeKeyEvmTxHash, resp.Hash),
+		sdk.NewAttribute(types.AttributeKeyContractAddress, contract.Hex()),
+	))
 	return contract, nil
 }
 
@@ -107,11 +112,17 @@ func (k Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI
 		return common.Address{}, err
 	}
 
-	_, err = k.evmKeeper.CallEVMWithData(ctx, from, nil, data, true)
+	resp, err := k.evmKeeper.CallEVMWithData(ctx, from, nil, data, true)
 	if err != nil {
 		return common.Address{}, err
 	}
 	contractAddr := crypto.CreateAddress(from, nonce)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventDeployContract,
+		sdk.NewAttribute(types.AttributeKeyEvmTxHash, resp.Hash),
+		sdk.NewAttribute(types.AttributeKeyContractAddress, contractAddr.String()),
+	))
 	return contractAddr, nil
 }
 
