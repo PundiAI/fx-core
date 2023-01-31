@@ -2,6 +2,9 @@ package server
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/evmos/ethermint/indexer"
 	ethdebug "github.com/evmos/ethermint/rpc/namespaces/ethereum/debug"
 	ethermintserver "github.com/evmos/ethermint/server"
@@ -33,17 +37,25 @@ import (
 	"github.com/spf13/cobra"
 	abciserver "github.com/tendermint/tendermint/abci/server"
 	tcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
+	tmcfg "github.com/tendermint/tendermint/config"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
 	pvm "github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/rpc/client/local"
+	"github.com/tendermint/tendermint/store"
+	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/grpc"
 
+	"github.com/functionx/fx-core/v3/client/cli"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
+
+// SHA-256 hash
+const mainnetGenesisHash = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593"
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
 // Tendermint.
@@ -76,14 +88,41 @@ which accepts a path for the resulting pprof file.
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 
+			if zeroLog, ok := serverCtx.Logger.(server.ZeroLogWrapper); ok {
+				filterLogTypes, _ := cmd.Flags().GetStringSlice(cli.FlagLogFilter)
+				if len(filterLogTypes) > 0 {
+					serverCtx.Logger = cli.NewFxZeroLogWrapper(zeroLog, filterLogTypes)
+				}
+			}
+
 			// Bind flags to the Context's Viper so the app construction can set
 			// options accordingly.
-			err := serverCtx.Viper.BindPFlags(cmd.Flags())
-			if err != nil {
+			if err := serverCtx.Viper.BindPFlags(cmd.Flags()); err != nil {
 				return err
 			}
 
-			_, err = server.GetPruningOptionsFromFlags(serverCtx.Viper)
+			if _, err := server.GetPruningOptionsFromFlags(serverCtx.Viper); err != nil {
+				return err
+			}
+
+			genDocFile := serverCtx.Config.GenesisFile()
+			genesisBytes, err := os.ReadFile(genDocFile)
+			if err != nil {
+				return fmt.Errorf("couldn't read GenesisDoc file: %w", err)
+			}
+			expectGenesisHash := serverCtx.Viper.GetString("genesis_hash")
+			actualGenesisHash := sha256Hex(genesisBytes)
+			if len(expectGenesisHash) != 0 && sha256Hex(genesisBytes) != expectGenesisHash {
+				return fmt.Errorf("--genesis_hash=%s does not match %s hash: %s", expectGenesisHash, genDocFile, actualGenesisHash)
+			}
+			genesisDoc, err := tmtypes.GenesisDocFromJSON(genesisBytes)
+			if err != nil {
+				return fmt.Errorf("error reading GenesisDoc at %s: %w", genDocFile, err)
+			}
+			if err = checkMainnetAndBlock(genesisDoc, serverCtx.Config); err != nil {
+				return err
+			}
+			fxtypes.SetChainId(genesisDoc.ChainID)
 			return err
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -124,6 +163,7 @@ which accepts a path for the resulting pprof file.
 		},
 	}
 
+	cmd.Flags().StringSlice(cli.FlagLogFilter, nil, `The logging filter can discard custom log type (ABCIQuery)`)
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.Flags().Bool(srvflags.WithTendermint, true, "Run abci app embedded in-process with tendermint")
 	cmd.Flags().String(srvflags.Address, "tcp://0.0.0.0:26658", "Listen address")
@@ -178,6 +218,7 @@ which accepts a path for the resulting pprof file.
 
 	// add support for all Tendermint-specific command line options
 	tcmd.AddNodeFlags(cmd)
+	crisis.AddModuleInitFlags(cmd)
 	return cmd
 }
 
@@ -518,4 +559,40 @@ func openTraceWriter(traceWriterFile string) (w io.Writer, err error) {
 		os.O_WRONLY|os.O_APPEND|os.O_CREATE,
 		0o600,
 	)
+}
+
+func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) error {
+	if genesisDoc.InitialHeight > 1 || genesisDoc.ChainID != fxtypes.MainnetChainId || config.StateSync.Enable {
+		return nil
+	}
+	genesisTime, err := time.Parse("2006-01-02T15:04:05Z", "2021-07-05T04:00:00Z")
+	if err != nil {
+		return err
+	}
+	blockStoreDB, err := node.DefaultDBProvider(&node.DBContext{ID: "blockstore", Config: config})
+	if err != nil {
+		return err
+	}
+	defer blockStoreDB.Close()
+	blockStore := store.NewBlockStore(blockStoreDB)
+	if genesisDoc.GenesisTime.Equal(genesisTime) {
+		genesisBytes, _ := tmjson.Marshal(genesisDoc)
+		if sha256Hex(genesisBytes) != mainnetGenesisHash {
+			return nil
+		}
+		if blockStore.Height() < 5_713_000 {
+			return errors.New("invalid version: Sync block from scratch please use use fxcored v1.x.x")
+		}
+		if blockStore.Height() < 8_756_000 {
+			return errors.New("invalid version: Sync block from scratch please use use fxcored v2.x.x")
+		}
+	}
+	return nil
+}
+
+// calculate SHA-256 hash
+func sha256Hex(b []byte) string {
+	sha := sha256.New()
+	sha.Write(b)
+	return strings.ToUpper(hex.EncodeToString(sha.Sum(nil)))
 }

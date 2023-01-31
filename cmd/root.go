@@ -125,11 +125,11 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		queryCommand(),
 		txCommand(),
 		version.NewVersionCommand(),
+		server.NewRollbackCmd(appCreator.newApp, defaultNodeHome),
 		fxserver.DataCmd(),
 		fxserver.ExportSateCmd(appCreator.appExport, defaultNodeHome),
-		server.NewRollbackCmd(appCreator.newApp, defaultNodeHome),
+		fxserver.StartCmd(appCreator.newApp, defaultNodeHome),
 		tendermintCommand(),
-		startCommand(appCreator.newApp, defaultNodeHome),
 		app.GetUpgrades().GetLatest().PreUpgradeCmd,
 	)
 
