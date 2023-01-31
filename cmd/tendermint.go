@@ -118,11 +118,12 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config)
 		if hex.EncodeToString(hash[:]) != mainnetGenesisHash {
 			return nil
 		}
-		// todo: Deleted before release
 		if blockStore.Height() < 5_713_000 {
 			return errors.New("invalid version: Sync block from scratch please use use fxcored v1.x.x")
 		}
-		return errors.New("invalid version: Sync block from scratch please use use fxcored v2.x.x")
+		if blockStore.Height() < 8_756_000 {
+			return errors.New("invalid version: Sync block from scratch please use use fxcored v2.x.x")
+		}
 	}
 	return nil
 }
