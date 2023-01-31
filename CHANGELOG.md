@@ -35,6 +35,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Change log
 
+## [v3.1.0] - 2023-01-31
+
+### Bug Fixes
+
+* Fixed emit block bloom event in evm module
+
 ## [v3.0.0] - 2023-01-14
 
 ### Features
