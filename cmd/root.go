@@ -33,6 +33,7 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/client/cli"
+	fxserver "github.com/functionx/fx-core/v3/server"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -113,7 +114,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		testnetCmd(),
 		cli.Debug(),
 		configCmd(),
-		cli.DataCmd(),
 	)
 
 	appCreator := appCreator{encodingConfig}
@@ -124,8 +124,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		cli.StatusCommand(),
 		queryCommand(),
 		txCommand(),
-		cli.ExportSateCmd(appCreator.appExport, defaultNodeHome),
 		version.NewVersionCommand(),
+		fxserver.DataCmd(),
+		fxserver.ExportSateCmd(appCreator.appExport, defaultNodeHome),
 		server.NewRollbackCmd(appCreator.newApp, defaultNodeHome),
 		tendermintCommand(),
 		startCommand(appCreator.newApp, defaultNodeHome),
