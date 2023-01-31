@@ -15,7 +15,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
-	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -24,7 +24,7 @@ type KeeperTestSuite struct {
 
 	app    *app.App
 	ctx    sdk.Context
-	signer *helpers2.Signer
+	signer *helpers.Signer
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -33,17 +33,17 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	valNumber := tmrand.Intn(100-1) + 1
-	valSet, valAccounts, valBalances := helpers2.GenerateGenesisValidator(valNumber, sdk.Coins{})
+	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 
-	suite.app = helpers2.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
+	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
 		ChainID:         fxtypes.MainnetChainId,
 		Height:          suite.app.LastBlockHeight() + 1,
 		ProposerAddress: valSet.Proposer.Address.Bytes(),
 	})
 
-	suite.signer = helpers2.NewSigner(helpers2.NewEthPrivKey())
-	helpers2.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).MulRaw(1e18))))
+	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
+	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).MulRaw(1e18))))
 }
 
 func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
@@ -71,7 +71,7 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 	suite.Equal(rsp.GasUsed, uint64(1558681))
 	contractAddress := crypto.CreateAddress(suite.signer.Address(), nonce)
 
-	args, err = fxtypes.GetERC20().ABI.Pack("initialize", "Test Token", "TEST", uint8(18), helpers2.GenerateAddress())
+	args, err = fxtypes.GetERC20().ABI.Pack("initialize", "Test Token", "TEST", uint8(18), helpers.GenerateAddress())
 	suite.Require().NoError(err)
 
 	msg = ethtypes.NewMessage(
@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) TestCallEVMWithData() {
 			from,
 			func() ([]byte, *common.Address) {
 				contract := suite.DeployERC20Contract()
-				data, err := erc20.ABI.Pack("balanceOf", helpers2.GenerateAddress())
+				data, err := erc20.ABI.Pack("balanceOf", helpers.GenerateAddress())
 				suite.NoError(err)
 				return data, &contract
 			},

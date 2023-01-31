@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
@@ -19,12 +19,12 @@ func (suite *IntegrationTest) ERC20Test() {
 	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
 
 	decimals := 18
-	metadata := fxtypes.GetCrossChainMetadata("test token", helpers2.NewRandSymbol(), uint32(decimals))
+	metadata := fxtypes.GetCrossChainMetadata("test token", helpers.NewRandSymbol(), uint32(decimals))
 
 	var aliases []string
 	var bridgeTokens []crosschaintypes.BridgeToken
 	for _, chain := range suite.crosschain {
-		bridgeTokenAddr := helpers2.GenerateAddress().Hex()
+		bridgeTokenAddr := helpers.GenerateAddress().Hex()
 		if chain.chainName == trontypes.ModuleName {
 			bridgeTokenAddr = trontypes.AddressFromHex(bridgeTokenAddr)
 		}
@@ -123,7 +123,7 @@ func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 	channelID := "channel-0"
 
 	for _, chain := range suite.crosschain {
-		tokenAddress := helpers2.GenerateAddress().Hex()
+		tokenAddress := helpers.GenerateAddress().Hex()
 		if chain.chainName == trontypes.ModuleName {
 			tokenAddress = trontypes.AddressFromHex(tokenAddress)
 		}
@@ -133,7 +133,7 @@ func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 		suite.NoError(err)
 		bridgeDenom = trace.IBCDenom()
 
-		symbol := helpers2.NewRandSymbol()
+		symbol := helpers.NewRandSymbol()
 		metadata := banktypes.Metadata{
 			Description: "The cross chain token of the Function X",
 			DenomUnits: []*banktypes.DenomUnit{

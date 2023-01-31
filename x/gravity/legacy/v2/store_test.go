@@ -21,7 +21,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v3/app"
-	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
@@ -74,7 +74,7 @@ func (suite *TestSuite) TestMigrateStore() {
 		},
 		Erc20ToDenoms: []types.ERC20ToDenom{
 			{
-				Erc20: helpers2.GenerateAddress().Hex(),
+				Erc20: helpers.GenerateAddress().Hex(),
 				Denom: fxtypes.DefaultDenom,
 			},
 		},
@@ -84,9 +84,9 @@ func (suite *TestSuite) TestMigrateStore() {
 		LastBatchId:            tmrand.Uint64(),
 	}
 
-	bridgerAddrs := helpers2.CreateRandomAccounts(20)
-	externals := helpers2.CreateRandomAccounts(20)
-	valAddrs := helpers2.CreateRandomAccounts(20)
+	bridgerAddrs := helpers.CreateRandomAccounts(20)
+	externals := helpers.CreateRandomAccounts(20)
+	valAddrs := helpers.CreateRandomAccounts(20)
 
 	var votes []string
 	var members []*types.BridgeValidator
@@ -123,14 +123,14 @@ func (suite *TestSuite) TestMigrateStore() {
 			suite.genesisState.UnbatchedTransfers,
 			types.OutgoingTransferTx{
 				Id:          tmrand.Uint64(),
-				Sender:      sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
-				DestAddress: helpers2.GenerateAddress().Hex(),
+				Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				DestAddress: helpers.GenerateAddress().Hex(),
 				Erc20Token: &types.ERC20Token{
-					Contract: helpers2.GenerateAddress().Hex(),
+					Contract: helpers.GenerateAddress().Hex(),
 					Amount:   sdk.NewInt(tmrand.Int63() + 1),
 				},
 				Erc20Fee: &types.ERC20Token{
-					Contract: helpers2.GenerateAddress().Hex(),
+					Contract: helpers.GenerateAddress().Hex(),
 					Amount:   sdk.NewInt(tmrand.Int63() + 1),
 				},
 			},
@@ -143,34 +143,34 @@ func (suite *TestSuite) TestMigrateStore() {
 				Transactions: []*types.OutgoingTransferTx{
 					{
 						Id:          tmrand.Uint64(),
-						Sender:      sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
-						DestAddress: helpers2.GenerateAddress().Hex(),
+						Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+						DestAddress: helpers.GenerateAddress().Hex(),
 						Erc20Token: &types.ERC20Token{
-							Contract: helpers2.GenerateAddress().Hex(),
+							Contract: helpers.GenerateAddress().Hex(),
 							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
-							Contract: helpers2.GenerateAddress().Hex(),
+							Contract: helpers.GenerateAddress().Hex(),
 							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 					},
 					{
 						Id:          tmrand.Uint64(),
-						Sender:      sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
-						DestAddress: helpers2.GenerateAddress().Hex(),
+						Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+						DestAddress: helpers.GenerateAddress().Hex(),
 						Erc20Token: &types.ERC20Token{
-							Contract: helpers2.GenerateAddress().Hex(),
+							Contract: helpers.GenerateAddress().Hex(),
 							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
-							Contract: helpers2.GenerateAddress().Hex(),
+							Contract: helpers.GenerateAddress().Hex(),
 							Amount:   sdk.NewInt(tmrand.Int63() + 1),
 						},
 					},
 				},
-				TokenContract: helpers2.GenerateAddress().Hex(),
+				TokenContract: helpers.GenerateAddress().Hex(),
 				Block:         tmrand.Uint64(),
-				FeeReceive:    helpers2.GenerateAddress().Hex(),
+				FeeReceive:    helpers.GenerateAddress().Hex(),
 			},
 		)
 
@@ -178,7 +178,7 @@ func (suite *TestSuite) TestMigrateStore() {
 			suite.genesisState.BatchConfirms,
 			types.MsgConfirmBatch{
 				Nonce:         tmrand.Uint64(),
-				TokenContract: helpers2.GenerateAddress().Hex(),
+				TokenContract: helpers.GenerateAddress().Hex(),
 				EthSigner:     delegateKeys[1%20].EthAddress,
 				Orchestrator:  delegateKeys[1%20].Orchestrator,
 				Signature:     hex.EncodeToString(tmrand.Bytes(65)),
@@ -204,12 +204,12 @@ func (suite *TestSuite) TestMigrateStore() {
 			Claim: v2.AttClaimToAny(&types.MsgDepositClaim{
 				EventNonce:    tmrand.Uint64(),
 				BlockHeight:   tmrand.Uint64(),
-				TokenContract: helpers2.GenerateAddress().Hex(),
+				TokenContract: helpers.GenerateAddress().Hex(),
 				Amount:        sdk.NewInt(tmrand.Int63() + 1),
-				EthSender:     helpers2.GenerateAddress().Hex(),
-				FxReceiver:    sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
+				EthSender:     helpers.GenerateAddress().Hex(),
+				FxReceiver:    sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				TargetIbc:     "",
-				Orchestrator:  sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
+				Orchestrator:  sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 			}),
 		},
 		{
@@ -220,8 +220,8 @@ func (suite *TestSuite) TestMigrateStore() {
 				EventNonce:    tmrand.Uint64(),
 				BlockHeight:   tmrand.Uint64(),
 				BatchNonce:    tmrand.Uint64(),
-				TokenContract: helpers2.GenerateAddress().Hex(),
-				Orchestrator:  sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
+				TokenContract: helpers.GenerateAddress().Hex(),
+				Orchestrator:  sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 			}),
 		},
 		{
@@ -233,7 +233,7 @@ func (suite *TestSuite) TestMigrateStore() {
 				BlockHeight:  tmrand.Uint64(),
 				ValsetNonce:  tmrand.Uint64(),
 				Members:      members,
-				Orchestrator: sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
+				Orchestrator: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 			}),
 		},
 	}

@@ -16,7 +16,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
-	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -48,8 +48,8 @@ func TestMigrationTestSuite(t *testing.T) {
 func (suite *MigrationTestSuite) SetupTest() {
 	valNumber := tmrand.Intn(99) + 1
 
-	valSet, valAccounts, valBalances := helpers2.GenerateGenesisValidator(valNumber, sdk.Coins{})
-	suite.app = helpers2.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
+	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
+	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: suite.app.LastBlockHeight(), ChainID: fxtypes.TestnetChainId})
 
 	suite.migrator = keeper.NewMigrator(
@@ -65,11 +65,11 @@ func (suite *MigrationTestSuite) SetupTest() {
 	suite.msgServer = crosschainkeeper.NewMsgServerImpl(suite.app.EthKeeper)
 
 	for _, addr := range v2.GetEthOracleAddrs(suite.ctx.ChainID()) {
-		helpers2.AddTestAddr(suite.app, suite.ctx, sdk.MustAccAddressFromBech32(addr), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
+		helpers.AddTestAddr(suite.app, suite.ctx, sdk.MustAccAddressFromBech32(addr), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
 	}
 
-	suite.bridgerAddrs = helpers2.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).MulRaw(1e18))))
-	suite.externals = helpers2.CreateMultiECDSA(valNumber)
+	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).MulRaw(1e18))))
+	suite.externals = helpers.CreateMultiECDSA(valNumber)
 	suite.Equal(len(suite.bridgerAddrs), len(valAccounts), valNumber)
 	suite.valAddrs = make([]sdk.ValAddress, len(suite.bridgerAddrs))
 	for i, account := range valAccounts {
@@ -89,7 +89,7 @@ func (suite *MigrationTestSuite) createDefGenesisState() {
 		LastObservedNonce: tmrand.Uint64(),
 		Erc20ToDenoms: []types.ERC20ToDenom{
 			{
-				Erc20: helpers2.GenerateAddress().Hex(),
+				Erc20: helpers.GenerateAddress().Hex(),
 				Denom: fxtypes.DefaultDenom,
 			},
 		},
@@ -114,10 +114,10 @@ func (suite *MigrationTestSuite) createDefGenesisState() {
 			Claim: v2.AttClaimToAny(&types.MsgDepositClaim{
 				EventNonce:    suite.genesisState.LastObservedNonce,
 				BlockHeight:   tmrand.Uint64(),
-				TokenContract: helpers2.GenerateAddress().Hex(),
+				TokenContract: helpers.GenerateAddress().Hex(),
 				Amount:        sdk.NewInt(tmrand.Int63() + 1),
-				EthSender:     helpers2.GenerateAddress().Hex(),
-				FxReceiver:    sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
+				EthSender:     helpers.GenerateAddress().Hex(),
+				FxReceiver:    sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				TargetIbc:     "",
 				Orchestrator:  suite.bridgerAddrs[0].String(),
 			}),
@@ -140,7 +140,7 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 	// MsgBridgeTokenClaim
 	suite.createDefGenesisState()
 
-	tokenContract := helpers2.GenerateAddress().Hex()
+	tokenContract := helpers.GenerateAddress().Hex()
 	metadata := fxtypes.GetCrossChainMetadata("Test Token", "TEST", uint32(tmrand.Intn(18)),
 		fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract))
 	suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
@@ -165,7 +165,7 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 	msg := &crosschaintypes.MsgBridgeTokenClaim{
 		EventNonce:    suite.genesisState.LastObservedNonce + 1,
 		BlockHeight:   tmrand.Uint64(),
-		TokenContract: helpers2.GenerateAddress().Hex(),
+		TokenContract: helpers.GenerateAddress().Hex(),
 		Name:          "Test token 2",
 		Symbol:        "TEST2",
 		Decimals:      uint64(tmrand.Intn(18) + 1),
@@ -207,8 +207,8 @@ func (suite *MigrationTestSuite) TestSendToFxClaim() {
 		BlockHeight:   tmrand.Uint64(),
 		TokenContract: bridgeToken.Token,
 		Amount:        sdk.NewInt(1),
-		Sender:        helpers2.GenerateAddress().Hex(),
-		Receiver:      sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
+		Sender:        helpers.GenerateAddress().Hex(),
+		Receiver:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 		TargetIbc:     "",
 		ChainName:     ethtypes.ModuleName,
 	}
@@ -244,7 +244,7 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 		EthBlockHeight: tmrand.Uint64(),
 	}
 
-	tokenContract := helpers2.GenerateAddress().Hex()
+	tokenContract := helpers.GenerateAddress().Hex()
 	denom := fmt.Sprintf("%s%s", ethtypes.ModuleName, tokenContract)
 	metadata := fxtypes.GetCrossChainMetadata("Test Token", "TEST", uint32(tmrand.Intn(18)), denom)
 	suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
@@ -268,7 +268,7 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 
 	_, err = suite.msgServer.SendToExternal(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.MsgSendToExternal{
 		Sender:    sdk.AccAddress(suite.valAddrs[0]).String(),
-		Dest:      helpers2.GenerateAddress().Hex(),
+		Dest:      helpers.GenerateAddress().Hex(),
 		Amount:    sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(1)),
 		BridgeFee: sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(1)),
 		ChainName: ethtypes.ModuleName,
@@ -287,7 +287,7 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 		Sender:     suite.bridgerAddrs[0].String(),
 		Denom:      denom,
 		MinimumFee: sdk.ZeroInt(),
-		FeeReceive: helpers2.GenerateAddress().Hex(),
+		FeeReceive: helpers.GenerateAddress().Hex(),
 		ChainName:  ethtypes.ModuleName,
 		BaseFee:    sdk.ZeroInt(),
 	})

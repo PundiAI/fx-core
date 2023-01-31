@@ -9,7 +9,7 @@ import (
 	"github.com/evmos/ethermint/app/ante"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	helpers2 "github.com/functionx/fx-core/v3/testutil/helpers"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 )
 
 func (suite *AnteTestSuite) TestGasWantedDecorator() {
@@ -24,8 +24,8 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			func() sdk.Tx {
 				denom := evmtypes.DefaultEVMDenom
 				testMsg := banktypes.MsgSend{
-					FromAddress: sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
-					ToAddress:   sdk.AccAddress(helpers2.GenerateAddress().Bytes()).String(),
+					FromAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					ToAddress:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 					Amount:      sdk.Coins{sdk.Coin{Amount: sdk.NewInt(10), Denom: denom}},
 				}
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdk.NewInt(10), "stake", &testMsg)
@@ -36,8 +36,8 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			"Ethereum Legacy Tx",
 			TestGasLimit,
 			func() sdk.Tx {
-				signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
-				to := helpers2.GenerateAddress()
+				signer := helpers.NewSigner(helpers.NewEthPrivKey())
+				to := helpers.GenerateAddress()
 				msg := suite.BuildTestEthTx(signer.Address(), to, nil, make([]byte, 0), big.NewInt(0), nil, nil, nil)
 				return suite.CreateTestTx(msg, signer.PrivKey(), 1, false)
 			},
@@ -46,8 +46,8 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			"Ethereum Access List Tx",
 			TestGasLimit,
 			func() sdk.Tx {
-				signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
-				to := helpers2.GenerateAddress()
+				signer := helpers.NewSigner(helpers.NewEthPrivKey())
+				to := helpers.GenerateAddress()
 				emptyAccessList := ethtypes.AccessList{}
 				msg := suite.BuildTestEthTx(signer.Address(), to, nil, make([]byte, 0), big.NewInt(0), nil, nil, &emptyAccessList)
 				return suite.CreateTestTx(msg, signer.PrivKey(), 1, false)
@@ -57,8 +57,8 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			"Ethereum Dynamic Fee Tx (EIP1559)",
 			TestGasLimit,
 			func() sdk.Tx {
-				signer := helpers2.NewSigner(helpers2.NewEthPrivKey())
-				to := helpers2.GenerateAddress()
+				signer := helpers.NewSigner(helpers.NewEthPrivKey())
+				to := helpers.GenerateAddress()
 				emptyAccessList := ethtypes.AccessList{}
 				msg := suite.BuildTestEthTx(signer.Address(), to, nil, make([]byte, 0), big.NewInt(0), big.NewInt(100), big.NewInt(50), &emptyAccessList)
 				return suite.CreateTestTx(msg, signer.PrivKey(), 1, false)
