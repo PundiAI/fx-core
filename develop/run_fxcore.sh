@@ -50,4 +50,4 @@ if [[ "$1" == "init" ]]; then
   fxcored collect-gentxs
 fi
 
-fxcored start --log_filter='ABCIQuery'
+fxcored start
