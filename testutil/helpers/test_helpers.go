@@ -446,3 +446,22 @@ func NewRandSymbol() string {
 func NewRandDenom() string {
 	return strings.ToLower(fmt.Sprintf("a%sb", tmrand.Str(5)))
 }
+
+func MintBlock(myApp *app.App, ctx sdk.Context, block ...int64) sdk.Context {
+	nextHeight := ctx.BlockHeight() + 1
+	if len(block) > 0 {
+		nextHeight = ctx.BlockHeight() + block[0]
+	}
+	for i := ctx.BlockHeight(); i <= nextHeight; {
+		myApp.EndBlock(abci.RequestEndBlock{Height: i})
+		myApp.Commit()
+		i++
+		header := ctx.BlockHeader()
+		header.Height = i
+		myApp.BeginBlock(abci.RequestBeginBlock{
+			Header: header,
+		})
+		ctx = myApp.NewContext(false, header)
+	}
+	return ctx
+}

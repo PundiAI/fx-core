@@ -31,7 +31,7 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 
 	encCfg := app.MakeEncodingConfig()
 	cfg := testutil.DefaultNetworkConfig(encCfg, func(config *network.Config) {
-		// NOTE: cfg.EnableTMLogging = true
+		// config.EnableTMLogging = true
 	})
 
 	baseDir, err := os.MkdirTemp(suite.T().TempDir(), cfg.ChainID)

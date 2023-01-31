@@ -120,22 +120,8 @@ func (suite *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) st
 	return crypto.PubkeyToAddress(publicKey).Hex()
 }
 
-func (suite *KeeperTestSuite) Commit(args ...int64) {
-	nextHeight := suite.ctx.BlockHeight() + 1
-	if len(args) > 0 {
-		nextHeight = suite.ctx.BlockHeight() + args[0]
-	}
-	for i := suite.ctx.BlockHeight(); i <= nextHeight; {
-		suite.app.EndBlock(abci.RequestEndBlock{Height: i})
-		suite.app.Commit()
-		i++
-		header := suite.ctx.BlockHeader()
-		header.Height = i
-		suite.app.BeginBlock(abci.RequestBeginBlock{
-			Header: header,
-		})
-		suite.ctx = suite.app.NewContext(false, header)
-	}
+func (suite *KeeperTestSuite) Commit(block ...int64) {
+	suite.ctx = helpers.MintBlock(suite.app, suite.ctx, block...)
 }
 
 func (suite *KeeperTestSuite) SignOracleSetConfirm(external *ecdsa.PrivateKey, oracleSet *types.OracleSet) (string, []byte) {
