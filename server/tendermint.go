@@ -1,15 +1,14 @@
-package cmd
+package server
 
 import (
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
+	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-
-	"github.com/functionx/fx-core/v3/client/cli"
 )
 
-func tendermintCommand() *cobra.Command {
+func TendermintCommand() *cobra.Command {
 	tendermintCmd := &cobra.Command{
 		Use:   "tendermint",
 		Short: "Tendermint subcommands",
@@ -31,14 +30,15 @@ func tendermintCommand() *cobra.Command {
 		sdkserver.ShowValidatorCmd(),
 		sdkserver.ShowAddressCmd(),
 		sdkserver.VersionCmd(),
-		cli.UnsafeRestPrivValidatorCmd(),
-		cli.UnsafeResetNodeKeyCmd(),
-		cli.ReplayCmd(),
-		cli.ReplayConsoleCmd(),
+		UnsafeRestPrivValidatorCmd(),
+		UnsafeResetNodeKeyCmd(),
+		ReplayCmd(),
+		ReplayConsoleCmd(),
 		tmcmd.ResetAllCmd,
 		tmcmd.ResetStateCmd,
 		tmcmd.GenValidatorCmd,
 		tmcmd.GenNodeKeyCmd,
+		ethermintserver.NewIndexTxCmd(),
 		// tmcmd.ResetPrivValidatorCmd,
 	)
 	return tendermintCmd

@@ -129,7 +129,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		fxserver.DataCmd(),
 		fxserver.ExportSateCmd(appCreator.appExport, defaultNodeHome),
 		fxserver.StartCmd(appCreator.newApp, defaultNodeHome),
-		tendermintCommand(),
+		fxserver.TendermintCommand(),
 		app.GetUpgrades().GetLatest().PreUpgradeCmd,
 	)
 
@@ -149,7 +149,7 @@ func queryCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		authcmd.GetAccountCmd(),
-		cli.ValidatorCommand(),
+		fxserver.ValidatorCommand(),
 		cli.BlockCommand(),
 		cli.QueryTxsByEventsCmd(),
 		cli.QueryTxCmd(),

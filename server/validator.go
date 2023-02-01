@@ -1,4 +1,4 @@
-package cli
+package server
 
 import (
 	"bufio"
@@ -22,6 +22,8 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
+
+	"github.com/functionx/fx-core/v3/client/cli"
 )
 
 const (
@@ -64,7 +66,7 @@ func ValidatorCommand() *cobra.Command {
 				return err
 			}
 
-			return PrintOutput(clientCtx, result)
+			return cli.PrintOutput(clientCtx, result)
 		},
 	}
 
