@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"strings"
 	"time"
 
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
@@ -11,7 +14,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	tmcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	"github.com/tendermint/tendermint/config"
+	tmcfg "github.com/tendermint/tendermint/config"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/store"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -19,6 +23,9 @@ import (
 	appCmd "github.com/functionx/fx-core/v2/app/cli"
 	fxtypes "github.com/functionx/fx-core/v2/types"
 )
+
+// SHA-256 hash
+const mainnetGenesisHash = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593"
 
 func tendermintCommand() *cobra.Command {
 	tendermintCmd := &cobra.Command{
@@ -93,7 +100,7 @@ func startCommand(appCreator types.AppCreator, defaultNodeHome string) *cobra.Co
 	return startCmd
 }
 
-func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config) error {
+func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) error {
 	if genesisDoc.InitialHeight > 1 || genesisDoc.ChainID != fxtypes.MainnetChainId || config.StateSync.Enable {
 		return nil
 	}
@@ -107,8 +114,24 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config)
 	}
 	defer blockStoreDB.Close()
 	blockStore := store.NewBlockStore(blockStoreDB)
-	if genesisDoc.GenesisTime.Equal(genesisTime) && blockStore.Height() <= 0 {
-		return errors.New("invalid version: Sync block from scratch please use use fxcored v1.1.x")
+	if genesisDoc.GenesisTime.Equal(genesisTime) {
+		genesisBytes, _ := tmjson.Marshal(genesisDoc)
+		if sha256Hex(genesisBytes) != mainnetGenesisHash {
+			return nil
+		}
+		if blockStore.Height() < 5_713_000 {
+			return errors.New("invalid version: Sync block from scratch please use use fxcored v1.x.x")
+		}
+		if blockStore.Height() > 8_756_000 {
+			return errors.New("invalid version: Please use a later version of fxcored for sync blocks")
+		}
 	}
 	return nil
+}
+
+// calculate SHA-256 hash
+func sha256Hex(b []byte) string {
+	sha := sha256.New()
+	sha.Write(b)
+	return strings.ToUpper(hex.EncodeToString(sha.Sum(nil)))
 }
