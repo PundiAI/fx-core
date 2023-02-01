@@ -16,6 +16,9 @@ import (
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
+// InitTestGravityDB test use
+//
+//gocyclo:ignore
 func InitTestGravityDB(cdc codec.Codec, legacyAmino *codec.LegacyAmino, genesisState types.GenesisState, paramsStore, gravityStore sdk.KVStore) {
 	paramsPrefixStore := prefix.NewStore(paramsStore, append([]byte(types.ModuleName), '/'))
 	for _, pair := range genesisState.Params.ParamSetPairs() {

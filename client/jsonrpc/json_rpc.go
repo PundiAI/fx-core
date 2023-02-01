@@ -137,6 +137,7 @@ func (c *NodeRPC) GetStakeValidators(status stakingtypes.BondStatus) (stakingtyp
 	return validators, err
 }
 
+//gocyclo:ignore
 func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
 	account, err := c.QueryAccount(sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
 	if err != nil {

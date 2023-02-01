@@ -112,6 +112,7 @@ Example:
 	return cmd
 }
 
+//gocyclo:ignore
 func initTestnet(
 	clientCtx client.Context,
 	serverCtx *server.Context,

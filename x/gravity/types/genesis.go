@@ -13,6 +13,9 @@ import (
 // Ensure that params implements the proper interface
 var _ paramtypes.ParamSet = &Params{}
 
+// Deprecated: ValidateBasic
+//
+//gocyclo:ignore
 func (m *Params) ValidateBasic() error {
 	if err := validateGravityID(m.GravityId); err != nil {
 		return sdkerrors.Wrap(err, "gravity id")

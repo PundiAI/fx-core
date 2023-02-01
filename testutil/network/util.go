@@ -32,6 +32,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
+//gocyclo:ignore
 func startInProcess(cfg Config, val *Validator) error {
 	logger := val.Ctx.Logger
 	tmCfg := val.Ctx.Config

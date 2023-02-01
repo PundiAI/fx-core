@@ -78,6 +78,9 @@ func ValidatorCommand() *cobra.Command {
 	return cmd
 }
 
+// UnsafeRestPrivValidatorCmd Reset validator node consensus private key file
+//
+//gocyclo:ignore
 func UnsafeRestPrivValidatorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unsafe-reset-priv-validator [secret]",
@@ -111,7 +114,6 @@ func UnsafeRestPrivValidatorCmd() *cobra.Command {
 				return fmt.Errorf("secret contains less than 32 characters")
 			}
 			pvKeyFile := serverCtx.Config.PrivValidatorKeyFile()
-			_ = os.Remove(pvKeyFile)
 			if err := tmos.EnsureDir(filepath.Dir(pvKeyFile), 0o777); err != nil {
 				return err
 			}
@@ -121,12 +123,16 @@ func UnsafeRestPrivValidatorCmd() *cobra.Command {
 			}
 			keyType := serverCtx.Viper.GetString(flagKeyType)
 			if keyType == "ed25519" {
+				_ = os.Remove(pvKeyFile)
 				valPrivKey := privval.NewFilePV(ed25519.GenPrivKeyFromSecret([]byte(secret)), pvKeyFile, pvStateFile)
 				valPrivKey.Save()
 			} else if keyType == "secp256k1" {
+				_ = os.Remove(pvKeyFile)
 				pk := secp256k1.GenPrivKeySecp256k1([]byte(secret))
 				valPrivKey := privval.NewFilePV(pk, pvKeyFile, pvStateFile)
 				valPrivKey.Save()
+			} else {
+				return fmt.Errorf("invalid key type: %s", keyType)
 			}
 			return nil
 		},

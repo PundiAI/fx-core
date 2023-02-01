@@ -7,6 +7,8 @@ import (
 )
 
 // InitGenesis import module genesis
+//
+//gocyclo:ignore
 func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	k.SetParams(ctx, &state.Params)
 

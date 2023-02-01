@@ -50,6 +50,7 @@ func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, fro
 	return nil
 }
 
+//gocyclo:ignore
 func (m *DistrStakingMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	stakingStore := ctx.KVStore(m.stakingKey)
 	distrStore := ctx.KVStore(m.distrKey)

@@ -268,6 +268,8 @@ func startStandAlone(ctx *server.Context, appCreator types.AppCreator) error {
 }
 
 // legacyAminoCdc is used for the legacy REST API
+//
+//gocyclo:ignore
 func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator types.AppCreator) (err error) {
 	cfg := ctx.Config
 	home := cfg.RootDir

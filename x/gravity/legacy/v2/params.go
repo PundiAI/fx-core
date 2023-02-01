@@ -28,7 +28,7 @@ func MigrateParams(legacyAmino *codec.LegacyAmino, paramsStore sdk.KVStore, toMo
 	if !isExist {
 		return nil
 	}
-	if err := gravityParams.ValidateBasic(); err != nil {
+	if err := gravityParams.ValidateBasic(); err != nil { // nolint:staticcheck
 		return err
 	}
 	params := crosschaintypes.Params{

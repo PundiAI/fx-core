@@ -116,6 +116,7 @@ func (suite *IntegrationTest) ERC20Test() {
 	suite.False(suite.erc20.TokenPair(metadata.Base).Enabled)
 }
 
+//gocyclo:ignore
 func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
 

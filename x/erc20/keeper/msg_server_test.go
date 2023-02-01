@@ -444,6 +444,7 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 	}
 }
 
+//gocyclo:ignore
 func (suite *KeeperTestSuite) TestToTargetDenom() {
 	testCases := []struct {
 		name     string

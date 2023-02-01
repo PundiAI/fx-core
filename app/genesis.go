@@ -41,6 +41,9 @@ const (
 // object provided to it during init.
 type GenesisState map[string]json.RawMessage
 
+// NewDefAppGenesisByDenom return new genesis state
+//
+//gocyclo:ignore
 func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 	fxTotalSupply, ok := sdk.NewIntFromString(InitTotalSupply)
 	if !ok {

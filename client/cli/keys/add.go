@@ -100,6 +100,7 @@ input
 output
   - armor encrypted private key (saved to file)
 */
+//gocyclo:ignore
 func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *bufio.Reader) error {
 	var err error
 

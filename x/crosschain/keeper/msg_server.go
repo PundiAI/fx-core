@@ -99,6 +99,7 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	return &types.MsgBondedOracleResponse{}, nil
 }
 
+//gocyclo:ignore
 func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*types.MsgAddDelegateResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
@@ -119,8 +120,6 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, threshold.Denom)
 	}
 
-	// 100  - 50
-	// 50 + 50
 	slashAmount := sdk.NewCoin(fxtypes.DefaultDenom, oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
 	if slashAmount.IsPositive() && msg.Amount.Amount.LT(slashAmount.Amount) {
 		return nil, sdkerrors.Wrap(types.ErrInvalid, "not sufficient slash amount")

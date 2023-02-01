@@ -363,6 +363,8 @@ func NewToggleTokenConversionProposalCmd() *cobra.Command {
 }
 
 // NewUpdateDenomAliasProposalCmd implements the command to submit a update-denom-alias proposal
+//
+//gocyclo:ignore
 func NewUpdateDenomAliasProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-denom-alias [denom] [alias]",

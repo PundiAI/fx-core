@@ -29,6 +29,8 @@ const (
 )
 
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
+//
+//gocyclo:ignore
 func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer [src-port] [src-channel] [receiver] [amount]",

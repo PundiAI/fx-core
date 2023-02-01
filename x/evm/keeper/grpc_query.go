@@ -80,6 +80,8 @@ func (k *Keeper) EstimateGasWithoutHook(c context.Context, req *types.EthCallReq
 }
 
 // estimateGas implements eth_estimateGas rpc api with enable hook flag.
+//
+//gocyclo:ignore
 func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enableHook bool) (*types.EstimateGasResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")

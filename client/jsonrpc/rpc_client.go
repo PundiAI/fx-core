@@ -52,10 +52,15 @@ func NewWsClient(ctx context.Context, url string) (*WSClient, error) {
 		Logger:       log.NewNopLogger(),
 	}
 
-	go func() {
+	go ws.run()
+	return ws, nil
+}
+
+func (ws *WSClient) run() {
+	func() {
 		defer close(ws.quit)
 		for {
-			_, msg, err := ws.conn.Read(ctx)
+			_, msg, err := ws.conn.Read(ws.ctx)
 			if err != nil {
 				if strings.Contains(err.Error(), "status = StatusNormalClosure") {
 					ws.Logger.Debug("websocket normal closure")
@@ -101,7 +106,6 @@ func NewWsClient(ctx context.Context, url string) (*WSClient, error) {
 			}
 		}
 	}()
-	return ws, nil
 }
 
 func (ws *WSClient) running() bool {

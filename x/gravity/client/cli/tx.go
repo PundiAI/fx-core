@@ -209,6 +209,9 @@ func CmdRequestBatch() *cobra.Command {
 	return cmd
 }
 
+// CmdRequestBatchConfirm will be deprecated
+//
+//gocyclo:ignore
 func CmdRequestBatchConfirm() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "request-batch-confirm [contractAddress] [nonce] [...hexEthPrivate]",
@@ -342,6 +345,9 @@ func CmdRequestBatchConfirm() *cobra.Command {
 	return cmd
 }
 
+// CmdValidatorSetConfirm will be deprecated
+//
+//gocyclo:ignore
 func CmdValidatorSetConfirm() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "valset-confirm [nonce] [...hexEthPrivate]",

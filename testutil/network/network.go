@@ -159,6 +159,8 @@ func NewCLILogger(cmd *cobra.Command) CLILogger {
 }
 
 // New creates a new Network for integration tests or in-process testnets run via the CLI
+//
+//gocyclo:ignore
 func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 	// only one caller/test can create and use a network at a time
 	l.Log("acquiring test network lock")
@@ -551,24 +553,18 @@ func (n *Network) Cleanup() {
 	startTime := time.Now()
 	for _, v := range n.Validators {
 		if v.tmNode != nil && v.tmNode.IsRunning() {
-			if err := v.tmNode.Stop(); err != nil {
-				n.Logger.Log("tendermint node stop", "error", err.Error())
-			}
+			_ = v.tmNode.Stop()
 		}
 
 		if v.api != nil {
-			if err := v.api.Close(); err != nil {
-				n.Logger.Log("api close", "error", err.Error())
-			}
+			_ = v.api.Close()
 		}
 
 		if v.grpc != nil {
 			v.grpc.Stop()
-			if v.grpcWeb != nil {
-				if err := v.grpcWeb.Close(); err != nil {
-					n.Logger.Log("grpc-web close", "error", err.Error())
-				}
-			}
+		}
+		if v.grpcWeb != nil {
+			_ = v.grpcWeb.Close()
 		}
 
 		if v.jsonrpc != nil {

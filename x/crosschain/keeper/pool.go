@@ -87,10 +87,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 
 	// Check that this user actually sent the transaction, this prevents someone from refunding someone
 	// else transaction to themselves.
-	txSender, err := sdk.AccAddressFromBech32(tx.Sender)
-	if err != nil {
-		panic("Invalid address in store!")
-	}
+	txSender := sdk.MustAccAddressFromBech32(tx.Sender)
 	if !txSender.Equals(sender) {
 		return sdkerrors.Wrapf(types.ErrInvalid, "Sender %s did not send Id %d", sender, txId)
 	}
@@ -102,8 +99,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	}
 
 	// delete this tx from the pool
-	err = k.removeUnbatchedTx(ctx, tx.Fee, txId)
-	if err != nil {
+	if err = k.removeUnbatchedTx(ctx, tx.Fee, txId); err != nil {
 		return sdkerrors.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
 	}
 	// Make sure the tx was removed
@@ -123,7 +119,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	totalToRefundCoins := sdk.NewCoins(totalToRefund)
 
 	if bridgeToken.Denom == fxtypes.DefaultDenom {
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
 			return err
 		}
 	} else {

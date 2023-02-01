@@ -322,6 +322,7 @@ func (cli *Client) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
 	return response.GasInfo, nil
 }
 
+//gocyclo:ignore
 func (cli *Client) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
 	account, err := cli.QueryAccount(sdk.AccAddress(privKey.PubKey().Address()).String())
 	if err != nil {

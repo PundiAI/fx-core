@@ -137,7 +137,9 @@ lint:
 	@echo "--> Running linter"
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	@go install mvdan.cc/gofumpt@latest
+	@go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
 	golangci-lint run -v --go=1.18 --timeout 10m
+	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gocyclo -over 15
 	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -d
 
 format: format-goimports
