@@ -139,8 +139,8 @@ draw-deps:
 
 lint:
 	@echo "--> Running linter"
-	@golangci-lint --version | grep 1.46.2 || (echo "\033[91mPlease switch golangci-lint version to v1.46.2\033[0m" && exit 1)
-	golangci-lint run -v --go=1.16 --timeout 5m
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	golangci-lint run -v --go=1.18 --timeout 5m
 	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name '*.pb.*' -not -name "statik.go" | xargs gofmt -d -s
 
 format:
@@ -177,9 +177,9 @@ benchmark:
 
 protoVer=v0.2
 protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
-containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
-containerProtoGenSwagger=cosmos-sdk-proto-gen-swagger-$(protoVer)
-containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
+containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
+containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
+containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
 
 proto-format:
 	@echo "Formatting Protobuf files"
@@ -190,6 +190,7 @@ proto-gen: proto-format
 	@echo "Generating Protobuf files"
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
 		sh ./develop/protocgen.sh; fi
+	@go mod tidy
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
