@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"io"
 	"os"
@@ -30,6 +32,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/node"
 	store2 "github.com/tendermint/tendermint/store"
@@ -40,6 +43,9 @@ import (
 	appCli "github.com/functionx/fx-core/app/cli"
 	fxtypes "github.com/functionx/fx-core/types"
 )
+
+// SHA-256 hash
+const mainnetGenesisHash = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593"
 
 const EnvPrefix = "FX"
 
@@ -180,8 +186,17 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *config.Config)
 	}
 	defer blockStoreDB.Close()
 	blockStore := store2.NewBlockStore(blockStoreDB)
-	if genesisDoc.GenesisTime.Equal(genesisTime) && blockStore.Height() >= 5713000 {
-		return errors.New("invalid version: Please use a later version of fxcored for sync blocks")
+	if genesisDoc.GenesisTime.Equal(genesisTime) {
+		genesisBytes, _ := tmjson.Marshal(genesisDoc)
+		if sha256Hex(genesisBytes) != mainnetGenesisHash {
+			return nil
+		}
+		if blockStore.Height() > 5_713_000 && blockStore.Height() < 8_756_000 {
+			return errors.New("invalid version: Sync block from scratch please use use fxcored v2.x.x")
+		}
+		if blockStore.Height() > 8_756_000 {
+			return errors.New("invalid version: Please use a later version of fxcored for sync blocks")
+		}
 	}
 	return nil
 }
@@ -358,4 +373,11 @@ func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
 	for _, c := range c.Commands() {
 		overwriteFlagDefaults(c, defaults)
 	}
+}
+
+// calculate SHA-256 hash
+func sha256Hex(b []byte) string {
+	sha := sha256.New()
+	sha.Write(b)
+	return strings.ToUpper(hex.EncodeToString(sha.Sum(nil)))
 }
