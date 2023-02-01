@@ -1,6 +1,20 @@
 # fxcore
 
 **fxcore** is a blockchain built using Cosmos SDK and Tendermint and created with [Starport](https://github.com/tendermint/starport).
+
+[![Version](https://img.shields.io/github/v/release/functionx/fx-core.svg)](https://github.com/functionx/fx-core/releases/latest)
+[![API Reference](https://pkg.go.dev/badge/github.com/functionx/fx-core.svg)](https://pkg.go.dev/github.com/functionx/fx-core/v3)
+[![License](https://img.shields.io/github/license/functionx/fx-core.svg)](https://github.com/functionx/fx-core/blob/main/LICENSE)
+[![Tests](https://github.com/functionx/fx-core/actions/workflows/test.yml/badge.svg)](https://github.com/functionx/fx-core/actions/workflows/test.yml)
+[![Lint](https://github.com/functionx/fx-core/actions/workflows/lint.yml/badge.svg)](https://github.com/functionx/fx-core/actions/workflows/lint.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/functionx/fx-core/v3)](https://goreportcard.com/report/github.com/functionx/fx-core/v3)
+
+**Note**: Requires [Go 1.18+](https://go.dev/dl)
+
+## Releases
+
+Please do not use the main branch to install `fxcored` or run node. Use releases instead.
+
 ## Quick start
 
 ### Install
@@ -50,29 +64,8 @@ Flags:
 Use "fxcored [command] --help" for more information about a command.
 ```
 
-### Example
-
-Local node startup
-
-```
-fxcored init --chain-id=fxcore --denom=FX local
-fxcored keys add fx1
-fxcored add-genesis-account fx1 4000000000000000000000FX
-fxcored gentx fx1 1000000000000000000000FX --chain-id=fxcore \
-    --moniker="fx-validator" \
-    --commission-max-change-rate=0.01 \
-    --commission-max-rate=0.2 \
-    --commission-rate=0.01 \
-    --details="Details A Function X foundation self-hosted validator." \
-    --security-contact="contact@functionx.io" \
-    --website="functionx.io"
-fxcored collect-gentxs
-fxcored start
-```
-
 ## Learn more
 
-- [Starport](https://github.com/tendermint/starport)
-- [Cosmos SDK documentation](https://docs.cosmos.network)
-- [Cosmos SDK Tutorials](https://tutorials.cosmos.network)
-- [Discord](https://discord.gg/W8trcGV)
+- [Function X Docs](https://functionx.gitbook.io)
+- [Tendermint Starport](https://github.com/tendermint/starport)
+- [Cosmos SDK Documentation](https://docs.cosmos.network)
