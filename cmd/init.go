@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"bufio"
@@ -144,7 +144,7 @@ func InitCmd() *cobra.Command {
 
 func CustomConsensusParams() *tmproto.ConsensusParams {
 	result := types.DefaultConsensusParams()
-	result.Block.MaxBytes = 1048576 //1M
+	result.Block.MaxBytes = 1048576 // 1M
 	result.Block.MaxGas = -1
 	result.Block.TimeIotaMs = 1000
 	result.Evidence.MaxAgeNumBlocks = 1000000
