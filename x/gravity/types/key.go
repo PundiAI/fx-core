@@ -214,7 +214,7 @@ func GetERC20ToDenomKey(erc20 string) []byte {
 	return append(ERC20ToDenomKey, []byte(erc20)...)
 }
 
-//GetIbcSequenceHeightKey [0xc1][sourcePort/sourceChannel/sequence]
+// GetIbcSequenceHeightKey [0xc1][sourcePort/sourceChannel/sequence]
 func GetIbcSequenceHeightKey(sourcePort, sourceChannel string, sequence uint64) []byte {
 	key := fmt.Sprintf("%s/%s/%d", sourcePort, sourceChannel, sequence)
 	return append(KeyIbcSequenceHeight, []byte(key)...)

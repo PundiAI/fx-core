@@ -15,12 +15,12 @@ import (
 const OutgoingTxBatchSize = 100
 
 // BuildOutgoingTXBatch starts the following process chain:
-// - find bridged denominator for given voucher type
-// - determine if a an unExecuted batch is already waiting for this token type, if so confirm the new batch would
-//   have a higher total fees. If not exit without creating a batch
-// - select available transactions from the outgoing transaction pool sorted by fee desc
-// - persist an outgoing batch object with an incrementing ID = nonce
-// - emit an event
+//   - find bridged denominator for given voucher type
+//   - determine if a an unExecuted batch is already waiting for this token type, if so confirm the new batch would
+//     have a higher total fees. If not exit without creating a batch
+//   - select available transactions from the outgoing transaction pool sorted by fee desc
+//   - persist an outgoing batch object with an incrementing ID = nonce
+//   - emit an event
 func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceive string, maxElements uint,
 	minimumFee sdk.Int) (*types.OutgoingTxBatch, error) {
 	if maxElements == 0 {
@@ -91,7 +91,7 @@ func (k Keeper) BuildOutgoingTXBatch(ctx sdk.Context, contractAddress, feeReceiv
 	return batch, nil
 }
 
-/// This gets the batch timeout height in Ethereum blocks.
+// / This gets the batch timeout height in Ethereum blocks.
 func (k Keeper) getBatchTimeoutHeight(ctx sdk.Context) uint64 {
 	currentCosmosHeight := ctx.BlockHeight()
 	params := k.GetParams(ctx)
