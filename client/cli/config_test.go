@@ -12,31 +12,46 @@ import (
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
 )
 
+func Test_output(t *testing.T) {
+	type args struct {
+		ctx     client.Context
+		content interface{}
+	}
+	clientCtx := func() client.Context {
+		return client.Context{
+			Output:       new(bytes.Buffer),
+			OutputFormat: "json",
+		}
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "app.toml output grpc.enable",
+			args: args{
+				ctx:     clientCtx(),
+				content: true,
+			},
+		},
+		{
+			name: "app.toml output bypass-min-fee.msg-types empty",
+			args: args{
+				ctx:     clientCtx(),
+				content: []string{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NoError(t, output(tt.args.ctx, tt.args.content))
+			assert.Equal(t, tt.args.ctx.Output.(*bytes.Buffer).String(), fmt.Sprintf("%v\n", tt.args.content))
+		})
+	}
+}
+
 func Test_configTomlConfig_output(t *testing.T) {
-	cfg := config.DefaultConfig()
-	cfg.BaseConfig.Moniker = "anonymous"
-	c := configTomlConfig{config: cfg}
-	buf := new(bytes.Buffer)
-	clientCtx := client.Context{
-		Output:       buf,
-		OutputFormat: "json",
-	}
-	assert.NoError(t, c.output(clientCtx))
-	assert.Equal(t, tmConfigJson, buf.String())
-}
-
-func Test_appTomlConfig_output(t *testing.T) {
-	c := appTomlConfig{config: fxcfg.DefaultConfig()}
-	buf := new(bytes.Buffer)
-	clientCtx := client.Context{
-		Output:       buf,
-		OutputFormat: "json",
-	}
-	assert.NoError(t, c.output(clientCtx))
-	assert.Equal(t, appConfigJson, buf.String())
-}
-
-const tmConfigJson = `{
+	const tmConfigJson = `{
   "abci": "socket",
   "consensus": {
     "create_empty_blocks": true,
@@ -176,7 +191,20 @@ const tmConfigJson = `{
 }
 `
 
-const appConfigJson = `{
+	cfg := config.DefaultConfig()
+	cfg.BaseConfig.Moniker = "anonymous"
+	c := configTomlConfig{config: cfg}
+	buf := new(bytes.Buffer)
+	clientCtx := client.Context{
+		Output:       buf,
+		OutputFormat: "json",
+	}
+	assert.NoError(t, c.output(clientCtx))
+	assert.Equal(t, tmConfigJson, buf.String())
+}
+
+func Test_appTomlConfig_output(t *testing.T) {
+	const appConfigJson = `{
   "api": {
     "address": "tcp://0.0.0.0:1317",
     "enable": false,
@@ -266,40 +294,12 @@ const appConfigJson = `{
 }
 `
 
-func Test_output(t *testing.T) {
-	type args struct {
-		ctx     client.Context
-		content interface{}
+	c := appTomlConfig{config: fxcfg.DefaultConfig()}
+	buf := new(bytes.Buffer)
+	clientCtx := client.Context{
+		Output:       buf,
+		OutputFormat: "json",
 	}
-	clientCtx := func() client.Context {
-		return client.Context{
-			Output:       new(bytes.Buffer),
-			OutputFormat: "json",
-		}
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		{
-			name: "app.toml output grpc.enable",
-			args: args{
-				ctx:     clientCtx(),
-				content: true,
-			},
-		},
-		{
-			name: "app.toml output bypass-min-fee.msg-types empty",
-			args: args{
-				ctx:     clientCtx(),
-				content: []string{},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NoError(t, output(tt.args.ctx, tt.args.content))
-			assert.Equal(t, tt.args.ctx.Output.(*bytes.Buffer).String(), fmt.Sprintf("%v\n", tt.args.content))
-		})
-	}
+	assert.NoError(t, c.output(clientCtx))
+	assert.Equal(t, appConfigJson, buf.String())
 }

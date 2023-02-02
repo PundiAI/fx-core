@@ -369,32 +369,6 @@ func writeFile(name string, dir string, contents []byte) error {
 	return nil
 }
 
-const fxChainDockerComposeYmlTemplate = `version: '3'
-
-services:
-  {{range .Services}}
-  {{.ContainerName}}:
-    container_name: {{.ContainerName}}
-    image: {{.Image}}
-    command: start
-    ports:{{range .Ports}}
-      - "{{.}}"{{end}}
-    volumes:
-      - {{.Volumes}}
-    networks:
-      chain-net:
-        ipv4_address: {{.IPv4Address}}
-  {{end}}
-networks:
-  chain-net:
-    name: {{.NetworkName}}
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: {{.Subnet}}
-`
-
 func generateFxChainDockerComposeYml(numValidators int, chainId, outputDir, startingIPAddress, dockerImage string) error {
 	data := map[string]interface{}{
 		"NetworkName": fmt.Sprintf("%s-net", chainId),
@@ -422,6 +396,32 @@ func generateFxChainDockerComposeYml(numValidators int, chainId, outputDir, star
 		})
 	}
 	data["Services"] = services
+
+	const fxChainDockerComposeYmlTemplate = `version: '3'
+
+services:
+  {{range .Services}}
+  {{.ContainerName}}:
+    container_name: {{.ContainerName}}
+    image: {{.Image}}
+    command: start
+    ports:{{range .Ports}}
+      - "{{.}}"{{end}}
+    volumes:
+      - {{.Volumes}}
+    networks:
+      chain-net:
+        ipv4_address: {{.IPv4Address}}
+  {{end}}
+networks:
+  chain-net:
+    name: {{.NetworkName}}
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: {{.Subnet}}
+`
 	tmpl, err := template.New("").Parse(fxChainDockerComposeYmlTemplate)
 	if err != nil {
 		return err
