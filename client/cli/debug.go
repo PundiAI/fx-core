@@ -61,7 +61,7 @@ func ToStringCmd() *cobra.Command {
 			var decodeString []byte
 			switch args[0] {
 			case "hex":
-				decodeString, err = hexutil.Decode(args[1])
+				decodeString, err = hex.DecodeString(strings.TrimPrefix(args[1], "0x"))
 				if err != nil {
 					return err
 				}
