@@ -48,7 +48,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 
 		// relay transfer
 		if err = k.RelayTransferHandler(ctx, claim.EventNonce, claim.TargetIbc, receiveAddr, targetCoin); err != nil {
-			k.Logger(ctx).Info("failed to relay transfer", "err", err)
+			k.Logger(ctx).Info("failed to relay transfer", "error", err)
 			return nil
 		}
 

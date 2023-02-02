@@ -60,9 +60,7 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-orchestrator-address [validator-address] [orchestrator-address] [eth-address]",
 		Short: "Allows validators to delegate their voting responsibilities to a given key.",
-		Example: "fxcored tx gravity set-orchestrator-address fxvaloper1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8wpk9j2 " +
-			"fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2 0xb86d4DC8e2C57190c1cfb834fE69A7a65E2756C2",
-		Args: cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -79,7 +77,7 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 			}
 			ethAddress := args[2]
 			if !gethcommon.IsHexAddress(ethAddress) {
-				return fmt.Errorf("invalid eth address:%v", ethAddress)
+				return fmt.Errorf("invalid eth address: %v", ethAddress)
 			}
 			msg := types.MsgSetOrchestratorAddress{
 				Validator:    validatorAddress.String(),
@@ -95,10 +93,9 @@ func CmdSetOrchestratorAddress() *cobra.Command {
 
 func CmdSendToEth() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "send-to-eth [eth-dest] [amount] [bridge-fee]",
-		Short:   "Adds a new entry to the transaction pool to withdraw an amount from the Ethereum bridge contract",
-		Example: "fxcored tx gravity send-to-eth 0xb86d4DC8e2C57190c1cfb834fE69A7a65E2756C2 1000FX 20FX",
-		Args:    cobra.ExactArgs(3),
+		Use:   "send-to-eth [eth-dest] [amount] [bridge-fee]",
+		Short: "Adds a new entry to the transaction pool to withdraw an amount from the Ethereum bridge contract",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -107,7 +104,7 @@ func CmdSendToEth() *cobra.Command {
 			sender := cliCtx.GetFromAddress()
 
 			if !gethcommon.IsHexAddress(args[0]) {
-				return sdkerrors.Wrap(fmt.Errorf("invalid bsd-dest address:%v", args[0]), "eth-dest")
+				return fmt.Errorf("invalid eth-dest address: %v", args[0])
 			}
 			amount, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
@@ -164,10 +161,9 @@ func CmdCancelSendToEth() *cobra.Command {
 
 func CmdRequestBatch() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "build-batch [token_contract] [minimum_fee] [eth_fee_receive]",
-		Short:   "Build a new batch on the fxcore side for pooled withdrawal transactions",
-		Example: "fxcored tx gravity build-batch 0xb86d4DC8e2C57190c1cfb834fE69A7a65E2756C2 1 0xb86d4DC8e2C57190c1cfb834fE69A7a65E2756C2",
-		Args:    cobra.ExactArgs(3),
+		Use:   "build-batch [token_contract] [minimum_fee] [eth_fee_receive]",
+		Short: "Build a new batch on the fxcore side for pooled withdrawal transactions",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -177,11 +173,11 @@ func CmdRequestBatch() *cobra.Command {
 
 			minimumFee, ok := sdk.NewIntFromString(args[1])
 			if !ok || minimumFee.IsNegative() {
-				return fmt.Errorf("miniumu fee is valid!!!fee:%v\n", args[1])
+				return fmt.Errorf("miniumu fee is valid, fee: %v", args[1])
 			}
 			ethFeeReceive := args[2]
 			if !gethcommon.IsHexAddress(ethFeeReceive) {
-				return fmt.Errorf("invalid ethFeeReceive address:%v", args[2])
+				return fmt.Errorf("invalid ethFeeReceive address: %v", args[2])
 			}
 			baseFee := sdk.ZeroInt()
 			baseFeeStr, err := cmd.Flags().GetString("base-fee")
@@ -190,7 +186,7 @@ func CmdRequestBatch() *cobra.Command {
 				if len(baseFeeStr) > 0 {
 					baseFee, ok = sdk.NewIntFromString(baseFeeStr)
 					if !ok {
-						return fmt.Errorf("invalid baseFee:%v", baseFeeStr)
+						return fmt.Errorf("invalid baseFee: %v", baseFeeStr)
 					}
 				}
 			}
@@ -216,9 +212,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "request-batch-confirm [contractAddress] [nonce] [...hexEthPrivate]",
 		Short: "Send valset confirm msg",
-		Example: fmt.Sprintf("1. fxcored tx gravity valset-confirm 0x30dA8589BFa1E509A319489E014d384b87815D89 1 hexEthPrivateKey --eth-key-type=hex\n" +
-			"2. fxcored tx gravity valset-confirm 0x30dA8589BFa1E509A319489E014d384b87815D89 1 --eth-key-type=keystore --eth-keystore=./key --eth-password=./password"),
-		Args: cobra.RangeArgs(2, 3),
+		Args:  cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -227,7 +221,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			fromAddress := clientCtx.GetFromAddress()
 			contractAddress := args[0]
 			if !gethcommon.IsHexAddress(contractAddress) {
-				return fmt.Errorf("invalid contract address:%v", contractAddress)
+				return fmt.Errorf("invalid contract address: %v", contractAddress)
 			}
 
 			nonce, err := strconv.ParseUint(args[1], 10, 64)
@@ -245,7 +239,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				if len(args) < 3 {
 					return fmt.Errorf("eth-key-type=hex must input hexEthPrivateKey")
 				}
-				ethPrivateKey, err = recoveryPrivateKeyHexPrivateKey(args[2])
+				ethPrivateKey, err = ethcrypto.HexToECDSA(args[2])
 				if err != nil {
 					return err
 				}
@@ -263,7 +257,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 					return err
 				}
 			default:
-				return fmt.Errorf("unknown eth-key-type flag:%v, support:(keystore|hex)", ethKeyType)
+				return fmt.Errorf("unknown eth-key-type flag: %v, support:(keystore|hex)", ethKeyType)
 			}
 			ethAddress := ethcrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
 
@@ -276,7 +270,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 				return err
 			}
 			if batchRequestByNonceResp.Batch == nil {
-				return fmt.Errorf("not found batch request by nonce!!!contractAddress:[%v], nonce:[%v]", contractAddress, nonce)
+				return fmt.Errorf("not found batch request by nonce! contractAddress: %v, nonce: %v", contractAddress, nonce)
 			}
 			// Determine whether it has been confirmed
 			batchConfirmResp, err := queryClient.BatchConfirm(cmd.Context(), &types.QueryBatchConfirmRequest{
@@ -289,8 +283,7 @@ func CmdRequestBatchConfirm() *cobra.Command {
 			}
 			if batchConfirmResp.GetConfirm() != nil {
 				confirm := batchConfirmResp.GetConfirm()
-				return clientCtx.PrintString(fmt.Sprintf("already confirm requestBatch!!!\n\tnonce:[%v]\n\ttokenContract:[%v]\n\torchestrator:[%v]\n\tethAddress:[%v]\n\tsignature:[%v]\n",
-					confirm.Nonce, confirm.TokenContract, confirm.Orchestrator, confirm.EthSigner, confirm.Signature))
+				return clientCtx.PrintProto(confirm)
 			}
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
@@ -352,9 +345,7 @@ func CmdValidatorSetConfirm() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "valset-confirm [nonce] [...hexEthPrivate]",
 		Short: "Send valset confirm msg",
-		Example: fmt.Sprintf("1. fxcored tx gravity valset-confirm 1 hexEthPrivateKey --eth-key-type=hex\n" +
-			"2. fxcored tx gravity valset-confirm 1 --eth-key-type=keystore --eth-keystore=./key --eth-password=./password"),
-		Args: cobra.RangeArgs(1, 2),
+		Args:  cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -377,7 +368,7 @@ func CmdValidatorSetConfirm() *cobra.Command {
 				if len(args) < 2 {
 					return fmt.Errorf("eth-key-type=hex must input hexEthPrivateKey")
 				}
-				ethPrivateKey, err = recoveryPrivateKeyHexPrivateKey(args[1])
+				ethPrivateKey, err = ethcrypto.HexToECDSA(args[1])
 				if err != nil {
 					return errors.WithStack(err)
 				}
@@ -395,7 +386,7 @@ func CmdValidatorSetConfirm() *cobra.Command {
 					return err
 				}
 			default:
-				return fmt.Errorf("unknown eth-key-type flag:%v, support:(keystore|hex)", ethKeyType)
+				return fmt.Errorf("unknown eth-key-type flag: %v, support:(keystore|hex)", ethKeyType)
 			}
 			ethAddress := ethcrypto.PubkeyToAddress(ethPrivateKey.PublicKey)
 
@@ -414,7 +405,7 @@ func CmdValidatorSetConfirm() *cobra.Command {
 			}
 			if valsetConfirmResp.GetConfirm() != nil {
 				confirm := valsetConfirmResp.GetConfirm()
-				return fmt.Errorf("already confirm valset!!!\n\tnonce:[%v]\n\torchestrator:[%v]\n\tethAddress:[%v]\n\tsignature:[%v]\n", confirm.Nonce, confirm.Orchestrator, confirm.EthAddress, confirm.Signature)
+				return clientCtx.PrintProto(confirm)
 			}
 			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
@@ -459,19 +450,15 @@ func CmdValidatorSetConfirm() *cobra.Command {
 func recoveryPrivateKeyByKeystore(keystoreFile, passwordFile string) (*ecdsa.PrivateKey, error) {
 	keystoreData, err := os.ReadFile(keystoreFile)
 	if err != nil {
-		return nil, errors.WithMessagef(err, "keystoreFile:[%s]", keystoreFile)
+		return nil, errors.WithMessagef(err, "keystoreFile: %s", keystoreFile)
 	}
 	passwordData, err := os.ReadFile(passwordFile)
 	if err != nil {
-		return nil, errors.WithMessagef(err, "passwordFile:[%s]", keystoreFile)
+		return nil, errors.WithMessagef(err, "passwordFile: %s", keystoreFile)
 	}
 	decryptKey, err := keystore.DecryptKey(keystoreData, string(passwordData))
 	if err != nil {
 		return nil, errors.WithMessagef(err, "decryptKey err")
 	}
 	return decryptKey.PrivateKey, nil
-}
-
-func recoveryPrivateKeyHexPrivateKey(hexPrivateKey string) (*ecdsa.PrivateKey, error) {
-	return ethcrypto.HexToECDSA(hexPrivateKey)
 }

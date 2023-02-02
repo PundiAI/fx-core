@@ -16,7 +16,7 @@ func GetCmdDenomToIBcDenom() *cobra.Command {
 		Use:     "denom-convert",
 		Short:   "Covert denom to ibc denom",
 		Args:    cobra.ExactArgs(1),
-		Example: fmt.Sprintf("%s query fx-ibc-transfer denom-convert transfer/{channel}/{denom}", version.AppName),
+		Example: fmt.Sprintf("$ %s query fx-ibc-transfer denom-convert transfer/{channel}/{denom}", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {

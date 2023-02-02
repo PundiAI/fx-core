@@ -79,10 +79,9 @@ func GetQueryCmd() *cobra.Command {
 
 func CmdGetParams() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "params",
-		Short:   "Query the current gravity parameters information",
-		Example: "fxcored q gravity params",
-		Args:    cobra.NoArgs,
+		Use:   "params",
+		Short: "Query the current gravity parameters information",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -100,10 +99,9 @@ func CmdGetParams() *cobra.Command {
 
 func CmdGetDelegateKeyByValidator() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "delegate-key-by-validator [validator]",
-		Short:   "Query delegate eth and fx key for a given validator",
-		Example: "fxcored q gravity delegate-key-by-validator fxvaloper1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8wpk9j2",
-		Args:    cobra.ExactArgs(1),
+		Use:   "delegate-key-by-validator [validator]",
+		Short: "Query delegate eth and fx key for a given validator",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -130,10 +128,9 @@ func CmdGetDelegateKeyByValidator() *cobra.Command {
 
 func CmdGetDelegateKeyByOrchestrator() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "delegate-key-by-orchestrator [orchestrator]",
-		Short:   "Query delegate eth and validator key for a given orchestrator",
-		Example: "fxcored q gravity delegate-key-by-orchestrator fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2",
-		Args:    cobra.ExactArgs(1),
+		Use:   "delegate-key-by-orchestrator [orchestrator]",
+		Short: "Query delegate eth and validator key for a given orchestrator",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -158,18 +155,17 @@ func CmdGetDelegateKeyByOrchestrator() *cobra.Command {
 
 func CmdGetDelegateKeyByEth() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "delegate-key-by-eth",
-		Short:   "Query delegate key by eth address",
-		Example: "fxcored q gravity delegate-key-by-eth 0xb86d4DC8e2C57190c1cfb834fE69A7a65E2756C2",
-		Args:    cobra.ExactArgs(1),
+		Use:   "delegate-key-by-eth",
+		Short: "Query delegate key by eth address",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 			if !gethcommon.IsHexAddress(args[0]) {
-				return fmt.Errorf("target address is invalid!address:[%s]", args[0])
+				return fmt.Errorf("target address is invalid! address: %s", args[0])
 			}
 			if !gethcommon.IsHexAddress(args[0]) {
-				return fmt.Errorf("contract address is invalid!address:[%s]", args[0])
+				return fmt.Errorf("contract address is invalid! address: %s", args[0])
 			}
 			res, err := queryClient.GetDelegateKeyByEth(cmd.Context(), &types.QueryDelegateKeyByEthRequest{
 				EthAddress: args[0],
@@ -185,10 +181,9 @@ func CmdGetDelegateKeyByEth() *cobra.Command {
 
 func CmdGetCurrentValset() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "current-valset",
-		Short:   "Query current valset",
-		Example: "fxcored q gravity current-valset",
-		Args:    cobra.NoArgs,
+		Use:   "current-valset",
+		Short: "Query current valset",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -206,10 +201,9 @@ func CmdGetCurrentValset() *cobra.Command {
 
 func CmdGetValsetRequest() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "valset-request [nonce]",
-		Short:   "Query requested valset with a particular nonce",
-		Example: "fxcored q gravity valset-request 1",
-		Args:    cobra.RangeArgs(0, 1),
+		Use:   "valset-request [nonce]",
+		Short: "Query requested valset with a particular nonce",
+		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -269,10 +263,9 @@ func CmdGetLastValSetRequests() *cobra.Command {
 
 func CmdGetPendingValsetRequest() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "pending-valset-request [orchestrator]",
-		Short:   "Query the latest valset request which has not been signed by a particular validator orchestrator",
-		Example: "fxcored q gravity pending-valset-request fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2",
-		Args:    cobra.ExactArgs(1),
+		Use:   "pending-valset-request [orchestrator]",
+		Short: "Query the latest valset request which has not been signed by a particular validator orchestrator",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -282,11 +275,9 @@ func CmdGetPendingValsetRequest() *cobra.Command {
 				return err
 			}
 
-			req := &types.QueryLastPendingValsetRequestByAddrRequest{
+			res, err := queryClient.LastPendingValsetRequestByAddr(cmd.Context(), &types.QueryLastPendingValsetRequestByAddrRequest{
 				Address: orchestrator.String(),
-			}
-
-			res, err := queryClient.LastPendingValsetRequestByAddr(cmd.Context(), req)
+			})
 			if err != nil {
 				return err
 			}
@@ -299,10 +290,9 @@ func CmdGetPendingValsetRequest() *cobra.Command {
 
 func CmdGetValsetConfirm() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "valset-confirm [nonce] [orchestrator]",
-		Short:   "Query valset confirmation with a particular nonce from a particular validator orchestrator",
-		Example: "fxcored q gravity valset-confirm 1 fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2",
-		Args:    cobra.ExactArgs(2),
+		Use:   "valset-confirm [nonce] [orchestrator]",
+		Short: "Query valset confirmation with a particular nonce from a particular validator orchestrator",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -327,10 +317,9 @@ func CmdGetValsetConfirm() *cobra.Command {
 
 func CmdGetValsetConfirms() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "valset-confirms [nonce]",
-		Short:   "Query valset confirmations with a particular nonce",
-		Example: "fxcored q gravity valset-confirms 1",
-		Args:    cobra.ExactArgs(1),
+		Use:   "valset-confirms [nonce]",
+		Short: "Query valset confirmations with a particular nonce",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -345,9 +334,6 @@ func CmdGetValsetConfirms() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err = clientCtx.PrintString(fmt.Sprintf("confirm size:[%d]\n", len(res.Confirms))); err != nil {
-				return err
-			}
 			return clientCtx.PrintProto(res)
 		},
 	}
@@ -356,10 +342,9 @@ func CmdGetValsetConfirms() *cobra.Command {
 
 func CmdGetPendingOutgoingTXBatchRequest() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "pending-batch-request [orchestrator]",
-		Short:   "Query the latest outgoing TX batch request which has not been signed by a particular validator orchestrator",
-		Example: "fxcored q gravity pending-batch-request fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2",
-		Args:    cobra.ExactArgs(1),
+		Use:   "pending-batch-request [orchestrator]",
+		Short: "Query the latest outgoing TX batch request which has not been signed by a particular validator orchestrator",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -378,16 +363,15 @@ func CmdGetPendingOutgoingTXBatchRequest() *cobra.Command {
 
 func CmdBatchConfirm() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "batch-confirm  [token-contract] [nonce] [orchestrator]",
-		Short:   "Query outgoing tx batches confirm by validator orchestrator",
-		Example: "fxcored q gravity batch-confirm 0x30dA8589BFa1E509A319489E014d384b87815D89 1 fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2",
-		Args:    cobra.ExactArgs(3),
+		Use:   "batch-confirm  [token-contract] [nonce] [orchestrator]",
+		Short: "Query outgoing tx batches confirm by validator orchestrator",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
 			if !gethcommon.IsHexAddress(args[0]) {
-				return fmt.Errorf("contract address is invalid!address:[%s]", args[0])
+				return fmt.Errorf("contract address is invalid, address: %s", args[0])
 			}
 			nonce, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
@@ -413,10 +397,9 @@ func CmdBatchConfirm() *cobra.Command {
 
 func CmdBatchConfirms() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "batch-confirms [contract] [nonce]",
-		Short:   "Query outgoing tx batches confirms",
-		Example: "fxcored q gravity batch-confirms 0x30dA8589BFa1E509A319489E014d384b87815D89 1",
-		Args:    cobra.ExactArgs(2),
+		Use:   "batch-confirms [contract] [nonce]",
+		Short: "Query outgoing tx batches confirms",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -426,16 +409,13 @@ func CmdBatchConfirms() *cobra.Command {
 				return err
 			}
 			if !gethcommon.IsHexAddress(args[0]) {
-				return fmt.Errorf("contract address is invalid!address:[%s]", args[0])
+				return fmt.Errorf("contract address is invalid, address: %s", args[0])
 			}
 			res, err := queryClient.BatchConfirms(cmd.Context(), &types.QueryBatchConfirmsRequest{
 				TokenContract: args[0],
 				Nonce:         uint64(nonce),
 			})
 			if err != nil {
-				return err
-			}
-			if err = clientCtx.PrintString(fmt.Sprintf("confirm size:[%d]\n", len(res.Confirms))); err != nil {
 				return err
 			}
 			return clientCtx.PrintProto(res)
@@ -497,10 +477,9 @@ func CmdGetPendingSendToEth() *cobra.Command {
 
 func CmdOutgoingTxBatches() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "outgoing-tx-batches",
-		Short:   "Query outgoing tx batches",
-		Example: "fxcored q gravity outgoing-tx-batches",
-		Args:    cobra.NoArgs,
+		Use:   "outgoing-tx-batches",
+		Short: "Query outgoing tx batches",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -518,10 +497,9 @@ func CmdOutgoingTxBatches() *cobra.Command {
 
 func CmdGetBatchFees() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "batch-fees",
-		Short:   "Query a list of withdrawal transaction fees to be processed",
-		Example: "fxcored q gravity batch-fees",
-		Args:    cobra.NoArgs,
+		Use:   "batch-fees",
+		Short: "Query a list of withdrawal transaction fees to be processed",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -576,10 +554,9 @@ func CmdProjectedBatchTimeoutHeight() *cobra.Command {
 
 func CmdGetDenomToERC20Token() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "erc20 [denom]",
-		Short:   "Query contract address from denom",
-		Example: "fxcored q gravity erc20 eth0x2170ed0880ac9a755fd29b2688956bd959f933f8",
-		Args:    cobra.ExactArgs(1),
+		Use:   "erc20 [denom]",
+		Short: "Query contract address from denom",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -599,17 +576,16 @@ func CmdGetDenomToERC20Token() *cobra.Command {
 
 func CmdGetERC20TokenToDenom() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "denom [token-contract]",
-		Short:   "Query denom from contract address",
-		Example: "fxcored q gravity denom 0x2170ed0880ac9a755fd29b2688956bd959f933f8",
-		Args:    cobra.ExactArgs(1),
+		Use:   "denom [token-contract]",
+		Short: "Query denom from contract address",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
 
 			contractAddress := args[0]
 			if !gethcommon.IsHexAddress(contractAddress) {
-				return fmt.Errorf("invalid contract address:%s", contractAddress)
+				return fmt.Errorf("invalid contract address: %s", contractAddress)
 			}
 
 			res, err := queryClient.ERC20ToDenom(cmd.Context(), &types.QueryERC20ToDenomRequest{
@@ -648,10 +624,9 @@ func CmdGetBridgeTokens() *cobra.Command {
 
 func CmdGetValidatorEventNonce() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "event-nonce [orchestrator]",
-		Short:   "Query last event nonce by validator orchestratorAddress",
-		Example: "fxcored q gravity event-nonce fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2",
-		Args:    cobra.ExactArgs(1),
+		Use:   "event-nonce [orchestrator]",
+		Short: "Query last event nonce by validator orchestratorAddress",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
@@ -675,10 +650,9 @@ func CmdGetValidatorEventNonce() *cobra.Command {
 
 func CmdGetValidatorEventBlockHeight() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "event-block-height [orchestrator]",
-		Short:   "Query last event block height by validator orchestrator",
-		Example: "fxcored q gravity event-block-height fx1zgpzdf2uqla7hkx85wnn4p2r3duwqzd8xst6v2",
-		Args:    cobra.ExactArgs(1),
+		Use:   "event-block-height [orchestrator]",
+		Short: "Query last event block height by validator orchestrator",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)

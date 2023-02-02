@@ -24,7 +24,7 @@ func ValidateTronAddress(address string) error {
 	if err != nil {
 		return errors.New("doesn't pass format validation")
 	}
-	expectAddress := common.EncodeCheck(tronAddr[:])
+	expectAddress := common.EncodeCheck(tronAddr)
 	if expectAddress != address {
 		return fmt.Errorf("mismatch expected: %s, got: %s", expectAddress, address)
 	}

@@ -2,6 +2,8 @@ package types
 
 import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+// todo: remove unused code
+
 var (
 	ErrInvalidSignature = sdkerrors.Register(ModuleName, 2, "invalid signature")
 	ErrInvalidAddress   = sdkerrors.Register(ModuleName, 3, "invalid address")

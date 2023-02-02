@@ -28,7 +28,7 @@ var cancelledInPreRun = errors.New("cancelled in prerun")
 
 // Used in each test to run the function under test via Cobra
 // but to always halt the command
-func preRunETestImpl(cmd *cobra.Command, args []string) error {
+func preRunETestImpl(cmd *cobra.Command, _ []string) error {
 	err := server.InterceptConfigsPreRunHandler(cmd, "", tmcfg.DefaultConfig())
 	if err != nil {
 		return err

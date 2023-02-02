@@ -20,7 +20,7 @@ import (
 func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the eth module",
+		Short:                      "Querying commands for the migrate module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -33,7 +33,7 @@ func CmdGetMigrateAccount() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "account [bech32/hex address]",
 		Short:   "Query address migrate info",
-		Example: fmt.Sprintf("%s q migrate account fx1plg.../0xdf9...", version.AppName),
+		Example: fmt.Sprintf("$ %s q migrate account fx1plg.../0xdf9...", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -134,7 +134,7 @@ func CmdGetMigrateRecord() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "record [bech32/hex address]",
 		Short:   "Query the migrate record of address",
-		Example: fmt.Sprintf("%s q migrate record fx1plg.../0xdf9...", version.AppName),
+		Example: fmt.Sprintf("$ %s q migrate record fx1plg.../0xdf9...", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)

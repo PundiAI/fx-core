@@ -67,13 +67,13 @@ func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   fxtypes.Name + "d",
 		Short: "FunctionX Core BlockChain App",
-		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) (err error) {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
 			// read flag
-			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
+			initClientCtx, err = client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -85,12 +85,12 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			// set clientCtx
-			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
+			if err = client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
 
 			customAppTemplate, customAppConfig := fxcfg.AppConfig(fmt.Sprintf("4000000000000%s", fxtypes.DefaultDenom))
-			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
+			if err = server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
 				return err
 			}
 			return nil
@@ -110,30 +110,30 @@ func NewRootCmd() *cobra.Command {
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defaultNodeHome string) {
 	rootCmd.AddCommand(
+		cli.Debug(),
 		cli.InitCmd(defaultNodeHome, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, encodingConfig.Codec), app.CustomConsensusParams()),
 		cli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		cli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
-		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		cli.AddGenesisAccountCmd(defaultNodeHome),
+		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(),
-		cli.Debug(),
 		configCmd(),
 	)
 
-	appCreator := appCreator{encodingConfig}
+	myAppCreator := appCreator{encodingConfig}
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		keyCommands(defaultNodeHome),
 		cli.StatusCommand(),
+		keyCommands(defaultNodeHome),
 		queryCommand(),
 		txCommand(),
 		version.NewVersionCommand(),
-		server.NewRollbackCmd(appCreator.newApp, defaultNodeHome),
+		server.NewRollbackCmd(myAppCreator.newApp, defaultNodeHome),
 		fxserver.DataCmd(),
-		fxserver.ExportSateCmd(appCreator.appExport, defaultNodeHome),
-		fxserver.StartCmd(appCreator.newApp, defaultNodeHome),
+		fxserver.ExportSateCmd(myAppCreator.appExport, defaultNodeHome),
+		fxserver.StartCmd(myAppCreator.newApp, defaultNodeHome),
 		fxserver.TendermintCommand(),
 		app.GetUpgrades().GetLatest().PreUpgradeCmd,
 	)

@@ -15,7 +15,7 @@ import (
 func QueryStoreCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "store <store name> <hex key>",
-		Short: "Query for a chain store",
+		Short: "Query for a blockchain store",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
