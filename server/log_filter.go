@@ -3,7 +3,6 @@ package server
 import (
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/rs/zerolog"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 )
@@ -12,7 +11,7 @@ const (
 	FlagLogFilter = "log_filter"
 )
 
-func NewFxZeroLogWrapper(logger server.ZeroLogWrapper, logTypes []string) FxZeroLogWrapper {
+func NewFxZeroLogWrapper(logger zerolog.Logger, logTypes []string) FxZeroLogWrapper {
 	filterMsg := make(map[string]bool)
 	filterModule := make(map[string]zerolog.Level)
 	for _, logType := range logTypes {
@@ -22,11 +21,13 @@ func NewFxZeroLogWrapper(logger server.ZeroLogWrapper, logTypes []string) FxZero
 			filterMsg[logType] = true
 		}
 	}
-	return FxZeroLogWrapper{ZeroLogWrapper: logger, filterMsg: filterMsg, filterModule: filterModule}
+	return FxZeroLogWrapper{Logger: logger, filterMsg: filterMsg, filterModule: filterModule}
 }
 
+var _ tmlog.Logger = (*FxZeroLogWrapper)(nil)
+
 type FxZeroLogWrapper struct {
-	server.ZeroLogWrapper
+	zerolog.Logger
 	filterMsg    map[string]bool
 	filterModule map[string]zerolog.Level
 }
@@ -68,12 +69,8 @@ func (z FxZeroLogWrapper) Error(msg string, keyVals ...interface{}) {
 
 func (z FxZeroLogWrapper) With(keyVals ...interface{}) tmlog.Logger {
 	fields, level := z.getLogFields(keyVals...)
-	logger := z.ZeroLogWrapper.Logger.Level(level).With().Fields(fields).Logger()
-	return FxZeroLogWrapper{
-		server.ZeroLogWrapper{Logger: logger},
-		z.filterMsg,
-		z.filterModule,
-	}
+	logger := z.Logger.Level(level).With().Fields(fields).Logger()
+	return FxZeroLogWrapper{logger, z.filterMsg, z.filterModule}
 }
 
 func (z FxZeroLogWrapper) getLogFields(keyVals ...interface{}) (fields map[string]interface{}, logLevel zerolog.Level) {

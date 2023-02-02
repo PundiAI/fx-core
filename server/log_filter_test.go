@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -64,9 +63,7 @@ func TestFxZeroLogWrapper(t *testing.T) {
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			logger := server.ZeroLogWrapper{
-				Logger: zerolog.New(buf).Level(testcase.level).With().Logger(),
-			}
+			logger := zerolog.New(buf).Level(testcase.level).With().Logger()
 			logWrapper := fxserver.NewFxZeroLogWrapper(logger, testcase.logTypes)
 			testcase.call(logWrapper)
 			assert.Equal(t, testcase.output, buf.String())

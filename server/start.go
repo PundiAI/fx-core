@@ -38,6 +38,7 @@ import (
 	ethermintconfig "github.com/evmos/ethermint/server/config"
 	srvflags "github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
+	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	abciserver "github.com/tendermint/tendermint/abci/server"
 	tcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
@@ -93,9 +94,13 @@ which accepts a path for the resulting pprof file.
 			serverCtx := server.GetServerContextFromCmd(cmd)
 
 			if zeroLog, ok := serverCtx.Logger.(server.ZeroLogWrapper); ok {
+				if strings.ToLower(serverCtx.Viper.GetString(flags.FlagLogFormat)) == tmcfg.LogFormatPlain {
+					zeroLog.Logger = zeroLog.Logger.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "03:04:05PM"})
+					serverCtx.Logger = zeroLog
+				}
 				filterLogTypes, _ := cmd.Flags().GetStringSlice(FlagLogFilter)
 				if len(filterLogTypes) > 0 {
-					serverCtx.Logger = NewFxZeroLogWrapper(zeroLog, filterLogTypes)
+					serverCtx.Logger = NewFxZeroLogWrapper(zeroLog.Logger, filterLogTypes)
 				}
 			}
 
