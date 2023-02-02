@@ -1,7 +1,9 @@
 package testutil_test
 
 import (
+	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -57,12 +59,12 @@ func (suite *IntegrationTestSuite) TestNetworkLiveness() {
 	suite.NoError(err, "latest height failed")
 	suite.GreaterOrEqual(height, latestHeight)
 
-	height, err = suite.network.WaitForHeightWithTimeout(height, time.Second*3)
-	suite.NoError(err, "expected to reach 200 blocks; got %d", height)
+	gotHeight, err := suite.network.WaitForHeightWithTimeout(height, time.Second*3)
+	suite.NoError(err, "expected to reach %d blocks; got %d", height, gotHeight)
 
 	latestHeight, err = suite.network.LatestHeight()
 	suite.NoError(err, "latest height failed")
-	suite.GreaterOrEqual(latestHeight, height)
+	suite.GreaterOrEqual(latestHeight, gotHeight)
 }
 
 func (suite *IntegrationTestSuite) TestValidatorInfo() {
@@ -72,16 +74,17 @@ func (suite *IntegrationTestSuite) TestValidatorInfo() {
 	for i := 0; i < suite.network.Config.NumValidators; i++ {
 
 		validator := suite.network.Validators[i]
-		// keyringDir := validator.ClientCtx.KeyringDir
-		// file, err := os.ReadFile(filepath.Join(keyringDir, "key_seed.json"))
-		// suite.NoError(err)
-
-		// var data map[string]string
-		// err = json.Unmarshal(file, &data)
-		// suite.NoError(err)
 
 		mnemonic := suite.network.Config.Mnemonics[i]
-		// suite.Equal(mnemonic, data["secret"])
+		keySeedFileName := filepath.Join(validator.ClientCtx.KeyringDir, "key_seed.json")
+		if _, err := os.Stat(keySeedFileName); err == nil {
+			file, err := os.ReadFile(keySeedFileName)
+			suite.NoError(err)
+
+			var data map[string]string
+			suite.NoError(json.Unmarshal(file, &data))
+			suite.Equal(mnemonic, data["secret"])
+		}
 
 		info, err := validator.ClientCtx.Keyring.Key(validator.Moniker)
 		suite.NoError(err)
