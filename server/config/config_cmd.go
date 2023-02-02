@@ -1,4 +1,4 @@
-package cli
+package config
 
 import (
 	"fmt"
@@ -13,10 +13,10 @@ import (
 	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
 
-	fxcfg "github.com/functionx/fx-core/v3/server/config"
+	"github.com/functionx/fx-core/v3/client/cli"
 )
 
-func RunConfigCmd(cmd *cobra.Command, args []string) error {
+func NewConfigCmd(cmd *cobra.Command, args []string) error {
 	serverCtx := server.GetServerContextFromCmd(cmd)
 	clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -52,7 +52,7 @@ var (
 
 type appTomlConfig struct {
 	v          *viper.Viper
-	config     *fxcfg.Config
+	config     *Config
 	configName string
 }
 
@@ -113,7 +113,7 @@ func (c *configTomlConfig) save() error {
 
 func newConfig(v *viper.Viper, configName string) (cmdConfig, error) {
 	if strings.HasSuffix(configName, "app.toml") {
-		configData := fxcfg.Config{}
+		configData := Config{}
 		if err := v.Unmarshal(&configData); err != nil {
 			return nil, err
 		}
@@ -136,7 +136,7 @@ func output(ctx client.Context, content interface{}) error {
 		if err := mapstructure.Decode(content, &data); err != nil {
 			return err
 		}
-		return PrintOutput(ctx, data)
+		return cli.PrintOutput(ctx, data)
 	}
-	return PrintOutput(ctx, mapData)
+	return cli.PrintOutput(ctx, mapData)
 }

@@ -10,7 +10,6 @@ import (
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
-	"github.com/functionx/fx-core/v3/client/cli"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
 )
 
@@ -64,7 +63,7 @@ func appTomlCfgCmd() *cobra.Command {
 		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
-			return cli.RunConfigCmd(cmd, append([]string{appFileName}, args...))
+			return fxcfg.NewConfigCmd(cmd, append([]string{appFileName}, args...))
 		},
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
@@ -77,7 +76,7 @@ func configTomlCfgCmd() *cobra.Command {
 		Short: "Create or query an `config/config.toml` file",
 		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return cli.RunConfigCmd(cmd, append([]string{configFileName}, args...))
+			return fxcfg.NewConfigCmd(cmd, append([]string{configFileName}, args...))
 		},
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")

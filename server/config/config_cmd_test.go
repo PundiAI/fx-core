@@ -1,4 +1,4 @@
-package cli
+package config
 
 import (
 	"bytes"
@@ -8,8 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/config"
-
-	fxcfg "github.com/functionx/fx-core/v3/server/config"
 )
 
 func Test_output(t *testing.T) {
@@ -294,7 +292,7 @@ func Test_appTomlConfig_output(t *testing.T) {
 }
 `
 
-	c := appTomlConfig{config: fxcfg.DefaultConfig()}
+	c := appTomlConfig{config: DefaultConfig()}
 	buf := new(bytes.Buffer)
 	clientCtx := client.Context{
 		Output:       buf,
