@@ -154,7 +154,7 @@ func queryCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		authcmd.GetAccountCmd(),
-		fxserver.ValidatorCommand(),
+		cli.QueryValidatorSetCommand(),
 		cli.BlockCommand(),
 		cli.QueryTxsByEventsCmd(),
 		cli.QueryTxCmd(),

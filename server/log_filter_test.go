@@ -1,4 +1,4 @@
-package cli_test
+package server_test
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 
-	"github.com/functionx/fx-core/v3/client/cli"
+	fxserver "github.com/functionx/fx-core/v3/server"
 )
 
 func TestFxZeroLogWrapper(t *testing.T) {
@@ -67,7 +67,7 @@ func TestFxZeroLogWrapper(t *testing.T) {
 			logger := server.ZeroLogWrapper{
 				Logger: zerolog.New(buf).Level(testcase.level).With().Logger(),
 			}
-			logWrapper := cli.NewFxZeroLogWrapper(logger, testcase.logTypes)
+			logWrapper := fxserver.NewFxZeroLogWrapper(logger, testcase.logTypes)
 			testcase.call(logWrapper)
 			assert.Equal(t, testcase.output, buf.String())
 		})

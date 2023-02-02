@@ -50,7 +50,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/grpc"
 
-	"github.com/functionx/fx-core/v3/client/cli"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -89,9 +88,9 @@ which accepts a path for the resulting pprof file.
 			serverCtx := server.GetServerContextFromCmd(cmd)
 
 			if zeroLog, ok := serverCtx.Logger.(server.ZeroLogWrapper); ok {
-				filterLogTypes, _ := cmd.Flags().GetStringSlice(cli.FlagLogFilter)
+				filterLogTypes, _ := cmd.Flags().GetStringSlice(FlagLogFilter)
 				if len(filterLogTypes) > 0 {
-					serverCtx.Logger = cli.NewFxZeroLogWrapper(zeroLog, filterLogTypes)
+					serverCtx.Logger = NewFxZeroLogWrapper(zeroLog, filterLogTypes)
 				}
 			}
 
@@ -163,7 +162,7 @@ which accepts a path for the resulting pprof file.
 		},
 	}
 
-	cmd.Flags().StringSlice(cli.FlagLogFilter, nil, `The logging filter can discard custom log type (ABCIQuery)`)
+	cmd.Flags().StringSlice(FlagLogFilter, nil, `The logging filter can discard custom log type (ABCIQuery)`)
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.Flags().Bool(srvflags.WithTendermint, true, "Run abci app embedded in-process with tendermint")
 	cmd.Flags().String(srvflags.Address, "tcp://0.0.0.0:26658", "Listen address")

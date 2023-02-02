@@ -2,18 +2,12 @@ package server
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/go-bip39"
 	"github.com/spf13/cobra"
 	cfg "github.com/tendermint/tendermint/config"
@@ -22,8 +16,6 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
-
-	"github.com/functionx/fx-core/v3/client/cli"
 )
 
 const (
@@ -32,51 +24,6 @@ const (
 	flagUnsafe       = "unsafe"
 	flagKeyType      = "key-type"
 )
-
-// ValidatorCommand returns the validator set for a given height
-func ValidatorCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "tendermint-validator-set [height]",
-		Short: "Get the full tendermint validator set at given height",
-		Args:  cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			var height *int64
-
-			// optional height
-			if len(args) > 0 {
-				h, err := strconv.Atoi(args[0])
-				if err != nil {
-					return err
-				}
-				if h > 0 {
-					tmp := int64(h)
-					height = &tmp
-				}
-			}
-
-			page, _ := cmd.Flags().GetInt(flags.FlagPage)
-			limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
-
-			result, err := rpc.GetValidators(context.Background(), clientCtx, height, &page, &limit)
-			if err != nil {
-				return err
-			}
-
-			return cli.PrintOutput(clientCtx, result)
-		},
-	}
-
-	cmd.Flags().String(flags.FlagNode, "tcp://localhost:26657", "<host>:<port> to Tendermint RPC interface for this chain")
-	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|kwallet|pass|test)")
-	cmd.Flags().Int(flags.FlagPage, rest.DefaultPage, "Query a specific page of paginated results")
-	cmd.Flags().Int(flags.FlagLimit, 100, "Query number of results returned per page")
-
-	return cmd
-}
 
 // UnsafeRestPrivValidatorCmd Reset validator node consensus private key file
 //
