@@ -16,6 +16,7 @@ import (
 
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/tron/client/cli"
 	"github.com/functionx/fx-core/v3/x/tron/keeper"
 	"github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -55,12 +56,12 @@ func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // GetQueryCmd implements app module basic
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
+	return cli.GetQueryCmd()
 }
 
 // GetTxCmd implements app module basic
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
+	return cli.GetTxCmd()
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway
