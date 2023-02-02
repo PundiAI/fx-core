@@ -59,7 +59,7 @@ func QueryValidatorByConsAddr() *cobra.Command {
 				return err
 			}
 			if opAddr == nil {
-				return fmt.Errorf("not found validator by consAddress:%s", consAddr.String())
+				return fmt.Errorf("not found validator by consAddress: %s", consAddr.String())
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)

@@ -210,7 +210,7 @@ func getPruneBlockParams(blockStoreDB dbm.DB) (baseHeight, retainHeight int64) {
 
 func initDB(config *cfg.Config, dbName string) dbm.DB {
 	if dbName != blockDBName && dbName != stateDBName && dbName != appDBName {
-		panic(fmt.Sprintf("unknow db name:%s", dbName))
+		panic(fmt.Sprintf("unknow db name: %s", dbName))
 	}
 
 	db, err := node.DefaultDBProvider(&node.DBContext{ID: dbName, Config: config})

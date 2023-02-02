@@ -251,7 +251,7 @@ func ChecksumEthAddressCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			if !gethcommon.IsHexAddress(args[0]) {
-				return fmt.Errorf("not hex address:%s", args[0])
+				return fmt.Errorf("not hex address: %s", args[0])
 			}
 			return clientCtx.PrintString(fmt.Sprintf("%s\n", gethcommon.HexToAddress(args[0]).Hex()))
 		},
