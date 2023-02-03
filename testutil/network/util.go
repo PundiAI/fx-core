@@ -21,7 +21,6 @@ import (
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/evmos/ethermint/server"
 	"github.com/evmos/ethermint/server/config"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/node"
@@ -32,6 +31,7 @@ import (
 	"github.com/tendermint/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/server"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
