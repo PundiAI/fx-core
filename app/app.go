@@ -37,6 +37,7 @@ import (
 	fxante "github.com/functionx/fx-core/v3/ante"
 	"github.com/functionx/fx-core/v3/app/keepers"
 	_ "github.com/functionx/fx-core/v3/docs/statik"
+	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	gaspricelegacy "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -147,8 +148,8 @@ func New(
 		SignModeHandler:            encodingConfig.TxConfig.SignModeHandler(),
 		SigGasConsumer:             fxante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:             maxGasWanted,
-		BypassMinFeeMsgTypes:       cast.ToStringSlice(appOpts.Get(fxtypes.BypassMinFeeMsgTypesKey)),
-		MaxBypassMinFeeMsgGasUsage: cast.ToUint64(appOpts.Get(fxtypes.BypassMinFeeMsgMaxGasUsageKey)),
+		BypassMinFeeMsgTypes:       cast.ToStringSlice(appOpts.Get(fxcfg.BypassMinFeeMsgTypesKey)),
+		MaxBypassMinFeeMsgGasUsage: cast.ToUint64(appOpts.Get(fxcfg.BypassMinFeeMsgMaxGasUsageKey)),
 	}
 
 	if err := anteOptions.Validate(); err != nil {
