@@ -55,6 +55,10 @@ ifeq ($(LEDGER_ENABLED),true)
   endif
 endif
 
+ifeq (badgerdb,$(findstring badgerdb,$(FX_BUILD_OPTIONS)))
+  build_tags += badgerdb
+endif
+
 #ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
 #  build_tags += gcc cleveldb muslc
 #endif
@@ -75,10 +79,6 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Name=fxcore \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=fxcored \
 
-ifeq (cleveldb,$(findstring cleveldb,$(FX_BUILD_OPTIONS)))
-  ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
-endif
-
 ifeq (,$(findstring nostrip,$(FX_BUILD_OPTIONS)))
   ldflags += -w -s
 endif
@@ -90,6 +90,11 @@ BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
 ifeq (,$(findstring nostrip,$(FX_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
+endif
+
+# Check for debug option
+ifeq (debug,$(findstring debug,$(FX_BUILD_OPTIONS)))
+  BUILD_FLAGS += -gcflags "all=-N -l"
 endif
 
 ###############################################################################
