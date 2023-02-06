@@ -89,7 +89,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 		abci.RequestInitChain{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: helpers.DefaultConsensusParams,
+			ConsensusParams: helpers.ABCIConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)

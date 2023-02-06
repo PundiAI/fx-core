@@ -87,7 +87,7 @@ func TestMigrateParams(t *testing.T) {
 
 			myApp.InitChain(abci.RequestInitChain{
 				Validators:      []abci.ValidatorUpdate{},
-				ConsensusParams: helpers.DefaultConsensusParams,
+				ConsensusParams: helpers.ABCIConsensusParams,
 				AppStateBytes:   stateBytes,
 			})
 			ctx := myApp.NewContext(false, tmproto.Header{Time: time.Now()})

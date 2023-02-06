@@ -68,7 +68,7 @@ func GetGenesisDocFromAppData(t *testing.T) *types.GenesisDoc {
 	genesisDoc := &types.GenesisDoc{
 		GenesisTime:     time.Now(),
 		ChainID:         fxtypes.ChainId(),
-		ConsensusParams: app.CustomConsensusParams(),
+		ConsensusParams: app.CustomGenesisConsensusParams(),
 		Validators:      exportedApp.Validators,
 		AppState:        exportedApp.AppState,
 	}

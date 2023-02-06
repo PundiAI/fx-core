@@ -43,8 +43,8 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
-// DefaultConsensusParams defines the default Tendermint consensus params used in fxCore testing.
-var DefaultConsensusParams = &abci.ConsensusParams{
+// ABCIConsensusParams defines the default Tendermint consensus params used in fxCore testing.
+var ABCIConsensusParams = &abci.ConsensusParams{
 	Block: &abci.BlockParams{
 		MaxBytes: 1048576,
 		MaxGas:   -1,
@@ -83,7 +83,7 @@ func Setup(isCheckTx bool, isShowLog bool) *app.App {
 		// Initialize the chain
 		myApp.InitChain(abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: DefaultConsensusParams,
+			ConsensusParams: ABCIConsensusParams,
 			AppStateBytes:   stateBytes,
 		})
 	}
@@ -203,7 +203,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	myApp.InitChain(
 		abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: DefaultConsensusParams,
+			ConsensusParams: ABCIConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)

@@ -135,7 +135,7 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 	return genesis
 }
 
-func CustomConsensusParams() *tmproto.ConsensusParams {
+func CustomGenesisConsensusParams() *tmproto.ConsensusParams {
 	result := tmtypes.DefaultConsensusParams()
 	result.Block.MaxBytes = 1048576 // 1M
 	result.Block.MaxGas = 30_000_000

@@ -231,7 +231,7 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 		return err
 	}
 
-	customConsensusParams := app.CustomConsensusParams()
+	customConsensusParams := app.CustomGenesisConsensusParams()
 	customConsensusParams.Block.TimeIotaMs = cfg.TimeoutCommit.Milliseconds()
 	genDoc := types.GenesisDoc{
 		GenesisTime:     time.Now(),
