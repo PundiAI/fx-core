@@ -63,6 +63,7 @@ func TestRPCSuite(t *testing.T) {
 func (suite *rpcTestSuite) SetupSuite() {
 	suite.T().Log("setting up integration test suite")
 
+	fxtypes.SetConfig(true)
 	cfg := testutil.DefaultNetworkConfig(app.MakeEncodingConfig())
 	cfg.TimeoutCommit = time.Millisecond
 	cfg.NumValidators = 1

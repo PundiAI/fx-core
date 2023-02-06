@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/server/api"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
@@ -27,16 +28,15 @@ import (
 	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/rpc/client/local"
 	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
+	"github.com/functionx/fx-core/v3/app"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 //gocyclo:ignore
-func startInProcess(cfg Config, val *Validator) error {
+func startInProcess(appConstructor AppConstructor, val *Validator) error {
 	logger := val.Ctx.Logger
 	tmCfg := val.Ctx.Config
-	tmCfg.Instrumentation.Prometheus = false
 
 	if err := val.AppConfig.ValidateBasic(); err != nil {
 		return err
@@ -47,24 +47,24 @@ func startInProcess(cfg Config, val *Validator) error {
 		return err
 	}
 
-	app := cfg.AppConstructor(*val)
+	myApp := appConstructor(val.AppConfig, val.Ctx)
 
 	genDocProvider := node.DefaultGenesisDocProviderFunc(tmCfg)
 	tmNode, err := node.NewNode(
 		tmCfg,
 		pvm.LoadOrGenFilePV(tmCfg.PrivValidatorKeyFile(), tmCfg.PrivValidatorStateFile()),
 		nodeKey,
-		proxy.NewLocalClientCreator(app),
+		proxy.NewLocalClientCreator(myApp),
 		genDocProvider,
 		node.DefaultDBProvider,
 		node.DefaultMetricsProvider(tmCfg.Instrumentation),
-		logger.With("module", val.Moniker),
+		logger.With("moniker", val.Ctx.Config.Moniker),
 	)
 	if err != nil {
 		return err
 	}
 
-	if err := tmNode.Start(); err != nil {
+	if err = tmNode.Start(); err != nil {
 		return err
 	}
 
@@ -80,10 +80,10 @@ func startInProcess(cfg Config, val *Validator) error {
 			WithClient(val.RPCClient)
 
 		// Add the tx service in the gRPC router.
-		app.RegisterTxService(val.ClientCtx)
+		myApp.RegisterTxService(val.ClientCtx)
 
 		// Add the tendermint queries service in the gRPC router.
-		app.RegisterTendermintService(val.ClientCtx)
+		myApp.RegisterTendermintService(val.ClientCtx)
 	}
 
 	errCh := make(chan error, 8)
@@ -91,10 +91,10 @@ func startInProcess(cfg Config, val *Validator) error {
 
 	if val.AppConfig.API.Enable && val.APIAddress != "" {
 		val.api = api.New(val.ClientCtx, logger.With("module", "api-server"))
-		app.RegisterAPIRoutes(val.api, val.AppConfig.API)
+		myApp.RegisterAPIRoutes(val.api, val.AppConfig.API)
 
 		go func() {
-			if err := val.api.Start(val.AppConfig.Config); err != nil {
+			if err = val.api.Start(val.AppConfig.Config); err != nil {
 				errCh <- err
 			}
 		}()
@@ -104,7 +104,7 @@ func startInProcess(cfg Config, val *Validator) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			val.grpc, err = servergrpc.StartGRPCServer(val.ClientCtx, app, val.AppConfig.GRPC.Address)
+			val.grpc, err = servergrpc.StartGRPCServer(val.ClientCtx, myApp, val.AppConfig.GRPC.Address)
 			if err != nil {
 				errCh <- err
 			}
@@ -124,7 +124,7 @@ func startInProcess(cfg Config, val *Validator) error {
 
 	if val.AppConfig.JSONRPC.Enable && val.AppConfig.JSONRPC.Address != "" {
 		if val.Ctx == nil || val.Ctx.Viper == nil {
-			return fmt.Errorf("validator %s context is nil", val.Moniker)
+			return fmt.Errorf("validator %s context is nil", val.Ctx.Config.Moniker)
 		}
 
 		tmEndpoint := "/websocket"
@@ -153,7 +153,7 @@ func startInProcess(cfg Config, val *Validator) error {
 
 	wg.Wait()
 	select {
-	case err := <-errCh:
+	case err = <-errCh:
 		return err
 	default:
 	}
@@ -162,17 +162,10 @@ func startInProcess(cfg Config, val *Validator) error {
 }
 
 func collectGenFiles(cfg Config, vals []*Validator, outputDir string) error {
-	genTime := tmtime.Now()
-
 	for i := 0; i < cfg.NumValidators; i++ {
 		tmCfg := vals[i].Ctx.Config
 
-		nodeDir := filepath.Join(outputDir, vals[i].Moniker, strings.ToLower(cfg.ChainID))
 		gentxsDir := filepath.Join(outputDir, "gentxs")
-
-		tmCfg.Moniker = vals[i].Moniker
-		tmCfg.SetRoot(nodeDir)
-
 		initCfg := genutiltypes.NewInitConfig(cfg.ChainID, gentxsDir, vals[i].NodeID, vals[i].PubKey)
 
 		genFile := tmCfg.GenesisFile()
@@ -181,18 +174,11 @@ func collectGenFiles(cfg Config, vals []*Validator, outputDir string) error {
 			return err
 		}
 
-		appState, err := genutil.GenAppStateFromConfig(cfg.Codec, cfg.TxConfig,
-			tmCfg, initCfg, *genDoc, banktypes.GenesisBalancesIterator{})
+		_, err = genutil.GenAppStateFromConfig(cfg.Codec, cfg.TxConfig, tmCfg, initCfg, *genDoc, banktypes.GenesisBalancesIterator{})
 		if err != nil {
 			return err
 		}
-
-		// overwrite each validator's genesis file to have a canonical genesis time
-		if err = genutil.ExportGenesisFileWithTime(genFile, cfg.ChainID, nil, appState, genTime); err != nil {
-			return err
-		}
 	}
-
 	return nil
 }
 
@@ -245,15 +231,21 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 		return err
 	}
 
+	customConsensusParams := app.CustomConsensusParams()
+	customConsensusParams.Block.TimeIotaMs = cfg.TimeoutCommit.Milliseconds()
 	genDoc := types.GenesisDoc{
-		ChainID:    cfg.ChainID,
-		AppState:   appGenStateJSON,
-		Validators: nil,
+		GenesisTime:     time.Now(),
+		ChainID:         cfg.ChainID,
+		InitialHeight:   1,
+		ConsensusParams: customConsensusParams,
+		Validators:      nil,
+		AppHash:         nil,
+		AppState:        appGenStateJSON,
 	}
 
 	// generate empty genesis files for each validator and save
 	for i := 0; i < cfg.NumValidators; i++ {
-		if err := genDoc.SaveAs(genFiles[i]); err != nil {
+		if err = genDoc.SaveAs(genFiles[i]); err != nil {
 			return err
 		}
 	}
@@ -272,9 +264,8 @@ func writeFile(name string, dir string, contents []byte) error {
 	return tmos.WriteFile(file, contents, 0o644)
 }
 
-// printMnemonic prints a provided mnemonic seed phrase on a network logger
-// for debugging and manual testing
-func printMnemonic(l Logger, secret string) {
+// printMnemonic prints a provided mnemonic seed phrase for debugging and manual testing
+func printMnemonic(secret string) {
 	lines := []string{
 		"THIS MNEMONIC IS FOR TESTING PURPOSES ONLY",
 		"DO NOT USE IN PRODUCTION",
@@ -296,13 +287,13 @@ func printMnemonic(l Logger, secret string) {
 		}
 	}
 
-	l.Log("\n")
-	l.Log(strings.Repeat("+", maxLineLength+8))
+	fmt.Print("\n")
+	fmt.Print(strings.Repeat("+", maxLineLength+8))
 	for _, line := range lines {
-		l.Logf("++  %s  ++\n", centerText(line, maxLineLength))
+		fmt.Printf("++  %s  ++\n", centerText(line, maxLineLength))
 	}
-	l.Log(strings.Repeat("+", maxLineLength+8))
-	l.Log("\n")
+	fmt.Print(strings.Repeat("+", maxLineLength+8))
+	fmt.Print("\n")
 }
 
 // centerText centers text across a fixed width, filling either side with whitespace buffers

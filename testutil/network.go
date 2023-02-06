@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,6 +30,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v3/app"
+	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	"github.com/functionx/fx-core/v3/testutil/network"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
@@ -37,20 +39,19 @@ import (
 // DefaultNetworkConfig returns a sane default configuration suitable for nearly all
 // testing requirements.
 func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *network.Config)) network.Config {
-	fxtypes.SetConfig(true)
 	cfg := network.Config{
 		Codec:             encCfg.Codec,
 		TxConfig:          encCfg.TxConfig,
 		LegacyAmino:       encCfg.Amino,
 		InterfaceRegistry: encCfg.InterfaceRegistry,
 		AccountRetriever:  authtypes.AccountRetriever{},
-		AppConstructor: func(val network.Validator) servertypes.Application {
-			return app.New(val.Ctx.Logger, dbm.NewMemDB(),
-				nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
+		AppConstructor: func(appConfig *fxcfg.Config, ctx *server.Context) servertypes.Application {
+			return app.New(ctx.Logger, dbm.NewMemDB(),
+				nil, true, make(map[int64]bool), ctx.Config.RootDir, 0,
 				encCfg,
 				app.EmptyAppOptions{},
-				baseapp.SetPruning(storetypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
-				baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
+				baseapp.SetPruning(storetypes.NewPruningOptionsFromString(appConfig.Pruning)),
+				baseapp.SetMinGasPrices(appConfig.MinGasPrices),
 			)
 		},
 		GenesisState:    NoSupplyGenesisState(encCfg.Codec),
@@ -112,8 +113,8 @@ func IbcGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesis
 		clienttypes.NewIdentifiedClientState(clientId, &ibctmtypes.ClientState{
 			ChainId:      tmrand.Str(10),
 			LatestHeight: clienttypes.NewHeight(0, 1),
-			// if ibc timeout  ctx.BlockTime() > TrustingPeriod + consensusStateAny.Timestamp
-			TrustingPeriod: time.Hour,
+			// if ibc timeout  ctx.BlockTime() > TrustingPeriod + clientState.ClientsConsensus.Timestamp
+			TrustingPeriod: 8 * time.Minute,
 		}),
 	}
 

@@ -171,7 +171,7 @@ test:
 	go test -mod=readonly ./...
 
 test-count:
-	go test -mod=readonly -count 1 ./...
+	go test -mod=readonly -cpu 1 -count 1 -cover ./... | grep -v 'types\|cli\|no test files'
 
 .PHONY: test
 
