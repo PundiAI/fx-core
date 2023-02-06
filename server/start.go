@@ -231,7 +231,7 @@ func startStandAlone(ctx *server.Context, appCreator types.AppCreator) error {
 		return err
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
+		if err = db.Close(); err != nil {
 			ctx.Logger.With("error", err).Error("error closing db")
 		}
 	}()
@@ -269,9 +269,8 @@ func startStandAlone(ctx *server.Context, appCreator types.AppCreator) error {
 // legacyAminoCdc is used for the legacy REST API
 //
 //gocyclo:ignore
-func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator types.AppCreator) (err error) {
+func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator types.AppCreator) error {
 	cfg := ctx.Config
-	home := cfg.RootDir
 	logger := ctx.Logger
 	var cpuProfileCleanup func() error
 
@@ -287,14 +286,14 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		}
 
 		ctx.Logger.Info("starting CPU profiler", "profile", cpuProfile)
-		if err := pprof.StartCPUProfile(f); err != nil {
+		if err = pprof.StartCPUProfile(f); err != nil {
 			return err
 		}
 
 		cpuProfileCleanup = func() error {
 			ctx.Logger.Info("stopping CPU profiler", "profile", cpuProfile)
 			pprof.StopCPUProfile()
-			if err := f.Close(); err != nil {
+			if err = f.Close(); err != nil {
 				logger.Error("failed to close CPU profiler file", "error", err.Error())
 				return err
 			}
@@ -303,13 +302,13 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	}
 
 	traceWriterFile := ctx.Viper.GetString(srvflags.TraceStore)
-	db, err := openDB(home)
+	db, err := openDB(cfg.RootDir)
 	if err != nil {
 		logger.Error("failed to open DB", "error", err.Error())
 		return err
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
+		if err = db.Close(); err != nil {
 			ctx.Logger.With("error", err).Error("error closing db")
 		}
 	}()
@@ -325,7 +324,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		return err
 	}
 
-	if err := config.ValidateBasic(); err != nil {
+	if err = config.ValidateBasic(); err != nil {
 		if strings.Contains(err.Error(), "set min gas price in app.toml or flag or env variable") {
 			ctx.Logger.Error(
 				"WARNING: The minimum-gas-prices config in app.toml is set to the empty string. " +
@@ -345,13 +344,12 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		return err
 	}
 
-	genDocProvider := node.DefaultGenesisDocProviderFunc(cfg)
 	tmNode, err := node.NewNode(
 		cfg,
 		pvm.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile()),
 		nodeKey,
 		proxy.NewLocalClientCreator(app),
-		genDocProvider,
+		node.DefaultGenesisDocProviderFunc(cfg),
 		node.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
 		ctx.Logger.With("server", "node"),
@@ -361,7 +359,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		return err
 	}
 
-	if err := tmNode.Start(); err != nil {
+	if err = tmNode.Start(); err != nil {
 		logger.Error("failed start tendermint server", "error", err.Error())
 		return err
 	}
@@ -378,7 +376,8 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 	var evmTxIndexer ethermint.EVMTxIndexer
 	if config.JSONRPC.EnableIndexer {
-		idxDB, err := ethermintserver.OpenIndexerDB(home)
+		var idxDB dbm.DB
+		idxDB, err = ethermintserver.OpenIndexerDB(cfg.RootDir)
 		if err != nil {
 			logger.Error("failed to open evm indexer DB", "error", err.Error())
 			return err
@@ -390,13 +389,13 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 		errCh := make(chan error)
 		go func() {
-			if err := indexerService.Start(); err != nil {
+			if err = indexerService.Start(); err != nil {
 				errCh <- err
 			}
 		}()
 
 		select {
-		case err := <-errCh:
+		case err = <-errCh:
 			return err
 		case <-time.After(types.ServerStartTime): // assume server started successfully
 		}
@@ -404,27 +403,18 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 	var apiSrv *api.Server
 	if config.API.Enable {
-		genDoc, err := genDocProvider()
-		if err != nil {
-			return err
-		}
-
-		clientCtx := clientCtx.
-			WithHomeDir(home).
-			WithChainID(genDoc.ChainID)
-
-		apiSrv = api.New(clientCtx, ctx.Logger.With("server", "api"))
+		apiSrv = api.New(clientCtx, ctx.Logger.With("module", "api-server"))
 		app.RegisterAPIRoutes(apiSrv, config.API)
 		errCh := make(chan error)
 
 		go func() {
-			if err := apiSrv.Start(config.Config); err != nil {
+			if err = apiSrv.Start(config.Config); err != nil {
 				errCh <- err
 			}
 		}()
 
 		select {
-		case err := <-errCh:
+		case err = <-errCh:
 			return err
 		case <-time.After(types.ServerStartTime): // assume server started successfully
 		}
@@ -448,7 +438,6 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		}
 	}
 
-	var rosettaSrv crgserver.Server
 	if config.Rosetta.Enable {
 		offlineMode := config.Rosetta.Offline
 		if !config.GRPC.Enable { // If GRPC is not enabled rosetta cannot work in online mode, so it works in offline mode.
@@ -458,7 +447,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		conf := &rosetta.Config{
 			Blockchain:    config.Rosetta.Blockchain,
 			Network:       config.Rosetta.Network,
-			TendermintRPC: ctx.Config.RPC.ListenAddress,
+			TendermintRPC: cfg.RPC.ListenAddress,
 			GRPCEndpoint:  config.GRPC.Address,
 			Addr:          config.Rosetta.Address,
 			Retries:       config.Rosetta.Retries,
@@ -466,19 +455,20 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		}
 		conf.WithCodec(clientCtx.InterfaceRegistry, clientCtx.Codec.(*codec.ProtoCodec))
 
+		var rosettaSrv crgserver.Server
 		rosettaSrv, err = rosetta.ServerFromConfig(conf)
 		if err != nil {
 			return err
 		}
 		errCh := make(chan error)
 		go func() {
-			if err := rosettaSrv.Start(); err != nil {
+			if err = rosettaSrv.Start(); err != nil {
 				errCh <- err
 			}
 		}()
 
 		select {
-		case err := <-errCh:
+		case err = <-errCh:
 			return err
 		case <-time.After(types.ServerStartTime): // assume server started successfully
 		}
@@ -490,11 +480,11 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	)
 
 	if config.JSONRPC.Enable {
-		clientCtx := clientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
+		ethClientCtx := clientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
 
 		tmEndpoint := "/websocket"
 		tmRPCAddr := cfg.RPC.ListenAddress
-		httpSrv, httpSrvDone, err = ethermintserver.StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, &config, evmTxIndexer)
+		httpSrv, httpSrvDone, err = ethermintserver.StartJSONRPC(ctx, ethClientCtx, tmRPCAddr, tmEndpoint, &config, evmTxIndexer)
 		if err != nil {
 			return err
 		}
@@ -516,7 +506,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		if grpcSrv != nil {
 			grpcSrv.Stop()
 			if grpcWebSrv != nil {
-				if err := grpcWebSrv.Close(); err != nil {
+				if err = grpcWebSrv.Close(); err != nil {
 					logger.Error("failed to close the grpcWebSrc", "error", err.Error())
 				}
 			}
@@ -526,7 +516,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancelFn()
 
-			if err := httpSrv.Shutdown(shutdownCtx); err != nil {
+			if err = httpSrv.Shutdown(shutdownCtx); err != nil {
 				logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
 			} else {
 				logger.Info("HTTP server shut down, waiting 5 sec")
