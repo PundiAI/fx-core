@@ -111,8 +111,6 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-
-	_ = keeper.NewMigrator(am.keeper)
 }
 
 // InitGenesis initializes the genesis state for this module and implements app module.
