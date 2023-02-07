@@ -1,5 +1,5 @@
 // nolint:staticcheck
-package v2
+package v3
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package v2_test
+package v3_test
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
+	v3 "github.com/functionx/fx-core/v3/x/gravity/migrations/v3"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
@@ -46,7 +46,7 @@ func TestMigrateBank(t *testing.T) {
 	balances2 := app.BankKeeper.GetAllBalances(ctx, app.AccountKeeper.GetModuleAddress(gravitytypes.ModuleName))
 	assert.Equal(t, balances2.String(), coins.String())
 
-	err = v2.MigrateBank(ctx, app.AccountKeeper, app.BankKeeper, ethtypes.ModuleName)
+	err = v3.MigrateBank(ctx, app.AccountKeeper, app.BankKeeper, ethtypes.ModuleName)
 	assert.NoError(t, err)
 
 	balances3 := app.BankKeeper.GetAllBalances(ctx, app.AccountKeeper.GetModuleAddress(ethtypes.ModuleName))

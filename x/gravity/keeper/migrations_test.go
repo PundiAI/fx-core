@@ -22,7 +22,7 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	"github.com/functionx/fx-core/v3/x/gravity/keeper"
-	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
+	v3 "github.com/functionx/fx-core/v3/x/gravity/migrations/v3"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
@@ -64,7 +64,7 @@ func (suite *MigrationTestSuite) SetupTest() {
 	)
 	suite.msgServer = crosschainkeeper.NewMsgServerImpl(suite.app.EthKeeper)
 
-	for _, addr := range v2.GetEthOracleAddrs(suite.ctx.ChainID()) {
+	for _, addr := range v3.GetEthOracleAddrs(suite.ctx.ChainID()) {
 		helpers.AddTestAddr(suite.app, suite.ctx, sdk.MustAccAddressFromBech32(addr), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
 	}
 
@@ -80,12 +80,12 @@ func (suite *MigrationTestSuite) SetupTest() {
 func (suite *MigrationTestSuite) InitGravityStore() {
 	paramsStore := suite.ctx.MultiStore().GetKVStore(suite.app.GetKey(paramstypes.ModuleName))
 	gravityStore := suite.ctx.MultiStore().GetKVStore(suite.app.GetKey(types.ModuleName))
-	v2.InitTestGravityDB(suite.app.AppCodec(), suite.app.LegacyAmino(), suite.genesisState, paramsStore, gravityStore)
+	v3.InitTestGravityDB(suite.app.AppCodec(), suite.app.LegacyAmino(), suite.genesisState, paramsStore, gravityStore)
 }
 
 func (suite *MigrationTestSuite) createDefGenesisState() {
 	suite.genesisState = types.GenesisState{
-		Params:            v2.TestParams(),
+		Params:            v3.TestParams(),
 		LastObservedNonce: tmrand.Uint64(),
 		Erc20ToDenoms: []types.ERC20ToDenom{
 			{
@@ -111,7 +111,7 @@ func (suite *MigrationTestSuite) createDefGenesisState() {
 			Observed: true,
 			Votes:    votes,
 			Height:   tmrand.Uint64(),
-			Claim: v2.AttClaimToAny(&types.MsgDepositClaim{
+			Claim: v3.AttClaimToAny(&types.MsgDepositClaim{
 				EventNonce:    suite.genesisState.LastObservedNonce,
 				BlockHeight:   tmrand.Uint64(),
 				TokenContract: helpers.GenerateAddress().Hex(),

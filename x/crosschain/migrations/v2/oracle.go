@@ -6,7 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
-	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v1"
+	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/migrations/v1"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 

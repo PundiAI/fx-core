@@ -38,7 +38,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	gravityv2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
+	gravityv3 "github.com/functionx/fx-core/v3/x/gravity/migrations/v3"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -144,7 +144,7 @@ func Test_Upgrade(t *testing.T) {
 }
 
 func initEthOracleBalances(t *testing.T, ctx sdk.Context, myApp *app.App) {
-	oracles := gravityv2.GetEthOracleAddrs(ctx.ChainID())
+	oracles := gravityv3.GetEthOracleAddrs(ctx.ChainID())
 	for _, oracle := range oracles {
 		addr := sdk.MustAccAddressFromBech32(oracle)
 		err := myApp.BankKeeper.SendCoinsFromModuleToAccount(ctx, distributiontypes.ModuleName, addr,

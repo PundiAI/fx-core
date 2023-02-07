@@ -3,7 +3,7 @@ package v2
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v1"
+	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/migrations/v1"
 )
 
 func MigrateStore(ctx sdk.Context, storeKey sdk.StoreKey) {

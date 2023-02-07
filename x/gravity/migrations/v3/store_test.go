@@ -1,5 +1,5 @@
 // nolint:staticcheck
-package v2_test
+package v3_test
 
 import (
 	"encoding/hex"
@@ -25,7 +25,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
+	v3 "github.com/functionx/fx-core/v3/x/gravity/migrations/v3"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
@@ -66,7 +66,7 @@ func (suite *TestSuite) SetupTest() {
 
 func (suite *TestSuite) TestMigrateStore() {
 	suite.genesisState = types.GenesisState{
-		Params:            v2.TestParams(),
+		Params:            v3.TestParams(),
 		LastObservedNonce: tmrand.Uint64(),
 		LastObservedBlockHeight: types.LastObservedEthereumBlockHeight{
 			FxBlockHeight:  tmrand.Uint64(),
@@ -201,7 +201,7 @@ func (suite *TestSuite) TestMigrateStore() {
 			Observed: true,
 			Votes:    votes,
 			Height:   tmrand.Uint64(),
-			Claim: v2.AttClaimToAny(&types.MsgDepositClaim{
+			Claim: v3.AttClaimToAny(&types.MsgDepositClaim{
 				EventNonce:    tmrand.Uint64(),
 				BlockHeight:   tmrand.Uint64(),
 				TokenContract: helpers.GenerateAddress().Hex(),
@@ -216,7 +216,7 @@ func (suite *TestSuite) TestMigrateStore() {
 			Observed: true,
 			Votes:    votes,
 			Height:   tmrand.Uint64(),
-			Claim: v2.AttClaimToAny(&types.MsgWithdrawClaim{
+			Claim: v3.AttClaimToAny(&types.MsgWithdrawClaim{
 				EventNonce:    tmrand.Uint64(),
 				BlockHeight:   tmrand.Uint64(),
 				BatchNonce:    tmrand.Uint64(),
@@ -228,7 +228,7 @@ func (suite *TestSuite) TestMigrateStore() {
 			Observed: true,
 			Votes:    votes,
 			Height:   tmrand.Uint64(),
-			Claim: v2.AttClaimToAny(&types.MsgValsetUpdatedClaim{
+			Claim: v3.AttClaimToAny(&types.MsgValsetUpdatedClaim{
 				EventNonce:   tmrand.Uint64(),
 				BlockHeight:  tmrand.Uint64(),
 				ValsetNonce:  tmrand.Uint64(),
@@ -244,11 +244,11 @@ func (suite *TestSuite) TestMigrateStore() {
 		Height:  tmrand.Uint64(),
 	}
 
-	v2.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
+	v3.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
 
 	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager()).WithLogger(log.NewNopLogger())
-	oracleMap := v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
-	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore, oracleMap)
+	oracleMap := v3.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
+	v3.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore, oracleMap)
 
 	gravityStoreIter := suite.gravityStore.Iterator(nil, nil)
 	defer gravityStoreIter.Close()
@@ -263,15 +263,15 @@ func (suite *TestSuite) TestMigrateStoreByExportJson() {
 	suite.NoError(err)
 	suite.cdc.MustUnmarshalJSON(data, &suite.genesisState)
 
-	v2.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
+	v3.InitTestGravityDB(suite.cdc, suite.legacyAmino, suite.genesisState, suite.paramsStore, suite.gravityStore)
 
-	oracles := v2.GetEthOracleAddrs(fxtypes.TestnetChainId)
+	oracles := v3.GetEthOracleAddrs(fxtypes.TestnetChainId)
 
 	ctx := sdk.Context{}.WithChainID(fxtypes.TestnetChainId).WithEventManager(sdk.NewEventManager()).WithLogger(log.NewNopLogger())
-	oracleMap := v2.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
+	oracleMap := v3.MigrateValidatorToOracle(ctx, suite.cdc, suite.gravityStore, suite.ethStore, testKeeper{}, testKeeper{})
 	suite.Equal(len(oracles), len(oracleMap))
 
-	v2.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore, oracleMap)
+	v3.MigrateStore(suite.cdc, suite.gravityStore, suite.ethStore, oracleMap)
 
 	suite.Equal(len(ctx.EventManager().Events()), 20)
 

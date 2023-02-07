@@ -33,7 +33,7 @@ import (
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
+	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/migrations/v2"
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"

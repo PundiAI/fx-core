@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v1"
+	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/migrations/v1"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 

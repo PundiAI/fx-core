@@ -1,4 +1,4 @@
-package v2_test
+package v3_test
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
-	v2 "github.com/functionx/fx-core/v3/x/erc20/legacy/v2"
+	v3 "github.com/functionx/fx-core/v3/x/erc20/migrations/v3"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -59,7 +59,7 @@ func (suite *MigrateTestSuite) TestMigrateIBCTransferRelation() {
 	keeper := erc20keeper.NewKeeper(suite.storeKey, protoCodec, subspace, suite, nil, nil, nil)
 
 	kvStore := suite.ctx.MultiStore().GetKVStore(suite.storeKey)
-	v2.MigrateIBCTransferRelation(suite.ctx, kvStore, keeper)
+	v3.MigrateIBCTransferRelation(suite.ctx, kvStore, keeper)
 
 	var counts2 int
 	iterator := kvStore.Iterator(nil, nil)

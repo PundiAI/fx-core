@@ -1,4 +1,4 @@
-package v2_test
+package v3_test
 
 import (
 	"testing"
@@ -6,19 +6,22 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v2"
+	crosschainv2 "github.com/functionx/fx-core/v3/x/crosschain/migrations/v2"
+	crosschainv3 "github.com/functionx/fx-core/v3/x/crosschain/migrations/v3"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func TestMigrateDepositToStaking(t *testing.T) {
+	proposalOracle := types.ProposalOracle{}
 	newOracles := func(number int, validatorAddr string) types.Oracles {
 		oracles := make(types.Oracles, number)
 		for i := 0; i < len(oracles); i++ {
@@ -32,6 +35,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 				DelegateValidator: validatorAddr,
 				SlashTimes:        0,
 			}
+			proposalOracle.Oracles = append(proposalOracle.Oracles, oracles[i].OracleAddress)
 		}
 		return oracles
 	}
@@ -70,7 +74,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 			valSet, genAccs, balances := helpers.GenerateGenesisValidator(20, nil)
 			myApp := helpers.SetupWithGenesisValSet(t, valSet, genAccs, balances...)
 
-			ctx := myApp.NewContext(false, tmproto.Header{Time: time.Now()})
+			ctx := myApp.NewContext(false, tmproto.Header{Time: time.Now(), Height: 1})
 			validators := myApp.StakingKeeper.GetBondedValidatorsByPower(ctx)
 			require.Equal(t, len(validators), 20)
 			delegatorValidator := validators[0]
@@ -97,12 +101,15 @@ func TestMigrateDepositToStaking(t *testing.T) {
 
 			oracles := newOracles(tt.args.oracleNumber, delegatorValidator.OperatorAddress)
 			for _, oracle := range oracles {
-				err := myApp.BankKeeper.MintCoins(ctx, tt.args.moduleName, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount)))
+				delegateCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: oracle.DelegateAmount}}
+				err := myApp.BankKeeper.MintCoins(ctx, tt.args.moduleName, delegateCoins)
 				require.NoError(t, err)
 			}
 
-			err := crosschainv2.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper, myApp.BankKeeper, oracles, delegatorValidator.GetOperator())
-			require.NoError(t, err)
+			require.NoError(t, crosschainv2.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper,
+				myApp.BankKeeper, oracles, delegatorValidator.GetOperator()))
+			require.NoError(t, crosschainv3.MigrateDepositToStaking(ctx, tt.args.moduleName, myApp.StakingKeeper, stakingkeeper.NewMsgServerImpl(myApp.StakingKeeper),
+				myApp.BankKeeper, oracles, delegatorValidator.GetOperator()))
 
 			allDelegations := myApp.StakingKeeper.GetAllDelegations(ctx)
 			require.EqualValues(t, len(allDelegations), oracles.Len()+valSet.Size())
@@ -110,7 +117,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 			for _, oracle := range oracles {
 				delegateAddr := oracle.GetDelegateAddress(tt.args.moduleName)
 				bonded := myApp.StakingKeeper.GetDelegatorBonded(ctx, delegateAddr)
-				require.Equal(t, bonded, oracle.DelegateAmount)
+				require.Equal(t, bonded.String(), oracle.DelegateAmount.String())
 
 				delegation, found := myApp.StakingKeeper.GetDelegation(ctx, delegateAddr, oracle.GetValidator())
 				require.True(t, found)
@@ -133,8 +140,8 @@ func TestMigrateDepositToStaking(t *testing.T) {
 				totalDelegatorShares1 = totalDelegatorShares1.Add(validator.DelegatorShares)
 			}
 			require.Equal(t, totalTokens1.String(), totalDelegatorShares1.RoundInt().String())
-			require.NotEqual(t, totalTokens.String(), totalTokens1.String())
-			require.NotEqual(t, totalDelegatorShares, totalDelegatorShares1)
+			require.Equal(t, totalTokens.String(), totalTokens1.String())
+			require.Equal(t, totalDelegatorShares, totalDelegatorShares1)
 
 			require.Equal(t, bondedPoolAllBalances, myApp.BankKeeper.GetAllBalances(ctx, bondedPool.GetAddress()))
 			require.Equal(t, sdk.Coins{}, myApp.BankKeeper.GetAllBalances(ctx, notBondedPool.GetAddress()))

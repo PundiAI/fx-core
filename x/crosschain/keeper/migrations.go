@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	crosschainv3 "github.com/functionx/fx-core/v3/x/crosschain/legacy/v3"
+	crosschainv3 "github.com/functionx/fx-core/v3/x/crosschain/migrations/v3"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 

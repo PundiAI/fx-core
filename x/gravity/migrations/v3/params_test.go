@@ -1,4 +1,4 @@
-package v2_test
+package v3_test
 
 import (
 	"testing"
@@ -15,7 +15,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	v2 "github.com/functionx/fx-core/v3/x/gravity/legacy/v2"
+	v3 "github.com/functionx/fx-core/v3/x/gravity/migrations/v3"
 	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
@@ -29,14 +29,14 @@ func TestMigrateParams(t *testing.T) {
 	amino := app.MakeEncodingConfig().Amino
 	paramsStore := ms.GetKVStore(paramsStoreKey)
 	oldStore := prefix.NewStore(paramsStore, append([]byte(types.ModuleName), '/'))
-	gravityParams := v2.TestParams()
+	gravityParams := v3.TestParams()
 	for _, pair := range gravityParams.ParamSetPairs() {
 		bz, err := amino.MarshalJSON(pair.Value)
 		assert.NoError(t, err)
 		oldStore.Set(pair.Key, bz)
 	}
 
-	err := v2.MigrateParams(amino, paramsStore, ethtypes.ModuleName)
+	err := v3.MigrateParams(amino, paramsStore, ethtypes.ModuleName)
 	assert.NoError(t, err)
 
 	newStore := prefix.NewStore(paramsStore, append([]byte(ethtypes.ModuleName), '/'))

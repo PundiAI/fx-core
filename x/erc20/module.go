@@ -17,7 +17,7 @@ import (
 
 	"github.com/functionx/fx-core/v3/x/erc20/client/cli"
 	"github.com/functionx/fx-core/v3/x/erc20/keeper"
-	v2 "github.com/functionx/fx-core/v3/x/erc20/legacy/v2"
+	v3 "github.com/functionx/fx-core/v3/x/erc20/migrations/v3"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -81,11 +81,11 @@ func (AppModuleBasic) RegisterInterfaces(interfaceRegistry codectypes.InterfaceR
 type AppModule struct {
 	AppModuleBasic
 	keeper        keeper.Keeper
-	channelKeeper v2.Channelkeeper
+	channelKeeper v3.Channelkeeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper, channelKeeper v2.Channelkeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, channelKeeper v3.Channelkeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
