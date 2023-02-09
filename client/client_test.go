@@ -360,6 +360,17 @@ func (suite *rpcTestSuite) TestClient_Query() {
 			},
 		},
 		{
+			funcName: "QueryBalance",
+			params:   []interface{}{sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(), fxtypes.DefaultDenom},
+			wantRes: []interface{}{
+				sdk.Coin{
+					Denom:  fxtypes.DefaultDenom,
+					Amount: sdk.ZeroInt(),
+				},
+				nil,
+			},
+		},
+		{
 			funcName: "QueryBalances",
 			params:   []interface{}{suite.GetFirstValidator().Address.String()},
 			wantRes: []interface{}{
