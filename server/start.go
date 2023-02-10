@@ -574,10 +574,12 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) 
 			return nil
 		}
 		if blockStore.Height() < 5_713_000 {
-			return errors.New("invalid version: Sync block from scratch please use use fxcored v1.x.x")
+			return errors.New("invalid version: The current block height is less than the fxv2 upgrade height(8_756_000), " +
+				"sync block from scratch please use use fxcored v1.x.x")
 		}
 		if blockStore.Height() < 8_756_000 {
-			return errors.New("invalid version: Sync block from scratch please use use fxcored v2.x.x")
+			return errors.New("invalid version: The current block height is less than the fxv3 upgrade height(8_756_000)," +
+				" please use the v2.x.x version to synchronize the block or download the latest snapshot")
 		}
 	}
 	return nil
