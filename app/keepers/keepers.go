@@ -31,7 +31,6 @@ import (
 	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
@@ -71,6 +70,7 @@ import (
 	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	fxstakingkeeper "github.com/functionx/fx-core/v3/x/staking/keeper"
 	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -96,7 +96,7 @@ type AppKeepers struct {
 	AccountKeeper    authkeeper.AccountKeeper
 	BankKeeper       bankkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
-	StakingKeeper    stakingkeeper.Keeper
+	StakingKeeper    fxstakingkeeper.Keeper
 	SlashingKeeper   slashingkeeper.Keeper
 	MintKeeper       mintkeeper.Keeper
 	DistrKeeper      distrkeeper.Keeper
@@ -194,7 +194,7 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(banktypes.ModuleName),
 		blockedAddress,
 	)
-	stakingKeeper := stakingkeeper.NewKeeper(
+	stakingKeeper := fxstakingkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[stakingtypes.StoreKey],
 		appKeepers.AccountKeeper,
@@ -326,7 +326,7 @@ func NewAppKeeper(
 		appKeepers.keys[bsctypes.StoreKey],
 		appKeepers.GetSubspace(bsctypes.ModuleName),
 		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -340,7 +340,7 @@ func NewAppKeeper(
 		appKeepers.keys[polygontypes.StoreKey],
 		appKeepers.GetSubspace(polygontypes.ModuleName),
 		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -354,7 +354,7 @@ func NewAppKeeper(
 		appKeepers.keys[avalanchetypes.StoreKey],
 		appKeepers.GetSubspace(avalanchetypes.ModuleName),
 		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -368,7 +368,7 @@ func NewAppKeeper(
 		appKeepers.keys[ethtypes.StoreKey],
 		appKeepers.GetSubspace(ethtypes.ModuleName),
 		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -382,7 +382,7 @@ func NewAppKeeper(
 		appKeepers.keys[trontypes.StoreKey],
 		appKeepers.GetSubspace(trontypes.ModuleName),
 		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,

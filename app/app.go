@@ -315,7 +315,7 @@ func (ao EmptyAppOptions) Get(string) interface{} {
 }
 
 func (app *App) GetStakingKeeper() stakingkeeper.Keeper {
-	return app.StakingKeeper
+	return app.StakingKeeper.Keeper
 }
 
 func (app *App) GetIBCKeeper() *ibckeeper.Keeper {
