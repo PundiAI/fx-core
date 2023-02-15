@@ -7,6 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/stretchr/testify/require"
@@ -19,6 +20,9 @@ import (
 
 // nolint
 func TestAminoEncode(t *testing.T) {
+	oneDec := sdk.NewDec(1)
+	oneInt := sdk.NewInt(1)
+
 	testcases := []struct {
 		name     string
 		expected string
@@ -81,6 +85,38 @@ func TestAminoEncode(t *testing.T) {
 					Name:    "test name",
 					Symbol:  "TEST",
 				},
+			},
+		},
+		{
+			name:     "staking-MsgEditValidator",
+			expected: `{"type":"cosmos-sdk/MsgEditValidator","value":{"commission_rate":"1.000000000000000000","description":{"details":"foo","identity":"foo","moniker":"foo","security_contact":"foo","website":"foo"},"min_self_delegation":"1","validator_address":"cosmosvaloper1h6lrm4uusd46tu4slkg620hylv46hhff7a8su6"}}`,
+			msg: stakingtypes.MsgEditValidator{
+				Description: stakingtypes.Description{
+					Moniker:         "foo",
+					Identity:        "foo",
+					Website:         "foo",
+					SecurityContact: "foo",
+					Details:         "foo",
+				},
+				ValidatorAddress:  "cosmosvaloper1h6lrm4uusd46tu4slkg620hylv46hhff7a8su6",
+				CommissionRate:    &oneDec,
+				MinSelfDelegation: &oneInt,
+			},
+		},
+		{
+			name:     "staking-MsgEditValidator",
+			expected: `{"type":"cosmos-sdk/MsgEditValidator","value":{"description":{"details":"foo","moniker":"foo","security_contact":"foo","website":"foo"},"validator_address":"cosmosvaloper1h6lrm4uusd46tu4slkg620hylv46hhff7a8su6"}}`,
+			msg: stakingtypes.MsgEditValidator{
+				Description: stakingtypes.Description{
+					Moniker:         "foo",
+					Identity:        "",
+					Website:         "foo",
+					SecurityContact: "foo",
+					Details:         "foo",
+				},
+				ValidatorAddress:  "cosmosvaloper1h6lrm4uusd46tu4slkg620hylv46hhff7a8su6",
+				CommissionRate:    nil,
+				MinSelfDelegation: nil,
 			},
 		},
 	}
