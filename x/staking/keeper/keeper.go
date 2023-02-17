@@ -99,6 +99,10 @@ func (k Keeper) DeployLPToken(ctx sdk.Context, valAddr sdk.ValAddress) (common.A
 	if err != nil {
 		return common.Address{}, sdkerrors.ErrInvalidRequest.Wrapf("failed to deploy lpToken contract: %s", err.Error())
 	}
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventCreateLPToken,
+		sdk.NewAttribute(types.AttributeKeyLPTokenAddress, contractAddr.String()),
+	))
 	k.setLPTokenContract(ctx, valAddr, contractAddr)
 	return contractAddr, nil
 }

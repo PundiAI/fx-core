@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -19,7 +20,13 @@ func (k Keeper) Hooks() LPTokenHook {
 }
 
 // AfterValidatorCreated - call hook if registered
-func (h LPTokenHook) AfterValidatorCreated(_ sdk.Context, _ sdk.ValAddress) {}
+func (h LPTokenHook) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) {
+	_, err := h.keeper.DeployLPToken(ctx, valAddr)
+	if err != nil {
+		// todo - cosmos-sdk v0.46.x will return error
+		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to deploy lp token contract: %s", err.Error()))
+	}
+}
 
 // BeforeValidatorModified - call hook if registered
 func (h LPTokenHook) BeforeValidatorModified(_ sdk.Context, _ sdk.ValAddress) {}
@@ -30,19 +37,21 @@ func (h LPTokenHook) AfterValidatorRemoved(ctx sdk.Context, _ sdk.ConsAddress, v
 
 	lpTokenContract, found := h.keeper.GetLPTokenContract(ctx, valAddr)
 	if !found {
-		// todo - is need panic? if not found, it means that the validator has been removed
-		return
+		// todo - cosmos-sdk v0.46.x will return error
+		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to get lp token contract"))
 	}
 
 	lpToken := fxtypes.GetLPToken().ABI
 	data, err := lpToken.Pack("selfdestruct", common.BytesToAddress(h.keeper.lpTokenModuleAddress.Bytes()))
 	if err != nil {
-		return
+		// todo - cosmos-sdk v0.46.x will return error
+		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to pack selfdestruct data: %s", err.Error()))
 	}
 
 	err = h.keeper.callEVM(ctx, &lpTokenContract, data)
 	if err != nil {
-		return
+		// todo - cosmos-sdk v0.46.x will return error
+		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to call selfdestruct: %s", err.Error()))
 	}
 }
 

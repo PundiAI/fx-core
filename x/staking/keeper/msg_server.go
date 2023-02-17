@@ -12,8 +12,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
-
-	"github.com/functionx/fx-core/v3/x/staking/types"
 )
 
 type msgServer struct {
@@ -103,15 +101,6 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 
 	// call the after-creation hook
 	k.AfterValidatorCreated(ctx, validator.GetOperator())
-
-	lpTokenContractAddr, err := k.DeployLPToken(ctx, validator.GetOperator())
-	if err != nil {
-		return nil, err
-	}
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventCreateLPToken,
-		sdk.NewAttribute(types.AttributeKeyLPTokenAddress, lpTokenContractAddr.String()),
-	))
 
 	// move coins from the msg.Address account to a (self-delegation) delegator account
 	// the validator account and global shares are updated within here
