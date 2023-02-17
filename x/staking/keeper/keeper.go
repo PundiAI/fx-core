@@ -93,39 +93,14 @@ func (k Keeper) Undelegate(
 }
 
 func (k Keeper) DeployLPToken(ctx sdk.Context, valAddr sdk.ValAddress) (common.Address, error) {
-	_, err := k.accountKeeper.GetSequence(ctx, k.lpTokenModuleAddress.Bytes())
+	lpToken := fxtypes.GetLPToken()
+	contractAddr, err := k.evmKeeper.DeployUpgradableContract(ctx, k.lpTokenModuleAddress, lpToken.Address, nil,
+		&lpToken.ABI, valAddr.String(), types.LPTokenSymbol, types.LPTokenDecimals)
 	if err != nil {
-		return common.Address{}, sdkerrors.ErrInvalidRequest.Wrapf("failed to get lpToken module address nonce")
+		return common.Address{}, sdkerrors.ErrInvalidRequest.Wrapf("failed to deploy lpToken contract: %s", err.Error())
 	}
-
-	// todo - call evm
-	// erc1967Proxy := fxtypes.GetERC1967Proxy()
-	//
-	// lpToken := fxtypes.GetLPToken()
-	// deployInputData, err := erc1967Proxy.ABI.Pack("", lpToken.Address, []byte{})
-	// if err != nil {
-	// 	return sdkerrors.ErrInvalidAddress.Wrapf("failed to pack deploy contract data")
-	// }
-	// data := make([]byte, len(erc1967Proxy.Bin)+len(deployInputData))
-	// copy(data[:len(erc1967Proxy.Bin)], erc1967Proxy.Bin)
-	// copy(data[len(erc1967Proxy.Bin):], deployInputData)
-	//
-	// if err = k.callEVM(ctx, nil, data); err != nil {
-	// 	return sdkerrors.ErrInvalidRequest.Wrapf("failed to deploy lpToken contract: %s", err.Error())
-	// }
-	//
-	// contractAddr := crypto.CreateAddress(k.lpTokenModuleAddress, nonce)
-	// initializeInputData, err := lpToken.ABI.Pack("initialize", valAddr.String(), types.LPTokenSymbol, types.LPTokenDecimals, k.lpTokenModuleAddress)
-	// if err != nil {
-	// 	return sdkerrors.ErrInvalidRequest.Wrapf("failed to pack call initialize method data")
-	// }
-	//
-	// err = k.callEVM(ctx, &contractAddr, initializeInputData)
-	// if err != nil {
-	// 	return sdkerrors.ErrInvalidRequest.Wrapf("failed to call initialize method: %s", err.Error())
-	// }
-	// k.setLPTokenContract(ctx, valAddr, contractAddr)
-	return common.Address{}, nil
+	k.setLPTokenContract(ctx, valAddr, contractAddr)
+	return contractAddr, nil
 }
 
 func (k *Keeper) SetHooks(sh stakingtypes.StakingHooks) *Keeper {
@@ -147,10 +122,10 @@ func (k *Keeper) GetLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress) (co
 	return common.BytesToAddress(bz), bz == nil
 }
 
-// func (k *Keeper) setLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress, lpTokenContract common.Address) {
-// 	kvStore := ctx.KVStore(k.storeKey)
-// 	kvStore.Set(types.GetLPTokenKey(valAddr), lpTokenContract.Bytes())
-// }
+func (k *Keeper) setLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress, lpTokenContract common.Address) {
+	kvStore := ctx.KVStore(k.storeKey)
+	kvStore.Set(types.GetLPTokenKey(valAddr), lpTokenContract.Bytes())
+}
 
 func (k *Keeper) deleteLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress) {
 	kvStore := ctx.KVStore(k.storeKey)

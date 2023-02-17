@@ -14,6 +14,8 @@ import (
 
 var _ types.MsgServer = &Keeper{}
 
+// todo lptoken with migrate?
+
 func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccount) (*types.MsgMigrateAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

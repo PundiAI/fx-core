@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
 )
@@ -21,6 +22,7 @@ type AccountKeeper interface {
 type EvmKeeper interface {
 	CallEVMWithData(ctx sdk.Context, from common.Address, contract *common.Address, data []byte, commit bool) (*types.MsgEthereumTxResponse, error)
 	CreateContractWithCode(ctx sdk.Context, address common.Address, code []byte) error
+	DeployUpgradableContract(ctx sdk.Context, from, logic common.Address, logicData []byte, initializeAbi *abi.ABI, initializeArgs ...interface{}) (common.Address, error)
 }
 
 type MockEvmKeeper struct{}
@@ -40,4 +42,8 @@ func (keeper *MockEvmKeeper) CallEVMWithData(ctx sdk.Context, from common.Addres
 		VmError: "",
 		GasUsed: 0,
 	}, nil
+}
+
+func (keeper *MockEvmKeeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Address, logicData []byte, initializeAbi *abi.ABI, initializeArgs ...interface{}) (common.Address, error) {
+	return common.Address{}, nil
 }

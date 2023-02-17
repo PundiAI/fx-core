@@ -4,5 +4,5 @@ const (
 	LPTokenOwnerModuleName = "lp_token"
 
 	LPTokenSymbol   = "LP Token"
-	LPTokenDecimals = 18
+	LPTokenDecimals = uint8(18)
 )

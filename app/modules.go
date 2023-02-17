@@ -273,6 +273,7 @@ func orderInitBlockers() []string {
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
 
+		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
 
 		stakingtypes.ModuleName,
@@ -290,8 +291,6 @@ func orderInitBlockers() []string {
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-
-		feemarkettypes.ModuleName,
 
 		gravitytypes.ModuleName,
 		crosschaintypes.ModuleName,
