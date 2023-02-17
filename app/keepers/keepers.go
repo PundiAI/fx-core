@@ -461,6 +461,7 @@ func NewAppKeeper(
 		stakingtypes.NewMultiStakingHooks(
 			appKeepers.DistrKeeper.Hooks(),
 			appKeepers.SlashingKeeper.Hooks(),
+			stakingKeeper.Hooks(),
 		),
 	)
 

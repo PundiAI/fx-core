@@ -128,30 +128,6 @@ func (k Keeper) DeployLPToken(ctx sdk.Context, valAddr sdk.ValAddress) (common.A
 	return common.Address{}, nil
 }
 
-// AfterValidatorRemoved - call hook if registered
-func (k Keeper) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
-	k.Keeper.AfterValidatorRemoved(ctx, consAddr, valAddr)
-
-	k.deleteLPTokenContract(ctx, valAddr)
-
-	lpTokenContract, found := k.GetLPTokenContract(ctx, valAddr)
-	if !found {
-		// todo - is need panic? if not found, it means that the validator has been removed
-		return
-	}
-
-	lpToken := fxtypes.GetLPToken().ABI
-	data, err := lpToken.Pack("selfdestruct", common.BytesToAddress(k.lpTokenModuleAddress.Bytes()))
-	if err != nil {
-		return
-	}
-
-	err = k.callEVM(ctx, &lpTokenContract, data)
-	if err != nil {
-		return
-	}
-}
-
 func (k *Keeper) SetHooks(sh stakingtypes.StakingHooks) *Keeper {
 	k.Keeper.SetHooks(sh)
 	return k
