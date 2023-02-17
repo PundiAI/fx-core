@@ -7,11 +7,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/x/evm/statedb"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/evm/types"
 )
 
@@ -62,4 +64,74 @@ func (k *Keeper) UpdateContractCode(ctx sdk.Context, address common.Address, con
 		sdk.NewAttribute(types.AttributeKeyCodeHash, hex.EncodeToString(acc.CodeHash)),
 	))
 	return nil
+}
+
+// DeployContract deploy contract with args
+func (k *Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.ABI, bin []byte, constructorData ...interface{}) (common.Address, error) {
+	args, err := abi.Pack("", constructorData...)
+	if err != nil {
+		return common.Address{}, sdkerrors.Wrap(types.ErrABIPack, err.Error())
+	}
+	data := make([]byte, len(bin)+len(args))
+	copy(data[:len(bin)], bin)
+	copy(data[len(bin):], args)
+
+	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	_, err = k.CallEVMWithData(ctx, from, nil, data, true)
+	if err != nil {
+		return common.Address{}, err
+	}
+	contractAddr := crypto.CreateAddress(from, nonce)
+	return contractAddr, nil
+}
+
+// DeployUpgradableContract deploy upgrade contract and initialize it
+func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Address, logicData []byte, initializeAbi *abi.ABI, initializeArgs ...interface{}) (common.Address, error) {
+	// deploy proxy
+	erc1967Proxy := fxtypes.GetERC1967Proxy()
+	if logicData == nil {
+		logicData = []byte{}
+	}
+	proxyContract, err := k.DeployContract(ctx, from, erc1967Proxy.ABI, erc1967Proxy.Bin, logic, logicData)
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	// initialize contract
+	if initializeAbi != nil {
+		_, err = k.ApplyContract(ctx, from, proxyContract, *initializeAbi, "initialize", initializeArgs...)
+		if err != nil {
+			return common.Address{}, err
+		}
+	}
+	return proxyContract, nil
+}
+
+// CallContract call contract with args and res
+func (k *Keeper) CallContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, constructorData ...interface{}) error {
+	args, err := abi.Pack(method, constructorData...)
+	if err != nil {
+		return sdkerrors.Wrap(types.ErrABIPack, err.Error())
+	}
+	resp, err := k.CallEVMWithData(ctx, from, &contract, args, false)
+	if err != nil {
+		return err
+	}
+	if err = abi.UnpackIntoInterface(res, method, resp.Ret); err != nil {
+		return sdkerrors.Wrap(types.ErrABIUnpack, err.Error())
+	}
+	return nil
+}
+
+// ApplyContract apply contract with args
+func (k *Keeper) ApplyContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
+	args, err := abi.Pack(method, constructorData...)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrABIPack, err.Error())
+	}
+	return k.CallEVMWithData(ctx, from, &contract, args, true)
 }
