@@ -299,6 +299,64 @@ func (k *Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*ty
 	}, nil
 }
 
+// TraceBlock configures a new tracer according to the provided configuration, and
+// executes the given message in the provided environment for all the transactions in the queried block.
+// The return value will be tracer dependent.
+func (k *Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest) (*types.QueryTraceBlockResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if req.TraceConfig != nil && req.TraceConfig.Limit < 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "output limit cannot be negative, got %d", req.TraceConfig.Limit)
+	}
+
+	// minus one to get the context of block beginning
+	contextHeight := req.BlockNumber - 1
+	if contextHeight < 1 {
+		// 0 is a special value in `ContextWithHeight`
+		contextHeight = 1
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	ctx = ctx.WithBlockHeight(contextHeight)
+	ctx = ctx.WithBlockTime(req.BlockTime)
+	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
+
+	cfg, err := k.EVMConfig(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to load evm config")
+	}
+	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
+	txsLength := len(req.Txs)
+	results := make([]*types.TxTraceResult, 0, txsLength)
+
+	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
+	for i, tx := range req.Txs {
+		result := types.TxTraceResult{}
+		ethTx := tx.AsTransaction()
+		txConfig.TxHash = ethTx.Hash()
+		txConfig.TxIndex = uint(i)
+		traceResult, logIndex, err := k.traceTx(ctx, cfg, txConfig, signer, ethTx, req.TraceConfig, true)
+		if err != nil {
+			result.Error = err.Error()
+			continue
+		}
+		txConfig.LogIndex = logIndex
+		result.Result = traceResult
+		results = append(results, &result)
+	}
+
+	resultData, err := json.Marshal(results)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryTraceBlockResponse{
+		Data: resultData,
+	}, nil
+}
+
 // traceTx do trace on one transaction, it returns a tuple: (traceResult, nextLogIndex, error).
 func (k *Keeper) traceTx(
 	ctx sdk.Context,

@@ -15,7 +15,32 @@ import (
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/evmos/ethermint/x/evm/types"
+
+	evmtypes "github.com/functionx/fx-core/v3/x/evm/types"
 )
+
+// EVMConfig creates the EVMConfig based on current state
+func (k *Keeper) EVMConfig(ctx sdk.Context) (*types.EVMConfig, error) {
+	evmParams := k.GetParams(ctx)
+	ethCfg := evmParams.ChainConfig.EthereumConfig(k.ChainID())
+
+	// get the coinbase address from the block proposer, if genesis block, set zero address
+	coinbase := evmtypes.GenesisCoinbase
+	if ctx.BlockHeight() > 0 {
+		var err error
+		coinbase, err = k.GetCoinbaseAddress(ctx)
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, "failed to obtain coinbase address")
+		}
+	}
+	baseFee := k.GetBaseFee(ctx, ethCfg)
+	return &types.EVMConfig{
+		Params:      evmParams,
+		ChainConfig: ethCfg,
+		CoinBase:    coinbase,
+		BaseFee:     baseFee,
+	}, nil
+}
 
 // ApplyTransaction runs and attempts to perform a state transition with the given transaction (i.e Message), that will
 // only be persisted (committed) to the underlying KVStore if the transaction does not fail.
