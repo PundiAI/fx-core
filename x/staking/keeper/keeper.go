@@ -50,7 +50,7 @@ func (k Keeper) Delegate(
 	}
 
 	// todo - call evm contract
-	// lpTokenContract, found := k.GetLPTokenContract(ctx, validator.GetOperator())
+	// lpTokenContract, found := k.GetValidatorLPToken(ctx, validator.GetOperator())
 	// if !found {
 	// 	return sdk.ZeroDec(), sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
 	// }
@@ -78,7 +78,7 @@ func (k Keeper) Undelegate(
 	}
 
 	// todo - call evm contract
-	// lpTokenContract, found := k.GetLPTokenContract(ctx, valAddr)
+	// lpTokenContract, found := k.GetValidatorLPToken(ctx, valAddr)
 	// if !found {
 	// 	return undelegate, sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
 	// }
@@ -120,20 +120,30 @@ func (k *Keeper) SetEvmKeeper(evmKeeper types.EvmKeeper) *Keeper {
 	return k
 }
 
-func (k *Keeper) GetLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress) (common.Address, bool) {
+func (k *Keeper) GetValidatorLPToken(ctx sdk.Context, valAddr sdk.ValAddress) (common.Address, bool) {
 	kvStore := ctx.KVStore(k.storeKey)
-	bz := kvStore.Get(types.GetLPTokenKey(valAddr))
+	bz := kvStore.Get(types.GetValidatorLPTokenKey(valAddr))
 	return common.BytesToAddress(bz), bz == nil
+}
+
+func (k *Keeper) GetLPTokenValidator(ctx sdk.Context, lpTokenContract common.Address) (sdk.ValAddress, bool) {
+	kvStore := ctx.KVStore(k.storeKey)
+	bz := kvStore.Get(types.GetLPTokenValidatorKey(lpTokenContract))
+	return bz, bz == nil
 }
 
 func (k *Keeper) setLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress, lpTokenContract common.Address) {
 	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Set(types.GetLPTokenKey(valAddr), lpTokenContract.Bytes())
+	kvStore.Set(types.GetValidatorLPTokenKey(valAddr), lpTokenContract.Bytes())
+	kvStore.Set(types.GetLPTokenValidatorKey(lpTokenContract), valAddr.Bytes())
 }
 
 func (k *Keeper) deleteLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress) {
 	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Delete(types.GetLPTokenKey(valAddr))
+	key := types.GetValidatorLPTokenKey(valAddr)
+	lpTokenByte := kvStore.Get(key)
+	kvStore.Delete(key)
+	kvStore.Delete(types.GetLPTokenValidatorKey(common.BytesToAddress(lpTokenByte)))
 }
 
 func (k *Keeper) callEVM(ctx sdk.Context, contract *common.Address, data []byte) error {

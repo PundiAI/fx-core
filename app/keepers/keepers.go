@@ -436,7 +436,12 @@ func NewAppKeeper(
 		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
 	appKeepers.Erc20Keeper = erc20Keeper.SetRouter(*transferRouter)
 
-	appKeepers.EvmKeeper.SetHooks(appKeepers.Erc20Keeper.EVMHooks())
+	appKeepers.EvmKeeper.SetHooks(
+		evmkeeper.NewMultiEvmHooks(
+			stakingKeeper.EVMHooks(),
+			appKeepers.Erc20Keeper.EVMHooks(),
+		),
+	)
 
 	stakingKeeper = stakingKeeper.SetEvmKeeper(appKeepers.EvmKeeper)
 

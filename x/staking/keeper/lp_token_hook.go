@@ -35,7 +35,7 @@ func (h LPTokenHook) BeforeValidatorModified(_ sdk.Context, _ sdk.ValAddress) {}
 func (h LPTokenHook) AfterValidatorRemoved(ctx sdk.Context, _ sdk.ConsAddress, valAddr sdk.ValAddress) {
 	h.keeper.deleteLPTokenContract(ctx, valAddr)
 
-	lpTokenContract, found := h.keeper.GetLPTokenContract(ctx, valAddr)
+	lpTokenContract, found := h.keeper.GetValidatorLPToken(ctx, valAddr)
 	if !found {
 		// todo - cosmos-sdk v0.46.x will return error
 		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to get lp token contract"))
