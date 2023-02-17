@@ -55,14 +55,18 @@ func (k Keeper) Delegate(
 	// 	return sdk.ZeroDec(), sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
 	// }
 	//
-	// erc20 := fxtypes.GetLPToken().ABI
-	// data, err := erc20.Pack("mint", common.BytesToAddress(delAddr.Bytes()), newShares.BigInt())
-	// if err != nil {
-	// 	return sdk.ZeroDec(), sdkerrors.ErrInvalidRequest.Wrapf("failed to pack data: %s", err.Error())
-	// }
-	//
-	// err = k.callEVM(ctx, &lpTokenContract, data)
+	// err = k.MintLPToken(ctx, lpTokenContract, delAddr, newShares)
 	return newShares, err
+}
+
+func (k Keeper) MintLPToken(ctx sdk.Context, lpTokenContractAddr common.Address, to sdk.AccAddress, share sdk.Dec) error {
+	erc20 := fxtypes.GetLPToken().ABI
+	data, err := erc20.Pack("mint", common.BytesToAddress(to.Bytes()), share.BigInt())
+	if err != nil {
+		return sdkerrors.ErrInvalidRequest.Wrapf("failed to pack data: %s", err.Error())
+	}
+
+	return k.callEVM(ctx, &lpTokenContractAddr, data)
 }
 
 func (k Keeper) Undelegate(
@@ -88,10 +92,10 @@ func (k Keeper) Undelegate(
 	return undelegate, err
 }
 
-func (k Keeper) DeployLPToken(ctx sdk.Context, valAddr sdk.ValAddress) error {
+func (k Keeper) DeployLPToken(ctx sdk.Context, valAddr sdk.ValAddress) (common.Address, error) {
 	_, err := k.accountKeeper.GetSequence(ctx, k.lpTokenModuleAddress.Bytes())
 	if err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrapf("failed to get lpToken module address nonce")
+		return common.Address{}, sdkerrors.ErrInvalidRequest.Wrapf("failed to get lpToken module address nonce")
 	}
 
 	// todo - call evm
@@ -121,7 +125,7 @@ func (k Keeper) DeployLPToken(ctx sdk.Context, valAddr sdk.ValAddress) error {
 	// 	return sdkerrors.ErrInvalidRequest.Wrapf("failed to call initialize method: %s", err.Error())
 	// }
 	// k.setLPTokenContract(ctx, valAddr, contractAddr)
-	return nil
+	return common.Address{}, nil
 }
 
 // AfterValidatorRemoved - call hook if registered
@@ -167,10 +171,10 @@ func (k *Keeper) GetLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress) (co
 	return common.BytesToAddress(bz), bz == nil
 }
 
-func (k *Keeper) setLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress, lpTokenContract common.Address) {
-	kvStore := ctx.KVStore(k.storeKey)
-	kvStore.Set(types.GetLPTokenKey(valAddr), lpTokenContract.Bytes())
-}
+// func (k *Keeper) setLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress, lpTokenContract common.Address) {
+// 	kvStore := ctx.KVStore(k.storeKey)
+// 	kvStore.Set(types.GetLPTokenKey(valAddr), lpTokenContract.Bytes())
+// }
 
 func (k *Keeper) deleteLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress) {
 	kvStore := ctx.KVStore(k.storeKey)
@@ -188,4 +192,11 @@ func (k *Keeper) callEVM(ctx sdk.Context, contract *common.Address, data []byte)
 
 func (k *Keeper) GetLPTokenModuleAddress() common.Address {
 	return k.lpTokenModuleAddress
+}
+
+func (k *Keeper) IteratorValidators(ctx sdk.Context) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+
+	iterator := sdk.KVStorePrefixIterator(store, stakingtypes.ValidatorsKey)
+	return iterator
 }

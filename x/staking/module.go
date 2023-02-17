@@ -74,11 +74,11 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	if err := am.evmKeeper.CreateContractWithCode(ctx, fxtypes.GetLPToken().Address, fxtypes.GetLPToken().Code); err != nil {
 		panic(err)
 	}
-	createLPTokenModuleAccount(ctx, types.LPTokenOwnerModuleName, am.accountKeeper, am.bankKeeper)
+	CreateLPTokenModuleAccount(ctx, types.LPTokenOwnerModuleName, am.accountKeeper)
 	return staking.InitGenesis(ctx, am.keeper.Keeper, am.accountKeeper, am.bankKeeper, &genesisState)
 }
 
-func createLPTokenModuleAccount(ctx sdk.Context, lpTokenModuleName string, ak types.AccountKeeper, bk stakingtypes.BankKeeper) {
+func CreateLPTokenModuleAccount(ctx sdk.Context, lpTokenModuleName string, ak types.AccountKeeper) {
 	moduleAddress, permissions := ak.GetModuleAddressAndPermissions(lpTokenModuleName)
 	if moduleAddress == nil || moduleAddress.Empty() {
 		panic("LPTokenOwnerModuleName module account has not been set")
