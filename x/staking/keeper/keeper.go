@@ -49,13 +49,12 @@ func (k Keeper) Delegate(
 		return newShares, err
 	}
 
-	// todo - call evm contract
-	// lpTokenContract, found := k.GetValidatorLPToken(ctx, validator.GetOperator())
-	// if !found {
-	// 	return sdk.ZeroDec(), sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
-	// }
-	//
-	// err = k.MintLPToken(ctx, lpTokenContract, delAddr, newShares)
+	lpTokenContract, found := k.GetValidatorLPToken(ctx, validator.GetOperator())
+	if !found {
+		return sdk.ZeroDec(), sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
+	}
+
+	err = k.MintLPToken(ctx, lpTokenContract, delAddr, newShares)
 	return newShares, err
 }
 
@@ -77,18 +76,17 @@ func (k Keeper) Undelegate(
 		return undelegate, err
 	}
 
-	// todo - call evm contract
-	// lpTokenContract, found := k.GetValidatorLPToken(ctx, valAddr)
-	// if !found {
-	// 	return undelegate, sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
-	// }
-	//
-	// data, err := fxtypes.GetLPToken().ABI.Pack("burn", common.BytesToAddress(delAddr.Bytes()), sharesAmount.BigInt())
-	// if err != nil {
-	// 	return undelegate, sdkerrors.ErrInvalidRequest.Wrapf("failed to pack data: %s", err.Error())
-	// }
-	//
-	// err = k.callEVM(ctx, &lpTokenContract, data)
+	lpTokenContract, found := k.GetValidatorLPToken(ctx, valAddr)
+	if !found {
+		return undelegate, sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
+	}
+
+	data, err := fxtypes.GetLPToken().ABI.Pack("burn", common.BytesToAddress(delAddr.Bytes()), sharesAmount.BigInt())
+	if err != nil {
+		return undelegate, sdkerrors.ErrInvalidRequest.Wrapf("failed to pack data: %s", err.Error())
+	}
+
+	err = k.callEVM(ctx, &lpTokenContract, data)
 	return undelegate, err
 }
 
@@ -123,13 +121,13 @@ func (k *Keeper) SetEvmKeeper(evmKeeper types.EvmKeeper) *Keeper {
 func (k *Keeper) GetValidatorLPToken(ctx sdk.Context, valAddr sdk.ValAddress) (common.Address, bool) {
 	kvStore := ctx.KVStore(k.storeKey)
 	bz := kvStore.Get(types.GetValidatorLPTokenKey(valAddr))
-	return common.BytesToAddress(bz), bz == nil
+	return common.BytesToAddress(bz), bz != nil
 }
 
 func (k *Keeper) GetLPTokenValidator(ctx sdk.Context, lpTokenContract common.Address) (sdk.ValAddress, bool) {
 	kvStore := ctx.KVStore(k.storeKey)
 	bz := kvStore.Get(types.GetLPTokenValidatorKey(lpTokenContract))
-	return bz, bz == nil
+	return bz, bz != nil
 }
 
 func (k *Keeper) setLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress, lpTokenContract common.Address) {
@@ -147,11 +145,13 @@ func (k *Keeper) deleteLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress) 
 }
 
 func (k *Keeper) callEVM(ctx sdk.Context, contract *common.Address, data []byte) error {
-	k.Logger(ctx).Info("evmKeeper", "key", k.evmKeeper)
+	gasMeter := ctx.GasMeter()
+	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	_, err := k.evmKeeper.CallEVMWithData(ctx, k.lpTokenModuleAddress, contract, data, true)
 	if err != nil {
 		return sdkerrors.ErrInvalidRequest.Wrapf("call evm failed: %s", err.Error())
 	}
+	ctx.WithGasMeter(gasMeter)
 	return nil
 }
 
