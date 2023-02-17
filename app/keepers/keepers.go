@@ -96,7 +96,7 @@ type AppKeepers struct {
 	AccountKeeper    authkeeper.AccountKeeper
 	BankKeeper       bankkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
-	StakingKeeper    fxstakingkeeper.Keeper
+	StakingKeeper    *fxstakingkeeper.Keeper
 	SlashingKeeper   slashingkeeper.Keeper
 	MintKeeper       mintkeeper.Keeper
 	DistrKeeper      distrkeeper.Keeper
@@ -205,7 +205,7 @@ func NewAppKeeper(
 		appCodec,
 		appKeepers.keys[minttypes.StoreKey],
 		appKeepers.GetSubspace(minttypes.ModuleName),
-		&stakingKeeper,
+		stakingKeeper,
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		authtypes.FeeCollectorName,
@@ -216,14 +216,14 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(distrtypes.ModuleName),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
-		&stakingKeeper,
+		stakingKeeper,
 		authtypes.FeeCollectorName,
 		blockedAddress,
 	)
 	appKeepers.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[slashingtypes.StoreKey],
-		&stakingKeeper,
+		stakingKeeper,
 		appKeepers.GetSubspace(slashingtypes.ModuleName),
 	)
 
@@ -417,12 +417,12 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(govtypes.ModuleName),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
-		&stakingKeeper,
+		stakingKeeper,
 		govRouter,
 	)
 	appKeepers.GovKeeper = fxgovkeeper.NewKeeper(
 		appKeepers.BankKeeper,
-		&stakingKeeper,
+		stakingKeeper,
 		appKeepers.keys[govtypes.StoreKey],
 		govKeeper,
 	)
@@ -437,6 +437,8 @@ func NewAppKeeper(
 	appKeepers.Erc20Keeper = erc20Keeper.SetRouter(*transferRouter)
 
 	appKeepers.EvmKeeper.SetHooks(appKeepers.Erc20Keeper.EVMHooks())
+
+	stakingKeeper = stakingKeeper.SetEvmKeeper(appKeepers.EvmKeeper)
 
 	ibcTransferRouter := transferRouter.
 		AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
@@ -455,7 +457,7 @@ func NewAppKeeper(
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	appKeepers.StakingKeeper = *stakingKeeper.SetHooks(
+	appKeepers.StakingKeeper = stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			appKeepers.DistrKeeper.Hooks(),
 			appKeepers.SlashingKeeper.Hooks(),

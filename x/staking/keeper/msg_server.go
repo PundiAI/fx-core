@@ -16,14 +16,14 @@ import (
 
 type msgServer struct {
 	stakingtypes.MsgServer
-	Keeper
+	*Keeper
 }
 
 var _ stakingtypes.MsgServer = msgServer{}
 
 // NewMsgServerImpl returns an implementation of the bank MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) stakingtypes.MsgServer {
+func NewMsgServerImpl(keeper *Keeper) stakingtypes.MsgServer {
 	return &msgServer{
 		MsgServer: stakingkeeper.NewMsgServerImpl(keeper.Keeper),
 		Keeper:    keeper,
@@ -101,6 +101,10 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 
 	// call the after-creation hook
 	k.AfterValidatorCreated(ctx, validator.GetOperator())
+
+	if err = k.DeployLPToken(ctx, validator.GetOperator()); err != nil {
+		return nil, err
+	}
 
 	// move coins from the msg.Address account to a (self-delegation) delegator account
 	// the validator account and global shares are updated within here

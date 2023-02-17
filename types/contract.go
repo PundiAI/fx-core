@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	EmptyEvmAddress   = "0x0000000000000000000000000000000000000000"
-	FIP20LogicAddress = "0x0000000000000000000000000000000000001001"
-	WFXLogicAddress   = "0x0000000000000000000000000000000000001002"
+	EmptyEvmAddress     = "0x0000000000000000000000000000000000000000"
+	FIP20LogicAddress   = "0x0000000000000000000000000000000000001001"
+	WFXLogicAddress     = "0x0000000000000000000000000000000000001002"
+	LPTokenLogicAddress = "0x0000000000000000000000000000000000001003"
 )
 
 type Contract struct {
@@ -52,6 +53,12 @@ var (
 		Bin:     MustDecodeHex(contract.ERC1967ProxyBin),
 		Code:    []byte{},
 	}
+	lpTokenInit = Contract{
+		Address: common.HexToAddress(LPTokenLogicAddress),
+		ABI:     MustABIJson(contract.FIP20ABI),
+		Bin:     MustDecodeHex(contract.FIP20Bin),
+		Code:    []byte{},
+	}
 )
 
 func GetERC20() Contract {
@@ -64,6 +71,10 @@ func GetWFX() Contract {
 
 func GetERC1967Proxy() Contract {
 	return erc1967Proxy
+}
+
+func GetLPToken() Contract {
+	return lpTokenInit
 }
 
 func MustDecodeHex(str string) []byte {

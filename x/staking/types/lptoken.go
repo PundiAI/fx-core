@@ -1,5 +1,8 @@
 package types
 
 const (
-	LpTokenName = "lp_token"
+	LPTokenOwnerModuleName = "lp_token"
+
+	LPTokenSymbol   = "LP Token"
+	LPTokenDecimals = 18
 )

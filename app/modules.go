@@ -90,15 +90,15 @@ var maccPerms = map[string][]string{
 	govtypes.ModuleName:            {authtypes.Burner},
 	ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	// used for secure addition and subtraction of balance using module account
-	gravitytypes.ModuleName:    nil,
-	bsctypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
-	polygontypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-	avalanchetypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
-	ethtypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
-	trontypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
-	evmtypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
-	erc20types.ModuleName:      {authtypes.Minter, authtypes.Burner},
-	fxstakingtypes.LpTokenName: nil,
+	gravitytypes.ModuleName:               nil,
+	bsctypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
+	polygontypes.ModuleName:               {authtypes.Minter, authtypes.Burner},
+	avalanchetypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
+	ethtypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
+	trontypes.ModuleName:                  {authtypes.Minter, authtypes.Burner},
+	evmtypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
+	erc20types.ModuleName:                 {authtypes.Minter, authtypes.Burner},
+	fxstakingtypes.LPTokenOwnerModuleName: nil,
 }
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -165,7 +165,7 @@ func appModules(
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		fxstaking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
+		fxstaking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.EvmKeeper),
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
@@ -272,6 +272,9 @@ func orderInitBlockers() []string {
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
+
+		evmtypes.ModuleName,
+
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
@@ -288,7 +291,6 @@ func orderInitBlockers() []string {
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 
-		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
 
 		gravitytypes.ModuleName,
