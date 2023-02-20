@@ -8,7 +8,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/evmos/ethermint/x/evm/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
 type AccountKeeper interface {
@@ -20,9 +20,9 @@ type AccountKeeper interface {
 }
 
 type EvmKeeper interface {
-	CallEVMWithData(ctx sdk.Context, from common.Address, contract *common.Address, data []byte, commit bool) (*types.MsgEthereumTxResponse, error)
 	CreateContractWithCode(ctx sdk.Context, address common.Address, code []byte) error
 	DeployUpgradableContract(ctx sdk.Context, from, logic common.Address, logicData []byte, initializeAbi *abi.ABI, initializeArgs ...interface{}) (common.Address, error)
+	ApplyContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error)
 }
 
 type MockEvmKeeper struct{}
@@ -33,9 +33,9 @@ func (keeper *MockEvmKeeper) CreateContractWithCode(ctx sdk.Context, address com
 
 var _ EvmKeeper = (*MockEvmKeeper)(nil)
 
-func (keeper *MockEvmKeeper) CallEVMWithData(ctx sdk.Context, from common.Address, contract *common.Address, data []byte, commit bool) (*types.MsgEthereumTxResponse, error) {
-	fmt.Printf("call evm with from: %x, to: %x, data: %x", from, contract, data)
-	return &types.MsgEthereumTxResponse{
+func (keeper *MockEvmKeeper) ApplyContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, constructorData ...interface{}) (*evmtypes.MsgEthereumTxResponse, error) {
+	fmt.Printf("call evm with from: %x, to: %x, method: %s, data: %x", from, contract, method, constructorData)
+	return &evmtypes.MsgEthereumTxResponse{
 		Hash:    "",
 		Logs:    nil,
 		Ret:     nil,

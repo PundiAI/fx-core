@@ -41,15 +41,7 @@ func (h LPTokenHook) AfterValidatorRemoved(ctx sdk.Context, _ sdk.ConsAddress, v
 		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to get lp token contract"))
 	}
 
-	lpToken := fxtypes.GetLPToken().ABI
-	data, err := lpToken.Pack("selfdestruct", common.BytesToAddress(h.keeper.lpTokenModuleAddress.Bytes()))
-	if err != nil {
-		// todo - cosmos-sdk v0.46.x will return error
-		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to pack selfdestruct data: %s", err.Error()))
-	}
-
-	err = h.keeper.callEVM(ctx, &lpTokenContract, data)
-	if err != nil {
+	if err := h.keeper.applyEvmMessage(ctx, lpTokenContract, fxtypes.GetLPToken().ABI, "selfdestruct", common.BytesToAddress(h.keeper.lpTokenModuleAddress.Bytes())); err != nil {
 		// todo - cosmos-sdk v0.46.x will return error
 		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to call selfdestruct: %s", err.Error()))
 	}
