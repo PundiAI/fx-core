@@ -50,7 +50,11 @@ func (suite *MigrationTestSuite) SetupTest() {
 
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
-	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: suite.app.LastBlockHeight(), ChainID: fxtypes.TestnetChainId})
+	suite.ctx = suite.app.NewContext(false, tmproto.Header{
+		Height:          suite.app.LastBlockHeight(),
+		ChainID:         fxtypes.TestnetChainId,
+		ProposerAddress: valSet.Proposer.Address.Bytes(),
+	})
 
 	suite.migrator = keeper.NewMigrator(
 		suite.app.AppCodec(),

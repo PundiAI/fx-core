@@ -93,8 +93,9 @@ func (suite *KeeperTestSuite) SetupTest() {
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
-		ChainID: fxtypes.MainnetChainId,
-		Height:  suite.app.LastBlockHeight() + 1,
+		ChainID:         fxtypes.MainnetChainId,
+		Height:          suite.app.LastBlockHeight() + 1,
+		ProposerAddress: valSet.Proposer.Address.Bytes(),
 	})
 
 	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
