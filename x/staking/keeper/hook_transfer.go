@@ -16,7 +16,22 @@ func (h Hooks) HookTransferEvent(ctx sdk.Context, relayTransfers []types.RelayTr
 		logger.Info("relay lp token", "from", relay.From.String(), "to", relay.To, "amount", relay.Amount.String(),
 			"lp-token", relay.TokenContract.String(), "validator", relay.Validator.String())
 
-		// todo get rewards, unbond from, bond to
+		shareDec := sdk.NewDecFromBigInt(relay.Amount)
+		if !shareDec.IsZero() {
+			err := h.k.TransferDelegate(ctx, relay.Validator, relay.From.Bytes(), relay.To.Bytes(), shareDec)
+			if err != nil {
+				return err
+			}
+		}
+
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeRelayTransfer,
+			sdk.NewAttribute(sdk.AttributeKeySender, relay.From.String()),
+			sdk.NewAttribute(types.AttributeKeyTo, relay.To.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, relay.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyValidator, relay.Validator.String()),
+			sdk.NewAttribute(types.AttributeKeyLPTokenAddress, relay.TokenContract.String()),
+		))
 
 		telemetry.IncrCounterWithLabels(
 			[]string{stakingtypes.ModuleName, "relay_transfer"},

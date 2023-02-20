@@ -76,6 +76,31 @@ func (k Keeper) Undelegate(
 	return undelegate, err
 }
 
+func (k Keeper) TransferDelegate(ctx sdk.Context, valAddr sdk.ValAddress, fromAddr, toAddr sdk.AccAddress, share sdk.Dec) error {
+	val, found := k.Keeper.GetValidator(ctx, valAddr)
+	if !found {
+		return stakingtypes.ErrNoValidatorFound
+	}
+
+	if k.HasReceivingRedelegation(ctx, fromAddr, valAddr) {
+		return stakingtypes.ErrTransitiveRedelegation
+	}
+
+	returnAmount, err := k.Keeper.Unbond(ctx, fromAddr, valAddr, share)
+	if err != nil {
+		return err
+	}
+	if returnAmount.IsZero() {
+		return types.ErrTinyTransferAmount
+	}
+
+	_, err = k.Keeper.Delegate(ctx, toAddr, returnAmount, val.GetStatus(), val, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (k Keeper) DeployLPToken(ctx sdk.Context, valAddr sdk.ValAddress) (common.Address, error) {
 	lpToken := fxtypes.GetLPToken()
 	contractAddr, err := k.evmKeeper.DeployUpgradableContract(ctx, k.lpTokenModuleAddress, lpToken.Address, nil,

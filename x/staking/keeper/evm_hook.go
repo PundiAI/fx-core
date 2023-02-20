@@ -9,7 +9,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/staking/types"
 )
 
-// Hooks wrapper struct for erc20 keeper
+// Hooks wrapper struct for staking keeper
 type Hooks struct {
 	k Keeper
 }
