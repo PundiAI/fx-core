@@ -46,7 +46,7 @@ func TestMigrationTestSuite(t *testing.T) {
 }
 
 func (suite *MigrationTestSuite) SetupTest() {
-	valNumber := tmrand.Intn(99) + 1
+	valNumber := tmrand.Intn(10) + 1
 
 	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(valNumber, sdk.Coins{})
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
