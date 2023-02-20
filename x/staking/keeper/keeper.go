@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -26,6 +24,7 @@ type Keeper struct {
 	stakingkeeper.Keeper
 	storeKey      sdk.StoreKey
 	accountKeeper types.AccountKeeper
+	bankKeeper    stakingtypes.BankKeeper
 	evmKeeper     types.EvmKeeper
 
 	lpTokenModuleAddress common.Address
@@ -36,6 +35,7 @@ func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, ak types.AccountKeeper, 
 		Keeper:               stakingkeeper.NewKeeper(cdc, key, ak, bk, ps),
 		storeKey:             key,
 		accountKeeper:        ak,
+		bankKeeper:           bk,
 		evmKeeper:            nil,
 		lpTokenModuleAddress: common.BytesToAddress(ak.GetModuleAddress(types.LPTokenOwnerModuleName)),
 	}
@@ -57,23 +57,6 @@ func (k Keeper) Delegate(
 
 	err = k.MintLPToken(ctx, lpTokenContract, delAddr, newShares)
 	return newShares, err
-}
-
-func (k Keeper) Undelegate(
-	ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdk.Dec,
-) (time.Time, error) {
-	undelegate, err := k.Keeper.Undelegate(ctx, delAddr, valAddr, sharesAmount)
-	if err != nil {
-		return undelegate, err
-	}
-
-	lpTokenContract, found := k.GetValidatorLPToken(ctx, valAddr)
-	if !found {
-		return undelegate, sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
-	}
-
-	err = k.BurnLPToken(ctx, lpTokenContract, delAddr.Bytes(), sharesAmount)
-	return undelegate, err
 }
 
 func (k Keeper) TransferDelegate(ctx sdk.Context, valAddr sdk.ValAddress, fromAddr, toAddr sdk.AccAddress, share sdk.Dec) error {
