@@ -13,17 +13,13 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
 
 func (suite *IntegrationTest) CrossChainTest() {
 	for _, chain := range suite.crosschain {
 		chain.Init()
 
-		tokenAddress := helpers.GenerateAddress().Hex()
-		if chain.chainName == trontypes.ModuleName {
-			tokenAddress = trontypes.AddressFromHex(tokenAddress)
-		}
+		tokenAddress := helpers.GenerateAddressByModule(chain.chainName)
 		metadata := fxtypes.GetCrossChainMetadata("test token", helpers.NewRandSymbol(), 18)
 
 		bridgeDenom := fmt.Sprintf("%s%s", chain.chainName, tokenAddress)
