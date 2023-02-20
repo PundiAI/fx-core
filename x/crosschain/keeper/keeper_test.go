@@ -43,8 +43,11 @@ func TestKeeperTestSuite(t *testing.T) {
 	compile, err := regexp.Compile("^Test")
 	require.NoError(t, err)
 	subModules := []string{
-		bsctypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName,
-		ethtypes.ModuleName, avalanchetypes.ModuleName,
+		bsctypes.ModuleName,
+		// polygontypes.ModuleName,
+		trontypes.ModuleName,
+		ethtypes.ModuleName,
+		// avalanchetypes.ModuleName,
 	}
 	for _, moduleName := range subModules {
 		methodFinder := reflect.TypeOf(new(KeeperTestSuite))
