@@ -20,13 +20,6 @@ func (k Keeper) EVMHooks() Hooks {
 
 // PostTxProcessing implements EvmHooks.PostTxProcessing
 func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *ethtypes.Receipt) error {
-	msgTo := receipt.ContractAddress.String()
-	if msg.To() != nil {
-		msgTo = msg.To().String()
-	}
-
-	h.k.Logger(ctx).Info("staking processing", "hash", receipt.TxHash.String(), "from", msg.From().String(), "to", msgTo)
-
 	relayTransfers, err := h.ParseEventLog(ctx, receipt.Logs)
 	if err != nil {
 		h.k.Logger(ctx).Error("staking processing", "hook-action", "parse event log", "error", err.Error())
@@ -36,6 +29,12 @@ func (h Hooks) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *etht
 	if len(relayTransfers) <= 0 {
 		return nil
 	}
+
+	msgTo := receipt.ContractAddress.String()
+	if msg.To() != nil {
+		msgTo = msg.To().String()
+	}
+	h.k.Logger(ctx).Info("staking processing", "hash", receipt.TxHash.String(), "from", msg.From().String(), "to", msgTo)
 
 	// hook transfer event
 	if err = h.HookTransferEvent(ctx, relayTransfers); err != nil {

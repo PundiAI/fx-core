@@ -59,7 +59,7 @@ func (k Keeper) Delegate(
 	return newShares, err
 }
 
-func (k Keeper) TransferDelegate(ctx sdk.Context, valAddr sdk.ValAddress, fromAddr, toAddr sdk.AccAddress, share sdk.Dec) error {
+func (k Keeper) TransferDelegate(ctx sdk.Context, valAddr sdk.ValAddress, fromAddr, toAddr sdk.AccAddress, shares sdk.Dec) error {
 	val, found := k.Keeper.GetValidator(ctx, valAddr)
 	if !found {
 		return stakingtypes.ErrNoValidatorFound
@@ -69,7 +69,7 @@ func (k Keeper) TransferDelegate(ctx sdk.Context, valAddr sdk.ValAddress, fromAd
 		return stakingtypes.ErrTransitiveRedelegation
 	}
 
-	returnAmount, err := k.Keeper.Unbond(ctx, fromAddr, valAddr, share)
+	returnAmount, err := k.Keeper.Unbond(ctx, fromAddr, valAddr, shares)
 	if err != nil {
 		return err
 	}
