@@ -194,7 +194,6 @@ func (_LPToken *LPTokenTransactorRaw) Transact(opts *bind.TransactOpts, method s
 func (_LPToken *LPTokenCaller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "allowance", owner, spender)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -202,7 +201,6 @@ func (_LPToken *LPTokenCaller) Allowance(opts *bind.CallOpts, owner common.Addre
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -225,7 +223,6 @@ func (_LPToken *LPTokenCallerSession) Allowance(owner common.Address, spender co
 func (_LPToken *LPTokenCaller) BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "balanceOf", account)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -233,7 +230,6 @@ func (_LPToken *LPTokenCaller) BalanceOf(opts *bind.CallOpts, account common.Add
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -256,7 +252,6 @@ func (_LPToken *LPTokenCallerSession) BalanceOf(account common.Address) (*big.In
 func (_LPToken *LPTokenCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "decimals")
-
 	if err != nil {
 		return *new(uint8), err
 	}
@@ -264,7 +259,6 @@ func (_LPToken *LPTokenCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
 	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
 
 	return out0, err
-
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -287,7 +281,6 @@ func (_LPToken *LPTokenCallerSession) Decimals() (uint8, error) {
 func (_LPToken *LPTokenCaller) LockAllowance(opts *bind.CallOpts, locker common.Address, spender common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "lockAllowance", locker, spender)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -295,7 +288,6 @@ func (_LPToken *LPTokenCaller) LockAllowance(opts *bind.CallOpts, locker common.
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // LockAllowance is a free data retrieval call binding the contract method 0x82c5c93c.
@@ -318,7 +310,6 @@ func (_LPToken *LPTokenCallerSession) LockAllowance(locker common.Address, spend
 func (_LPToken *LPTokenCaller) LockAmount(opts *bind.CallOpts, locker common.Address, spender common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "lockAmount", locker, spender)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -326,7 +317,6 @@ func (_LPToken *LPTokenCaller) LockAmount(opts *bind.CallOpts, locker common.Add
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // LockAmount is a free data retrieval call binding the contract method 0xe2095ab4.
@@ -349,7 +339,6 @@ func (_LPToken *LPTokenCallerSession) LockAmount(locker common.Address, spender 
 func (_LPToken *LPTokenCaller) LockBalanceOf(opts *bind.CallOpts, locker common.Address) (*big.Int, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "lockBalanceOf", locker)
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -357,7 +346,6 @@ func (_LPToken *LPTokenCaller) LockBalanceOf(opts *bind.CallOpts, locker common.
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // LockBalanceOf is a free data retrieval call binding the contract method 0x10e776ed.
@@ -380,7 +368,6 @@ func (_LPToken *LPTokenCallerSession) LockBalanceOf(locker common.Address) (*big
 func (_LPToken *LPTokenCaller) Name(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "name")
-
 	if err != nil {
 		return *new(string), err
 	}
@@ -388,7 +375,6 @@ func (_LPToken *LPTokenCaller) Name(opts *bind.CallOpts) (string, error) {
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
-
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -411,7 +397,6 @@ func (_LPToken *LPTokenCallerSession) Name() (string, error) {
 func (_LPToken *LPTokenCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "owner")
-
 	if err != nil {
 		return *new(common.Address), err
 	}
@@ -419,7 +404,6 @@ func (_LPToken *LPTokenCaller) Owner(opts *bind.CallOpts) (common.Address, error
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 
 	return out0, err
-
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -442,7 +426,6 @@ func (_LPToken *LPTokenCallerSession) Owner() (common.Address, error) {
 func (_LPToken *LPTokenCaller) ProxiableUUID(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "proxiableUUID")
-
 	if err != nil {
 		return *new([32]byte), err
 	}
@@ -450,7 +433,6 @@ func (_LPToken *LPTokenCaller) ProxiableUUID(opts *bind.CallOpts) ([32]byte, err
 	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
 
 	return out0, err
-
 }
 
 // ProxiableUUID is a free data retrieval call binding the contract method 0x52d1902d.
@@ -473,7 +455,6 @@ func (_LPToken *LPTokenCallerSession) ProxiableUUID() ([32]byte, error) {
 func (_LPToken *LPTokenCaller) Symbol(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "symbol")
-
 	if err != nil {
 		return *new(string), err
 	}
@@ -481,7 +462,6 @@ func (_LPToken *LPTokenCaller) Symbol(opts *bind.CallOpts) (string, error) {
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
-
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -504,7 +484,6 @@ func (_LPToken *LPTokenCallerSession) Symbol() (string, error) {
 func (_LPToken *LPTokenCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
 	err := _LPToken.contract.Call(opts, &out, "totalSupply")
-
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -512,7 +491,6 @@ func (_LPToken *LPTokenCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
-
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -922,7 +900,6 @@ type LPTokenAdminChanged struct {
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_LPToken *LPTokenFilterer) FilterAdminChanged(opts *bind.FilterOpts) (*LPTokenAdminChangedIterator, error) {
-
 	logs, sub, err := _LPToken.contract.FilterLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -934,7 +911,6 @@ func (_LPToken *LPTokenFilterer) FilterAdminChanged(opts *bind.FilterOpts) (*LPT
 //
 // Solidity: event AdminChanged(address previousAdmin, address newAdmin)
 func (_LPToken *LPTokenFilterer) WatchAdminChanged(opts *bind.WatchOpts, sink chan<- *LPTokenAdminChanged) (event.Subscription, error) {
-
 	logs, sub, err := _LPToken.contract.WatchLogs(opts, "AdminChanged")
 	if err != nil {
 		return nil, err
@@ -1058,7 +1034,6 @@ type LPTokenApproval struct {
 //
 // Solidity: event Approval(address indexed owner, address indexed spender, uint256 value)
 func (_LPToken *LPTokenFilterer) FilterApproval(opts *bind.FilterOpts, owner []common.Address, spender []common.Address) (*LPTokenApprovalIterator, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1079,7 +1054,6 @@ func (_LPToken *LPTokenFilterer) FilterApproval(opts *bind.FilterOpts, owner []c
 //
 // Solidity: event Approval(address indexed owner, address indexed spender, uint256 value)
 func (_LPToken *LPTokenFilterer) WatchApproval(opts *bind.WatchOpts, sink chan<- *LPTokenApproval, owner []common.Address, spender []common.Address) (event.Subscription, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1212,7 +1186,6 @@ type LPTokenApprovalLock struct {
 //
 // Solidity: event ApprovalLock(address indexed owner, address indexed spender, uint256 value)
 func (_LPToken *LPTokenFilterer) FilterApprovalLock(opts *bind.FilterOpts, owner []common.Address, spender []common.Address) (*LPTokenApprovalLockIterator, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1233,7 +1206,6 @@ func (_LPToken *LPTokenFilterer) FilterApprovalLock(opts *bind.FilterOpts, owner
 //
 // Solidity: event ApprovalLock(address indexed owner, address indexed spender, uint256 value)
 func (_LPToken *LPTokenFilterer) WatchApprovalLock(opts *bind.WatchOpts, sink chan<- *LPTokenApprovalLock, owner []common.Address, spender []common.Address) (event.Subscription, error) {
-
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -1364,7 +1336,6 @@ type LPTokenBeaconUpgraded struct {
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_LPToken *LPTokenFilterer) FilterBeaconUpgraded(opts *bind.FilterOpts, beacon []common.Address) (*LPTokenBeaconUpgradedIterator, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -1381,7 +1352,6 @@ func (_LPToken *LPTokenFilterer) FilterBeaconUpgraded(opts *bind.FilterOpts, bea
 //
 // Solidity: event BeaconUpgraded(address indexed beacon)
 func (_LPToken *LPTokenFilterer) WatchBeaconUpgraded(opts *bind.WatchOpts, sink chan<- *LPTokenBeaconUpgraded, beacon []common.Address) (event.Subscription, error) {
-
 	var beaconRule []interface{}
 	for _, beaconItem := range beacon {
 		beaconRule = append(beaconRule, beaconItem)
@@ -1509,7 +1479,6 @@ type LPTokenBurn struct {
 //
 // Solidity: event Burn(address indexed from, uint256 value)
 func (_LPToken *LPTokenFilterer) FilterBurn(opts *bind.FilterOpts, from []common.Address) (*LPTokenBurnIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1526,7 +1495,6 @@ func (_LPToken *LPTokenFilterer) FilterBurn(opts *bind.FilterOpts, from []common
 //
 // Solidity: event Burn(address indexed from, uint256 value)
 func (_LPToken *LPTokenFilterer) WatchBurn(opts *bind.WatchOpts, sink chan<- *LPTokenBurn, from []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1655,7 +1623,6 @@ type LPTokenLock struct {
 //
 // Solidity: event Lock(address indexed from, address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) FilterLock(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*LPTokenLockIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1676,7 +1643,6 @@ func (_LPToken *LPTokenFilterer) FilterLock(opts *bind.FilterOpts, from []common
 //
 // Solidity: event Lock(address indexed from, address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) WatchLock(opts *bind.WatchOpts, sink chan<- *LPTokenLock, from []common.Address, to []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -1808,7 +1774,6 @@ type LPTokenMint struct {
 //
 // Solidity: event Mint(address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) FilterMint(opts *bind.FilterOpts, to []common.Address) (*LPTokenMintIterator, error) {
-
 	var toRule []interface{}
 	for _, toItem := range to {
 		toRule = append(toRule, toItem)
@@ -1825,7 +1790,6 @@ func (_LPToken *LPTokenFilterer) FilterMint(opts *bind.FilterOpts, to []common.A
 //
 // Solidity: event Mint(address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) WatchMint(opts *bind.WatchOpts, sink chan<- *LPTokenMint, to []common.Address) (event.Subscription, error) {
-
 	var toRule []interface{}
 	for _, toItem := range to {
 		toRule = append(toRule, toItem)
@@ -1953,7 +1917,6 @@ type LPTokenOwnershipTransferred struct {
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 func (_LPToken *LPTokenFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*LPTokenOwnershipTransferredIterator, error) {
-
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
 		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
@@ -1974,7 +1937,6 @@ func (_LPToken *LPTokenFilterer) FilterOwnershipTransferred(opts *bind.FilterOpt
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
 func (_LPToken *LPTokenFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *LPTokenOwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
-
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
 		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
@@ -2107,7 +2069,6 @@ type LPTokenTransfer struct {
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) FilterTransfer(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*LPTokenTransferIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -2128,7 +2089,6 @@ func (_LPToken *LPTokenFilterer) FilterTransfer(opts *bind.FilterOpts, from []co
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan<- *LPTokenTransfer, from []common.Address, to []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -2262,7 +2222,6 @@ type LPTokenTransferLock struct {
 //
 // Solidity: event TransferLock(address indexed sender, address indexed from, address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) FilterTransferLock(opts *bind.FilterOpts, sender []common.Address, from []common.Address, to []common.Address) (*LPTokenTransferLockIterator, error) {
-
 	var senderRule []interface{}
 	for _, senderItem := range sender {
 		senderRule = append(senderRule, senderItem)
@@ -2287,7 +2246,6 @@ func (_LPToken *LPTokenFilterer) FilterTransferLock(opts *bind.FilterOpts, sende
 //
 // Solidity: event TransferLock(address indexed sender, address indexed from, address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) WatchTransferLock(opts *bind.WatchOpts, sink chan<- *LPTokenTransferLock, sender []common.Address, from []common.Address, to []common.Address) (event.Subscription, error) {
-
 	var senderRule []interface{}
 	for _, senderItem := range sender {
 		senderRule = append(senderRule, senderItem)
@@ -2424,7 +2382,6 @@ type LPTokenUnlock struct {
 //
 // Solidity: event Unlock(address indexed from, address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) FilterUnlock(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*LPTokenUnlockIterator, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -2445,7 +2402,6 @@ func (_LPToken *LPTokenFilterer) FilterUnlock(opts *bind.FilterOpts, from []comm
 //
 // Solidity: event Unlock(address indexed from, address indexed to, uint256 value)
 func (_LPToken *LPTokenFilterer) WatchUnlock(opts *bind.WatchOpts, sink chan<- *LPTokenUnlock, from []common.Address, to []common.Address) (event.Subscription, error) {
-
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -2576,7 +2532,6 @@ type LPTokenUpgraded struct {
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_LPToken *LPTokenFilterer) FilterUpgraded(opts *bind.FilterOpts, implementation []common.Address) (*LPTokenUpgradedIterator, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)
@@ -2593,7 +2548,6 @@ func (_LPToken *LPTokenFilterer) FilterUpgraded(opts *bind.FilterOpts, implement
 //
 // Solidity: event Upgraded(address indexed implementation)
 func (_LPToken *LPTokenFilterer) WatchUpgraded(opts *bind.WatchOpts, sink chan<- *LPTokenUpgraded, implementation []common.Address) (event.Subscription, error) {
-
 	var implementationRule []interface{}
 	for _, implementationItem := range implementation {
 		implementationRule = append(implementationRule, implementationItem)

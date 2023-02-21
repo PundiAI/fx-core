@@ -81,7 +81,7 @@ func (k *Keeper) DeployContract(ctx sdk.Context, from common.Address, abi abi.AB
 		return common.Address{}, err
 	}
 
-	_, err = k.CallEVMWithData(ctx, from, nil, data, true)
+	_, err = k.CallEVMWithoutGas(ctx, from, nil, data, true)
 	if err != nil {
 		return common.Address{}, err
 	}
@@ -117,7 +117,7 @@ func (k *Keeper) CallContract(ctx sdk.Context, from, contract common.Address, ab
 	if err != nil {
 		return sdkerrors.Wrap(types.ErrABIPack, err.Error())
 	}
-	resp, err := k.CallEVMWithData(ctx, from, &contract, args, false)
+	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, args, false)
 	if err != nil {
 		return err
 	}
@@ -133,5 +133,9 @@ func (k *Keeper) ApplyContract(ctx sdk.Context, from, contract common.Address, a
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrABIPack, err.Error())
 	}
-	return k.CallEVMWithData(ctx, from, &contract, args, true)
+	resp, err := k.CallEVMWithoutGas(ctx, from, &contract, args, true)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

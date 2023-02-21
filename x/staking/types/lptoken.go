@@ -5,4 +5,8 @@ const (
 
 	LPTokenSymbol   = "LP Token"
 	LPTokenDecimals = uint8(18)
+
+	MethodMintToken    = "mint"
+	MethodBurnToken    = "burn"
+	MethodSelfDestruct = "selfDestruct"
 )

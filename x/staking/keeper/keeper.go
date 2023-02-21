@@ -7,7 +7,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -89,7 +88,7 @@ func (k Keeper) DeployLPToken(ctx sdk.Context, valAddr sdk.ValAddress) (common.A
 	contractAddr, err := k.evmKeeper.DeployUpgradableContract(ctx, k.lpTokenModuleAddress, lpToken.Address, nil,
 		&lpToken.ABI, valAddr.String(), types.LPTokenSymbol, types.LPTokenDecimals)
 	if err != nil {
-		return common.Address{}, sdkerrors.ErrInvalidRequest.Wrapf("failed to deploy lpToken contract: %s", err.Error())
+		return common.Address{}, err
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventCreateLPToken,
@@ -100,11 +99,36 @@ func (k Keeper) DeployLPToken(ctx sdk.Context, valAddr sdk.ValAddress) (common.A
 }
 
 func (k Keeper) MintLPToken(ctx sdk.Context, lpTokenContractAddr common.Address, to sdk.AccAddress, share sdk.Dec) error {
-	return k.applyEvmMessage(ctx, lpTokenContractAddr, fxtypes.GetLPToken().ABI, "mint", common.BytesToAddress(to.Bytes()), share.BigInt())
+	method := types.MethodMintToken
+	args := []interface{}{
+		common.BytesToAddress(to.Bytes()),
+		share.BigInt(),
+	}
+	_, err := k.evmKeeper.ApplyContract(ctx, k.lpTokenModuleAddress, lpTokenContractAddr, fxtypes.GetLPToken().ABI, method, args...)
+	return err
 }
 
 func (k Keeper) BurnLPToken(ctx sdk.Context, lpTokenContractAddr common.Address, to sdk.AccAddress, share sdk.Dec) error {
-	return k.applyEvmMessage(ctx, lpTokenContractAddr, fxtypes.GetLPToken().ABI, "burn", common.BytesToAddress(to.Bytes()), share.BigInt())
+	method := types.MethodBurnToken
+	args := []interface{}{
+		common.BytesToAddress(to.Bytes()),
+		share.BigInt(),
+	}
+	_, err := k.evmKeeper.ApplyContract(ctx, k.lpTokenModuleAddress, lpTokenContractAddr, fxtypes.GetLPToken().ABI, method, args...)
+	return err
+}
+
+func (k Keeper) SelfDestructLPToken(ctx sdk.Context, valAddr sdk.ValAddress) error {
+	lpTokenContract, found := k.GetValidatorLPToken(ctx, valAddr)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrLPTokenNotFound, "validator %s", valAddr.String())
+	}
+	method := types.MethodSelfDestruct
+	if _, err := k.evmKeeper.ApplyContract(ctx, k.lpTokenModuleAddress, lpTokenContract, fxtypes.GetLPToken().ABI, method); err != nil {
+		return err
+	}
+	k.deleteLPTokenContract(ctx, valAddr)
+	return nil
 }
 
 func (k *Keeper) SetHooks(sh stakingtypes.StakingHooks) *Keeper {
@@ -144,18 +168,6 @@ func (k *Keeper) deleteLPTokenContract(ctx sdk.Context, valAddr sdk.ValAddress) 
 	lpTokenByte := kvStore.Get(key)
 	kvStore.Delete(key)
 	kvStore.Delete(types.GetLPTokenValidatorKey(common.BytesToAddress(lpTokenByte)))
-}
-
-func (k *Keeper) applyEvmMessage(ctx sdk.Context, contract common.Address, abi abi.ABI, method string, constructorData ...interface{}) error {
-	gasMeter := ctx.GasMeter()
-	// todo - evm module should pass gas meter to evm
-	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-	_, err := k.evmKeeper.ApplyContract(ctx, k.lpTokenModuleAddress, contract, abi, method, constructorData...)
-	if err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrapf("apply evm message failed: %s", err.Error())
-	}
-	ctx.WithGasMeter(gasMeter)
-	return nil
 }
 
 func (k *Keeper) GetLPTokenModuleAddress() common.Address {

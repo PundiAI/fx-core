@@ -4,8 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 var _ stakingtypes.StakingHooks = Keeper{}
@@ -32,18 +30,10 @@ func (h LPTokenHook) BeforeValidatorModified(_ sdk.Context, _ sdk.ValAddress) {}
 
 // AfterValidatorRemoved - call hook if registered
 func (h LPTokenHook) AfterValidatorRemoved(ctx sdk.Context, _ sdk.ConsAddress, valAddr sdk.ValAddress) {
-	lpTokenContract, found := h.keeper.GetValidatorLPToken(ctx, valAddr)
-	if !found {
+	if err := h.keeper.SelfDestructLPToken(ctx, valAddr); err != nil {
 		// todo - cosmos-sdk v0.46.x will return error
-		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to get lp token contract"))
+		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to selfdestruct: %s", err.Error()))
 	}
-
-	if err := h.keeper.applyEvmMessage(ctx, lpTokenContract, fxtypes.GetLPToken().ABI, "selfDestruct"); err != nil {
-		// todo - cosmos-sdk v0.46.x will return error
-		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to call selfdestruct: %s", err.Error()))
-	}
-
-	h.keeper.deleteLPTokenContract(ctx, valAddr)
 }
 
 // AfterValidatorBonded - call hook if registered
