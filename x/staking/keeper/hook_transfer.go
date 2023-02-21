@@ -16,7 +16,7 @@ func (h Hooks) HookTransferEvent(ctx sdk.Context, relayTransfers []types.RelayTr
 		logger.Info("relay lp token", "from", relay.From.String(), "to", relay.To, "amount", relay.Amount.String(),
 			"lp-token", relay.TokenContract.String(), "validator", relay.Validator.String())
 
-		shares := sdk.NewDecFromBigInt(relay.Amount)
+		shares := sdk.NewDecFromBigIntWithPrec(relay.Amount, sdk.Precision)
 		if !shares.IsZero() {
 			err := h.k.TransferDelegate(ctx, relay.Validator, relay.From.Bytes(), relay.To.Bytes(), shares)
 			if err != nil {
