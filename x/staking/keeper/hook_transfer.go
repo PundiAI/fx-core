@@ -38,7 +38,7 @@ func (h Hooks) HookTransferEvent(ctx sdk.Context, relayTransfers []types.RelayTr
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel("lp_token", relay.TokenContract.String()),
-				telemetry.NewLabel("amount", relay.Amount.String()),
+				telemetry.NewLabel("validator", relay.Validator.String()),
 			},
 		)
 	}

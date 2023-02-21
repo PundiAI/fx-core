@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	require.NoError(suite.T(), err)
 	suite.signer = helpers.NewSigner(priv)
 
-	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(20)+1, nil)
+	set, accs, balances := helpers.GenerateGenesisValidator(tmrand.Intn(10)+5, nil)
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
 
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{

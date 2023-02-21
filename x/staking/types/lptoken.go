@@ -4,7 +4,7 @@ const (
 	LPTokenOwnerModuleName = "lp_token"
 
 	LPTokenSymbol   = "LP Token"
-	LPTokenDecimals = uint8(18)
+	LPTokenDecimals = uint8(36)
 
 	MethodMintToken    = "mint"
 	MethodBurnToken    = "burn"
