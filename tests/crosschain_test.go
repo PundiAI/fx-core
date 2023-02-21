@@ -67,7 +67,6 @@ func (suite *IntegrationTest) CrossChainTest() {
 		if chain.chainName == ethtypes.ModuleName {
 			fxTokenAddress := helpers.GenerateAddress().Hex()
 			fxMD := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
-			suite.erc20.RegisterCoinProposal(fxMD)
 			chain.AddBridgeTokenClaim(fxMD.Name, fxMD.Symbol, fxtypes.DenomUnit, fxTokenAddress, "")
 
 			// send fx to chain

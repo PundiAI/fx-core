@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -9,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/suite"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -115,93 +113,10 @@ func (suite *KeeperTestSuite) DeployERC20Contract() common.Address {
 }
 
 func (suite *KeeperTestSuite) BalanceOf(contract, address common.Address) *big.Int {
-	data, err := fxtypes.GetERC20().ABI.Pack("balanceOf", address)
-	suite.NoError(err)
-
-	res, err := suite.app.EvmKeeper.CallEVMWithData(suite.ctx, contract, &contract, data, false)
-	suite.NoError(err)
-
 	var balanceRes struct {
 		Value *big.Int
 	}
-	err = fxtypes.GetERC20().ABI.UnpackIntoInterface(&balanceRes, "balanceOf", res.Ret)
-	suite.NoError(err)
+	err := suite.app.EvmKeeper.CallContract(suite.ctx, contract, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, address)
+	suite.Require().NoError(err)
 	return balanceRes.Value
-}
-
-func (suite *KeeperTestSuite) TestCallEVMWithData() {
-	erc20 := fxtypes.GetERC20()
-	fromAcc := suite.app.AccountKeeper.GetModuleAccount(suite.ctx, evmtypes.ModuleName)
-	from := common.BytesToAddress(fromAcc.GetAddress())
-	testCases := []struct {
-		name     string
-		from     common.Address
-		malleate func() ([]byte, *common.Address)
-		expPass  bool
-	}{
-		{
-			"unknown method",
-			from,
-			func() ([]byte, *common.Address) {
-				contract := suite.DeployERC20Contract()
-				return []byte{1, 2, 3, 4}, &contract
-			},
-			false,
-		},
-		{
-			"pass",
-			from,
-			func() ([]byte, *common.Address) {
-				contract := suite.DeployERC20Contract()
-				data, err := erc20.ABI.Pack("balanceOf", helpers.GenerateAddress())
-				suite.NoError(err)
-				return data, &contract
-			},
-			true,
-		},
-		{
-			"fail empty data",
-			from,
-			func() ([]byte, *common.Address) {
-				contract := suite.DeployERC20Contract()
-				return []byte{}, &contract
-			},
-			false,
-		},
-		{
-			"fail empty sender",
-			common.Address{},
-			func() ([]byte, *common.Address) {
-				contract := suite.DeployERC20Contract()
-				return []byte{}, &contract
-			},
-			false,
-		},
-		{
-			"fail deploy",
-			from,
-			func() ([]byte, *common.Address) {
-				params := suite.app.EvmKeeper.GetParams(suite.ctx)
-				params.EnableCreate = false
-				suite.app.EvmKeeper.SetParams(suite.ctx, params)
-				ctorArgs, err := erc20.ABI.Pack("")
-				suite.NoError(err)
-				data := append(erc20.Bin, ctorArgs...)
-				return data, nil
-			},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			data, contract := tc.malleate()
-			_, err := suite.app.EvmKeeper.CallEVMWithData(suite.ctx, tc.from, contract, data, true)
-			if tc.expPass {
-				suite.NoError(err)
-			} else {
-				suite.Error(err, err)
-			}
-		})
-	}
 }

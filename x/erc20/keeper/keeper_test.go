@@ -120,10 +120,8 @@ func (suite *KeeperTestSuite) DeployContract(from common.Address) (common.Addres
 	contract, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
 	suite.Require().NoError(err)
 
-	_, err = suite.app.Erc20Keeper.CallEVM(suite.ctx, fxtypes.GetERC20().ABI, suite.app.Erc20Keeper.ModuleAddress(), contract, true, "transferOwnership", from)
-	if err != nil {
-		return common.Address{}, err
-	}
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contract, fxtypes.GetERC20().ABI, "transferOwnership", from)
+	suite.Require().NoError(err)
 	return contract, nil
 }
 
@@ -206,9 +204,10 @@ func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata,
 }
 
 func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) *big.Int {
-	balance, err := suite.app.Erc20Keeper.BalanceOf(suite.ctx, contract, account)
+	var balanceRes struct{ Value *big.Int }
+	err := suite.app.EvmKeeper.CallContract(suite.ctx, account, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, account)
 	suite.NoError(err)
-	return balance
+	return balanceRes.Value
 }
 
 func (suite *KeeperTestSuite) MintERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
@@ -220,9 +219,9 @@ func (suite *KeeperTestSuite) MintERC20Token(signer *helpers.Signer, contractAdd
 
 func (suite *KeeperTestSuite) ModuleMintERC20Token(contractAddr, to common.Address, amount *big.Int) {
 	erc20 := fxtypes.GetERC20()
-	transferData, err := erc20.ABI.Pack("mint", to, amount)
+	rsp, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), contractAddr, erc20.ABI, "mint", to, amount)
 	suite.Require().NoError(err)
-	suite.moduleSendEvmTx(contractAddr, transferData)
+	suite.Require().Empty(rsp.VmError)
 }
 
 func (suite *KeeperTestSuite) TransferERC20Token(signer *helpers.Signer, contractAddr, to common.Address, amount *big.Int) *evm.MsgEthereumTx {
@@ -243,9 +242,7 @@ func (suite *KeeperTestSuite) TransferERC20TokenToModule(signer *helpers.Signer,
 func (suite *KeeperTestSuite) TransferERC20TokenToModuleWithoutHook(contractAddr, from common.Address, amount *big.Int) {
 	erc20 := fxtypes.GetERC20()
 	moduleAddress := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
-	transferData, err := erc20.ABI.Pack("transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
-	suite.Require().NoError(err)
-	_, err = suite.app.EvmKeeper.CallEVMWithData(suite.ctx, from, &contractAddr, transferData, true)
+	_, err := suite.app.EvmKeeper.ApplyContract(suite.ctx, from, contractAddr, erc20.ABI, "transfer", common.BytesToAddress(moduleAddress.Bytes()), amount)
 	suite.Require().NoError(err)
 }
 
@@ -343,12 +340,6 @@ func (suite *KeeperTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr com
 	suite.Require().NoError(err)
 	suite.Require().Empty(rsp.VmError)
 	return ercTransferTx
-}
-
-func (suite *KeeperTestSuite) moduleSendEvmTx(contractAddr common.Address, data []byte) {
-	rsp, err := suite.app.EvmKeeper.CallEVMWithData(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), &contractAddr, data, true)
-	suite.Require().NoError(err)
-	suite.Require().Empty(rsp.VmError)
 }
 
 func newMetadata() banktypes.Metadata {

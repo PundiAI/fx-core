@@ -8,6 +8,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/functionx/fx-core/v3/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -29,9 +30,11 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 		{
 			"metadata pairs registered",
 			func() (*types.QueryTokenPairsRequest, *types.QueryTokenPairsResponse) {
+				fxPair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				suite.Require().True(found)
 				return &types.QueryTokenPairsRequest{}, &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 0},
-					TokenPairs: nil,
+					Pagination: &query.PageResponse{Total: 1},
+					TokenPairs: []types.TokenPair{fxPair},
 				}
 			},
 			true,
@@ -45,9 +48,11 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				pair := types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 
+				fxPair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				suite.Require().True(found)
 				expRes := &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 1},
-					TokenPairs: []types.TokenPair{pair},
+					Pagination: &query.PageResponse{Total: 2},
+					TokenPairs: []types.TokenPair{fxPair, pair},
 				}
 				return req, expRes
 			},
@@ -62,9 +67,11 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair2)
 
+				fxPair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+				suite.Require().True(found)
 				expRes := &types.QueryTokenPairsResponse{
-					Pagination: &query.PageResponse{Total: 2},
-					TokenPairs: []types.TokenPair{pair, pair2},
+					Pagination: &query.PageResponse{Total: 3},
+					TokenPairs: []types.TokenPair{fxPair, pair, pair2},
 				}
 				return req, expRes
 			},

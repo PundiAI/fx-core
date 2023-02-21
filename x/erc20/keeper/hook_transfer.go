@@ -19,7 +19,7 @@ func (h Hooks) HookTransferEvent(ctx sdk.Context, relayTransfers []types.RelayTr
 
 		switch relay.ContractOwner {
 		case types.OWNER_MODULE: // native coin
-			if _, err := h.k.CallEVM(ctx, fip20ABI, h.k.moduleAddress, relay.TokenContract, true, "burn", h.k.moduleAddress, relay.Amount); err != nil {
+			if _, err := h.k.evmKeeper.ApplyContract(ctx, h.k.moduleAddress, relay.TokenContract, fip20ABI, "burn", h.k.moduleAddress, relay.Amount); err != nil {
 				return err
 			}
 

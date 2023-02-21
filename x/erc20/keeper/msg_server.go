@@ -41,12 +41,11 @@ func (k Keeper) ConvertCoin(goCtx context.Context, msg *types.MsgConvertCoin) (*
 	}
 
 	// Check ownership and execute conversion
-	newCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	switch {
 	case pair.IsNativeCoin():
-		err = k.ConvertCoinNativeCoin(newCtx, pair, sender, receiver, msg.Coin)
+		err = k.ConvertCoinNativeCoin(ctx, pair, sender, receiver, msg.Coin)
 	case pair.IsNativeERC20():
-		err = k.ConvertCoinNativeERC20(newCtx, pair, sender, receiver, msg.Coin)
+		err = k.ConvertCoinNativeERC20(ctx, pair, sender, receiver, msg.Coin)
 	default:
 		return nil, types.ErrUndefinedOwner
 	}
@@ -98,12 +97,11 @@ func (k Keeper) ConvertERC20(goCtx context.Context, msg *types.MsgConvertERC20) 
 	}
 
 	// Check ownership and execute conversion
-	newCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	switch {
 	case pair.IsNativeCoin():
-		err = k.ConvertERC20NativeCoin(newCtx, pair, sender, receiver, msg.Amount)
+		err = k.ConvertERC20NativeCoin(ctx, pair, sender, receiver, msg.Amount)
 	case pair.IsNativeERC20():
-		err = k.ConvertERC20NativeToken(newCtx, pair, sender, receiver, msg.Amount)
+		err = k.ConvertERC20NativeToken(ctx, pair, sender, receiver, msg.Amount)
 	default:
 		return nil, types.ErrUndefinedOwner
 	}
@@ -190,7 +188,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 	contract := pair.GetERC20Contract()
 
 	// Mint Tokens and send to receiver
-	_, err := k.CallEVM(ctx, erc20, k.moduleAddress, contract, true, "mint", receiver, coin.Amount.BigInt())
+	_, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, contract, erc20, "mint", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return err
 	}
@@ -213,7 +211,7 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, se
 	contract := pair.GetERC20Contract()
 
 	// Burn escrowed tokens
-	_, err := k.CallEVM(ctx, erc20, k.moduleAddress, contract, true, "burn", sender, amount.BigInt())
+	_, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, contract, erc20, "burn", sender, amount.BigInt())
 	if err != nil {
 		return err
 	}
@@ -246,13 +244,8 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 	erc20 := fxtypes.GetERC20().ABI
 
 	// Escrow tokens on module account
-	transferData, err := erc20.Pack("transfer", k.moduleAddress, amount.BigInt())
-	if err != nil {
-		return sdkerrors.Wrapf(types.ErrABIPack, "failed to pack transfer: %s", err.Error())
-	}
-
 	contract := pair.GetERC20Contract()
-	res, err := k.evmKeeper.CallEVMWithData(ctx, sender, &contract, transferData, true) // TODO replace with CallEVM
+	res, err := k.evmKeeper.ApplyContract(ctx, sender, contract, erc20, "transfer", k.moduleAddress, amount.BigInt())
 	if err != nil {
 		return err
 	}
@@ -306,7 +299,7 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 	contract := pair.GetERC20Contract()
 
 	// Unescrow Tokens and send to receiver
-	res, err := k.CallEVM(ctx, erc20, k.moduleAddress, contract, true, "transfer", receiver, coin.Amount.BigInt())
+	res, err := k.evmKeeper.ApplyContract(ctx, k.moduleAddress, contract, erc20, "transfer", receiver, coin.Amount.BigInt())
 	if err != nil {
 		return err
 	}

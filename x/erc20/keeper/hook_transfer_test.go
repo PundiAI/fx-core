@@ -75,7 +75,8 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 				return []types.RelayTransfer{relay}, []string{pair.Erc20Address}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("contract call failed: method 'burn', contract '%s': execution reverted: burn amount exceeds balance", args[0])
+				// todo execution failed detail
+				return "execution reverted: evm transaction execution failed"
 			},
 			result: false,
 		},
@@ -222,7 +223,11 @@ func (suite *KeeperTestSuite) TestHookTransferFX() {
 			suite.SetupTest() // reset
 			signer := suite.RandSigner()
 			// token pair
-			pair, md := suite.DeployFXRelayToken()
+			md, found := suite.app.BankKeeper.GetDenomMetaData(suite.ctx, fxtypes.DefaultDenom)
+			suite.Require().True(found)
+			pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, fxtypes.DefaultDenom)
+			suite.Require().True(found)
+
 			// mint lock token
 			totalMint := suite.MintLockNativeTokenToModule(md, sdk.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
 			// relay event

@@ -237,12 +237,9 @@ func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 
 	// contract totalSupply
 	for _, pair := range allTokenPairs {
-		res, err := myApp.Erc20Keeper.CallEVM(ctx, fxtypes.GetERC20().ABI, myApp.Erc20Keeper.ModuleAddress(),
-			pair.GetERC20Contract(), false, "totalSupply")
-		assert.NoError(t, err)
 
 		var totalSupplyRes struct{ Value *big.Int }
-		err = fxtypes.GetERC20().ABI.UnpackIntoInterface(&totalSupplyRes, "totalSupply", res.Ret)
+		err := myApp.EvmKeeper.CallContract(ctx, myApp.Erc20Keeper.ModuleAddress(), pair.GetERC20Contract(), fxtypes.GetERC20().ABI, "totalSupply", &totalSupplyRes)
 		assert.NoError(t, err)
 
 		denomBalance := erc20Balances.AmountOf(pair.GetDenom())
