@@ -56,7 +56,6 @@ func (h Hooks) HookTransferEvent(ctx sdk.Context, relayTransfers []types.RelayTr
 			[]metrics.Label{
 				telemetry.NewLabel("erc20", relay.TokenContract.String()),
 				telemetry.NewLabel("denom", relay.Denom),
-				telemetry.NewLabel("amount", relay.Amount.String()),
 			},
 		)
 	}

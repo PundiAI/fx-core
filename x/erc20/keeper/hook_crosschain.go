@@ -62,7 +62,6 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 				telemetry.NewLabel("erc20", relay.TokenContract.String()),
 				telemetry.NewLabel("denom", relay.Denom),
 				telemetry.NewLabel("target", fxtypes.Byte32ToString(relay.Target)),
-				telemetry.NewLabel("amount", relay.GetAmount(relay.Denom).String()),
 			},
 		)
 	}
