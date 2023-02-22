@@ -438,7 +438,9 @@ func NewAppKeeper(
 
 	appKeepers.EvmKeeper.SetHooks(
 		evmkeeper.NewMultiEvmHooks(
-			stakingKeeper.EVMHooks(),
+			fxevmkeeper.NewLogProcessEvmHook(
+				fxstakingkeeper.NewLPTokenTransferHandler(stakingKeeper),
+			),
 			appKeepers.Erc20Keeper.EVMHooks(),
 		),
 	)
