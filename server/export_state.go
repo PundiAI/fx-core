@@ -8,12 +8,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
+	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
 )
 
 const (
@@ -40,7 +42,7 @@ func ExportSateCmd(appExporter types.AppExporter, defaultNodeHome string) *cobra
 			}
 
 			dataDir := filepath.Join(config.RootDir, "data")
-			db, err := sdk.NewLevelDB("application", dataDir)
+			db, err := dbm.NewDB("application", sdkserver.GetAppDBBackend(serverCtx.Viper), dataDir)
 			if err != nil {
 				return err
 			}

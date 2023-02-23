@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	dbm "github.com/tendermint/tm-db"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -12,7 +14,7 @@ import (
 
 func Test_openDB(t *testing.T) {
 	t.Parallel()
-	_, err := openDB(t.TempDir())
+	_, err := openDB(t.TempDir(), dbm.GoLevelDBBackend)
 	require.NoError(t, err)
 }
 

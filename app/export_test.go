@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	dbm "github.com/tendermint/tm-db"
+
 	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -54,7 +56,7 @@ func TestUseExportGenesisDataRunNode(t *testing.T) {
 }
 
 func GetGenesisDocFromAppData(t *testing.T) *types.GenesisDoc {
-	db, err := sdk.NewLevelDB("application", filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
+	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
 	require.NoError(t, err)
 
 	appEncodingCfg := app.MakeEncodingConfig()

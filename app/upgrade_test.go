@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	dbm "github.com/tendermint/tm-db"
+
 	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -68,7 +70,7 @@ func Test_Upgrade(t *testing.T) {
 		},
 	}
 
-	db, err := sdk.NewLevelDB("application", filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
+	db, err := dbm.NewDB("application", dbm.GoLevelDBBackend, filepath.Join(fxtypes.GetDefaultNodeHome(), "data"))
 	require.NoError(t, err)
 
 	appEncodingCfg := app.MakeEncodingConfig()
