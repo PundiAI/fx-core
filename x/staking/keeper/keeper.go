@@ -59,11 +59,6 @@ func (k Keeper) Delegate(
 }
 
 func (k Keeper) TransferDelegate(ctx sdk.Context, valAddr sdk.ValAddress, fromAddr, toAddr sdk.AccAddress, shares sdk.Dec) error {
-	val, found := k.Keeper.GetValidator(ctx, valAddr)
-	if !found {
-		return stakingtypes.ErrNoValidatorFound
-	}
-
 	if k.HasReceivingRedelegation(ctx, fromAddr, valAddr) {
 		return stakingtypes.ErrTransitiveRedelegation
 	}
@@ -74,6 +69,11 @@ func (k Keeper) TransferDelegate(ctx sdk.Context, valAddr sdk.ValAddress, fromAd
 	}
 	if returnAmount.IsZero() {
 		return types.ErrTinyTransferAmount
+	}
+
+	val, found := k.Keeper.GetValidator(ctx, valAddr)
+	if !found {
+		return stakingtypes.ErrNoValidatorFound
 	}
 
 	_, err = k.Keeper.Delegate(ctx, toAddr, returnAmount, val.GetStatus(), val, false)
