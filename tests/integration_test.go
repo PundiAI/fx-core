@@ -15,6 +15,7 @@ type IntegrationTest struct {
 	crosschain []CrosschainTestSuite
 	erc20      Erc20TestSuite
 	evm        EvmTestSuite
+	staking    StakingTestSuite
 }
 
 func TestIntegrationTest(t *testing.T) {
@@ -28,8 +29,9 @@ func TestIntegrationTest(t *testing.T) {
 			// NewCrosschainWithTestSuite(polygontypes.ModuleName, testSuite),
 			// NewCrosschainWithTestSuite(avalanchetypes.ModuleName, testSuite),
 		},
-		erc20: NewErc20TestSuite(testSuite),
-		evm:   NewEvmTestSuite(testSuite),
+		erc20:   NewErc20TestSuite(testSuite),
+		evm:     NewEvmTestSuite(testSuite),
+		staking: NewStakingTestSuite(testSuite),
 	})
 }
 
@@ -43,4 +45,5 @@ func (suite *IntegrationTest) TestRun() {
 	suite.WFXTest()
 	suite.ERC20TokenTest()
 	suite.ERC721Test()
+	suite.StakingTest()
 }
