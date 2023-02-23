@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -21,7 +23,6 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/proto/tendermint/types"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 
 	"github.com/functionx/fx-core/v3/app"
@@ -174,13 +175,13 @@ func (suite *TestSuite) QueryTx(txHash string) *sdk.TxResponse {
 	return txResponse
 }
 
-func (suite *TestSuite) QueryBlock(blockHeight int64) *types.Block {
+func (suite *TestSuite) QueryBlock(blockHeight int64) *tmservice.Block {
 	txResponse, err := suite.GRPCClient().GetBlockByHeight(blockHeight)
 	suite.NoError(err)
 	return txResponse
 }
 
-func (suite *TestSuite) QueryBlockByTxHash(txHash string) *types.Block {
+func (suite *TestSuite) QueryBlockByTxHash(txHash string) *tmservice.Block {
 	txResponse := suite.QueryTx(txHash)
 	return suite.QueryBlock(txResponse.Height)
 }

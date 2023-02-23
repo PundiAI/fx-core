@@ -29,7 +29,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/gogo/protobuf/proto"
-	tenderminttypes "github.com/tendermint/tendermint/proto/tendermint/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 
@@ -232,7 +231,7 @@ func (cli *Client) GetBlockHeight() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return response.Block.Header.Height, nil
+	return response.SdkBlock.Header.Height, nil
 }
 
 func (cli *Client) GetChainId() (string, error) {
@@ -240,7 +239,7 @@ func (cli *Client) GetChainId() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return response.Block.Header.ChainID, nil
+	return response.SdkBlock.Header.ChainID, nil
 }
 
 func (cli *Client) GetBlockTimeInterval() (time.Duration, error) {
@@ -249,34 +248,34 @@ func (cli *Client) GetBlockTimeInterval() (time.Duration, error) {
 	if err != nil {
 		return 0, err
 	}
-	if response1.Block.Header.Height <= 1 {
+	if response1.SdkBlock.Header.Height <= 1 {
 		return 0, fmt.Errorf("please try again later, the current block height is less than 1")
 	}
 	response2, err := tmClient.GetBlockByHeight(cli.ctx, &tmservice.GetBlockByHeightRequest{
-		Height: response1.Block.Header.Height - 1,
+		Height: response1.SdkBlock.Header.Height - 1,
 	})
 	if err != nil {
 		return 0, err
 	}
-	return response1.Block.Header.Time.Sub(response2.Block.Header.Time), nil
+	return response1.SdkBlock.Header.Time.Sub(response2.SdkBlock.Header.Time), nil
 }
 
-func (cli *Client) GetLatestBlock() (*tenderminttypes.Block, error) {
+func (cli *Client) GetLatestBlock() (*tmservice.Block, error) {
 	response, err := cli.TMServiceClient().GetLatestBlock(cli.ctx, &tmservice.GetLatestBlockRequest{})
 	if err != nil {
 		return nil, err
 	}
-	return response.Block, nil
+	return response.SdkBlock, nil
 }
 
-func (cli *Client) GetBlockByHeight(blockHeight int64) (*tenderminttypes.Block, error) {
+func (cli *Client) GetBlockByHeight(blockHeight int64) (*tmservice.Block, error) {
 	response, err := cli.TMServiceClient().GetBlockByHeight(cli.ctx, &tmservice.GetBlockByHeightRequest{
 		Height: blockHeight,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return response.Block, nil
+	return response.SdkBlock, nil
 }
 
 func (cli *Client) GetStatusByTx(txHash string) (*tx.GetTxResponse, error) {
