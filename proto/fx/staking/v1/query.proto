@@ -1,0 +1,43 @@
+syntax = "proto3";
+package fx.staking.v1;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/staking/v1beta1/staking.proto";
+
+option go_package = "github.com/functionx/fx-core/x/staking/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // ValidatorLPToken queries the validator lp token.
+  rpc ValidatorLPToken(QueryValidatorLPTokenRequest) returns (QueryValidatorLPTokenResponse) {
+    option (google.api.http).get = "/fx/staking/v1/validator_lp_token/{validator_addr}";
+  }
+}
+
+message LPToken {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = true;
+
+  string validator_addr = 1;
+  string address = 2;
+  string name = 3;
+  string symbol = 4;
+  uint32 decimal = 5;
+  string total_supply = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryParamsRequest is request type for the Query/ValidatorLPToken RPC method.
+message QueryValidatorLPTokenRequest {
+  // validator_addr defines the validator address to query for.
+  string validator_addr = 1;
+}
+
+// QueryValidatorLPTokenResponse is response type for the Query/ValidatorLPToken RPC method.
+message QueryValidatorLPTokenResponse {
+  LPToken lp_token = 1;
+}
