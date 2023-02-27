@@ -165,7 +165,6 @@ replace (
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.8.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4
 	// use informal system fork of tendermint
     github.com/tendermint/tendermint => github.com/informalsystems/tendermint v0.34.26
 )
