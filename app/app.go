@@ -21,7 +21,7 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
 	srvflags "github.com/evmos/ethermint/server/flags"

@@ -11,9 +11,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	channelutils "github.com/cosmos/ibc-go/v3/modules/core/04-channel/client/utils"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	channelutils "github.com/cosmos/ibc-go/v6/modules/core/04-channel/client/utils"
 	"github.com/spf13/cobra"
 
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"

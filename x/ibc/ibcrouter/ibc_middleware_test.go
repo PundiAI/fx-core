@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/functionx/fx-core/v3/app"

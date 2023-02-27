@@ -11,7 +11,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 

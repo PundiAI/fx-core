@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 

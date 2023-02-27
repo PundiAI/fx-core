@@ -5,8 +5,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	ibcante "github.com/cosmos/ibc-go/v3/modules/core/ante"
-	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+	ibcante "github.com/cosmos/ibc-go/v6/modules/core/ante"
+	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC

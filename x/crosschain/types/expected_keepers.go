@@ -7,7 +7,7 @@ import (
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	tranfsertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	tranfsertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )

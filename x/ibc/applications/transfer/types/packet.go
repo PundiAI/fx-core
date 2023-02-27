@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	transfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
 // DefaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
