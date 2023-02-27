@@ -141,24 +141,19 @@ run-local: install
 lint:
 	@echo "--> Running linter"
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	@go install mvdan.cc/gofumpt@latest
 	@go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
+	@go install mvdan.cc/gofumpt@latest
 	golangci-lint run -v --go=1.18 --timeout 10m
-	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gocyclo -over 15
-	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -d
+	find . -name '*.go' -type f -not -path "./build*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gocyclo -over 15
+	find . -name '*.go' -type f -not -path "./build*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -d
 
 format: format-goimports
-	@echo "Installing gofumpt..."
-	@go install mvdan.cc/gofumpt@latest
-	find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -w -l
+	find . -name '*.go' -type f -not -path "./build*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -w -l
 	golangci-lint run --fix
 
 format-goimports:
-	@go install github.com/incu6us/goimports-reviser@latest
-	@files=$(find . -name '*.go' -type f -not -path "./build*" -not -path "*.git*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go")
-	@for file in ${files} ; do \
-		goimports-reviser $file; \
-	done
+	@go install github.com/incu6us/goimports-reviser/v3@latest
+	@find . -name '*.go' -type f -not -path './build*' -not -name 'statik.go' -not -name '*.pb.go' -not -name '*.pb.gw.go' -exec goimports-reviser -use-cache -rm-unused {} \;
 
 .PHONY: format lint
 
