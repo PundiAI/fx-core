@@ -31,7 +31,7 @@ require (
 	golang.org/x/crypto v0.1.0
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 	google.golang.org/genproto v0.0.0-20221014213838-99cd37c6964a
-	google.golang.org/grpc v1.50.1
+	google.golang.org/grpc v1.53.0
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
 	gopkg.in/yaml.v2 v2.4.0
 	nhooyr.io/websocket v1.8.6
@@ -166,7 +166,6 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.8.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4
-	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 	// use informal system fork of tendermint
     github.com/tendermint/tendermint => github.com/informalsystems/tendermint v0.34.26
 )
