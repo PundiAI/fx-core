@@ -19,7 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32" // nolint:staticcheck
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -179,7 +179,7 @@ func VerifyTxCmd() *cobra.Command {
 				bz := legacytx.StdSignBytes(
 					chainId, acc.GetAccountNumber(), sequence, stdTx.GetTimeoutHeight(),
 					legacytx.StdFee{Amount: stdTx.GetFee(), Gas: stdTx.GetGas()},
-					sdkTx.GetMsgs(), stdTx.GetMemo(),
+					sdkTx.GetMsgs(), stdTx.GetMemo(), nil,
 				)
 				if err = clientCtx.PrintString(string(bz) + "\n"); err != nil {
 					return err
