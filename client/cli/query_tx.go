@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/version"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/spf13/cobra"
@@ -100,8 +99,8 @@ $ %s query txs --%s 'message.sender=fx1...&message.module=distribution' --page 1
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-	cmd.Flags().Int(flags.FlagPage, rest.DefaultPage, "Query a specific page of paginated results")
-	cmd.Flags().Int(flags.FlagLimit, rest.DefaultLimit, "Query number of transactions results per page returned")
+	cmd.Flags().Int(flags.FlagPage, query.DefaultPage, "Query a specific page of paginated results")
+	cmd.Flags().Int(flags.FlagLimit, query.DefaultLimit, "Query number of transactions results per page returned")
 	cmd.Flags().String(flagEvents, "", fmt.Sprintf("list of transaction events in the form of %s", eventFormat))
 	_ = cmd.MarkFlagRequired(flagEvents)
 
@@ -161,7 +160,7 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 						tmEvents[i] = fmt.Sprintf("%s.%s='%s'", sdk.EventTypeTx, sdk.AttributeKeySignature, sig)
 					}
 
-					txs, err := authtx.QueryTxsByEvents(clientCtx, tmEvents, rest.DefaultPage, query.DefaultLimit, "")
+					txs, err := authtx.QueryTxsByEvents(clientCtx, tmEvents, query.DefaultPage, query.DefaultLimit, "")
 					if err != nil {
 						return err
 					}
@@ -183,7 +182,7 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 					tmEvents := []string{
 						fmt.Sprintf("%s.%s='%s'", sdk.EventTypeTx, sdk.AttributeKeyAccountSequence, args[0]),
 					}
-					txs, err := authtx.QueryTxsByEvents(clientCtx, tmEvents, rest.DefaultPage, query.DefaultLimit, "")
+					txs, err := authtx.QueryTxsByEvents(clientCtx, tmEvents, query.DefaultPage, query.DefaultLimit, "")
 					if err != nil {
 						return err
 					}

@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/spf13/cobra"
 )
 
@@ -49,7 +49,7 @@ func QueryValidatorSetCommand() *cobra.Command {
 
 	cmd.Flags().String(flags.FlagNode, "tcp://localhost:26657", "<host>:<port> to Tendermint RPC interface for this chain")
 	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|kwallet|pass|test)")
-	cmd.Flags().Int(flags.FlagPage, rest.DefaultPage, "Query a specific page of paginated results")
+	cmd.Flags().Int(flags.FlagPage, query.DefaultPage, "Query a specific page of paginated results")
 	cmd.Flags().Int(flags.FlagLimit, 100, "Query number of results returned per page")
 
 	return cmd
