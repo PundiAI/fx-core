@@ -1,10 +1,10 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,24 +29,24 @@ func NewDistrStakingMigrate(distrKey, stakingKey storetypes.StoreKey, stakingKee
 func (m *DistrStakingMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	// check validator
 	if _, found := m.stakingKeeper.GetValidator(ctx, sdk.ValAddress(from)); found {
-		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", from.String())
+		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", from.String())
 	}
 	if _, found := m.stakingKeeper.GetValidator(ctx, to.Bytes()); found {
-		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", to.String())
+		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, %s is the validator address", to.String())
 	}
 	// check delegation
 	if delegations := m.stakingKeeper.GetDelegatorDelegations(ctx, to.Bytes(), 1); len(delegations) > 0 {
-		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has delegation record", to.String())
+		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has delegation record", to.String())
 	}
 	// check undelegatetion
 	undelegations := m.stakingKeeper.GetUnbondingDelegations(ctx, to.Bytes(), 1)
 	if len(undelegations) > 0 {
-		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has undelegate record", to.String())
+		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has undelegate record", to.String())
 	}
 	// check redelegation
 	redelegations := m.stakingKeeper.GetRedelegations(ctx, to.Bytes(), 1)
 	if len(redelegations) > 0 {
-		return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has redelegation record", to.String())
+		return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, address %s has redelegation record", to.String())
 	}
 	return nil
 }

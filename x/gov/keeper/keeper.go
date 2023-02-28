@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -38,12 +38,12 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	// Checks to see if proposal exists
 	proposal, ok := keeper.GetProposal(ctx, proposalID)
 	if !ok {
-		return false, sdkerrors.Wrapf(govtypes.ErrUnknownProposal, "%d", proposalID)
+		return false, errorsmod.Wrapf(govtypes.ErrUnknownProposal, "%d", proposalID)
 	}
 
 	// Check if proposal is still depositable
 	if (proposal.Status != govtypes.StatusDepositPeriod) && (proposal.Status != govtypes.StatusVotingPeriod) {
-		return false, sdkerrors.Wrapf(govtypes.ErrInactiveProposal, "%d", proposalID)
+		return false, errorsmod.Wrapf(govtypes.ErrInactiveProposal, "%d", proposalID)
 	}
 
 	// update the governance module's account coins pool
@@ -64,7 +64,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	if isEGF {
 		cp, ok := proposal.GetContent().(*distrtypes.CommunityPoolSpendProposal)
 		if !ok {
-			return false, sdkerrors.Wrapf(govtypes.ErrInvalidProposalType, "%d", proposalID)
+			return false, errorsmod.Wrapf(govtypes.ErrInvalidProposalType, "%d", proposalID)
 		}
 		minDeposit = types.EGFProposalMinDeposit(cp.Amount)
 	} else {

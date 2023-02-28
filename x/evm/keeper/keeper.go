@@ -3,8 +3,8 @@ package keeper
 import (
 	"math/big"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/server/config"
@@ -83,7 +83,7 @@ func (k *Keeper) CallEVMWithoutGas(
 	}
 
 	if res.Failed() {
-		return nil, sdkerrors.Wrap(types.ErrVMExecution, res.VmError)
+		return nil, errorsmod.Wrap(types.ErrVMExecution, res.VmError)
 	}
 
 	ctx.WithGasMeter(gasMeter)

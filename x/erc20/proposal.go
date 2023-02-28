@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -26,7 +25,7 @@ func NewErc20ProposalHandler(k keeper.Keeper) govtypes.Handler {
 		case *types.UpdateDenomAliasProposal:
 			return handleUpdateDenomAliasProposal(ctx, k, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s proposal content type: %T", types.ModuleName, c)
+			return errorsmod.Wrapf(errortypes.ErrUnknownRequest, "unrecognized %s proposal content type: %T", types.ModuleName, c)
 		}
 	}
 }

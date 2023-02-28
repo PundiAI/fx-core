@@ -3,10 +3,10 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -35,7 +35,7 @@ func (m *GovMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, from sdk.Acc
 		_, fromVoteFound := m.govKeeper.GetVote(ctx, proposalID, from)
 		_, toVoteFound := m.govKeeper.GetVote(ctx, proposalID, to.Bytes())
 		if fromVoteFound && toVoteFound {
-			return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, both from and to have voting proposal %d", proposalID)
+			return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, both from and to have voting proposal %d", proposalID)
 		}
 	}
 	return nil
@@ -103,7 +103,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 		if fromVote, voteFound := m.govKeeper.GetVote(ctx, proposalID, from); voteFound {
 			_, toFound := m.govKeeper.GetVote(ctx, proposalID, to.Bytes())
 			if toFound {
-				return sdkerrors.Wrapf(types.ErrInvalidAddress, "can not migrate, both from and to have voting proposal %d", proposalID)
+				return errorsmod.Wrapf(types.ErrInvalidAddress, "can not migrate, both from and to have voting proposal %d", proposalID)
 			}
 			fromVote.Voter = sdk.AccAddress(to.Bytes()).String()
 			govStore.Delete(govtypes.VoteKey(proposalID, from))

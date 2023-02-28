@@ -3,7 +3,7 @@ package types
 import (
 	"math/big"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fbsobreira/gotron-sdk/pkg/abi"
 
@@ -22,11 +22,11 @@ func GetCheckpointOracleSet(oracleSet *types.OracleSet, gravityIDStr string) ([]
 
 	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "parse gravity id")
+		return nil, errorsmod.Wrap(err, "parse gravity id")
 	}
 	checkpoint, err := fxtypes.StrToByte32("checkpoint")
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "parse checkpoint")
+		return nil, errorsmod.Wrap(err, "parse checkpoint")
 	}
 
 	params := []abi.Param{
@@ -56,11 +56,11 @@ func GetCheckpointConfirmBatch(txBatch *types.OutgoingTxBatch, gravityIDStr stri
 
 	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "parse gravity id")
+		return nil, errorsmod.Wrap(err, "parse gravity id")
 	}
 	transactionBatch, err := fxtypes.StrToByte32("transactionBatch")
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "parse checkpoint")
+		return nil, errorsmod.Wrap(err, "parse checkpoint")
 	}
 
 	params := []abi.Param{

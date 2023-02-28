@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
@@ -144,7 +145,7 @@ func (k msgServer) ConfirmBatch(ctx context.Context, msg *types.MsgConfirmBatch)
 func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, error) {
 	msgServerRouter := k.routerKeeper.Router()
 	if !msgServerRouter.HasRoute(chainName) {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", chainName))
+		return nil, errorsmod.Wrap(errortypes.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type:%s", chainName))
 	}
 	return msgServerRouter.GetRoute(chainName).MsgServer, nil
 }

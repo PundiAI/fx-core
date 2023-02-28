@@ -7,8 +7,8 @@ import (
 	"sort"
 	"testing"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -1031,7 +1031,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			baseFee:        sdk.NewInt(1000),
 			pass:           false,
 			expectTotalTxs: 3,
-			err:            sdkerrors.Wrap(types.ErrEmpty, "no batch tx"),
+			err:            errorsmod.Wrap(types.ErrEmpty, "no batch tx"),
 		},
 		{
 			testName:       "Support - baseFee 2",
@@ -1045,7 +1045,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			baseFee:        sdk.NewInt(0),
 			pass:           false,
 			expectTotalTxs: 0,
-			err:            sdkerrors.Wrap(types.ErrInvalid, "new batch would not be more profitable"),
+			err:            errorsmod.Wrap(types.ErrInvalid, "new batch would not be more profitable"),
 		},
 	}
 

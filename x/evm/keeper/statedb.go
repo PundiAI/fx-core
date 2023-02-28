@@ -2,7 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethermint "github.com/evmos/ethermint/types"
@@ -37,7 +36,7 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 					CodeHash:    codeHash.Hex(),
 				}
 			} else {
-				return sdkerrors.Wrapf(types.ErrInvalidAccount, "type %T, address %s", acct, addr)
+				return errorsmod.Wrapf(types.ErrInvalidAccount, "type %T, address %s", acct, addr)
 			}
 		}
 	}

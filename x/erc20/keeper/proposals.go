@@ -3,8 +3,8 @@ package keeper
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -16,33 +16,33 @@ import (
 func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (*types.TokenPair, error) {
 	// check if the conversion is globally enabled
 	if !k.GetEnableErc20(ctx) {
-		return nil, sdkerrors.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
+		return nil, errorsmod.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
 	}
 
 	decimals := getErc20Decimals(coinMetadata)
 
 	// check if the denomination already registered
 	if k.IsDenomRegistered(ctx, coinMetadata.Base) {
-		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Base)
+		return nil, errorsmod.Wrapf(types.ErrTokenPairAlreadyExists, "coin denomination already registered: %s", coinMetadata.Base)
 	}
 
 	// base not register as alias
 	if k.IsAliasDenomRegistered(ctx, coinMetadata.Base) {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "alias %s already registered", coinMetadata.Base)
+		return nil, errorsmod.Wrapf(types.ErrInvalidMetadata, "alias %s already registered", coinMetadata.Base)
 	}
 
 	if len(coinMetadata.DenomUnits) > 0 && len(coinMetadata.DenomUnits[0].Aliases) > 0 {
 		for _, alias := range coinMetadata.DenomUnits[0].Aliases {
 			if alias == coinMetadata.Base || alias == coinMetadata.Display || alias == coinMetadata.Symbol {
-				return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, "alias can not equal base, display or symbol")
+				return nil, errorsmod.Wrap(types.ErrInvalidMetadata, "alias can not equal base, display or symbol")
 			}
 			// alias not register as base
 			if k.IsDenomRegistered(ctx, alias) {
-				return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", alias)
+				return nil, errorsmod.Wrapf(types.ErrInvalidMetadata, "denom %s already registered", alias)
 			}
 			// alias must not register
 			if k.IsAliasDenomRegistered(ctx, alias) {
-				return nil, sdkerrors.Wrapf(types.ErrInvalidMetadata, "alias %s already registered", alias)
+				return nil, errorsmod.Wrapf(types.ErrInvalidMetadata, "alias %s already registered", alias)
 			}
 		}
 		k.SetAliasesDenom(ctx, coinMetadata.Base, coinMetadata.DenomUnits[0].Aliases...)
@@ -51,7 +51,7 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 	meta, isExist := k.bankKeeper.GetDenomMetaData(ctx, coinMetadata.Base)
 	if isExist {
 		if err := types.EqualMetadata(meta, coinMetadata); err != nil {
-			return nil, sdkerrors.Wrap(types.ErrInvalidMetadata, err.Error())
+			return nil, errorsmod.Wrap(types.ErrInvalidMetadata, err.Error())
 		}
 	} else {
 		k.bankKeeper.SetDenomMetaData(ctx, coinMetadata)
@@ -70,11 +70,11 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 // RegisterERC20 creates a cosmos coin and registers the token pair between the coin and the ERC20
 func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.TokenPair, error) {
 	if !k.GetEnableErc20(ctx) {
-		return nil, sdkerrors.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
+		return nil, errorsmod.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
 	}
 
 	if k.IsERC20Registered(ctx, contract) {
-		return nil, sdkerrors.Wrapf(types.ErrTokenPairAlreadyExists, "token ERC20 contract already registered: %s", contract.String())
+		return nil, errorsmod.Wrapf(types.ErrTokenPairAlreadyExists, "token ERC20 contract already registered: %s", contract.String())
 	}
 
 	erc20Data, err := k.QueryERC20(ctx, contract)
@@ -85,18 +85,18 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 	// base denomination
 	base := strings.ToLower(erc20Data.Symbol)
 	if erc20Data.Symbol == fxtypes.DefaultDenom || k.IsDenomRegistered(ctx, base) {
-		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "coin denomination already registered: %s", erc20Data.Name)
+		return nil, errorsmod.Wrapf(types.ErrInternalTokenPair, "coin denomination already registered: %s", erc20Data.Name)
 	}
 
 	// base not register as alias
 	if k.IsAliasDenomRegistered(ctx, base) {
-		return nil, sdkerrors.Wrapf(types.ErrInternalTokenPair, "alias %s already registered", base)
+		return nil, errorsmod.Wrapf(types.ErrInternalTokenPair, "alias %s already registered", base)
 	}
 
 	_, isExist := k.bankKeeper.GetDenomMetaData(ctx, base) // TODO if register must be equal
 	if isExist {
 		// metadata already exists; exit
-		return nil, sdkerrors.Wrap(types.ErrInternalTokenPair, "denom metadata already registered")
+		return nil, errorsmod.Wrap(types.ErrInternalTokenPair, "denom metadata already registered")
 	}
 
 	// create a bank denom metadata based on the ERC20 token ABI details
@@ -128,7 +128,7 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 	}
 
 	if err := metadata.Validate(); err != nil {
-		return nil, sdkerrors.Wrapf(err, "FIP20 token data is invalid for contract %s", contract.String())
+		return nil, errorsmod.Wrapf(err, "FIP20 token data is invalid for contract %s", contract.String())
 	}
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 
@@ -141,7 +141,7 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address) (*types.
 func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, error) {
 	pair, found := k.GetTokenPair(ctx, token)
 	if !found {
-		return types.TokenPair{}, sdkerrors.Wrapf(types.ErrTokenPairNotFound, "token '%s' not registered", token)
+		return types.TokenPair{}, errorsmod.Wrapf(types.ErrTokenPairNotFound, "token '%s' not registered", token)
 	}
 	pair.Enabled = !pair.Enabled
 
@@ -156,16 +156,16 @@ func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, err
 func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, error) {
 	// check if the denom denomination already registered
 	if !k.IsDenomRegistered(ctx, denom) {
-		return false, sdkerrors.Wrapf(types.ErrInvalidDenom, "coin denomination not registered: %s", denom)
+		return false, errorsmod.Wrapf(types.ErrInvalidDenom, "coin denomination not registered: %s", denom)
 	}
 	// check if the alias not registered
 	if k.IsDenomRegistered(ctx, alias) {
-		return false, sdkerrors.Wrapf(types.ErrInvalidDenom, "coin denomination already registered: %s", alias)
+		return false, errorsmod.Wrapf(types.ErrInvalidDenom, "coin denomination already registered: %s", alias)
 	}
 
 	md, found := k.HasDenomAlias(ctx, denom)
 	if !found {
-		return false, sdkerrors.Wrapf(types.ErrInvalidMetadata, "denom %s not support update denom aliases", denom)
+		return false, errorsmod.Wrapf(types.ErrInvalidMetadata, "denom %s not support update denom aliases", denom)
 	}
 
 	oldAliases := md.DenomUnits[0].Aliases
@@ -185,12 +185,12 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 			newAliases = append(newAliases, denomAlias)
 		}
 		if len(newAliases) == 0 {
-			return false, sdkerrors.Wrapf(types.ErrInvalidDenom, "can not remove, alias %s is the last one", alias)
+			return false, errorsmod.Wrapf(types.ErrInvalidDenom, "can not remove, alias %s is the last one", alias)
 		}
 		k.DeleteAliasesDenom(ctx, alias)
 	} else {
 		// check if denom not equal alias registered denom, return error
-		return false, sdkerrors.Wrapf(types.ErrInvalidDenom,
+		return false, errorsmod.Wrapf(types.ErrInvalidDenom,
 			"alias %s already registered, but denom expected: %s, actual: %s",
 			alias, registeredDenom, denom)
 	}

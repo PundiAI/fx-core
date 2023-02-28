@@ -3,10 +3,11 @@ package keeper
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 
@@ -20,7 +21,7 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 
 		balances := h.k.bankKeeper.GetAllBalances(ctx, relay.From.Bytes())
 		if !balances.IsAllGTE(relay.TotalAmount(relay.Denom)) {
-			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "%s is smaller than %s",
+			return errorsmod.Wrapf(errortypes.ErrInsufficientFunds, "%s is smaller than %s",
 				sdk.NewCoin(relay.Denom, balances.AmountOf(relay.Denom)).String(), relay.TotalAmount(relay.Denom).String())
 		}
 
@@ -71,11 +72,11 @@ func (h Hooks) HookTransferCrossChainEvent(ctx sdk.Context, relayTransferCrossCh
 func (h Hooks) transferCrossChainHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, fxTarget fxtypes.FxTarget) error {
 	h.k.Logger(ctx).Info("transfer cross-chain handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", fxTarget.GetTarget())
 	if h.k.router == nil {
-		return sdkerrors.Wrapf(types.ErrInternalRouter, "transfer chain router not set")
+		return errorsmod.Wrapf(types.ErrInternalRouter, "transfer chain router not set")
 	}
 	route, has := h.k.router.GetRoute(fxTarget.GetTarget())
 	if !has {
-		return sdkerrors.Wrapf(types.ErrInvalidTarget, "target %s not support", fxTarget.GetTarget())
+		return errorsmod.Wrapf(types.ErrInvalidTarget, "target %s not support", fxTarget.GetTarget())
 	}
 	return route.TransferAfter(ctx, from.String(), to, amount, fee)
 }
@@ -83,15 +84,15 @@ func (h Hooks) transferCrossChainHandler(ctx sdk.Context, from sdk.AccAddress, t
 func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to string, amount, fee sdk.Coin, fxTarget fxtypes.FxTarget) error {
 	h.k.Logger(ctx).Info("transfer ibc handler", "from", from, "to", to, "amount", amount.String(), "fee", fee.String(), "target", fxTarget.GetTarget())
 	if !fee.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "ibc transfer fee must be zero: %s", fee.Amount.String())
+		return errorsmod.Wrapf(errortypes.ErrInvalidCoins, "ibc transfer fee must be zero: %s", fee.Amount.String())
 	}
 	if strings.ToLower(fxTarget.Prefix) == fxtypes.EthereumAddressPrefix {
 		if err := fxtypes.ValidateEthereumAddress(to); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
+			return errorsmod.Wrapf(errortypes.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
 		}
 	} else {
 		if _, err := sdk.GetFromBech32(to, fxTarget.Prefix); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
+			return errorsmod.Wrapf(errortypes.ErrInvalidAddress, "invalid to address %s, error %s", to, err.Error())
 		}
 	}
 

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/functionx/fx-core/v3/x/gov/types"
@@ -37,7 +37,7 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 	defer telemetry.IncrCounter(1, govtypes.ModuleName, "proposal")
 
 	if msg.GetInitialDeposit().IsAllLT(types.GetInitialDeposit()) {
-		return nil, sdkerrors.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msg.GetInitialDeposit(), types.GetInitialDeposit())
+		return nil, errorsmod.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msg.GetInitialDeposit(), types.GetInitialDeposit())
 	}
 
 	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())

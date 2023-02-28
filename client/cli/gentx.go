@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
@@ -286,7 +285,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli.TxCreateValida
 	minSelfDelegation, ok := sdk.NewIntFromString(msbStr)
 
 	if !ok {
-		return txFactory, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
+		return txFactory, nil, errorsmod.Wrap(errortypes.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
 	msg, err := stakingtypes.NewMsgCreateValidator(

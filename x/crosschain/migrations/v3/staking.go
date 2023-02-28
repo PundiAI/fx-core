@@ -3,8 +3,8 @@ package v3
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerr "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -42,7 +42,7 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 		}
 
 		if validator.OperatorAddress != oracle.DelegateValidator {
-			return sdkerr.Wrap(types.ErrInvalid, "delegate validator")
+			return errorsmod.Wrap(types.ErrInvalid, "delegate validator")
 		}
 
 		delegateAddr := oracle.GetDelegateAddress(moduleName)

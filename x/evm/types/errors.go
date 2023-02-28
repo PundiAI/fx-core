@@ -1,7 +1,7 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/evmos/ethermint/x/evm/types"
 )
 
@@ -11,6 +11,6 @@ const (
 )
 
 var (
-	ErrABIPack   = sdkerrors.Register(types.ModuleName, codeErrABIPack, "failed abi pack args")
-	ErrABIUnpack = sdkerrors.Register(types.ModuleName, codeErrABIUnpack, "failed abi unpack data")
+	ErrABIPack   = errorsmod.Register(types.ModuleName, codeErrABIPack, "failed abi pack args")
+	ErrABIUnpack = errorsmod.Register(types.ModuleName, codeErrABIUnpack, "failed abi unpack data")
 )

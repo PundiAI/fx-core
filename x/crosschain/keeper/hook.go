@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
@@ -13,11 +13,11 @@ import (
 func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, amount, fee sdk.Coin) error {
 	sendAddr, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 
 	if err = fxtypes.ValidateEthereumAddress(receive); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)
 	}
 
 	_, err = k.AddToOutgoingPool(ctx, sendAddr, receive, amount, fee)

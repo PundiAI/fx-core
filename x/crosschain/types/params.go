@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -79,34 +79,34 @@ func DefaultParams() Params {
 // ValidateBasic checks that the parameters have valid values.
 func (m *Params) ValidateBasic() error {
 	if err := validateGravityID(m.GravityId); err != nil {
-		return sdkerrors.Wrap(err, "gravity id")
+		return errorsmod.Wrap(err, "gravity id")
 	}
 	if err := validateAverageBlockTime(m.AverageBlockTime); err != nil {
-		return sdkerrors.Wrap(err, "average block time")
+		return errorsmod.Wrap(err, "average block time")
 	}
 	if err := validateExternalBatchTimeout(m.ExternalBatchTimeout); err != nil {
-		return sdkerrors.Wrap(err, "external batch timeout")
+		return errorsmod.Wrap(err, "external batch timeout")
 	}
 	if err := validateAverageExternalBlockTime(m.AverageExternalBlockTime); err != nil {
-		return sdkerrors.Wrap(err, "average external block time")
+		return errorsmod.Wrap(err, "average external block time")
 	}
 	if err := validateSignedWindow(m.SignedWindow); err != nil {
-		return sdkerrors.Wrap(err, "signed blocks window")
+		return errorsmod.Wrap(err, "signed blocks window")
 	}
 	if err := validateSlashFraction(m.SlashFraction); err != nil {
-		return sdkerrors.Wrap(err, "slash fraction")
+		return errorsmod.Wrap(err, "slash fraction")
 	}
 	if err := validateIbcTransferTimeoutHeight(m.IbcTransferTimeoutHeight); err != nil {
-		return sdkerrors.Wrap(err, "ibc transfer timeout height")
+		return errorsmod.Wrap(err, "ibc transfer timeout height")
 	}
 	if err := validateOracleSetUpdatePowerChangePercent(m.OracleSetUpdatePowerChangePercent); err != nil {
-		return sdkerrors.Wrap(err, "power changer update oracle set percent")
+		return errorsmod.Wrap(err, "power changer update oracle set percent")
 	}
 	if err := validateOracleDelegateThreshold(m.DelegateThreshold); err != nil {
-		return sdkerrors.Wrap(err, "oracle delegate threshold")
+		return errorsmod.Wrap(err, "oracle delegate threshold")
 	}
 	if err := validateOracleDelegateMultiple(m.DelegateMultiple); err != nil {
-		return sdkerrors.Wrap(err, "delegate multiple")
+		return errorsmod.Wrap(err, "delegate multiple")
 	}
 	return nil
 }

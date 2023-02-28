@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -43,16 +44,16 @@ func (k Keeper) sendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, 
 	}
 
 	if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
-		return 0, sdkerrors.Wrapf(transfertypes.ErrSendDisabled, "%s transfers are currently disabled", token.Denom)
+		return 0, errorsmod.Wrapf(transfertypes.ErrSendDisabled, "%s transfers are currently disabled", token.Denom)
 	}
 
 	if k.bankKeeper.BlockedAddr(sender) {
-		return 0, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+		return 0, errorsmod.Wrapf(errortypes.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
+		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
@@ -61,14 +62,14 @@ func (k Keeper) sendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, 
 	// get the next sequence
 	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		return 0, sdkerrors.Wrapf(channeltypes.ErrSequenceSendNotFound, "source port: %s, source channel: %s", sourcePort, sourceChannel)
+		return 0, errorsmod.Wrapf(channeltypes.ErrSequenceSendNotFound, "source port: %s, source channel: %s", sourcePort, sourceChannel)
 	}
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#packet-relay
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
 	if !ok {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
@@ -195,7 +196,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 	route, exists := k.router.GetRoute(data.Router)
 	if !exists {
-		return sdkerrors.Wrap(types.ErrRouterNotFound, data.Router)
+		return errorsmod.Wrap(types.ErrRouterNotFound, data.Router)
 	}
 
 	fxTarget := fxtypes.ParseFxTarget(data.Router)

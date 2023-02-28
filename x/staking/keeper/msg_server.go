@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
@@ -46,7 +46,7 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 
 	pk, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
+		return nil, errorsmod.Wrapf(errortypes.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
 	}
 
 	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
@@ -55,8 +55,8 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 
 	bondDenom := k.Keeper.BondDenom(ctx)
 	if msg.Value.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Value.Denom, bondDenom,
+		return nil, errorsmod.Wrapf(
+			errortypes.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Value.Denom, bondDenom,
 		)
 	}
 
@@ -67,7 +67,7 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 	cp := ctx.ConsensusParams()
 	if cp != nil && cp.Validator != nil {
 		if !tmstrings.StringInSlice(pk.Type(), cp.Validator.PubKeyTypes) {
-			return nil, sdkerrors.Wrapf(
+			return nil, errorsmod.Wrapf(
 				stakingtypes.ErrValidatorPubKeyTypeNotSupported,
 				"got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes,
 			)
@@ -146,8 +146,8 @@ func (k msgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 
 	bondDenom := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
+		return nil, errorsmod.Wrapf(
+			errortypes.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
 		)
 	}
 
@@ -205,8 +205,8 @@ func (k msgServer) BeginRedelegate(goCtx context.Context, msg *stakingtypes.MsgB
 
 	bondDenom := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
+		return nil, errorsmod.Wrapf(
+			errortypes.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
 		)
 	}
 
@@ -274,8 +274,8 @@ func (k msgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 
 	bondDenom := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
+		return nil, errorsmod.Wrapf(
+			errortypes.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
 		)
 	}
 

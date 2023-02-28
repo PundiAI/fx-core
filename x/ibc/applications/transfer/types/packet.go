@@ -4,8 +4,9 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
@@ -34,23 +35,23 @@ func NewFungibleTokenPacketData(denom, amount, sender, receiver, router string, 
 func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	amount, ok := sdk.NewIntFromString(ftpd.Amount)
 	if !ok {
-		return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", ftpd.Amount)
+		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", ftpd.Amount)
 	}
 	if !amount.IsPositive() {
-		return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
+		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
 	}
 	if strings.TrimSpace(ftpd.Sender) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
+		return errorsmod.Wrap(errortypes.ErrInvalidAddress, "sender address cannot be blank")
 	}
 	if strings.TrimSpace(ftpd.Receiver) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be blank")
+		return errorsmod.Wrap(errortypes.ErrInvalidAddress, "receiver address cannot be blank")
 	}
 	fee, ok := sdk.NewIntFromString(ftpd.Fee)
 	if !ok {
-		return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer fee (%s) into sdk.Int", ftpd.Fee)
+		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer fee (%s) into sdk.Int", ftpd.Fee)
 	}
 	if fee.IsNegative() {
-		return sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "fee must be strictly not negative: got %d", fee)
+		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee must be strictly not negative: got %d", fee)
 	}
 	return transfertypes.ValidatePrefixedDenom(ftpd.Denom)
 }

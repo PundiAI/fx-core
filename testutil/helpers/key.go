@@ -5,12 +5,12 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/go-bip39"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -118,7 +118,7 @@ func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 		panic(err)
 	}
 	if len(pkBytes) != ed25519.PubKeySize {
-		panic(errors.Wrap(errors.ErrInvalidPubKey, "invalid pubkey size"))
+		panic(errorsmod.Wrap(errortypes.ErrInvalidPubKey, "invalid pubkey size"))
 	}
 	return &ed25519.PubKey{Key: pkBytes}
 }

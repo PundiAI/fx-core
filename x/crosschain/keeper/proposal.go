@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -20,7 +20,7 @@ var _ proposalServer = Keeper{}
 func (k Keeper) UpdateChainOraclesProposal(ctx sdk.Context, proposal *types.UpdateChainOraclesProposal) error {
 	k.Logger(ctx).Info("handle update chain oracles proposal", "proposal", proposal.String())
 	if len(proposal.Oracles) > types.MaxOracleSize {
-		return sdkerrors.Wrapf(types.ErrInvalid,
+		return errorsmod.Wrapf(types.ErrInvalid,
 			fmt.Sprintf("oracle length must be less than or equal: %d", types.MaxOracleSize))
 	}
 
@@ -60,7 +60,7 @@ func (k Keeper) UpdateChainOraclesProposal(ctx sdk.Context, proposal *types.Upda
 	k.Logger(ctx).Info("update chain oracles proposal",
 		"maxChangePowerThreshold", maxChangePowerThreshold.String(), "deleteTotalPower", deleteTotalPower.String())
 	if deleteTotalPower.GT(sdk.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
-		return sdkerrors.Wrapf(types.ErrInvalid, "max change power, "+
+		return errorsmod.Wrapf(types.ErrInvalid, "max change power, "+
 			"maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
 	}
 

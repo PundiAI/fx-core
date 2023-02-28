@@ -1,8 +1,8 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
-var ErrInitialAmountTooLow = sdkerrors.Register(govtypes.ModuleName, 10, "initial amount too low")
+var ErrInitialAmountTooLow = errorsmod.Register(govtypes.ModuleName, 10, "initial amount too low")

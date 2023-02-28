@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
@@ -61,20 +61,20 @@ func (m *UpdateChainOraclesProposal) ProposalType() string {
 
 func (m *UpdateChainOraclesProposal) ValidateBasic() error {
 	if err := ValidateModuleName(m.ChainName); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid chain name")
+		return errortypes.ErrInvalidRequest.Wrap("invalid chain name")
 	}
 	if err := govtypes.ValidateAbstract(m); err != nil {
 		return err
 	}
 
 	if len(m.Oracles) == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("empty oracles")
+		return errortypes.ErrInvalidRequest.Wrap("empty oracles")
 	}
 
 	oraclesMap := make(map[string]bool)
 	for _, addr := range m.Oracles {
 		if _, err := sdk.AccAddressFromBech32(addr); err != nil {
-			return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+			return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
 		}
 		if oraclesMap[addr] {
 			return ErrDuplicate.Wrapf("oracle address: %s", addr)

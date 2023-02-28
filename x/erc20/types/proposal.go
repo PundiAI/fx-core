@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -64,15 +64,15 @@ func (*RegisterCoinProposal) ProposalType() string {
 // ValidateBasic performs a stateless check of the proposal fields
 func (m *RegisterCoinProposal) ValidateBasic() error {
 	if err := m.Metadata.Validate(); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
+		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
 	}
 
 	if err := fxtypes.ValidateMetadata(m.Metadata); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
+		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
 	}
 
 	if err := ibctransfertypes.ValidateIBCDenom(m.Metadata.Base); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrapf("invalid metadata base: %s", err.Error())
+		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata base: %s", err.Error())
 	}
 
 	return govtypes.ValidateAbstract(m)
@@ -98,7 +98,7 @@ func (*RegisterERC20Proposal) ProposalType() string {
 // ValidateBasic performs a stateless check of the proposal fields
 func (m *RegisterERC20Proposal) ValidateBasic() error {
 	if err := fxtypes.ValidateEthereumAddress(m.Erc20Address); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid ERC20 address: %s", err.Error())
+		return errortypes.ErrInvalidAddress.Wrapf("invalid ERC20 address: %s", err.Error())
 	}
 	return govtypes.ValidateAbstract(m)
 }
@@ -126,7 +126,7 @@ func (m *ToggleTokenConversionProposal) ValidateBasic() error {
 	// denom
 	if err := fxtypes.ValidateEthereumAddress(m.Token); err != nil {
 		if err := sdk.ValidateDenom(m.Token); err != nil {
-			return sdkerrors.ErrInvalidRequest.Wrap("invalid token")
+			return errortypes.ErrInvalidRequest.Wrap("invalid token")
 		}
 	}
 
@@ -154,10 +154,10 @@ func (*UpdateDenomAliasProposal) ProposalType() string {
 // ValidateBasic performs a stateless check of the proposal fields
 func (m *UpdateDenomAliasProposal) ValidateBasic() error {
 	if err := sdk.ValidateDenom(m.Denom); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid denom")
+		return errortypes.ErrInvalidRequest.Wrap("invalid denom")
 	}
 	if err := sdk.ValidateDenom(m.Alias); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid alias")
+		return errortypes.ErrInvalidRequest.Wrap("invalid alias")
 	}
 	return govtypes.ValidateAbstract(m)
 }

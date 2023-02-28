@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -204,11 +204,11 @@ func CmdSendToExternal(chainName string) *cobra.Command {
 			}
 			amount, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
-				return sdkerrors.Wrap(err, "amount")
+				return errorsmod.Wrap(err, "amount")
 			}
 			bridgeFee, err := sdk.ParseCoinNormalized(args[2])
 			if err != nil {
-				return sdkerrors.Wrap(err, "bridge fee")
+				return errorsmod.Wrap(err, "bridge fee")
 			}
 
 			msg := types.MsgSendToExternal{

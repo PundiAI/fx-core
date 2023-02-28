@@ -3,8 +3,8 @@ package types
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -18,52 +18,52 @@ var _ paramtypes.ParamSet = &Params{}
 //gocyclo:ignore
 func (m *Params) ValidateBasic() error {
 	if err := validateGravityID(m.GravityId); err != nil {
-		return sdkerrors.Wrap(err, "gravity id")
+		return errorsmod.Wrap(err, "gravity id")
 	}
 	if err := validateContractHash(m.ContractSourceHash); err != nil {
-		return sdkerrors.Wrap(err, "contract hash")
+		return errorsmod.Wrap(err, "contract hash")
 	}
 	if err := validateBridgeContractAddress(m.BridgeEthAddress); err != nil {
-		return sdkerrors.Wrap(err, "bridge contract address")
+		return errorsmod.Wrap(err, "bridge contract address")
 	}
 	if err := validateBridgeChainID(m.BridgeChainId); err != nil {
-		return sdkerrors.Wrap(err, "bridge chain id")
+		return errorsmod.Wrap(err, "bridge chain id")
 	}
 	if err := validateTargetBatchTimeout(m.TargetBatchTimeout); err != nil {
-		return sdkerrors.Wrap(err, "Batch timeout")
+		return errorsmod.Wrap(err, "Batch timeout")
 	}
 	if err := validateAverageBlockTime(m.AverageBlockTime); err != nil {
-		return sdkerrors.Wrap(err, "Block time")
+		return errorsmod.Wrap(err, "Block time")
 	}
 	if err := validateAverageEthereumBlockTime(m.AverageEthBlockTime); err != nil {
-		return sdkerrors.Wrap(err, "ethereum block time")
+		return errorsmod.Wrap(err, "ethereum block time")
 	}
 	if err := validateSignedValsetsWindow(m.SignedValsetsWindow); err != nil {
-		return sdkerrors.Wrap(err, "signed blocks window")
+		return errorsmod.Wrap(err, "signed blocks window")
 	}
 	if err := validateSignedBatchesWindow(m.SignedBatchesWindow); err != nil {
-		return sdkerrors.Wrap(err, "signed blocks window")
+		return errorsmod.Wrap(err, "signed blocks window")
 	}
 	if err := validateSignedClaimsWindow(m.SignedClaimsWindow); err != nil {
-		return sdkerrors.Wrap(err, "signed blocks window")
+		return errorsmod.Wrap(err, "signed blocks window")
 	}
 	if err := validateSlashFractionValset(m.SlashFractionValset); err != nil {
-		return sdkerrors.Wrap(err, "slash fraction valset")
+		return errorsmod.Wrap(err, "slash fraction valset")
 	}
 	if err := validateSlashFractionBatch(m.SlashFractionBatch); err != nil {
-		return sdkerrors.Wrap(err, "slash fraction valset")
+		return errorsmod.Wrap(err, "slash fraction valset")
 	}
 	if err := validateSlashFractionClaim(m.SlashFractionClaim); err != nil {
-		return sdkerrors.Wrap(err, "slash fraction valset")
+		return errorsmod.Wrap(err, "slash fraction valset")
 	}
 	if err := validateSlashFractionConflictingClaim(m.SlashFractionConflictingClaim); err != nil {
-		return sdkerrors.Wrap(err, "slash fraction valset")
+		return errorsmod.Wrap(err, "slash fraction valset")
 	}
 	if err := validateUnbondSlashingValsetsWindow(m.UnbondSlashingValsetsWindow); err != nil {
-		return sdkerrors.Wrap(err, "unbond slashing valset window")
+		return errorsmod.Wrap(err, "unbond slashing valset window")
 	}
 	if err := validateValsetUpdatePowerChangePercent(m.ValsetUpdatePowerChangePercent); err != nil {
-		return sdkerrors.Wrap(err, "unbond slashing valset window")
+		return errorsmod.Wrap(err, "unbond slashing valset window")
 	}
 	return nil
 }

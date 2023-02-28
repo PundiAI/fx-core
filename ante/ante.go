@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"runtime/debug"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256r1"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	txsigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -32,8 +33,8 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 					// handle as *evmtypes.MsgEthereumTx
 					return ethAnteHandler(ctx, tx, sim)
 				default:
-					return ctx, sdkerrors.Wrapf(
-						sdkerrors.ErrUnknownExtensionOptions,
+					return ctx, errorsmod.Wrapf(
+						errortypes.ErrUnknownExtensionOptions,
 						"rejecting tx with unsupported extension option: %s", typeURL,
 					)
 				}
@@ -45,8 +46,8 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		case sdk.Tx:
 			return anteHandler(ctx, tx, sim)
 		default:
-			return ctx, sdkerrors.Wrapf(
-				sdkerrors.ErrUnknownRequest,
+			return ctx, errorsmod.Wrapf(
+				errortypes.ErrUnknownRequest,
 				"invalid transaction type: %T", tx)
 		}
 	}
@@ -83,7 +84,7 @@ func DefaultSigVerificationGasConsumer(
 
 	case *ed25519.PubKey:
 		meter.ConsumeGas(params.SigVerifyCostED25519, "ante verify: ed25519")
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "ED25519 public keys are unsupported")
+		return errorsmod.Wrap(errortypes.ErrInvalidPubKey, "ED25519 public keys are unsupported")
 
 	case *secp256k1.PubKey:
 		meter.ConsumeGas(params.SigVerifyCostSecp256k1, "ante verify: secp256k1")
@@ -105,7 +106,7 @@ func DefaultSigVerificationGasConsumer(
 		return nil
 
 	default:
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "unrecognized public key type: %T", pubkey)
+		return errorsmod.Wrapf(errortypes.ErrInvalidPubKey, "unrecognized public key type: %T", pubkey)
 	}
 }
 

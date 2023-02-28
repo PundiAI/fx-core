@@ -2,7 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -39,16 +39,16 @@ func (m *MsgConvertCoin) Type() string { return TypeMsgConvertCoin }
 func (m *MsgConvertCoin) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if err = fxtypes.ValidateEthereumAddress(m.Receiver); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if err = ibctransfertypes.ValidateIBCDenom(m.Coin.Denom); err != nil {
-		return sdkerrors.ErrInvalidCoins.Wrapf("invalid coin denom %s", err.Error())
+		return errortypes.ErrInvalidCoins.Wrapf("invalid coin denom %s", err.Error())
 	}
 	if m.Coin.Amount.IsNil() || !m.Coin.Amount.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid amount")
+		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
 	}
 	return nil
 }
@@ -83,16 +83,16 @@ func (m *MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
 // ValidateBasic runs stateless checks on the message
 func (m *MsgConvertERC20) ValidateBasic() error {
 	if err := fxtypes.ValidateEthereumAddress(m.Sender); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Receiver); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.ContractAddress); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid contract address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid contract address: %s", err)
 	}
 	if m.Amount.IsNil() || !m.Amount.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid amount")
+		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
 	}
 	return nil
 }
@@ -126,13 +126,13 @@ func (m *MsgConvertDenom) Type() string { return TypeMsgConvertDenom }
 // ValidateBasic runs stateless checks on the message
 func (m *MsgConvertDenom) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Receiver); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
 	}
 	if !m.Coin.IsValid() || !m.Coin.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid amount")
+		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
 	}
 	return nil
 }

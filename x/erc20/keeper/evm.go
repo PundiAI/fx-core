@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -66,7 +66,7 @@ func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error 
 
 	for _, log := range res.Logs {
 		if log.Topics[0] == logApprovalSigHash.Hex() {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				types.ErrUnexpectedEvent, "approval event",
 			)
 		}

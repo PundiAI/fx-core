@@ -3,10 +3,10 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v3/x/migrate/types"
@@ -27,10 +27,10 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 
 	// check migrated
 	if k.HasMigrateRecord(ctx, fromAddress) {
-		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.From)
+		return nil, errorsmod.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.From)
 	}
 	if k.HasMigrateRecord(ctx, toAddress.Bytes()) {
-		return nil, sdkerrors.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.To)
+		return nil, errorsmod.Wrapf(types.ErrAlreadyMigrate, "address %s has been migrated", msg.To)
 	}
 
 	// check from address
@@ -42,14 +42,14 @@ func (k Keeper) MigrateAccount(goCtx context.Context, msg *types.MsgMigrateAccou
 	// migrate Validate
 	for _, m := range k.GetMigrateI() {
 		if err := m.Validate(ctx, k.cdc, fromAddress, toAddress); err != nil {
-			return nil, sdkerrors.Wrap(types.ErrMigrateValidate, err.Error())
+			return nil, errorsmod.Wrap(types.ErrMigrateValidate, err.Error())
 		}
 	}
 	// migrate Execute
 	for _, m := range k.GetMigrateI() {
 		err := m.Execute(ctx, k.cdc, fromAddress, toAddress)
 		if err != nil {
-			return nil, sdkerrors.Wrap(types.ErrMigrateExecute, err.Error())
+			return nil, errorsmod.Wrap(types.ErrMigrateExecute, err.Error())
 		}
 	}
 

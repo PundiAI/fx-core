@@ -5,10 +5,10 @@ import (
 	"math/big"
 	"testing"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -1442,7 +1442,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_TokenToDenom() {
 				response = &types.QueryTokenToDenomResponse{
 					Denom: denom.Denom,
 				}
-				expectedError = sdkerrors.Wrap(types.ErrEmpty, "bridge token is not exist")
+				expectedError = errorsmod.Wrap(types.ErrEmpty, "bridge token is not exist")
 			},
 			true,
 		},

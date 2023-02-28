@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -29,15 +29,15 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (*types.MsgBondedOracleResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
 	}
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address")
 	}
 	valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "validator address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if !s.IsProposalOracle(ctx, msg.OracleAddress) {
@@ -45,15 +45,15 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	}
 	// check oracle has set bridger address
 	if _, found := s.GetOracle(ctx, oracleAddr); found {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle existed bridger address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle existed bridger address")
 	}
 	// check bridger address is bound to oracle
 	if _, found := s.GetOracleAddressByBridgerKey(ctx, bridgerAddr); found {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
 	}
 	// check external address is bound to oracle
 	if _, found := s.GetOracleByExternalAddress(ctx, msg.ExternalAddress); found {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "external address is bound to oracle")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "external address is bound to oracle")
 	}
 	threshold := s.GetOracleDelegateThreshold(ctx)
 	oracle := types.Oracle{
@@ -67,7 +67,7 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 		SlashTimes:        0,
 	}
 	if threshold.Denom != msg.DelegateAmount.Denom {
-		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.DelegateAmount.Denom, threshold.Denom)
 	}
 	if msg.DelegateAmount.IsLT(threshold) {
 		return nil, types.ErrDelegateAmountBelowMinimum
@@ -103,7 +103,7 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*types.MsgAddDelegateResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if !s.IsProposalOracle(ctx, msg.OracleAddress) {
@@ -117,12 +117,12 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	threshold := s.GetOracleDelegateThreshold(ctx)
 
 	if threshold.Denom != msg.Amount.Denom {
-		return nil, sdkerrors.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, threshold.Denom)
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, threshold.Denom)
 	}
 
 	slashAmount := sdk.NewCoin(fxtypes.DefaultDenom, oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
 	if slashAmount.IsPositive() && msg.Amount.Amount.LT(slashAmount.Amount) {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "not sufficient slash amount")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "not sufficient slash amount")
 	}
 
 	delegateCoin := sdk.NewCoin(fxtypes.DefaultDenom, msg.Amount.Amount.Sub(slashAmount.Amount))
@@ -178,11 +178,11 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*types.MsgReDelegateResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
 	}
 	valDstAddress, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "validator address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
@@ -193,7 +193,7 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 		return nil, types.ErrOracleNotOnLine
 	}
 	if oracle.DelegateValidator == msg.ValidatorAddress {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "validator address is not changed")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "validator address is not changed")
 	}
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
 	valSrcAddress := oracle.GetValidator()
@@ -211,11 +211,11 @@ func (s MsgServer) ReDelegate(c context.Context, msg *types.MsgReDelegate) (*typ
 func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*types.MsgEditBridgerResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
 	}
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
@@ -226,10 +226,10 @@ func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*t
 		return nil, types.ErrOracleNotOnLine
 	}
 	if oracle.BridgerAddress == msg.BridgerAddress {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address is not changed")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is not changed")
 	}
 	if _, found := s.Keeper.GetOracleAddressByBridgerKey(ctx, bridgerAddr); found {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address is bound to oracle")
 	}
 	s.Keeper.DelOracleByBridger(ctx, oracle.GetBridger())
 	oracle.BridgerAddress = msg.BridgerAddress
@@ -247,7 +247,7 @@ func (s MsgServer) EditBridger(c context.Context, msg *types.MsgEditBridger) (*t
 func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawReward) (*types.MsgWithdrawRewardResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	oracle, found := s.GetOracle(ctx, oracleAddr)
@@ -265,7 +265,7 @@ func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawRewar
 	}
 	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
 	if !balances.IsAllPositive() {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "rewards is empty")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "rewards is empty")
 	}
 	if err = s.bankKeeper.SendCoins(ctx, delegateAddr, oracleAddr, balances); err != nil {
 		return nil, err
@@ -281,29 +281,29 @@ func (s MsgServer) WithdrawReward(c context.Context, msg *types.MsgWithdrawRewar
 func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracle) (*types.MsgUnbondedOracleResponse, error) {
 	oracleAddr, err := sdk.AccAddressFromBech32(msg.OracleAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle address")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	if s.IsProposalOracle(ctx, msg.OracleAddress) {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "need to pass a proposal to unbind")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "need to pass a proposal to unbind")
 	}
 	oracle, found := s.GetOracle(ctx, oracleAddr)
 	if !found {
 		return nil, types.ErrNoFoundOracle
 	}
 	if oracle.Online {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "oracle on line")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle on line")
 	}
 	delegateAddr := oracle.GetDelegateAddress(s.moduleName)
 	validatorAddr := oracle.GetValidator()
 	if _, found = s.stakingKeeper.GetUnbondingDelegation(ctx, delegateAddr, validatorAddr); found {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "exist unbonding delegation")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "exist unbonding delegation")
 	}
 	balances := s.bankKeeper.GetAllBalances(ctx, delegateAddr)
 	slashAmount := sdk.NewCoin(fxtypes.DefaultDenom, oracle.GetSlashAmount(s.GetSlashFraction(ctx)))
 	if slashAmount.IsPositive() {
 		if balances.AmountOf(fxtypes.DefaultDenom).LT(slashAmount.Amount) {
-			return nil, sdkerrors.Wrap(types.ErrInvalid, "not sufficient slash amount")
+			return nil, errorsmod.Wrap(types.ErrInvalid, "not sufficient slash amount")
 		}
 		if err = s.bankKeeper.SendCoinsFromAccountToModule(ctx, delegateAddr, s.moduleName, sdk.NewCoins(slashAmount)); err != nil {
 			return nil, err
@@ -336,7 +336,7 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "sender address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -369,7 +369,7 @@ func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExterna
 func (s MsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelSendToExternal) (*types.MsgCancelSendToExternalResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "sender address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -390,20 +390,20 @@ func (s MsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelS
 func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "sender address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 
 	bridgeToken := s.GetDenomByBridgeToken(ctx, msg.Denom)
 	if bridgeToken == nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridge token is not exist")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
 	_, found := s.GetOracleAddressByBridgerKey(ctx, sender)
 	if !found {
 		if !s.IsProposalOracle(ctx, msg.Sender) {
-			return nil, sdkerrors.Wrap(types.ErrEmpty, "sender must be oracle or bridger")
+			return nil, errorsmod.Wrap(types.ErrEmpty, "sender must be oracle or bridger")
 		}
 	}
 
@@ -426,7 +426,7 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -434,12 +434,12 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 	// fetch the outgoing batch given the nonce
 	batch := s.GetOutgoingTxBatch(ctx, msg.TokenContract, msg.Nonce)
 	if batch == nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "couldn't find batch")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find batch")
 	}
 
 	checkpoint, err := batch.GetCheckpoint(s.GetGravityID(ctx))
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, err.Error())
+		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
 
 	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
@@ -448,7 +448,7 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 	}
 	// check if we already have this confirm
 	if s.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, oracleAddr) != nil {
-		return nil, sdkerrors.Wrap(types.ErrDuplicate, "signature")
+		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
 	}
 	s.SetBatchConfirm(ctx, oracleAddr, msg)
 
@@ -464,18 +464,18 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetConfirm) (*types.MsgOracleSetConfirmResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "bridger address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "bridger address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleSet := s.GetOracleSet(ctx, msg.Nonce)
 	if oracleSet == nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "couldn't find oracleSet")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find oracleSet")
 	}
 
 	checkpoint, err := oracleSet.GetCheckpoint(s.GetGravityID(ctx))
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, err.Error())
+		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
 	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
 	if err != nil {
@@ -483,7 +483,7 @@ func (s MsgServer) OracleSetConfirm(c context.Context, msg *types.MsgOracleSetCo
 	}
 	// check if we already have this confirm
 	if s.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
-		return nil, sdkerrors.Wrap(types.ErrDuplicate, "signature")
+		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
 	}
 	s.SetOracleSetConfirm(ctx, oracleAddr, msg)
 
@@ -531,7 +531,7 @@ func (s MsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleS
 
 	for _, member := range msg.Members {
 		if _, found := s.GetOracleByExternalAddress(ctx, member.ExternalAddress); !found {
-			return nil, sdkerrors.Wrap(types.ErrInvalid, "external address")
+			return nil, errorsmod.Wrap(types.ErrInvalid, "external address")
 		}
 	}
 	// Add the claim to the store
@@ -591,7 +591,7 @@ func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) 
 func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, "signature decoding")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "signature decoding")
 	}
 
 	oracleAddr, found := s.GetOracleByExternalAddress(ctx, signatureAddr)
@@ -605,13 +605,13 @@ func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddr
 	}
 
 	if oracle.ExternalAddress != signatureAddr {
-		return nil, sdkerrors.Wrapf(types.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
 	}
 	if oracle.BridgerAddress != bridgerAddr.String() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalid, "got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
 	}
 	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+		return nil, errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 	}
 	return oracleAddr, nil
 }

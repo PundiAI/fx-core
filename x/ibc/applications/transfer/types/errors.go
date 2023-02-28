@@ -1,10 +1,8 @@
 package types
 
-import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-)
+import errorsmod "cosmossdk.io/errors"
 
 var (
-	ErrFeeDenomNotMatchTokenDenom = sdkerrors.Register(ModuleName, 100, "invalid fee denom, must match token denom")
-	ErrRouterNotFound             = sdkerrors.Register(ModuleName, 103, "router not found")
+	ErrFeeDenomNotMatchTokenDenom = errorsmod.Register(ModuleName, 100, "invalid fee denom, must match token denom")
+	ErrRouterNotFound             = errorsmod.Register(ModuleName, 103, "router not found")
 )

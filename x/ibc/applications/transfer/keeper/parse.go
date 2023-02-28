@@ -1,9 +1,9 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -59,7 +59,7 @@ func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccA
 	// parse the transfer amount
 	transferAmount, ok := sdk.NewIntFromString(data.Amount)
 	if !ok {
-		return nil, sdk.Int{}, sdk.Int{}, sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
+		return nil, sdk.Int{}, sdk.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
 	}
 
 	if data.Router != "" {
@@ -69,7 +69,7 @@ func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccA
 		}
 		feeAmount, ok := sdk.NewIntFromString(data.Fee)
 		if !ok || feeAmount.IsNegative() {
-			return nil, sdk.Int{}, sdk.Int{}, sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
+			return nil, sdk.Int{}, sdk.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
 		}
 		return addressBytes, transferAmount, feeAmount, nil
 	}
@@ -86,14 +86,14 @@ func parseAmountAndFeeByPacket(data types.FungibleTokenPacketData) (sdk.Int, sdk
 	// parse the transfer amount
 	transferAmount, ok := sdk.NewIntFromString(data.Amount)
 	if !ok {
-		return sdk.Int{}, sdk.Int{}, sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
+		return sdk.Int{}, sdk.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
 	}
 
 	feeAmount := sdk.ZeroInt()
 	if data.Router != "" {
 		fee, ok := sdk.NewIntFromString(data.Fee)
 		if !ok || fee.IsNegative() {
-			return sdk.Int{}, sdk.Int{}, sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
+			return sdk.Int{}, sdk.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
 		}
 		feeAmount = fee
 	}

@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
@@ -437,5 +436,5 @@ func TestEmptyMinGasPrices(t *testing.T) {
 		return server.InterceptConfigsPreRunHandler(cmd, "", tmcfg.DefaultConfig())
 	}
 	err = cmd.ExecuteContext(ctx)
-	require.Errorf(t, err, sdkerrors.ErrAppConfig.Error())
+	require.Errorf(t, err, errortypes.ErrAppConfig.Error())
 }

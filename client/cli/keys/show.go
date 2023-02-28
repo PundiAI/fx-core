@@ -4,13 +4,14 @@ import (
 	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	"github.com/cosmos/cosmos-sdk/crypto/ledger"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerr "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/cli"
 )
@@ -177,7 +178,7 @@ func fetchKey(kb keyring.Keyring, keyref string) (*keyring.Record, error) {
 	k, err := kb.Key(keyref)
 	// if the key is not there or if we have a problem with a keyring itself then we move to a
 	// fallback: searching for key by address.
-	if err == nil || !sdkerr.IsOf(err, sdkerr.ErrIO, sdkerr.ErrKeyNotFound) {
+	if err == nil || !errorsmod.IsOf(err, errortypes.ErrIO, errortypes.ErrKeyNotFound) {
 		return k, err
 	}
 	accAddr, err := sdk.AccAddressFromBech32(keyref)
@@ -186,7 +187,7 @@ func fetchKey(kb keyring.Keyring, keyref string) (*keyring.Record, error) {
 	}
 
 	k, err = kb.KeyByAddress(accAddr)
-	return k, sdkerr.Wrap(err, "Invalid key")
+	return k, errorsmod.Wrap(err, "Invalid key")
 }
 
 func validateMultisigThreshold(k, nKeys int) error {

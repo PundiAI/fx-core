@@ -1,10 +1,10 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -30,12 +30,12 @@ func (h LPTokenTransferHandler) EventID() common.Hash {
 func (h LPTokenTransferHandler) Handle(ctx sdk.Context, _ core.Message, log *ethtypes.Log) error {
 	valAddr, found := h.GetLPTokenValidator(ctx, log.Address)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrLPTokenNotFound, "contract: %s", log.Address.String())
+		return errorsmod.Wrapf(types.ErrLPTokenNotFound, "contract: %s", log.Address.String())
 	}
 
 	var res types.FXLPTokenTransfer
 	if err := contract.ParseLogEvent(fxtypes.GetLPToken().ABI, log, types.LPTokenTransferEventName, &res); err != nil {
-		return sdkerrors.Wrapf(types.ErrUnexpectedEvent, "parse lp token transfer: %s", err.Error())
+		return errorsmod.Wrapf(types.ErrUnexpectedEvent, "parse lp token transfer: %s", err.Error())
 	}
 
 	shares := sdk.NewDecFromBigIntWithPrec(res.Value, sdk.Precision)

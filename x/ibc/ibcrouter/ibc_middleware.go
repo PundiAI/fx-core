@@ -3,8 +3,9 @@ package ibcrouter
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -159,7 +160,7 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet chan
 		// parse the transfer amount
 		transferAmount, ok := sdk.NewIntFromString(data.Amount)
 		if !ok {
-			return nil, sdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse forward transfer amount (%s) into sdk.Int", data.Amount)
+			return nil, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse forward transfer amount (%s) into sdk.Int", data.Amount)
 		}
 
 		token := sdk.NewCoin(denom, transferAmount)
@@ -176,7 +177,7 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet chan
 
 		// send tokens to destination
 		if _, err = im.transferKeeper.Transfer(sdk.WrapSDKContext(ctx), msgTransfer); err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
+			return nil, errorsmod.Wrapf(errortypes.ErrInsufficientFunds, err.Error())
 		}
 	}
 	return ack, nil

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -23,7 +24,7 @@ func (k Keeper) Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 
 	// ensure that we have enough shares to remove
 	if delegation.Shares.LT(shares) {
-		return amount, sdkerrors.Wrap(types.ErrNotEnoughDelegationShares, delegation.Shares.String())
+		return amount, errorsmod.Wrap(types.ErrNotEnoughDelegationShares, delegation.Shares.String())
 	}
 
 	// get validator
@@ -62,7 +63,7 @@ func (k Keeper) Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 	// NOTE: this logic by fx-core: begin
 	lpTokenContract, found := k.GetValidatorLPToken(ctx, validator.GetOperator())
 	if !found {
-		return amount, sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
+		return amount, errortypes.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
 	}
 
 	if err = k.BurnLPToken(ctx, lpTokenContract, delAddr, shares); err != nil {

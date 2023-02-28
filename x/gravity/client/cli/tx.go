@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
@@ -108,11 +108,11 @@ func CmdSendToEth() *cobra.Command {
 			}
 			amount, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
-				return sdkerrors.Wrap(err, "amount")
+				return errorsmod.Wrap(err, "amount")
 			}
 			bridgeFee, err := sdk.ParseCoinsNormalized(args[2])
 			if err != nil {
-				return sdkerrors.Wrap(err, "bridge fee")
+				return errorsmod.Wrap(err, "bridge fee")
 			}
 
 			if len(amount) > 1 || len(bridgeFee) > 1 {

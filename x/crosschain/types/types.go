@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
@@ -23,10 +23,10 @@ func NewERC20Token(amount sdk.Int, contract string) ERC20Token {
 // ValidateBasic permforms stateless validation
 func (m *ERC20Token) ValidateBasic() error {
 	if err := fxtypes.ValidateEthereumAddress(m.Contract); err != nil {
-		return sdkerrors.Wrap(err, "invalid contract address")
+		return errorsmod.Wrap(err, "invalid contract address")
 	}
 	if !m.Amount.IsPositive() {
-		return sdkerrors.Wrap(ErrInvalid, "amount")
+		return errorsmod.Wrap(ErrInvalid, "amount")
 	}
 	return nil
 }
@@ -36,10 +36,10 @@ func (m *ERC20Token) ValidateBasic() error {
 // ValidateBasic performs stateless checks on validity
 func (m *BridgeValidator) ValidateBasic() error {
 	if m.Power == 0 {
-		return sdkerrors.Wrap(ErrEmpty, "power")
+		return errorsmod.Wrap(ErrEmpty, "power")
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.ExternalAddress); err != nil {
-		return sdkerrors.Wrap(ErrInvalid, "external address")
+		return errorsmod.Wrap(ErrInvalid, "external address")
 	}
 	return nil
 }
@@ -136,11 +136,11 @@ func (b BridgeValidators) ValidateBasic() error {
 	}
 	for i := range b {
 		if err := b[i].ValidateBasic(); err != nil {
-			return sdkerrors.Wrapf(err, "member %d", i)
+			return errorsmod.Wrapf(err, "member %d", i)
 		}
 	}
 	if b.HasDuplicates() {
-		return sdkerrors.Wrap(ErrDuplicate, "address")
+		return errorsmod.Wrap(ErrDuplicate, "address")
 	}
 	return nil
 }
@@ -180,7 +180,7 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// will panic if gravityId is too long to fit in 32 bytes
 	gravityID, err := fxtypes.StrToByte32(gravityIDStr)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "parse gravity id")
+		return nil, errorsmod.Wrap(err, "parse gravity id")
 	}
 	checkpointBytes := []uint8("checkpoint")
 	var checkpoint [32]uint8
@@ -200,7 +200,7 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
 	if packErr != nil {
-		return nil, sdkerrors.Wrap(err, "packing checkpoint")
+		return nil, errorsmod.Wrap(err, "packing checkpoint")
 	}
 
 	// we hash the resulting encoded bytes discarding the first 4 bytes these 4 bytes are the constant
@@ -212,15 +212,15 @@ func (m *OracleSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 
 func (m *OracleSet) Equal(o *OracleSet) (bool, error) {
 	if m.Height != o.Height {
-		return false, sdkerrors.Wrap(ErrInvalid, "oracle set heights mismatch")
+		return false, errorsmod.Wrap(ErrInvalid, "oracle set heights mismatch")
 	}
 
 	if m.Nonce != o.Nonce {
-		return false, sdkerrors.Wrap(ErrInvalid, "oracle set nonce mismatch")
+		return false, errorsmod.Wrap(ErrInvalid, "oracle set nonce mismatch")
 	}
 
 	if !BridgeValidators(m.Members).Equal(o.Members) {
-		return false, sdkerrors.Wrap(ErrInvalid, "oracle set members mismatch")
+		return false, errorsmod.Wrap(ErrInvalid, "oracle set members mismatch")
 	}
 
 	return true, nil
@@ -273,7 +273,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	// will panic if gravityId is too long to fit in 32 bytes
 	gravityID, err := fxtypes.StrToByte32(gravityIDString)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "parse gravity id")
+		return nil, errorsmod.Wrap(err, "parse gravity id")
 	}
 
 	// Create the methodName argument which salts the signature
@@ -308,7 +308,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "packing checkpoint")
+		return nil, errorsmod.Wrap(err, "packing checkpoint")
 	}
 
 	// we hash the resulting encoded bytes discarding the first 4 bytes these 4 bytes are the constant

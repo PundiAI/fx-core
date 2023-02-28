@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -144,7 +145,7 @@ func (k Keeper) ConvertDenom(goCtx context.Context, msg *types.MsgConvertDenom) 
 		return nil, err
 	}
 	if targetCoin.Denom == msg.Coin.Denom {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "convert to source denom: %s", msg.Coin.Denom)
+		return nil, errorsmod.Wrapf(types.ErrInvalidDenom, "convert to source denom: %s", msg.Coin.Denom)
 	}
 
 	if !sender.Equals(receiver) {
@@ -181,7 +182,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 
 	// Escrow Coins on module account
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins); err != nil {
-		return sdkerrors.Wrap(err, "failed to escrow coins")
+		return errorsmod.Wrap(err, "failed to escrow coins")
 	}
 
 	erc20 := fxtypes.GetERC20().ABI
@@ -195,7 +196,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 
 	if pair.Denom == fxtypes.DefaultDenom {
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, contract.Bytes(), coins); err != nil {
-			return sdkerrors.Wrap(err, "failed to transfer escrow coins to origin denom")
+			return errorsmod.Wrap(err, "failed to transfer escrow coins to origin denom")
 		}
 	}
 	return nil
@@ -222,7 +223,7 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, se
 	// Transfer origin denom to module
 	if pair.Denom == fxtypes.DefaultDenom {
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, contract.Bytes(), types.ModuleName, coins); err != nil {
-			return sdkerrors.Wrap(err, "failed to transfer origin denom to module")
+			return errorsmod.Wrap(err, "failed to transfer origin denom to module")
 		}
 	}
 
@@ -253,11 +254,11 @@ func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, s
 	// Check unpackedRet execution
 	var unpackedRet struct{ Value bool }
 	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
+		return errorsmod.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
 	}
 
 	if !unpackedRet.Value {
-		return sdkerrors.Wrap(sdkerrors.ErrLogic, "failed to execute transfer")
+		return errorsmod.Wrap(errortypes.ErrLogic, "failed to execute transfer")
 	}
 
 	// Mint coins
@@ -292,7 +293,7 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 
 	// Escrow Coins on module account
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins); err != nil {
-		return sdkerrors.Wrap(err, "failed to escrow coins")
+		return errorsmod.Wrap(err, "failed to escrow coins")
 	}
 
 	erc20 := fxtypes.GetERC20().ABI
@@ -307,16 +308,16 @@ func (k Keeper) ConvertCoinNativeERC20(ctx sdk.Context, pair types.TokenPair, se
 	// Check unpackedRet execution
 	var unpackedRet struct{ Value bool }
 	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return sdkerrors.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
+		return errorsmod.Wrapf(types.ErrABIUnpack, "failed to unpack transfer: %s", err.Error())
 	}
 
 	if !unpackedRet.Value {
-		return sdkerrors.Wrap(sdkerrors.ErrLogic, "failed to execute unescrow tokens from user")
+		return errorsmod.Wrap(errortypes.ErrLogic, "failed to execute unescrow tokens from user")
 	}
 
 	// Burn escrowed Coins
 	if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
-		return sdkerrors.Wrap(err, "failed to burn coins")
+		return errorsmod.Wrap(err, "failed to burn coins")
 	}
 
 	// Check for unexpected `approve` event in logs

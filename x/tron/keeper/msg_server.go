@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -29,7 +29,7 @@ func NewMsgServerImpl(keeper Keeper) crosschaintypes.MsgServer {
 func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfirmBatch) (*crosschaintypes.MsgConfirmBatchResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "bridger address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -37,12 +37,12 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 	// fetch the outgoing batch given the nonce
 	batch := s.GetOutgoingTxBatch(ctx, msg.TokenContract, msg.Nonce)
 	if batch == nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "couldn't find batch")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find batch")
 	}
 
 	checkpoint, err := trontypes.GetCheckpointConfirmBatch(batch, s.GetGravityID(ctx))
 	if err != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "checkpoint generation")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "checkpoint generation")
 	}
 
 	oracleAddr, err := s.confirmHandlerCommon(ctx, bridgerAddr, msg.ExternalAddress, msg.Signature, checkpoint)
@@ -51,7 +51,7 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 	}
 	// check if we already have this confirm
 	if s.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, oracleAddr) != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrDuplicate, "signature")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
 	s.SetBatchConfirm(ctx, oracleAddr, msg)
 
@@ -68,13 +68,13 @@ func (s msgServer) ConfirmBatch(c context.Context, msg *crosschaintypes.MsgConfi
 func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgOracleSetConfirm) (*crosschaintypes.MsgOracleSetConfirmResponse, error) {
 	bridgerAddr, err := sdk.AccAddressFromBech32(msg.BridgerAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "bridger address")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "bridger address")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 	oracleSet := s.GetOracleSet(ctx, msg.Nonce)
 	if oracleSet == nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "couldn't find oracleSet")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "couldn't find oracleSet")
 	}
 
 	checkpoint, err := trontypes.GetCheckpointOracleSet(oracleSet, s.GetGravityID(ctx))
@@ -87,7 +87,7 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgO
 	}
 	// check if we already have this confirm
 	if s.GetOracleSetConfirm(ctx, msg.Nonce, oracleAddr) != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrDuplicate, "signature")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrDuplicate, "signature")
 	}
 	s.SetOracleSetConfirm(ctx, oracleAddr, msg)
 
@@ -103,7 +103,7 @@ func (s msgServer) OracleSetConfirm(c context.Context, msg *crosschaintypes.MsgO
 func (s msgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) (oracleAddr sdk.AccAddress, err error) {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, "signature decoding")
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, "signature decoding")
 	}
 
 	oracleAddr, found := s.GetOracleByExternalAddress(ctx, signatureAddr)
@@ -117,13 +117,13 @@ func (s msgServer) confirmHandlerCommon(ctx sdk.Context, bridgerAddr sdk.AccAddr
 	}
 
 	if oracle.ExternalAddress != signatureAddr {
-		return nil, sdkerrors.Wrapf(crosschaintypes.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
+		return nil, errorsmod.Wrapf(crosschaintypes.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
 	}
 	if oracle.BridgerAddress != bridgerAddr.String() {
-		return nil, sdkerrors.Wrapf(crosschaintypes.ErrInvalid, "got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
+		return nil, errorsmod.Wrapf(crosschaintypes.ErrInvalid, "got %s, expected %s", bridgerAddr, oracle.BridgerAddress)
 	}
 	if err = trontypes.ValidateTronSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
-		return nil, sdkerrors.Wrap(crosschaintypes.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+		return nil, errorsmod.Wrap(crosschaintypes.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 	}
 	return oracle.GetOracle(), nil
 }

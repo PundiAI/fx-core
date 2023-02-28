@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
@@ -14,7 +14,7 @@ import (
 func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.ExternalClaim) (*types.Attestation, error) {
 	anyClaim, err := codectypes.NewAnyWithValue(claim)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrUnknown, "msg to any")
+		return nil, errorsmod.Wrap(types.ErrUnknown, "msg to any")
 	}
 	// Check that the nonce of this event is exactly one higher than the last nonce stored by this oracle.
 	// We check the event nonce in processAttestation as well, but checking it here gives individual eth signers a chance to retry,
@@ -23,7 +23,7 @@ func (k Keeper) Attest(ctx sdk.Context, oracleAddr sdk.AccAddress, claim types.E
 	// in the endBlocker.
 	lastEventNonce := k.GetLastEventNonceByOracle(ctx, oracleAddr)
 	if claim.GetEventNonce() != lastEventNonce+1 {
-		return nil, sdkerrors.Wrapf(types.ErrNonContiguousEventNonce, "got %v, expected %v", claim.GetEventNonce(), lastEventNonce+1)
+		return nil, errorsmod.Wrapf(types.ErrNonContiguousEventNonce, "got %v, expected %v", claim.GetEventNonce(), lastEventNonce+1)
 	}
 
 	gasMeter := ctx.GasMeter()

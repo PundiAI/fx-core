@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -77,11 +77,11 @@ func (h Hooks) ParseEventLog(
 	for _, log := range logs {
 		tr, err := types.ParseTransferEvent(log)
 		if err != nil {
-			return nil, nil, sdkerrors.Wrapf(types.ErrUnexpectedEvent, "failed to parse transfer event: %s", err.Error())
+			return nil, nil, errorsmod.Wrapf(types.ErrUnexpectedEvent, "failed to parse transfer event: %s", err.Error())
 		}
 		tc, err := types.ParseTransferCrossChainEvent(log)
 		if err != nil {
-			return nil, nil, sdkerrors.Wrapf(types.ErrUnexpectedEvent, "failed to parse transfer cross chain event: %s", err.Error())
+			return nil, nil, errorsmod.Wrapf(types.ErrUnexpectedEvent, "failed to parse transfer cross chain event: %s", err.Error())
 		}
 
 		if (tr == nil || tr.To != moduleAddress) && tc == nil {
@@ -93,7 +93,7 @@ func (h Hooks) ParseEventLog(
 			continue
 		}
 		if !pair.Enabled {
-			return nil, nil, sdkerrors.Wrapf(types.ErrERC20TokenPairDisabled, "contract %s, denom %s", pair.Erc20Address, pair.Denom)
+			return nil, nil, errorsmod.Wrapf(types.ErrERC20TokenPairDisabled, "contract %s, denom %s", pair.Erc20Address, pair.Denom)
 		}
 
 		if tr != nil && tr.To == moduleAddress {

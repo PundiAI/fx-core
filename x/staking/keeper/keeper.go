@@ -1,10 +1,11 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -52,7 +53,7 @@ func (k Keeper) Delegate(
 
 	lpTokenContract, found := k.GetValidatorLPToken(ctx, validator.GetOperator())
 	if !found {
-		return sdk.ZeroDec(), sdkerrors.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
+		return sdk.ZeroDec(), errortypes.ErrInvalidRequest.Wrapf("lpToken contract not found for validator")
 	}
 
 	err = k.MintLPToken(ctx, lpTokenContract, delAddr, newShares)
@@ -122,7 +123,7 @@ func (k Keeper) BurnLPToken(ctx sdk.Context, lpTokenContractAddr common.Address,
 func (k Keeper) SelfDestructLPToken(ctx sdk.Context, valAddr sdk.ValAddress) error {
 	lpTokenContract, found := k.GetValidatorLPToken(ctx, valAddr)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrLPTokenNotFound, "validator %s", valAddr.String())
+		return errorsmod.Wrapf(types.ErrLPTokenNotFound, "validator %s", valAddr.String())
 	}
 	method := types.MethodSelfDestruct
 	if _, err := k.evmKeeper.ApplyContract(ctx, k.lpTokenModuleAddress, lpTokenContract, fxtypes.GetLPToken().ABI, method); err != nil {

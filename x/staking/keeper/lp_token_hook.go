@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -21,7 +21,7 @@ func (h LPTokenHook) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddre
 	_, err := h.keeper.DeployLPToken(ctx, valAddr)
 	if err != nil {
 		// todo - cosmos-sdk v0.46.x will return error
-		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to deploy lp token contract: %s", err.Error()))
+		panic(errortypes.ErrInvalidRequest.Wrapf("failed to deploy lp token contract: %s", err.Error()))
 	}
 }
 
@@ -32,7 +32,7 @@ func (h LPTokenHook) BeforeValidatorModified(_ sdk.Context, _ sdk.ValAddress) {}
 func (h LPTokenHook) AfterValidatorRemoved(ctx sdk.Context, _ sdk.ConsAddress, valAddr sdk.ValAddress) {
 	if err := h.keeper.SelfDestructLPToken(ctx, valAddr); err != nil {
 		// todo - cosmos-sdk v0.46.x will return error
-		panic(sdkerrors.ErrInvalidRequest.Wrapf("failed to selfdestruct: %s", err.Error()))
+		panic(errortypes.ErrInvalidRequest.Wrapf("failed to selfdestruct: %s", err.Error()))
 	}
 }
 

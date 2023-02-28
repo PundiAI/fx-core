@@ -6,10 +6,11 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
@@ -50,7 +51,7 @@ func NewSetPubKeyDecorator(ak ante.AccountKeeper) SetPubKeyDecorator {
 func (s SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	sigTx, ok := tx.(authsigning.SigVerifiableTx)
 	if !ok {
-		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "invalid tx type")
+		return ctx, errorsmod.Wrap(errortypes.ErrTxDecode, "invalid tx type")
 	}
 
 	pubkeys, err := sigTx.GetPubKeys()
@@ -69,7 +70,7 @@ func (s SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool
 		}
 		// Only make check if simulate=false
 		if !simulate && !bytes.Equal(pk.Address(), signers[i]) {
-			return ctx, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey,
+			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidPubKey,
 				"pubKey does not match signer address %s with signer index: %d", signers[i], i)
 		}
 
@@ -84,7 +85,7 @@ func (s SetPubKeyDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool
 
 		err = acc.SetPubKey(pk)
 		if err != nil {
-			return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
+			return ctx, errorsmod.Wrap(errortypes.ErrInvalidPubKey, err.Error())
 		}
 		s.ak.SetAccount(ctx, acc)
 	}
@@ -155,7 +156,7 @@ func signatureDataToBz(data signing.SignatureData) ([][]byte, error) {
 
 		return sigs, nil
 	default:
-		return nil, sdkerrors.ErrInvalidType.Wrapf("unexpected signature data type %T", data)
+		return nil, errortypes.ErrInvalidType.Wrapf("unexpected signature data type %T", data)
 	}
 }
 
@@ -178,7 +179,7 @@ func NewSigGasConsumeDecorator(ak ante.AccountKeeper, sigGasConsumer ante.Signat
 func (sgcd SigGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	sigTx, ok := tx.(authsigning.SigVerifiableTx)
 	if !ok {
-		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "invalid transaction type")
+		return ctx, errorsmod.Wrap(errortypes.ErrTxDecode, "invalid transaction type")
 	}
 
 	params := sgcd.ak.GetParams(ctx)

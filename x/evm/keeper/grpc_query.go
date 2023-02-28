@@ -9,8 +9,8 @@ import (
 	"math/big"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
@@ -198,7 +198,7 @@ func (k *Keeper) estimateGas(c context.Context, req *types.EthCallRequest, enabl
 			// Only call hooks if tx executed successfully.
 			if err = k.PostTxProcessing(cacheCtx, msg, receipt); err != nil {
 				// If hooks return error, revert the whole tx.
-				rsp.VmError = sdkerrors.Wrap(types.ErrPostTxProcessing, err.Error()).Error()
+				rsp.VmError = errorsmod.Wrap(types.ErrPostTxProcessing, err.Error()).Error()
 				return true, rsp, err
 			}
 		}

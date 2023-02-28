@@ -6,7 +6,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -47,13 +47,13 @@ func (m *MsgSetOrchestratorAddress) Type() string { return TypeMsgSetOrchestrato
 // ValidateBasic performs stateless checks
 func (m *MsgSetOrchestratorAddress) ValidateBasic() (err error) {
 	if _, err = sdk.ValAddressFromBech32(m.Validator); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid validator address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid validator address: %s", err)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
 	}
 	if err = fxtypes.ValidateEthereumAddress(m.EthAddress); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid ethereum address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid ethereum address: %s", err)
 	}
 	return nil
 }
@@ -81,16 +81,16 @@ func (m *MsgValsetConfirm) Type() string { return TypeMsgValsetConfirm }
 // ValidateBasic performs stateless checks
 func (m *MsgValsetConfirm) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
 	}
 	if err = fxtypes.ValidateEthereumAddress(m.EthAddress); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid ethereum address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid ethereum address: %s", err)
 	}
 	if len(m.Signature) == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("empty signature")
+		return errortypes.ErrInvalidRequest.Wrap("empty signature")
 	}
 	if _, err = hex.DecodeString(m.Signature); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrap("could not hex decode signature")
+		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
 	}
 	return nil
 }
@@ -119,19 +119,19 @@ func (m *MsgSendToEth) Type() string { return TypeMsgSendToEth }
 // Checks if the Eth address is valid
 func (m *MsgSendToEth) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if m.Amount.Denom != m.BridgeFee.Denom {
-		return sdkerrors.ErrInvalidRequest.Wrap("bridge fee denom not equal amount denom")
+		return errortypes.ErrInvalidRequest.Wrap("bridge fee denom not equal amount denom")
 	}
 	if !m.Amount.IsValid() || m.Amount.IsZero() {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid amount")
+		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
 	}
 	if !m.BridgeFee.IsValid() || m.BridgeFee.IsZero() {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid bridge fee")
+		return errortypes.ErrInvalidRequest.Wrap("invalid bridge fee")
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.EthDest); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid dest address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid dest address: %s", err)
 	}
 	return nil
 }
@@ -159,19 +159,19 @@ func (m *MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
 // ValidateBasic performs stateless checks
 func (m *MsgRequestBatch) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if len(m.Denom) <= 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("empty denom")
+		return errortypes.ErrInvalidRequest.Wrap("empty denom")
 	}
 	if m.MinimumFee.IsNil() || !m.MinimumFee.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid minimum fee")
+		return errortypes.ErrInvalidRequest.Wrap("invalid minimum fee")
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.FeeReceive); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid fee receive address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid fee receive address: %s", err)
 	}
 	if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid base fee")
+		return errortypes.ErrInvalidRequest.Wrap("invalid base fee")
 	}
 	return nil
 }
@@ -199,19 +199,19 @@ func (m *MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
 // ValidateBasic performs stateless checks
 func (m *MsgConfirmBatch) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.EthSigner); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid eth signer address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid eth signer address: %s", err)
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract address: %s", err)
 	}
 	if len(m.Signature) == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("empty signature")
+		return errortypes.ErrInvalidRequest.Wrap("empty signature")
 	}
 	if _, err := hex.DecodeString(m.Signature); err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrap("could not hex decode signature")
+		return errortypes.ErrInvalidRequest.Wrap("could not hex decode signature")
 	}
 	return nil
 }
@@ -239,10 +239,10 @@ func (m *MsgCancelSendToEth) Type() string { return TypeMsgCancelSendToEth }
 // ValidateBasic performs stateless checks
 func (m *MsgCancelSendToEth) ValidateBasic() (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
 	}
 	if m.TransactionId == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero transaction id")
+		return errortypes.ErrInvalidRequest.Wrap("zero transaction id")
 	}
 	return nil
 }
@@ -304,28 +304,28 @@ func (m *MsgDepositClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgDepositClaim) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.FxReceiver); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid fx receiver address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid fx receiver address: %s", err)
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.EthSender); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid eth sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid eth sender address: %s", err)
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
 	}
 	if m.Amount.IsNil() || m.Amount.IsNegative() {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid amount")
+		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
 	}
 	if _, err := hex.DecodeString(m.TargetIbc); len(m.TargetIbc) > 0 && err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrap("could not decode hex targetIbc")
+		return errortypes.ErrInvalidRequest.Wrap("could not decode hex targetIbc")
 	}
 	if m.EventNonce == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
 	}
 	return nil
 }
@@ -372,19 +372,19 @@ func (m *MsgWithdrawClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgWithdrawClaim) ValidateBasic() error {
 	if m.EventNonce == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BatchNonce == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero batch nonce")
+		return errortypes.ErrInvalidRequest.Wrap("zero batch nonce")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
 	}
 	return nil
 }
@@ -431,22 +431,22 @@ func (m *MsgFxOriginatedTokenClaim) Type() string { return TypeMsgFxOriginatedTo
 
 func (m *MsgFxOriginatedTokenClaim) ValidateBasic() error {
 	if err := fxtypes.ValidateEthereumAddress(m.TokenContract); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
 	}
 	if m.EventNonce == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if len(m.Name) == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("empty token name")
+		return errortypes.ErrInvalidRequest.Wrap("empty token name")
 	}
 	if len(m.Symbol) == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("empty token symbol")
+		return errortypes.ErrInvalidRequest.Wrap("empty token symbol")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
 	}
 	return nil
 }
@@ -488,24 +488,24 @@ func (m *MsgValsetUpdatedClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgValsetUpdatedClaim) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Orchestrator); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid orchestrator address: %s", err)
 	}
 	if len(m.Members) == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("empty members")
+		return errortypes.ErrInvalidRequest.Wrap("empty members")
 	}
 	for _, member := range m.Members {
 		if err := fxtypes.ValidateEthereumAddress(member.EthAddress); err != nil {
-			return sdkerrors.ErrInvalidAddress.Wrapf("invalid eth address: %s", err)
+			return errortypes.ErrInvalidAddress.Wrapf("invalid eth address: %s", err)
 		}
 		if member.Power == 0 {
-			return sdkerrors.ErrInvalidRequest.Wrap("zero power")
+			return errortypes.ErrInvalidRequest.Wrap("zero power")
 		}
 	}
 	if m.EventNonce == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero event nonce")
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BlockHeight == 0 {
-		return sdkerrors.ErrInvalidRequest.Wrap("zero block height")
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
 	}
 	return nil
 }
