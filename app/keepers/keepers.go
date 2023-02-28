@@ -219,7 +219,6 @@ func NewAppKeeper(
 		appKeepers.BankKeeper,
 		stakingKeeper,
 		authtypes.FeeCollectorName,
-		blockedAddress,
 	)
 	appKeepers.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
