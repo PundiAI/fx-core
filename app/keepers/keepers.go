@@ -48,6 +48,7 @@ import (
 	srvflags "github.com/evmos/ethermint/server/flags"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/evmos/ethermint/x/evm/vm/geth"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/spf13/cast"
@@ -294,6 +295,8 @@ func NewAppKeeper(
 			appKeepers.BankKeeper,
 			stakingKeeper,
 			appKeepers.FeeMarketKeeper,
+			nil,
+			geth.NewEVM,
 			cast.ToString(appOpts.Get(srvflags.EVMTracer)),
 		),
 		appKeepers.AccountKeeper,
