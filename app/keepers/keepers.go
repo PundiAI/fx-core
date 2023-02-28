@@ -240,6 +240,7 @@ func NewAppKeeper(
 		appCodec,
 		homePath,
 		bApp,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	appKeepers.IBCKeeper = ibckeeper.NewKeeper(
