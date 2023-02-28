@@ -248,7 +248,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 }
 
 func (suite *rpcTestSuite) TestClient_Query() {
-	feeCollectorAddr, err := sdk.AccAddressFromHex("f1829676db577682e944fc3493d451b67ff3e29f")
+	feeCollectorAddr, err := sdk.AccAddressFromHexUnsafe("f1829676db577682e944fc3493d451b67ff3e29f")
 	suite.NoError(err)
 	tests := []struct {
 		funcName string

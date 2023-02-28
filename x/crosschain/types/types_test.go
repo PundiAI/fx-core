@@ -31,7 +31,7 @@ func TestOracleSet_Checkpoint(t *testing.T) {
 }
 
 func TestOutgoingTxBatch_Checkpoint(t *testing.T) {
-	senderAddr, err := sdk.AccAddressFromHex("9738AB195F6FC972A9014ADB77E4EB6D7C32FDA8")
+	senderAddr, err := sdk.AccAddressFromHexUnsafe("9738AB195F6FC972A9014ADB77E4EB6D7C32FDA8")
 	require.NoError(t, err)
 	erc20Addr := common.HexToAddress("0x8c15Ef5b4B21951d50E53E4fbdA8298FFAD25057")
 

@@ -133,7 +133,7 @@ func TestSignature(t *testing.T) {
 	sig, err := hex.DecodeString("a010cf5b836eb934203ce5cc79544c79c7abca116dc9181c600d69d4163574120d1f1d5fd18225288dc9b8386a98f35af2a34cec36ae67f73cf70726819a9e8001")
 	require.NoError(t, err)
 
-	from, err := sdk.AccAddressFromHex("ec1f5387207dc49155baae5da3f3ee498afdabdf")
+	from, err := sdk.AccAddressFromHexUnsafe("ec1f5387207dc49155baae5da3f3ee498afdabdf")
 	require.NoError(t, err)
 
 	to := common.HexToAddress("0x77F2022532009c5EB4c6C70f395DEAaA793481Bc")
