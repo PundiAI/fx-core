@@ -157,14 +157,18 @@ $ %s gentx my-key-name 100000000000000000000FX --keyring-backend=os --chain-id=f
 
 			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
 				cmd.PrintErrln("Offline key passed in. Use `tx sign` command to sign.")
-				return authclient.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg})
+				return txBldr.PrintUnsignedTx(clientCtx, msg)
 			}
 
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
 
-			if err = authclient.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg}); err != nil {
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			if err = txBldr.PrintUnsignedTx(clientCtx, msg); err != nil {
 				return errors.Wrap(err, "failed to print unsigned std tx")
 			}
 
