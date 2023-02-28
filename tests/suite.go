@@ -17,7 +17,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/proto/tendermint/types"
@@ -204,15 +205,15 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	return txResponse
 }
 
-func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content, expectedStatus ...govtypes.ProposalStatus) (*sdk.TxResponse, uint64) {
-	proposalMsg, err := govtypes.NewMsgSubmitProposal(
+func (suite *TestSuite) BroadcastProposalTx(content govv1beta1.Content, expectedStatus ...govv1.ProposalStatus) (*sdk.TxResponse, uint64) {
+	proposalMsg, err := govv1beta1.NewMsgSubmitProposal(
 		content,
 		sdk.NewCoins(suite.NewCoin(sdkmath.NewInt(10_000).MulRaw(1e18))),
 		suite.GetFirstValAddr().Bytes(),
 	)
 	suite.NoError(err)
 	proposalId := suite.getNextProposalId()
-	voteMsg := govtypes.NewMsgVote(suite.GetFirstValAddr().Bytes(), proposalId, govtypes.OptionYes)
+	voteMsg := govv1beta1.NewMsgVote(suite.GetFirstValAddr().Bytes(), proposalId, govv1beta1.OptionYes)
 	txResponse := suite.BroadcastTx(suite.GetFirstValPrivKey(), proposalMsg, voteMsg)
 	for _, log := range txResponse.Logs {
 		for _, event := range log.Events {
@@ -232,7 +233,7 @@ func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content, expectedSt
 	}
 	_, err = suite.network.WaitForHeight(txResponse.Height + 2)
 	suite.NoError(err)
-	status := govtypes.StatusPassed
+	status := govv1.StatusPassed
 	if len(expectedStatus) > 0 {
 		status = expectedStatus[0]
 	}
@@ -382,9 +383,9 @@ func (suite *TestSuite) CheckRedelegate(delegatorAddr sdk.AccAddress, redelegati
 	}
 }
 
-func (suite *TestSuite) CheckProposals(depositor sdk.AccAddress) govtypes.Proposals {
-	proposalsResp, err := suite.GRPCClient().GovQuery().Proposals(suite.ctx, &govtypes.QueryProposalsRequest{
-		ProposalStatus: govtypes.StatusDepositPeriod,
+func (suite *TestSuite) CheckProposals(depositor sdk.AccAddress) govv1.Proposals {
+	proposalsResp, err := suite.GRPCClient().GovQuery().Proposals(suite.ctx, &govv1.QueryProposalsRequest{
+		ProposalStatus: govv1.StatusDepositPeriod,
 		Depositor:      depositor.String(),
 	})
 	suite.NoError(err)
@@ -392,11 +393,11 @@ func (suite *TestSuite) CheckProposals(depositor sdk.AccAddress) govtypes.Propos
 }
 
 func (suite *TestSuite) ProposalDeposit(priv cryptotypes.PrivKey, proposalID uint64, amount sdk.Coin) *sdk.TxResponse {
-	return suite.BroadcastTx(priv, govtypes.NewMsgDeposit(priv.PubKey().Address().Bytes(), proposalID, sdk.NewCoins(amount)))
+	return suite.BroadcastTx(priv, govv1beta1.NewMsgDeposit(priv.PubKey().Address().Bytes(), proposalID, sdk.NewCoins(amount)))
 }
 
 func (suite *TestSuite) CheckDeposit(proposalId uint64, depositor sdk.AccAddress, amount sdk.Coin) {
-	depositResp, err := suite.GRPCClient().GovQuery().Deposit(suite.ctx, &govtypes.QueryDepositRequest{
+	depositResp, err := suite.GRPCClient().GovQuery().Deposit(suite.ctx, &govv1.QueryDepositRequest{
 		ProposalId: proposalId,
 		Depositor:  depositor.String(),
 	})
@@ -404,15 +405,15 @@ func (suite *TestSuite) CheckDeposit(proposalId uint64, depositor sdk.AccAddress
 	suite.Equal(depositResp.Deposit.Amount, amount)
 }
 
-func (suite *TestSuite) ProposalVote(priv cryptotypes.PrivKey, proposalID uint64, option govtypes.VoteOption) *sdk.TxResponse {
-	return suite.BroadcastTx(priv, govtypes.NewMsgVote(priv.PubKey().Address().Bytes(), proposalID, option))
+func (suite *TestSuite) ProposalVote(priv cryptotypes.PrivKey, proposalID uint64, option govv1beta1.VoteOption) *sdk.TxResponse {
+	return suite.BroadcastTx(priv, govv1beta1.NewMsgVote(priv.PubKey().Address().Bytes(), proposalID, option))
 }
 
-func (suite *TestSuite) CheckProposal(proposalId uint64, status govtypes.ProposalStatus) govtypes.Proposal {
-	proposalResp, err := suite.GRPCClient().GovQuery().Proposal(suite.ctx, &govtypes.QueryProposalRequest{
+func (suite *TestSuite) CheckProposal(proposalId uint64, status govv1.ProposalStatus) govv1.Proposal {
+	proposalResp, err := suite.GRPCClient().GovQuery().Proposal(suite.ctx, &govv1.QueryProposalRequest{
 		ProposalId: proposalId,
 	})
 	suite.NoError(err)
 	suite.Require().Equal(status, proposalResp.Proposal.Status)
-	return proposalResp.Proposal
+	return *proposalResp.Proposal
 }

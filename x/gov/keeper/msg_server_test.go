@@ -6,7 +6,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -14,14 +15,12 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestSubmitProposal() {
-	errInitCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(100).MulRaw(1e18)}}
+	errInitCoins := []sdk.Coin{{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(100).Mul(sdkmath.NewInt(1e18))}}
 	suite.True(types.GetInitialDeposit().IsAllGT(errInitCoins))
-	TestProposal := govtypes.NewTextProposal("Test", "description")
-	errProposalMsg, err := govtypes.NewMsgSubmitProposal(
-		TestProposal,
-		errInitCoins,
-		suite.newAddress(),
-	)
+	TestProposal := govv1beta1.NewTextProposal("Test", "description")
+	legacyContent, err := govv1.NewLegacyContent(TestProposal, suite.govAcct)
+	suite.NoError(err)
+	errProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent}, errInitCoins, suite.newAddress().String(), "")
 	suite.NoError(err)
 	_, err = suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), errProposalMsg)
 	suite.Error(err)
@@ -29,46 +28,42 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 
 	successInitCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
 	suite.True(types.GetInitialDeposit().IsAllLTE(successInitCoins))
-	successProposalMsg, err := govtypes.NewMsgSubmitProposal(
-		govtypes.NewTextProposal("Test", "description"),
-		successInitCoins,
-		suite.newAddress(),
-	)
+	successProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent}, successInitCoins, suite.newAddress().String(), "")
 	suite.NoError(err)
 	_, err = suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), successProposalMsg)
 	suite.NoError(err)
 
 	testCases := []struct {
 		testName       string
-		content        govtypes.Content
+		content        govv1beta1.Content
 		initialDeposit sdk.Coin
-		status         govtypes.ProposalStatus
+		status         govv1.ProposalStatus
 		expectedErr    error
 	}{
 		{
 			testName:       "the deposit is less than the minimum amount",
 			content:        TestProposal,
 			initialDeposit: sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)},
-			status:         govtypes.StatusDepositPeriod,
+			status:         govv1.StatusDepositPeriod,
 			expectedErr:    nil,
 		},
 		{
 			testName:       "The deposit is greater than the minimum amount",
 			content:        TestProposal,
 			initialDeposit: sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)},
-			status:         govtypes.StatusVotingPeriod,
+			status:         govv1.StatusVotingPeriod,
 			expectedErr:    nil,
 		},
 		{
 			testName: "The deposit is greater than the minimum amount",
-			content: &distributiontypes.CommunityPoolSpendProposal{
-				Title:       "community Pool Spend Proposal",
-				Description: "description",
-				Recipient:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-				Amount:      sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(2000 * 1e3).MulRaw(1e18)}},
-			},
+			content: distributiontypes.NewCommunityPoolSpendProposal(
+				"community Pool Spend Proposal",
+				"description",
+				sdk.AccAddress(helpers.GenerateAddress().Bytes()),
+				sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(2000 * 1e3).MulRaw(1e18)}},
+			),
 			initialDeposit: sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)},
-			status:         govtypes.StatusDepositPeriod,
+			status:         govv1.StatusDepositPeriod,
 			expectedErr:    nil,
 		},
 	}
@@ -76,11 +71,10 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 		if tc.content.ProposalType() == distributiontypes.ProposalTypeCommunityPoolSpend {
 			suite.addFundCommunityPool()
 		}
-		testProposalMsg, err := govtypes.NewMsgSubmitProposal(
-			tc.content,
-			sdk.Coins{tc.initialDeposit},
-			suite.newAddress(),
-		)
+		legacyContent, err = govv1.NewLegacyContent(tc.content, suite.govAcct)
+		suite.NoError(err)
+		testProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent}, sdk.NewCoins(tc.initialDeposit), suite.newAddress().String(), "")
+		suite.NoError(err)
 		suite.NoError(err)
 		proposalResponse, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), testProposalMsg)
 		suite.NoError(err)
@@ -137,16 +131,13 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 		},
 	}
 	for _, tc := range testCases {
-		testProposalMsg, err := govtypes.NewMsgSubmitProposal(
-			&distributiontypes.CommunityPoolSpendProposal{
-				Title:       "community Pool Spend Proposal",
-				Description: "description",
-				Recipient:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-				Amount:      tc.amount,
-			},
-			sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}},
-			suite.newAddress(),
-		)
+		LegacyContentMsg, err := govv1.NewLegacyContent(distributiontypes.NewCommunityPoolSpendProposal(
+			"community Pool Spend Proposal",
+			"description",
+			sdk.AccAddress(helpers.GenerateAddress().Bytes()),
+			tc.amount), suite.govAcct)
+		suite.NoError(err)
+		testProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{LegacyContentMsg}, sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}, suite.newAddress().String(), "")
 		suite.NoError(err)
 		proposalResponse, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), testProposalMsg)
 		suite.NoError(err)

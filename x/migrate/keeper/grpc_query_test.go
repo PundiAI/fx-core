@@ -6,7 +6,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
@@ -339,18 +340,21 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
-				content := govtypes.ContentFromProposalType("title", "description", "Text")
+				content, bl := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000))))
-
-				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+				suite.Require().True(bl)
+				msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, from, amount)
+				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent}, "")
 				suite.Require().NoError(err)
 
-				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, from, amount)
+				suite.Require().NoError(err)
+
+				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.Id)
 				suite.Require().True(found)
-				suite.Require().Equal(p.Status, govtypes.StatusDepositPeriod)
+				suite.Require().Equal(p.Status, govv1.StatusDepositPeriod)
 
 				req = &types.QueryMigrateCheckAccountRequest{
 					From: from.String(),
@@ -367,18 +371,21 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
-				content := govtypes.ContentFromProposalType("title", "description", "Text")
+				content, bl := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000))))
-
-				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+				suite.Require().True(bl)
+				msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to.Bytes(), amount)
+				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent}, "")
 				suite.Require().NoError(err)
 
-				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, to.Bytes(), amount)
+				suite.Require().NoError(err)
+
+				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.Id)
 				suite.Require().True(found)
-				suite.Require().Equal(p.Status, govtypes.StatusDepositPeriod)
+				suite.Require().Equal(p.Status, govv1.StatusDepositPeriod)
 
 				req = &types.QueryMigrateCheckAccountRequest{
 					From: from.String(),
@@ -395,18 +402,21 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
-				content := govtypes.ContentFromProposalType("title", "description", "Text")
+				content, bl := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
-
-				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+				suite.Require().True(bl)
+				msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, from, amount)
+				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent}, "")
 				suite.Require().NoError(err)
 
-				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, from, amount)
+				suite.Require().NoError(err)
+
+				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.Id)
 				suite.Require().True(found)
-				suite.Require().Equal(p.Status, govtypes.StatusVotingPeriod)
+				suite.Require().Equal(p.Status, govv1.StatusVotingPeriod)
 
 				req = &types.QueryMigrateCheckAccountRequest{
 					From: from.String(),
@@ -423,18 +433,21 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
-				content := govtypes.ContentFromProposalType("title", "description", "Text")
+				content, bl := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
-
-				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+				suite.Require().True(bl)
+				msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to.Bytes(), amount)
+				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent}, "")
 				suite.Require().NoError(err)
 
-				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, to.Bytes(), amount)
+				suite.Require().NoError(err)
+
+				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.Id)
 				suite.Require().True(found)
-				suite.Require().Equal(p.Status, govtypes.StatusVotingPeriod)
+				suite.Require().Equal(p.Status, govv1.StatusVotingPeriod)
 
 				req = &types.QueryMigrateCheckAccountRequest{
 					From: from.String(),
@@ -451,20 +464,23 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
-				content := govtypes.ContentFromProposalType("title", "description", "Text")
+				content, bl := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
-
-				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+				suite.Require().True(bl)
+				msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, from, amount)
+				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent}, "")
 				suite.Require().NoError(err)
 
-				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, from, amount)
+				suite.Require().NoError(err)
+
+				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.Id)
 				suite.Require().True(found)
-				suite.Require().Equal(p.Status, govtypes.StatusVotingPeriod)
+				suite.Require().Equal(p.Status, govv1.StatusVotingPeriod)
 
-				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, from, govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.Id, from, govv1.NewNonSplitVoteOption(govv1.OptionYes), "")
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{
@@ -482,20 +498,23 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
-				content := govtypes.ContentFromProposalType("title", "description", "Text")
+				content, bl := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
-
-				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+				suite.Require().True(bl)
+				msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to.Bytes(), amount)
+				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent}, "")
 				suite.Require().NoError(err)
 
-				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, to.Bytes(), amount)
+				suite.Require().NoError(err)
+
+				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.Id)
 				suite.Require().True(found)
-				suite.Require().Equal(p.Status, govtypes.StatusVotingPeriod)
+				suite.Require().Equal(p.Status, govv1.StatusVotingPeriod)
 
-				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, to.Bytes(), govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.Id, to.Bytes(), govv1.NewNonSplitVoteOption(govv1.OptionYes), "")
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{
@@ -513,23 +532,26 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				from := sdk.AccAddress(fromKey.PubKey().Address().Bytes())
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
-				content := govtypes.ContentFromProposalType("title", "description", "Text")
+				content, bl := govtypes.ContentFromProposalType("title", "description", "Text")
 				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
-
-				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
+				suite.Require().True(bl)
+				msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAddr)
 				suite.Require().NoError(err)
 
-				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, to.Bytes(), amount)
+				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, []sdk.Msg{msgExecLegacyContent}, "")
 				suite.Require().NoError(err)
 
-				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.ProposalId)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, to.Bytes(), amount)
+				suite.Require().NoError(err)
+
+				p, found := suite.app.GovKeeper.GetProposal(suite.ctx, proposal.Id)
 				suite.Require().True(found)
-				suite.Require().Equal(p.Status, govtypes.StatusVotingPeriod)
+				suite.Require().Equal(p.Status, govv1.StatusVotingPeriod)
 
-				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, from, govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.Id, from, govv1.NewNonSplitVoteOption(govv1.OptionYes), "")
 				suite.Require().NoError(err)
 
-				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, to.Bytes(), govtypes.NewNonSplitVoteOption(govtypes.OptionYes))
+				err = suite.app.GovKeeper.AddVote(suite.ctx, proposal.Id, to.Bytes(), govv1.NewNonSplitVoteOption(govv1.OptionYes), "")
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{

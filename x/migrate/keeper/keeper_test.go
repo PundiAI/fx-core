@@ -10,6 +10,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -32,6 +33,7 @@ type KeeperTestSuite struct {
 	app              *app.App
 	secp256k1PrivKey cryptotypes.PrivKey
 	queryClient      migratetypes.QueryClient
+	govAddr          string
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -71,6 +73,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	stakingParams := suite.app.StakingKeeper.GetParams(suite.ctx)
 	stakingParams.UnbondingTime = 5 * time.Minute
 	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+
+	suite.govAddr = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 }
 
 func (suite *KeeperTestSuite) Commit() {

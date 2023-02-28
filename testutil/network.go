@@ -17,6 +17,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
@@ -86,7 +87,7 @@ func NoSupplyGenesisState(cdc codec.Codec) app.GenesisState {
 	bankState.DenomMetadata = []banktypes.Metadata{fxtypes.GetFXMetaData(fxtypes.DefaultDenom)}
 	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
 
-	var govGenState govtypes.GenesisState
+	var govGenState govv1beta1.GenesisState
 	cdc.MustUnmarshalJSON(genesisState[govtypes.ModuleName], &govGenState)
 	govGenState.VotingParams.VotingPeriod = time.Millisecond
 
