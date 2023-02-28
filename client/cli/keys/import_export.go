@@ -3,8 +3,11 @@ package keys
 import (
 	"bufio"
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"os"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -72,7 +75,12 @@ and export your keys in encrypted format.`,
 				return nil
 			}
 
-			hexPrivKey, err := keyring.NewUnsafe(clientCtx.Keyring).UnsafeExportPrivKeyHex(args[0])
+			privKey, err := clientCtx.Keyring.(unsafeExporter).ExportPrivateKeyObject(args[0])
+			if err != nil {
+				return err
+			}
+
+			hexPrivKey := hex.EncodeToString(privKey.Bytes())
 			if err != nil {
 				return err
 			}
@@ -109,10 +117,11 @@ func exportUnsafeUnarmored(cmd *cobra.Command, uid string, buf *bufio.Reader, kr
 		return nil
 	}
 
-	hexPrivKey, err := keyring.NewUnsafe(kr).UnsafeExportPrivKeyHex(uid)
+	priv, err := kr.(unsafeExporter).ExportPrivateKeyObject(uid)
 	if err != nil {
 		return err
 	}
+	hexPrivKey := hex.EncodeToString(priv.Bytes())
 
 	cmd.Print(hexPrivKey)
 
@@ -179,4 +188,11 @@ func ImportKeyCommand() *cobra.Command {
 	}
 	cmd.Flags().String(flags.FlagKeyAlgorithm, ethsecp256k1.KeyType, "Key signing algorithm to generate keys for")
 	return cmd
+}
+
+// unsafeExporter is implemented by key stores that support unsafe export
+// of private keys' material.
+type unsafeExporter interface {
+	// ExportPrivateKeyObject returns a private key in unarmored format.
+	ExportPrivateKeyObject(uid string) (cryptotypes.PrivKey, error)
 }

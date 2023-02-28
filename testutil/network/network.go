@@ -335,7 +335,7 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 		nodeIDs[i] = nodeID
 		valPubKeys[i] = pubKey
 
-		kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientDir, nil, cfg.KeyringOptions...)
+		kb, err := keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientDir, nil, cfg.Codec, cfg.KeyringOptions...)
 		if err != nil {
 			return nil, err
 		}

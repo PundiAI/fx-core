@@ -53,13 +53,19 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			var pubKey cryptotypes.PubKey
 			if err != nil {
-				info, err := clientCtx.Keyring.Key(args[0])
+				k, err := clientCtx.Keyring.Key(args[0])
 				if err != nil {
 					return fmt.Errorf("failed to get address from Keybase: %w", err)
 				}
 
-				addr = info.GetAddress()
-				pubKey = info.GetPubKey()
+				addr, err = k.GetAddress()
+				if err != nil {
+					return err
+				}
+				pubKey, err = k.GetPubKey()
+				if err != nil {
+					return err
+				}
 			}
 
 			vestingStart, err := cmd.Flags().GetInt64(flagVestingStart)

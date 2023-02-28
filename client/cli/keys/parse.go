@@ -2,13 +2,15 @@ package keys
 
 import (
 	"encoding/hex"
+	"strings"
+
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/spf13/cobra"
 
 	"github.com/functionx/fx-core/v3/client/cli"
@@ -31,7 +33,7 @@ func ParseAddressCommand() *cobra.Command {
 			outputMap := make(map[string]interface{})
 
 			var addr []byte
-			keyInfo, err := clientCtx.Keyring.Key(addrStr)
+			k, err := clientCtx.Keyring.Key(addrStr)
 			if err != nil {
 				// try hex, then bech32
 				addr, err = hexutil.Decode(addrStr)
@@ -43,9 +45,12 @@ func ParseAddressCommand() *cobra.Command {
 				} else {
 					outputMap["eip55_address"] = common.BytesToAddress(addr).String()
 				}
-				keyInfo, _ = clientCtx.Keyring.KeyByAddress(sdk.AccAddress(addr))
+				k, _ = clientCtx.Keyring.KeyByAddress(sdk.AccAddress(addr))
 			} else {
-				addr = keyInfo.GetAddress().Bytes()
+				addr, err = k.GetAddress()
+				if err != nil {
+					return err
+				}
 			}
 			prefix, err := cmd.Flags().GetString(prefixFlag)
 			if err != nil {
@@ -64,16 +69,19 @@ func ParseAddressCommand() *cobra.Command {
 			outputMap["hex"] = hex.EncodeToString(addr)
 			outputMap["acc_address"] = accAddress
 			outputMap["val_address"] = valAddress
-			if keyInfo != nil {
-				outputMap["name"] = keyInfo.GetName()
-				outputMap["algo"] = keyInfo.GetAlgo()
-				outputMap["pubkey"] = keyInfo.GetPubKey()
-				outputMap["type"] = keyInfo.GetType()
-				path, err := keyInfo.GetPath()
-				if err == nil {
-					outputMap["path"] = path
+			if k != nil {
+				pubKey, err := k.GetPubKey()
+				if err != nil {
+					return err
 				}
-				if keyInfo.GetAlgo() == hd.EthSecp256k1Type {
+				outputMap["name"] = k.Name
+				outputMap["pubkey"] = pubKey
+				outputMap["type"] = k.GetType()
+				ledger := k.GetLedger()
+				if ledger != nil {
+					outputMap["path"] = *ledger.Path
+				}
+				if strings.EqualFold(pubKey.Type(), ethsecp256k1.KeyType) {
 					outputMap["eip55_address"] = common.BytesToAddress(addr).String()
 				}
 			}

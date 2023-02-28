@@ -143,7 +143,7 @@ func getConvertCoinMsg(cliCtx client.Context, ctx context.Context, from, to sdk.
 
 func getMigrateAccountMsg(cliCtx client.Context, from sdk.AccAddress, to common.Address) (sdk.Msg, error) {
 	toInfo, _ := cliCtx.Keyring.KeyByAddress(sdk.AccAddress(to.Bytes()))
-	sign, _, err := cliCtx.Keyring.Sign(toInfo.GetName(), types.MigrateAccountSignatureHash(from, to.Bytes()))
+	sign, _, err := cliCtx.Keyring.Sign(toInfo.Name, types.MigrateAccountSignatureHash(from, to.Bytes()))
 	if err != nil {
 		return nil, fmt.Errorf("sign migrate signature error %v", err)
 	}

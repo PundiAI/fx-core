@@ -27,19 +27,19 @@ func runListCmd(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	infos, err := clientCtx.Keyring.List()
+	records, err := clientCtx.Keyring.List()
 	if err != nil {
 		return err
 	}
 
 	if ok, _ := cmd.Flags().GetBool(flagListNames); ok {
-		for _, info := range infos {
-			cmd.Println(info.GetName())
+		for _, record := range records {
+			cmd.Println(record.Name)
 		}
 		return nil
 	}
 
-	output, err := MkAccKeysOutput(infos)
+	output, err := MkAccKeysOutput(records)
 	if err != nil {
 		return err
 	}

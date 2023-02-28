@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -32,12 +35,11 @@ type KeyOutput struct {
 	Address      string `json:"address" yaml:"address"`
 	PubKey       string `json:"pubkey" yaml:"pubkey"`
 	Mnemonic     string `json:"mnemonic,omitempty" yaml:"mnemonic,omitempty"`
-	Algo         string `json:"algo" yaml:"algo"`
 }
 
 // NewKeyOutput creates a default KeyOutput instance without Mnemonic, Threshold and PubKeys
-func NewKeyOutput(keyInfo keyring.Info, a sdk.Address) (KeyOutput, error) {
-	apk, err := codectypes.NewAnyWithValue(keyInfo.GetPubKey())
+func NewKeyOutput(name string, keyType keyring.KeyType, a sdk.Address, pk cryptotypes.PubKey) (KeyOutput, error) {
+	apk, err := codectypes.NewAnyWithValue(pk)
 	if err != nil {
 		return KeyOutput{}, err
 	}
@@ -46,13 +48,12 @@ func NewKeyOutput(keyInfo keyring.Info, a sdk.Address) (KeyOutput, error) {
 		return KeyOutput{}, err
 	}
 	keyOutput := KeyOutput{
-		Name:    keyInfo.GetName(),
-		Type:    keyInfo.GetType().String(),
+		Name:    name,
+		Type:    keyType.String(),
 		Address: a.String(),
 		PubKey:  string(bz),
-		Algo:    string(keyInfo.GetAlgo()),
 	}
-	if keyInfo.GetAlgo() == ethsecp256k1.KeyType {
+	if strings.EqualFold(pk.Type(), ethsecp256k1.KeyType) {
 		keyOutput.Eip55Address = string(checksumHex(a.Bytes()))
 	}
 	return keyOutput, nil
@@ -82,36 +83,46 @@ func checksumHex(addr []byte) []byte {
 }
 
 // MkConsKeyOutput create a KeyOutput in with "cons" Bech32 prefixes.
-func MkConsKeyOutput(keyInfo keyring.Info) (KeyOutput, error) {
-	pk := keyInfo.GetPubKey()
+func MkConsKeyOutput(k *keyring.Record) (KeyOutput, error) {
+	pk, err := k.GetPubKey()
+	if err != nil {
+		return KeyOutput{}, err
+	}
 	addr := sdk.ConsAddress(pk.Address())
-	return NewKeyOutput(keyInfo, addr)
+	return NewKeyOutput(k.Name, k.GetType(), addr, pk)
 }
 
 // MkValKeyOutput create a KeyOutput in with "val" Bech32 prefixes.
-func MkValKeyOutput(keyInfo keyring.Info) (KeyOutput, error) {
-	pk := keyInfo.GetPubKey()
+func MkValKeyOutput(k *keyring.Record) (KeyOutput, error) {
+	pk, err := k.GetPubKey()
+	if err != nil {
+		return KeyOutput{}, err
+	}
+
 	addr := sdk.ValAddress(pk.Address())
-	return NewKeyOutput(keyInfo, addr)
+	return NewKeyOutput(k.Name, k.GetType(), addr, pk)
 }
 
 // MkAccKeyOutput create a KeyOutput in with "acc" Bech32 prefixes. If the
 // public key is a multisig public key, then the threshold and constituent
 // public keys will be added.
-func MkAccKeyOutput(keyInfo keyring.Info) (KeyOutput, error) {
-	pk := keyInfo.GetPubKey()
+func MkAccKeyOutput(k *keyring.Record) (KeyOutput, error) {
+	pk, err := k.GetPubKey()
+	if err != nil {
+		return KeyOutput{}, err
+	}
 	addr := sdk.AccAddress(pk.Address())
-	return NewKeyOutput(keyInfo, addr)
+	return NewKeyOutput(k.Name, k.GetType(), addr, pk)
 }
 
 // MkAccKeysOutput returns a slice of KeyOutput objects, each with the "acc"
 // Bech32 prefixes, given a slice of Info objects. It returns an error if any
 // call to MkKeyOutput fails.
-func MkAccKeysOutput(infos []keyring.Info) ([]KeyOutput, error) {
-	kos := make([]KeyOutput, len(infos))
+func MkAccKeysOutput(records []*keyring.Record) ([]KeyOutput, error) {
+	kos := make([]KeyOutput, len(records))
 	var err error
-	for i, info := range infos {
-		kos[i], err = MkAccKeyOutput(info)
+	for i, r := range records {
+		kos[i], err = MkAccKeyOutput(r)
 		if err != nil {
 			return nil, err
 		}

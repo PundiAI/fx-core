@@ -120,7 +120,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 
 	if dryRun, _ := cmd.Flags().GetBool(flags.FlagDryRun); dryRun {
 		// use in memory keybase
-		kb = keyring.NewInMemory()
+		kb = keyring.NewInMemory(ctx.Codec)
 	} else {
 		_, err = kb.Key(name)
 		if err == nil {
@@ -154,7 +154,11 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 					return err
 				}
 
-				pks[i] = k.GetPubKey()
+				key, err := k.GetPubKey()
+				if err != nil {
+					return err
+				}
+				pks[i] = key
 			}
 
 			if noSort, _ := cmd.Flags().GetBool(flagNoSort); !noSort {
@@ -181,7 +185,7 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 			return err
 		}
 
-		info, err := kb.SavePubKey(name, pk, hd.PubKeyType(pk.Type()))
+		info, err := kb.SaveOfflineKey(name, pk)
 		if err != nil {
 			return err
 		}
@@ -287,10 +291,10 @@ func runAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 	return printCreate(cmd, info, showMnemonic, mnemonic, outputFormat)
 }
 
-func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemonic string, outputFormat string) error {
+func printCreate(cmd *cobra.Command, k *keyring.Record, showMnemonic bool, mnemonic string, outputFormat string) error {
 	switch outputFormat {
 	case OutputFormatText:
-		output, err := MkAccKeyOutput(info)
+		output, err := MkAccKeyOutput(k)
 		if err != nil {
 			return err
 		}
@@ -310,7 +314,7 @@ func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemo
 			cmd.PrintErrln(mnemonic)
 		}
 	case OutputFormatJSON:
-		out, err := MkAccKeyOutput(info)
+		out, err := MkAccKeyOutput(k)
 		if err != nil {
 			return err
 		}
