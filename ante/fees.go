@@ -90,10 +90,14 @@ type EthMinGasPriceDecorator struct {
 	evmKeeper  EVMKeeper
 }
 
+// NewEthMinGasPriceDecorator creates a new MinGasPriceDecorator instance used only for
+// Ethereum transactions.
 func NewEthMinGasPriceDecorator(fk FeeMarketKeeper, ek EVMKeeper) EthMinGasPriceDecorator {
 	return EthMinGasPriceDecorator{feesKeeper: fk, evmKeeper: ek}
 }
 
+// AnteHandle ensures that the that the effective fee from the transaction is greater than the
+// minimum global fee, which is defined by the  MinGasPrice (parameter) * GasLimit (tx argument).
 func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	minGasPrice := empd.feesKeeper.GetParams(ctx).MinGasPrice
 
@@ -102,8 +106,8 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 		return next(ctx, tx, simulate)
 	}
 
-	paramsEvm := empd.evmKeeper.GetParams(ctx)
-	ethCfg := paramsEvm.ChainConfig.EthereumConfig(empd.evmKeeper.ChainID())
+	chainCfg := empd.evmKeeper.GetChainConfig(ctx)
+	ethCfg := chainCfg.EthereumConfig(empd.evmKeeper.ChainID())
 	baseFee := empd.evmKeeper.GetBaseFee(ctx, ethCfg)
 
 	for _, msg := range tx.GetMsgs() {
@@ -144,7 +148,7 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 		if fee.LT(requiredFee) {
 			return ctx, errorsmod.Wrapf(
 				errortypes.ErrInsufficientFee,
-				"provided fee < minimum global fee (%d < %d). Please increase the priority tip (for EIP-1559 txs) or the gas prices (for access list or legacy txs)",
+				"provided fee < minimum global fee (%d < %d). Please increase the priority tip (for EIP-1559 txs) or the gas prices (for access list or legacy txs)", //nolint:lll
 				fee.TruncateInt().Int64(), requiredFee.TruncateInt().Int64(),
 			)
 		}
