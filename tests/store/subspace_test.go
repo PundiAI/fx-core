@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
@@ -20,8 +21,8 @@ func Benchmark_Subspace(b *testing.B) {
 	tkey := sdk.NewTransientStoreKey("transient_test")
 
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
-	ms.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, nil)
-	ms.MountStoreWithDB(tkey, sdk.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(tkey, storetypes.StoreTypeIAVL, nil)
 	assert.NoError(b, ms.LoadLatestVersion())
 
 	encodingConfig := app.MakeEncodingConfig()

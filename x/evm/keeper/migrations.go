@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/evmos/ethermint/x/evm/keeper"
 
@@ -12,11 +13,11 @@ import (
 type Migrator struct {
 	keeper.Migrator
 	legacyAmino    *codec.LegacyAmino
-	paramsStoreKey sdk.StoreKey
+	paramsStoreKey storetypes.StoreKey
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(k *Keeper, legacyAmino *codec.LegacyAmino, paramsStoreKey sdk.StoreKey) Migrator {
+func NewMigrator(k *Keeper, legacyAmino *codec.LegacyAmino, paramsStoreKey storetypes.StoreKey) Migrator {
 	return Migrator{
 		Migrator:       keeper.NewMigrator(*k.Keeper),
 		legacyAmino:    legacyAmino,

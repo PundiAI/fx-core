@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -16,15 +17,15 @@ type Migrator struct {
 	sk              v3.StakingKeeper
 	ak              v3.AccountKeeper
 	bk              v3.BankKeeper
-	gravityStoreKey sdk.StoreKey
-	ethStoreKey     sdk.StoreKey
+	gravityStoreKey storetypes.StoreKey
+	ethStoreKey     storetypes.StoreKey
 	legacyAmino     *codec.LegacyAmino
-	paramsStoreKey  sdk.StoreKey
+	paramsStoreKey  storetypes.StoreKey
 }
 
 // NewMigrator returns a new Migrator.
 func NewMigrator(cdc codec.BinaryCodec, legacyAmino *codec.LegacyAmino,
-	paramsStoreKey sdk.StoreKey, gravityStoreKey sdk.StoreKey, ethStoreKey sdk.StoreKey,
+	paramsStoreKey storetypes.StoreKey, gravityStoreKey storetypes.StoreKey, ethStoreKey storetypes.StoreKey,
 	sk v3.StakingKeeper, ak v3.AccountKeeper, bk v3.BankKeeper,
 ) Migrator {
 	return Migrator{

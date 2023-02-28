@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -21,7 +22,7 @@ type Keeper struct {
 	// Protobuf codec
 	cdc codec.BinaryCodec
 	// Store key required for the Fee Market Prefix KVStore.
-	storeKey sdk.StoreKey
+	storeKey storetypes.StoreKey
 	// account keeper
 	accountKeeper types.AccountKeeper
 	// Migrate handlers
@@ -29,7 +30,7 @@ type Keeper struct {
 }
 
 // NewKeeper generates new fee market module keeper
-func NewKeeper(cdc codec.BinaryCodec, storeKey sdk.StoreKey, ak types.AccountKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ak types.AccountKeeper) Keeper {
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,

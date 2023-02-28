@@ -2,6 +2,7 @@ package v2
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey sdk.StoreKey, stakingKeeper StakingKeeper) (types.Oracles, sdk.ValAddress, error) {
+func MigrateOracle(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.StoreKey, stakingKeeper StakingKeeper) (types.Oracles, sdk.ValAddress, error) {
 	validatorsByPower := stakingKeeper.GetBondedValidatorsByPower(ctx)
 	if len(validatorsByPower) <= 0 {
 		panic("no found bonded validator")

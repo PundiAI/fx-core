@@ -25,7 +25,7 @@ func TestMigrateBridgeToken(t *testing.T) {
 	moduleName := ethtypes.ModuleName
 	storeKey := sdk.NewKVStoreKey(moduleName)
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
-	ms.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	assert.NoError(t, ms.LoadLatestVersion())
 
 	store := ms.GetKVStore(storeKey)

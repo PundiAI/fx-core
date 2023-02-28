@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -105,7 +106,7 @@ func ibcMigrate(ctx sdk.Context, ibcKeeper *ibckeeper.Keeper, transferKeeper ibc
 	}
 }
 
-func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *sdk.KVStoreKey) {
+func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *storetypes.KVStoreKey) {
 	metaData := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
 	if err := metaData.Validate(); err != nil {
 		panic(fmt.Sprintf("invalid %s metadata", fxtypes.DefaultDenom))
@@ -152,7 +153,7 @@ func migrationsOrder(modules []string) []string {
 	return orders
 }
 
-func runMigrations(ctx sdk.Context, paramsKey *sdk.KVStoreKey, fromVersion module.VersionMap,
+func runMigrations(ctx sdk.Context, paramsKey *storetypes.KVStoreKey, fromVersion module.VersionMap,
 	mm *module.Manager, configurator module.Configurator,
 ) module.VersionMap {
 	if len(fromVersion) != 0 {
@@ -187,7 +188,7 @@ func runMigrations(ctx sdk.Context, paramsKey *sdk.KVStoreKey, fromVersion modul
 	return toVersion
 }
 
-func clearTestnetDenom(ctx sdk.Context, bankKey *sdk.KVStoreKey) {
+func clearTestnetDenom(ctx sdk.Context, bankKey *storetypes.KVStoreKey) {
 	if fxtypes.TestnetChainId != ctx.ChainID() {
 		return
 	}
@@ -218,7 +219,7 @@ func registerCoin(ctx sdk.Context, k erc20keeper.Keeper) {
 	}
 }
 
-func clearTestnetModule(ctx sdk.Context, keys map[string]*sdk.KVStoreKey) {
+func clearTestnetModule(ctx sdk.Context, keys map[string]*storetypes.KVStoreKey) {
 	if fxtypes.TestnetChainId != ctx.ChainID() {
 		return
 	}
@@ -258,7 +259,7 @@ func deleteKVStore(kv sdk.KVStore) error {
 }
 
 // needInitGenesis check module initialized
-func needInitGenesis(ctx sdk.Context, module string, paramsKey *sdk.KVStoreKey) bool {
+func needInitGenesis(ctx sdk.Context, module string, paramsKey *storetypes.KVStoreKey) bool {
 	// crosschain module
 	if crossChainModule[module] {
 		if !crosschainv2.CheckInitialize(ctx, module, paramsKey) {

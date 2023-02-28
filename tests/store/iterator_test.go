@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
@@ -13,7 +14,7 @@ import (
 func Benchmark_Iterator(b *testing.B) {
 	storeKey := sdk.NewKVStoreKey("test")
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
-	ms.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	assert.NoError(b, ms.LoadLatestVersion())
 	store := ms.GetKVStore(storeKey)
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ func TestMigrateParams(t *testing.T) {
 	paramsStoreKey := sdk.NewKVStoreKey(paramstypes.ModuleName)
 
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
-	ms.MountStoreWithDB(paramsStoreKey, sdk.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(paramsStoreKey, storetypes.StoreTypeIAVL, nil)
 	assert.NoError(t, ms.LoadLatestVersion())
 
 	amino := app.MakeEncodingConfig().Amino

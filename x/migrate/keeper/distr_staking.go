@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -12,12 +13,12 @@ import (
 )
 
 type DistrStakingMigrate struct {
-	distrKey      sdk.StoreKey
-	stakingKey    sdk.StoreKey
+	distrKey      storetypes.StoreKey
+	stakingKey    storetypes.StoreKey
 	stakingKeeper types.StakingKeeper
 }
 
-func NewDistrStakingMigrate(distrKey, stakingKey sdk.StoreKey, stakingKeeper types.StakingKeeper) MigrateI {
+func NewDistrStakingMigrate(distrKey, stakingKey storetypes.StoreKey, stakingKeeper types.StakingKeeper) MigrateI {
 	return &DistrStakingMigrate{
 		distrKey:      distrKey,
 		stakingKey:    stakingKey,

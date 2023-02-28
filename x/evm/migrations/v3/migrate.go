@@ -5,11 +5,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
-func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) {
+func MigrateParams(ctx sdk.Context, legacyAmino *codec.LegacyAmino, paramsKey storetypes.StoreKey) {
 	paramStoreKeyRejectUnprotectedTx := []byte("RejectUnprotectedTx")
 
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(evmtypes.ModuleName), '/'))

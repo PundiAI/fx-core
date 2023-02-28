@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +34,7 @@ func Test_updateBSCOracles(t *testing.T) {
 	storeKey := sdk.NewKVStoreKey(t.Name())
 
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
-	ms.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	assert.NoError(t, ms.LoadLatestVersion())
 
 	ctx := sdk.Context{}.

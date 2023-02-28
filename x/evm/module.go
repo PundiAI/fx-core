@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/evmos/ethermint/x/evm"
@@ -40,11 +41,11 @@ type AppModule struct {
 	keeper         *keeper.Keeper
 	accountKeeper  types.AccountKeeper
 	legacyAmino    *codec.LegacyAmino
-	paramsStoreKey sdk.StoreKey
+	paramsStoreKey storetypes.StoreKey
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k *keeper.Keeper, accountKeeper types.AccountKeeper, legacyAmino *codec.LegacyAmino, paramsStoreKey sdk.StoreKey) AppModule {
+func NewAppModule(k *keeper.Keeper, accountKeeper types.AccountKeeper, legacyAmino *codec.LegacyAmino, paramsStoreKey storetypes.StoreKey) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,

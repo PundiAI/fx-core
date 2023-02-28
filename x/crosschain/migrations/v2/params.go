@@ -5,13 +5,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	crosschainv1 "github.com/functionx/fx-core/v3/x/crosschain/migrations/v1"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.LegacyAmino, paramsKey sdk.StoreKey) error {
+func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.LegacyAmino, paramsKey storetypes.StoreKey) error {
 	params := types.Params{}
 	paramSetPairs := crosschainv1.GetParamSetPairs(&params)
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(moduleName), '/'))
@@ -41,7 +42,7 @@ func MigrateParams(ctx sdk.Context, moduleName string, legacyAmino *codec.Legacy
 	return nil
 }
 
-func CheckInitialize(ctx sdk.Context, moduleName string, paramsKey sdk.StoreKey) bool {
+func CheckInitialize(ctx sdk.Context, moduleName string, paramsKey storetypes.StoreKey) bool {
 	paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(moduleName), '/'))
 	return paramsStore.Has(types.ParamsStoreKeyGravityID)
 }

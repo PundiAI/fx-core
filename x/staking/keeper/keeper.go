@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -21,7 +22,7 @@ var _ stakingtypes.DelegationSet = Keeper{}
 
 type Keeper struct {
 	stakingkeeper.Keeper
-	storeKey      sdk.StoreKey
+	storeKey      storetypes.StoreKey
 	accountKeeper types.AccountKeeper
 	bankKeeper    stakingtypes.BankKeeper
 	evmKeeper     types.EvmKeeper
@@ -29,7 +30,7 @@ type Keeper struct {
 	lpTokenModuleAddress common.Address
 }
 
-func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, ak types.AccountKeeper, bk stakingtypes.BankKeeper, ps paramtypes.Subspace) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, ak types.AccountKeeper, bk stakingtypes.BankKeeper, ps paramtypes.Subspace) *Keeper {
 	return &Keeper{
 		Keeper:               stakingkeeper.NewKeeper(cdc, key, ak, bk, ps),
 		storeKey:             key,

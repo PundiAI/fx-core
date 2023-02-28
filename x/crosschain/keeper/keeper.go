@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -14,8 +15,8 @@ import (
 // Keeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
 	moduleName string
-	cdc        codec.BinaryCodec // The wire codec for binary encoding/decoding.
-	storeKey   sdk.StoreKey      // Unexposed key to access store from sdk.Context
+	cdc        codec.BinaryCodec   // The wire codec for binary encoding/decoding.
+	storeKey   storetypes.StoreKey // Unexposed key to access store from sdk.Context
 	paramSpace paramtypes.Subspace
 
 	stakingKeeper      types.StakingKeeper
@@ -27,7 +28,7 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new instance of the gravity keeper
-func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey sdk.StoreKey, paramSpace paramtypes.Subspace,
+func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionKeeper,
 	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper, ak types.AccountKeeper,
 ) Keeper {

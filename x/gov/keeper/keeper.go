@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -16,13 +17,13 @@ import (
 type Keeper struct {
 	govkeeper.Keeper
 	// The (unexposed) keys used to access the stores from the Context.
-	storeKey sdk.StoreKey
+	storeKey storetypes.StoreKey
 
 	bankKeeper govtypes.BankKeeper
 	sk         govtypes.StakingKeeper
 }
 
-func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, key sdk.StoreKey, gk govkeeper.Keeper) Keeper {
+func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, key storetypes.StoreKey, gk govkeeper.Keeper) Keeper {
 	return Keeper{
 		storeKey:   key,
 		bankKeeper: bk,

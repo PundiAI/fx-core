@@ -50,9 +50,9 @@ func (suite *TestSuite) SetupTest() {
 	ethStoreKey := sdk.NewKVStoreKey(ethtypes.ModuleName)
 
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
-	ms.MountStoreWithDB(gravityStoreKey, sdk.StoreTypeIAVL, nil)
-	ms.MountStoreWithDB(paramsStoreKey, sdk.StoreTypeIAVL, nil)
-	ms.MountStoreWithDB(ethStoreKey, sdk.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(gravityStoreKey, storetypes.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(paramsStoreKey, storetypes.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(ethStoreKey, storetypes.StoreTypeIAVL, nil)
 	suite.NoError(ms.LoadLatestVersion())
 
 	suite.gravityStore = ms.GetKVStore(gravityStoreKey)

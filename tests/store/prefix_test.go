@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
@@ -15,7 +16,7 @@ func TestPrefixStore(t *testing.T) {
 	storeKey := sdk.NewKVStoreKey("test")
 
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
-	ms.MountStoreWithDB(storeKey, sdk.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	assert.NoError(t, ms.LoadLatestVersion())
 
 	store := ms.GetKVStore(storeKey)

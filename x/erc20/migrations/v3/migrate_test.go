@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -25,7 +26,7 @@ import (
 type MigrateTestSuite struct {
 	suite.Suite
 	ctx      sdk.Context
-	storeKey *sdk.KVStoreKey
+	storeKey *storetypes.KVStoreKey
 	count    int
 }
 
@@ -36,7 +37,7 @@ func TestMigrate(t *testing.T) {
 func (suite *MigrateTestSuite) SetupTest() {
 	suite.storeKey = sdk.NewKVStoreKey(suite.T().Name())
 	ms := rootmulti.NewStore(dbm.NewMemDB(), log.NewNopLogger())
-	ms.MountStoreWithDB(suite.storeKey, sdk.StoreTypeIAVL, nil)
+	ms.MountStoreWithDB(suite.storeKey, storetypes.StoreTypeIAVL, nil)
 	suite.NoError(ms.LoadLatestVersion())
 
 	suite.ctx = sdk.Context{}.

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -13,11 +14,11 @@ import (
 )
 
 type GovMigrate struct {
-	govKey    sdk.StoreKey
+	govKey    storetypes.StoreKey
 	govKeeper types.GovKeeper
 }
 
-func NewGovMigrate(govKey sdk.StoreKey, govKeeper types.GovKeeper) MigrateI {
+func NewGovMigrate(govKey storetypes.StoreKey, govKeeper types.GovKeeper) MigrateI {
 	return &GovMigrate{
 		govKey:    govKey,
 		govKeeper: govKeeper,
