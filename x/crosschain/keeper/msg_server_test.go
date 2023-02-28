@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -73,7 +74,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 			name: "error - delegate amount less than threshold amount",
 			preRun: func(msg *types.MsgBondedOracle) {
 				delegateThreshold := suite.Keeper().GetOracleDelegateThreshold(suite.ctx)
-				msg.DelegateAmount.Amount = delegateThreshold.Amount.Sub(sdk.NewInt(tmrand.Int63() - 1))
+				msg.DelegateAmount.Amount = delegateThreshold.Amount.Sub(sdkmath.NewInt(tmrand.Int63() - 1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountBelowMinimum.Error(),
@@ -83,8 +84,8 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 			preRun: func(msg *types.MsgBondedOracle) {
 				delegateThreshold := suite.Keeper().GetOracleDelegateThreshold(suite.ctx)
 				delegateMultiple := suite.Keeper().GetOracleDelegateMultiple(suite.ctx)
-				maxDelegateAmount := delegateThreshold.Amount.Mul(sdk.NewInt(delegateMultiple))
-				msg.DelegateAmount.Amount = maxDelegateAmount.Add(sdk.NewInt(tmrand.Int63() - 1))
+				maxDelegateAmount := delegateThreshold.Amount.Mul(sdkmath.NewInt(delegateMultiple))
+				msg.DelegateAmount.Amount = maxDelegateAmount.Add(sdkmath.NewInt(tmrand.Int63() - 1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountAboveMaximum.Error(),
@@ -107,7 +108,7 @@ func (suite *KeeperTestSuite) TestMsgBondedOracle() {
 				ValidatorAddress: suite.valAddrs[oracleIndex].String(),
 				DelegateAmount: sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
-					Amount: sdk.NewInt((tmrand.Int63n(3) + 1) * 10_000).MulRaw(1e18),
+					Amount: sdkmath.NewInt((tmrand.Int63n(3) + 1) * 10_000).MulRaw(1e18),
 				},
 				ChainName: suite.chainName,
 			}
@@ -166,7 +167,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 		pass                 bool
 		err                  string
 		preRun               func(msg *types.MsgAddDelegate)
-		expectDelegateAmount func(msg *types.MsgAddDelegate) sdk.Int
+		expectDelegateAmount func(msg *types.MsgAddDelegate) sdkmath.Int
 	}{
 		{
 			name: "error - sender not oracle",
@@ -193,7 +194,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				slashFraction := suite.Keeper().GetSlashFraction(suite.ctx)
 				slashAmount := initDelegateAmount.ToDec().Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
 				randomAmount := tmrand.Int63n(slashAmount.QuoRaw(1e18).Int64()) + 1
-				msg.Amount.Amount = sdk.NewInt(randomAmount).MulRaw(1e18).Sub(sdk.NewInt(1))
+				msg.Amount.Amount = sdkmath.NewInt(randomAmount).MulRaw(1e18).Sub(sdkmath.NewInt(1))
 			},
 			pass: false,
 			err:  "not sufficient slash amount: invalid",
@@ -203,9 +204,9 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 			preRun: func(msg *types.MsgAddDelegate) {
 				params := suite.Keeper().GetParams(suite.ctx)
 				addDelegateThreshold := tmrand.Int63n(100000) + 1
-				params.DelegateThreshold.Amount = initDelegateAmount.Add(sdk.NewInt(addDelegateThreshold).MulRaw(1e18))
+				params.DelegateThreshold.Amount = initDelegateAmount.Add(sdkmath.NewInt(addDelegateThreshold).MulRaw(1e18))
 				suite.Keeper().SetParams(suite.ctx, &params)
-				msg.Amount.Amount = sdk.NewInt(tmrand.Int63n(addDelegateThreshold) + 1).MulRaw(1e18).Sub(sdk.NewInt(1))
+				msg.Amount.Amount = sdkmath.NewInt(tmrand.Int63n(addDelegateThreshold) + 1).MulRaw(1e18).Sub(sdkmath.NewInt(1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountBelowMinimum.Error(),
@@ -215,8 +216,8 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 			preRun: func(msg *types.MsgAddDelegate) {
 				delegateThreshold := suite.Keeper().GetOracleDelegateThreshold(suite.ctx)
 				delegateMultiple := suite.Keeper().GetOracleDelegateMultiple(suite.ctx)
-				maxDelegateAmount := delegateThreshold.Amount.Mul(sdk.NewInt(delegateMultiple))
-				msg.Amount.Amount = maxDelegateAmount.Add(sdk.NewInt(tmrand.Int63() - 1))
+				maxDelegateAmount := delegateThreshold.Amount.Mul(sdkmath.NewInt(delegateMultiple))
+				msg.Amount.Amount = maxDelegateAmount.Add(sdkmath.NewInt(tmrand.Int63() - 1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountAboveMaximum.Error(),
@@ -226,7 +227,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 			preRun: func(msg *types.MsgAddDelegate) {
 			},
 			pass: true,
-			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdk.Int {
+			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdkmath.Int {
 				return initDelegateAmount.Add(msg.Amount.Amount)
 			},
 		},
@@ -243,7 +244,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				msg.Amount.Amount = slashAmount
 			},
 			pass: true,
-			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdk.Int {
+			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdkmath.Int {
 				return initDelegateAmount
 			},
 		},
@@ -257,11 +258,11 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 
 				slashFraction := suite.Keeper().GetSlashFraction(suite.ctx)
 				slashAmount := initDelegateAmount.ToDec().Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
-				msg.Amount.Amount = slashAmount.Add(sdk.NewInt(1000).MulRaw(1e18))
+				msg.Amount.Amount = slashAmount.Add(sdkmath.NewInt(1000).MulRaw(1e18))
 			},
 			pass: true,
-			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdk.Int {
-				return initDelegateAmount.Add(sdk.NewInt(1000).MulRaw(1e18))
+			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdkmath.Int {
+				return initDelegateAmount.Add(sdkmath.NewInt(1000).MulRaw(1e18))
 			},
 		},
 	}
@@ -286,15 +287,15 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 
 			oracleDelegateThreshold := suite.Keeper().GetOracleDelegateThreshold(suite.ctx)
 			oracleDelegateMultiple := suite.Keeper().GetOracleDelegateMultiple(suite.ctx)
-			maxDelegateAmount := oracleDelegateThreshold.Amount.Mul(sdk.NewInt(oracleDelegateMultiple)).Sub(initDelegateAmount)
+			maxDelegateAmount := oracleDelegateThreshold.Amount.Mul(sdkmath.NewInt(oracleDelegateMultiple)).Sub(initDelegateAmount)
 			msg := &types.MsgAddDelegate{
 				ChainName:     suite.chainName,
 				OracleAddress: suite.oracleAddrs[oracleIndex].String(),
-				Amount: sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(
+				Amount: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(
 					tmrand.Int63n(maxDelegateAmount.QuoRaw(1e18).Int64())+1,
 				).
 					MulRaw(1e18).
-					Sub(sdk.NewInt(1))),
+					Sub(sdkmath.NewInt(1))),
 			}
 			testCase.preRun(msg)
 
@@ -333,7 +334,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 }
 
 func (suite *KeeperTestSuite) TestMsgEditBridger() {
-	delegateAmount := sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)
+	delegateAmount := sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18)
 	for i := range suite.oracleAddrs {
 		bondedMsg := &types.MsgBondedOracle{
 			OracleAddress:    suite.oracleAddrs[i].String(),
@@ -360,7 +361,7 @@ func (suite *KeeperTestSuite) TestMsgEditBridger() {
 		EventNonce:    1,
 		BlockHeight:   100,
 		TokenContract: token,
-		Amount:        sdk.NewInt(int64(tmrand.Uint32())),
+		Amount:        sdkmath.NewInt(int64(tmrand.Uint32())),
 		Sender:        suite.PubKeyToExternalAddr(privateKey.PublicKey),
 		Receiver:      sdk.AccAddress(tmrand.Bytes(20)).String(),
 		TargetIbc:     "",
@@ -423,7 +424,7 @@ func (suite *KeeperTestSuite) TestMsgSetOracleSetConfirm() {
 		ValidatorAddress: suite.valAddrs[0].String(),
 		DelegateAmount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
-			Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+			Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 		},
 		ChainName: suite.chainName,
 	}
@@ -549,7 +550,7 @@ func (suite *KeeperTestSuite) TestClaimWithOracleOnline() {
 		ValidatorAddress: suite.valAddrs[0].String(),
 		DelegateAmount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
-			Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+			Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 		},
 		ChainName: suite.chainName,
 	}
@@ -658,7 +659,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 				return &types.MsgSendToFxClaim{
 					BlockHeight:   tmrand.Uint64(),
 					TokenContract: helpers.GenerateAddress().String(),
-					Amount:        sdk.NewInt(tmrand.Int63n(100000) + 1).MulRaw(1e18),
+					Amount:        sdkmath.NewInt(tmrand.Int63n(100000) + 1).MulRaw(1e18),
 					Sender:        helpers.GenerateAddress().String(),
 					Receiver:      sdk.AccAddress(tmrand.Bytes(20)).String(),
 					TargetIbc:     "",
@@ -750,7 +751,7 @@ func (suite *KeeperTestSuite) TestClaimMsgGasConsumed() {
 				ValidatorAddress: suite.valAddrs[0].String(),
 				DelegateAmount: sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
-					Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+					Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 				},
 				ChainName: suite.chainName,
 			}
@@ -775,7 +776,7 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 		ValidatorAddress: suite.valAddrs[0].String(),
 		DelegateAmount: sdk.Coin{
 			Denom:  fxtypes.DefaultDenom,
-			Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+			Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 		},
 		ChainName: suite.chainName,
 	}
@@ -889,8 +890,8 @@ func (suite *KeeperTestSuite) TestClaimTest() {
 
 func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 1. First sets up a valid validator
-	totalPower := sdk.ZeroInt()
-	var delegateAmounts []sdk.Int
+	totalPower := sdkmath.ZeroInt()
+	var delegateAmounts []sdkmath.Int
 	for i, oracle := range suite.oracleAddrs {
 		normalMsg := &types.MsgBondedOracle{
 			OracleAddress:    oracle.String(),
@@ -899,7 +900,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			ValidatorAddress: suite.valAddrs[0].String(),
 			DelegateAmount: sdk.Coin{
 				Denom:  fxtypes.DefaultDenom,
-				Amount: sdk.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
+				Amount: sdkmath.NewInt((tmrand.Int63n(5) + 1) * 10_000).MulRaw(1e18),
 			},
 			ChainName: suite.chainName,
 		}
@@ -999,12 +1000,12 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	require.EqualValues(suite.T(), balance.Denom, tokenDenom)
 	require.True(suite.T(), balance.Amount.Equal(sendToFxAmount))
 
-	sendToExternal := func(bridgeFees []sdk.Int) {
+	sendToExternal := func(bridgeFees []sdkmath.Int) {
 		for _, bridgeFee := range bridgeFees {
 			sendToExternal := &types.MsgSendToExternal{
 				Sender:    sendToFxReceiveAddr.String(),
 				Dest:      sendToFxSendAddr,
-				Amount:    sdk.NewCoin(tokenDenom, sdk.NewInt(3)),
+				Amount:    sdk.NewCoin(tokenDenom, sdkmath.NewInt(3)),
 				BridgeFee: sdk.NewCoin(tokenDenom, bridgeFee),
 				ChainName: suite.chainName,
 			}
@@ -1013,36 +1014,36 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 		}
 	}
 
-	sendToExternal([]sdk.Int{sdk.NewInt(1), sdk.NewInt(2), sdk.NewInt(3)})
-	usdtBatchFee := suite.Keeper().GetBatchFeesByTokenType(suite.ctx, sendToFxToken, 100, sdk.NewInt(0))
+	sendToExternal([]sdkmath.Int{sdkmath.NewInt(1), sdkmath.NewInt(2), sdkmath.NewInt(3)})
+	usdtBatchFee := suite.Keeper().GetBatchFeesByTokenType(suite.ctx, sendToFxToken, 100, sdkmath.NewInt(0))
 	require.EqualValues(suite.T(), sendToFxToken, usdtBatchFee.TokenContract)
 	require.EqualValues(suite.T(), 3, usdtBatchFee.TotalTxs)
-	require.EqualValues(suite.T(), sdk.NewInt(6), usdtBatchFee.TotalFees)
+	require.EqualValues(suite.T(), sdkmath.NewInt(6), usdtBatchFee.TotalFees)
 
 	testCases := []struct {
 		testName       string
-		baseFee        sdk.Int
+		baseFee        sdkmath.Int
 		pass           bool
 		expectTotalTxs uint64
 		err            error
 	}{
 		{
 			testName:       "Support - baseFee 1000",
-			baseFee:        sdk.NewInt(1000),
+			baseFee:        sdkmath.NewInt(1000),
 			pass:           false,
 			expectTotalTxs: 3,
 			err:            errorsmod.Wrap(types.ErrEmpty, "no batch tx"),
 		},
 		{
 			testName:       "Support - baseFee 2",
-			baseFee:        sdk.NewInt(2),
+			baseFee:        sdkmath.NewInt(2),
 			pass:           true,
 			expectTotalTxs: 1,
 			err:            nil,
 		},
 		{
 			testName:       "Support - baseFee 0",
-			baseFee:        sdk.NewInt(0),
+			baseFee:        sdkmath.NewInt(0),
 			pass:           false,
 			expectTotalTxs: 0,
 			err:            errorsmod.Wrap(types.ErrInvalid, "new batch would not be more profitable"),
@@ -1053,14 +1054,14 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 		_, err := suite.MsgServer().RequestBatch(sdk.WrapSDKContext(suite.ctx), &types.MsgRequestBatch{
 			Sender:     suite.bridgerAddrs[0].String(),
 			Denom:      tokenDenom,
-			MinimumFee: sdk.NewInt(1),
+			MinimumFee: sdkmath.NewInt(1),
 			FeeReceive: "0x0000000000000000000000000000000000000000",
 			ChainName:  suite.chainName,
 			BaseFee:    testCase.baseFee,
 		})
 		if testCase.pass {
 			require.NoError(suite.T(), err)
-			usdtBatchFee = suite.Keeper().GetBatchFeesByTokenType(suite.ctx, sendToFxToken, 100, sdk.NewInt(0))
+			usdtBatchFee = suite.Keeper().GetBatchFeesByTokenType(suite.ctx, sendToFxToken, 100, sdkmath.NewInt(0))
 			require.EqualValues(suite.T(), testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
 		} else {
 			require.NotNil(suite.T(), err)

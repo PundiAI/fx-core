@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -197,7 +198,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
 				// delegate
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, from, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, from, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{
@@ -218,7 +219,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
 				// delegate
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
 				req = &types.QueryMigrateCheckAccountRequest{
@@ -239,7 +240,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
 				// delegate
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, from, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, from, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
 				_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, from, val1.GetOperator(), sdk.NewDec(1))
@@ -263,7 +264,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1 := validators[0]
 				// delegate
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
 				delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, to.Bytes(), val1.GetOperator())
@@ -290,7 +291,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1, val2 := validators[0], validators[1]
 				// delegate
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, from, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, from, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
 				_, err = suite.app.StakingKeeper.BeginRedelegation(suite.ctx, from, val1.GetOperator(), val2.GetOperator(), sdk.NewDec(1))
@@ -314,7 +315,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				validators := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val1, val2 := validators[0], validators[1]
 				// delegate
-				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, to.Bytes(), sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 				suite.Require().NoError(err)
 
 				delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, to.Bytes(), val1.GetOperator())
@@ -339,7 +340,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
-				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
+				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000))))
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
@@ -367,7 +368,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
-				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
+				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000))))
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
@@ -395,7 +396,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
-				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
+				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
@@ -423,7 +424,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
-				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
+				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
@@ -451,7 +452,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
-				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
+				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
@@ -482,7 +483,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
-				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
+				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)
@@ -513,7 +514,7 @@ func (suite *KeeperTestSuite) TestMigrateCheckAccount() {
 				to := common.BytesToAddress(toKey.PubKey().Address().Bytes())
 
 				content := govtypes.ContentFromProposalType("title", "description", "Text")
-				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(10000))))
+				amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(10000))))
 
 				proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 				suite.Require().NoError(err)

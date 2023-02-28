@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -88,11 +89,11 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 				DestAddress: helpers.GenerateAddress().Hex(),
 				Token: types.ERC20Token{
 					Contract: tokenContract,
-					Amount:   sdk.NewInt(1),
+					Amount:   sdkmath.NewInt(1),
 				},
 				Fee: types.ERC20Token{
 					Contract: tokenContract,
-					Amount:   sdk.NewInt(1),
+					Amount:   sdkmath.NewInt(1),
 				},
 			},
 		},
@@ -138,11 +139,11 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
 					DestAddress: helpers.GenerateAddress().Hex(),
 					Token: types.ERC20Token{
 						Contract: tokenContract,
-						Amount:   sdk.NewInt(1),
+						Amount:   sdkmath.NewInt(1),
 					},
 					Fee: types.ERC20Token{
 						Contract: tokenContract,
-						Amount:   sdk.NewInt(1),
+						Amount:   sdkmath.NewInt(1),
 					},
 				},
 			},

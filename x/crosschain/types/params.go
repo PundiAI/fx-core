@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -22,9 +23,9 @@ const (
 
 var (
 	// AttestationVotesPowerThreshold threshold of votes power to succeed
-	AttestationVotesPowerThreshold = sdk.NewInt(66)
+	AttestationVotesPowerThreshold = sdkmath.NewInt(66)
 
-	AttestationProposalOracleChangePowerThreshold = sdk.NewInt(30)
+	AttestationProposalOracleChangePowerThreshold = sdkmath.NewInt(30)
 
 	// ParamsStoreKeyGravityID stores the gravity id
 	ParamsStoreKeyGravityID = []byte("GravityID")
@@ -70,7 +71,7 @@ func DefaultParams() Params {
 		SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 		OracleSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
 		IbcTransferTimeoutHeight:          20_000,
-		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
+		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 		DelegateMultiple:                  DefaultOracleDelegateThreshold,
 		Oracles:                           nil,
 	}

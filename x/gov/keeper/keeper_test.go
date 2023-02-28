@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
@@ -50,7 +51,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func (suite *KeeperTestSuite) addFundCommunityPool() {
 	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
-	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(5 * 1e8).MulRaw(1e18)}
+	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(5 * 1e8).MulRaw(1e18)}
 	helpers.AddTestAddr(suite.app, suite.ctx, sender, sdk.NewCoins(coin))
 	err := suite.app.DistrKeeper.FundCommunityPool(suite.ctx, sdk.NewCoins(coin), sender)
 	suite.NoError(err)
@@ -58,13 +59,13 @@ func (suite *KeeperTestSuite) addFundCommunityPool() {
 
 func (suite *KeeperTestSuite) newAddress() sdk.AccAddress {
 	address := sdk.AccAddress(helpers.GenerateAddress().Bytes())
-	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(50_000).MulRaw(1e18)}
+	coin := sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(50_000).MulRaw(1e18)}
 	helpers.AddTestAddr(suite.app, suite.ctx, address, sdk.NewCoins(coin))
 	return address
 }
 
 func (suite *KeeperTestSuite) TestDeposits() {
-	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1e3).MulRaw(1e18)}}
+	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1e3).MulRaw(1e18)}}
 	testProposalMsg, err := govtypes.NewMsgSubmitProposal(
 		govtypes.NewTextProposal("Test", "description"),
 		initCoins,
@@ -83,7 +84,7 @@ func (suite *KeeperTestSuite) TestDeposits() {
 	suite.True(initCoins.IsAllLT(minDeposit))
 
 	// first deposit
-	firstCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1e3).MulRaw(1e18)}}
+	firstCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1e3).MulRaw(1e18)}}
 	votingStarted, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, addr, firstCoins)
 	suite.NoError(err)
 	suite.False(votingStarted)
@@ -98,7 +99,7 @@ func (suite *KeeperTestSuite) TestDeposits() {
 	suite.True(initCoins.Add(firstCoins...).IsAllLT(minDeposit))
 
 	// second deposit
-	secondCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(9 * 1e3).MulRaw(1e18)}}
+	secondCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(9 * 1e3).MulRaw(1e18)}}
 	votingStarted, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, addr, secondCoins)
 	suite.NoError(err)
 	suite.True(votingStarted)
@@ -115,7 +116,7 @@ func (suite *KeeperTestSuite) TestDeposits() {
 func (suite *KeeperTestSuite) TestEGFDepositsLessThan1000() {
 	suite.addFundCommunityPool()
 
-	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)}}
+	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)}}
 	communityPoolSpendProposal := &distributiontypes.CommunityPoolSpendProposal{
 		Title:       "community Pool Spend Proposal",
 		Description: "description",
@@ -123,7 +124,7 @@ func (suite *KeeperTestSuite) TestEGFDepositsLessThan1000() {
 		Amount:      egfCoins,
 	}
 	minDeposit := types.EGFProposalMinDeposit(egfCoins)
-	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}
+	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
 	suite.True(initCoins.IsEqual(minDeposit))
 	communityPoolSpendProposalMsg, err := govtypes.NewMsgSubmitProposal(
 		communityPoolSpendProposal,
@@ -143,8 +144,8 @@ func (suite *KeeperTestSuite) TestEGFDepositsLessThan1000() {
 func (suite *KeeperTestSuite) TestEGFDepositsMoreThan1000() {
 	suite.addFundCommunityPool()
 
-	thousand := sdk.NewInt(1 * 1e3).MulRaw(1e18)
-	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: thousand.MulRaw(10).Add(sdk.NewInt(10))}}
+	thousand := sdkmath.NewInt(1 * 1e3).MulRaw(1e18)
+	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: thousand.MulRaw(10).Add(sdkmath.NewInt(10))}}
 	communityPoolSpendProposal := &distributiontypes.CommunityPoolSpendProposal{
 		Title:       "community Pool Spend Proposal",
 		Description: "description",
@@ -169,7 +170,7 @@ func (suite *KeeperTestSuite) TestEGFDepositsMoreThan1000() {
 	suite.Equal(govtypes.StatusDepositPeriod, proposal.Status)
 	suite.True(initCoins.IsAllLT(minDeposit))
 
-	depositCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1)}}
+	depositCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1)}}
 	votingStarted, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, suite.newAddress(), depositCoins)
 	suite.NoError(err)
 	suite.True(votingStarted)
@@ -182,7 +183,7 @@ func (suite *KeeperTestSuite) TestEGFDepositsMoreThan1000() {
 func (suite *KeeperTestSuite) TestEGFDeposits() {
 	suite.addFundCommunityPool()
 
-	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(150 * 1e3).MulRaw(1e18)}}
+	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(150 * 1e3).MulRaw(1e18)}}
 	communityPoolSpendProposal := &distributiontypes.CommunityPoolSpendProposal{
 		Title:       "community Pool Spend Proposal",
 		Description: "description",
@@ -190,7 +191,7 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 		Amount:      egfCoins,
 	}
 	minDeposit := types.EGFProposalMinDeposit(egfCoins)
-	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}
+	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
 	communityPoolSpendProposalMsg, err := govtypes.NewMsgSubmitProposal(
 		communityPoolSpendProposal,
 		initCoins,
@@ -207,7 +208,7 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 	suite.True(initCoins.IsAllLT(minDeposit))
 
 	// first deposit
-	firstCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(1 * 1e3).MulRaw(1e18)}}
+	firstCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
 	addr := suite.newAddress()
 	votingStarted, err := suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, addr, firstCoins)
 	suite.NoError(err)
@@ -223,7 +224,7 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 	suite.True(initCoins.Add(firstCoins...).IsAllLT(minDeposit))
 
 	// second deposit
-	secondCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(9 * 1e3).MulRaw(1e18)}}
+	secondCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(9 * 1e3).MulRaw(1e18)}}
 	votingStarted, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, addr, secondCoins)
 	suite.NoError(err)
 	suite.False(votingStarted)
@@ -237,7 +238,7 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 	suite.True(initCoins.Add(firstCoins...).Add(secondCoins...).IsAllLT(minDeposit))
 
 	// third deposit
-	thirdCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(4 * 1e3).MulRaw(1e18)}}
+	thirdCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(4 * 1e3).MulRaw(1e18)}}
 	votingStarted, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.ProposalId, addr, thirdCoins)
 	suite.NoError(err)
 	suite.True(votingStarted)

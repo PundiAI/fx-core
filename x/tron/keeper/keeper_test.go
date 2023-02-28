@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -55,12 +56,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 		OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
 		IbcTransferTimeoutHeight:          10000,
 		DelegateThreshold: sdk.NewCoin(fxtypes.DefaultDenom,
-			sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
+			sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
 		DelegateMultiple: 10,
 	})
 	suite.msgServer = tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
 	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
-	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))))
+	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))
 }
 
 func (suite *KeeperTestSuite) NewOutgoingTxBatch() *crosschaintypes.OutgoingTxBatch {
@@ -74,11 +75,11 @@ func (suite *KeeperTestSuite) NewOutgoingTxBatch() *crosschaintypes.OutgoingTxBa
 				DestAddress: trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
 				Token: crosschaintypes.ERC20Token{
 					Contract: tokenContract,
-					Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
+					Amount:   sdkmath.NewIntFromBigInt(big.NewInt(1e18)),
 				},
 				Fee: crosschaintypes.ERC20Token{
 					Contract: tokenContract,
-					Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
+					Amount:   sdkmath.NewIntFromBigInt(big.NewInt(1e18)),
 				},
 			},
 		},
@@ -137,7 +138,7 @@ func (suite *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []crosschai
 		suite.Require().NoError(err)
 		denom := suite.app.TronKeeper.GetBridgeTokenDenom(suite.ctx, bridgeTokens[i].Token)
 		bridgeTokens[i].Denom = denom.Denom
-		bridgeDenom := sdk.NewCoins(sdk.NewCoin(bridgeTokens[i].Denom, sdk.NewInt(1e6).MulRaw(1e18)))
+		bridgeDenom := sdk.NewCoins(sdk.NewCoin(bridgeTokens[i].Denom, sdkmath.NewInt(1e6).MulRaw(1e18)))
 		err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, bridgeDenom)
 		suite.NoError(err)
 		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.signer.AccAddress(), bridgeDenom)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -165,7 +166,7 @@ func migratePrefix(gravityStore, ethStore sdk.KVStore, oldPrefix, newPrefix []by
 func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravityStore, ethStore sdk.KVStore, stakingKeeper StakingKeeper, bankKeeper BankKeeper) map[string]string {
 	oldOracleMap := make(map[string]string)
 	chainOracle := new(crosschaintypes.ProposalOracle)
-	totalPower := sdk.ZeroInt()
+	totalPower := sdkmath.ZeroInt()
 
 	ethOracles := GetEthOracleAddrs(ctx.ChainID())
 	ctx.Logger().Info("migrating validator to oracle", "module", "gravity", "number", len(ethOracles))
@@ -189,7 +190,7 @@ func MigrateValidatorToOracle(ctx sdk.Context, cdc codec.BinaryCodec, gravitySto
 			ExternalAddress:   externalAddress,
 			StartHeight:       0,
 			DelegateValidator: validator.OperatorAddress,
-			DelegateAmount:    sdk.ZeroInt(),
+			DelegateAmount:    sdkmath.ZeroInt(),
 			Online:            false,
 			OracleAddress:     oldOracleAddress.String(),
 			SlashTimes:        0,

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -128,7 +129,7 @@ to the counterparty channel. Any timeout set to 0 is disabled.`),
 			if err != nil {
 				return err
 			}
-			if ibcFeeAmount, ok := sdk.NewIntFromString(ibcFeeString); !ok {
+			if ibcFeeAmount, ok := sdkmath.NewIntFromString(ibcFeeString); !ok {
 				return fmt.Errorf("ibc-fee invalid! input: %v", ibcFeeString)
 			} else {
 				ibcFee = sdk.NewCoin(coin.Denom, ibcFeeAmount)

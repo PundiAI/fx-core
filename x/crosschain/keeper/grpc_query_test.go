@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -58,8 +59,8 @@ func (suite *CrossChainGrpcTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.app.CrosschainKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
-	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(300*1e3).MulRaw(1e18))))
+	suite.oracleAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
+	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, types.MaxOracleSize, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(300*1e3).MulRaw(1e18))))
 	suite.msgServer = keeper.NewMsgServerImpl(suite.Keeper())
 }
 
@@ -97,9 +98,9 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_CurrentOracleSet() {
 				for i := 0; i < 6; i++ {
 					key, _ := ethsecp256k1.GenerateKey()
 					externalAcc := common.BytesToAddress(key.PubKey().Address())
-					delegateAmount := sdk.DefaultPowerReduction.Mul(sdk.NewInt(100))
+					delegateAmount := sdk.DefaultPowerReduction.Mul(sdkmath.NewInt(100))
 					if i == 5 {
-						delegateAmount = sdk.ZeroInt()
+						delegateAmount = sdkmath.ZeroInt()
 					}
 					suite.Keeper().SetOracle(suite.ctx, types.Oracle{
 						OracleAddress:   suite.oracleAddrs[i].String(),
@@ -536,7 +537,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 					MinBatchFees: []types.MinBatchFee{
 						{
 							TokenContract: suite.bridgerAddrs[0].String(),
-							BaseFee:       sdk.NewInt(-1),
+							BaseFee:       sdkmath.NewInt(-1),
 						},
 					},
 				}
@@ -558,7 +559,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 				})
 				suite.Require().NoError(err)
 				denom := suite.Keeper().GetBridgeTokenDenom(suite.ctx, token)
-				initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
+				initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
 				err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
 				suite.Require().NoError(err)
 				err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.bridgerAddrs[0], sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
@@ -566,7 +567,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 				minBatchFee := []types.MinBatchFee{
 					{
 						TokenContract: denom.Token,
-						BaseFee:       sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
+						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
 					},
 				}
 				for i := uint64(1); i <= 3; i++ {
@@ -574,8 +575,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 						suite.ctx,
 						suite.bridgerAddrs[0],
 						externalAcc.String(),
-						sdk.NewCoin(denom.Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(denom.Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
+						sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+						sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
 					suite.Require().NoError(err)
 				}
 				for i := uint64(1); i <= 2; i++ {
@@ -583,8 +584,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 						suite.ctx,
 						suite.bridgerAddrs[0],
 						externalAcc.String(),
-						sdk.NewCoin(denom.Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(denom.Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
+						sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+						sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
 					suite.Require().NoError(err)
 				}
 				request = &types.QueryBatchFeeRequest{
@@ -594,9 +595,9 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
 					{
 						TokenContract: denom.Token,
-						TotalFees:     sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
+						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
 						TotalTxs:      3,
-						TotalAmount:   sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
+						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
 					},
 				}}
 			},
@@ -621,7 +622,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 					suite.Require().NoError(err)
 					denom := suite.Keeper().GetBridgeTokenDenom(suite.ctx, token)
 					bridgeTokenList = append(bridgeTokenList, denom)
-					initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
+					initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
 					err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
 					suite.Require().NoError(err)
 					err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.bridgerAddrs[0], sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
@@ -630,11 +631,11 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 				minBatchFee := []types.MinBatchFee{
 					{
 						TokenContract: bridgeTokenList[0].Token,
-						BaseFee:       sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e6))),
+						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e6))),
 					},
 					{
 						TokenContract: bridgeTokenList[1].Token,
-						BaseFee:       sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))),
+						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))),
 					},
 				}
 				for i := uint64(1); i <= 2; i++ {
@@ -642,16 +643,16 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 						suite.ctx,
 						suite.bridgerAddrs[0],
 						externalAcc.String(),
-						sdk.NewCoin(bridgeTokenList[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(bridgeTokenList[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
+						sdk.NewCoin(bridgeTokenList[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+						sdk.NewCoin(bridgeTokenList[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
 					suite.Require().NoError(err)
 				}
 				_, err := suite.Keeper().AddToOutgoingPool(
 					suite.ctx,
 					suite.bridgerAddrs[0],
 					externalAcc.String(),
-					sdk.NewCoin(bridgeTokenList[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-					sdk.NewCoin(bridgeTokenList[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
+					sdk.NewCoin(bridgeTokenList[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+					sdk.NewCoin(bridgeTokenList[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
 				suite.Require().NoError(err)
 
 				for i := uint64(1); i <= 3; i++ {
@@ -659,8 +660,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 						suite.ctx,
 						suite.bridgerAddrs[0],
 						externalAcc.String(),
-						sdk.NewCoin(bridgeTokenList[1].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
-						sdk.NewCoin(bridgeTokenList[1].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))))
+						sdk.NewCoin(bridgeTokenList[1].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
+						sdk.NewCoin(bridgeTokenList[1].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))))
 					suite.Require().NoError(err)
 				}
 				request = &types.QueryBatchFeeRequest{
@@ -670,15 +671,15 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchFees() {
 				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
 					{
 						TokenContract: bridgeTokenList[0].Token,
-						TotalFees:     sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
+						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
 						TotalTxs:      1,
-						TotalAmount:   sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
+						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
 					},
 					{
 						TokenContract: bridgeTokenList[1].Token,
-						TotalFees:     sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
+						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
 						TotalTxs:      3,
-						TotalAmount:   sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
+						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
 					},
 				}}
 			},
@@ -777,8 +778,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 							Id:          0,
 							Sender:      sdk.AccAddress(externalKey.PubKey().Address()).String(),
 							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
-							Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
 						},
 					},
 					TokenContract: externalToken.String(),
@@ -793,8 +794,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 							Id:          0,
 							Sender:      sdk.AccAddress(externalKey.PubKey().Address()).String(),
 							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
-							Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
 						},
 					},
 					TokenContract: externalToken.String(),
@@ -831,8 +832,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_LastPendingBatchRequestByAddr()
 							Id:          0,
 							Sender:      sdk.AccAddress(externalKey.PubKey().Address()).String(),
 							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
-							Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
 						},
 					},
 					TokenContract: externalToken.String(),
@@ -891,8 +892,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 								Id:          uint64(i),
 								Sender:      sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 								DestAddress: helpers.GenerateAddress().String(),
-								Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
-								Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
+								Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token),
+								Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token),
 							},
 						},
 						TokenContract: token,
@@ -921,8 +922,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_OutgoingTxBatches() {
 								Id:          uint64(i),
 								Sender:      sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
 								DestAddress: helpers.GenerateAddress().String(),
-								Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
-								Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token),
+								Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token),
+								Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token),
 							},
 						},
 						TokenContract: token,
@@ -1018,8 +1019,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_BatchRequestByNonce() {
 					Transactions: []*types.OutgoingTransferTx{
 						{
 							Id:    0,
-							Token: types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
-							Fee:   types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
+							Token: types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
+							Fee:   types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
 						},
 					},
 					TokenContract: token.String(),
@@ -1508,7 +1509,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByAddr() {
 					OracleAddress:   suite.oracleAddrs[0].String(),
 					BridgerAddress:  suite.bridgerAddrs[0].String(),
 					ExternalAddress: externalAcc.String(),
-					DelegateAmount:  sdk.NewIntFromBigInt(big.NewInt(10000)),
+					DelegateAmount:  sdkmath.NewIntFromBigInt(big.NewInt(10000)),
 					StartHeight:     0,
 				}
 				suite.Keeper().SetOracle(suite.ctx, newOracle)
@@ -1597,7 +1598,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByBridgerAddr() {
 					OracleAddress:   suite.oracleAddrs[0].String(),
 					BridgerAddress:  suite.bridgerAddrs[0].String(),
 					ExternalAddress: externalAcc.String(),
-					DelegateAmount:  sdk.NewIntFromBigInt(big.NewInt(10000)),
+					DelegateAmount:  sdkmath.NewIntFromBigInt(big.NewInt(10000)),
 					StartHeight:     0,
 				}
 
@@ -1690,7 +1691,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetOracleByExternalAddr() {
 					OracleAddress:   suite.oracleAddrs[0].String(),
 					BridgerAddress:  suite.bridgerAddrs[0].String(),
 					ExternalAddress: externalAcc.String(),
-					DelegateAmount:  sdk.NewIntFromBigInt(big.NewInt(10000)),
+					DelegateAmount:  sdkmath.NewIntFromBigInt(big.NewInt(10000)),
 					StartHeight:     0,
 				}
 
@@ -1767,8 +1768,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 							Id:          0,
 							Sender:      sdk.AccAddress(externalKey.PubKey().Address()).String(),
 							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
-							Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
 						},
 					},
 				})
@@ -1783,8 +1784,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 							Id:          0,
 							Sender:      sdk.AccAddress(externalKey.PubKey().Address()).String(),
 							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
-							Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
+							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), externalToken.String()),
 						},
 					},
 					UnbatchedTransfers: []*types.OutgoingTransferTx{},
@@ -1807,7 +1808,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 				})
 				suite.Require().NoError(err)
 				denom := suite.Keeper().GetBridgeTokenDenom(suite.ctx, token.String())
-				initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
+				initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
 				err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
 				suite.Require().NoError(err)
 				err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, bridgeAcc, sdk.NewCoins(sdk.NewCoin(denom.Denom, initBalances)))
@@ -1816,15 +1817,15 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 					suite.ctx,
 					bridgeAcc,
 					externalAcc.String(),
-					sdk.NewCoin(denom.Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
-					sdk.NewCoin(denom.Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
+					sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
+					sdk.NewCoin(denom.Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
 				)
 				suite.Require().NoError(err)
 				suite.Require().Equal(pool, uint64(1))
 				bridgeToken := suite.Keeper().GetDenomByBridgeToken(suite.ctx, denom.Denom)
 				suite.Require().Equal(bridgeToken.Denom, denom.Denom)
 				suite.Require().Equal(bridgeToken.Token, denom.Token)
-				bridgeTokenFee := types.NewERC20Token(sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))), bridgeToken.Token)
+				bridgeTokenFee := types.NewERC20Token(sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))), bridgeToken.Token)
 
 				err = suite.Keeper().StoreBatch(suite.ctx, &types.OutgoingTxBatch{
 					Transactions: []*types.OutgoingTransferTx{
@@ -1832,8 +1833,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 							Id:          0,
 							Sender:      bridgeAcc.String(),
 							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
-							Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
+							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
+							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
 						},
 					},
 				})
@@ -1848,8 +1849,8 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 							Id:          0,
 							Sender:      bridgeAcc.String(),
 							DestAddress: externalAcc.String(),
-							Token:       types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
-							Fee:         types.NewERC20Token(sdk.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
+							Token:       types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
+							Fee:         types.NewERC20Token(sdkmath.NewIntFromBigInt(big.NewInt(1e18)), token.String()),
 						},
 					},
 					UnbatchedTransfers: []*types.OutgoingTransferTx{
@@ -1858,7 +1859,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_GetPendingSendToExternal() {
 							Sender:      bridgeAcc.String(),
 							DestAddress: externalAcc.String(),
 							Token: types.NewERC20Token(
-								sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))),
+								sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100))),
 								denom.Token,
 							),
 							Fee: bridgeTokenFee,
@@ -2050,7 +2051,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 					OracleAddress:   suite.oracleAddrs[0].String(),
 					BridgerAddress:  suite.bridgerAddrs[0].String(),
 					ExternalAddress: externalAcc.String(),
-					DelegateAmount:  sdk.ZeroInt(),
+					DelegateAmount:  sdkmath.ZeroInt(),
 					StartHeight:     10,
 					Online:          false,
 				})
@@ -2063,7 +2064,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 							OracleAddress:   suite.oracleAddrs[0].String(),
 							BridgerAddress:  suite.bridgerAddrs[0].String(),
 							ExternalAddress: externalAcc.String(),
-							DelegateAmount:  sdk.ZeroInt(),
+							DelegateAmount:  sdkmath.ZeroInt(),
 							StartHeight:     10,
 							Online:          false,
 						},
@@ -2087,7 +2088,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 						OracleAddress:   suite.oracleAddrs[i].String(),
 						BridgerAddress:  suite.bridgerAddrs[i].String(),
 						ExternalAddress: externalAcc.String(),
-						DelegateAmount:  sdk.ZeroInt(),
+						DelegateAmount:  sdkmath.ZeroInt(),
 						StartHeight:     int64(i),
 						Online:          online,
 					})
@@ -2101,7 +2102,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 							OracleAddress:   suite.oracleAddrs[1].String(),
 							BridgerAddress:  suite.bridgerAddrs[1].String(),
 							ExternalAddress: externalAcc.String(),
-							DelegateAmount:  sdk.ZeroInt(),
+							DelegateAmount:  sdkmath.ZeroInt(),
 							StartHeight:     int64(1),
 							Online:          true,
 						},
@@ -2109,7 +2110,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 							OracleAddress:   suite.oracleAddrs[2].String(),
 							BridgerAddress:  suite.bridgerAddrs[2].String(),
 							ExternalAddress: externalAcc.String(),
-							DelegateAmount:  sdk.ZeroInt(),
+							DelegateAmount:  sdkmath.ZeroInt(),
 							StartHeight:     int64(2),
 							Online:          false,
 						},
@@ -2117,7 +2118,7 @@ func (suite *CrossChainGrpcTestSuite) TestKeeper_Oracles() {
 							OracleAddress:   suite.oracleAddrs[3].String(),
 							BridgerAddress:  suite.bridgerAddrs[3].String(),
 							ExternalAddress: externalAcc.String(),
-							DelegateAmount:  sdk.ZeroInt(),
+							DelegateAmount:  sdkmath.ZeroInt(),
 							StartHeight:     int64(3),
 							Online:          true,
 						},

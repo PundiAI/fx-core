@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -86,7 +87,7 @@ func TestMigrateOracle(t *testing.T) {
 					OracleAddress:       oracleAddrs[i].String(),
 					OrchestratorAddress: bridgerAddrs[i].String(),
 					ExternalAddress:     externalAddrs[i].String(),
-					DepositAmount:       sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
+					DepositAmount:       sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 					StartHeight:         100,
 					Jailed:              false,
 					JailedHeight:        0,

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -62,9 +63,9 @@ type Config struct {
 	AppConstructor    AppConstructor             // the ABCI application constructor
 	GenesisState      map[string]json.RawMessage // custom gensis state to provide
 	TimeoutCommit     time.Duration              // the consensus commitment timeout
-	AccountTokens     sdk.Int                    // the amount of unique validator tokens (e.g. 1000node0)
-	StakingTokens     sdk.Int                    // the amount of tokens each validator has available to stake
-	BondedTokens      sdk.Int                    // the amount of tokens each validator stakes
+	AccountTokens     sdkmath.Int                // the amount of unique validator tokens (e.g. 1000node0)
+	StakingTokens     sdkmath.Int                // the amount of tokens each validator has available to stake
+	BondedTokens      sdkmath.Int                // the amount of tokens each validator stakes
 	NumValidators     int                        // the total number of validators to create and bond
 	Mnemonics         []string                   // custom user-provided validator operator mnemonics
 	ChainID           string                     // the network chain-id
@@ -389,14 +390,14 @@ func GenerateGenesisAndValidators(baseDir string, cfg *Config) ([]*Validator, er
 			sdk.NewCoin(cfg.BondDenom, cfg.BondedTokens),
 			stakingtypes.NewDescription(nodeName, "", "", "", ""),
 			stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.OneDec(), sdk.OneDec()), // 5%
-			sdk.OneInt(),
+			sdkmath.OneInt(),
 		)
 		if err != nil {
 			return nil, err
 		}
 
 		memo := fmt.Sprintf("%s@%s", nodeIDs[i], srvCtx.Config.P2P.ListenAddress)
-		fee := sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, sdk.NewInt(0)))
+		fee := sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, sdkmath.NewInt(0)))
 		txBuilder := cfg.TxConfig.NewTxBuilder()
 		err = txBuilder.SetMsgs(createValMsg)
 		if err != nil {

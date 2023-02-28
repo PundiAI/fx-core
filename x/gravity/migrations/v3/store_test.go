@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -128,11 +129,11 @@ func (suite *TestSuite) TestMigrateStore() {
 				DestAddress: helpers.GenerateAddress().Hex(),
 				Erc20Token: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().Hex(),
-					Amount:   sdk.NewInt(tmrand.Int63() + 1),
+					Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 				},
 				Erc20Fee: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().Hex(),
-					Amount:   sdk.NewInt(tmrand.Int63() + 1),
+					Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 				},
 			},
 		)
@@ -148,11 +149,11 @@ func (suite *TestSuite) TestMigrateStore() {
 						DestAddress: helpers.GenerateAddress().Hex(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().Hex(),
-							Amount:   sdk.NewInt(tmrand.Int63() + 1),
+							Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().Hex(),
-							Amount:   sdk.NewInt(tmrand.Int63() + 1),
+							Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 						},
 					},
 					{
@@ -161,11 +162,11 @@ func (suite *TestSuite) TestMigrateStore() {
 						DestAddress: helpers.GenerateAddress().Hex(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().Hex(),
-							Amount:   sdk.NewInt(tmrand.Int63() + 1),
+							Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().Hex(),
-							Amount:   sdk.NewInt(tmrand.Int63() + 1),
+							Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 						},
 					},
 				},
@@ -206,7 +207,7 @@ func (suite *TestSuite) TestMigrateStore() {
 				EventNonce:    tmrand.Uint64(),
 				BlockHeight:   tmrand.Uint64(),
 				TokenContract: helpers.GenerateAddress().Hex(),
-				Amount:        sdk.NewInt(tmrand.Int63() + 1),
+				Amount:        sdkmath.NewInt(tmrand.Int63() + 1),
 				EthSender:     helpers.GenerateAddress().Hex(),
 				FxReceiver:    sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				TargetIbc:     "",
@@ -309,7 +310,7 @@ func (s testKeeper) SendCoinsFromModuleToModule(sdk.Context, string, string, sdk
 }
 
 func (s testKeeper) GetAllBalances(sdk.Context, sdk.AccAddress) sdk.Coins {
-	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)))
+	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)))
 }
 
 func (s testKeeper) IterateAllDenomMetaData(sdk.Context, func(banktypes.Metadata) bool) {}
@@ -318,6 +319,6 @@ func (s testKeeper) GetValidator(_ sdk.Context, addr sdk.ValAddress) (validator 
 	return stakingtypes.Validator{Jailed: false, Status: stakingtypes.Bonded, OperatorAddress: addr.String()}, true
 }
 
-func (s testKeeper) Delegate(sdk.Context, sdk.AccAddress, sdk.Int, stakingtypes.BondStatus, stakingtypes.Validator, bool) (newShares sdk.Dec, err error) {
+func (s testKeeper) Delegate(sdk.Context, sdk.AccAddress, sdkmath.Int, stakingtypes.BondStatus, stakingtypes.Validator, bool) (newShares sdk.Dec, err error) {
 	return sdk.NewDec(1), nil
 }

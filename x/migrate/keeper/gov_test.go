@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -11,7 +12,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMigrateGovInactive() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)
@@ -21,7 +22,7 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 	ethAcc := common.BytesToAddress(ethKeys[0].PubKey().Address().Bytes())
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))))
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000))))
 
 	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 	suite.Require().NoError(err)
@@ -51,7 +52,7 @@ func (suite *KeeperTestSuite) TestMigrateGovInactive() {
 }
 
 func (suite *KeeperTestSuite) TestMigrateGovActive() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)
@@ -62,7 +63,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActive() {
 	toEthAcc := common.BytesToAddress(ethKeys[1].PubKey().Address().Bytes())
 
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(5000))))
 
 	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 	suite.Require().NoError(err)
@@ -103,7 +104,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActive() {
 }
 
 func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)
@@ -115,7 +116,7 @@ func (suite *KeeperTestSuite) TestMigrateGovActiveAndVote() {
 
 	// add proposal
 	content := govtypes.ContentFromProposalType("title", "description", "Text")
-	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(5000))))
+	amount := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(5000))))
 	proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, content)
 	suite.Require().NoError(err)
 

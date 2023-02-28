@@ -8,6 +8,7 @@ import (
 	"sort"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
@@ -43,8 +44,8 @@ func TestOutgoingTxBatch_Checkpoint(t *testing.T) {
 				Id:          0x1,
 				Sender:      senderAddr.String(),
 				DestAddress: "0x4D449a236D2Ff82C7De7E394c713517Ab2956995",
-				Token:       NewERC20Token(sdk.NewInt(0x1), erc20Addr.String()),
-				Fee:         NewERC20Token(sdk.NewInt(0x1), erc20Addr.String()),
+				Token:       NewERC20Token(sdkmath.NewInt(0x1), erc20Addr.String()),
+				Fee:         NewERC20Token(sdkmath.NewInt(0x1), erc20Addr.String()),
 			},
 		},
 		TokenContract: erc20Addr.String(),
@@ -202,22 +203,22 @@ func TestOutgoingTxBatch_GetFees(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   sdk.Int
+		want   sdkmath.Int
 	}{
 		{
 			name: "test 1",
 			fields: fields{Transactions: []*OutgoingTransferTx{
 				{
-					Fee: NewERC20Token(sdk.NewInt(0), ""),
+					Fee: NewERC20Token(sdkmath.NewInt(0), ""),
 				},
 				{
-					Fee: NewERC20Token(sdk.NewInt(1), ""),
+					Fee: NewERC20Token(sdkmath.NewInt(1), ""),
 				},
 				{
-					Fee: NewERC20Token(sdk.NewInt(1), ""),
+					Fee: NewERC20Token(sdkmath.NewInt(1), ""),
 				},
 			}},
-			want: sdk.NewInt(2),
+			want: sdkmath.NewInt(2),
 		},
 	}
 	for _, tt := range tests {
@@ -235,9 +236,9 @@ func TestOutgoingTxBatch_GetFees(t *testing.T) {
 func BenchmarkName(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		outgoingTxBatch := OutgoingTxBatch{Transactions: []*OutgoingTransferTx{{
-			Fee: NewERC20Token(sdk.NewInt(1), ""),
+			Fee: NewERC20Token(sdkmath.NewInt(1), ""),
 		}}}
 		fees := outgoingTxBatch.GetFees()
-		assert.Equal(b, fees, sdk.NewInt(1))
+		assert.Equal(b, fees, sdkmath.NewInt(1))
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -30,7 +31,7 @@ func (k Keeper) UpdateChainOraclesProposal(ctx sdk.Context, proposal *types.Upda
 	}
 
 	var unbondedOracleList []types.Oracle
-	totalPower, deleteTotalPower := sdk.ZeroInt(), sdk.ZeroInt()
+	totalPower, deleteTotalPower := sdkmath.ZeroInt(), sdkmath.ZeroInt()
 
 	allOracles := k.GetAllOracles(ctx, false)
 	proposalOracle, _ := k.GetProposalOracle(ctx)
@@ -56,10 +57,10 @@ func (k Keeper) UpdateChainOraclesProposal(ctx sdk.Context, proposal *types.Upda
 		}
 	}
 
-	maxChangePowerThreshold := types.AttestationProposalOracleChangePowerThreshold.Mul(totalPower).Quo(sdk.NewInt(100))
+	maxChangePowerThreshold := types.AttestationProposalOracleChangePowerThreshold.Mul(totalPower).Quo(sdkmath.NewInt(100))
 	k.Logger(ctx).Info("update chain oracles proposal",
 		"maxChangePowerThreshold", maxChangePowerThreshold.String(), "deleteTotalPower", deleteTotalPower.String())
-	if deleteTotalPower.GT(sdk.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
+	if deleteTotalPower.GT(sdkmath.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
 		return errorsmod.Wrapf(types.ErrInvalid, "max change power, "+
 			"maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
 	}

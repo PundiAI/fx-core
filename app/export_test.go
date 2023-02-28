@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -102,7 +103,7 @@ func GetGenesisDocFromAppData(t *testing.T) *types.GenesisDoc {
 	for i := 0; i < len(stakingGenesisState.Validators); i++ {
 		if i == 0 {
 			stakingGenesisState.Validators[0].ConsensusPubkey = pubAny
-			stakingGenesisState.Validators[0].Tokens = stakingGenesisState.Validators[0].Tokens.Add(sdk.NewInt(190000).MulRaw(1e18))
+			stakingGenesisState.Validators[0].Tokens = stakingGenesisState.Validators[0].Tokens.Add(sdkmath.NewInt(190000).MulRaw(1e18))
 			continue
 		}
 		if stakingGenesisState.Validators[i].Status == stakingtypes.Bonded {
@@ -111,7 +112,7 @@ func GetGenesisDocFromAppData(t *testing.T) *types.GenesisDoc {
 			stakingGenesisState.Validators[0].Tokens = stakingGenesisState.Validators[0].Tokens.Add(stakingGenesisState.Validators[i].Tokens)
 			_, delegatorShares := stakingGenesisState.Validators[0].AddTokensFromDel(stakingGenesisState.Validators[i].Tokens)
 			stakingGenesisState.Validators[0].DelegatorShares = delegatorShares
-			stakingGenesisState.Validators[i].Tokens = sdk.ZeroInt()
+			stakingGenesisState.Validators[i].Tokens = sdkmath.ZeroInt()
 			stakingGenesisState.Validators[i].DelegatorShares = sdk.ZeroDec()
 		}
 	}

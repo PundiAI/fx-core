@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -29,7 +30,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	baseDenom := "stake"
 	senderAddr := sdk.AccAddress(tmrand.Bytes(20))
 	receiveAddr := sdk.AccAddress(tmrand.Bytes(20))
-	transferAmount := sdk.NewInt(tmrand.Int63n(100000000000))
+	transferAmount := sdkmath.NewInt(tmrand.Int63n(100000000000))
 	ibcDenomTrace := transfertypes.DenomTrace{
 		Path:      "transfer/channel-0",
 		BaseDenom: baseDenom,
@@ -60,7 +61,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Router = ""
-				packetData.Fee = sdk.ZeroInt().String()
+				packetData.Fee = sdkmath.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 			},
 			true,
@@ -78,7 +79,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Sender = common.BytesToAddress(senderAddr.Bytes()).String()
 				packetData.Router = bsctypes.ModuleName
-				packetData.Fee = sdk.ZeroInt().String()
+				packetData.Fee = sdkmath.ZeroInt().String()
 				packetData.Receiver = common.BytesToAddress(receiveAddr).String()
 				packet.Data = packetData.GetBytes()
 			},
@@ -86,7 +87,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"",
 			true,
 			senderAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdk.ZeroInt())),
+			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
 		},
 		{
 			name: "error - normal - transferAfter return error, receive address is error",
@@ -102,7 +103,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			errorStr:      "ABCI code: 7: error handling packet on destination chain: see events for details",
 			checkBalance:  true,
 			checkCoinAddr: senderAddr,
-			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdk.ZeroInt())),
+			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
 		},
 		{
 			"error - normal - router not exists",
@@ -110,7 +111,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Router = tmrand.Str(8)
-				packetData.Fee = sdk.ZeroInt().String()
+				packetData.Fee = sdkmath.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 			},
 			false,
@@ -118,7 +119,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"ABCI code: 103: error handling packet on destination chain: see events for details",
 			true,
 			senderAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdk.ZeroInt())),
+			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
 		},
 	}
 
@@ -168,7 +169,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	baseDenom := "stake"
 	senderAddr := sdk.AccAddress(tmrand.Bytes(20))
 	receiveAddr := sdk.AccAddress(tmrand.Bytes(20))
-	transferAmount := sdk.NewInt(tmrand.Int63n(100000000000))
+	transferAmount := sdkmath.NewInt(tmrand.Int63n(100000000000))
 	testCases := []struct {
 		name         string
 		malleate     func(fxIbcTransferMsg *channeltypes.Packet, ack *channeltypes.Acknowledgement)
@@ -240,7 +241,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	baseDenom := "stake"
 	senderAddr := sdk.AccAddress(tmrand.Bytes(20))
 	receiveAddr := sdk.AccAddress(tmrand.Bytes(20))
-	transferAmount := sdk.NewInt(tmrand.Int63n(100000000000))
+	transferAmount := sdkmath.NewInt(tmrand.Int63n(100000000000))
 	ibcDenomTrace := transfertypes.DenomTrace{
 		Path:      "transfer/channel-0",
 		BaseDenom: tmrand.Str(6),
@@ -270,7 +271,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Router = ""
-				packetData.Fee = sdk.ZeroInt().String()
+				packetData.Fee = sdkmath.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 
 				escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
@@ -288,7 +289,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Denom = ibcDenomTrace.GetFullDenomPath()
 				packetData.Router = ""
-				packetData.Fee = sdk.ZeroInt().String()
+				packetData.Fee = sdkmath.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 			},
 			true,
@@ -302,7 +303,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Router = tmrand.Str(4)
-				packetData.Fee = sdk.ZeroInt().String()
+				packetData.Fee = sdkmath.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 
 				amount := sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount))
@@ -320,7 +321,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Router = tmrand.Str(4)
-				fee := sdk.NewInt(50)
+				fee := sdkmath.NewInt(50)
 				packetData.Fee = fee.String()
 				packet.Data = packetData.GetBytes()
 
@@ -331,7 +332,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			true,
 			"",
 			true,
-			sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount.Add(sdk.NewInt(50)))),
+			sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount.Add(sdkmath.NewInt(50)))),
 		},
 		{
 			"error - escrow address insufficient 10coin",
@@ -339,14 +340,14 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				packetData := fxtransfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Router = ""
-				packetData.Fee = sdk.ZeroInt().String()
+				packetData.Fee = sdkmath.ZeroInt().String()
 				packet.Data = packetData.GetBytes()
 
 				escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
-				mintCoin(suite.T(), suite.chainA.GetContext(), suite.GetApp(suite.chainA.App), escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount.Sub(sdk.NewInt(10)))))
+				mintCoin(suite.T(), suite.chainA.GetContext(), suite.GetApp(suite.chainA.App), escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount.Sub(sdkmath.NewInt(10)))))
 			},
 			false,
-			fmt.Sprintf("unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module: %d%s is smaller than %d%s: insufficient funds", transferAmount.Sub(sdk.NewInt(10)).Uint64(), baseDenom, transferAmount.Uint64(), baseDenom),
+			fmt.Sprintf("unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module: %d%s is smaller than %d%s: insufficient funds", transferAmount.Sub(sdkmath.NewInt(10)).Uint64(), baseDenom, transferAmount.Uint64(), baseDenom),
 			true,
 			sdk.NewCoins(),
 		},

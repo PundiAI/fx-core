@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -16,7 +17,7 @@ import (
 )
 
 func (suite *IntegrationTest) ERC20Test() {
-	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
+	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
 
 	decimals := 18
 	metadata := fxtypes.GetCrossChainMetadata("test token", helpers.NewRandSymbol(), uint32(decimals))
@@ -45,7 +46,7 @@ func (suite *IntegrationTest) ERC20Test() {
 
 	for i, chain := range suite.crosschain {
 		bridgeToken := bridgeTokens[i]
-		chain.SendToFxClaim(bridgeToken.Token, sdk.NewInt(200), fxtypes.LegacyERC20Target)
+		chain.SendToFxClaim(bridgeToken.Token, sdkmath.NewInt(200), fxtypes.LegacyERC20Target)
 		balance := suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress())
 		suite.Equal(balance, big.NewInt(200))
 
@@ -77,28 +78,28 @@ func (suite *IntegrationTest) ERC20Test() {
 		}
 
 		// covert chain.address erc20 token to native token: metadata.base
-		suite.erc20.ConvertERC20(chain.privKey, tokenPair.GetERC20Contract(), sdk.NewInt(50), suite.erc20.AccAddress())
-		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(metadata.Base, sdk.NewInt(50)))
+		suite.erc20.ConvertERC20(chain.privKey, tokenPair.GetERC20Contract(), sdkmath.NewInt(50), suite.erc20.AccAddress())
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(metadata.Base, sdkmath.NewInt(50)))
 
 		// covert erc20.addr metadata.base
-		suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(metadata.Base, sdk.NewInt(50)), chain.chainName)
-		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(50)))
+		suite.erc20.ConvertDenom(suite.erc20.privKey, suite.erc20.AccAddress(), sdk.NewCoin(metadata.Base, sdkmath.NewInt(50)), chain.chainName)
+		suite.CheckBalance(suite.erc20.AccAddress(), sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(50)))
 
 		// send to chain.address
 		baseTokenBalanceAmount := suite.QueryBalances(chain.AccAddress()).AmountOf(metadata.Base)
-		chain.SendToFxClaim(bridgeToken.Token, sdk.NewInt(100), "")
-		suite.CheckBalance(chain.AccAddress(), sdk.NewCoin(metadata.Base, baseTokenBalanceAmount.Add(sdk.NewInt(100))))
+		chain.SendToFxClaim(bridgeToken.Token, sdkmath.NewInt(100), "")
+		suite.CheckBalance(chain.AccAddress(), sdk.NewCoin(metadata.Base, baseTokenBalanceAmount.Add(sdkmath.NewInt(100))))
 
 		// convert native token(metadata base) to erc20 token
 		balance = suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress())
-		suite.erc20.ConvertCoin(chain.privKey, suite.erc20.HexAddress(), sdk.NewCoin(metadata.Base, sdk.NewInt(50)))
+		suite.erc20.ConvertCoin(chain.privKey, suite.erc20.HexAddress(), sdk.NewCoin(metadata.Base, sdkmath.NewInt(50)))
 		suite.Equal(suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress()), big.NewInt(0).Add(balance, big.NewInt(50)))
 
 		balance = suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress())
 		denomBalance := suite.QueryBalances(chain.AccAddress()).AmountOf(tokenPair.GetDenom())
 		suite.erc20.TransferToModule(chain.privKey, tokenPair.GetERC20Contract(), big.NewInt(50))
 		suite.Equal(suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress()), new(big.Int).Sub(balance, big.NewInt(50)))
-		suite.CheckBalance(chain.AccAddress(), sdk.NewCoin(tokenPair.GetDenom(), denomBalance.Add(sdk.NewInt(50))))
+		suite.CheckBalance(chain.AccAddress(), sdk.NewCoin(tokenPair.GetDenom(), denomBalance.Add(sdkmath.NewInt(50))))
 
 		if i < len(suite.crosschain)-1 {
 			// remove proposal
@@ -121,7 +122,7 @@ func (suite *IntegrationTest) ERC20Test() {
 
 //gocyclo:ignore
 func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
-	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
+	suite.Send(suite.erc20.AccAddress(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
 
 	portID := "transfer"
 	channelID := "channel-0"
@@ -162,7 +163,7 @@ func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 		suite.Equal(tokenPair.ContractOwner, erc20types.OWNER_MODULE)
 
 		balance := suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress())
-		chain.SendToFxClaim(tokenAddress, sdk.NewInt(200), fxtypes.LegacyERC20Target)
+		chain.SendToFxClaim(tokenAddress, sdkmath.NewInt(200), fxtypes.LegacyERC20Target)
 		suite.Equal(big.NewInt(0).Add(balance, big.NewInt(200)), suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress()))
 
 		// ibc token transfer to chain

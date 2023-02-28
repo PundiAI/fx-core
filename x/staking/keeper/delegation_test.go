@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -19,7 +20,7 @@ func (suite *KeeperTestSuite) TestDelegate() {
 	lpToken, found := suite.app.StakingKeeper.GetValidatorLPToken(suite.ctx, val1.GetOperator())
 	suite.Require().True(found)
 
-	shares1, err := suite.app.StakingKeeper.Delegate(suite.ctx, del1.AccAddress(), del1Amt.Amount.Quo(sdk.NewInt(2)), stakingtypes.Unbonded, val1, true)
+	shares1, err := suite.app.StakingKeeper.Delegate(suite.ctx, del1.AccAddress(), del1Amt.Amount.Quo(sdkmath.NewInt(2)), stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
 
 	var res1 struct{ Value *big.Int }
@@ -27,7 +28,7 @@ func (suite *KeeperTestSuite) TestDelegate() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(shares1.BigInt(), res1.Value)
 
-	shares2, err := suite.app.StakingKeeper.Delegate(suite.ctx, del1.AccAddress(), del1Amt.Amount.Quo(sdk.NewInt(2)), stakingtypes.Unbonded, val1, true)
+	shares2, err := suite.app.StakingKeeper.Delegate(suite.ctx, del1.AccAddress(), del1Amt.Amount.Quo(sdkmath.NewInt(2)), stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
 
 	var res2 struct{ Value *big.Int }
@@ -91,7 +92,7 @@ func (suite *KeeperTestSuite) TestRedelegate() {
 	shares, err := suite.app.StakingKeeper.Delegate(suite.ctx, del1.AccAddress(), del1Amt.Amount, stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
 
-	redelegateShares, err := suite.app.StakingKeeper.ValidateUnbondAmount(suite.ctx, del1.AccAddress(), val1.GetOperator(), del1Amt.Amount.Quo(sdk.NewInt(2)))
+	redelegateShares, err := suite.app.StakingKeeper.ValidateUnbondAmount(suite.ctx, del1.AccAddress(), val1.GetOperator(), del1Amt.Amount.Quo(sdkmath.NewInt(2)))
 	suite.Require().NoError(err)
 
 	_, err = suite.app.StakingKeeper.BeginRedelegation(suite.ctx, del1.AccAddress(), val1.GetOperator(), val2.GetOperator(), redelegateShares)

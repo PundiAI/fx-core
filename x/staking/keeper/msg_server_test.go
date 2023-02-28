@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,11 +39,11 @@ func (suite *KeeperTestSuite) TestMsgCreateValidator() {
 			MaxRate:       sdk.OneDec(),
 			MaxChangeRate: sdk.MustNewDecFromStr("0.10"),
 		},
-		MinSelfDelegation: sdk.NewInt(100).Mul(sdk.NewInt(1e18)),
+		MinSelfDelegation: sdkmath.NewInt(100).Mul(sdkmath.NewInt(1e18)),
 		DelegatorAddress:  valNew.AccAddress().String(),
 		ValidatorAddress:  sdk.ValAddress(valNew.AccAddress()).String(),
 		Pubkey:            pkAny,
-		Value:             sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).Mul(sdk.NewInt(1e18))),
+		Value:             sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100).Mul(sdkmath.NewInt(1e18))),
 	})
 	suite.Require().NoError(err)
 
@@ -108,7 +109,7 @@ func (suite *KeeperTestSuite) TestMsgBeginRedelegate() {
 		DelegatorAddress:    del1.AccAddress().String(),
 		ValidatorSrcAddress: val1.OperatorAddress,
 		ValidatorDstAddress: val2.OperatorAddress,
-		Amount:              sdk.NewCoin(del1Amt.Denom, del1Amt.Amount.Quo(sdk.NewInt(2))),
+		Amount:              sdk.NewCoin(del1Amt.Denom, del1Amt.Amount.Quo(sdkmath.NewInt(2))),
 	})
 	suite.Require().NoError(err)
 
@@ -148,7 +149,7 @@ func (suite *KeeperTestSuite) TestMsgUndelegate() {
 	_, err = msgServer.Undelegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgUndelegate{
 		DelegatorAddress: del1.AccAddress().String(),
 		ValidatorAddress: val1.OperatorAddress,
-		Amount:           sdk.NewCoin(del1Amt.Denom, del1Amt.Amount.Quo(sdk.NewInt(2))),
+		Amount:           sdk.NewCoin(del1Amt.Denom, del1Amt.Amount.Quo(sdkmath.NewInt(2))),
 	})
 	suite.Require().NoError(err)
 
@@ -164,5 +165,5 @@ func (suite *KeeperTestSuite) TestMsgUndelegate() {
 	ubd, found := suite.app.StakingKeeper.GetUnbondingDelegation(suite.ctx, del1.AccAddress(), val1.GetOperator())
 	suite.Require().True(found)
 	suite.Require().True(len(ubd.Entries) == 1)
-	suite.Require().Equal(ubd.Entries[0].Balance, del1Amt.Amount.Quo(sdk.NewInt(2)))
+	suite.Require().Equal(ubd.Entries[0].Balance, del1Amt.Amount.Quo(sdkmath.NewInt(2)))
 }

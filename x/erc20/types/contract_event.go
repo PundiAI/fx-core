@@ -3,6 +3,7 @@ package types
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -55,11 +56,11 @@ func (event *TransferCrossChainEvent) GetFrom() sdk.AccAddress {
 }
 
 func (event *TransferCrossChainEvent) GetAmount(denom string) sdk.Coin {
-	return sdk.NewCoin(denom, sdk.NewIntFromBigInt(event.Amount))
+	return sdk.NewCoin(denom, sdkmath.NewIntFromBigInt(event.Amount))
 }
 
 func (event *TransferCrossChainEvent) GetFee(denom string) sdk.Coin {
-	return sdk.NewCoin(denom, sdk.NewIntFromBigInt(event.Fee))
+	return sdk.NewCoin(denom, sdkmath.NewIntFromBigInt(event.Fee))
 }
 
 func (event *TransferCrossChainEvent) TotalAmount(denom string) sdk.Coins {

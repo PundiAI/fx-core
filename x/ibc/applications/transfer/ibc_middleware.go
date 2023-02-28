@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -59,7 +60,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	var err error
 	if ack.Success() {
 		if len(data.GetFee()) == 0 {
-			data.Fee = sdk.ZeroInt().String()
+			data.Fee = sdkmath.ZeroInt().String()
 		}
 		err = im.keeper.OnRecvPacket(ctx, packet, data)
 		if err != nil {

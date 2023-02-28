@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -27,7 +28,7 @@ func TestDefaultGenesisState(t *testing.T) {
 					SlashFraction:                     sdk.NewDec(8).Quo(sdk.NewDec(10)),
 					OracleSetUpdatePowerChangePercent: sdk.NewDec(1).Quo(sdk.NewDec(10)),
 					IbcTransferTimeoutHeight:          20_000,
-					DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
+					DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 					DelegateMultiple:                  10,
 				},
 			},

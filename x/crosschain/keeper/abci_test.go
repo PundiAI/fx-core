@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
@@ -22,7 +23,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		BridgerAddress:   suite.bridgerAddrs[0].String(),
 		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
 		ValidatorAddress: suite.valAddrs[0].String(),
-		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
+		DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)},
 		ChainName:        suite.chainName,
 	}
 	_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), normalMsg)
@@ -59,7 +60,7 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 		EventNonce:     2,
 		BlockHeight:    1001,
 		TokenContract:  bridgeToken,
-		Amount:         sdk.NewInt(1234),
+		Amount:         sdkmath.NewInt(1234),
 		Sender:         sendToFxSendAddr,
 		Receiver:       sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 		TargetIbc:      hex.EncodeToString([]byte("px/transfer/channel-0")),
@@ -90,7 +91,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
-			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
+			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
 		}
 		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
@@ -104,7 +105,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 		require.EqualValues(suite.T(), i+1, len(oracleSets))
 
 		power := suite.Keeper().GetLastTotalPower(suite.ctx)
-		expectPower := sdk.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
+		expectPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
 		require.True(suite.T(), expectPower.Equal(power))
 	}
 
@@ -174,13 +175,13 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 	})
 	require.ErrorIs(suite.T(), types.ErrInvalid, err)
 
-	expectTotalPower := sdk.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdk.NewInt(10)).Quo(sdk.DefaultPowerReduction)
+	expectTotalPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(10)).Quo(sdk.DefaultPowerReduction)
 	actualTotalPower := suite.Keeper().GetLastTotalPower(suite.ctx)
 	require.True(suite.T(), expectTotalPower.Equal(actualTotalPower))
 
-	expectMaxChangePower := types.AttestationProposalOracleChangePowerThreshold.Mul(expectTotalPower).Quo(sdk.NewInt(100))
+	expectMaxChangePower := types.AttestationProposalOracleChangePowerThreshold.Mul(expectTotalPower).Quo(sdkmath.NewInt(100))
 
-	expectDeletePower := sdk.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdk.NewInt(3)).Quo(sdk.DefaultPowerReduction)
+	expectDeletePower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(3)).Quo(sdk.DefaultPowerReduction)
 	require.EqualValues(suite.T(), fmt.Sprintf("max change power, maxChangePowerThreshold: %s, deleteTotalPower: %s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrInvalid), err.Error())
 
 	var newOracleList2 []string
@@ -206,7 +207,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
-			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
+			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
 		}
 		_, err := suite.MsgServer().BondedOracle(sdk.WrapSDKContext(suite.ctx), msgBondedOracle)
@@ -218,7 +219,7 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		require.EqualValues(suite.T(), i+1, len(oracleSets))
 
 		power := suite.Keeper().GetLastTotalPower(suite.ctx)
-		expectPower := sdk.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdk.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
+		expectPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
 		require.True(suite.T(), expectPower.Equal(power))
 	}
 
@@ -407,7 +408,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
-			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
+			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
 		}
 		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
@@ -439,7 +440,7 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 	require.EqualValues(suite.T(), bridger.String(), oracleData.BridgerAddress)
 	require.EqualValues(suite.T(), externalAddress, oracleData.ExternalAddress)
 
-	require.True(suite.T(), sdk.NewInt(10*1e3).MulRaw(1e18).Equal(oracleData.DelegateAmount))
+	require.True(suite.T(), sdkmath.NewInt(10*1e3).MulRaw(1e18).Equal(oracleData.DelegateAmount))
 
 	var newOracleAddressList []string
 	for _, address := range suite.oracleAddrs[1:] {
@@ -475,7 +476,7 @@ func (suite *KeeperTestSuite) TestOracleSetSlash() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
-			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
+			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
 		}
 		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())
@@ -533,7 +534,7 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
-			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdk.NewInt(10 * 1e3).MulRaw(1e18)},
+			DelegateAmount:   sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)},
 			ChainName:        suite.chainName,
 		}
 		require.NoError(suite.T(), msgBondedOracle.ValidateBasic())

@@ -3,6 +3,7 @@ package tests
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -21,9 +22,9 @@ func (suite *IntegrationTest) StakingTest() {
 	val1, lpToken1 := vals[0], lpTokens[0]
 
 	del1 := helpers.NewEthPrivKey()
-	suite.Send(sdk.AccAddress(del1.PubKey().Address()), suite.NewCoin(sdk.NewInt(10_000).Mul(sdk.NewInt(1e18))))
+	suite.Send(sdk.AccAddress(del1.PubKey().Address()), suite.NewCoin(sdkmath.NewInt(10_000).Mul(sdkmath.NewInt(1e18))))
 
-	del1Amt := suite.NewCoin(sdk.NewInt(4_000).Mul(sdk.NewInt(1e18)))
+	del1Amt := suite.NewCoin(sdkmath.NewInt(4_000).Mul(sdkmath.NewInt(1e18)))
 	suite.staking.Delegate(del1, val1.GetOperator(), del1Amt)
 
 	delegation1, del1Coin := suite.staking.GetDelegation(sdk.AccAddress(del1.PubKey().Address()), val1.GetOperator())
@@ -35,7 +36,7 @@ func (suite *IntegrationTest) StakingTest() {
 	suite.Require().Equal(delegation1.Shares.BigInt(), shares)
 
 	del2 := helpers.NewEthPrivKey()
-	suite.Send(sdk.AccAddress(del2.PubKey().Address()), suite.NewCoin(sdk.NewInt(10_000).Mul(sdk.NewInt(1e18))))
+	suite.Send(sdk.AccAddress(del2.PubKey().Address()), suite.NewCoin(sdkmath.NewInt(10_000).Mul(sdkmath.NewInt(1e18))))
 
 	suite.staking.LPTokenTransfer(del1, lpToken1, common.BytesToAddress(del2.PubKey().Address().Bytes()), shares)
 

@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,14 +24,14 @@ func Test_NormalizeCoin(t *testing.T) {
 	denom, err := sdk.GetBaseDenom()
 	assert.NoError(t, err)
 	assert.Equal(t, DefaultDenom, denom)
-	coin := sdk.NewCoin(DefaultDenom, sdk.NewInt(1e18))
+	coin := sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1e18))
 	assert.Equal(t, coin, sdk.NormalizeCoin(coin))
 
 	myCoin, err := sdk.ParseCoinNormalized("1000000000000000000FX")
 	assert.NoError(t, err)
-	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdk.NewInt(1e18)))
+	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1e18)))
 
 	myCoin, err = sdk.ParseCoinNormalized("1FX")
 	assert.NoError(t, err)
-	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdk.NewInt(1)))
+	assert.Equal(t, myCoin, sdk.NewCoin(DefaultDenom, sdkmath.NewInt(1)))
 }

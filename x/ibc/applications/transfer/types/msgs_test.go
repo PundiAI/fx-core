@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -31,17 +32,17 @@ var (
 	addr2     = sdk.AccAddress("testaddr2").String()
 	emptyAddr string
 
-	coin             = sdk.NewCoin("demo", sdk.NewInt(100))
-	ibcCoin          = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdk.NewInt(100))
-	invalidIBCCoin   = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554", sdk.NewInt(100))
-	invalidDenomCoin = sdk.Coin{Denom: "0demo", Amount: sdk.NewInt(100)}
-	zeroCoin         = sdk.Coin{Denom: "demos", Amount: sdk.NewInt(0)}
+	coin             = sdk.NewCoin("demo", sdkmath.NewInt(100))
+	ibcCoin          = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.NewInt(100))
+	invalidIBCCoin   = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554", sdkmath.NewInt(100))
+	invalidDenomCoin = sdk.Coin{Denom: "0demo", Amount: sdkmath.NewInt(100)}
+	zeroCoin         = sdk.Coin{Denom: "demos", Amount: sdkmath.NewInt(0)}
 
 	timeoutHeight = clienttypes.NewHeight(0, 10)
 
 	defaultRouter = ""
-	defaultFee    = sdk.Coin{Denom: "demo", Amount: sdk.ZeroInt()}
-	defaultIbcFee = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdk.ZeroInt())
+	defaultFee    = sdk.Coin{Denom: "demo", Amount: sdkmath.ZeroInt()}
+	defaultIbcFee = sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.ZeroInt())
 )
 
 // TestMsgTransferRoute tests Route for MsgTransfer

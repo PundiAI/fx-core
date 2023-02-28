@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -150,7 +151,7 @@ func (suite *TestSuite) GetStakingDenom() string {
 	return suite.network.Config.BondDenom
 }
 
-func (suite *TestSuite) NewCoin(amount sdk.Int) sdk.Coin {
+func (suite *TestSuite) NewCoin(amount sdkmath.Int) sdk.Coin {
 	return sdk.NewCoin(suite.GetStakingDenom(), amount)
 }
 
@@ -187,7 +188,7 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	grpcClient := suite.GRPCClient()
 	balances, err := grpcClient.QueryBalances(sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
 	suite.NoError(err)
-	suite.True(balances.AmountOf(suite.GetStakingDenom()).GT(sdk.NewInt(2).MulRaw(1e18)))
+	suite.True(balances.AmountOf(suite.GetStakingDenom()).GT(sdkmath.NewInt(2).MulRaw(1e18)))
 
 	gasPrices, err := sdk.ParseCoinsNormalized(suite.network.Config.MinGasPrices)
 	suite.NoError(err)
@@ -206,7 +207,7 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content, expectedStatus ...govtypes.ProposalStatus) (*sdk.TxResponse, uint64) {
 	proposalMsg, err := govtypes.NewMsgSubmitProposal(
 		content,
-		sdk.NewCoins(suite.NewCoin(sdk.NewInt(10_000).MulRaw(1e18))),
+		sdk.NewCoins(suite.NewCoin(sdkmath.NewInt(10_000).MulRaw(1e18))),
 		suite.GetFirstValAddr().Bytes(),
 	)
 	suite.NoError(err)
@@ -241,8 +242,8 @@ func (suite *TestSuite) BroadcastProposalTx(content govtypes.Content, expectedSt
 
 func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) *sdk.TxResponse {
 	valAddr := sdk.ValAddress(valPriv.PubKey().Address())
-	selfDelegate := sdk.NewCoin(suite.GetStakingDenom(), sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(100)))
-	minSelfDelegate := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1))
+	selfDelegate := sdk.NewCoin(suite.GetStakingDenom(), sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(100)))
+	minSelfDelegate := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1))
 	description := stakingtypes.Description{
 		Moniker:         "val2",
 		Identity:        "",
@@ -355,7 +356,7 @@ func (suite *TestSuite) CheckUndelegate(delegatorAddr sdk.AccAddress, validatorA
 }
 
 func (suite *TestSuite) Redelegate(priv cryptotypes.PrivKey, valSrc, valDest sdk.ValAddress, all bool) *sdk.TxResponse {
-	amt := sdk.NewInt(1)
+	amt := sdkmath.NewInt(1)
 	if all {
 		delegation, err := suite.GRPCClient().StakingQuery().Delegation(suite.ctx, &stakingtypes.QueryDelegationRequest{
 			DelegatorAddr: sdk.AccAddress(priv.PubKey().Address().Bytes()).String(),

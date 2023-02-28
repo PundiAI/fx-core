@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -49,7 +50,7 @@ func (k Querier) ValidatorLPToken(c context.Context, req *types.QueryValidatorLP
 		Name:          req.ValidatorAddr,
 		Symbol:        types.LPTokenSymbol,
 		Decimal:       uint32(types.LPTokenDecimals),
-		TotalSupply:   sdk.NewIntFromBigInt(val.DelegatorShares.BigInt()),
+		TotalSupply:   sdkmath.NewIntFromBigInt(val.DelegatorShares.BigInt()),
 	}
 
 	return &types.QueryValidatorLPTokenResponse{LpToken: &lpToken}, nil

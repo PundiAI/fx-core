@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -162,7 +163,7 @@ func IbcGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.Genesis
 
 func BankGenesisState(cdc codec.Codec, genesisState app.GenesisState) app.GenesisState {
 	bankState := banktypes.DefaultGenesisState()
-	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e8).Mul(sdk.NewInt(1e18))))
+	coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e8).Mul(sdkmath.NewInt(1e18))))
 	bankState.Balances = append(bankState.Balances, banktypes.Balance{Address: authtypes.NewModuleAddress(ethtypes.ModuleName).String(), Coins: coins})
 	genesisState[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
 	return genesisState

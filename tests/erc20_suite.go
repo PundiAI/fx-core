@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -107,7 +108,7 @@ func (suite *Erc20TestSuite) ConvertCoin(private cryptotypes.PrivKey, recipient 
 	return txResponse
 }
 
-func (suite *Erc20TestSuite) ConvertERC20(private cryptotypes.PrivKey, token common.Address, amount sdk.Int, recipient sdk.AccAddress) *sdk.TxResponse {
+func (suite *Erc20TestSuite) ConvertERC20(private cryptotypes.PrivKey, token common.Address, amount sdkmath.Int, recipient sdk.AccAddress) *sdk.TxResponse {
 	beforeBalance := suite.QueryBalances(recipient).AmountOf(suite.DenomFromErc20(token))
 	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(private.PubKey().Address().Bytes()))
 	msg := erc20types.NewMsgConvertERC20(amount, recipient, token, common.BytesToAddress(private.PubKey().Address().Bytes()))
@@ -159,6 +160,6 @@ func (suite *Erc20TestSuite) TransferToModule(privateKey cryptotypes.PrivKey, to
 	afterBalance := suite.QueryBalances(sdk.AccAddress(privateKey.PubKey().Address())).AmountOf(suite.DenomFromErc20(token))
 
 	suite.Require().True(new(big.Int).Sub(beforeBalanceOf, afterBalanceOf).Cmp(amount) == 0)
-	suite.Require().True(afterBalance.Sub(beforeBalance).Equal(sdk.NewIntFromBigInt(amount)))
+	suite.Require().True(afterBalance.Sub(beforeBalance).Equal(sdkmath.NewIntFromBigInt(amount)))
 	return ethTx
 }

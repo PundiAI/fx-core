@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -64,8 +65,8 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 	// This conditional stops the attestation from accidentally being applied twice.
 	// Sum the current powers of all validators who have voted and see if it passes the current threshold
 	totalPower := k.GetLastTotalPower(ctx)
-	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewInt(100))
-	attestationPower := sdk.NewInt(0)
+	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdkmath.NewInt(100))
+	attestationPower := sdkmath.NewInt(0)
 
 	for _, oracleStr := range att.Votes {
 		oracleAddr, err := sdk.AccAddressFromBech32(oracleStr)

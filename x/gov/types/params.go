@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -15,7 +16,7 @@ const (
 func EGFProposalMinDeposit(claimCoin sdk.Coins) sdk.Coins {
 	var (
 		ClaimRatio          = sdk.NewDecWithPrec(1, 1) // 10%
-		EGFDepositThreshold = sdk.NewInt(10_000).Mul(sdk.NewInt(1e18))
+		EGFDepositThreshold = sdkmath.NewInt(10_000).Mul(sdkmath.NewInt(1e18))
 	)
 
 	claimAmount := claimCoin.AmountOf(fxtypes.DefaultDenom)
@@ -27,5 +28,5 @@ func EGFProposalMinDeposit(claimCoin sdk.Coins) sdk.Coins {
 }
 
 func GetInitialDeposit() sdk.Coins {
-	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18))))
+	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))))
 }

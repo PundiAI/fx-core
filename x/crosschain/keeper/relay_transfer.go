@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -50,7 +51,7 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 
 func (k Keeper) transferErc20Handler(ctx sdk.Context, eventNonce uint64, receiver sdk.AccAddress, coin sdk.Coin) error {
 	receiverEthAddr := common.BytesToAddress(receiver.Bytes())
-	if err := k.erc20Keeper.TransferAfter(ctx, receiver.String(), receiverEthAddr.String(), coin, sdk.NewCoin(coin.Denom, sdk.ZeroInt())); err != nil {
+	if err := k.erc20Keeper.TransferAfter(ctx, receiver.String(), receiverEthAddr.String(), coin, sdk.NewCoin(coin.Denom, sdkmath.ZeroInt())); err != nil {
 		k.Logger(ctx).Error("transfer convert denom failed", "error", err.Error())
 		return err
 	}

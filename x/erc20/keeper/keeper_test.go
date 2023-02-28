@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -75,14 +76,14 @@ func (suite *KeeperTestSuite) SetupTest() {
 		ProposerAddress: set.Proposer.Address,
 		Time:            time.Now().UTC(),
 	})
-	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
+	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.app.Erc20Keeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))))
+	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))
 }
 
 func (suite *KeeperTestSuite) Commit() {
@@ -105,7 +106,7 @@ func (suite *KeeperTestSuite) StateDB() *statedb.StateDB {
 
 func (suite *KeeperTestSuite) RandSigner() *helpers.Signer {
 	privKey := helpers.NewEthPrivKey()
-	helpers.AddTestAddr(suite.app, suite.ctx, privKey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))))
+	helpers.AddTestAddr(suite.app, suite.ctx, privKey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))
 	return helpers.NewSigner(privKey)
 }
 
@@ -178,7 +179,7 @@ func (suite *KeeperTestSuite) GenerateCrossChainDenoms(addDenoms ...string) Meta
 	return Metadata{metadata: metadata, modules: denomModules[:count], notModules: denomModules[count:]}
 }
 
-func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata, amt sdk.Int) *big.Int {
+func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata, amt sdkmath.Int) *big.Int {
 	generateAddress := helpers.GenerateAddress()
 
 	count := 1
@@ -195,7 +196,7 @@ func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata,
 	}
 
 	// add denom to erc20 module
-	coin := sdk.NewCoin(md.Base, amt.Mul(sdk.NewInt(int64(count))))
+	coin := sdk.NewCoin(md.Base, amt.Mul(sdkmath.NewInt(int64(count))))
 	helpers.AddTestAddr(suite.app, suite.ctx, generateAddress.Bytes(), sdk.NewCoins(coin))
 	err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, generateAddress.Bytes(), types.ModuleName, sdk.NewCoins(coin))
 	suite.Require().NoError(err)
@@ -317,7 +318,7 @@ func (suite *KeeperTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr com
 	suite.Require().NoError(err)
 
 	// Mint the max gas to the FeeCollector to ensure balance in case of refund
-	// suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
+	// suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
 
 	ercTransferTx := evm.NewTx(
 		chainID,

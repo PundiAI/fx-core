@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v3/testutil/helpers"
@@ -27,7 +28,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 					MinBatchFees: []types.MinBatchFee{
 						{
 							TokenContract: trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
-							BaseFee:       sdk.NewInt(-1),
+							BaseFee:       sdkmath.NewInt(-1),
 						},
 					},
 				}
@@ -54,7 +55,7 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 				minBatchFee := []types.MinBatchFee{
 					{
 						TokenContract: bridgeToken[0].Token,
-						BaseFee:       sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
+						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
 					},
 				}
 				for i := uint64(1); i <= 3; i++ {
@@ -62,8 +63,8 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 						suite.ctx,
 						suite.signer.AccAddress(),
 						trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
-						sdk.NewCoin(bridgeToken[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(bridgeToken[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
+						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
 					suite.Require().NoError(err)
 				}
 				for i := uint64(1); i <= 2; i++ {
@@ -71,8 +72,8 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 						suite.ctx,
 						suite.signer.AccAddress(),
 						trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
-						sdk.NewCoin(bridgeToken[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(bridgeToken[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
+						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
 					suite.Require().NoError(err)
 				}
 				request = &types.QueryBatchFeeRequest{
@@ -81,9 +82,9 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
 					{
 						TokenContract: bridgeToken[0].Token,
-						TotalFees:     sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
+						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
 						TotalTxs:      3,
-						TotalAmount:   sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
+						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(300))),
 					},
 				}}
 			},
@@ -96,11 +97,11 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 				minBatchFee := []types.MinBatchFee{
 					{
 						TokenContract: bridgeToken[0].Token,
-						BaseFee:       sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e6))),
+						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e6))),
 					},
 					{
 						TokenContract: bridgeToken[1].Token,
-						BaseFee:       sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))),
+						BaseFee:       sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))),
 					},
 				}
 				for i := 1; i <= 2; i++ {
@@ -108,24 +109,24 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 						suite.ctx,
 						suite.signer.AccAddress(),
 						trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
-						sdk.NewCoin(bridgeToken[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-						sdk.NewCoin(bridgeToken[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
+						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+						sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(10)))))
 					suite.Require().NoError(err)
 				}
 				_, err := suite.app.TronKeeper.AddToOutgoingPool(
 					suite.ctx,
 					suite.signer.AccAddress(),
 					trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
-					sdk.NewCoin(bridgeToken[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
-					sdk.NewCoin(bridgeToken[0].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
+					sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))),
+					sdk.NewCoin(bridgeToken[0].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100)))))
 				suite.Require().NoError(err)
 				for i := 1; i <= 3; i++ {
 					_, err = suite.app.TronKeeper.AddToOutgoingPool(
 						suite.ctx,
 						suite.signer.AccAddress(),
 						trontypes.AddressFromHex(helpers.GenerateAddress().Hex()),
-						sdk.NewCoin(bridgeToken[1].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
-						sdk.NewCoin(bridgeToken[1].Denom, sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))))
+						sdk.NewCoin(bridgeToken[1].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))),
+						sdk.NewCoin(bridgeToken[1].Denom, sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(100)))))
 					suite.Require().NoError(err)
 				}
 				request = &types.QueryBatchFeeRequest{
@@ -134,15 +135,15 @@ func (suite *KeeperTestSuite) TestKeeper_BatchFees() {
 				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
 					{
 						TokenContract: bridgeToken[0].Token,
-						TotalFees:     sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
+						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
 						TotalTxs:      1,
-						TotalAmount:   sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
+						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e6), big.NewInt(100))),
 					},
 					{
 						TokenContract: bridgeToken[1].Token,
-						TotalFees:     sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
+						TotalFees:     sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
 						TotalTxs:      3,
-						TotalAmount:   sdk.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
+						TotalAmount:   sdkmath.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(1e18), big.NewInt(300))),
 					},
 				}}
 			},
@@ -191,11 +192,11 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 						{
 							Token: types.ERC20Token{
 								Contract: bridgeToken[0].Token,
-								Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
+								Amount:   sdkmath.NewIntFromBigInt(big.NewInt(1e18)),
 							},
 							Fee: types.ERC20Token{
 								Contract: bridgeToken[0].Token,
-								Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
+								Amount:   sdkmath.NewIntFromBigInt(big.NewInt(1e18)),
 							},
 						},
 					},
@@ -211,11 +212,11 @@ func (suite *KeeperTestSuite) TestKeeper_BatchRequestByNonce() {
 							{
 								Token: types.ERC20Token{
 									Contract: bridgeToken[0].Token,
-									Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
+									Amount:   sdkmath.NewIntFromBigInt(big.NewInt(1e18)),
 								},
 								Fee: types.ERC20Token{
 									Contract: bridgeToken[0].Token,
-									Amount:   sdk.NewIntFromBigInt(big.NewInt(1e18)),
+									Amount:   sdkmath.NewIntFromBigInt(big.NewInt(1e18)),
 								},
 							},
 						},
@@ -481,7 +482,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetOracleByExternalAddr() {
 					OracleAddress:   oracle.String(),
 					BridgerAddress:  bridger.String(),
 					ExternalAddress: trontypes.AddressFromHex(externalKey.PubKey().Address().String()),
-					DelegateAmount:  sdk.ZeroInt(),
+					DelegateAmount:  sdkmath.ZeroInt(),
 				}}
 			},
 			expPass: true,

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -207,7 +208,7 @@ func (k Keeper) ConvertCoinNativeCoin(ctx sdk.Context, pair types.TokenPair, sen
 //   - Unescrow coins that have been previously escrowed with ConvertCoin
 //   - Check if coin balance increased by amount
 //   - Check if token balance decreased by amount
-func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdk.Int) error {
+func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error {
 	erc20 := fxtypes.GetERC20().ABI
 	contract := pair.GetERC20Contract()
 
@@ -241,7 +242,7 @@ func (k Keeper) ConvertERC20NativeCoin(ctx sdk.Context, pair types.TokenPair, se
 //   - Check if coin balance increased by amount
 //   - Check if token balance decreased by amount
 //   - Check for unexpected `approve` event in logs
-func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdk.Int) error {
+func (k Keeper) ConvertERC20NativeToken(ctx sdk.Context, pair types.TokenPair, sender common.Address, receiver sdk.AccAddress, amount sdkmath.Int) error {
 	erc20 := fxtypes.GetERC20().ABI
 
 	// Escrow tokens on module account

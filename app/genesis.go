@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -45,11 +46,11 @@ type GenesisState map[string]json.RawMessage
 //
 //gocyclo:ignore
 func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
-	fxTotalSupply, ok := sdk.NewIntFromString(InitTotalSupply)
+	fxTotalSupply, ok := sdkmath.NewIntFromString(InitTotalSupply)
 	if !ok {
 		panic("invalid fx total supply")
 	}
-	ethInitAmount, ok := sdk.NewIntFromString(EthModuleInitAmount)
+	ethInitAmount, ok := sdkmath.NewIntFromString(EthModuleInitAmount)
 	if !ok {
 		panic("invalid eth module init amount")
 	}
@@ -77,10 +78,10 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case govtypes.ModuleName:
 			state := govtypes.DefaultGenesisState()
-			coinOne := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+			coinOne := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 			for i := 0; i < state.DepositParams.MinDeposit.Len(); i++ {
 				state.DepositParams.MinDeposit[i].Denom = denom
-				state.DepositParams.MinDeposit[i].Amount = coinOne.Mul(sdk.NewInt(10000))
+				state.DepositParams.MinDeposit[i].Amount = coinOne.Mul(sdkmath.NewInt(10000))
 			}
 			state.DepositParams.MaxDepositPeriod = time.Hour * 24 * 14
 			state.VotingParams.VotingPeriod = time.Hour * 24 * 14
@@ -88,9 +89,9 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case crisistypes.ModuleName:
 			state := crisistypes.DefaultGenesisState()
-			coinOne := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+			coinOne := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 			state.ConstantFee.Denom = denom
-			state.ConstantFee.Amount = sdk.NewInt(13333).Mul(coinOne)
+			state.ConstantFee.Amount = sdkmath.NewInt(13333).Mul(coinOne)
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case minttypes.ModuleName:
 			state := minttypes.DefaultGenesisState()
@@ -124,7 +125,7 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case feemarkettypes.ModuleName:
 			state := feemarkettypes.DefaultGenesisState()
-			state.Params.BaseFee = sdk.NewInt(500_000_000_000)
+			state.Params.BaseFee = sdkmath.NewInt(500_000_000_000)
 			state.Params.MinGasPrice = sdk.NewDec(500_000_000_000)
 			state.Params.MinGasMultiplier = sdk.ZeroDec()
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)

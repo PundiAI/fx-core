@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -96,8 +97,8 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 					ContractOwner: pair.ContractOwner,
 				}
 				return []types.RelayTransfer{relay}, []string{
-					sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(totalCanMint)).String(),
-					sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(moreTotalMint)).String(),
+					sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(totalCanMint)).String(),
+					sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(moreTotalMint)).String(),
 				}
 			},
 			error: func(args []string) string {
@@ -136,7 +137,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 			suite.NoError(err)
 			// mint lock token
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
-			totalMint := suite.MintLockNativeTokenToModule(md.GetMetadata(), sdk.NewIntFromBigInt(randMint))
+			totalMint := suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
 			// relay event
 			relays, errArgs := tc.malleate(*pair, signer.Address(), totalMint)
 			// hook transfer
@@ -176,7 +177,7 @@ func (suite *KeeperTestSuite) TestHookTransferFX() {
 			name: "ok - fx - transfer to module",
 			malleate: func(pair types.TokenPair, singerAddr common.Address, totalCanMint *big.Int) ([]types.RelayTransfer, []string) {
 				// transfer FX to contract address
-				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(totalCanMint))
+				coin := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(totalCanMint))
 				err := suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, pair.GetERC20Contract().Bytes(), sdk.NewCoins(coin))
 				suite.Require().NoError(err)
 
@@ -207,8 +208,8 @@ func (suite *KeeperTestSuite) TestHookTransferFX() {
 					ContractOwner: pair.ContractOwner,
 				}
 				return []types.RelayTransfer{relay}, []string{
-					sdk.NewCoin(pair.Denom, sdk.NewInt(0)).String(),
-					sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(totalCanMint)).String(),
+					sdk.NewCoin(pair.Denom, sdkmath.NewInt(0)).String(),
+					sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(totalCanMint)).String(),
 				}
 			},
 			error: func(args []string) string {
@@ -229,7 +230,7 @@ func (suite *KeeperTestSuite) TestHookTransferFX() {
 			suite.Require().True(found)
 
 			// mint lock token
-			totalMint := suite.MintLockNativeTokenToModule(md, sdk.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
+			totalMint := suite.MintLockNativeTokenToModule(md, sdkmath.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
 			// relay event
 			relays, errArgs := tc.malleate(pair, signer.Address(), totalMint)
 			// hook transfer
@@ -388,7 +389,7 @@ func (suite *KeeperTestSuite) TestHookTransfer() {
 	nativePair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, nativeMetadata.GetMetadata())
 	suite.NoError(err)
 
-	nativeTotalMint := suite.MintLockNativeTokenToModule(nativeMetadata.GetMetadata(), sdk.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
+	nativeTotalMint := suite.MintLockNativeTokenToModule(nativeMetadata.GetMetadata(), sdkmath.NewIntFromBigInt(big.NewInt(int64(tmrand.Uint32()+1))))
 	suite.ModuleMintERC20Token(nativePair.GetERC20Contract(), signer.Address(), nativeTotalMint)
 	suite.TransferERC20TokenToModuleWithoutHook(nativePair.GetERC20Contract(), signer.Address(), nativeTotalMint)
 	nativeRelay := types.RelayTransfer{

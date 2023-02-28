@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -171,7 +172,7 @@ func CmdRequestBatch() *cobra.Command {
 			}
 			fromAddress := cliCtx.GetFromAddress()
 
-			minimumFee, ok := sdk.NewIntFromString(args[1])
+			minimumFee, ok := sdkmath.NewIntFromString(args[1])
 			if !ok || minimumFee.IsNegative() {
 				return fmt.Errorf("miniumu fee is valid, fee: %v", args[1])
 			}
@@ -179,12 +180,12 @@ func CmdRequestBatch() *cobra.Command {
 			if !gethcommon.IsHexAddress(ethFeeReceive) {
 				return fmt.Errorf("invalid ethFeeReceive address: %v", args[2])
 			}
-			baseFee := sdk.ZeroInt()
+			baseFee := sdkmath.ZeroInt()
 			baseFeeStr, err := cmd.Flags().GetString("base-fee")
 			if err == nil {
 				baseFeeStr = strings.TrimSpace(baseFeeStr)
 				if len(baseFeeStr) > 0 {
-					baseFee, ok = sdk.NewIntFromString(baseFeeStr)
+					baseFee, ok = sdkmath.NewIntFromString(baseFeeStr)
 					if !ok {
 						return fmt.Errorf("invalid baseFee: %v", baseFeeStr)
 					}

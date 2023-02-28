@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -148,7 +149,7 @@ func initEthOracleBalances(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	for _, oracle := range oracles {
 		addr := sdk.MustAccAddressFromBech32(oracle)
 		err := myApp.BankKeeper.SendCoinsFromModuleToAccount(ctx, distributiontypes.ModuleName, addr,
-			sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
+			sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18))))
 		assert.NoError(t, err)
 	}
 }
@@ -173,8 +174,8 @@ func newContext(t *testing.T, myApp *app.App) sdk.Context {
 
 func checkStakingPool(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBefore bool) {
 	validators := myApp.StakingKeeper.GetAllValidators(ctx)
-	totalBonded := sdk.ZeroInt()
-	totalNotBounded := sdk.ZeroInt()
+	totalBonded := sdkmath.ZeroInt()
+	totalNotBounded := sdkmath.ZeroInt()
 	for _, validator := range validators {
 		if validator.IsBonded() {
 			totalBonded = totalBonded.Add(validator.Tokens)
@@ -183,7 +184,7 @@ func checkStakingPool(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBe
 		}
 	}
 
-	undelegateAmount := sdk.ZeroInt()
+	undelegateAmount := sdkmath.ZeroInt()
 	myApp.StakingKeeper.IterateUnbondingDelegations(ctx, func(index int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
 		for _, entry := range ubd.Entries {
 			undelegateAmount = undelegateAmount.Add(entry.Balance)
@@ -199,9 +200,9 @@ func checkStakingPool(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBe
 
 	if isUpgradeBefore {
 		if ctx.ChainID() == fxtypes.TestnetChainId {
-			totalBonded = totalBonded.Add(sdk.NewInt(90_000).MulRaw(1e18))
+			totalBonded = totalBonded.Add(sdkmath.NewInt(90_000).MulRaw(1e18))
 		} else {
-			totalBonded = totalBonded.Add(sdk.NewInt(190_000).MulRaw(1e18))
+			totalBonded = totalBonded.Add(sdkmath.NewInt(190_000).MulRaw(1e18))
 		}
 		assert.Equal(t, bondedPoolAmount.String(), totalBonded.String())
 		assert.Equal(t, notBondedPoolAmount.String(), totalNotBounded.Add(undelegateAmount).String())
@@ -258,7 +259,7 @@ func checkTotalSupply(t *testing.T, ctx sdk.Context, myApp *app.App) {
 	usdtTotalSupply := totalSupply.AmountOf("usdt")
 	usdtMD, found := myApp.BankKeeper.GetDenomMetaData(ctx, "usdt")
 	assert.True(t, found)
-	chainUSDTTotalSupply := sdk.ZeroInt()
+	chainUSDTTotalSupply := sdkmath.ZeroInt()
 	for _, alias := range usdtMD.DenomUnits[0].Aliases {
 		balance := myApp.BankKeeper.GetBalance(ctx, myApp.Erc20Keeper.ModuleAddress().Bytes(), alias)
 		chainUSDTTotalSupply = chainUSDTTotalSupply.Add(balance.Amount)

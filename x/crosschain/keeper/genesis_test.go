@@ -5,6 +5,7 @@ import (
 	"sort"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -31,7 +32,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		suite.Keeper().AddBridgeToken(suite.ctx, bridgeToken.Token, denom)
 
 		for _, bridger := range suite.bridgerAddrs {
-			voucher := sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(9990))
+			voucher := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(9990))
 			err := suite.app.BankKeeper.MintCoins(suite.ctx, suite.chainName, sdk.NewCoins(voucher))
 			require.NoError(suite.T(), err)
 
@@ -56,8 +57,8 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 		receiver := crypto.PubkeyToAddress(suite.externalPris[i%len(suite.externalPris)].PublicKey).String()
 		bridgeToken := bridgeTokens[i%len(bridgeTokens)]
 
-		amountToken := sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(int64(amount)))
-		feeToken := sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(int64(fee)))
+		amountToken := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(int64(amount)))
+		feeToken := sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(int64(fee)))
 
 		// add transaction to the pool
 		nextTxID, err := suite.Keeper().AddToOutgoingPool(suite.ctx, sender, receiver, amountToken, feeToken)
@@ -80,7 +81,7 @@ func (suite *KeeperTestSuite) TestBatchAndTxImportExport() {
 	// with 100 tx in each batch, 1000 txs per contract, we want 5 batches per contract to batch 500 txs per contract
 	for i, bridgeToken := range bridgeTokens {
 		suite.ctx = suite.ctx.WithBlockHeight(int64(50 + i))
-		batch, err := suite.Keeper().BuildOutgoingTxBatch(suite.ctx, bridgeToken.Token, bridgeToken.Token, 100, sdk.NewInt(1), sdk.NewInt(1))
+		batch, err := suite.Keeper().BuildOutgoingTxBatch(suite.ctx, bridgeToken.Token, bridgeToken.Token, 100, sdkmath.NewInt(1), sdkmath.NewInt(1))
 		suite.Require().NoError(err)
 		suite.Require().EqualValues(100, len(batch.Transactions))
 		suite.Require().EqualValues(50+i, batch.Block)

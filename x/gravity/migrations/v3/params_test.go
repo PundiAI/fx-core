@@ -3,6 +3,7 @@ package v3_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -61,7 +62,7 @@ func TestMigrateParams(t *testing.T) {
 		OracleSetUpdatePowerChangePercent: gravityParams.ValsetUpdatePowerChangePercent,
 		IbcTransferTimeoutHeight:          gravityParams.IbcTransferTimeoutHeight,
 		Oracles:                           nil,
-		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
+		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 		DelegateMultiple:                  10,
 	}, ethParams)
 }

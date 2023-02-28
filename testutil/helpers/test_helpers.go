@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -97,7 +98,7 @@ func DefGenesisState(cdc codec.Codec) app.GenesisState {
 	cdc.MustUnmarshalJSON(genesis[banktypes.ModuleName], bankState)
 	bankState.Balances = append(bankState.Balances, banktypes.Balance{
 		Address: sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromUint64(4_000).MulRaw(1e18))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromUint64(4_000).MulRaw(1e18))),
 	})
 	genesis[banktypes.ModuleName] = cdc.MustMarshalJSON(bankState)
 	return genesis
@@ -105,7 +106,7 @@ func DefGenesisState(cdc codec.Codec) app.GenesisState {
 
 func GenerateGenesisValidator(validatorNum int, initCoins sdk.Coins) (valSet *tmtypes.ValidatorSet, genAccs authtypes.GenesisAccounts, balances []banktypes.Balance) {
 	if initCoins == nil || initCoins.Len() <= 0 {
-		initCoins = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)))
+		initCoins = sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)))
 	}
 	validators := make([]*tmtypes.Validator, validatorNum)
 	genAccs = make(authtypes.GenesisAccounts, validatorNum)
@@ -165,7 +166,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
 			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.ZeroInt(),
+			MinSelfDelegation: sdkmath.ZeroInt(),
 		}
 		validators = append(validators, validator)
 		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[i].GetAddress(), validator.GetOperator(), bondAmt.ToDec()))
@@ -338,7 +339,7 @@ func SignCheckDeliver(t *testing.T, txCfg client.TxConfig, app *baseapp.BaseApp,
 		accSeqs = append(accSeqs, account.GetSequence())
 	}
 
-	gasPrice := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(4).MulRaw(1e12))
+	gasPrice := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(4).MulRaw(1e12))
 	tx, err := GenTx(txCfg, msgs, gasPrice, 10000000, header.ChainID, accNums, accSeqs, priv...)
 	require.NoError(t, err)
 	txBytes, err := txCfg.TxEncoder()(tx)

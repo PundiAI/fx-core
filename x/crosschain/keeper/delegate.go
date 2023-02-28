@@ -9,20 +9,20 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
-func (k Keeper) GetOracleDelegateToken(ctx sdk.Context, delegateAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Int, error) {
+func (k Keeper) GetOracleDelegateToken(ctx sdk.Context, delegateAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdkmath.Int, error) {
 	delegation, found := k.stakingKeeper.GetDelegation(ctx, delegateAddr, valAddr)
 	if !found {
-		return sdk.ZeroInt(), errorsmod.Wrap(types.ErrInvalid, "no delegation for (address, validator) tuple")
+		return sdkmath.ZeroInt(), errorsmod.Wrap(types.ErrInvalid, "no delegation for (address, validator) tuple")
 	}
 	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
-		return sdk.ZeroInt(), stakingtypes.ErrNoValidatorFound
+		return sdkmath.ZeroInt(), stakingtypes.ErrNoValidatorFound
 	}
 
 	delegateToken := validator.TokensFromSharesTruncated(delegation.GetShares()).TruncateInt()
 	sharesTruncated, err := validator.SharesFromTokensTruncated(delegateToken)
 	if err != nil {
-		return sdk.ZeroInt(), errorsmod.Wrapf(types.ErrInvalid, "shares from tokens:%v", delegateToken)
+		return sdkmath.ZeroInt(), errorsmod.Wrapf(types.ErrInvalid, "shares from tokens:%v", delegateToken)
 	}
 	delShares := delegation.GetShares()
 	if sharesTruncated.GT(delShares) {

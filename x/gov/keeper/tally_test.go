@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -28,7 +29,7 @@ func (suite *KeeperTestSuite) TestKeeper_Tally() {
 	suite.app.GovKeeper.SetProposal(suite.ctx, proposal)
 
 	poolBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, suite.app.StakingKeeper.GetBondedPool(suite.ctx).GetAddress())
-	suite.Equal(sdk.NewInt(int64(len(suite.valAddr)*100)).MulRaw(1e18).String(), poolBalances[0].Amount.String(), len(suite.valAddr))
+	suite.Equal(sdkmath.NewInt(int64(len(suite.valAddr)*100)).MulRaw(1e18).String(), poolBalances[0].Amount.String(), len(suite.valAddr))
 
 	for _, voterAddr := range suite.valAddr {
 		err := suite.app.GovKeeper.AddVote(suite.ctx, proposal.ProposalId, voterAddr.Bytes(), types.NewNonSplitVoteOption(types.OptionYes))
@@ -41,8 +42,8 @@ func (suite *KeeperTestSuite) TestKeeper_Tally() {
 	passes, burnDeposits, tallyResults := suite.app.GovKeeper.Tally(suite.ctx, proposal)
 	suite.True(passes)
 	suite.False(burnDeposits)
-	suite.Equal(sdk.ZeroInt(), tallyResults.Abstain)
-	suite.Equal(sdk.ZeroInt(), tallyResults.No)
-	suite.Equal(sdk.ZeroInt(), tallyResults.NoWithVeto)
+	suite.Equal(sdkmath.ZeroInt(), tallyResults.Abstain)
+	suite.Equal(sdkmath.ZeroInt(), tallyResults.No)
+	suite.Equal(sdkmath.ZeroInt(), tallyResults.NoWithVeto)
 	suite.Equal(poolBalances[0].Amount, tallyResults.Yes)
 }

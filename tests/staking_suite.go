@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -36,7 +37,7 @@ func (suite *StakingTestSuite) SetupSuite() {
 	suite.TestSuite.SetupSuite()
 
 	// transfer to eth private key
-	suite.Send(suite.AccAddress(), suite.NewCoin(sdk.NewInt(100).MulRaw(1e18)))
+	suite.Send(suite.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
 }
 
 func (suite *StakingTestSuite) AccAddress() sdk.AccAddress {

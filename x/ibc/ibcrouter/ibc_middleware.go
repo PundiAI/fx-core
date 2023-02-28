@@ -4,6 +4,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -158,9 +159,9 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet chan
 		// recalculate denom, skip checks that were already done in app.OnRecvPacket
 		denom := GetDenomByIBCPacket(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetDestPort(), packet.GetDestChannel(), newData.GetDenom())
 		// parse the transfer amount
-		transferAmount, ok := sdk.NewIntFromString(data.Amount)
+		transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 		if !ok {
-			return nil, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse forward transfer amount (%s) into sdk.Int", data.Amount)
+			return nil, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse forward transfer amount (%s) into sdkmath.Int", data.Amount)
 		}
 
 		token := sdk.NewCoin(denom, transferAmount)

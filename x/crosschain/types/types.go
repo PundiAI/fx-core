@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -16,7 +17,7 @@ import (
 
 // --- ERC20Token --- //
 
-func NewERC20Token(amount sdk.Int, contract string) ERC20Token {
+func NewERC20Token(amount sdkmath.Int, contract string) ERC20Token {
 	return ERC20Token{Amount: amount, Contract: contract}
 }
 
@@ -257,8 +258,8 @@ func (v OutgoingTxBatches) Swap(i, j int) {
 }
 
 // GetFees returns the total fees contained within a given batch
-func (m *OutgoingTxBatch) GetFees() sdk.Int {
-	sum := sdk.ZeroInt()
+func (m *OutgoingTxBatch) GetFees() sdkmath.Int {
+	sum := sdkmath.ZeroInt()
 	for _, t := range m.Transactions {
 		sum = sum.Add(t.Fee.Amount)
 	}
@@ -344,14 +345,14 @@ func (m *Oracle) GetValidator() sdk.ValAddress {
 	return addr
 }
 
-func (m *Oracle) GetSlashAmount(slashFraction sdk.Dec) sdk.Int {
+func (m *Oracle) GetSlashAmount(slashFraction sdk.Dec) sdkmath.Int {
 	slashAmount := m.DelegateAmount.ToDec().Mul(slashFraction).MulInt64(m.SlashTimes).TruncateInt()
-	slashAmount = sdk.MinInt(slashAmount, m.DelegateAmount)
-	slashAmount = sdk.MaxInt(slashAmount, sdk.ZeroInt())
+	slashAmount = sdkmath.MinInt(slashAmount, m.DelegateAmount)
+	slashAmount = sdkmath.MaxInt(slashAmount, sdkmath.ZeroInt())
 	return slashAmount
 }
 
-func (m *Oracle) GetPower() sdk.Int {
+func (m *Oracle) GetPower() sdkmath.Int {
 	return m.DelegateAmount.Quo(sdk.DefaultPowerReduction)
 }
 
@@ -374,8 +375,8 @@ func (v Oracles) Swap(i, j int) {
 	v[i], v[j] = v[j], v[i]
 }
 
-func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdk.Int {
-	kv := make(map[string]sdk.Int, len(ms))
+func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdkmath.Int {
+	kv := make(map[string]sdkmath.Int, len(ms))
 	for _, m := range ms {
 		if m.BaseFee.IsNil() || m.BaseFee.IsNegative() {
 			continue
@@ -387,8 +388,8 @@ func MinBatchFeeToBaseFees(ms []MinBatchFee) map[string]sdk.Int {
 
 type OutgoingTransferTxs []*OutgoingTransferTx
 
-func (bs OutgoingTransferTxs) TotalFee() sdk.Int {
-	totalFee := sdk.NewInt(0)
+func (bs OutgoingTransferTxs) TotalFee() sdkmath.Int {
+	totalFee := sdkmath.NewInt(0)
 	for _, tx := range bs {
 		totalFee = totalFee.Add(tx.Fee.Amount)
 	}

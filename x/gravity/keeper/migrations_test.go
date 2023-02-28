@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -69,10 +70,10 @@ func (suite *MigrationTestSuite) SetupTest() {
 	suite.msgServer = crosschainkeeper.NewMsgServerImpl(suite.app.EthKeeper)
 
 	for _, addr := range v3.GetEthOracleAddrs(suite.ctx.ChainID()) {
-		helpers.AddTestAddr(suite.app, suite.ctx, sdk.MustAccAddressFromBech32(addr), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
+		helpers.AddTestAddr(suite.app, suite.ctx, sdk.MustAccAddressFromBech32(addr), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18))))
 	}
 
-	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).MulRaw(1e18))))
+	suite.bridgerAddrs = helpers.AddTestAddrs(suite.app, suite.ctx, valNumber, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100).MulRaw(1e18))))
 	suite.externals = helpers.CreateMultiECDSA(valNumber)
 	suite.Equal(len(suite.bridgerAddrs), len(valAccounts), valNumber)
 	suite.valAddrs = make([]sdk.ValAddress, len(suite.bridgerAddrs))
@@ -119,7 +120,7 @@ func (suite *MigrationTestSuite) createDefGenesisState() {
 				EventNonce:    suite.genesisState.LastObservedNonce,
 				BlockHeight:   tmrand.Uint64(),
 				TokenContract: helpers.GenerateAddress().Hex(),
-				Amount:        sdk.NewInt(tmrand.Int63() + 1),
+				Amount:        sdkmath.NewInt(tmrand.Int63() + 1),
 				EthSender:     helpers.GenerateAddress().Hex(),
 				FxReceiver:    sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 				TargetIbc:     "",
@@ -158,7 +159,7 @@ func (suite *MigrationTestSuite) TestBridgeTokenClaim() {
 	power := suite.app.EthKeeper.GetLastTotalPower(suite.ctx)
 	onlineOracles := suite.app.EthKeeper.GetAllOracles(suite.ctx, true)
 	suite.True(onlineOracles.Len() > 0 && onlineOracles.Len() <= 20)
-	suite.Equal(power.String(), sdk.NewInt(int64(100*len(onlineOracles))).String())
+	suite.Equal(power.String(), sdkmath.NewInt(int64(100*len(onlineOracles))).String())
 
 	proposalOracle, found := suite.app.EthKeeper.GetProposalOracle(suite.ctx)
 	suite.True(found)
@@ -210,7 +211,7 @@ func (suite *MigrationTestSuite) TestSendToFxClaim() {
 		EventNonce:    suite.genesisState.LastObservedNonce,
 		BlockHeight:   tmrand.Uint64(),
 		TokenContract: bridgeToken.Token,
-		Amount:        sdk.NewInt(1),
+		Amount:        sdkmath.NewInt(1),
 		Sender:        helpers.GenerateAddress().Hex(),
 		Receiver:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 		TargetIbc:     "",
@@ -254,15 +255,15 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 	suite.app.BankKeeper.SetDenomMetaData(suite.ctx, metadata)
 
 	err := suite.app.BankKeeper.MintCoins(suite.ctx,
-		ethtypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(200))))
+		ethtypes.ModuleName, sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(200))))
 	suite.NoError(err)
 
 	err = suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx,
-		ethtypes.ModuleName, types.ModuleName, sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(200))))
+		ethtypes.ModuleName, types.ModuleName, sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(200))))
 	suite.NoError(err)
 
 	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx,
-		types.ModuleName, suite.valAddrs[0].Bytes(), sdk.NewCoins(sdk.NewCoin(denom, sdk.NewInt(100))))
+		types.ModuleName, suite.valAddrs[0].Bytes(), sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(100))))
 	suite.NoError(err)
 
 	suite.InitGravityStore()
@@ -273,14 +274,14 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 	_, err = suite.msgServer.SendToExternal(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.MsgSendToExternal{
 		Sender:    sdk.AccAddress(suite.valAddrs[0]).String(),
 		Dest:      helpers.GenerateAddress().Hex(),
-		Amount:    sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(1)),
-		BridgeFee: sdk.NewCoin(bridgeToken.Denom, sdk.NewInt(1)),
+		Amount:    sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(1)),
+		BridgeFee: sdk.NewCoin(bridgeToken.Denom, sdkmath.NewInt(1)),
 		ChainName: ethtypes.ModuleName,
 	})
 	suite.NoError(err)
 
 	balances := suite.app.BankKeeper.GetBalance(suite.ctx, suite.valAddrs[0].Bytes(), denom)
-	suite.Equal(balances, sdk.NewCoin(denom, sdk.NewInt(98)))
+	suite.Equal(balances, sdk.NewCoin(denom, sdkmath.NewInt(98)))
 
 	response, err := suite.app.EthKeeper.BatchFees(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.QueryBatchFeeRequest{})
 	suite.NoError(err)
@@ -290,10 +291,10 @@ func (suite *MigrationTestSuite) TestSendToExternal() {
 	_, err = suite.msgServer.RequestBatch(sdk.WrapSDKContext(suite.ctx), &crosschaintypes.MsgRequestBatch{
 		Sender:     suite.bridgerAddrs[0].String(),
 		Denom:      denom,
-		MinimumFee: sdk.ZeroInt(),
+		MinimumFee: sdkmath.ZeroInt(),
 		FeeReceive: helpers.GenerateAddress().Hex(),
 		ChainName:  ethtypes.ModuleName,
-		BaseFee:    sdk.ZeroInt(),
+		BaseFee:    sdkmath.ZeroInt(),
 	})
 	suite.NoError(err)
 

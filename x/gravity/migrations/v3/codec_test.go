@@ -4,6 +4,7 @@ package v3_test
 import (
 	"reflect"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -49,11 +50,11 @@ func (suite *TestSuite) TestCodec() {
 				DestAddress: helpers.GenerateAddress().String(),
 				Erc20Token: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().String(),
-					Amount:   sdk.NewInt(tmrand.Int63() + 1),
+					Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 				},
 				Erc20Fee: &types.ERC20Token{
 					Contract: helpers.GenerateAddress().String(),
-					Amount:   sdk.NewInt(tmrand.Int63() + 1),
+					Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 				},
 			},
 			newValue: &crosschaintypes.OutgoingTransferTx{},
@@ -70,11 +71,11 @@ func (suite *TestSuite) TestCodec() {
 						DestAddress: helpers.GenerateAddress().String(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(tmrand.Int63() + 1),
+							Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(tmrand.Int63() + 1),
+							Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 						},
 					},
 					{
@@ -83,11 +84,11 @@ func (suite *TestSuite) TestCodec() {
 						DestAddress: helpers.GenerateAddress().String(),
 						Erc20Token: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(tmrand.Int63() + 1),
+							Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 						},
 						Erc20Fee: &types.ERC20Token{
 							Contract: helpers.GenerateAddress().String(),
-							Amount:   sdk.NewInt(tmrand.Int63() + 1),
+							Amount:   sdkmath.NewInt(tmrand.Int63() + 1),
 						},
 					},
 				},

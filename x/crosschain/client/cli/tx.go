@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -262,13 +263,13 @@ func CmdRequestBatch(chainName string) *cobra.Command {
 			}
 			denom := args[0]
 
-			minimumFee, ok := sdk.NewIntFromString(args[1])
+			minimumFee, ok := sdkmath.NewIntFromString(args[1])
 			if !ok || minimumFee.IsNegative() {
 				return fmt.Errorf("miniumu fee is valid, %v", args[1])
 			}
-			baseFee := sdk.ZeroInt()
+			baseFee := sdkmath.ZeroInt()
 			if len(args[2]) > 0 {
-				baseFee, ok = sdk.NewIntFromString(args[2])
+				baseFee, ok = sdkmath.NewIntFromString(args[2])
 				if !ok {
 					return fmt.Errorf("invalid base fee: %v", args[2])
 				}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -29,7 +30,7 @@ func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 
 	for _, oracle := range allOracles {
 		power := oracle.GetPower()
-		if power.LTE(sdk.ZeroInt()) {
+		if power.LTE(sdkmath.ZeroInt()) {
 			continue
 		}
 		totalPower += power.Uint64()
@@ -40,7 +41,7 @@ func (k Keeper) GetCurrentOracleSet(ctx sdk.Context) *types.OracleSet {
 	}
 	// normalize power values
 	for i := range bridgeValidators {
-		bridgeValidators[i].Power = sdk.NewUint(bridgeValidators[i].Power).MulUint64(math.MaxUint32).QuoUint64(totalPower).Uint64()
+		bridgeValidators[i].Power = sdkmath.NewUint(bridgeValidators[i].Power).MulUint64(math.MaxUint32).QuoUint64(totalPower).Uint64()
 	}
 
 	oracleSetNonce := k.GetLatestOracleSetNonce(ctx) + 1

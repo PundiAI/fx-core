@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -72,7 +73,7 @@ func (s MsgServer) BondedOracle(c context.Context, msg *types.MsgBondedOracle) (
 	if msg.DelegateAmount.IsLT(threshold) {
 		return nil, types.ErrDelegateAmountBelowMinimum
 	}
-	if msg.DelegateAmount.Amount.GT(threshold.Amount.Mul(sdk.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
+	if msg.DelegateAmount.Amount.GT(threshold.Amount.Mul(sdkmath.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 
@@ -131,7 +132,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	if oracle.DelegateAmount.Sub(threshold.Amount).IsNegative() {
 		return nil, types.ErrDelegateAmountBelowMinimum
 	}
-	if oracle.DelegateAmount.GT(threshold.Amount.Mul(sdk.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
+	if oracle.DelegateAmount.GT(threshold.Amount.Mul(sdkmath.NewInt(s.GetOracleDelegateMultiple(ctx)))) {
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 

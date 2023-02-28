@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,7 +16,7 @@ func (h Hooks) HookTransferEvent(ctx sdk.Context, relayTransfers []types.RelayTr
 		h.k.Logger(ctx).Info("relay token", "from", relay.From.Hex(), "amount", relay.Amount.String(), "denom", relay.Denom, "token", relay.TokenContract)
 
 		// create the corresponding sdk.Coin that is paired with FIP20
-		coins := sdk.Coins{{Denom: relay.Denom, Amount: sdk.NewIntFromBigInt(relay.Amount)}}
+		coins := sdk.Coins{{Denom: relay.Denom, Amount: sdkmath.NewIntFromBigInt(relay.Amount)}}
 
 		switch relay.ContractOwner {
 		case types.OWNER_MODULE: // native coin

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -62,7 +63,7 @@ func (suite *AnteTestSuite) SetupTest() {
 		Time:            time.Now().UTC(),
 	})
 	suite.ctx = suite.ctx.
-		WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt()))).
+		WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt()))).
 		WithBlockGasMeter(sdk.NewGasMeter(1e18)).
 		WithGasMeter(sdk.NewInfiniteGasMeter())
 	suite.signer = helpers.NewSigner(helpers.NewPriKey())
@@ -433,7 +434,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				suite.Require().NoError(err)
 
 				invalidFee := new(big.Int).Add(txData.Fee(), big.NewInt(1))
-				invalidFeeAmount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(invalidFee))
+				invalidFeeAmount := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(invalidFee))
 				txBuilder.SetFeeAmount(sdk.NewCoins(invalidFeeAmount))
 				return txBuilder.GetTx()
 			},
@@ -775,13 +776,13 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			suite.ctx = suite.ctx.WithBlockHeight(1)
 			params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 			params.MinGasPrice = sdk.ZeroDec()
-			params.BaseFee = sdk.NewIntFromUint64(ethparams.InitialBaseFee)
+			params.BaseFee = sdkmath.NewIntFromUint64(ethparams.InitialBaseFee)
 			params.EnableHeight = 1
 			params.NoBaseFee = false
 			suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 			if !tc.enableLondonHF {
 				ethParams := suite.app.EvmKeeper.GetParams(suite.ctx)
-				maxInt := sdk.NewInt(math.MaxInt64)
+				maxInt := sdkmath.NewInt(math.MaxInt64)
 				ethParams.ChainConfig.LondonBlock = &maxInt
 				ethParams.ChainConfig.ArrowGlacierBlock = &maxInt
 				ethParams.ChainConfig.GrayGlacierBlock = &maxInt
@@ -914,7 +915,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			suite.SetupTest() // reset
 			params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 			params.MinGasPrice = sdk.ZeroDec()
-			params.BaseFee = sdk.NewIntFromUint64(ethparams.InitialBaseFee)
+			params.BaseFee = sdkmath.NewIntFromUint64(ethparams.InitialBaseFee)
 			suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 
 			ethParams := suite.app.EvmKeeper.GetParams(suite.ctx)
@@ -974,7 +975,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(msg *evmtypes.MsgEthereumTx, pri
 	txData, err := evmtypes.UnpackTxData(msg.Data)
 	suite.Require().NoError(err)
 
-	fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewIntFromBigInt(txData.Fee())))
+	fees := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewIntFromBigInt(txData.Fee())))
 	builder.SetFeeAmount(fees)
 	builder.SetGasLimit(msg.GetGas())
 
@@ -1067,7 +1068,7 @@ func (suite *AnteTestSuite) CreateEmptyTestTx(txBuilder client.TxBuilder, privs 
 	return txBuilder.GetTx(), nil
 }
 
-func (suite *AnteTestSuite) CreateTestCosmosTxBuilder(gasPrice sdk.Int, denom string, msgs ...sdk.Msg) client.TxBuilder {
+func (suite *AnteTestSuite) CreateTestCosmosTxBuilder(gasPrice sdkmath.Int, denom string, msgs ...sdk.Msg) client.TxBuilder {
 	txBuilder := NewClientCtx().TxConfig.NewTxBuilder()
 
 	txBuilder.SetGasLimit(TestGasLimit)

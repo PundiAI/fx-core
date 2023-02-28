@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 				OracleAddress:     sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String(),
 				BridgerAddress:    sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String(),
 				ExternalAddress:   sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String(),
-				DelegateAmount:    sdk.NewInt(10_000).MulRaw(1e18),
+				DelegateAmount:    sdkmath.NewInt(10_000).MulRaw(1e18),
 				StartHeight:       100,
 				Online:            number%2 == 0,
 				DelegateValidator: validatorAddr,
@@ -79,7 +80,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 			require.Equal(t, len(validators), 20)
 			delegatorValidator := validators[0]
 
-			totalTokens := sdk.NewInt(0)
+			totalTokens := sdkmath.NewInt(0)
 			totalDelegatorShares := sdk.NewDec(0)
 			for _, validator := range validators {
 				totalTokens = totalTokens.Add(validator.Tokens)
@@ -133,7 +134,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 			}
 
 			validators1 := myApp.StakingKeeper.GetBondedValidatorsByPower(ctx)
-			totalTokens1 := sdk.NewInt(0)
+			totalTokens1 := sdkmath.NewInt(0)
 			totalDelegatorShares1 := sdk.NewDec(0)
 			for _, validator := range validators1 {
 				totalTokens1 = totalTokens1.Add(validator.Tokens)

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -53,7 +54,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		ProposerAddress: set.Proposer.Address,
 		Time:            time.Now().UTC(),
 	})
-	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
+	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
@@ -72,7 +73,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		suite.app.SlashingKeeper.SetValidatorSigningInfo(suite.ctx, validator.Address.Bytes(), signingInfo)
 	}
 
-	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))))
+	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))
 }
 
 func (suite *KeeperTestSuite) Commit() {
@@ -100,11 +101,11 @@ func (suite *KeeperTestSuite) Commit() {
 
 func (suite *KeeperTestSuite) RandSigner() *helpers.Signer {
 	privKey := helpers.NewEthPrivKey()
-	helpers.AddTestAddr(suite.app, suite.ctx, privKey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1e6).Mul(sdk.NewInt(1e18)))))
+	helpers.AddTestAddr(suite.app, suite.ctx, privKey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1e6).Mul(sdkmath.NewInt(1e18)))))
 	return helpers.NewSigner(privKey)
 }
 
-func (suite *KeeperTestSuite) RandDelegates(setVal ...types.Validator) (signer *helpers.Signer, val sdk.ValAddress, lpToken common.Address, bondAmt sdk.Int, share sdk.Dec) {
+func (suite *KeeperTestSuite) RandDelegates(setVal ...types.Validator) (signer *helpers.Signer, val sdk.ValAddress, lpToken common.Address, bondAmt sdkmath.Int, share sdk.Dec) {
 	validators := suite.app.StakingKeeper.GetAllValidators(suite.ctx)
 	randVal := validators[tmrand.Intn(len(validators))]
 	if len(setVal) > 0 {
@@ -115,7 +116,7 @@ func (suite *KeeperTestSuite) RandDelegates(setVal ...types.Validator) (signer *
 	suite.Require().True(found)
 
 	signer = suite.RandSigner()
-	bondAmt = sdk.NewInt(int64(tmrand.Int() + 100)).Mul(sdk.NewInt(1e18))
+	bondAmt = sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
 	helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, bondAmt)))
 
 	var err error

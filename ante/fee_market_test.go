@@ -3,6 +3,7 @@ package ante_test
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -26,9 +27,9 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 				testMsg := banktypes.MsgSend{
 					FromAddress: sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
 					ToAddress:   sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
-					Amount:      sdk.Coins{sdk.Coin{Amount: sdk.NewInt(10), Denom: denom}},
+					Amount:      sdk.Coins{sdk.Coin{Amount: sdkmath.NewInt(10), Denom: denom}},
 				}
-				txBuilder := suite.CreateTestCosmosTxBuilder(sdk.NewInt(10), "stake", &testMsg)
+				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(10), "stake", &testMsg)
 				return txBuilder.GetTx()
 			},
 		},

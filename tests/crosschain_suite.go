@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -44,9 +45,9 @@ func NewCrosschainWithTestSuite(chainName string, ts *TestSuite) CrosschainTestS
 }
 
 func (suite *CrosschainTestSuite) Init() {
-	suite.Send(suite.OracleAddr(), suite.NewCoin(sdk.NewInt(10_100).MulRaw(1e18)))
-	suite.Send(suite.BridgerAddr(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
-	suite.Send(suite.AccAddress(), suite.NewCoin(sdk.NewInt(1_000).MulRaw(1e18)))
+	suite.Send(suite.OracleAddr(), suite.NewCoin(sdkmath.NewInt(10_100).MulRaw(1e18)))
+	suite.Send(suite.BridgerAddr(), suite.NewCoin(sdkmath.NewInt(1_000).MulRaw(1e18)))
+	suite.Send(suite.AccAddress(), suite.NewCoin(sdkmath.NewInt(1_000).MulRaw(1e18)))
 	suite.params = suite.QueryParams()
 }
 
@@ -247,7 +248,7 @@ func (suite *CrosschainTestSuite) SendOracleSetConfirm() {
 	}
 }
 
-func (suite *CrosschainTestSuite) SendToFxClaim(token string, amount sdk.Int, targetIbc string) {
+func (suite *CrosschainTestSuite) SendToFxClaim(token string, amount sdkmath.Int, targetIbc string) {
 	sender := suite.HexAddress().Hex()
 	if suite.chainName == trontypes.ModuleName {
 		sender = trontypes.AddressFromHex(sender)
@@ -284,8 +285,8 @@ func (suite *CrosschainTestSuite) SendToExternal(count int, amount sdk.Coin) uin
 		msgList = append(msgList, &crosschaintypes.MsgSendToExternal{
 			Sender:    suite.AccAddress().String(),
 			Dest:      dest,
-			Amount:    amount.SubAmount(sdk.NewInt(1)),
-			BridgeFee: sdk.NewCoin(amount.Denom, sdk.NewInt(1)),
+			Amount:    amount.SubAmount(sdkmath.NewInt(1)),
+			BridgeFee: sdk.NewCoin(amount.Denom, sdkmath.NewInt(1)),
 			ChainName: suite.chainName,
 		})
 	}

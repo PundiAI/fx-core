@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -28,7 +29,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 		{
 			name: "ok - module",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))))
 				moduleName := md.RandModule()
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
@@ -75,7 +76,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 				}
 				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
 				suite.Require().NoError(err)
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(denom, sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewIntFromBigInt(randMint))))
 
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
@@ -98,7 +99,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 			name: "failed - from address insufficient funds",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))))
 				moduleName := md.RandModule()
 				relay := types.RelayTransferCrossChain{
 					TransferCrossChainEvent: &types.TransferCrossChainEvent{
@@ -127,7 +128,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
 				addAmount := big.NewInt(0).Add(randMint, big.NewInt(1))
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(addAmount))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(addAmount))))
 				moduleName := md.RandModule()
 				expectedModuleName := moduleName
 				if moduleName == "gravity" {
@@ -160,7 +161,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 			name: "failed - target not support",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))))
 
 				unknownChain := "chainabc"
 				relay := types.RelayTransferCrossChain{
@@ -185,10 +186,10 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 		{
 			name: "failed - bridge token is not exist",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int) ([]types.RelayTransferCrossChain, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))))
 
 				randDenom := helpers.NewRandDenom()
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(randDenom, sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(randDenom, sdkmath.NewIntFromBigInt(randMint))))
 
 				moduleName := md.RandModule()
 				relay := types.RelayTransferCrossChain{
@@ -221,7 +222,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainChain() {
 			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
 			suite.NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
-			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdk.NewIntFromBigInt(randMint))
+			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
 			// relay event
 			relays, errArgs := tc.malleate(*pair, md, signer.Address(), randMint)
 			// hook transfer cross chain
@@ -248,7 +249,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 			name: "ok - ibc token",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))))
 				prefix, recipient := suite.RandPrefixAndAddress()
 
 				relay := types.RelayTransferCrossChain{
@@ -271,7 +272,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 			name: "ok - base token",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
 				// add relay token
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))))
 				sourcePort1, sourceChannel1 := suite.RandTransferChannel()
 				prefix, recipient := suite.RandPrefixAndAddress()
 
@@ -294,7 +295,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 		{
 			name: "failed - no zero fee",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))))
 				prefix, recipient := suite.RandPrefixAndAddress()
 
 				fee := big.NewInt(int64(tmrand.Intn(1000) + 10))
@@ -323,7 +324,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 		{
 			name: "failed - invalid recipient address - hex",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))))
 				prefix, recipient := "0x", suite.RandSigner().AccAddress().String()
 				ibcTarget := fmt.Sprintf("ibc/%s/%s", strings.TrimPrefix(sourceChannel, ibcchanneltypes.ChannelPrefix), prefix)
 				relay := types.RelayTransferCrossChain{
@@ -349,7 +350,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 		{
 			name: "failed - invalid recipient address - bench32",
 			malleate: func(pair types.TokenPair, md Metadata, singerAddr common.Address, randMint *big.Int, sourcePort, sourceChannel string) ([]types.RelayTransferCrossChain, []string) {
-				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdk.NewIntFromBigInt(randMint))))
+				helpers.AddTestAddr(suite.app, suite.ctx, singerAddr.Bytes(), sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))))
 				prefix, recipient := "px", helpers.GenerateAddress().Hex()
 				ibcTarget := fmt.Sprintf("ibc/%s/%s", strings.TrimPrefix(sourceChannel, ibcchanneltypes.ChannelPrefix), prefix)
 				relay := types.RelayTransferCrossChain{
@@ -387,7 +388,7 @@ func (suite *KeeperTestSuite) TestHookCrossChainIBC() {
 			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
 			suite.NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 100000))
-			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdk.NewIntFromBigInt(randMint))
+			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
 			// relay event
 			relays, errArgs := tc.malleate(*pair, md, signer.Address(), randMint, sourcePort, sourceChannel)
 			// hook transfer cross chain

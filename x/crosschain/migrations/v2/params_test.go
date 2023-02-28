@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -78,7 +79,7 @@ func TestMigrateParams(t *testing.T) {
 					SlashFraction:                     sdk.MustNewDecFromStr("0.8"),
 					OracleSetUpdatePowerChangePercent: sdk.MustNewDecFromStr("0.1"),
 					IbcTransferTimeoutHeight:          20_000,
-					DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)),
+					DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)),
 					DelegateMultiple:                  10,
 				},
 			})
@@ -95,7 +96,7 @@ func TestMigrateParams(t *testing.T) {
 			paramsKey := myApp.GetKey(paramstypes.ModuleName)
 			paramsStore := prefix.NewStore(ctx.KVStore(paramsKey), append([]byte(tt.args.moduleName), '/'))
 			paramsStore.Set(crosschainv1.ParamStoreOracles, myApp.LegacyAmino().MustMarshalJSON([]string{sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Bytes()).String()}))
-			paramsStore.Set(crosschainv1.ParamOracleDepositThreshold, myApp.LegacyAmino().MustMarshalJSON(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18))))
+			paramsStore.Set(crosschainv1.ParamOracleDepositThreshold, myApp.LegacyAmino().MustMarshalJSON(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18))))
 
 			require.True(t, crosschainv2.CheckInitialize(ctx, tt.args.moduleName, myApp.GetKey(paramstypes.ModuleName)))
 			require.NoError(t, crosschainv2.MigrateParams(ctx, tt.args.moduleName, myApp.LegacyAmino(), myApp.GetKey(paramstypes.ModuleName)))
@@ -111,7 +112,7 @@ func TestMigrateParams(t *testing.T) {
 			require.NoError(t, paramsFromDB.ValidateBasic())
 
 			require.EqualValues(t, paramsFromDB.AverageBlockTime, 7_000)
-			require.Equal(t, paramsFromDB.DelegateThreshold, sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10_000).MulRaw(1e18)))
+			require.Equal(t, paramsFromDB.DelegateThreshold, sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10_000).MulRaw(1e18)))
 			require.EqualValues(t, paramsFromDB.DelegateMultiple, types.DefaultOracleDelegateThreshold)
 
 			defParams := types.DefaultParams()

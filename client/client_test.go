@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -74,7 +75,7 @@ func (suite *rpcTestSuite) SetupSuite() {
 	suite.network, err = network.New(suite.T(), baseDir, cfg)
 	suite.Require().NoError(err)
 
-	suite.FirstValidatorTransferTo(1, sdk.NewInt(1_000).MulRaw(1e18))
+	suite.FirstValidatorTransferTo(1, sdkmath.NewInt(1_000).MulRaw(1e18))
 }
 
 func (suite *rpcTestSuite) TearDownSuite() {
@@ -110,7 +111,7 @@ func (suite *rpcTestSuite) GetClients() []rpcTestClient {
 	}
 }
 
-func (suite *rpcTestSuite) FirstValidatorTransferTo(index uint32, amount sdk.Int) {
+func (suite *rpcTestSuite) FirstValidatorTransferTo(index uint32, amount sdkmath.Int) {
 	validator := suite.GetFirstValidator()
 	suite.True(validator.AppConfig.GRPC.Enable)
 	grpcClient, err := grpc.NewClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
@@ -146,7 +147,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 			banktypes.NewMsgSend(
 				privKey.PubKey().Address().Bytes(),
 				toAddress,
-				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))),
+				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1))),
 			),
 		},
 		)
@@ -185,7 +186,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 			banktypes.NewMsgSend(
 				privKey.PubKey().Address().Bytes(),
 				ethAddress,
-				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(10).MulRaw(1e18))),
+				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10).MulRaw(1e18))),
 			),
 		},
 		)
@@ -215,7 +216,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 			banktypes.NewMsgSend(
 				ethPrivKey.PubKey().Address().Bytes(),
 				toAddress,
-				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1))),
+				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1))),
 			),
 		},
 		)
@@ -295,7 +296,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 						sdk.Coins{
 							sdk.Coin{
 								Denom:  fxtypes.DefaultDenom,
-								Amount: sdk.NewInt(500_000).MulRaw(1e18),
+								Amount: sdkmath.NewInt(500_000).MulRaw(1e18),
 							},
 						},
 					)
@@ -309,7 +310,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 				sdk.Coins{
 					sdk.Coin{
 						Denom:  fxtypes.DefaultDenom,
-						Amount: sdk.NewInt(4).MulRaw(1e12),
+						Amount: sdkmath.NewInt(4).MulRaw(1e12),
 					},
 				},
 				nil,
@@ -354,7 +355,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 			wantRes: []interface{}{
 				sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
-					Amount: sdk.NewInt(488998).MulRaw(1e18),
+					Amount: sdkmath.NewInt(488998).MulRaw(1e18),
 				},
 				nil,
 			},
@@ -365,7 +366,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 			wantRes: []interface{}{
 				sdk.Coin{
 					Denom:  fxtypes.DefaultDenom,
-					Amount: sdk.ZeroInt(),
+					Amount: sdkmath.ZeroInt(),
 				},
 				nil,
 			},
@@ -377,7 +378,7 @@ func (suite *rpcTestSuite) TestClient_Query() {
 				sdk.Coins{
 					sdk.Coin{
 						Denom:  fxtypes.DefaultDenom,
-						Amount: sdk.NewInt(488998).MulRaw(1e18),
+						Amount: sdkmath.NewInt(488998).MulRaw(1e18),
 					},
 				},
 				nil,

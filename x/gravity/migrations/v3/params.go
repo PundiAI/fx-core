@@ -1,6 +1,7 @@
 package v3
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,7 +41,7 @@ func MigrateParams(legacyAmino *codec.LegacyAmino, paramsStore sdk.KVStore, toMo
 		SlashFraction:                     sdk.NewDecWithPrec(8, 1), // 80%
 		OracleSetUpdatePowerChangePercent: gravityParams.ValsetUpdatePowerChangePercent,
 		IbcTransferTimeoutHeight:          gravityParams.IbcTransferTimeoutHeight,
-		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100).Mul(sdk.DefaultPowerReduction)),
+		DelegateThreshold:                 sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100).Mul(sdk.DefaultPowerReduction)),
 		DelegateMultiple:                  crosschaintypes.DefaultOracleDelegateThreshold,
 	}
 

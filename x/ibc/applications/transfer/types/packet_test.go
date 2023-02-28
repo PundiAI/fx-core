@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +16,7 @@ const (
 
 var (
 	defaultPacketRouter = ""
-	defaultPacketFeeStr = sdk.ZeroInt().String()
+	defaultPacketFeeStr = sdkmath.ZeroInt().String()
 )
 
 // TestFungibleTokenPacketDataValidateBasic tests ValidateBasic for FungibleTokenPacketData

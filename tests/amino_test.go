@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -42,13 +43,13 @@ func TestAminoEncode(t *testing.T) {
 			msg: ibctransfertypes.MsgTransfer{
 				SourcePort:       "transfer",
 				SourceChannel:    "channel-0",
-				Token:            sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1)),
+				Token:            sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1)),
 				Sender:           "fx1001",
 				Receiver:         "0x001",
 				TimeoutHeight:    clienttypes.Height{},
 				TimeoutTimestamp: 1675063442000000000,
 				Router:           "",
-				Fee:              sdk.NewCoin(fxtypes.DefaultDenom, sdk.ZeroInt()),
+				Fee:              sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.ZeroInt()),
 				Memo:             "",
 			},
 		},

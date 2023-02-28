@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -223,8 +224,8 @@ func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, tokenContract stri
 // have if created right now. This info is both presented to relayers for the purpose of determining
 // when to request batches and also used by the batch creation process to decide not to create
 // a new batch (fees must be increasing)
-func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContract string, maxElements uint, baseFee sdk.Int) *types.BatchFees {
-	batchFee := &types.BatchFees{TokenContract: tokenContract, TotalFees: sdk.NewInt(0), TotalAmount: sdk.NewInt(0)}
+func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContract string, maxElements uint, baseFee sdkmath.Int) *types.BatchFees {
+	batchFee := &types.BatchFees{TokenContract: tokenContract, TotalFees: sdkmath.NewInt(0), TotalAmount: sdkmath.NewInt(0)}
 	k.IterateUnbatchedTransactions(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
 		if tx.Fee.Contract != tokenContract {
 			panic(fmt.Errorf("unexpected fee contract %s when getting batch fees for contract %s", tx.Fee.Contract, tokenContract))

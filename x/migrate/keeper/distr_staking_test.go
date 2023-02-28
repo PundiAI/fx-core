@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -28,7 +29,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)
@@ -41,7 +42,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 	val1 := validators[0]
 
 	// acc delegate
-	_, err := suite.app.StakingKeeper.Delegate(suite.ctx, acc, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+	_, err := suite.app.StakingKeeper.Delegate(suite.ctx, acc, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
 
 	// check acc delegate
@@ -89,7 +90,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
 }
 
 func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)
@@ -102,7 +103,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	val1 := validators[0]
 
 	// delegate
-	delegateAmount := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000))
+	delegateAmount := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000))
 	_, err := suite.app.StakingKeeper.Delegate(suite.ctx, acc, delegateAmount, stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
 
@@ -154,18 +155,18 @@ func (suite *KeeperTestSuite) TestMigrateStakingUnbonding() {
 	suite.Require().Equal(sdk.AccAddress(ethAcc.Bytes()).String(), slice[0].DelegatorAddress)
 
 	ethAccBalanceV1 := suite.app.BankKeeper.GetBalance(suite.ctx, ethAcc.Bytes(), fxtypes.DefaultDenom)
-	suite.Require().True(ethAccBalanceV1.Amount.GT(sdk.NewInt(0)))
+	suite.Require().True(ethAccBalanceV1.Amount.GT(sdkmath.NewInt(0)))
 
 	suite.ctx = commitUnbonding(suite.T(), suite.ctx, suite.app)
 
 	suite.ctx = commitBlock(suite.T(), suite.ctx, suite.app)
 
 	ethAccBalanceV2 := suite.app.BankKeeper.GetBalance(suite.ctx, ethAcc.Bytes(), fxtypes.DefaultDenom)
-	suite.Require().Equal(ethAccBalanceV2.Sub(ethAccBalanceV1).Amount, delegateAmount.Quo(sdk.NewInt(10)))
+	suite.Require().Equal(ethAccBalanceV2.Sub(ethAccBalanceV1).Amount, delegateAmount.Quo(sdkmath.NewInt(10)))
 }
 
 func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
-	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdk.NewInt(1000)))
+	suite.mintToken(bsctypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoin("ibc/ABC", sdkmath.NewInt(1000)))
 
 	keys := suite.GenerateAcc(1)
 	suite.Require().Equal(len(keys), 1)
@@ -178,7 +179,7 @@ func (suite *KeeperTestSuite) TestMigrateStakingRedelegate() {
 	val1, val2 := validators[0], validators[1]
 
 	// delegate
-	_, err := suite.app.StakingKeeper.Delegate(suite.ctx, acc, sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(1000)), stakingtypes.Unbonded, val1, true)
+	_, err := suite.app.StakingKeeper.Delegate(suite.ctx, acc, sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(1000)), stakingtypes.Unbonded, val1, true)
 	suite.Require().NoError(err)
 
 	_, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, acc, val1.GetOperator())

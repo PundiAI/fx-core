@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -114,13 +115,13 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 
 			sender := sdk.AccAddress(suite.signer.Address().Bytes())
 
-			coins := sdk.NewCoins(sdk.NewCoin(metadata.Base, sdk.NewInt(tc.mint)))
+			coins := sdk.NewCoins(sdk.NewCoin(metadata.Base, sdkmath.NewInt(tc.mint)))
 			suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins))
 			suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, sender, coins))
 
 			_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx),
 				types.NewMsgConvertCoin(
-					sdk.NewCoin(metadata.Base, sdk.NewInt(tc.burn)),
+					sdk.NewCoin(metadata.Base, sdkmath.NewInt(tc.burn)),
 					suite.signer.Address(),
 					sender,
 				),
@@ -129,7 +130,7 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 
 			balance := suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
-			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
+			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdkmath.NewInt(tc.mint-tc.burn).Int64())
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
 			suite.TransferERC20TokenToModule(suite.signer, pair.GetERC20Contract(), big.NewInt(tc.reconvert))
@@ -139,12 +140,12 @@ func (suite *KeeperTestSuite) TestEvmHooksRegisterCoin() {
 			if tc.result {
 				// Check if the execution was successful
 				suite.Require().NoError(err)
-				suite.Require().Equal(cosmosBalance.Amount, sdk.NewInt(tc.mint-tc.burn+tc.reconvert))
+				suite.Require().Equal(cosmosBalance.Amount, sdkmath.NewInt(tc.mint-tc.burn+tc.reconvert))
 				suite.Require().Equal(balance, big.NewInt(tc.burn-tc.reconvert))
 			} else {
 				// Check that no changes were made to the account
 				suite.Require().Error(err)
-				suite.Require().Equal(cosmosBalance.Amount, sdk.NewInt(tc.mint-tc.burn))
+				suite.Require().Equal(cosmosBalance.Amount, sdkmath.NewInt(tc.mint-tc.burn))
 				suite.Require().Equal(balance, big.NewInt(tc.burn))
 			}
 		})

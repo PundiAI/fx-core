@@ -5,6 +5,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -33,9 +34,9 @@ func NewFungibleTokenPacketData(denom, amount, sender, receiver, router string, 
 // NOTE: The addresses formats are not validated as the sender and recipient can have different
 // formats defined by their corresponding chains that are not known to IBC.
 func (ftpd FungibleTokenPacketData) ValidateBasic() error {
-	amount, ok := sdk.NewIntFromString(ftpd.Amount)
+	amount, ok := sdkmath.NewIntFromString(ftpd.Amount)
 	if !ok {
-		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", ftpd.Amount)
+		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdkmath.Int", ftpd.Amount)
 	}
 	if !amount.IsPositive() {
 		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
@@ -46,9 +47,9 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 	if strings.TrimSpace(ftpd.Receiver) == "" {
 		return errorsmod.Wrap(errortypes.ErrInvalidAddress, "receiver address cannot be blank")
 	}
-	fee, ok := sdk.NewIntFromString(ftpd.Fee)
+	fee, ok := sdkmath.NewIntFromString(ftpd.Fee)
 	if !ok {
-		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer fee (%s) into sdk.Int", ftpd.Fee)
+		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer fee (%s) into sdkmath.Int", ftpd.Fee)
 	}
 	if fee.IsNegative() {
 		return errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee must be strictly not negative: got %d", fee)

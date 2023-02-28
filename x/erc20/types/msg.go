@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -65,7 +66,7 @@ func (m *MsgConvertCoin) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgConvertERC20 creates a new instance of MsgConvertERC20
-func NewMsgConvertERC20(amount sdk.Int, receiver sdk.AccAddress, contract, sender common.Address) *MsgConvertERC20 {
+func NewMsgConvertERC20(amount sdkmath.Int, receiver sdk.AccAddress, contract, sender common.Address) *MsgConvertERC20 {
 	return &MsgConvertERC20{
 		ContractAddress: contract.String(),
 		Amount:          amount,

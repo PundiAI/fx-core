@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -85,14 +86,14 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 
 			tc.malleate(erc20)
 
-			coins := sdk.NewCoins(sdk.NewCoin(metadata.Base, sdk.NewInt(tc.mint)))
+			coins := sdk.NewCoins(sdk.NewCoin(metadata.Base, sdkmath.NewInt(tc.mint)))
 			sender := sdk.AccAddress(suite.signer.Address().Bytes())
 
 			suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins))
 			suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, sender, coins))
 
 			msg := types.NewMsgConvertCoin(
-				sdk.NewCoin(metadata.Base, sdk.NewInt(tc.burn)),
+				sdk.NewCoin(metadata.Base, sdkmath.NewInt(tc.burn)),
 				suite.signer.Address(),
 				sender,
 			)
@@ -115,7 +116,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 					suite.Require().False(found)
 				} else {
 					suite.Require().Equal(&types.MsgConvertCoinResponse{}, res)
-					suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
+					suite.Require().Equal(cosmosBalance.Amount.Int64(), sdkmath.NewInt(tc.mint-tc.burn).Int64())
 					suite.Require().Equal(balance.Int64(), big.NewInt(tc.burn).Int64())
 				}
 			} else {
@@ -155,12 +156,12 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			suite.Require().NotNil(pair)
 
 			// Precondition: Convert Coin to ERC20
-			coins := sdk.NewCoins(sdk.NewCoin(metadata.Base, sdk.NewInt(tc.mint)))
+			coins := sdk.NewCoins(sdk.NewCoin(metadata.Base, sdkmath.NewInt(tc.mint)))
 			sender := sdk.AccAddress(suite.signer.Address().Bytes())
 			suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins))
 			suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, sender, coins))
 			msg := types.NewMsgConvertCoin(
-				sdk.NewCoin(metadata.Base, sdk.NewInt(tc.burn)),
+				sdk.NewCoin(metadata.Base, sdkmath.NewInt(tc.burn)),
 				suite.signer.Address(),
 				sender,
 			)
@@ -170,14 +171,14 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			// suite.Commit()
 			balance := suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
-			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn).Int64())
+			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdkmath.NewInt(tc.mint-tc.burn).Int64())
 			suite.Require().Equal(balance, big.NewInt(tc.burn))
 
 			tc.malleate()
 
 			contractAddr := pair.GetERC20Contract()
 			msgConvertERC20 := types.NewMsgConvertERC20(
-				sdk.NewInt(tc.reconvert),
+				sdkmath.NewInt(tc.reconvert),
 				sender,
 				contractAddr,
 				suite.signer.Address(),
@@ -190,7 +191,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 				cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 
 				suite.Require().Equal(&types.MsgConvertERC20Response{}, res)
-				suite.Require().Equal(cosmosBalance.Amount.Int64(), sdk.NewInt(tc.mint-tc.burn+tc.reconvert).Int64())
+				suite.Require().Equal(cosmosBalance.Amount.Int64(), sdkmath.NewInt(tc.mint-tc.burn+tc.reconvert).Int64())
 				suite.Require().Equal(balance.Int64(), big.NewInt(tc.burn-tc.reconvert).Int64())
 			} else {
 				suite.Require().Error(err, tc.name)
@@ -288,7 +289,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 
 			receiver := sdk.AccAddress(suite.signer.Address().Bytes())
 			msg := types.NewMsgConvertERC20(
-				sdk.NewInt(tc.transfer),
+				sdkmath.NewInt(tc.transfer),
 				receiver,
 				contractAddr,
 				suite.signer.Address(),
@@ -312,7 +313,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 					suite.Require().False(found)
 				} else {
 					suite.Require().Equal(&types.MsgConvertERC20Response{}, res)
-					suite.Require().Equal(cosmosBalance.Amount, sdk.NewInt(tc.transfer))
+					suite.Require().Equal(cosmosBalance.Amount, sdkmath.NewInt(tc.transfer))
 					suite.Require().Equal(balance.Int64(), big.NewInt(tc.mint-tc.transfer).Int64())
 				}
 			} else {
@@ -356,7 +357,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 
 			pair, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, contractAddr.String())
 			suite.True(found)
-			coins := sdk.NewCoins(sdk.NewCoin(pair.Denom, sdk.NewInt(tc.mint)))
+			coins := sdk.NewCoins(sdk.NewCoin(pair.Denom, sdkmath.NewInt(tc.mint)))
 			sender := sdk.AccAddress(suite.signer.Address().Bytes())
 
 			// Precondition: Mint Coins to convert on sender account
@@ -364,7 +365,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, sender, coins))
 			denom := "test"
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, denom)
-			suite.Require().Equal(sdk.NewInt(tc.mint), cosmosBalance.Amount)
+			suite.Require().Equal(sdkmath.NewInt(tc.mint), cosmosBalance.Amount)
 
 			// Precondition: Mint escrow tokens on module account
 			// suite.GrantERC20Token(contractAddr, suite.signer.Address(), types.ModuleAddress, "MINTER_ROLE")
@@ -376,7 +377,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			// Convert Coins back to ERC20s
 			receiver := suite.signer.Address()
 			msg := types.NewMsgConvertCoin(
-				sdk.NewCoin(denom, sdk.NewInt(tc.convert)),
+				sdk.NewCoin(denom, sdkmath.NewInt(tc.convert)),
 				receiver,
 				sender,
 			)
@@ -388,7 +389,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 				cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, sender, denom)
 
 				suite.Require().Equal(&types.MsgConvertCoinResponse{}, res)
-				suite.Require().Equal(sdk.NewInt(tc.mint-tc.convert), cosmosBalance.Amount)
+				suite.Require().Equal(sdkmath.NewInt(tc.mint-tc.convert), cosmosBalance.Amount)
 				suite.Require().Equal(big.NewInt(tc.convert), tokenBalance)
 			} else {
 				suite.Require().Error(err, tc.name)
@@ -415,7 +416,7 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 			suite.Require().NotNil(pair)
 
 			// Precondition: Convert Coin to ERC20
-			coins := sdk.NewCoins(sdk.NewCoin(metadata.Base, sdk.NewInt(tc.mint)))
+			coins := sdk.NewCoins(sdk.NewCoin(metadata.Base, sdkmath.NewInt(tc.mint)))
 			sender := sdk.AccAddress(suite.signer.Address().Bytes())
 			suite.Require().NoError(suite.app.BankKeeper.MintCoins(suite.ctx, types.ModuleName, coins))
 			suite.Require().NoError(suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, sender, coins))
@@ -424,7 +425,7 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 			suite.app.Erc20Keeper.SetTokenPair(suite.ctx, *pair)
 
 			msg := types.NewMsgConvertCoin(
-				sdk.NewCoin(metadata.Base, sdk.NewInt(tc.burn)),
+				sdk.NewCoin(metadata.Base, sdkmath.NewInt(tc.burn)),
 				suite.signer.Address(),
 				sender,
 			)
@@ -433,7 +434,7 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 
 			// Convert ERC20s back to Coins
 			msgConvertERC20 := types.NewMsgConvertERC20(
-				sdk.NewInt(tc.reconvert),
+				sdkmath.NewInt(tc.reconvert),
 				sender,
 				pair.GetERC20Contract(),
 				suite.signer.Address(),
@@ -648,7 +649,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "ok - DefaultDenom, not convert",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 
 				originCoin := sdk.NewCoin(fxtypes.DefaultDenom, amt)
 				expCoin := originCoin
@@ -663,7 +664,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "ok - register denom and not have alias, not convert",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 				mdmd := md.GetMetadata()
 				mdmd.DenomUnits[0].Aliases = []string{}
@@ -684,7 +685,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "ok - register denom, have alias, coin denom equal target coin",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
 				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
@@ -703,14 +704,14 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "failed - register denom, have alias, base to alias, insufficient funds",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
 				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
-				originCoin := sdk.NewCoin(pair.GetDenom(), amt.Add(sdk.NewInt(1)))
-				expCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt.Add(sdk.NewInt(1)))
+				originCoin := sdk.NewCoin(pair.GetDenom(), amt.Add(sdkmath.NewInt(1)))
+				expCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt.Add(sdkmath.NewInt(1)))
 				fxTarget := fxtypes.ParseFxTarget(md.GetModules()[0])
 
 				mintAmt := sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), amt))
@@ -726,7 +727,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "failed - register denom, have alias, base to alias, module insufficient funds",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
 				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
@@ -739,7 +740,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				mintAmt := sdk.NewCoins(sdk.NewCoin(pair.GetDenom(), amt))
 				helpers.AddTestAddr(suite.app, suite.ctx, acc, mintAmt)
 
-				return originCoin, expCoin, fxTarget, []string{sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], sdk.NewInt(0)).String(), expCoin.String()}
+				return originCoin, expCoin, fxTarget, []string{sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], sdkmath.NewInt(0)).String(), expCoin.String()}
 			},
 			expPass: false,
 			expErr: func(args []string) string {
@@ -749,7 +750,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "ok - register denom, have alias, base to alias",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
 				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
@@ -773,7 +774,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "ok - not register",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				randDenom := helpers.NewRandDenom()
 
 				originCoin := sdk.NewCoin(randDenom, amt)
@@ -787,7 +788,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "ok - register alias, alias equal target coin",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
 				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
@@ -804,7 +805,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "failed - register alias, alias to base, insufficient funds",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
 				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
@@ -814,7 +815,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				expCoin := sdk.NewCoin(md.GetMetadata().Base, amt)
 				fxTarget := fxtypes.ParseFxTarget("erc20") // or empty
 
-				return originCoin, expCoin, fxTarget, []string{sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], sdk.NewInt(0)).String(), originCoin.String()}
+				return originCoin, expCoin, fxTarget, []string{sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], sdkmath.NewInt(0)).String(), originCoin.String()}
 			},
 			expPass: false,
 			expErr: func(args []string) string {
@@ -824,7 +825,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "ok - register alias, alias to base",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
 				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
@@ -843,7 +844,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "failed - register alias, alias to alias, module insufficient funds",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 				for len(md.GetMetadata().DenomUnits[0].Aliases) <= 1 {
 					md = suite.GenerateCrossChainDenoms()
@@ -858,7 +859,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 
 				helpers.AddTestAddr(suite.app, suite.ctx, acc, sdk.NewCoins(originCoin))
 
-				return originCoin, expCoin, fxTarget, []string{sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[1], sdk.NewInt(0)).String(), expCoin.String()}
+				return originCoin, expCoin, fxTarget, []string{sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[1], sdkmath.NewInt(0)).String(), expCoin.String()}
 			},
 			expPass: false,
 			expErr: func(args []string) string {
@@ -868,7 +869,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 		{
 			name: "ok - register alias, alias to alias",
 			malleate: func(acc sdk.AccAddress) (sdk.Coin, sdk.Coin, fxtypes.FxTarget, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 				for len(md.GetMetadata().DenomUnits[0].Aliases) <= 1 {
 					md = suite.GenerateCrossChainDenoms()
@@ -920,7 +921,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 		{
 			name: "failed - convert to source denom",
 			malleate: func(md Metadata, acc, rec sdk.AccAddress) (string, sdk.Coin, sdk.Coin, string, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				coin := sdk.NewCoin(md.GetMetadata().Base, amt)
 				return acc.String(), coin, coin, "", []string{coin.Denom}
 			},
@@ -932,7 +933,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 		{
 			name: "ok - base to alias",
 			malleate: func(md Metadata, acc, rec sdk.AccAddress) (string, sdk.Coin, sdk.Coin, string, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				coin := sdk.NewCoin(md.GetMetadata().Base, amt)
 				expCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
 
@@ -947,7 +948,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 		{
 			name: "ok - base to alias - sender not equal receiver",
 			malleate: func(md Metadata, acc, rec sdk.AccAddress) (string, sdk.Coin, sdk.Coin, string, []string) {
-				amt := sdk.NewInt(int64(tmrand.Uint32() + 1000))
+				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				coin := sdk.NewCoin(md.GetMetadata().Base, amt)
 				expCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
 

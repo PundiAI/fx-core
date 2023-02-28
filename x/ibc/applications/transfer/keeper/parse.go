@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -55,21 +56,21 @@ func parseIBCCoinDenom(packet channeltypes.Packet, packetDenom string) string {
 	return receiveDenom
 }
 
-func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccAddress, sdk.Int, sdk.Int, error) {
+func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccAddress, sdkmath.Int, sdkmath.Int, error) {
 	// parse the transfer amount
-	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
-		return nil, sdk.Int{}, sdk.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
+		return nil, sdkmath.Int{}, sdkmath.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdkmath.Int", data.Amount)
 	}
 
 	if data.Router != "" {
 		addressBytes, err := parsePacketAddress(data.Sender)
 		if err != nil {
-			return nil, sdk.Int{}, sdk.Int{}, err
+			return nil, sdkmath.Int{}, sdkmath.Int{}, err
 		}
-		feeAmount, ok := sdk.NewIntFromString(data.Fee)
+		feeAmount, ok := sdkmath.NewIntFromString(data.Fee)
 		if !ok || feeAmount.IsNegative() {
-			return nil, sdk.Int{}, sdk.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
+			return nil, sdkmath.Int{}, sdkmath.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
 		}
 		return addressBytes, transferAmount, feeAmount, nil
 	}
@@ -77,23 +78,23 @@ func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccA
 	// decode the receiver address
 	receiverAddr, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
-		return nil, sdk.Int{}, sdk.Int{}, err
+		return nil, sdkmath.Int{}, sdkmath.Int{}, err
 	}
-	return receiverAddr, transferAmount, sdk.ZeroInt(), nil
+	return receiverAddr, transferAmount, sdkmath.ZeroInt(), nil
 }
 
-func parseAmountAndFeeByPacket(data types.FungibleTokenPacketData) (sdk.Int, sdk.Int, error) {
+func parseAmountAndFeeByPacket(data types.FungibleTokenPacketData) (sdkmath.Int, sdkmath.Int, error) {
 	// parse the transfer amount
-	transferAmount, ok := sdk.NewIntFromString(data.Amount)
+	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
-		return sdk.Int{}, sdk.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount)
+		return sdkmath.Int{}, sdkmath.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdkmath.Int", data.Amount)
 	}
 
-	feeAmount := sdk.ZeroInt()
+	feeAmount := sdkmath.ZeroInt()
 	if data.Router != "" {
-		fee, ok := sdk.NewIntFromString(data.Fee)
+		fee, ok := sdkmath.NewIntFromString(data.Fee)
 		if !ok || fee.IsNegative() {
-			return sdk.Int{}, sdk.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
+			return sdkmath.Int{}, sdkmath.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
 		}
 		feeAmount = fee
 	}

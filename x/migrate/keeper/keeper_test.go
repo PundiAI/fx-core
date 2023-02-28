@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -40,12 +41,12 @@ func TestKeeperTestSuite(t *testing.T) {
 // Test helpers
 func (suite *KeeperTestSuite) SetupTest() {
 	// init app
-	initBalances := sdk.NewIntFromUint64(1e18).Mul(sdk.NewInt(20000))
+	initBalances := sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(20000))
 	validator, genesisAccounts, balances := helpers.GenerateGenesisValidator(3, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initBalances)))
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), validator, genesisAccounts, balances...)
 
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: 1, ChainID: "fxcore", ProposerAddress: validator.Validators[0].Address, Time: time.Now().UTC()})
-	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdk.OneInt())))
+	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
 	queryHelperEvm := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
@@ -60,7 +61,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
-	amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(1000).Mul(sdk.NewInt(1e18)))
+	amount := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))
 	err := suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(amount))
 	suite.Require().NoError(err)
 	err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, suite.secp256k1PrivKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
@@ -92,7 +93,7 @@ func (suite *KeeperTestSuite) GenerateAcc(num int) []cryptotypes.PrivKey {
 	keys := make([]cryptotypes.PrivKey, 0, num)
 	for i := 0; i < num; i++ {
 		privateKey := secp256k1.GenPrivKey()
-		amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18)))
+		amount := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100000).Mul(sdkmath.NewInt(1e18)))
 		err := suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(amount))
 		suite.Require().NoError(err)
 		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, privateKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))
@@ -114,7 +115,7 @@ func (suite *KeeperTestSuite) GenerateEthAcc(num int) []cryptotypes.PrivKey {
 	for i := 0; i < num; i++ {
 		privateKey, err := ethsecp256k1.GenerateKey()
 		suite.Require().NoError(err)
-		amount := sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100000).Mul(sdk.NewInt(1e18)))
+		amount := sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100000).Mul(sdkmath.NewInt(1e18)))
 		err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(amount))
 		suite.Require().NoError(err)
 		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, privateKey.PubKey().Address().Bytes(), sdk.NewCoins(amount))

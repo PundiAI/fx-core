@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -89,12 +90,12 @@ func (k Keeper) DelOracleByExternalAddress(ctk sdk.Context, externalAddress stri
 // --- ORACLE TOTAL POWER --- //
 
 // GetLastTotalPower Load the last total oracle power.
-func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdkmath.Int {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.LastTotalPowerKey)
 
 	if bz == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 
 	ip := sdk.IntProto{}
@@ -104,14 +105,14 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {
 }
 
 // SetLastTotalPower Set the last total validator power.
-func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdk.Int) {
+func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LastTotalPowerKey, k.cdc.MustMarshal(&sdk.IntProto{Int: power}))
 }
 
 func (k Keeper) CommonSetOracleTotalPower(ctx sdk.Context) {
 	oracles := k.GetAllOracles(ctx, true)
-	totalPower := sdk.ZeroInt()
+	totalPower := sdkmath.ZeroInt()
 	for _, oracle := range oracles {
 		totalPower = totalPower.Add(oracle.GetPower())
 	}
