@@ -6,6 +6,7 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibcante "github.com/cosmos/ibc-go/v6/modules/core/ante"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 )
@@ -14,7 +15,7 @@ import (
 // channel keeper, EVM Keeper and Fee Market Keeper.
 type HandlerOptions struct {
 	AccountKeeper              AccountKeeper
-	BankKeeper                 BankKeeper
+	BankKeeper                 authtypes.BankKeeper
 	FeegrantKeeper             FeegrantKeeper
 	EvmKeeper                  EVMKeeper
 	FeeMarketKeeper            FeeMarketKeeper
@@ -72,12 +73,12 @@ func newNormalTxAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper),
+		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, nil),
 		NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
-		ibcante.NewAnteDecorator(options.IbcKeeper),
+		ibcante.NewRedundantRelayDecorator(options.IbcKeeper),
 	)
 }
