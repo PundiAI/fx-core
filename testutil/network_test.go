@@ -86,11 +86,12 @@ func (suite *IntegrationTestSuite) TestValidatorInfo() {
 			suite.Equal(mnemonic, data["secret"])
 		}
 
-		info, err := validator.ClientCtx.Keyring.Key(validator.Ctx.Config.Moniker)
+		key, err := validator.ClientCtx.Keyring.Key(validator.Ctx.Config.Moniker)
 		suite.NoError(err)
-		suite.Equal(info.GetAddress(), validator.Address)
-		suite.Equal(info.GetAlgo(), hd.PubKeyType(suite.network.Config.SigningAlgo))
-		suite.Equal(info.GetType().String(), "local")
+		addr, err := key.GetAddress()
+		suite.NoError(err)
+		suite.Equal(addr, validator.Address)
+		suite.Equal(key.GetType().String(), "local")
 
 		keyringAlgos1, _ := validator.ClientCtx.Keyring.SupportedAlgorithms()
 		suite.Equal(keyringAlgos1, hd2.SupportedAlgorithms)

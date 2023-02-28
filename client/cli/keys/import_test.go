@@ -83,7 +83,7 @@ HbP+c6JmeJy9JXe2rbbF1QtCX1gLqGcDQPBXiCtFvP7/8wTZtVOPj8vREzhZ9ElO
 			cdc := codec.NewProtoCodec(interfaceRegistry)
 			// Now add a temporary keybase
 			kbHome := t.TempDir()
-			kb, err := keyring.New(sdk.KeyringServiceName(), tc.keyringBackend, kbHome, nil)
+			kb, err := keyring.New(sdk.KeyringServiceName(), tc.keyringBackend, kbHome, nil, cdc)
 			require.NoError(t, err)
 
 			clientCtx := client.Context{}.
