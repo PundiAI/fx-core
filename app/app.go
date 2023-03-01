@@ -42,6 +42,9 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v3/x/gravity"
+	gravitykeeper "github.com/functionx/fx-core/v3/x/gravity/keeper"
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 var _ servertypes.Application = (*App)(nil)
@@ -244,6 +247,11 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 
 	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainKeeper)
 	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainKeeper))
+
+	// InterfaceRegistry gravity before RegisterService
+	gravity.RegisterInterfaces(app.interfaceRegistry)
+	gravitytypes.RegisterQueryServer(cfg.QueryServer(), gravitykeeper.NewQueryServerImpl(app.EthKeeper))
+	gravitytypes.RegisterMsgServer(cfg.MsgServer(), gravitykeeper.NewMsgServerImpl(app.EthKeeper))
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
@@ -258,6 +266,8 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	gasprice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register crosschain queries routes from grpc-gateway.
 	crosschain.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
+	gravity.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

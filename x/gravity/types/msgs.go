@@ -13,6 +13,9 @@ import (
 )
 
 const (
+	ModuleName = "gravity"
+	RouterKey  = ModuleName
+
 	TypeMsgSetOrchestratorAddress = "set_operator_address"
 	TypeMsgValsetConfirm          = "valset_confirm"
 	TypeMsgSendToEth              = "send_to_eth"
