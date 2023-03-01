@@ -12,7 +12,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/log"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -55,9 +54,8 @@ func (suite *MigrateTestSuite) SetupTest() {
 
 func (suite *MigrateTestSuite) TestMigrateIBCTransferRelation() {
 	protoCodec := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-	subspace := paramtypes.NewSubspace(protoCodec, nil, nil, nil, suite.T().Name())
 
-	keeper := erc20keeper.NewKeeper(suite.storeKey, protoCodec, subspace, suite, nil, nil, nil)
+	keeper := erc20keeper.NewKeeper(suite.storeKey, protoCodec, suite, nil, nil, nil, "")
 
 	kvStore := suite.ctx.MultiStore().GetKVStore(suite.storeKey)
 	v3.MigrateIBCTransferRelation(suite.ctx, kvStore, keeper)
