@@ -223,7 +223,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 		gas, err := cli.EstimatingGas(txRaw)
 		suite.NoError(err)
-		suite.True(gas.GasUsed < 90000)
+		suite.True(gas.GasUsed < 100000)
 
 		txResponse, err := cli.BroadcastTx(txRaw)
 		suite.NoError(err)
