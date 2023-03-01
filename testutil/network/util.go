@@ -105,7 +105,7 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			val.grpc, err = servergrpc.StartGRPCServer(val.ClientCtx, myApp, val.AppConfig.GRPC.Address)
+			val.grpc, err = servergrpc.StartGRPCServer(val.ClientCtx, myApp, val.AppConfig.GRPC)
 			if err != nil {
 				errCh <- err
 			}
