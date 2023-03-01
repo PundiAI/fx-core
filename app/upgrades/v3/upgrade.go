@@ -59,7 +59,9 @@ func initAvalanche(ctx sdk.Context, avalancheKeeper crosschainkeeper.Keeper) {
 	if ctx.ChainID() == fxtypes.TestnetChainId {
 		params := avalancheKeeper.GetParams(ctx)
 		params.GravityId = fmt.Sprintf("%s-test", params.GravityId)
-		avalancheKeeper.SetParams(ctx, &params)
+		if err := avalancheKeeper.SetParams(ctx, &params); err != nil {
+			panic(err)
+		}
 	}
 	var newOracles []string
 	chainId := ctx.ChainID()

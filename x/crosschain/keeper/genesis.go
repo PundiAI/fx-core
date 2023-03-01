@@ -10,7 +10,9 @@ import (
 //
 //gocyclo:ignore
 func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
-	k.SetParams(ctx, &state.Params)
+	if err := k.SetParams(ctx, &state.Params); err != nil {
+		panic(err)
+	}
 
 	// 0x24
 	k.SetLastObservedEventNonce(ctx, state.LastObservedEventNonce)

@@ -11,7 +11,9 @@ import (
 
 // InitGenesis import module genesis
 func (k Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
-	k.SetParams(ctx, &data.Params)
+	if err := k.SetParams(ctx, &data.Params); err != nil {
+		panic(err)
+	}
 
 	// ensure erc20 module account is set on genesis
 	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
