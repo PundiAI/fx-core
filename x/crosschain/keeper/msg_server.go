@@ -7,10 +7,11 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
@@ -313,7 +314,7 @@ func (s MsgServer) UnbondedOracle(c context.Context, msg *types.MsgUnbondedOracl
 			return nil, err
 		}
 	}
-	sendCoins := balances.Sub(sdk.NewCoins(slashAmount))
+	sendCoins := balances.Sub(sdk.NewCoins(slashAmount)...)
 	for i := 0; i < len(sendCoins); i++ {
 		if !sendCoins[i].IsPositive() {
 			sendCoins = append(sendCoins[:i], sendCoins[i+1:]...)
@@ -548,6 +549,17 @@ func (s MsgServer) OracleSetUpdateClaim(c context.Context, msg *types.MsgOracleS
 	))
 
 	return &types.MsgOracleSetUpdatedClaimResponse{}, nil
+}
+
+func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if s.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := s.SetParams(ctx, &req.Params); err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateParamsResponse{}, nil
 }
 
 func (s MsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddr sdk.AccAddress) (oracleAddr sdk.AccAddress, err error) {

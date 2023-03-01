@@ -22,11 +22,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params object
-func NewParams(
-	enableErc20 bool,
-	enableEVMHook bool,
-	ibcTimeout time.Duration,
-) Params {
+func NewParams(enableErc20 bool, enableEVMHook bool, ibcTimeout time.Duration) Params {
 	return Params{
 		EnableErc20:   enableErc20,
 		EnableEVMHook: enableEVMHook,

@@ -8,7 +8,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -60,6 +59,26 @@ var (
 
 // Ensure that params implements the proper interface
 var _ paramtypes.ParamSet = &Params{}
+
+// NewParams creates a new Params object
+func NewParams(gravityId string, averageBlockTime, externalBatchTimeout, averageExternalBlockTime, signedWindow uint64,
+	slashFraction, oracleSetUpdatePowerChangePercent sdk.Dec, ibcTransferTimeoutHeight uint64, oracles []string, delegateThreshold sdk.Coin,
+	delegateMultiple int64,
+) *Params {
+	return &Params{
+		GravityId:                         gravityId,
+		AverageBlockTime:                  averageBlockTime,
+		ExternalBatchTimeout:              externalBatchTimeout,
+		AverageExternalBlockTime:          averageExternalBlockTime,
+		SignedWindow:                      signedWindow,
+		SlashFraction:                     slashFraction,
+		OracleSetUpdatePowerChangePercent: oracleSetUpdatePowerChangePercent,
+		IbcTransferTimeoutHeight:          ibcTransferTimeoutHeight,
+		Oracles:                           oracles,
+		DelegateThreshold:                 delegateThreshold,
+		DelegateMultiple:                  delegateMultiple,
+	}
+}
 
 func DefaultParams() Params {
 	return Params{

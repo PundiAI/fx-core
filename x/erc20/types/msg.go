@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,6 +14,7 @@ import (
 var (
 	_ sdk.Msg = &MsgConvertCoin{}
 	_ sdk.Msg = &MsgConvertERC20{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 const (
@@ -147,4 +149,20 @@ func (m *MsgConvertDenom) GetSignBytes() []byte {
 func (m *MsgConvertDenom) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Sender)
 	return []sdk.AccAddress{addr}
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrap(err, "invalid authority address")
+	}
+	if err := m.Params.Validate(); err != nil {
+		return err
+	}
+	return nil
 }

@@ -31,6 +31,7 @@ var (
 	KeyPrefixTokenPairByDenom = []byte{prefixTokenPairByDenom}
 	KeyPrefixIBCTransfer      = []byte{prefixIBCTransfer}
 	KeyPrefixAliasDenom       = []byte{prefixAliasDenom}
+	ParamsKey                 = []byte{0x06}
 )
 
 // GetIBCTransferKey [sourceChannel/sequence]

@@ -3,6 +3,8 @@ package types
 import (
 	"context"
 
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -49,3 +51,14 @@ type IBCTransferKeeper interface {
 	Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error)
 	GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (types.DenomTrace, bool)
 }
+
+type (
+	ParamSet = paramtypes.ParamSet
+	// Subspace defines an interface that implements the legacy x/params Subspace
+	// type.
+	//
+	// NOTE: This is used solely for migration of x/params managed parameters.
+	Subspace interface {
+		GetParamSet(ctx sdk.Context, ps ParamSet)
+	}
+)

@@ -100,6 +100,9 @@ var (
 
 	// LastTotalPowerKey oracle set total power
 	LastTotalPowerKey = []byte{0x39}
+
+	// ParamsKey is the prefix for params key
+	ParamsKey = []byte{0x40}
 )
 
 // GetOracleKey returns the following key format

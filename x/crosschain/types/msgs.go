@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
+	errorsmod "cosmossdk.io/errors"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -78,6 +80,9 @@ var (
 	_ CrossChainMsg = &MsgRequestBatch{}
 	_ sdk.Msg       = &MsgConfirmBatch{}
 	_ CrossChainMsg = &MsgConfirmBatch{}
+
+	_ sdk.Msg       = &MsgUpdateParams{}
+	_ CrossChainMsg = &MsgUpdateParams{}
 )
 
 type MsgValidateBasic interface {
@@ -740,4 +745,20 @@ func (m *MsgAddOracleDeposit) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{acc}
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrap(err, "invalid authority address")
+	}
+	if err := m.Params.ValidateBasic(); err != nil {
+		return err
+	}
+	return nil
 }

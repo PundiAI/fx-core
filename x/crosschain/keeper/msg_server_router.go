@@ -142,6 +142,14 @@ func (k msgServer) ConfirmBatch(ctx context.Context, msg *types.MsgConfirmBatch)
 	}
 }
 
+func (k msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.UpdateParams(ctx, msg)
+	}
+}
+
 func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, error) {
 	msgServerRouter := k.routerKeeper.Router()
 	if !msgServerRouter.HasRoute(chainName) {

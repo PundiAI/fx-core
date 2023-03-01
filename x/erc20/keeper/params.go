@@ -4,38 +4,42 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 // GetParams returns the total set of erc20 parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramSpace.GetParamSet(ctx, &params)
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return params
+	}
+	k.cdc.MustUnmarshal(bz, &params)
 	return params
+}
+
+// SetParams sets the parameters in the store
+func (k Keeper) SetParams(ctx sdk.Context, params *types.Params) error {
+	if err := params.Validate(); err != nil {
+		return err
+	}
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(params)
+	store.Set(types.ParamsKey, bz)
+	return nil
 }
 
 // GetEnableErc20 returns the EnableErc20 parameter.
 func (k Keeper) GetEnableErc20(ctx sdk.Context) bool {
-	var enableErc20 bool
-	k.paramSpace.GetIfExists(ctx, types.ParamStoreKeyEnableErc20, &enableErc20)
-	return enableErc20
+	return k.GetParams(ctx).EnableErc20
 }
 
 // GetEnableEVMHook returns the EnableEVMHook parameter.
 func (k Keeper) GetEnableEVMHook(ctx sdk.Context) bool {
-	var enableEVMHook bool
-	k.paramSpace.GetIfExists(ctx, types.ParamStoreKeyEnableEVMHook, &enableEVMHook)
-	return enableEVMHook
+	return k.GetParams(ctx).EnableEVMHook
 }
 
 // GetIbcTimeout returns the IbcTimeout parameter.
 func (k Keeper) GetIbcTimeout(ctx sdk.Context) time.Duration {
-	var ibcTimeout time.Duration
-	k.paramSpace.GetIfExists(ctx, types.ParamStoreKeyIBCTimeout, &ibcTimeout)
-	return ibcTimeout
-}
-
-// SetParams sets the erc20 parameters to the param space.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramSpace.SetParamSet(ctx, &params)
+	return k.GetParams(ctx).IbcTimeout
 }
