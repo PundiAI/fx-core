@@ -28,5 +28,5 @@ func NewMigrator(k *Keeper, legacyAmino *codec.LegacyAmino, paramsStoreKey store
 // Migrate2to3 migrates the store from consensus version v2 to v3
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 	v3.MigrateParams(ctx, m.legacyAmino, m.paramsStoreKey)
-	return m.Migrator.Migrate2to3(ctx)
+	return nil
 }

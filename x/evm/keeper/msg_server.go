@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,15 +28,11 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 
 	labels := []metrics.Label{
 		telemetry.NewLabel("tx_type", fmt.Sprintf("%d", tx.Type())),
-		telemetry.NewLabel("from", sender),
 	}
 	if tx.To() == nil {
-		labels = []metrics.Label{telemetry.NewLabel("execution", "create")}
+		labels = append(labels, telemetry.NewLabel("execution", "create"))
 	} else {
-		labels = []metrics.Label{
-			telemetry.NewLabel("execution", "call"),
-			telemetry.NewLabel("to", tx.To().Hex()), // recipient address (contract or account)
-		}
+		labels = append(labels, telemetry.NewLabel("execution", "call"))
 	}
 
 	response, err := k.ApplyTransaction(ctx, tx)
