@@ -155,7 +155,7 @@ func NewAppKeeper(
 
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(
-		appKeepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
+		appKeepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()),
 	)
 
 	// add capability keeper and ScopeToModule for ibc module
