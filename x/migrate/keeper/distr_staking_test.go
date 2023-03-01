@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -256,7 +257,7 @@ func commitBlock(t *testing.T, ctx sdk.Context, app *app.App) sdk.Context {
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(5 * time.Second))
 
 	staking.EndBlocker(ctx, app.StakingKeeper.Keeper)
-	mint.BeginBlocker(ctx, app.MintKeeper)
+	mint.BeginBlocker(ctx, app.MintKeeper, minttypes.DefaultInflationCalculationFn)
 
 	distribution.BeginBlocker(ctx, abcitypes.RequestBeginBlock{
 		Hash:   nil,
