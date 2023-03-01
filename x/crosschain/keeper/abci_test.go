@@ -543,8 +543,8 @@ func (suite *KeeperTestSuite) TestSlashOracle() {
 	}
 
 	params := suite.Keeper().GetParams(suite.ctx)
-	suite.Keeper().SetParams(suite.ctx, &params)
-
+	err := suite.Keeper().SetParams(suite.ctx, &params)
+	suite.Require().NoError(err)
 	for i := 0; i < len(suite.oracleAddrs); i++ {
 		oracle, found := suite.Keeper().GetOracle(suite.ctx, suite.oracleAddrs[i])
 		require.True(suite.T(), found)

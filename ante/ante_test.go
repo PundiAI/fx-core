@@ -55,7 +55,9 @@ func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
 
 func (suite *AnteTestSuite) SetupTest() {
 	valConsPriv := ed25519.GenPrivKey()
-	suite.app = helpers.Setup(false, false)
+
+	valSet, valAccounts, valBalances := helpers.GenerateGenesisValidator(1, sdk.Coins{})
+	suite.app = helpers.SetupWithGenesisValSet(suite.T(), valSet, valAccounts, valBalances...)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
 		Height:          suite.app.LastBlockHeight(),
 		ChainID:         fxtypes.ChainId(),
@@ -787,6 +789,8 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				ethParams.ChainConfig.ArrowGlacierBlock = &maxInt
 				ethParams.ChainConfig.GrayGlacierBlock = &maxInt
 				ethParams.ChainConfig.MergeNetsplitBlock = &maxInt
+				ethParams.ChainConfig.ShanghaiBlock = &maxInt
+				ethParams.ChainConfig.CancunBlock = &maxInt
 				suite.app.EvmKeeper.SetParams(suite.ctx, ethParams)
 			}
 

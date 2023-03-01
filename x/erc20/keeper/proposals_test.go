@@ -50,7 +50,8 @@ func (suite *KeeperTestSuite) TestRegisterCoinWithAlias() {
 			func() {
 				params := types.DefaultParams()
 				params.EnableErc20 = false
-				suite.app.Erc20Keeper.SetParams(suite.ctx, params)
+				err := suite.app.Erc20Keeper.SetParams(suite.ctx, &params)
+				suite.Require().NoError(err)
 			},
 			false,
 			"registration is currently disabled by governance: erc20 module is disabled",
@@ -341,7 +342,8 @@ func (suite *KeeperTestSuite) TestRegisterERC20() {
 			func(contractAddr common.Address) {
 				params := types.DefaultParams()
 				params.EnableErc20 = false
-				suite.app.Erc20Keeper.SetParams(suite.ctx, params)
+				err := suite.app.Erc20Keeper.SetParams(suite.ctx, &params)
+				suite.Require().NoError(err)
 			},
 			false,
 		},

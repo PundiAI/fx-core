@@ -159,8 +159,8 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteOracleSetConfirm() {
 
 	params := suite.Keeper().GetParams(suite.ctx)
 	params.SignedWindow = 10
-	suite.Keeper().SetParams(suite.ctx, &params)
-
+	err := suite.Keeper().SetParams(suite.ctx, &params)
+	suite.Require().NoError(err)
 	suite.Commit()
 	for _, oracle := range suite.oracleAddrs {
 		suite.NotNil(suite.Keeper().GetOracleSetConfirm(suite.ctx, oracleSet.Nonce, oracle))

@@ -100,7 +100,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packet.Data = packetData.GetBytes()
 			},
 			expPass:       false,
-			errorStr:      "ABCI code: 7: error handling packet on destination chain: see events for details",
+			errorStr:      "ABCI code: 7: error handling packet: see events for details",
 			checkBalance:  true,
 			checkCoinAddr: senderAddr,
 			expCoins:      sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			},
 			false,
 			// 103: router not found error
-			"ABCI code: 103: error handling packet on destination chain: see events for details",
+			"ABCI code: 103: error handling packet: see events for details",
 			true,
 			senderAddr,
 			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),

@@ -10,8 +10,8 @@ import (
 )
 
 func TestUpgradeStateOnGenesis(t *testing.T) {
-	myApp := helpers.Setup(false, false)
-
+	valSet, genAccs, balances := helpers.GenerateGenesisValidator(1, nil)
+	myApp := helpers.SetupWithGenesisValSet(t, valSet, genAccs, balances...)
 	// make sure the upgrade keeper has version map in state
 	ctx := myApp.NewContext(false, tmproto.Header{Height: myApp.LastBlockHeight()})
 	vm := myApp.UpgradeKeeper.GetModuleVersionMap(ctx)

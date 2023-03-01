@@ -21,7 +21,8 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 			func() types.TokenPair {
 				params := types.DefaultParams()
 				params.EnableErc20 = false
-				suite.app.Erc20Keeper.SetParams(suite.ctx, params)
+				err := suite.app.Erc20Keeper.SetParams(suite.ctx, &params)
+				suite.Require().NoError(err)
 				return types.NewTokenPair(helpers.GenerateAddress(), "coin", true, types.OWNER_MODULE)
 			},
 			false,

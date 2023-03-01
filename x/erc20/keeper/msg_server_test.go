@@ -71,7 +71,8 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			func(common.Address) {
 				params := types.DefaultParams()
 				params.EnableErc20 = false
-				suite.app.Erc20Keeper.SetParams(suite.ctx, params)
+				err := suite.app.Erc20Keeper.SetParams(suite.ctx, &params)
+				suite.Require().NoError(err)
 			},
 			false,
 			false,
@@ -261,7 +262,8 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			func(common.Address) {
 				params := types.DefaultParams()
 				params.EnableErc20 = false
-				suite.app.Erc20Keeper.SetParams(suite.ctx, params)
+				err := suite.app.Erc20Keeper.SetParams(suite.ctx, &params)
+				suite.Require().NoError(err)
 			},
 			false,
 			false,

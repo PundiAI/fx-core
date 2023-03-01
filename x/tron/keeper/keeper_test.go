@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		Height:          suite.app.LastBlockHeight() + 1,
 		ProposerAddress: valSet.Proposer.Address.Bytes(),
 	})
-	suite.app.TronKeeper.SetParams(suite.ctx, &crosschaintypes.Params{
+	err := suite.app.TronKeeper.SetParams(suite.ctx, &crosschaintypes.Params{
 		GravityId:                         "fx-bridge-tron",
 		AverageBlockTime:                  5000,
 		ExternalBatchTimeout:              43200000,
@@ -59,6 +59,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 			sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(22), nil))),
 		DelegateMultiple: 10,
 	})
+	suite.Require().NoError(err)
 	suite.msgServer = tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
 	suite.signer = helpers.NewSigner(helpers.NewEthPrivKey())
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))

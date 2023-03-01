@@ -1,6 +1,8 @@
 package v3
 
 import (
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -8,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -43,9 +44,9 @@ func Test_updateBSCOracles(t *testing.T) {
 		WithMultiStore(ms).
 		WithGasMeter(sdk.NewInfiniteGasMeter())
 	protoCodec := codec.NewProtoCodec(types.NewInterfaceRegistry())
-	subspace := paramtypes.NewSubspace(protoCodec, nil, nil, nil, t.Name())
-	keeper := crosschainkeeper.NewKeeper(protoCodec, t.Name(), storeKey, subspace,
-		nil, nil, nil, nil, nil, nil, ak{})
+	// subspace := paramtypes.NewSubspace(protoCodec, nil, nil, nil, t.Name())
+	keeper := crosschainkeeper.NewKeeper(protoCodec, t.Name(), storeKey,
+		nil, nil, nil, nil, nil, nil, ak{}, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 	updateOracles := getBSCOracleAddrs(ctx.ChainID())
 	keeper.SetProposalOracle(ctx, &crosschaintypes.ProposalOracle{
 		Oracles: updateOracles,

@@ -17,6 +17,7 @@ import (
 	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
+// nolint
 func TestAminoEncode(t *testing.T) {
 	testcases := []struct {
 		name     string

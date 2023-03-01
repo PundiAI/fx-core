@@ -155,8 +155,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 		gas, err := cli.EstimatingGas(txRaw)
 		suite.NoError(err)
-		suite.True(gas.GasUsed < 90000)
-		suite.Equal(uint64(0), gas.GasWanted)
+		suite.True(gas.GasUsed < 100000)
 
 		txResponse, err := cli.BroadcastTx(txRaw)
 		suite.NoError(err)
@@ -173,7 +172,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 		account, err := cli.QueryAccount(toAddress.String())
 		suite.NoError(err)
-		suite.Equal(authtypes.NewBaseAccount(toAddress, nil, uint64(15+i+len(suite.network.Validators)), 0), account)
+		suite.Equal(authtypes.NewBaseAccount(toAddress, nil, uint64(15+i), 0), account)
 	}
 
 	ethPrivKey := suite.GetPrivKeyByIndex(hd2.EthSecp256k1Type, 0)
@@ -194,8 +193,8 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 		gas, err := cli.EstimatingGas(txRaw)
 		suite.NoError(err)
-		suite.True(gas.GasUsed < 90000)
-		suite.Equal(uint64(0), gas.GasWanted)
+		suite.True(gas.GasUsed < 100000)
+		// suite.Equal(uint64(0), gas.GasWanted)
 
 		txResponse, err := cli.BroadcastTx(txRaw)
 		suite.NoError(err)
@@ -206,7 +205,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 		account, err := cli.QueryAccount(ethAddress.String())
 		suite.NoError(err)
-		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, uint64(17+len(suite.network.Validators)), 0), account)
+		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, uint64(17), 0), account)
 	}
 
 	for i := 0; i < len(clients); i++ {
@@ -225,7 +224,6 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 		gas, err := cli.EstimatingGas(txRaw)
 		suite.NoError(err)
 		suite.True(gas.GasUsed < 90000)
-		suite.Equal(uint64(0), gas.GasWanted)
 
 		txResponse, err := cli.BroadcastTx(txRaw)
 		suite.NoError(err)

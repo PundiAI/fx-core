@@ -213,6 +213,7 @@ func Test_appTomlConfig_output(t *testing.T) {
     "rpc-write-timeout": 0,
     "swagger": false
   },
+  "app-db-backend": "",
   "bypass-min-fee": {
     "msg-max-gas-usage": 300000,
     "msg-types": []
@@ -223,7 +224,9 @@ func Test_appTomlConfig_output(t *testing.T) {
   },
   "grpc": {
     "address": "0.0.0.0:9090",
-    "enable": true
+    "enable": true,
+    "max-recv-msg-size": 10485760,
+    "max-send-msg-size": 2147483647
   },
   "grpc-web": {
     "address": "0.0.0.0:9091",
@@ -233,7 +236,8 @@ func Test_appTomlConfig_output(t *testing.T) {
   "halt-height": 0,
   "halt-time": 0,
   "iavl-cache-size": 781250,
-  "iavl-disable-fastnode": true,
+  "iavl-disable-fastnode": false,
+  "iavl-lazy-loading": false,
   "index-events": [],
   "inter-block-cache": true,
   "json-rpc": {
@@ -255,6 +259,7 @@ func Test_appTomlConfig_output(t *testing.T) {
     "http-timeout": 30000000000,
     "logs-cap": 10000,
     "max-open-connections": 0,
+    "metrics-address": "0.0.0.0:6065",
     "txfee-cap": 1,
     "ws-address": "0.0.0.0:8546"
   },
@@ -266,7 +271,10 @@ func Test_appTomlConfig_output(t *testing.T) {
   "rosetta": {
     "address": ":8080",
     "blockchain": "app",
+    "denom-to-suggest": "uatom",
     "enable": false,
+    "enable-fee-suggestion": false,
+    "gas-to-suggest": 200000,
     "network": "network",
     "offline": false,
     "retries": 3
@@ -274,6 +282,21 @@ func Test_appTomlConfig_output(t *testing.T) {
   "state-sync": {
     "snapshot-interval": 0,
     "snapshot-keep-recent": 2
+  },
+  "store": {
+    "streamers": []
+  },
+  "streamers": {
+    "file": {
+      "fsync": false,
+      "keys": [
+        "*"
+      ],
+      "output-metadata": true,
+      "prefix": "",
+      "stop-node-on-error": true,
+      "write_dir": ""
+    }
   },
   "telemetry": {
     "enable-hostname": false,

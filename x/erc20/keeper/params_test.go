@@ -22,8 +22,8 @@ func (suite *KeeperTestSuite) TestParams() {
 	params.EnableErc20 = false
 	params.EnableEVMHook = false
 	params.IbcTimeout = 24 * time.Hour
-	suite.app.Erc20Keeper.SetParams(suite.ctx, params)
-
+	err := suite.app.Erc20Keeper.SetParams(suite.ctx, &params)
+	suite.Require().NoError(err)
 	newParams := suite.app.Erc20Keeper.GetParams(suite.ctx)
 	suite.Require().Equal(newParams, params)
 
