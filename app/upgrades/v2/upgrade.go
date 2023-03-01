@@ -114,7 +114,7 @@ func updateFXMetadata(ctx sdk.Context, bankKeeper bankKeeper.Keeper, bankKey *st
 	ctx.Logger().Info("update FX metadata", "module", "upgrade", "metadata", metaData.String())
 	// delete fx
 	fxDenom := strings.ToLower(fxtypes.DefaultDenom)
-	denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataKey(fxDenom))
+	denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataPrefix)
 	denomMetaDataStore.Delete([]byte(fxDenom))
 	// set FX
 	bankKeeper.SetDenomMetaData(ctx, metaData)
@@ -199,7 +199,7 @@ func clearTestnetDenom(ctx sdk.Context, bankKey *storetypes.KVStoreKey) {
 			continue
 		}
 		ctx.Logger().Info("clear testnet metadata", "module", "upgrade", "metadata", md.String())
-		denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataKey(md.Base))
+		denomMetaDataStore := prefix.NewStore(ctx.KVStore(bankKey), banktypes.DenomMetadataPrefix)
 		denomMetaDataStore.Delete([]byte(md.Base))
 	}
 }
