@@ -123,7 +123,7 @@ func TestMigrateDepositToStaking(t *testing.T) {
 
 				bondedPoolAllBalances = bondedPoolAllBalances.Add(sdk.NewCoin(fxtypes.DefaultDenom, oracle.DelegateAmount))
 				totalTokens = totalTokens.Add(oracle.DelegateAmount)
-				totalDelegatorShares = totalDelegatorShares.Add(oracle.DelegateAmount.ToDec())
+				totalDelegatorShares = totalDelegatorShares.Add(sdk.NewDecFromInt(oracle.DelegateAmount))
 			}
 
 			validators1 := myApp.StakingKeeper.GetBondedValidatorsByPower(ctx)
