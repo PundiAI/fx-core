@@ -311,8 +311,9 @@ func (suite *KeeperTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr com
 	evm.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 	res, err := evm.NewQueryClient(queryHelper).EstimateGas(sdk.WrapSDKContext(suite.ctx),
 		&evm.EthCallRequest{
-			Args:   args,
-			GasCap: config.DefaultGasCap,
+			Args:    args,
+			GasCap:  config.DefaultGasCap,
+			ChainId: suite.app.EvmKeeper.ChainID().Int64(),
 		},
 	)
 	suite.Require().NoError(err)
