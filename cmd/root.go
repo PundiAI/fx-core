@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -90,7 +91,7 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			customAppTemplate, customAppConfig := fxcfg.AppConfig(fmt.Sprintf("4000000000000%s", fxtypes.DefaultDenom))
-			if err = server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig); err != nil {
+			if err = server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, tmcfg.DefaultConfig()); err != nil {
 				return err
 			}
 			return nil

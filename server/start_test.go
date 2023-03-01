@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
@@ -28,7 +29,7 @@ var cancelledInPreRun = errors.New("cancelled in prerun")
 // Used in each test to run the function under test via Cobra
 // but to always halt the command
 func preRunETestImpl(cmd *cobra.Command, _ []string) error {
-	err := server.InterceptConfigsPreRunHandler(cmd, "", tmcfg.DefaultConfig())
+	err := server.InterceptConfigsPreRunHandler(cmd, "", "", tmcfg.DefaultConfig())
 	if err != nil {
 		return err
 	}
@@ -433,7 +434,7 @@ func TestEmptyMinGasPrices(t *testing.T) {
 	// Run StartCmd.
 	cmd = fxserver.StartCmd(nil, tempDir)
 	cmd.PreRunE = func(cmd *cobra.Command, _ []string) error {
-		return server.InterceptConfigsPreRunHandler(cmd, "", tmcfg.DefaultConfig())
+		return server.InterceptConfigsPreRunHandler(cmd, "", "", tmcfg.DefaultConfig())
 	}
 	err = cmd.ExecuteContext(ctx)
 	require.Errorf(t, err, errortypes.ErrAppConfig.Error())
