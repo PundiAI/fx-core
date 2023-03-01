@@ -84,7 +84,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	m := stakingkeeper.NewMigrator(am.keeper.Keeper)
 	// TODO: if upgrade cosmos-sdk check is needed migrate
-	_ = cfg.RegisterMigration(stakingtypes.ModuleName, 1, m.Migrate1to2)
+	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(err)
+	}
+	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 2, m.Migrate2to3); err != nil {
+		panic(err)
+	}
 }
 
 // InitGenesis performs genesis initialization for the staking module. It returns
