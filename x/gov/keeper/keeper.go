@@ -5,11 +5,12 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/functionx/fx-core/v3/x/gov/types"
 )
@@ -42,7 +43,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	}
 
 	// Check if proposal is still depositable
-	if (proposal.Status != govtypes.StatusDepositPeriod) && (proposal.Status != govtypes.StatusVotingPeriod) {
+	if (proposal.Status != govv1.StatusDepositPeriod) && (proposal.Status != govv1.StatusVotingPeriod) {
 		return false, errorsmod.Wrapf(govtypes.ErrInactiveProposal, "%d", proposalID)
 	}
 
@@ -53,24 +54,20 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	}
 
 	// Update proposal
-	proposal.TotalDeposit = proposal.TotalDeposit.Add(depositAmount...)
+	proposal.TotalDeposit = sdk.NewCoins(proposal.TotalDeposit...).Add(depositAmount...)
 	keeper.SetProposal(ctx, proposal)
 
 	// Check if deposit has provided sufficient total funds to transition the proposal into the voting period
 	activatedVotingPeriod := false
 
 	var minDeposit sdk.Coins
-	isEGF := types.CommunityPoolSpendByRouter == proposal.ProposalRoute() && types.ProposalTypeCommunityPoolSpend == proposal.ProposalType()
+	isEGF, needDeposit := types.CheckEGFProposalMsg(proposal.Messages)
 	if isEGF {
-		cp, ok := proposal.GetContent().(*distrtypes.CommunityPoolSpendProposal)
-		if !ok {
-			return false, errorsmod.Wrapf(govtypes.ErrInvalidProposalType, "%d", proposalID)
-		}
-		minDeposit = types.EGFProposalMinDeposit(cp.Amount)
+		minDeposit = types.EGFProposalMinDeposit(needDeposit)
 	} else {
 		minDeposit = keeper.GetDepositParams(ctx).MinDeposit
 	}
-	if proposal.Status == govtypes.StatusDepositPeriod && proposal.TotalDeposit.IsAllGTE(minDeposit) {
+	if proposal.Status == govv1.StatusDepositPeriod && sdk.NewCoins(proposal.TotalDeposit...).IsAllGTE(minDeposit) {
 		if isEGF {
 			keeper.EGFActivateVotingPeriod(ctx, proposal)
 		} else {
@@ -84,9 +81,9 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	deposit, found := keeper.GetDeposit(ctx, proposalID, depositorAddr)
 
 	if found {
-		deposit.Amount = deposit.Amount.Add(depositAmount...)
+		deposit.Amount = sdk.NewCoins(deposit.Amount...).Add(depositAmount...)
 	} else {
-		deposit = govtypes.NewDeposit(proposalID, depositorAddr, depositAmount)
+		deposit = govv1.NewDeposit(proposalID, depositorAddr, depositAmount)
 	}
 
 	// called when deposit has been added to a proposal, however the proposal may not be active
@@ -103,17 +100,20 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	return activatedVotingPeriod, nil
 }
 
-func (keeper Keeper) EGFActivateVotingPeriod(ctx sdk.Context, proposal govtypes.Proposal) {
-	proposal.VotingStartTime = ctx.BlockHeader().Time
+func (keeper Keeper) EGFActivateVotingPeriod(ctx sdk.Context, proposal govv1.Proposal) {
+	blockTime := ctx.BlockHeader().Time
+	proposal.VotingStartTime = &blockTime
 	votingPeriod := keeper.GetVotingParams(ctx).VotingPeriod
 	twoWeek := time.Hour * 24 * 14
-	if votingPeriod < twoWeek {
-		votingPeriod = twoWeek
+	if *votingPeriod < twoWeek {
+		votingPeriod = &twoWeek
 	}
-	proposal.VotingEndTime = proposal.VotingStartTime.Add(votingPeriod)
-	proposal.Status = govtypes.StatusVotingPeriod
+	votingStartTime := *proposal.VotingStartTime
+	add := votingStartTime.Add(*votingPeriod)
+	proposal.VotingEndTime = &add
+	proposal.Status = govv1.StatusVotingPeriod
 	keeper.SetProposal(ctx, proposal)
 
-	keeper.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalId, proposal.DepositEndTime)
-	keeper.InsertActiveProposalQueue(ctx, proposal.ProposalId, proposal.VotingEndTime)
+	keeper.RemoveFromInactiveProposalQueue(ctx, proposal.Id, *proposal.DepositEndTime)
+	keeper.InsertActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
 }

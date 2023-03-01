@@ -6,41 +6,61 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/functionx/fx-core/v3/x/gov/types"
 )
 
 type msgServer struct {
-	govtypes.MsgServer
+	govv1.MsgServer
 	Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(m govtypes.MsgServer, k Keeper) govtypes.MsgServer {
+func NewMsgServerImpl(m govv1.MsgServer, k Keeper) govv1.MsgServer {
 	return &msgServer{MsgServer: m, Keeper: k}
 }
 
-var _ govtypes.MsgServer = msgServer{}
+var _ govv1.MsgServer = msgServer{}
 
-func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmitProposal) (*govtypes.MsgSubmitProposalResponse, error) {
+func (k msgServer) SubmitProposal(goCtx context.Context, msg *govv1.MsgSubmitProposal) (*govv1.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	proposal, err := k.Keeper.SubmitProposal(ctx, msg.GetContent())
+
+	proposalMsgs, err := msg.GetMsgs()
 	if err != nil {
 		return nil, err
 	}
 
+	proposal, err := k.Keeper.SubmitProposal(ctx, proposalMsgs, msg.Metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	bytes, err := proposal.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.GasMeter().ConsumeGas(3*ctx.KVGasConfig().WriteCostPerByte*uint64(len(bytes)),
+		"submit proposal")
+
 	defer telemetry.IncrCounter(1, govtypes.ModuleName, "proposal")
 
-	if msg.GetInitialDeposit().IsAllLT(types.GetInitialDeposit()) {
+	if sdk.NewCoins(msg.GetInitialDeposit()...).IsAllLT(types.GetInitialDeposit()) {
 		return nil, errorsmod.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msg.GetInitialDeposit(), types.GetInitialDeposit())
 	}
 
-	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.ProposalId, msg.GetProposer(), msg.GetInitialDeposit())
+	proposer, err := sdk.AccAddressFromBech32(msg.GetProposer())
+	if err != nil {
+		return nil, err
+	}
+	votingStarted, err := k.Keeper.AddDeposit(ctx, proposal.Id, proposer, msg.GetInitialDeposit())
 	if err != nil {
 		return nil, err
 	}
@@ -48,23 +68,23 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *govtypes.MsgSubmit
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, govtypes.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.GetProposer().String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.GetProposer()),
 	))
 
-	submitEvent := sdk.NewEvent(govtypes.EventTypeSubmitProposal, sdk.NewAttribute(govtypes.AttributeKeyProposalType, msg.GetContent().ProposalType()))
 	if votingStarted {
-		submitEvent = submitEvent.AppendAttributes(
-			sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", proposal.ProposalId)),
+		submitEvent := sdk.NewEvent(govtypes.EventTypeSubmitProposal,
+			sdk.NewAttribute(govtypes.AttributeKeyVotingPeriodStart, fmt.Sprintf("%d", proposal.Id)),
 		)
+
+		ctx.EventManager().EmitEvent(submitEvent)
 	}
 
-	ctx.EventManager().EmitEvent(submitEvent)
-	return &govtypes.MsgSubmitProposalResponse{
-		ProposalId: proposal.ProposalId,
+	return &govv1.MsgSubmitProposalResponse{
+		ProposalId: proposal.Id,
 	}, nil
 }
 
-func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*govtypes.MsgDepositResponse, error) {
+func (k msgServer) Deposit(goCtx context.Context, msg *govv1.MsgDeposit) (*govv1.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	accAddr, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
@@ -96,5 +116,5 @@ func (k msgServer) Deposit(goCtx context.Context, msg *govtypes.MsgDeposit) (*go
 		))
 	}
 
-	return &govtypes.MsgDepositResponse{}, nil
+	return &govv1.MsgDepositResponse{}, nil
 }
