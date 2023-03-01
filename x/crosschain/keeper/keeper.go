@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -17,7 +16,6 @@ type Keeper struct {
 	moduleName string
 	cdc        codec.BinaryCodec   // The wire codec for binary encoding/decoding.
 	storeKey   storetypes.StoreKey // Unexposed key to access store from sdk.Context
-	paramSpace paramtypes.Subspace
 
 	stakingKeeper      types.StakingKeeper
 	stakingMsgServer   types.StakingMsgServer
@@ -25,18 +23,16 @@ type Keeper struct {
 	bankKeeper         types.BankKeeper
 	ibcTransferKeeper  types.IBCTransferKeeper
 	erc20Keeper        types.Erc20Keeper
+
+	authority string
 }
 
 // NewKeeper returns a new instance of the gravity keeper
-func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace,
+func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.StoreKey,
 	stakingKeeper types.StakingKeeper, stakingMsgServer types.StakingMsgServer, distributionKeeper types.DistributionKeeper,
 	bankKeeper types.BankKeeper, ibcTransferKeeper types.IBCTransferKeeper, erc20Keeper types.Erc20Keeper, ak types.AccountKeeper,
+	authority string,
 ) Keeper {
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	if addr := ak.GetModuleAddress(moduleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", moduleName))
 	}
@@ -45,7 +41,6 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		moduleName: moduleName,
 		cdc:        cdc,
 		storeKey:   storeKey,
-		paramSpace: paramSpace,
 
 		stakingKeeper:      stakingKeeper,
 		stakingMsgServer:   stakingMsgServer,
@@ -53,7 +48,12 @@ func NewKeeper(cdc codec.BinaryCodec, moduleName string, storeKey storetypes.Sto
 		bankKeeper:         bankKeeper,
 		ibcTransferKeeper:  ibcTransferKeeper,
 		erc20Keeper:        erc20Keeper,
+		authority:          authority,
 	}
+}
+
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // Logger returns a module-specific logger.

@@ -300,11 +300,11 @@ func NewAppKeeper(
 	erc20Keeper := erc20keeper.NewKeeper(
 		appKeepers.keys[erc20types.StoreKey],
 		appCodec,
-		appKeepers.GetSubspace(erc20types.ModuleName),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.EvmKeeper,
 		appKeepers.IBCTransferKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// init cross chain module
@@ -312,7 +312,6 @@ func NewAppKeeper(
 		appCodec,
 		bsctypes.ModuleName,
 		appKeepers.keys[bsctypes.StoreKey],
-		appKeepers.GetSubspace(bsctypes.ModuleName),
 		stakingKeeper,
 		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
@@ -320,13 +319,13 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		erc20Keeper,
 		appKeepers.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	appKeepers.PolygonKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
 		polygontypes.ModuleName,
 		appKeepers.keys[polygontypes.StoreKey],
-		appKeepers.GetSubspace(polygontypes.ModuleName),
 		stakingKeeper,
 		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
@@ -334,13 +333,13 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		erc20Keeper,
 		appKeepers.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	appKeepers.AvalancheKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
 		avalanchetypes.ModuleName,
 		appKeepers.keys[avalanchetypes.StoreKey],
-		appKeepers.GetSubspace(avalanchetypes.ModuleName),
 		stakingKeeper,
 		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
@@ -348,13 +347,13 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		erc20Keeper,
 		appKeepers.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	appKeepers.EthKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
 		ethtypes.ModuleName,
 		appKeepers.keys[ethtypes.StoreKey],
-		appKeepers.GetSubspace(ethtypes.ModuleName),
 		stakingKeeper,
 		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
@@ -362,13 +361,13 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		erc20Keeper,
 		appKeepers.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
 		appCodec,
 		trontypes.ModuleName,
 		appKeepers.keys[trontypes.StoreKey],
-		appKeepers.GetSubspace(trontypes.ModuleName),
 		stakingKeeper,
 		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
@@ -376,6 +375,7 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 		erc20Keeper,
 		appKeepers.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	))
 
 	// add cross-chain router

@@ -8,20 +8,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/tendermint/tendermint/libs/log"
-
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper of this module maintains collections of erc20.
 type Keeper struct {
-	storeKey   storetypes.StoreKey
-	cdc        codec.BinaryCodec
-	paramSpace paramtypes.Subspace
-
+	storeKey          storetypes.StoreKey
+	cdc               codec.BinaryCodec
 	accountKeeper     types.AccountKeeper
 	bankKeeper        types.BankKeeper
 	evmKeeper         types.EVMKeeper
@@ -30,23 +26,20 @@ type Keeper struct {
 	router *fxtypes.Router
 
 	moduleAddress common.Address
+
+	authority string
 }
 
 // NewKeeper creates new instances of the erc20 Keeper
 func NewKeeper(
 	storeKey storetypes.StoreKey,
 	cdc codec.BinaryCodec,
-	ps paramtypes.Subspace,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	evmKeeper types.EVMKeeper,
 	ibcTransferKeeper types.IBCTransferKeeper,
+	authority string,
 ) Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
-
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
@@ -54,13 +47,17 @@ func NewKeeper(
 	return Keeper{
 		storeKey:          storeKey,
 		cdc:               cdc,
-		paramSpace:        ps,
 		accountKeeper:     ak,
 		bankKeeper:        bk,
 		evmKeeper:         evmKeeper,
 		ibcTransferKeeper: ibcTransferKeeper,
 		moduleAddress:     common.BytesToAddress(ak.GetModuleAddress(types.ModuleName)),
+		authority:         authority,
 	}
+}
+
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // Logger returns a module-specific logger.
