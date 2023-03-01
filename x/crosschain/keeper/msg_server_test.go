@@ -192,7 +192,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				oracle.SlashTimes = 1
 				suite.Keeper().SetOracle(suite.ctx, oracle)
 				slashFraction := suite.Keeper().GetSlashFraction(suite.ctx)
-				slashAmount := initDelegateAmount.ToDec().Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
+				slashAmount := sdk.NewDecFromInt(initDelegateAmount).Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
 				randomAmount := tmrand.Int63n(slashAmount.QuoRaw(1e18).Int64()) + 1
 				msg.Amount.Amount = sdkmath.NewInt(randomAmount).MulRaw(1e18).Sub(sdkmath.NewInt(1))
 			},
@@ -205,7 +205,8 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				params := suite.Keeper().GetParams(suite.ctx)
 				addDelegateThreshold := tmrand.Int63n(100000) + 1
 				params.DelegateThreshold.Amount = initDelegateAmount.Add(sdkmath.NewInt(addDelegateThreshold).MulRaw(1e18))
-				suite.Keeper().SetParams(suite.ctx, &params)
+				err := suite.Keeper().SetParams(suite.ctx, &params)
+				suite.Require().NoError(err)
 				msg.Amount.Amount = sdkmath.NewInt(tmrand.Int63n(addDelegateThreshold) + 1).MulRaw(1e18).Sub(sdkmath.NewInt(1))
 			},
 			pass: false,
@@ -240,7 +241,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				suite.Keeper().SetOracle(suite.ctx, oracle)
 
 				slashFraction := suite.Keeper().GetSlashFraction(suite.ctx)
-				slashAmount := initDelegateAmount.ToDec().Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
+				slashAmount := sdk.NewDecFromInt(initDelegateAmount).Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
 				msg.Amount.Amount = slashAmount
 			},
 			pass: true,
@@ -257,7 +258,7 @@ func (suite *KeeperTestSuite) TestMsgAddDelegate() {
 				suite.Keeper().SetOracle(suite.ctx, oracle)
 
 				slashFraction := suite.Keeper().GetSlashFraction(suite.ctx)
-				slashAmount := initDelegateAmount.ToDec().Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
+				slashAmount := sdk.NewDecFromInt(initDelegateAmount).Mul(slashFraction).MulInt64(oracle.SlashTimes).TruncateInt()
 				msg.Amount.Amount = slashAmount.Add(sdkmath.NewInt(1000).MulRaw(1e18))
 			},
 			pass: true,
@@ -945,7 +946,7 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 3. add bridge token.
 	sendToFxSendAddr := suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey)
 	sendToFxReceiveAddr := suite.bridgerAddrs[0]
-	sendToFxAmount := sdk.NewIntWithDecimal(1000, 18)
+	sendToFxAmount := sdkmath.NewIntWithDecimal(1000, 18)
 	randomPrivateKey, err := crypto.GenerateKey()
 	suite.Require().NoError(err)
 	sendToFxToken := suite.PubKeyToExternalAddr(randomPrivateKey.PublicKey)
