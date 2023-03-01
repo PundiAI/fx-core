@@ -24,7 +24,7 @@ func Test_updateCfgCmd(t *testing.T) {
 
 	rootCmd := NewRootCmd()
 	rootCmd.SetArgs([]string{"version"})
-	assert.NoError(t, svrcmd.Execute(rootCmd, tempDir))
+	assert.NoError(t, svrcmd.Execute(rootCmd, "", tempDir))
 
 	publicDir, err := os.ReadDir("../public")
 	assert.NoError(t, err)

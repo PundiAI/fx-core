@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	if err := svrcmd.Execute(cmd.NewRootCmd(), fxtypes.GetDefaultNodeHome()); err != nil {
+	if err := svrcmd.Execute(cmd.NewRootCmd(), "", fxtypes.GetDefaultNodeHome()); err != nil {
 		os.Exit(1)
 	}
 }
