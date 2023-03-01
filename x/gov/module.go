@@ -7,9 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/functionx/fx-core/v3/x/gov/keeper"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 var (
@@ -21,6 +22,7 @@ var (
 type AppModule struct {
 	gov.AppModule
 	keeper keeper.Keeper
+	ak     govtypes.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
@@ -28,6 +30,7 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak govtypes.AccountKeep
 	return AppModule{
 		AppModule: gov.NewAppModule(cdc, keeper.Keeper, ak, bk),
 		keeper:    keeper,
+		ak:        ak,
 	}
 }
 
@@ -38,11 +41,20 @@ func (am AppModule) Route() sdk.Route {
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	govtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(am.keeper.Keeper), am.keeper))
-	govtypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	msgServer := keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(am.keeper.Keeper), am.keeper)
+	govv1betal.RegisterMsgServer(cfg.MsgServer(), govkeeper.NewLegacyMsgServerImpl(am.ak.GetModuleAddress(govtypes.ModuleName).String(), msgServer))
+	govv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
+
+	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
+	govv1betal.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
+	govv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := govkeeper.NewMigrator(am.keeper.Keeper)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)
+	if err != nil {
+		panic(err)
+	}
+	err = cfg.RegisterMigration(govtypes.ModuleName, 2, m.Migrate2to3)
 	if err != nil {
 		panic(err)
 	}
