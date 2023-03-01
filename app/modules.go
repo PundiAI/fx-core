@@ -57,8 +57,6 @@ import (
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	fxevm "github.com/functionx/fx-core/v3/x/evm"
 	fxgov "github.com/functionx/fx-core/v3/x/gov"
-	"github.com/functionx/fx-core/v3/x/gravity"
-	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 	fxibctransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
 	fxibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 	"github.com/functionx/fx-core/v3/x/migrate"
@@ -81,15 +79,13 @@ func init() {
 
 // module account permissions
 var maccPerms = map[string][]string{
-	authtypes.FeeCollectorName:     nil,
-	distrtypes.ModuleName:          nil,
-	minttypes.ModuleName:           {authtypes.Minter},
-	stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
-	stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
-	govtypes.ModuleName:            {authtypes.Burner},
-	ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-	// used for secure addition and subtraction of balance using module account
-	gravitytypes.ModuleName:               nil,
+	authtypes.FeeCollectorName:            nil,
+	distrtypes.ModuleName:                 nil,
+	minttypes.ModuleName:                  {authtypes.Minter},
+	stakingtypes.BondedPoolName:           {authtypes.Burner, authtypes.Staking},
+	stakingtypes.NotBondedPoolName:        {authtypes.Burner, authtypes.Staking},
+	govtypes.ModuleName:                   {authtypes.Burner},
+	ibctransfertypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
 	bsctypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
 	polygontypes.ModuleName:               {authtypes.Minter, authtypes.Burner},
 	avalanchetypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
@@ -132,8 +128,6 @@ var ModuleBasics = module.NewBasicManager(
 	ibctransfer.AppModuleBasic{},
 	fxibctransfer.AppModuleBasic{},
 	vesting.AppModuleBasic{},
-	// this line is used by starport scaffolding # stargate/app/moduleBasic
-	gravity.AppModuleBasic{},
 	bsc.AppModuleBasic{},
 	polygon.AppModuleBasic{},
 	avalanche.AppModuleBasic{},
@@ -172,7 +166,6 @@ func appModules(
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 
-		gravity.NewAppModule(app.EthKeeper, app.GravityMigrator),
 		bsc.NewAppModule(app.BscKeeper),
 		polygon.NewAppModule(app.PolygonKeeper),
 		avalanche.NewAppModule(app.AvalancheKeeper),
@@ -215,7 +208,6 @@ func orderBeginBlockers() []string {
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 
-		gravitytypes.ModuleName,
 		crosschaintypes.ModuleName,
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
@@ -252,7 +244,6 @@ func orderEndBlockers() []string {
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 
-		gravitytypes.ModuleName,
 		crosschaintypes.ModuleName,
 		bsctypes.ModuleName,
 		trontypes.ModuleName,
@@ -291,7 +282,6 @@ func orderInitBlockers() []string {
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 
-		gravitytypes.ModuleName,
 		crosschaintypes.ModuleName,
 		bsctypes.ModuleName,
 		trontypes.ModuleName,

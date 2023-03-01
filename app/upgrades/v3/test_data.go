@@ -8,7 +8,6 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -16,7 +15,6 @@ import (
 
 func GetModuleKey(chainId string) map[string]map[byte][2]int {
 	return map[string]map[byte][2]int{
-		gravitytypes.ModuleName:   getGravityKey(chainId),
 		bsctypes.ModuleName:       getBscKey(chainId),
 		polygontypes.ModuleName:   getPolygonKey(chainId),
 		trontypes.ModuleName:      getTronKey(chainId),
@@ -24,57 +22,6 @@ func GetModuleKey(chainId string) map[string]map[byte][2]int {
 		avalanchetypes.ModuleName: getAvalancheKey(chainId),
 		erc20types.ModuleName:     getErc20Key(chainId),
 		migratetypes.ModuleName:   getMigrateKey(chainId),
-	}
-}
-
-func getGravityKey(chainId string) map[byte][2]int {
-	if chainId == fxtypes.TestnetChainId {
-		return map[byte][2]int{
-			gravitytypes.EthAddressByValidatorKey[0]:              {0, 0},
-			gravitytypes.ValidatorByEthAddressKey[0]:              {0, 0},
-			gravitytypes.ValidatorAddressByOrchestratorAddress[0]: {0, 0},
-			gravitytypes.LastEventBlockHeightByValidatorKey[0]:    {0, 0},
-			gravitytypes.LastEventNonceByValidatorKey[0]:          {0, 0},
-			gravitytypes.LastObservedEventNonceKey[0]:             {0, 0},
-			gravitytypes.SequenceKeyPrefix[0]:                     {0, 0},
-			gravitytypes.DenomToERC20Key[0]:                       {0, 0},
-			gravitytypes.ERC20ToDenomKey[0]:                       {0, 0},
-			gravitytypes.LastSlashedValsetNonce[0]:                {0, 0},
-			gravitytypes.LatestValsetNonce[0]:                     {0, 0},
-			gravitytypes.LastSlashedBatchBlock[0]:                 {0, 0},
-			gravitytypes.LastUnBondingBlockHeight[0]:              {0, 0},
-			gravitytypes.LastObservedEthereumBlockHeightKey[0]:    {0, 0},
-			gravitytypes.LastObservedValsetKey[0]:                 {0, 0},
-			gravitytypes.IbcSequenceHeightKey[0]:                  {0, 0},
-			gravitytypes.ValsetRequestKey[0]:                      {0, 0},
-			gravitytypes.OracleAttestationKey[0]:                  {0, 0},
-			gravitytypes.OutgoingTxPoolKey[0]:                     {0, 0},
-			gravitytypes.SecondIndexOutgoingTxFeeKey[0]:           {0, 0},
-			gravitytypes.BatchConfirmKey[0]:                       {0, 0},
-			gravitytypes.ValsetConfirmKey[0]:                      {0, 0},
-		}
-	}
-	return map[byte][2]int{
-		gravitytypes.EthAddressByValidatorKey[0]:              {0, 0},
-		gravitytypes.ValidatorByEthAddressKey[0]:              {0, 0},
-		gravitytypes.ValidatorAddressByOrchestratorAddress[0]: {0, 0},
-		gravitytypes.LastEventBlockHeightByValidatorKey[0]:    {0, 0},
-		gravitytypes.LastEventNonceByValidatorKey[0]:          {0, 0},
-		gravitytypes.LastObservedEventNonceKey[0]:             {0, 0},
-		gravitytypes.SequenceKeyPrefix[0]:                     {0, 0},
-		gravitytypes.DenomToERC20Key[0]:                       {0, 0},
-		gravitytypes.ERC20ToDenomKey[0]:                       {0, 0},
-		gravitytypes.LastSlashedValsetNonce[0]:                {0, 0},
-		gravitytypes.LatestValsetNonce[0]:                     {0, 0},
-		gravitytypes.LastSlashedBatchBlock[0]:                 {0, 0},
-		gravitytypes.LastUnBondingBlockHeight[0]:              {0, 0},
-		gravitytypes.LastObservedEthereumBlockHeightKey[0]:    {0, 0},
-		gravitytypes.LastObservedValsetKey[0]:                 {0, 0},
-		gravitytypes.IbcSequenceHeightKey[0]:                  {0, 0},
-		gravitytypes.ValsetRequestKey[0]:                      {0, 0},
-		gravitytypes.OracleAttestationKey[0]:                  {0, 0},
-		gravitytypes.BatchConfirmKey[0]:                       {0, 0},
-		gravitytypes.ValsetConfirmKey[0]:                      {0, 0},
 	}
 }
 

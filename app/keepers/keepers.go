@@ -64,8 +64,6 @@ import (
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	fxevmkeeper "github.com/functionx/fx-core/v3/x/evm/keeper"
 	fxgovkeeper "github.com/functionx/fx-core/v3/x/gov/keeper"
-	gravitykeeper "github.com/functionx/fx-core/v3/x/gravity/keeper"
-	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
 	fxtransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
 	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter"
@@ -119,7 +117,6 @@ type AppKeepers struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	GravityMigrator  gravitykeeper.Migrator
 	CrosschainKeeper crosschainkeeper.RouterKeeper
 	CrossChainKeepers
 
@@ -310,17 +307,6 @@ func NewAppKeeper(
 		appKeepers.IBCTransferKeeper,
 	)
 
-	appKeepers.GravityMigrator = gravitykeeper.NewMigrator(
-		appCodec,
-		legacyAmino,
-		appKeepers.keys[paramstypes.StoreKey],
-		appKeepers.keys[gravitytypes.StoreKey],
-		appKeepers.keys[ethtypes.StoreKey],
-		stakingKeeper,
-		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-	)
-
 	// init cross chain module
 	appKeepers.BscKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -434,7 +420,6 @@ func NewAppKeeper(
 	)
 
 	transferRouter := fxtypes.NewRouter().
-		AddRoute(gravitytypes.ModuleName, appKeepers.EthKeeper). // legacy router
 		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
@@ -531,8 +516,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
-	// this line is used by starport scaffolding # stargate/app/paramSubspace
-	paramsKeeper.Subspace(gravitytypes.ModuleName)
+
 	paramsKeeper.Subspace(bsctypes.ModuleName)
 	paramsKeeper.Subspace(polygontypes.ModuleName)
 	paramsKeeper.Subspace(avalanchetypes.ModuleName)
