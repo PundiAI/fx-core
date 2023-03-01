@@ -137,7 +137,8 @@ func (im IBCMiddleware) SendPacket(
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
-	data []byte) (uint64, error) {
+	data []byte,
+) (uint64, error) {
 	return im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 

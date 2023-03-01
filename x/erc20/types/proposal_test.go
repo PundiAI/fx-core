@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	length "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
 	"github.com/evmos/ethermint/tests"
 	"github.com/stretchr/testify/suite"
 )
@@ -151,8 +152,8 @@ func (suite *ProposalTestSuite) TestRegisterCoinProposal() {
 		{msg: "Register token pair - invalid length token (0)", title: "test", description: "test desc", metadata: createMetadata("", "test"), expectPass: false},
 		{msg: "Register token pair - invalid length token (1)", title: "test", description: "test desc", metadata: createMetadata("a", "test"), expectPass: false},
 		{msg: "Register token pair - invalid length token (128)", title: "test", description: "test desc", metadata: createMetadata(strings.Repeat("a", 129), "test"), expectPass: false},
-		{msg: "Register token pair - invalid length title (140)", title: strings.Repeat("a", length.MaxTitleLength+1), description: "test desc", metadata: validMetadata, expectPass: false},
-		{msg: "Register token pair - invalid length description (5000)", title: "title", description: strings.Repeat("a", length.MaxDescriptionLength+1), metadata: validMetadata, expectPass: false},
+		{msg: "Register token pair - invalid length title (140)", title: strings.Repeat("a", govv1beta1.MaxTitleLength+1), description: "test desc", metadata: validMetadata, expectPass: false},
+		{msg: "Register token pair - invalid length description (5000)", title: "title", description: strings.Repeat("a", govv1beta1.MaxDescriptionLength+1), metadata: validMetadata, expectPass: false},
 
 		// Ibc
 		{msg: "Register token pair - ibc", title: "test", description: "test desc", metadata: createFullMetadata(validIBCDenom, validIBCSymbol, validIBCName), expectPass: true},
@@ -194,8 +195,8 @@ func (suite *ProposalTestSuite) TestToggleTokenConversionProposal() {
 		{msg: "Enable token conversion proposal - invalid length (1)", title: "test", description: "test desc", token: "a", expectPass: false},
 		{msg: "Enable token conversion proposal - invalid length (128)", title: "test", description: "test desc", token: strings.Repeat("a", 129), expectPass: false},
 
-		{msg: "Enable token conversion proposal - invalid length title (140)", title: strings.Repeat("a", length.MaxTitleLength+1), description: "test desc", token: "test", expectPass: false},
-		{msg: "Enable token conversion proposal - invalid length description (5000)", title: "title", description: strings.Repeat("a", length.MaxDescriptionLength+1), token: "test", expectPass: false},
+		{msg: "Enable token conversion proposal - invalid length title (140)", title: strings.Repeat("a", govv1beta1.MaxTitleLength+1), description: "test desc", token: "test", expectPass: false},
+		{msg: "Enable token conversion proposal - invalid length description (5000)", title: "title", description: strings.Repeat("a", govv1beta1.MaxDescriptionLength+1), token: "test", expectPass: false},
 	}
 
 	for i, tc := range testCases {
