@@ -17,10 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
 	srvflags "github.com/evmos/ethermint/server/flags"
@@ -316,16 +313,4 @@ type EmptyAppOptions struct{}
 // Get implements AppOptions
 func (ao EmptyAppOptions) Get(string) interface{} {
 	return nil
-}
-
-func (app *App) GetStakingKeeper() stakingkeeper.Keeper {
-	return app.StakingKeeper.Keeper
-}
-
-func (app *App) GetIBCKeeper() *ibckeeper.Keeper {
-	return app.IBCKeeper
-}
-
-func (app *App) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
-	return app.ScopedIBCKeeper
 }

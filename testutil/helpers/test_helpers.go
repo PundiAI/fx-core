@@ -27,9 +27,12 @@ import (
 	authsign "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
 	etherminttypes "github.com/evmos/ethermint/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -428,12 +431,29 @@ func GenTx(gen client.TxConfig, msgs []sdk.Msg, gasPrice sdk.Coin, gas uint64, c
 	return tx.GetTx(), nil
 }
 
+type TestingApp struct {
+	*app.App
+}
+
+func (app *TestingApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
+	return app.StakingKeeper.Keeper
+}
+
+func (app *TestingApp) GetIBCKeeper() *ibckeeper.Keeper {
+	return app.IBCKeeper
+}
+
+func (app *TestingApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+	return app.ScopedIBCKeeper
+}
+
 // SetupTestingApp initializes the IBC-go testing application
 func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	cfg := app.MakeEncodingConfig()
 	resultApp := app.New(log.NewNopLogger(), dbm.NewMemDB(),
 		nil, true, map[int64]bool{}, os.TempDir(), 5, cfg, simapp.EmptyAppOptions{})
-	return resultApp, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cfg.Codec)
+	testingApp := &TestingApp{resultApp}
+	return testingApp, app.NewDefAppGenesisByDenom(fxtypes.DefaultDenom, cfg.Codec)
 }
 
 func IsLocalTest() bool {
