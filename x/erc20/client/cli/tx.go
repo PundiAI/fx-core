@@ -171,6 +171,7 @@ func NewConvertDenomCmd() *cobra.Command {
 }
 
 // NewRegisterCoinProposalCmd implements the command to submit a register-coin proposal
+// nolint:staticcheck
 func NewRegisterCoinProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register-coin [metadata]",
@@ -240,6 +241,7 @@ The proposal details must be supplied via a JSON file.`,
 }
 
 // NewRegisterERC20ProposalCmd implements the command to submit a register-erc20 proposal
+// nolint:staticcheck
 func NewRegisterERC20ProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "register-erc20 [erc20-address]",
@@ -302,6 +304,7 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 }
 
 // NewToggleTokenConversionProposalCmd implements the command to submit a toggle-token-conversion proposal
+// nolint:staticcheck
 func NewToggleTokenConversionProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "toggle-token-conversion [token]",
@@ -364,6 +367,7 @@ func NewToggleTokenConversionProposalCmd() *cobra.Command {
 }
 
 // NewUpdateDenomAliasProposalCmd implements the command to submit a update-denom-alias proposal
+// nolint:staticcheck
 //
 //gocyclo:ignore
 func NewUpdateDenomAliasProposalCmd() *cobra.Command {

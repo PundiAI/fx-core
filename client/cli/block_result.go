@@ -121,7 +121,7 @@ func TxResponseToMap(cdc codec.JSONCodec, txResponse *sdk.TxResponse) map[string
 		return nil
 	}
 	txMsgData := sdk.TxMsgData{
-		Data: make([]*sdk.MsgData, 0),
+		Data: make([]*sdk.MsgData, 0), // nolint:staticcheck
 	}
 	if err := proto.Unmarshal(txData, &txMsgData); err != nil {
 		return nil
@@ -155,7 +155,7 @@ func TxResultToMap(txResult *types.ResponseDeliverTx) map[string]interface{} {
 		})
 	}
 	txMsgData := sdk.TxMsgData{
-		Data: make([]*sdk.MsgData, 0),
+		Data: make([]*sdk.MsgData, 0), // nolint:staticcheck
 	}
 	if err := proto.Unmarshal(txResult.Data, &txMsgData); err != nil {
 		return nil

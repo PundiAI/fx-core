@@ -62,6 +62,8 @@ func GetTxSubCmds(chainName string) []*cobra.Command {
 	return cmds
 }
 
+// CmdUpdateChainOraclesProposal
+// nolint:staticcheck
 func CmdUpdateChainOraclesProposal(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-crosschain-oracles [oracles]",
