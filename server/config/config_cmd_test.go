@@ -262,7 +262,6 @@ func Test_appTomlConfig_output(t *testing.T) {
   "minimum-gas-prices": "",
   "pruning": "default",
   "pruning-interval": "0",
-  "pruning-keep-every": "0",
   "pruning-keep-recent": "0",
   "rosetta": {
     "address": ":8080",

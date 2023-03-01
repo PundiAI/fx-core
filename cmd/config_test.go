@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/server/config"
-	"github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/stretchr/testify/assert"
 	tmcfg "github.com/tendermint/tendermint/config"
 
@@ -89,7 +89,7 @@ func TestPublicAppConfig(t *testing.T) {
 
 	config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
 	appConfig := fxcfg.DefaultConfig()
-	appConfig.Pruning = types.PruningOptionCustom
+	appConfig.Pruning = pruningtypes.PruningOptionCustom
 	appConfig.PruningKeepRecent = "20000"
 	appConfig.PruningInterval = "10"
 	appConfig.MinGasPrices = "4000000000000FX"

@@ -9,9 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -52,7 +52,7 @@ func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *networ
 				nil, true, make(map[int64]bool), ctx.Config.RootDir, 0,
 				encCfg,
 				app.EmptyAppOptions{},
-				baseapp.SetPruning(storetypes.NewPruningOptionsFromString(appConfig.Pruning)),
+				baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(appConfig.Pruning)),
 				baseapp.SetMinGasPrices(appConfig.MinGasPrices),
 			)
 		},
@@ -65,7 +65,7 @@ func DefaultNetworkConfig(encCfg app.EncodingConfig, opts ...func(config *networ
 		AccountTokens:   sdk.TokensFromConsensusPower(1000, sdk.DefaultPowerReduction),
 		StakingTokens:   sdk.TokensFromConsensusPower(5000, sdk.DefaultPowerReduction),
 		BondedTokens:    sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),
-		PruningStrategy: storetypes.PruningOptionNothing,
+		PruningStrategy: pruningtypes.PruningOptionNothing,
 		CleanupDir:      true,
 		SigningAlgo:     string(hd.Secp256k1Type),
 		KeyringOptions: []keyring.Option{
