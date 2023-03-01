@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
@@ -384,7 +384,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	}
 }
 
-func mintCoin(t *testing.T, ctx sdk.Context, chain *app.App, address sdk.AccAddress, coins sdk.Coins) {
+func mintCoin(t *testing.T, ctx sdk.Context, chain *helpers.TestingApp, address sdk.AccAddress, coins sdk.Coins) {
 	require.NoError(t, chain.BankKeeper.MintCoins(ctx, transfertypes.ModuleName, coins))
 	require.NoError(t, chain.BankKeeper.SendCoinsFromModuleToAccount(ctx, transfertypes.ModuleName, address, coins))
 }

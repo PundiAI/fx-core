@@ -8,7 +8,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v3/app"
+	"github.com/functionx/fx-core/v3/testutil/helpers"
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 	fxibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
 )
@@ -49,8 +49,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t *testing.T) {
 	suite.queryClient = transfertypes.NewQueryClient(queryHelper)
 }
 
-func (suite *KeeperTestSuite) GetApp(testingApp ibctesting.TestingApp) *app.App {
-	result, ok := testingApp.(*app.App)
+func (suite *KeeperTestSuite) GetApp(testingApp ibctesting.TestingApp) *helpers.TestingApp {
+	result, ok := testingApp.(*helpers.TestingApp)
 	suite.Require().True(ok)
 	return result
 }

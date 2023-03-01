@@ -62,7 +62,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		},
 		{
 			name:   "ibc transfer packet",
-			data:   transfertypes.NewFungibleTokenPacketData("FX", "100", "Add1", "Add2").GetBytes(),
+			data:   transfertypes.NewFungibleTokenPacketData("FX", "100", "Add1", "Add2", "").GetBytes(),
 			pass:   true,
 			expErr: nil,
 			exp: types.FungibleTokenPacketData{
