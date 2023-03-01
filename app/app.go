@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"io"
 	"net/http"
 
@@ -163,6 +164,8 @@ func New(
 	myApp.setupUpgradeHandlers()
 	myApp.setupUpgradeStoreLoaders()
 
+	myApp.setPostHandler()
+
 	if loadLatest {
 		if err := myApp.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
@@ -170,6 +173,16 @@ func New(
 	}
 
 	return myApp
+}
+
+func (app *App) setPostHandler() {
+	postHandler, err := posthandler.NewPostHandler(
+		posthandler.HandlerOptions{},
+	)
+	if err != nil {
+		panic(err)
+	}
+	app.SetPostHandler(postHandler)
 }
 
 // Name returns the name of the App
