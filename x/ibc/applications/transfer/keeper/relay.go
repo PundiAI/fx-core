@@ -131,18 +131,16 @@ func (k Keeper) sendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, 
 		}
 	}
 
-	packet := channeltypes.NewPacket(
-		packetData.GetBytes(),
-		sequence,
+	sequence, err = k.ics4Wrapper.SendPacket(
+		ctx,
+		channelCap,
 		sourcePort,
 		sourceChannel,
-		destinationPort,
-		destinationChannel,
 		timeoutHeight,
 		timeoutTimestamp,
+		packetData.GetBytes(),
 	)
-
-	if err = k.ics4Wrapper.SendPacket(ctx, channelCap, packet); err != nil {
+	if err != nil {
 		return 0, err
 	}
 
@@ -174,7 +172,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	receiveAmount := transferAmount.Add(feeAmount)
-	packetData := transfertypes.NewFungibleTokenPacketData(data.GetDenom(), receiveAmount.String(), data.GetSender(), receiver.String())
+	packetData := transfertypes.NewFungibleTokenPacketData(data.GetDenom(), receiveAmount.String(), data.GetSender(), receiver.String(), "")
 	packetData.Memo = data.Memo
 	onRecvPacketCtxWithNewEvent := ctx.WithEventManager(sdk.NewEventManager())
 	if err = k.Keeper.OnRecvPacket(onRecvPacketCtxWithNewEvent, packet, packetData); err != nil {

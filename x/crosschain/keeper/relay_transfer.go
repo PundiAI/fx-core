@@ -88,6 +88,7 @@ func (k Keeper) transferIBCHandler(ctx sdk.Context, eventNonce uint64, receive s
 			ibcReceiveAddress,
 			ibcclienttypes.ZeroHeight(),
 			uint64(ibcTimeoutTime.UnixNano()),
+			"",
 		),
 	)
 	if err != nil {

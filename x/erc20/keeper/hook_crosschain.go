@@ -106,6 +106,7 @@ func (h Hooks) transferIBCHandler(ctx sdk.Context, from sdk.AccAddress, to strin
 			to,
 			ibcclienttypes.ZeroHeight(),
 			ibcTimeoutTimestamp,
+			"",
 		),
 	)
 	if err != nil {

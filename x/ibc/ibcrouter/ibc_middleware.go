@@ -1,6 +1,7 @@
 package ibcrouter
 
 import (
+	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -38,7 +39,7 @@ type IBCMiddleware struct {
 // ICS 30 callbacks
 
 // OnChanOpenInit implements the IBCModule interface
-func (im IBCMiddleware) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) error {
+func (im IBCMiddleware) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, chanCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) (string, error) {
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
 }
 
@@ -91,7 +92,7 @@ func (im IBCMiddleware) OnRecvPacket(
 ) exported.Acknowledgement {
 	var data fxtransfertypes.FungibleTokenPacketData
 	if err := fxtransfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return channeltypes.NewErrorAcknowledgement("cannot unmarshal ICS-20 transfer packet data")
+		return channeltypes.NewErrorAcknowledgement(fmt.Errorf("cannot unmarshal ICS-20 transfer packet data"))
 	}
 	// check the packet has router
 	if len(data.Router) > 0 {
@@ -100,7 +101,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	ack, err := handlerForwardTransferPacket(ctx, im, packet, data.ToIBCPacketData(), relayer)
 	if err != nil {
-		ack = transfertypes.NewErrorAcknowledgement(err)
+		ack = channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	if err != nil {
@@ -129,12 +130,23 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
 
-func (im IBCMiddleware) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.PacketI) error {
-	return im.ics4Wrapper.SendPacket(ctx, chanCap, packet)
+func (im IBCMiddleware) SendPacket(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	sourcePort string,
+	sourceChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte) (uint64, error) {
+	return im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.PacketI, ack exported.Acknowledgement) error {
 	return im.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+}
+
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return im.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
 func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData, relayer sdk.AccAddress) (exported.Acknowledgement, error) {
@@ -173,6 +185,7 @@ func handlerForwardTransferPacket(ctx sdk.Context, im IBCMiddleware, packet chan
 			parsedReceiver.Destination,
 			clienttypes.Height{},
 			uint64(ctx.BlockTime().Add(ForwardPacketTimeHour*time.Hour).UnixNano()),
+			"",
 		)
 		msgTransfer.Memo = newData.Memo
 

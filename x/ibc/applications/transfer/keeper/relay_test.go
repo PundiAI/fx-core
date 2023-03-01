@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			chain := suite.GetApp(suite.chainA.App)
 			transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
 			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
-			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String())
+			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
 			// only use timeout height
 			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
 				RevisionNumber: 100,
@@ -192,7 +192,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"pass - error ack - ibc transfer packet",
 			func(packet *channeltypes.Packet, ack *channeltypes.Acknowledgement) {
-				*ack = channeltypes.NewErrorAcknowledgement("test")
+				*ack = channeltypes.NewErrorAcknowledgement(fmt.Errorf("test"))
 
 				escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
 				mintCoin(suite.T(), suite.chainA.GetContext(), suite.GetApp(suite.chainA.App), escrowAddress, sdk.NewCoins(sdk.NewCoin(baseDenom, transferAmount)))
@@ -210,7 +210,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			chain := suite.GetApp(suite.chainA.App)
 			transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
 			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
-			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String())
+			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
 			// only use timeout height
 			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
 				RevisionNumber: 100,
@@ -359,7 +359,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			chain := suite.GetApp(suite.chainA.App)
 			transferIBCModule := transfer.NewIBCModule(chain.IBCTransferKeeper)
 			fxIBCMiddleware := fxtransfer.NewIBCMiddleware(chain.FxTransferKeeper, transferIBCModule)
-			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String())
+			packetData := transfertypes.NewFungibleTokenPacketData(baseDenom, transferAmount.String(), senderAddr.String(), receiveAddr.String(), "")
 			// only use timeout height
 			packet := channeltypes.NewPacket(packetData.GetBytes(), 1, ibcgotesting.TransferPort, "channel-0", ibcgotesting.TransferPort, "channel-0", clienttypes.Height{
 				RevisionNumber: 100,

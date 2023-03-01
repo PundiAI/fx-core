@@ -67,7 +67,7 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 
 // ToIBCPacketData is a helper for serialising
 func (ftpd FungibleTokenPacketData) ToIBCPacketData() transfertypes.FungibleTokenPacketData {
-	result := transfertypes.NewFungibleTokenPacketData(ftpd.Denom, ftpd.Amount, ftpd.Sender, ftpd.Receiver)
+	result := transfertypes.NewFungibleTokenPacketData(ftpd.Denom, ftpd.Amount, ftpd.Sender, ftpd.Receiver, ftpd.Memo)
 	result.Memo = ftpd.Memo
 	return result
 }
