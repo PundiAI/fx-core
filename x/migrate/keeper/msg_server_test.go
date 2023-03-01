@@ -61,5 +61,5 @@ func (suite *KeeperTestSuite) TestMigrateAccount() {
 	bb1 := suite.app.BankKeeper.GetAllBalances(suite.ctx, acc)
 	suite.Require().True(bb1.Empty())
 	bb2 := suite.app.BankKeeper.GetAllBalances(suite.ctx, ethAcc.Bytes())
-	suite.Require().Equal(b1, bb2.Sub(b2))
+	suite.Require().Equal(b1, bb2.Sub(b2...))
 }
