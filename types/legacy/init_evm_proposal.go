@@ -5,19 +5,19 @@ import (
 	"strings"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*govtypes.Content)(nil), &InitEvmParamsProposal{})
+	registry.RegisterImplementations((*govv1betal.Content)(nil), &InitEvmParamsProposal{})
 }
 
 const ProposalTypeInitEvmParams = "InitEvmParams"
 
-var _ govtypes.Content = &InitEvmParamsProposal{}
+var _ govv1betal.Content = &InitEvmParamsProposal{}
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeInitEvmParams)
+	govv1betal.RegisterProposalType(ProposalTypeInitEvmParams)
 }
 
 func (m *InitEvmParamsProposal) GetTitle() string {

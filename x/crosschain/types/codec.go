@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // ModuleCdc is the codec for the module
@@ -54,7 +54,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	)
 
 	registry.RegisterImplementations(
-		(*govtypes.Content)(nil),
+		(*govv1betal.Content)(nil),
 		&InitCrossChainParamsProposal{},
 		&UpdateChainOraclesProposal{},
 	)

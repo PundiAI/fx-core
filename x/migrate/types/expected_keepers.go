@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -33,12 +33,12 @@ type BankKeeper interface {
 }
 
 type GovKeeper interface {
-	GetDepositParams(ctx sdk.Context) govtypes.DepositParams
-	GetVotingParams(ctx sdk.Context) govtypes.VotingParams
+	GetDepositParams(ctx sdk.Context) govv1.DepositParams
+	GetVotingParams(ctx sdk.Context) govv1.VotingParams
 
 	ActiveProposalQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator
 	InactiveProposalQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator
 
-	GetDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk.AccAddress) (deposit govtypes.Deposit, found bool)
-	GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress) (vote govtypes.Vote, found bool)
+	GetDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk.AccAddress) (deposit govv1.Deposit, found bool)
+	GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress) (vote govv1.Vote, found bool)
 }

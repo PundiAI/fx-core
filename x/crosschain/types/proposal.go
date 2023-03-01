@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const (
@@ -17,15 +17,13 @@ const (
 )
 
 var (
-	_ govtypes.Content = &InitCrossChainParamsProposal{}
-	_ govtypes.Content = &UpdateChainOraclesProposal{}
+	_ govv1betal.Content = &InitCrossChainParamsProposal{}
+	_ govv1betal.Content = &UpdateChainOraclesProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeInitCrossChainParams)
-	govtypes.RegisterProposalTypeCodec(&InitCrossChainParamsProposal{}, "crosschain/InitCrossChainParamsProposal")
-	govtypes.RegisterProposalType(ProposalTypeUpdateChainOracles)
-	govtypes.RegisterProposalTypeCodec(&UpdateChainOraclesProposal{}, "crosschain/UpdateChainOraclesProposal")
+	govv1betal.RegisterProposalType(ProposalTypeInitCrossChainParams)
+	govv1betal.RegisterProposalType(ProposalTypeUpdateChainOracles)
 }
 
 func (m *InitCrossChainParamsProposal) GetTitle() string { return m.Title }
@@ -63,7 +61,7 @@ func (m *UpdateChainOraclesProposal) ValidateBasic() error {
 	if err := ValidateModuleName(m.ChainName); err != nil {
 		return errortypes.ErrInvalidRequest.Wrap("invalid chain name")
 	}
-	if err := govtypes.ValidateAbstract(m); err != nil {
+	if err := govv1betal.ValidateAbstract(m); err != nil {
 		return err
 	}
 

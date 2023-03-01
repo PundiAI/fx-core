@@ -4,10 +4,12 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v3/x/migrate/types"
@@ -27,7 +29,7 @@ func NewGovMigrate(govKey storetypes.StoreKey, govKeeper types.GovKeeper) Migrat
 
 func (m *GovMigrate) Validate(ctx sdk.Context, _ codec.BinaryCodec, from sdk.AccAddress, to common.Address) error {
 	votingParams := m.govKeeper.GetVotingParams(ctx)
-	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(votingParams.VotingPeriod))
+	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*votingParams.VotingPeriod))
 	defer activeIter.Close()
 	for ; activeIter.Valid(); activeIter.Next() {
 		// check vote
@@ -46,7 +48,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 	events := make([]sdk.Event, 0, 10)
 
 	depositParams := m.govKeeper.GetDepositParams(ctx)
-	inactiveIter := m.govKeeper.InactiveProposalQueueIterator(ctx, ctx.BlockTime().Add(depositParams.MaxDepositPeriod))
+	inactiveIter := m.govKeeper.InactiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*depositParams.MaxDepositPeriod))
 	defer inactiveIter.Close()
 	for ; inactiveIter.Valid(); inactiveIter.Next() {
 		proposalID, _ := govtypes.SplitInactiveProposalQueueKey(inactiveIter.Key())
@@ -55,14 +57,14 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 			amount := fromDeposit.Amount
 			toDeposit, toFound := m.govKeeper.GetDeposit(ctx, proposalID, to.Bytes())
 			if toFound {
-				amount = amount.Add(toDeposit.Amount...)
+				amount = sdk.NewCoins(amount...).Add(toDeposit.Amount...)
 			}
 
 			events = append(events,
 				sdk.NewEvent(
 					types.EventTypeMigrateGovDeposit,
 					sdk.NewAttribute(types.AttributeKeyProposalId, fmt.Sprintf("%d", proposalID)),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, fromDeposit.Amount.String()),
+					sdk.NewAttribute(sdk.AttributeKeyAmount, sdk.NewCoins(fromDeposit.Amount...).String()),
 				),
 			)
 
@@ -74,7 +76,7 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 	}
 
 	votingParams := m.govKeeper.GetVotingParams(ctx)
-	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(votingParams.VotingPeriod))
+	activeIter := m.govKeeper.ActiveProposalQueueIterator(ctx, ctx.BlockTime().Add(*votingParams.VotingPeriod))
 	defer activeIter.Close()
 	for ; activeIter.Valid(); activeIter.Next() {
 		proposalID, _ := govtypes.SplitActiveProposalQueueKey(activeIter.Key())
@@ -83,14 +85,14 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 			amount := fromDeposit.Amount
 			toDeposit, toFound := m.govKeeper.GetDeposit(ctx, proposalID, to.Bytes())
 			if toFound {
-				amount = amount.Add(toDeposit.Amount...)
+				amount = sdk.NewCoins(amount...).Add(toDeposit.Amount...)
 			}
 
 			events = append(events,
 				sdk.NewEvent(
 					types.EventTypeMigrateGovDeposit,
 					sdk.NewAttribute(types.AttributeKeyProposalId, fmt.Sprintf("%d", proposalID)),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, fromDeposit.Amount.String()),
+					sdk.NewAttribute(sdk.AttributeKeyAmount, sdk.NewCoins(fromDeposit.Amount...).String()),
 				),
 			)
 
@@ -109,12 +111,13 @@ func (m *GovMigrate) Execute(ctx sdk.Context, cdc codec.BinaryCodec, from sdk.Ac
 			govStore.Delete(govtypes.VoteKey(proposalID, from))
 			govStore.Set(govtypes.VoteKey(proposalID, to.Bytes()), cdc.MustMarshal(&fromVote))
 
+			var options govv1.WeightedVoteOptions = fromVote.Options[:]
 			// add events
 			events = append(events,
 				sdk.NewEvent(
 					types.EventTypeMigrateGovVote,
 					sdk.NewAttribute(types.AttributeKeyProposalId, fmt.Sprintf("%d", proposalID)),
-					sdk.NewAttribute(types.AttributeKeyVoteOption, fromVote.Option.String()), // nolint:staticcheck
+					sdk.NewAttribute(types.AttributeKeyVoteOption, options.String()), // nolint:staticcheck
 				),
 			)
 		}

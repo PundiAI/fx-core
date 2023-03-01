@@ -5,4 +5,4 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
-var ErrInitialAmountTooLow = errorsmod.Register(govtypes.ModuleName, 10, "initial amount too low")
+var ErrInitialAmountTooLow = errorsmod.Register(govtypes.ModuleName, 16, "initial amount too low")

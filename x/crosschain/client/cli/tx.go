@@ -11,12 +11,13 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
@@ -106,7 +107,7 @@ func CmdUpdateChainOraclesProposal(chainName string) *cobra.Command {
 				ChainName:   chainName,
 			}
 			fromAddress := cliCtx.GetFromAddress()
-			msg, err := govtypes.NewMsgSubmitProposal(proposal, deposit, fromAddress)
+			msg, err := govv1betal.NewMsgSubmitProposal(proposal, deposit, fromAddress)
 			if err != nil {
 				return err
 			}

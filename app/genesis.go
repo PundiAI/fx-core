@@ -13,6 +13,7 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -77,15 +78,16 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 			state.Params.CommunityTax = sdk.NewDecWithPrec(40, 2) // %40
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case govtypes.ModuleName:
-			state := govtypes.DefaultGenesisState()
+			state := govv1.DefaultGenesisState()
 			coinOne := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-			for i := 0; i < state.DepositParams.MinDeposit.Len(); i++ {
+			for i := 0; i < len(state.DepositParams.MinDeposit); i++ {
 				state.DepositParams.MinDeposit[i].Denom = denom
 				state.DepositParams.MinDeposit[i].Amount = coinOne.Mul(sdkmath.NewInt(10000))
 			}
-			state.DepositParams.MaxDepositPeriod = time.Hour * 24 * 14
-			state.VotingParams.VotingPeriod = time.Hour * 24 * 14
-			state.TallyParams.Quorum = sdk.NewDecWithPrec(4, 1) // 40%
+			duration := time.Hour * 24 * 14
+			state.DepositParams.MaxDepositPeriod = &duration
+			state.VotingParams.VotingPeriod = &duration
+			state.TallyParams.Quorum = sdk.NewDecWithPrec(4, 1).String() // 40%
 			genesis[b.Name()] = cdc.MustMarshalJSON(state)
 		case crisistypes.ModuleName:
 			state := crisistypes.DefaultGenesisState()

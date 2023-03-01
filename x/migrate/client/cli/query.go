@@ -9,12 +9,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/spf13/cobra"
-
 	"github.com/functionx/fx-core/v3/x/migrate/types"
+	"github.com/spf13/cobra"
 )
 
 func GetQueryCmd() *cobra.Command {
@@ -86,17 +85,17 @@ func CmdGetMigrateAccount() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			govClient := govtypes.NewQueryClient(clientCtx)
-			depositProposals, err := govClient.Proposals(cmd.Context(), &govtypes.QueryProposalsRequest{
-				ProposalStatus: govtypes.StatusDepositPeriod,
+			govClient := govv1betal.NewQueryClient(clientCtx)
+			depositProposals, err := govClient.Proposals(cmd.Context(), &govv1betal.QueryProposalsRequest{
+				ProposalStatus: govv1betal.StatusDepositPeriod,
 				Depositor:      addr.String(),
 				Pagination:     pageReq,
 			})
 			if err != nil {
 				return err
 			}
-			voteProposals, err := govClient.Proposals(cmd.Context(), &govtypes.QueryProposalsRequest{
-				ProposalStatus: govtypes.StatusVotingPeriod,
+			voteProposals, err := govClient.Proposals(cmd.Context(), &govv1betal.QueryProposalsRequest{
+				ProposalStatus: govv1betal.StatusVotingPeriod,
 				Voter:          addr.String(),
 				Pagination:     pageReq,
 			})

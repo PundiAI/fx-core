@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -21,7 +23,6 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -113,8 +114,8 @@ func (cli *Client) FeegrantQuery() feegrant.QueryClient {
 	return feegrant.NewQueryClient(cli.ClientConn)
 }
 
-func (cli *Client) GovQuery() govtypes.QueryClient {
-	return govtypes.NewQueryClient(cli.ClientConn)
+func (cli *Client) GovQuery() govv1.QueryClient {
+	return govv1.NewQueryClient(cli.ClientConn)
 }
 
 func (cli *Client) MintQuery() minttypes.QueryClient {
