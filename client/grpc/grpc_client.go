@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -23,6 +21,7 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -31,6 +30,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -65,7 +65,7 @@ func NewGrpcConn(rawUrl string) (*grpc.ClientConn, error) {
 	if u.Scheme == "https" {
 		opts = append(opts, grpc.WithCredentialsBundle(google.NewDefaultCredentials()))
 	} else {
-		opts = append(opts, grpc.WithInsecure())
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 	return grpc.Dial(_url, opts...)
 }
