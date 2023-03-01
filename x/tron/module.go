@@ -78,13 +78,16 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {}
 type AppModule struct {
 	AppModuleBasic
 	keeper keeper.Keeper
+	// legacySubspace is used solely for migration of x/params managed parameters
+	legacySubspace crosschaintypes.Subspace
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, ss crosschaintypes.Subspace) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
+		legacySubspace: ss,
 	}
 }
 
@@ -106,7 +109,11 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	if err := cfg.RegisterMigration(am.Name(), 2, am.keeper.Migrate2to3); err != nil {
+	migrator := crosschainkeeper.NewMigrator(am.keeper.Keeper, am.legacySubspace)
+	if err := cfg.RegisterMigration(am.Name(), 2, migrator.Migrate2to3); err != nil {
+		panic(err)
+	}
+	if err := cfg.RegisterMigration(am.Name(), 3, migrator.Migrate3to4); err != nil {
 		panic(err)
 	}
 }
@@ -128,7 +135,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 3
+	return 4
 }
 
 // EndBlock implements app module

@@ -80,16 +80,18 @@ func (AppModuleBasic) RegisterInterfaces(interfaceRegistry codectypes.InterfaceR
 // AppModule implements the AppModule interface for the capability module.
 type AppModule struct {
 	AppModuleBasic
-	keeper        keeper.Keeper
-	channelKeeper v3.Channelkeeper
+	keeper         keeper.Keeper
+	channelKeeper  v3.Channelkeeper
+	legacySubspace types.Subspace
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper, channelKeeper v3.Channelkeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, channelKeeper v3.Channelkeeper, ss types.Subspace) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 		channelKeeper:  channelKeeper,
+		legacySubspace: ss,
 	}
 }
 
@@ -117,8 +119,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	migrator := keeper.NewMigrator(am.keeper, am.channelKeeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, migrator.Migrate2to3); err != nil {
+	migrator := keeper.NewMigrator(am.keeper, am.channelKeeper, am.legacySubspace)
+	if err := cfg.RegisterMigration(types.ModuleName, 2, migrator.Migrate2to3); err != nil {
+		panic(err)
+	}
+	if err := cfg.RegisterMigration(types.ModuleName, 3, migrator.Migrate3to4); err != nil {
 		panic(err)
 	}
 }
@@ -139,5 +144,5 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 2
+	return 4
 }
