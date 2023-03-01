@@ -436,7 +436,7 @@ type TestingApp struct {
 }
 
 func (app *TestingApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
-	return app.StakingKeeper.Keeper
+	return app.StakingKeeper
 }
 
 func (app *TestingApp) GetIBCKeeper() *ibckeeper.Keeper {

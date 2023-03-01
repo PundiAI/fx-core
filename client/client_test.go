@@ -172,7 +172,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 		account, err := cli.QueryAccount(toAddress.String())
 		suite.NoError(err)
-		suite.Equal(authtypes.NewBaseAccount(toAddress, nil, uint64(15+i), 0), account)
+		suite.Equal(authtypes.NewBaseAccount(toAddress, nil, uint64(12+i), 0), account)
 	}
 
 	ethPrivKey := suite.GetPrivKeyByIndex(hd2.EthSecp256k1Type, 0)
@@ -205,7 +205,7 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 		account, err := cli.QueryAccount(ethAddress.String())
 		suite.NoError(err)
-		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, uint64(17), 0), account)
+		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, uint64(14), 0), account)
 	}
 
 	for i := 0; i < len(clients); i++ {

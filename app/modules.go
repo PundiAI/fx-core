@@ -33,6 +33,7 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
@@ -63,8 +64,6 @@ import (
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	"github.com/functionx/fx-core/v3/x/polygon"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
-	fxstaking "github.com/functionx/fx-core/v3/x/staking"
-	fxstakingtypes "github.com/functionx/fx-core/v3/x/staking/types"
 	"github.com/functionx/fx-core/v3/x/tron"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -79,21 +78,20 @@ func init() {
 
 // module account permissions
 var maccPerms = map[string][]string{
-	authtypes.FeeCollectorName:            nil,
-	distrtypes.ModuleName:                 nil,
-	minttypes.ModuleName:                  {authtypes.Minter},
-	stakingtypes.BondedPoolName:           {authtypes.Burner, authtypes.Staking},
-	stakingtypes.NotBondedPoolName:        {authtypes.Burner, authtypes.Staking},
-	govtypes.ModuleName:                   {authtypes.Burner},
-	ibctransfertypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
-	bsctypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
-	polygontypes.ModuleName:               {authtypes.Minter, authtypes.Burner},
-	avalanchetypes.ModuleName:             {authtypes.Minter, authtypes.Burner},
-	ethtypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
-	trontypes.ModuleName:                  {authtypes.Minter, authtypes.Burner},
-	evmtypes.ModuleName:                   {authtypes.Minter, authtypes.Burner},
-	erc20types.ModuleName:                 {authtypes.Minter, authtypes.Burner},
-	fxstakingtypes.LPTokenOwnerModuleName: nil,
+	authtypes.FeeCollectorName:     nil,
+	distrtypes.ModuleName:          nil,
+	minttypes.ModuleName:           {authtypes.Minter},
+	stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
+	stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
+	govtypes.ModuleName:            {authtypes.Burner},
+	ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+	bsctypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
+	polygontypes.ModuleName:        {authtypes.Minter, authtypes.Burner},
+	avalanchetypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+	ethtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
+	trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+	evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
+	erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
 }
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -104,7 +102,7 @@ var ModuleBasics = module.NewBasicManager(
 	genutil.AppModuleBasic{},
 	bank.AppModuleBasic{},
 	capability.AppModuleBasic{},
-	fxstaking.AppModuleBasic{},
+	staking.AppModuleBasic{},
 	mint.AppModuleBasic{},
 	distr.AppModuleBasic{},
 	gov.NewAppModuleBasic([]govclient.ProposalHandler{
@@ -158,7 +156,7 @@ func appModules(
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		fxstaking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.EvmKeeper),
+		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),

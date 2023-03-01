@@ -36,7 +36,6 @@ import (
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
-	fxstakingtypes "github.com/functionx/fx-core/v3/x/staking/types"
 )
 
 const DefGasLimit int64 = 200000
@@ -127,10 +126,6 @@ func (cli *Client) SlashingQuery() slashingtypes.QueryClient {
 
 func (cli *Client) StakingQuery() stakingtypes.QueryClient {
 	return stakingtypes.NewQueryClient(cli.ClientConn)
-}
-
-func (cli *Client) FXStakingQuery() fxstakingtypes.QueryClient {
-	return fxstakingtypes.NewQueryClient(cli.ClientConn)
 }
 
 func (cli *Client) UpgradeQuery() upgradetypes.QueryClient {

@@ -256,7 +256,7 @@ func commitBlock(t *testing.T, ctx sdk.Context, app *app.App) sdk.Context {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(5 * time.Second))
 
-	staking.EndBlocker(ctx, app.StakingKeeper.Keeper)
+	staking.EndBlocker(ctx, app.StakingKeeper)
 	mint.BeginBlocker(ctx, app.MintKeeper, minttypes.DefaultInflationCalculationFn)
 
 	distribution.BeginBlocker(ctx, abcitypes.RequestBeginBlock{
@@ -264,7 +264,7 @@ func commitBlock(t *testing.T, ctx sdk.Context, app *app.App) sdk.Context {
 		Header: tmproto.Header{},
 		LastCommitInfo: abcitypes.LastCommitInfo{
 			Round: 0,
-			Votes: buildCommitVotes(t, ctx, app.StakingKeeper.Keeper, app.AppCodec()),
+			Votes: buildCommitVotes(t, ctx, app.StakingKeeper, app.AppCodec()),
 		},
 		ByzantineValidators: nil,
 	}, app.DistrKeeper)

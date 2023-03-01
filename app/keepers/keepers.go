@@ -33,6 +33,7 @@ import (
 	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
@@ -71,7 +72,6 @@ import (
 	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
-	fxstakingkeeper "github.com/functionx/fx-core/v3/x/staking/keeper"
 	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -97,7 +97,7 @@ type AppKeepers struct {
 	AccountKeeper    authkeeper.AccountKeeper
 	BankKeeper       bankkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
-	StakingKeeper    *fxstakingkeeper.Keeper
+	StakingKeeper    stakingkeeper.Keeper
 	SlashingKeeper   slashingkeeper.Keeper
 	MintKeeper       mintkeeper.Keeper
 	DistrKeeper      distrkeeper.Keeper
@@ -196,7 +196,7 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(banktypes.ModuleName),
 		blockedAddress,
 	)
-	stakingKeeper := fxstakingkeeper.NewKeeper(
+	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[stakingtypes.StoreKey],
 		appKeepers.AccountKeeper,
@@ -318,7 +318,7 @@ func NewAppKeeper(
 		bsctypes.ModuleName,
 		appKeepers.keys[bsctypes.StoreKey],
 		stakingKeeper,
-		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
+		stakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -332,7 +332,7 @@ func NewAppKeeper(
 		polygontypes.ModuleName,
 		appKeepers.keys[polygontypes.StoreKey],
 		stakingKeeper,
-		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
+		stakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -346,7 +346,7 @@ func NewAppKeeper(
 		avalanchetypes.ModuleName,
 		appKeepers.keys[avalanchetypes.StoreKey],
 		stakingKeeper,
-		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
+		stakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -360,7 +360,7 @@ func NewAppKeeper(
 		ethtypes.ModuleName,
 		appKeepers.keys[ethtypes.StoreKey],
 		stakingKeeper,
-		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
+		stakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -374,7 +374,7 @@ func NewAppKeeper(
 		trontypes.ModuleName,
 		appKeepers.keys[trontypes.StoreKey],
 		stakingKeeper,
-		fxstakingkeeper.NewMsgServerImpl(stakingKeeper),
+		stakingkeeper.NewMsgServerImpl(stakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -434,14 +434,9 @@ func NewAppKeeper(
 
 	appKeepers.EvmKeeper.SetHooks(
 		evmkeeper.NewMultiEvmHooks(
-			fxevmkeeper.NewLogProcessEvmHook(
-				fxstakingkeeper.NewLPTokenTransferHandler(stakingKeeper),
-			),
 			appKeepers.Erc20Keeper.EVMHooks(),
 		),
 	)
-
-	stakingKeeper = stakingKeeper.SetEvmKeeper(appKeepers.EvmKeeper)
 
 	ibcTransferRouter := transferRouter.
 		AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
@@ -460,11 +455,10 @@ func NewAppKeeper(
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	appKeepers.StakingKeeper = stakingKeeper.SetHooks(
+	appKeepers.StakingKeeper = *stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			appKeepers.DistrKeeper.Hooks(),
 			appKeepers.SlashingKeeper.Hooks(),
-			stakingKeeper.Hooks(),
 		),
 	)
 
