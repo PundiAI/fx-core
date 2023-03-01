@@ -60,12 +60,6 @@ func (k Keeper) sendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, 
 	destinationPort := sourceChannelEnd.GetCounterparty().GetPortID()
 	destinationChannel := sourceChannelEnd.GetCounterparty().GetChannelID()
 
-	// get the next sequence
-	sequence, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
-	if !found {
-		return 0, errorsmod.Wrapf(channeltypes.ErrSequenceSendNotFound, "source port: %s, source channel: %s", sourcePort, sourceChannel)
-	}
-
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#packet-relay
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
@@ -131,7 +125,7 @@ func (k Keeper) sendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, 
 		}
 	}
 
-	sequence, err = k.ics4Wrapper.SendPacket(
+	sequence, err := k.ics4Wrapper.SendPacket(
 		ctx,
 		channelCap,
 		sourcePort,
