@@ -15,10 +15,9 @@ import (
 )
 
 type StakingKeeper interface {
-	GetBondedValidatorsByPower(ctx sdk.Context) []stakingtypes.Validator
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
 	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
-	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
+	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) error
 }
 
 type BankKeeper interface {
@@ -52,7 +51,10 @@ func MigrateDepositToStaking(ctx sdk.Context, moduleName string, stakingKeeper S
 			ctx.Logger().Info("no found delegating on migrate", "module", moduleName, "delegate", delegateAddr, "validator", delegateValAddr.String())
 			continue
 		}
-		stakingKeeper.RemoveDelegation(ctx, delegation)
+
+		if err := stakingKeeper.RemoveDelegation(ctx, delegation); err != nil {
+			return err
+		}
 
 		var sendName string
 		switch {

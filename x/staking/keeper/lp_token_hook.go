@@ -17,48 +17,57 @@ func (k Keeper) Hooks() LPTokenHook {
 }
 
 // AfterValidatorCreated - call hook if registered
-func (h LPTokenHook) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) {
-	_, err := h.keeper.DeployLPToken(ctx, valAddr)
-	if err != nil {
-		// todo - cosmos-sdk v0.46.x will return error
-		panic(errortypes.ErrInvalidRequest.Wrapf("failed to deploy lp token contract: %s", err.Error()))
+func (h LPTokenHook) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) error {
+	if _, err := h.keeper.DeployLPToken(ctx, valAddr); err != nil {
+		return errortypes.ErrInvalidRequest.Wrapf("failed to deploy lp token contract: %s", err.Error())
 	}
+	return nil
 }
 
 // BeforeValidatorModified - call hook if registered
-func (h LPTokenHook) BeforeValidatorModified(_ sdk.Context, _ sdk.ValAddress) {}
+func (h LPTokenHook) BeforeValidatorModified(_ sdk.Context, _ sdk.ValAddress) error {
+	return nil
+}
 
 // AfterValidatorRemoved - call hook if registered
-func (h LPTokenHook) AfterValidatorRemoved(ctx sdk.Context, _ sdk.ConsAddress, valAddr sdk.ValAddress) {
+func (h LPTokenHook) AfterValidatorRemoved(ctx sdk.Context, _ sdk.ConsAddress, valAddr sdk.ValAddress) error {
 	if err := h.keeper.SelfDestructLPToken(ctx, valAddr); err != nil {
-		// todo - cosmos-sdk v0.46.x will return error
-		panic(errortypes.ErrInvalidRequest.Wrapf("failed to selfdestruct: %s", err.Error()))
+		return errortypes.ErrInvalidRequest.Wrapf("failed to selfdestruct: %s", err.Error())
 	}
+	return nil
 }
 
 // AfterValidatorBonded - call hook if registered
-func (h LPTokenHook) AfterValidatorBonded(_ sdk.Context, _ sdk.ConsAddress, _ sdk.ValAddress) {
+func (h LPTokenHook) AfterValidatorBonded(_ sdk.Context, _ sdk.ConsAddress, _ sdk.ValAddress) error {
+	return nil
 }
 
 // AfterValidatorBeginUnbonding - call hook if registered
-func (h LPTokenHook) AfterValidatorBeginUnbonding(_ sdk.Context, _ sdk.ConsAddress, _ sdk.ValAddress) {
+func (h LPTokenHook) AfterValidatorBeginUnbonding(_ sdk.Context, _ sdk.ConsAddress, _ sdk.ValAddress) error {
+	return nil
 }
 
 // BeforeDelegationCreated - call hook if registered
-func (h LPTokenHook) BeforeDelegationCreated(_ sdk.Context, _ sdk.AccAddress, _ sdk.ValAddress) {
+func (h LPTokenHook) BeforeDelegationCreated(_ sdk.Context, _ sdk.AccAddress, _ sdk.ValAddress) error {
+	return nil
 }
 
 // BeforeDelegationSharesModified - call hook if registered
-func (h LPTokenHook) BeforeDelegationSharesModified(_ sdk.Context, _ sdk.AccAddress, _ sdk.ValAddress) {
+func (h LPTokenHook) BeforeDelegationSharesModified(_ sdk.Context, _ sdk.AccAddress, _ sdk.ValAddress) error {
+	return nil
 }
 
 // BeforeDelegationRemoved - call hook if registered
-func (h LPTokenHook) BeforeDelegationRemoved(_ sdk.Context, _ sdk.AccAddress, _ sdk.ValAddress) {
+func (h LPTokenHook) BeforeDelegationRemoved(_ sdk.Context, _ sdk.AccAddress, _ sdk.ValAddress) error {
+	return nil
 }
 
 // AfterDelegationModified - call hook if registered
-func (h LPTokenHook) AfterDelegationModified(_ sdk.Context, _ sdk.AccAddress, _ sdk.ValAddress) {
+func (h LPTokenHook) AfterDelegationModified(_ sdk.Context, _ sdk.AccAddress, _ sdk.ValAddress) error {
+	return nil
 }
 
 // BeforeValidatorSlashed - call hook if registered
-func (h LPTokenHook) BeforeValidatorSlashed(_ sdk.Context, _ sdk.ValAddress, _ sdk.Dec) {}
+func (h LPTokenHook) BeforeValidatorSlashed(_ sdk.Context, _ sdk.ValAddress, _ sdk.Dec) error {
+	return nil
+}

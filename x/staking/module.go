@@ -90,15 +90,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // InitGenesis performs genesis initialization for the staking module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState stakingtypes.GenesisState
-
-	cdc.MustUnmarshalJSON(data, &genesisState)
-
 	if err := am.evmKeeper.CreateContractWithCode(ctx, fxtypes.GetLPToken().Address, fxtypes.GetLPToken().Code); err != nil {
 		panic(err)
 	}
 	CreateLPTokenModuleAccount(ctx, types.LPTokenOwnerModuleName, am.accountKeeper)
-	return staking.InitGenesis(ctx, am.keeper.Keeper, am.accountKeeper, am.bankKeeper, &genesisState)
+	return am.AppModule.InitGenesis(ctx, cdc, data)
 }
 
 func CreateLPTokenModuleAccount(ctx sdk.Context, lpTokenModuleName string, ak types.AccountKeeper) {

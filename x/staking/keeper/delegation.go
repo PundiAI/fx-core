@@ -21,7 +21,9 @@ func (k Keeper) Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 	}
 
 	// call the before-delegation-modified hook
-	k.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
+	if err := k.BeforeDelegationSharesModified(ctx, delAddr, valAddr); err != nil {
+		return amount, err
+	}
 
 	// ensure that we have enough shares to remove
 	if delegation.Shares.LT(shares) {
@@ -52,13 +54,16 @@ func (k Keeper) Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 		validator = k.mustGetValidator(ctx, validator.GetOperator())
 	}
 
-	// remove the delegation
 	if delegation.Shares.IsZero() {
-		k.RemoveDelegation(ctx, delegation)
+		err = k.RemoveDelegation(ctx, delegation)
 	} else {
 		k.SetDelegation(ctx, delegation)
 		// call the after delegation modification hook
-		k.AfterDelegationModified(ctx, delegatorAddress, delegation.GetValidatorAddr())
+		err = k.AfterDelegationModified(ctx, delegatorAddress, delegation.GetValidatorAddr())
+	}
+
+	if err != nil {
+		return amount, err
 	}
 
 	// NOTE: this logic by fx-core: begin
@@ -75,7 +80,6 @@ func (k Keeper) Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 	// remove the shares and coins from the validator
 	// NOTE that the amount is later (in keeper.Delegation) moved between staking module pools
 	validator, amount = k.RemoveValidatorTokensAndShares(ctx, validator, shares)
-
 	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
 		k.RemoveValidator(ctx, validator.GetOperator())

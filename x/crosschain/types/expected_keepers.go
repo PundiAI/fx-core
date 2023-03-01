@@ -19,7 +19,7 @@ type StakingKeeper interface {
 	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
 	GetUnbondingDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (ubd stakingtypes.UnbondingDelegation, found bool)
 
-	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
+	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) error
 	GetBondedValidatorsByPower(ctx sdk.Context) []stakingtypes.Validator
 }
 

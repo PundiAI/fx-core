@@ -9,9 +9,9 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	tmstrings "github.com/tendermint/tendermint/libs/strings"
 )
 
 type msgServer struct {
@@ -39,6 +39,10 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 		return nil, err
 	}
 
+	if msg.Commission.Rate.LT(k.MinCommissionRate(ctx)) {
+		return nil, errorsmod.Wrapf(stakingtypes.ErrCommissionLTMinRate, "cannot set validator commission to less than minimum rate of %s", k.MinCommissionRate(ctx))
+	}
+
 	// check to see if the pubkey or sender has been registered before
 	if _, found := k.GetValidator(ctx, valAddr); found {
 		return nil, stakingtypes.ErrValidatorOwnerExists
@@ -53,7 +57,7 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 		return nil, stakingtypes.ErrValidatorPubKeyExists
 	}
 
-	bondDenom := k.Keeper.BondDenom(ctx)
+	bondDenom := k.BondDenom(ctx)
 	if msg.Value.Denom != bondDenom {
 		return nil, errorsmod.Wrapf(
 			errortypes.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Value.Denom, bondDenom,
@@ -66,7 +70,15 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 
 	cp := ctx.ConsensusParams()
 	if cp != nil && cp.Validator != nil {
-		if !tmstrings.StringInSlice(pk.Type(), cp.Validator.PubKeyTypes) {
+		pkType := pk.Type()
+		hasKeyType := false
+		for _, keyType := range cp.Validator.PubKeyTypes {
+			if pkType == keyType {
+				hasKeyType = true
+				break
+			}
+		}
+		if !hasKeyType {
 			return nil, errorsmod.Wrapf(
 				stakingtypes.ErrValidatorPubKeyTypeNotSupported,
 				"got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes,
@@ -78,6 +90,7 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 	if err != nil {
 		return nil, err
 	}
+
 	commission := stakingtypes.NewCommissionWithTime(
 		msg.Commission.Rate, msg.Commission.MaxRate,
 		msg.Commission.MaxChangeRate, ctx.BlockHeader().Time,
@@ -96,11 +109,13 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *stakingtypes.MsgC
 	validator.MinSelfDelegation = msg.MinSelfDelegation
 
 	k.SetValidator(ctx, validator)
-	_ = k.SetValidatorByConsAddr(ctx, validator)
+	k.SetValidatorByConsAddr(ctx, validator)
 	k.SetNewValidatorByPowerIndex(ctx, validator)
 
 	// call the after-creation hook
-	k.AfterValidatorCreated(ctx, validator.GetOperator())
+	if err := k.AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
+		return nil, err
+	}
 
 	// move coins from the msg.Address account to a (self-delegation) delegator account
 	// the validator account and global shares are updated within here
