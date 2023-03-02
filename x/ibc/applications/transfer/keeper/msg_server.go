@@ -3,6 +3,9 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
@@ -20,16 +23,31 @@ var (
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*transfertypes.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.GetSendEnabled(ctx) {
+		return nil, transfertypes.ErrSendDisabled
+	}
+
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
+
+	if !k.bankKeeper.IsSendEnabledCoin(ctx, msg.Token) {
+		return nil, errorsmod.Wrapf(transfertypes.ErrSendDisabled, "%s transfers are currently disabled", msg.Token.Denom)
+	}
+
+	if k.bankKeeper.BlockedAddr(sender) {
+		return nil, errorsmod.Wrapf(errortypes.ErrUnauthorized, "%s is not allowed to send funds", sender)
+	}
+
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.Router, sdk.NewCoin(msg.Token.Denom, msg.Fee.Amount), msg.Memo,
 	)
 	if err != nil {
 		return nil, err
 	}
+
+	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

@@ -9,7 +9,6 @@ import (
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -20,38 +19,11 @@ import (
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
-func (k Keeper) SendTransfer(
-	ctx sdk.Context,
-	sourcePort,
-	sourceChannel string,
-	token sdk.Coin,
-	sender sdk.AccAddress,
-	receiver string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	router string,
-	fee sdk.Coin,
-	memo string,
-) error {
-	_, err := k.sendTransfer(ctx, sourcePort, sourceChannel, token, sender, receiver, timeoutHeight, timeoutTimestamp, router, fee, memo)
-	return err
-}
-
+// make SendTransfer private
+// https://github.com/cosmos/ibc-go/pull/2446
 func (k Keeper) sendTransfer(ctx sdk.Context, sourcePort, sourceChannel string, token sdk.Coin, sender sdk.AccAddress,
 	receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, router string, fee sdk.Coin, memo string,
 ) (uint64, error) {
-	if !k.GetSendEnabled(ctx) {
-		return 0, transfertypes.ErrSendDisabled
-	}
-
-	if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
-		return 0, errorsmod.Wrapf(transfertypes.ErrSendDisabled, "%s transfers are currently disabled", token.Denom)
-	}
-
-	if k.bankKeeper.BlockedAddr(sender) {
-		return 0, errorsmod.Wrapf(errortypes.ErrUnauthorized, "%s is not allowed to send funds", sender)
-	}
-
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
 		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
