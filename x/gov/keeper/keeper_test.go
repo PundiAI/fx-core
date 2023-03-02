@@ -1,7 +1,12 @@
 package keeper_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
+
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,11 +30,13 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	app       *app.App
-	ctx       sdk.Context
-	msgServer govv1.MsgServer
-	valAddr   []sdk.ValAddress
-	govAcct   string
+	app             *app.App
+	ctx             sdk.Context
+	msgServer       govv1.MsgServer
+	legacyMsgServer govv1beta1.MsgServer
+	valAddr         []sdk.ValAddress
+	addrs           []sdk.AccAddress
+	govAcct         string
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -46,12 +53,14 @@ func (suite *KeeperTestSuite) SetupTest() {
 		Height:          suite.app.LastBlockHeight() + 1,
 		ProposerAddress: valSet.Proposer.Address,
 	})
+	suite.addrs = helpers.AddTestAddrsIncremental(suite.app, suite.ctx, 5, sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e8).MulRaw(1e18))))
 	suite.valAddr = make([]sdk.ValAddress, valNumber)
 	for i, addr := range valAccounts {
 		suite.valAddr[i] = addr.GetAddress().Bytes()
 	}
 	suite.govAcct = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	suite.msgServer = keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.app.GovKeeper.Keeper), suite.app.GovKeeper)
+	suite.legacyMsgServer = govkeeper.NewLegacyMsgServerImpl(suite.govAcct, suite.msgServer)
 }
 
 func (suite *KeeperTestSuite) addFundCommunityPool() {
@@ -238,50 +247,50 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 	suite.True(initCoins.Add(firstCoins...).Add(secondCoins...).Add(thirdCoins...).IsAllGTE(minDeposit))
 }
 
-//func (suite *KeeperTestSuite) TestUpdateParams() {
-//	testCases := []struct {
-//		testName    string
-//		amount      sdk.Coins
-//		msg         []sdk.Msg
-//		result      bool
-//		expectedErr string
-//	}{
-//		{
-//			testName:    "set Erc20Params",
-//			amount:      sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e3).MulRaw(1e18))),
-//			msg:         []sdk.Msg{&erc20types.MsgUpdateParams{Authority: "0x1", Params: erc20types.DefaultParams()}},
-//			result:      false,
-//			expectedErr: "invalid authority address",
-//		},
-//		{
-//			testName:    "set CrossChainParam",
-//			amount:      sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e3).MulRaw(1e18))),
-//			msg:         []sdk.Msg{&crosschaintypes.MsgUpdateParams{ChainName: "eth", Authority: suite.govAcct, Params: crosschaintypes.DefaultParams()}},
-//			result:      true,
-//			expectedErr: "",
-//		},
-//		{
-//			testName:    "set Erc20Params",
-//			amount:      sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e3).MulRaw(1e18))),
-//			msg:         []sdk.Msg{&erc20types.MsgUpdateParams{Authority: suite.govAcct, Params: erc20types.DefaultParams()}},
-//			result:      true,
-//			expectedErr: "",
-//		},
-//	}
-//	for _, tc := range testCases {
-//		suite.Run(fmt.Sprintf("case %s", tc.testName), func() {
-//			proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, tc.msg, tc.testName)
-//			if tc.result {
-//				suite.NoError(err)
-//				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, suite.newAddress(), tc.amount)
-//				suite.Require().NoError(err)
-//				proposal, ok := suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposal.Id)
-//				suite.True(ok)
-//				suite.Equal(govv1.StatusVotingPeriod, proposal.Status)
-//			} else {
-//				suite.Error(err, err)
-//				suite.Require().True(strings.Contains(err.Error(), tc.expectedErr))
-//			}
-//		})
-//	}
-//}
+func (suite *KeeperTestSuite) TestUpdateParams() {
+	testCases := []struct {
+		testName    string
+		amount      sdk.Coins
+		msg         []sdk.Msg
+		result      bool
+		expectedErr string
+	}{
+		{
+			testName:    "set Erc20Params",
+			amount:      sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e3).MulRaw(1e18))),
+			msg:         []sdk.Msg{&erc20types.MsgUpdateParams{Authority: "0x1", Params: erc20types.DefaultParams()}},
+			result:      false,
+			expectedErr: "invalid authority address",
+		},
+		{
+			testName:    "set CrossChainParam",
+			amount:      sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e3).MulRaw(1e18))),
+			msg:         []sdk.Msg{&crosschaintypes.MsgUpdateParams{ChainName: "eth", Authority: suite.govAcct, Params: crosschaintypes.DefaultParams()}},
+			result:      true,
+			expectedErr: "",
+		},
+		{
+			testName:    "set Erc20Params",
+			amount:      sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e3).MulRaw(1e18))),
+			msg:         []sdk.Msg{&erc20types.MsgUpdateParams{Authority: suite.govAcct, Params: erc20types.DefaultParams()}},
+			result:      true,
+			expectedErr: "",
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("case %s", tc.testName), func() {
+			proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, tc.msg, tc.testName)
+			if tc.result {
+				suite.NoError(err)
+				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, suite.newAddress(), tc.amount)
+				suite.Require().NoError(err)
+				proposal, ok := suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposal.Id)
+				suite.True(ok)
+				suite.Equal(govv1.StatusVotingPeriod, proposal.Status)
+			} else {
+				suite.Error(err, err)
+				suite.Require().True(strings.Contains(err.Error(), tc.expectedErr))
+			}
+		})
+	}
+}
