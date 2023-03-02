@@ -4,6 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
@@ -25,6 +30,140 @@ import (
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
+
+func (suite *KeeperTestSuite) TestSendTransfer() {
+	var (
+		coin          sdk.Coin
+		path          *ibctesting.Path
+		sender        sdk.AccAddress
+		timeoutHeight clienttypes.Height
+		memo          string
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"successful transfer with native token",
+			func() {}, true,
+		},
+		{
+			"successful transfer from source chain with memo",
+			func() {
+				memo = "memo"
+			}, true,
+		},
+		{
+			"successful transfer with IBC token",
+			func() {
+				// send IBC token back to chainB
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+			}, true,
+		},
+		{
+			"successful transfer with IBC token and memo",
+			func() {
+				// send IBC token back to chainB
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				memo = "memo"
+			}, true,
+		},
+		{
+			"source channel not found",
+			func() {
+				// channel references wrong ID
+				path.EndpointA.ChannelID = ibctesting.InvalidID
+			}, false,
+		},
+		{
+			"transfer failed - sender account is blocked",
+			func() {
+				sender = suite.GetApp(suite.chainA.App).AccountKeeper.GetModuleAddress(types.ModuleName)
+			}, false,
+		},
+		{
+			"send coin failed",
+			func() {
+				coin = sdk.NewCoin("randomdenom", sdk.NewInt(100))
+			}, false,
+		},
+		{
+			"failed to parse coin denom",
+			func() {
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, "randomdenom", coin.Amount)
+			}, false,
+		},
+		{
+			"send from module account failed, insufficient balance",
+			func() {
+				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount.Add(sdk.NewInt(1)))
+			}, false,
+		},
+		{
+			"channel capability not found",
+			func() {
+				cap := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				// Release channel capability
+				err := suite.GetApp(suite.chainA.App).ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
+				suite.Require().NoError(err)
+			}, false,
+		},
+		{
+			"SendPacket fails, timeout height and timeout timestamp are zero",
+			func() {
+				timeoutHeight = clienttypes.ZeroHeight()
+			}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = fxibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			coin = sdk.NewCoin(fxtypes.DefaultDenom, sdk.NewInt(100))
+			sender = suite.chainA.SenderAccount.GetAddress()
+			memo = ""
+			timeoutHeight = suite.chainB.GetTimeoutHeight()
+
+			// create IBC token on chainA
+			transferMsg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coin, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainA.GetTimeoutHeight(), 0, "")
+			result, err := suite.chainB.SendMsgs(transferMsg)
+			suite.Require().NoError(err) // message committed
+
+			packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+			suite.Require().NoError(err)
+
+			err = path.RelayPacket(packet)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			msg := types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				coin, sender.String(), suite.chainB.SenderAccount.GetAddress().String(),
+				timeoutHeight, 0, // only use timeout height
+				memo,
+			)
+
+			res, err := suite.GetApp(suite.chainA.App).IBCTransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+		})
+	}
+}
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	baseDenom := "stake"
