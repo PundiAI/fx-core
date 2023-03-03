@@ -23,7 +23,9 @@ var (
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeInitCrossChainParams)
+	govtypes.RegisterProposalTypeCodec(&InitCrossChainParamsProposal{}, "crosschain/InitCrossChainParamsProposal")
 	govtypes.RegisterProposalType(ProposalTypeUpdateChainOracles)
+	govtypes.RegisterProposalTypeCodec(&UpdateChainOraclesProposal{}, "crosschain/UpdateChainOraclesProposal")
 }
 
 func (m *InitCrossChainParamsProposal) GetTitle() string { return m.Title }
