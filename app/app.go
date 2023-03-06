@@ -37,6 +37,7 @@ import (
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	gaspricelegacy "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy"
+	fxrest "github.com/functionx/fx-core/v3/server/rest"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
@@ -269,6 +270,21 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 // API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
+
+	fxrest.RegisterRPCRoutes(clientCtx, apiSvr.Router)
+	// Register legacy tx routes auth rest.
+	fxrest.RegisterTxRESTRoutes(clientCtx, apiSvr.Router)
+	// Register module REST routers
+	fxrest.RegisterAuthRESTRoutes(clientCtx, apiSvr.Router)
+	fxrest.RegisterBankRESTRoutes(clientCtx, apiSvr.Router)
+	fxrest.RegisterEvidenceRESTRoutes(clientCtx, apiSvr.Router)
+	fxrest.RegisterMintRESTRoutes(clientCtx, apiSvr.Router)
+	fxrest.RegisterDistributeRESTRoutes(clientCtx, apiSvr.Router)
+	fxrest.RegisterSlashingRESTRoutes(clientCtx, apiSvr.Router)
+	fxrest.RegisterGovRESTRoutes(clientCtx, apiSvr.Router)
+	fxrest.RegisterStakingRESTRoutes(clientCtx, apiSvr.Router)
+	fxrest.RegisterUpgradeRESTRoutes(clientCtx, apiSvr.Router)
+
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register new tendermint queries routes from grpc-gateway.
