@@ -81,7 +81,7 @@ func ParseBlockResults(cdc codec.JSONCodec, blockResults *coretypes.ResultBlockR
 	}
 	var txsResults []map[string]interface{}
 	for _, txResult := range blockResults.TxsResults {
-		txsResults = append(txsResults, TxResultToMap(txResult))
+		txsResults = append(txsResults, TxResultToMap(cdc, txResult))
 	}
 	var validatorUpdates []json.RawMessage
 	for _, valUp := range blockResults.ValidatorUpdates {
@@ -126,12 +126,17 @@ func TxResponseToMap(cdc codec.JSONCodec, txResponse *sdk.TxResponse) map[string
 	if err := proto.Unmarshal(txData, &txMsgData); err != nil {
 		return nil
 	}
+	data, err := cdc.MarshalJSON(&txMsgData)
+	if err != nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"height":     txResponse.Height,
 		"txhash":     txResponse.TxHash,
 		"codespace":  txResponse.Codespace,
 		"code":       txResponse.Code,
-		"data":       txMsgData,
+		"data":       json.RawMessage(data),
 		"raw_log":    txResponse.RawLog,
 		"logs":       txResponse.Logs,
 		"info":       txResponse.Info,
@@ -143,7 +148,7 @@ func TxResponseToMap(cdc codec.JSONCodec, txResponse *sdk.TxResponse) map[string
 	}
 }
 
-func TxResultToMap(txResult *types.ResponseDeliverTx) map[string]interface{} {
+func TxResultToMap(cdc codec.JSONCodec, txResult *types.ResponseDeliverTx) map[string]interface{} {
 	if txResult == nil {
 		return map[string]interface{}{}
 	}
@@ -160,9 +165,13 @@ func TxResultToMap(txResult *types.ResponseDeliverTx) map[string]interface{} {
 	if err := proto.Unmarshal(txResult.Data, &txMsgData); err != nil {
 		return nil
 	}
+	data, err := cdc.MarshalJSON(&txMsgData)
+	if err != nil {
+		return nil
+	}
 	return map[string]interface{}{
 		"code":       txResult.Code,
-		"data":       txMsgData,
+		"data":       json.RawMessage(data),
 		"log":        txResult.Log,
 		"info":       txResult.Info,
 		"gas_wanted": txResult.GasWanted,
