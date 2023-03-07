@@ -8,11 +8,9 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v3/app/upgrades"
-	v2 "github.com/functionx/fx-core/v3/app/upgrades/v2"
-	v3 "github.com/functionx/fx-core/v3/app/upgrades/v3"
 )
 
-var upgradeArray = upgrades.Upgrades{v2.Upgrade, v3.Upgrade, v4.Upgrade}
+var upgradeArray = upgrades.Upgrades{v4.Upgrade}
 
 // configure store loader that checks if version == upgradeHeight and applies store upgrades
 func (app *App) setupUpgradeStoreLoaders() {
