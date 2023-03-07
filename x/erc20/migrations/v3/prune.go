@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Channelkeeper todo module depend interface
 type Channelkeeper interface {
 	HasPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) bool
 }

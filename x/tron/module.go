@@ -110,9 +110,6 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	migrator := crosschainkeeper.NewMigrator(am.keeper.Keeper, am.legacySubspace)
-	if err := cfg.RegisterMigration(am.Name(), 2, migrator.Migrate2to3); err != nil {
-		panic(err)
-	}
 	if err := cfg.RegisterMigration(am.Name(), 3, migrator.Migrate3to4); err != nil {
 		panic(err)
 	}

@@ -22,13 +22,6 @@ func NewMigrator(keeper Keeper, channelKeeper v3.Channelkeeper, ss types.Subspac
 	}
 }
 
-func (k Migrator) Migrate2to3(ctx sdk.Context) error {
-	kvStore := ctx.KVStore(k.keeper.storeKey)
-	v3.PruneExpirationIBCTransferRelation(ctx, kvStore, k.channelKeeper)
-	v3.MigrateIBCTransferRelation(ctx, kvStore, k.keeper)
-	return nil
-}
-
 // Migrate3to4 migrates the x/erc20 module state from the consensus version 3 to
 // version 4. Specifically, it takes the parameters that are currently stored
 // and managed by the x/params modules and stores them directly into the x/erc20
