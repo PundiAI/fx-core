@@ -35,8 +35,8 @@ import (
 	"github.com/functionx/fx-core/v3/app/keepers"
 	_ "github.com/functionx/fx-core/v3/docs/statik"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
-	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
-	gaspricelegacy "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy"
+	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy/v1"
+	fxgasprice "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy/v2"
 	fxrest "github.com/functionx/fx-core/v3/server/rest"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain"
@@ -254,8 +254,8 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 	for _, m := range app.mm.Modules {
 		m.RegisterServices(cfg)
 	}
-	gasprice.RegisterQueryServer(cfg.QueryServer(), gasprice.Querier{})
-	gaspricelegacy.RegisterQueryServer(cfg.QueryServer(), gaspricelegacy.Querier{}) // nolint:staticcheck
+	fxgasprice.RegisterQueryServer(cfg.QueryServer(), fxgasprice.Querier{}) // nolint:staticcheck
+	v1.RegisterQueryServer(cfg.QueryServer(), v1.Querier{})                 // nolint:staticcheck
 
 	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainKeeper)
 	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainKeeper))
@@ -290,14 +290,14 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register gas price queries routes from grpc-gateway.
-	gasprice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	fxgasprice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	// Register node gRPC service for grpc-gateway.
+	// query that exposes operator configuration, most notably the operator's configured minimum gas price
+	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register crosschain queries routes from grpc-gateway.
 	crosschain.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	gravity.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
-	// Register node gRPC service for grpc-gateway.
-	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
@@ -321,6 +321,12 @@ func (app *App) RegisterTxService(clientCtx client.Context) {
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(clientCtx, app.BaseApp.GRPCQueryRouter(), app.interfaceRegistry, app.Query)
+}
+
+// RegisterNodeService registers the node gRPC service on the provided
+// application gRPC query router.
+func (app *App) RegisterNodeService(clientCtx client.Context) {
+	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
 }
 
 // TestingApp functions

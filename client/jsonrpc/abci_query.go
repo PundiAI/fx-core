@@ -3,17 +3,16 @@ package jsonrpc
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	etherminttypes "github.com/evmos/ethermint/types"
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 	"github.com/gogo/protobuf/proto"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-
-	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
-	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {
@@ -68,15 +67,19 @@ func (c *NodeRPC) QuerySupply() (sdk.Coins, error) {
 }
 
 func (c *NodeRPC) GetGasPrices() (sdk.Coins, error) {
-	result, err := c.ABCIQueryIsOk("/fx.base.v1.Query/GetGasPrice", nil)
+	result, err := c.ABCIQueryIsOk("/cosmos.base.node.v1beta1.Service/Config", nil)
 	if err != nil {
 		return sdk.Coins{}, err
 	}
-	response := new(gasprice.GetGasPriceResponse)
+	response := new(node.ConfigResponse)
 	if err = proto.Unmarshal(result.Response.Value, response); err != nil {
 		return nil, err
 	}
-	return response.GasPrices, nil
+	coins, err := sdk.ParseCoinsNormalized(response.GetMinimumGasPrice())
+	if err != nil {
+		return nil, err
+	}
+	return coins, nil
 }
 
 func (c *NodeRPC) Store(path string) (*ctypes.ResultABCIQuery, error) {

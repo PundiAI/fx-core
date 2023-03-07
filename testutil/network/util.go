@@ -10,6 +10,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/server/api"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -85,6 +86,10 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 
 		// Add the tendermint queries service in the gRPC router.
 		myApp.RegisterTendermintService(val.ClientCtx)
+
+		if a, ok := myApp.(servertypes.ApplicationQueryService); ok {
+			a.RegisterNodeService(val.ClientCtx)
+		}
 	}
 
 	errCh := make(chan error, 8)

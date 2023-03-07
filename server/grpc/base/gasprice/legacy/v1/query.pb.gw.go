@@ -6,7 +6,7 @@ Package legacy is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package legacy
+package v1
 
 import (
 	"context"

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -32,7 +33,6 @@ import (
 	"google.golang.org/grpc/credentials/google"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
@@ -289,11 +289,15 @@ func (cli *Client) GetStatusByTx(txHash string) (*tx.GetTxResponse, error) {
 }
 
 func (cli *Client) GetGasPrices() (sdk.Coins, error) {
-	response, err := gasprice.NewQueryClient(cli).GetGasPrice(cli.ctx, &gasprice.GetGasPriceRequest{})
+	response, err := node.NewServiceClient(cli).Config(cli.ctx, &node.ConfigRequest{})
 	if err != nil {
 		return nil, err
 	}
-	return response.GasPrices, nil
+	coins, err := sdk.ParseCoinsNormalized(response.GetMinimumGasPrice())
+	if err != nil {
+		return nil, err
+	}
+	return coins, nil
 }
 
 func (cli *Client) GetAddressPrefix() (string, error) {

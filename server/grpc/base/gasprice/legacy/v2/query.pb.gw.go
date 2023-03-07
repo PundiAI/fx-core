@@ -6,7 +6,7 @@ Package gasprice is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package gasprice
+package v2
 
 import (
 	"context"

@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-option go_package = "github.com/functionx/fx-core/server/grpc/base/gasprice";
+option go_package = "github.com/functionx/fx-core/server/grpc/base/gasprice/legacy/v2";
 
 service Query {
   rpc GetGasPrice(GetGasPriceRequest) returns (GetGasPriceResponse) {

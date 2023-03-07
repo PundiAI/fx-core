@@ -1,8 +1,10 @@
-package gasprice
+package v2
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy/v1"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -10,12 +12,12 @@ import (
 	"github.com/gogo/protobuf/grpc"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-
-	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy"
 )
 
+// Deprecated: Querier
 type Querier struct{}
 
+// nolint:staticcheck
 var _ QueryServer = Querier{}
 
 func (q Querier) GetGasPrice(c context.Context, _ *GetGasPriceRequest) (*GetGasPriceResponse, error) {
@@ -31,7 +33,7 @@ func RegisterGRPCGatewayRoutes(clientConn grpc.ClientConn, mux *runtime.ServeMux
 	if err := RegisterQueryHandlerClient(context.Background(), mux, NewQueryClient(clientConn)); err != nil {
 		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", "gas price", err.Error()))
 	}
-	if err := legacy.RegisterQueryHandlerClient(context.Background(), mux, legacy.NewQueryClient(clientConn)); err != nil {
+	if err := v1.RegisterQueryHandlerClient(context.Background(), mux, v1.NewQueryClient(clientConn)); err != nil {
 		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", "legacy gas price", err.Error()))
 	}
 }
