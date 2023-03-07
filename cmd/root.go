@@ -64,7 +64,7 @@ func NewRootCmd() *cobra.Command {
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
 		WithHomeDir(fxtypes.GetDefaultNodeHome()).
-		WithViper("FX").
+		WithViper(fxtypes.EnvPrefix).
 		WithKeyringOptions(hd.EthSecp256k1Option())
 
 	rootCmd := &cobra.Command{

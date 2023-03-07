@@ -13,6 +13,7 @@ import (
 const (
 	Name          = "fxcore"
 	AddressPrefix = "fx"
+	EnvPrefix     = "FX"
 
 	DefaultDenom = "FX"
 	DenomUnit    = 18
