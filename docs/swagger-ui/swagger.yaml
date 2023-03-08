@@ -3,6 +3,9 @@ info:
   title: fxCore REST and gRPC Gateway docs
   description: A REST interface for state queries, legacy transactions
   version: 0.2.0
+host: fx-rest.functionx.io
+schemes:
+  - https
 paths:
   /ethermint/evm/v1/account/{address}:
     get:
@@ -10044,7 +10047,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -10054,13 +10057,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -10082,7 +10088,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -10259,7 +10264,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -10269,13 +10274,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -10297,7 +10305,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -10502,7 +10509,7 @@ paths:
                         foo = any.unpack(Foo.class);
                       }
 
-                   Example 3: Pack and unpack a message in Python.
+                  Example 3: Pack and unpack a message in Python.
 
                       foo = Foo(...)
                       any = Any()
@@ -10512,13 +10519,16 @@ paths:
                         any.Unpack(foo)
                         ...
 
-                   Example 4: Pack and unpack a message in Go
+                  Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
-                       any, err := ptypes.MarshalAny(foo)
+                       any, err := anypb.New(foo)
+                       if err != nil {
+                         ...
+                       }
                        ...
                        foo := &pb.Foo{}
-                       if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                       if err := any.UnmarshalTo(foo); err != nil {
                          ...
                        }
 
@@ -10540,7 +10550,6 @@ paths:
 
                   JSON
 
-                  ====
 
                   The JSON representation of an `Any` value uses the regular
 
@@ -10691,7 +10700,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -10701,13 +10710,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -10729,7 +10741,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -10776,8 +10787,7 @@ paths:
         - Query
   /cosmos/auth/v1beta1/address_by_id/{id}:
     get:
-      summary: AccountAddressByID returns account address based on account number.
-      description: 'Since: cosmos-sdk 0.46.2'
+      summary: AccountAddressByID returns account address based on account id
       operationId: AccountAddressByID
       responses:
         '200':
@@ -10787,7 +10797,6 @@ paths:
             properties:
               account_address:
                 type: string
-            description: 'Since: cosmos-sdk 0.46.2'
             title: >-
               QueryAccountAddressByIDResponse is the response type for
               AccountAddressByID rpc method
@@ -10905,7 +10914,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -10915,13 +10924,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -10943,7 +10955,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -10982,10 +10993,6 @@ paths:
                         }
       parameters:
         - name: id
-          description: |-
-            id is the account number of the address to be queried. This field
-            should have been an uint64 (like all account numbers), and will be
-            updated to uint64 in a future version of the auth query.
           in: path
           required: true
           type: string
@@ -11125,7 +11132,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -11135,13 +11142,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -11163,7 +11173,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -11335,7 +11344,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -11345,13 +11354,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -11373,7 +11385,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -11552,7 +11563,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -11562,13 +11573,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -11590,7 +11604,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -11747,7 +11760,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -11757,13 +11770,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -11785,7 +11801,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -11942,7 +11957,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -11952,13 +11967,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -11980,7 +11998,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -12017,386 +12034,6 @@ paths:
                           "@type": "type.googleapis.com/google.protobuf.Duration",
                           "value": "1.212s"
                         }
-      tags:
-        - Query
-  /cosmos/auth/v1beta1/module_accounts/{name}:
-    get:
-      summary: ModuleAccountByName returns the module account info by module name
-      operationId: ModuleAccountByName
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              account:
-                type: object
-                properties:
-                  type_url:
-                    type: string
-                    description: >-
-                      A URL/resource name that uniquely identifies the type of
-                      the serialized
-
-                      protocol buffer message. This string must contain at least
-
-                      one "/" character. The last segment of the URL's path must
-                      represent
-
-                      the fully qualified name of the type (as in
-
-                      `path/google.protobuf.Duration`). The name should be in a
-                      canonical form
-
-                      (e.g., leading "." is not accepted).
-
-
-                      In practice, teams usually precompile into the binary all
-                      types that they
-
-                      expect it to use in the context of Any. However, for URLs
-                      which use the
-
-                      scheme `http`, `https`, or no scheme, one can optionally
-                      set up a type
-
-                      server that maps type URLs to message definitions as
-                      follows:
-
-
-                      * If no scheme is provided, `https` is assumed.
-
-                      * An HTTP GET on the URL must yield a
-                      [google.protobuf.Type][]
-                        value in binary format, or produce an error.
-                      * Applications are allowed to cache lookup results based
-                      on the
-                        URL, or have them precompiled into a binary to avoid any
-                        lookup. Therefore, binary compatibility needs to be preserved
-                        on changes to types. (Use versioned type names to manage
-                        breaking changes.)
-
-                      Note: this functionality is not currently available in the
-                      official
-
-                      protobuf release, and it is not used for type URLs
-                      beginning with
-
-                      type.googleapis.com.
-
-
-                      Schemes other than `http`, `https` (or the empty scheme)
-                      might be
-
-                      used with implementation specific semantics.
-                  value:
-                    type: string
-                    format: byte
-                    description: >-
-                      Must be a valid serialized protocol buffer of the above
-                      specified type.
-                description: >-
-                  `Any` contains an arbitrary serialized protocol buffer message
-                  along with a
-
-                  URL that describes the type of the serialized message.
-
-
-                  Protobuf library provides support to pack/unpack Any values in
-                  the form
-
-                  of utility functions or additional generated methods of the
-                  Any type.
-
-
-                  Example 1: Pack and unpack a message in C++.
-
-                      Foo foo = ...;
-                      Any any;
-                      any.PackFrom(foo);
-                      ...
-                      if (any.UnpackTo(&foo)) {
-                        ...
-                      }
-
-                  Example 2: Pack and unpack a message in Java.
-
-                      Foo foo = ...;
-                      Any any = Any.pack(foo);
-                      ...
-                      if (any.is(Foo.class)) {
-                        foo = any.unpack(Foo.class);
-                      }
-
-                   Example 3: Pack and unpack a message in Python.
-
-                      foo = Foo(...)
-                      any = Any()
-                      any.Pack(foo)
-                      ...
-                      if any.Is(Foo.DESCRIPTOR):
-                        any.Unpack(foo)
-                        ...
-
-                   Example 4: Pack and unpack a message in Go
-
-                       foo := &pb.Foo{...}
-                       any, err := ptypes.MarshalAny(foo)
-                       ...
-                       foo := &pb.Foo{}
-                       if err := ptypes.UnmarshalAny(any, foo); err != nil {
-                         ...
-                       }
-
-                  The pack methods provided by protobuf library will by default
-                  use
-
-                  'type.googleapis.com/full.type.name' as the type URL and the
-                  unpack
-
-                  methods only use the fully qualified type name after the last
-                  '/'
-
-                  in the type URL, for example "foo.bar.com/x/y.z" will yield
-                  type
-
-                  name "y.z".
-
-
-
-                  JSON
-
-                  ====
-
-                  The JSON representation of an `Any` value uses the regular
-
-                  representation of the deserialized, embedded message, with an
-
-                  additional field `@type` which contains the type URL. Example:
-
-                      package google.profile;
-                      message Person {
-                        string first_name = 1;
-                        string last_name = 2;
-                      }
-
-                      {
-                        "@type": "type.googleapis.com/google.profile.Person",
-                        "firstName": <string>,
-                        "lastName": <string>
-                      }
-
-                  If the embedded message type is well-known and has a custom
-                  JSON
-
-                  representation, that representation will be embedded adding a
-                  field
-
-                  `value` which holds the custom JSON in addition to the `@type`
-
-                  field. Example (for message [google.protobuf.Duration][]):
-
-                      {
-                        "@type": "type.googleapis.com/google.protobuf.Duration",
-                        "value": "1.212s"
-                      }
-            description: >-
-              QueryModuleAccountByNameResponse is the response type for the
-              Query/ModuleAccountByName RPC method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                      description: >-
-                        A URL/resource name that uniquely identifies the type of
-                        the serialized
-
-                        protocol buffer message. This string must contain at
-                        least
-
-                        one "/" character. The last segment of the URL's path
-                        must represent
-
-                        the fully qualified name of the type (as in
-
-                        `path/google.protobuf.Duration`). The name should be in
-                        a canonical form
-
-                        (e.g., leading "." is not accepted).
-
-
-                        In practice, teams usually precompile into the binary
-                        all types that they
-
-                        expect it to use in the context of Any. However, for
-                        URLs which use the
-
-                        scheme `http`, `https`, or no scheme, one can optionally
-                        set up a type
-
-                        server that maps type URLs to message definitions as
-                        follows:
-
-
-                        * If no scheme is provided, `https` is assumed.
-
-                        * An HTTP GET on the URL must yield a
-                        [google.protobuf.Type][]
-                          value in binary format, or produce an error.
-                        * Applications are allowed to cache lookup results based
-                        on the
-                          URL, or have them precompiled into a binary to avoid any
-                          lookup. Therefore, binary compatibility needs to be preserved
-                          on changes to types. (Use versioned type names to manage
-                          breaking changes.)
-
-                        Note: this functionality is not currently available in
-                        the official
-
-                        protobuf release, and it is not used for type URLs
-                        beginning with
-
-                        type.googleapis.com.
-
-
-                        Schemes other than `http`, `https` (or the empty scheme)
-                        might be
-
-                        used with implementation specific semantics.
-                    value:
-                      type: string
-                      format: byte
-                      description: >-
-                        Must be a valid serialized protocol buffer of the above
-                        specified type.
-                  description: >-
-                    `Any` contains an arbitrary serialized protocol buffer
-                    message along with a
-
-                    URL that describes the type of the serialized message.
-
-
-                    Protobuf library provides support to pack/unpack Any values
-                    in the form
-
-                    of utility functions or additional generated methods of the
-                    Any type.
-
-
-                    Example 1: Pack and unpack a message in C++.
-
-                        Foo foo = ...;
-                        Any any;
-                        any.PackFrom(foo);
-                        ...
-                        if (any.UnpackTo(&foo)) {
-                          ...
-                        }
-
-                    Example 2: Pack and unpack a message in Java.
-
-                        Foo foo = ...;
-                        Any any = Any.pack(foo);
-                        ...
-                        if (any.is(Foo.class)) {
-                          foo = any.unpack(Foo.class);
-                        }
-
-                     Example 3: Pack and unpack a message in Python.
-
-                        foo = Foo(...)
-                        any = Any()
-                        any.Pack(foo)
-                        ...
-                        if any.Is(Foo.DESCRIPTOR):
-                          any.Unpack(foo)
-                          ...
-
-                     Example 4: Pack and unpack a message in Go
-
-                         foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
-                         ...
-                         foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
-                           ...
-                         }
-
-                    The pack methods provided by protobuf library will by
-                    default use
-
-                    'type.googleapis.com/full.type.name' as the type URL and the
-                    unpack
-
-                    methods only use the fully qualified type name after the
-                    last '/'
-
-                    in the type URL, for example "foo.bar.com/x/y.z" will yield
-                    type
-
-                    name "y.z".
-
-
-
-                    JSON
-
-                    ====
-
-                    The JSON representation of an `Any` value uses the regular
-
-                    representation of the deserialized, embedded message, with
-                    an
-
-                    additional field `@type` which contains the type URL.
-                    Example:
-
-                        package google.profile;
-                        message Person {
-                          string first_name = 1;
-                          string last_name = 2;
-                        }
-
-                        {
-                          "@type": "type.googleapis.com/google.profile.Person",
-                          "firstName": <string>,
-                          "lastName": <string>
-                        }
-
-                    If the embedded message type is well-known and has a custom
-                    JSON
-
-                    representation, that representation will be embedded adding
-                    a field
-
-                    `value` which holds the custom JSON in addition to the
-                    `@type`
-
-                    field. Example (for message [google.protobuf.Duration][]):
-
-                        {
-                          "@type": "type.googleapis.com/google.protobuf.Duration",
-                          "value": "1.212s"
-                        }
-      parameters:
-        - name: name
-          in: path
-          required: true
-          type: string
       tags:
         - Query
   /cosmos/auth/v1beta1/params:
@@ -12545,7 +12182,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -12555,13 +12192,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -12583,7 +12223,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -13928,7 +13567,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -13938,13 +13577,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -13966,7 +13608,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -15258,7 +14899,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -15268,13 +14909,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -15296,7 +14940,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -16569,7 +16212,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -16579,13 +16222,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -16607,7 +16253,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -16850,7 +16495,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -16860,13 +16505,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -16888,7 +16536,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -17056,7 +16703,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -17066,13 +16713,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -17094,7 +16744,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -17253,7 +16902,7 @@ paths:
                               foo = any.unpack(Foo.class);
                             }
 
-                         Example 3: Pack and unpack a message in Python.
+                        Example 3: Pack and unpack a message in Python.
 
                             foo = Foo(...)
                             any = Any()
@@ -17263,13 +16912,16 @@ paths:
                               any.Unpack(foo)
                               ...
 
-                         Example 4: Pack and unpack a message in Go
+                        Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
-                             any, err := ptypes.MarshalAny(foo)
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
                              ...
                              foo := &pb.Foo{}
-                             if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                             if err := any.UnmarshalTo(foo); err != nil {
                                ...
                              }
 
@@ -17291,7 +16943,6 @@ paths:
 
                         JSON
 
-                        ====
 
                         The JSON representation of an `Any` value uses the
                         regular
@@ -17473,7 +17124,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -17483,13 +17134,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -17511,7 +17165,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -17727,7 +17380,7 @@ paths:
                               foo = any.unpack(Foo.class);
                             }
 
-                         Example 3: Pack and unpack a message in Python.
+                        Example 3: Pack and unpack a message in Python.
 
                             foo = Foo(...)
                             any = Any()
@@ -17737,13 +17390,16 @@ paths:
                               any.Unpack(foo)
                               ...
 
-                         Example 4: Pack and unpack a message in Go
+                        Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
-                             any, err := ptypes.MarshalAny(foo)
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
                              ...
                              foo := &pb.Foo{}
-                             if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                             if err := any.UnmarshalTo(foo); err != nil {
                                ...
                              }
 
@@ -17765,7 +17421,6 @@ paths:
 
                         JSON
 
-                        ====
 
                         The JSON representation of an `Any` value uses the
                         regular
@@ -17947,7 +17602,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -17957,13 +17612,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -17985,7 +17643,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -18853,7 +18510,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -18863,13 +18520,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -18891,7 +18551,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -19067,7 +18726,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -19077,13 +18736,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -19105,7 +18767,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -19310,7 +18971,7 @@ paths:
                         foo = any.unpack(Foo.class);
                       }
 
-                   Example 3: Pack and unpack a message in Python.
+                  Example 3: Pack and unpack a message in Python.
 
                       foo = Foo(...)
                       any = Any()
@@ -19320,13 +18981,16 @@ paths:
                         any.Unpack(foo)
                         ...
 
-                   Example 4: Pack and unpack a message in Go
+                  Example 4: Pack and unpack a message in Go
 
                        foo := &pb.Foo{...}
-                       any, err := ptypes.MarshalAny(foo)
+                       any, err := anypb.New(foo)
+                       if err != nil {
+                         ...
+                       }
                        ...
                        foo := &pb.Foo{}
-                       if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                       if err := any.UnmarshalTo(foo); err != nil {
                          ...
                        }
 
@@ -19348,7 +19012,6 @@ paths:
 
                   JSON
 
-                  ====
 
                   The JSON representation of an `Any` value uses the regular
 
@@ -19499,7 +19162,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -19509,13 +19172,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -19537,7 +19203,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -19769,7 +19434,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -19779,13 +19444,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -19807,7 +19475,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -19974,7 +19641,7 @@ paths:
                               foo = any.unpack(Foo.class);
                             }
 
-                         Example 3: Pack and unpack a message in Python.
+                        Example 3: Pack and unpack a message in Python.
 
                             foo = Foo(...)
                             any = Any()
@@ -19984,13 +19651,16 @@ paths:
                               any.Unpack(foo)
                               ...
 
-                         Example 4: Pack and unpack a message in Go
+                        Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
-                             any, err := ptypes.MarshalAny(foo)
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
                              ...
                              foo := &pb.Foo{}
-                             if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                             if err := any.UnmarshalTo(foo); err != nil {
                                ...
                              }
 
@@ -20012,7 +19682,6 @@ paths:
 
                         JSON
 
-                        ====
 
                         The JSON representation of an `Any` value uses the
                         regular
@@ -20266,7 +19935,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -20276,13 +19945,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -20304,7 +19976,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -20552,7 +20223,7 @@ paths:
                             foo = any.unpack(Foo.class);
                           }
 
-                       Example 3: Pack and unpack a message in Python.
+                      Example 3: Pack and unpack a message in Python.
 
                           foo = Foo(...)
                           any = Any()
@@ -20562,13 +20233,16 @@ paths:
                             any.Unpack(foo)
                             ...
 
-                       Example 4: Pack and unpack a message in Go
+                      Example 4: Pack and unpack a message in Go
 
                            foo := &pb.Foo{...}
-                           any, err := ptypes.MarshalAny(foo)
+                           any, err := anypb.New(foo)
+                           if err != nil {
+                             ...
+                           }
                            ...
                            foo := &pb.Foo{}
-                           if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                           if err := any.UnmarshalTo(foo); err != nil {
                              ...
                            }
 
@@ -20590,7 +20264,6 @@ paths:
 
                       JSON
 
-                      ====
 
                       The JSON representation of an `Any` value uses the regular
 
@@ -20820,7 +20493,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -20830,13 +20503,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -20858,7 +20534,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -21083,7 +20758,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -21093,13 +20768,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -21121,7 +20799,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -21382,7 +21059,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -21392,13 +21069,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -21420,7 +21100,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -21610,7 +21289,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -21620,13 +21299,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -21648,7 +21330,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -21906,7 +21587,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -21916,13 +21597,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -21944,7 +21628,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -22236,7 +21919,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -22246,13 +21929,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -22274,7 +21960,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -23128,7 +22813,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -23138,13 +22823,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -23166,7 +22854,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -23528,7 +23215,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -23538,13 +23225,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -23566,7 +23256,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -23880,7 +23569,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -23890,13 +23579,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -23918,7 +23610,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -24141,7 +23832,7 @@ paths:
                               foo = any.unpack(Foo.class);
                             }
 
-                         Example 3: Pack and unpack a message in Python.
+                        Example 3: Pack and unpack a message in Python.
 
                             foo = Foo(...)
                             any = Any()
@@ -24151,13 +23842,16 @@ paths:
                               any.Unpack(foo)
                               ...
 
-                         Example 4: Pack and unpack a message in Go
+                        Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
-                             any, err := ptypes.MarshalAny(foo)
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
                              ...
                              foo := &pb.Foo{}
-                             if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                             if err := any.UnmarshalTo(foo); err != nil {
                                ...
                              }
 
@@ -24179,7 +23873,6 @@ paths:
 
                         JSON
 
-                        ====
 
                         The JSON representation of an `Any` value uses the
                         regular
@@ -24483,7 +24176,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -24493,13 +24186,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -24521,7 +24217,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -24742,7 +24437,7 @@ paths:
                             foo = any.unpack(Foo.class);
                           }
 
-                       Example 3: Pack and unpack a message in Python.
+                      Example 3: Pack and unpack a message in Python.
 
                           foo = Foo(...)
                           any = Any()
@@ -24752,13 +24447,16 @@ paths:
                             any.Unpack(foo)
                             ...
 
-                       Example 4: Pack and unpack a message in Go
+                      Example 4: Pack and unpack a message in Go
 
                            foo := &pb.Foo{...}
-                           any, err := ptypes.MarshalAny(foo)
+                           any, err := anypb.New(foo)
+                           if err != nil {
+                             ...
+                           }
                            ...
                            foo := &pb.Foo{}
-                           if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                           if err := any.UnmarshalTo(foo); err != nil {
                              ...
                            }
 
@@ -24780,7 +24478,6 @@ paths:
 
                       JSON
 
-                      ====
 
                       The JSON representation of an `Any` value uses the regular
 
@@ -25061,7 +24758,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -25071,13 +24768,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -25099,7 +24799,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -25351,7 +25050,7 @@ paths:
                                   foo = any.unpack(Foo.class);
                                 }
 
-                             Example 3: Pack and unpack a message in Python.
+                            Example 3: Pack and unpack a message in Python.
 
                                 foo = Foo(...)
                                 any = Any()
@@ -25361,13 +25060,16 @@ paths:
                                   any.Unpack(foo)
                                   ...
 
-                             Example 4: Pack and unpack a message in Go
+                            Example 4: Pack and unpack a message in Go
 
                                  foo := &pb.Foo{...}
-                                 any, err := ptypes.MarshalAny(foo)
+                                 any, err := anypb.New(foo)
+                                 if err != nil {
+                                   ...
+                                 }
                                  ...
                                  foo := &pb.Foo{}
-                                 if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                                 if err := any.UnmarshalTo(foo); err != nil {
                                    ...
                                  }
 
@@ -25389,7 +25091,6 @@ paths:
 
                             JSON
 
-                            ====
 
                             The JSON representation of an `Any` value uses the
                             regular
@@ -25676,7 +25377,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -25686,13 +25387,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -25714,7 +25418,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -25918,7 +25621,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -25928,13 +25631,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -25956,7 +25662,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -26128,7 +25833,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -26138,13 +25843,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -26166,7 +25874,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -26325,7 +26032,7 @@ paths:
                               foo = any.unpack(Foo.class);
                             }
 
-                         Example 3: Pack and unpack a message in Python.
+                        Example 3: Pack and unpack a message in Python.
 
                             foo = Foo(...)
                             any = Any()
@@ -26335,13 +26042,16 @@ paths:
                               any.Unpack(foo)
                               ...
 
-                         Example 4: Pack and unpack a message in Go
+                        Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
-                             any, err := ptypes.MarshalAny(foo)
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
                              ...
                              foo := &pb.Foo{}
-                             if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                             if err := any.UnmarshalTo(foo); err != nil {
                                ...
                              }
 
@@ -26363,7 +26073,6 @@ paths:
 
                         JSON
 
-                        ====
 
                         The JSON representation of an `Any` value uses the
                         regular
@@ -26667,7 +26376,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -26677,13 +26386,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -26705,7 +26417,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -26924,7 +26635,7 @@ paths:
                             foo = any.unpack(Foo.class);
                           }
 
-                       Example 3: Pack and unpack a message in Python.
+                      Example 3: Pack and unpack a message in Python.
 
                           foo = Foo(...)
                           any = Any()
@@ -26934,13 +26645,16 @@ paths:
                             any.Unpack(foo)
                             ...
 
-                       Example 4: Pack and unpack a message in Go
+                      Example 4: Pack and unpack a message in Go
 
                            foo := &pb.Foo{...}
-                           any, err := ptypes.MarshalAny(foo)
+                           any, err := anypb.New(foo)
+                           if err != nil {
+                             ...
+                           }
                            ...
                            foo := &pb.Foo{}
-                           if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                           if err := any.UnmarshalTo(foo); err != nil {
                              ...
                            }
 
@@ -26962,7 +26676,6 @@ paths:
 
                       JSON
 
-                      ====
 
                       The JSON representation of an `Any` value uses the regular
 
@@ -27243,7 +26956,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -27253,13 +26966,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -27281,7 +26997,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -27522,7 +27237,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -27532,13 +27247,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -27560,7 +27278,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -27836,7 +27553,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -27846,13 +27563,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -27874,7 +27594,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -28102,7 +27821,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -28112,13 +27831,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -28140,7 +27862,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -28391,7 +28112,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -28401,13 +28122,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -28429,7 +28153,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -28715,7 +28438,7 @@ paths:
                               foo = any.unpack(Foo.class);
                             }
 
-                         Example 3: Pack and unpack a message in Python.
+                        Example 3: Pack and unpack a message in Python.
 
                             foo = Foo(...)
                             any = Any()
@@ -28725,13 +28448,16 @@ paths:
                               any.Unpack(foo)
                               ...
 
-                         Example 4: Pack and unpack a message in Go
+                        Example 4: Pack and unpack a message in Go
 
                              foo := &pb.Foo{...}
-                             any, err := ptypes.MarshalAny(foo)
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
                              ...
                              foo := &pb.Foo{}
-                             if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                             if err := any.UnmarshalTo(foo); err != nil {
                                ...
                              }
 
@@ -28753,7 +28479,6 @@ paths:
 
                         JSON
 
-                        ====
 
                         The JSON representation of an `Any` value uses the
                         regular
@@ -28915,7 +28640,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -28925,13 +28650,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -28953,7 +28681,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -29121,7 +28848,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -29131,13 +28858,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -29159,7 +28889,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -29489,7 +29218,7 @@ paths:
                             foo = any.unpack(Foo.class);
                           }
 
-                       Example 3: Pack and unpack a message in Python.
+                      Example 3: Pack and unpack a message in Python.
 
                           foo = Foo(...)
                           any = Any()
@@ -29499,13 +29228,16 @@ paths:
                             any.Unpack(foo)
                             ...
 
-                       Example 4: Pack and unpack a message in Go
+                      Example 4: Pack and unpack a message in Go
 
                            foo := &pb.Foo{...}
-                           any, err := ptypes.MarshalAny(foo)
+                           any, err := anypb.New(foo)
+                           if err != nil {
+                             ...
+                           }
                            ...
                            foo := &pb.Foo{}
-                           if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                           if err := any.UnmarshalTo(foo); err != nil {
                              ...
                            }
 
@@ -29527,7 +29259,6 @@ paths:
 
                       JSON
 
-                      ====
 
                       The JSON representation of an `Any` value uses the regular
 
@@ -29742,7 +29473,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -29752,13 +29483,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -29780,7 +29514,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -29978,7 +29711,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -29988,13 +29721,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -30016,7 +29752,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -30241,7 +29976,7 @@ paths:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -30251,13 +29986,16 @@ paths:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -30279,7 +30017,6 @@ paths:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -33172,7 +32909,6 @@ definitions:
     properties:
       account_address:
         type: string
-    description: 'Since: cosmos-sdk 0.46.2'
     title: >-
       QueryAccountAddressByIDResponse is the response type for
       AccountAddressByID rpc method
@@ -33272,7 +33008,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -33282,13 +33018,16 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -33306,7 +33045,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -33442,7 +33180,7 @@ definitions:
                   foo = any.unpack(Foo.class);
                 }
 
-             Example 3: Pack and unpack a message in Python.
+            Example 3: Pack and unpack a message in Python.
 
                 foo = Foo(...)
                 any = Any()
@@ -33452,13 +33190,16 @@ definitions:
                   any.Unpack(foo)
                   ...
 
-             Example 4: Pack and unpack a message in Go
+            Example 4: Pack and unpack a message in Go
 
                  foo := &pb.Foo{...}
-                 any, err := ptypes.MarshalAny(foo)
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
                  ...
                  foo := &pb.Foo{}
-                 if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                 if err := any.UnmarshalTo(foo); err != nil {
                    ...
                  }
 
@@ -33476,7 +33217,6 @@ definitions:
 
             JSON
 
-            ====
 
             The JSON representation of an `Any` value uses the regular
 
@@ -33534,171 +33274,6 @@ definitions:
 
 
       Since: cosmos-sdk 0.43
-  cosmos.auth.v1beta1.QueryModuleAccountByNameResponse:
-    type: object
-    properties:
-      account:
-        type: object
-        properties:
-          type_url:
-            type: string
-            description: >-
-              A URL/resource name that uniquely identifies the type of the
-              serialized
-
-              protocol buffer message. This string must contain at least
-
-              one "/" character. The last segment of the URL's path must
-              represent
-
-              the fully qualified name of the type (as in
-
-              `path/google.protobuf.Duration`). The name should be in a
-              canonical form
-
-              (e.g., leading "." is not accepted).
-
-
-              In practice, teams usually precompile into the binary all types
-              that they
-
-              expect it to use in the context of Any. However, for URLs which
-              use the
-
-              scheme `http`, `https`, or no scheme, one can optionally set up a
-              type
-
-              server that maps type URLs to message definitions as follows:
-
-
-              * If no scheme is provided, `https` is assumed.
-
-              * An HTTP GET on the URL must yield a [google.protobuf.Type][]
-                value in binary format, or produce an error.
-              * Applications are allowed to cache lookup results based on the
-                URL, or have them precompiled into a binary to avoid any
-                lookup. Therefore, binary compatibility needs to be preserved
-                on changes to types. (Use versioned type names to manage
-                breaking changes.)
-
-              Note: this functionality is not currently available in the
-              official
-
-              protobuf release, and it is not used for type URLs beginning with
-
-              type.googleapis.com.
-
-
-              Schemes other than `http`, `https` (or the empty scheme) might be
-
-              used with implementation specific semantics.
-          value:
-            type: string
-            format: byte
-            description: >-
-              Must be a valid serialized protocol buffer of the above specified
-              type.
-        description: >-
-          `Any` contains an arbitrary serialized protocol buffer message along
-          with a
-
-          URL that describes the type of the serialized message.
-
-
-          Protobuf library provides support to pack/unpack Any values in the
-          form
-
-          of utility functions or additional generated methods of the Any type.
-
-
-          Example 1: Pack and unpack a message in C++.
-
-              Foo foo = ...;
-              Any any;
-              any.PackFrom(foo);
-              ...
-              if (any.UnpackTo(&foo)) {
-                ...
-              }
-
-          Example 2: Pack and unpack a message in Java.
-
-              Foo foo = ...;
-              Any any = Any.pack(foo);
-              ...
-              if (any.is(Foo.class)) {
-                foo = any.unpack(Foo.class);
-              }
-
-           Example 3: Pack and unpack a message in Python.
-
-              foo = Foo(...)
-              any = Any()
-              any.Pack(foo)
-              ...
-              if any.Is(Foo.DESCRIPTOR):
-                any.Unpack(foo)
-                ...
-
-           Example 4: Pack and unpack a message in Go
-
-               foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
-               ...
-               foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
-                 ...
-               }
-
-          The pack methods provided by protobuf library will by default use
-
-          'type.googleapis.com/full.type.name' as the type URL and the unpack
-
-          methods only use the fully qualified type name after the last '/'
-
-          in the type URL, for example "foo.bar.com/x/y.z" will yield type
-
-          name "y.z".
-
-
-
-          JSON
-
-          ====
-
-          The JSON representation of an `Any` value uses the regular
-
-          representation of the deserialized, embedded message, with an
-
-          additional field `@type` which contains the type URL. Example:
-
-              package google.profile;
-              message Person {
-                string first_name = 1;
-                string last_name = 2;
-              }
-
-              {
-                "@type": "type.googleapis.com/google.profile.Person",
-                "firstName": <string>,
-                "lastName": <string>
-              }
-
-          If the embedded message type is well-known and has a custom JSON
-
-          representation, that representation will be embedded adding a field
-
-          `value` which holds the custom JSON in addition to the `@type`
-
-          field. Example (for message [google.protobuf.Duration][]):
-
-              {
-                "@type": "type.googleapis.com/google.protobuf.Duration",
-                "value": "1.212s"
-              }
-    description: >-
-      QueryModuleAccountByNameResponse is the response type for the
-      Query/ModuleAccountByName RPC method.
   cosmos.auth.v1beta1.QueryModuleAccountsResponse:
     type: object
     properties:
@@ -33800,7 +33375,7 @@ definitions:
                   foo = any.unpack(Foo.class);
                 }
 
-             Example 3: Pack and unpack a message in Python.
+            Example 3: Pack and unpack a message in Python.
 
                 foo = Foo(...)
                 any = Any()
@@ -33810,13 +33385,16 @@ definitions:
                   any.Unpack(foo)
                   ...
 
-             Example 4: Pack and unpack a message in Go
+            Example 4: Pack and unpack a message in Go
 
                  foo := &pb.Foo{...}
-                 any, err := ptypes.MarshalAny(foo)
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
                  ...
                  foo := &pb.Foo{}
-                 if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                 if err := any.UnmarshalTo(foo); err != nil {
                    ...
                  }
 
@@ -33834,7 +33412,6 @@ definitions:
 
             JSON
 
-            ====
 
             The JSON representation of an `Any` value uses the regular
 
@@ -37425,7 +37002,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -37435,13 +37012,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -37462,7 +37042,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -37719,7 +37298,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -37729,13 +37308,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -37756,7 +37338,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -38071,7 +37652,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -38081,13 +37662,16 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -38105,7 +37689,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -40998,7 +40581,7 @@ definitions:
                   foo = any.unpack(Foo.class);
                 }
 
-             Example 3: Pack and unpack a message in Python.
+            Example 3: Pack and unpack a message in Python.
 
                 foo = Foo(...)
                 any = Any()
@@ -41008,13 +40591,16 @@ definitions:
                   any.Unpack(foo)
                   ...
 
-             Example 4: Pack and unpack a message in Go
+            Example 4: Pack and unpack a message in Go
 
                  foo := &pb.Foo{...}
-                 any, err := ptypes.MarshalAny(foo)
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
                  ...
                  foo := &pb.Foo{}
-                 if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                 if err := any.UnmarshalTo(foo); err != nil {
                    ...
                  }
 
@@ -41032,7 +40618,6 @@ definitions:
 
             JSON
 
-            ====
 
             The JSON representation of an `Any` value uses the regular
 
@@ -41185,7 +40770,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -41195,13 +40780,16 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -41219,7 +40807,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -41403,7 +40990,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -41413,13 +41000,16 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -41437,7 +41027,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -41819,7 +41408,7 @@ definitions:
                     foo = any.unpack(Foo.class);
                   }
 
-               Example 3: Pack and unpack a message in Python.
+              Example 3: Pack and unpack a message in Python.
 
                   foo = Foo(...)
                   any = Any()
@@ -41829,13 +41418,16 @@ definitions:
                     any.Unpack(foo)
                     ...
 
-               Example 4: Pack and unpack a message in Go
+              Example 4: Pack and unpack a message in Go
 
                    foo := &pb.Foo{...}
-                   any, err := ptypes.MarshalAny(foo)
+                   any, err := anypb.New(foo)
+                   if err != nil {
+                     ...
+                   }
                    ...
                    foo := &pb.Foo{}
-                   if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                   if err := any.UnmarshalTo(foo); err != nil {
                      ...
                    }
 
@@ -41854,7 +41446,6 @@ definitions:
 
               JSON
 
-              ====
 
               The JSON representation of an `Any` value uses the regular
 
@@ -42072,7 +41663,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -42082,13 +41673,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -42109,7 +41703,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -43232,7 +42825,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -43242,13 +42835,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -43269,7 +42865,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -43778,7 +43373,7 @@ definitions:
                     foo = any.unpack(Foo.class);
                   }
 
-               Example 3: Pack and unpack a message in Python.
+              Example 3: Pack and unpack a message in Python.
 
                   foo = Foo(...)
                   any = Any()
@@ -43788,13 +43383,16 @@ definitions:
                     any.Unpack(foo)
                     ...
 
-               Example 4: Pack and unpack a message in Go
+              Example 4: Pack and unpack a message in Go
 
                    foo := &pb.Foo{...}
-                   any, err := ptypes.MarshalAny(foo)
+                   any, err := anypb.New(foo)
+                   if err != nil {
+                     ...
+                   }
                    ...
                    foo := &pb.Foo{}
-                   if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                   if err := any.UnmarshalTo(foo); err != nil {
                      ...
                    }
 
@@ -43813,7 +43411,6 @@ definitions:
 
               JSON
 
-              ====
 
               The JSON representation of an `Any` value uses the regular
 
@@ -44076,7 +43673,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -44086,13 +43683,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -44113,7 +43713,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -44480,7 +44079,7 @@ definitions:
                           foo = any.unpack(Foo.class);
                         }
 
-                     Example 3: Pack and unpack a message in Python.
+                    Example 3: Pack and unpack a message in Python.
 
                         foo = Foo(...)
                         any = Any()
@@ -44490,13 +44089,16 @@ definitions:
                           any.Unpack(foo)
                           ...
 
-                     Example 4: Pack and unpack a message in Go
+                    Example 4: Pack and unpack a message in Go
 
                          foo := &pb.Foo{...}
-                         any, err := ptypes.MarshalAny(foo)
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
                          ...
                          foo := &pb.Foo{}
-                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                         if err := any.UnmarshalTo(foo); err != nil {
                            ...
                          }
 
@@ -44518,7 +44120,6 @@ definitions:
 
                     JSON
 
-                    ====
 
                     The JSON representation of an `Any` value uses the regular
 
@@ -45090,7 +44691,7 @@ definitions:
                     foo = any.unpack(Foo.class);
                   }
 
-               Example 3: Pack and unpack a message in Python.
+              Example 3: Pack and unpack a message in Python.
 
                   foo = Foo(...)
                   any = Any()
@@ -45100,13 +44701,16 @@ definitions:
                     any.Unpack(foo)
                     ...
 
-               Example 4: Pack and unpack a message in Go
+              Example 4: Pack and unpack a message in Go
 
                    foo := &pb.Foo{...}
-                   any, err := ptypes.MarshalAny(foo)
+                   any, err := anypb.New(foo)
+                   if err != nil {
+                     ...
+                   }
                    ...
                    foo := &pb.Foo{}
-                   if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                   if err := any.UnmarshalTo(foo); err != nil {
                      ...
                    }
 
@@ -45125,7 +44729,6 @@ definitions:
 
               JSON
 
-              ====
 
               The JSON representation of an `Any` value uses the regular
 
@@ -45458,7 +45061,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -45468,13 +45071,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -45495,7 +45101,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -46044,7 +45649,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -46054,13 +45659,16 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -46078,7 +45686,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -46436,7 +46043,7 @@ definitions:
                   foo = any.unpack(Foo.class);
                 }
 
-             Example 3: Pack and unpack a message in Python.
+            Example 3: Pack and unpack a message in Python.
 
                 foo = Foo(...)
                 any = Any()
@@ -46446,13 +46053,16 @@ definitions:
                   any.Unpack(foo)
                   ...
 
-             Example 4: Pack and unpack a message in Go
+            Example 4: Pack and unpack a message in Go
 
                  foo := &pb.Foo{...}
-                 any, err := ptypes.MarshalAny(foo)
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
                  ...
                  foo := &pb.Foo{}
-                 if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                 if err := any.UnmarshalTo(foo); err != nil {
                    ...
                  }
 
@@ -46470,7 +46080,6 @@ definitions:
 
             JSON
 
-            ====
 
             The JSON representation of an `Any` value uses the regular
 
@@ -46703,7 +46312,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -46713,13 +46322,16 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -46737,7 +46349,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -47236,7 +46847,7 @@ definitions:
                     foo = any.unpack(Foo.class);
                   }
 
-               Example 3: Pack and unpack a message in Python.
+              Example 3: Pack and unpack a message in Python.
 
                   foo = Foo(...)
                   any = Any()
@@ -47246,13 +46857,16 @@ definitions:
                     any.Unpack(foo)
                     ...
 
-               Example 4: Pack and unpack a message in Go
+              Example 4: Pack and unpack a message in Go
 
                    foo := &pb.Foo{...}
-                   any, err := ptypes.MarshalAny(foo)
+                   any, err := anypb.New(foo)
+                   if err != nil {
+                     ...
+                   }
                    ...
                    foo := &pb.Foo{}
-                   if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                   if err := any.UnmarshalTo(foo); err != nil {
                      ...
                    }
 
@@ -47271,7 +46885,6 @@ definitions:
 
               JSON
 
-              ====
 
               The JSON representation of an `Any` value uses the regular
 
@@ -48185,7 +47798,7 @@ definitions:
                     foo = any.unpack(Foo.class);
                   }
 
-               Example 3: Pack and unpack a message in Python.
+              Example 3: Pack and unpack a message in Python.
 
                   foo = Foo(...)
                   any = Any()
@@ -48195,13 +47808,16 @@ definitions:
                     any.Unpack(foo)
                     ...
 
-               Example 4: Pack and unpack a message in Go
+              Example 4: Pack and unpack a message in Go
 
                    foo := &pb.Foo{...}
-                   any, err := ptypes.MarshalAny(foo)
+                   any, err := anypb.New(foo)
+                   if err != nil {
+                     ...
+                   }
                    ...
                    foo := &pb.Foo{}
-                   if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                   if err := any.UnmarshalTo(foo); err != nil {
                      ...
                    }
 
@@ -48220,7 +47836,6 @@ definitions:
 
               JSON
 
-              ====
 
               The JSON representation of an `Any` value uses the regular
 
@@ -48506,7 +48121,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -48516,13 +48131,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -48543,7 +48161,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -48956,7 +48573,7 @@ definitions:
                 foo = any.unpack(Foo.class);
               }
 
-           Example 3: Pack and unpack a message in Python.
+          Example 3: Pack and unpack a message in Python.
 
               foo = Foo(...)
               any = Any()
@@ -48966,13 +48583,16 @@ definitions:
                 any.Unpack(foo)
                 ...
 
-           Example 4: Pack and unpack a message in Go
+          Example 4: Pack and unpack a message in Go
 
                foo := &pb.Foo{...}
-               any, err := ptypes.MarshalAny(foo)
+               any, err := anypb.New(foo)
+               if err != nil {
+                 ...
+               }
                ...
                foo := &pb.Foo{}
-               if err := ptypes.UnmarshalAny(any, foo); err != nil {
+               if err := any.UnmarshalTo(foo); err != nil {
                  ...
                }
 
@@ -48990,7 +48610,6 @@ definitions:
 
           JSON
 
-          ====
 
           The JSON representation of an `Any` value uses the regular
 
@@ -49235,7 +48854,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -49245,13 +48864,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -49272,7 +48894,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -49447,7 +49068,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -49457,13 +49078,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -49484,7 +49108,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -49653,7 +49276,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -49663,13 +49286,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -49690,7 +49316,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -49832,7 +49457,7 @@ definitions:
                       foo = any.unpack(Foo.class);
                     }
 
-                 Example 3: Pack and unpack a message in Python.
+                Example 3: Pack and unpack a message in Python.
 
                     foo = Foo(...)
                     any = Any()
@@ -49842,13 +49467,16 @@ definitions:
                       any.Unpack(foo)
                       ...
 
-                 Example 4: Pack and unpack a message in Go
+                Example 4: Pack and unpack a message in Go
 
                      foo := &pb.Foo{...}
-                     any, err := ptypes.MarshalAny(foo)
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
                      ...
                      foo := &pb.Foo{}
-                     if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                     if err := any.UnmarshalTo(foo); err != nil {
                        ...
                      }
 
@@ -49869,7 +49497,6 @@ definitions:
 
                 JSON
 
-                ====
 
                 The JSON representation of an `Any` value uses the regular
 
@@ -50031,7 +49658,7 @@ definitions:
                   foo = any.unpack(Foo.class);
                 }
 
-             Example 3: Pack and unpack a message in Python.
+            Example 3: Pack and unpack a message in Python.
 
                 foo = Foo(...)
                 any = Any()
@@ -50041,13 +49668,16 @@ definitions:
                   any.Unpack(foo)
                   ...
 
-             Example 4: Pack and unpack a message in Go
+            Example 4: Pack and unpack a message in Go
 
                  foo := &pb.Foo{...}
-                 any, err := ptypes.MarshalAny(foo)
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
                  ...
                  foo := &pb.Foo{}
-                 if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                 if err := any.UnmarshalTo(foo); err != nil {
                    ...
                  }
 
@@ -50065,7 +49695,6 @@ definitions:
 
             JSON
 
-            ====
 
             The JSON representation of an `Any` value uses the regular
 
@@ -50227,7 +49856,7 @@ definitions:
                   foo = any.unpack(Foo.class);
                 }
 
-             Example 3: Pack and unpack a message in Python.
+            Example 3: Pack and unpack a message in Python.
 
                 foo = Foo(...)
                 any = Any()
@@ -50237,13 +49866,16 @@ definitions:
                   any.Unpack(foo)
                   ...
 
-             Example 4: Pack and unpack a message in Go
+            Example 4: Pack and unpack a message in Go
 
                  foo := &pb.Foo{...}
-                 any, err := ptypes.MarshalAny(foo)
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
                  ...
                  foo := &pb.Foo{}
-                 if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                 if err := any.UnmarshalTo(foo); err != nil {
                    ...
                  }
 
@@ -50261,7 +49893,6 @@ definitions:
 
             JSON
 
-            ====
 
             The JSON representation of an `Any` value uses the regular
 
@@ -50398,7 +50029,7 @@ definitions:
                   foo = any.unpack(Foo.class);
                 }
 
-             Example 3: Pack and unpack a message in Python.
+            Example 3: Pack and unpack a message in Python.
 
                 foo = Foo(...)
                 any = Any()
@@ -50408,13 +50039,16 @@ definitions:
                   any.Unpack(foo)
                   ...
 
-             Example 4: Pack and unpack a message in Go
+            Example 4: Pack and unpack a message in Go
 
                  foo := &pb.Foo{...}
-                 any, err := ptypes.MarshalAny(foo)
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
                  ...
                  foo := &pb.Foo{}
-                 if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                 if err := any.UnmarshalTo(foo); err != nil {
                    ...
                  }
 
@@ -50432,7 +50066,6 @@ definitions:
 
             JSON
 
-            ====
 
             The JSON representation of an `Any` value uses the regular
 
