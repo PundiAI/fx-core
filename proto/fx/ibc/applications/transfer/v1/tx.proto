@@ -12,7 +12,7 @@ import "ibc/applications/transfer/v1/tx.proto";
 service Msg {
   // Transfer defines a rpc handler method for MsgTransfer.
   rpc Transfer(MsgTransfer)
-      returns (ibc.applications.transfer.v1.MsgTransferResponse);
+      returns (.ibc.applications.transfer.v1.MsgTransferResponse);
 }
 
 // MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
@@ -35,7 +35,7 @@ message MsgTransfer {
   string receiver = 5;
   // Timeout height relative to the current block height.
   // The timeout is disabled when set to 0.
-  ibc.core.client.v1.Height timeout_height = 6 [
+  .ibc.core.client.v1.Height timeout_height = 6 [
     (gogoproto.moretags) = "yaml:\"timeout_height\"",
     (gogoproto.nullable) = false
   ];

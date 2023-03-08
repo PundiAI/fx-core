@@ -10,23 +10,23 @@ option go_package = "github.com/functionx/fx-core/x/ibc/applications/transfer/ty
 // version. Replace ibc.applications.transfer.v1.Query
 service Query {
   // DenomTrace queries a denomination trace information.
-  rpc DenomTrace(ibc.applications.transfer.v1.QueryDenomTraceRequest)
-      returns (ibc.applications.transfer.v1.QueryDenomTraceResponse) {}
+  rpc DenomTrace(.ibc.applications.transfer.v1.QueryDenomTraceRequest)
+      returns (.ibc.applications.transfer.v1.QueryDenomTraceResponse) {}
 
   // DenomTraces queries all denomination traces.
-  rpc DenomTraces(ibc.applications.transfer.v1.QueryDenomTracesRequest)
-      returns (ibc.applications.transfer.v1.QueryDenomTracesResponse) {}
+  rpc DenomTraces(.ibc.applications.transfer.v1.QueryDenomTracesRequest)
+      returns (.ibc.applications.transfer.v1.QueryDenomTracesResponse) {}
 
   // Params queries all parameters of the ibc-transfer module.
-  rpc Params(ibc.applications.transfer.v1.QueryParamsRequest)
-      returns (ibc.applications.transfer.v1.QueryParamsResponse) {}
+  rpc Params(.ibc.applications.transfer.v1.QueryParamsRequest)
+      returns (.ibc.applications.transfer.v1.QueryParamsResponse) {}
 
   // DenomHash queries a denomination hash information.
-  rpc DenomHash(ibc.applications.transfer.v1.QueryDenomHashRequest)
-      returns (ibc.applications.transfer.v1.QueryDenomHashResponse) {}
+  rpc DenomHash(.ibc.applications.transfer.v1.QueryDenomHashRequest)
+      returns (.ibc.applications.transfer.v1.QueryDenomHashResponse) {}
 
   // EscrowAddress returns the escrow address for a particular port and channel
   // id.
-  rpc EscrowAddress(ibc.applications.transfer.v1.QueryEscrowAddressRequest)
-      returns (ibc.applications.transfer.v1.QueryEscrowAddressResponse) {}
+  rpc EscrowAddress(.ibc.applications.transfer.v1.QueryEscrowAddressRequest)
+      returns (.ibc.applications.transfer.v1.QueryEscrowAddressResponse) {}
 }
