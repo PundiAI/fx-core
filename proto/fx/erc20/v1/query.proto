@@ -2,10 +2,10 @@ syntax = "proto3";
 package fx.erc20.v1;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "fx/erc20/v1/genesis.proto";
 import "fx/erc20/v1/erc20.proto";
-import "google/api/annotations.proto";
+import "fx/erc20/v1/genesis.proto";
 import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
 
 option go_package = "github.com/functionx/fx-core/x/erc20/types";
 
@@ -27,8 +27,7 @@ service Query {
   }
 
   // Retrieves registered denom aliases
-  rpc DenomAliases(QueryDenomAliasesRequest)
-      returns (QueryDenomAliasesResponse) {
+  rpc DenomAliases(QueryDenomAliasesRequest) returns (QueryDenomAliasesResponse) {
     option (google.api.http).get = "/fx/erc20/v1/denom/aliases";
   }
 
@@ -48,7 +47,7 @@ message QueryTokenPairsRequest {
 // QueryTokenPairsResponse is the response type for the Query/TokenPairs RPC
 // method.
 message QueryTokenPairsResponse {
-  repeated TokenPair token_pairs = 1 [ (gogoproto.nullable) = false ];
+  repeated TokenPair token_pairs = 1 [(gogoproto.nullable) = false];
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -63,7 +62,7 @@ message QueryTokenPairRequest {
 // QueryTokenPairResponse is the response type for the Query/TokenPair RPC
 // method.
 message QueryTokenPairResponse {
-  TokenPair token_pair = 1 [ (gogoproto.nullable) = false ];
+  TokenPair token_pair = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryParamsRequest is the request type for the Query/Params RPC method.
@@ -72,21 +71,29 @@ message QueryParamsRequest {}
 // QueryParamsResponse is the response type for the Query/Params RPC
 // method.
 message QueryParamsResponse {
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryDenomAliasesRequest is the request type for the Query/DenomAliases RPC
 // method.
-message QueryDenomAliasesRequest { string denom = 1; }
+message QueryDenomAliasesRequest {
+  string denom = 1;
+}
 
 // QueryDenomAliasesResponse is the response type for the Query/DenomAliases RPC
 // method.
-message QueryDenomAliasesResponse { repeated string aliases = 1; }
+message QueryDenomAliasesResponse {
+  repeated string aliases = 1;
+}
 
 // QueryAliasDenomRequest is the request type for the Query/AliasDenom RPC
 // method.
-message QueryAliasDenomRequest { string alias = 1; }
+message QueryAliasDenomRequest {
+  string alias = 1;
+}
 
 // QueryAliasDenomResponse is the response type for the Query/AliasDenom RPC
 // method.
-message QueryAliasDenomResponse { string denom = 1; }
+message QueryAliasDenomResponse {
+  string denom = 1;
+}

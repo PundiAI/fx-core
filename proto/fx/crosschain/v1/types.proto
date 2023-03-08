@@ -1,13 +1,15 @@
 syntax = "proto3";
 package fx.gravity.crosschain.v1;
 
-import "google/protobuf/any.proto";
-import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
 
 option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 
-message ProposalOracle { repeated string oracles = 1; }
+message ProposalOracle {
+  repeated string oracles = 1;
+}
 
 message Oracle {
   string oracle_address = 1;
@@ -23,6 +25,7 @@ message Oracle {
   string delegate_validator = 7;
   int64 slash_times = 8;
 }
+
 // BridgeValidator represents a validator's external address and its power
 message BridgeValidator {
   uint64 power = 1;
@@ -34,7 +37,7 @@ message BridgeValidator {
 // signatures on external because of the significant gas savings
 message OracleSet {
   uint64 nonce = 1;
-  repeated BridgeValidator members = 2 [ (gogoproto.nullable) = false ];
+  repeated BridgeValidator members = 2 [(gogoproto.nullable) = false];
   uint64 height = 3;
 }
 
@@ -105,8 +108,8 @@ message OutgoingTransferTx {
   uint64 id = 1;
   string sender = 2;
   string dest_address = 3;
-  ERC20Token token = 4 [ (gogoproto.nullable) = false ];
-  ERC20Token fee = 5 [ (gogoproto.nullable) = false ];
+  ERC20Token token = 4 [(gogoproto.nullable) = false];
+  ERC20Token fee = 5 [(gogoproto.nullable) = false];
 }
 
 // ERC20Token unique identifier for an Ethereum ERC20 token.
@@ -119,7 +122,9 @@ message ERC20Token {
 }
 
 // IDSet represents a set of IDs
-message IDSet { repeated uint64 ids = 1; }
+message IDSet {
+  repeated uint64 ids = 1;
+}
 
 message BatchFees {
   string token_contract = 1;
@@ -205,9 +210,8 @@ message Params {
   ];
   uint64 ibc_transfer_timeout_height = 8;
   // Deprecated: after block 5713000
-  repeated string oracles = 9 [ (gogoproto.nullable) = true ];
-  cosmos.base.v1beta1.Coin delegate_threshold = 10
-      [ (gogoproto.nullable) = false ];
+  repeated string oracles = 9 [(gogoproto.nullable) = true];
+  cosmos.base.v1beta1.Coin delegate_threshold = 10 [(gogoproto.nullable) = false];
   int64 delegate_multiple = 11;
 }
 

@@ -1,11 +1,11 @@
 syntax = "proto3";
 package fx.erc20.v1;
 
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
 import "fx/erc20/v1/genesis.proto";
 import "gogoproto/gogo.proto";
-import "cosmos/base/v1beta1/coin.proto";
-import "cosmos_proto/cosmos.proto";
-import "cosmos/msg/v1/msg.proto";
 
 option go_package = "github.com/functionx/fx-core/x/erc20/types";
 
@@ -29,7 +29,7 @@ service Msg {
 message MsgConvertCoin {
   // Cosmos coin which denomination is registered on erc20 bridge.
   // The coin amount defines the total ERC20 tokens to convert.
-  cosmos.base.v1beta1.Coin coin = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin coin = 1 [(gogoproto.nullable) = false];
   // recipient hex address to receive ERC20 token
   string receiver = 2;
   // cosmos bech32 address from the owner of the given ERC20 tokens
@@ -64,14 +64,13 @@ message MsgConvertDenom {
   // receiver address
   string receiver = 2;
   // coin to convert
-  cosmos.base.v1beta1.Coin coin = 3 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin coin = 3 [(gogoproto.nullable) = false];
   // target denom
   string target = 4;
 }
 
 // MsgConvertDenomResponse returns no fields
 message MsgConvertDenomResponse {}
-
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {

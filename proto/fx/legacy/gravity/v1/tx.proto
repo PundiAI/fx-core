@@ -2,8 +2,8 @@ syntax = "proto3";
 package fx.gravity.v1;
 
 import "cosmos/base/v1beta1/coin.proto";
-import "gogoproto/gogo.proto";
 import "fx/legacy/gravity/v1/types.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/functionx/fx-core/x/gravity/types";
 
@@ -24,8 +24,7 @@ service Msg {
   // Deprecated: Please use crosschain Msg.CancelSendToExternal
   rpc CancelSendToEth(MsgCancelSendToEth) returns (MsgCancelSendToEthResponse);
   // Deprecated: Please use crosschain Msg.OracleSetUpdateClaim
-  rpc ValsetUpdateClaim(MsgValsetUpdatedClaim)
-      returns (MsgValsetUpdatedClaimResponse);
+  rpc ValsetUpdateClaim(MsgValsetUpdatedClaim) returns (MsgValsetUpdatedClaimResponse);
 }
 
 // Deprecated: after upgrade v3
@@ -43,8 +42,8 @@ message MsgValsetConfirmResponse {}
 message MsgSendToEth {
   string sender = 1;
   string eth_dest = 2;
-  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
-  cosmos.base.v1beta1.Coin bridge_fee = 4 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin bridge_fee = 4 [(gogoproto.nullable) = false];
 }
 
 // Deprecated: after upgrade v3

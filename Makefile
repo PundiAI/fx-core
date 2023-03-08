@@ -182,8 +182,8 @@ containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
 
 proto-format:
 	@echo "Formatting Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
-		find ./ -name "*.proto" -exec clang-format -i {} \; ; fi
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace/proto bufbuild/buf:1.15.0 \
+		format -w; fi
 
 proto-gen:
 	@echo "Generating Protobuf files"

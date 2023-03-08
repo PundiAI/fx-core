@@ -2,10 +2,10 @@ syntax = "proto3";
 package fx.gravity.crosschain.v1;
 
 import "cosmos/base/v1beta1/coin.proto";
-import "gogoproto/gogo.proto";
-import "fx/crosschain/v1/types.proto";
-import "cosmos_proto/cosmos.proto";
 import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "fx/crosschain/v1/types.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/functionx/fx-core/x/crosschain/types";
 
@@ -18,21 +18,16 @@ service Msg {
   rpc WithdrawReward(MsgWithdrawReward) returns (MsgWithdrawRewardResponse);
   rpc UnbondedOracle(MsgUnbondedOracle) returns (MsgUnbondedOracleResponse);
 
-  rpc OracleSetConfirm(MsgOracleSetConfirm)
-      returns (MsgOracleSetConfirmResponse);
-  rpc OracleSetUpdateClaim(MsgOracleSetUpdatedClaim)
-      returns (MsgOracleSetUpdatedClaimResponse);
+  rpc OracleSetConfirm(MsgOracleSetConfirm) returns (MsgOracleSetConfirmResponse);
+  rpc OracleSetUpdateClaim(MsgOracleSetUpdatedClaim) returns (MsgOracleSetUpdatedClaimResponse);
 
-  rpc BridgeTokenClaim(MsgBridgeTokenClaim)
-      returns (MsgBridgeTokenClaimResponse);
+  rpc BridgeTokenClaim(MsgBridgeTokenClaim) returns (MsgBridgeTokenClaimResponse);
 
   rpc SendToFxClaim(MsgSendToFxClaim) returns (MsgSendToFxClaimResponse);
 
   rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
-  rpc CancelSendToExternal(MsgCancelSendToExternal)
-      returns (MsgCancelSendToExternalResponse);
-  rpc SendToExternalClaim(MsgSendToExternalClaim)
-      returns (MsgSendToExternalClaimResponse);
+  rpc CancelSendToExternal(MsgCancelSendToExternal) returns (MsgCancelSendToExternalResponse);
+  rpc SendToExternalClaim(MsgSendToExternalClaim) returns (MsgSendToExternalClaimResponse);
 
   rpc RequestBatch(MsgRequestBatch) returns (MsgRequestBatchResponse);
   rpc ConfirmBatch(MsgConfirmBatch) returns (MsgConfirmBatchResponse);
@@ -48,7 +43,7 @@ message MsgBondedOracle {
   string bridger_address = 3;
   string external_address = 4;
   string validator_address = 5;
-  cosmos.base.v1beta1.Coin delegate_amount = 6 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin delegate_amount = 6 [(gogoproto.nullable) = false];
 }
 
 message MsgBondedOracleResponse {}
@@ -56,7 +51,7 @@ message MsgBondedOracleResponse {}
 message MsgAddDelegate {
   string chain_name = 1;
   string oracle_address = 2;
-  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
 
 message MsgAddDelegateResponse {}
@@ -122,7 +117,7 @@ message MsgOracleSetUpdatedClaim {
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   uint64 oracle_set_nonce = 3;
-  repeated BridgeValidator members = 4 [ (gogoproto.nullable) = false ];
+  repeated BridgeValidator members = 4 [(gogoproto.nullable) = false];
   string bridger_address = 6;
   string chain_name = 7;
 }
@@ -166,12 +161,14 @@ message MsgSendToFxClaimResponse {}
 message MsgSendToExternal {
   string sender = 1;
   string dest = 2;
-  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
-  cosmos.base.v1beta1.Coin bridge_fee = 4 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin bridge_fee = 4 [(gogoproto.nullable) = false];
   string chain_name = 5;
 }
 
-message MsgSendToExternalResponse { uint64 outgoing_tx_id = 1; }
+message MsgSendToExternalResponse {
+  uint64 outgoing_tx_id = 1;
+}
 
 // This call allows the sender (and only the sender)
 // to cancel a given MsgSendToExternal and recieve a refund
@@ -209,7 +206,9 @@ message MsgRequestBatch {
   ];
 }
 
-message MsgRequestBatchResponse { uint64 batch_nonce = 1; }
+message MsgRequestBatchResponse {
+  uint64 batch_nonce = 1;
+}
 
 // MsgConfirmBatch
 // When validators observe a MsgRequestBatch they form a batch by ordering
@@ -262,17 +261,16 @@ message MsgSetOrchestratorAddress {
   string oracle_address = 1;
   string bridger_address = 2;
   string external_address = 3;
-  cosmos.base.v1beta1.Coin deposit = 4 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false];
   string chain_name = 5;
 }
 
 // Deprecated: after block 5713000
 message MsgAddOracleDeposit {
   string oracle_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
   string chain_name = 3;
 }
-
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {

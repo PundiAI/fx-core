@@ -1,18 +1,17 @@
 syntax = "proto3";
 package fx.ibc.applications.transfer.v1;
 
-option go_package = "github.com/functionx/fx-core/x/ibc/applications/transfer/types";
-
-import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "ibc/core/client/v1/client.proto";
+import "gogoproto/gogo.proto";
 import "ibc/applications/transfer/v1/tx.proto";
+import "ibc/core/client/v1/client.proto";
+
+option go_package = "github.com/functionx/fx-core/x/ibc/applications/transfer/types";
 
 // Msg defines the ibc/transfer Msg service.
 service Msg {
   // Transfer defines a rpc handler method for MsgTransfer.
-  rpc Transfer(MsgTransfer)
-      returns (.ibc.applications.transfer.v1.MsgTransferResponse);
+  rpc Transfer(MsgTransfer) returns (.ibc.applications.transfer.v1.MsgTransferResponse);
 }
 
 // MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
@@ -23,12 +22,11 @@ message MsgTransfer {
   option (gogoproto.goproto_getters) = false;
 
   // the port on which the packet will be sent
-  string source_port = 1 [ (gogoproto.moretags) = "yaml:\"source_port\"" ];
+  string source_port = 1 [(gogoproto.moretags) = "yaml:\"source_port\""];
   // the channel by which the packet will be sent
-  string source_channel = 2
-      [ (gogoproto.moretags) = "yaml:\"source_channel\"" ];
+  string source_channel = 2 [(gogoproto.moretags) = "yaml:\"source_channel\""];
   // the tokens to be transferred
-  cosmos.base.v1beta1.Coin token = 3 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin token = 3 [(gogoproto.nullable) = false];
   // the sender address
   string sender = 4;
   // the recipient address on the destination chain
@@ -41,12 +39,11 @@ message MsgTransfer {
   ];
   // Timeout timestamp (in nanoseconds) relative to the current block timestamp.
   // The timeout is disabled when set to 0.
-  uint64 timeout_timestamp = 7
-      [ (gogoproto.moretags) = "yaml:\"timeout_timestamp\"" ];
+  uint64 timeout_timestamp = 7 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
   // the router is hook destination chain
   string router = 8;
   // the tokens to be destination fee
-  cosmos.base.v1beta1.Coin fee = 9 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin fee = 9 [(gogoproto.nullable) = false];
   // optional memo
   string memo = 10;
 }
