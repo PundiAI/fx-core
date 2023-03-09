@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	v4 "github.com/functionx/fx-core/v3/x/crosschain/migrations/v4"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
@@ -23,12 +24,8 @@ func NewMigrator(k Keeper, ss types.Subspace) Migrator {
 // and managed by the x/params modules and stores them directly into the x/crosschain
 // module state.
 func (m Migrator) Migrate3to4(ctx sdk.Context) error {
-	var currParams types.Params
-	m.legacySubspace.GetParamSet(ctx, &currParams)
-	if err := currParams.ValidateBasic(); err != nil {
+	if err := v4.MigratorParam(ctx, m.legacySubspace, m.keeper.storeKey, m.keeper.cdc); err != nil {
 		return err
 	}
-	bz := m.keeper.cdc.MustMarshal(&currParams)
-	ctx.KVStore(m.keeper.storeKey).Set(types.ParamsKey, bz)
 	return nil
 }

@@ -173,7 +173,7 @@ func appModules(
 		tron.NewAppModule(app.TronKeeper, app.GetSubspace(trontypes.ModuleName)),
 		fxevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.LegacyAmino(), app.GetKey(paramstypes.StoreKey)),
 		feemarket.NewAppModule(app.FeeMarketKeeper),
-		erc20.NewAppModule(app.Erc20Keeper, app.IBCKeeper.ChannelKeeper, app.GetSubspace(erc20types.ModuleName)),
+		erc20.NewAppModule(app.Erc20Keeper, app.GetSubspace(erc20types.ModuleName)),
 		migrate.NewAppModule(app.MigrateKeeper),
 		fxibctransfer.NewAppModule(app.FxTransferKeeper),
 		ibctransfer.NewAppModule(app.IBCTransferKeeper),

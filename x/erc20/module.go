@@ -17,7 +17,6 @@ import (
 
 	"github.com/functionx/fx-core/v3/x/erc20/client/cli"
 	"github.com/functionx/fx-core/v3/x/erc20/keeper"
-	v3 "github.com/functionx/fx-core/v3/x/erc20/migrations/v3"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -81,16 +80,14 @@ func (AppModuleBasic) RegisterInterfaces(interfaceRegistry codectypes.InterfaceR
 type AppModule struct {
 	AppModuleBasic
 	keeper         keeper.Keeper
-	channelKeeper  v3.Channelkeeper
 	legacySubspace types.Subspace
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper, channelKeeper v3.Channelkeeper, ss types.Subspace) AppModule {
+func NewAppModule(keeper keeper.Keeper, ss types.Subspace) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		channelKeeper:  channelKeeper,
 		legacySubspace: ss,
 	}
 }
@@ -119,7 +116,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	migrator := keeper.NewMigrator(am.keeper, am.channelKeeper, am.legacySubspace)
+	migrator := keeper.NewMigrator(am.keeper, am.legacySubspace)
 	if err := cfg.RegisterMigration(types.ModuleName, 2, migrator.Migrate3to4); err != nil {
 		panic(err)
 	}
