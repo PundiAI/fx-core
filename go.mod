@@ -195,3 +195,9 @@ replace (
 	// use informal system fork of tendermint
 	github.com/tendermint/tendermint => github.com/informalsystems/tendermint v0.34.26
 )
+
+// use for precompile
+replace (
+	github.com/ethereum/go-ethereum => github.com/evmos/go-ethereum v1.10.26-evmos-rc1
+	github.com/evmos/ethermint => github.com/functionx/ethermint v0.20.0-fxcore-precompile-rc2
+)

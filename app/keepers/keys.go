@@ -18,7 +18,10 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	evm "github.com/evmos/ethermint/x/evm/vm"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
@@ -61,6 +64,11 @@ func (appKeepers *AppKeepers) GetTransientStoreKey() map[string]*storetypes.Tran
 
 func (appKeepers *AppKeepers) GetMemoryStoreKey() map[string]*storetypes.MemoryStoreKey {
 	return appKeepers.memKeys
+}
+
+// ExtendPrecompiles  get extend pre compile contracts function
+func (appKeepers *AppKeepers) ExtendPrecompiles(ctx sdk.Context, evm *vm.EVM) evm.PrecompiledContracts {
+	return map[common.Address]vm.PrecompiledContract{}
 }
 
 // GetKey returns the KVStoreKey for the provided store key.

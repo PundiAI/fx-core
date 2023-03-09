@@ -196,18 +196,19 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(banktypes.ModuleName),
 		blockedAddress,
 	)
-	stakingKeeper := stakingkeeper.NewKeeper(
+	appKeepers.StakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[stakingtypes.StoreKey],
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.GetSubspace(stakingtypes.ModuleName),
 	)
+
 	appKeepers.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[minttypes.StoreKey],
 		appKeepers.GetSubspace(minttypes.ModuleName),
-		stakingKeeper,
+		appKeepers.StakingKeeper,
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		authtypes.FeeCollectorName,
@@ -218,13 +219,13 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(distrtypes.ModuleName),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
-		stakingKeeper,
+		appKeepers.StakingKeeper,
 		authtypes.FeeCollectorName,
 	)
 	appKeepers.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[slashingtypes.StoreKey],
-		stakingKeeper,
+		appKeepers.StakingKeeper,
 		appKeepers.GetSubspace(slashingtypes.ModuleName),
 	)
 
@@ -248,7 +249,7 @@ func NewAppKeeper(
 		appCodec,
 		appKeepers.keys[ibchost.StoreKey],
 		appKeepers.GetSubspace(ibchost.ModuleName),
-		stakingKeeper,
+		appKeepers.StakingKeeper,
 		appKeepers.UpgradeKeeper,
 		appKeepers.ScopedIBCKeeper,
 	)
@@ -293,9 +294,9 @@ func NewAppKeeper(
 			appKeepers.GetSubspace(evmtypes.ModuleName),
 			appKeepers.AccountKeeper,
 			appKeepers.BankKeeper,
-			stakingKeeper,
+			appKeepers.StakingKeeper,
 			appKeepers.FeeMarketKeeper,
-			nil,
+			appKeepers.ExtendPrecompiles,
 			geth.NewEVM,
 			cast.ToString(appOpts.Get(srvflags.EVMTracer)),
 		),
@@ -317,8 +318,8 @@ func NewAppKeeper(
 		appCodec,
 		bsctypes.ModuleName,
 		appKeepers.keys[bsctypes.StoreKey],
-		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		appKeepers.StakingKeeper,
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -331,8 +332,8 @@ func NewAppKeeper(
 		appCodec,
 		polygontypes.ModuleName,
 		appKeepers.keys[polygontypes.StoreKey],
-		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		appKeepers.StakingKeeper,
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -345,8 +346,8 @@ func NewAppKeeper(
 		appCodec,
 		avalanchetypes.ModuleName,
 		appKeepers.keys[avalanchetypes.StoreKey],
-		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		appKeepers.StakingKeeper,
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -359,8 +360,8 @@ func NewAppKeeper(
 		appCodec,
 		ethtypes.ModuleName,
 		appKeepers.keys[ethtypes.StoreKey],
-		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		appKeepers.StakingKeeper,
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -373,8 +374,8 @@ func NewAppKeeper(
 		appCodec,
 		trontypes.ModuleName,
 		appKeepers.keys[trontypes.StoreKey],
-		stakingKeeper,
-		stakingkeeper.NewMsgServerImpl(stakingKeeper),
+		appKeepers.StakingKeeper,
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -412,14 +413,14 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(govtypes.ModuleName),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
-		stakingKeeper,
+		appKeepers.StakingKeeper,
 		govRouter,
 		bApp.MsgServiceRouter(),
 		govConfig,
 	)
 	appKeepers.GovKeeper = fxgovkeeper.NewKeeper(
 		appKeepers.BankKeeper,
-		stakingKeeper,
+		appKeepers.StakingKeeper,
 		appKeepers.keys[govtypes.StoreKey],
 		govKeeper,
 	)
@@ -454,8 +455,8 @@ func NewAppKeeper(
 	appKeepers.IBCKeeper.SetRouter(ibcRouter)
 
 	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	appKeepers.StakingKeeper = *stakingKeeper.SetHooks(
+	// NOTE: appKeepers.StakingKeeper above is passed by reference, so that it will contain these hooks
+	appKeepers.StakingKeeper = *appKeepers.StakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			appKeepers.DistrKeeper.Hooks(),
 			appKeepers.SlashingKeeper.Hooks(),
@@ -476,7 +477,7 @@ func NewAppKeeper(
 	appKeepers.EvidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[evidencetypes.StoreKey],
-		stakingKeeper,
+		appKeepers.StakingKeeper,
 		appKeepers.SlashingKeeper,
 	)
 
