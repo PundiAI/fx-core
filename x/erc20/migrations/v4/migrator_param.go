@@ -8,6 +8,9 @@ import (
 )
 
 func MigratorParam(ctx sdk.Context, legacySubspace types.Subspace, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
+	if !legacySubspace.HasKeyTable() {
+		legacySubspace.WithKeyTable(types.ParamKeyTable())
+	}
 	var currParams types.Params
 	legacySubspace.GetParamSet(ctx, &currParams)
 	if err := currParams.Validate(); err != nil {

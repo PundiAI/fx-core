@@ -67,5 +67,7 @@ type (
 	// NOTE: This is used solely for migration of x/params managed parameters.
 	Subspace interface {
 		GetParamSet(ctx sdk.Context, ps ParamSet)
+		HasKeyTable() bool
+		WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace
 	}
 )
