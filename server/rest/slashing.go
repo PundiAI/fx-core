@@ -10,6 +10,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// RegisterSlashingRESTRoutes
+// Deprecated
 func RegisterSlashingRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 	registerSlashingQueryRoutes(clientCtx, r)

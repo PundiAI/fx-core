@@ -13,6 +13,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// RegisterStakingRESTRoutes
+// Deprecated
 func RegisterStakingRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 	registerStakingQueryRoutes(clientCtx, r)

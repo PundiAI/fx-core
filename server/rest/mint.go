@@ -10,6 +10,7 @@ import (
 )
 
 // RegisterMintRESTRoutes registers minting module REST handlers on the provided router.
+// Deprecated
 func RegisterMintRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 	registerMintQueryRoutes(clientCtx, r)

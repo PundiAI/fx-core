@@ -29,6 +29,8 @@ const (
 	defaultLimit = 30 // should be consistent with tendermint/tendermint/rpc/core/pipe.go:19
 )
 
+// RegisterGovRESTRoutes
+// Deprecated
 func RegisterGovRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 	registerGovQueryRoutes(clientCtx, r)

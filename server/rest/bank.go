@@ -12,6 +12,7 @@ import (
 
 // RegisterBankRESTRoutes registers all x/bank transaction and query HTTP REST handlers
 // on the provided mux router.
+// Deprecated
 func RegisterBankRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 	r.HandleFunc("/bank/balances/{address}", QueryBalancesRequestHandlerFn(clientCtx)).Methods("GET")

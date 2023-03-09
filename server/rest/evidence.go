@@ -15,6 +15,7 @@ const RestParamEvidenceHash = "evidence-hash"
 
 // RegisterEvidenceRESTRoutes registers all Evidence submission handlers for the evidence module's
 // REST service handler.
+// Deprecated
 func RegisterEvidenceRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 

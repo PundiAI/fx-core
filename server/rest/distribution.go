@@ -11,6 +11,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// RegisterDistributeRESTRoutes
+// Deprecated
 func RegisterDistributeRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 	registerDistributeQueryRoutes(clientCtx, r)

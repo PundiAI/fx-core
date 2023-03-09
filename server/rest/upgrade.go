@@ -11,6 +11,7 @@ import (
 )
 
 // RegisterUpgradeRESTRoutes registers REST routes for the upgrade module under the path specified by routeName.
+// Deprecated
 func RegisterUpgradeRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 	registerUpgradeQueryRoutes(clientCtx, r)

@@ -20,6 +20,7 @@ import (
 )
 
 // RegisterRPCRoutes Register REST endpoints.
+// Deprecated
 func RegisterRPCRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/node_info", NodeInfoRequestHandlerFn(clientCtx)).Methods("GET")
 	r.HandleFunc("/syncing", NodeSyncingRequestHandlerFn(clientCtx)).Methods("GET")

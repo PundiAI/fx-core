@@ -21,6 +21,7 @@ import (
 )
 
 // RegisterAuthRESTRoutes registers the auth module REST routes.
+// Deprecated
 func RegisterAuthRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 	r.HandleFunc(
@@ -89,6 +90,7 @@ func queryAuthParamsHandler(clientCtx client.Context) http.HandlerFunc {
 }
 
 // RegisterTxRESTRoutes registers all transaction routes on the provided router.
+// Deprecated
 func RegisterTxRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
 	r.HandleFunc("/txs/{hash}", QueryTxRequestHandlerFn(clientCtx)).Methods("GET")
