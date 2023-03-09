@@ -12,15 +12,15 @@ deps:
   - remote: buf.build
     owner: cosmos
     repository: gogo-proto
-    commit: 34d970b699f84aa382f3c29773a60836
+    commit: bee5511075b7499da6178d9e4aaa628b
   - remote: buf.build
     owner: cosmos
     repository: ibc
-    commit: 8f001451b26147f7beb44afa3534205b
+    commit: 9851f8a91ac6423f91cc2433bfda9495
   - remote: buf.build
     owner: cosmos
     repository: ics23
-    commit: a4862fd73dbe48e8a33a25092cf4fc1b
+    commit: 55085f7c710a45f58fa09947208eb70b
   - remote: buf.build
     owner: evmos
     repository: ethermint
@@ -28,4 +28,4 @@ deps:
   - remote: buf.build
     owner: googleapis
     repository: googleapis
-    commit: 75b4300737fb4efca0831636be94e517
+    commit: 8d7204855ec14631a499bd7393ce1970
