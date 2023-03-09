@@ -5,8 +5,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/evmos/ethermint/server/config"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
@@ -83,7 +85,13 @@ func (k *Keeper) CallEVMWithoutGas(
 	}
 
 	if res.Failed() {
-		return nil, errorsmod.Wrap(types.ErrVMExecution, res.VmError)
+		errStr := res.VmError
+		if res.VmError == vm.ErrExecutionReverted.Error() {
+			if reason, err := abi.UnpackRevert(common.CopyBytes(res.Ret)); err == nil {
+				errStr = reason
+			}
+		}
+		return nil, errorsmod.Wrap(types.ErrVMExecution, errStr)
 	}
 
 	ctx.WithGasMeter(gasMeter)

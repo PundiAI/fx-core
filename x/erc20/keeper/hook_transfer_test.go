@@ -76,8 +76,7 @@ func (suite *KeeperTestSuite) TestHookTransferNativeToken() {
 				return []types.RelayTransfer{relay}, []string{pair.Erc20Address}
 			},
 			error: func(args []string) string {
-				// todo execution failed detail
-				return "execution reverted: evm transaction execution failed"
+				return "burn amount exceeds balance: evm transaction execution failed"
 			},
 			result: false,
 		},
