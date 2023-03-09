@@ -79,6 +79,12 @@
 - [ethermint/types/v1/account.proto](#ethermint/types/v1/account.proto)
     - [EthAccount](#ethermint.types.v1.EthAccount)
   
+- [ethermint/types/v1/dynamic_fee.proto](#ethermint/types/v1/dynamic_fee.proto)
+    - [ExtensionOptionDynamicFeeTx](#ethermint.types.v1.ExtensionOptionDynamicFeeTx)
+  
+- [ethermint/types/v1/indexer.proto](#ethermint/types/v1/indexer.proto)
+    - [TxResult](#ethermint.types.v1.TxResult)
+  
 - [ethermint/types/v1/web3.proto](#ethermint/types/v1/web3.proto)
     - [ExtensionOptionsWeb3Tx](#ethermint.types.v1.ExtensionOptionsWeb3Tx)
   
@@ -102,7 +108,7 @@ Tendermint's PrivateKey interface.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `key` | [bytes](#bytes) |  |  |
+| `key` | [bytes](#bytes) |  | key is the private key in byte form |
 
 
 
@@ -119,7 +125,7 @@ key format.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `key` | [bytes](#bytes) |  |  |
+| `key` | [bytes](#bytes) |  | key is the public key in byte form |
 
 
 
@@ -150,8 +156,8 @@ AccessTuple is the element type of an access list.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | hex formatted ethereum address |
-| `storage_keys` | [string](#string) | repeated | hex formatted hashes of the storage keys |
+| `address` | [string](#string) |  | address is a hex formatted ethereum address |
+| `storage_keys` | [string](#string) | repeated | storage_keys are hex formatted hashes of the storage keys |
 
 
 
@@ -167,22 +173,25 @@ instead of *big.Int.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `homestead_block` | [string](#string) |  | Homestead switch block (nil no fork, 0 = already homestead) |
-| `dao_fork_block` | [string](#string) |  | TheDAO hard-fork switch block (nil no fork) |
-| `dao_fork_support` | [bool](#bool) |  | Whether the nodes supports or opposes the DAO hard-fork |
-| `eip150_block` | [string](#string) |  | EIP150 implements the Gas price changes (https://github.com/ethereum/EIPs/issues/150) EIP150 HF block (nil no fork) |
-| `eip150_hash` | [string](#string) |  | EIP150 HF hash (needed for header only clients as only gas pricing changed) |
-| `eip155_block` | [string](#string) |  | EIP155Block HF block |
-| `eip158_block` | [string](#string) |  | EIP158 HF block |
-| `byzantium_block` | [string](#string) |  | Byzantium switch block (nil no fork, 0 = already on byzantium) |
-| `constantinople_block` | [string](#string) |  | Constantinople switch block (nil no fork, 0 = already activated) |
-| `petersburg_block` | [string](#string) |  | Petersburg switch block (nil same as Constantinople) |
-| `istanbul_block` | [string](#string) |  | Istanbul switch block (nil no fork, 0 = already on istanbul) |
-| `muir_glacier_block` | [string](#string) |  | Eip-2384 (bomb delay) switch block (nil no fork, 0 = already activated) |
-| `berlin_block` | [string](#string) |  | Berlin switch block (nil = no fork, 0 = already on berlin) |
-| `london_block` | [string](#string) |  | London switch block (nil = no fork, 0 = already on london) |
-| `arrow_glacier_block` | [string](#string) |  | Eip-4345 (bomb delay) switch block (nil = no fork, 0 = already activated) |
-| `merge_fork_block` | [string](#string) |  | EIP-3675 (TheMerge) switch block (nil = no fork, 0 = already in merge proceedings) |
+| `homestead_block` | [string](#string) |  | homestead_block switch (nil no fork, 0 = already homestead) |
+| `dao_fork_block` | [string](#string) |  | dao_fork_block corresponds to TheDAO hard-fork switch block (nil no fork) |
+| `dao_fork_support` | [bool](#bool) |  | dao_fork_support defines whether the nodes supports or opposes the DAO hard-fork |
+| `eip150_block` | [string](#string) |  | eip150_block: EIP150 implements the Gas price changes (https://github.com/ethereum/EIPs/issues/150) EIP150 HF block (nil no fork) |
+| `eip150_hash` | [string](#string) |  | eip150_hash: EIP150 HF hash (needed for header only clients as only gas pricing changed) |
+| `eip155_block` | [string](#string) |  | eip155_block: EIP155Block HF block |
+| `eip158_block` | [string](#string) |  | eip158_block: EIP158 HF block |
+| `byzantium_block` | [string](#string) |  | byzantium_block: Byzantium switch block (nil no fork, 0 = already on byzantium) |
+| `constantinople_block` | [string](#string) |  | constantinople_block: Constantinople switch block (nil no fork, 0 = already activated) |
+| `petersburg_block` | [string](#string) |  | petersburg_block: Petersburg switch block (nil same as Constantinople) |
+| `istanbul_block` | [string](#string) |  | istanbul_block: Istanbul switch block (nil no fork, 0 = already on istanbul) |
+| `muir_glacier_block` | [string](#string) |  | muir_glacier_block: Eip-2384 (bomb delay) switch block (nil no fork, 0 = already activated) |
+| `berlin_block` | [string](#string) |  | berlin_block: Berlin switch block (nil = no fork, 0 = already on berlin) |
+| `london_block` | [string](#string) |  | london_block: London switch block (nil = no fork, 0 = already on london) |
+| `arrow_glacier_block` | [string](#string) |  | arrow_glacier_block: Eip-4345 (bomb delay) switch block (nil = no fork, 0 = already activated) |
+| `gray_glacier_block` | [string](#string) |  | gray_glacier_block: EIP-5133 (bomb delay) switch block (nil = no fork, 0 = already activated) |
+| `merge_netsplit_block` | [string](#string) |  | merge_netsplit_block: Virtual fork after The Merge to use as a network splitter |
+| `shanghai_block` | [string](#string) |  | shanghai_block switch block (nil = no fork, 0 = already on shanghai) |
+| `cancun_block` | [string](#string) |  | cancun_block switch block (nil = no fork, 0 = already on cancun) |
 
 
 
@@ -196,18 +205,21 @@ Log represents an protobuf compatible Ethereum Log that defines a contract
 log event. These events are generated by the LOG opcode and stored/indexed by
 the node.
 
+NOTE: address, topics and data are consensus fields. The rest of the fields
+are derived, i.e. filled in by the nodes, but not secured by consensus.
+
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  | address of the contract that generated the event |
-| `topics` | [string](#string) | repeated | list of topics provided by the contract. |
-| `data` | [bytes](#bytes) |  | supplied by the contract, usually ABI-encoded |
-| `block_number` | [uint64](#uint64) |  | block in which the transaction was included |
-| `tx_hash` | [string](#string) |  | hash of the transaction |
-| `tx_index` | [uint64](#uint64) |  | index of the transaction in the block |
-| `block_hash` | [string](#string) |  | hash of the block in which the transaction was included |
+| `topics` | [string](#string) | repeated | topics is a list of topics provided by the contract. |
+| `data` | [bytes](#bytes) |  | data which is supplied by the contract, usually ABI-encoded |
+| `block_number` | [uint64](#uint64) |  | block_number of the block in which the transaction was included |
+| `tx_hash` | [string](#string) |  | tx_hash is the transaction hash |
+| `tx_index` | [uint64](#uint64) |  | tx_index of the transaction in the block |
+| `block_hash` | [string](#string) |  | block_hash of the block in which the transaction was included |
 | `index` | [uint64](#uint64) |  | index of the log in the block |
-| `removed` | [bool](#bool) |  | The Removed field is true if this log was reverted due to a chain reorganisation. You must pay attention to this field if you receive logs through a filter query. |
+| `removed` | [bool](#bool) |  | removed is true if this log was reverted due to a chain reorganisation. You must pay attention to this field if you receive logs through a filter query. |
 
 
 
@@ -222,12 +234,12 @@ Params defines the EVM module parameters
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `evm_denom` | [string](#string) |  | evm denom represents the token denomination used to run the EVM state transitions. |
-| `enable_create` | [bool](#bool) |  | enable create toggles state transitions that use the vm.Create function |
-| `enable_call` | [bool](#bool) |  | enable call toggles state transitions that use the vm.Call function |
-| `extra_eips` | [int64](#int64) | repeated | extra eips defines the additional EIPs for the vm.Config |
-| `chain_config` | [ChainConfig](#ethermint.evm.v1.ChainConfig) |  | chain config defines the EVM chain configuration parameters |
-| `allow_unprotected_txs` | [bool](#bool) |  | Allow unprotected transactions defines if replay-protected (i.e non EIP155 signed) transactions can be executed on the state machine. |
+| `evm_denom` | [string](#string) |  | evm_denom represents the token denomination used to run the EVM state transitions. |
+| `enable_create` | [bool](#bool) |  | enable_create toggles state transitions that use the vm.Create function |
+| `enable_call` | [bool](#bool) |  | enable_call toggles state transitions that use the vm.Call function |
+| `extra_eips` | [int64](#int64) | repeated | extra_eips defines the additional EIPs for the vm.Config |
+| `chain_config` | [ChainConfig](#ethermint.evm.v1.ChainConfig) |  | chain_config defines the EVM chain configuration parameters |
+| `allow_unprotected_txs` | [bool](#bool) |  | allow_unprotected_txs defines if replay-protected (i.e non EIP155 signed) transactions can be executed on the state machine. |
 
 
 
@@ -242,8 +254,8 @@ State represents a single Storage key value pair item.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `key` | [string](#string) |  |  |
-| `value` | [string](#string) |  |  |
+| `key` | [string](#string) |  | key is the stored key |
+| `value` | [string](#string) |  | value is the stored value for the given key |
 
 
 
@@ -258,16 +270,17 @@ TraceConfig holds extra parameters to trace functions.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `tracer` | [string](#string) |  | custom javascript tracer |
-| `timeout` | [string](#string) |  | overrides the default timeout of 5 seconds for JavaScript-based tracing calls |
-| `reexec` | [uint64](#uint64) |  | number of blocks the tracer is willing to go back |
-| `disable_stack` | [bool](#bool) |  | disable stack capture |
-| `disable_storage` | [bool](#bool) |  | disable storage capture |
-| `debug` | [bool](#bool) |  | print output during capture end |
-| `limit` | [int32](#int32) |  | maximum length of output, but zero means unlimited |
-| `overrides` | [ChainConfig](#ethermint.evm.v1.ChainConfig) |  | Chain overrides, can be used to execute a trace using future fork rules |
-| `enable_memory` | [bool](#bool) |  | enable memory capture |
-| `enable_return_data` | [bool](#bool) |  | enable return data capture |
+| `tracer` | [string](#string) |  | tracer is a custom javascript tracer |
+| `timeout` | [string](#string) |  | timeout overrides the default timeout of 5 seconds for JavaScript-based tracing calls |
+| `reexec` | [uint64](#uint64) |  | reexec defines the number of blocks the tracer is willing to go back |
+| `disable_stack` | [bool](#bool) |  | disable_stack switches stack capture |
+| `disable_storage` | [bool](#bool) |  | disable_storage switches storage capture |
+| `debug` | [bool](#bool) |  | debug can be used to print output during capture end |
+| `limit` | [int32](#int32) |  | limit defines the maximum length of output, but zero means unlimited |
+| `overrides` | [ChainConfig](#ethermint.evm.v1.ChainConfig) |  | overrides can be used to execute a trace using future fork rules |
+| `enable_memory` | [bool](#bool) |  | enable_memory switches memory capture |
+| `enable_return_data` | [bool](#bool) |  | enable_return_data switches the capture of return data |
+| `tracer_json_config` | [string](#string) |  | tracer_json_config configures the tracer using a JSON string |
 
 
 
@@ -284,8 +297,8 @@ persisted on blockchain state after an upgrade.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  |  |
-| `logs` | [Log](#ethermint.evm.v1.Log) | repeated |  |
+| `hash` | [string](#string) |  | hash of the transaction |
+| `logs` | [Log](#ethermint.evm.v1.Log) | repeated | logs is an array of Logs for the given transaction hash |
 
 
 
@@ -387,14 +400,14 @@ AccessListTx is the data of EIP-2930 access list transactions.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  | destination EVM chain ID |
+| `chain_id` | [string](#string) |  | chain_id of the destination EVM chain |
 | `nonce` | [uint64](#uint64) |  | nonce corresponds to the account nonce (transaction sequence). |
-| `gas_price` | [string](#string) |  | gas price defines the value for each gas unit |
+| `gas_price` | [string](#string) |  | gas_price defines the value for each gas unit |
 | `gas` | [uint64](#uint64) |  | gas defines the gas limit defined for the transaction. |
-| `to` | [string](#string) |  | hex formatted address of the recipient |
+| `to` | [string](#string) |  | to is the recipient address in hex format |
 | `value` | [string](#string) |  | value defines the unsigned integer value of the transaction amount. |
-| `data` | [bytes](#bytes) |  | input defines the data payload bytes of the transaction. |
-| `accesses` | [AccessTuple](#ethermint.evm.v1.AccessTuple) | repeated |  |
+| `data` | [bytes](#bytes) |  | data is the data payload bytes of the transaction. |
+| `accesses` | [AccessTuple](#ethermint.evm.v1.AccessTuple) | repeated | accesses is an array of access tuples |
 | `v` | [bytes](#bytes) |  | v defines the signature value |
 | `r` | [bytes](#bytes) |  | r defines the signature value |
 | `s` | [bytes](#bytes) |  | s define the signature value |
@@ -412,15 +425,15 @@ DynamicFeeTx is the data of EIP-1559 dinamic fee transactions.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `chain_id` | [string](#string) |  | destination EVM chain ID |
+| `chain_id` | [string](#string) |  | chain_id of the destination EVM chain |
 | `nonce` | [uint64](#uint64) |  | nonce corresponds to the account nonce (transaction sequence). |
-| `gas_tip_cap` | [string](#string) |  | gas tip cap defines the max value for the gas tip |
-| `gas_fee_cap` | [string](#string) |  | gas fee cap defines the max value for the gas fee |
+| `gas_tip_cap` | [string](#string) |  | gas_tip_cap defines the max value for the gas tip |
+| `gas_fee_cap` | [string](#string) |  | gas_fee_cap defines the max value for the gas fee |
 | `gas` | [uint64](#uint64) |  | gas defines the gas limit defined for the transaction. |
-| `to` | [string](#string) |  | hex formatted address of the recipient |
+| `to` | [string](#string) |  | to is the hex formatted address of the recipient |
 | `value` | [string](#string) |  | value defines the the transaction amount. |
-| `data` | [bytes](#bytes) |  | input defines the data payload bytes of the transaction. |
-| `accesses` | [AccessTuple](#ethermint.evm.v1.AccessTuple) | repeated |  |
+| `data` | [bytes](#bytes) |  | data is the data payload bytes of the transaction. |
+| `accesses` | [AccessTuple](#ethermint.evm.v1.AccessTuple) | repeated | accesses is an array of access tuples |
 | `v` | [bytes](#bytes) |  | v defines the signature value |
 | `r` | [bytes](#bytes) |  | r defines the signature value |
 | `s` | [bytes](#bytes) |  | s define the signature value |
@@ -433,7 +446,7 @@ DynamicFeeTx is the data of EIP-1559 dinamic fee transactions.
 <a name="ethermint.evm.v1.ExtensionOptionsEthereumTx"></a>
 
 ### ExtensionOptionsEthereumTx
-
+ExtensionOptionsEthereumTx is an extension option for ethereum transactions
 
 
 
@@ -451,11 +464,11 @@ AllowUnprotectedTxs parameter is disabled.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `nonce` | [uint64](#uint64) |  | nonce corresponds to the account nonce (transaction sequence). |
-| `gas_price` | [string](#string) |  | gas price defines the value for each gas unit |
+| `gas_price` | [string](#string) |  | gas_price defines the value for each gas unit |
 | `gas` | [uint64](#uint64) |  | gas defines the gas limit defined for the transaction. |
-| `to` | [string](#string) |  | hex formatted address of the recipient |
+| `to` | [string](#string) |  | to is the hex formatted address of the recipient |
 | `value` | [string](#string) |  | value defines the unsigned integer value of the transaction amount. |
-| `data` | [bytes](#bytes) |  | input defines the data payload bytes of the transaction. |
+| `data` | [bytes](#bytes) |  | data is the data payload bytes of the transaction. |
 | `v` | [bytes](#bytes) |  | v defines the signature value |
 | `r` | [bytes](#bytes) |  | r defines the signature value |
 | `s` | [bytes](#bytes) |  | s define the signature value |
@@ -473,12 +486,10 @@ MsgEthereumTx encapsulates an Ethereum transaction as an SDK message.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `data` | [google.protobuf.Any](#google.protobuf.Any) |  | inner transaction data
-
-caches |
-| `size` | [double](#double) |  | encoded storage size of the transaction |
-| `hash` | [string](#string) |  | transaction hash in hex format |
-| `from` | [string](#string) |  | ethereum signer address in hex format. This address value is checked against the address derived from the signature (V, R, S) using the secp256k1 elliptic curve |
+| `data` | [google.protobuf.Any](#google.protobuf.Any) |  | data is inner transaction data of the Ethereum transaction |
+| `size` | [double](#double) |  | size is the encoded storage size of the transaction (DEPRECATED) |
+| `hash` | [string](#string) |  | hash of the transaction in hex format |
+| `from` | [string](#string) |  | from is the ethereum signer address in hex format. This address value is checked against the address derived from the signature (V, R, S) using the secp256k1 elliptic curve |
 
 
 
@@ -493,11 +504,11 @@ MsgEthereumTxResponse defines the Msg/EthereumTx response type.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `hash` | [string](#string) |  | ethereum transaction hash in hex format. This hash differs from the Tendermint sha256 hash of the transaction bytes. See https://github.com/tendermint/tendermint/issues/6539 for reference |
+| `hash` | [string](#string) |  | hash of the ethereum transaction in hex format. This hash differs from the Tendermint sha256 hash of the transaction bytes. See https://github.com/tendermint/tendermint/issues/6539 for reference |
 | `logs` | [Log](#ethermint.evm.v1.Log) | repeated | logs contains the transaction hash and the proto-compatible ethereum logs. |
-| `ret` | [bytes](#bytes) |  | returned data from evm function (result or data supplied with revert opcode) |
-| `vm_error` | [string](#string) |  | vm error is the error returned by vm execution |
-| `gas_used` | [uint64](#uint64) |  | gas consumed by the transaction |
+| `ret` | [bytes](#bytes) |  | ret is the returned data from evm function (result or data supplied with revert opcode) |
+| `vm_error` | [string](#string) |  | vm_error is the error returned by vm execution |
+| `gas_used` | [uint64](#uint64) |  | gas_used specifies how much gas was consumed by the transaction |
 
 
 
@@ -538,7 +549,7 @@ EstimateGasResponse defines EstimateGas response
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `gas` | [uint64](#uint64) |  | the estimated gas |
+| `gas` | [uint64](#uint64) |  | gas returns the estimated gas |
 
 
 
@@ -553,8 +564,10 @@ EthCallRequest defines EthCall request
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `args` | [bytes](#bytes) |  | same json format as the json rpc api. |
-| `gas_cap` | [uint64](#uint64) |  | the default gas cap to be used |
+| `args` | [bytes](#bytes) |  | args uses the same json format as the json rpc api. |
+| `gas_cap` | [uint64](#uint64) |  | gas_cap defines the default gas cap to be used |
+| `proposer_address` | [bytes](#bytes) |  | proposer_address of the requested block in hex format |
+| `chain_id` | [int64](#int64) |  | chain_id is the eip155 chain id parsed from the requested block header |
 
 
 
@@ -585,7 +598,7 @@ QueryAccountResponse is the response type for the Query/Account RPC method.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `balance` | [string](#string) |  | balance is the balance of the EVM denomination. |
-| `code_hash` | [string](#string) |  | code hash is the hex-formatted code bytes from the EOA. |
+| `code_hash` | [string](#string) |  | code_hash is the hex-formatted code bytes from the EOA. |
 | `nonce` | [uint64](#uint64) |  | nonce is the account's sequence number. |
 
 
@@ -637,12 +650,12 @@ fee.
 <a name="ethermint.evm.v1.QueryBaseFeeResponse"></a>
 
 ### QueryBaseFeeResponse
-BaseFeeResponse returns the EIP1559 base fee.
+QueryBaseFeeResponse returns the EIP1559 base fee.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `base_fee` | [string](#string) |  |  |
+| `base_fee` | [string](#string) |  | base_fee is the EIP1559 base fee |
 
 
 
@@ -707,7 +720,7 @@ RPC method.
 | ----- | ---- | ----- | ----------- |
 | `cosmos_address` | [string](#string) |  | cosmos_address is the cosmos address of the account. |
 | `sequence` | [uint64](#uint64) |  | sequence is the account's sequence number. |
-| `account_number` | [uint64](#uint64) |  | account_number is the account numbert |
+| `account_number` | [uint64](#uint64) |  | account_number is the account number |
 
 
 
@@ -764,7 +777,7 @@ method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `value` | [string](#string) |  | key defines the storage state value hash associated with the given key. |
+| `value` | [string](#string) |  | value defines the storage state value hash associated with the given key. |
 
 
 
@@ -779,11 +792,13 @@ QueryTraceBlockRequest defines TraceTx request
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `txs` | [MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx) | repeated | txs messages in the block |
-| `trace_config` | [TraceConfig](#ethermint.evm.v1.TraceConfig) |  | TraceConfig holds extra parameters to trace functions. |
-| `block_number` | [int64](#int64) |  | block number |
-| `block_hash` | [string](#string) |  | block hex hash |
-| `block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | block time |
+| `txs` | [MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx) | repeated | txs is an array of messages in the block |
+| `trace_config` | [TraceConfig](#ethermint.evm.v1.TraceConfig) |  | trace_config holds extra parameters to trace functions. |
+| `block_number` | [int64](#int64) |  | block_number of the traced block |
+| `block_hash` | [string](#string) |  | block_hash (hex) of the traced block |
+| `block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | block_time of the traced block |
+| `proposer_address` | [bytes](#bytes) |  | proposer_address is the address of the requested block |
+| `chain_id` | [int64](#int64) |  | chain_id is the eip155 chain id parsed from the requested block header |
 
 
 
@@ -798,7 +813,7 @@ QueryTraceBlockResponse defines TraceBlock response
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `data` | [bytes](#bytes) |  |  |
+| `data` | [bytes](#bytes) |  | data is the response serialized in bytes |
 
 
 
@@ -813,12 +828,14 @@ QueryTraceTxRequest defines TraceTx request
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `msg` | [MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx) |  | msgEthereumTx for the requested transaction |
-| `trace_config` | [TraceConfig](#ethermint.evm.v1.TraceConfig) |  | TraceConfig holds extra parameters to trace functions. |
-| `predecessors` | [MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx) | repeated | the predecessor transactions included in the same block need to be replayed first to get correct context for tracing. |
-| `block_number` | [int64](#int64) |  | block number of requested transaction |
-| `block_hash` | [string](#string) |  | block hex hash of requested transaction |
-| `block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | block time of requested transaction |
+| `msg` | [MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx) |  | msg is the MsgEthereumTx for the requested transaction |
+| `trace_config` | [TraceConfig](#ethermint.evm.v1.TraceConfig) |  | trace_config holds extra parameters to trace functions. |
+| `predecessors` | [MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx) | repeated | predecessors is an array of transactions included in the same block need to be replayed first to get correct context for tracing. |
+| `block_number` | [int64](#int64) |  | block_number of requested transaction |
+| `block_hash` | [string](#string) |  | block_hash of requested transaction |
+| `block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | block_time of requested transaction |
+| `proposer_address` | [bytes](#bytes) |  | proposer_address is the proposer of the requested block |
+| `chain_id` | [int64](#int64) |  | chain_id is the the eip155 chain id parsed from the requested block header |
 
 
 
@@ -833,7 +850,7 @@ QueryTraceTxResponse defines TraceTx response
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `data` | [bytes](#bytes) |  | response serialized in bytes |
+| `data` | [bytes](#bytes) |  | data is the response serialized in bytes |
 
 
 
@@ -859,7 +876,7 @@ QueryTxLogsRequest is the request type for the Query/TxLogs RPC method.
 <a name="ethermint.evm.v1.QueryTxLogsResponse"></a>
 
 ### QueryTxLogsResponse
-QueryTxLogs is the response type for the Query/TxLogs RPC method.
+QueryTxLogsResponse is the response type for the Query/TxLogs RPC method.
 
 
 | Field | Type | Label | Description |
@@ -951,13 +968,13 @@ Params defines the EVM module parameters
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `no_base_fee` | [bool](#bool) |  | no base fee forces the EIP-1559 base fee to 0 (needed for 0 price calls) |
-| `base_fee_change_denominator` | [uint32](#uint32) |  | base fee change denominator bounds the amount the base fee can change between blocks. |
-| `elasticity_multiplier` | [uint32](#uint32) |  | elasticity multiplier bounds the maximum gas limit an EIP-1559 block may have. |
-| `enable_height` | [int64](#int64) |  | height at which the base fee calculation is enabled. |
-| `base_fee` | [string](#string) |  | base fee for EIP-1559 blocks. |
+| `no_base_fee` | [bool](#bool) |  | no_base_fee forces the EIP-1559 base fee to 0 (needed for 0 price calls) |
+| `base_fee_change_denominator` | [uint32](#uint32) |  | base_fee_change_denominator bounds the amount the base fee can change between blocks. |
+| `elasticity_multiplier` | [uint32](#uint32) |  | elasticity_multiplier bounds the maximum gas limit an EIP-1559 block may have. |
+| `enable_height` | [int64](#int64) |  | enable_height defines at which block height the base fee calculation is enabled. |
+| `base_fee` | [string](#string) |  | base_fee for EIP-1559 blocks. |
 | `min_gas_price` | [string](#string) |  | min_gas_price defines the minimum gas price value for cosmos and eth transactions |
-| `min_gas_multiplier` | [string](#string) |  | min gas denominator bounds the minimum gasUsed to be charged to senders based on GasLimit |
+| `min_gas_multiplier` | [string](#string) |  | min_gas_multiplier bounds the minimum gas used to be charged to senders based on gas limit |
 
 
 
@@ -988,8 +1005,8 @@ GenesisState defines the feemarket module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#ethermint.feemarket.v1.Params) |  | params defines all the paramaters of the module. |
-| `block_gas` | [uint64](#uint64) |  | block gas is the amount of gas wanted on the last block before the upgrade. Zero by default. |
+| `params` | [Params](#ethermint.feemarket.v1.Params) |  | params defines all the parameters of the feemarket module. |
+| `block_gas` | [uint64](#uint64) |  | block_gas is the amount of gas wanted on the last block before the upgrade. Zero by default. |
 
 
 
@@ -1026,12 +1043,12 @@ fee.
 <a name="ethermint.feemarket.v1.QueryBaseFeeResponse"></a>
 
 ### QueryBaseFeeResponse
-BaseFeeResponse returns the EIP1559 base fee.
+QueryBaseFeeResponse returns the EIP1559 base fee.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `base_fee` | [string](#string) |  |  |
+| `base_fee` | [string](#string) |  | base_fee is the EIP1559 base fee |
 
 
 
@@ -1057,7 +1074,7 @@ QueryBlockGasResponse returns block gas used for a given height.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `gas` | [int64](#int64) |  |  |
+| `gas` | [int64](#int64) |  | gas is the returned block gas |
 
 
 
@@ -1126,8 +1143,76 @@ authtypes.BaseAccount type. It is compatible with the auth AccountKeeper.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `base_account` | [cosmos.auth.v1beta1.BaseAccount](#cosmos.auth.v1beta1.BaseAccount) |  |  |
-| `code_hash` | [string](#string) |  |  |
+| `base_account` | [cosmos.auth.v1beta1.BaseAccount](#cosmos.auth.v1beta1.BaseAccount) |  | base_account is an authtypes.BaseAccount |
+| `code_hash` | [string](#string) |  | code_hash is the hash calculated from the code contents |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ethermint/types/v1/dynamic_fee.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ethermint/types/v1/dynamic_fee.proto
+
+
+
+<a name="ethermint.types.v1.ExtensionOptionDynamicFeeTx"></a>
+
+### ExtensionOptionDynamicFeeTx
+ExtensionOptionDynamicFeeTx is an extension option that specifies the maxPrioPrice for cosmos tx
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `max_priority_price` | [string](#string) |  | max_priority_price is the same as `max_priority_fee_per_gas` in eip-1559 spec |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="ethermint/types/v1/indexer.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ethermint/types/v1/indexer.proto
+
+
+
+<a name="ethermint.types.v1.TxResult"></a>
+
+### TxResult
+TxResult is the value stored in eth tx indexer
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [int64](#int64) |  | height of the blockchain |
+| `tx_index` | [uint32](#uint32) |  | tx_index of the cosmos transaction |
+| `msg_index` | [uint32](#uint32) |  | msg_index in a batch transaction |
+| `eth_tx_index` | [int32](#int32) |  | eth_tx_index is the index in the list of valid eth tx in the block, aka. the transaction list returned by eth_getBlock api. |
+| `failed` | [bool](#bool) |  | failed is true if the eth transaction did not go succeed |
+| `gas_used` | [uint64](#uint64) |  | gas_used by the transaction. If it exceeds the block gas limit, it's set to gas limit, which is what's actually deducted by ante handler. |
+| `cumulative_gas_used` | [uint64](#uint64) |  | cumulative_gas_used specifies the cumulated amount of gas used for all processed messages within the current batch transaction. |
 
 
 
@@ -1153,14 +1238,15 @@ authtypes.BaseAccount type. It is compatible with the auth AccountKeeper.
 <a name="ethermint.types.v1.ExtensionOptionsWeb3Tx"></a>
 
 ### ExtensionOptionsWeb3Tx
-
+ExtensionOptionsWeb3Tx is an extension option that specifies the typed chain id,
+the fee payer as well as its signature data.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `typed_data_chain_id` | [uint64](#uint64) |  | typed data chain id used only in EIP712 Domain and should match Ethereum network ID in a Web3 provider (e.g. Metamask). |
-| `fee_payer` | [string](#string) |  | fee payer is an account address for the fee payer. It will be validated during EIP712 signature checking. |
-| `fee_payer_sig` | [bytes](#bytes) |  | fee payer sig is a signature data from the fee paying account, allows to perform fee delegation when using EIP712 Domain. |
+| `typed_data_chain_id` | [uint64](#uint64) |  | typed_data_chain_id is used only in EIP712 Domain and should match Ethereum network ID in a Web3 provider (e.g. Metamask). |
+| `fee_payer` | [string](#string) |  | fee_payer is an account address for the fee payer. It will be validated during EIP712 signature checking. |
+| `fee_payer_sig` | [bytes](#bytes) |  | fee_payer_sig is a signature data from the fee paying account, allows to perform fee delegation when using EIP712 Domain. |
 
 
 
@@ -1195,3 +1281,4 @@ authtypes.BaseAccount type. It is compatible with the auth AccountKeeper.
 | <a name="bool" /> bool |  | bool | boolean | boolean | bool | bool | boolean | TrueClass/FalseClass |
 | <a name="string" /> string | A string must always contain UTF-8 encoded or 7-bit ASCII text. | string | String | str/unicode | string | string | string | String (UTF-8) |
 | <a name="bytes" /> bytes | May contain any arbitrary sequence of bytes. | string | ByteString | str | []byte | ByteString | string | String (ASCII-8BIT) |
+

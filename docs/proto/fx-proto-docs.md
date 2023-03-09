@@ -61,6 +61,8 @@
     - [MsgSetOrchestratorAddress](#fx.gravity.crosschain.v1.MsgSetOrchestratorAddress)
     - [MsgUnbondedOracle](#fx.gravity.crosschain.v1.MsgUnbondedOracle)
     - [MsgUnbondedOracleResponse](#fx.gravity.crosschain.v1.MsgUnbondedOracleResponse)
+    - [MsgUpdateParams](#fx.gravity.crosschain.v1.MsgUpdateParams)
+    - [MsgUpdateParamsResponse](#fx.gravity.crosschain.v1.MsgUpdateParamsResponse)
     - [MsgWithdrawReward](#fx.gravity.crosschain.v1.MsgWithdrawReward)
     - [MsgWithdrawRewardResponse](#fx.gravity.crosschain.v1.MsgWithdrawRewardResponse)
   
@@ -155,6 +157,8 @@
     - [MsgConvertDenomResponse](#fx.erc20.v1.MsgConvertDenomResponse)
     - [MsgConvertERC20](#fx.erc20.v1.MsgConvertERC20)
     - [MsgConvertERC20Response](#fx.erc20.v1.MsgConvertERC20Response)
+    - [MsgUpdateParams](#fx.erc20.v1.MsgUpdateParams)
+    - [MsgUpdateParamsResponse](#fx.erc20.v1.MsgUpdateParamsResponse)
   
     - [Msg](#fx.erc20.v1.Msg)
   
@@ -1202,6 +1206,36 @@ Deprecated: after block 5713000
 
 
 
+<a name="fx.gravity.crosschain.v1.MsgUpdateParams"></a>
+
+### MsgUpdateParams
+MsgUpdateParams is the Msg/UpdateParams request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_name` | [string](#string) |  |  |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `params` | [Params](#fx.gravity.crosschain.v1.Params) |  | params defines the x/crosschain parameters to update.
+
+NOTE: All parameters must be supplied. |
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgUpdateParamsResponse"></a>
+
+### MsgUpdateParamsResponse
+MsgUpdateParamsResponse defines the response structure for executing a
+MsgUpdateParams message.
+
+
+
+
+
+
 <a name="fx.gravity.crosschain.v1.MsgWithdrawReward"></a>
 
 ### MsgWithdrawReward
@@ -1256,6 +1290,7 @@ Msg defines the state transitions possible within gravity
 | `SendToExternalClaim` | [MsgSendToExternalClaim](#fx.gravity.crosschain.v1.MsgSendToExternalClaim) | [MsgSendToExternalClaimResponse](#fx.gravity.crosschain.v1.MsgSendToExternalClaimResponse) |  | |
 | `RequestBatch` | [MsgRequestBatch](#fx.gravity.crosschain.v1.MsgRequestBatch) | [MsgRequestBatchResponse](#fx.gravity.crosschain.v1.MsgRequestBatchResponse) |  | |
 | `ConfirmBatch` | [MsgConfirmBatch](#fx.gravity.crosschain.v1.MsgConfirmBatch) | [MsgConfirmBatchResponse](#fx.gravity.crosschain.v1.MsgConfirmBatchResponse) |  | |
+| `UpdateParams` | [MsgUpdateParams](#fx.gravity.crosschain.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#fx.gravity.crosschain.v1.MsgUpdateParamsResponse) | UpdateParams defines a governance operation for updating the x/crosschain module parameters. The authority is hard-coded to the x/gov module account. | |
 
  <!-- end services -->
 
@@ -2540,6 +2575,35 @@ MsgConvertERC20Response returns no fields
 
 
 
+
+<a name="fx.erc20.v1.MsgUpdateParams"></a>
+
+### MsgUpdateParams
+MsgUpdateParams is the Msg/UpdateParams request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `params` | [Params](#fx.erc20.v1.Params) |  | params defines the x/erc20 parameters to update.
+
+NOTE: All parameters must be supplied. |
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgUpdateParamsResponse"></a>
+
+### MsgUpdateParamsResponse
+MsgUpdateParamsResponse defines the response structure for executing a
+MsgUpdateParams message.
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -2557,6 +2621,7 @@ Msg defines the erc20 Msg service.
 | `ConvertCoin` | [MsgConvertCoin](#fx.erc20.v1.MsgConvertCoin) | [MsgConvertCoinResponse](#fx.erc20.v1.MsgConvertCoinResponse) | ConvertCoin mints a ERC20 representation of the SDK Coin denom that is registered on the token mapping. | |
 | `ConvertERC20` | [MsgConvertERC20](#fx.erc20.v1.MsgConvertERC20) | [MsgConvertERC20Response](#fx.erc20.v1.MsgConvertERC20Response) | ConvertERC20 mints a Cosmos coin representation of the ERC20 token contract that is registered on the token mapping. | |
 | `ConvertDenom` | [MsgConvertDenom](#fx.erc20.v1.MsgConvertDenom) | [MsgConvertDenomResponse](#fx.erc20.v1.MsgConvertDenomResponse) | ConvertDenom convert denom to other denom | |
+| `UpdateParams` | [MsgUpdateParams](#fx.erc20.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#fx.erc20.v1.MsgUpdateParamsResponse) | UpdateParams defines a governance operation for updating the x/erc20 module parameters. The authority is hard-coded to the x/gov module account. | |
 
  <!-- end services -->
 

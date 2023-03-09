@@ -4,6 +4,26 @@
 
 ## Table of Contents
 
+- [cosmos/app/v1alpha1/module.proto](#cosmos/app/v1alpha1/module.proto)
+    - [MigrateFromInfo](#cosmos.app.v1alpha1.MigrateFromInfo)
+    - [ModuleDescriptor](#cosmos.app.v1alpha1.ModuleDescriptor)
+    - [PackageReference](#cosmos.app.v1alpha1.PackageReference)
+  
+    - [File-level Extensions](#cosmos/app/v1alpha1/module.proto-extensions)
+  
+- [cosmos/app/module/v1alpha1/module.proto](#cosmos/app/module/v1alpha1/module.proto)
+    - [Module](#cosmos.app.module.v1alpha1.Module)
+  
+- [cosmos/app/v1alpha1/config.proto](#cosmos/app/v1alpha1/config.proto)
+    - [Config](#cosmos.app.v1alpha1.Config)
+    - [ModuleConfig](#cosmos.app.v1alpha1.ModuleConfig)
+  
+- [cosmos/app/v1alpha1/query.proto](#cosmos/app/v1alpha1/query.proto)
+    - [QueryConfigRequest](#cosmos.app.v1alpha1.QueryConfigRequest)
+    - [QueryConfigResponse](#cosmos.app.v1alpha1.QueryConfigResponse)
+  
+    - [Query](#cosmos.app.v1alpha1.Query)
+  
 - [cosmos/auth/v1beta1/auth.proto](#cosmos/auth/v1beta1/auth.proto)
     - [BaseAccount](#cosmos.auth.v1beta1.BaseAccount)
     - [ModuleAccount](#cosmos.auth.v1beta1.ModuleAccount)
@@ -17,10 +37,22 @@
     - [PageResponse](#cosmos.base.query.v1beta1.PageResponse)
   
 - [cosmos/auth/v1beta1/query.proto](#cosmos/auth/v1beta1/query.proto)
+    - [AddressBytesToStringRequest](#cosmos.auth.v1beta1.AddressBytesToStringRequest)
+    - [AddressBytesToStringResponse](#cosmos.auth.v1beta1.AddressBytesToStringResponse)
+    - [AddressStringToBytesRequest](#cosmos.auth.v1beta1.AddressStringToBytesRequest)
+    - [AddressStringToBytesResponse](#cosmos.auth.v1beta1.AddressStringToBytesResponse)
+    - [Bech32PrefixRequest](#cosmos.auth.v1beta1.Bech32PrefixRequest)
+    - [Bech32PrefixResponse](#cosmos.auth.v1beta1.Bech32PrefixResponse)
+    - [QueryAccountAddressByIDRequest](#cosmos.auth.v1beta1.QueryAccountAddressByIDRequest)
+    - [QueryAccountAddressByIDResponse](#cosmos.auth.v1beta1.QueryAccountAddressByIDResponse)
     - [QueryAccountRequest](#cosmos.auth.v1beta1.QueryAccountRequest)
     - [QueryAccountResponse](#cosmos.auth.v1beta1.QueryAccountResponse)
     - [QueryAccountsRequest](#cosmos.auth.v1beta1.QueryAccountsRequest)
     - [QueryAccountsResponse](#cosmos.auth.v1beta1.QueryAccountsResponse)
+    - [QueryModuleAccountByNameRequest](#cosmos.auth.v1beta1.QueryModuleAccountByNameRequest)
+    - [QueryModuleAccountByNameResponse](#cosmos.auth.v1beta1.QueryModuleAccountByNameResponse)
+    - [QueryModuleAccountsRequest](#cosmos.auth.v1beta1.QueryModuleAccountsRequest)
+    - [QueryModuleAccountsResponse](#cosmos.auth.v1beta1.QueryModuleAccountsResponse)
     - [QueryParamsRequest](#cosmos.auth.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#cosmos.auth.v1beta1.QueryParamsResponse)
   
@@ -30,6 +62,7 @@
     - [GenericAuthorization](#cosmos.authz.v1beta1.GenericAuthorization)
     - [Grant](#cosmos.authz.v1beta1.Grant)
     - [GrantAuthorization](#cosmos.authz.v1beta1.GrantAuthorization)
+    - [GrantQueueItem](#cosmos.authz.v1beta1.GrantQueueItem)
   
 - [cosmos/authz/v1beta1/event.proto](#cosmos/authz/v1beta1/event.proto)
     - [EventGrant](#cosmos.authz.v1beta1.EventGrant)
@@ -48,17 +81,8 @@
   
     - [Query](#cosmos.authz.v1beta1.Query)
   
-- [cosmos/base/abci/v1beta1/abci.proto](#cosmos/base/abci/v1beta1/abci.proto)
-    - [ABCIMessageLog](#cosmos.base.abci.v1beta1.ABCIMessageLog)
-    - [Attribute](#cosmos.base.abci.v1beta1.Attribute)
-    - [GasInfo](#cosmos.base.abci.v1beta1.GasInfo)
-    - [MsgData](#cosmos.base.abci.v1beta1.MsgData)
-    - [Result](#cosmos.base.abci.v1beta1.Result)
-    - [SearchTxsResult](#cosmos.base.abci.v1beta1.SearchTxsResult)
-    - [SimulationResponse](#cosmos.base.abci.v1beta1.SimulationResponse)
-    - [StringEvent](#cosmos.base.abci.v1beta1.StringEvent)
-    - [TxMsgData](#cosmos.base.abci.v1beta1.TxMsgData)
-    - [TxResponse](#cosmos.base.abci.v1beta1.TxResponse)
+- [cosmos/msg/v1/msg.proto](#cosmos/msg/v1/msg.proto)
+    - [File-level Extensions](#cosmos/msg/v1/msg.proto-extensions)
   
 - [cosmos/authz/v1beta1/tx.proto](#cosmos/authz/v1beta1/tx.proto)
     - [MsgExec](#cosmos.authz.v1beta1.MsgExec)
@@ -93,12 +117,15 @@
     - [GenesisState](#cosmos.bank.v1beta1.GenesisState)
   
 - [cosmos/bank/v1beta1/query.proto](#cosmos/bank/v1beta1/query.proto)
+    - [DenomOwner](#cosmos.bank.v1beta1.DenomOwner)
     - [QueryAllBalancesRequest](#cosmos.bank.v1beta1.QueryAllBalancesRequest)
     - [QueryAllBalancesResponse](#cosmos.bank.v1beta1.QueryAllBalancesResponse)
     - [QueryBalanceRequest](#cosmos.bank.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#cosmos.bank.v1beta1.QueryBalanceResponse)
     - [QueryDenomMetadataRequest](#cosmos.bank.v1beta1.QueryDenomMetadataRequest)
     - [QueryDenomMetadataResponse](#cosmos.bank.v1beta1.QueryDenomMetadataResponse)
+    - [QueryDenomOwnersRequest](#cosmos.bank.v1beta1.QueryDenomOwnersRequest)
+    - [QueryDenomOwnersResponse](#cosmos.bank.v1beta1.QueryDenomOwnersResponse)
     - [QueryDenomsMetadataRequest](#cosmos.bank.v1beta1.QueryDenomsMetadataRequest)
     - [QueryDenomsMetadataResponse](#cosmos.bank.v1beta1.QueryDenomsMetadataResponse)
     - [QueryParamsRequest](#cosmos.bank.v1beta1.QueryParamsRequest)
@@ -120,9 +147,125 @@
   
     - [Msg](#cosmos.bank.v1beta1.Msg)
   
+- [tendermint/crypto/proof.proto](#tendermint/crypto/proof.proto)
+    - [DominoOp](#tendermint.crypto.DominoOp)
+    - [Proof](#tendermint.crypto.Proof)
+    - [ProofOp](#tendermint.crypto.ProofOp)
+    - [ProofOps](#tendermint.crypto.ProofOps)
+    - [ValueOp](#tendermint.crypto.ValueOp)
+  
+- [tendermint/version/types.proto](#tendermint/version/types.proto)
+    - [App](#tendermint.version.App)
+    - [Consensus](#tendermint.version.Consensus)
+  
+- [tendermint/crypto/keys.proto](#tendermint/crypto/keys.proto)
+    - [PublicKey](#tendermint.crypto.PublicKey)
+  
+- [tendermint/types/validator.proto](#tendermint/types/validator.proto)
+    - [SimpleValidator](#tendermint.types.SimpleValidator)
+    - [Validator](#tendermint.types.Validator)
+    - [ValidatorSet](#tendermint.types.ValidatorSet)
+  
+- [tendermint/types/types.proto](#tendermint/types/types.proto)
+    - [BlockID](#tendermint.types.BlockID)
+    - [BlockMeta](#tendermint.types.BlockMeta)
+    - [Commit](#tendermint.types.Commit)
+    - [CommitSig](#tendermint.types.CommitSig)
+    - [Data](#tendermint.types.Data)
+    - [Header](#tendermint.types.Header)
+    - [LightBlock](#tendermint.types.LightBlock)
+    - [Part](#tendermint.types.Part)
+    - [PartSetHeader](#tendermint.types.PartSetHeader)
+    - [Proposal](#tendermint.types.Proposal)
+    - [SignedHeader](#tendermint.types.SignedHeader)
+    - [TxProof](#tendermint.types.TxProof)
+    - [Vote](#tendermint.types.Vote)
+  
+    - [BlockIDFlag](#tendermint.types.BlockIDFlag)
+    - [SignedMsgType](#tendermint.types.SignedMsgType)
+  
+- [tendermint/types/params.proto](#tendermint/types/params.proto)
+    - [BlockParams](#tendermint.types.BlockParams)
+    - [ConsensusParams](#tendermint.types.ConsensusParams)
+    - [EvidenceParams](#tendermint.types.EvidenceParams)
+    - [HashedParams](#tendermint.types.HashedParams)
+    - [ValidatorParams](#tendermint.types.ValidatorParams)
+    - [VersionParams](#tendermint.types.VersionParams)
+  
+- [tendermint/abci/types.proto](#tendermint/abci/types.proto)
+    - [BlockParams](#tendermint.abci.BlockParams)
+    - [ConsensusParams](#tendermint.abci.ConsensusParams)
+    - [Event](#tendermint.abci.Event)
+    - [EventAttribute](#tendermint.abci.EventAttribute)
+    - [Evidence](#tendermint.abci.Evidence)
+    - [LastCommitInfo](#tendermint.abci.LastCommitInfo)
+    - [Request](#tendermint.abci.Request)
+    - [RequestApplySnapshotChunk](#tendermint.abci.RequestApplySnapshotChunk)
+    - [RequestBeginBlock](#tendermint.abci.RequestBeginBlock)
+    - [RequestCheckTx](#tendermint.abci.RequestCheckTx)
+    - [RequestCommit](#tendermint.abci.RequestCommit)
+    - [RequestDeliverTx](#tendermint.abci.RequestDeliverTx)
+    - [RequestEcho](#tendermint.abci.RequestEcho)
+    - [RequestEndBlock](#tendermint.abci.RequestEndBlock)
+    - [RequestFlush](#tendermint.abci.RequestFlush)
+    - [RequestInfo](#tendermint.abci.RequestInfo)
+    - [RequestInitChain](#tendermint.abci.RequestInitChain)
+    - [RequestListSnapshots](#tendermint.abci.RequestListSnapshots)
+    - [RequestLoadSnapshotChunk](#tendermint.abci.RequestLoadSnapshotChunk)
+    - [RequestOfferSnapshot](#tendermint.abci.RequestOfferSnapshot)
+    - [RequestQuery](#tendermint.abci.RequestQuery)
+    - [RequestSetOption](#tendermint.abci.RequestSetOption)
+    - [Response](#tendermint.abci.Response)
+    - [ResponseApplySnapshotChunk](#tendermint.abci.ResponseApplySnapshotChunk)
+    - [ResponseBeginBlock](#tendermint.abci.ResponseBeginBlock)
+    - [ResponseCheckTx](#tendermint.abci.ResponseCheckTx)
+    - [ResponseCommit](#tendermint.abci.ResponseCommit)
+    - [ResponseDeliverTx](#tendermint.abci.ResponseDeliverTx)
+    - [ResponseEcho](#tendermint.abci.ResponseEcho)
+    - [ResponseEndBlock](#tendermint.abci.ResponseEndBlock)
+    - [ResponseException](#tendermint.abci.ResponseException)
+    - [ResponseFlush](#tendermint.abci.ResponseFlush)
+    - [ResponseInfo](#tendermint.abci.ResponseInfo)
+    - [ResponseInitChain](#tendermint.abci.ResponseInitChain)
+    - [ResponseListSnapshots](#tendermint.abci.ResponseListSnapshots)
+    - [ResponseLoadSnapshotChunk](#tendermint.abci.ResponseLoadSnapshotChunk)
+    - [ResponseOfferSnapshot](#tendermint.abci.ResponseOfferSnapshot)
+    - [ResponseQuery](#tendermint.abci.ResponseQuery)
+    - [ResponseSetOption](#tendermint.abci.ResponseSetOption)
+    - [Snapshot](#tendermint.abci.Snapshot)
+    - [TxResult](#tendermint.abci.TxResult)
+    - [Validator](#tendermint.abci.Validator)
+    - [ValidatorUpdate](#tendermint.abci.ValidatorUpdate)
+    - [VoteInfo](#tendermint.abci.VoteInfo)
+  
+    - [CheckTxType](#tendermint.abci.CheckTxType)
+    - [EvidenceType](#tendermint.abci.EvidenceType)
+    - [ResponseApplySnapshotChunk.Result](#tendermint.abci.ResponseApplySnapshotChunk.Result)
+    - [ResponseOfferSnapshot.Result](#tendermint.abci.ResponseOfferSnapshot.Result)
+  
+    - [ABCIApplication](#tendermint.abci.ABCIApplication)
+  
+- [cosmos/base/abci/v1beta1/abci.proto](#cosmos/base/abci/v1beta1/abci.proto)
+    - [ABCIMessageLog](#cosmos.base.abci.v1beta1.ABCIMessageLog)
+    - [Attribute](#cosmos.base.abci.v1beta1.Attribute)
+    - [GasInfo](#cosmos.base.abci.v1beta1.GasInfo)
+    - [MsgData](#cosmos.base.abci.v1beta1.MsgData)
+    - [Result](#cosmos.base.abci.v1beta1.Result)
+    - [SearchTxsResult](#cosmos.base.abci.v1beta1.SearchTxsResult)
+    - [SimulationResponse](#cosmos.base.abci.v1beta1.SimulationResponse)
+    - [StringEvent](#cosmos.base.abci.v1beta1.StringEvent)
+    - [TxMsgData](#cosmos.base.abci.v1beta1.TxMsgData)
+    - [TxResponse](#cosmos.base.abci.v1beta1.TxResponse)
+  
 - [cosmos/base/kv/v1beta1/kv.proto](#cosmos/base/kv/v1beta1/kv.proto)
     - [Pair](#cosmos.base.kv.v1beta1.Pair)
     - [Pairs](#cosmos.base.kv.v1beta1.Pairs)
+  
+- [cosmos/base/node/v1beta1/query.proto](#cosmos/base/node/v1beta1/query.proto)
+    - [ConfigRequest](#cosmos.base.node.v1beta1.ConfigRequest)
+    - [ConfigResponse](#cosmos.base.node.v1beta1.ConfigResponse)
+  
+    - [Service](#cosmos.base.node.v1beta1.Service)
   
 - [cosmos/base/reflection/v1beta1/reflection.proto](#cosmos/base/reflection/v1beta1/reflection.proto)
     - [ListAllInterfacesRequest](#cosmos.base.reflection.v1beta1.ListAllInterfacesRequest)
@@ -169,6 +312,8 @@
     - [SnapshotExtensionPayload](#cosmos.base.snapshots.v1beta1.SnapshotExtensionPayload)
     - [SnapshotIAVLItem](#cosmos.base.snapshots.v1beta1.SnapshotIAVLItem)
     - [SnapshotItem](#cosmos.base.snapshots.v1beta1.SnapshotItem)
+    - [SnapshotKVItem](#cosmos.base.snapshots.v1beta1.SnapshotKVItem)
+    - [SnapshotSchema](#cosmos.base.snapshots.v1beta1.SnapshotSchema)
     - [SnapshotStoreItem](#cosmos.base.snapshots.v1beta1.SnapshotStoreItem)
   
 - [cosmos/base/store/v1beta1/commit_info.proto](#cosmos/base/store/v1beta1/commit_info.proto)
@@ -177,9 +322,32 @@
     - [StoreInfo](#cosmos.base.store.v1beta1.StoreInfo)
   
 - [cosmos/base/store/v1beta1/listening.proto](#cosmos/base/store/v1beta1/listening.proto)
+    - [BlockMetadata](#cosmos.base.store.v1beta1.BlockMetadata)
+    - [BlockMetadata.DeliverTx](#cosmos.base.store.v1beta1.BlockMetadata.DeliverTx)
     - [StoreKVPair](#cosmos.base.store.v1beta1.StoreKVPair)
   
+- [tendermint/p2p/types.proto](#tendermint/p2p/types.proto)
+    - [DefaultNodeInfo](#tendermint.p2p.DefaultNodeInfo)
+    - [DefaultNodeInfoOther](#tendermint.p2p.DefaultNodeInfoOther)
+    - [NetAddress](#tendermint.p2p.NetAddress)
+    - [ProtocolVersion](#tendermint.p2p.ProtocolVersion)
+  
+- [tendermint/types/evidence.proto](#tendermint/types/evidence.proto)
+    - [DuplicateVoteEvidence](#tendermint.types.DuplicateVoteEvidence)
+    - [Evidence](#tendermint.types.Evidence)
+    - [EvidenceList](#tendermint.types.EvidenceList)
+    - [LightClientAttackEvidence](#tendermint.types.LightClientAttackEvidence)
+  
+- [cosmos/base/tendermint/v1beta1/types.proto](#cosmos/base/tendermint/v1beta1/types.proto)
+    - [Block](#cosmos.base.tendermint.v1beta1.Block)
+    - [Header](#cosmos.base.tendermint.v1beta1.Header)
+  
+- [tendermint/types/block.proto](#tendermint/types/block.proto)
+    - [Block](#tendermint.types.Block)
+  
 - [cosmos/base/tendermint/v1beta1/query.proto](#cosmos/base/tendermint/v1beta1/query.proto)
+    - [ABCIQueryRequest](#cosmos.base.tendermint.v1beta1.ABCIQueryRequest)
+    - [ABCIQueryResponse](#cosmos.base.tendermint.v1beta1.ABCIQueryResponse)
     - [GetBlockByHeightRequest](#cosmos.base.tendermint.v1beta1.GetBlockByHeightRequest)
     - [GetBlockByHeightResponse](#cosmos.base.tendermint.v1beta1.GetBlockByHeightResponse)
     - [GetLatestBlockRequest](#cosmos.base.tendermint.v1beta1.GetLatestBlockRequest)
@@ -193,6 +361,8 @@
     - [GetValidatorSetByHeightRequest](#cosmos.base.tendermint.v1beta1.GetValidatorSetByHeightRequest)
     - [GetValidatorSetByHeightResponse](#cosmos.base.tendermint.v1beta1.GetValidatorSetByHeightResponse)
     - [Module](#cosmos.base.tendermint.v1beta1.Module)
+    - [ProofOp](#cosmos.base.tendermint.v1beta1.ProofOp)
+    - [ProofOps](#cosmos.base.tendermint.v1beta1.ProofOps)
     - [Validator](#cosmos.base.tendermint.v1beta1.Validator)
     - [VersionInfo](#cosmos.base.tendermint.v1beta1.VersionInfo)
   
@@ -219,6 +389,16 @@
 - [cosmos/crypto/ed25519/keys.proto](#cosmos/crypto/ed25519/keys.proto)
     - [PrivKey](#cosmos.crypto.ed25519.PrivKey)
     - [PubKey](#cosmos.crypto.ed25519.PubKey)
+  
+- [cosmos/crypto/hd/v1/hd.proto](#cosmos/crypto/hd/v1/hd.proto)
+    - [BIP44Params](#cosmos.crypto.hd.v1.BIP44Params)
+  
+- [cosmos/crypto/keyring/v1/record.proto](#cosmos/crypto/keyring/v1/record.proto)
+    - [Record](#cosmos.crypto.keyring.v1.Record)
+    - [Record.Ledger](#cosmos.crypto.keyring.v1.Record.Ledger)
+    - [Record.Local](#cosmos.crypto.keyring.v1.Record.Local)
+    - [Record.Multi](#cosmos.crypto.keyring.v1.Record.Multi)
+    - [Record.Offline](#cosmos.crypto.keyring.v1.Record.Offline)
   
 - [cosmos/crypto/multisig/keys.proto](#cosmos/crypto/multisig/keys.proto)
     - [LegacyAminoPubKey](#cosmos.crypto.multisig.LegacyAminoPubKey)
@@ -343,6 +523,56 @@
 - [cosmos/genutil/v1beta1/genesis.proto](#cosmos/genutil/v1beta1/genesis.proto)
     - [GenesisState](#cosmos.genutil.v1beta1.GenesisState)
   
+- [cosmos/gov/v1/gov.proto](#cosmos/gov/v1/gov.proto)
+    - [Deposit](#cosmos.gov.v1.Deposit)
+    - [DepositParams](#cosmos.gov.v1.DepositParams)
+    - [Proposal](#cosmos.gov.v1.Proposal)
+    - [TallyParams](#cosmos.gov.v1.TallyParams)
+    - [TallyResult](#cosmos.gov.v1.TallyResult)
+    - [Vote](#cosmos.gov.v1.Vote)
+    - [VotingParams](#cosmos.gov.v1.VotingParams)
+    - [WeightedVoteOption](#cosmos.gov.v1.WeightedVoteOption)
+  
+    - [ProposalStatus](#cosmos.gov.v1.ProposalStatus)
+    - [VoteOption](#cosmos.gov.v1.VoteOption)
+  
+- [cosmos/gov/v1/genesis.proto](#cosmos/gov/v1/genesis.proto)
+    - [GenesisState](#cosmos.gov.v1.GenesisState)
+  
+- [cosmos/gov/v1/query.proto](#cosmos/gov/v1/query.proto)
+    - [QueryDepositRequest](#cosmos.gov.v1.QueryDepositRequest)
+    - [QueryDepositResponse](#cosmos.gov.v1.QueryDepositResponse)
+    - [QueryDepositsRequest](#cosmos.gov.v1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#cosmos.gov.v1.QueryDepositsResponse)
+    - [QueryParamsRequest](#cosmos.gov.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#cosmos.gov.v1.QueryParamsResponse)
+    - [QueryProposalRequest](#cosmos.gov.v1.QueryProposalRequest)
+    - [QueryProposalResponse](#cosmos.gov.v1.QueryProposalResponse)
+    - [QueryProposalsRequest](#cosmos.gov.v1.QueryProposalsRequest)
+    - [QueryProposalsResponse](#cosmos.gov.v1.QueryProposalsResponse)
+    - [QueryTallyResultRequest](#cosmos.gov.v1.QueryTallyResultRequest)
+    - [QueryTallyResultResponse](#cosmos.gov.v1.QueryTallyResultResponse)
+    - [QueryVoteRequest](#cosmos.gov.v1.QueryVoteRequest)
+    - [QueryVoteResponse](#cosmos.gov.v1.QueryVoteResponse)
+    - [QueryVotesRequest](#cosmos.gov.v1.QueryVotesRequest)
+    - [QueryVotesResponse](#cosmos.gov.v1.QueryVotesResponse)
+  
+    - [Query](#cosmos.gov.v1.Query)
+  
+- [cosmos/gov/v1/tx.proto](#cosmos/gov/v1/tx.proto)
+    - [MsgDeposit](#cosmos.gov.v1.MsgDeposit)
+    - [MsgDepositResponse](#cosmos.gov.v1.MsgDepositResponse)
+    - [MsgExecLegacyContent](#cosmos.gov.v1.MsgExecLegacyContent)
+    - [MsgExecLegacyContentResponse](#cosmos.gov.v1.MsgExecLegacyContentResponse)
+    - [MsgSubmitProposal](#cosmos.gov.v1.MsgSubmitProposal)
+    - [MsgSubmitProposalResponse](#cosmos.gov.v1.MsgSubmitProposalResponse)
+    - [MsgVote](#cosmos.gov.v1.MsgVote)
+    - [MsgVoteResponse](#cosmos.gov.v1.MsgVoteResponse)
+    - [MsgVoteWeighted](#cosmos.gov.v1.MsgVoteWeighted)
+    - [MsgVoteWeightedResponse](#cosmos.gov.v1.MsgVoteWeightedResponse)
+  
+    - [Msg](#cosmos.gov.v1.Msg)
+  
 - [cosmos/gov/v1beta1/gov.proto](#cosmos/gov/v1beta1/gov.proto)
     - [Deposit](#cosmos.gov.v1beta1.Deposit)
     - [DepositParams](#cosmos.gov.v1beta1.DepositParams)
@@ -392,6 +622,101 @@
   
     - [Msg](#cosmos.gov.v1beta1.Msg)
   
+- [cosmos/group/v1/types.proto](#cosmos/group/v1/types.proto)
+    - [DecisionPolicyWindows](#cosmos.group.v1.DecisionPolicyWindows)
+    - [GroupInfo](#cosmos.group.v1.GroupInfo)
+    - [GroupMember](#cosmos.group.v1.GroupMember)
+    - [GroupPolicyInfo](#cosmos.group.v1.GroupPolicyInfo)
+    - [Member](#cosmos.group.v1.Member)
+    - [MemberRequest](#cosmos.group.v1.MemberRequest)
+    - [PercentageDecisionPolicy](#cosmos.group.v1.PercentageDecisionPolicy)
+    - [Proposal](#cosmos.group.v1.Proposal)
+    - [TallyResult](#cosmos.group.v1.TallyResult)
+    - [ThresholdDecisionPolicy](#cosmos.group.v1.ThresholdDecisionPolicy)
+    - [Vote](#cosmos.group.v1.Vote)
+  
+    - [ProposalExecutorResult](#cosmos.group.v1.ProposalExecutorResult)
+    - [ProposalStatus](#cosmos.group.v1.ProposalStatus)
+    - [VoteOption](#cosmos.group.v1.VoteOption)
+  
+- [cosmos/group/v1/events.proto](#cosmos/group/v1/events.proto)
+    - [EventCreateGroup](#cosmos.group.v1.EventCreateGroup)
+    - [EventCreateGroupPolicy](#cosmos.group.v1.EventCreateGroupPolicy)
+    - [EventExec](#cosmos.group.v1.EventExec)
+    - [EventLeaveGroup](#cosmos.group.v1.EventLeaveGroup)
+    - [EventSubmitProposal](#cosmos.group.v1.EventSubmitProposal)
+    - [EventUpdateGroup](#cosmos.group.v1.EventUpdateGroup)
+    - [EventUpdateGroupPolicy](#cosmos.group.v1.EventUpdateGroupPolicy)
+    - [EventVote](#cosmos.group.v1.EventVote)
+    - [EventWithdrawProposal](#cosmos.group.v1.EventWithdrawProposal)
+  
+- [cosmos/group/v1/genesis.proto](#cosmos/group/v1/genesis.proto)
+    - [GenesisState](#cosmos.group.v1.GenesisState)
+  
+- [cosmos/group/v1/query.proto](#cosmos/group/v1/query.proto)
+    - [QueryGroupInfoRequest](#cosmos.group.v1.QueryGroupInfoRequest)
+    - [QueryGroupInfoResponse](#cosmos.group.v1.QueryGroupInfoResponse)
+    - [QueryGroupMembersRequest](#cosmos.group.v1.QueryGroupMembersRequest)
+    - [QueryGroupMembersResponse](#cosmos.group.v1.QueryGroupMembersResponse)
+    - [QueryGroupPoliciesByAdminRequest](#cosmos.group.v1.QueryGroupPoliciesByAdminRequest)
+    - [QueryGroupPoliciesByAdminResponse](#cosmos.group.v1.QueryGroupPoliciesByAdminResponse)
+    - [QueryGroupPoliciesByGroupRequest](#cosmos.group.v1.QueryGroupPoliciesByGroupRequest)
+    - [QueryGroupPoliciesByGroupResponse](#cosmos.group.v1.QueryGroupPoliciesByGroupResponse)
+    - [QueryGroupPolicyInfoRequest](#cosmos.group.v1.QueryGroupPolicyInfoRequest)
+    - [QueryGroupPolicyInfoResponse](#cosmos.group.v1.QueryGroupPolicyInfoResponse)
+    - [QueryGroupsByAdminRequest](#cosmos.group.v1.QueryGroupsByAdminRequest)
+    - [QueryGroupsByAdminResponse](#cosmos.group.v1.QueryGroupsByAdminResponse)
+    - [QueryGroupsByMemberRequest](#cosmos.group.v1.QueryGroupsByMemberRequest)
+    - [QueryGroupsByMemberResponse](#cosmos.group.v1.QueryGroupsByMemberResponse)
+    - [QueryProposalRequest](#cosmos.group.v1.QueryProposalRequest)
+    - [QueryProposalResponse](#cosmos.group.v1.QueryProposalResponse)
+    - [QueryProposalsByGroupPolicyRequest](#cosmos.group.v1.QueryProposalsByGroupPolicyRequest)
+    - [QueryProposalsByGroupPolicyResponse](#cosmos.group.v1.QueryProposalsByGroupPolicyResponse)
+    - [QueryTallyResultRequest](#cosmos.group.v1.QueryTallyResultRequest)
+    - [QueryTallyResultResponse](#cosmos.group.v1.QueryTallyResultResponse)
+    - [QueryVoteByProposalVoterRequest](#cosmos.group.v1.QueryVoteByProposalVoterRequest)
+    - [QueryVoteByProposalVoterResponse](#cosmos.group.v1.QueryVoteByProposalVoterResponse)
+    - [QueryVotesByProposalRequest](#cosmos.group.v1.QueryVotesByProposalRequest)
+    - [QueryVotesByProposalResponse](#cosmos.group.v1.QueryVotesByProposalResponse)
+    - [QueryVotesByVoterRequest](#cosmos.group.v1.QueryVotesByVoterRequest)
+    - [QueryVotesByVoterResponse](#cosmos.group.v1.QueryVotesByVoterResponse)
+  
+    - [Query](#cosmos.group.v1.Query)
+  
+- [cosmos/group/v1/tx.proto](#cosmos/group/v1/tx.proto)
+    - [MsgCreateGroup](#cosmos.group.v1.MsgCreateGroup)
+    - [MsgCreateGroupPolicy](#cosmos.group.v1.MsgCreateGroupPolicy)
+    - [MsgCreateGroupPolicyResponse](#cosmos.group.v1.MsgCreateGroupPolicyResponse)
+    - [MsgCreateGroupResponse](#cosmos.group.v1.MsgCreateGroupResponse)
+    - [MsgCreateGroupWithPolicy](#cosmos.group.v1.MsgCreateGroupWithPolicy)
+    - [MsgCreateGroupWithPolicyResponse](#cosmos.group.v1.MsgCreateGroupWithPolicyResponse)
+    - [MsgExec](#cosmos.group.v1.MsgExec)
+    - [MsgExecResponse](#cosmos.group.v1.MsgExecResponse)
+    - [MsgLeaveGroup](#cosmos.group.v1.MsgLeaveGroup)
+    - [MsgLeaveGroupResponse](#cosmos.group.v1.MsgLeaveGroupResponse)
+    - [MsgSubmitProposal](#cosmos.group.v1.MsgSubmitProposal)
+    - [MsgSubmitProposalResponse](#cosmos.group.v1.MsgSubmitProposalResponse)
+    - [MsgUpdateGroupAdmin](#cosmos.group.v1.MsgUpdateGroupAdmin)
+    - [MsgUpdateGroupAdminResponse](#cosmos.group.v1.MsgUpdateGroupAdminResponse)
+    - [MsgUpdateGroupMembers](#cosmos.group.v1.MsgUpdateGroupMembers)
+    - [MsgUpdateGroupMembersResponse](#cosmos.group.v1.MsgUpdateGroupMembersResponse)
+    - [MsgUpdateGroupMetadata](#cosmos.group.v1.MsgUpdateGroupMetadata)
+    - [MsgUpdateGroupMetadataResponse](#cosmos.group.v1.MsgUpdateGroupMetadataResponse)
+    - [MsgUpdateGroupPolicyAdmin](#cosmos.group.v1.MsgUpdateGroupPolicyAdmin)
+    - [MsgUpdateGroupPolicyAdminResponse](#cosmos.group.v1.MsgUpdateGroupPolicyAdminResponse)
+    - [MsgUpdateGroupPolicyDecisionPolicy](#cosmos.group.v1.MsgUpdateGroupPolicyDecisionPolicy)
+    - [MsgUpdateGroupPolicyDecisionPolicyResponse](#cosmos.group.v1.MsgUpdateGroupPolicyDecisionPolicyResponse)
+    - [MsgUpdateGroupPolicyMetadata](#cosmos.group.v1.MsgUpdateGroupPolicyMetadata)
+    - [MsgUpdateGroupPolicyMetadataResponse](#cosmos.group.v1.MsgUpdateGroupPolicyMetadataResponse)
+    - [MsgVote](#cosmos.group.v1.MsgVote)
+    - [MsgVoteResponse](#cosmos.group.v1.MsgVoteResponse)
+    - [MsgWithdrawProposal](#cosmos.group.v1.MsgWithdrawProposal)
+    - [MsgWithdrawProposalResponse](#cosmos.group.v1.MsgWithdrawProposalResponse)
+  
+    - [Exec](#cosmos.group.v1.Exec)
+  
+    - [Msg](#cosmos.group.v1.Msg)
+  
 - [cosmos/mint/v1beta1/mint.proto](#cosmos/mint/v1beta1/mint.proto)
     - [Minter](#cosmos.mint.v1beta1.Minter)
     - [Params](#cosmos.mint.v1beta1.Params)
@@ -409,6 +734,63 @@
   
     - [Query](#cosmos.mint.v1beta1.Query)
   
+- [cosmos/nft/v1beta1/event.proto](#cosmos/nft/v1beta1/event.proto)
+    - [EventBurn](#cosmos.nft.v1beta1.EventBurn)
+    - [EventMint](#cosmos.nft.v1beta1.EventMint)
+    - [EventSend](#cosmos.nft.v1beta1.EventSend)
+  
+- [cosmos/nft/v1beta1/nft.proto](#cosmos/nft/v1beta1/nft.proto)
+    - [Class](#cosmos.nft.v1beta1.Class)
+    - [NFT](#cosmos.nft.v1beta1.NFT)
+  
+- [cosmos/nft/v1beta1/genesis.proto](#cosmos/nft/v1beta1/genesis.proto)
+    - [Entry](#cosmos.nft.v1beta1.Entry)
+    - [GenesisState](#cosmos.nft.v1beta1.GenesisState)
+  
+- [cosmos/nft/v1beta1/query.proto](#cosmos/nft/v1beta1/query.proto)
+    - [QueryBalanceRequest](#cosmos.nft.v1beta1.QueryBalanceRequest)
+    - [QueryBalanceResponse](#cosmos.nft.v1beta1.QueryBalanceResponse)
+    - [QueryClassRequest](#cosmos.nft.v1beta1.QueryClassRequest)
+    - [QueryClassResponse](#cosmos.nft.v1beta1.QueryClassResponse)
+    - [QueryClassesRequest](#cosmos.nft.v1beta1.QueryClassesRequest)
+    - [QueryClassesResponse](#cosmos.nft.v1beta1.QueryClassesResponse)
+    - [QueryNFTRequest](#cosmos.nft.v1beta1.QueryNFTRequest)
+    - [QueryNFTResponse](#cosmos.nft.v1beta1.QueryNFTResponse)
+    - [QueryNFTsRequest](#cosmos.nft.v1beta1.QueryNFTsRequest)
+    - [QueryNFTsResponse](#cosmos.nft.v1beta1.QueryNFTsResponse)
+    - [QueryOwnerRequest](#cosmos.nft.v1beta1.QueryOwnerRequest)
+    - [QueryOwnerResponse](#cosmos.nft.v1beta1.QueryOwnerResponse)
+    - [QuerySupplyRequest](#cosmos.nft.v1beta1.QuerySupplyRequest)
+    - [QuerySupplyResponse](#cosmos.nft.v1beta1.QuerySupplyResponse)
+  
+    - [Query](#cosmos.nft.v1beta1.Query)
+  
+- [cosmos/nft/v1beta1/tx.proto](#cosmos/nft/v1beta1/tx.proto)
+    - [MsgSend](#cosmos.nft.v1beta1.MsgSend)
+    - [MsgSendResponse](#cosmos.nft.v1beta1.MsgSendResponse)
+  
+    - [Msg](#cosmos.nft.v1beta1.Msg)
+  
+- [cosmos/orm/module/v1alpha1/module.proto](#cosmos/orm/module/v1alpha1/module.proto)
+    - [Module](#cosmos.orm.module.v1alpha1.Module)
+  
+- [cosmos/orm/v1/orm.proto](#cosmos/orm/v1/orm.proto)
+    - [PrimaryKeyDescriptor](#cosmos.orm.v1.PrimaryKeyDescriptor)
+    - [SecondaryIndexDescriptor](#cosmos.orm.v1.SecondaryIndexDescriptor)
+    - [SingletonDescriptor](#cosmos.orm.v1.SingletonDescriptor)
+    - [TableDescriptor](#cosmos.orm.v1.TableDescriptor)
+  
+    - [File-level Extensions](#cosmos/orm/v1/orm.proto-extensions)
+    - [File-level Extensions](#cosmos/orm/v1/orm.proto-extensions)
+  
+- [cosmos/orm/v1alpha1/schema.proto](#cosmos/orm/v1alpha1/schema.proto)
+    - [ModuleSchemaDescriptor](#cosmos.orm.v1alpha1.ModuleSchemaDescriptor)
+    - [ModuleSchemaDescriptor.FileEntry](#cosmos.orm.v1alpha1.ModuleSchemaDescriptor.FileEntry)
+  
+    - [StorageType](#cosmos.orm.v1alpha1.StorageType)
+  
+    - [File-level Extensions](#cosmos/orm/v1alpha1/schema.proto-extensions)
+  
 - [cosmos/params/v1beta1/params.proto](#cosmos/params/v1beta1/params.proto)
     - [ParamChange](#cosmos.params.v1beta1.ParamChange)
     - [ParameterChangeProposal](#cosmos.params.v1beta1.ParameterChangeProposal)
@@ -416,6 +798,9 @@
 - [cosmos/params/v1beta1/query.proto](#cosmos/params/v1beta1/query.proto)
     - [QueryParamsRequest](#cosmos.params.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#cosmos.params.v1beta1.QueryParamsResponse)
+    - [QuerySubspacesRequest](#cosmos.params.v1beta1.QuerySubspacesRequest)
+    - [QuerySubspacesResponse](#cosmos.params.v1beta1.QuerySubspacesResponse)
+    - [Subspace](#cosmos.params.v1beta1.Subspace)
   
     - [Query](#cosmos.params.v1beta1.Query)
   
@@ -514,6 +899,8 @@
 - [cosmos/staking/v1beta1/tx.proto](#cosmos/staking/v1beta1/tx.proto)
     - [MsgBeginRedelegate](#cosmos.staking.v1beta1.MsgBeginRedelegate)
     - [MsgBeginRedelegateResponse](#cosmos.staking.v1beta1.MsgBeginRedelegateResponse)
+    - [MsgCancelUnbondingDelegation](#cosmos.staking.v1beta1.MsgCancelUnbondingDelegation)
+    - [MsgCancelUnbondingDelegationResponse](#cosmos.staking.v1beta1.MsgCancelUnbondingDelegationResponse)
     - [MsgCreateValidator](#cosmos.staking.v1beta1.MsgCreateValidator)
     - [MsgCreateValidatorResponse](#cosmos.staking.v1beta1.MsgCreateValidatorResponse)
     - [MsgDelegate](#cosmos.staking.v1beta1.MsgDelegate)
@@ -536,12 +923,15 @@
   
 - [cosmos/tx/v1beta1/tx.proto](#cosmos/tx/v1beta1/tx.proto)
     - [AuthInfo](#cosmos.tx.v1beta1.AuthInfo)
+    - [AuxSignerData](#cosmos.tx.v1beta1.AuxSignerData)
     - [Fee](#cosmos.tx.v1beta1.Fee)
     - [ModeInfo](#cosmos.tx.v1beta1.ModeInfo)
     - [ModeInfo.Multi](#cosmos.tx.v1beta1.ModeInfo.Multi)
     - [ModeInfo.Single](#cosmos.tx.v1beta1.ModeInfo.Single)
     - [SignDoc](#cosmos.tx.v1beta1.SignDoc)
+    - [SignDocDirectAux](#cosmos.tx.v1beta1.SignDocDirectAux)
     - [SignerInfo](#cosmos.tx.v1beta1.SignerInfo)
+    - [Tip](#cosmos.tx.v1beta1.Tip)
     - [Tx](#cosmos.tx.v1beta1.Tx)
     - [TxBody](#cosmos.tx.v1beta1.TxBody)
     - [TxRaw](#cosmos.tx.v1beta1.TxRaw)
@@ -572,6 +962,8 @@
 - [cosmos/upgrade/v1beta1/query.proto](#cosmos/upgrade/v1beta1/query.proto)
     - [QueryAppliedPlanRequest](#cosmos.upgrade.v1beta1.QueryAppliedPlanRequest)
     - [QueryAppliedPlanResponse](#cosmos.upgrade.v1beta1.QueryAppliedPlanResponse)
+    - [QueryAuthorityRequest](#cosmos.upgrade.v1beta1.QueryAuthorityRequest)
+    - [QueryAuthorityResponse](#cosmos.upgrade.v1beta1.QueryAuthorityResponse)
     - [QueryCurrentPlanRequest](#cosmos.upgrade.v1beta1.QueryCurrentPlanRequest)
     - [QueryCurrentPlanResponse](#cosmos.upgrade.v1beta1.QueryCurrentPlanResponse)
     - [QueryModuleVersionsRequest](#cosmos.upgrade.v1beta1.QueryModuleVersionsRequest)
@@ -581,11 +973,13 @@
   
     - [Query](#cosmos.upgrade.v1beta1.Query)
   
-- [cosmos/vesting/v1beta1/tx.proto](#cosmos/vesting/v1beta1/tx.proto)
-    - [MsgCreateVestingAccount](#cosmos.vesting.v1beta1.MsgCreateVestingAccount)
-    - [MsgCreateVestingAccountResponse](#cosmos.vesting.v1beta1.MsgCreateVestingAccountResponse)
+- [cosmos/upgrade/v1beta1/tx.proto](#cosmos/upgrade/v1beta1/tx.proto)
+    - [MsgCancelUpgrade](#cosmos.upgrade.v1beta1.MsgCancelUpgrade)
+    - [MsgCancelUpgradeResponse](#cosmos.upgrade.v1beta1.MsgCancelUpgradeResponse)
+    - [MsgSoftwareUpgrade](#cosmos.upgrade.v1beta1.MsgSoftwareUpgrade)
+    - [MsgSoftwareUpgradeResponse](#cosmos.upgrade.v1beta1.MsgSoftwareUpgradeResponse)
   
-    - [Msg](#cosmos.vesting.v1beta1.Msg)
+    - [Msg](#cosmos.upgrade.v1beta1.Msg)
   
 - [cosmos/vesting/v1beta1/vesting.proto](#cosmos/vesting/v1beta1/vesting.proto)
     - [BaseVestingAccount](#cosmos.vesting.v1beta1.BaseVestingAccount)
@@ -595,7 +989,235 @@
     - [PeriodicVestingAccount](#cosmos.vesting.v1beta1.PeriodicVestingAccount)
     - [PermanentLockedAccount](#cosmos.vesting.v1beta1.PermanentLockedAccount)
   
+- [cosmos/vesting/v1beta1/tx.proto](#cosmos/vesting/v1beta1/tx.proto)
+    - [MsgCreatePeriodicVestingAccount](#cosmos.vesting.v1beta1.MsgCreatePeriodicVestingAccount)
+    - [MsgCreatePeriodicVestingAccountResponse](#cosmos.vesting.v1beta1.MsgCreatePeriodicVestingAccountResponse)
+    - [MsgCreatePermanentLockedAccount](#cosmos.vesting.v1beta1.MsgCreatePermanentLockedAccount)
+    - [MsgCreatePermanentLockedAccountResponse](#cosmos.vesting.v1beta1.MsgCreatePermanentLockedAccountResponse)
+    - [MsgCreateVestingAccount](#cosmos.vesting.v1beta1.MsgCreateVestingAccount)
+    - [MsgCreateVestingAccountResponse](#cosmos.vesting.v1beta1.MsgCreateVestingAccountResponse)
+  
+    - [Msg](#cosmos.vesting.v1beta1.Msg)
+  
+- [tendermint/libs/bits/types.proto](#tendermint/libs/bits/types.proto)
+    - [BitArray](#tendermint.libs.bits.BitArray)
+  
 - [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="cosmos/app/v1alpha1/module.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/app/v1alpha1/module.proto
+
+
+
+<a name="cosmos.app.v1alpha1.MigrateFromInfo"></a>
+
+### MigrateFromInfo
+MigrateFromInfo is information on a module version that a newer module
+can migrate from.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `module` | [string](#string) |  | module is the fully-qualified protobuf name of the module config object for the previous module version, ex: "cosmos.group.module.v1.Module". |
+
+
+
+
+
+
+<a name="cosmos.app.v1alpha1.ModuleDescriptor"></a>
+
+### ModuleDescriptor
+ModuleDescriptor describes an app module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `go_import` | [string](#string) |  | go_import names the package that should be imported by an app to load the module in the runtime module registry. It is required to make debugging of configuration errors easier for users. |
+| `use_package` | [PackageReference](#cosmos.app.v1alpha1.PackageReference) | repeated | use_package refers to a protobuf package that this module uses and exposes to the world. In an app, only one module should "use" or own a single protobuf package. It is assumed that the module uses all of the .proto files in a single package. |
+| `can_migrate_from` | [MigrateFromInfo](#cosmos.app.v1alpha1.MigrateFromInfo) | repeated | can_migrate_from defines which module versions this module can migrate state from. The framework will check that one module version is able to migrate from a previous module version before attempting to update its config. It is assumed that modules can transitively migrate from earlier versions. For instance if v3 declares it can migrate from v2, and v2 declares it can migrate from v1, the framework knows how to migrate from v1 to v3, assuming all 3 module versions are registered at runtime. |
+
+
+
+
+
+
+<a name="cosmos.app.v1alpha1.PackageReference"></a>
+
+### PackageReference
+PackageReference is a reference to a protobuf package used by a module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [string](#string) |  | name is the fully-qualified name of the package. |
+| `revision` | [uint32](#uint32) |  | revision is the optional revision of the package that is being used. Protobuf packages used in Cosmos should generally have a major version as the last part of the package name, ex. foo.bar.baz.v1. The revision of a package can be thought of as the minor version of a package which has additional backwards compatible definitions that weren't present in a previous version.
+
+A package should indicate its revision with a source code comment above the package declaration in one of its files containing the text "Revision N" where N is an integer revision. All packages start at revision 0 the first time they are released in a module.
+
+When a new version of a module is released and items are added to existing .proto files, these definitions should contain comments of the form "Since Revision N" where N is an integer revision.
+
+When the module runtime starts up, it will check the pinned proto image and panic if there are runtime protobuf definitions that are not in the pinned descriptor which do not have a "Since Revision N" comment or have a "Since Revision N" comment where N is <= to the revision specified here. This indicates that the protobuf files have been updated, but the pinned file descriptor hasn't.
+
+If there are items in the pinned file descriptor with a revision greater than the value indicated here, this will also cause a panic as it may mean that the pinned descriptor for a legacy module has been improperly updated or that there is some other versioning discrepancy. Runtime protobuf definitions will also be checked for compatibility with pinned file descriptors to make sure there are no incompatible changes.
+
+This behavior ensures that: * pinned proto images are up-to-date * protobuf files are carefully annotated with revision comments which are important good client UX * protobuf files are changed in backwards and forwards compatible ways |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+
+<a name="cosmos/app/v1alpha1/module.proto-extensions"></a>
+
+### File-level Extensions
+| Extension | Type | Base | Number | Description |
+| --------- | ---- | ---- | ------ | ----------- |
+| `module` | ModuleDescriptor | .google.protobuf.MessageOptions | 57193479 | module indicates that this proto type is a config object for an app module and optionally provides other descriptive information about the module. It is recommended that a new module config object and go module is versioned for every state machine breaking version of a module. The recommended pattern for doing this is to put module config objects in a separate proto package from the API they expose. Ex: the cosmos.group.v1 API would be exposed by module configs cosmos.group.module.v1, cosmos.group.module.v2, etc. |
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/app/module/v1alpha1/module.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/app/module/v1alpha1/module.proto
+
+
+
+<a name="cosmos.app.module.v1alpha1.Module"></a>
+
+### Module
+Module is the module config object for the cosmos.app v1 app module.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/app/v1alpha1/config.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/app/v1alpha1/config.proto
+
+
+
+<a name="cosmos.app.v1alpha1.Config"></a>
+
+### Config
+Config represents the configuration for a Cosmos SDK ABCI app.
+It is intended that all state machine logic including the version of
+baseapp and tx handlers (and possibly even Tendermint) that an app needs
+can be described in a config object. For compatibility, the framework should
+allow a mixture of declarative and imperative app wiring, however, apps
+that strive for the maximum ease of maintainability should be able to describe
+their state machine with a config object alone.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `modules` | [ModuleConfig](#cosmos.app.v1alpha1.ModuleConfig) | repeated | modules are the module configurations for the app. |
+
+
+
+
+
+
+<a name="cosmos.app.v1alpha1.ModuleConfig"></a>
+
+### ModuleConfig
+ModuleConfig is a module configuration for an app.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [string](#string) |  | name is the unique name of the module within the app. It should be a name that persists between different versions of a module so that modules can be smoothly upgraded to new versions.
+
+For example, for the module cosmos.bank.module.v1.Module, we may chose to simply name the module "bank" in the app. When we upgrade to cosmos.bank.module.v2.Module, the app-specific name "bank" stays the same and the framework knows that the v2 module should receive all the same state that the v1 module had. Note: modules should provide info on which versions they can migrate from in the ModuleDescriptor.can_migration_from field. |
+| `config` | [google.protobuf.Any](#google.protobuf.Any) |  | config is the config object for the module. Module config messages should define a ModuleDescriptor using the cosmos.app.v1alpha1.is_module extension. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/app/v1alpha1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/app/v1alpha1/query.proto
+
+
+
+<a name="cosmos.app.v1alpha1.QueryConfigRequest"></a>
+
+### QueryConfigRequest
+QueryConfigRequest is the Query/Config request type.
+
+
+
+
+
+
+<a name="cosmos.app.v1alpha1.QueryConfigResponse"></a>
+
+### QueryConfigResponse
+QueryConfigRequest is the Query/Config response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `config` | [Config](#cosmos.app.v1alpha1.Config) |  | config is the current app config. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="cosmos.app.v1alpha1.Query"></a>
+
+### Query
+Query is the app module query service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Config` | [QueryConfigRequest](#cosmos.app.v1alpha1.QueryConfigRequest) | [QueryConfigResponse](#cosmos.app.v1alpha1.QueryConfigResponse) | Config returns the current app config. | |
+
+ <!-- end services -->
 
 
 
@@ -751,7 +1373,7 @@ corresponding request message has used PageRequest.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `next_key` | [bytes](#bytes) |  | next_key is the key to be passed to PageRequest.key to query the next page most efficiently |
+| `next_key` | [bytes](#bytes) |  | next_key is the key to be passed to PageRequest.key to query the next page most efficiently. It will be empty if there are no more results. |
 | `total` | [uint64](#uint64) |  | total is total number of results available if PageRequest.count_total was set, its value is undefined otherwise |
 
 
@@ -772,6 +1394,137 @@ corresponding request message has used PageRequest.
 <p align="right"><a href="#top">Top</a></p>
 
 ## cosmos/auth/v1beta1/query.proto
+
+
+
+<a name="cosmos.auth.v1beta1.AddressBytesToStringRequest"></a>
+
+### AddressBytesToStringRequest
+AddressBytesToStringRequest is the request type for AddressString rpc method.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address_bytes` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.AddressBytesToStringResponse"></a>
+
+### AddressBytesToStringResponse
+AddressBytesToStringResponse is the response type for AddressString rpc method.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address_string` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.AddressStringToBytesRequest"></a>
+
+### AddressStringToBytesRequest
+AddressStringToBytesRequest is the request type for AccountBytes rpc method.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address_string` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.AddressStringToBytesResponse"></a>
+
+### AddressStringToBytesResponse
+AddressStringToBytesResponse is the response type for AddressBytes rpc method.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address_bytes` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.Bech32PrefixRequest"></a>
+
+### Bech32PrefixRequest
+Bech32PrefixRequest is the request type for Bech32Prefix rpc method.
+
+Since: cosmos-sdk 0.46
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.Bech32PrefixResponse"></a>
+
+### Bech32PrefixResponse
+Bech32PrefixResponse is the response type for Bech32Prefix rpc method.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `bech32_prefix` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.QueryAccountAddressByIDRequest"></a>
+
+### QueryAccountAddressByIDRequest
+QueryAccountAddressByIDRequest is the request type for AccountAddressByID rpc method
+
+Since: cosmos-sdk 0.46.2
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [int64](#int64) |  | id is the account number of the address to be queried. This field should have been an uint64 (like all account numbers), and will be updated to uint64 in a future version of the auth query. |
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.QueryAccountAddressByIDResponse"></a>
+
+### QueryAccountAddressByIDResponse
+QueryAccountAddressByIDResponse is the response type for AccountAddressByID rpc method
+
+Since: cosmos-sdk 0.46.2
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `account_address` | [string](#string) |  |  |
+
+
+
 
 
 
@@ -840,6 +1593,65 @@ Since: cosmos-sdk 0.43
 
 
 
+<a name="cosmos.auth.v1beta1.QueryModuleAccountByNameRequest"></a>
+
+### QueryModuleAccountByNameRequest
+QueryModuleAccountByNameRequest is the request type for the Query/ModuleAccountByName RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.QueryModuleAccountByNameResponse"></a>
+
+### QueryModuleAccountByNameResponse
+QueryModuleAccountByNameResponse is the response type for the Query/ModuleAccountByName RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `account` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.QueryModuleAccountsRequest"></a>
+
+### QueryModuleAccountsRequest
+QueryModuleAccountsRequest is the request type for the Query/ModuleAccounts RPC method.
+
+Since: cosmos-sdk 0.46
+
+
+
+
+
+
+<a name="cosmos.auth.v1beta1.QueryModuleAccountsResponse"></a>
+
+### QueryModuleAccountsResponse
+QueryModuleAccountsResponse is the response type for the Query/ModuleAccounts RPC method.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `accounts` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+
+
+
+
+
+
 <a name="cosmos.auth.v1beta1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
@@ -882,7 +1694,23 @@ Query defines the gRPC querier service.
 
 Since: cosmos-sdk 0.43 | GET|/cosmos/auth/v1beta1/accounts|
 | `Account` | [QueryAccountRequest](#cosmos.auth.v1beta1.QueryAccountRequest) | [QueryAccountResponse](#cosmos.auth.v1beta1.QueryAccountResponse) | Account returns account details based on address. | GET|/cosmos/auth/v1beta1/accounts/{address}|
+| `AccountAddressByID` | [QueryAccountAddressByIDRequest](#cosmos.auth.v1beta1.QueryAccountAddressByIDRequest) | [QueryAccountAddressByIDResponse](#cosmos.auth.v1beta1.QueryAccountAddressByIDResponse) | AccountAddressByID returns account address based on account number.
+
+Since: cosmos-sdk 0.46.2 | GET|/cosmos/auth/v1beta1/address_by_id/{id}|
 | `Params` | [QueryParamsRequest](#cosmos.auth.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#cosmos.auth.v1beta1.QueryParamsResponse) | Params queries all parameters. | GET|/cosmos/auth/v1beta1/params|
+| `ModuleAccounts` | [QueryModuleAccountsRequest](#cosmos.auth.v1beta1.QueryModuleAccountsRequest) | [QueryModuleAccountsResponse](#cosmos.auth.v1beta1.QueryModuleAccountsResponse) | ModuleAccounts returns all the existing module accounts.
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/auth/v1beta1/module_accounts|
+| `ModuleAccountByName` | [QueryModuleAccountByNameRequest](#cosmos.auth.v1beta1.QueryModuleAccountByNameRequest) | [QueryModuleAccountByNameResponse](#cosmos.auth.v1beta1.QueryModuleAccountByNameResponse) | ModuleAccountByName returns the module account info by module name | GET|/cosmos/auth/v1beta1/module_accounts/{name}|
+| `Bech32Prefix` | [Bech32PrefixRequest](#cosmos.auth.v1beta1.Bech32PrefixRequest) | [Bech32PrefixResponse](#cosmos.auth.v1beta1.Bech32PrefixResponse) | Bech32Prefix queries bech32Prefix
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/auth/v1beta1/bech32|
+| `AddressBytesToString` | [AddressBytesToStringRequest](#cosmos.auth.v1beta1.AddressBytesToStringRequest) | [AddressBytesToStringResponse](#cosmos.auth.v1beta1.AddressBytesToStringResponse) | AddressBytesToString converts Account Address bytes to string
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/auth/v1beta1/bech32/{address_bytes}|
+| `AddressStringToBytes` | [AddressStringToBytesRequest](#cosmos.auth.v1beta1.AddressStringToBytesRequest) | [AddressStringToBytesResponse](#cosmos.auth.v1beta1.AddressStringToBytesResponse) | AddressStringToBytes converts Address string to bytes
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/auth/v1beta1/bech32/{address_string}|
 
  <!-- end services -->
 
@@ -921,7 +1749,7 @@ the provide method with expiration time.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `authorization` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
-| `expiration` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `expiration` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | time when the grant will expire and will be pruned. If null, then the grant doesn't have a time expiration (other conditions in `authorization` may apply to invalidate the grant) |
 
 
 
@@ -934,8 +1762,6 @@ the provide method with expiration time.
 GrantAuthorization extends a grant with both the addresses of the grantee and granter.
 It is used in genesis.proto and query.proto
 
-Since: cosmos-sdk 0.45.2
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -943,6 +1769,21 @@ Since: cosmos-sdk 0.45.2
 | `grantee` | [string](#string) |  |  |
 | `authorization` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 | `expiration` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="cosmos.authz.v1beta1.GrantQueueItem"></a>
+
+### GrantQueueItem
+GrantQueueItem contains the list of TypeURL of a sdk.Msg.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `msg_type_urls` | [string](#string) | repeated | msg_type_urls contains the list of TypeURL of a sdk.Msg. |
 
 
 
@@ -1160,208 +2001,32 @@ Query defines the gRPC querier service.
 | `Grants` | [QueryGrantsRequest](#cosmos.authz.v1beta1.QueryGrantsRequest) | [QueryGrantsResponse](#cosmos.authz.v1beta1.QueryGrantsResponse) | Returns list of `Authorization`, granted to the grantee by the granter. | GET|/cosmos/authz/v1beta1/grants|
 | `GranterGrants` | [QueryGranterGrantsRequest](#cosmos.authz.v1beta1.QueryGranterGrantsRequest) | [QueryGranterGrantsResponse](#cosmos.authz.v1beta1.QueryGranterGrantsResponse) | GranterGrants returns list of `GrantAuthorization`, granted by granter.
 
-Since: cosmos-sdk 0.45.2 | GET|/cosmos/authz/v1beta1/grants/granter/{granter}|
+Since: cosmos-sdk 0.46 | GET|/cosmos/authz/v1beta1/grants/granter/{granter}|
 | `GranteeGrants` | [QueryGranteeGrantsRequest](#cosmos.authz.v1beta1.QueryGranteeGrantsRequest) | [QueryGranteeGrantsResponse](#cosmos.authz.v1beta1.QueryGranteeGrantsResponse) | GranteeGrants returns a list of `GrantAuthorization` by grantee.
 
-Since: cosmos-sdk 0.45.2 | GET|/cosmos/authz/v1beta1/grants/grantee/{grantee}|
+Since: cosmos-sdk 0.46 | GET|/cosmos/authz/v1beta1/grants/grantee/{grantee}|
 
  <!-- end services -->
 
 
 
-<a name="cosmos/base/abci/v1beta1/abci.proto"></a>
+<a name="cosmos/msg/v1/msg.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## cosmos/base/abci/v1beta1/abci.proto
-
-
-
-<a name="cosmos.base.abci.v1beta1.ABCIMessageLog"></a>
-
-### ABCIMessageLog
-ABCIMessageLog defines a structure containing an indexed tx ABCI message log.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `msg_index` | [uint32](#uint32) |  |  |
-| `log` | [string](#string) |  |  |
-| `events` | [StringEvent](#cosmos.base.abci.v1beta1.StringEvent) | repeated | Events contains a slice of Event objects that were emitted during some execution. |
-
-
-
-
-
-
-<a name="cosmos.base.abci.v1beta1.Attribute"></a>
-
-### Attribute
-Attribute defines an attribute wrapper where the key and value are
-strings instead of raw bytes.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `key` | [string](#string) |  |  |
-| `value` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="cosmos.base.abci.v1beta1.GasInfo"></a>
-
-### GasInfo
-GasInfo defines tx execution gas context.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `gas_wanted` | [uint64](#uint64) |  | GasWanted is the maximum units of work we allow this tx to perform. |
-| `gas_used` | [uint64](#uint64) |  | GasUsed is the amount of gas actually consumed. |
-
-
-
-
-
-
-<a name="cosmos.base.abci.v1beta1.MsgData"></a>
-
-### MsgData
-MsgData defines the data returned in a Result object during message
-execution.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `msg_type` | [string](#string) |  |  |
-| `data` | [bytes](#bytes) |  |  |
-
-
-
-
-
-
-<a name="cosmos.base.abci.v1beta1.Result"></a>
-
-### Result
-Result is the union of ResponseFormat and ResponseCheckTx.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `data` | [bytes](#bytes) |  | Data is any data returned from message or handler execution. It MUST be length prefixed in order to separate data from multiple message executions. |
-| `log` | [string](#string) |  | Log contains the log information from message or handler execution. |
-| `events` | [tendermint.abci.Event](#tendermint.abci.Event) | repeated | Events contains a slice of Event objects that were emitted during message or handler execution. |
-
-
-
-
-
-
-<a name="cosmos.base.abci.v1beta1.SearchTxsResult"></a>
-
-### SearchTxsResult
-SearchTxsResult defines a structure for querying txs pageable
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `total_count` | [uint64](#uint64) |  | Count of all txs |
-| `count` | [uint64](#uint64) |  | Count of txs in current page |
-| `page_number` | [uint64](#uint64) |  | Index of current page, start from 1 |
-| `page_total` | [uint64](#uint64) |  | Count of total pages |
-| `limit` | [uint64](#uint64) |  | Max count txs per page |
-| `txs` | [TxResponse](#cosmos.base.abci.v1beta1.TxResponse) | repeated | List of txs in current page |
-
-
-
-
-
-
-<a name="cosmos.base.abci.v1beta1.SimulationResponse"></a>
-
-### SimulationResponse
-SimulationResponse defines the response generated when a transaction is
-successfully simulated.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `gas_info` | [GasInfo](#cosmos.base.abci.v1beta1.GasInfo) |  |  |
-| `result` | [Result](#cosmos.base.abci.v1beta1.Result) |  |  |
-
-
-
-
-
-
-<a name="cosmos.base.abci.v1beta1.StringEvent"></a>
-
-### StringEvent
-StringEvent defines en Event object wrapper where all the attributes
-contain key/value pairs that are strings instead of raw bytes.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `type` | [string](#string) |  |  |
-| `attributes` | [Attribute](#cosmos.base.abci.v1beta1.Attribute) | repeated |  |
-
-
-
-
-
-
-<a name="cosmos.base.abci.v1beta1.TxMsgData"></a>
-
-### TxMsgData
-TxMsgData defines a list of MsgData. A transaction will have a MsgData object
-for each message.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `data` | [MsgData](#cosmos.base.abci.v1beta1.MsgData) | repeated |  |
-
-
-
-
-
-
-<a name="cosmos.base.abci.v1beta1.TxResponse"></a>
-
-### TxResponse
-TxResponse defines a structure containing relevant tx data and metadata. The
-tags are stringified and the log is JSON decoded.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `height` | [int64](#int64) |  | The block height |
-| `txhash` | [string](#string) |  | The transaction hash. |
-| `codespace` | [string](#string) |  | Namespace for the Code |
-| `code` | [uint32](#uint32) |  | Response code. |
-| `data` | [string](#string) |  | Result bytes, if any. |
-| `raw_log` | [string](#string) |  | The output of the application's logger (raw string). May be non-deterministic. |
-| `logs` | [ABCIMessageLog](#cosmos.base.abci.v1beta1.ABCIMessageLog) | repeated | The output of the application's logger (typed). May be non-deterministic. |
-| `info` | [string](#string) |  | Additional information. May be non-deterministic. |
-| `gas_wanted` | [int64](#int64) |  | Amount of gas requested for transaction. |
-| `gas_used` | [int64](#int64) |  | Amount of gas consumed by transaction. |
-| `tx` | [google.protobuf.Any](#google.protobuf.Any) |  | The request transaction bytes. |
-| `timestamp` | [string](#string) |  | Time of the previous block. For heights > 1, it's the weighted median of the timestamps of the valid votes in the block.LastCommit. For height == 1, it's genesis time. |
-| `events` | [tendermint.abci.Event](#tendermint.abci.Event) | repeated | Events defines all the events emitted by processing a transaction. Note, these events include those emitted by processing all the messages and those emitted from the ante handler. Whereas Logs contains the events, with additional metadata, emitted only by processing the messages.
-
-Since: cosmos-sdk 0.42.11, 0.44.5, 0.45 |
-
-
-
+## cosmos/msg/v1/msg.proto
 
 
  <!-- end messages -->
 
  <!-- end enums -->
+
+
+<a name="cosmos/msg/v1/msg.proto-extensions"></a>
+
+### File-level Extensions
+| Extension | Type | Base | Number | Description |
+| --------- | ---- | ---- | ------ | ----------- |
+| `signer` | string | .google.protobuf.MessageOptions | 11110000 | signer must be used in cosmos messages in order to signal to external clients which fields in a given cosmos message must be filled with signer information (address). The field must be the protobuf name of the message field extended with this MessageOption. The field must either be of string kind, or of message kind in case the signer information is contained within a message inside the cosmos message. |
 
  <!-- end HasExtensions -->
 
@@ -1621,7 +2286,7 @@ denomination unit of the basic token.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  | denom represents the string name of the given denom unit (e.g uatom). |
-| `exponent` | [uint32](#uint32) |  | exponent represents power of 10 exponent that one must raise the base_denom to in order to equal the given DenomUnit's denom 1 denom = 1^exponent base_denom (e.g. with a base_denom of uatom, one can create a DenomUnit of 'atom' with exponent = 6, thus: 1 atom = 10^6 uatom). |
+| `exponent` | [uint32](#uint32) |  | exponent represents power of 10 exponent that one must raise the base_denom to in order to equal the given DenomUnit's denom 1 denom = 10^exponent base_denom (e.g. with a base_denom of uatom, one can create a DenomUnit of 'atom' with exponent = 6, thus: 1 atom = 10^6 uatom). |
 | `aliases` | [string](#string) | repeated | aliases is a list of string aliases for the given denom |
 
 
@@ -1664,6 +2329,12 @@ Since: cosmos-sdk 0.43 |
 | `symbol` | [string](#string) |  | symbol is the token symbol usually shown on exchanges (eg: ATOM). This can be the same as the display.
 
 Since: cosmos-sdk 0.43 |
+| `uri` | [string](#string) |  | URI to a document (on or off-chain) that contains additional information. Optional.
+
+Since: cosmos-sdk 0.46 |
+| `uri_hash` | [string](#string) |  | URIHash is a sha256 hash of a document pointed by URI. It's used to verify that the document didn't change. Optional.
+
+Since: cosmos-sdk 0.46 |
 
 
 
@@ -1803,6 +2474,26 @@ GenesisState defines the bank module's genesis state.
 
 
 
+<a name="cosmos.bank.v1beta1.DenomOwner"></a>
+
+### DenomOwner
+DenomOwner defines structure representing an account that owns or holds a
+particular denominated token. It contains the account address and account
+balance of the denominated token.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address defines the address that owns a particular denomination. |
+| `balance` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | balance is the balance of the denominated coin for an account. |
+
+
+
+
+
+
 <a name="cosmos.bank.v1beta1.QueryAllBalancesRequest"></a>
 
 ### QueryAllBalancesRequest
@@ -1898,6 +2589,42 @@ method.
 
 
 
+<a name="cosmos.bank.v1beta1.QueryDenomOwnersRequest"></a>
+
+### QueryDenomOwnersRequest
+QueryDenomOwnersRequest defines the request type for the DenomOwners RPC query,
+which queries for a paginated set of all account holders of a particular
+denomination.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | denom defines the coin denomination to query all account holders for. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.bank.v1beta1.QueryDenomOwnersResponse"></a>
+
+### QueryDenomOwnersResponse
+QueryDenomOwnersResponse defines the RPC response of a DenomOwners RPC query.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom_owners` | [DenomOwner](#cosmos.bank.v1beta1.DenomOwner) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
 <a name="cosmos.bank.v1beta1.QueryDenomsMetadataRequest"></a>
 
 ### QueryDenomsMetadataRequest
@@ -1961,6 +2688,8 @@ QueryParamsResponse defines the response type for querying x/bank parameters.
 QuerySpendableBalancesRequest defines the gRPC request structure for querying
 an account's spendable balances.
 
+Since: cosmos-sdk 0.46
+
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -1977,6 +2706,8 @@ an account's spendable balances.
 ### QuerySpendableBalancesResponse
 QuerySpendableBalancesResponse defines the gRPC response structure for querying
 an account's spendable balances.
+
+Since: cosmos-sdk 0.46
 
 
 | Field | Type | Label | Description |
@@ -2071,12 +2802,17 @@ Query defines the gRPC querier service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Balance` | [QueryBalanceRequest](#cosmos.bank.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#cosmos.bank.v1beta1.QueryBalanceResponse) | Balance queries the balance of a single coin for a single account. | GET|/cosmos/bank/v1beta1/balances/{address}/by_denom|
 | `AllBalances` | [QueryAllBalancesRequest](#cosmos.bank.v1beta1.QueryAllBalancesRequest) | [QueryAllBalancesResponse](#cosmos.bank.v1beta1.QueryAllBalancesResponse) | AllBalances queries the balance of all coins for a single account. | GET|/cosmos/bank/v1beta1/balances/{address}|
-| `SpendableBalances` | [QuerySpendableBalancesRequest](#cosmos.bank.v1beta1.QuerySpendableBalancesRequest) | [QuerySpendableBalancesResponse](#cosmos.bank.v1beta1.QuerySpendableBalancesResponse) | SpendableBalances queries the spenable balance of all coins for a single account. | GET|/cosmos/bank/v1beta1/spendable_balances/{address}|
+| `SpendableBalances` | [QuerySpendableBalancesRequest](#cosmos.bank.v1beta1.QuerySpendableBalancesRequest) | [QuerySpendableBalancesResponse](#cosmos.bank.v1beta1.QuerySpendableBalancesResponse) | SpendableBalances queries the spenable balance of all coins for a single account.
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/bank/v1beta1/spendable_balances/{address}|
 | `TotalSupply` | [QueryTotalSupplyRequest](#cosmos.bank.v1beta1.QueryTotalSupplyRequest) | [QueryTotalSupplyResponse](#cosmos.bank.v1beta1.QueryTotalSupplyResponse) | TotalSupply queries the total supply of all coins. | GET|/cosmos/bank/v1beta1/supply|
-| `SupplyOf` | [QuerySupplyOfRequest](#cosmos.bank.v1beta1.QuerySupplyOfRequest) | [QuerySupplyOfResponse](#cosmos.bank.v1beta1.QuerySupplyOfResponse) | SupplyOf queries the supply of a single coin. | GET|/cosmos/bank/v1beta1/supply/{denom}|
+| `SupplyOf` | [QuerySupplyOfRequest](#cosmos.bank.v1beta1.QuerySupplyOfRequest) | [QuerySupplyOfResponse](#cosmos.bank.v1beta1.QuerySupplyOfResponse) | SupplyOf queries the supply of a single coin. | GET|/cosmos/bank/v1beta1/supply/by_denom|
 | `Params` | [QueryParamsRequest](#cosmos.bank.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#cosmos.bank.v1beta1.QueryParamsResponse) | Params queries the parameters of x/bank module. | GET|/cosmos/bank/v1beta1/params|
 | `DenomMetadata` | [QueryDenomMetadataRequest](#cosmos.bank.v1beta1.QueryDenomMetadataRequest) | [QueryDenomMetadataResponse](#cosmos.bank.v1beta1.QueryDenomMetadataResponse) | DenomsMetadata queries the client metadata of a given coin denomination. | GET|/cosmos/bank/v1beta1/denoms_metadata/{denom}|
 | `DenomsMetadata` | [QueryDenomsMetadataRequest](#cosmos.bank.v1beta1.QueryDenomsMetadataRequest) | [QueryDenomsMetadataResponse](#cosmos.bank.v1beta1.QueryDenomsMetadataResponse) | DenomsMetadata queries the client metadata for all registered coin denominations. | GET|/cosmos/bank/v1beta1/denoms_metadata|
+| `DenomOwners` | [QueryDenomOwnersRequest](#cosmos.bank.v1beta1.QueryDenomOwnersRequest) | [QueryDenomOwnersResponse](#cosmos.bank.v1beta1.QueryDenomOwnersResponse) | DenomOwners queries for all account addresses that own a particular token denomination.
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/bank/v1beta1/denom_owners/{denom}|
 
  <!-- end services -->
 
@@ -2162,6 +2898,1732 @@ Msg defines the bank Msg service.
 
 
 
+<a name="tendermint/crypto/proof.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/crypto/proof.proto
+
+
+
+<a name="tendermint.crypto.DominoOp"></a>
+
+### DominoOp
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key` | [string](#string) |  |  |
+| `input` | [string](#string) |  |  |
+| `output` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.crypto.Proof"></a>
+
+### Proof
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `total` | [int64](#int64) |  |  |
+| `index` | [int64](#int64) |  |  |
+| `leaf_hash` | [bytes](#bytes) |  |  |
+| `aunts` | [bytes](#bytes) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.crypto.ProofOp"></a>
+
+### ProofOp
+ProofOp defines an operation used for calculating Merkle root
+The data could be arbitrary format, providing nessecary data
+for example neighbouring node hash
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [string](#string) |  |  |
+| `key` | [bytes](#bytes) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="tendermint.crypto.ProofOps"></a>
+
+### ProofOps
+ProofOps is Merkle proof defined by the list of ProofOps
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `ops` | [ProofOp](#tendermint.crypto.ProofOp) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.crypto.ValueOp"></a>
+
+### ValueOp
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key` | [bytes](#bytes) |  | Encoded in ProofOp.Key. |
+| `proof` | [Proof](#tendermint.crypto.Proof) |  | To encode in ProofOp.Data |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="tendermint/version/types.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/version/types.proto
+
+
+
+<a name="tendermint.version.App"></a>
+
+### App
+App includes the protocol and software version for the application.
+This information is included in ResponseInfo. The App.Protocol can be
+updated in ResponseEndBlock.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `protocol` | [uint64](#uint64) |  |  |
+| `software` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.version.Consensus"></a>
+
+### Consensus
+Consensus captures the consensus rules for processing a block in the blockchain,
+including all blockchain data structures and the rules of the application's
+state transition machine.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `block` | [uint64](#uint64) |  |  |
+| `app` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="tendermint/crypto/keys.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/crypto/keys.proto
+
+
+
+<a name="tendermint.crypto.PublicKey"></a>
+
+### PublicKey
+PublicKey defines the keys available for use with Tendermint Validators
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `ed25519` | [bytes](#bytes) |  |  |
+| `secp256k1` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="tendermint/types/validator.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/types/validator.proto
+
+
+
+<a name="tendermint.types.SimpleValidator"></a>
+
+### SimpleValidator
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_key` | [tendermint.crypto.PublicKey](#tendermint.crypto.PublicKey) |  |  |
+| `voting_power` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.Validator"></a>
+
+### Validator
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [bytes](#bytes) |  |  |
+| `pub_key` | [tendermint.crypto.PublicKey](#tendermint.crypto.PublicKey) |  |  |
+| `voting_power` | [int64](#int64) |  |  |
+| `proposer_priority` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.ValidatorSet"></a>
+
+### ValidatorSet
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `validators` | [Validator](#tendermint.types.Validator) | repeated |  |
+| `proposer` | [Validator](#tendermint.types.Validator) |  |  |
+| `total_voting_power` | [int64](#int64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="tendermint/types/types.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/types/types.proto
+
+
+
+<a name="tendermint.types.BlockID"></a>
+
+### BlockID
+BlockID
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [bytes](#bytes) |  |  |
+| `part_set_header` | [PartSetHeader](#tendermint.types.PartSetHeader) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.BlockMeta"></a>
+
+### BlockMeta
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `block_id` | [BlockID](#tendermint.types.BlockID) |  |  |
+| `block_size` | [int64](#int64) |  |  |
+| `header` | [Header](#tendermint.types.Header) |  |  |
+| `num_txs` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.Commit"></a>
+
+### Commit
+Commit contains the evidence that a block was committed by a set of validators.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [int64](#int64) |  |  |
+| `round` | [int32](#int32) |  |  |
+| `block_id` | [BlockID](#tendermint.types.BlockID) |  |  |
+| `signatures` | [CommitSig](#tendermint.types.CommitSig) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.types.CommitSig"></a>
+
+### CommitSig
+CommitSig is a part of the Vote included in a Commit.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `block_id_flag` | [BlockIDFlag](#tendermint.types.BlockIDFlag) |  |  |
+| `validator_address` | [bytes](#bytes) |  |  |
+| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `signature` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.Data"></a>
+
+### Data
+Data contains the set of transactions included in the block
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `txs` | [bytes](#bytes) | repeated | Txs that will be applied by state @ block.Height+1. NOTE: not all txs here are valid. We're just agreeing on the order first. This means that block.AppHash does not include these txs. |
+
+
+
+
+
+
+<a name="tendermint.types.Header"></a>
+
+### Header
+Header defines the structure of a Tendermint block header.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `version` | [tendermint.version.Consensus](#tendermint.version.Consensus) |  | basic block info |
+| `chain_id` | [string](#string) |  |  |
+| `height` | [int64](#int64) |  |  |
+| `time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `last_block_id` | [BlockID](#tendermint.types.BlockID) |  | prev block info |
+| `last_commit_hash` | [bytes](#bytes) |  | hashes of block data
+
+commit from validators from the last block |
+| `data_hash` | [bytes](#bytes) |  | transactions |
+| `validators_hash` | [bytes](#bytes) |  | hashes from the app output from the prev block
+
+validators for the current block |
+| `next_validators_hash` | [bytes](#bytes) |  | validators for the next block |
+| `consensus_hash` | [bytes](#bytes) |  | consensus params for current block |
+| `app_hash` | [bytes](#bytes) |  | state after txs from the previous block |
+| `last_results_hash` | [bytes](#bytes) |  | root hash of all results from the txs from the previous block |
+| `evidence_hash` | [bytes](#bytes) |  | consensus info
+
+evidence included in the block |
+| `proposer_address` | [bytes](#bytes) |  | original proposer of the block |
+
+
+
+
+
+
+<a name="tendermint.types.LightBlock"></a>
+
+### LightBlock
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `signed_header` | [SignedHeader](#tendermint.types.SignedHeader) |  |  |
+| `validator_set` | [ValidatorSet](#tendermint.types.ValidatorSet) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.Part"></a>
+
+### Part
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `index` | [uint32](#uint32) |  |  |
+| `bytes` | [bytes](#bytes) |  |  |
+| `proof` | [tendermint.crypto.Proof](#tendermint.crypto.Proof) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.PartSetHeader"></a>
+
+### PartSetHeader
+PartsetHeader
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `total` | [uint32](#uint32) |  |  |
+| `hash` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.Proposal"></a>
+
+### Proposal
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [SignedMsgType](#tendermint.types.SignedMsgType) |  |  |
+| `height` | [int64](#int64) |  |  |
+| `round` | [int32](#int32) |  |  |
+| `pol_round` | [int32](#int32) |  |  |
+| `block_id` | [BlockID](#tendermint.types.BlockID) |  |  |
+| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `signature` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.SignedHeader"></a>
+
+### SignedHeader
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `header` | [Header](#tendermint.types.Header) |  |  |
+| `commit` | [Commit](#tendermint.types.Commit) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.TxProof"></a>
+
+### TxProof
+TxProof represents a Merkle proof of the presence of a transaction in the Merkle tree.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `root_hash` | [bytes](#bytes) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `proof` | [tendermint.crypto.Proof](#tendermint.crypto.Proof) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.Vote"></a>
+
+### Vote
+Vote represents a prevote, precommit, or commit vote from validators for
+consensus.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [SignedMsgType](#tendermint.types.SignedMsgType) |  |  |
+| `height` | [int64](#int64) |  |  |
+| `round` | [int32](#int32) |  |  |
+| `block_id` | [BlockID](#tendermint.types.BlockID) |  | zero if vote is nil. |
+| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `validator_address` | [bytes](#bytes) |  |  |
+| `validator_index` | [int32](#int32) |  |  |
+| `signature` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="tendermint.types.BlockIDFlag"></a>
+
+### BlockIDFlag
+BlockIdFlag indicates which BlcokID the signature is for
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| BLOCK_ID_FLAG_UNKNOWN | 0 |  |
+| BLOCK_ID_FLAG_ABSENT | 1 |  |
+| BLOCK_ID_FLAG_COMMIT | 2 |  |
+| BLOCK_ID_FLAG_NIL | 3 |  |
+
+
+
+<a name="tendermint.types.SignedMsgType"></a>
+
+### SignedMsgType
+SignedMsgType is a type of signed message in the consensus.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| SIGNED_MSG_TYPE_UNKNOWN | 0 |  |
+| SIGNED_MSG_TYPE_PREVOTE | 1 | Votes |
+| SIGNED_MSG_TYPE_PRECOMMIT | 2 |  |
+| SIGNED_MSG_TYPE_PROPOSAL | 32 | Proposals |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="tendermint/types/params.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/types/params.proto
+
+
+
+<a name="tendermint.types.BlockParams"></a>
+
+### BlockParams
+BlockParams contains limits on the block size.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `max_bytes` | [int64](#int64) |  | Max block size, in bytes. Note: must be greater than 0 |
+| `max_gas` | [int64](#int64) |  | Max gas per block. Note: must be greater or equal to -1 |
+| `time_iota_ms` | [int64](#int64) |  | Minimum time increment between consecutive blocks (in milliseconds) If the block header timestamp is ahead of the system clock, decrease this value.
+
+Not exposed to the application. |
+
+
+
+
+
+
+<a name="tendermint.types.ConsensusParams"></a>
+
+### ConsensusParams
+ConsensusParams contains consensus critical parameters that determine the
+validity of blocks.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `block` | [BlockParams](#tendermint.types.BlockParams) |  |  |
+| `evidence` | [EvidenceParams](#tendermint.types.EvidenceParams) |  |  |
+| `validator` | [ValidatorParams](#tendermint.types.ValidatorParams) |  |  |
+| `version` | [VersionParams](#tendermint.types.VersionParams) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.EvidenceParams"></a>
+
+### EvidenceParams
+EvidenceParams determine how we handle evidence of malfeasance.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `max_age_num_blocks` | [int64](#int64) |  | Max age of evidence, in blocks.
+
+The basic formula for calculating this is: MaxAgeDuration / {average block time}. |
+| `max_age_duration` | [google.protobuf.Duration](#google.protobuf.Duration) |  | Max age of evidence, in time.
+
+It should correspond with an app's "unbonding period" or other similar mechanism for handling [Nothing-At-Stake attacks](https://github.com/ethereum/wiki/wiki/Proof-of-Stake-FAQ#what-is-the-nothing-at-stake-problem-and-how-can-it-be-fixed). |
+| `max_bytes` | [int64](#int64) |  | This sets the maximum size of total evidence in bytes that can be committed in a single block. and should fall comfortably under the max block bytes. Default is 1048576 or 1MB |
+
+
+
+
+
+
+<a name="tendermint.types.HashedParams"></a>
+
+### HashedParams
+HashedParams is a subset of ConsensusParams.
+
+It is hashed into the Header.ConsensusHash.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `block_max_bytes` | [int64](#int64) |  |  |
+| `block_max_gas` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.ValidatorParams"></a>
+
+### ValidatorParams
+ValidatorParams restrict the public key types validators can use.
+NOTE: uses ABCI pubkey naming, not Amino names.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_key_types` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.types.VersionParams"></a>
+
+### VersionParams
+VersionParams contains the ABCI application version.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `app_version` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="tendermint/abci/types.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/abci/types.proto
+
+
+
+<a name="tendermint.abci.BlockParams"></a>
+
+### BlockParams
+BlockParams contains limits on the block size.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `max_bytes` | [int64](#int64) |  | Note: must be greater than 0 |
+| `max_gas` | [int64](#int64) |  | Note: must be greater or equal to -1 |
+
+
+
+
+
+
+<a name="tendermint.abci.ConsensusParams"></a>
+
+### ConsensusParams
+ConsensusParams contains all consensus-relevant parameters
+that can be adjusted by the abci app
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `block` | [BlockParams](#tendermint.abci.BlockParams) |  |  |
+| `evidence` | [tendermint.types.EvidenceParams](#tendermint.types.EvidenceParams) |  |  |
+| `validator` | [tendermint.types.ValidatorParams](#tendermint.types.ValidatorParams) |  |  |
+| `version` | [tendermint.types.VersionParams](#tendermint.types.VersionParams) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.Event"></a>
+
+### Event
+Event allows application developers to attach additional information to
+ResponseBeginBlock, ResponseEndBlock, ResponseCheckTx and ResponseDeliverTx.
+Later, transactions may be queried using these events.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [string](#string) |  |  |
+| `attributes` | [EventAttribute](#tendermint.abci.EventAttribute) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.abci.EventAttribute"></a>
+
+### EventAttribute
+EventAttribute is a single key-value pair, associated with an event.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key` | [bytes](#bytes) |  |  |
+| `value` | [bytes](#bytes) |  |  |
+| `index` | [bool](#bool) |  | nondeterministic |
+
+
+
+
+
+
+<a name="tendermint.abci.Evidence"></a>
+
+### Evidence
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [EvidenceType](#tendermint.abci.EvidenceType) |  |  |
+| `validator` | [Validator](#tendermint.abci.Validator) |  | The offending validator |
+| `height` | [int64](#int64) |  | The height when the offense occurred |
+| `time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | The corresponding time where the offense occurred |
+| `total_voting_power` | [int64](#int64) |  | Total voting power of the validator set in case the ABCI application does not store historical validators. https://github.com/tendermint/tendermint/issues/4581 |
+
+
+
+
+
+
+<a name="tendermint.abci.LastCommitInfo"></a>
+
+### LastCommitInfo
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `round` | [int32](#int32) |  |  |
+| `votes` | [VoteInfo](#tendermint.abci.VoteInfo) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.abci.Request"></a>
+
+### Request
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `echo` | [RequestEcho](#tendermint.abci.RequestEcho) |  |  |
+| `flush` | [RequestFlush](#tendermint.abci.RequestFlush) |  |  |
+| `info` | [RequestInfo](#tendermint.abci.RequestInfo) |  |  |
+| `set_option` | [RequestSetOption](#tendermint.abci.RequestSetOption) |  |  |
+| `init_chain` | [RequestInitChain](#tendermint.abci.RequestInitChain) |  |  |
+| `query` | [RequestQuery](#tendermint.abci.RequestQuery) |  |  |
+| `begin_block` | [RequestBeginBlock](#tendermint.abci.RequestBeginBlock) |  |  |
+| `check_tx` | [RequestCheckTx](#tendermint.abci.RequestCheckTx) |  |  |
+| `deliver_tx` | [RequestDeliverTx](#tendermint.abci.RequestDeliverTx) |  |  |
+| `end_block` | [RequestEndBlock](#tendermint.abci.RequestEndBlock) |  |  |
+| `commit` | [RequestCommit](#tendermint.abci.RequestCommit) |  |  |
+| `list_snapshots` | [RequestListSnapshots](#tendermint.abci.RequestListSnapshots) |  |  |
+| `offer_snapshot` | [RequestOfferSnapshot](#tendermint.abci.RequestOfferSnapshot) |  |  |
+| `load_snapshot_chunk` | [RequestLoadSnapshotChunk](#tendermint.abci.RequestLoadSnapshotChunk) |  |  |
+| `apply_snapshot_chunk` | [RequestApplySnapshotChunk](#tendermint.abci.RequestApplySnapshotChunk) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestApplySnapshotChunk"></a>
+
+### RequestApplySnapshotChunk
+Applies a snapshot chunk
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `index` | [uint32](#uint32) |  |  |
+| `chunk` | [bytes](#bytes) |  |  |
+| `sender` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestBeginBlock"></a>
+
+### RequestBeginBlock
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `hash` | [bytes](#bytes) |  |  |
+| `header` | [tendermint.types.Header](#tendermint.types.Header) |  |  |
+| `last_commit_info` | [LastCommitInfo](#tendermint.abci.LastCommitInfo) |  |  |
+| `byzantine_validators` | [Evidence](#tendermint.abci.Evidence) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestCheckTx"></a>
+
+### RequestCheckTx
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `tx` | [bytes](#bytes) |  |  |
+| `type` | [CheckTxType](#tendermint.abci.CheckTxType) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestCommit"></a>
+
+### RequestCommit
+
+
+
+
+
+
+
+<a name="tendermint.abci.RequestDeliverTx"></a>
+
+### RequestDeliverTx
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `tx` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestEcho"></a>
+
+### RequestEcho
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `message` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestEndBlock"></a>
+
+### RequestEndBlock
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestFlush"></a>
+
+### RequestFlush
+
+
+
+
+
+
+
+<a name="tendermint.abci.RequestInfo"></a>
+
+### RequestInfo
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `version` | [string](#string) |  |  |
+| `block_version` | [uint64](#uint64) |  |  |
+| `p2p_version` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestInitChain"></a>
+
+### RequestInitChain
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `chain_id` | [string](#string) |  |  |
+| `consensus_params` | [ConsensusParams](#tendermint.abci.ConsensusParams) |  |  |
+| `validators` | [ValidatorUpdate](#tendermint.abci.ValidatorUpdate) | repeated |  |
+| `app_state_bytes` | [bytes](#bytes) |  |  |
+| `initial_height` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestListSnapshots"></a>
+
+### RequestListSnapshots
+lists available snapshots
+
+
+
+
+
+
+<a name="tendermint.abci.RequestLoadSnapshotChunk"></a>
+
+### RequestLoadSnapshotChunk
+loads a snapshot chunk
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [uint64](#uint64) |  |  |
+| `format` | [uint32](#uint32) |  |  |
+| `chunk` | [uint32](#uint32) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestOfferSnapshot"></a>
+
+### RequestOfferSnapshot
+offers a snapshot to the application
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `snapshot` | [Snapshot](#tendermint.abci.Snapshot) |  | snapshot offered by peers |
+| `app_hash` | [bytes](#bytes) |  | light client-verified app hash for snapshot height |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestQuery"></a>
+
+### RequestQuery
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [bytes](#bytes) |  |  |
+| `path` | [string](#string) |  |  |
+| `height` | [int64](#int64) |  |  |
+| `prove` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.RequestSetOption"></a>
+
+### RequestSetOption
+nondeterministic
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key` | [string](#string) |  |  |
+| `value` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.Response"></a>
+
+### Response
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `exception` | [ResponseException](#tendermint.abci.ResponseException) |  |  |
+| `echo` | [ResponseEcho](#tendermint.abci.ResponseEcho) |  |  |
+| `flush` | [ResponseFlush](#tendermint.abci.ResponseFlush) |  |  |
+| `info` | [ResponseInfo](#tendermint.abci.ResponseInfo) |  |  |
+| `set_option` | [ResponseSetOption](#tendermint.abci.ResponseSetOption) |  |  |
+| `init_chain` | [ResponseInitChain](#tendermint.abci.ResponseInitChain) |  |  |
+| `query` | [ResponseQuery](#tendermint.abci.ResponseQuery) |  |  |
+| `begin_block` | [ResponseBeginBlock](#tendermint.abci.ResponseBeginBlock) |  |  |
+| `check_tx` | [ResponseCheckTx](#tendermint.abci.ResponseCheckTx) |  |  |
+| `deliver_tx` | [ResponseDeliverTx](#tendermint.abci.ResponseDeliverTx) |  |  |
+| `end_block` | [ResponseEndBlock](#tendermint.abci.ResponseEndBlock) |  |  |
+| `commit` | [ResponseCommit](#tendermint.abci.ResponseCommit) |  |  |
+| `list_snapshots` | [ResponseListSnapshots](#tendermint.abci.ResponseListSnapshots) |  |  |
+| `offer_snapshot` | [ResponseOfferSnapshot](#tendermint.abci.ResponseOfferSnapshot) |  |  |
+| `load_snapshot_chunk` | [ResponseLoadSnapshotChunk](#tendermint.abci.ResponseLoadSnapshotChunk) |  |  |
+| `apply_snapshot_chunk` | [ResponseApplySnapshotChunk](#tendermint.abci.ResponseApplySnapshotChunk) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseApplySnapshotChunk"></a>
+
+### ResponseApplySnapshotChunk
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `result` | [ResponseApplySnapshotChunk.Result](#tendermint.abci.ResponseApplySnapshotChunk.Result) |  |  |
+| `refetch_chunks` | [uint32](#uint32) | repeated | Chunks to refetch and reapply |
+| `reject_senders` | [string](#string) | repeated | Chunk senders to reject and ban |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseBeginBlock"></a>
+
+### ResponseBeginBlock
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `events` | [Event](#tendermint.abci.Event) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseCheckTx"></a>
+
+### ResponseCheckTx
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code` | [uint32](#uint32) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `log` | [string](#string) |  | nondeterministic |
+| `info` | [string](#string) |  | nondeterministic |
+| `gas_wanted` | [int64](#int64) |  |  |
+| `gas_used` | [int64](#int64) |  |  |
+| `events` | [Event](#tendermint.abci.Event) | repeated |  |
+| `codespace` | [string](#string) |  |  |
+| `sender` | [string](#string) |  |  |
+| `priority` | [int64](#int64) |  |  |
+| `mempool_error` | [string](#string) |  | mempool_error is set by Tendermint. ABCI applictions creating a ResponseCheckTX should not set mempool_error. |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseCommit"></a>
+
+### ResponseCommit
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [bytes](#bytes) |  | reserve 1 |
+| `retain_height` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseDeliverTx"></a>
+
+### ResponseDeliverTx
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code` | [uint32](#uint32) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+| `log` | [string](#string) |  | nondeterministic |
+| `info` | [string](#string) |  | nondeterministic |
+| `gas_wanted` | [int64](#int64) |  |  |
+| `gas_used` | [int64](#int64) |  |  |
+| `events` | [Event](#tendermint.abci.Event) | repeated | nondeterministic |
+| `codespace` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseEcho"></a>
+
+### ResponseEcho
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `message` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseEndBlock"></a>
+
+### ResponseEndBlock
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `validator_updates` | [ValidatorUpdate](#tendermint.abci.ValidatorUpdate) | repeated |  |
+| `consensus_param_updates` | [ConsensusParams](#tendermint.abci.ConsensusParams) |  |  |
+| `events` | [Event](#tendermint.abci.Event) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseException"></a>
+
+### ResponseException
+nondeterministic
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `error` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseFlush"></a>
+
+### ResponseFlush
+
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseInfo"></a>
+
+### ResponseInfo
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [string](#string) |  |  |
+| `version` | [string](#string) |  |  |
+| `app_version` | [uint64](#uint64) |  |  |
+| `last_block_height` | [int64](#int64) |  |  |
+| `last_block_app_hash` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseInitChain"></a>
+
+### ResponseInitChain
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `consensus_params` | [ConsensusParams](#tendermint.abci.ConsensusParams) |  |  |
+| `validators` | [ValidatorUpdate](#tendermint.abci.ValidatorUpdate) | repeated |  |
+| `app_hash` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseListSnapshots"></a>
+
+### ResponseListSnapshots
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `snapshots` | [Snapshot](#tendermint.abci.Snapshot) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseLoadSnapshotChunk"></a>
+
+### ResponseLoadSnapshotChunk
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chunk` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseOfferSnapshot"></a>
+
+### ResponseOfferSnapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `result` | [ResponseOfferSnapshot.Result](#tendermint.abci.ResponseOfferSnapshot.Result) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseQuery"></a>
+
+### ResponseQuery
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code` | [uint32](#uint32) |  |  |
+| `log` | [string](#string) |  | bytes data = 2; // use "value" instead.
+
+nondeterministic |
+| `info` | [string](#string) |  | nondeterministic |
+| `index` | [int64](#int64) |  |  |
+| `key` | [bytes](#bytes) |  |  |
+| `value` | [bytes](#bytes) |  |  |
+| `proof_ops` | [tendermint.crypto.ProofOps](#tendermint.crypto.ProofOps) |  |  |
+| `height` | [int64](#int64) |  |  |
+| `codespace` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.ResponseSetOption"></a>
+
+### ResponseSetOption
+nondeterministic
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code` | [uint32](#uint32) |  |  |
+| `log` | [string](#string) |  | bytes data = 2; |
+| `info` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.Snapshot"></a>
+
+### Snapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [uint64](#uint64) |  | The height at which the snapshot was taken |
+| `format` | [uint32](#uint32) |  | The application-specific snapshot format |
+| `chunks` | [uint32](#uint32) |  | Number of chunks in the snapshot |
+| `hash` | [bytes](#bytes) |  | Arbitrary snapshot hash, equal only if identical |
+| `metadata` | [bytes](#bytes) |  | Arbitrary application metadata |
+
+
+
+
+
+
+<a name="tendermint.abci.TxResult"></a>
+
+### TxResult
+TxResult contains results of executing the transaction.
+
+One usage is indexing transaction results.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [int64](#int64) |  |  |
+| `index` | [uint32](#uint32) |  |  |
+| `tx` | [bytes](#bytes) |  |  |
+| `result` | [ResponseDeliverTx](#tendermint.abci.ResponseDeliverTx) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.Validator"></a>
+
+### Validator
+Validator
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [bytes](#bytes) |  | The first 20 bytes of SHA256(public key) |
+| `power` | [int64](#int64) |  | PubKey pub_key = 2 [(gogoproto.nullable)=false];
+
+The voting power |
+
+
+
+
+
+
+<a name="tendermint.abci.ValidatorUpdate"></a>
+
+### ValidatorUpdate
+ValidatorUpdate
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pub_key` | [tendermint.crypto.PublicKey](#tendermint.crypto.PublicKey) |  |  |
+| `power` | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="tendermint.abci.VoteInfo"></a>
+
+### VoteInfo
+VoteInfo
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `validator` | [Validator](#tendermint.abci.Validator) |  |  |
+| `signed_last_block` | [bool](#bool) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="tendermint.abci.CheckTxType"></a>
+
+### CheckTxType
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| NEW | 0 |  |
+| RECHECK | 1 |  |
+
+
+
+<a name="tendermint.abci.EvidenceType"></a>
+
+### EvidenceType
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| UNKNOWN | 0 |  |
+| DUPLICATE_VOTE | 1 |  |
+| LIGHT_CLIENT_ATTACK | 2 |  |
+
+
+
+<a name="tendermint.abci.ResponseApplySnapshotChunk.Result"></a>
+
+### ResponseApplySnapshotChunk.Result
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| UNKNOWN | 0 | Unknown result, abort all snapshot restoration |
+| ACCEPT | 1 | Chunk successfully accepted |
+| ABORT | 2 | Abort all snapshot restoration |
+| RETRY | 3 | Retry chunk (combine with refetch and reject) |
+| RETRY_SNAPSHOT | 4 | Retry snapshot (combine with refetch and reject) |
+| REJECT_SNAPSHOT | 5 | Reject this snapshot, try others |
+
+
+
+<a name="tendermint.abci.ResponseOfferSnapshot.Result"></a>
+
+### ResponseOfferSnapshot.Result
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| UNKNOWN | 0 | Unknown result, abort all snapshot restoration |
+| ACCEPT | 1 | Snapshot accepted, apply chunks |
+| ABORT | 2 | Abort all snapshot restoration |
+| REJECT | 3 | Reject this specific snapshot, try others |
+| REJECT_FORMAT | 4 | Reject all snapshots of this format, try others |
+| REJECT_SENDER | 5 | Reject all snapshots from the sender(s), try others |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="tendermint.abci.ABCIApplication"></a>
+
+### ABCIApplication
+
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Echo` | [RequestEcho](#tendermint.abci.RequestEcho) | [ResponseEcho](#tendermint.abci.ResponseEcho) |  | |
+| `Flush` | [RequestFlush](#tendermint.abci.RequestFlush) | [ResponseFlush](#tendermint.abci.ResponseFlush) |  | |
+| `Info` | [RequestInfo](#tendermint.abci.RequestInfo) | [ResponseInfo](#tendermint.abci.ResponseInfo) |  | |
+| `SetOption` | [RequestSetOption](#tendermint.abci.RequestSetOption) | [ResponseSetOption](#tendermint.abci.ResponseSetOption) |  | |
+| `DeliverTx` | [RequestDeliverTx](#tendermint.abci.RequestDeliverTx) | [ResponseDeliverTx](#tendermint.abci.ResponseDeliverTx) |  | |
+| `CheckTx` | [RequestCheckTx](#tendermint.abci.RequestCheckTx) | [ResponseCheckTx](#tendermint.abci.ResponseCheckTx) |  | |
+| `Query` | [RequestQuery](#tendermint.abci.RequestQuery) | [ResponseQuery](#tendermint.abci.ResponseQuery) |  | |
+| `Commit` | [RequestCommit](#tendermint.abci.RequestCommit) | [ResponseCommit](#tendermint.abci.ResponseCommit) |  | |
+| `InitChain` | [RequestInitChain](#tendermint.abci.RequestInitChain) | [ResponseInitChain](#tendermint.abci.ResponseInitChain) |  | |
+| `BeginBlock` | [RequestBeginBlock](#tendermint.abci.RequestBeginBlock) | [ResponseBeginBlock](#tendermint.abci.ResponseBeginBlock) |  | |
+| `EndBlock` | [RequestEndBlock](#tendermint.abci.RequestEndBlock) | [ResponseEndBlock](#tendermint.abci.ResponseEndBlock) |  | |
+| `ListSnapshots` | [RequestListSnapshots](#tendermint.abci.RequestListSnapshots) | [ResponseListSnapshots](#tendermint.abci.ResponseListSnapshots) |  | |
+| `OfferSnapshot` | [RequestOfferSnapshot](#tendermint.abci.RequestOfferSnapshot) | [ResponseOfferSnapshot](#tendermint.abci.ResponseOfferSnapshot) |  | |
+| `LoadSnapshotChunk` | [RequestLoadSnapshotChunk](#tendermint.abci.RequestLoadSnapshotChunk) | [ResponseLoadSnapshotChunk](#tendermint.abci.ResponseLoadSnapshotChunk) |  | |
+| `ApplySnapshotChunk` | [RequestApplySnapshotChunk](#tendermint.abci.RequestApplySnapshotChunk) | [ResponseApplySnapshotChunk](#tendermint.abci.ResponseApplySnapshotChunk) |  | |
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/base/abci/v1beta1/abci.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/base/abci/v1beta1/abci.proto
+
+
+
+<a name="cosmos.base.abci.v1beta1.ABCIMessageLog"></a>
+
+### ABCIMessageLog
+ABCIMessageLog defines a structure containing an indexed tx ABCI message log.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `msg_index` | [uint32](#uint32) |  |  |
+| `log` | [string](#string) |  |  |
+| `events` | [StringEvent](#cosmos.base.abci.v1beta1.StringEvent) | repeated | Events contains a slice of Event objects that were emitted during some execution. |
+
+
+
+
+
+
+<a name="cosmos.base.abci.v1beta1.Attribute"></a>
+
+### Attribute
+Attribute defines an attribute wrapper where the key and value are
+strings instead of raw bytes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key` | [string](#string) |  |  |
+| `value` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.base.abci.v1beta1.GasInfo"></a>
+
+### GasInfo
+GasInfo defines tx execution gas context.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `gas_wanted` | [uint64](#uint64) |  | GasWanted is the maximum units of work we allow this tx to perform. |
+| `gas_used` | [uint64](#uint64) |  | GasUsed is the amount of gas actually consumed. |
+
+
+
+
+
+
+<a name="cosmos.base.abci.v1beta1.MsgData"></a>
+
+### MsgData
+MsgData defines the data returned in a Result object during message
+execution.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `msg_type` | [string](#string) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="cosmos.base.abci.v1beta1.Result"></a>
+
+### Result
+Result is the union of ResponseFormat and ResponseCheckTx.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [bytes](#bytes) |  | **Deprecated.** Data is any data returned from message or handler execution. It MUST be length prefixed in order to separate data from multiple message executions. Deprecated. This field is still populated, but prefer msg_response instead because it also contains the Msg response typeURL. |
+| `log` | [string](#string) |  | Log contains the log information from message or handler execution. |
+| `events` | [tendermint.abci.Event](#tendermint.abci.Event) | repeated | Events contains a slice of Event objects that were emitted during message or handler execution. |
+| `msg_responses` | [google.protobuf.Any](#google.protobuf.Any) | repeated | msg_responses contains the Msg handler responses type packed in Anys.
+
+Since: cosmos-sdk 0.46 |
+
+
+
+
+
+
+<a name="cosmos.base.abci.v1beta1.SearchTxsResult"></a>
+
+### SearchTxsResult
+SearchTxsResult defines a structure for querying txs pageable
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `total_count` | [uint64](#uint64) |  | Count of all txs |
+| `count` | [uint64](#uint64) |  | Count of txs in current page |
+| `page_number` | [uint64](#uint64) |  | Index of current page, start from 1 |
+| `page_total` | [uint64](#uint64) |  | Count of total pages |
+| `limit` | [uint64](#uint64) |  | Max count txs per page |
+| `txs` | [TxResponse](#cosmos.base.abci.v1beta1.TxResponse) | repeated | List of txs in current page |
+
+
+
+
+
+
+<a name="cosmos.base.abci.v1beta1.SimulationResponse"></a>
+
+### SimulationResponse
+SimulationResponse defines the response generated when a transaction is
+successfully simulated.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `gas_info` | [GasInfo](#cosmos.base.abci.v1beta1.GasInfo) |  |  |
+| `result` | [Result](#cosmos.base.abci.v1beta1.Result) |  |  |
+
+
+
+
+
+
+<a name="cosmos.base.abci.v1beta1.StringEvent"></a>
+
+### StringEvent
+StringEvent defines en Event object wrapper where all the attributes
+contain key/value pairs that are strings instead of raw bytes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [string](#string) |  |  |
+| `attributes` | [Attribute](#cosmos.base.abci.v1beta1.Attribute) | repeated |  |
+
+
+
+
+
+
+<a name="cosmos.base.abci.v1beta1.TxMsgData"></a>
+
+### TxMsgData
+TxMsgData defines a list of MsgData. A transaction will have a MsgData object
+for each message.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [MsgData](#cosmos.base.abci.v1beta1.MsgData) | repeated | **Deprecated.** data field is deprecated and not populated. |
+| `msg_responses` | [google.protobuf.Any](#google.protobuf.Any) | repeated | msg_responses contains the Msg handler responses packed into Anys.
+
+Since: cosmos-sdk 0.46 |
+
+
+
+
+
+
+<a name="cosmos.base.abci.v1beta1.TxResponse"></a>
+
+### TxResponse
+TxResponse defines a structure containing relevant tx data and metadata. The
+tags are stringified and the log is JSON decoded.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [int64](#int64) |  | The block height |
+| `txhash` | [string](#string) |  | The transaction hash. |
+| `codespace` | [string](#string) |  | Namespace for the Code |
+| `code` | [uint32](#uint32) |  | Response code. |
+| `data` | [string](#string) |  | Result bytes, if any. |
+| `raw_log` | [string](#string) |  | The output of the application's logger (raw string). May be non-deterministic. |
+| `logs` | [ABCIMessageLog](#cosmos.base.abci.v1beta1.ABCIMessageLog) | repeated | The output of the application's logger (typed). May be non-deterministic. |
+| `info` | [string](#string) |  | Additional information. May be non-deterministic. |
+| `gas_wanted` | [int64](#int64) |  | Amount of gas requested for transaction. |
+| `gas_used` | [int64](#int64) |  | Amount of gas consumed by transaction. |
+| `tx` | [google.protobuf.Any](#google.protobuf.Any) |  | The request transaction bytes. |
+| `timestamp` | [string](#string) |  | Time of the previous block. For heights > 1, it's the weighted median of the timestamps of the valid votes in the block.LastCommit. For height == 1, it's genesis time. |
+| `events` | [tendermint.abci.Event](#tendermint.abci.Event) | repeated | Events defines all the events emitted by processing a transaction. Note, these events include those emitted by processing all the messages and those emitted from the ante. Whereas Logs contains the events, with additional metadata, emitted only by processing the messages.
+
+Since: cosmos-sdk 0.42.11, 0.44.5, 0.45 |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="cosmos/base/kv/v1beta1/kv.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2204,6 +4666,57 @@ Pairs defines a repeated slice of Pair objects.
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/base/node/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/base/node/v1beta1/query.proto
+
+
+
+<a name="cosmos.base.node.v1beta1.ConfigRequest"></a>
+
+### ConfigRequest
+ConfigRequest defines the request structure for the Config gRPC query.
+
+
+
+
+
+
+<a name="cosmos.base.node.v1beta1.ConfigResponse"></a>
+
+### ConfigResponse
+ConfigResponse defines the response structure for the Config gRPC query.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `minimum_gas_price` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="cosmos.base.node.v1beta1.Service"></a>
+
+### Service
+Service defines the gRPC querier service for node related queries.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Config` | [ConfigRequest](#cosmos.base.node.v1beta1.ConfigRequest) | [ConfigResponse](#cosmos.base.node.v1beta1.ConfigResponse) | Config queries for the operator configuration. | GET|/cosmos/base/node/v1beta1/config|
 
  <!-- end services -->
 
@@ -2752,6 +5265,8 @@ Snapshot contains Tendermint state sync snapshot info.
 ### SnapshotExtensionMeta
 SnapshotExtensionMeta contains metadata about an external snapshotter.
 
+Since: cosmos-sdk 0.46
+
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2768,6 +5283,8 @@ SnapshotExtensionMeta contains metadata about an external snapshotter.
 ### SnapshotExtensionPayload
 SnapshotExtensionPayload contains payloads of an external snapshotter.
 
+Since: cosmos-sdk 0.46
+
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2782,6 +5299,8 @@ SnapshotExtensionPayload contains payloads of an external snapshotter.
 
 ### SnapshotIAVLItem
 SnapshotIAVLItem is an exported IAVL node.
+
+Since: cosmos-sdk 0.46
 
 
 | Field | Type | Label | Description |
@@ -2801,6 +5320,8 @@ SnapshotIAVLItem is an exported IAVL node.
 ### SnapshotItem
 SnapshotItem is an item contained in a rootmulti.Store snapshot.
 
+Since: cosmos-sdk 0.46
+
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -2808,6 +5329,43 @@ SnapshotItem is an item contained in a rootmulti.Store snapshot.
 | `iavl` | [SnapshotIAVLItem](#cosmos.base.snapshots.v1beta1.SnapshotIAVLItem) |  |  |
 | `extension` | [SnapshotExtensionMeta](#cosmos.base.snapshots.v1beta1.SnapshotExtensionMeta) |  |  |
 | `extension_payload` | [SnapshotExtensionPayload](#cosmos.base.snapshots.v1beta1.SnapshotExtensionPayload) |  |  |
+| `kv` | [SnapshotKVItem](#cosmos.base.snapshots.v1beta1.SnapshotKVItem) |  |  |
+| `schema` | [SnapshotSchema](#cosmos.base.snapshots.v1beta1.SnapshotSchema) |  |  |
+
+
+
+
+
+
+<a name="cosmos.base.snapshots.v1beta1.SnapshotKVItem"></a>
+
+### SnapshotKVItem
+SnapshotKVItem is an exported Key/Value Pair
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key` | [bytes](#bytes) |  |  |
+| `value` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="cosmos.base.snapshots.v1beta1.SnapshotSchema"></a>
+
+### SnapshotSchema
+SnapshotSchema is an exported schema of smt store
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `keys` | [bytes](#bytes) | repeated |  |
 
 
 
@@ -2818,6 +5376,8 @@ SnapshotItem is an item contained in a rootmulti.Store snapshot.
 
 ### SnapshotStoreItem
 SnapshotStoreItem contains metadata about a snapshotted store.
+
+Since: cosmos-sdk 0.46
 
 
 | Field | Type | Label | Description |
@@ -2912,6 +5472,43 @@ between a store name and the commit ID.
 
 
 
+<a name="cosmos.base.store.v1beta1.BlockMetadata"></a>
+
+### BlockMetadata
+BlockMetadata contains all the abci event data of a block
+the file streamer dump them into files together with the state changes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `request_begin_block` | [tendermint.abci.RequestBeginBlock](#tendermint.abci.RequestBeginBlock) |  |  |
+| `response_begin_block` | [tendermint.abci.ResponseBeginBlock](#tendermint.abci.ResponseBeginBlock) |  |  |
+| `deliver_txs` | [BlockMetadata.DeliverTx](#cosmos.base.store.v1beta1.BlockMetadata.DeliverTx) | repeated |  |
+| `request_end_block` | [tendermint.abci.RequestEndBlock](#tendermint.abci.RequestEndBlock) |  |  |
+| `response_end_block` | [tendermint.abci.ResponseEndBlock](#tendermint.abci.ResponseEndBlock) |  |  |
+| `response_commit` | [tendermint.abci.ResponseCommit](#tendermint.abci.ResponseCommit) |  |  |
+
+
+
+
+
+
+<a name="cosmos.base.store.v1beta1.BlockMetadata.DeliverTx"></a>
+
+### BlockMetadata.DeliverTx
+DeliverTx encapulate deliver tx request and response.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `request` | [tendermint.abci.RequestDeliverTx](#tendermint.abci.RequestDeliverTx) |  |  |
+| `response` | [tendermint.abci.ResponseDeliverTx](#tendermint.abci.ResponseDeliverTx) |  |  |
+
+
+
+
+
+
 <a name="cosmos.base.store.v1beta1.StoreKVPair"></a>
 
 ### StoreKVPair
@@ -2943,6 +5540,284 @@ Since: cosmos-sdk 0.43
 
 
 
+<a name="tendermint/p2p/types.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/p2p/types.proto
+
+
+
+<a name="tendermint.p2p.DefaultNodeInfo"></a>
+
+### DefaultNodeInfo
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `protocol_version` | [ProtocolVersion](#tendermint.p2p.ProtocolVersion) |  |  |
+| `default_node_id` | [string](#string) |  |  |
+| `listen_addr` | [string](#string) |  |  |
+| `network` | [string](#string) |  |  |
+| `version` | [string](#string) |  |  |
+| `channels` | [bytes](#bytes) |  |  |
+| `moniker` | [string](#string) |  |  |
+| `other` | [DefaultNodeInfoOther](#tendermint.p2p.DefaultNodeInfoOther) |  |  |
+
+
+
+
+
+
+<a name="tendermint.p2p.DefaultNodeInfoOther"></a>
+
+### DefaultNodeInfoOther
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `tx_index` | [string](#string) |  |  |
+| `rpc_address` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="tendermint.p2p.NetAddress"></a>
+
+### NetAddress
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  |  |
+| `ip` | [string](#string) |  |  |
+| `port` | [uint32](#uint32) |  |  |
+
+
+
+
+
+
+<a name="tendermint.p2p.ProtocolVersion"></a>
+
+### ProtocolVersion
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `p2p` | [uint64](#uint64) |  |  |
+| `block` | [uint64](#uint64) |  |  |
+| `app` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="tendermint/types/evidence.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/types/evidence.proto
+
+
+
+<a name="tendermint.types.DuplicateVoteEvidence"></a>
+
+### DuplicateVoteEvidence
+DuplicateVoteEvidence contains evidence of a validator signed two conflicting votes.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vote_a` | [Vote](#tendermint.types.Vote) |  |  |
+| `vote_b` | [Vote](#tendermint.types.Vote) |  |  |
+| `total_voting_power` | [int64](#int64) |  |  |
+| `validator_power` | [int64](#int64) |  |  |
+| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.Evidence"></a>
+
+### Evidence
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `duplicate_vote_evidence` | [DuplicateVoteEvidence](#tendermint.types.DuplicateVoteEvidence) |  |  |
+| `light_client_attack_evidence` | [LightClientAttackEvidence](#tendermint.types.LightClientAttackEvidence) |  |  |
+
+
+
+
+
+
+<a name="tendermint.types.EvidenceList"></a>
+
+### EvidenceList
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `evidence` | [Evidence](#tendermint.types.Evidence) | repeated |  |
+
+
+
+
+
+
+<a name="tendermint.types.LightClientAttackEvidence"></a>
+
+### LightClientAttackEvidence
+LightClientAttackEvidence contains evidence of a set of validators attempting to mislead a light client.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `conflicting_block` | [LightBlock](#tendermint.types.LightBlock) |  |  |
+| `common_height` | [int64](#int64) |  |  |
+| `byzantine_validators` | [Validator](#tendermint.types.Validator) | repeated |  |
+| `total_voting_power` | [int64](#int64) |  |  |
+| `timestamp` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/base/tendermint/v1beta1/types.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/base/tendermint/v1beta1/types.proto
+
+
+
+<a name="cosmos.base.tendermint.v1beta1.Block"></a>
+
+### Block
+Block is tendermint type Block, with the Header proposer address
+field converted to bech32 string.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `header` | [Header](#cosmos.base.tendermint.v1beta1.Header) |  |  |
+| `data` | [tendermint.types.Data](#tendermint.types.Data) |  |  |
+| `evidence` | [tendermint.types.EvidenceList](#tendermint.types.EvidenceList) |  |  |
+| `last_commit` | [tendermint.types.Commit](#tendermint.types.Commit) |  |  |
+
+
+
+
+
+
+<a name="cosmos.base.tendermint.v1beta1.Header"></a>
+
+### Header
+Header defines the structure of a Tendermint block header.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `version` | [tendermint.version.Consensus](#tendermint.version.Consensus) |  | basic block info |
+| `chain_id` | [string](#string) |  |  |
+| `height` | [int64](#int64) |  |  |
+| `time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `last_block_id` | [tendermint.types.BlockID](#tendermint.types.BlockID) |  | prev block info |
+| `last_commit_hash` | [bytes](#bytes) |  | hashes of block data
+
+commit from validators from the last block |
+| `data_hash` | [bytes](#bytes) |  | transactions |
+| `validators_hash` | [bytes](#bytes) |  | hashes from the app output from the prev block
+
+validators for the current block |
+| `next_validators_hash` | [bytes](#bytes) |  | validators for the next block |
+| `consensus_hash` | [bytes](#bytes) |  | consensus params for current block |
+| `app_hash` | [bytes](#bytes) |  | state after txs from the previous block |
+| `last_results_hash` | [bytes](#bytes) |  | root hash of all results from the txs from the previous block |
+| `evidence_hash` | [bytes](#bytes) |  | consensus info
+
+evidence included in the block |
+| `proposer_address` | [string](#string) |  | proposer_address is the original block proposer address, formatted as a Bech32 string. In Tendermint, this type is `bytes`, but in the SDK, we convert it to a Bech32 string for better UX.
+
+original proposer of the block |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="tendermint/types/block.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/types/block.proto
+
+
+
+<a name="tendermint.types.Block"></a>
+
+### Block
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `header` | [Header](#tendermint.types.Header) |  |  |
+| `data` | [Data](#tendermint.types.Data) |  |  |
+| `evidence` | [EvidenceList](#tendermint.types.EvidenceList) |  |  |
+| `last_commit` | [Commit](#tendermint.types.Commit) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="cosmos/base/tendermint/v1beta1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2950,10 +5825,56 @@ Since: cosmos-sdk 0.43
 
 
 
+<a name="cosmos.base.tendermint.v1beta1.ABCIQueryRequest"></a>
+
+### ABCIQueryRequest
+ABCIQueryRequest defines the request structure for the ABCIQuery gRPC query.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `data` | [bytes](#bytes) |  |  |
+| `path` | [string](#string) |  |  |
+| `height` | [int64](#int64) |  |  |
+| `prove` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="cosmos.base.tendermint.v1beta1.ABCIQueryResponse"></a>
+
+### ABCIQueryResponse
+ABCIQueryResponse defines the response structure for the ABCIQuery gRPC
+query.
+
+Note: This type is a duplicate of the ResponseQuery proto type defined in
+Tendermint.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code` | [uint32](#uint32) |  |  |
+| `log` | [string](#string) |  | nondeterministic |
+| `info` | [string](#string) |  | nondeterministic |
+| `index` | [int64](#int64) |  |  |
+| `key` | [bytes](#bytes) |  |  |
+| `value` | [bytes](#bytes) |  |  |
+| `proof_ops` | [ProofOps](#cosmos.base.tendermint.v1beta1.ProofOps) |  |  |
+| `height` | [int64](#int64) |  |  |
+| `codespace` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="cosmos.base.tendermint.v1beta1.GetBlockByHeightRequest"></a>
 
 ### GetBlockByHeightRequest
-GetBlockByHeightRequest is the request type for the Query/GetBlockByHeight RPC method.
+GetBlockByHeightRequest is the request type for the Query/GetBlockByHeight
+RPC method.
 
 
 | Field | Type | Label | Description |
@@ -2968,13 +5889,15 @@ GetBlockByHeightRequest is the request type for the Query/GetBlockByHeight RPC m
 <a name="cosmos.base.tendermint.v1beta1.GetBlockByHeightResponse"></a>
 
 ### GetBlockByHeightResponse
-GetBlockByHeightResponse is the response type for the Query/GetBlockByHeight RPC method.
+GetBlockByHeightResponse is the response type for the Query/GetBlockByHeight
+RPC method.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `block_id` | [tendermint.types.BlockID](#tendermint.types.BlockID) |  |  |
-| `block` | [tendermint.types.Block](#tendermint.types.Block) |  |  |
+| `block` | [tendermint.types.Block](#tendermint.types.Block) |  | Deprecated: please use `sdk_block` instead |
+| `sdk_block` | [Block](#cosmos.base.tendermint.v1beta1.Block) |  | Since: cosmos-sdk 0.47 |
 
 
 
@@ -2984,7 +5907,8 @@ GetBlockByHeightResponse is the response type for the Query/GetBlockByHeight RPC
 <a name="cosmos.base.tendermint.v1beta1.GetLatestBlockRequest"></a>
 
 ### GetLatestBlockRequest
-GetLatestBlockRequest is the request type for the Query/GetLatestBlock RPC method.
+GetLatestBlockRequest is the request type for the Query/GetLatestBlock RPC
+method.
 
 
 
@@ -2994,13 +5918,15 @@ GetLatestBlockRequest is the request type for the Query/GetLatestBlock RPC metho
 <a name="cosmos.base.tendermint.v1beta1.GetLatestBlockResponse"></a>
 
 ### GetLatestBlockResponse
-GetLatestBlockResponse is the response type for the Query/GetLatestBlock RPC method.
+GetLatestBlockResponse is the response type for the Query/GetLatestBlock RPC
+method.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `block_id` | [tendermint.types.BlockID](#tendermint.types.BlockID) |  |  |
-| `block` | [tendermint.types.Block](#tendermint.types.Block) |  |  |
+| `block` | [tendermint.types.Block](#tendermint.types.Block) |  | Deprecated: please use `sdk_block` instead |
+| `sdk_block` | [Block](#cosmos.base.tendermint.v1beta1.Block) |  | Since: cosmos-sdk 0.47 |
 
 
 
@@ -3010,7 +5936,8 @@ GetLatestBlockResponse is the response type for the Query/GetLatestBlock RPC met
 <a name="cosmos.base.tendermint.v1beta1.GetLatestValidatorSetRequest"></a>
 
 ### GetLatestValidatorSetRequest
-GetLatestValidatorSetRequest is the request type for the Query/GetValidatorSetByHeight RPC method.
+GetLatestValidatorSetRequest is the request type for the
+Query/GetValidatorSetByHeight RPC method.
 
 
 | Field | Type | Label | Description |
@@ -3025,7 +5952,8 @@ GetLatestValidatorSetRequest is the request type for the Query/GetValidatorSetBy
 <a name="cosmos.base.tendermint.v1beta1.GetLatestValidatorSetResponse"></a>
 
 ### GetLatestValidatorSetResponse
-GetLatestValidatorSetResponse is the response type for the Query/GetValidatorSetByHeight RPC method.
+GetLatestValidatorSetResponse is the response type for the
+Query/GetValidatorSetByHeight RPC method.
 
 
 | Field | Type | Label | Description |
@@ -3052,7 +5980,8 @@ GetNodeInfoRequest is the request type for the Query/GetNodeInfo RPC method.
 <a name="cosmos.base.tendermint.v1beta1.GetNodeInfoResponse"></a>
 
 ### GetNodeInfoResponse
-GetNodeInfoResponse is the request type for the Query/GetNodeInfo RPC method.
+GetNodeInfoResponse is the response type for the Query/GetNodeInfo RPC
+method.
 
 
 | Field | Type | Label | Description |
@@ -3093,7 +6022,8 @@ GetSyncingResponse is the response type for the Query/GetSyncing RPC method.
 <a name="cosmos.base.tendermint.v1beta1.GetValidatorSetByHeightRequest"></a>
 
 ### GetValidatorSetByHeightRequest
-GetValidatorSetByHeightRequest is the request type for the Query/GetValidatorSetByHeight RPC method.
+GetValidatorSetByHeightRequest is the request type for the
+Query/GetValidatorSetByHeight RPC method.
 
 
 | Field | Type | Label | Description |
@@ -3109,7 +6039,8 @@ GetValidatorSetByHeightRequest is the request type for the Query/GetValidatorSet
 <a name="cosmos.base.tendermint.v1beta1.GetValidatorSetByHeightResponse"></a>
 
 ### GetValidatorSetByHeightResponse
-GetValidatorSetByHeightResponse is the response type for the Query/GetValidatorSetByHeight RPC method.
+GetValidatorSetByHeightResponse is the response type for the
+Query/GetValidatorSetByHeight RPC method.
 
 
 | Field | Type | Label | Description |
@@ -3134,6 +6065,46 @@ Module is the type for VersionInfo
 | `path` | [string](#string) |  | module path |
 | `version` | [string](#string) |  | module version |
 | `sum` | [string](#string) |  | checksum |
+
+
+
+
+
+
+<a name="cosmos.base.tendermint.v1beta1.ProofOp"></a>
+
+### ProofOp
+ProofOp defines an operation used for calculating Merkle root. The data could
+be arbitrary format, providing nessecary data for example neighbouring node
+hash.
+
+Note: This type is a duplicate of the ProofOp proto type defined in
+Tendermint.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [string](#string) |  |  |
+| `key` | [bytes](#bytes) |  |  |
+| `data` | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="cosmos.base.tendermint.v1beta1.ProofOps"></a>
+
+### ProofOps
+ProofOps is Merkle proof defined by the list of ProofOps.
+
+Note: This type is a duplicate of the ProofOps proto type defined in
+Tendermint.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `ops` | [ProofOp](#cosmos.base.tendermint.v1beta1.ProofOp) | repeated |  |
 
 
 
@@ -3199,6 +6170,9 @@ Service defines the gRPC querier service for tendermint queries.
 | `GetBlockByHeight` | [GetBlockByHeightRequest](#cosmos.base.tendermint.v1beta1.GetBlockByHeightRequest) | [GetBlockByHeightResponse](#cosmos.base.tendermint.v1beta1.GetBlockByHeightResponse) | GetBlockByHeight queries block for given height. | GET|/cosmos/base/tendermint/v1beta1/blocks/{height}|
 | `GetLatestValidatorSet` | [GetLatestValidatorSetRequest](#cosmos.base.tendermint.v1beta1.GetLatestValidatorSetRequest) | [GetLatestValidatorSetResponse](#cosmos.base.tendermint.v1beta1.GetLatestValidatorSetResponse) | GetLatestValidatorSet queries latest validator-set. | GET|/cosmos/base/tendermint/v1beta1/validatorsets/latest|
 | `GetValidatorSetByHeight` | [GetValidatorSetByHeightRequest](#cosmos.base.tendermint.v1beta1.GetValidatorSetByHeightRequest) | [GetValidatorSetByHeightResponse](#cosmos.base.tendermint.v1beta1.GetValidatorSetByHeightResponse) | GetValidatorSetByHeight queries validator-set at a given height. | GET|/cosmos/base/tendermint/v1beta1/validatorsets/{height}|
+| `ABCIQuery` | [ABCIQueryRequest](#cosmos.base.tendermint.v1beta1.ABCIQueryRequest) | [ABCIQueryResponse](#cosmos.base.tendermint.v1beta1.ABCIQueryResponse) | ABCIQuery defines a query handler that supports ABCI queries directly to the application, bypassing Tendermint completely. The ABCI query must contain a valid and supported path, including app, custom, p2p, and store.
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/base/tendermint/v1beta1/abci_query|
 
  <!-- end services -->
 
@@ -3437,6 +6411,128 @@ then you must create a new proto message and follow ADR-28 for Address construct
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `key` | [bytes](#bytes) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/crypto/hd/v1/hd.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/crypto/hd/v1/hd.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.crypto.hd.v1.BIP44Params"></a>
+
+### BIP44Params
+BIP44Params is used as path field in ledger item in Record.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `purpose` | [uint32](#uint32) |  | purpose is a constant set to 44' (or 0x8000002C) following the BIP43 recommendation |
+| `coin_type` | [uint32](#uint32) |  | coin_type is a constant that improves privacy |
+| `account` | [uint32](#uint32) |  | account splits the key space into independent user identities |
+| `change` | [bool](#bool) |  | change is a constant used for public derivation. Constant 0 is used for external chain and constant 1 for internal chain. |
+| `address_index` | [uint32](#uint32) |  | address_index is used as child index in BIP32 derivation |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/crypto/keyring/v1/record.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/crypto/keyring/v1/record.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.crypto.keyring.v1.Record"></a>
+
+### Record
+Record is used for representing a key in the keyring.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `name` | [string](#string) |  | name represents a name of Record |
+| `pub_key` | [google.protobuf.Any](#google.protobuf.Any) |  | pub_key represents a public key in any format |
+| `local` | [Record.Local](#cosmos.crypto.keyring.v1.Record.Local) |  | local stores the private key locally. |
+| `ledger` | [Record.Ledger](#cosmos.crypto.keyring.v1.Record.Ledger) |  | ledger stores the information about a Ledger key. |
+| `multi` | [Record.Multi](#cosmos.crypto.keyring.v1.Record.Multi) |  | Multi does not store any other information. |
+| `offline` | [Record.Offline](#cosmos.crypto.keyring.v1.Record.Offline) |  | Offline does not store any other information. |
+
+
+
+
+
+
+<a name="cosmos.crypto.keyring.v1.Record.Ledger"></a>
+
+### Record.Ledger
+Ledger item
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `path` | [cosmos.crypto.hd.v1.BIP44Params](#cosmos.crypto.hd.v1.BIP44Params) |  |  |
+
+
+
+
+
+
+<a name="cosmos.crypto.keyring.v1.Record.Local"></a>
+
+### Record.Local
+Item is a keyring item stored in a keyring backend.
+Local item
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `priv_key` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
+
+
+
+
+
+
+<a name="cosmos.crypto.keyring.v1.Record.Multi"></a>
+
+### Record.Multi
+Multi item
+
+
+
+
+
+
+<a name="cosmos.crypto.keyring.v1.Record.Offline"></a>
+
+### Record.Offline
+Offline item
 
 
 
@@ -4433,6 +7529,11 @@ from a single validator.
 MsgWithdrawDelegatorRewardResponse defines the Msg/WithdrawDelegatorReward response type.
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Since: cosmos-sdk 0.46 |
+
+
 
 
 
@@ -4457,6 +7558,11 @@ address.
 
 ### MsgWithdrawValidatorCommissionResponse
 MsgWithdrawValidatorCommissionResponse defines the Msg/WithdrawValidatorCommission response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Since: cosmos-sdk 0.46 |
 
 
 
@@ -4714,7 +7820,7 @@ AllowedMsgAllowance creates allowance only for specified message types.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `allowance` | [google.protobuf.Any](#google.protobuf.Any) |  | allowance can be any of basic and filtered fee allowance. |
+| `allowance` | [google.protobuf.Any](#google.protobuf.Any) |  | allowance can be any of basic and periodic fee allowance. |
 | `allowed_messages` | [string](#string) | repeated | allowed_messages are the messages for which the grantee has the access. |
 
 
@@ -4725,13 +7831,13 @@ AllowedMsgAllowance creates allowance only for specified message types.
 <a name="cosmos.feegrant.v1beta1.BasicAllowance"></a>
 
 ### BasicAllowance
-BasicAllowance implements Allowance with a one-time grant of tokens
+BasicAllowance implements Allowance with a one-time grant of coins
 that optionally expires. The grantee can use up to SpendLimit to cover fees.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `spend_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | spend_limit specifies the maximum amount of tokens that can be spent by this allowance and will be updated as tokens are spent. If it is empty, there is no spend limit and any amount of coins can be spent. |
+| `spend_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | spend_limit specifies the maximum amount of coins that can be spent by this allowance and will be updated as coins are spent. If it is empty, there is no spend limit and any amount of coins can be spent. |
 | `expiration` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | expiration specifies an optional time when this allowance expires |
 
 
@@ -4749,7 +7855,7 @@ Grant is stored in the KVStore to record a grant with full context
 | ----- | ---- | ----- | ----------- |
 | `granter` | [string](#string) |  | granter is the address of the user granting an allowance of their funds. |
 | `grantee` | [string](#string) |  | grantee is the address of the user being granted an allowance of another user's funds. |
-| `allowance` | [google.protobuf.Any](#google.protobuf.Any) |  | allowance can be any of basic and filtered fee allowance. |
+| `allowance` | [google.protobuf.Any](#google.protobuf.Any) |  | allowance can be any of basic, periodic, allowed fee allowance. |
 
 
 
@@ -4859,6 +7965,8 @@ QueryAllowanceResponse is the response type for the Query/Allowance RPC method.
 ### QueryAllowancesByGranterRequest
 QueryAllowancesByGranterRequest is the request type for the Query/AllowancesByGranter RPC method.
 
+Since: cosmos-sdk 0.46
+
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
@@ -4874,6 +7982,8 @@ QueryAllowancesByGranterRequest is the request type for the Query/AllowancesByGr
 
 ### QueryAllowancesByGranterResponse
 QueryAllowancesByGranterResponse is the response type for the Query/AllowancesByGranter RPC method.
+
+Since: cosmos-sdk 0.46
 
 
 | Field | Type | Label | Description |
@@ -4933,7 +8043,9 @@ Query defines the gRPC querier service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Allowance` | [QueryAllowanceRequest](#cosmos.feegrant.v1beta1.QueryAllowanceRequest) | [QueryAllowanceResponse](#cosmos.feegrant.v1beta1.QueryAllowanceResponse) | Allowance returns fee granted to the grantee by the granter. | GET|/cosmos/feegrant/v1beta1/allowance/{granter}/{grantee}|
 | `Allowances` | [QueryAllowancesRequest](#cosmos.feegrant.v1beta1.QueryAllowancesRequest) | [QueryAllowancesResponse](#cosmos.feegrant.v1beta1.QueryAllowancesResponse) | Allowances returns all the grants for address. | GET|/cosmos/feegrant/v1beta1/allowances/{grantee}|
-| `AllowancesByGranter` | [QueryAllowancesByGranterRequest](#cosmos.feegrant.v1beta1.QueryAllowancesByGranterRequest) | [QueryAllowancesByGranterResponse](#cosmos.feegrant.v1beta1.QueryAllowancesByGranterResponse) | AllowancesByGranter returns all the grants given by an address Since v0.46 | GET|/cosmos/feegrant/v1beta1/issued/{granter}|
+| `AllowancesByGranter` | [QueryAllowancesByGranterRequest](#cosmos.feegrant.v1beta1.QueryAllowancesByGranterRequest) | [QueryAllowancesByGranterResponse](#cosmos.feegrant.v1beta1.QueryAllowancesByGranterResponse) | AllowancesByGranter returns all the grants given by an address
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/feegrant/v1beta1/issued/{granter}|
 
  <!-- end services -->
 
@@ -4957,7 +8069,7 @@ of fees from the account of Granter.
 | ----- | ---- | ----- | ----------- |
 | `granter` | [string](#string) |  | granter is the address of the user granting an allowance of their funds. |
 | `grantee` | [string](#string) |  | grantee is the address of the user being granted an allowance of another user's funds. |
-| `allowance` | [google.protobuf.Any](#google.protobuf.Any) |  | allowance can be any of basic and filtered fee allowance. |
+| `allowance` | [google.protobuf.Any](#google.protobuf.Any) |  | allowance can be any of basic, periodic, allowed fee allowance. |
 
 
 
@@ -5051,6 +8163,693 @@ GenesisState defines the raw genesis transaction in JSON.
 
 
 
+<a name="cosmos/gov/v1/gov.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/gov/v1/gov.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.gov.v1.Deposit"></a>
+
+### Deposit
+Deposit defines an amount deposited by an account address to an active
+proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.DepositParams"></a>
+
+### DepositParams
+DepositParams defines the params for deposits on governance proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `min_deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Minimum deposit for a proposal to enter voting period. |
+| `max_deposit_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | Maximum period for Atom holders to deposit on a proposal. Initial value: 2 months. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.Proposal"></a>
+
+### Proposal
+Proposal defines the core field members of a governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  |  |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `status` | [ProposalStatus](#cosmos.gov.v1.ProposalStatus) |  |  |
+| `final_tally_result` | [TallyResult](#cosmos.gov.v1.TallyResult) |  | final_tally_result is the final tally result of the proposal. When querying a proposal via gRPC, this field is not populated until the proposal's voting period has ended. |
+| `submit_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `deposit_end_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `total_deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `voting_start_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `voting_end_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata attached to the proposal. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.TallyParams"></a>
+
+### TallyParams
+TallyParams defines the params for tallying votes on governance proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `quorum` | [string](#string) |  | Minimum percentage of total stake needed to vote for a result to be considered valid. |
+| `threshold` | [string](#string) |  | Minimum proportion of Yes votes for proposal to pass. Default value: 0.5. |
+| `veto_threshold` | [string](#string) |  | Minimum value of Veto votes to Total votes ratio for proposal to be vetoed. Default value: 1/3. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.TallyResult"></a>
+
+### TallyResult
+TallyResult defines a standard tally for a governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `yes_count` | [string](#string) |  |  |
+| `abstain_count` | [string](#string) |  |  |
+| `no_count` | [string](#string) |  |  |
+| `no_with_veto_count` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.Vote"></a>
+
+### Vote
+Vote defines a vote on a governance proposal.
+A Vote consists of a proposal ID, the voter, and the vote option.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+| `options` | [WeightedVoteOption](#cosmos.gov.v1.WeightedVoteOption) | repeated |  |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata to attached to the vote. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.VotingParams"></a>
+
+### VotingParams
+VotingParams defines the params for voting on governance proposals.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `voting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | Length of the voting period. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.WeightedVoteOption"></a>
+
+### WeightedVoteOption
+WeightedVoteOption defines a unit of vote for vote split.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `option` | [VoteOption](#cosmos.gov.v1.VoteOption) |  |  |
+| `weight` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="cosmos.gov.v1.ProposalStatus"></a>
+
+### ProposalStatus
+ProposalStatus enumerates the valid statuses of a proposal.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| PROPOSAL_STATUS_UNSPECIFIED | 0 | PROPOSAL_STATUS_UNSPECIFIED defines the default proposal status. |
+| PROPOSAL_STATUS_DEPOSIT_PERIOD | 1 | PROPOSAL_STATUS_DEPOSIT_PERIOD defines a proposal status during the deposit period. |
+| PROPOSAL_STATUS_VOTING_PERIOD | 2 | PROPOSAL_STATUS_VOTING_PERIOD defines a proposal status during the voting period. |
+| PROPOSAL_STATUS_PASSED | 3 | PROPOSAL_STATUS_PASSED defines a proposal status of a proposal that has passed. |
+| PROPOSAL_STATUS_REJECTED | 4 | PROPOSAL_STATUS_REJECTED defines a proposal status of a proposal that has been rejected. |
+| PROPOSAL_STATUS_FAILED | 5 | PROPOSAL_STATUS_FAILED defines a proposal status of a proposal that has failed. |
+
+
+
+<a name="cosmos.gov.v1.VoteOption"></a>
+
+### VoteOption
+VoteOption enumerates the valid vote options for a given governance proposal.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| VOTE_OPTION_UNSPECIFIED | 0 | VOTE_OPTION_UNSPECIFIED defines a no-op vote option. |
+| VOTE_OPTION_YES | 1 | VOTE_OPTION_YES defines a yes vote option. |
+| VOTE_OPTION_ABSTAIN | 2 | VOTE_OPTION_ABSTAIN defines an abstain vote option. |
+| VOTE_OPTION_NO | 3 | VOTE_OPTION_NO defines a no vote option. |
+| VOTE_OPTION_NO_WITH_VETO | 4 | VOTE_OPTION_NO_WITH_VETO defines a no with veto vote option. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/gov/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/gov/v1/genesis.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.gov.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the gov module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `starting_proposal_id` | [uint64](#uint64) |  | starting_proposal_id is the ID of the starting proposal. |
+| `deposits` | [Deposit](#cosmos.gov.v1.Deposit) | repeated | deposits defines all the deposits present at genesis. |
+| `votes` | [Vote](#cosmos.gov.v1.Vote) | repeated | votes defines all the votes present at genesis. |
+| `proposals` | [Proposal](#cosmos.gov.v1.Proposal) | repeated | proposals defines all the proposals present at genesis. |
+| `deposit_params` | [DepositParams](#cosmos.gov.v1.DepositParams) |  | params defines all the paramaters of related to deposit. |
+| `voting_params` | [VotingParams](#cosmos.gov.v1.VotingParams) |  | params defines all the paramaters of related to voting. |
+| `tally_params` | [TallyParams](#cosmos.gov.v1.TallyParams) |  | params defines all the paramaters of related to tally. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/gov/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/gov/v1/query.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.gov.v1.QueryDepositRequest"></a>
+
+### QueryDepositRequest
+QueryDepositRequest is the request type for the Query/Deposit RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id defines the unique id of the proposal. |
+| `depositor` | [string](#string) |  | depositor defines the deposit addresses from the proposals. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryDepositResponse"></a>
+
+### QueryDepositResponse
+QueryDepositResponse is the response type for the Query/Deposit RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposit` | [Deposit](#cosmos.gov.v1.Deposit) |  | deposit defines the requested deposit. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id defines the unique id of the proposal. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+QueryDepositsResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [Deposit](#cosmos.gov.v1.Deposit) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params_type` | [string](#string) |  | params_type defines which parameters to query for, can be one of "voting", "tallying" or "deposit". |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `voting_params` | [VotingParams](#cosmos.gov.v1.VotingParams) |  | voting_params defines the parameters related to voting. |
+| `deposit_params` | [DepositParams](#cosmos.gov.v1.DepositParams) |  | deposit_params defines the parameters related to deposit. |
+| `tally_params` | [TallyParams](#cosmos.gov.v1.TallyParams) |  | tally_params defines the parameters related to tally. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryProposalRequest"></a>
+
+### QueryProposalRequest
+QueryProposalRequest is the request type for the Query/Proposal RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id defines the unique id of the proposal. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryProposalResponse"></a>
+
+### QueryProposalResponse
+QueryProposalResponse is the response type for the Query/Proposal RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal` | [Proposal](#cosmos.gov.v1.Proposal) |  |  |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryProposalsRequest"></a>
+
+### QueryProposalsRequest
+QueryProposalsRequest is the request type for the Query/Proposals RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_status` | [ProposalStatus](#cosmos.gov.v1.ProposalStatus) |  | proposal_status defines the status of the proposals. |
+| `voter` | [string](#string) |  | voter defines the voter address for the proposals. |
+| `depositor` | [string](#string) |  | depositor defines the deposit addresses from the proposals. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryProposalsResponse"></a>
+
+### QueryProposalsResponse
+QueryProposalsResponse is the response type for the Query/Proposals RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposals` | [Proposal](#cosmos.gov.v1.Proposal) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryTallyResultRequest"></a>
+
+### QueryTallyResultRequest
+QueryTallyResultRequest is the request type for the Query/Tally RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id defines the unique id of the proposal. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryTallyResultResponse"></a>
+
+### QueryTallyResultResponse
+QueryTallyResultResponse is the response type for the Query/Tally RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `tally` | [TallyResult](#cosmos.gov.v1.TallyResult) |  | tally defines the requested tally. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryVoteRequest"></a>
+
+### QueryVoteRequest
+QueryVoteRequest is the request type for the Query/Vote RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id defines the unique id of the proposal. |
+| `voter` | [string](#string) |  | voter defines the voter address for the proposals. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryVoteResponse"></a>
+
+### QueryVoteResponse
+QueryVoteResponse is the response type for the Query/Vote RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vote` | [Vote](#cosmos.gov.v1.Vote) |  | vote defined the queried vote. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryVotesRequest"></a>
+
+### QueryVotesRequest
+QueryVotesRequest is the request type for the Query/Votes RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id defines the unique id of the proposal. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.QueryVotesResponse"></a>
+
+### QueryVotesResponse
+QueryVotesResponse is the response type for the Query/Votes RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `votes` | [Vote](#cosmos.gov.v1.Vote) | repeated | votes defined the queried votes. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="cosmos.gov.v1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for gov module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Proposal` | [QueryProposalRequest](#cosmos.gov.v1.QueryProposalRequest) | [QueryProposalResponse](#cosmos.gov.v1.QueryProposalResponse) | Proposal queries proposal details based on ProposalID. | GET|/cosmos/gov/v1/proposals/{proposal_id}|
+| `Proposals` | [QueryProposalsRequest](#cosmos.gov.v1.QueryProposalsRequest) | [QueryProposalsResponse](#cosmos.gov.v1.QueryProposalsResponse) | Proposals queries all proposals based on given status. | GET|/cosmos/gov/v1/proposals|
+| `Vote` | [QueryVoteRequest](#cosmos.gov.v1.QueryVoteRequest) | [QueryVoteResponse](#cosmos.gov.v1.QueryVoteResponse) | Vote queries voted information based on proposalID, voterAddr. | GET|/cosmos/gov/v1/proposals/{proposal_id}/votes/{voter}|
+| `Votes` | [QueryVotesRequest](#cosmos.gov.v1.QueryVotesRequest) | [QueryVotesResponse](#cosmos.gov.v1.QueryVotesResponse) | Votes queries votes of a given proposal. | GET|/cosmos/gov/v1/proposals/{proposal_id}/votes|
+| `Params` | [QueryParamsRequest](#cosmos.gov.v1.QueryParamsRequest) | [QueryParamsResponse](#cosmos.gov.v1.QueryParamsResponse) | Params queries all parameters of the gov module. | GET|/cosmos/gov/v1/params/{params_type}|
+| `Deposit` | [QueryDepositRequest](#cosmos.gov.v1.QueryDepositRequest) | [QueryDepositResponse](#cosmos.gov.v1.QueryDepositResponse) | Deposit queries single deposit information based proposalID, depositAddr. | GET|/cosmos/gov/v1/proposals/{proposal_id}/deposits/{depositor}|
+| `Deposits` | [QueryDepositsRequest](#cosmos.gov.v1.QueryDepositsRequest) | [QueryDepositsResponse](#cosmos.gov.v1.QueryDepositsResponse) | Deposits queries all deposits of a single proposal. | GET|/cosmos/gov/v1/proposals/{proposal_id}/deposits|
+| `TallyResult` | [QueryTallyResultRequest](#cosmos.gov.v1.QueryTallyResultRequest) | [QueryTallyResultResponse](#cosmos.gov.v1.QueryTallyResultResponse) | TallyResult queries the tally of a proposal vote. | GET|/cosmos/gov/v1/proposals/{proposal_id}/tally|
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/gov/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/gov/v1/tx.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.gov.v1.MsgDeposit"></a>
+
+### MsgDeposit
+MsgDeposit defines a message to submit a deposit to an existing proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `depositor` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.MsgDepositResponse"></a>
+
+### MsgDepositResponse
+MsgDepositResponse defines the Msg/Deposit response type.
+
+
+
+
+
+
+<a name="cosmos.gov.v1.MsgExecLegacyContent"></a>
+
+### MsgExecLegacyContent
+MsgExecLegacyContent is used to wrap the legacy content field into a message.
+This ensures backwards compatibility with v1beta1.MsgSubmitProposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `content` | [google.protobuf.Any](#google.protobuf.Any) |  | content is the proposal's content. |
+| `authority` | [string](#string) |  | authority must be the gov module address. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.MsgExecLegacyContentResponse"></a>
+
+### MsgExecLegacyContentResponse
+MsgExecLegacyContentResponse defines the Msg/ExecLegacyContent response type.
+
+
+
+
+
+
+<a name="cosmos.gov.v1.MsgSubmitProposal"></a>
+
+### MsgSubmitProposal
+MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
+proposal Content.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `initial_deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `proposer` | [string](#string) |  |  |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata attached to the proposal. |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.MsgSubmitProposalResponse"></a>
+
+### MsgSubmitProposalResponse
+MsgSubmitProposalResponse defines the Msg/SubmitProposal response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.MsgVote"></a>
+
+### MsgVote
+MsgVote defines a message to cast a vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+| `option` | [VoteOption](#cosmos.gov.v1.VoteOption) |  |  |
+| `metadata` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.MsgVoteResponse"></a>
+
+### MsgVoteResponse
+MsgVoteResponse defines the Msg/Vote response type.
+
+
+
+
+
+
+<a name="cosmos.gov.v1.MsgVoteWeighted"></a>
+
+### MsgVoteWeighted
+MsgVoteWeighted defines a message to cast a vote.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  |  |
+| `voter` | [string](#string) |  |  |
+| `options` | [WeightedVoteOption](#cosmos.gov.v1.WeightedVoteOption) | repeated |  |
+| `metadata` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.gov.v1.MsgVoteWeightedResponse"></a>
+
+### MsgVoteWeightedResponse
+MsgVoteWeightedResponse defines the Msg/VoteWeighted response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="cosmos.gov.v1.Msg"></a>
+
+### Msg
+Msg defines the gov Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `SubmitProposal` | [MsgSubmitProposal](#cosmos.gov.v1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#cosmos.gov.v1.MsgSubmitProposalResponse) | SubmitProposal defines a method to create new proposal given a content. | |
+| `ExecLegacyContent` | [MsgExecLegacyContent](#cosmos.gov.v1.MsgExecLegacyContent) | [MsgExecLegacyContentResponse](#cosmos.gov.v1.MsgExecLegacyContentResponse) | ExecLegacyContent defines a Msg to be in included in a MsgSubmitProposal to execute a legacy content-based proposal. | |
+| `Vote` | [MsgVote](#cosmos.gov.v1.MsgVote) | [MsgVoteResponse](#cosmos.gov.v1.MsgVoteResponse) | Vote defines a method to add a vote on a specific proposal. | |
+| `VoteWeighted` | [MsgVoteWeighted](#cosmos.gov.v1.MsgVoteWeighted) | [MsgVoteWeightedResponse](#cosmos.gov.v1.MsgVoteWeightedResponse) | VoteWeighted defines a method to add a weighted vote on a specific proposal. | |
+| `Deposit` | [MsgDeposit](#cosmos.gov.v1.MsgDeposit) | [MsgDepositResponse](#cosmos.gov.v1.MsgDepositResponse) | Deposit defines a method to add deposit on a specific proposal. | |
+
+ <!-- end services -->
+
+
+
 <a name="cosmos/gov/v1beta1/gov.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -5103,7 +8902,7 @@ Proposal defines the core field members of a governance proposal.
 | `proposal_id` | [uint64](#uint64) |  |  |
 | `content` | [google.protobuf.Any](#google.protobuf.Any) |  |  |
 | `status` | [ProposalStatus](#cosmos.gov.v1beta1.ProposalStatus) |  |  |
-| `final_tally_result` | [TallyResult](#cosmos.gov.v1beta1.TallyResult) |  |  |
+| `final_tally_result` | [TallyResult](#cosmos.gov.v1beta1.TallyResult) |  | final_tally_result is the final tally result of the proposal. When querying a proposal via gRPC, this field is not populated until the proposal's voting period has ended. |
 | `submit_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 | `deposit_end_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 | `total_deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
@@ -5228,7 +9027,7 @@ ProposalStatus enumerates the valid statuses of a proposal.
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| PROPOSAL_STATUS_UNSPECIFIED | 0 | PROPOSAL_STATUS_UNSPECIFIED defines the default propopsal status. |
+| PROPOSAL_STATUS_UNSPECIFIED | 0 | PROPOSAL_STATUS_UNSPECIFIED defines the default proposal status. |
 | PROPOSAL_STATUS_DEPOSIT_PERIOD | 1 | PROPOSAL_STATUS_DEPOSIT_PERIOD defines a proposal status during the deposit period. |
 | PROPOSAL_STATUS_VOTING_PERIOD | 2 | PROPOSAL_STATUS_VOTING_PERIOD defines a proposal status during the voting period. |
 | PROPOSAL_STATUS_PASSED | 3 | PROPOSAL_STATUS_PASSED defines a proposal status of a proposal that has passed. |
@@ -5502,7 +9301,7 @@ QueryVoteRequest is the request type for the Query/Vote RPC method.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `proposal_id` | [uint64](#uint64) |  | proposal_id defines the unique id of the proposal. |
-| `voter` | [string](#string) |  | voter defines the oter address for the proposals. |
+| `voter` | [string](#string) |  | voter defines the voter address for the proposals. |
 
 
 
@@ -5731,6 +9530,1385 @@ Since: cosmos-sdk 0.43 | |
 
 
 
+<a name="cosmos/group/v1/types.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/group/v1/types.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.group.v1.DecisionPolicyWindows"></a>
+
+### DecisionPolicyWindows
+DecisionPolicyWindows defines the different windows for voting and execution.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `voting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | voting_period is the duration from submission of a proposal to the end of voting period Within this times votes can be submitted with MsgVote. |
+| `min_execution_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  | min_execution_period is the minimum duration after the proposal submission where members can start sending MsgExec. This means that the window for sending a MsgExec transaction is: `[ submission + min_execution_period ; submission + voting_period + max_execution_period]` where max_execution_period is a app-specific config, defined in the keeper. If not set, min_execution_period will default to 0.
+
+Please make sure to set a `min_execution_period` that is smaller than `voting_period + max_execution_period`, or else the above execution window is empty, meaning that all proposals created with this decision policy won't be able to be executed. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.GroupInfo"></a>
+
+### GroupInfo
+GroupInfo represents the high-level on-chain information for a group.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  | id is the unique ID of the group. |
+| `admin` | [string](#string) |  | admin is the account address of the group's admin. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata to attached to the group. |
+| `version` | [uint64](#uint64) |  | version is used to track changes to a group's membership structure that would break existing proposals. Whenever any members weight is changed, or any member is added or removed this version is incremented and will cause proposals based on older versions of this group to fail |
+| `total_weight` | [string](#string) |  | total_weight is the sum of the group members' weights. |
+| `created_at` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | created_at is a timestamp specifying when a group was created. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.GroupMember"></a>
+
+### GroupMember
+GroupMember represents the relationship between a group and a member.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+| `member` | [Member](#cosmos.group.v1.Member) |  | member is the member data. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.GroupPolicyInfo"></a>
+
+### GroupPolicyInfo
+GroupPolicyInfo represents the high-level on-chain information for a group policy.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the account address of group policy. |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+| `admin` | [string](#string) |  | admin is the account address of the group admin. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata to attached to the group policy. |
+| `version` | [uint64](#uint64) |  | version is used to track changes to a group's GroupPolicyInfo structure that would create a different result on a running proposal. |
+| `decision_policy` | [google.protobuf.Any](#google.protobuf.Any) |  | decision_policy specifies the group policy's decision policy. |
+| `created_at` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | created_at is a timestamp specifying when a group policy was created. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.Member"></a>
+
+### Member
+Member represents a group member with an account address,
+non-zero weight, metadata and added_at timestamp.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the member's account address. |
+| `weight` | [string](#string) |  | weight is the member's voting weight that should be greater than 0. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata attached to the member. |
+| `added_at` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | added_at is a timestamp specifying when a member was added. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MemberRequest"></a>
+
+### MemberRequest
+MemberRequest represents a group member to be used in Msg server requests.
+Contrary to `Member`, it doesn't have any `added_at` field
+since this field cannot be set as part of requests.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the member's account address. |
+| `weight` | [string](#string) |  | weight is the member's voting weight that should be greater than 0. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata attached to the member. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.PercentageDecisionPolicy"></a>
+
+### PercentageDecisionPolicy
+PercentageDecisionPolicy is a decision policy where a proposal passes when
+it satisfies the two following conditions:
+1. The percentage of all `YES` voters' weights out of the total group weight
+   is greater or equal than the given `percentage`.
+2. The voting and execution periods of the proposal respect the parameters
+   given by `windows`.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `percentage` | [string](#string) |  | percentage is the minimum percentage the weighted sum of `YES` votes must meet for a proposal to succeed. |
+| `windows` | [DecisionPolicyWindows](#cosmos.group.v1.DecisionPolicyWindows) |  | windows defines the different windows for voting and execution. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.Proposal"></a>
+
+### Proposal
+Proposal defines a group proposal. Any member of a group can submit a proposal
+for a group policy to decide upon.
+A proposal consists of a set of `sdk.Msg`s that will be executed if the proposal
+passes as well as some optional metadata associated with the proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint64](#uint64) |  | id is the unique id of the proposal. |
+| `group_policy_address` | [string](#string) |  | group_policy_address is the account address of group policy. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata to attached to the proposal. |
+| `proposers` | [string](#string) | repeated | proposers are the account addresses of the proposers. |
+| `submit_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | submit_time is a timestamp specifying when a proposal was submitted. |
+| `group_version` | [uint64](#uint64) |  | group_version tracks the version of the group at proposal submission. This field is here for informational purposes only. |
+| `group_policy_version` | [uint64](#uint64) |  | group_policy_version tracks the version of the group policy at proposal submission. When a decision policy is changed, existing proposals from previous policy versions will become invalid with the `ABORTED` status. This field is here for informational purposes only. |
+| `status` | [ProposalStatus](#cosmos.group.v1.ProposalStatus) |  | status represents the high level position in the life cycle of the proposal. Initial value is Submitted. |
+| `final_tally_result` | [TallyResult](#cosmos.group.v1.TallyResult) |  | final_tally_result contains the sums of all weighted votes for this proposal for each vote option. It is empty at submission, and only populated after tallying, at voting period end or at proposal execution, whichever happens first. |
+| `voting_period_end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | voting_period_end is the timestamp before which voting must be done. Unless a successfull MsgExec is called before (to execute a proposal whose tally is successful before the voting period ends), tallying will be done at this point, and the `final_tally_result`and `status` fields will be accordingly updated. |
+| `executor_result` | [ProposalExecutorResult](#cosmos.group.v1.ProposalExecutorResult) |  | executor_result is the final result of the proposal execution. Initial value is NotRun. |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated | messages is a list of `sdk.Msg`s that will be executed if the proposal passes. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.TallyResult"></a>
+
+### TallyResult
+TallyResult represents the sum of weighted votes for each vote option.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `yes_count` | [string](#string) |  | yes_count is the weighted sum of yes votes. |
+| `abstain_count` | [string](#string) |  | abstain_count is the weighted sum of abstainers. |
+| `no_count` | [string](#string) |  | no_count is the weighted sum of no votes. |
+| `no_with_veto_count` | [string](#string) |  | no_with_veto_count is the weighted sum of veto. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.ThresholdDecisionPolicy"></a>
+
+### ThresholdDecisionPolicy
+ThresholdDecisionPolicy is a decision policy where a proposal passes when it
+satisfies the two following conditions:
+1. The sum of all `YES` voters' weights is greater or equal than the defined
+   `threshold`.
+2. The voting and execution periods of the proposal respect the parameters
+   given by `windows`.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `threshold` | [string](#string) |  | threshold is the minimum weighted sum of `YES` votes that must be met or exceeded for a proposal to succeed. |
+| `windows` | [DecisionPolicyWindows](#cosmos.group.v1.DecisionPolicyWindows) |  | windows defines the different windows for voting and execution. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.Vote"></a>
+
+### Vote
+Vote represents a vote for a proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal is the unique ID of the proposal. |
+| `voter` | [string](#string) |  | voter is the account address of the voter. |
+| `option` | [VoteOption](#cosmos.group.v1.VoteOption) |  | option is the voter's choice on the proposal. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata to attached to the vote. |
+| `submit_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | submit_time is the timestamp when the vote was submitted. |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="cosmos.group.v1.ProposalExecutorResult"></a>
+
+### ProposalExecutorResult
+ProposalExecutorResult defines types of proposal executor results.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| PROPOSAL_EXECUTOR_RESULT_UNSPECIFIED | 0 | An empty value is not allowed. |
+| PROPOSAL_EXECUTOR_RESULT_NOT_RUN | 1 | We have not yet run the executor. |
+| PROPOSAL_EXECUTOR_RESULT_SUCCESS | 2 | The executor was successful and proposed action updated state. |
+| PROPOSAL_EXECUTOR_RESULT_FAILURE | 3 | The executor returned an error and proposed action didn't update state. |
+
+
+
+<a name="cosmos.group.v1.ProposalStatus"></a>
+
+### ProposalStatus
+ProposalStatus defines proposal statuses.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| PROPOSAL_STATUS_UNSPECIFIED | 0 | An empty value is invalid and not allowed. |
+| PROPOSAL_STATUS_SUBMITTED | 1 | Initial status of a proposal when submitted. |
+| PROPOSAL_STATUS_ACCEPTED | 2 | Final status of a proposal when the final tally is done and the outcome passes the group policy's decision policy. |
+| PROPOSAL_STATUS_REJECTED | 3 | Final status of a proposal when the final tally is done and the outcome is rejected by the group policy's decision policy. |
+| PROPOSAL_STATUS_ABORTED | 4 | Final status of a proposal when the group policy is modified before the final tally. |
+| PROPOSAL_STATUS_WITHDRAWN | 5 | A proposal can be withdrawn before the voting start time by the owner. When this happens the final status is Withdrawn. |
+
+
+
+<a name="cosmos.group.v1.VoteOption"></a>
+
+### VoteOption
+VoteOption enumerates the valid vote options for a given proposal.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| VOTE_OPTION_UNSPECIFIED | 0 | VOTE_OPTION_UNSPECIFIED defines an unspecified vote option which will return an error. |
+| VOTE_OPTION_YES | 1 | VOTE_OPTION_YES defines a yes vote option. |
+| VOTE_OPTION_ABSTAIN | 2 | VOTE_OPTION_ABSTAIN defines an abstain vote option. |
+| VOTE_OPTION_NO | 3 | VOTE_OPTION_NO defines a no vote option. |
+| VOTE_OPTION_NO_WITH_VETO | 4 | VOTE_OPTION_NO_WITH_VETO defines a no with veto vote option. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/group/v1/events.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/group/v1/events.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.group.v1.EventCreateGroup"></a>
+
+### EventCreateGroup
+EventCreateGroup is an event emitted when a group is created.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.EventCreateGroupPolicy"></a>
+
+### EventCreateGroupPolicy
+EventCreateGroupPolicy is an event emitted when a group policy is created.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the account address of the group policy. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.EventExec"></a>
+
+### EventExec
+EventExec is an event emitted when a proposal is executed.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id is the unique ID of the proposal. |
+| `result` | [ProposalExecutorResult](#cosmos.group.v1.ProposalExecutorResult) |  | result is the proposal execution result. |
+| `logs` | [string](#string) |  | logs contains error logs in case the execution result is FAILURE. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.EventLeaveGroup"></a>
+
+### EventLeaveGroup
+EventLeaveGroup is an event emitted when group member leaves the group.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+| `address` | [string](#string) |  | address is the account address of the group member. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.EventSubmitProposal"></a>
+
+### EventSubmitProposal
+EventSubmitProposal is an event emitted when a proposal is created.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id is the unique ID of the proposal. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.EventUpdateGroup"></a>
+
+### EventUpdateGroup
+EventUpdateGroup is an event emitted when a group is updated.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.EventUpdateGroupPolicy"></a>
+
+### EventUpdateGroupPolicy
+EventUpdateGroupPolicy is an event emitted when a group policy is updated.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the account address of the group policy. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.EventVote"></a>
+
+### EventVote
+EventVote is an event emitted when a voter votes on a proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id is the unique ID of the proposal. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.EventWithdrawProposal"></a>
+
+### EventWithdrawProposal
+EventWithdrawProposal is an event emitted when a proposal is withdrawn.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id is the unique ID of the proposal. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/group/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/group/v1/genesis.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.group.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the group module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_seq` | [uint64](#uint64) |  | group_seq is the group table orm.Sequence, it is used to get the next group ID. |
+| `groups` | [GroupInfo](#cosmos.group.v1.GroupInfo) | repeated | groups is the list of groups info. |
+| `group_members` | [GroupMember](#cosmos.group.v1.GroupMember) | repeated | group_members is the list of groups members. |
+| `group_policy_seq` | [uint64](#uint64) |  | group_policy_seq is the group policy table orm.Sequence, it is used to generate the next group policy account address. |
+| `group_policies` | [GroupPolicyInfo](#cosmos.group.v1.GroupPolicyInfo) | repeated | group_policies is the list of group policies info. |
+| `proposal_seq` | [uint64](#uint64) |  | proposal_seq is the proposal table orm.Sequence, it is used to get the next proposal ID. |
+| `proposals` | [Proposal](#cosmos.group.v1.Proposal) | repeated | proposals is the list of proposals. |
+| `votes` | [Vote](#cosmos.group.v1.Vote) | repeated | votes is the list of votes. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/group/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/group/v1/query.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.group.v1.QueryGroupInfoRequest"></a>
+
+### QueryGroupInfoRequest
+QueryGroupInfoRequest is the Query/GroupInfo request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupInfoResponse"></a>
+
+### QueryGroupInfoResponse
+QueryGroupInfoResponse is the Query/GroupInfo response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `info` | [GroupInfo](#cosmos.group.v1.GroupInfo) |  | info is the GroupInfo for the group. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupMembersRequest"></a>
+
+### QueryGroupMembersRequest
+QueryGroupMembersRequest is the Query/GroupMembers request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupMembersResponse"></a>
+
+### QueryGroupMembersResponse
+QueryGroupMembersResponse is the Query/GroupMembersResponse response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `members` | [GroupMember](#cosmos.group.v1.GroupMember) | repeated | members are the members of the group with given group_id. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupPoliciesByAdminRequest"></a>
+
+### QueryGroupPoliciesByAdminRequest
+QueryGroupPoliciesByAdminRequest is the Query/GroupPoliciesByAdmin request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the admin address of the group policy. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupPoliciesByAdminResponse"></a>
+
+### QueryGroupPoliciesByAdminResponse
+QueryGroupPoliciesByAdminResponse is the Query/GroupPoliciesByAdmin response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_policies` | [GroupPolicyInfo](#cosmos.group.v1.GroupPolicyInfo) | repeated | group_policies are the group policies info with provided admin. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupPoliciesByGroupRequest"></a>
+
+### QueryGroupPoliciesByGroupRequest
+QueryGroupPoliciesByGroupRequest is the Query/GroupPoliciesByGroup request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group policy's group. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupPoliciesByGroupResponse"></a>
+
+### QueryGroupPoliciesByGroupResponse
+QueryGroupPoliciesByGroupResponse is the Query/GroupPoliciesByGroup response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_policies` | [GroupPolicyInfo](#cosmos.group.v1.GroupPolicyInfo) | repeated | group_policies are the group policies info associated with the provided group. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupPolicyInfoRequest"></a>
+
+### QueryGroupPolicyInfoRequest
+QueryGroupPolicyInfoRequest is the Query/GroupPolicyInfo request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the account address of the group policy. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupPolicyInfoResponse"></a>
+
+### QueryGroupPolicyInfoResponse
+QueryGroupPolicyInfoResponse is the Query/GroupPolicyInfo response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `info` | [GroupPolicyInfo](#cosmos.group.v1.GroupPolicyInfo) |  | info is the GroupPolicyInfo for the group policy. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupsByAdminRequest"></a>
+
+### QueryGroupsByAdminRequest
+QueryGroupsByAdminRequest is the Query/GroupsByAdmin request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the account address of a group's admin. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupsByAdminResponse"></a>
+
+### QueryGroupsByAdminResponse
+QueryGroupsByAdminResponse is the Query/GroupsByAdminResponse response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `groups` | [GroupInfo](#cosmos.group.v1.GroupInfo) | repeated | groups are the groups info with the provided admin. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupsByMemberRequest"></a>
+
+### QueryGroupsByMemberRequest
+QueryGroupsByMemberRequest is the Query/GroupsByMember request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the group member address. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryGroupsByMemberResponse"></a>
+
+### QueryGroupsByMemberResponse
+QueryGroupsByMemberResponse is the Query/GroupsByMember response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `groups` | [GroupInfo](#cosmos.group.v1.GroupInfo) | repeated | groups are the groups info with the provided group member. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryProposalRequest"></a>
+
+### QueryProposalRequest
+QueryProposalRequest is the Query/Proposal request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id is the unique ID of a proposal. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryProposalResponse"></a>
+
+### QueryProposalResponse
+QueryProposalResponse is the Query/Proposal response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal` | [Proposal](#cosmos.group.v1.Proposal) |  | proposal is the proposal info. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryProposalsByGroupPolicyRequest"></a>
+
+### QueryProposalsByGroupPolicyRequest
+QueryProposalsByGroupPolicyRequest is the Query/ProposalByGroupPolicy request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the account address of the group policy related to proposals. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryProposalsByGroupPolicyResponse"></a>
+
+### QueryProposalsByGroupPolicyResponse
+QueryProposalsByGroupPolicyResponse is the Query/ProposalByGroupPolicy response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposals` | [Proposal](#cosmos.group.v1.Proposal) | repeated | proposals are the proposals with given group policy. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryTallyResultRequest"></a>
+
+### QueryTallyResultRequest
+QueryTallyResultRequest is the Query/TallyResult request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id is the unique id of a proposal. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryTallyResultResponse"></a>
+
+### QueryTallyResultResponse
+QueryTallyResultResponse is the Query/TallyResult response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `tally` | [TallyResult](#cosmos.group.v1.TallyResult) |  | tally defines the requested tally. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryVoteByProposalVoterRequest"></a>
+
+### QueryVoteByProposalVoterRequest
+QueryVoteByProposalVoterRequest is the Query/VoteByProposalVoter request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id is the unique ID of a proposal. |
+| `voter` | [string](#string) |  | voter is a proposal voter account address. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryVoteByProposalVoterResponse"></a>
+
+### QueryVoteByProposalVoterResponse
+QueryVoteByProposalVoterResponse is the Query/VoteByProposalVoter response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vote` | [Vote](#cosmos.group.v1.Vote) |  | vote is the vote with given proposal_id and voter. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryVotesByProposalRequest"></a>
+
+### QueryVotesByProposalRequest
+QueryVotesByProposalRequest is the Query/VotesByProposal request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal_id is the unique ID of a proposal. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryVotesByProposalResponse"></a>
+
+### QueryVotesByProposalResponse
+QueryVotesByProposalResponse is the Query/VotesByProposal response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `votes` | [Vote](#cosmos.group.v1.Vote) | repeated | votes are the list of votes for given proposal_id. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryVotesByVoterRequest"></a>
+
+### QueryVotesByVoterRequest
+QueryVotesByVoterRequest is the Query/VotesByVoter request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `voter` | [string](#string) |  | voter is a proposal voter account address. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.QueryVotesByVoterResponse"></a>
+
+### QueryVotesByVoterResponse
+QueryVotesByVoterResponse is the Query/VotesByVoter response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `votes` | [Vote](#cosmos.group.v1.Vote) | repeated | votes are the list of votes by given voter. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="cosmos.group.v1.Query"></a>
+
+### Query
+Query is the cosmos.group.v1 Query service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `GroupInfo` | [QueryGroupInfoRequest](#cosmos.group.v1.QueryGroupInfoRequest) | [QueryGroupInfoResponse](#cosmos.group.v1.QueryGroupInfoResponse) | GroupInfo queries group info based on group id. | GET|/cosmos/group/v1/group_info/{group_id}|
+| `GroupPolicyInfo` | [QueryGroupPolicyInfoRequest](#cosmos.group.v1.QueryGroupPolicyInfoRequest) | [QueryGroupPolicyInfoResponse](#cosmos.group.v1.QueryGroupPolicyInfoResponse) | GroupPolicyInfo queries group policy info based on account address of group policy. | GET|/cosmos/group/v1/group_policy_info/{address}|
+| `GroupMembers` | [QueryGroupMembersRequest](#cosmos.group.v1.QueryGroupMembersRequest) | [QueryGroupMembersResponse](#cosmos.group.v1.QueryGroupMembersResponse) | GroupMembers queries members of a group | GET|/cosmos/group/v1/group_members/{group_id}|
+| `GroupsByAdmin` | [QueryGroupsByAdminRequest](#cosmos.group.v1.QueryGroupsByAdminRequest) | [QueryGroupsByAdminResponse](#cosmos.group.v1.QueryGroupsByAdminResponse) | GroupsByAdmin queries groups by admin address. | GET|/cosmos/group/v1/groups_by_admin/{admin}|
+| `GroupPoliciesByGroup` | [QueryGroupPoliciesByGroupRequest](#cosmos.group.v1.QueryGroupPoliciesByGroupRequest) | [QueryGroupPoliciesByGroupResponse](#cosmos.group.v1.QueryGroupPoliciesByGroupResponse) | GroupPoliciesByGroup queries group policies by group id. | GET|/cosmos/group/v1/group_policies_by_group/{group_id}|
+| `GroupPoliciesByAdmin` | [QueryGroupPoliciesByAdminRequest](#cosmos.group.v1.QueryGroupPoliciesByAdminRequest) | [QueryGroupPoliciesByAdminResponse](#cosmos.group.v1.QueryGroupPoliciesByAdminResponse) | GroupsByAdmin queries group policies by admin address. | GET|/cosmos/group/v1/group_policies_by_admin/{admin}|
+| `Proposal` | [QueryProposalRequest](#cosmos.group.v1.QueryProposalRequest) | [QueryProposalResponse](#cosmos.group.v1.QueryProposalResponse) | Proposal queries a proposal based on proposal id. | GET|/cosmos/group/v1/proposal/{proposal_id}|
+| `ProposalsByGroupPolicy` | [QueryProposalsByGroupPolicyRequest](#cosmos.group.v1.QueryProposalsByGroupPolicyRequest) | [QueryProposalsByGroupPolicyResponse](#cosmos.group.v1.QueryProposalsByGroupPolicyResponse) | ProposalsByGroupPolicy queries proposals based on account address of group policy. | GET|/cosmos/group/v1/proposals_by_group_policy/{address}|
+| `VoteByProposalVoter` | [QueryVoteByProposalVoterRequest](#cosmos.group.v1.QueryVoteByProposalVoterRequest) | [QueryVoteByProposalVoterResponse](#cosmos.group.v1.QueryVoteByProposalVoterResponse) | VoteByProposalVoter queries a vote by proposal id and voter. | GET|/cosmos/group/v1/vote_by_proposal_voter/{proposal_id}/{voter}|
+| `VotesByProposal` | [QueryVotesByProposalRequest](#cosmos.group.v1.QueryVotesByProposalRequest) | [QueryVotesByProposalResponse](#cosmos.group.v1.QueryVotesByProposalResponse) | VotesByProposal queries a vote by proposal. | GET|/cosmos/group/v1/votes_by_proposal/{proposal_id}|
+| `VotesByVoter` | [QueryVotesByVoterRequest](#cosmos.group.v1.QueryVotesByVoterRequest) | [QueryVotesByVoterResponse](#cosmos.group.v1.QueryVotesByVoterResponse) | VotesByVoter queries a vote by voter. | GET|/cosmos/group/v1/votes_by_voter/{voter}|
+| `GroupsByMember` | [QueryGroupsByMemberRequest](#cosmos.group.v1.QueryGroupsByMemberRequest) | [QueryGroupsByMemberResponse](#cosmos.group.v1.QueryGroupsByMemberResponse) | GroupsByMember queries groups by member address. | GET|/cosmos/group/v1/groups_by_member/{address}|
+| `TallyResult` | [QueryTallyResultRequest](#cosmos.group.v1.QueryTallyResultRequest) | [QueryTallyResultResponse](#cosmos.group.v1.QueryTallyResultResponse) | TallyResult returns the tally result of a proposal. If the proposal is still in voting period, then this query computes the current tally state, which might not be final. On the other hand, if the proposal is final, then it simply returns the `final_tally_result` state stored in the proposal itself. | GET|/cosmos/group/v1/proposals/{proposal_id}/tally|
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/group/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/group/v1/tx.proto
+Since: cosmos-sdk 0.46
+
+
+<a name="cosmos.group.v1.MsgCreateGroup"></a>
+
+### MsgCreateGroup
+MsgCreateGroup is the Msg/CreateGroup request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the account address of the group admin. |
+| `members` | [MemberRequest](#cosmos.group.v1.MemberRequest) | repeated | members defines the group members. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata to attached to the group. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgCreateGroupPolicy"></a>
+
+### MsgCreateGroupPolicy
+MsgCreateGroupPolicy is the Msg/CreateGroupPolicy request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the account address of the group admin. |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata attached to the group policy. |
+| `decision_policy` | [google.protobuf.Any](#google.protobuf.Any) |  | decision_policy specifies the group policy's decision policy. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgCreateGroupPolicyResponse"></a>
+
+### MsgCreateGroupPolicyResponse
+MsgCreateGroupPolicyResponse is the Msg/CreateGroupPolicy response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the account address of the newly created group policy. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgCreateGroupResponse"></a>
+
+### MsgCreateGroupResponse
+MsgCreateGroupResponse is the Msg/CreateGroup response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the newly created group. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgCreateGroupWithPolicy"></a>
+
+### MsgCreateGroupWithPolicy
+MsgCreateGroupWithPolicy is the Msg/CreateGroupWithPolicy request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the account address of the group and group policy admin. |
+| `members` | [MemberRequest](#cosmos.group.v1.MemberRequest) | repeated | members defines the group members. |
+| `group_metadata` | [string](#string) |  | group_metadata is any arbitrary metadata attached to the group. |
+| `group_policy_metadata` | [string](#string) |  | group_policy_metadata is any arbitrary metadata attached to the group policy. |
+| `group_policy_as_admin` | [bool](#bool) |  | group_policy_as_admin is a boolean field, if set to true, the group policy account address will be used as group and group policy admin. |
+| `decision_policy` | [google.protobuf.Any](#google.protobuf.Any) |  | decision_policy specifies the group policy's decision policy. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgCreateGroupWithPolicyResponse"></a>
+
+### MsgCreateGroupWithPolicyResponse
+MsgCreateGroupWithPolicyResponse is the Msg/CreateGroupWithPolicy response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the newly created group with policy. |
+| `group_policy_address` | [string](#string) |  | group_policy_address is the account address of the newly created group policy. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgExec"></a>
+
+### MsgExec
+MsgExec is the Msg/Exec request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal is the unique ID of the proposal. |
+| `executor` | [string](#string) |  | executor is the account address used to execute the proposal. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgExecResponse"></a>
+
+### MsgExecResponse
+MsgExecResponse is the Msg/Exec request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `result` | [ProposalExecutorResult](#cosmos.group.v1.ProposalExecutorResult) |  | result is the final result of the proposal execution. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgLeaveGroup"></a>
+
+### MsgLeaveGroup
+MsgLeaveGroup is the Msg/LeaveGroup request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the account address of the group member. |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgLeaveGroupResponse"></a>
+
+### MsgLeaveGroupResponse
+MsgLeaveGroupResponse is the Msg/LeaveGroup response type.
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgSubmitProposal"></a>
+
+### MsgSubmitProposal
+MsgSubmitProposal is the Msg/SubmitProposal request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `group_policy_address` | [string](#string) |  | group_policy_address is the account address of group policy. |
+| `proposers` | [string](#string) | repeated | proposers are the account addresses of the proposers. Proposers signatures will be counted as yes votes. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata to attached to the proposal. |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated | messages is a list of `sdk.Msg`s that will be executed if the proposal passes. |
+| `exec` | [Exec](#cosmos.group.v1.Exec) |  | exec defines the mode of execution of the proposal, whether it should be executed immediately on creation or not. If so, proposers signatures are considered as Yes votes. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgSubmitProposalResponse"></a>
+
+### MsgSubmitProposalResponse
+MsgSubmitProposalResponse is the Msg/SubmitProposal response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal is the unique ID of the proposal. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupAdmin"></a>
+
+### MsgUpdateGroupAdmin
+MsgUpdateGroupAdmin is the Msg/UpdateGroupAdmin request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the current account address of the group admin. |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+| `new_admin` | [string](#string) |  | new_admin is the group new admin account address. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupAdminResponse"></a>
+
+### MsgUpdateGroupAdminResponse
+MsgUpdateGroupAdminResponse is the Msg/UpdateGroupAdmin response type.
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupMembers"></a>
+
+### MsgUpdateGroupMembers
+MsgUpdateGroupMembers is the Msg/UpdateGroupMembers request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the account address of the group admin. |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+| `member_updates` | [MemberRequest](#cosmos.group.v1.MemberRequest) | repeated | member_updates is the list of members to update, set weight to 0 to remove a member. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupMembersResponse"></a>
+
+### MsgUpdateGroupMembersResponse
+MsgUpdateGroupMembersResponse is the Msg/UpdateGroupMembers response type.
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupMetadata"></a>
+
+### MsgUpdateGroupMetadata
+MsgUpdateGroupMetadata is the Msg/UpdateGroupMetadata request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the account address of the group admin. |
+| `group_id` | [uint64](#uint64) |  | group_id is the unique ID of the group. |
+| `metadata` | [string](#string) |  | metadata is the updated group's metadata. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupMetadataResponse"></a>
+
+### MsgUpdateGroupMetadataResponse
+MsgUpdateGroupMetadataResponse is the Msg/UpdateGroupMetadata response type.
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupPolicyAdmin"></a>
+
+### MsgUpdateGroupPolicyAdmin
+MsgUpdateGroupPolicyAdmin is the Msg/UpdateGroupPolicyAdmin request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the account address of the group admin. |
+| `group_policy_address` | [string](#string) |  | group_policy_address is the account address of the group policy. |
+| `new_admin` | [string](#string) |  | new_admin is the new group policy admin. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupPolicyAdminResponse"></a>
+
+### MsgUpdateGroupPolicyAdminResponse
+MsgUpdateGroupPolicyAdminResponse is the Msg/UpdateGroupPolicyAdmin response type.
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupPolicyDecisionPolicy"></a>
+
+### MsgUpdateGroupPolicyDecisionPolicy
+MsgUpdateGroupPolicyDecisionPolicy is the Msg/UpdateGroupPolicyDecisionPolicy request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the account address of the group admin. |
+| `group_policy_address` | [string](#string) |  | group_policy_address is the account address of group policy. |
+| `decision_policy` | [google.protobuf.Any](#google.protobuf.Any) |  | decision_policy is the updated group policy's decision policy. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupPolicyDecisionPolicyResponse"></a>
+
+### MsgUpdateGroupPolicyDecisionPolicyResponse
+MsgUpdateGroupPolicyDecisionPolicyResponse is the Msg/UpdateGroupPolicyDecisionPolicy response type.
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupPolicyMetadata"></a>
+
+### MsgUpdateGroupPolicyMetadata
+MsgUpdateGroupPolicyMetadata is the Msg/UpdateGroupPolicyMetadata request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `admin` | [string](#string) |  | admin is the account address of the group admin. |
+| `group_policy_address` | [string](#string) |  | group_policy_address is the account address of group policy. |
+| `metadata` | [string](#string) |  | metadata is the updated group policy metadata. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgUpdateGroupPolicyMetadataResponse"></a>
+
+### MsgUpdateGroupPolicyMetadataResponse
+MsgUpdateGroupPolicyMetadataResponse is the Msg/UpdateGroupPolicyMetadata response type.
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgVote"></a>
+
+### MsgVote
+MsgVote is the Msg/Vote request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal is the unique ID of the proposal. |
+| `voter` | [string](#string) |  | voter is the voter account address. |
+| `option` | [VoteOption](#cosmos.group.v1.VoteOption) |  | option is the voter's choice on the proposal. |
+| `metadata` | [string](#string) |  | metadata is any arbitrary metadata to attached to the vote. |
+| `exec` | [Exec](#cosmos.group.v1.Exec) |  | exec defines whether the proposal should be executed immediately after voting or not. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgVoteResponse"></a>
+
+### MsgVoteResponse
+MsgVoteResponse is the Msg/Vote response type.
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgWithdrawProposal"></a>
+
+### MsgWithdrawProposal
+MsgWithdrawProposal is the Msg/WithdrawProposal request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `proposal_id` | [uint64](#uint64) |  | proposal is the unique ID of the proposal. |
+| `address` | [string](#string) |  | address is the admin of the group policy or one of the proposer of the proposal. |
+
+
+
+
+
+
+<a name="cosmos.group.v1.MsgWithdrawProposalResponse"></a>
+
+### MsgWithdrawProposalResponse
+MsgWithdrawProposalResponse is the Msg/WithdrawProposal response type.
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="cosmos.group.v1.Exec"></a>
+
+### Exec
+Exec defines modes of execution of a proposal on creation or on new vote.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| EXEC_UNSPECIFIED | 0 | An empty value means that there should be a separate MsgExec request for the proposal to execute. |
+| EXEC_TRY | 1 | Try to execute the proposal immediately. If the proposal is not allowed per the DecisionPolicy, the proposal will still be open and could be executed at a later point. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="cosmos.group.v1.Msg"></a>
+
+### Msg
+Msg is the cosmos.group.v1 Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `CreateGroup` | [MsgCreateGroup](#cosmos.group.v1.MsgCreateGroup) | [MsgCreateGroupResponse](#cosmos.group.v1.MsgCreateGroupResponse) | CreateGroup creates a new group with an admin account address, a list of members and some optional metadata. | |
+| `UpdateGroupMembers` | [MsgUpdateGroupMembers](#cosmos.group.v1.MsgUpdateGroupMembers) | [MsgUpdateGroupMembersResponse](#cosmos.group.v1.MsgUpdateGroupMembersResponse) | UpdateGroupMembers updates the group members with given group id and admin address. | |
+| `UpdateGroupAdmin` | [MsgUpdateGroupAdmin](#cosmos.group.v1.MsgUpdateGroupAdmin) | [MsgUpdateGroupAdminResponse](#cosmos.group.v1.MsgUpdateGroupAdminResponse) | UpdateGroupAdmin updates the group admin with given group id and previous admin address. | |
+| `UpdateGroupMetadata` | [MsgUpdateGroupMetadata](#cosmos.group.v1.MsgUpdateGroupMetadata) | [MsgUpdateGroupMetadataResponse](#cosmos.group.v1.MsgUpdateGroupMetadataResponse) | UpdateGroupMetadata updates the group metadata with given group id and admin address. | |
+| `CreateGroupPolicy` | [MsgCreateGroupPolicy](#cosmos.group.v1.MsgCreateGroupPolicy) | [MsgCreateGroupPolicyResponse](#cosmos.group.v1.MsgCreateGroupPolicyResponse) | CreateGroupPolicy creates a new group policy using given DecisionPolicy. | |
+| `CreateGroupWithPolicy` | [MsgCreateGroupWithPolicy](#cosmos.group.v1.MsgCreateGroupWithPolicy) | [MsgCreateGroupWithPolicyResponse](#cosmos.group.v1.MsgCreateGroupWithPolicyResponse) | CreateGroupWithPolicy creates a new group with policy. | |
+| `UpdateGroupPolicyAdmin` | [MsgUpdateGroupPolicyAdmin](#cosmos.group.v1.MsgUpdateGroupPolicyAdmin) | [MsgUpdateGroupPolicyAdminResponse](#cosmos.group.v1.MsgUpdateGroupPolicyAdminResponse) | UpdateGroupPolicyAdmin updates a group policy admin. | |
+| `UpdateGroupPolicyDecisionPolicy` | [MsgUpdateGroupPolicyDecisionPolicy](#cosmos.group.v1.MsgUpdateGroupPolicyDecisionPolicy) | [MsgUpdateGroupPolicyDecisionPolicyResponse](#cosmos.group.v1.MsgUpdateGroupPolicyDecisionPolicyResponse) | UpdateGroupPolicyDecisionPolicy allows a group policy's decision policy to be updated. | |
+| `UpdateGroupPolicyMetadata` | [MsgUpdateGroupPolicyMetadata](#cosmos.group.v1.MsgUpdateGroupPolicyMetadata) | [MsgUpdateGroupPolicyMetadataResponse](#cosmos.group.v1.MsgUpdateGroupPolicyMetadataResponse) | UpdateGroupPolicyMetadata updates a group policy metadata. | |
+| `SubmitProposal` | [MsgSubmitProposal](#cosmos.group.v1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#cosmos.group.v1.MsgSubmitProposalResponse) | SubmitProposal submits a new proposal. | |
+| `WithdrawProposal` | [MsgWithdrawProposal](#cosmos.group.v1.MsgWithdrawProposal) | [MsgWithdrawProposalResponse](#cosmos.group.v1.MsgWithdrawProposalResponse) | WithdrawProposal withdraws a proposal. | |
+| `Vote` | [MsgVote](#cosmos.group.v1.MsgVote) | [MsgVoteResponse](#cosmos.group.v1.MsgVoteResponse) | Vote allows a voter to vote on a proposal. | |
+| `Exec` | [MsgExec](#cosmos.group.v1.MsgExec) | [MsgExecResponse](#cosmos.group.v1.MsgExecResponse) | Exec executes a proposal. | |
+| `LeaveGroup` | [MsgLeaveGroup](#cosmos.group.v1.MsgLeaveGroup) | [MsgLeaveGroupResponse](#cosmos.group.v1.MsgLeaveGroupResponse) | LeaveGroup allows a group member to leave the group. | |
+
+ <!-- end services -->
+
+
+
 <a name="cosmos/mint/v1beta1/mint.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -5921,6 +11099,677 @@ Query provides defines the gRPC querier service.
 
 
 
+<a name="cosmos/nft/v1beta1/event.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/nft/v1beta1/event.proto
+
+
+
+<a name="cosmos.nft.v1beta1.EventBurn"></a>
+
+### EventBurn
+EventBurn is emitted on Burn
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  |  |
+| `id` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.EventMint"></a>
+
+### EventMint
+EventMint is emitted on Mint
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  |  |
+| `id` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.EventSend"></a>
+
+### EventSend
+EventSend is emitted on Msg/Send
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  |  |
+| `id` | [string](#string) |  |  |
+| `sender` | [string](#string) |  |  |
+| `receiver` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/nft/v1beta1/nft.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/nft/v1beta1/nft.proto
+
+
+
+<a name="cosmos.nft.v1beta1.Class"></a>
+
+### Class
+Class defines the class of the nft type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [string](#string) |  | id defines the unique identifier of the NFT classification, similar to the contract address of ERC721 |
+| `name` | [string](#string) |  | name defines the human-readable name of the NFT classification. Optional |
+| `symbol` | [string](#string) |  | symbol is an abbreviated name for nft classification. Optional |
+| `description` | [string](#string) |  | description is a brief description of nft classification. Optional |
+| `uri` | [string](#string) |  | uri for the class metadata stored off chain. It can define schema for Class and NFT `Data` attributes. Optional |
+| `uri_hash` | [string](#string) |  | uri_hash is a hash of the document pointed by uri. Optional |
+| `data` | [google.protobuf.Any](#google.protobuf.Any) |  | data is the app specific metadata of the NFT class. Optional |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.NFT"></a>
+
+### NFT
+NFT defines the NFT.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  | class_id associated with the NFT, similar to the contract address of ERC721 |
+| `id` | [string](#string) |  | id is a unique identifier of the NFT |
+| `uri` | [string](#string) |  | uri for the NFT metadata stored off chain |
+| `uri_hash` | [string](#string) |  | uri_hash is a hash of the document pointed by uri |
+| `data` | [google.protobuf.Any](#google.protobuf.Any) |  | data is an app specific data of the NFT. Optional |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/nft/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/nft/v1beta1/genesis.proto
+
+
+
+<a name="cosmos.nft.v1beta1.Entry"></a>
+
+### Entry
+Entry Defines all nft owned by a person
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  | owner is the owner address of the following nft |
+| `nfts` | [NFT](#cosmos.nft.v1beta1.NFT) | repeated | nfts is a group of nfts of the same owner |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the nft module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `classes` | [Class](#cosmos.nft.v1beta1.Class) | repeated | class defines the class of the nft type. |
+| `entries` | [Entry](#cosmos.nft.v1beta1.Entry) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/nft/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/nft/v1beta1/query.proto
+
+
+
+<a name="cosmos.nft.v1beta1.QueryBalanceRequest"></a>
+
+### QueryBalanceRequest
+QueryBalanceRequest is the request type for the Query/Balance RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryBalanceResponse"></a>
+
+### QueryBalanceResponse
+QueryBalanceResponse is the response type for the Query/Balance RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryClassRequest"></a>
+
+### QueryClassRequest
+QueryClassRequest is the request type for the Query/Class RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryClassResponse"></a>
+
+### QueryClassResponse
+QueryClassResponse is the response type for the Query/Class RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class` | [Class](#cosmos.nft.v1beta1.Class) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryClassesRequest"></a>
+
+### QueryClassesRequest
+QueryClassesRequest is the request type for the Query/Classes RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryClassesResponse"></a>
+
+### QueryClassesResponse
+QueryClassesResponse is the response type for the Query/Classes RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `classes` | [Class](#cosmos.nft.v1beta1.Class) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryNFTRequest"></a>
+
+### QueryNFTRequest
+QueryNFTRequest is the request type for the Query/NFT RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  |  |
+| `id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryNFTResponse"></a>
+
+### QueryNFTResponse
+QueryNFTResponse is the response type for the Query/NFT RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `nft` | [NFT](#cosmos.nft.v1beta1.NFT) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryNFTsRequest"></a>
+
+### QueryNFTsRequest
+QueryNFTstRequest is the request type for the Query/NFTs RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  |  |
+| `owner` | [string](#string) |  |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryNFTsResponse"></a>
+
+### QueryNFTsResponse
+QueryNFTsResponse is the response type for the Query/NFTs RPC methods
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `nfts` | [NFT](#cosmos.nft.v1beta1.NFT) | repeated |  |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryOwnerRequest"></a>
+
+### QueryOwnerRequest
+QueryOwnerRequest is the request type for the Query/Owner RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  |  |
+| `id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QueryOwnerResponse"></a>
+
+### QueryOwnerResponse
+QueryOwnerResponse is the response type for the Query/Owner RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QuerySupplyRequest"></a>
+
+### QuerySupplyRequest
+QuerySupplyRequest is the request type for the Query/Supply RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.QuerySupplyResponse"></a>
+
+### QuerySupplyResponse
+QuerySupplyResponse is the response type for the Query/Supply RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [uint64](#uint64) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="cosmos.nft.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Balance` | [QueryBalanceRequest](#cosmos.nft.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#cosmos.nft.v1beta1.QueryBalanceResponse) | Balance queries the number of NFTs of a given class owned by the owner, same as balanceOf in ERC721 | GET|/cosmos/nft/v1beta1/balance/{owner}/{class_id}|
+| `Owner` | [QueryOwnerRequest](#cosmos.nft.v1beta1.QueryOwnerRequest) | [QueryOwnerResponse](#cosmos.nft.v1beta1.QueryOwnerResponse) | Owner queries the owner of the NFT based on its class and id, same as ownerOf in ERC721 | GET|/cosmos/nft/v1beta1/owner/{class_id}/{id}|
+| `Supply` | [QuerySupplyRequest](#cosmos.nft.v1beta1.QuerySupplyRequest) | [QuerySupplyResponse](#cosmos.nft.v1beta1.QuerySupplyResponse) | Supply queries the number of NFTs from the given class, same as totalSupply of ERC721. | GET|/cosmos/nft/v1beta1/supply/{class_id}|
+| `NFTs` | [QueryNFTsRequest](#cosmos.nft.v1beta1.QueryNFTsRequest) | [QueryNFTsResponse](#cosmos.nft.v1beta1.QueryNFTsResponse) | NFTs queries all NFTs of a given class or owner,choose at least one of the two, similar to tokenByIndex in ERC721Enumerable | GET|/cosmos/nft/v1beta1/nfts|
+| `NFT` | [QueryNFTRequest](#cosmos.nft.v1beta1.QueryNFTRequest) | [QueryNFTResponse](#cosmos.nft.v1beta1.QueryNFTResponse) | NFT queries an NFT based on its class and id. | GET|/cosmos/nft/v1beta1/nfts/{class_id}/{id}|
+| `Class` | [QueryClassRequest](#cosmos.nft.v1beta1.QueryClassRequest) | [QueryClassResponse](#cosmos.nft.v1beta1.QueryClassResponse) | Class queries an NFT class based on its id | GET|/cosmos/nft/v1beta1/classes/{class_id}|
+| `Classes` | [QueryClassesRequest](#cosmos.nft.v1beta1.QueryClassesRequest) | [QueryClassesResponse](#cosmos.nft.v1beta1.QueryClassesResponse) | Classes queries all NFT classes | GET|/cosmos/nft/v1beta1/classes|
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/nft/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/nft/v1beta1/tx.proto
+
+
+
+<a name="cosmos.nft.v1beta1.MsgSend"></a>
+
+### MsgSend
+MsgSend represents a message to send a nft from one account to another account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `class_id` | [string](#string) |  | class_id defines the unique identifier of the nft classification, similar to the contract address of ERC721 |
+| `id` | [string](#string) |  | id defines the unique identification of nft |
+| `sender` | [string](#string) |  | sender is the address of the owner of nft |
+| `receiver` | [string](#string) |  | receiver is the receiver address of nft |
+
+
+
+
+
+
+<a name="cosmos.nft.v1beta1.MsgSendResponse"></a>
+
+### MsgSendResponse
+MsgSendResponse defines the Msg/Send response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="cosmos.nft.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the nft Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Send` | [MsgSend](#cosmos.nft.v1beta1.MsgSend) | [MsgSendResponse](#cosmos.nft.v1beta1.MsgSendResponse) | Send defines a method to send a nft from one account to another account. | |
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/orm/module/v1alpha1/module.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/orm/module/v1alpha1/module.proto
+
+
+
+<a name="cosmos.orm.module.v1alpha1.Module"></a>
+
+### Module
+Module defines the ORM module which adds providers to the app container for
+module-scoped DB's. In the future it may provide gRPC services for interacting
+with ORM data.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/orm/v1/orm.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/orm/v1/orm.proto
+
+
+
+<a name="cosmos.orm.v1.PrimaryKeyDescriptor"></a>
+
+### PrimaryKeyDescriptor
+PrimaryKeyDescriptor describes a table primary key.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fields` | [string](#string) |  | fields is a comma-separated list of fields in the primary key. Spaces are not allowed. Supported field types, their encodings, and any applicable constraints are described below. - uint32 are encoded as 2,3,4 or 5 bytes using a compact encoding that is suitable for sorted iteration (not varint encoding). This type is well-suited for small integers. - uint64 are encoded as 2,4,6 or 9 bytes using a compact encoding that is suitable for sorted iteration (not varint encoding). This type is well-suited for small integers such as auto-incrementing sequences. - fixed32, fixed64 are encoded as big-endian fixed width bytes and support sorted iteration. These types are well-suited for encoding fixed with decimals as integers. - string's are encoded as raw bytes in terminal key segments and null-terminated in non-terminal segments. Null characters are thus forbidden in strings. string fields support sorted iteration. - bytes are encoded as raw bytes in terminal segments and length-prefixed with a 32-bit unsigned varint in non-terminal segments. - int32, sint32, int64, sint64, sfixed32, sfixed64 are encoded as fixed width bytes with an encoding that enables sorted iteration. - google.protobuf.Timestamp and google.protobuf.Duration are encoded as 12 bytes using an encoding that enables sorted iteration. - enum fields are encoded using varint encoding and do not support sorted iteration. - bool fields are encoded as a single byte 0 or 1.
+
+All other fields types are unsupported in keys including repeated and oneof fields.
+
+Primary keys are prefixed by the varint encoded table id and the byte 0x0 plus any additional prefix specified by the schema. |
+| `auto_increment` | [bool](#bool) |  | auto_increment specifies that the primary key is generated by an auto-incrementing integer. If this is set to true fields must only contain one field of that is of type uint64. |
+
+
+
+
+
+
+<a name="cosmos.orm.v1.SecondaryIndexDescriptor"></a>
+
+### SecondaryIndexDescriptor
+PrimaryKeyDescriptor describes a table secondary index.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fields` | [string](#string) |  | fields is a comma-separated list of fields in the index. The supported field types are the same as those for PrimaryKeyDescriptor.fields. Index keys are prefixed by the varint encoded table id and the varint encoded index id plus any additional prefix specified by the schema.
+
+In addition the field segments, non-unique index keys are suffixed with any additional primary key fields not present in the index fields so that the primary key can be reconstructed. Unique indexes instead of being suffixed store the remaining primary key fields in the value.. |
+| `id` | [uint32](#uint32) |  | id is a non-zero integer ID that must be unique within the indexes for this table and less than 32768. It may be deprecated in the future when this can be auto-generated. |
+| `unique` | [bool](#bool) |  | unique specifies that this an unique index. |
+
+
+
+
+
+
+<a name="cosmos.orm.v1.SingletonDescriptor"></a>
+
+### SingletonDescriptor
+TableDescriptor describes an ORM singleton table which has at most one instance.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint32](#uint32) |  | id is a non-zero integer ID that must be unique within the tables and singletons in this file. It may be deprecated in the future when this can be auto-generated. |
+
+
+
+
+
+
+<a name="cosmos.orm.v1.TableDescriptor"></a>
+
+### TableDescriptor
+TableDescriptor describes an ORM table.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `primary_key` | [PrimaryKeyDescriptor](#cosmos.orm.v1.PrimaryKeyDescriptor) |  | primary_key defines the primary key for the table. |
+| `index` | [SecondaryIndexDescriptor](#cosmos.orm.v1.SecondaryIndexDescriptor) | repeated | index defines one or more secondary indexes. |
+| `id` | [uint32](#uint32) |  | id is a non-zero integer ID that must be unique within the tables and singletons in this file. It may be deprecated in the future when this can be auto-generated. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+
+<a name="cosmos/orm/v1/orm.proto-extensions"></a>
+
+### File-level Extensions
+| Extension | Type | Base | Number | Description |
+| --------- | ---- | ---- | ------ | ----------- |
+| `singleton` | SingletonDescriptor | .google.protobuf.MessageOptions | 104503791 | singleton specifies that this message will be used as an ORM singleton. It cannot be used together with the table option. |
+| `table` | TableDescriptor | .google.protobuf.MessageOptions | 104503790 | table specifies that this message will be used as an ORM table. It cannot be used together with the singleton option. |
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="cosmos/orm/v1alpha1/schema.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/orm/v1alpha1/schema.proto
+
+
+
+<a name="cosmos.orm.v1alpha1.ModuleSchemaDescriptor"></a>
+
+### ModuleSchemaDescriptor
+ModuleSchemaDescriptor describe's a module's ORM schema.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `schema_file` | [ModuleSchemaDescriptor.FileEntry](#cosmos.orm.v1alpha1.ModuleSchemaDescriptor.FileEntry) | repeated |  |
+| `prefix` | [bytes](#bytes) |  | prefix is an optional prefix that precedes all keys in this module's store. |
+
+
+
+
+
+
+<a name="cosmos.orm.v1alpha1.ModuleSchemaDescriptor.FileEntry"></a>
+
+### ModuleSchemaDescriptor.FileEntry
+FileEntry describes an ORM file used in a module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `id` | [uint32](#uint32) |  | id is a prefix that will be varint encoded and prepended to all the table keys specified in the file's tables. |
+| `proto_file_name` | [string](#string) |  | proto_file_name is the name of a file .proto in that contains table definitions. The .proto file must be in a package that the module has referenced using cosmos.app.v1.ModuleDescriptor.use_package. |
+| `storage_type` | [StorageType](#cosmos.orm.v1alpha1.StorageType) |  | storage_type optionally indicates the type of storage this file's tables should used. If it is left unspecified, the default KV-storage of the app will be used. |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="cosmos.orm.v1alpha1.StorageType"></a>
+
+### StorageType
+StorageType
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| STORAGE_TYPE_DEFAULT_UNSPECIFIED | 0 | STORAGE_TYPE_DEFAULT_UNSPECIFIED indicates the persistent KV-storage where primary key entries are stored in merkle-tree backed commitment storage and indexes and seqs are stored in fast index storage. Note that the Cosmos SDK before store/v2alpha1 does not support this. |
+| STORAGE_TYPE_MEMORY | 1 | STORAGE_TYPE_MEMORY indicates in-memory storage that will be reloaded every time an app restarts. Tables with this type of storage will by default be ignored when importing and exporting a module's state from JSON. |
+| STORAGE_TYPE_TRANSIENT | 2 | STORAGE_TYPE_TRANSIENT indicates transient storage that is reset at the end of every block. Tables with this type of storage will by default be ignored when importing and exporting a module's state from JSON. |
+| STORAGE_TYPE_INDEX | 3 | STORAGE_TYPE_INDEX indicates persistent storage which is not backed by a merkle-tree and won't affect the app hash. Note that the Cosmos SDK before store/v2alpha1 does not support this. |
+| STORAGE_TYPE_COMMITMENT | 4 | STORAGE_TYPE_INDEX indicates persistent storage which is backed by a merkle-tree. With this type of storage, both primary and index keys will affect the app hash and this is generally less efficient than using STORAGE_TYPE_DEFAULT_UNSPECIFIED which separates index keys into index storage. Note that modules built with the Cosmos SDK before store/v2alpha1 must specify STORAGE_TYPE_COMMITMENT instead of STORAGE_TYPE_DEFAULT_UNSPECIFIED or STORAGE_TYPE_INDEX because this is the only type of persistent storage available. |
+
+
+ <!-- end enums -->
+
+
+<a name="cosmos/orm/v1alpha1/schema.proto-extensions"></a>
+
+### File-level Extensions
+| Extension | Type | Base | Number | Description |
+| --------- | ---- | ---- | ------ | ----------- |
+| `module_schema` | ModuleSchemaDescriptor | .google.protobuf.MessageOptions | 104503792 | module_schema is used to define the ORM schema for an app module. All module config messages that use module_schema must also declare themselves as app module config messages using the cosmos.app.v1.is_module option. |
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="cosmos/params/v1beta1/params.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -6009,6 +11858,56 @@ QueryParamsResponse is response type for the Query/Params RPC method.
 
 
 
+
+<a name="cosmos.params.v1beta1.QuerySubspacesRequest"></a>
+
+### QuerySubspacesRequest
+QuerySubspacesRequest defines a request type for querying for all registered
+subspaces and all keys for a subspace.
+
+Since: cosmos-sdk 0.46
+
+
+
+
+
+
+<a name="cosmos.params.v1beta1.QuerySubspacesResponse"></a>
+
+### QuerySubspacesResponse
+QuerySubspacesResponse defines the response types for querying for all
+registered subspaces and all keys for a subspace.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `subspaces` | [Subspace](#cosmos.params.v1beta1.Subspace) | repeated |  |
+
+
+
+
+
+
+<a name="cosmos.params.v1beta1.Subspace"></a>
+
+### Subspace
+Subspace defines a parameter subspace name and all the keys that exist for
+the subspace.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `subspace` | [string](#string) |  |  |
+| `keys` | [string](#string) | repeated |  |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -6024,6 +11923,9 @@ Query defines the gRPC querier service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#cosmos.params.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#cosmos.params.v1beta1.QueryParamsResponse) | Params queries a specific parameter of a module, given its subspace and key. | GET|/cosmos/params/v1beta1/params|
+| `Subspaces` | [QuerySubspacesRequest](#cosmos.params.v1beta1.QuerySubspacesRequest) | [QuerySubspacesResponse](#cosmos.params.v1beta1.QuerySubspacesResponse) | Subspaces queries for all registered subspaces and all keys for a subspace.
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/params/v1beta1/subspaces|
 
  <!-- end services -->
 
@@ -6599,6 +12501,7 @@ Params defines the parameters for the staking module.
 | `max_entries` | [uint32](#uint32) |  | max_entries is the max entries for either unbonding delegation or redelegation (per pair/trio). |
 | `historical_entries` | [uint32](#uint32) |  | historical_entries is the number of historical entries to persist. |
 | `bond_denom` | [string](#string) |  | bond_denom defines the bondable coin denomination. |
+| `min_commission_rate` | [string](#string) |  | min_commission_rate is the chain-wide minimum commission rate that a validator can charge their delegators |
 
 
 
@@ -6775,7 +12678,9 @@ multiplied by exchange rate.
 | `unbonding_height` | [int64](#int64) |  | unbonding_height defines, if unbonding, the height at which this validator has begun unbonding. |
 | `unbonding_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | unbonding_time defines, if unbonding, the min time for the validator to complete unbonding. |
 | `commission` | [Commission](#cosmos.staking.v1beta1.Commission) |  | commission defines the commission parameters. |
-| `min_self_delegation` | [string](#string) |  | min_self_delegation is the validator's self declared minimum self delegation. |
+| `min_self_delegation` | [string](#string) |  | min_self_delegation is the validator's self declared minimum self delegation.
+
+Since: cosmos-sdk 0.46 |
 
 
 
@@ -6991,7 +12896,7 @@ Query/DelegatorValidator RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `validator` | [Validator](#cosmos.staking.v1beta1.Validator) |  | validator defines the the validator info. |
+| `validator` | [Validator](#cosmos.staking.v1beta1.Validator) |  | validator defines the validator info. |
 
 
 
@@ -7024,7 +12929,7 @@ Query/DelegatorValidators RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `validators` | [Validator](#cosmos.staking.v1beta1.Validator) | repeated | validators defines the the validators' info of a delegator. |
+| `validators` | [Validator](#cosmos.staking.v1beta1.Validator) | repeated | validators defines the validators' info of a delegator. |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
 
@@ -7240,7 +13145,7 @@ QueryValidatorResponse is response type for the Query/Validator RPC method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `validator` | [Validator](#cosmos.staking.v1beta1.Validator) |  | validator defines the the validator info. |
+| `validator` | [Validator](#cosmos.staking.v1beta1.Validator) |  | validator defines the validator info. |
 
 
 
@@ -7386,6 +13291,38 @@ MsgBeginRedelegateResponse defines the Msg/BeginRedelegate response type.
 
 
 
+<a name="cosmos.staking.v1beta1.MsgCancelUnbondingDelegation"></a>
+
+### MsgCancelUnbondingDelegation
+MsgCancelUnbondingDelegation defines the SDK message for performing a cancel unbonding delegation for delegator
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `delegator_address` | [string](#string) |  |  |
+| `validator_address` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is always less than or equal to unbonding delegation entry balance |
+| `creation_height` | [int64](#int64) |  | creation_height is the height which the unbonding took place. |
+
+
+
+
+
+
+<a name="cosmos.staking.v1beta1.MsgCancelUnbondingDelegationResponse"></a>
+
+### MsgCancelUnbondingDelegationResponse
+MsgCancelUnbondingDelegationResponse
+
+Since: cosmos-sdk 0.46
+
+
+
+
+
+
 <a name="cosmos.staking.v1beta1.MsgCreateValidator"></a>
 
 ### MsgCreateValidator
@@ -7524,6 +13461,9 @@ Msg defines the staking Msg service.
 | `Delegate` | [MsgDelegate](#cosmos.staking.v1beta1.MsgDelegate) | [MsgDelegateResponse](#cosmos.staking.v1beta1.MsgDelegateResponse) | Delegate defines a method for performing a delegation of coins from a delegator to a validator. | |
 | `BeginRedelegate` | [MsgBeginRedelegate](#cosmos.staking.v1beta1.MsgBeginRedelegate) | [MsgBeginRedelegateResponse](#cosmos.staking.v1beta1.MsgBeginRedelegateResponse) | BeginRedelegate defines a method for performing a redelegation of coins from a delegator and source validator to a destination validator. | |
 | `Undelegate` | [MsgUndelegate](#cosmos.staking.v1beta1.MsgUndelegate) | [MsgUndelegateResponse](#cosmos.staking.v1beta1.MsgUndelegateResponse) | Undelegate defines a method for performing an undelegation from a delegate and a validator. | |
+| `CancelUnbondingDelegation` | [MsgCancelUnbondingDelegation](#cosmos.staking.v1beta1.MsgCancelUnbondingDelegation) | [MsgCancelUnbondingDelegationResponse](#cosmos.staking.v1beta1.MsgCancelUnbondingDelegationResponse) | CancelUnbondingDelegation defines a method for performing canceling the unbonding delegation and delegate back to previous validator.
+
+Since: cosmos-sdk 0.46 | |
 
  <!-- end services -->
 
@@ -7626,12 +13566,22 @@ SignatureDescriptors wraps multiple SignatureDescriptor's.
 ### SignMode
 SignMode represents a signing mode with its own security guarantees.
 
+This enum should be considered a registry of all known sign modes
+in the Cosmos ecosystem. Apps are not expected to support all known
+sign modes. Apps that would like to support custom  sign modes are
+encouraged to open a small PR against this file to add a new case
+to this SignMode enum describing their sign mode so that different
+apps have a consistent version of this enum.
+
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| SIGN_MODE_UNSPECIFIED | 0 | SIGN_MODE_UNSPECIFIED specifies an unknown signing mode and will be rejected |
-| SIGN_MODE_DIRECT | 1 | SIGN_MODE_DIRECT specifies a signing mode which uses SignDoc and is verified with raw bytes from Tx |
-| SIGN_MODE_TEXTUAL | 2 | SIGN_MODE_TEXTUAL is a future signing mode that will verify some human-readable textual representation on top of the binary representation from SIGN_MODE_DIRECT |
-| SIGN_MODE_LEGACY_AMINO_JSON | 127 | SIGN_MODE_LEGACY_AMINO_JSON is a backwards compatibility mode which uses Amino JSON and will be removed in the future |
+| SIGN_MODE_UNSPECIFIED | 0 | SIGN_MODE_UNSPECIFIED specifies an unknown signing mode and will be rejected. |
+| SIGN_MODE_DIRECT | 1 | SIGN_MODE_DIRECT specifies a signing mode which uses SignDoc and is verified with raw bytes from Tx. |
+| SIGN_MODE_TEXTUAL | 2 | SIGN_MODE_TEXTUAL is a future signing mode that will verify some human-readable textual representation on top of the binary representation from SIGN_MODE_DIRECT. It is currently not supported. |
+| SIGN_MODE_DIRECT_AUX | 3 | SIGN_MODE_DIRECT_AUX specifies a signing mode which uses SignDocDirectAux. As opposed to SIGN_MODE_DIRECT, this sign mode does not require signers signing over other signers' `signer_info`. It also allows for adding Tips in transactions.
+
+Since: cosmos-sdk 0.46 |
+| SIGN_MODE_LEGACY_AMINO_JSON | 127 | SIGN_MODE_LEGACY_AMINO_JSON is a backwards compatibility mode which uses Amino JSON and will be removed in the future. |
 | SIGN_MODE_EIP_191 | 191 | SIGN_MODE_EIP_191 specifies the sign mode for EIP 191 signing on the Cosmos SDK. Ref: https://eips.ethereum.org/EIPS/eip-191
 
 Currently, SIGN_MODE_EIP_191 is registered as a SignMode enum variant, but is not implemented on the SDK by default. To enable EIP-191, you need to pass a custom `TxConfig` that has an implementation of `SignModeHandler` for EIP-191. The SDK may decide to fully support EIP-191 in the future.
@@ -7665,6 +13615,34 @@ transaction.
 | ----- | ---- | ----- | ----------- |
 | `signer_infos` | [SignerInfo](#cosmos.tx.v1beta1.SignerInfo) | repeated | signer_infos defines the signing modes for the required signers. The number and order of elements must match the required signers from TxBody's messages. The first element is the primary signer and the one which pays the fee. |
 | `fee` | [Fee](#cosmos.tx.v1beta1.Fee) |  | Fee is the fee and gas limit for the transaction. The first signer is the primary signer and the one which pays the fee. The fee can be calculated based on the cost of evaluating the body and doing signature verification of the signers. This can be estimated via simulation. |
+| `tip` | [Tip](#cosmos.tx.v1beta1.Tip) |  | Tip is the optional tip used for transactions fees paid in another denom.
+
+This field is ignored if the chain didn't enable tips, i.e. didn't add the `TipDecorator` in its posthandler.
+
+Since: cosmos-sdk 0.46 |
+
+
+
+
+
+
+<a name="cosmos.tx.v1beta1.AuxSignerData"></a>
+
+### AuxSignerData
+AuxSignerData is the intermediary format that an auxiliary signer (e.g. a
+tipper) builds and sends to the fee payer (who will build and broadcast the
+actual tx). AuxSignerData is not a valid tx in itself, and will be rejected
+by the node if sent directly as-is.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the bech32-encoded address of the auxiliary signer. If using AuxSignerData across different chains, the bech32 prefix of the target chain (where the final transaction is broadcasted) should be used. |
+| `sign_doc` | [SignDocDirectAux](#cosmos.tx.v1beta1.SignDocDirectAux) |  | sign_doc is the SIGN_MODE_DIRECT_AUX sign doc that the auxiliary signer signs. Note: we use the same sign doc even if we're signing with LEGACY_AMINO_JSON. |
+| `mode` | [cosmos.tx.signing.v1beta1.SignMode](#cosmos.tx.signing.v1beta1.SignMode) |  | mode is the signing mode of the single signer. |
+| `sig` | [bytes](#bytes) |  | sig is the signature of the sign doc. |
 
 
 
@@ -7758,6 +13736,31 @@ SignDoc is the type used for generating sign bytes for SIGN_MODE_DIRECT.
 
 
 
+<a name="cosmos.tx.v1beta1.SignDocDirectAux"></a>
+
+### SignDocDirectAux
+SignDocDirectAux is the type used for generating sign bytes for
+SIGN_MODE_DIRECT_AUX.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `body_bytes` | [bytes](#bytes) |  | body_bytes is protobuf serialization of a TxBody that matches the representation in TxRaw. |
+| `public_key` | [google.protobuf.Any](#google.protobuf.Any) |  | public_key is the public key of the signing account. |
+| `chain_id` | [string](#string) |  | chain_id is the identifier of the chain this transaction targets. It prevents signed transactions from being used on another chain by an attacker. |
+| `account_number` | [uint64](#uint64) |  | account_number is the account number of the account in state. |
+| `sequence` | [uint64](#uint64) |  | sequence is the sequence number of the signing account. |
+| `tip` | [Tip](#cosmos.tx.v1beta1.Tip) |  | Tip is the optional tip used for transactions fees paid in another denom. It should be left empty if the signer is not the tipper for this transaction.
+
+This field is ignored if the chain didn't enable tips, i.e. didn't add the `TipDecorator` in its posthandler. |
+
+
+
+
+
+
 <a name="cosmos.tx.v1beta1.SignerInfo"></a>
 
 ### SignerInfo
@@ -7770,6 +13773,24 @@ signer.
 | `public_key` | [google.protobuf.Any](#google.protobuf.Any) |  | public_key is the public key of the signer. It is optional for accounts that already exist in state. If unset, the verifier can use the required \ signer address for this position and lookup the public key. |
 | `mode_info` | [ModeInfo](#cosmos.tx.v1beta1.ModeInfo) |  | mode_info describes the signing mode of the signer and is a nested structure to support nested multisig pubkey's |
 | `sequence` | [uint64](#uint64) |  | sequence is the sequence of the account, which describes the number of committed transactions signed by a given address. It is used to prevent replay attacks. |
+
+
+
+
+
+
+<a name="cosmos.tx.v1beta1.Tip"></a>
+
+### Tip
+Tip is the tip used for meta-transactions.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | amount is the amount of the tip |
+| `tipper` | [string](#string) |  | tipper is the address of the account paying for the tip |
 
 
 
@@ -7963,8 +13984,10 @@ RPC method.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `events` | [string](#string) | repeated | events is the list of transaction event type. |
-| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines a pagination for the request. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | **Deprecated.** pagination defines a pagination for the request. Deprecated post v0.46.x: use page and limit instead. |
 | `order_by` | [OrderBy](#cosmos.tx.v1beta1.OrderBy) |  |  |
+| `page` | [uint64](#uint64) |  | page is the page number to query, starts at 1. If not provided, will default to first page. |
+| `limit` | [uint64](#uint64) |  | limit is the total number of results to be returned in the result page. If left empty it will default to a value to be set by each app. |
 
 
 
@@ -7982,7 +14005,8 @@ RPC method.
 | ----- | ---- | ----- | ----------- |
 | `txs` | [Tx](#cosmos.tx.v1beta1.Tx) | repeated | txs is the list of queried transactions. |
 | `tx_responses` | [cosmos.base.abci.v1beta1.TxResponse](#cosmos.base.abci.v1beta1.TxResponse) | repeated | tx_responses is the list of queried TxResponses. |
-| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines a pagination for the response. |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | **Deprecated.** pagination defines a pagination for the response. Deprecated post v0.46.x: use total instead. |
+| `total` | [uint64](#uint64) |  | total is total number of results available |
 
 
 
@@ -8089,6 +14113,8 @@ Since: cosmos-sdk 0.45.2 | GET|/cosmos/tx/v1beta1/txs/block/{height}|
 ### CancelSoftwareUpgradeProposal
 CancelSoftwareUpgradeProposal is a gov Content type for cancelling a software
 upgrade.
+Deprecated: This legacy proposal is deprecated in favor of Msg-based gov
+proposals, see MsgCancelUpgrade.
 
 
 | Field | Type | Label | Description |
@@ -8143,6 +14169,8 @@ Plan specifies information about a planned upgrade and when it should occur.
 ### SoftwareUpgradeProposal
 SoftwareUpgradeProposal is a gov Content type for initiating a software
 upgrade.
+Deprecated: This legacy proposal is deprecated in favor of Msg-based gov
+proposals, see MsgSoftwareUpgrade.
 
 
 | Field | Type | Label | Description |
@@ -8198,6 +14226,35 @@ method.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `height` | [int64](#int64) |  | height is the block height at which the plan was applied. |
+
+
+
+
+
+
+<a name="cosmos.upgrade.v1beta1.QueryAuthorityRequest"></a>
+
+### QueryAuthorityRequest
+QueryAuthorityRequest is the request type for Query/Authority
+
+Since: cosmos-sdk 0.46
+
+
+
+
+
+
+<a name="cosmos.upgrade.v1beta1.QueryAuthorityResponse"></a>
+
+### QueryAuthorityResponse
+QueryAuthorityResponse is the response type for Query/Authority
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
 
 
 
@@ -8318,42 +14375,74 @@ Query defines the gRPC upgrade querier service.
 | `ModuleVersions` | [QueryModuleVersionsRequest](#cosmos.upgrade.v1beta1.QueryModuleVersionsRequest) | [QueryModuleVersionsResponse](#cosmos.upgrade.v1beta1.QueryModuleVersionsResponse) | ModuleVersions queries the list of module versions from state.
 
 Since: cosmos-sdk 0.43 | GET|/cosmos/upgrade/v1beta1/module_versions|
+| `Authority` | [QueryAuthorityRequest](#cosmos.upgrade.v1beta1.QueryAuthorityRequest) | [QueryAuthorityResponse](#cosmos.upgrade.v1beta1.QueryAuthorityResponse) | Returns the account with authority to conduct upgrades
+
+Since: cosmos-sdk 0.46 | GET|/cosmos/upgrade/v1beta1/authority|
 
  <!-- end services -->
 
 
 
-<a name="cosmos/vesting/v1beta1/tx.proto"></a>
+<a name="cosmos/upgrade/v1beta1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## cosmos/vesting/v1beta1/tx.proto
+## cosmos/upgrade/v1beta1/tx.proto
+Since: cosmos-sdk 0.46
 
 
+<a name="cosmos.upgrade.v1beta1.MsgCancelUpgrade"></a>
 
-<a name="cosmos.vesting.v1beta1.MsgCreateVestingAccount"></a>
+### MsgCancelUpgrade
+MsgCancelUpgrade is the Msg/CancelUpgrade request type.
 
-### MsgCreateVestingAccount
-MsgCreateVestingAccount defines a message that enables creating a vesting
-account.
+Since: cosmos-sdk 0.46
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `from_address` | [string](#string) |  |  |
-| `to_address` | [string](#string) |  |  |
-| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `end_time` | [int64](#int64) |  |  |
-| `delayed` | [bool](#bool) |  |  |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
 
 
 
 
 
 
-<a name="cosmos.vesting.v1beta1.MsgCreateVestingAccountResponse"></a>
+<a name="cosmos.upgrade.v1beta1.MsgCancelUpgradeResponse"></a>
 
-### MsgCreateVestingAccountResponse
-MsgCreateVestingAccountResponse defines the Msg/CreateVestingAccount response type.
+### MsgCancelUpgradeResponse
+MsgCancelUpgradeResponse is the Msg/CancelUpgrade response type.
+
+Since: cosmos-sdk 0.46
+
+
+
+
+
+
+<a name="cosmos.upgrade.v1beta1.MsgSoftwareUpgrade"></a>
+
+### MsgSoftwareUpgrade
+MsgSoftwareUpgrade is the Msg/SoftwareUpgrade request type.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `plan` | [Plan](#cosmos.upgrade.v1beta1.Plan) |  | plan is the upgrade plan. |
+
+
+
+
+
+
+<a name="cosmos.upgrade.v1beta1.MsgSoftwareUpgradeResponse"></a>
+
+### MsgSoftwareUpgradeResponse
+MsgSoftwareUpgradeResponse is the Msg/SoftwareUpgrade response type.
+
+Since: cosmos-sdk 0.46
 
 
 
@@ -8366,14 +14455,19 @@ MsgCreateVestingAccountResponse defines the Msg/CreateVestingAccount response ty
  <!-- end HasExtensions -->
 
 
-<a name="cosmos.vesting.v1beta1.Msg"></a>
+<a name="cosmos.upgrade.v1beta1.Msg"></a>
 
 ### Msg
-Msg defines the bank Msg service.
+Msg defines the upgrade Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `CreateVestingAccount` | [MsgCreateVestingAccount](#cosmos.vesting.v1beta1.MsgCreateVestingAccount) | [MsgCreateVestingAccountResponse](#cosmos.vesting.v1beta1.MsgCreateVestingAccountResponse) | CreateVestingAccount defines a method that enables creating a vesting account. | |
+| `SoftwareUpgrade` | [MsgSoftwareUpgrade](#cosmos.upgrade.v1beta1.MsgSoftwareUpgrade) | [MsgSoftwareUpgradeResponse](#cosmos.upgrade.v1beta1.MsgSoftwareUpgradeResponse) | SoftwareUpgrade is a governance operation for initiating a software upgrade.
+
+Since: cosmos-sdk 0.46 | |
+| `CancelUpgrade` | [MsgCancelUpgrade](#cosmos.upgrade.v1beta1.MsgCancelUpgrade) | [MsgCancelUpgradeResponse](#cosmos.upgrade.v1beta1.MsgCancelUpgradeResponse) | CancelUpgrade is a governance operation for cancelling a previously approvid software upgrade.
+
+Since: cosmos-sdk 0.46 | |
 
  <!-- end services -->
 
@@ -8502,6 +14596,166 @@ Since: cosmos-sdk 0.43
 
 
 
+<a name="cosmos/vesting/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmos/vesting/v1beta1/tx.proto
+
+
+
+<a name="cosmos.vesting.v1beta1.MsgCreatePeriodicVestingAccount"></a>
+
+### MsgCreatePeriodicVestingAccount
+MsgCreateVestingAccount defines a message that enables creating a vesting
+account.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from_address` | [string](#string) |  |  |
+| `to_address` | [string](#string) |  |  |
+| `start_time` | [int64](#int64) |  |  |
+| `vesting_periods` | [Period](#cosmos.vesting.v1beta1.Period) | repeated |  |
+
+
+
+
+
+
+<a name="cosmos.vesting.v1beta1.MsgCreatePeriodicVestingAccountResponse"></a>
+
+### MsgCreatePeriodicVestingAccountResponse
+MsgCreateVestingAccountResponse defines the Msg/CreatePeriodicVestingAccount
+response type.
+
+Since: cosmos-sdk 0.46
+
+
+
+
+
+
+<a name="cosmos.vesting.v1beta1.MsgCreatePermanentLockedAccount"></a>
+
+### MsgCreatePermanentLockedAccount
+MsgCreatePermanentLockedAccount defines a message that enables creating a permanent
+locked account.
+
+Since: cosmos-sdk 0.46
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from_address` | [string](#string) |  |  |
+| `to_address` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="cosmos.vesting.v1beta1.MsgCreatePermanentLockedAccountResponse"></a>
+
+### MsgCreatePermanentLockedAccountResponse
+MsgCreatePermanentLockedAccountResponse defines the Msg/CreatePermanentLockedAccount response type.
+
+Since: cosmos-sdk 0.46
+
+
+
+
+
+
+<a name="cosmos.vesting.v1beta1.MsgCreateVestingAccount"></a>
+
+### MsgCreateVestingAccount
+MsgCreateVestingAccount defines a message that enables creating a vesting
+account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from_address` | [string](#string) |  |  |
+| `to_address` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `end_time` | [int64](#int64) |  |  |
+| `delayed` | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="cosmos.vesting.v1beta1.MsgCreateVestingAccountResponse"></a>
+
+### MsgCreateVestingAccountResponse
+MsgCreateVestingAccountResponse defines the Msg/CreateVestingAccount response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="cosmos.vesting.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the bank Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `CreateVestingAccount` | [MsgCreateVestingAccount](#cosmos.vesting.v1beta1.MsgCreateVestingAccount) | [MsgCreateVestingAccountResponse](#cosmos.vesting.v1beta1.MsgCreateVestingAccountResponse) | CreateVestingAccount defines a method that enables creating a vesting account. | |
+| `CreatePermanentLockedAccount` | [MsgCreatePermanentLockedAccount](#cosmos.vesting.v1beta1.MsgCreatePermanentLockedAccount) | [MsgCreatePermanentLockedAccountResponse](#cosmos.vesting.v1beta1.MsgCreatePermanentLockedAccountResponse) | CreatePermanentLockedAccount defines a method that enables creating a permanent locked account.
+
+Since: cosmos-sdk 0.46 | |
+| `CreatePeriodicVestingAccount` | [MsgCreatePeriodicVestingAccount](#cosmos.vesting.v1beta1.MsgCreatePeriodicVestingAccount) | [MsgCreatePeriodicVestingAccountResponse](#cosmos.vesting.v1beta1.MsgCreatePeriodicVestingAccountResponse) | CreatePeriodicVestingAccount defines a method that enables creating a periodic vesting account.
+
+Since: cosmos-sdk 0.46 | |
+
+ <!-- end services -->
+
+
+
+<a name="tendermint/libs/bits/types.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## tendermint/libs/bits/types.proto
+
+
+
+<a name="tendermint.libs.bits.BitArray"></a>
+
+### BitArray
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `bits` | [int64](#int64) |  |  |
+| `elems` | [uint64](#uint64) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 ## Scalar Value Types
 
 | .proto Type | Notes | C++ | Java | Python | Go | C# | PHP | Ruby |
@@ -8521,3 +14775,4 @@ Since: cosmos-sdk 0.43
 | <a name="bool" /> bool |  | bool | boolean | boolean | bool | bool | boolean | TrueClass/FalseClass |
 | <a name="string" /> string | A string must always contain UTF-8 encoded or 7-bit ASCII text. | string | String | str/unicode | string | string | string | String (UTF-8) |
 | <a name="bytes" /> bytes | May contain any arbitrary sequence of bytes. | string | ByteString | str | []byte | ByteString | string | String (ASCII-8BIT) |
+

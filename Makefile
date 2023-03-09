@@ -181,6 +181,7 @@ protoSwaggerName=ghcr.io/cosmos/proto-builder:$(protoSwaggerVer)
 containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
 containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
 containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
+containerProtoDoc=$(PROJECT_NAME)-proto-doc-$(protoVer)
 
 proto-format:
 	@echo "Formatting Protobuf files"
@@ -192,6 +193,11 @@ proto-gen:
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
 		sh ./develop/protocgen.sh; fi
 	@go mod tidy
+
+proto-doc-gen:
+	@echo "Generating Protobuf Doc"
+	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoDoc); else docker run --rm --name $(containerProtoDoc) -v $(CURDIR):/workspace --workdir /workspace $(protoSwaggerName) \
+    		sh ./develop/protoc-doc-gen.sh; fi
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
