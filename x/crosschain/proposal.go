@@ -3,11 +3,10 @@ package crosschain
 import (
 	"fmt"
 
-	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"

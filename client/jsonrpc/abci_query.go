@@ -10,9 +10,10 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	etherminttypes "github.com/evmos/ethermint/types"
-	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 	"github.com/gogo/protobuf/proto"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func (c *NodeRPC) QueryAccount(address string) (authtypes.AccountI, error) {

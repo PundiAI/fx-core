@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	fxgovtypes "github.com/functionx/fx-core/v3/x/gov/types"
 )
 

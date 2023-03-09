@@ -4,12 +4,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	dbm "github.com/tendermint/tm-db"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
 )
 
 func Test_openDB(t *testing.T) {

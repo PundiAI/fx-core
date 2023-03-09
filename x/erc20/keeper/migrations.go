@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	v4 "github.com/functionx/fx-core/v3/x/erc20/migrations/v4"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )

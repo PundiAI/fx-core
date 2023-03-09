@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy/v1"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/grpc"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+
+	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy/v1"
 )
 
 // Deprecated: Querier

@@ -5,9 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -23,6 +20,8 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	"github.com/functionx/fx-core/v3/x/gov/keeper"
 	"github.com/functionx/fx-core/v3/x/gov/types"
 )

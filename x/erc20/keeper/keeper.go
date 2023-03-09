@@ -9,9 +9,10 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/tendermint/tendermint/libs/log"
+
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper of this module maintains collections of erc20.

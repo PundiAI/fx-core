@@ -3,11 +3,10 @@ package types
 import (
 	"context"
 
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	tranfsertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 

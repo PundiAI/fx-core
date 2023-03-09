@@ -4,11 +4,11 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 

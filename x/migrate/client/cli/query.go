@@ -12,8 +12,9 @@ import (
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/functionx/fx-core/v3/x/migrate/types"
 	"github.com/spf13/cobra"
+
+	"github.com/functionx/fx-core/v3/x/migrate/types"
 )
 
 func GetQueryCmd() *cobra.Command {

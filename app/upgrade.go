@@ -3,11 +3,10 @@ package app
 import (
 	"fmt"
 
-	v4 "github.com/functionx/fx-core/v3/app/upgrades/v4"
-
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/functionx/fx-core/v3/app/upgrades"
+	v4 "github.com/functionx/fx-core/v3/app/upgrades/v4"
 )
 
 var upgradeArray = upgrades.Upgrades{v4.Upgrade}

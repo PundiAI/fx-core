@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	dbm "github.com/tendermint/tm-db"
-
 	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -21,6 +19,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/testutil"

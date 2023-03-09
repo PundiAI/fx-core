@@ -6,8 +6,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/functionx/fx-core/v3/x/gravity/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+
+	"github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 func RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {

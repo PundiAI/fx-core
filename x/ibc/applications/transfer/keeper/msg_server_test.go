@@ -3,10 +3,10 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	ibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
-
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {

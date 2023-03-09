@@ -9,8 +9,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/functionx/fx-core/v3/x/gov/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/functionx/fx-core/v3/x/gov/keeper"
 )
 
 var (

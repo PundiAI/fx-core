@@ -3,11 +3,10 @@ package types
 import (
 	"fmt"
 
-	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
