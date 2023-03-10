@@ -19,6 +19,7 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/app/keepers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	arbitrumtypes "github.com/functionx/fx-core/v3/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
@@ -50,6 +51,7 @@ func TestNewAppKeeper(t *testing.T) {
 		avalanchetypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 		ethtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		trontypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+		arbitrumtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
 	}

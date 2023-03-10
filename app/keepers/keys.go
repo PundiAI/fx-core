@@ -25,6 +25,7 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	arbitrumtypes "github.com/functionx/fx-core/v3/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
@@ -45,7 +46,7 @@ func (appKeepers *AppKeepers) generateKeys() {
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey,
-		bsctypes.StoreKey, polygontypes.StoreKey, avalanchetypes.StoreKey, ethtypes.StoreKey, trontypes.StoreKey,
+		bsctypes.StoreKey, polygontypes.StoreKey, avalanchetypes.StoreKey, ethtypes.StoreKey, trontypes.StoreKey, arbitrumtypes.ModuleName,
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		erc20types.StoreKey, migratetypes.StoreKey,
 	)
@@ -79,7 +80,8 @@ func (appKeepers *AppKeepers) ExtendPrecompiles(ctx sdk.Context, evm *vm.EVM) ev
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
 		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).
-		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
+		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
+		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper)
 	crossChainContract := precompilecrosschain.NewPrecompiledContract(
 		ctx, evm, appKeepers.BankKeeper, appKeepers.EvmKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, transferRouter)
 

@@ -18,6 +18,7 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	arbitrumtypes "github.com/functionx/fx-core/v3/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
@@ -45,10 +46,11 @@ func TestKeeperTestSuite(t *testing.T) {
 	require.NoError(t, err)
 	subModules := []string{
 		bsctypes.ModuleName,
-		// polygontypes.ModuleName,
+		polygontypes.ModuleName,
 		trontypes.ModuleName,
 		ethtypes.ModuleName,
-		// avalanchetypes.ModuleName,
+		avalanchetypes.ModuleName,
+		arbitrumtypes.ModuleName,
 	}
 	for _, moduleName := range subModules {
 		methodFinder := reflect.TypeOf(new(KeeperTestSuite))
@@ -86,6 +88,8 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 		return suite.app.EthKeeper
 	case avalanchetypes.ModuleName:
 		return suite.app.AvalancheKeeper
+	case arbitrumtypes.ModuleName:
+		return suite.app.ArbitrumKeeper
 	default:
 		panic("invalid chain name")
 	}

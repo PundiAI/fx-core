@@ -55,6 +55,7 @@ import (
 	"github.com/spf13/cast"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	arbitrumtypes "github.com/functionx/fx-core/v3/x/arbitrum/types"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	"github.com/functionx/fx-core/v3/x/crosschain"
@@ -82,6 +83,7 @@ type CrossChainKeepers struct {
 	AvalancheKeeper crosschainkeeper.Keeper
 	EthKeeper       crosschainkeeper.Keeper
 	TronKeeper      tronkeeper.Keeper
+	ArbitrumKeeper  crosschainkeeper.Keeper
 }
 
 type AppKeepers struct {
@@ -371,6 +373,20 @@ func NewAppKeeper(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	appKeepers.ArbitrumKeeper = crosschainkeeper.NewKeeper(
+		appCodec,
+		arbitrumtypes.ModuleName,
+		appKeepers.keys[arbitrumtypes.StoreKey],
+		appKeepers.StakingKeeper,
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
+		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
+		appKeepers.BankKeeper,
+		appKeepers.IBCTransferKeeper,
+		appKeepers.Erc20Keeper,
+		appKeepers.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
 		appCodec,
 		trontypes.ModuleName,
@@ -392,6 +408,7 @@ func NewAppKeeper(
 		AddRoute(polygontypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.PolygonKeeper)).
 		AddRoute(avalanchetypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.AvalancheKeeper)).
 		AddRoute(ethtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.EthKeeper)).
+		AddRoute(arbitrumtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.ArbitrumKeeper)).
 		AddRoute(trontypes.ModuleName, tronkeeper.NewModuleHandler(appKeepers.TronKeeper))
 
 	appKeepers.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
@@ -432,6 +449,7 @@ func NewAppKeeper(
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
 		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).
 		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
+		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
 		AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRouter(*ibcTransferRouter)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)
