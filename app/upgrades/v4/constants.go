@@ -6,6 +6,7 @@ import (
 	"github.com/functionx/fx-core/v3/app/upgrades"
 	arbitrumtypes "github.com/functionx/fx-core/v3/x/arbitrum/types"
 	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
+	optimismtypes "github.com/functionx/fx-core/v3/x/optimism/types"
 )
 
 var Upgrade = upgrades.Upgrade{
@@ -16,6 +17,7 @@ var Upgrade = upgrades.Upgrade{
 		return &storetypes.StoreUpgrades{
 			Added: []string{
 				arbitrumtypes.ModuleName,
+				optimismtypes.ModuleName,
 			},
 			Deleted: []string{
 				gravitytypes.ModuleName,

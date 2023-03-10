@@ -72,6 +72,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter"
 	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
+	optimismtypes "github.com/functionx/fx-core/v3/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -84,6 +85,7 @@ type CrossChainKeepers struct {
 	EthKeeper       crosschainkeeper.Keeper
 	TronKeeper      tronkeeper.Keeper
 	ArbitrumKeeper  crosschainkeeper.Keeper
+	OptimismKeeper  crosschainkeeper.Keeper
 }
 
 type AppKeepers struct {
@@ -387,6 +389,20 @@ func NewAppKeeper(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	appKeepers.OptimismKeeper = crosschainkeeper.NewKeeper(
+		appCodec,
+		optimismtypes.ModuleName,
+		appKeepers.keys[optimismtypes.StoreKey],
+		appKeepers.StakingKeeper,
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
+		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
+		appKeepers.BankKeeper,
+		appKeepers.IBCTransferKeeper,
+		appKeepers.Erc20Keeper,
+		appKeepers.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	appKeepers.TronKeeper = tronkeeper.NewKeeper(crosschainkeeper.NewKeeper(
 		appCodec,
 		trontypes.ModuleName,
@@ -409,6 +425,7 @@ func NewAppKeeper(
 		AddRoute(avalanchetypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.AvalancheKeeper)).
 		AddRoute(ethtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.EthKeeper)).
 		AddRoute(arbitrumtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.ArbitrumKeeper)).
+		AddRoute(optimismtypes.ModuleName, crosschainkeeper.NewModuleHandler(appKeepers.OptimismKeeper)).
 		AddRoute(trontypes.ModuleName, tronkeeper.NewModuleHandler(appKeepers.TronKeeper))
 
 	appKeepers.CrosschainKeeper = crosschainkeeper.NewRouterKeeper(crosschainRouter)
@@ -450,6 +467,7 @@ func NewAppKeeper(
 		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).
 		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
 		AddRoute(arbitrumtypes.ModuleName, appKeepers.ArbitrumKeeper).
+		AddRoute(optimismtypes.ModuleName, appKeepers.OptimismKeeper).
 		AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRouter(*ibcTransferRouter)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)

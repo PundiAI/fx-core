@@ -24,6 +24,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	optimismtypes "github.com/functionx/fx-core/v3/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -51,6 +52,7 @@ func TestKeeperTestSuite(t *testing.T) {
 		ethtypes.ModuleName,
 		avalanchetypes.ModuleName,
 		arbitrumtypes.ModuleName,
+		optimismtypes.ModuleName,
 	}
 	for _, moduleName := range subModules {
 		methodFinder := reflect.TypeOf(new(KeeperTestSuite))
@@ -90,6 +92,8 @@ func (suite *KeeperTestSuite) Keeper() keeper.Keeper {
 		return suite.app.AvalancheKeeper
 	case arbitrumtypes.ModuleName:
 		return suite.app.ArbitrumKeeper
+	case optimismtypes.ModuleName:
+		return suite.app.OptimismKeeper
 	default:
 		panic("invalid chain name")
 	}
