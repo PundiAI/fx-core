@@ -91,7 +91,7 @@ func (k *Keeper) CallEVMWithoutGas(
 				errStr = reason
 			}
 		}
-		return nil, errorsmod.Wrap(types.ErrVMExecution, errStr)
+		return res, errorsmod.Wrap(types.ErrVMExecution, errStr)
 	}
 
 	ctx.WithGasMeter(gasMeter)

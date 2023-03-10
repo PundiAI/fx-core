@@ -28,6 +28,7 @@ import (
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	precompilesstaking "github.com/functionx/fx-core/v3/x/evm/precompiles/staking"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
@@ -68,7 +69,12 @@ func (appKeepers *AppKeepers) GetMemoryStoreKey() map[string]*storetypes.MemoryS
 
 // ExtendPrecompiles  get extend pre compile contracts function
 func (appKeepers *AppKeepers) ExtendPrecompiles(ctx sdk.Context, evm *vm.EVM) evm.PrecompiledContracts {
-	return map[common.Address]vm.PrecompiledContract{}
+	stakingContract := precompilesstaking.NewPrecompiledContract(ctx, evm,
+		appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper)
+
+	return map[common.Address]vm.PrecompiledContract{
+		stakingContract.Address(): stakingContract,
+	}
 }
 
 // GetKey returns the KVStoreKey for the provided store key.
