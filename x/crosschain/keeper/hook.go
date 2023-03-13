@@ -10,16 +10,22 @@ import (
 // TransferAfter
 // 1. Hook operation after transfer transaction triggered by IBC module
 // 2. Hook operation after transferCrossChain triggered by ERC20 module
-func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, amount, fee sdk.Coin) error {
-	sendAddr, err := sdk.AccAddressFromBech32(sender)
-	if err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
-	}
-
-	if err = fxtypes.ValidateEthereumAddress(receive); err != nil {
+func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, amount, fee sdk.Coin, originToken bool) error {
+	if err := fxtypes.ValidateEthereumAddress(receive); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receive address: %s", err)
 	}
 
-	_, err = k.AddToOutgoingPool(ctx, sendAddr, receive, amount, fee)
-	return err
+	txID, err := k.AddToOutgoingPool(ctx, sender, receive, amount, fee)
+	if err != nil {
+		return err
+	}
+
+	if !originToken {
+		k.erc20Keeper.SetOutgoingTransferRelation(ctx, txID)
+	}
+	return nil
+}
+
+func (k Keeper) PrecompileCancelSendToExternal(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error) {
+	return k.RemoveFromOutgoingPoolAndRefund(ctx, txID, sender)
 }

@@ -14,8 +14,8 @@ func (k Keeper) RefundAfter(ctx sdk.Context, channel string, sequence uint64, se
 		return nil
 	}
 	cacheCtx, commit := ctx.CacheContext()
-	if err := k.TransferAfter(cacheCtx, sender.String(), common.BytesToAddress(sender.Bytes()).String(),
-		amount, sdk.NewCoin(amount.Denom, sdkmath.ZeroInt())); err != nil {
+	if err := k.TransferAfter(cacheCtx, sender, common.BytesToAddress(sender.Bytes()).String(),
+		amount, sdk.NewCoin(amount.Denom, sdkmath.ZeroInt()), false); err != nil {
 		return err
 	}
 	commit()
@@ -44,4 +44,31 @@ func (k Keeper) DeleteIBCTransferRelation(ctx sdk.Context, channel string, seque
 
 func (k Keeper) hasIBCTransferRelation(ctx sdk.Context, channel string, sequence uint64) bool {
 	return ctx.KVStore(k.storeKey).Has(types.GetIBCTransferKey(channel, sequence))
+}
+
+func (k Keeper) HookOutgoingRefund(ctx sdk.Context, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error {
+	if _, err := k.ConvertCoin(sdk.WrapSDKContext(ctx), &types.MsgConvertCoin{
+		Coin:     totalCoin,
+		Receiver: common.BytesToAddress(sender.Bytes()).String(),
+		Sender:   sender.String(),
+	}); err != nil {
+		return err
+	}
+
+	k.DeleteOutgoingTransferRelation(ctx, txID)
+	return nil
+}
+
+func (k Keeper) SetOutgoingTransferRelation(ctx sdk.Context, txID uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetOutgoingTransferKey(txID), []byte{})
+}
+
+func (k Keeper) DeleteOutgoingTransferRelation(ctx sdk.Context, txID uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetOutgoingTransferKey(txID))
+}
+
+func (k Keeper) HasOutgoingTransferRelation(ctx sdk.Context, txID uint64) bool {
+	return ctx.KVStore(k.storeKey).Has(types.GetOutgoingTransferKey(txID))
 }

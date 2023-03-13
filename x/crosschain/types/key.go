@@ -103,6 +103,9 @@ var (
 
 	// ParamsKey is the prefix for params key
 	ParamsKey = []byte{0x40}
+
+	// OutgoingTxRelationKey outgoing tx with evm
+	OutgoingTxRelationKey = []byte{0x41}
 )
 
 // GetOracleKey returns the following key format
@@ -191,4 +194,8 @@ func GetTokenToDenomKey(denom string) []byte {
 func GetPastExternalSignatureCheckpointKey(blockHeight uint64, checkpoint []byte) []byte {
 	// nolint:staticcheck
 	return append(PastExternalSignatureCheckpointKey, append(sdk.Uint64ToBigEndian(blockHeight), checkpoint...)...)
+}
+
+func GetOutgoingTxRelationKey(txID uint64) []byte {
+	return append(OutgoingTxRelationKey, sdk.Uint64ToBigEndian(txID)...)
 }

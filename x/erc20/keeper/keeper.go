@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,8 +24,6 @@ type Keeper struct {
 	bankKeeper        types.BankKeeper
 	evmKeeper         types.EVMKeeper
 	ibcTransferKeeper types.IBCTransferKeeper
-
-	router *fxtypes.Router
 
 	moduleAddress common.Address
 
@@ -71,33 +70,21 @@ func (k Keeper) ModuleAddress() common.Address {
 	return k.moduleAddress
 }
 
-func (k Keeper) SetRouter(rtr fxtypes.Router) Keeper {
-	if k.router != nil && k.router.Sealed() {
-		panic("cannot reset a sealed router")
-	}
-	if _, found := rtr.GetRoute(types.ModuleName); found {
-		panic("cannot set current module")
-	}
-	k.router = &rtr
-	k.router.Seal()
-	return k
-}
-
 // TransferAfter ibc transfer after
-func (k Keeper) TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error {
-	_, err := sdk.AccAddressFromBech32(sender)
-	if err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err.Error())
-	}
-	if err = fxtypes.ValidateEthereumAddress(receive); err != nil {
+func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _ bool) error {
+	if err := fxtypes.ValidateEthereumAddress(receive); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid receive address: %s", err.Error())
 	}
-	_, err = k.ConvertCoin(sdk.WrapSDKContext(ctx), &types.MsgConvertCoin{
+	_, err := k.ConvertCoin(sdk.WrapSDKContext(ctx), &types.MsgConvertCoin{
 		Coin:     coin.Add(fee),
 		Receiver: receive,
-		Sender:   sender,
+		Sender:   sender.String(),
 	})
 	return err
+}
+
+func (k Keeper) PrecompileCancelSendToExternal(_ sdk.Context, _ uint64, _ sdk.AccAddress) (sdk.Coin, error) {
+	return sdk.Coin{}, errors.New("invalid implemented")
 }
 
 func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata, bool) {

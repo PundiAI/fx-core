@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing() {
 
 	suite.Equal(sdk.NewCoin(denom, sdkmath.ZeroInt()), suite.app.BankKeeper.GetSupply(suite.ctx, denom))
 
-	err = suite.Keeper().RemoveFromOutgoingPoolAndRefund(suite.ctx, txId, sender)
+	_, err = suite.Keeper().RemoveFromOutgoingPoolAndRefund(suite.ctx, txId, sender)
 	suite.NoError(err)
 	suite.Equal(suite.app.BankKeeper.GetAllBalances(suite.ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 
@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestKeeper_Outgoing2() {
 
 	suite.Equal(supply, suite.app.BankKeeper.GetSupply(suite.ctx, denom))
 
-	err = suite.Keeper().RemoveFromOutgoingPoolAndRefund(suite.ctx, txId, sender)
+	_, err = suite.Keeper().RemoveFromOutgoingPoolAndRefund(suite.ctx, txId, sender)
 	suite.NoError(err)
 	suite.Equal(suite.app.BankKeeper.GetAllBalances(suite.ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 

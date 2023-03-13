@@ -7,7 +7,8 @@ import (
 )
 
 type TransactionHook interface {
-	TransferAfter(ctx sdk.Context, sender, receive string, coins, fee sdk.Coin) error
+	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coins, fee sdk.Coin, originToken bool) error
+	PrecompileCancelSendToExternal(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error)
 }
 
 type Router struct {

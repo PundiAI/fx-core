@@ -303,7 +303,7 @@ func NewAppKeeper(
 		appKeepers.AccountKeeper,
 	)
 
-	erc20Keeper := erc20keeper.NewKeeper(
+	appKeepers.Erc20Keeper = erc20keeper.NewKeeper(
 		appKeepers.keys[erc20types.StoreKey],
 		appCodec,
 		appKeepers.AccountKeeper,
@@ -323,7 +323,7 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper,
+		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -337,7 +337,7 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper,
+		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -351,7 +351,7 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper,
+		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -365,7 +365,7 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper,
+		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -379,10 +379,10 @@ func NewAppKeeper(
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
-		erc20Keeper,
+		appKeepers.Erc20Keeper,
 		appKeepers.AccountKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	))
+	), appKeepers.Erc20Keeper)
 
 	// add cross-chain router
 	crosschainRouter := crosschainkeeper.NewRouter()
@@ -403,7 +403,7 @@ func NewAppKeeper(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(appKeepers.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(appKeepers.IBCKeeper.ClientKeeper)).
 		AddRoute(crosschaintypes.RouterKey, crosschain.NewChainProposalHandler(appKeepers.CrosschainKeeper)).
-		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(erc20Keeper))
+		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(appKeepers.Erc20Keeper))
 
 	govConfig := govtypes.DefaultConfig()
 
@@ -425,21 +425,12 @@ func NewAppKeeper(
 		govKeeper,
 	)
 
-	transferRouter := fxtypes.NewRouter().
+	ibcTransferRouter := fxtypes.NewRouter().
 		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
 		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
 		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
 		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).
-		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
-	appKeepers.Erc20Keeper = erc20Keeper.SetRouter(*transferRouter)
-
-	appKeepers.EvmKeeper.SetHooks(
-		evmkeeper.NewMultiEvmHooks(
-			appKeepers.Erc20Keeper.EVMHooks(),
-		),
-	)
-
-	ibcTransferRouter := transferRouter.
+		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper).
 		AddRoute(erc20types.ModuleName, appKeepers.Erc20Keeper)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRouter(*ibcTransferRouter)
 	appKeepers.FxTransferKeeper = appKeepers.FxTransferKeeper.SetRefundHook(appKeepers.Erc20Keeper)

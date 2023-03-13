@@ -95,12 +95,6 @@ func (suite *IntegrationTest) ERC20Test() {
 		suite.erc20.ConvertCoin(chain.privKey, suite.erc20.HexAddress(), sdk.NewCoin(metadata.Base, sdkmath.NewInt(50)))
 		suite.Equal(suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress()), big.NewInt(0).Add(balance, big.NewInt(50)))
 
-		balance = suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress())
-		denomBalance := suite.QueryBalances(chain.AccAddress()).AmountOf(tokenPair.GetDenom())
-		suite.erc20.TransferToModule(chain.privKey, tokenPair.GetERC20Contract(), big.NewInt(50))
-		suite.Equal(suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), chain.HexAddress()), new(big.Int).Sub(balance, big.NewInt(50)))
-		suite.CheckBalance(chain.AccAddress(), sdk.NewCoin(tokenPair.GetDenom(), denomBalance.Add(sdkmath.NewInt(50))))
-
 		if i < len(suite.crosschain)-1 {
 			// remove proposal
 			suite.erc20.UpdateDenomAliasProposal(metadata.Base, bridgeToken.Denom)

@@ -376,7 +376,7 @@ func (s MsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelS
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if err = s.RemoveFromOutgoingPoolAndRefund(ctx, msg.TransactionId, sender); err != nil {
+	if _, err = s.RemoveFromOutgoingPoolAndRefund(ctx, msg.TransactionId, sender); err != nil {
 		return nil, err
 	}
 

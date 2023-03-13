@@ -44,8 +44,11 @@ type BankKeeper interface {
 }
 
 type Erc20Keeper interface {
-	TransferAfter(ctx sdk.Context, sender, receive string, coin, fee sdk.Coin) error
+	TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive string, coin, fee sdk.Coin, _ bool) error
 	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error)
+	HookOutgoingRefund(ctx sdk.Context, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error
+	SetOutgoingTransferRelation(ctx sdk.Context, txID uint64)
+	HasOutgoingTransferRelation(ctx sdk.Context, txID uint64) bool
 }
 
 type IBCTransferKeeper interface {

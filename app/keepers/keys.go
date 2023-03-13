@@ -24,10 +24,12 @@ import (
 	evm "github.com/evmos/ethermint/x/evm/vm"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
 	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	precompilecrosschain "github.com/functionx/fx-core/v3/x/evm/precompiles/crosschain"
 	precompilesstaking "github.com/functionx/fx-core/v3/x/evm/precompiles/staking"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
@@ -72,8 +74,18 @@ func (appKeepers *AppKeepers) ExtendPrecompiles(ctx sdk.Context, evm *vm.EVM) ev
 	stakingContract := precompilesstaking.NewPrecompiledContract(
 		ctx, evm, appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper, appKeepers.EvmKeeper)
 
+	transferRouter := fxtypes.NewRouter().
+		AddRoute(ethtypes.ModuleName, appKeepers.EthKeeper).
+		AddRoute(bsctypes.ModuleName, appKeepers.BscKeeper).
+		AddRoute(polygontypes.ModuleName, appKeepers.PolygonKeeper).
+		AddRoute(trontypes.ModuleName, appKeepers.TronKeeper).
+		AddRoute(avalanchetypes.ModuleName, appKeepers.AvalancheKeeper)
+	crossChainContract := precompilecrosschain.NewPrecompiledContract(
+		ctx, evm, appKeepers.BankKeeper, appKeepers.EvmKeeper, appKeepers.Erc20Keeper, appKeepers.IBCTransferKeeper, transferRouter)
+
 	return map[common.Address]vm.PrecompiledContract{
-		stakingContract.Address(): stakingContract,
+		stakingContract.Address():    stakingContract,
+		crossChainContract.Address(): crossChainContract,
 	}
 }
 
