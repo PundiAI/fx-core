@@ -13,7 +13,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/evm/types"
 )
 
-var DelegationMethod = abi.NewMethod(DelegationMethodName, DelegationMethodName, abi.Function, "", false, false,
+var DelegationMethod = abi.NewMethod(DelegationMethodName, DelegationMethodName, abi.Function, "nonpayable", false, false,
 	abi.Arguments{
 		abi.Argument{
 			Name: "validator",

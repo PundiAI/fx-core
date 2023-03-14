@@ -1,15 +1,20 @@
 package staking_test
 
 import (
+	"encoding/json"
 	"math/big"
 	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/evmos/ethermint/server/config"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -22,15 +27,23 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
+const (
+	StakingTestDelegateName   = "delegate"
+	StakingTestUndelegateName = "undelegate"
+	StakingTestWithdrawName   = "withdraw"
+	StakingTestDelegationName = "delegation"
+)
+
 type PrecompileTestSuite struct {
 	suite.Suite
-	ctx               sdk.Context
-	app               *app.App
-	signer            *helpers.Signer
-	precompileStaking common.Address
+	ctx     sdk.Context
+	app     *app.App
+	signer  *helpers.Signer
+	staking common.Address
 }
 
 func TestPrecompileTestSuite(t *testing.T) {
+	fxtypes.SetConfig(true)
 	suite.Run(t, new(PrecompileTestSuite))
 }
 
@@ -45,7 +58,7 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	suite.app = helpers.SetupWithGenesisValSet(suite.T(), set, accs, balances...)
 
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{
-		Height:          suite.app.LastBlockHeight(),
+		Height:          suite.app.LastBlockHeight() + 1,
 		ChainID:         fxtypes.ChainId(),
 		ProposerAddress: set.Proposer.Address,
 		Time:            time.Now().UTC(),
@@ -53,39 +66,84 @@ func (suite *PrecompileTestSuite) SetupTest() {
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(fxtypes.DefaultDenom, sdkmath.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1e18))
 
+	for _, validator := range set.Validators {
+		signingInfo := slashingtypes.NewValidatorSigningInfo(
+			validator.Address.Bytes(),
+			suite.ctx.BlockHeight(),
+			0,
+			time.Unix(0, 0),
+			false,
+			0,
+		)
+		suite.app.SlashingKeeper.SetValidatorSigningInfo(suite.ctx, validator.Address.Bytes(), signingInfo)
+	}
+
 	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
 	stakingContract, err := suite.app.EvmKeeper.DeployContract(suite.ctx, suite.signer.Address(), fxtypes.MustABIJson(StakingTestABI), fxtypes.MustDecodeHex(StakingTestBin))
 	suite.Require().NoError(err)
-	suite.precompileStaking = stakingContract
+	suite.staking = stakingContract
+
+	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).Mul(sdkmath.NewInt(1e18)))))
 }
 
-func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, contract common.Address, amount *big.Int, data []byte) *evmtypes.MsgEthereumTx {
-	acc := suite.app.EvmKeeper.GetAccount(suite.ctx, suite.signer.Address())
-	gasLimit := uint64(200000)
-	gasPrices := big.NewInt(5e11)
-	gasFeeCap := big.NewInt(6e11)
-	gasTipCap := big.NewInt(1e9)
-	ethTx := evmtypes.NewTx(fxtypes.EIP155ChainID(), acc.Nonce, &contract, amount, gasLimit, gasPrices, gasFeeCap, gasTipCap, data, nil)
-	ethTx.From = suite.signer.Address().Hex()
-	err := ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID()), signer)
+func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, contract common.Address, amount *big.Int, data []byte) (*evmtypes.MsgEthereumTx, error) {
+	fromAddr := signer.Address()
+	value := hexutil.Big(*amount)
+	args, err := json.Marshal(&evmtypes.TransactionArgs{To: &contract, From: &fromAddr, Data: (*hexutil.Bytes)(&data), Value: &value})
 	suite.Require().NoError(err)
-	return ethTx
+
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
+	evmtypes.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
+	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(sdk.WrapSDKContext(suite.ctx),
+		&evmtypes.EthCallRequest{
+			Args:    args,
+			GasCap:  config.DefaultGasCap,
+			ChainId: suite.app.EvmKeeper.ChainID().Int64(),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	ethTx := evmtypes.NewTx(
+		fxtypes.EIP155ChainID(),
+		suite.app.EvmKeeper.GetNonce(suite.ctx, suite.signer.Address()),
+		&contract,
+		amount,
+		res.Gas,
+		nil,
+		suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
+		big.NewInt(1),
+		data,
+		nil,
+	)
+	ethTx.From = signer.Address().Hex()
+	err = ethTx.Sign(ethereumtypes.LatestSignerForChainID(fxtypes.EIP155ChainID()), signer)
+	return ethTx, err
 }
 
 func (suite *PrecompileTestSuite) Commit() {
 	header := suite.ctx.BlockHeader()
-	suite.app.EndBlock(abci.RequestEndBlock{
-		Height: header.Height,
-	})
-	suite.app.Commit()
-	// after commit ctx header
-	header.Height += 1
 
+	suite.app.EndBlock(abci.RequestEndBlock{Height: header.Height})
+	suite.app.Commit()
 	// begin block
 	header.Time = time.Now().UTC()
 	header.Height += 1
+
+	vals := suite.app.StakingKeeper.GetAllValidators(suite.ctx)
+	infos := make([]abci.VoteInfo, 0, len(vals))
+	for _, val := range vals {
+		addr, err := val.GetConsAddr()
+		suite.Require().NoError(err)
+		infos = append(infos, abci.VoteInfo{Validator: abci.Validator{Address: addr, Power: 100}})
+	}
+
 	suite.app.BeginBlock(abci.RequestBeginBlock{
 		Header: header,
+		LastCommitInfo: abci.LastCommitInfo{
+			Votes: infos,
+		},
 	})
-	suite.ctx = suite.ctx.WithBlockHeight(header.Height)
+	suite.ctx = suite.app.NewContext(false, header)
 }

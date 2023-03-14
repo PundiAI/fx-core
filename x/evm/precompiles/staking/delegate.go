@@ -14,7 +14,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/evm/types"
 )
 
-var DelegateMethod = abi.NewMethod(DelegateMethodName, DelegateMethodName, abi.Function, "", false, true,
+var DelegateMethod = abi.NewMethod(DelegateMethodName, DelegateMethodName, abi.Function, "payable", false, true,
 	abi.Arguments{
 		abi.Argument{
 			Name: "validator",
@@ -51,11 +51,10 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 		return nil, fmt.Errorf("invalid amount: %s", amount.String())
 	}
 
-	sender := sdk.AccAddress(contract.CallerAddress.Bytes())
+	sender := sdk.AccAddress(contract.Caller().Bytes())
 
 	// check contract value
-	balance := evm.StateDB.GetBalance(contract.Address())
-	if balance.Cmp(amount) != 0 || contract.Value().Cmp(amount) != 0 {
+	if contract.Value().Cmp(amount) != 0 {
 		return nil, fmt.Errorf("invalid msg.value: %s", contract.Value().String())
 	}
 
@@ -81,15 +80,12 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 		return nil, fmt.Errorf("send operation failed: %s", err.Error())
 	}
 
-	// withdraw rewards if delegation exist
-	if _, found := c.stakingKeeper.GetDelegation(cacheCtx, sender, valAddr); found {
-		// receive the commission reward in advance and add it to evm balance
-		rewards, err := c.distrKeeper.WithdrawDelegationRewards(cacheCtx, sender, valAddr)
-		if err != nil {
+	// withdraw rewards if delegation exist, add reward to evm state balance
+	if _, found = c.stakingKeeper.GetDelegation(cacheCtx, sender, valAddr); found {
+		if _, err = c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, bondDenom); err != nil {
 			evm.StateDB.RevertToSnapshot(snapshot)
-			return nil, fmt.Errorf("withdraw failed: %s", err.Error())
+			return nil, err
 		}
-		evm.StateDB.AddBalance(contract.CallerAddress, rewards.AmountOf(bondDenom).BigInt())
 	}
 
 	// delegate amount
@@ -99,6 +95,7 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 		return nil, err
 	}
 	commit()
+	c.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 	// todo truncate shares, decimal 18
 	return DelegateMethod.Outputs.Pack(shares.TruncateInt().BigInt())

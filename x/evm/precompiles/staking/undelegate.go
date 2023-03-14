@@ -15,7 +15,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/evm/types"
 )
 
-var UnDelegateMethod = abi.NewMethod(UndelegateMethodName, UndelegateMethodName, abi.Function, "", false, false,
+var UndelegateMethod = abi.NewMethod(UndelegateMethodName, UndelegateMethodName, abi.Function, "nonpayable", false, false,
 	abi.Arguments{
 		abi.Argument{
 			Name: "validator",
@@ -33,7 +33,7 @@ var UnDelegateMethod = abi.NewMethod(UndelegateMethodName, UndelegateMethodName,
 		},
 		abi.Argument{
 			Name: "endTime",
-			Type: types.TypeUint,
+			Type: types.TypeUint256,
 		},
 	},
 )
@@ -43,7 +43,7 @@ func (c *Contract) Undelegate(evm *vm.EVM, contract *vm.Contract, readonly bool)
 		return nil, errors.New("undelegate method not readonly")
 	}
 
-	args, err := UnDelegateMethod.Inputs.Unpack(contract.Input[4:])
+	args, err := UndelegateMethod.Inputs.Unpack(contract.Input[4:])
 	if err != nil {
 		return nil, errors.New("failed to unpack input")
 	}
@@ -67,13 +67,12 @@ func (c *Contract) Undelegate(evm *vm.EVM, contract *vm.Contract, readonly bool)
 	cacheCtx, commit := c.ctx.CacheContext()
 	bondDenom := c.stakingKeeper.BondDenom(cacheCtx)
 
-	if _, found := c.stakingKeeper.GetDelegation(cacheCtx, sender, valAddr); found {
-		rewards, err := c.distrKeeper.WithdrawDelegationRewards(cacheCtx, sender, valAddr)
-		if err != nil {
+	// withdraw rewards if delegation exist, add reward to evm state balance
+	if _, found = c.stakingKeeper.GetDelegation(cacheCtx, sender, valAddr); found {
+		if _, err = c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, bondDenom); err != nil {
 			evm.StateDB.RevertToSnapshot(snapshot)
-			return nil, fmt.Errorf("withdraw failed: %s", err.Error())
+			return nil, err
 		}
-		evm.StateDB.AddBalance(contract.CallerAddress, rewards.AmountOf(bondDenom).BigInt())
 	}
 
 	unDelAmount, endTime, err := Undelegate(cacheCtx, c.stakingKeeper,
@@ -83,8 +82,9 @@ func (c *Contract) Undelegate(evm *vm.EVM, contract *vm.Contract, readonly bool)
 		return nil, fmt.Errorf("undelegate failed: %s", err.Error())
 	}
 	commit()
+	c.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
-	return UnDelegateMethod.Outputs.Pack(unDelAmount.BigInt(), big.NewInt(endTime.Unix()))
+	return UndelegateMethod.Outputs.Pack(unDelAmount.BigInt(), big.NewInt(endTime.Unix()))
 }
 
 func Undelegate(ctx sdk.Context, sk types.StakingKeeper, bk types.BankKeeper, delAddr sdk.AccAddress,

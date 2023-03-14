@@ -35,7 +35,7 @@ func NewPrecompiledContract(
 }
 
 func (c *Contract) Address() common.Address {
-	return common.BytesToAddress([]byte{100})
+	return StakingAddress
 }
 
 func (c *Contract) IsStateful() bool {
@@ -49,7 +49,7 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 	switch string(input[:4]) {
 	case string(DelegateMethod.ID):
 		return DelegateGas
-	case string(UnDelegateMethod.ID):
+	case string(UndelegateMethod.ID):
 		return UndelegateGas
 	case string(WithdrawMethod.ID):
 		return WithdrawGas
@@ -68,7 +68,7 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 	switch string(contract.Input[:4]) {
 	case string(DelegateMethod.ID):
 		ret, err = c.Delegate(evm, contract, readonly)
-	case string(UnDelegateMethod.ID):
+	case string(UndelegateMethod.ID):
 		ret, err = c.Undelegate(evm, contract, readonly)
 	case string(WithdrawMethod.ID):
 		ret, err = c.Withdraw(evm, contract, readonly)
