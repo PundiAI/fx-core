@@ -25,3 +25,8 @@ var Upgrade = upgrades.Upgrade{
 		}
 	},
 }
+
+type DenomAlias struct {
+	Denom string
+	Alias string
+}
