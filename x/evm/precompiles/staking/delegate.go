@@ -20,14 +20,14 @@ var DelegateMethod = abi.NewMethod(DelegateMethodName, DelegateMethodName, abi.F
 			Name: "validator",
 			Type: types.TypeString,
 		},
-		abi.Argument{
-			Name: "amount",
-			Type: types.TypeUint256,
-		},
 	},
 	abi.Arguments{
 		abi.Argument{
 			Name: "shares",
+			Type: types.TypeUint256,
+		},
+		abi.Argument{
+			Name: "reward",
 			Type: types.TypeUint256,
 		},
 	},
@@ -46,16 +46,12 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 	if err != nil {
 		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
 	}
-	amount := args[1].(*big.Int)
-	if amount.Sign() <= 0 {
-		return nil, fmt.Errorf("invalid amount: %s", amount.String())
-	}
 
+	amount := contract.Value()
 	sender := sdk.AccAddress(contract.Caller().Bytes())
 
-	// check contract value
-	if contract.Value().Cmp(amount) != 0 {
-		return nil, fmt.Errorf("invalid msg.value: %s", contract.Value().String())
+	if amount.Cmp(big.NewInt(0)) <= 0 {
+		return nil, fmt.Errorf("invalid delegate amount: %s", amount.String())
 	}
 
 	val, found := c.stakingKeeper.GetValidator(c.ctx, valAddr)
@@ -65,11 +61,11 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 
 	snapshot := evm.StateDB.Snapshot()
 	cacheCtx, commit := c.ctx.CacheContext()
-	bondDenom := c.stakingKeeper.BondDenom(cacheCtx)
+	evmDenom := c.evmKeeper.GetEVMDenom(cacheCtx)
 
 	// sub evm balance and mint delegate amount
 	evm.StateDB.SubBalance(contract.Address(), amount)
-	coins := sdk.NewCoins(sdk.NewCoin(bondDenom, sdk.NewIntFromBigInt(amount)))
+	coins := sdk.NewCoins(sdk.NewCoin(evmDenom, sdk.NewIntFromBigInt(amount)))
 	if err = c.bankKeeper.MintCoins(cacheCtx, evmtypes.ModuleName, coins); err != nil {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		return nil, fmt.Errorf("mint operation failed: %s", err.Error())
@@ -81,8 +77,9 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 	}
 
 	// withdraw rewards if delegation exist, add reward to evm state balance
+	reward := big.NewInt(0)
 	if _, found = c.stakingKeeper.GetDelegation(cacheCtx, sender, valAddr); found {
-		if _, err = c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, bondDenom); err != nil {
+		if reward, err = c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, evmDenom); err != nil {
 			evm.StateDB.RevertToSnapshot(snapshot)
 			return nil, err
 		}
@@ -98,5 +95,5 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 	c.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 	// todo truncate shares, decimal 18
-	return DelegateMethod.Outputs.Pack(shares.TruncateInt().BigInt())
+	return DelegateMethod.Outputs.Pack(shares.TruncateInt().BigInt(), reward)
 }

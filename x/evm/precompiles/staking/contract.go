@@ -13,17 +13,19 @@ import (
 type Contract struct {
 	ctx           sdk.Context
 	evm           *vm.EVM
-	bankKeeper    types.BankKeeper
-	distrKeeper   types.DistrKeeper
-	stakingKeeper types.StakingKeeper
+	bankKeeper    BankKeeper
+	distrKeeper   DistrKeeper
+	stakingKeeper StakingKeeper
+	evmKeeper     EvmKeeper
 }
 
 func NewPrecompiledContract(
 	ctx sdk.Context,
 	evm *vm.EVM,
-	bankKeeper types.BankKeeper,
-	stakingKeeper types.StakingKeeper,
-	distrKeeper types.DistrKeeper,
+	bankKeeper BankKeeper,
+	stakingKeeper StakingKeeper,
+	distrKeeper DistrKeeper,
+	evmKeeper EvmKeeper,
 ) *Contract {
 	return &Contract{
 		ctx:           ctx,
@@ -31,6 +33,7 @@ func NewPrecompiledContract(
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		distrKeeper:   distrKeeper,
+		evmKeeper:     evmKeeper,
 	}
 }
 

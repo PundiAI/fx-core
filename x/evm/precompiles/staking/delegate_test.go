@@ -32,7 +32,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 	suite.False(found)
 
 	delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
-	pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val0.GetOperator().String(), delAmt.BigInt())
+	pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val0.GetOperator().String())
 	suite.Require().NoError(err)
 
 	ethTx, err := suite.PackEthereumTx(suite.signer, suite.staking, delAmt.BigInt(), pack)
@@ -59,7 +59,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegate() {
 	suite.False(found)
 
 	delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
-	pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String(), delAmt.BigInt())
+	pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 	suite.Require().NoError(err)
 
 	ethTx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
@@ -92,7 +92,7 @@ func (suite *PrecompileTestSuite) TestDelegates() {
 				val0 := vals[0]
 
 				delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val0.GetOperator().String(), delAmt.BigInt())
+				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val0.GetOperator().String())
 				suite.Require().NoError(err)
 				tx, err := suite.PackEthereumTx(suite.signer, suite.staking, delAmt.BigInt(), pack)
 				return tx, err, nil
@@ -107,7 +107,7 @@ func (suite *PrecompileTestSuite) TestDelegates() {
 
 				delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
 				val := val0.GetOperator().String() + "1"
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val, delAmt.BigInt())
+				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val)
 				suite.Require().NoError(err)
 				tx, err := suite.PackEthereumTx(suite.signer, suite.staking, delAmt.BigInt(), pack)
 				return tx, err, []string{val}
@@ -124,13 +124,13 @@ func (suite *PrecompileTestSuite) TestDelegates() {
 				val0 := vals[0]
 
 				delAmt := sdkmath.NewInt(0)
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val0.GetOperator().String(), delAmt.BigInt())
+				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val0.GetOperator().String())
 				suite.Require().NoError(err)
 				tx, err := suite.PackEthereumTx(suite.signer, suite.staking, delAmt.BigInt(), pack)
 				return tx, err, []string{delAmt.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("execution reverted: delegate failed: invalid amount: %s", args[0])
+				return fmt.Sprintf("execution reverted: delegate failed: invalid delegate amount: %s", args[0])
 			},
 			result: false,
 		},
@@ -140,14 +140,14 @@ func (suite *PrecompileTestSuite) TestDelegates() {
 				vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val0 := vals[0]
 
-				delAmt := sdkmath.NewInt(1)
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val0.GetOperator().String(), delAmt.BigInt())
+				delAmt := big.NewInt(0)
+				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val0.GetOperator().String())
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, suite.staking, big.NewInt(0), pack)
-				return tx, err, []string{}
+				tx, err := suite.PackEthereumTx(suite.signer, suite.staking, delAmt, pack)
+				return tx, err, []string{delAmt.String()}
 			},
 			error: func(args []string) string {
-				return "execution reverted"
+				return fmt.Sprintf("execution reverted: delegate failed: invalid delegate amount: %s", args[0])
 			},
 			result: false,
 		},
@@ -156,7 +156,7 @@ func (suite *PrecompileTestSuite) TestDelegates() {
 			malleate: func() (*evmtypes.MsgEthereumTx, error, []string) {
 				delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
 				val := sdk.ValAddress(suite.signer.AccAddress()).String()
-				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val, delAmt.BigInt())
+				pack, err := fxtypes.MustABIJson(StakingTestABI).Pack(StakingTestDelegateName, val)
 				suite.Require().NoError(err)
 				tx, err := suite.PackEthereumTx(suite.signer, suite.staking, delAmt.BigInt(), pack)
 				return tx, err, []string{val}
@@ -219,7 +219,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 				vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val0 := vals[0]
 
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String(), delAmt.BigInt())
+				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 				suite.Require().NoError(err)
 				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
 				return tx, err, nil
@@ -232,7 +232,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 				vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
 				val0 := vals[0]
 
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String(), delAmt.BigInt())
+				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 				suite.Require().NoError(err)
 				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
 				suite.Require().NoError(err)
@@ -240,7 +240,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				pack, err = fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String(), delAmt.BigInt())
+				pack, err = fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 				suite.Require().NoError(err)
 				tx, err = suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
 				return tx, err, nil
@@ -254,7 +254,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 				val0 := vals[0]
 
 				val := val0.GetOperator().String() + "1"
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val, delAmt.BigInt())
+				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val)
 				suite.Require().NoError(err)
 				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
 				return tx, err, []string{val}
@@ -271,30 +271,13 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 				val0 := vals[0]
 
 				delAmt := sdkmath.NewInt(0)
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String(), delAmt.BigInt())
+				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 				suite.Require().NoError(err)
 				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
 				return tx, err, []string{delAmt.String()}
 			},
 			error: func(args []string) string {
-				return fmt.Sprintf("invalid amount: %s", args[0])
-			},
-			result: false,
-		},
-		{
-			name: "failed invalid value",
-			malleate: func() (*evmtypes.MsgEthereumTx, error, []string) {
-				vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-				val0 := vals[0]
-
-				delAmt := sdkmath.NewInt(1)
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String(), delAmt.BigInt())
-				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, big.NewInt(0), pack)
-				return tx, err, []string{}
-			},
-			error: func(args []string) string {
-				return "invalid msg.value: 0"
+				return fmt.Sprintf("invalid delegate amount: %s", args[0])
 			},
 			result: false,
 		},
@@ -303,7 +286,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 			malleate: func() (*evmtypes.MsgEthereumTx, error, []string) {
 				delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
 				val := sdk.ValAddress(suite.signer.AccAddress()).String()
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val, delAmt.BigInt())
+				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val)
 				suite.Require().NoError(err)
 				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
 				return tx, err, []string{val}

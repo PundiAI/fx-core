@@ -32,6 +32,10 @@ var UndelegateMethod = abi.NewMethod(UndelegateMethodName, UndelegateMethodName,
 			Type: types.TypeUint256,
 		},
 		abi.Argument{
+			Name: "reward",
+			Type: types.TypeUint256,
+		},
+		abi.Argument{
 			Name: "endTime",
 			Type: types.TypeUint256,
 		},
@@ -65,18 +69,19 @@ func (c *Contract) Undelegate(evm *vm.EVM, contract *vm.Contract, readonly bool)
 
 	snapshot := evm.StateDB.Snapshot()
 	cacheCtx, commit := c.ctx.CacheContext()
-	bondDenom := c.stakingKeeper.BondDenom(cacheCtx)
+	evmDenom := c.evmKeeper.GetEVMDenom(cacheCtx)
 
 	// withdraw rewards if delegation exist, add reward to evm state balance
+	reward := big.NewInt(0)
 	if _, found = c.stakingKeeper.GetDelegation(cacheCtx, sender, valAddr); found {
-		if _, err = c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, bondDenom); err != nil {
+		if reward, err = c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, evmDenom); err != nil {
 			evm.StateDB.RevertToSnapshot(snapshot)
 			return nil, err
 		}
 	}
 
 	unDelAmount, endTime, err := Undelegate(cacheCtx, c.stakingKeeper,
-		c.bankKeeper, sender, valAddr, sdk.NewDecFromBigInt(shareAmount), bondDenom)
+		c.bankKeeper, sender, valAddr, sdk.NewDecFromBigInt(shareAmount), evmDenom)
 	if err != nil {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		return nil, fmt.Errorf("undelegate failed: %s", err.Error())
@@ -84,10 +89,10 @@ func (c *Contract) Undelegate(evm *vm.EVM, contract *vm.Contract, readonly bool)
 	commit()
 	c.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
-	return UndelegateMethod.Outputs.Pack(unDelAmount.BigInt(), big.NewInt(endTime.Unix()))
+	return UndelegateMethod.Outputs.Pack(unDelAmount.BigInt(), reward, big.NewInt(endTime.Unix()))
 }
 
-func Undelegate(ctx sdk.Context, sk types.StakingKeeper, bk types.BankKeeper, delAddr sdk.AccAddress,
+func Undelegate(ctx sdk.Context, sk StakingKeeper, bk BankKeeper, delAddr sdk.AccAddress,
 	valAddr sdk.ValAddress, shares sdk.Dec, bondDenom string,
 ) (sdkmath.Int, time.Time, error) {
 	validator, found := sk.GetValidator(ctx, valAddr)

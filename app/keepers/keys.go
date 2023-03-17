@@ -69,8 +69,8 @@ func (appKeepers *AppKeepers) GetMemoryStoreKey() map[string]*storetypes.MemoryS
 
 // ExtendPrecompiles  get extend pre compile contracts function
 func (appKeepers *AppKeepers) ExtendPrecompiles(ctx sdk.Context, evm *vm.EVM) evm.PrecompiledContracts {
-	stakingContract := precompilesstaking.NewPrecompiledContract(ctx, evm,
-		appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper)
+	stakingContract := precompilesstaking.NewPrecompiledContract(
+		ctx, evm, appKeepers.BankKeeper, appKeepers.StakingKeeper, appKeepers.DistrKeeper, appKeepers.EvmKeeper)
 
 	return map[common.Address]vm.PrecompiledContract{
 		stakingContract.Address(): stakingContract,

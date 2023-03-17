@@ -29,15 +29,15 @@ const JsonABI = `
             {
                 "name":"validator",
                 "type":"string"
-            },
-            {
-                "name":"amount",
-                "type":"uint256"
             }
         ],
         "outputs":[
             {
                 "name":"shares",
+                "type":"uint256"
+            },
+            {
+                "name":"reward",
                 "type":"uint256"
             }
         ],
@@ -60,6 +60,10 @@ const JsonABI = `
         "outputs":[
             {
                 "name":"amount",
+                "type":"uint256"
+            },
+            {
+                "name":"reward",
                 "type":"uint256"
             },
             {

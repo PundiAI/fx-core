@@ -45,9 +45,9 @@ func (c *Contract) Withdraw(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 
 	snapshot := evm.StateDB.Snapshot()
 	cacheCtx, commit := c.ctx.CacheContext()
-	bondDenom := c.stakingKeeper.BondDenom(cacheCtx)
+	evmDenom := c.evmKeeper.GetEVMDenom(cacheCtx)
 
-	rewardAmount, err := c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, bondDenom)
+	rewardAmount, err := c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, evmDenom)
 	if err != nil {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		return nil, err

@@ -4,14 +4,13 @@ pragma solidity ^0.8.0;
 
 interface IStaking {
     function delegate(
-        string memory _val,
-        uint256 _amt
-    ) external payable returns (uint256);
+        string memory _val
+    ) external payable returns (uint256, uint256);
 
     function undelegate(
         string memory _val,
         uint256 _shares
-    ) external returns (uint256, uint256);
+    ) external returns (uint256, uint256, uint256);
 
     function withdraw(string memory _val) external returns (uint256);
 
@@ -26,19 +25,15 @@ contract Staking is IStaking {
         address(0x0000000000000000000000000000000000000064);
 
     function delegate(
-        string memory _val,
-        uint256 _amt
-    ) external payable virtual override returns (uint256) {
-        return _delegate(_val, _amt);
+        string memory _val
+    ) external payable virtual override returns (uint256, uint256) {
+        return _delegate(_val);
     }
 
-    function _delegate(
-        string memory _val,
-        uint256 _amt
-    ) internal returns (uint256) {
-        (bool result, bytes memory data) = _stakingAddress.call{value: _amt}(
-            Encode.delegate(_val, _amt)
-        );
+    function _delegate(string memory _val) internal returns (uint256, uint256) {
+        (bool result, bytes memory data) = _stakingAddress.call{
+            value: msg.value
+        }(Encode.delegate(_val));
         Decode.ok(result, data, "delegate failed");
         return Decode.delegate(data);
     }
@@ -46,14 +41,14 @@ contract Staking is IStaking {
     function undelegate(
         string memory _val,
         uint256 _shares
-    ) external virtual override returns (uint256, uint256) {
+    ) external virtual override returns (uint256, uint256, uint256) {
         return _undelegate(_val, _shares);
     }
 
     function _undelegate(
         string memory _val,
         uint256 _shares
-    ) internal returns (uint256, uint256) {
+    ) internal returns (uint256, uint256, uint256) {
         (bool result, bytes memory data) = _stakingAddress.call(
             Encode.undelegate(_val, _shares)
         );
@@ -96,15 +91,9 @@ contract Staking is IStaking {
 
 library Encode {
     function delegate(
-        string memory _validator,
-        uint256 _amount
+        string memory _validator
     ) internal pure returns (bytes memory) {
-        return
-            abi.encodeWithSignature(
-                "delegate(string,uint256)",
-                _validator,
-                _amount
-            );
+        return abi.encodeWithSignature("delegate(string)", _validator);
     }
 
     function undelegate(
@@ -139,16 +128,21 @@ library Encode {
 }
 
 library Decode {
-    function delegate(bytes memory data) internal pure returns (uint256) {
-        uint256 shares = abi.decode(data, (uint256));
-        return shares;
+    function delegate(
+        bytes memory data
+    ) internal pure returns (uint256, uint256) {
+        (uint256 shares, uint256 reward) = abi.decode(data, (uint256, uint256));
+        return (shares, reward);
     }
 
     function undelegate(
         bytes memory data
-    ) internal pure returns (uint256, uint) {
-        (uint256 amount, uint endTime) = abi.decode(data, (uint256, uint));
-        return (amount, endTime);
+    ) internal pure returns (uint256, uint256, uint256) {
+        (uint256 amount, uint256 reward, uint256 endTime) = abi.decode(
+            data,
+            (uint256, uint256, uint256)
+        );
+        return (amount, reward, endTime);
     }
 
     function withdraw(bytes memory data) internal pure returns (uint256) {
