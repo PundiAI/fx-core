@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
@@ -146,4 +149,39 @@ func (k Keeper) DeleteAliasesDenom(ctx sdk.Context, aliases ...string) {
 func (k Keeper) IsAliasDenomRegistered(ctx sdk.Context, alias string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(append(types.KeyPrefixAliasDenom, []byte(alias)...))
+}
+
+// IsOriginDenom check denom origin
+// denom must be eth0x...|bsc0x...|tronTL...|ibc/ABC...
+// origin: FX, fxUSD(fxevm-ERC20)
+// cross: PUNDIX, PURSE, Other(usdt,usdc)
+func (k Keeper) IsOriginDenom(ctx sdk.Context, denom string) bool {
+	// exclude FX
+	if strings.EqualFold(denom, fxtypes.DefaultDenom) {
+		return true
+	}
+
+	// exclude PUNDIX|PURSE
+	if k.IsDenomRegistered(ctx, denom) {
+		return false
+	}
+
+	// exclude denom not register (may be add bridge token, but not register)
+	baseDenom, found := k.GetAliasDenom(ctx, denom)
+	if !found {
+		// false mean to mint it, because we don't know what type it is.
+		// if type not origin, we need mint it, false is correct
+		// if type is origin(FX/fxUSD token in ethereum), we need unlock it, false is incorrect,
+		// so there is a problem here, we need remove token from bridge contract and fix it when upgrade chain
+		ctx.Logger().Info("denom not register, but add to bridge contract", "denom", denom)
+		return false
+	}
+
+	tokenPair, found := k.GetTokenPair(ctx, baseDenom)
+	if !found {
+		ctx.Logger().Info("alias register, but denom token pair not found", "alias", denom, "denom", baseDenom)
+		return false
+	}
+
+	return tokenPair.IsNativeERC20()
 }

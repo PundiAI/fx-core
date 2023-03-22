@@ -26,7 +26,8 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if err != nil {
 			return errorsmod.Wrap(types.ErrInvalid, "receiver address")
 		}
-		if bridgeToken.Denom != fxtypes.DefaultDenom {
+		isOriginDenom := k.erc20Keeper.IsOriginDenom(ctx, bridgeToken.Denom)
+		if !isOriginDenom {
 			// If it is not fxcore originated, mint the coins (aka vouchers)
 			if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
 				return errorsmod.Wrapf(err, "mint vouchers coins")

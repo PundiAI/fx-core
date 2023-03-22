@@ -28,7 +28,8 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 
 	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
 	// If there is, lock the coins.
-	if amount.Denom == fxtypes.DefaultDenom {
+	isOriginDenom := k.erc20Keeper.IsOriginDenom(ctx, amount.Denom)
+	if isOriginDenom {
 		// lock coins in module
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, totalInVouchers); err != nil {
 			return 0, err

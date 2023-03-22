@@ -49,6 +49,7 @@ type Erc20Keeper interface {
 	HookOutgoingRefund(ctx sdk.Context, txID uint64, sender sdk.AccAddress, totalCoin sdk.Coin) error
 	SetOutgoingTransferRelation(ctx sdk.Context, txID uint64)
 	HasOutgoingTransferRelation(ctx sdk.Context, txID uint64) bool
+	IsOriginDenom(ctx sdk.Context, denom string) bool
 }
 
 type IBCTransferKeeper interface {

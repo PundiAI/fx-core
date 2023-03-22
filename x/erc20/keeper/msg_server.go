@@ -366,19 +366,9 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 	if err != nil {
 		return sdk.Coin{}, err
 	}
-
-	if coin.Denom == metadata.Base {
-		// burn coin
-		if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
-			return sdk.Coin{}, err
-		}
-	} else if targetDenom == metadata.Base {
-		// mint denom
-		if err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
-			return sdk.Coin{}, err
-		}
+	if err := k.convertDenomToContractOwner(ctx, targetCoin, coin, metadata); err != nil {
+		return sdk.Coin{}, err
 	}
-
 	// send alias denom to from addr
 	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(targetCoin)); err != nil {
 		return sdk.Coin{}, err
@@ -391,6 +381,39 @@ func (k Keeper) ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin 
 		sdk.NewAttribute(types.AttributeKeyTargetDenom, targetCoin.Denom),
 	))
 	return targetCoin, nil
+}
+
+func (k Keeper) convertDenomToContractOwner(ctx sdk.Context, targetCoin, coin sdk.Coin, metadata banktypes.Metadata) error {
+	pair, found := k.GetTokenPair(ctx, metadata.Base)
+	if !found {
+		return errorsmod.Wrapf(types.ErrTokenPairNotFound, "convert denom: %s", metadata.Base)
+	}
+	if pair.IsNativeCoin() {
+		if coin.Denom == metadata.Base {
+			// burn coin
+			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+				return err
+			}
+		} else if targetCoin.Denom == metadata.Base {
+			// mint denom
+			if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
+				return err
+			}
+		}
+		return nil
+	} else if pair.IsNativeERC20() {
+		if coin.Denom == metadata.Base {
+			if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(targetCoin)); err != nil {
+				return err
+			}
+		} else if targetCoin.Denom == metadata.Base {
+			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	return errorsmod.Wrapf(types.ErrUndefinedOwner, "convert denom:%s, pair undefined owner.", metadata.Base)
 }
 
 func (k Keeper) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
