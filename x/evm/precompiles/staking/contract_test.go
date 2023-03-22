@@ -12,7 +12,7 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/server/config"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -107,7 +107,7 @@ func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, contrac
 
 	ethTx := evmtypes.NewTx(
 		fxtypes.EIP155ChainID(),
-		suite.app.EvmKeeper.GetNonce(suite.ctx, suite.signer.Address()),
+		suite.app.EvmKeeper.GetNonce(suite.ctx, signer.Address()),
 		&contract,
 		amount,
 		res.Gas,
@@ -118,7 +118,7 @@ func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, contrac
 		nil,
 	)
 	ethTx.From = signer.Address().Hex()
-	err = ethTx.Sign(ethereumtypes.LatestSignerForChainID(fxtypes.EIP155ChainID()), signer)
+	err = ethTx.Sign(ethtypes.LatestSignerForChainID(fxtypes.EIP155ChainID()), signer)
 	return ethTx, err
 }
 
@@ -146,4 +146,12 @@ func (suite *PrecompileTestSuite) Commit() {
 		},
 	})
 	suite.ctx = suite.app.NewContext(false, header)
+}
+
+func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {
+	privKey := helpers.NewEthPrivKey()
+	// helpers.AddTestAddr(suite.app, suite.ctx, privKey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)))))
+	signer := helpers.NewSigner(privKey)
+	suite.app.AccountKeeper.SetAccount(suite.ctx, suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, signer.AccAddress()))
+	return signer
 }
