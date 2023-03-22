@@ -28,7 +28,7 @@ var WithdrawMethod = abi.NewMethod(WithdrawMethodName, WithdrawMethodName, abi.F
 	},
 )
 
-func (c *Contract) Withdraw(evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
+func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("withdraw method not readonly")
 	}
@@ -37,24 +37,21 @@ func (c *Contract) Withdraw(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 	if err != nil {
 		return nil, errors.New("failed to unpack input")
 	}
-	valAddrStr := args[0].(string)
+	valAddrStr, ok := args[0].(string)
+	if !ok {
+		return nil, errors.New("unexpected arg type")
+	}
+
 	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
 	}
+	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
 
-	snapshot := evm.StateDB.Snapshot()
-	cacheCtx, commit := c.ctx.CacheContext()
-	evmDenom := c.evmKeeper.GetEVMDenom(cacheCtx)
-
-	rewardAmount, err := c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, evmDenom)
+	rewardAmount, err := c.withdraw(ctx, evm, contract.Caller(), valAddr, evmDenom)
 	if err != nil {
-		evm.StateDB.RevertToSnapshot(snapshot)
 		return nil, err
 	}
-
-	commit()
-	c.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 	return WithdrawMethod.Outputs.Pack(rewardAmount)
 }

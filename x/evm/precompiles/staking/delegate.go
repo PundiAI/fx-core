@@ -33,7 +33,7 @@ var DelegateMethod = abi.NewMethod(DelegateMethodName, DelegateMethodName, abi.F
 	},
 )
 
-func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
+func (c *Contract) Delegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("delegate method not readonly")
 	}
@@ -41,7 +41,11 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 	if err != nil {
 		return nil, errors.New("failed to unpack input")
 	}
-	valAddrStr := args[0].(string)
+	valAddrStr, ok := args[0].(string)
+	if !ok {
+		return nil, errors.New("unexpected arg type")
+	}
+
 	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
@@ -54,46 +58,37 @@ func (c *Contract) Delegate(evm *vm.EVM, contract *vm.Contract, readonly bool) (
 		return nil, fmt.Errorf("invalid delegate amount: %s", amount.String())
 	}
 
-	val, found := c.stakingKeeper.GetValidator(c.ctx, valAddr)
+	val, found := c.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, fmt.Errorf("validator not found: %s", valAddr.String())
 	}
 
-	snapshot := evm.StateDB.Snapshot()
-	cacheCtx, commit := c.ctx.CacheContext()
-	evmDenom := c.evmKeeper.GetEVMDenom(cacheCtx)
+	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
 
 	// sub evm balance and mint delegate amount
 	evm.StateDB.SubBalance(contract.Address(), amount)
 	coins := sdk.NewCoins(sdk.NewCoin(evmDenom, sdk.NewIntFromBigInt(amount)))
-	if err = c.bankKeeper.MintCoins(cacheCtx, evmtypes.ModuleName, coins); err != nil {
-		evm.StateDB.RevertToSnapshot(snapshot)
+	if err = c.bankKeeper.MintCoins(ctx, evmtypes.ModuleName, coins); err != nil {
 		return nil, fmt.Errorf("mint operation failed: %s", err.Error())
 	}
-	if err = c.bankKeeper.SendCoinsFromModuleToAccount(
-		cacheCtx, evmtypes.ModuleName, sender, coins); err != nil {
-		evm.StateDB.RevertToSnapshot(snapshot)
+	if err = c.bankKeeper.SendCoinsFromModuleToAccount(ctx, evmtypes.ModuleName, sender, coins); err != nil {
 		return nil, fmt.Errorf("send operation failed: %s", err.Error())
 	}
 
 	// withdraw rewards if delegation exist, add reward to evm state balance
 	reward := big.NewInt(0)
-	if _, found = c.stakingKeeper.GetDelegation(cacheCtx, sender, valAddr); found {
-		if reward, err = c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, evmDenom); err != nil {
-			evm.StateDB.RevertToSnapshot(snapshot)
+	if _, found = c.stakingKeeper.GetDelegation(ctx, sender, valAddr); found {
+		if reward, err = c.withdraw(ctx, evm, contract.Caller(), valAddr, evmDenom); err != nil {
 			return nil, err
 		}
 	}
 
 	// delegate amount
-	shares, err := c.stakingKeeper.Delegate(cacheCtx, sender, sdk.NewIntFromBigInt(amount), stakingtypes.Unbonded, val, true)
+	shares, err := c.stakingKeeper.Delegate(ctx, sender, sdk.NewIntFromBigInt(amount), stakingtypes.Unbonded, val, true)
 	if err != nil {
-		evm.StateDB.RevertToSnapshot(snapshot)
 		return nil, err
 	}
-	commit()
-	c.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
-	// todo truncate shares, decimal 18
+	// TODO truncate shares, decimal 18
 	return DelegateMethod.Outputs.Pack(shares.TruncateInt().BigInt(), reward)
 }

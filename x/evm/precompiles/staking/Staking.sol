@@ -22,7 +22,7 @@ interface IStaking {
 
 contract Staking is IStaking {
     address private constant _stakingAddress =
-        address(0x0000000000000000000000000000000000000064);
+        address(0x0000000000000000000000000000000000001003);
 
     function delegate(
         string memory _val

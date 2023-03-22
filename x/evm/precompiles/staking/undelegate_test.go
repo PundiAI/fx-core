@@ -22,6 +22,8 @@ func TestStakingUndelegateABI(t *testing.T) {
 
 	method := stakingABI.Methods[staking.UndelegateMethod.Name]
 	require.Equal(t, method, staking.UndelegateMethod)
+	require.Equal(t, 2, len(staking.UndelegateMethod.Inputs))
+	require.Equal(t, 3, len(staking.UndelegateMethod.Outputs))
 }
 
 func (suite *PrecompileTestSuite) TestUndelegates() {
@@ -133,7 +135,7 @@ func (suite *PrecompileTestSuite) TestAccountUndelegates() {
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) (*evmtypes.MsgEthereumTx, error, []string) {
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.UndelegateMethodName, val.String(), shares.TruncateInt().BigInt())
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, big.NewInt(0), pack)
+				tx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), big.NewInt(0), pack)
 				return tx, err, nil
 			},
 			result: true,
@@ -144,7 +146,7 @@ func (suite *PrecompileTestSuite) TestAccountUndelegates() {
 				newVal := val.String() + "1"
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.UndelegateMethodName, newVal, shares.TruncateInt().BigInt())
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, big.NewInt(0), pack)
+				tx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), big.NewInt(0), pack)
 				return tx, err, []string{newVal}
 			},
 			error: func(errArgs []string) string {
@@ -158,7 +160,7 @@ func (suite *PrecompileTestSuite) TestAccountUndelegates() {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.UndelegateMethodName, newVal, shares.TruncateInt().BigInt())
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, big.NewInt(0), pack)
+				tx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), big.NewInt(0), pack)
 				return tx, err, []string{newVal}
 			},
 			error: func(errArgs []string) string {
@@ -178,7 +180,7 @@ func (suite *PrecompileTestSuite) TestAccountUndelegates() {
 			delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
 			pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 			suite.Require().NoError(err)
-			delegateEthTx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+			delegateEthTx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 			suite.Require().NoError(err)
 			res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), delegateEthTx)
 			suite.Require().NoError(err)

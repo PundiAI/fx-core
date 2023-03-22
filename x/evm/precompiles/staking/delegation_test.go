@@ -21,6 +21,8 @@ func TestStakingDelegationABI(t *testing.T) {
 
 	method := stakingABI.Methods[staking.DelegationMethod.Name]
 	require.Equal(t, method, staking.DelegationMethod)
+	require.Equal(t, 2, len(staking.DelegationMethod.Inputs))
+	require.Equal(t, 1, len(staking.DelegationMethod.Outputs))
 }
 
 func (suite *PrecompileTestSuite) TestDelegation() {
@@ -194,7 +196,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegation() {
 			delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
 			pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 			suite.Require().NoError(err)
-			delegateEthTx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+			delegateEthTx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 			suite.Require().NoError(err)
 			res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), delegateEthTx)
 			suite.Require().NoError(err)
@@ -206,7 +208,8 @@ func (suite *PrecompileTestSuite) TestAccountDelegation() {
 			suite.Commit()
 
 			pack, errArgs := tc.malleate(val0.GetOperator(), delegation.Shares)
-			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &staking.StakingAddress, pack, false)
+			contract := staking.GetPrecompileAddress()
+			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &contract, pack, false)
 			if tc.result {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)

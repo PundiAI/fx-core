@@ -38,7 +38,7 @@ func NewPrecompiledContract(
 }
 
 func (c *Contract) Address() common.Address {
-	return StakingAddress
+	return precompileAddress
 }
 
 func (c *Contract) IsStateful() bool {
@@ -67,22 +67,32 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 	if len(contract.Input) <= 4 {
 		return types.PackRetError("invalid input")
 	}
+
+	cacheCtx, commit := c.ctx.CacheContext()
+	snapshot := evm.StateDB.Snapshot()
+
 	// parse input
 	switch string(contract.Input[:4]) {
 	case string(DelegateMethod.ID):
-		ret, err = c.Delegate(evm, contract, readonly)
+		ret, err = c.Delegate(cacheCtx, evm, contract, readonly)
 	case string(UndelegateMethod.ID):
-		ret, err = c.Undelegate(evm, contract, readonly)
+		ret, err = c.Undelegate(cacheCtx, evm, contract, readonly)
 	case string(WithdrawMethod.ID):
-		ret, err = c.Withdraw(evm, contract, readonly)
+		ret, err = c.Withdraw(cacheCtx, evm, contract, readonly)
 	case string(DelegationMethod.ID):
-		ret, err = c.Delegation(evm, contract, readonly)
+		ret, err = c.Delegation(cacheCtx, evm, contract, readonly)
 	default:
 		err = errors.New("unknown method")
 	}
 
 	if err != nil {
+		// revert evm state
+		evm.StateDB.RevertToSnapshot(snapshot)
 		return types.PackRetError(err.Error())
 	}
+
+	// commit and append events
+	commit()
+	c.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	return ret, nil
 }

@@ -24,6 +24,8 @@ func TestStakingWithdrawABI(t *testing.T) {
 
 	method := stakingABI.Methods[staking.WithdrawMethod.Name]
 	require.Equal(t, method, staking.WithdrawMethod)
+	require.Equal(t, 1, len(staking.WithdrawMethod.Inputs))
+	require.Equal(t, 1, len(staking.WithdrawMethod.Outputs))
 }
 
 func (suite *PrecompileTestSuite) TestWithdraw() {
@@ -152,7 +154,7 @@ func (suite *PrecompileTestSuite) TestAccountWithdraw() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, shares sdk.Dec) (*evmtypes.MsgEthereumTx, error, []string) {
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.WithdrawMethodName, val.String())
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(signer, staking.StakingAddress, big.NewInt(0), pack)
+				tx, err := suite.PackEthereumTx(signer, staking.GetPrecompileAddress(), big.NewInt(0), pack)
 				return tx, err, nil
 			},
 			result: true,
@@ -163,7 +165,7 @@ func (suite *PrecompileTestSuite) TestAccountWithdraw() {
 				newVal := val.String() + "1"
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.WithdrawMethodName, newVal)
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(signer, staking.StakingAddress, big.NewInt(0), pack)
+				tx, err := suite.PackEthereumTx(signer, staking.GetPrecompileAddress(), big.NewInt(0), pack)
 				return tx, err, []string{newVal}
 			},
 			error: func(errArgs []string) string {
@@ -177,7 +179,7 @@ func (suite *PrecompileTestSuite) TestAccountWithdraw() {
 				newVal := sdk.ValAddress(signer.Address().Bytes()).String()
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.WithdrawMethodName, newVal)
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(signer, staking.StakingAddress, big.NewInt(0), pack)
+				tx, err := suite.PackEthereumTx(signer, staking.GetPrecompileAddress(), big.NewInt(0), pack)
 				return tx, err, []string{newVal}
 			},
 			error: func(errArgs []string) string {
@@ -204,7 +206,7 @@ func (suite *PrecompileTestSuite) TestAccountWithdraw() {
 			delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
 			pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 			suite.Require().NoError(err)
-			delegateEthTx, err := suite.PackEthereumTx(newSigner, staking.StakingAddress, delAmt.BigInt(), pack)
+			delegateEthTx, err := suite.PackEthereumTx(newSigner, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 			suite.Require().NoError(err)
 			res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), delegateEthTx)
 			suite.Require().NoError(err)
@@ -267,7 +269,7 @@ func (suite *PrecompileTestSuite) TestAccountWithdrawOtherAddress() {
 	delAmt := sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18))
 	pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 	suite.Require().NoError(err)
-	delegateEthTx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+	delegateEthTx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 	suite.Require().NoError(err)
 	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), delegateEthTx)
 	suite.Require().NoError(err)
@@ -286,7 +288,7 @@ func (suite *PrecompileTestSuite) TestAccountWithdrawOtherAddress() {
 
 	pack, err = fxtypes.MustABIJson(staking.JsonABI).Pack(staking.WithdrawMethodName, val0.GetOperator().String())
 	suite.Require().NoError(err)
-	withdrawTx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, big.NewInt(0), pack)
+	withdrawTx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), big.NewInt(0), pack)
 	suite.Require().NoError(err)
 	res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), withdrawTx)
 	suite.Require().NoError(err)

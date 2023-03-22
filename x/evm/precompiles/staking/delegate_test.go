@@ -22,6 +22,8 @@ func TestStakingDelegateABI(t *testing.T) {
 
 	method := stakingABI.Methods[staking.DelegateMethod.Name]
 	require.Equal(t, method, staking.DelegateMethod)
+	require.Equal(t, 1, len(staking.DelegateMethod.Inputs))
+	require.Equal(t, 2, len(staking.DelegateMethod.Outputs))
 }
 
 func (suite *PrecompileTestSuite) TestDelegate() {
@@ -62,7 +64,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegate() {
 	pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 	suite.Require().NoError(err)
 
-	ethTx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+	ethTx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 	suite.Require().NoError(err)
 
 	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), ethTx)
@@ -221,7 +223,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+				tx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 				return tx, err, nil
 			},
 			result: true,
@@ -234,7 +236,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+				tx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 				suite.Require().NoError(err)
 				res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 				suite.Require().NoError(err)
@@ -242,7 +244,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 
 				pack, err = fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 				suite.Require().NoError(err)
-				tx, err = suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+				tx, err = suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 				return tx, err, nil
 			},
 			result: true,
@@ -256,7 +258,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 				val := val0.GetOperator().String() + "1"
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val)
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+				tx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 				return tx, err, []string{val}
 			},
 			error: func(args []string) string {
@@ -273,7 +275,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 				delAmt := sdkmath.NewInt(0)
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val0.GetOperator().String())
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+				tx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 				return tx, err, []string{delAmt.String()}
 			},
 			error: func(args []string) string {
@@ -288,7 +290,7 @@ func (suite *PrecompileTestSuite) TestAccountDelegates() {
 				val := sdk.ValAddress(suite.signer.AccAddress()).String()
 				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val)
 				suite.Require().NoError(err)
-				tx, err := suite.PackEthereumTx(suite.signer, staking.StakingAddress, delAmt.BigInt(), pack)
+				tx, err := suite.PackEthereumTx(suite.signer, staking.GetPrecompileAddress(), delAmt.BigInt(), pack)
 				return tx, err, []string{val}
 			},
 			error: func(args []string) string {

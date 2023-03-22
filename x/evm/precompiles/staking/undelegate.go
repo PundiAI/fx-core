@@ -42,7 +42,7 @@ var UndelegateMethod = abi.NewMethod(UndelegateMethodName, UndelegateMethodName,
 	},
 )
 
-func (c *Contract) Undelegate(evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
+func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("undelegate method not readonly")
 	}
@@ -51,44 +51,40 @@ func (c *Contract) Undelegate(evm *vm.EVM, contract *vm.Contract, readonly bool)
 	if err != nil {
 		return nil, errors.New("failed to unpack input")
 	}
-	valAddrStr := args[0].(string)
+	valAddrStr, ok1 := args[0].(string)
+	shareAmount, ok2 := args[1].(*big.Int)
+	if !ok1 || !ok2 {
+		return nil, errors.New("unexpected arg type")
+	}
+
 	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
 	}
-	_, found := c.stakingKeeper.GetValidator(c.ctx, valAddr)
+	if shareAmount.Sign() <= 0 {
+		return nil, fmt.Errorf("invalid shares: %s", shareAmount.String())
+	}
+
+	_, found := c.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, fmt.Errorf("validator not found: %s", valAddr.String())
 	}
 
-	shareAmount := args[1].(*big.Int)
-	if shareAmount.Sign() <= 0 {
-		return nil, fmt.Errorf("invalid shares: %s", shareAmount.String())
-	}
 	sender := sdk.AccAddress(contract.CallerAddress.Bytes())
-
-	snapshot := evm.StateDB.Snapshot()
-	cacheCtx, commit := c.ctx.CacheContext()
-	evmDenom := c.evmKeeper.GetEVMDenom(cacheCtx)
+	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
 
 	// withdraw rewards if delegation exist, add reward to evm state balance
 	reward := big.NewInt(0)
-	if _, found = c.stakingKeeper.GetDelegation(cacheCtx, sender, valAddr); found {
-		if reward, err = c.withdraw(cacheCtx, evm, contract.Caller(), valAddr, evmDenom); err != nil {
-			evm.StateDB.RevertToSnapshot(snapshot)
+	if _, found = c.stakingKeeper.GetDelegation(ctx, sender, valAddr); found {
+		if reward, err = c.withdraw(ctx, evm, contract.Caller(), valAddr, evmDenom); err != nil {
 			return nil, err
 		}
 	}
 
-	unDelAmount, endTime, err := Undelegate(cacheCtx, c.stakingKeeper,
-		c.bankKeeper, sender, valAddr, sdk.NewDecFromBigInt(shareAmount), evmDenom)
+	unDelAmount, endTime, err := Undelegate(ctx, c.stakingKeeper, c.bankKeeper, sender, valAddr, sdk.NewDecFromBigInt(shareAmount), evmDenom)
 	if err != nil {
-		evm.StateDB.RevertToSnapshot(snapshot)
 		return nil, fmt.Errorf("undelegate failed: %s", err.Error())
 	}
-	commit()
-	c.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
-
 	return UndelegateMethod.Outputs.Pack(unDelAmount.BigInt(), reward, big.NewInt(endTime.Unix()))
 }
 
@@ -112,8 +108,7 @@ func Undelegate(ctx sdk.Context, sk StakingKeeper, bk BankKeeper, delAddr sdk.Ac
 	// transfer the validator tokens to the not bonded pool
 	if validator.IsBonded() {
 		coins := sdk.NewCoins(sdk.NewCoin(bondDenom, returnAmount))
-		if err := bk.SendCoinsFromModuleToModule(ctx, stakingtypes.BondedPoolName,
-			stakingtypes.NotBondedPoolName, coins); err != nil {
+		if err := bk.SendCoinsFromModuleToModule(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins); err != nil {
 			return sdkmath.Int{}, time.Time{}, err
 		}
 	}
