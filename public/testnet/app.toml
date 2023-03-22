@@ -297,7 +297,7 @@ ws-address = "0.0.0.0:8546"
 api = "eth,net,web3"
 
 # GasCap sets a cap on gas that can be used in eth_call/estimateGas (0=infinite). Default: 25,000,000.
-gas-cap = 25000000
+gas-cap = 30000000
 
 # EVMTimeout is the global timeout for eth_call. Default: 5s.
 evm-timeout = "5s"

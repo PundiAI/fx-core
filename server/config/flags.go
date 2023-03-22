@@ -7,3 +7,7 @@ const (
 
 	BypassMinFeeMsgMaxGasUsageKey = "bypass-min-fee.msg-max-gas-usage"
 )
+
+const (
+	DefaultGasCap uint64 = 30000000
+)

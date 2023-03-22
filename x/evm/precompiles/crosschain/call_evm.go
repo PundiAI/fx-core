@@ -3,12 +3,13 @@ package crosschain
 import (
 	"errors"
 	"fmt"
-	"math"
 	"math/big"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
+	fxserverconfig "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -21,17 +22,26 @@ func (cr CallerRef) Address() common.Address {
 }
 
 type ContractCall struct {
+	ctx      sdk.Context
 	evm      *vm.EVM
 	caller   CallerRef
 	contract common.Address
+	maxGas   uint64
 }
 
-func NewContractCall(evm *vm.EVM, caller, contract common.Address) *ContractCall {
-	return &ContractCall{
+func NewContractCall(ctx sdk.Context, evm *vm.EVM, caller, contract common.Address) *ContractCall {
+	cc := &ContractCall{
+		ctx:      ctx,
 		evm:      evm,
 		caller:   CallerRef{addr: caller},
 		contract: contract,
+		maxGas:   fxserverconfig.DefaultGasCap,
 	}
+	params := ctx.ConsensusParams()
+	if params != nil && params.Block != nil && params.Block.MaxGas > 0 {
+		cc.maxGas = uint64(params.Block.MaxGas)
+	}
+	return cc
 }
 
 func (cc *ContractCall) ERC20Burn(amount *big.Int) error {
@@ -39,7 +49,7 @@ func (cc *ContractCall) ERC20Burn(amount *big.Int) error {
 	if err != nil {
 		return fmt.Errorf("pack burn: %s", err.Error())
 	}
-	_, _, err = cc.evm.Call(cc.caller, cc.contract, data, math.MaxInt64, big.NewInt(0))
+	_, _, err = cc.evm.Call(cc.caller, cc.contract, data, cc.maxGas, big.NewInt(0))
 	if err != nil {
 		return fmt.Errorf("call burn: %s", err.Error())
 	}
@@ -51,7 +61,7 @@ func (cc *ContractCall) ERC20TransferFrom(from, to common.Address, amount *big.I
 	if err != nil {
 		return fmt.Errorf("pack transferFrom: %s", err.Error())
 	}
-	ret, _, err := cc.evm.Call(cc.caller, cc.contract, data, math.MaxInt64, big.NewInt(0))
+	ret, _, err := cc.evm.Call(cc.caller, cc.contract, data, cc.maxGas, big.NewInt(0))
 	if err != nil {
 		return fmt.Errorf("call transferFrom: %s", err.Error())
 	}

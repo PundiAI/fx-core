@@ -31,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	"github.com/evmos/ethermint/server/config"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -40,6 +39,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/functionx/fx-core/v3/app"
+	fxserverconfig "github.com/functionx/fx-core/v3/server/config"
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -95,7 +95,7 @@ func (suite *PrecompileTestSuite) PackEthereumTx(signer *helpers.Signer, contrac
 	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(sdk.WrapSDKContext(suite.ctx),
 		&evmtypes.EthCallRequest{
 			Args:    args,
-			GasCap:  config.DefaultGasCap,
+			GasCap:  fxserverconfig.DefaultGasCap,
 			ChainId: suite.app.EvmKeeper.ChainID().Int64(),
 		},
 	)
@@ -361,7 +361,7 @@ func (suite *PrecompileTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr
 	res, err := evmtypes.NewQueryClient(queryHelper).EstimateGas(sdk.WrapSDKContext(suite.ctx),
 		&evmtypes.EthCallRequest{
 			Args:    args,
-			GasCap:  config.DefaultGasCap,
+			GasCap:  fxserverconfig.DefaultGasCap,
 			ChainId: suite.app.EvmKeeper.ChainID().Int64(),
 		},
 	)

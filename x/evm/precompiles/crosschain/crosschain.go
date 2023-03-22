@@ -179,7 +179,7 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		crossChainDenom = tokenPair.GetDenom()
 		totalAmount := big.NewInt(0).Add(amount, fee)
 		// transferFrom to erc20 module
-		err = NewContractCall(evm, contract.Address(), token).ERC20TransferFrom(sender, c.erc20Keeper.ModuleAddress(), totalAmount)
+		err = NewContractCall(ctx, evm, contract.Address(), token).ERC20TransferFrom(sender, c.erc20Keeper.ModuleAddress(), totalAmount)
 		if err != nil {
 			return nil, err
 		}
@@ -207,7 +207,7 @@ func (c *Contract) ConvertERC20(
 	receiver common.Address,
 ) error {
 	if tokenPair.GetContractOwner() == erc20types.OWNER_MODULE {
-		err := NewContractCall(evm, c.erc20Keeper.ModuleAddress(), tokenPair.GetERC20Contract()).ERC20Burn(amount.Amount.BigInt())
+		err := NewContractCall(ctx, evm, c.erc20Keeper.ModuleAddress(), tokenPair.GetERC20Contract()).ERC20Burn(amount.Amount.BigInt())
 		if err != nil {
 			return err
 		}

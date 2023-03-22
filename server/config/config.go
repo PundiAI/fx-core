@@ -59,6 +59,8 @@ func AppConfig(mintGasPrice string) (string, interface{}) {
 		TLS:          *ethermintconfig.DefaultTLSConfig(),
 	}
 
+	customAppConfig.JSONRPC.GasCap = DefaultGasCap
+
 	customAppTemplate := DefaultConfigTemplate()
 
 	return customAppTemplate, customAppConfig
@@ -66,13 +68,15 @@ func AppConfig(mintGasPrice string) (string, interface{}) {
 
 // DefaultConfig returns server's default configuration.
 func DefaultConfig() *Config {
-	return &Config{
+	cfg := &Config{
 		Config:       *config.DefaultConfig(),
 		BypassMinFee: DefaultBypassMinFee(),
 		EVM:          *ethermintconfig.DefaultEVMConfig(),
 		JSONRPC:      *ethermintconfig.DefaultJSONRPCConfig(),
 		TLS:          *ethermintconfig.DefaultTLSConfig(),
 	}
+	cfg.JSONRPC.GasCap = DefaultGasCap
+	return cfg
 }
 
 func DefaultConfigTemplate() string {

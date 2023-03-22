@@ -9,10 +9,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/evmos/ethermint/server/config"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/types"
 
+	fxserverconfig "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -59,7 +59,7 @@ func (k *Keeper) CallEVMWithoutGas(
 		return nil, err
 	}
 
-	gasLimit := config.DefaultGasCap
+	gasLimit := fxserverconfig.DefaultGasCap
 	params := ctx.ConsensusParams()
 	if params != nil && params.Block != nil && params.Block.MaxGas > 0 {
 		gasLimit = uint64(params.Block.MaxGas)

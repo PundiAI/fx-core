@@ -254,7 +254,7 @@ func Test_appTomlConfig_output(t *testing.T) {
     "evm-timeout": 5000000000,
     "feehistory-cap": 100,
     "filter-cap": 200,
-    "gas-cap": 25000000,
+    "gas-cap": 30000000,
     "http-idle-timeout": 120000000000,
     "http-timeout": 30000000000,
     "logs-cap": 10000,
