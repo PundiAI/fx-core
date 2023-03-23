@@ -103,7 +103,7 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 	}
 
 	// transfer token from evm to local chain
-	if err := c.ConvertERC20(ctx, evm, tokenPair, totalCoin, sender); err != nil {
+	if err := c.convertERC20(ctx, evm, tokenPair, totalCoin, sender); err != nil {
 		return nil, err
 	}
 
@@ -153,37 +153,16 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 			return nil, errors.New("amount + fee not equal msg.value")
 		}
 
-		crossChainDenom = c.evmKeeper.GetParams(ctx).EvmDenom
-
-		// NOTE: stateDB sub sender balance,but bank keeper not update.
-		// so mint token to crosschain, end of stateDB commit will sub balance from bank keeper.
-		// if only allow depth 1, the sender is origin sender, we can sub balance from bank keeper and not need burn/mint coin
-		evm.StateDB.SubBalance(contract.Address(), totalAmount)
-		totalCoin := sdk.NewCoins(sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(totalAmount)))
-
-		if err = c.bankKeeper.MintCoins(ctx, evmtypes.ModuleName, totalCoin); err != nil {
-			return nil, fmt.Errorf("mint: %s", err.Error())
-		}
-		if err = c.bankKeeper.SendCoinsFromModuleToAccount(ctx, evmtypes.ModuleName, sender.Bytes(), totalCoin); err != nil {
-			return nil, fmt.Errorf("send account: %s", err.Error())
+		crossChainDenom, err = c.handlerOriginToken(ctx, evm, sender, totalAmount)
+		if err != nil {
+			return nil, err
 		}
 
 		// origin token flag is true when cross chain evm denom
 		originToken = true
 	} else {
-		// contract token
-		tokenPair, found := c.erc20Keeper.GetTokenPairByAddress(ctx, token)
-		if !found {
-			return nil, fmt.Errorf("token pair not found: %s", token.String())
-		}
-		crossChainDenom = tokenPair.GetDenom()
-		totalAmount := big.NewInt(0).Add(amount, fee)
-		// transferFrom to erc20 module
-		err = NewContractCall(ctx, evm, contract.Address(), token).ERC20TransferFrom(sender, c.erc20Keeper.ModuleAddress(), totalAmount)
+		crossChainDenom, err = c.handlerERC20Token(ctx, evm, token, sender, big.NewInt(0).Add(amount, fee))
 		if err != nil {
-			return nil, err
-		}
-		if err = c.ConvertERC20(ctx, evm, tokenPair, sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(totalAmount)), sender); err != nil {
 			return nil, err
 		}
 	}
@@ -199,7 +178,41 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	return CrossChainMethod.Outputs.Pack(true)
 }
 
-func (c *Contract) ConvertERC20(
+func (c *Contract) handlerOriginToken(ctx sdk.Context, evm *vm.EVM, sender common.Address, amount *big.Int) (string, error) {
+	crossChainDenom := c.evmKeeper.GetParams(ctx).EvmDenom
+	// NOTE: stateDB sub sender balance,but bank keeper not update.
+	// so mint token to crosschain, end of stateDB commit will sub balance from bank keeper.
+	// if only allow depth 1, the sender is origin sender, we can sub balance from bank keeper and not need burn/mint coin
+	evm.StateDB.SubBalance(c.Address(), amount)
+	totalCoin := sdk.NewCoins(sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(amount)))
+
+	if err := c.bankKeeper.MintCoins(ctx, evmtypes.ModuleName, totalCoin); err != nil {
+		return "", fmt.Errorf("mint: %s", err.Error())
+	}
+	if err := c.bankKeeper.SendCoinsFromModuleToAccount(ctx, evmtypes.ModuleName, sender.Bytes(), totalCoin); err != nil {
+		return "", fmt.Errorf("send account: %s", err.Error())
+	}
+	return crossChainDenom, nil
+}
+
+func (c *Contract) handlerERC20Token(ctx sdk.Context, evm *vm.EVM, token, sender common.Address, amount *big.Int) (string, error) {
+	// contract token
+	tokenPair, found := c.erc20Keeper.GetTokenPairByAddress(ctx, token)
+	if !found {
+		return "", fmt.Errorf("token pair not found: %s", token.String())
+	}
+	crossChainDenom := tokenPair.GetDenom()
+	// transferFrom to erc20 module
+	if err := NewContractCall(ctx, evm, c.Address(), token).ERC20TransferFrom(sender, c.erc20Keeper.ModuleAddress(), amount); err != nil {
+		return "", err
+	}
+	if err := c.convertERC20(ctx, evm, tokenPair, sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(amount)), sender); err != nil {
+		return "", err
+	}
+	return crossChainDenom, nil
+}
+
+func (c *Contract) convertERC20(
 	ctx sdk.Context,
 	evm *vm.EVM,
 	tokenPair erc20types.TokenPair,

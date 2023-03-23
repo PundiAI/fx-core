@@ -16,6 +16,13 @@ interface ICrossChain {
         string memory _chain,
         uint256 _txid
     ) external returns (bool);
+
+    function increaseBridgeFee(
+        string memory _chain,
+        uint256 _txid,
+        address _token,
+        uint256 _fee
+    ) external payable returns (bool);
 }
 
 interface IERC20 {
@@ -104,6 +111,28 @@ contract CrossChain is ICrossChain {
         Decode.ok(result, data, "cancel send to external failed");
         return Decode.cancelSendToExternal(data);
     }
+
+    function increaseBridgeFee(
+        string memory _chain,
+        uint256 _txid,
+        address _token,
+        uint256 _fee
+    ) external payable virtual override returns (bool) {
+        return _increaseBridgeFee(_chain, _txid, _token, _fee);
+    }
+
+    function _increaseBridgeFee(
+        string memory _chain,
+        uint256 _txid,
+        address _token,
+        uint256 _fee
+    ) internal returns (bool) {
+        (bool result, bytes memory data) = _crossChainAddress.call(
+            Encode.increaseBridgeFee(_chain, _txid, _token, _fee)
+        );
+        Decode.ok(result, data, "increase bridge fee failed");
+        return Decode.increaseBridgeFee(data);
+    }
 }
 
 library Encode {
@@ -138,6 +167,22 @@ library Encode {
                 _txid
             );
     }
+
+    function increaseBridgeFee(
+        string memory _chain,
+        uint256 _txid,
+        address _token,
+        uint256 _fee
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSignature(
+                "increaseBridgeFee(string,uin256,address,uint256)",
+                _chain,
+                _txid,
+                _token,
+                _fee
+            );
+    }
 }
 
 library Decode {
@@ -149,6 +194,11 @@ library Decode {
     function cancelSendToExternal(
         bytes memory data
     ) internal pure returns (bool) {
+        bool result = abi.decode(data, (bool));
+        return result;
+    }
+
+    function increaseBridgeFee(bytes memory data) internal pure returns (bool) {
         bool result = abi.decode(data, (bool));
         return result;
     }

@@ -29,3 +29,7 @@ func (k Keeper) TransferAfter(ctx sdk.Context, sender sdk.AccAddress, receive st
 func (k Keeper) PrecompileCancelSendToExternal(ctx sdk.Context, txID uint64, sender sdk.AccAddress) (sdk.Coin, error) {
 	return k.RemoveFromOutgoingPoolAndRefund(ctx, txID, sender)
 }
+
+func (k Keeper) PrecompileIncreaseBridgeFee(ctx sdk.Context, txID uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error {
+	return k.AddUnbatchedTxBridgeFee(ctx, txID, sender, addBridgeFee)
+}

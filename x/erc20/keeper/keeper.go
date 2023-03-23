@@ -87,6 +87,10 @@ func (k Keeper) PrecompileCancelSendToExternal(_ sdk.Context, _ uint64, _ sdk.Ac
 	return sdk.Coin{}, errors.New("invalid implemented")
 }
 
+func (k Keeper) PrecompileIncreaseBridgeFee(_ sdk.Context, _ uint64, _ sdk.AccAddress, _ sdk.Coin) error {
+	return errors.New("invalid implemented")
+}
+
 func (k Keeper) HasDenomAlias(ctx sdk.Context, denom string) (banktypes.Metadata, bool) {
 	md, found := k.bankKeeper.GetDenomMetaData(ctx, denom)
 	// not register metadata

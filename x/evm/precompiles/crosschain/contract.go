@@ -60,6 +60,8 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 		return CrossChainGas
 	case string(CancelSendToExternalMethod.ID):
 		return CancelSendToExternalGas
+	case string(IncreaseBridgeFeeMethod.ID):
+		return IncreaseBridgeFeeGas
 	default:
 		return 0
 	}
@@ -81,6 +83,8 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		ret, err = c.CrossChain(cacheCtx, evm, contract, readonly)
 	case string(CancelSendToExternalMethod.ID):
 		ret, err = c.CancelSendToExternal(cacheCtx, evm, contract, readonly)
+	case string(IncreaseBridgeFeeMethod.ID):
+		ret, err = c.IncreaseBridgeFee(cacheCtx, evm, contract, readonly)
 	default:
 		err = errors.New("unknown method")
 	}
