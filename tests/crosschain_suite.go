@@ -85,6 +85,15 @@ func (suite *CrosschainTestSuite) QueryParams() crosschaintypes.Params {
 	return response.Params
 }
 
+func (suite *CrosschainTestSuite) QueryPendingUnbatchedTx(sender sdk.AccAddress) []*crosschaintypes.OutgoingTransferTx {
+	pendingTx, err := suite.CrosschainQuery().GetPendingSendToExternal(suite.ctx, &crosschaintypes.QueryPendingSendToExternalRequest{
+		ChainName:     suite.chainName,
+		SenderAddress: sender.String(),
+	})
+	suite.NoError(err)
+	return pendingTx.UnbatchedTransfers
+}
+
 func (suite *CrosschainTestSuite) queryFxLastEventNonce() uint64 {
 	lastEventNonce, err := suite.CrosschainQuery().LastEventNonceByAddr(suite.ctx,
 		&crosschaintypes.QueryLastEventNonceByAddrRequest{
@@ -322,6 +331,42 @@ func (suite *CrosschainTestSuite) SendCancelSendToExternal(txId uint64) {
 		Sender:        suite.AccAddress().String(),
 		ChainName:     suite.chainName,
 	})
+}
+
+func (suite *CrosschainTestSuite) SendIncreaseBridgeFee(txId uint64, bridgeFee sdk.Coin) {
+	suite.BroadcastTx(suite.privKey, &crosschaintypes.MsgIncreaseBridgeFee{
+		ChainName:     suite.chainName,
+		TransactionId: txId,
+		Sender:        suite.AccAddress().String(),
+		AddBridgeFee:  bridgeFee,
+	})
+}
+
+func (suite *CrosschainTestSuite) CheckIncreaseBridgeFee(sender sdk.AccAddress, txId uint64) {
+	unbatchedTxs := suite.QueryPendingUnbatchedTx(sender)
+	bridgeFee := sdk.ZeroInt()
+	bridgeToken := ""
+	for _, tx := range unbatchedTxs {
+		if tx.Id != txId {
+			continue
+		}
+		bridgeFee = tx.Fee.Amount
+		bridgeToken = tx.Fee.Contract
+	}
+	suite.NotEmpty(bridgeToken)
+
+	bridgeDenom := suite.GetBridgeDenomByToken(bridgeToken)
+
+	addBridgeFee := sdkmath.NewInt(10)
+	suite.SendIncreaseBridgeFee(txId, sdk.NewCoin(bridgeDenom, addBridgeFee))
+
+	unbatchedTxs = suite.QueryPendingUnbatchedTx(sender)
+	for _, tx := range unbatchedTxs {
+		if tx.Id == txId {
+			suite.Equal(tx.Fee.Amount, bridgeFee.Add(addBridgeFee))
+			break
+		}
+	}
 }
 
 func (suite *CrosschainTestSuite) SendBatchRequest(minTxs uint64) {
