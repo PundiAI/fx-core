@@ -24,7 +24,7 @@ func TestStakingDelegationABI(t *testing.T) {
 	method := stakingABI.Methods[staking.DelegationMethod.Name]
 	require.Equal(t, method, staking.DelegationMethod)
 	require.Equal(t, 2, len(staking.DelegationMethod.Inputs))
-	require.Equal(t, 1, len(staking.DelegationMethod.Outputs))
+	require.Equal(t, 2, len(staking.DelegationMethod.Outputs))
 }
 
 func (suite *PrecompileTestSuite) TestDelegation() {
@@ -165,12 +165,16 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			pack, errArgs := tc.malleate(val0.GetOperator(), delAddr)
 			res, err = suite.app.EvmKeeper.CallEVMWithoutGas(suite.ctx, suite.signer.Address(), &contract, pack, false)
 
+			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, sdk.AccAddress(delAddr.Bytes()), val0.GetOperator())
+			suite.Require().True(found)
+
 			if tc.result {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 				delValue, err := stakingABI.Methods[delegationFunc].Outputs.Unpack(res.Ret)
 				suite.Require().NoError(err)
-				suite.Require().Equal(delShares.String(), delValue[0].(*big.Int).String())
+				suite.Require().Equal(delegation.GetShares().TruncateInt().String(), delValue[0].(*big.Int).String())
+				suite.Require().Equal(delShares.String(), delValue[1].(*big.Int).String())
 			} else {
 				suite.Require().True(err != nil || res.Failed())
 				if res.Failed() {

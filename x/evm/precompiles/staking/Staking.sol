@@ -17,7 +17,7 @@ interface IStaking {
     function delegation(
         string memory _val,
         address _del
-    ) external view returns (uint256);
+    ) external view returns (uint256, uint256);
 
     function delegationRewards(
         string memory _val,
@@ -78,14 +78,14 @@ contract Staking is IStaking {
     function delegation(
         string memory _val,
         address _del
-    ) public view virtual override returns (uint256) {
+    ) public view virtual override returns (uint256, uint256) {
         return _delegation(_val, _del);
     }
 
     function _delegation(
         string memory _val,
         address _del
-    ) internal view returns (uint256) {
+    ) internal view returns (uint256, uint256) {
         (bool result, bytes memory data) = _stakingAddress.staticcall(
             Encode.delegation(_val, _del)
         );
@@ -185,9 +185,14 @@ library Decode {
         return reward;
     }
 
-    function delegation(bytes memory data) internal pure returns (uint256) {
-        uint256 delegateAmount = abi.decode(data, (uint256));
-        return delegateAmount;
+    function delegation(
+        bytes memory data
+    ) internal pure returns (uint256, uint256) {
+        (uint256 delegateAmount, uint256 shares) = abi.decode(
+            data,
+            (uint256, uint256)
+        );
+        return (delegateAmount, shares);
     }
 
     function delegationRewards(

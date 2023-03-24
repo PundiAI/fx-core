@@ -26,6 +26,10 @@ var DelegationMethod = abi.NewMethod(DelegationMethodName, DelegationMethodName,
 	},
 	abi.Arguments{
 		abi.Argument{
+			Name: "shares",
+			Type: types.TypeUint256,
+		},
+		abi.Argument{
 			Name: "delegate",
 			Type: types.TypeUint256,
 		},
@@ -50,12 +54,16 @@ func (c *Contract) Delegation(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract,
 		return nil, fmt.Errorf("validator not found: %s", valAddr.String())
 	}
 
-	delAddr := args[1].(common.Address)
+	delAddr, ok := args[1].(common.Address)
+	if !ok {
+		return nil, errors.New("unexpected arg type")
+	}
 	delegation, found := c.stakingKeeper.GetDelegation(ctx, sdk.AccAddress(delAddr.Bytes()), valAddr)
 	if !found {
 		return DelegationMethod.Outputs.Pack(big.NewInt(0))
 	}
 
 	delegationAmt := delegation.GetShares().MulInt(validator.GetTokens()).Quo(validator.GetDelegatorShares())
-	return DelegationMethod.Outputs.Pack(delegationAmt.TruncateInt().BigInt())
+	// TODO truncate shares, decimal 18
+	return DelegationMethod.Outputs.Pack(delegation.GetShares().TruncateInt().BigInt(), delegationAmt.TruncateInt().BigInt())
 }
