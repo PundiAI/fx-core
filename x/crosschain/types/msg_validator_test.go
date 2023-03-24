@@ -1236,6 +1236,91 @@ func TestMsgCancelSendToExternal_ValidateBasic(t *testing.T) {
 	}
 }
 
+func TestMsgIncreaseBridgeFee_ValidateBasic(t *testing.T) {
+	moduleName := getRandModule()
+	normalFxAddress := sdk.AccAddress(tmrand.Bytes(20)).String()
+	randomAddrPrefix := strings.ToLower(tmrand.Str(5))
+	errPrefixAddress, err := bech32.ConvertAndEncode(randomAddrPrefix, tmrand.Bytes(20))
+	require.NoError(t, err)
+
+	testCases := []struct {
+		testName   string
+		msg        *types.MsgIncreaseBridgeFee
+		expectPass bool
+		err        error
+		errReason  string
+	}{
+		{
+			testName: "err - empty chain name",
+			msg: &types.MsgIncreaseBridgeFee{
+				ChainName: "",
+			},
+			expectPass: false,
+			err:        errortypes.ErrInvalidRequest,
+			errReason:  "invalid chain name: invalid request",
+		},
+		{
+			testName: "err - invalid sender address",
+			msg: &types.MsgIncreaseBridgeFee{
+				ChainName: moduleName,
+				Sender:    errPrefixAddress,
+			},
+			expectPass: false,
+			err:        errortypes.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("invalid sender address: invalid Bech32 prefix; expected %s, got %s: invalid address", sdk.Bech32MainPrefix, randomAddrPrefix),
+		},
+		{
+			testName: "err - zero transaction id",
+			msg: &types.MsgIncreaseBridgeFee{
+				ChainName:     moduleName,
+				Sender:        normalFxAddress,
+				TransactionId: 0,
+			},
+			expectPass: false,
+			err:        errortypes.ErrInvalidRequest,
+			errReason:  "zero transaction id: invalid request",
+		},
+		{
+			testName: "err - invalid bridge fee",
+			msg: &types.MsgIncreaseBridgeFee{
+				ChainName:     moduleName,
+				Sender:        normalFxAddress,
+				TransactionId: 1,
+				AddBridgeFee:  sdk.Coin{},
+			},
+			expectPass: false,
+			err:        errortypes.ErrInvalidRequest,
+			errReason:  "invalid bridge fee: invalid request",
+		},
+		{
+			testName: "success",
+			msg: &types.MsgIncreaseBridgeFee{
+				ChainName:     moduleName,
+				Sender:        normalFxAddress,
+				TransactionId: 1,
+				AddBridgeFee:  sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1)),
+			},
+			expectPass: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.testName, func(t *testing.T) {
+			err = testCase.msg.ValidateBasic()
+			if testCase.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.NotNil(t, err)
+				require.ErrorIs(t, err, testCase.err, "%+v", testCase.msg)
+				if moduleName == trontypes.ModuleName && strings.Contains(testCase.errReason, "mismatch expected") {
+					testCase.errReason = strings.Split(testCase.errReason, ":")[0] + tronAddressErr
+				}
+				require.EqualValuesf(t, testCase.errReason, err.Error(), "%+v", testCase.msg)
+			}
+		})
+	}
+}
+
 func TestMsgSendToExternalClaim_ValidateBasic(t *testing.T) {
 	moduleName := getRandModule()
 	normalExternalAddress := helpers.GenerateAddressByModule(moduleName)

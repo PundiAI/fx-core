@@ -220,6 +220,19 @@ func (b MsgValidate) MsgCancelSendToExternalValidate(m *MsgCancelSendToExternal)
 	return nil
 }
 
+func (b MsgValidate) MsgIncreaseBridgeFeeValidate(m *MsgIncreaseBridgeFee) (err error) {
+	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+	}
+	if m.TransactionId == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero transaction id")
+	}
+	if !m.AddBridgeFee.IsValid() || !m.AddBridgeFee.IsPositive() {
+		return errortypes.ErrInvalidRequest.Wrap("invalid bridge fee")
+	}
+	return nil
+}
+
 func (b MsgValidate) MsgRequestBatchValidate(m *MsgRequestBatch) (err error) {
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)

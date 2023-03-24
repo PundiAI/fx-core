@@ -49,6 +49,7 @@ func GetTxSubCmds(chainName string) []*cobra.Command {
 		// send to external chain
 		CmdSendToExternal(chainName),
 		CmdCancelSendToExternal(chainName),
+		CmdIncreaseBridgeFee(chainName),
 		CmdRequestBatch(chainName),
 
 		// oracle consensus confirm
@@ -246,6 +247,37 @@ func CmdCancelSendToExternal(chainName string) *cobra.Command {
 				TransactionId: txId,
 				Sender:        cliCtx.GetFromAddress().String(),
 				ChainName:     chainName,
+			}
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
+		},
+	}
+	return cmd
+}
+
+func CmdIncreaseBridgeFee(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "increase-bridge-fee [tx-ID] [add-bridge-fee]",
+		Short: "Increase bridge fee for send to external transaction",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			txId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			addBridgeFee, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return errorsmod.Wrap(err, "add bridge fee")
+			}
+
+			msg := &types.MsgIncreaseBridgeFee{
+				ChainName:     chainName,
+				TransactionId: txId,
+				Sender:        cliCtx.GetFromAddress().String(),
+				AddBridgeFee:  addBridgeFee,
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},

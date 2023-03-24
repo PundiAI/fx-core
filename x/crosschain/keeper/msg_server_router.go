@@ -118,6 +118,14 @@ func (k msgServer) CancelSendToExternal(ctx context.Context, msg *types.MsgCance
 	}
 }
 
+func (k msgServer) IncreaseBridgeFee(ctx context.Context, msg *types.MsgIncreaseBridgeFee) (*types.MsgIncreaseBridgeFeeResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.IncreaseBridgeFee(ctx, msg)
+	}
+}
+
 func (k msgServer) SendToExternalClaim(ctx context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
 	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err

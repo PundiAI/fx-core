@@ -30,6 +30,7 @@ const (
 
 	TypeMsgSendToExternal       = "send_to_external"
 	TypeMsgCancelSendToExternal = "cancel_send_to_external"
+	TypeMsgIncreaseBridgeFee    = "increase_bridge_fee"
 	TypeMsgSendToExternalClaim  = "send_to_external_claim"
 
 	TypeMsgRequestBatch = "request_batch"
@@ -72,6 +73,8 @@ var (
 	_ CrossChainMsg = &MsgSendToExternal{}
 	_ sdk.Msg       = &MsgCancelSendToExternal{}
 	_ CrossChainMsg = &MsgCancelSendToExternal{}
+	_ sdk.Msg       = &MsgIncreaseBridgeFee{}
+	_ CrossChainMsg = &MsgIncreaseBridgeFee{}
 	_ sdk.Msg       = &MsgSendToExternalClaim{}
 	_ CrossChainMsg = &MsgSendToExternalClaim{}
 
@@ -101,6 +104,7 @@ type MsgValidateBasic interface {
 	MsgSendToExternalValidate(m *MsgSendToExternal) (err error)
 
 	MsgCancelSendToExternalValidate(m *MsgCancelSendToExternal) (err error)
+	MsgIncreaseBridgeFeeValidate(m *MsgIncreaseBridgeFee) (err error)
 	MsgRequestBatchValidate(m *MsgRequestBatch) (err error)
 	MsgConfirmBatchValidate(m *MsgConfirmBatch) (err error)
 }
@@ -474,6 +478,40 @@ func (m *MsgCancelSendToExternal) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (m *MsgCancelSendToExternal) GetSigners() []sdk.AccAddress {
+	acc, err := sdk.AccAddressFromBech32(m.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{acc}
+}
+
+// MsgIncreaseBridgeFee
+
+// Route should return the name of the module
+func (m *MsgIncreaseBridgeFee) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgIncreaseBridgeFee) Type() string { return TypeMsgIncreaseBridgeFee }
+
+// ValidateBasic performs stateless checks
+func (m *MsgIncreaseBridgeFee) ValidateBasic() (err error) {
+	if err = ValidateModuleName(m.ChainName); err != nil {
+		return errortypes.ErrInvalidRequest.Wrap("invalid chain name")
+	}
+	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+	} else {
+		return router.MsgIncreaseBridgeFeeValidate(m)
+	}
+}
+
+// GetSignBytes encodes the message for signing
+func (m *MsgIncreaseBridgeFee) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+// GetSigners defines whose signature is required
+func (m *MsgIncreaseBridgeFee) GetSigners() []sdk.AccAddress {
 	acc, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
 		panic(err)

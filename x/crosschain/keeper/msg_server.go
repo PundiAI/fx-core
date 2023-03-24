@@ -389,6 +389,27 @@ func (s MsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelS
 	return &types.MsgCancelSendToExternalResponse{}, nil
 }
 
+func (s MsgServer) IncreaseBridgeFee(c context.Context, msg *types.MsgIncreaseBridgeFee) (*types.MsgIncreaseBridgeFeeResponse, error) {
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	if err = s.AddUnbatchedTxBridgeFee(ctx, msg.TransactionId, sender, msg.AddBridgeFee); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
+
+	return &types.MsgIncreaseBridgeFeeResponse{}, nil
+}
+
 func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {

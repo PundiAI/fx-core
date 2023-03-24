@@ -154,6 +154,64 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	return totalToRefund, nil
 }
 
+func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error {
+	if ctx.IsZero() || txId < 1 || sender.Empty() || addBridgeFee.IsZero() {
+		return errorsmod.Wrap(types.ErrInvalid, "arguments")
+	}
+	// check that we actually have a tx with that id and what it's details are
+	tx, err := k.GetUnbatchedTxById(ctx, txId)
+	if err != nil {
+		return errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
+	}
+	bridgeToken := k.GetDenomByBridgeToken(ctx, addBridgeFee.Denom)
+	if bridgeToken == nil {
+		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+	}
+
+	if tx.Fee.Contract != bridgeToken.Token {
+		return errorsmod.Wrap(types.ErrInvalid, "token not equal tx fee token")
+	}
+
+	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
+	// If there is, lock the coins.
+	if addBridgeFee.Denom == fxtypes.DefaultDenom {
+		// lock coins in module
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
+			return err
+		}
+	} else {
+		// If it is an external blockchain asset we burn it send coins to module in prep for burn
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
+			return err
+		}
+
+		// burn vouchers to send them back to external blockchain
+		if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
+			return err
+		}
+	}
+
+	if err := k.removeUnbatchedTx(ctx, tx.Fee, txId); err != nil {
+		return err
+	}
+
+	// add bridge fee amount
+	tx.Fee.Amount = tx.Fee.Amount.Add(addBridgeFee.Amount)
+
+	if err := k.AddUnbatchedTx(ctx, tx); err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeIncreaseBridgeFee,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
+		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(tx.Id)),
+		sdk.NewAttribute(types.AttributeKeyIncreaseFee, addBridgeFee.String()),
+	))
+
+	return nil
+}
+
 // AddUnbatchedTx creates a new transaction in the pool
 func (k Keeper) AddUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.OutgoingTransferTx) error {
 	store := ctx.KVStore(k.storeKey)

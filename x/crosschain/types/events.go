@@ -15,7 +15,9 @@ const (
 
 	EventTypeSendToExternal         = "send_to_external"
 	EventTypeSendToExternalCanceled = "send_to_external_canceled"
+	EventTypeIncreaseBridgeFee      = "increase_bridge_fee"
 	AttributeKeyOutgoingTxID        = "outgoing_tx_id"
+	AttributeKeyIncreaseFee         = "increase_fee"
 
 	EventTypeOutgoingBatch           = "outgoing_batch"
 	EventTypeOutgoingBatchCanceled   = "outgoing_batch_canceled"

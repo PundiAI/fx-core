@@ -44,6 +44,8 @@
     - [MsgConfirmBatchResponse](#fx.gravity.crosschain.v1.MsgConfirmBatchResponse)
     - [MsgEditBridger](#fx.gravity.crosschain.v1.MsgEditBridger)
     - [MsgEditBridgerResponse](#fx.gravity.crosschain.v1.MsgEditBridgerResponse)
+    - [MsgIncreaseBridgeFee](#fx.gravity.crosschain.v1.MsgIncreaseBridgeFee)
+    - [MsgIncreaseBridgeFeeResponse](#fx.gravity.crosschain.v1.MsgIncreaseBridgeFeeResponse)
     - [MsgOracleSetConfirm](#fx.gravity.crosschain.v1.MsgOracleSetConfirm)
     - [MsgOracleSetConfirmResponse](#fx.gravity.crosschain.v1.MsgOracleSetConfirmResponse)
     - [MsgOracleSetUpdatedClaim](#fx.gravity.crosschain.v1.MsgOracleSetUpdatedClaim)
@@ -903,6 +905,34 @@ as well as an Bsc signature over this batch by the validator
 
 
 
+<a name="fx.gravity.crosschain.v1.MsgIncreaseBridgeFee"></a>
+
+### MsgIncreaseBridgeFee
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_name` | [string](#string) |  |  |
+| `transaction_id` | [uint64](#uint64) |  |  |
+| `sender` | [string](#string) |  |  |
+| `add_bridge_fee` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgIncreaseBridgeFeeResponse"></a>
+
+### MsgIncreaseBridgeFeeResponse
+
+
+
+
+
+
+
 <a name="fx.gravity.crosschain.v1.MsgOracleSetConfirm"></a>
 
 ### MsgOracleSetConfirm
@@ -1291,6 +1321,7 @@ Msg defines the state transitions possible within gravity
 | `RequestBatch` | [MsgRequestBatch](#fx.gravity.crosschain.v1.MsgRequestBatch) | [MsgRequestBatchResponse](#fx.gravity.crosschain.v1.MsgRequestBatchResponse) |  | |
 | `ConfirmBatch` | [MsgConfirmBatch](#fx.gravity.crosschain.v1.MsgConfirmBatch) | [MsgConfirmBatchResponse](#fx.gravity.crosschain.v1.MsgConfirmBatchResponse) |  | |
 | `UpdateParams` | [MsgUpdateParams](#fx.gravity.crosschain.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#fx.gravity.crosschain.v1.MsgUpdateParamsResponse) | UpdateParams defines a governance operation for updating the x/crosschain module parameters. The authority is hard-coded to the x/gov module account. | |
+| `IncreaseBridgeFee` | [MsgIncreaseBridgeFee](#fx.gravity.crosschain.v1.MsgIncreaseBridgeFee) | [MsgIncreaseBridgeFeeResponse](#fx.gravity.crosschain.v1.MsgIncreaseBridgeFeeResponse) |  | |
 
  <!-- end services -->
 
