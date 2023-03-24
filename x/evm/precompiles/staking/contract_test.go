@@ -28,10 +28,11 @@ import (
 )
 
 const (
-	StakingTestDelegateName   = "delegate"
-	StakingTestUndelegateName = "undelegate"
-	StakingTestWithdrawName   = "withdraw"
-	StakingTestDelegationName = "delegation"
+	StakingTestDelegateName          = "delegate"
+	StakingTestUndelegateName        = "undelegate"
+	StakingTestWithdrawName          = "withdraw"
+	StakingTestDelegationName        = "delegation"
+	StakingTestDelegationRewardsName = "delegationRewards"
 )
 
 type PrecompileTestSuite struct {

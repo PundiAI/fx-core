@@ -58,6 +58,8 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 		return WithdrawGas
 	case string(DelegationMethod.ID):
 		return DelegationGas
+	case string(DelegationRewardsMethod.ID):
+		return DelegationRewardsGas
 	default:
 		return 0
 	}
@@ -81,6 +83,8 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		ret, err = c.Withdraw(cacheCtx, evm, contract, readonly)
 	case string(DelegationMethod.ID):
 		ret, err = c.Delegation(cacheCtx, evm, contract, readonly)
+	case string(DelegationRewardsMethod.ID):
+		ret, err = c.DelegationRewards(cacheCtx, evm, contract, readonly)
 	default:
 		err = errors.New("unknown method")
 	}
