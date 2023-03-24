@@ -59,7 +59,7 @@ func (suite *IntegrationTest) ERC20Test() {
 			receive = trontypes.AddressFromHex(receive)
 		}
 		suite.erc20.TransferCrossChain(suite.erc20.privKey, tokenPair.GetERC20Contract(), receive,
-			big.NewInt(50), big.NewInt(50), fmt.Sprintf("chain/%s", chain.chainName))
+			big.NewInt(20), big.NewInt(30), fmt.Sprintf("chain/%s", chain.chainName))
 
 		resp, err := chain.CrosschainQuery().GetPendingSendToExternal(suite.ctx,
 			&crosschaintypes.QueryPendingSendToExternalRequest{
@@ -68,14 +68,41 @@ func (suite *IntegrationTest) ERC20Test() {
 			})
 		suite.NoError(err)
 		suite.Equal(1, len(resp.UnbatchedTransfers))
-		suite.Equal(int64(50), resp.UnbatchedTransfers[0].Token.Amount.Int64())
-		suite.Equal(int64(50), resp.UnbatchedTransfers[0].Fee.Amount.Int64())
+		suite.Equal(int64(20), resp.UnbatchedTransfers[0].Token.Amount.Int64())
+		suite.Equal(int64(30), resp.UnbatchedTransfers[0].Fee.Amount.Int64())
 		suite.Equal(suite.erc20.AccAddress().String(), resp.UnbatchedTransfers[0].Sender)
 		if chain.chainName == trontypes.ModuleName {
 			suite.Equal(trontypes.AddressFromHex(suite.erc20.HexAddress().String()), resp.UnbatchedTransfers[0].DestAddress)
 		} else {
 			suite.Equal(suite.erc20.HexAddress().String(), resp.UnbatchedTransfers[0].DestAddress)
 		}
+
+		suite.erc20.CrossChain(suite.erc20.privKey, tokenPair.GetERC20Contract(), receive,
+			big.NewInt(20), big.NewInt(30), fmt.Sprintf("chain/%s", chain.chainName))
+		resp, err = chain.CrosschainQuery().GetPendingSendToExternal(suite.ctx,
+			&crosschaintypes.QueryPendingSendToExternalRequest{
+				ChainName:     chain.chainName,
+				SenderAddress: suite.erc20.AccAddress().String(),
+			})
+		suite.NoError(err)
+		suite.Equal(2, len(resp.UnbatchedTransfers))
+		suite.Equal(resp.UnbatchedTransfers[0].Token.Amount.Int64(), resp.UnbatchedTransfers[1].Token.Amount.Int64())
+		suite.Equal(resp.UnbatchedTransfers[0].Fee.Amount.Int64(), resp.UnbatchedTransfers[1].Fee.Amount.Int64())
+		suite.Equal(resp.UnbatchedTransfers[0].Sender, resp.UnbatchedTransfers[1].Sender)
+
+		suite.erc20.CancelSendToExternal(suite.erc20.privKey, chain.chainName, resp.UnbatchedTransfers[1].Id)
+
+		unbatchedTxFee := resp.UnbatchedTransfers[0].Fee.Amount
+		suite.erc20.IncreaseBridgeFee(suite.erc20.privKey, chain.chainName, resp.UnbatchedTransfers[0].Id, tokenPair.GetERC20Contract(), big.NewInt(50))
+
+		resp, err = chain.CrosschainQuery().GetPendingSendToExternal(suite.ctx,
+			&crosschaintypes.QueryPendingSendToExternalRequest{
+				ChainName:     chain.chainName,
+				SenderAddress: suite.erc20.AccAddress().String(),
+			})
+		suite.NoError(err)
+		suite.Equal(1, len(resp.UnbatchedTransfers))
+		suite.Equal(unbatchedTxFee.Add(sdkmath.NewInt(50)), resp.UnbatchedTransfers[0].Fee.Amount)
 
 		// covert chain.address erc20 token to native token: metadata.base
 		suite.erc20.ConvertERC20(chain.privKey, tokenPair.GetERC20Contract(), sdkmath.NewInt(50), suite.erc20.AccAddress())
@@ -166,7 +193,7 @@ func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 			receive = trontypes.AddressFromHex(receive)
 		}
 		suite.erc20.TransferCrossChain(chain.privKey, tokenPair.GetERC20Contract(), receive,
-			big.NewInt(50), big.NewInt(50), fmt.Sprintf("chain/%s", chain.chainName))
+			big.NewInt(20), big.NewInt(30), fmt.Sprintf("chain/%s", chain.chainName))
 
 		resp, err := chain.CrosschainQuery().GetPendingSendToExternal(suite.ctx,
 			&crosschaintypes.QueryPendingSendToExternalRequest{
@@ -175,8 +202,8 @@ func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 			})
 		suite.NoError(err)
 		suite.Equal(1, len(resp.UnbatchedTransfers))
-		suite.Equal(int64(50), resp.UnbatchedTransfers[0].Token.Amount.Int64())
-		suite.Equal(int64(50), resp.UnbatchedTransfers[0].Fee.Amount.Int64())
+		suite.Equal(int64(20), resp.UnbatchedTransfers[0].Token.Amount.Int64())
+		suite.Equal(int64(30), resp.UnbatchedTransfers[0].Fee.Amount.Int64())
 		suite.Equal(tokenAddress, resp.UnbatchedTransfers[0].Token.Contract)
 		suite.Equal(chain.AccAddress().String(), resp.UnbatchedTransfers[0].Sender)
 		if chain.chainName == trontypes.ModuleName {
@@ -185,29 +212,48 @@ func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 			suite.Equal(suite.erc20.HexAddress().String(), resp.UnbatchedTransfers[0].DestAddress)
 		}
 
+		suite.erc20.CrossChain(chain.privKey, tokenPair.GetERC20Contract(), receive,
+			big.NewInt(20), big.NewInt(30), fmt.Sprintf("chain/%s", chain.chainName))
+		resp, err = chain.CrosschainQuery().GetPendingSendToExternal(suite.ctx,
+			&crosschaintypes.QueryPendingSendToExternalRequest{
+				ChainName:     chain.chainName,
+				SenderAddress: chain.AccAddress().String(),
+			})
+		suite.NoError(err)
+		suite.Equal(2, len(resp.UnbatchedTransfers))
+		suite.Equal(resp.UnbatchedTransfers[0].Token.Amount.Int64(), resp.UnbatchedTransfers[1].Token.Amount.Int64())
+		suite.Equal(resp.UnbatchedTransfers[0].Fee.Amount.Int64(), resp.UnbatchedTransfers[1].Fee.Amount.Int64())
+		suite.Equal(resp.UnbatchedTransfers[0].Sender, resp.UnbatchedTransfers[1].Sender)
+
 		// ibc token transfer to other cosmos chain
 		receive, err = sdk.Bech32ifyAddressBytes("px", suite.erc20.AccAddress().Bytes())
 		suite.Require().NoError(err)
 
-		respTX := suite.erc20.TransferCrossChain(chain.privKey, tokenPair.GetERC20Contract(), receive, big.NewInt(50), big.NewInt(0), "ibc/0/px")
+		respTX1 := suite.erc20.TransferCrossChain(chain.privKey, tokenPair.GetERC20Contract(), receive, big.NewInt(20), big.NewInt(0), "ibc/0/px")
+
+		respTX2 := suite.erc20.CrossChain(chain.privKey, tokenPair.GetERC20Contract(), receive, big.NewInt(30), big.NewInt(0), "ibc/0/px")
 
 		// "send_packet.packet_src_channel='channel-0' AND send_packet.packet_sequence='1'"
 		search, err := suite.NodeClient().TxSearch("send_packet.packet_src_channel='channel-0'", 1, 100, "")
 		suite.NoError(err)
 		for _, tx := range search.Txs {
-			find := false
+			find1 := false
+			find2 := false
 			for _, event := range tx.TxResult.Events {
 				if event.Type == "ethereum_tx" {
 					for _, attr := range event.Attributes {
 						if string(attr.Key) == "ethereumTxHash" {
-							if string(attr.Value) == respTX.Hash().String() {
-								find = true
+							if string(attr.Value) == respTX1.Hash().String() {
+								find1 = true
+							}
+							if string(attr.Value) == respTX2.Hash().String() {
+								find2 = true
 							}
 						}
 					}
 				}
 			}
-			if find {
+			if find1 || find2 {
 				for _, event := range tx.TxResult.Events {
 					if event.Type == "relay_transfer_cross_chain" {
 						for _, attr := range event.Attributes {
@@ -216,9 +262,6 @@ func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 							}
 							if string(attr.Key) == "recipient" {
 								suite.Equal(string(attr.Value), receive)
-							}
-							if string(attr.Key) == "amount" {
-								suite.Equal(string(attr.Value), "50")
 							}
 							if string(attr.Key) == "fee" {
 								suite.Equal(string(attr.Value), "0")
@@ -231,6 +274,28 @@ func (suite *IntegrationTest) ERC20IBCChainTokenTest() {
 							}
 							if string(attr.Key) == "coin" {
 								suite.Equal(string(attr.Value), metadata.Base)
+							}
+						}
+					}
+				}
+			}
+			if find1 {
+				for _, event := range tx.TxResult.Events {
+					if event.Type == "relay_transfer_cross_chain" {
+						for _, attr := range event.Attributes {
+							if string(attr.Key) == "amount" {
+								suite.Equal(string(attr.Value), "20")
+							}
+						}
+					}
+				}
+			}
+			if find2 {
+				for _, event := range tx.TxResult.Events {
+					if event.Type == "relay_transfer_cross_chain" {
+						for _, attr := range event.Attributes {
+							if string(attr.Key) == "amount" {
+								suite.Equal(string(attr.Value), "30")
 							}
 						}
 					}
