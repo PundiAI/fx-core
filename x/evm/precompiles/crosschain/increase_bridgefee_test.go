@@ -26,10 +26,14 @@ import (
 func TestIncreaseBridgeFeeABI(t *testing.T) {
 	crossChainABI := fxtypes.MustABIJson(crosschain.JsonABI)
 
-	method := crossChainABI.Methods[crosschain.IncreaseBridgeFeeMethod.Name]
+	method := crossChainABI.Methods[crosschain.IncreaseBridgeFeeMethodName]
 	require.Equal(t, method, crosschain.IncreaseBridgeFeeMethod)
 	require.Equal(t, 4, len(method.Inputs))
 	require.Equal(t, 1, len(method.Outputs))
+
+	event := crossChainABI.Events[crosschain.IncreaseBridgeFeeEventName]
+	require.Equal(t, event, crosschain.IncreaseBridgeFeeEvent)
+	require.Equal(t, 5, len(event.Inputs))
 }
 
 //gocyclo:ignore
@@ -476,6 +480,22 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 						continue
 					}
 					suite.Require().Equal(coin.Amount.String(), randBridgeFee.String())
+				}
+
+				for _, log := range res.Logs {
+					if log.Topics[0] == crosschain.IncreaseBridgeFeeEvent.ID.String() {
+						suite.Require().Equal(log.Address, crosschain.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Topics[1], signer.Address().Hash().String())
+						suite.Require().Equal(log.Topics[2], pair.GetERC20Contract().Hash().String())
+						unpack, err := crosschain.IncreaseBridgeFeeEvent.Inputs.NonIndexed().Unpack(log.Data)
+						suite.Require().NoError(err)
+						chain := unpack[0].(string)
+						suite.Require().Equal(chain, moduleName)
+						txID := unpack[1].(*big.Int)
+						suite.Require().True(txID.Uint64() > 0)
+						fee := unpack[2].(*big.Int)
+						suite.Require().Equal(fee.String(), randBridgeFee.String())
+					}
 				}
 
 			} else {

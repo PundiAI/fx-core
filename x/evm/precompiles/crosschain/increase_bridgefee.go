@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -16,19 +17,33 @@ import (
 	"github.com/functionx/fx-core/v3/x/evm/types"
 )
 
-var IncreaseBridgeFeeMethod = abi.NewMethod(
-	IncreaseBridgeFeeMethodName,
-	IncreaseBridgeFeeMethodName,
-	abi.Function, "payable", false, true,
-	abi.Arguments{
-		abi.Argument{Name: "chain", Type: types.TypeString},
-		abi.Argument{Name: "txid", Type: types.TypeUint256},
-		abi.Argument{Name: "token", Type: types.TypeAddress},
-		abi.Argument{Name: "fee", Type: types.TypeUint256},
-	},
-	abi.Arguments{
-		abi.Argument{Name: "result", Type: types.TypeBool},
-	},
+var (
+	IncreaseBridgeFeeMethod = abi.NewMethod(
+		IncreaseBridgeFeeMethodName,
+		IncreaseBridgeFeeMethodName,
+		abi.Function, "payable", false, true,
+		abi.Arguments{
+			abi.Argument{Name: "chain", Type: types.TypeString},
+			abi.Argument{Name: "txid", Type: types.TypeUint256},
+			abi.Argument{Name: "token", Type: types.TypeAddress},
+			abi.Argument{Name: "fee", Type: types.TypeUint256},
+		},
+		abi.Arguments{
+			abi.Argument{Name: "result", Type: types.TypeBool},
+		},
+	)
+
+	IncreaseBridgeFeeEvent = abi.NewEvent(
+		IncreaseBridgeFeeEventName,
+		IncreaseBridgeFeeEventName,
+		false,
+		abi.Arguments{
+			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
+			abi.Argument{Name: "token", Type: types.TypeAddress, Indexed: true},
+			abi.Argument{Name: "chain", Type: types.TypeString, Indexed: false},
+			abi.Argument{Name: "txid", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "fee", Type: types.TypeUint256, Indexed: false},
+		})
 )
 
 // IncreaseBridgeFee add bridge fee to unbatched tx
@@ -102,5 +117,29 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contract *vm.
 		return nil, err
 	}
 
+	// add event log
+	if err := increaseBridgeFeeLog(evm, contract.Address(), sender, token, chain, txID, feeAmount); err != nil {
+		return nil, err
+	}
+
 	return IncreaseBridgeFeeMethod.Outputs.Pack(true)
+}
+
+func increaseBridgeFeeLog(evm *vm.EVM, logAddr, sender, token common.Address, chain string, txID, fee *big.Int) error {
+	eventData, err := IncreaseBridgeFeeEvent.Inputs.NonIndexed().Pack(chain, txID, fee)
+	if err != nil {
+		return err
+	}
+	topic := []common.Hash{
+		IncreaseBridgeFeeEvent.ID,
+		sender.Hash(),
+		token.Hash(),
+	}
+	evm.StateDB.AddLog(&ethtypes.Log{
+		Address:     logAddr,
+		Topics:      topic,
+		Data:        eventData,
+		BlockNumber: evm.Context.BlockNumber.Uint64(),
+	})
+	return nil
 }

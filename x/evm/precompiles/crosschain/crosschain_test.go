@@ -29,10 +29,14 @@ import (
 func TestCrossChainABI(t *testing.T) {
 	crossChainABI := fxtypes.MustABIJson(crosschain.JsonABI)
 
-	method := crossChainABI.Methods[crosschain.CrossChainMethod.Name]
+	method := crossChainABI.Methods[crosschain.CrossChainMethodName]
 	require.Equal(t, method, crosschain.CrossChainMethod)
 	require.Equal(t, 6, len(method.Inputs))
 	require.Equal(t, 1, len(method.Outputs))
+
+	event := crossChainABI.Events[crosschain.CrossChainEventName]
+	require.Equal(t, event, crosschain.CrossChainEvent)
+	require.Equal(t, 8, len(event.Inputs))
 }
 
 //gocyclo:ignore
@@ -223,7 +227,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 					helpers.GenerateAddressByModule(bsctypes.ModuleName),
 					randMint,
 					big.NewInt(0),
-					fxtypes.MustStrToByte32("chain/"+bsctypes.ModuleName),
+					fxtypes.MustStrToByte32(bsctypes.ModuleName),
 					"",
 				)
 				suite.Require().NoError(err)
@@ -501,7 +505,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 					helpers.GenerateAddressByModule(bsctypes.ModuleName),
 					randMint,
 					big.NewInt(0),
-					fxtypes.MustStrToByte32("chain/"+bsctypes.ModuleName),
+					fxtypes.MustStrToByte32(bsctypes.ModuleName),
 					"",
 				)
 				suite.Require().NoError(err)
@@ -699,6 +703,34 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 				if !strings.EqualFold(resp.UnbatchedTransfers[0].Token.Contract, strings.TrimPrefix(md.GetDenom(moduleName), moduleName)) {
 					bridgeToken := suite.CrossChainKeepers()[moduleName].GetDenomByBridgeToken(suite.ctx, newPair.Denom)
 					suite.Require().Equal(resp.UnbatchedTransfers[0].Token.Contract, bridgeToken.Token, moduleName)
+				}
+
+				for _, log := range res.Logs {
+					if log.Topics[0] == crosschain.CrossChainEvent.ID.String() {
+						suite.Require().Equal(3, len(log.Topics))
+						suite.Require().Equal(log.Address, crosschain.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Topics[1], addrQuery.Hash().String())
+
+						unpack, err := crosschain.CrossChainEvent.Inputs.NonIndexed().Unpack(log.Data)
+						suite.Require().NoError(err)
+						denom := unpack[0].(string)
+
+						if moduleName == ethtypes.ModuleName && value.Cmp(big.NewInt(0)) == 1 {
+							suite.Require().Equal(log.Topics[2], common.HexToAddress(fxtypes.EmptyEvmAddress).Hash().String())
+							suite.Require().Equal(fxtypes.DefaultDenom, denom)
+						} else {
+							suite.Require().Equal(log.Topics[2], newPair.GetERC20Contract().Hash().String())
+							suite.Require().Equal(denom, newPair.GetDenom())
+						}
+
+						amount := unpack[2].(*big.Int)
+						fee := unpack[3].(*big.Int)
+						suite.Require().Equal(randMint.String(), big.NewInt(0).Add(amount, fee).String())
+						target := unpack[4].([32]byte)
+						suite.Require().Equal(moduleName, fxtypes.Byte32ToString(target))
+						memo := unpack[5].(string)
+						suite.Require().Equal("", memo)
+					}
 				}
 			} else {
 				suite.Require().Error(err)

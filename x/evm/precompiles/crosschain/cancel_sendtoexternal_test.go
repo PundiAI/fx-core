@@ -27,10 +27,14 @@ import (
 func TestCancelSendToExternalABI(t *testing.T) {
 	crossChainABI := fxtypes.MustABIJson(crosschain.JsonABI)
 
-	method := crossChainABI.Methods[crosschain.CancelSendToExternalMethod.Name]
+	method := crossChainABI.Methods[crosschain.CancelSendToExternalMethodName]
 	require.Equal(t, method, crosschain.CancelSendToExternalMethod)
 	require.Equal(t, 2, len(method.Inputs))
 	require.Equal(t, 1, len(method.Outputs))
+
+	event := crossChainABI.Events[crosschain.CancelSendToExternalEventName]
+	require.Equal(t, event, crosschain.CancelSendToExternalEvent)
+	require.Equal(t, 3, len(event.Inputs))
 }
 
 //gocyclo:ignore
@@ -426,6 +430,19 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 						expect = expect.Add(sdkmath.NewIntFromBigInt(randMint))
 					}
 					suite.Require().Equal(coin.Amount.String(), expect.String(), coin.Denom)
+				}
+
+				for _, log := range res.Logs {
+					if log.Topics[0] == crosschain.CancelSendToExternalEvent.ID.String() {
+						suite.Require().Equal(log.Address, crosschain.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Topics[1], signer.Address().Hash().String())
+						unpack, err := crosschain.CancelSendToExternalEvent.Inputs.NonIndexed().Unpack(log.Data)
+						suite.Require().NoError(err)
+						chain := unpack[0].(string)
+						suite.Require().Equal(chain, moduleName)
+						txID := unpack[1].(*big.Int)
+						suite.Require().True(txID.Uint64() > 0)
+					}
 				}
 
 			} else {

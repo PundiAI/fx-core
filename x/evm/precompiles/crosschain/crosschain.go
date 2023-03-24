@@ -7,11 +7,14 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
@@ -21,7 +24,10 @@ import (
 )
 
 var (
-	FIP20CrossChainMethod = abi.NewMethod(FIP20CrossChainMethodName, FIP20CrossChainMethodName, abi.Function, "nonpayable", false, false,
+	FIP20CrossChainMethod = abi.NewMethod(
+		FIP20CrossChainMethodName,
+		FIP20CrossChainMethodName,
+		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
 			abi.Argument{Name: "sender", Type: types.TypeAddress},
 			abi.Argument{Name: "receipt", Type: types.TypeString},
@@ -34,8 +40,10 @@ var (
 			abi.Argument{Name: "result", Type: types.TypeBool},
 		},
 	)
-
-	CrossChainMethod = abi.NewMethod(CrossChainMethodName, CrossChainMethodName, abi.Function, "payable", false, true,
+	CrossChainMethod = abi.NewMethod(
+		CrossChainMethodName,
+		CrossChainMethodName,
+		abi.Function, "payable", false, true,
 		abi.Arguments{
 			abi.Argument{Name: "token", Type: types.TypeAddress},
 			abi.Argument{Name: "receipt", Type: types.TypeString},
@@ -46,6 +54,21 @@ var (
 		},
 		abi.Arguments{
 			abi.Argument{Name: "result", Type: types.TypeBool},
+		})
+
+	CrossChainEvent = abi.NewEvent(
+		CrossChainEventName,
+		CrossChainEventName,
+		false,
+		abi.Arguments{
+			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
+			abi.Argument{Name: "token", Type: types.TypeAddress, Indexed: true},
+			abi.Argument{Name: "denom", Type: types.TypeString, Indexed: false},
+			abi.Argument{Name: "receipt", Type: types.TypeString, Indexed: false},
+			abi.Argument{Name: "amount", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "fee", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "target", Type: types.TypeBytes32, Indexed: false},
+			abi.Argument{Name: "memo", Type: types.TypeString, Indexed: false},
 		})
 )
 
@@ -112,6 +135,15 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 		return nil, err
 	}
 
+	// add event log
+	if err := crossChainLog(evm, contract.Address(), sender, tokenPair.GetERC20Contract(),
+		receipt, tokenPair.GetDenom(), memo, amount, fee, target); err != nil {
+		return nil, err
+	}
+
+	// add fip20CrossChain events
+	fip20CrossChainEvents(ctx, sender, tokenPair.GetERC20Contract(), receipt, fxtypes.Byte32ToString(target), tokenPair.GetDenom(), amount, fee)
+
 	return FIP20CrossChainMethod.Outputs.Pack(true)
 }
 
@@ -174,6 +206,15 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	if err := c.handlerCrossChain(ctx, sender.Bytes(), receipt, amountCoin, feeCoin, fxTarget, memo, originToken); err != nil {
 		return nil, err
 	}
+
+	// add event log
+	if err := crossChainLog(evm, contract.Address(), sender, token,
+		receipt, crossChainDenom, memo, amount, fee, target); err != nil {
+		return nil, err
+	}
+
+	// add cross chain events
+	crossChainEvents(ctx, sender, token, receipt, fxtypes.Byte32ToString(target), crossChainDenom, memo, amount, fee)
 
 	return CrossChainMethod.Outputs.Pack(true)
 }
@@ -345,5 +386,63 @@ func (c *Contract) ibcTransfer(
 	if !originToken {
 		c.erc20Keeper.SetIBCTransferRelation(ctx, fxTarget.SourceChannel, transferResponse.GetSequence())
 	}
+	return nil
+}
+
+// transferCrossChainEvents use for fip20 cross chain
+// Deprecated
+func fip20CrossChainEvents(ctx sdk.Context, from, token common.Address, recipient, target, denom string, amount, fee *big.Int) {
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		EventTypeRelayTransferCrossChain,
+		sdk.NewAttribute(AttributeKeyFrom, from.String()),
+		sdk.NewAttribute(AttributeKeyRecipient, recipient),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+		sdk.NewAttribute(sdk.AttributeKeyFee, fee.String()),
+		sdk.NewAttribute(AttributeKeyTarget, target),
+		sdk.NewAttribute(AttributeKeyTokenAddress, token.String()),
+		sdk.NewAttribute(AttributeKeyDenom, denom),
+	))
+
+	telemetry.IncrCounterWithLabels(
+		[]string{"relay_transfer_cross_chain"},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel("erc20", token.String()),
+			telemetry.NewLabel("denom", denom),
+			telemetry.NewLabel("target", target),
+		},
+	)
+}
+
+func crossChainEvents(ctx sdk.Context, from, token common.Address, recipient, target, denom, memo string, amount, fee *big.Int) {
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		EventTypeCrossChain,
+		sdk.NewAttribute(AttributeKeyFrom, from.String()),
+		sdk.NewAttribute(AttributeKeyRecipient, recipient),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+		sdk.NewAttribute(sdk.AttributeKeyFee, fee.String()),
+		sdk.NewAttribute(AttributeKeyTarget, target),
+		sdk.NewAttribute(AttributeKeyTokenAddress, token.String()),
+		sdk.NewAttribute(AttributeKeyDenom, denom),
+		sdk.NewAttribute(AttributeKeyMemo, memo),
+	))
+}
+
+func crossChainLog(evm *vm.EVM, logAddr, sender, token common.Address, recipient, denom, memo string, amount, fee *big.Int, target [32]byte) error {
+	eventData, err := CrossChainEvent.Inputs.NonIndexed().Pack(denom, recipient, amount, fee, target, memo)
+	if err != nil {
+		return err
+	}
+	topic := []common.Hash{
+		CrossChainEvent.ID,
+		sender.Hash(),
+		token.Hash(),
+	}
+	evm.StateDB.AddLog(&ethtypes.Log{
+		Address:     logAddr,
+		Topics:      topic,
+		Data:        eventData,
+		BlockNumber: evm.Context.BlockNumber.Uint64(),
+	})
 	return nil
 }

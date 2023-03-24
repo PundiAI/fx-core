@@ -7,23 +7,37 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	"github.com/functionx/fx-core/v3/x/evm/types"
 )
 
-var CancelSendToExternalMethod = abi.NewMethod(
-	CancelSendToExternalMethodName,
-	CancelSendToExternalMethodName,
-	abi.Function, "nonpayable", false, false,
-	abi.Arguments{
-		abi.Argument{Name: "chain", Type: types.TypeString},
-		abi.Argument{Name: "txid", Type: types.TypeUint256},
-	},
-	abi.Arguments{
-		abi.Argument{Name: "result", Type: types.TypeBool},
-	},
+var (
+	CancelSendToExternalMethod = abi.NewMethod(
+		CancelSendToExternalMethodName,
+		CancelSendToExternalMethodName,
+		abi.Function, "nonpayable", false, false,
+		abi.Arguments{
+			abi.Argument{Name: "chain", Type: types.TypeString},
+			abi.Argument{Name: "txid", Type: types.TypeUint256},
+		},
+		abi.Arguments{
+			abi.Argument{Name: "result", Type: types.TypeBool},
+		},
+	)
+
+	CancelSendToExternalEvent = abi.NewEvent(
+		CancelSendToExternalEventName,
+		CancelSendToExternalEventName,
+		false,
+		abi.Arguments{
+			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
+			abi.Argument{Name: "chain", Type: types.TypeString, Indexed: false},
+			abi.Argument{Name: "txid", Type: types.TypeUint256, Indexed: false},
+		})
 )
 
 func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
@@ -68,5 +82,24 @@ func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *
 		evm.StateDB.AddBalance(sender, refundCoin.Amount.BigInt())
 	}
 
+	// add event log
+	if err := cancelSendToExternalLog(evm, contract.Address(), sender, chain, txID); err != nil {
+		return nil, err
+	}
+
 	return CancelSendToExternalMethod.Outputs.Pack(true)
+}
+
+func cancelSendToExternalLog(evm *vm.EVM, logAddr, sender common.Address, chain string, txID *big.Int) error {
+	eventData, err := CancelSendToExternalEvent.Inputs.NonIndexed().Pack(chain, txID)
+	if err != nil {
+		return err
+	}
+	evm.StateDB.AddLog(&ethtypes.Log{
+		Address:     logAddr,
+		Topics:      []common.Hash{CancelSendToExternalEvent.ID, sender.Hash()},
+		Data:        eventData,
+		BlockNumber: evm.Context.BlockNumber.Uint64(),
+	})
+	return nil
 }

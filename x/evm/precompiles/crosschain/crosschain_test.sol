@@ -23,6 +23,31 @@ interface ICrossChain {
         address _token,
         uint256 _fee
     ) external payable returns (bool);
+
+    event CrossChain(
+        address indexed sender,
+        address indexed token,
+        string denom,
+        string receipt,
+        uint256 amount,
+        uint256 fee,
+        bytes32 target,
+        string memo
+    );
+
+    event CancelSendToExternal(
+        address indexed sender,
+        string chain,
+        uint256 txid
+    );
+
+    event IncreaseBridgeFee(
+        address indexed sender,
+        address indexed token,
+        string chain,
+        uint256 txid,
+        uint256 fee
+    );
 }
 
 interface IERC20 {
@@ -40,7 +65,7 @@ interface IERC20 {
     ) external returns (bool);
 }
 
-contract CrossChain is ICrossChain {
+contract crosschain_test is ICrossChain {
     address private constant _crossChainAddress =
         address(0x0000000000000000000000000000000000001004);
 
