@@ -319,10 +319,15 @@ func (suite *CrosschainTestSuite) SendToExternal(count int, amount sdk.Coin) uin
 }
 
 func (suite *CrosschainTestSuite) SendToExternalAndCancel(coin sdk.Coin) {
+	balBefore := suite.QueryBalances(suite.AccAddress())
+
 	txId := suite.SendToExternal(1, coin)
 	suite.Greater(txId, uint64(0))
 
 	suite.SendCancelSendToExternal(txId)
+
+	balAfter := suite.QueryBalances(suite.AccAddress())
+	suite.Equal(balBefore.AmountOf(coin.Denom), balAfter.AmountOf(coin.Denom))
 }
 
 func (suite *CrosschainTestSuite) SendCancelSendToExternal(txId uint64) {

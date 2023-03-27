@@ -77,6 +77,8 @@ func (suite *IntegrationTest) ERC20Test() {
 			suite.Equal(suite.erc20.HexAddress().String(), resp.UnbatchedTransfers[0].DestAddress)
 		}
 
+		balBefore := suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress())
+
 		suite.erc20.CrossChain(suite.erc20.privKey, tokenPair.GetERC20Contract(), receive,
 			big.NewInt(20), big.NewInt(30), fmt.Sprintf("chain/%s", chain.chainName))
 		resp, err = chain.CrosschainQuery().GetPendingSendToExternal(suite.ctx,
@@ -91,6 +93,9 @@ func (suite *IntegrationTest) ERC20Test() {
 		suite.Equal(resp.UnbatchedTransfers[0].Sender, resp.UnbatchedTransfers[1].Sender)
 
 		suite.erc20.CancelSendToExternal(suite.erc20.privKey, chain.chainName, resp.UnbatchedTransfers[1].Id)
+
+		balAfter := suite.erc20.BalanceOf(tokenPair.GetERC20Contract(), suite.erc20.HexAddress())
+		suite.Equal(balBefore, balAfter)
 
 		unbatchedTxFee := resp.UnbatchedTransfers[0].Fee.Amount
 		suite.erc20.IncreaseBridgeFee(suite.erc20.privKey, chain.chainName, resp.UnbatchedTransfers[0].Id, tokenPair.GetERC20Contract(), big.NewInt(50))
