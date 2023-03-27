@@ -151,7 +151,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
 	))
-	return totalToRefund, nil
+	return targetCoin, nil
 }
 
 func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk.AccAddress, addBridgeFee sdk.Coin) error {
