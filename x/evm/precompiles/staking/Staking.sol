@@ -23,6 +23,23 @@ interface IStaking {
         string memory _val,
         address _del
     ) external view returns (uint256);
+
+    event Delegate(
+        address indexed delegator,
+        string validator,
+        uint256 amount,
+        uint256 shares
+    );
+
+    event Undelegate(
+        address indexed sender,
+        string validator,
+        uint256 shares,
+        uint256 amount,
+        uint256 completionTime
+    );
+
+    event Withdraw(address indexed sender, string validator, uint256 reward);
 }
 
 contract Staking is IStaking {
@@ -173,11 +190,11 @@ library Decode {
     function undelegate(
         bytes memory data
     ) internal pure returns (uint256, uint256, uint256) {
-        (uint256 amount, uint256 reward, uint256 endTime) = abi.decode(
+        (uint256 amount, uint256 reward, uint256 completionTime) = abi.decode(
             data,
             (uint256, uint256, uint256)
         );
-        return (amount, reward, endTime);
+        return (amount, reward, completionTime);
     }
 
     function withdraw(bytes memory data) internal pure returns (uint256) {

@@ -25,10 +25,14 @@ import (
 func TestStakingDelegateABI(t *testing.T) {
 	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
 
-	method := stakingABI.Methods[staking.DelegateMethod.Name]
+	method := stakingABI.Methods[staking.DelegateMethodName]
 	require.Equal(t, method, staking.DelegateMethod)
 	require.Equal(t, 1, len(staking.DelegateMethod.Inputs))
 	require.Equal(t, 2, len(staking.DelegateMethod.Outputs))
+
+	event := stakingABI.Events[staking.DelegateEventName]
+	require.Equal(t, event, staking.DelegateEvent)
+	require.Equal(t, 4, len(staking.DelegateEvent.Inputs))
 }
 
 func (suite *PrecompileTestSuite) TestDelegate() {
@@ -238,6 +242,20 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 				suite.Require().Equal(delAfter.GetShares().Sub(delBefore.GetShares()), vaAfter.GetDelegatorShares().Sub(valBefore.GetDelegatorShares()))
 				suite.Require().Equal(delAmount, vaAfter.GetTokens().Sub(valBefore.GetTokens()))
 
+				for _, log := range res.Logs {
+					if log.Topics[0] == staking.DelegateEvent.ID.String() {
+						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
+						unpack, err := staking.DelegateEvent.Inputs.NonIndexed().Unpack(log.Data)
+						suite.Require().NoError(err)
+						unpackValidator := unpack[0].(string)
+						suite.Require().Equal(unpackValidator, val.GetOperator().String())
+						amount := unpack[1].(*big.Int)
+						suite.Require().Equal(amount.String(), delAmount.BigInt().String())
+						shares := unpack[2].(*big.Int)
+						suite.Require().Equal(shares.String(), delAfter.GetShares().Sub(delBefore.GetShares()).TruncateInt().BigInt().String())
+					}
+				}
 			} else {
 				suite.Require().True(err != nil || res.Failed())
 				if err != nil {

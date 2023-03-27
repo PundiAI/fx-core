@@ -8,24 +8,38 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/functionx/fx-core/v3/x/evm/types"
 )
 
-var WithdrawMethod = abi.NewMethod(WithdrawMethodName, WithdrawMethodName, abi.Function, "nonpayable", false, false,
-	abi.Arguments{
-		abi.Argument{
-			Name: "validator",
-			Type: types.TypeString,
+var (
+	WithdrawMethod = abi.NewMethod(WithdrawMethodName, WithdrawMethodName, abi.Function, "nonpayable", false, false,
+		abi.Arguments{
+			abi.Argument{
+				Name: "validator",
+				Type: types.TypeString,
+			},
 		},
-	},
-	abi.Arguments{
-		abi.Argument{
-			Name: "reward",
-			Type: types.TypeUint256,
+		abi.Arguments{
+			abi.Argument{
+				Name: "reward",
+				Type: types.TypeUint256,
+			},
 		},
-	},
+	)
+
+	WithdrawEvent = abi.NewEvent(
+		WithdrawEventName,
+		WithdrawEventName,
+		false,
+		abi.Arguments{
+			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
+			abi.Argument{Name: "validator", Type: types.TypeString, Indexed: false},
+			abi.Argument{Name: "reward", Type: types.TypeUint256, Indexed: false},
+		},
+	)
 )
 
 func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
@@ -48,7 +62,7 @@ func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	}
 	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
 
-	rewardAmount, err := c.withdraw(ctx, evm, contract.Caller(), valAddr, evmDenom)
+	rewardAmount, err := c.withdraw(ctx, evm, contract.Address(), contract.Caller(), valAddr, evmDenom)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +70,7 @@ func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	return WithdrawMethod.Outputs.Pack(rewardAmount)
 }
 
-func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, sender common.Address, valAddr sdk.ValAddress, withDrawDenom string) (*big.Int, error) {
+func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, contract, sender common.Address, valAddr sdk.ValAddress, withDrawDenom string) (*big.Int, error) {
 	delAddr := sdk.AccAddress(sender.Bytes())
 	withdrawAddr := c.distrKeeper.GetDelegatorWithdrawAddr(ctx, delAddr)
 	if !withdrawAddr.Equals(delAddr) {
@@ -79,5 +93,25 @@ func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, sender common.Address,
 	} else {
 		evm.StateDB.AddBalance(common.BytesToAddress(withdrawAddr.Bytes()), rewardAmount)
 	}
+
+	// add withdraw log
+	if err = withdrawLog(evm, contract, sender, valAddr.String(), rewardAmount); err != nil {
+		return nil, err
+	}
+
 	return rewardAmount, nil
+}
+
+func withdrawLog(evm *vm.EVM, logAddr, sender common.Address, validator string, reward *big.Int) error {
+	eventData, err := WithdrawEvent.Inputs.NonIndexed().Pack(validator, reward)
+	if err != nil {
+		return err
+	}
+	evm.StateDB.AddLog(&ethtypes.Log{
+		Address:     logAddr,
+		Topics:      []common.Hash{WithdrawEvent.ID, sender.Hash()},
+		Data:        eventData,
+		BlockNumber: evm.Context.BlockNumber.Uint64(),
+	})
+	return nil
 }

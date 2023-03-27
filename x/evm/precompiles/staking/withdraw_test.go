@@ -23,10 +23,14 @@ import (
 func TestStakingWithdrawABI(t *testing.T) {
 	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
 
-	method := stakingABI.Methods[staking.WithdrawMethod.Name]
+	method := stakingABI.Methods[staking.WithdrawMethodName]
 	require.Equal(t, method, staking.WithdrawMethod)
 	require.Equal(t, 1, len(staking.WithdrawMethod.Inputs))
 	require.Equal(t, 1, len(staking.WithdrawMethod.Outputs))
+
+	event := stakingABI.Events[staking.WithdrawEventName]
+	require.Equal(t, event, staking.WithdrawEvent)
+	require.Equal(t, 3, len(staking.WithdrawEvent.Inputs))
 }
 
 func (suite *PrecompileTestSuite) TestWithdraw() {
@@ -114,7 +118,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			suite.SetupTest() // reset
 
 			vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-			val0 := vals[0]
+			val := vals[0]
 
 			delAmt := sdkmath.NewInt(int64(tmrand.Intn(1000) + 100)).Mul(sdkmath.NewInt(1e18))
 			signer := suite.RandSigner()
@@ -133,7 +137,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				delAddr = suite.staking
 			}
 
-			pack, err := stakingABI.Pack(delegateMethodName, val0.GetOperator().String())
+			pack, err := stakingABI.Pack(delegateMethodName, val.GetOperator().String())
 			suite.Require().NoError(err)
 			tx, err := suite.PackEthereumTx(signer, contract, delAmt.BigInt(), pack)
 			suite.Require().NoError(err)
@@ -148,10 +152,10 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val0.GetOperator())
+			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
 			suite.Require().True(found)
 
-			pack, errArgs := tc.malleate(val0.GetOperator(), delegation.Shares)
+			pack, errArgs := tc.malleate(val.GetOperator(), delegation.Shares)
 			tx, err = suite.PackEthereumTx(signer, contract, big.NewInt(0), pack)
 			if err == nil {
 				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
@@ -171,6 +175,19 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				suite.Require().True(reward.Cmp(big.NewInt(0)) == 1, reward.String())
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, delAddr.Bytes())
 				suite.Require().True(chainBalances.AmountOf(fxtypes.DefaultDenom).Equal(sdkmath.NewIntFromBigInt(reward)), chainBalances.String())
+
+				for _, log := range res.Logs {
+					if log.Topics[0] == staking.WithdrawEvent.ID.String() {
+						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
+						unpack, err := staking.WithdrawEvent.Inputs.NonIndexed().Unpack(log.Data)
+						suite.Require().NoError(err)
+						unpackValidator := unpack[0].(string)
+						suite.Require().Equal(unpackValidator, val.GetOperator().String())
+						reward := unpack[1].(*big.Int)
+						suite.Require().Equal(reward.String(), chainBalances.AmountOf(fxtypes.DefaultDenom).BigInt().String())
+					}
+				}
 
 			} else {
 				suite.Require().True(err != nil || res.Failed())

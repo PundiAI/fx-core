@@ -20,11 +20,11 @@ contract staking_test is Staking {
         string memory _val,
         uint256 _shares
     ) external override returns (uint256, uint256, uint256) {
-        (uint256 amount, uint256 reward, uint256 endTime) = _undelegate(
+        (uint256 amount, uint256 reward, uint256 completionTime) = _undelegate(
             _val,
             _shares
         );
         validatorShares[_val] -= _shares;
-        return (amount, reward, endTime);
+        return (amount, reward, completionTime);
     }
 }

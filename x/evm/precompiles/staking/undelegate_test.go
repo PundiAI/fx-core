@@ -23,10 +23,14 @@ import (
 func TestStakingUndelegateABI(t *testing.T) {
 	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
 
-	method := stakingABI.Methods[staking.UndelegateMethod.Name]
+	method := stakingABI.Methods[staking.UndelegateMethodName]
 	require.Equal(t, method, staking.UndelegateMethod)
 	require.Equal(t, 2, len(staking.UndelegateMethod.Inputs))
 	require.Equal(t, 3, len(staking.UndelegateMethod.Outputs))
+
+	event := stakingABI.Events[staking.UndelegateEventName]
+	require.Equal(t, event, staking.UndelegateEvent)
+	require.Equal(t, 5, len(staking.UndelegateEvent.Inputs))
 }
 
 func (suite *PrecompileTestSuite) TestUndelegate() {
@@ -113,7 +117,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 			suite.SetupTest() // reset
 
 			vals := suite.app.StakingKeeper.GetValidators(suite.ctx, 10)
-			val0 := vals[0]
+			val := vals[0]
 			delAmt := sdkmath.NewInt(int64(tmrand.Intn(1000) + 100)).Mul(sdkmath.NewInt(1e18))
 			signer := suite.RandSigner()
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
@@ -131,7 +135,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 				delAddr = suite.staking
 			}
 
-			pack, err := stakingABI.Pack(delegateMethodName, val0.GetOperator().String())
+			pack, err := stakingABI.Pack(delegateMethodName, val.GetOperator().String())
 			suite.Require().NoError(err)
 			tx, err := suite.PackEthereumTx(signer, contract, delAmt.BigInt(), pack)
 			suite.Require().NoError(err)
@@ -146,12 +150,12 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
 			suite.Require().NoError(err)
 
-			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val0.GetOperator())
+			delegation, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, delAddr.Bytes(), val.GetOperator())
 			suite.Require().True(found)
 			undelegations := suite.app.StakingKeeper.GetAllUnbondingDelegations(suite.ctx, delAddr.Bytes())
 			suite.Require().Equal(0, len(undelegations))
 
-			pack, errArgs := tc.malleate(val0.GetOperator(), delegation.Shares)
+			pack, errArgs := tc.malleate(val.GetOperator(), delegation.Shares)
 			tx, err = suite.PackEthereumTx(signer, contract, big.NewInt(0), pack)
 			if err == nil {
 				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
@@ -163,7 +167,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 
 				unpack, err := stakingABI.Unpack(undelegateMethodName, res.Ret)
 				suite.Require().NoError(err)
-				// amount,reward,endTime
+				// amount,reward,completionTime
 				reward := unpack[1].(*big.Int)
 				suite.Require().True(reward.Cmp(big.NewInt(0)) == 1, reward.String())
 
@@ -178,8 +182,25 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 				suite.Require().Equal(1, len(undelegations))
 				suite.Require().Equal(1, len(undelegations[0].Entries))
 				suite.Require().Equal(sdk.AccAddress(delAddr.Bytes()).String(), undelegations[0].DelegatorAddress)
-				suite.Require().Equal(val0.GetOperator().String(), undelegations[0].ValidatorAddress)
+				suite.Require().Equal(val.GetOperator().String(), undelegations[0].ValidatorAddress)
 				suite.Require().Equal(delAmt, undelegations[0].Entries[0].Balance)
+
+				for _, log := range res.Logs {
+					if log.Topics[0] == staking.UndelegateEvent.ID.String() {
+						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
+						unpack, err := staking.UndelegateEvent.Inputs.NonIndexed().Unpack(log.Data)
+						suite.Require().NoError(err)
+						unpackValidator := unpack[0].(string)
+						suite.Require().Equal(unpackValidator, val.GetOperator().String())
+						shares := unpack[1].(*big.Int)
+						suite.Require().Equal(shares.String(), delegation.Shares.TruncateInt().BigInt().String())
+						amount := unpack[2].(*big.Int)
+						suite.Require().Equal(amount.String(), undelegations[0].Entries[0].Balance.BigInt().String())
+						completionTime := unpack[3].(*big.Int)
+						suite.Require().Equal(completionTime.Int64(), undelegations[0].Entries[0].CompletionTime.Unix())
+					}
+				}
 
 			} else {
 				suite.Require().True(err != nil || res.Failed())
