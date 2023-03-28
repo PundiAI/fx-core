@@ -24,6 +24,7 @@ type AppModule struct {
 	gov.AppModule
 	keeper keeper.Keeper
 	ak     govtypes.AccountKeeper
+	cdc    codec.Codec
 }
 
 // NewAppModule creates a new AppModule object
@@ -32,6 +33,7 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak govtypes.AccountKeep
 		AppModule: gov.NewAppModule(cdc, keeper.Keeper, ak, bk),
 		keeper:    keeper,
 		ak:        ak,
+		cdc:       cdc,
 	}
 }
 
@@ -43,14 +45,14 @@ func (am AppModule) Route() sdk.Route {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	msgServer := keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(am.keeper.Keeper), am.keeper)
-	govv1betal.RegisterMsgServer(cfg.MsgServer(), govkeeper.NewLegacyMsgServerImpl(am.ak.GetModuleAddress(govtypes.ModuleName).String(), msgServer))
+	govv1betal.RegisterMsgServer(cfg.MsgServer(), keeper.NewLegacyMsgServerImpl(am.ak.GetModuleAddress(govtypes.ModuleName).String(), msgServer))
 	govv1.RegisterMsgServer(cfg.MsgServer(), msgServer)
 
 	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
 	govv1betal.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
 	govv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	m := govkeeper.NewMigrator(am.keeper.Keeper)
+	m := keeper.NewMigrator(am.cdc, am.keeper)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)
 	if err != nil {
 		panic(err)

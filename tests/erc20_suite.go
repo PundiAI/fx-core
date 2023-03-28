@@ -73,7 +73,7 @@ func (suite *Erc20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (*sdk.T
 		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		Metadata:  md,
 	}
-	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg}, "RegisterCoinProposal", "RegisterCoinProposal")
 }
 
 func (suite *Erc20TestSuite) RegisterErc20Proposal(erc20Addr string, aliases []string) (*sdk.TxResponse, uint64) {
@@ -82,7 +82,7 @@ func (suite *Erc20TestSuite) RegisterErc20Proposal(erc20Addr string, aliases []s
 		Erc20Address: erc20Addr,
 		Aliases:      aliases,
 	}
-	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg}, "RegisterErc20Proposal", "RegisterErc20Proposal")
 }
 
 func (suite *Erc20TestSuite) ToggleTokenConversionProposal(denom string) (*sdk.TxResponse, uint64) {
@@ -90,7 +90,7 @@ func (suite *Erc20TestSuite) ToggleTokenConversionProposal(denom string) (*sdk.T
 		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		Token:     denom,
 	}
-	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg}, "ToggleTokenConversionProposal", "ToggleTokenConversionProposal")
 }
 
 func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (*sdk.TxResponse, uint64) {
@@ -99,7 +99,7 @@ func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (*sdk
 		Denom:     denom,
 		Alias:     alias,
 	}
-	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg}, "UpdateDenomAliasProposal", "UpdateDenomAliasProposal")
 }
 
 func (suite *Erc20TestSuite) ConvertCoin(private cryptotypes.PrivKey, recipient common.Address, coin sdk.Coin) *sdk.TxResponse {

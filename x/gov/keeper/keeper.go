@@ -21,15 +21,32 @@ type Keeper struct {
 
 	bankKeeper govtypes.BankKeeper
 	sk         govtypes.StakingKeeper
+
+	config types.Config
 }
 
-func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, key storetypes.StoreKey, gk govkeeper.Keeper) Keeper {
+func NewKeeper(bk govtypes.BankKeeper, sk govtypes.StakingKeeper, key storetypes.StoreKey, gk govkeeper.Keeper, config types.Config) Keeper {
+	// If not set by app developer, set to default value.
+	if config.MaxTitleLen == 0 {
+		config.MaxTitleLen = types.DefaultConfig().MaxTitleLen
+	}
+	if config.MaxSummaryLen == 0 {
+		config.MaxSummaryLen = types.DefaultConfig().MaxSummaryLen
+	}
+	if config.MaxMetadataLen == 0 {
+		config.MaxMetadataLen = types.DefaultConfig().MaxMetadataLen
+	}
 	return Keeper{
 		storeKey:   key,
 		bankKeeper: bk,
 		sk:         sk,
 		Keeper:     gk,
+		config:     config,
 	}
+}
+
+func (keeper Keeper) Config() types.Config {
+	return keeper.config
 }
 
 // AddDeposit adds or updates a deposit of a specific depositor on a specific proposal

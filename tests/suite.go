@@ -30,6 +30,7 @@ import (
 	"github.com/functionx/fx-core/v3/testutil"
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	"github.com/functionx/fx-core/v3/testutil/network"
+	fxgovtypes "github.com/functionx/fx-core/v3/x/gov/types"
 )
 
 type TestSuite struct {
@@ -241,8 +242,13 @@ func (suite *TestSuite) BroadcastProposalTx(content govv1beta1.Content, expected
 	return txResponse, proposalId
 }
 
-func (suite *TestSuite) BroadcastProposalTx2(msgs []sdk.Msg, expectedStatus ...govv1.ProposalStatus) (*sdk.TxResponse, uint64) {
-	proposalMsg, err := govv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(suite.NewCoin(sdkmath.NewInt(10_000).MulRaw(1e18))), sdk.AccAddress(suite.GetFirstValAddr().Bytes()).String(), "")
+func (suite *TestSuite) BroadcastProposalTx2(msgs []sdk.Msg, title, summary string, expectedStatus ...govv1.ProposalStatus) (*sdk.TxResponse, uint64) {
+	fxMetadata := fxgovtypes.NewFXMetadata(title, summary, "")
+	proposalMsg, err := govv1.NewMsgSubmitProposal(
+		msgs,
+		sdk.NewCoins(suite.NewCoin(sdkmath.NewInt(10_000).MulRaw(1e18))),
+		sdk.AccAddress(suite.GetFirstValAddr().Bytes()).String(),
+		fxMetadata.String())
 	suite.NoError(err)
 	proposalId := suite.getNextProposalId()
 	voteMsg := govv1.NewMsgVote(suite.GetFirstValAddr().Bytes(), proposalId, govv1.OptionYes, "")

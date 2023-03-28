@@ -218,7 +218,7 @@ func (suite *CrosschainTestSuite) SendUpdateChainOraclesProposal() (*sdk.TxRespo
 		Oracles:   []string{suite.OracleAddr().String()},
 		ChainName: suite.chainName,
 	}
-	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg}, "UpdateChainOraclesProposal", "UpdateChainOraclesProposal")
 }
 
 func (suite *CrosschainTestSuite) SendOracleSetConfirm() {

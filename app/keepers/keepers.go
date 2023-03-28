@@ -67,6 +67,7 @@ import (
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 	fxevmkeeper "github.com/functionx/fx-core/v3/x/evm/keeper"
 	fxgovkeeper "github.com/functionx/fx-core/v3/x/gov/keeper"
+	fxgovtypes "github.com/functionx/fx-core/v3/x/gov/types"
 	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
 	fxtransferkeeper "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/keeper"
 	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter"
@@ -440,8 +441,7 @@ func NewAppKeeper(
 		AddRoute(crosschaintypes.RouterKey, crosschain.NewChainProposalHandler(appKeepers.CrosschainKeeper)).
 		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(appKeepers.Erc20Keeper))
 
-	govConfig := govtypes.DefaultConfig()
-
+	govConfig := fxgovtypes.DefaultConfig()
 	govKeeper := govkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[govtypes.StoreKey],
@@ -451,13 +451,15 @@ func NewAppKeeper(
 		appKeepers.StakingKeeper,
 		govRouter,
 		bApp.MsgServiceRouter(),
-		govConfig,
+		govConfig.Config,
 	)
+
 	appKeepers.GovKeeper = fxgovkeeper.NewKeeper(
 		appKeepers.BankKeeper,
 		appKeepers.StakingKeeper,
 		appKeepers.keys[govtypes.StoreKey],
 		govKeeper,
+		govConfig,
 	)
 
 	ibcTransferRouter := fxtypes.NewRouter().

@@ -309,6 +309,6 @@ func (suite *IntegrationTest) CallContractTest() {
 		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		ContractAddress: proxy.String(),
 		Data:            common.Bytes2Hex(args),
-	}})
+	}}, "UpdateContractProposal", "UpdateContractProposal")
 	suite.Require().EqualValues(amount, suite.evm.BalanceOf(proxy, suite.evm.HexAddress()))
 }

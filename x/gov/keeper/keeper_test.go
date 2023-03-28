@@ -59,7 +59,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 	suite.govAcct = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	suite.msgServer = keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.app.GovKeeper.Keeper), suite.app.GovKeeper)
-	suite.legacyMsgServer = govkeeper.NewLegacyMsgServerImpl(suite.govAcct, suite.msgServer)
+	suite.legacyMsgServer = keeper.NewLegacyMsgServerImpl(suite.govAcct, suite.msgServer)
 }
 
 func (suite *KeeperTestSuite) addFundCommunityPool() {
@@ -126,7 +126,8 @@ func (suite *KeeperTestSuite) getTextProposal() (sdk.Coins, error, *govv1.MsgSub
 	content := govv1beta1.NewTextProposal("Test", "description")
 	msgExecLegacyContent, err := govv1.NewLegacyContent(content, suite.govAcct)
 	suite.NoError(err)
-	testProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(), "")
+	testProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(),
+		types.NewFXMetadata(content.GetTitle(), content.GetDescription(), "").String())
 	return initCoins, err, testProposalMsg
 }
 
@@ -138,9 +139,11 @@ func (suite *KeeperTestSuite) TestEGFDepositsLessThan1000() {
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
 	suite.True(initCoins.IsEqual(minDeposit))
 
-	msgExecLegacyContent, err := govv1.NewLegacyContent(distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins), suite.govAcct)
+	spendProposal := distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins)
+	msgExecLegacyContent, err := govv1.NewLegacyContent(spendProposal, suite.govAcct)
 	suite.NoError(err)
-	communityPoolSpendProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(), "")
+	communityPoolSpendProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(),
+		types.NewFXMetadata(spendProposal.GetTitle(), spendProposal.GetDescription(), "").String())
 	suite.NoError(err)
 	proposalResponse, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), communityPoolSpendProposalMsg)
 	suite.NoError(err)
@@ -159,9 +162,11 @@ func (suite *KeeperTestSuite) TestEGFDepositsMoreThan1000() {
 	minDeposit := types.EGFProposalMinDeposit(egfCoins)
 
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: thousand}}
-	msgExecLegacyContent, err := govv1.NewLegacyContent(distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins), suite.govAcct)
+	spendProposal := distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins)
+	msgExecLegacyContent, err := govv1.NewLegacyContent(spendProposal, suite.govAcct)
 	suite.NoError(err)
-	communityPoolSpendProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(), "")
+	communityPoolSpendProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(),
+		types.NewFXMetadata(spendProposal.GetTitle(), spendProposal.GetDescription(), "").String())
 	suite.NoError(err)
 	proposalResponse, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), communityPoolSpendProposalMsg)
 	suite.NoError(err)
@@ -188,9 +193,11 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(150 * 1e3).MulRaw(1e18)}}
 	minDeposit := types.EGFProposalMinDeposit(egfCoins)
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
-	msgExecLegacyContent, err := govv1.NewLegacyContent(distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins), suite.govAcct)
+	spendProposal := distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins)
+	msgExecLegacyContent, err := govv1.NewLegacyContent(spendProposal, suite.govAcct)
 	suite.NoError(err)
-	communityPoolSpendProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(), "")
+	communityPoolSpendProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(),
+		types.NewFXMetadata(spendProposal.GetTitle(), spendProposal.GetDescription(), "").String())
 	suite.NoError(err)
 	proposalResponse, err := suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), communityPoolSpendProposalMsg)
 	suite.NoError(err)
@@ -278,7 +285,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("case %s", tc.testName), func() {
-			proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, tc.msg, tc.testName)
+			proposal, err := suite.app.GovKeeper.SubmitProposal(suite.ctx, tc.msg, types.NewFXMetadata(tc.testName, tc.testName, "").String())
 			if tc.result {
 				suite.NoError(err)
 				_, err = suite.app.GovKeeper.AddDeposit(suite.ctx, proposal.Id, suite.newAddress(), tc.amount)
