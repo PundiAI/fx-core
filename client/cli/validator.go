@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/spf13/cobra"
+	tmcli "github.com/tendermint/tendermint/libs/cli"
 )
 
 // QueryValidatorSetCommand returns the validator set for a given height
@@ -47,6 +48,7 @@ func QueryValidatorSetCommand() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().StringP(tmcli.OutputFlag, "o", "json", "Output format (text|json)")
 	cmd.Flags().String(flags.FlagNode, "tcp://localhost:26657", "<host>:<port> to Tendermint RPC interface for this chain")
 	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|kwallet|pass|test)")
 	cmd.Flags().Int(flags.FlagPage, query.DefaultPage, "Query a specific page of paginated results")
