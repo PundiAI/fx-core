@@ -65,6 +65,8 @@ const mainnetGenesisHash = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4D
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
 // Tendermint.
+//
+//gocyclo:ignore
 func StartCmd(appCreator types.AppCreator, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
