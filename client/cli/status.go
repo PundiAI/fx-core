@@ -13,7 +13,6 @@ import (
 	"github.com/tendermint/tendermint/libs/bytes"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/p2p"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
 // ValidatorInfo is info about the node's validator, same as Tendermint,
@@ -57,7 +56,11 @@ func StatusCommand() *cobra.Command {
 				return err
 			}
 
-			status, err := getNodeStatus(clientCtx)
+			node, err := clientCtx.GetNode()
+			if err != nil {
+				return err
+			}
+			status, err := node.Status(context.Background())
 			if err != nil {
 				return err
 			}
@@ -94,13 +97,4 @@ func StatusCommand() *cobra.Command {
 	cmd.Flags().String(flags.FlagNode, "tcp://localhost:26657", "<host>:<port> to Tendermint RPC interface for this chain")
 
 	return cmd
-}
-
-func getNodeStatus(clientCtx client.Context) (*ctypes.ResultStatus, error) {
-	node, err := clientCtx.GetNode()
-	if err != nil {
-		return &ctypes.ResultStatus{}, err
-	}
-
-	return node.Status(context.Background())
 }
