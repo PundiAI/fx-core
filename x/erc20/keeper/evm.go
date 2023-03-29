@@ -19,21 +19,21 @@ func (k Keeper) QueryERC20(ctx sdk.Context, contract common.Address) (types.ERC2
 
 	// Name
 	var nameRes struct{ Value string }
-	err := k.evmKeeper.CallContract(ctx, k.moduleAddress, contract, erc20, "name", &nameRes)
+	err := k.evmKeeper.QueryContract(ctx, k.moduleAddress, contract, erc20, "name", &nameRes)
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
 
 	// Symbol
 	var symbolRes struct{ Value string }
-	err = k.evmKeeper.CallContract(ctx, k.moduleAddress, contract, erc20, "symbol", &symbolRes)
+	err = k.evmKeeper.QueryContract(ctx, k.moduleAddress, contract, erc20, "symbol", &symbolRes)
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
 
 	// Decimals
 	var decimalRes struct{ Value uint8 }
-	err = k.evmKeeper.CallContract(ctx, k.moduleAddress, contract, erc20, "decimals", &decimalRes)
+	err = k.evmKeeper.QueryContract(ctx, k.moduleAddress, contract, erc20, "decimals", &decimalRes)
 	if err != nil {
 		return types.ERC20Data{}, err
 	}

@@ -206,7 +206,7 @@ func (suite *KeeperTestSuite) MintLockNativeTokenToModule(md banktypes.Metadata,
 
 func (suite *KeeperTestSuite) BalanceOf(contract, account common.Address) *big.Int {
 	var balanceRes struct{ Value *big.Int }
-	err := suite.app.EvmKeeper.CallContract(suite.ctx, account, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, account)
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, account, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, account)
 	suite.NoError(err)
 	return balanceRes.Value
 }

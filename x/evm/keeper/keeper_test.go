@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) BalanceOf(contract, address common.Address) *big.I
 	var balanceRes struct {
 		Value *big.Int
 	}
-	err := suite.app.EvmKeeper.CallContract(suite.ctx, contract, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, address)
+	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, address)
 	suite.Require().NoError(err)
 	return balanceRes.Value
 }

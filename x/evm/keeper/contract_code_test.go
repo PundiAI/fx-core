@@ -59,19 +59,19 @@ func (suite *KeeperTestSuite) TestKeeper_DeployUpgradableContract() {
 	suite.Equal(contractAddr, contract)
 }
 
-func (suite *KeeperTestSuite) TestKeeper_CallContract() {
+func (suite *KeeperTestSuite) TestKeeper_QueryContract() {
 	erc20 := fxtypes.GetERC20()
 	initializeArgs := []interface{}{"FunctionX USD", "fxUSD", uint8(18), suite.app.Erc20Keeper.ModuleAddress()}
 	contract, err := suite.app.EvmKeeper.DeployUpgradableContract(suite.ctx, suite.signer.Address(), erc20.Address, nil, &erc20.ABI, initializeArgs...)
 	suite.NoError(err)
 
 	var nameRes struct{ Value string }
-	err = suite.app.EvmKeeper.CallContract(suite.ctx, suite.signer.Address(), contract, erc20.ABI, "name", &nameRes)
+	err = suite.app.EvmKeeper.QueryContract(suite.ctx, suite.signer.Address(), contract, erc20.ABI, "name", &nameRes)
 	suite.NoError(err)
 	suite.Equal(nameRes.Value, "FunctionX USD")
 
 	var balanceRes struct{ Value *big.Int }
-	err = suite.app.EvmKeeper.CallContract(suite.ctx, suite.signer.Address(), contract, erc20.ABI, "balanceOf", &balanceRes, suite.signer.Address())
+	err = suite.app.EvmKeeper.QueryContract(suite.ctx, suite.signer.Address(), contract, erc20.ABI, "balanceOf", &balanceRes, suite.signer.Address())
 	suite.NoError(err)
 	suite.Equal(big.NewInt(0).String(), balanceRes.Value.String())
 }
@@ -87,7 +87,7 @@ func (suite *KeeperTestSuite) TestKeeper_ApplyContract() {
 	suite.NoError(err)
 
 	var balanceRes struct{ Value *big.Int }
-	err = suite.app.EvmKeeper.CallContract(suite.ctx, suite.signer.Address(), contract, erc20.ABI, "balanceOf", &balanceRes, suite.signer.Address())
+	err = suite.app.EvmKeeper.QueryContract(suite.ctx, suite.signer.Address(), contract, erc20.ABI, "balanceOf", &balanceRes, suite.signer.Address())
 	suite.NoError(err)
 	suite.Equal(big.NewInt(mintAmt).String(), balanceRes.Value.String())
 }

@@ -111,8 +111,8 @@ func (k *Keeper) DeployUpgradableContract(ctx sdk.Context, from, logic common.Ad
 	return proxyContract, nil
 }
 
-// CallContract call contract with args and res
-func (k *Keeper) CallContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, constructorData ...interface{}) error {
+// QueryContract query contract with args and res
+func (k *Keeper) QueryContract(ctx sdk.Context, from, contract common.Address, abi abi.ABI, method string, res interface{}, constructorData ...interface{}) error {
 	args, err := abi.Pack(method, constructorData...)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrABIPack, err.Error())
