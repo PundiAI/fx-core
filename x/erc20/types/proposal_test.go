@@ -72,7 +72,7 @@ func (suite *ProposalTestSuite) TestRegisterERC20Proposal() {
 	}
 
 	for i, tc := range testCases {
-		tx := NewRegisterERC20Proposal(tc.title, tc.description, tc.pair.Erc20Address)
+		tx := NewRegisterERC20Proposal(tc.title, tc.description, tc.pair.Erc20Address, []string{"eth0xaE0c78230711E7173D30353F76936a7dD7306b81"})
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {

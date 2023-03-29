@@ -2,8 +2,11 @@ package keeper_test
 
 import (
 	"fmt"
+	"math/big"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -13,12 +16,21 @@ import (
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
 )
 
 func (suite *KeeperTestSuite) setupRegisterERC20Pair() common.Address {
 	contractAddr, err := suite.DeployContract(suite.signer.Address())
 	suite.NoError(err)
 	_, err = suite.app.Erc20Keeper.RegisterERC20(suite.ctx, contractAddr)
+	suite.NoError(err)
+	return contractAddr
+}
+
+func (suite *KeeperTestSuite) setupRegisterERC20PairAddAliases() common.Address {
+	contractAddr, err := suite.DeployContract(suite.signer.Address())
+	suite.NoError(err)
+	_, err = suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, contractAddr, "eth0xdAC17F958D2ee523a2206206994597C13D831ec7")
 	suite.NoError(err)
 	return contractAddr
 }
@@ -483,4 +495,68 @@ func (suite *KeeperTestSuite) TestToggleRelay() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestRegisterCoinConversionInvariant() {
+	metadata := newMetadata()
+	pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, metadata)
+	suite.Require().NoError(err)
+	suite.Require().True(pair.Enabled)
+	initCoin := sdk.NewCoin(pair.Denom, sdkmath.NewInt(1000).MulRaw(1e18))
+	helpers.AddTestAddr(suite.app, suite.ctx, suite.signer.AccAddress(), sdk.NewCoins(initCoin))
+	beforeBalanceCoin := suite.app.BankKeeper.GetBalance(suite.ctx, suite.signer.AccAddress(), pair.Denom)
+	beforeBalanceToken := suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
+	// coin --> erc20  // Coin: initCoin, Receiver: suite.signer.Address().String(), Sender: suite.signer.AccAddress().String()
+	_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx, types.NewMsgConvertCoin(initCoin, suite.signer.Address(), suite.signer.AccAddress()))
+	suite.Require().NoError(err)
+	lockBalance := suite.app.BankKeeper.GetBalance(suite.ctx, authtypes.NewModuleAddress(types.ModuleName), initCoin.Denom)
+	suite.Require().EqualValues(lockBalance.String(), initCoin.String())
+	suite.Require().EqualValues(beforeBalanceCoin.Sub(initCoin).String(), sdk.NewCoin(pair.Denom, sdkmath.NewInt(0)).String())
+	afterBalanceToken := suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
+	suite.Require().EqualValues(afterBalanceToken.String(), new(big.Int).Add(beforeBalanceToken, initCoin.Amount.BigInt()).String())
+	// erc20 --> coin
+	_, err = suite.app.Erc20Keeper.ConvertERC20(suite.ctx, types.NewMsgConvertERC20(sdkmath.NewIntFromBigInt(afterBalanceToken), suite.signer.AccAddress(), common.HexToAddress(pair.Erc20Address), suite.signer.Address()))
+	suite.Require().NoError(err)
+	lockBalance = suite.app.BankKeeper.GetBalance(suite.ctx, authtypes.NewModuleAddress(types.ModuleName), initCoin.Denom)
+	suite.Require().EqualValues(lockBalance.String(), sdk.NewCoin(initCoin.Denom, sdkmath.NewInt(0)).String())
+	balanceCoin := suite.app.BankKeeper.GetBalance(suite.ctx, suite.signer.AccAddress(), pair.Denom)
+	suite.Require().EqualValues(balanceCoin.String(), beforeBalanceCoin.String())
+	balanceToken := suite.BalanceOf(pair.GetERC20Contract(), suite.signer.Address())
+	suite.Require().EqualValues(balanceToken.String(), sdkmath.NewInt(0).String())
+}
+
+func (suite *KeeperTestSuite) TestRegisterERC20ConversionInvariant() {
+	contact, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.signer.Address(), "Test token", "TEST", 18)
+	suite.Require().NoError(err)
+	tokenPair, err := suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, contact, fmt.Sprintf("%s%s", ethtypes.ModuleName, helpers.GenerateAddress().String()))
+	suite.Require().NoError(err)
+	suite.Require().True(tokenPair.Enabled)
+	suite.Require().EqualValues(tokenPair.Erc20Address, contact.String())
+	beforeMintBalance := suite.BalanceOf(contact, suite.signer.Address())
+	suite.Require().EqualValues(beforeMintBalance.String(), big.NewInt(0).String())
+	initBalance := sdkmath.NewInt(1000).MulRaw(1e18)
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contact, fxtypes.GetERC20().ABI, "mint", suite.signer.Address(), initBalance.BigInt())
+	suite.Require().NoError(err)
+	afterMintBalance := suite.BalanceOf(contact, suite.signer.Address())
+	suite.Require().EqualValues(afterMintBalance.String(), initBalance.String())
+	beforeCoin := suite.app.BankKeeper.GetBalance(suite.ctx, suite.signer.AccAddress(), tokenPair.Denom)
+	suite.Require().EqualValues(beforeCoin.String(), sdk.NewCoin(tokenPair.Denom, sdkmath.NewInt(0)).String())
+	// ERC20 token -> coin
+	_, err = suite.app.Erc20Keeper.ConvertERC20(suite.ctx, types.NewMsgConvertERC20(initBalance, suite.signer.AccAddress(), contact, suite.signer.Address()))
+	suite.Require().NoError(err)
+	afterBalance := suite.BalanceOf(contact, suite.signer.Address())
+	suite.Require().EqualValues(afterBalance.String(), sdkmath.NewInt(0).String())
+	lockBalance := suite.BalanceOf(contact, suite.app.Erc20Keeper.ModuleAddress())
+	suite.Require().EqualValues(lockBalance.String(), initBalance.String())
+	afterCoin := suite.app.BankKeeper.GetBalance(suite.ctx, suite.signer.AccAddress(), tokenPair.Denom)
+	suite.Require().EqualValues(afterCoin.String(), sdk.NewCoin(tokenPair.Denom, initBalance).String())
+	// coin -> erc20
+	_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx, types.NewMsgConvertCoin(afterCoin, suite.signer.Address(), suite.signer.AccAddress()))
+	suite.Require().NoError(err)
+	afterBalance = suite.BalanceOf(contact, suite.signer.Address())
+	suite.Require().EqualValues(afterBalance.String(), afterCoin.Amount.String())
+	lockBalance = suite.BalanceOf(contact, suite.app.Erc20Keeper.ModuleAddress())
+	suite.Require().EqualValues(lockBalance.String(), sdkmath.NewInt(0).String())
+	afterCoin = suite.app.BankKeeper.GetBalance(suite.ctx, suite.signer.AccAddress(), tokenPair.Denom)
+	suite.Require().EqualValues(afterCoin.String(), sdk.NewCoin(tokenPair.Denom, sdkmath.NewInt(0)).String())
 }

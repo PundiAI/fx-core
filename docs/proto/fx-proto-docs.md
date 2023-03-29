@@ -2194,6 +2194,7 @@ RegisterCoinProposal is a gov Content type to register a token pair
 | `title` | [string](#string) |  | title of the proposal |
 | `description` | [string](#string) |  | proposal description |
 | `erc20address` | [string](#string) |  | contract address of ERC20 token |
+| `aliases` | [string](#string) | repeated | aliases is a list of string aliases for the given denom |
 
 
 

@@ -51,6 +51,8 @@ message RegisterERC20Proposal {
   string description = 2;
   // contract address of ERC20 token
   string erc20address = 3;
+  // aliases is a list of string aliases for the given denom
+  repeated string aliases = 4;
 }
 
 // ToggleTokenConversionProposal is a gov Content type to toggle the conversion

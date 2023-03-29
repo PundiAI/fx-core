@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -75,11 +76,12 @@ func (m *RegisterCoinProposal) ValidateBasic() error {
 }
 
 // NewRegisterERC20Proposal returns new instance of RegisterERC20Proposal
-func NewRegisterERC20Proposal(title, description, erc20Addr string) govv1betal.Content {
+func NewRegisterERC20Proposal(title, description, erc20Addr string, aliases []string) govv1betal.Content {
 	return &RegisterERC20Proposal{
 		Title:        title,
 		Description:  description,
 		Erc20Address: erc20Addr,
+		Aliases:      aliases,
 	}
 }
 
@@ -95,6 +97,19 @@ func (*RegisterERC20Proposal) ProposalType() string {
 func (m *RegisterERC20Proposal) ValidateBasic() error {
 	if err := fxtypes.ValidateEthereumAddress(m.Erc20Address); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid ERC20 address: %s", err.Error())
+	}
+	seenAliases := make(map[string]bool)
+	for _, alias := range m.Aliases {
+		if seenAliases[alias] {
+			return fmt.Errorf("duplicate denomination unit alias %s", alias)
+		}
+		if strings.TrimSpace(alias) == "" {
+			return fmt.Errorf("alias for denom unit %s cannot be blank", alias)
+		}
+		if err := sdk.ValidateDenom(alias); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid alias")
+		}
+		seenAliases[alias] = true
 	}
 	return govv1betal.ValidateAbstract(m)
 }

@@ -17,4 +17,5 @@ var (
 	ErrInvalidDenom           = errorsmod.Register(ModuleName, 12, "invalid denom")
 	ErrInvalidTarget          = errorsmod.Register(ModuleName, 13, "invalid target")
 	ErrInternalRouter         = errorsmod.Register(ModuleName, 14, "internal router error")
+	ErrInvalidAlias           = errorsmod.Register(ModuleName, 15, "invalid alias")
 )

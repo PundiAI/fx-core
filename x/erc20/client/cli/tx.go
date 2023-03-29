@@ -276,8 +276,12 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 			}
 
 			erc20Addr := args[0]
+			aliases, err := cmd.Flags().GetStringSlice("aliases")
+			if err != nil {
+				return err
+			}
 			from := clientCtx.GetFromAddress()
-			content := types.NewRegisterERC20Proposal(title, description, erc20Addr)
+			content := types.NewRegisterERC20Proposal(title, description, erc20Addr, aliases)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
@@ -291,6 +295,7 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
 	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
 	cmd.Flags().String(cli.FlagDeposit, "", "deposit of proposal")
+	cmd.Flags().StringSlice("aliases", []string{}, "aliases of proposal")
 	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
 		panic(err)
 	}
