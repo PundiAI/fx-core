@@ -295,13 +295,6 @@
   
     - [Msg](#fx.migrate.v1.Msg)
   
-- [fx/staking/v1/query.proto](#fx/staking/v1/query.proto)
-    - [LPToken](#fx.staking.v1.LPToken)
-    - [QueryValidatorLPTokenRequest](#fx.staking.v1.QueryValidatorLPTokenRequest)
-    - [QueryValidatorLPTokenResponse](#fx.staking.v1.QueryValidatorLPTokenResponse)
-  
-    - [Query](#fx.staking.v1.Query)
-  
 - [Scalar Value Types](#scalar-value-types)
 
 
@@ -4376,82 +4369,6 @@ Msg defines the state transitions possible within gravity
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `MigrateAccount` | [MsgMigrateAccount](#fx.migrate.v1.MsgMigrateAccount) | [MsgMigrateAccountResponse](#fx.migrate.v1.MsgMigrateAccountResponse) |  | |
-
- <!-- end services -->
-
-
-
-<a name="fx/staking/v1/query.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## fx/staking/v1/query.proto
-
-
-
-<a name="fx.staking.v1.LPToken"></a>
-
-### LPToken
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `validator_addr` | [string](#string) |  |  |
-| `address` | [string](#string) |  |  |
-| `name` | [string](#string) |  |  |
-| `symbol` | [string](#string) |  |  |
-| `decimal` | [uint32](#uint32) |  |  |
-| `total_supply` | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="fx.staking.v1.QueryValidatorLPTokenRequest"></a>
-
-### QueryValidatorLPTokenRequest
-QueryParamsRequest is request type for the Query/ValidatorLPToken RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `validator_addr` | [string](#string) |  | validator_addr defines the validator address to query for. |
-
-
-
-
-
-
-<a name="fx.staking.v1.QueryValidatorLPTokenResponse"></a>
-
-### QueryValidatorLPTokenResponse
-QueryValidatorLPTokenResponse is response type for the Query/ValidatorLPToken RPC method.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `lp_token` | [LPToken](#fx.staking.v1.LPToken) |  |  |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="fx.staking.v1.Query"></a>
-
-### Query
-Query defines the gRPC querier service.
-
-| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
-| ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `ValidatorLPToken` | [QueryValidatorLPTokenRequest](#fx.staking.v1.QueryValidatorLPTokenRequest) | [QueryValidatorLPTokenResponse](#fx.staking.v1.QueryValidatorLPTokenResponse) | ValidatorLPToken queries the validator lp token. | GET|/fx/staking/v1/validator_lp_token/{validator_addr}|
 
  <!-- end services -->
 
