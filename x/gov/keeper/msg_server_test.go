@@ -35,6 +35,13 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 	suite.Error(err)
 	suite.EqualValues(fmt.Sprintf("%v is smaller than %v: initial amount too low", errInitCoins, types.GetInitialDeposit()), err.Error())
 
+	differentMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent, &erc20types.MsgUpdateParams{Authority: suite.govAcct, Params: erc20types.DefaultParams()}}, errInitCoins, suite.newAddress().String(),
+		types.NewFXMetadata(TestProposal.GetTitle(), TestProposal.GetDescription(), "").String())
+	suite.NoError(err)
+	_, err = suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), differentMsg)
+	suite.Error(err)
+	suite.EqualValues("proposal MsgTypeURL is different: invalid proposal content", err.Error())
+
 	successInitCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
 	suite.True(types.GetInitialDeposit().IsAllLTE(successInitCoins))
 	successProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent}, successInitCoins, suite.newAddress().String(),
@@ -289,6 +296,16 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 		suite.True(found)
 		if tc.votingPeriod {
 			suite.True(tc.expect.IsAllGTE(types.EGFProposalMinDeposit(tc.amount)))
+			manyProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{LegacyContentMsg, LegacyContentMsg, LegacyContentMsg},
+				sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}},
+				suite.newAddress().String(),
+				types.NewFXMetadata(spendProposal.GetTitle(), spendProposal.GetDescription(), "").String())
+			suite.NoError(err)
+			proposalResponse, err = suite.msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), manyProposalMsg)
+			suite.NoError(err)
+			proposal, found = suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposalResponse.ProposalId)
+			suite.True(found)
+			suite.Require().EqualValues(proposal.Status, govv1.ProposalStatus_PROPOSAL_STATUS_DEPOSIT_PERIOD)
 			continue
 		}
 		suite.True(sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}.IsEqual(proposal.TotalDeposit))

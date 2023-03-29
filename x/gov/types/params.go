@@ -32,19 +32,24 @@ func GetInitialDeposit() sdk.Coins {
 }
 
 func CheckEGFProposalMsg(msgs []*codectypes.Any) (bool, sdk.Coins) {
+	totalCommunityPoolSpendAmount := sdk.NewCoins()
 	for _, msg := range msgs {
 		// v1beta1 legacy MsgServer interface.from a legacy Content
 		if strings.EqualFold(msg.TypeUrl, sdk.MsgTypeURL(&govv1.MsgExecLegacyContent{})) {
 			legacyContent := msg.GetCachedValue().(*govv1.MsgExecLegacyContent)
 			content := legacyContent.GetContent()
-			if strings.EqualFold(content.TypeUrl, "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal") {
-				communityPoolSpendProposal := content.GetCachedValue().(*distributiontypes.CommunityPoolSpendProposal)
-				return true, communityPoolSpendProposal.Amount
+			if !strings.EqualFold(content.TypeUrl, "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal") {
+				return false, nil
 			}
+			communityPoolSpendProposal := content.GetCachedValue().(*distributiontypes.CommunityPoolSpendProposal)
+			totalCommunityPoolSpendAmount = totalCommunityPoolSpendAmount.Add(communityPoolSpendProposal.Amount...)
+		} else {
+			// TODO v1 MsgServer MsgCommunityPoolSpend pending
+			// CommunityPoolSpendProposal is no msg type yet
+			return false, nil
 		}
-		// TODO v1 MsgServer MsgCommunityPoolSpend pending
 	}
-	return false, nil
+	return true, totalCommunityPoolSpendAmount
 }
 
 func CheckErc20ProposalMsg(msgs []*codectypes.Any) bool {
@@ -72,3 +77,5 @@ func CheckErc20ProposalMsg(msgs []*codectypes.Any) bool {
 	}
 	return false
 }
+
+// todo  add evm update contract

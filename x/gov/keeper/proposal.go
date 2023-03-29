@@ -14,6 +14,8 @@ import (
 )
 
 // SubmitProposal creates a new proposal given an array of messages
+//
+//gocyclo:ignore
 func (keeper Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, fxMetadata string) (v1.Proposal, error) {
 	// TODO proposal metadata contain title, summary and metadata, for compatibility with cosmos v0.46.x,
 	//  when upgrade to v0.47.x, will migrate to new proposal struct
@@ -33,11 +35,17 @@ func (keeper Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, fxMetad
 	// Will hold a comma-separated string of all Msg type URLs.
 	msgsStr := ""
 
+	// record MsgTypeURL messages Is it the same
+	msgType := ""
 	// Loop through all messages and confirm that each has a handler and the gov module account
 	// as the only signer
 	for _, msg := range messages {
 		msgsStr += fmt.Sprintf(",%s", sdk.MsgTypeURL(msg))
 
+		if msgType != "" && !strings.EqualFold(msgType, sdk.MsgTypeURL(msg)) {
+			return v1.Proposal{}, errorsmod.Wrap(types.ErrInvalidProposalContent, "proposal MsgTypeURL is different")
+		}
+		msgType = sdk.MsgTypeURL(msg)
 		// perform a basic validation of the message
 		if err := msg.ValidateBasic(); err != nil {
 			return v1.Proposal{}, errorsmod.Wrap(types.ErrInvalidProposalMsg, err.Error())
@@ -70,7 +78,6 @@ func (keeper Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, fxMetad
 				return v1.Proposal{}, errorsmod.Wrap(types.ErrNoProposalHandlerExists, err.Error())
 			}
 		}
-
 	}
 
 	proposalID, err := keeper.GetProposalID(ctx)
