@@ -5,15 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/types"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
 )
+
+var _ types.MsgServer = &Keeper{}
 
 // EthereumTx implements the gRPC MsgServer interface. It receives a transaction which is then
 // executed (i.e applied) against the go-ethereum EVM. The provided SDK Context is set to the Keeper
@@ -120,4 +127,17 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 	})
 
 	return response, nil
+}
+
+func (k *Keeper) CallContract(goCtx context.Context, msg *fxevmtypes.MsgCallContract) (*fxevmtypes.MsgCallContractResponse, error) {
+	if !strings.EqualFold(k.authority, msg.Authority) {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority, expected %s, got %s", k.authority, msg.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	contract := common.HexToAddress(msg.ContractAddress)
+	_, err := k.CallEVMWithoutGas(ctx, k.module, &contract, common.Hex2Bytes(msg.Data), true)
+	if err != nil {
+		return nil, err
+	}
+	return &fxevmtypes.MsgCallContractResponse{}, nil
 }

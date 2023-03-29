@@ -164,6 +164,12 @@
   
     - [Msg](#fx.erc20.v1.Msg)
   
+- [fx/evm/v1/tx.proto](#fx/evm/v1/tx.proto)
+    - [MsgCallContract](#fx.evm.v1.MsgCallContract)
+    - [MsgCallContractResponse](#fx.evm.v1.MsgCallContractResponse)
+  
+    - [Msg](#fx.evm.v1.Msg)
+  
 - [fx/ibc/applications/transfer/v1/query.proto](#fx/ibc/applications/transfer/v1/query.proto)
     - [Query](#fx.ibc.applications.transfer.v1.Query)
   
@@ -2647,6 +2653,60 @@ Msg defines the erc20 Msg service.
 | `ConvertERC20` | [MsgConvertERC20](#fx.erc20.v1.MsgConvertERC20) | [MsgConvertERC20Response](#fx.erc20.v1.MsgConvertERC20Response) | ConvertERC20 mints a Cosmos coin representation of the ERC20 token contract that is registered on the token mapping. | |
 | `ConvertDenom` | [MsgConvertDenom](#fx.erc20.v1.MsgConvertDenom) | [MsgConvertDenomResponse](#fx.erc20.v1.MsgConvertDenomResponse) | ConvertDenom convert denom to other denom | |
 | `UpdateParams` | [MsgUpdateParams](#fx.erc20.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#fx.erc20.v1.MsgUpdateParamsResponse) | UpdateParams defines a governance operation for updating the x/erc20 module parameters. The authority is hard-coded to the x/gov module account. | |
+
+ <!-- end services -->
+
+
+
+<a name="fx/evm/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/evm/v1/tx.proto
+
+
+
+<a name="fx.evm.v1.MsgCallContract"></a>
+
+### MsgCallContract
+MsgCallContract defines the request structure for executing a CallContract message.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address that controls the module (defaults to x/gov unless overwritten). |
+| `contract_address` | [string](#string) |  | specify to call the contract address |
+| `data` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.evm.v1.MsgCallContractResponse"></a>
+
+### MsgCallContractResponse
+MsgCallContractResponse defines the response structure for executing a CallContract message.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="fx.evm.v1.Msg"></a>
+
+### Msg
+Msg defines the x/evm Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `EthereumTx` | [.ethermint.evm.v1.MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx) | [.ethermint.evm.v1.MsgEthereumTxResponse](#ethermint.evm.v1.MsgEthereumTxResponse) | EthereumTx defines a method submitting Ethereum transactions. | |
+| `CallContract` | [MsgCallContract](#fx.evm.v1.MsgCallContract) | [MsgCallContractResponse](#fx.evm.v1.MsgCallContractResponse) | CallContract defines a (governance) operation for updating the x/evm module callContract. The authority defaults to the x/gov module account. | |
 
  <!-- end services -->
 

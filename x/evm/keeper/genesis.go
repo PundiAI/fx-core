@@ -19,7 +19,7 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, accountKeeper types.AccountKeeper,
 	k.SetParams(ctx, data.Params)
 
 	// ensure evm module account is set
-	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
+	if acc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName); acc == nil {
 		panic("the EVM module account has not been set")
 	}
 

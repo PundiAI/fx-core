@@ -9,7 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 
@@ -25,6 +27,9 @@ func createUpgradeHandler(
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := ctx.CacheContext()
 
+		// 1.Initialize the evm module account
+		InitEvmAccount(ctx, app.AccountKeeper, evmtypes.ModuleName)
+
 		ctx.Logger().Info("start to run v4 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
 		if err != nil {
@@ -34,6 +39,11 @@ func createUpgradeHandler(
 		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 		return toVM, nil
 	}
+}
+
+// InitEvmAccount  Initialize the evm module account
+func InitEvmAccount(ctx sdk.Context, keeper authkeeper.AccountKeeper, moduleName string) {
+	_, _ = keeper.GetModuleAccountAndPermissions(ctx, moduleName)
 }
 
 // preUpgradeCmd called by cosmovisor

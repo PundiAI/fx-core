@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
@@ -14,24 +15,35 @@ import (
 
 	fxserverconfig "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
 )
 
 type Keeper struct {
 	*evmkeeper.Keeper
 
 	// access to account state
-	accountKeeper types.AccountKeeper
+	accountKeeper fxevmtypes.AccountKeeper
 
 	// has evm hooks
 	hasHooks bool
+
+	module common.Address
+
+	authority string
 }
 
-func NewKeeper(ek *evmkeeper.Keeper, ak types.AccountKeeper) *Keeper {
+func NewKeeper(ek *evmkeeper.Keeper, ak fxevmtypes.AccountKeeper, authority string) *Keeper {
 	ctx := sdk.Context{}.WithChainID(fxtypes.ChainIdWithEIP155())
 	ek.WithChainID(ctx)
+	addr := ak.GetModuleAddress(types.ModuleName)
+	if addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
 	return &Keeper{
 		Keeper:        ek,
 		accountKeeper: ak,
+		authority:     authority,
+		module:        common.BytesToAddress(addr),
 	}
 }
 

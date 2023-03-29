@@ -95,6 +95,14 @@ func (suite *EvmTestSuite) Allowance(contractAddr, owner, spender common.Address
 	return allowance
 }
 
+func (suite *EvmTestSuite) Owner(contractAddr common.Address) common.Address {
+	caller, err := contract.NewFIP20(contractAddr, suite.EthClient())
+	suite.NoError(err)
+	owner, err := caller.Owner(nil)
+	suite.NoError(err)
+	return owner
+}
+
 func (suite *EvmTestSuite) CheckAllowance(contractAddr, owner, spender common.Address, value *big.Int) bool {
 	return suite.Allowance(contractAddr, owner, spender).Cmp(value) == 0
 }
@@ -165,6 +173,18 @@ func (suite *EvmTestSuite) ApproveERC20(privateKey cryptotypes.PrivKey, token, s
 
 	suite.SendTransaction(ethTx)
 	suite.True(suite.Allowance(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()), spender).Cmp(value) >= 0)
+	return ethTx
+}
+
+func (suite *EvmTestSuite) TransferOwnership(privateKey cryptotypes.PrivKey, token, newOwner common.Address) *ethtypes.Transaction {
+	pack, err := fxtypes.GetERC20().ABI.Pack("transferOwnership", newOwner)
+	suite.Require().NoError(err)
+
+	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
+	suite.Require().NoError(err)
+
+	suite.SendTransaction(ethTx)
+	suite.Require().Equal(suite.Owner(token).String(), newOwner.String())
 	return ethTx
 }
 

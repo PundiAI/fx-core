@@ -7,6 +7,9 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -15,6 +18,7 @@ import (
 	"github.com/functionx/fx-core/v3/client"
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	"github.com/functionx/fx-core/v3/types"
+	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
 )
 
 func (suite *IntegrationTest) WFXTest() {
@@ -283,4 +287,28 @@ func (suite *IntegrationTest) EVMWeb3Test() {
 			}
 		})
 	}
+}
+
+func (suite *IntegrationTest) CallContractTest() {
+	suite.Send(suite.evm.AccAddress(), suite.NewCoin(sdkmath.NewInt(100).MulRaw(1e18)))
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, nil, nil, types.GetERC20().Bin)
+	suite.NoError(err)
+	suite.evm.SendTransaction(tx)
+	logic := crypto.CreateAddress(common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()), tx.Nonce())
+	proxy := suite.deployProxy(suite.evm.privKey, logic, []byte{})
+	pack, err := types.GetERC20().ABI.Pack("initialize", "Test ERC20", "ERC20", uint8(18), common.BytesToAddress(suite.evm.privKey.PubKey().Address().Bytes()))
+	suite.NoError(err)
+	tx, err = client.BuildEthTransaction(suite.ctx, suite.evm.EthClient(), suite.evm.privKey, &proxy, nil, pack)
+	suite.NoError(err)
+	suite.evm.SendTransaction(tx)
+	suite.evm.TransferOwnership(suite.evm.privKey, proxy, common.BytesToAddress(authtypes.NewModuleAddress(evmtypes.ModuleName)))
+	amount := new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
+	args, err := types.GetERC20().ABI.Pack("mint", suite.evm.HexAddress(), amount)
+	suite.Require().NoError(err)
+	suite.BroadcastProposalTx2([]sdk.Msg{&fxevmtypes.MsgCallContract{
+		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ContractAddress: proxy.String(),
+		Data:            common.Bytes2Hex(args),
+	}})
+	suite.Require().EqualValues(amount, suite.evm.BalanceOf(proxy, suite.evm.HexAddress()))
 }

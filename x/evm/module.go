@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -13,6 +14,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/evm/keeper"
+	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
 )
 
 var (
@@ -33,6 +35,11 @@ func (am AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	genesisState := types.DefaultGenesisState()
 	genesisState.Params.EvmDenom = fxtypes.DefaultDenom
 	return cdc.MustMarshalJSON(genesisState)
+}
+
+// RegisterInterfaces registers interfaces and implementations of the evm module.
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	fxevmtypes.RegisterInterfaces(registry)
 }
 
 // AppModule implements an application module for the evm module.
@@ -60,7 +67,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	fxevmtypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 

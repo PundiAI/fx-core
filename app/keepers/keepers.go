@@ -301,6 +301,7 @@ func NewAppKeeper(
 			cast.ToString(appOpts.Get(srvflags.EVMTracer)),
 		),
 		appKeepers.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	appKeepers.Erc20Keeper = erc20keeper.NewKeeper(

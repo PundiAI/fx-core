@@ -4,11 +4,16 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {
@@ -75,4 +80,40 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx2() {
 
 	balance = suite.app.BankKeeper.GetBalance(suite.ctx, recipient.Bytes(), fxtypes.DefaultDenom).Amount.BigInt()
 	suite.Equal(balance, amount)
+}
+
+func (suite *KeeperTestSuite) TestKeeper_CallContract() {
+	erc20 := fxtypes.GetERC20()
+	initializeArgs := []interface{}{"FunctionX USD", "fxUSD", uint8(18), suite.app.Erc20Keeper.ModuleAddress()}
+
+	// deploy contract
+	contract, err := suite.app.EvmKeeper.DeployUpgradableContract(suite.ctx, suite.signer.Address(), erc20.Address, nil, &erc20.ABI, initializeArgs...)
+	suite.NoError(err)
+	nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, suite.signer.Address().Bytes())
+	suite.NoError(err)
+	contractAddr := crypto.CreateAddress(suite.signer.Address(), nonce-1)
+	suite.Equal(contractAddr, contract)
+	amount := new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
+	args, err := erc20.ABI.Pack("mint", suite.signer.Address(), amount)
+	suite.Require().NoError(err)
+
+	failMsg := &fxevmtypes.MsgCallContract{
+		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ContractAddress: contractAddr.String(),
+		Data:            common.Bytes2Hex(args),
+	}
+	_, err = suite.app.EvmKeeper.CallContract(sdk.WrapSDKContext(suite.ctx), failMsg)
+	suite.Require().Error(err)
+	// transferOwnership
+	_, err = suite.app.EvmKeeper.ApplyContract(suite.ctx, suite.signer.Address(), contract, erc20.ABI, "transferOwnership", common.BytesToAddress(suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)))
+	suite.Require().NoError(err)
+	// CallContract
+	msg := &fxevmtypes.MsgCallContract{
+		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ContractAddress: contractAddr.String(),
+		Data:            common.Bytes2Hex(args),
+	}
+	_, err = suite.app.EvmKeeper.CallContract(sdk.WrapSDKContext(suite.ctx), msg)
+	suite.Require().NoError(err)
+	suite.Equal(amount, suite.BalanceOf(contract, suite.signer.Address()))
 }

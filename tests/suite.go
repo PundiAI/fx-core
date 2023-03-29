@@ -241,6 +241,38 @@ func (suite *TestSuite) BroadcastProposalTx(content govv1beta1.Content, expected
 	return txResponse, proposalId
 }
 
+func (suite *TestSuite) BroadcastProposalTx2(msgs []sdk.Msg, expectedStatus ...govv1.ProposalStatus) (*sdk.TxResponse, uint64) {
+	proposalMsg, err := govv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(suite.NewCoin(sdkmath.NewInt(10_000).MulRaw(1e18))), sdk.AccAddress(suite.GetFirstValAddr().Bytes()).String(), "")
+	suite.NoError(err)
+	proposalId := suite.getNextProposalId()
+	voteMsg := govv1.NewMsgVote(suite.GetFirstValAddr().Bytes(), proposalId, govv1.OptionYes, "")
+	txResponse := suite.BroadcastTx(suite.GetFirstValPrivKey(), proposalMsg, voteMsg)
+	for _, log := range txResponse.Logs {
+		for _, event := range log.Events {
+			if event.Type != "proposal_deposit" {
+				continue
+			}
+			for _, attribute := range event.Attributes {
+				if attribute.Key != "proposal_id" {
+					continue
+				}
+				id, err := strconv.ParseUint(attribute.Value, 10, 64)
+				suite.NoError(err)
+				suite.Require().Equal(proposalId, id)
+				break
+			}
+		}
+	}
+	_, err = suite.network.WaitForHeight(txResponse.Height + 2)
+	suite.NoError(err)
+	status := govv1.StatusPassed
+	if len(expectedStatus) > 0 {
+		status = expectedStatus[0]
+	}
+	suite.CheckProposal(proposalId, status)
+	return txResponse, proposalId
+}
+
 func (suite *TestSuite) CreateValidator(valPriv cryptotypes.PrivKey) *sdk.TxResponse {
 	valAddr := sdk.ValAddress(valPriv.PubKey().Address())
 	selfDelegate := sdk.NewCoin(suite.GetStakingDenom(), sdkmath.NewIntFromUint64(1e18).Mul(sdkmath.NewInt(100)))

@@ -43,4 +43,5 @@ func (suite *IntegrationTest) TestRun() {
 	suite.WFXTest()
 	suite.ERC20TokenTest()
 	suite.ERC721Test()
+	suite.CallContractTest()
 }
