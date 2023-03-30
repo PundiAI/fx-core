@@ -11,7 +11,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/functionx/fx-core/v3/client"
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -73,6 +72,15 @@ func (suite *Erc20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (*sdk.T
 	msg := &erc20types.MsgRegisterCoin{
 		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		Metadata:  md,
+	}
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
+}
+
+func (suite *Erc20TestSuite) RegisterErc20Proposal(erc20Addr string, aliases []string) (*sdk.TxResponse, uint64) {
+	msg := &erc20types.MsgRegisterERC20{
+		Authority:    authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Erc20Address: erc20Addr,
+		Aliases:      aliases,
 	}
 	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
 }
@@ -178,23 +186,5 @@ func (suite *Erc20TestSuite) IncreaseBridgeFee(privateKey cryptotypes.PrivKey, c
 	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &crossChainContract, nil, pack)
 	suite.Require().NoError(err, chain)
 	suite.SendTransaction(ethTx)
-	return ethTx
-}
-
-func (suite *Erc20TestSuite) TransferToModule(privateKey cryptotypes.PrivKey, token common.Address, amount *big.Int) *ethtypes.Transaction {
-	beforeBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
-	beforeBalance := suite.QueryBalances(sdk.AccAddress(privateKey.PubKey().Address())).AmountOf(suite.DenomFromErc20(token))
-
-	moduleAddress := common.BytesToAddress(crypto.AddressHash([]byte(erc20types.ModuleName)))
-	pack, err := fxtypes.GetERC20().ABI.Pack("transfer", moduleAddress, amount)
-	suite.Require().NoError(err)
-	ethTx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &token, nil, pack)
-	suite.Require().NoError(err)
-	suite.SendTransaction(ethTx)
-	afterBalanceOf := suite.BalanceOf(token, common.BytesToAddress(privateKey.PubKey().Address().Bytes()))
-	afterBalance := suite.QueryBalances(sdk.AccAddress(privateKey.PubKey().Address())).AmountOf(suite.DenomFromErc20(token))
-
-	suite.Require().True(new(big.Int).Sub(beforeBalanceOf, afterBalanceOf).Cmp(amount) == 0)
-	suite.Require().True(afterBalance.Sub(beforeBalance).Equal(sdkmath.NewIntFromBigInt(amount)))
 	return ethTx
 }
