@@ -10,6 +10,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -1069,4 +1071,37 @@ func (suite *KeeperTestSuite) TestRequestBatchBaseFee() {
 			require.Equal(suite.T(), err.Error(), testCase.err.Error())
 		}
 	}
+}
+
+func (suite *KeeperTestSuite) TestMsgUpdateChainOracles() {
+	updateOracle := &types.MsgUpdateChainOracles{
+		Oracles:   []string{},
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ChainName: suite.chainName,
+	}
+	for _, oracle := range suite.oracleAddrs {
+		updateOracle.Oracles = append(updateOracle.Oracles, oracle.String())
+	}
+
+	_, err := suite.MsgServer().UpdateChainOracles(suite.ctx, updateOracle)
+	require.NoError(suite.T(), err)
+	for _, oracle := range suite.oracleAddrs {
+		require.True(suite.T(), suite.Keeper().IsProposalOracle(suite.ctx, oracle.String()))
+	}
+
+	updateOracle.Oracles = []string{}
+	number := tmrand.Intn(100)
+	for i := 0; i < number; i++ {
+		updateOracle.Oracles = append(updateOracle.Oracles, sdk.AccAddress(helpers.GenerateAddress().Bytes()).String())
+	}
+	_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, updateOracle)
+	require.NoError(suite.T(), err)
+
+	updateOracle.Oracles = []string{}
+	number = tmrand.Intn(2) + 101
+	for i := 0; i < number; i++ {
+		updateOracle.Oracles = append(updateOracle.Oracles, sdk.AccAddress(helpers.GenerateAddress().Bytes()).String())
+	}
+	_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, updateOracle)
+	require.Error(suite.T(), err)
 }

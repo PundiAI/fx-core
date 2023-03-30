@@ -35,6 +35,10 @@ const (
 
 	TypeMsgRequestBatch = "request_batch"
 	TypeMsgConfirmBatch = "confirm_batch"
+
+	TypeMsgUpdateParams = "update_params"
+
+	TypeMsgUpdateChainOracles = "update_chain_oracles"
 )
 
 type (
@@ -85,6 +89,9 @@ var (
 
 	_ sdk.Msg       = &MsgUpdateParams{}
 	_ CrossChainMsg = &MsgUpdateParams{}
+
+	_ sdk.Msg       = &MsgUpdateChainOracles{}
+	_ CrossChainMsg = &MsgUpdateChainOracles{}
 )
 
 type MsgValidateBasic interface {
@@ -784,6 +791,19 @@ func (m *MsgAddOracleDeposit) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{acc}
 }
 
+// Route returns the MsgUpdateParams message route.
+func (m *MsgUpdateParams) Route() string { return ModuleName }
+
+// Type returns the MsgUpdateParams message type.
+func (m *MsgUpdateParams) Type() string { return TypeMsgUpdateParams }
+
+// GetSignBytes returns the raw bytes for a MsgUpdateParams message that
+// the expected signer needs to sign.
+func (m *MsgUpdateParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.Authority)
@@ -798,4 +818,45 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 		return err
 	}
 	return nil
+}
+
+// Route returns the MsgUpdateChainOracles message route.
+func (m *MsgUpdateChainOracles) Route() string { return ModuleName }
+
+// Type returns the MsgUpdateChainOracles message type.
+func (m *MsgUpdateChainOracles) Type() string { return TypeMsgUpdateChainOracles }
+
+// GetSignBytes returns the raw bytes for a MsgUpdateChainOracles message that
+// the expected signer needs to sign.
+func (m *MsgUpdateChainOracles) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgUpdateChainOracles) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrap(err, "invalid authority address")
+	}
+	if len(m.Oracles) == 0 {
+		panic(fmt.Sprintf("oracles length must be non-zero %s", m.Oracles))
+	}
+	if err := ValidateModuleName(m.ChainName); err != nil {
+		return errortypes.ErrInvalidRequest.Wrap("invalid chain name")
+	}
+	oraclesMap := make(map[string]bool)
+	for _, addr := range m.Oracles {
+		if _, err := sdk.AccAddressFromBech32(addr); err != nil {
+			return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+		}
+		if oraclesMap[addr] {
+			return ErrDuplicate.Wrapf("oracle address: %s", addr)
+		}
+		oraclesMap[addr] = true
+	}
+	return nil
+}
+
+func (m *MsgUpdateChainOracles) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
 }

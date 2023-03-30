@@ -12,10 +12,12 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
+// NewChainProposalHandler
+// Deprecated: instead of defining gov router proposal handlers, the v0.46 gov execution models is based on sdk.Msgs
 func NewChainProposalHandler(k keeper.RouterKeeper) govv1betal.Handler {
 	return func(ctx sdk.Context, content govv1betal.Content) error {
 		switch c := content.(type) {
-		case *types.UpdateChainOraclesProposal:
+		case *types.UpdateChainOraclesProposal: // nolint:staticcheck
 			router := k.Router()
 			if !router.HasRoute(c.ChainName) {
 				return errorsmod.Wrap(errortypes.ErrUnknownRequest, fmt.Sprintf("Unrecognized cross chain type: %s", c.ChainName))

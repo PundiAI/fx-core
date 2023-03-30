@@ -227,6 +227,10 @@ message InitCrossChainParamsProposal {
   string chain_name = 4;
 }
 
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit UpdateChainOraclesProposal. Update crosschain
+// oracles, a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 message UpdateChainOraclesProposal {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;

@@ -158,6 +158,14 @@ func (k msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams)
 	}
 }
 
+func (k msgServer) UpdateChainOracles(ctx context.Context, msg *types.MsgUpdateChainOracles) (*types.MsgUpdateChainOraclesResponse, error) {
+	if queryServer, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
+		return nil, err
+	} else {
+		return queryServer.UpdateChainOracles(ctx, msg)
+	}
+}
+
 func (k msgServer) getMsgServerByChainName(chainName string) (types.MsgServer, error) {
 	msgServerRouter := k.routerKeeper.Router()
 	if !msgServerRouter.HasRoute(chainName) {

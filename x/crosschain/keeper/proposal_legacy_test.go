@@ -9,6 +9,7 @@ import (
 	"github.com/functionx/fx-core/v3/x/crosschain/types"
 )
 
+// nolint:staticcheck
 func (suite *KeeperTestSuite) TestUpdateCrossChainOraclesProposal() {
 	updateOracle := &types.UpdateChainOraclesProposal{
 		Title:       "Test UpdateCrossChainOracles",

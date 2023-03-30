@@ -37,6 +37,8 @@ service Msg {
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
   rpc IncreaseBridgeFee(MsgIncreaseBridgeFee) returns (MsgIncreaseBridgeFeeResponse);
+
+  rpc UpdateChainOracles(MsgUpdateChainOracles) returns (MsgUpdateChainOraclesResponse);
 }
 
 message MsgBondedOracle {
@@ -300,3 +302,15 @@ message MsgIncreaseBridgeFee {
 }
 
 message MsgIncreaseBridgeFeeResponse {}
+
+message MsgUpdateChainOracles {
+  string chain_name = 1;
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  repeated string oracles = 3;
+}
+
+message MsgUpdateChainOraclesResponse {}

@@ -9,6 +9,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
@@ -211,13 +213,12 @@ func (suite *CrosschainTestSuite) BondedOracle() {
 }
 
 func (suite *CrosschainTestSuite) SendUpdateChainOraclesProposal() (*sdk.TxResponse, uint64) {
-	content := &crosschaintypes.UpdateChainOraclesProposal{
-		Title:       fmt.Sprintf("Update %s cross chain oracle", suite.chainName),
-		Description: "foo",
-		Oracles:     []string{suite.OracleAddr().String()},
-		ChainName:   suite.chainName,
+	msg := &crosschaintypes.MsgUpdateChainOracles{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Oracles:   []string{suite.OracleAddr().String()},
+		ChainName: suite.chainName,
 	}
-	return suite.BroadcastProposalTx(content)
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
 }
 
 func (suite *CrosschainTestSuite) SendOracleSetConfirm() {

@@ -6,6 +6,8 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -167,7 +169,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 	for i := 0; i < 7; i++ {
 		newOracleList = append(newOracleList, suite.oracleAddrs[i].String())
 	}
-	err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
+	err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{ // nolint:staticcheck
 		Title:       "proposal 1: try update chain oracle power >= 30%, expect error",
 		Description: "",
 		Oracles:     newOracleList,
@@ -188,7 +190,7 @@ func (suite *KeeperTestSuite) TestOracleUpdate() {
 	for i := 0; i < 8; i++ {
 		newOracleList2 = append(newOracleList2, suite.oracleAddrs[i].String())
 	}
-	err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{
+	err = proposalHandler(suite.ctx, &types.UpdateChainOraclesProposal{ // nolint:staticcheck
 		Title:       "proposal 2: try update chain oracle power <= 30%, expect success",
 		Description: "",
 		Oracles:     newOracleList2,
@@ -309,11 +311,10 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 15; i++ {
 			newOracleList = append(newOracleList, suite.oracleAddrs[i].String())
 		}
-		err := suite.Keeper().UpdateChainOraclesProposal(suite.ctx, &types.UpdateChainOraclesProposal{
-			Title:       "proposal 1: try update chain oracle save top 15 oracle, expect success",
-			Description: "",
-			Oracles:     newOracleList,
-			ChainName:   suite.chainName,
+		_, err := suite.MsgServer().UpdateChainOracles(suite.ctx, &types.MsgUpdateChainOracles{
+			Oracles:   newOracleList,
+			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			ChainName: suite.chainName,
 		})
 		require.NoError(suite.T(), err)
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -336,11 +337,10 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 11; i++ {
 			newOracleList2 = append(newOracleList2, suite.oracleAddrs[i].String())
 		}
-		err = suite.Keeper().UpdateChainOraclesProposal(suite.ctx, &types.UpdateChainOraclesProposal{
-			Title:       "proposal 2: try update chain oracle save top 11 oracle, expect success",
-			Description: "",
-			Oracles:     newOracleList2,
-			ChainName:   suite.chainName,
+		_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, &types.MsgUpdateChainOracles{
+			Oracles:   newOracleList2,
+			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			ChainName: suite.chainName,
 		})
 		require.NoError(suite.T(), err)
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -363,11 +363,10 @@ func (suite *KeeperTestSuite) TestAttestationAfterOracleUpdate() {
 		for i := 0; i < 10; i++ {
 			newOracleList3 = append(newOracleList3, suite.oracleAddrs[i].String())
 		}
-		err = suite.Keeper().UpdateChainOraclesProposal(suite.ctx, &types.UpdateChainOraclesProposal{
-			Title:       "proposal 3: try update chain oracle save top 10 oracle, expect success",
-			Description: "",
-			Oracles:     newOracleList3,
-			ChainName:   suite.chainName,
+		_, err = suite.MsgServer().UpdateChainOracles(suite.ctx, &types.MsgUpdateChainOracles{
+			Oracles:   newOracleList3,
+			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			ChainName: suite.chainName,
 		})
 		require.NoError(suite.T(), err)
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -447,11 +446,10 @@ func (suite *KeeperTestSuite) TestOracleDelete() {
 		newOracleAddressList = append(newOracleAddressList, address.String())
 	}
 
-	err := suite.Keeper().UpdateChainOraclesProposal(suite.ctx, &types.UpdateChainOraclesProposal{
-		Title:       "proposal 1: try update chain oracle remove first oracle, expect success",
-		Description: "",
-		Oracles:     newOracleAddressList,
-		ChainName:   suite.chainName,
+	_, err := suite.MsgServer().UpdateChainOracles(suite.ctx, &types.MsgUpdateChainOracles{
+		Oracles:   newOracleAddressList,
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ChainName: suite.chainName,
 	})
 	require.NoError(suite.T(), err)
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)

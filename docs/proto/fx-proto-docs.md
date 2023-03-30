@@ -63,6 +63,8 @@
     - [MsgSetOrchestratorAddress](#fx.gravity.crosschain.v1.MsgSetOrchestratorAddress)
     - [MsgUnbondedOracle](#fx.gravity.crosschain.v1.MsgUnbondedOracle)
     - [MsgUnbondedOracleResponse](#fx.gravity.crosschain.v1.MsgUnbondedOracleResponse)
+    - [MsgUpdateChainOracles](#fx.gravity.crosschain.v1.MsgUpdateChainOracles)
+    - [MsgUpdateChainOraclesResponse](#fx.gravity.crosschain.v1.MsgUpdateChainOraclesResponse)
     - [MsgUpdateParams](#fx.gravity.crosschain.v1.MsgUpdateParams)
     - [MsgUpdateParamsResponse](#fx.gravity.crosschain.v1.MsgUpdateParamsResponse)
     - [MsgWithdrawReward](#fx.gravity.crosschain.v1.MsgWithdrawReward)
@@ -665,7 +667,10 @@ request is > 10%
 <a name="fx.gravity.crosschain.v1.UpdateChainOraclesProposal"></a>
 
 ### UpdateChainOraclesProposal
-
+Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+longer a need for an explicit UpdateChainOraclesProposal. Update crosschain
+oracles, a simple MsgUpdateChainOracles can be invoked from the x/gov
+module via a v1 governance proposal.
 
 
 | Field | Type | Label | Description |
@@ -1243,6 +1248,33 @@ Deprecated: after block 5713000
 
 
 
+<a name="fx.gravity.crosschain.v1.MsgUpdateChainOracles"></a>
+
+### MsgUpdateChainOracles
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `chain_name` | [string](#string) |  |  |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `oracles` | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="fx.gravity.crosschain.v1.MsgUpdateChainOraclesResponse"></a>
+
+### MsgUpdateChainOraclesResponse
+
+
+
+
+
+
+
 <a name="fx.gravity.crosschain.v1.MsgUpdateParams"></a>
 
 ### MsgUpdateParams
@@ -1329,6 +1361,7 @@ Msg defines the state transitions possible within gravity
 | `ConfirmBatch` | [MsgConfirmBatch](#fx.gravity.crosschain.v1.MsgConfirmBatch) | [MsgConfirmBatchResponse](#fx.gravity.crosschain.v1.MsgConfirmBatchResponse) |  | |
 | `UpdateParams` | [MsgUpdateParams](#fx.gravity.crosschain.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#fx.gravity.crosschain.v1.MsgUpdateParamsResponse) | UpdateParams defines a governance operation for updating the x/crosschain module parameters. The authority is hard-coded to the x/gov module account. | |
 | `IncreaseBridgeFee` | [MsgIncreaseBridgeFee](#fx.gravity.crosschain.v1.MsgIncreaseBridgeFee) | [MsgIncreaseBridgeFeeResponse](#fx.gravity.crosschain.v1.MsgIncreaseBridgeFeeResponse) |  | |
+| `UpdateChainOracles` | [MsgUpdateChainOracles](#fx.gravity.crosschain.v1.MsgUpdateChainOracles) | [MsgUpdateChainOraclesResponse](#fx.gravity.crosschain.v1.MsgUpdateChainOraclesResponse) |  | |
 
  <!-- end services -->
 

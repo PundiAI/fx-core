@@ -583,6 +583,17 @@ func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (
 	return &types.MsgUpdateParamsResponse{}, nil
 }
 
+func (s MsgServer) UpdateChainOracles(c context.Context, req *types.MsgUpdateChainOracles) (*types.MsgUpdateChainOraclesResponse, error) {
+	if s.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := s.Keeper.UpdateChainOracles(ctx, req.Oracles); err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateChainOraclesResponse{}, nil
+}
+
 func (s MsgServer) checkBridgerIsOracle(ctx sdk.Context, bridgerAddr sdk.AccAddress) (oracleAddr sdk.AccAddress, err error) {
 	oracleAddr, found := s.GetOracleAddressByBridgerKey(ctx, bridgerAddr)
 	if !found {

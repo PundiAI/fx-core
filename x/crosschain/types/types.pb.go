@@ -1025,6 +1025,10 @@ func (m *InitCrossChainParamsProposal) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_InitCrossChainParamsProposal proto.InternalMessageInfo
 
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit UpdateChainOraclesProposal. Update crosschain
+// oracles, a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 type UpdateChainOraclesProposal struct {
 	// the title of the update proposal
 	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
