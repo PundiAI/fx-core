@@ -125,7 +125,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
@@ -249,7 +249,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 				randDenom := helpers.NewRandDenom()
 				moduleName := md.RandModule()
 				aliasDenom := fmt.Sprintf("%s%s", moduleName, helpers.GenerateAddressByModule(moduleName))
-				newPair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, banktypes.Metadata{
+				newPair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, banktypes.Metadata{
 					Description: "New Token",
 					DenomUnits: []*banktypes.DenomUnit{
 						{
@@ -305,7 +305,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChain() {
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
-			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 			suite.NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
@@ -605,7 +605,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBC() {
 			ibcToken := suite.AddIBCToken(sourcePort, sourceChannel)
 			// token pair
 			md := suite.GenerateCrossChainDenoms(ibcToken)
-			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 			suite.NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 100000))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
@@ -789,7 +789,7 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
-			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 			suite.NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))

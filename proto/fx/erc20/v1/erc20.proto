@@ -32,6 +32,11 @@ message TokenPair {
 }
 
 // RegisterCoinProposal is a gov Content type to register a token pair
+
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit MsgRegisterCoin. register coin
+// a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 message RegisterCoinProposal {
   option (gogoproto.equal) = false;
   // title of the proposal
@@ -43,6 +48,11 @@ message RegisterCoinProposal {
 }
 
 // RegisterCoinProposal is a gov Content type to register a token pair
+//
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit MsgRegisterERC20. register ERC20
+// a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 message RegisterERC20Proposal {
   option (gogoproto.equal) = false;
   // title of the proposal
@@ -57,6 +67,11 @@ message RegisterERC20Proposal {
 
 // ToggleTokenConversionProposal is a gov Content type to toggle the conversion
 // of a token pair.
+//
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit MsgToggleTokenConversion. toggle token
+// conversion, a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 message ToggleTokenConversionProposal {
   option (gogoproto.equal) = true;
   // title of the proposal
@@ -69,6 +84,11 @@ message ToggleTokenConversionProposal {
 }
 
 // UpdateDenomAliasProposal is a gov Content type to update denom alias
+//
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit MsgUpdateDenomAlias.update denomAlias
+// a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 message UpdateDenomAliasProposal {
   option (gogoproto.equal) = false;
   // title of the proposal

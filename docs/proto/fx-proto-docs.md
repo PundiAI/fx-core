@@ -159,6 +159,14 @@
     - [MsgConvertDenomResponse](#fx.erc20.v1.MsgConvertDenomResponse)
     - [MsgConvertERC20](#fx.erc20.v1.MsgConvertERC20)
     - [MsgConvertERC20Response](#fx.erc20.v1.MsgConvertERC20Response)
+    - [MsgRegisterCoin](#fx.erc20.v1.MsgRegisterCoin)
+    - [MsgRegisterCoinResponse](#fx.erc20.v1.MsgRegisterCoinResponse)
+    - [MsgRegisterERC20](#fx.erc20.v1.MsgRegisterERC20)
+    - [MsgRegisterERC20Response](#fx.erc20.v1.MsgRegisterERC20Response)
+    - [MsgToggleTokenConversion](#fx.erc20.v1.MsgToggleTokenConversion)
+    - [MsgToggleTokenConversionResponse](#fx.erc20.v1.MsgToggleTokenConversionResponse)
+    - [MsgUpdateDenomAlias](#fx.erc20.v1.MsgUpdateDenomAlias)
+    - [MsgUpdateDenomAliasResponse](#fx.erc20.v1.MsgUpdateDenomAliasResponse)
     - [MsgUpdateParams](#fx.erc20.v1.MsgUpdateParams)
     - [MsgUpdateParamsResponse](#fx.erc20.v1.MsgUpdateParamsResponse)
   
@@ -2175,7 +2183,10 @@ Query defines the gRPC querier service
 <a name="fx.erc20.v1.RegisterCoinProposal"></a>
 
 ### RegisterCoinProposal
-RegisterCoinProposal is a gov Content type to register a token pair
+Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+longer a need for an explicit MsgRegisterCoin. register coin
+a simple MsgUpdateChainOracles can be invoked from the x/gov
+module via a v1 governance proposal.
 
 
 | Field | Type | Label | Description |
@@ -2193,6 +2204,11 @@ RegisterCoinProposal is a gov Content type to register a token pair
 
 ### RegisterERC20Proposal
 RegisterCoinProposal is a gov Content type to register a token pair
+
+Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+longer a need for an explicit MsgRegisterERC20. register ERC20
+a simple MsgUpdateChainOracles can be invoked from the x/gov
+module via a v1 governance proposal.
 
 
 | Field | Type | Label | Description |
@@ -2212,6 +2228,11 @@ RegisterCoinProposal is a gov Content type to register a token pair
 ### ToggleTokenConversionProposal
 ToggleTokenConversionProposal is a gov Content type to toggle the conversion
 of a token pair.
+
+Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+longer a need for an explicit MsgToggleTokenConversion. toggle token
+conversion, a simple MsgUpdateChainOracles can be invoked from the x/gov
+module via a v1 governance proposal.
 
 
 | Field | Type | Label | Description |
@@ -2248,6 +2269,11 @@ native Coin and an ERC20 token address.
 
 ### UpdateDenomAliasProposal
 UpdateDenomAliasProposal is a gov Content type to update denom alias
+
+Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+longer a need for an explicit MsgUpdateDenomAlias.update denomAlias
+a simple MsgUpdateChainOracles can be invoked from the x/gov
+module via a v1 governance proposal.
 
 
 | Field | Type | Label | Description |
@@ -2607,6 +2633,127 @@ MsgConvertERC20Response returns no fields
 
 
 
+<a name="fx.erc20.v1.MsgRegisterCoin"></a>
+
+### MsgRegisterCoin
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `metadata` | [cosmos.bank.v1beta1.Metadata](#cosmos.bank.v1beta1.Metadata) |  | token pair of Cosmos native denom and ERC20 token address |
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgRegisterCoinResponse"></a>
+
+### MsgRegisterCoinResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pair` | [TokenPair](#fx.erc20.v1.TokenPair) |  |  |
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgRegisterERC20"></a>
+
+### MsgRegisterERC20
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `erc20address` | [string](#string) |  | contract address of ERC20 token |
+| `aliases` | [string](#string) | repeated | aliases is a list of string aliases for the given denom |
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgRegisterERC20Response"></a>
+
+### MsgRegisterERC20Response
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pair` | [TokenPair](#fx.erc20.v1.TokenPair) |  |  |
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgToggleTokenConversion"></a>
+
+### MsgToggleTokenConversion
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `token` | [string](#string) |  | token identifier can be either the hex contract address of the ERC20 or the Cosmos base denomination |
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgToggleTokenConversionResponse"></a>
+
+### MsgToggleTokenConversionResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pair` | [TokenPair](#fx.erc20.v1.TokenPair) |  |  |
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgUpdateDenomAlias"></a>
+
+### MsgUpdateDenomAlias
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `denom` | [string](#string) |  | denom |
+| `alias` | [string](#string) |  | alias update |
+
+
+
+
+
+
+<a name="fx.erc20.v1.MsgUpdateDenomAliasResponse"></a>
+
+### MsgUpdateDenomAliasResponse
+
+
+
+
+
+
+
 <a name="fx.erc20.v1.MsgUpdateParams"></a>
 
 ### MsgUpdateParams
@@ -2653,6 +2800,10 @@ Msg defines the erc20 Msg service.
 | `ConvertERC20` | [MsgConvertERC20](#fx.erc20.v1.MsgConvertERC20) | [MsgConvertERC20Response](#fx.erc20.v1.MsgConvertERC20Response) | ConvertERC20 mints a Cosmos coin representation of the ERC20 token contract that is registered on the token mapping. | |
 | `ConvertDenom` | [MsgConvertDenom](#fx.erc20.v1.MsgConvertDenom) | [MsgConvertDenomResponse](#fx.erc20.v1.MsgConvertDenomResponse) | ConvertDenom convert denom to other denom | |
 | `UpdateParams` | [MsgUpdateParams](#fx.erc20.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#fx.erc20.v1.MsgUpdateParamsResponse) | UpdateParams defines a governance operation for updating the x/erc20 module parameters. The authority is hard-coded to the x/gov module account. | |
+| `RegisterCoin` | [MsgRegisterCoin](#fx.erc20.v1.MsgRegisterCoin) | [MsgRegisterCoinResponse](#fx.erc20.v1.MsgRegisterCoinResponse) |  | |
+| `RegisterERC20` | [MsgRegisterERC20](#fx.erc20.v1.MsgRegisterERC20) | [MsgRegisterERC20Response](#fx.erc20.v1.MsgRegisterERC20Response) |  | |
+| `ToggleTokenConversion` | [MsgToggleTokenConversion](#fx.erc20.v1.MsgToggleTokenConversion) | [MsgToggleTokenConversionResponse](#fx.erc20.v1.MsgToggleTokenConversionResponse) |  | |
+| `UpdateDenomAlias` | [MsgUpdateDenomAlias](#fx.erc20.v1.MsgUpdateDenomAlias) | [MsgUpdateDenomAliasResponse](#fx.erc20.v1.MsgUpdateDenomAliasResponse) |  | |
 
  <!-- end services -->
 

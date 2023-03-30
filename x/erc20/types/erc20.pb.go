@@ -130,7 +130,10 @@ func (m *TokenPair) GetContractOwner() Owner {
 	return OWNER_UNSPECIFIED
 }
 
-// RegisterCoinProposal is a gov Content type to register a token pair
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit MsgRegisterCoin. register coin
+// a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 type RegisterCoinProposal struct {
 	// title of the proposal
 	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
@@ -195,6 +198,11 @@ func (m *RegisterCoinProposal) GetMetadata() types.Metadata {
 }
 
 // RegisterCoinProposal is a gov Content type to register a token pair
+//
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit MsgRegisterERC20. register ERC20
+// a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 type RegisterERC20Proposal struct {
 	// title of the proposal
 	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
@@ -269,6 +277,11 @@ func (m *RegisterERC20Proposal) GetAliases() []string {
 
 // ToggleTokenConversionProposal is a gov Content type to toggle the conversion
 // of a token pair.
+//
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit MsgToggleTokenConversion. toggle token
+// conversion, a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 type ToggleTokenConversionProposal struct {
 	// title of the proposal
 	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
@@ -334,6 +347,11 @@ func (m *ToggleTokenConversionProposal) GetToken() string {
 }
 
 // UpdateDenomAliasProposal is a gov Content type to update denom alias
+//
+// Deprecated: Do not use. As of the Cosmos SDK release v0.46.x, there is no
+// longer a need for an explicit MsgUpdateDenomAlias.update denomAlias
+// a simple MsgUpdateChainOracles can be invoked from the x/gov
+// module via a v1 governance proposal.
 type UpdateDenomAliasProposal struct {
 	// title of the proposal
 	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`

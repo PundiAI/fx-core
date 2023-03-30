@@ -746,7 +746,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				mdmd := md.GetMetadata()
 				mdmd.DenomUnits[0].Aliases = []string{}
 
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, mdmd)
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, mdmd)
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(pair.GetDenom(), amt)
@@ -765,7 +765,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
-				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
@@ -784,7 +784,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(pair.GetDenom(), amt.Add(sdkmath.NewInt(1)))
@@ -807,7 +807,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(pair.GetDenom(), amt)
@@ -830,7 +830,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(pair.GetDenom(), amt)
@@ -868,7 +868,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
-				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
@@ -885,7 +885,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
-				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
@@ -905,7 +905,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 				amt := sdkmath.NewInt(int64(tmrand.Uint32() + 1000))
 				md := suite.GenerateCrossChainDenoms()
 
-				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
@@ -927,7 +927,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 					md = suite.GenerateCrossChainDenoms()
 				}
 
-				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
@@ -952,7 +952,7 @@ func (suite *KeeperTestSuite) TestConvertDenomToTarget() {
 					md = suite.GenerateCrossChainDenoms()
 				}
 
-				_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+				_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 				suite.Require().NoError(err)
 
 				originCoin := sdk.NewCoin(md.GetMetadata().DenomUnits[0].Aliases[0], amt)
@@ -1046,7 +1046,7 @@ func (suite *KeeperTestSuite) TestConvertDenom() {
 			receive := suite.RandSigner()
 
 			md := suite.GenerateCrossChainDenoms()
-			_, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+			_, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 			suite.Require().NoError(err)
 
 			receiveAddr, coin, expCoin, targetStr, errArgs := tc.malleate(md, signer.AccAddress(), receive.AccAddress())

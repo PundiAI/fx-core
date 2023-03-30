@@ -210,7 +210,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
@@ -488,7 +488,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
@@ -606,7 +606,7 @@ func (suite *PrecompileTestSuite) TestCrossChain() {
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
-			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 			suite.NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
@@ -776,7 +776,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
@@ -832,7 +832,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
@@ -947,7 +947,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
@@ -1068,7 +1068,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
@@ -1182,7 +1182,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 					Name:    fmt.Sprintf("%s Token", symbol),
 					Symbol:  symbol,
 				}
-				pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, ibcMD)
+				pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, ibcMD)
 				suite.Require().NoError(err)
 
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
@@ -1252,7 +1252,7 @@ func (suite *PrecompileTestSuite) TestCrossChainIBC() {
 			signer := suite.RandSigner()
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
-			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, md.GetMetadata())
+			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
 			suite.NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))

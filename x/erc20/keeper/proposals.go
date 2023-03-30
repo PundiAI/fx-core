@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -12,8 +13,8 @@ import (
 	"github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
-// RegisterCoin deploys an erc20 contract and creates the token pair for the existing cosmos coin
-func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (*types.TokenPair, error) {
+// RegisterNativeCoin deploys an erc20 contract and creates the token pair for the existing cosmos coin
+func (k Keeper) RegisterNativeCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (*types.TokenPair, error) {
 	// check if the conversion is globally enabled
 	if !k.GetEnableErc20(ctx) {
 		return nil, errorsmod.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
@@ -64,13 +65,18 @@ func (k Keeper) RegisterCoin(ctx sdk.Context, coinMetadata banktypes.Metadata) (
 
 	pair := types.NewTokenPair(addr, coinMetadata.Base, true, types.OWNER_MODULE)
 	k.AddTokenPair(ctx, pair)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRegisterCoin,
+		sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+	))
 	return &pair, nil
 }
 
-// RegisterERC20 creates a cosmos coin and registers the token pair between the coin and the ERC20
+// RegisterNativeERC20 creates a cosmos coin and registers the token pair between the coin and the ERC20
 //
 //gocyclo:ignore
-func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address, aliases ...string) (*types.TokenPair, error) {
+func (k Keeper) RegisterNativeERC20(ctx sdk.Context, contract common.Address, aliases ...string) (*types.TokenPair, error) {
 	if !k.GetEnableErc20(ctx) {
 		return nil, errorsmod.Wrap(types.ErrERC20Disabled, "registration is currently disabled by governance")
 	}
@@ -154,11 +160,18 @@ func (k Keeper) RegisterERC20(ctx sdk.Context, contract common.Address, aliases 
 
 	pair := types.NewTokenPair(contract, metadata.Base, true, types.OWNER_EXTERNAL)
 	k.AddTokenPair(ctx, pair)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRegisterERC20,
+		sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+	))
+
 	return &pair, nil
 }
 
-// ToggleRelay toggles relaying for a given token pair
-func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, error) {
+// ToggleTokenConvert toggles relaying for a given token pair
+func (k Keeper) ToggleTokenConvert(ctx sdk.Context, token string) (types.TokenPair, error) {
 	pair, found := k.GetTokenPair(ctx, token)
 	if !found {
 		return types.TokenPair{}, errorsmod.Wrapf(types.ErrTokenPairNotFound, "token '%s' not registered", token)
@@ -166,14 +179,21 @@ func (k Keeper) ToggleRelay(ctx sdk.Context, token string) (types.TokenPair, err
 	pair.Enabled = !pair.Enabled
 
 	k.SetTokenPair(ctx, pair)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeToggleTokenRelay,
+		sdk.NewAttribute(types.AttributeKeyDenom, pair.Denom),
+		sdk.NewAttribute(types.AttributeKeyTokenAddress, pair.Erc20Address),
+	))
+
 	return pair, nil
 }
 
-// UpdateDenomAlias update denom alias
+// UpdateDenomAliases update denom alias
 // if alias not registered, add to denom alias
 // if alias registered with denom, remove from denom alias
 // if alias registered, but not with denom, return error
-func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, error) {
+func (k Keeper) UpdateDenomAliases(ctx sdk.Context, denom, alias string) (bool, error) {
 	// check if the denom denomination already registered
 	if !k.IsDenomRegistered(ctx, denom) {
 		return false, errorsmod.Wrapf(types.ErrInvalidDenom, "coin denomination not registered: %s", denom)
@@ -219,6 +239,14 @@ func (k Keeper) UpdateDenomAlias(ctx sdk.Context, denom, alias string) (bool, er
 	k.bankKeeper.SetDenomMetaData(ctx, md)
 
 	addFlag := len(newAliases) > len(oldAliases)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeToggleTokenRelay,
+		sdk.NewAttribute(types.AttributeKeyDenom, denom),
+		sdk.NewAttribute(types.AttributeKeyAlias, alias),
+		sdk.NewAttribute(types.AttributeKeyUpdateFlag, strconv.FormatBool(addFlag)),
+	))
+
 	return addFlag, nil
 }
 

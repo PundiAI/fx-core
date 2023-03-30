@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) DeployContract(from common.Address) (common.Addres
 func (suite *KeeperTestSuite) DeployFXRelayToken() (types.TokenPair, banktypes.Metadata) {
 	fxToken := fxtypes.GetFXMetaData(fxtypes.DefaultDenom)
 
-	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, fxToken)
+	pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, fxToken)
 	suite.Require().NoError(err)
 	return *pair, fxToken
 }

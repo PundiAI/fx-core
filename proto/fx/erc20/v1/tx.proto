@@ -1,9 +1,11 @@
 syntax = "proto3";
 package fx.erc20.v1;
 
+import "cosmos/bank/v1beta1/bank.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
+import "fx/erc20/v1/erc20.proto";
 import "fx/erc20/v1/genesis.proto";
 import "gogoproto/gogo.proto";
 
@@ -23,6 +25,14 @@ service Msg {
   // UpdateParams defines a governance operation for updating the x/erc20 module
   // parameters. The authority is hard-coded to the x/gov module account.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  rpc RegisterCoin(MsgRegisterCoin) returns (MsgRegisterCoinResponse);
+
+  rpc RegisterERC20(MsgRegisterERC20) returns (MsgRegisterERC20Response);
+
+  rpc ToggleTokenConversion(MsgToggleTokenConversion) returns (MsgToggleTokenConversionResponse);
+
+  rpc UpdateDenomAlias(MsgUpdateDenomAlias) returns (MsgUpdateDenomAliasResponse);
 }
 
 // MsgConvertCoin defines a Msg to convert a Cosmos Coin to a ERC20 token
@@ -88,3 +98,61 @@ message MsgUpdateParams {
 // MsgUpdateParamsResponse defines the response structure for executing a
 // MsgUpdateParams message.
 message MsgUpdateParamsResponse {}
+
+message MsgRegisterCoin {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // token pair of Cosmos native denom and ERC20 token address
+  cosmos.bank.v1beta1.Metadata metadata = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgRegisterCoinResponse {
+  TokenPair pair = 1 [(gogoproto.nullable) = false];
+}
+
+message MsgRegisterERC20 {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // contract address of ERC20 token
+  string erc20address = 2;
+  // aliases is a list of string aliases for the given denom
+  repeated string aliases = 3;
+}
+
+message MsgRegisterERC20Response {
+  TokenPair pair = 1 [(gogoproto.nullable) = false];
+}
+
+message MsgToggleTokenConversion {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // token identifier can be either the hex contract address of the ERC20 or the
+  // Cosmos base denomination
+  string token = 2;
+}
+
+message MsgToggleTokenConversionResponse {
+  TokenPair pair = 1 [(gogoproto.nullable) = false];
+}
+
+message MsgUpdateDenomAlias {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // denom
+  string denom = 2;
+  // alias update
+  string alias = 3;
+}
+
+message MsgUpdateDenomAliasResponse {}

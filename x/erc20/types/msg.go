@@ -1,6 +1,9 @@
 package types
 
 import (
+	"fmt"
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,13 +17,24 @@ import (
 var (
 	_ sdk.Msg = &MsgConvertCoin{}
 	_ sdk.Msg = &MsgConvertERC20{}
+
 	_ sdk.Msg = &MsgUpdateParams{}
+	_ sdk.Msg = &MsgRegisterCoin{}
+	_ sdk.Msg = &MsgRegisterERC20{}
+	_ sdk.Msg = &MsgToggleTokenConversion{}
+	_ sdk.Msg = &MsgUpdateDenomAlias{}
 )
 
 const (
 	TypeMsgConvertCoin  = "convert_coin"
 	TypeMsgConvertERC20 = "convert_ERC20"
 	TypeMsgConvertDenom = "convert_denom"
+	TypeMsgUpdateParams = "update_params"
+
+	TypeMsgRegisterCoin          = "register_coin"
+	TypeMsgRegisterERC20         = "register_erc20"
+	TypeMsgToggleTokenConversion = "toggle_token_conversion"
+	TypeMsgUpdateDenomAlias      = "update_denom_alias"
 )
 
 // NewMsgConvertCoin creates a new instance of MsgConvertCoin
@@ -151,6 +165,19 @@ func (m *MsgConvertDenom) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
+// Route returns the MsgUpdateParams message route.
+func (m *MsgUpdateParams) Route() string { return ModuleName }
+
+// Type returns the MsgUpdateParams message type.
+func (m *MsgUpdateParams) Type() string { return TypeMsgUpdateParams }
+
+// GetSignBytes returns the raw bytes for a MsgUpdateParams message that
+// the expected signer needs to sign.
+func (m *MsgUpdateParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.Authority)
@@ -165,4 +192,140 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 		return err
 	}
 	return nil
+}
+
+// Route returns the MsgRegisterCoin message route.
+func (m *MsgRegisterCoin) Route() string { return ModuleName }
+
+// Type returns the MsgRegisterCoin message type.
+func (m *MsgRegisterCoin) Type() string { return TypeMsgRegisterCoin }
+
+// GetSignBytes returns the raw bytes for a MsgRegisterCoin message that
+// the expected signer needs to sign.
+func (m *MsgRegisterCoin) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgRegisterCoin) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrap(err, "invalid authority address")
+	}
+	if err := m.Metadata.Validate(); err != nil {
+		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
+	}
+	if err := fxtypes.ValidateMetadata(m.Metadata); err != nil {
+		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
+	}
+	if err := ibctransfertypes.ValidateIBCDenom(m.Metadata.Base); err != nil {
+		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata base: %s", err.Error())
+	}
+	return nil
+}
+
+func (m *MsgRegisterCoin) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
+}
+
+// Route returns the MsgRegisterERC20 message route.
+func (m *MsgRegisterERC20) Route() string { return ModuleName }
+
+// Type returns the MsgRegisterERC20 message type.
+func (m *MsgRegisterERC20) Type() string { return TypeMsgRegisterERC20 }
+
+// GetSignBytes returns the raw bytes for a MsgRegisterERC20 message that
+// the expected signer needs to sign.
+func (m *MsgRegisterERC20) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgRegisterERC20) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrap(err, "invalid authority address")
+	}
+	if err := fxtypes.ValidateEthereumAddress(m.Erc20Address); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid ERC20 address: %s", err.Error())
+	}
+	seenAliases := make(map[string]bool)
+	for _, alias := range m.Aliases {
+		if seenAliases[alias] {
+			return fmt.Errorf("duplicate denomination unit alias %s", alias)
+		}
+		if strings.TrimSpace(alias) == "" {
+			return fmt.Errorf("alias for denom unit %s cannot be blank", alias)
+		}
+		if err := sdk.ValidateDenom(alias); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid alias")
+		}
+		seenAliases[alias] = true
+	}
+	return nil
+}
+
+func (m *MsgRegisterERC20) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
+}
+
+// Route returns the MsgToggleTokenConversion message route.
+func (m *MsgToggleTokenConversion) Route() string { return ModuleName }
+
+// Type returns the MsgToggleTokenConversion message type.
+func (m *MsgToggleTokenConversion) Type() string { return TypeMsgToggleTokenConversion }
+
+// GetSignBytes returns the raw bytes for a MsgToggleTokenConversion message that
+// the expected signer needs to sign.
+func (m *MsgToggleTokenConversion) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgToggleTokenConversion) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrap(err, "invalid authority address")
+	}
+	if err := fxtypes.ValidateEthereumAddress(m.Token); err != nil {
+		if err := sdk.ValidateDenom(m.Token); err != nil {
+			return errortypes.ErrInvalidRequest.Wrap("invalid token")
+		}
+	}
+	return nil
+}
+
+func (m *MsgToggleTokenConversion) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
+}
+
+// Route returns the MsgUpdateDenomAlias message route.
+func (m *MsgUpdateDenomAlias) Route() string { return ModuleName }
+
+// Type returns the MsgUpdateDenomAlias message type.
+func (m *MsgUpdateDenomAlias) Type() string { return TypeMsgUpdateDenomAlias }
+
+// GetSignBytes returns the raw bytes for a MsgUpdateDenomAlias message that
+// the expected signer needs to sign.
+func (m *MsgUpdateDenomAlias) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgUpdateDenomAlias) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errorsmod.Wrap(err, "invalid authority address")
+	}
+	if err := sdk.ValidateDenom(m.Denom); err != nil {
+		return errortypes.ErrInvalidRequest.Wrap("invalid denom")
+	}
+	if err := sdk.ValidateDenom(m.Alias); err != nil {
+		return errortypes.ErrInvalidRequest.Wrap("invalid alias")
+	}
+	return nil
+}
+
+func (m *MsgUpdateDenomAlias) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
 }

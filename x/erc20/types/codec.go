@@ -22,6 +22,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgConvertCoin{},
 		&MsgConvertERC20{},
 		&MsgConvertDenom{},
+
+		&MsgUpdateParams{},
+		&MsgRegisterCoin{},
+		&MsgRegisterERC20{},
+		&MsgToggleTokenConversion{},
+		&MsgUpdateDenomAlias{},
 	)
 	registry.RegisterImplementations(
 		(*govv1betal.Content)(nil),

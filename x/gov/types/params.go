@@ -10,6 +10,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 func EGFProposalMinDeposit(claimCoin sdk.Coins) sdk.Coins {
@@ -62,7 +63,12 @@ func CheckErc20ProposalMsg(msgs []*codectypes.Any) bool {
 				return false
 			}
 		}
-		// TODO v1 MsgServer erc20 pending
+		if strings.EqualFold(msg.TypeUrl, sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{})) ||
+			strings.EqualFold(msg.TypeUrl, sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{})) ||
+			strings.EqualFold(msg.TypeUrl, sdk.MsgTypeURL(&erc20types.MsgToggleTokenConversion{})) ||
+			strings.EqualFold(msg.TypeUrl, sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{})) {
+			return true
+		}
 	}
 	return false
 }

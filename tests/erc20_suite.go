@@ -1,13 +1,14 @@
 package tests
 
 import (
-	"fmt"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -69,31 +70,28 @@ func (suite *Erc20TestSuite) DenomFromErc20(address common.Address) string {
 }
 
 func (suite *Erc20TestSuite) RegisterCoinProposal(md banktypes.Metadata) (*sdk.TxResponse, uint64) {
-	content := &erc20types.RegisterCoinProposal{
-		Title:       fmt.Sprintf("register %s denom", md.Base),
-		Description: "bar",
-		Metadata:    md,
+	msg := &erc20types.MsgRegisterCoin{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Metadata:  md,
 	}
-	return suite.BroadcastProposalTx(content)
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
 }
 
 func (suite *Erc20TestSuite) ToggleTokenConversionProposal(denom string) (*sdk.TxResponse, uint64) {
-	content := &erc20types.ToggleTokenConversionProposal{
-		Title:       fmt.Sprintf("update %s denom", denom),
-		Description: "update",
-		Token:       denom,
+	msg := &erc20types.MsgToggleTokenConversion{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Token:     denom,
 	}
-	return suite.BroadcastProposalTx(content)
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
 }
 
 func (suite *Erc20TestSuite) UpdateDenomAliasProposal(denom, alias string) (*sdk.TxResponse, uint64) {
-	content := &erc20types.UpdateDenomAliasProposal{
-		Title:       fmt.Sprintf("update %s denom %s alias", denom, alias),
-		Description: "update",
-		Denom:       denom,
-		Alias:       alias,
+	msg := &erc20types.MsgUpdateDenomAlias{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Denom:     denom,
+		Alias:     alias,
 	}
-	return suite.BroadcastProposalTx(content)
+	return suite.BroadcastProposalTx2([]sdk.Msg{msg})
 }
 
 func (suite *Erc20TestSuite) ConvertCoin(private cryptotypes.PrivKey, recipient common.Address, coin sdk.Coin) *sdk.TxResponse {

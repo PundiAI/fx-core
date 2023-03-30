@@ -404,6 +404,54 @@ func (k Keeper) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*ty
 	return &types.MsgUpdateParamsResponse{}, nil
 }
 
+func (k Keeper) RegisterCoin(c context.Context, req *types.MsgRegisterCoin) (*types.MsgRegisterCoinResponse, error) {
+	if k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	pair, err := k.RegisterNativeCoin(ctx, req.Metadata)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgRegisterCoinResponse{Pair: *pair}, nil
+}
+
+func (k Keeper) RegisterERC20(c context.Context, req *types.MsgRegisterERC20) (*types.MsgRegisterERC20Response, error) {
+	if k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	pair, err := k.RegisterNativeERC20(ctx, common.HexToAddress(req.Erc20Address), req.Aliases...)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgRegisterERC20Response{Pair: *pair}, nil
+}
+
+func (k Keeper) ToggleTokenConversion(c context.Context, req *types.MsgToggleTokenConversion) (*types.MsgToggleTokenConversionResponse, error) {
+	if k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	pair, err := k.ToggleTokenConvert(ctx, req.Token)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgToggleTokenConversionResponse{Pair: pair}, nil
+}
+
+func (k Keeper) UpdateDenomAlias(c context.Context, req *types.MsgUpdateDenomAlias) (*types.MsgUpdateDenomAliasResponse, error) {
+	if k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	_, err := k.UpdateDenomAliases(ctx, req.Denom, req.Alias)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateDenomAliasResponse{}, nil
+}
+
 func (k Keeper) ToTargetDenom(ctx sdk.Context, denom, base string, aliases []string, fxTarget fxtypes.FxTarget) string {
 	// erc20
 	if len(fxTarget.GetTarget()) <= 0 || fxTarget.GetTarget() == types.ModuleName {
