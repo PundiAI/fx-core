@@ -243,7 +243,7 @@ func (suite *PrecompileTestSuite) MintLockNativeTokenToModule(md banktypes.Metad
 func (suite *PrecompileTestSuite) BalanceOf(contract, account common.Address) *big.Int {
 	var balanceRes struct{ Value *big.Int }
 	err := suite.app.EvmKeeper.QueryContract(suite.ctx, account, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, account)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	return balanceRes.Value
 }
 
@@ -278,7 +278,7 @@ func (suite *PrecompileTestSuite) ERC20Approve(signer *helpers.Signer, contractA
 func (suite *PrecompileTestSuite) ERC20Allowance(contract, owner, spender common.Address) *big.Int {
 	var allowanceRes struct{ Value *big.Int }
 	err := suite.app.EvmKeeper.QueryContract(suite.ctx, owner, contract, fxtypes.GetERC20().ABI, "allowance", &allowanceRes, owner, spender)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	return allowanceRes.Value
 }
 
@@ -303,7 +303,7 @@ func (suite *PrecompileTestSuite) RandPrefixAndAddress() (string, string) {
 	}
 	prefix := strings.ToLower(tmrand.Str(5))
 	accAddress, err := bech32.ConvertAndEncode(prefix, suite.RandSigner().AccAddress().Bytes())
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	return prefix, accAddress
 }
 

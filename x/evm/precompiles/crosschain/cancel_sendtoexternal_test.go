@@ -354,7 +354,7 @@ func (suite *PrecompileTestSuite) TestCancelSendToExternal() {
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
 			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(randMint))
 			moduleName := md.RandModule()

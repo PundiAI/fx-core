@@ -429,7 +429,7 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 			// token pair
 			md := suite.GenerateCrossChainDenoms()
 			pair, err := suite.app.Erc20Keeper.RegisterNativeCoin(suite.ctx, md.GetMetadata())
-			suite.NoError(err)
+			suite.Require().NoError(err)
 			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
 			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(big.NewInt(0).Add(randMint, randBridgeFee)))
 			moduleName := md.RandModule()
@@ -480,6 +480,340 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFee() {
 						continue
 					}
 					suite.Require().Equal(coin.Amount.String(), randBridgeFee.String())
+				}
+
+				for _, log := range res.Logs {
+					if log.Topics[0] == crosschain.IncreaseBridgeFeeEvent.ID.String() {
+						suite.Require().Equal(log.Address, crosschain.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Topics[1], signer.Address().Hash().String())
+						suite.Require().Equal(log.Topics[2], pair.GetERC20Contract().Hash().String())
+						unpack, err := crosschain.IncreaseBridgeFeeEvent.Inputs.NonIndexed().Unpack(log.Data)
+						suite.Require().NoError(err)
+						chain := unpack[0].(string)
+						suite.Require().Equal(chain, moduleName)
+						txID := unpack[1].(*big.Int)
+						suite.Require().True(txID.Uint64() > 0)
+						fee := unpack[2].(*big.Int)
+						suite.Require().Equal(fee.String(), randBridgeFee.String())
+					}
+				}
+
+			} else {
+				suite.Require().Error(err)
+				suite.Require().EqualError(err, tc.error(errArgs))
+			}
+		})
+	}
+}
+
+func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
+	randBridgeFee := big.NewInt(int64(tmrand.Uint32() + 10))
+	crossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
+		data, err := fxtypes.MustABIJson(crosschain.JsonABI).Pack(
+			"crossChain",
+			contact,
+			helpers.GenerateAddressByModule(moduleName),
+			amount,
+			fee,
+			fxtypes.MustStrToByte32(moduleName),
+			"",
+		)
+		suite.Require().NoError(err)
+
+		tx, err := suite.PackEthereumTx(signer, crosschain.GetPrecompileAddress(), value, data)
+		suite.Require().NoError(err)
+		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+		suite.Require().NoError(err)
+		suite.Require().False(res.Failed(), res.VmError)
+	}
+	transferCrossChainTxFunc := func(signer *helpers.Signer, contact common.Address, moduleName string, amount, fee, value *big.Int) {
+		data, err := fxtypes.GetERC20().ABI.Pack(
+			"transferCrossChain",
+			helpers.GenerateAddressByModule(moduleName),
+			amount,
+			fee,
+			fxtypes.MustStrToByte32(moduleName),
+		)
+		suite.Require().NoError(err)
+		tx, err := suite.PackEthereumTx(signer, contact, value, data)
+		suite.Require().NoError(err)
+		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+		suite.Require().NoError(err)
+		suite.Require().False(res.Failed(), res.VmError)
+	}
+	increaseBridgeFeeFunc := func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
+		pendingTx, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+			&crosschaintypes.QueryPendingSendToExternalRequest{
+				ChainName:     moduleName,
+				SenderAddress: signer.AccAddress().String(),
+			})
+		suite.Require().NoError(err)
+		suite.Require().Equal(1, len(pendingTx.UnbatchedTransfers))
+		totalAmount := pendingTx.UnbatchedTransfers[0].Token.Amount.Add(pendingTx.UnbatchedTransfers[0].Fee.Amount)
+		suite.Require().Equal(randMint.String(), totalAmount.String())
+
+		coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randBridgeFee))
+		helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+		suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randBridgeFee)
+
+		_, err = suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+			Coin:     coin,
+			Receiver: signer.Address().Hex(),
+			Sender:   signer.AccAddress().String(),
+		})
+		suite.Require().NoError(err)
+
+		suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetPrecompileAddress(), randBridgeFee)
+
+		data, err := fxtypes.MustABIJson(crosschain.JsonABI).Pack(
+			"increaseBridgeFee",
+			moduleName,
+			big.NewInt(int64(pendingTx.UnbatchedTransfers[0].Id)),
+			pair.GetERC20Contract(),
+			randBridgeFee,
+		)
+		suite.Require().NoError(err)
+		return data, nil
+	}
+
+	testCases := []struct {
+		name     string
+		prepare  func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string)
+		malleate func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string)
+		error    func(args []string) string
+		result   bool
+	}{
+		{
+			name: "ok - address + erc20 token",
+			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
+				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
+
+				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
+
+				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+					Coin:     coin,
+					Receiver: signer.Address().Hex(),
+					Sender:   signer.AccAddress().String(),
+				})
+				suite.Require().NoError(err)
+
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetPrecompileAddress(), randMint)
+
+				crossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, randMint, big.NewInt(0), big.NewInt(0))
+				return pair, moduleName, ""
+			},
+			malleate: increaseBridgeFeeFunc,
+			result:   true,
+		},
+		{
+			name: "ok - fip20 contract + erc20 token",
+			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
+				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randMint))
+
+				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
+
+				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+					Coin:     coin,
+					Receiver: signer.Address().Hex(),
+					Sender:   signer.AccAddress().String(),
+				})
+				suite.Require().NoError(err)
+				fee := big.NewInt(1)
+				amount := big.NewInt(0).Sub(randMint, fee)
+				transferCrossChainTxFunc(signer, pair.GetERC20Contract(), moduleName, amount, fee, big.NewInt(0))
+
+				return pair, moduleName, ""
+			},
+			malleate: increaseBridgeFeeFunc,
+			result:   true,
+		},
+		{
+			name: "failed - invalid chain name",
+			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
+				return pair, moduleName, ""
+			},
+			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
+				chain := "123"
+				data, err := fxtypes.MustABIJson(crosschain.JsonABI).Pack(
+					"increaseBridgeFee",
+					chain,
+					big.NewInt(1),
+					pair.GetERC20Contract(),
+					randBridgeFee,
+				)
+				suite.Require().NoError(err)
+				return data, []string{chain}
+			},
+			error: func(args []string) string {
+				return fmt.Sprintf("invalid module name: %s", args[0])
+			},
+			result: false,
+		},
+		{
+			name: "failed - invalid tx id",
+			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
+				return pair, moduleName, ""
+			},
+			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
+				txID := big.NewInt(0)
+				data, err := fxtypes.MustABIJson(crosschain.JsonABI).Pack(
+					"increaseBridgeFee",
+					moduleName,
+					txID,
+					pair.GetERC20Contract(),
+					randBridgeFee,
+				)
+				suite.Require().NoError(err)
+				return data, []string{txID.String()}
+			},
+			error: func(args []string) string {
+				return fmt.Sprintf("invalid tx id: %s", args[0])
+			},
+			result: false,
+		},
+		{
+			name: "failed - invalid bridge fee",
+			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
+				return pair, moduleName, ""
+			},
+			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
+				fee := big.NewInt(0)
+				data, err := fxtypes.MustABIJson(crosschain.JsonABI).Pack(
+					"increaseBridgeFee",
+					moduleName,
+					big.NewInt(1),
+					pair.GetERC20Contract(),
+					fee,
+				)
+				suite.Require().NoError(err)
+				return data, []string{fee.String()}
+			},
+			error: func(args []string) string {
+				return fmt.Sprintf("invalid add bridge fee: %s", args[0])
+			},
+			result: false,
+		},
+		{
+			name: "failed - not approve token",
+			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
+				return pair, moduleName, ""
+			},
+			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
+				data, err := fxtypes.MustABIJson(crosschain.JsonABI).Pack(
+					"increaseBridgeFee",
+					moduleName,
+					big.NewInt(1),
+					pair.GetERC20Contract(),
+					randBridgeFee,
+				)
+				suite.Require().NoError(err)
+				return data, []string{}
+			},
+			error: func(args []string) string {
+				return "call transferFrom: execution reverted"
+			},
+			result: false,
+		},
+		{
+			name: "failed - tx id not found",
+			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
+				return pair, moduleName, ""
+			},
+			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
+				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randBridgeFee))
+				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
+				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
+				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
+					Coin:     coin,
+					Receiver: signer.Address().Hex(),
+					Sender:   signer.AccAddress().String(),
+				})
+				suite.Require().NoError(err)
+
+				suite.ERC20Approve(signer, pair.GetERC20Contract(), crosschain.GetPrecompileAddress(), randBridgeFee)
+
+				txID := big.NewInt(10)
+				data, err := fxtypes.MustABIJson(crosschain.JsonABI).Pack(
+					"increaseBridgeFee",
+					moduleName,
+					txID,
+					pair.GetERC20Contract(),
+					randBridgeFee,
+				)
+				suite.Require().NoError(err)
+				return data, []string{txID.String()}
+			},
+			error: func(args []string) string {
+				return fmt.Sprintf("txId %s not in unbatched index! Must be in a batch!: invalid", args[0])
+			},
+			result: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest() // reset
+			signer := suite.RandSigner()
+			// token pair
+			md := suite.GenerateCrossChainDenoms()
+
+			// deploy fip20 external
+			fip20External, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, signer.Address(), "Test token", "TEST", 18)
+			suite.Require().NoError(err)
+			// token pair
+			pair, err := suite.app.Erc20Keeper.RegisterNativeERC20(suite.ctx, fip20External, md.GetMetadata().DenomUnits[0].Aliases...)
+			suite.Require().NoError(err)
+
+			randMint := big.NewInt(int64(tmrand.Uint32() + 10))
+			suite.MintLockNativeTokenToModule(md.GetMetadata(), sdkmath.NewIntFromBigInt(big.NewInt(0).Add(randMint, randBridgeFee)))
+			moduleName := md.RandModule()
+
+			pair, moduleName, _ = tc.prepare(pair, moduleName, signer, randMint)
+
+			// check init balance zero
+			chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, signer.AccAddress())
+			suite.Require().True(chainBalances.IsZero(), chainBalances.String())
+			balance := suite.BalanceOf(pair.GetERC20Contract(), signer.Address())
+			suite.Require().True(balance.Cmp(big.NewInt(0)) == 0, balance.String())
+
+			// get total supply
+			totalBefore, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+			suite.Require().NoError(err)
+
+			packData, errArgs := tc.malleate(moduleName, pair, md, signer, randMint)
+			tx, err := suite.PackEthereumTx(signer, crosschain.GetPrecompileAddress(), big.NewInt(0), packData)
+			var res *evmtypes.MsgEthereumTxResponse
+			if err == nil {
+				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
+			}
+			// check result
+			if tc.result {
+				suite.Require().NoError(err)
+				suite.Require().False(res.Failed(), res.VmError)
+
+				pendingTx, err := suite.CrossChainKeepers()[moduleName].GetPendingSendToExternal(sdk.WrapSDKContext(suite.ctx),
+					&crosschaintypes.QueryPendingSendToExternalRequest{
+						ChainName:     moduleName,
+						SenderAddress: signer.AccAddress().String(),
+					})
+				suite.Require().NoError(err)
+				suite.Require().Equal(1, len(pendingTx.UnbatchedTransfers))
+				totalAmount := pendingTx.UnbatchedTransfers[0].Token.Amount.Add(pendingTx.UnbatchedTransfers[0].Fee.Amount)
+				suite.Require().Equal(big.NewInt(0).Add(randMint, randBridgeFee).String(), totalAmount.String())
+
+				totalAfter, err := suite.app.BankKeeper.TotalSupply(suite.ctx, &banktypes.QueryTotalSupplyRequest{})
+				suite.Require().NoError(err)
+
+				for _, coin := range totalBefore.Supply {
+					if pair.GetDenom() == coin.Denom {
+						find, expect := totalAfter.Supply.Find(coin.Denom)
+						suite.True(find)
+						suite.Require().Equal(coin.Amount.Add(sdkmath.NewIntFromBigInt(randBridgeFee)).String(), expect.Amount.String(), coin.Denom)
+						continue
+					}
+					suite.Require().Equal(coin.Amount.String(), totalAfter.Supply.AmountOf(coin.Denom).String())
 				}
 
 				for _, log := range res.Logs {
