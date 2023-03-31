@@ -7,6 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -117,6 +118,14 @@ func TestAminoEncode(t *testing.T) {
 				ValidatorAddress:  "cosmosvaloper1h6lrm4uusd46tu4slkg620hylv46hhff7a8su6",
 				CommissionRate:    nil,
 				MinSelfDelegation: nil,
+			},
+		},
+		{
+			name:     "gov-TextProposal",
+			expected: `{"type":"cosmos-sdk/TextProposal","value":{"description":"foo desc","title":"foo title"}}`,
+			msg: govv1betal.TextProposal{
+				Title:       "foo title",
+				Description: "foo desc",
 			},
 		},
 	}
