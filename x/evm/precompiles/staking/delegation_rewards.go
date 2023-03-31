@@ -33,6 +33,9 @@ var DelegationRewardsMethod = abi.NewMethod(DelegationRewardsMethodName, Delegat
 )
 
 func (c *Contract) DelegationRewards(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {
+	// NOTE: function modify state, so cache context and not commit
+	cacheCtx, _ := ctx.CacheContext()
+
 	args, err := DelegationRewardsMethod.Inputs.Unpack(contract.Input[4:])
 	if err != nil {
 		return nil, errors.New("failed to unpack input")
@@ -45,7 +48,7 @@ func (c *Contract) DelegationRewards(ctx sdk.Context, _ *vm.EVM, contract *vm.Co
 	if err != nil {
 		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
 	}
-	validator, found := c.stakingKeeper.GetValidator(ctx, valAddr)
+	validator, found := c.stakingKeeper.GetValidator(cacheCtx, valAddr)
 	if !found {
 		return nil, fmt.Errorf("validator not found: %s", valAddr.String())
 	}
@@ -54,14 +57,14 @@ func (c *Contract) DelegationRewards(ctx sdk.Context, _ *vm.EVM, contract *vm.Co
 	if !ok {
 		return nil, errors.New("unexpected arg type")
 	}
-	delegation, found := c.stakingKeeper.GetDelegation(ctx, sdk.AccAddress(delAddr.Bytes()), valAddr)
+	delegation, found := c.stakingKeeper.GetDelegation(cacheCtx, sdk.AccAddress(delAddr.Bytes()), valAddr)
 	if !found {
 		return DelegationRewardsMethod.Outputs.Pack(big.NewInt(0))
 	}
 
-	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
-	endingPeriod := c.distrKeeper.IncrementValidatorPeriod(ctx, validator)
-	rewards := c.distrKeeper.CalculateDelegationRewards(ctx, validator, delegation, endingPeriod)
+	evmDenom := c.evmKeeper.GetEVMDenom(cacheCtx)
+	endingPeriod := c.distrKeeper.IncrementValidatorPeriod(cacheCtx, validator)
+	rewards := c.distrKeeper.CalculateDelegationRewards(cacheCtx, validator, delegation, endingPeriod)
 
 	return DelegationRewardsMethod.Outputs.Pack(rewards.AmountOf(evmDenom).TruncateInt().BigInt())
 }
