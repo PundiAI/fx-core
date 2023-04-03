@@ -1805,8 +1805,8 @@ func TestUpdateChainOraclesProposal_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectPass: false,
-			err:        types.ErrDuplicate,
-			errReason:  fmt.Sprintf("oracle address: %s: %s", normalOracleAddress, types.ErrDuplicate),
+			err:        errortypes.ErrInvalidAddress,
+			errReason:  fmt.Sprintf("duplicate oracle address: %s: invalid address", normalOracleAddress),
 		},
 		{
 			testName: "success",

@@ -72,10 +72,10 @@ func (m *UpdateChainOraclesProposal) ValidateBasic() error {
 	oraclesMap := make(map[string]bool)
 	for _, addr := range m.Oracles {
 		if _, err := sdk.AccAddressFromBech32(addr); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+			return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err.Error())
 		}
 		if oraclesMap[addr] {
-			return ErrDuplicate.Wrapf("oracle address: %s", addr)
+			return errortypes.ErrInvalidAddress.Wrapf("duplicate oracle address: %s", addr)
 		}
 		oraclesMap[addr] = true
 	}

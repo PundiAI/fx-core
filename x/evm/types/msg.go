@@ -1,9 +1,10 @@
 package types
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
@@ -24,13 +25,13 @@ func (m *MsgCallContract) GetSigners() []sdk.AccAddress {
 // ValidateBasic does a sanity check on the provided data.
 func (m *MsgCallContract) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "invalid authority address")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.ContractAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid contract address: %s", err.Error())
+		return errorsmod.Wrap(err, "contract address")
 	}
 	if len(m.Data) == 0 {
-		return errortypes.ErrInvalidAddress.Wrap("invalid data ")
+		return errors.New("empty data")
 	}
 	return nil
 }

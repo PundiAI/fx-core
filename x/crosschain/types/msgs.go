@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -812,13 +813,16 @@ func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 
 func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "invalid authority address")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if err := m.Params.ValidateBasic(); err != nil {
-		return err
+		return errorsmod.Wrap(err, "params")
+	}
+	if err := ValidateModuleName(m.ChainName); err != nil {
+		return errorsmod.Wrap(err, "chain name")
 	}
 	if len(m.Params.Oracles) > 0 {
-		return errortypes.ErrInvalidRequest.Wrap("deprecated oracles")
+		return errors.New("deprecated oracles")
 	}
 	return nil
 }
@@ -838,21 +842,21 @@ func (m *MsgUpdateChainOracles) GetSignBytes() []byte {
 
 func (m *MsgUpdateChainOracles) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "invalid authority address")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if len(m.Oracles) == 0 {
-		panic(fmt.Sprintf("oracles length must be non-zero %s", m.Oracles))
+		return errors.New("empty oracles")
 	}
 	if err := ValidateModuleName(m.ChainName); err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("invalid chain name")
+		return errorsmod.Wrap(err, "chain name")
 	}
 	oraclesMap := make(map[string]bool)
 	for _, addr := range m.Oracles {
 		if _, err := sdk.AccAddressFromBech32(addr); err != nil {
-			return errortypes.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+			return errorsmod.Wrap(err, "oracle address")
 		}
 		if oraclesMap[addr] {
-			return ErrDuplicate.Wrapf("oracle address: %s", addr)
+			return errors.New("duplicate oracle address")
 		}
 		oraclesMap[addr] = true
 	}

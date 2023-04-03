@@ -56,10 +56,10 @@ func (m *MsgConvertCoin) Type() string { return TypeMsgConvertCoin }
 func (m *MsgConvertCoin) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err.Error())
 	}
 	if err = fxtypes.ValidateEthereumAddress(m.Receiver); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err.Error())
 	}
 	if err = ibctransfertypes.ValidateIBCDenom(m.Coin.Denom); err != nil {
 		return errortypes.ErrInvalidCoins.Wrapf("invalid coin denom %s", err.Error())
@@ -100,13 +100,13 @@ func (m *MsgConvertERC20) Type() string { return TypeMsgConvertERC20 }
 // ValidateBasic runs stateless checks on the message
 func (m *MsgConvertERC20) ValidateBasic() error {
 	if err := fxtypes.ValidateEthereumAddress(m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err.Error())
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Receiver); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err.Error())
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.ContractAddress); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid contract address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid contract address: %s", err.Error())
 	}
 	if m.Amount.IsNil() || !m.Amount.IsPositive() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
@@ -143,10 +143,10 @@ func (m *MsgConvertDenom) Type() string { return TypeMsgConvertDenom }
 // ValidateBasic runs stateless checks on the message
 func (m *MsgConvertDenom) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err.Error())
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Receiver); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err.Error())
 	}
 	if !m.Coin.IsValid() || !m.Coin.IsPositive() {
 		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
@@ -186,10 +186,10 @@ func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 
 func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "invalid authority address")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if err := m.Params.Validate(); err != nil {
-		return err
+		return errorsmod.Wrap(err, "params")
 	}
 	return nil
 }
@@ -209,16 +209,16 @@ func (m *MsgRegisterCoin) GetSignBytes() []byte {
 
 func (m *MsgRegisterCoin) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "invalid authority address")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if err := m.Metadata.Validate(); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
+		return errorsmod.Wrap(err, "metadata")
 	}
 	if err := fxtypes.ValidateMetadata(m.Metadata); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata: %s", err.Error())
+		return errorsmod.Wrap(err, "metadata")
 	}
 	if err := ibctransfertypes.ValidateIBCDenom(m.Metadata.Base); err != nil {
-		return errortypes.ErrInvalidRequest.Wrapf("invalid metadata base: %s", err.Error())
+		return errorsmod.Wrap(err, "metadata base")
 	}
 	return nil
 }
@@ -243,10 +243,10 @@ func (m *MsgRegisterERC20) GetSignBytes() []byte {
 
 func (m *MsgRegisterERC20) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "invalid authority address")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.Erc20Address); err != nil {
-		return errortypes.ErrInvalidAddress.Wrapf("invalid ERC20 address: %s", err.Error())
+		return errorsmod.Wrap(err, "ERC20 address")
 	}
 	seenAliases := make(map[string]bool)
 	for _, alias := range m.Aliases {
@@ -257,7 +257,7 @@ func (m *MsgRegisterERC20) ValidateBasic() error {
 			return fmt.Errorf("alias for denom unit %s cannot be blank", alias)
 		}
 		if err := sdk.ValidateDenom(alias); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid alias")
+			return errorsmod.Wrap(err, "alias")
 		}
 		seenAliases[alias] = true
 	}
@@ -284,11 +284,11 @@ func (m *MsgToggleTokenConversion) GetSignBytes() []byte {
 
 func (m *MsgToggleTokenConversion) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "invalid authority address")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if err := fxtypes.ValidateEthereumAddress(m.Token); err != nil {
-		if err := sdk.ValidateDenom(m.Token); err != nil {
-			return errortypes.ErrInvalidRequest.Wrap("invalid token")
+		if err = sdk.ValidateDenom(m.Token); err != nil {
+			return errorsmod.Wrap(err, "token")
 		}
 	}
 	return nil
@@ -314,13 +314,13 @@ func (m *MsgUpdateDenomAlias) GetSignBytes() []byte {
 
 func (m *MsgUpdateDenomAlias) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errorsmod.Wrap(err, "invalid authority address")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if err := sdk.ValidateDenom(m.Denom); err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("invalid denom")
+		return errorsmod.Wrap(err, "denom")
 	}
 	if err := sdk.ValidateDenom(m.Alias); err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("invalid alias")
+		return errorsmod.Wrap(err, "alias")
 	}
 	return nil
 }

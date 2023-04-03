@@ -101,10 +101,10 @@ func (m *RegisterERC20Proposal) ValidateBasic() error {
 	seenAliases := make(map[string]bool)
 	for _, alias := range m.Aliases {
 		if seenAliases[alias] {
-			return fmt.Errorf("duplicate denomination unit alias %s", alias)
+			return errortypes.ErrInvalidAddress.Wrapf("duplicate denomination unit alias %s", alias)
 		}
 		if strings.TrimSpace(alias) == "" {
-			return fmt.Errorf("alias for denom unit %s cannot be blank", alias)
+			return errortypes.ErrInvalidAddress.Wrapf("alias for denom unit %s cannot be blank", alias)
 		}
 		if err := sdk.ValidateDenom(alias); err != nil {
 			return errortypes.ErrInvalidRequest.Wrap("invalid alias")
@@ -165,10 +165,10 @@ func (*UpdateDenomAliasProposal) ProposalType() string {
 // ValidateBasic performs a stateless check of the proposal fields
 func (m *UpdateDenomAliasProposal) ValidateBasic() error {
 	if err := sdk.ValidateDenom(m.Denom); err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("invalid denom")
+		return errortypes.ErrInvalidRequest.Wrapf("invalid denom: %s", err.Error())
 	}
 	if err := sdk.ValidateDenom(m.Alias); err != nil {
-		return errortypes.ErrInvalidRequest.Wrap("invalid alias")
+		return errortypes.ErrInvalidRequest.Wrapf("invalid alias: %s", err.Error())
 	}
 	return govv1betal.ValidateAbstract(m)
 }

@@ -266,7 +266,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			amount:      sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10*1e3).MulRaw(1e18))),
 			msg:         []sdk.Msg{&erc20types.MsgUpdateParams{Authority: "0x1", Params: erc20types.DefaultParams()}},
 			result:      false,
-			expectedErr: "invalid authority address",
+			expectedErr: "authority",
 		},
 		{
 			testName:    "set CrossChainParam",
