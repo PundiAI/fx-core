@@ -817,6 +817,9 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 	if err := m.Params.ValidateBasic(); err != nil {
 		return err
 	}
+	if len(m.Params.Oracles) > 0 {
+		return errortypes.ErrInvalidRequest.Wrap("deprecated oracles")
+	}
 	return nil
 }
 
