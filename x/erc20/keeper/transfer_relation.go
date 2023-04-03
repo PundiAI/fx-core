@@ -19,7 +19,6 @@ func (k Keeper) RefundAfter(ctx sdk.Context, channel string, sequence uint64, se
 		return err
 	}
 	commit()
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	return nil
 }
 

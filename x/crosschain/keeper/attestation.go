@@ -129,7 +129,6 @@ func (k Keeper) processAttestation(ctx sdk.Context, claim types.ExternalClaim) e
 		return err
 	}
 	commit() // persist transient storage
-	ctx.EventManager().EmitEvents(xCtx.EventManager().Events())
 	return nil
 }
 

@@ -30,7 +30,6 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 		if err1 == nil {
 			if err2 = k.transferIBCHandler(cacheCtx, eventNonce, receiver, targetIBCCoin, fxTarget); err2 == nil {
 				commit()
-				ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 				return nil
 			}
 		}
@@ -44,7 +43,6 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 			return err
 		}
 		commit()
-		ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	}
 	return nil
 }

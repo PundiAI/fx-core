@@ -100,7 +100,6 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 
 	// commit and append events
 	commit()
-	c.ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	return ret, nil
 }
 
