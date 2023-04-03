@@ -20,9 +20,6 @@ import (
 func (keeper Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, fxMetadata string) (v1.Proposal, error) {
 	// TODO proposal metadata contain title, summary and metadata, for compatibility with cosmos v0.46.x,
 	//  when upgrade to v0.47.x, will migrate to new proposal struct
-	if len(strings.TrimSpace(fxMetadata)) == 0 {
-		return v1.Proposal{}, errorsmod.Wrap(types.ErrInvalidProposalContent, "fx metadata cannot be empty")
-	}
 	fxMD, err := fxgovtypes.ParseFXMetadata(fxMetadata)
 	if err != nil {
 		return v1.Proposal{}, errortypes.ErrInvalidRequest.Wrapf("invalid fx metadata content: %s", err)

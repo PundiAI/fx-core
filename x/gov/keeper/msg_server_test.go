@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestSubmitProposalFXMetadata() {
 				return ""
 			},
 			result:      false,
-			expectedErr: errorsmod.Wrap(govtypes.ErrInvalidProposalContent, "fx metadata cannot be empty"),
+			expectedErr: errorsmod.Wrap(errortypes.ErrInvalidRequest, "invalid fx metadata content: fx metadata cannot be empty"),
 		},
 		{
 			name: "error -  invalid fx metadata",

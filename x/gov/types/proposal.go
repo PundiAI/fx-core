@@ -3,6 +3,8 @@ package types
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"strings"
 )
 
 type FXMetadata struct {
@@ -25,6 +27,9 @@ func NewFXMetadata(title, summary, metadata string) FXMetadata {
 }
 
 func ParseFXMetadata(fxMDStr string) (fxMD FXMetadata, err error) {
+	if len(strings.TrimSpace(fxMDStr)) == 0 {
+		return FXMetadata{}, fmt.Errorf("fx metadata cannot be empty")
+	}
 	bz, err := base64.StdEncoding.DecodeString(fxMDStr)
 	if err != nil {
 		return FXMetadata{}, err
