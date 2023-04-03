@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,12 +10,12 @@ import (
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
-// ModuleCdc references the global erc20 module codec. Note, the codec should
-// ONLY be used in certain instances of tests and for JSON encoding.
-//
-// The actual codec used for serialization should be provided to modules/erc20 and
-// defined at the application level.
-var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+var ModuleCdc = codec.NewLegacyAmino()
+
+// NOTE: This is required for the GetSignBytes function
+func init() {
+	RegisterLegacyAminoCodec(ModuleCdc)
+}
 
 // RegisterInterfaces register implementations
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
@@ -37,4 +39,21 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&UpdateDenomAliasProposal{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+}
+
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&MsgConvertCoin{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConvertCoin"), nil)
+	cdc.RegisterConcrete(&MsgConvertERC20{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConvertERC20"), nil)
+	cdc.RegisterConcrete(&MsgConvertDenom{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConvertDenom"), nil)
+
+	cdc.RegisterConcrete(&MsgUpdateParams{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateParams"), nil)
+	cdc.RegisterConcrete(&MsgRegisterCoin{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRegisterCoin"), nil)
+	cdc.RegisterConcrete(&MsgRegisterERC20{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRegisterERC20"), nil)
+	cdc.RegisterConcrete(&MsgToggleTokenConversion{}, fmt.Sprintf("%s/%s", ModuleName, "MsgToggleTokenConversion"), nil)
+	cdc.RegisterConcrete(&MsgUpdateDenomAlias{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateDenomAlias"), nil)
+
+	cdc.RegisterConcrete(&RegisterCoinProposal{}, fmt.Sprintf("%s/%s", ModuleName, "RegisterCoinProposal"), nil)
+	cdc.RegisterConcrete(&RegisterERC20Proposal{}, fmt.Sprintf("%s/%s", ModuleName, "RegisterERC20Proposal"), nil)
+	cdc.RegisterConcrete(&ToggleTokenConversionProposal{}, fmt.Sprintf("%s/%s", ModuleName, "ToggleTokenConversionProposal"), nil)
+	cdc.RegisterConcrete(&UpdateDenomAliasProposal{}, fmt.Sprintf("%s/%s", ModuleName, "UpdateDenomAliasProposal"), nil)
 }
