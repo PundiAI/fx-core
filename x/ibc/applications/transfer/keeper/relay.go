@@ -14,8 +14,10 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
@@ -132,7 +134,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return err
 	}
 
-	receiver, transferAmount, feeAmount, err := parseReceiveAndAmountByPacket(data)
+	receiver, isEvmAddr, transferAmount, feeAmount, err := parseReceiveAndAmountByPacket(data)
 	if err != nil {
 		return err
 	}
@@ -155,6 +157,17 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	))
 
 	if data.Router == "" || k.router == nil {
+		// try to send to evm module
+		if isEvmAddr {
+			_, err = k.erc20Keeper.ConvertCoin(sdk.WrapSDKContext(onRecvPacketCtxWithNewEvent), &erc20types.MsgConvertCoin{
+				Coin:     receiveCoin,
+				Receiver: common.BytesToAddress(receiver).String(),
+				Sender:   receiver.String(),
+			})
+			if err != nil {
+				return err
+			}
+		}
 		// NOTE: if not router, emit onRecvPacketCtx event, only error is nil emit
 		ctx.EventManager().EmitEvents(onRecvPacketCtxWithNewEvent.EventManager().Events())
 		return nil

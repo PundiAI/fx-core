@@ -1,9 +1,12 @@
 package types
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 type RefundHook interface {
@@ -13,4 +16,5 @@ type RefundHook interface {
 
 type Erc20Keeper interface {
 	ConvertDenomToTarget(ctx sdk.Context, from sdk.AccAddress, coin sdk.Coin, fxTarget fxtypes.FxTarget) (sdk.Coin, error)
+	ConvertCoin(goCtx context.Context, msg *erc20types.MsgConvertCoin) (*erc20types.MsgConvertCoinResponse, error)
 }

@@ -56,31 +56,28 @@ func parseIBCCoinDenom(packet channeltypes.Packet, packetDenom string) string {
 	return receiveDenom
 }
 
-func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccAddress, sdkmath.Int, sdkmath.Int, error) {
+func parseReceiveAndAmountByPacket(data types.FungibleTokenPacketData) (sdk.AccAddress, bool, sdkmath.Int, sdkmath.Int, error) {
 	// parse the transfer amount
 	transferAmount, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
-		return nil, sdkmath.Int{}, sdkmath.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdkmath.Int", data.Amount)
+		return nil, false, sdkmath.Int{}, sdkmath.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdkmath.Int", data.Amount)
 	}
 
 	if data.Router != "" {
-		addressBytes, err := parsePacketAddress(data.Sender)
+		addressBytes, _, err := parsePacketAddress(data.Sender)
 		if err != nil {
-			return nil, sdkmath.Int{}, sdkmath.Int{}, err
+			return nil, false, sdkmath.Int{}, sdkmath.Int{}, err
 		}
 		feeAmount, ok := sdkmath.NewIntFromString(data.Fee)
 		if !ok || feeAmount.IsNegative() {
-			return nil, sdkmath.Int{}, sdkmath.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
+			return nil, false, sdkmath.Int{}, sdkmath.Int{}, errorsmod.Wrapf(transfertypes.ErrInvalidAmount, "fee amount is invalid:%s", data.Fee)
 		}
-		return addressBytes, transferAmount, feeAmount, nil
+		return addressBytes, false, transferAmount, feeAmount, nil
 	}
 
 	// decode the receiver address
-	receiverAddr, err := sdk.AccAddressFromBech32(data.Receiver)
-	if err != nil {
-		return nil, sdkmath.Int{}, sdkmath.Int{}, err
-	}
-	return receiverAddr, transferAmount, sdkmath.ZeroInt(), nil
+	receiverAddr, isEvmAddr, err := parsePacketAddress(data.Receiver)
+	return receiverAddr, isEvmAddr, transferAmount, sdkmath.ZeroInt(), err
 }
 
 func parseAmountAndFeeByPacket(data types.FungibleTokenPacketData) (sdkmath.Int, sdkmath.Int, error) {
@@ -101,14 +98,14 @@ func parseAmountAndFeeByPacket(data types.FungibleTokenPacketData) (sdkmath.Int,
 	return transferAmount, feeAmount, nil
 }
 
-func parsePacketAddress(ibcSender string) (sdk.AccAddress, error) {
+func parsePacketAddress(ibcSender string) (addr sdk.AccAddress, isEvmAddr bool, err error) {
 	_, bytes, decodeErr := bech32.DecodeAndConvert(ibcSender)
 	if decodeErr == nil {
-		return bytes, nil
+		return bytes, false, nil
 	}
 	ethAddrError := fxtypes.ValidateEthereumAddress(ibcSender)
 	if ethAddrError == nil {
-		return common.HexToAddress(ibcSender).Bytes(), nil
+		return common.HexToAddress(ibcSender).Bytes(), true, nil
 	}
-	return nil, decodeErr
+	return nil, false, decodeErr
 }
