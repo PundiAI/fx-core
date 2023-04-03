@@ -242,6 +242,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 				suite.Require().Equal(delAfter.GetShares().Sub(delBefore.GetShares()), vaAfter.GetDelegatorShares().Sub(valBefore.GetDelegatorShares()))
 				suite.Require().Equal(delAmount, vaAfter.GetTokens().Sub(valBefore.GetTokens()))
 
+				exitLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.DelegateEvent.ID.String() {
 						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
@@ -254,8 +255,10 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 						suite.Require().Equal(amount.String(), delAmount.BigInt().String())
 						shares := unpack[2].(*big.Int)
 						suite.Require().Equal(shares.String(), delAfter.GetShares().Sub(delBefore.GetShares()).TruncateInt().BigInt().String())
+						exitLog = true
 					}
 				}
+				suite.Require().True(exitLog)
 			} else {
 				suite.Require().True(err != nil || res.Failed())
 				if err != nil {

@@ -176,6 +176,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				chainBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, delAddr.Bytes())
 				suite.Require().True(chainBalances.AmountOf(fxtypes.DefaultDenom).Equal(sdkmath.NewIntFromBigInt(reward)), chainBalances.String())
 
+				exitLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.WithdrawEvent.ID.String() {
 						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
@@ -186,8 +187,10 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 						suite.Require().Equal(unpackValidator, val.GetOperator().String())
 						reward := unpack[1].(*big.Int)
 						suite.Require().Equal(reward.String(), chainBalances.AmountOf(fxtypes.DefaultDenom).BigInt().String())
+						exitLog = true
 					}
 				}
+				suite.Require().True(exitLog)
 
 			} else {
 				suite.Require().True(err != nil || res.Failed())

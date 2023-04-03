@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/functionx/fx-core/v3/x/evm/types"
@@ -62,7 +61,7 @@ func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	}
 	evmDenom := c.evmKeeper.GetEVMDenom(ctx)
 
-	rewardAmount, err := c.withdraw(ctx, evm, contract.Address(), contract.Caller(), valAddr, evmDenom)
+	rewardAmount, err := c.withdraw(ctx, evm, contract.Caller(), valAddr, evmDenom)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +69,7 @@ func (c *Contract) Withdraw(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	return WithdrawMethod.Outputs.Pack(rewardAmount)
 }
 
-func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, contract, sender common.Address, valAddr sdk.ValAddress, withDrawDenom string) (*big.Int, error) {
+func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, sender common.Address, valAddr sdk.ValAddress, withDrawDenom string) (*big.Int, error) {
 	delAddr := sdk.AccAddress(sender.Bytes())
 	withdrawAddr := c.distrKeeper.GetDelegatorWithdrawAddr(ctx, delAddr)
 	if !withdrawAddr.Equals(delAddr) {
@@ -95,23 +94,9 @@ func (c *Contract) withdraw(ctx sdk.Context, evm *vm.EVM, contract, sender commo
 	}
 
 	// add withdraw log
-	if err = withdrawLog(evm, contract, sender, valAddr.String(), rewardAmount); err != nil {
+	if err := c.AddLog(WithdrawEvent, []common.Hash{sender.Hash()}, valAddr.String(), rewardAmount); err != nil {
 		return nil, err
 	}
 
 	return rewardAmount, nil
-}
-
-func withdrawLog(evm *vm.EVM, logAddr, sender common.Address, validator string, reward *big.Int) error {
-	eventData, err := WithdrawEvent.Inputs.NonIndexed().Pack(validator, reward)
-	if err != nil {
-		return err
-	}
-	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     logAddr,
-		Topics:      []common.Hash{WithdrawEvent.ID, sender.Hash()},
-		Data:        eventData,
-		BlockNumber: evm.Context.BlockNumber.Uint64(),
-	})
-	return nil
 }

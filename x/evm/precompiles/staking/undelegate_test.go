@@ -185,6 +185,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 				suite.Require().Equal(val.GetOperator().String(), undelegations[0].ValidatorAddress)
 				suite.Require().Equal(delAmt, undelegations[0].Entries[0].Balance)
 
+				exitLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.UndelegateEvent.ID.String() {
 						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
@@ -199,8 +200,10 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 						suite.Require().Equal(amount.String(), undelegations[0].Entries[0].Balance.BigInt().String())
 						completionTime := unpack[3].(*big.Int)
 						suite.Require().Equal(completionTime.Int64(), undelegations[0].Entries[0].CompletionTime.Unix())
+						exitLog = true
 					}
 				}
+				suite.Require().True(exitLog)
 
 			} else {
 				suite.Require().True(err != nil || res.Failed())

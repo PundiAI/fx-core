@@ -11,7 +11,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/functionx/fx-core/v3/x/evm/types"
@@ -93,7 +92,7 @@ func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	// withdraw rewards if delegation exist, add reward to evm state balance
 	reward := big.NewInt(0)
 	if _, found = c.stakingKeeper.GetDelegation(ctx, sender, valAddr); found {
-		if reward, err = c.withdraw(ctx, evm, contract.Address(), contract.Caller(), valAddr, evmDenom); err != nil {
+		if reward, err = c.withdraw(ctx, evm, contract.Caller(), valAddr, evmDenom); err != nil {
 			return nil, err
 		}
 	}
@@ -104,7 +103,7 @@ func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 
 	// add undelegate log
-	if err = undelegateLog(evm, contract.Address(), contract.Caller(),
+	if err := c.AddLog(UndelegateEvent, []common.Hash{contract.Caller().Hash()},
 		valAddrStr, shareAmount, unDelAmount.BigInt(), big.NewInt(completionTime.Unix())); err != nil {
 		return nil, err
 	}
@@ -142,18 +141,4 @@ func Undelegate(ctx sdk.Context, sk StakingKeeper, bk BankKeeper, delAddr sdk.Ac
 	sk.InsertUBDQueue(ctx, ubd, completionTime)
 
 	return returnAmount, completionTime, nil
-}
-
-func undelegateLog(evm *vm.EVM, logAddr, sender common.Address, validator string, shares, amount, completionTime *big.Int) error {
-	eventData, err := UndelegateEvent.Inputs.NonIndexed().Pack(validator, shares, amount, completionTime)
-	if err != nil {
-		return err
-	}
-	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     logAddr,
-		Topics:      []common.Hash{UndelegateEvent.ID, sender.Hash()},
-		Data:        eventData,
-		BlockNumber: evm.Context.BlockNumber.Uint64(),
-	})
-	return nil
 }

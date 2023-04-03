@@ -10,7 +10,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
@@ -95,7 +94,7 @@ func (c *Contract) Delegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	// withdraw rewards if delegation exist, add reward to evm state balance
 	reward := big.NewInt(0)
 	if _, found = c.stakingKeeper.GetDelegation(ctx, sender, valAddr); found {
-		if reward, err = c.withdraw(ctx, evm, contract.Address(), contract.Caller(), valAddr, evmDenom); err != nil {
+		if reward, err = c.withdraw(ctx, evm, contract.Caller(), valAddr, evmDenom); err != nil {
 			return nil, err
 		}
 	}
@@ -107,24 +106,11 @@ func (c *Contract) Delegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 	}
 
 	// add delegate log
-	if err = delegateLog(evm, contract.Address(), contract.Caller(), valAddrStr, amount, shares.TruncateInt().BigInt()); err != nil {
+	if err := c.AddLog(DelegateEvent, []common.Hash{contract.Caller().Hash()},
+		valAddrStr, amount, shares.TruncateInt().BigInt()); err != nil {
 		return nil, err
 	}
 
 	// TODO truncate shares, decimal 18
 	return DelegateMethod.Outputs.Pack(shares.TruncateInt().BigInt(), reward)
-}
-
-func delegateLog(evm *vm.EVM, logAddr, delegate common.Address, validator string, amount, shares *big.Int) error {
-	eventData, err := DelegateEvent.Inputs.NonIndexed().Pack(validator, amount, shares)
-	if err != nil {
-		return err
-	}
-	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     logAddr,
-		Topics:      []common.Hash{DelegateEvent.ID, delegate.Hash()},
-		Data:        eventData,
-		BlockNumber: evm.Context.BlockNumber.Uint64(),
-	})
-	return nil
 }
