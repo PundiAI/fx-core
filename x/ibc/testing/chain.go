@@ -59,9 +59,10 @@ func NewTestChain(t *testing.T, coord *ibcgotesting.Coordinator, chainID string)
 
 	// create current header and call begin block
 	header := tmproto.Header{
-		ChainID: chainID,
-		Height:  1,
-		Time:    coord.CurrentTime.UTC(),
+		ChainID:         chainID,
+		Height:          1,
+		Time:            coord.CurrentTime.UTC(),
+		ProposerAddress: pubKey.Address().Bytes(),
 	}
 
 	txConfig := app.GetTxConfig()

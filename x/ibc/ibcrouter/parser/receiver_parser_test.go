@@ -1,9 +1,12 @@
 package parser_test
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter/parser"
 )
@@ -53,6 +56,16 @@ func TestParseReceiverDataErrors(t *testing.T) {
 			"invalid this chain address",
 			"somm16plylpsgxechajltx9yeseqexzdzut9g8vla4k|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k",
 			"decoding bech32 failed",
+		},
+		{
+			"invalid this chain address - ethereum address",
+			fmt.Sprintf("%s|transfer/channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k", common.BytesToAddress(rand.Bytes(20))),
+			"decoding bech32 failed",
+		},
+		{
+			"missing slash",
+			"cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k|transfer\\channel-0:cosmos16plylpsgxechajltx9yeseqexzdzut9g8vla4k",
+			"formatting incorrect",
 		},
 		{
 			"missing slash",

@@ -2,10 +2,13 @@ package keeper_test
 
 import (
 	"fmt"
+	"math/rand"
+	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -209,7 +212,60 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
 		},
 		{
-			"pass - normal - router is bsc, sender is 0xAddress",
+			"pass - normal - receive address is 0xAddress, coin is DefaultCoin",
+			func(packet *channeltypes.Packet) {
+				packetData := transfertypes.FungibleTokenPacketData{}
+				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
+				packetData.Receiver = common.BytesToAddress(receiveAddr.Bytes()).String()
+				packetData.Denom = transfertypes.DenomTrace{
+					BaseDenom: fxtypes.DefaultDenom,
+					Path:      "transfer/channel-0",
+				}.GetFullDenomPath()
+				packet.Data = packetData.GetBytes()
+			},
+			true,
+			"",
+			true,
+			receiveAddr,
+			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
+		},
+		{
+			"pass - normal - receive address is 0xAddress",
+			func(packet *channeltypes.Packet) {
+				packetData := transfertypes.FungibleTokenPacketData{}
+				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
+				packetData.Receiver = common.BytesToAddress(receiveAddr.Bytes()).String()
+				packet.Data = packetData.GetBytes()
+				meta := banktypes.Metadata{
+					// token -> contracts
+					Base: ibcDenomTrace.IBCDenom(),
+					// evm token: name
+					Name: ibcDenomTrace.GetFullDenomPath(),
+					// evm token: symbol
+					Symbol: strings.ToUpper(baseDenom),
+					// evm token decimal - denomunits.denom == symbol
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    strings.ToLower(baseDenom),
+							Exponent: 0,
+						},
+						{
+							Denom:    strings.ToUpper(baseDenom),
+							Exponent: uint32(rand.Int31n(19)),
+						},
+					},
+				}
+				_, err := suite.GetApp(suite.chainA.App).Erc20Keeper.RegisterNativeCoin(suite.chainA.GetContext(), meta)
+				suite.Require().NoError(err)
+			},
+			true,
+			"",
+			true,
+			receiveAddr,
+			sdk.NewCoins(),
+		},
+		{
+			"pass - normal - sender is 0xAddress",
 			func(packet *channeltypes.Packet) {
 				bscKeeper := suite.GetApp(suite.chainA.App).BscKeeper
 				bscKeeper.AddBridgeToken(suite.chainA.GetContext(), common.BytesToAddress(tmrand.Bytes(20)).String(), ibcDenomTrace.IBCDenom())
@@ -259,6 +315,21 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			senderAddr,
 			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
 		},
+		{
+			"error - normal - receive address is 0xAddress but coin not registered",
+			func(packet *channeltypes.Packet) {
+				packetData := transfertypes.FungibleTokenPacketData{}
+				transfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
+				packetData.Receiver = common.BytesToAddress(receiveAddr.Bytes()).String()
+				packet.Data = packetData.GetBytes()
+			},
+			false,
+			// 4: token pair not found
+			"ABCI code: 4: error handling packet: see events for details",
+			true,
+			senderAddr,
+			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), sdkmath.ZeroInt())),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -287,7 +358,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			suite.chainA.GetContext().EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 			if tc.expPass {
-				suite.Require().Truef(ack.Success(), "error:%s,packetData:%s", ack.GetError(), string(packet.GetData()))
+				suite.Require().Truef(ack.Success(), "ackError:%s,causeError:%s,packetData:%s", ack.GetError(), getOnRecvPacketErrorByEvent(cacheCtx), string(packet.GetData()))
 			} else {
 				suite.Require().False(ack.Success())
 				suite.Require().True(ok)
@@ -301,6 +372,20 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			}
 		})
 	}
+}
+
+func getOnRecvPacketErrorByEvent(ctx sdk.Context) string {
+	events := ctx.EventManager().Events()
+	for _, event := range events {
+		if event.Type == transfertypes.EventTypePacket {
+			for _, attr := range event.Attributes {
+				if string(attr.Key) == fxtransfertypes.AttributeKeyRecvError {
+					return string(attr.Value)
+				}
+			}
+		}
+	}
+	return ""
 }
 
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
