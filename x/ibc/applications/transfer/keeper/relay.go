@@ -158,7 +158,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 	if data.Router == "" || k.router == nil {
 		// try to send to evm module
-		if isEvmAddr {
+		if receiveCoin.GetDenom() != fxtypes.DefaultDenom && isEvmAddr {
 			_, err = k.erc20Keeper.ConvertCoin(sdk.WrapSDKContext(onRecvPacketCtxWithNewEvent), &erc20types.MsgConvertCoin{
 				Coin:     receiveCoin,
 				Receiver: common.BytesToAddress(receiver).String(),
