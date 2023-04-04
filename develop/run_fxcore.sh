@@ -4,7 +4,7 @@ set -o errexit -o pipefail
 
 if [[ "$1" == "init" ]]; then
   if [ -d ~/.fxcore ]; then
-    read -p "Are you sure you want to delete all the data and start over? [y/N] " input
+    read -rp "Are you sure you want to delete all the data and start over? [y/N] " input
     if [[ "$input" != "y" && "$input" != "Y" ]]; then
       exit 1
     fi
