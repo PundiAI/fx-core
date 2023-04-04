@@ -39,6 +39,7 @@ func (am AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 
 // RegisterInterfaces registers interfaces and implementations of the evm module.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
 	fxevmtypes.RegisterInterfaces(registry)
 }
 
@@ -67,6 +68,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	fxevmtypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }

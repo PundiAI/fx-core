@@ -2889,7 +2889,6 @@ Msg defines the x/evm Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `EthereumTx` | [.ethermint.evm.v1.MsgEthereumTx](#ethermint.evm.v1.MsgEthereumTx) | [.ethermint.evm.v1.MsgEthereumTxResponse](#ethermint.evm.v1.MsgEthereumTxResponse) | EthereumTx defines a method submitting Ethereum transactions. | |
 | `CallContract` | [MsgCallContract](#fx.evm.v1.MsgCallContract) | [MsgCallContractResponse](#fx.evm.v1.MsgCallContractResponse) | CallContract defines a (governance) operation for updating the x/evm module callContract. The authority defaults to the x/gov module account. | |
 
  <!-- end services -->

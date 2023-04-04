@@ -2,11 +2,10 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
 // ModuleCdc is the codec for the module
@@ -20,12 +19,12 @@ func init() {
 	RegisterLegacyAminoCodec(authzcodec.Amino)
 }
 
-// RegisterInterfaces registers the interfaces for the proto stuff
-func RegisterInterfaces(registry types.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil),
+// RegisterInterfaces registers the client interfaces to protobuf Any.
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
 		&MsgCallContract{},
 	)
-	evmtypes.RegisterInterfaces(registry)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 

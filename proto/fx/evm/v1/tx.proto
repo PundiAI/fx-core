@@ -9,9 +9,6 @@ option go_package = "github.com/functionx/fx-core/x/evm/types";
 
 //Msg defines the x/evm Msg service.
 service Msg {
-  // EthereumTx defines a method submitting Ethereum transactions.
-  rpc EthereumTx(ethermint.evm.v1.MsgEthereumTx) returns (ethermint.evm.v1.MsgEthereumTxResponse);
-
   // CallContract defines a (governance) operation for updating the x/evm module
   // callContract. The authority defaults to the x/gov module account.
   rpc CallContract(MsgCallContract) returns (MsgCallContractResponse);
