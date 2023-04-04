@@ -5,16 +5,20 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/functionx/fx-core/v3/app"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
@@ -61,7 +65,7 @@ func TestAminoEncode(t *testing.T) {
 		},
 		{
 			name:     "erc20-RegisterCoinProposal",
-			expected: `{"description":"foo","metadata":{"base":"test","denom_units":[{"aliases":["ethtest"],"denom":"test"},{"denom":"TEST","exponent":18}],"description":"test","display":"test","name":"test name","symbol":"TEST"},"title":"v2"}`,
+			expected: `{"type":"erc20/RegisterCoinProposal","value":{"description":"foo","metadata":{"base":"test","denom_units":[{"aliases":["ethtest"],"denom":"test"},{"denom":"TEST","exponent":18}],"description":"test","display":"test","name":"test name","symbol":"TEST"},"title":"v2"}}`,
 			msg: erc20types.RegisterCoinProposal{
 				Title:       "v2",
 				Description: "foo",
@@ -128,6 +132,53 @@ func TestAminoEncode(t *testing.T) {
 				Description: "foo desc",
 			},
 		},
+		{
+			name:     "gov-v1-MsgSubmitProposal-crosschain-MsgUpdateParams",
+			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":null,"messages":[{"type":"crosschain/MsgUpdateParams","value":{"authority":"1","chain_name":"1","params":{"average_block_time":"1","average_external_block_time":"1","delegate_multiple":"1","delegate_threshold":{"amount":"1","denom":"FX"},"external_batch_timeout":"1","gravity_id":"1","ibc_transfer_timeout_height":"1","oracle_set_update_power_change_percent":"1.000000000000000000","signed_window":"1","slash_fraction":"1.000000000000000000"}}}]}}`,
+			msg: govv1.MsgSubmitProposal{
+				Messages: []*codectypes.Any{
+					NewAnyWithValue(&crosschaintypes.MsgUpdateParams{
+						ChainName: "1",
+						Authority: "1",
+						Params: crosschaintypes.Params{
+							GravityId:                         "1",
+							AverageBlockTime:                  1,
+							ExternalBatchTimeout:              1,
+							AverageExternalBlockTime:          1,
+							SignedWindow:                      1,
+							SlashFraction:                     sdk.NewDec(1),
+							OracleSetUpdatePowerChangePercent: sdk.NewDec(1),
+							IbcTransferTimeoutHeight:          1,
+							Oracles:                           nil,
+							DelegateThreshold:                 sdk.NewCoin("FX", sdk.NewInt(1)),
+							DelegateMultiple:                  1,
+						},
+					}),
+				},
+				InitialDeposit: nil,
+				Proposer:       "",
+				Metadata:       "",
+			},
+		},
+		{
+			name:     "gov-v1-MsgSubmitProposal-erc20-MsgUpdateParams",
+			expected: `{"type":"cosmos-sdk/v1/MsgSubmitProposal","value":{"initial_deposit":null,"messages":[{"type":"erc20/MsgUpdateParams","value":{"authority":"1","params":{"enable_erc20":true,"enable_evm_hook":true,"ibc_timeout":"1"}}}]}}`,
+			msg: govv1.MsgSubmitProposal{
+				Messages: []*codectypes.Any{
+					NewAnyWithValue(&erc20types.MsgUpdateParams{
+						Authority: "1",
+						Params: erc20types.Params{
+							EnableErc20:   true,
+							EnableEVMHook: true,
+							IbcTimeout:    1,
+						},
+					}),
+				},
+				InitialDeposit: nil,
+				Proposer:       "",
+				Metadata:       "",
+			},
+		},
 	}
 
 	encode := app.MakeEncodingConfig()
@@ -138,4 +189,12 @@ func TestAminoEncode(t *testing.T) {
 			require.Equal(t, testcase.expected, string(sdk.MustSortJSON(aminoJson)))
 		})
 	}
+}
+
+func NewAnyWithValue(msg proto.Message) *codectypes.Any {
+	value, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		panic(err)
+	}
+	return value
 }
