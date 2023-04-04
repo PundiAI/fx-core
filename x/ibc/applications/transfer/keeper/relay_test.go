@@ -214,12 +214,21 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"pass - normal - receive address is 0xAddress, coin is DefaultCoin",
 			func(packet *channeltypes.Packet) {
+				protID := "transfer"
+				channelID := "channel-0"
+				coins := sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, transferAmount))
+				err := suite.GetApp(suite.chainA.App).BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, coins)
+				suite.Require().NoError(err)
+				portChannelAddr := transfertypes.GetEscrowAddress(protID, channelID)
+				err = suite.GetApp(suite.chainA.App).BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, portChannelAddr, coins)
+				suite.Require().NoError(err)
+
 				packetData := transfertypes.FungibleTokenPacketData{}
 				fxtransfertypes.ModuleCdc.MustUnmarshalJSON(packet.GetData(), &packetData)
 				packetData.Receiver = common.BytesToAddress(receiveAddr.Bytes()).String()
 				packetData.Denom = transfertypes.DenomTrace{
 					BaseDenom: fxtypes.DefaultDenom,
-					Path:      "transfer/channel-0",
+					Path:      fmt.Sprintf("%s/%s", protID, channelID),
 				}.GetFullDenomPath()
 				packet.Data = packetData.GetBytes()
 			},
@@ -227,7 +236,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"",
 			true,
 			receiveAddr,
-			sdk.NewCoins(sdk.NewCoin(ibcDenomTrace.IBCDenom(), transferAmount)),
+			sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, transferAmount)),
 		},
 		{
 			"pass - normal - receive address is 0xAddress",
