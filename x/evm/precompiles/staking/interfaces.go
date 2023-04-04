@@ -5,6 +5,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -16,6 +17,8 @@ type BankKeeper interface {
 
 type StakingKeeper interface {
 	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
+	SetDelegation(ctx sdk.Context, delegation stakingtypes.Delegation)
+	RemoveDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) error
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
 	Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdkmath.Int, tokenSrc stakingtypes.BondStatus,
 		validator stakingtypes.Validator, subtractAccount bool) (newShares sdk.Dec, err error)
@@ -32,6 +35,13 @@ type DistrKeeper interface {
 	GetDelegatorWithdrawAddr(ctx sdk.Context, delAddr sdk.AccAddress) sdk.AccAddress
 	IncrementValidatorPeriod(ctx sdk.Context, val stakingtypes.ValidatorI) uint64
 	CalculateDelegationRewards(ctx sdk.Context, val stakingtypes.ValidatorI, del stakingtypes.DelegationI, endingPeriod uint64) (rewards sdk.DecCoins)
+	GetDelegatorStartingInfo(ctx sdk.Context, val sdk.ValAddress, del sdk.AccAddress) (period distrtypes.DelegatorStartingInfo)
+	SetDelegatorStartingInfo(ctx sdk.Context, val sdk.ValAddress, del sdk.AccAddress, period distrtypes.DelegatorStartingInfo)
+	DeleteDelegatorStartingInfo(ctx sdk.Context, val sdk.ValAddress, del sdk.AccAddress)
+	GetValidatorCurrentRewards(ctx sdk.Context, val sdk.ValAddress) (rewards distrtypes.ValidatorCurrentRewards)
+	GetValidatorHistoricalRewards(ctx sdk.Context, val sdk.ValAddress, period uint64) (rewards distrtypes.ValidatorHistoricalRewards)
+	SetValidatorHistoricalRewards(ctx sdk.Context, val sdk.ValAddress, period uint64, rewards distrtypes.ValidatorHistoricalRewards)
+	DeleteValidatorHistoricalReward(ctx sdk.Context, val sdk.ValAddress, period uint64)
 }
 
 type EvmKeeper interface {

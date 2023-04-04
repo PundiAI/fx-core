@@ -36,6 +36,7 @@ func (k Keeper) RelayTransferHandler(ctx sdk.Context, eventNonce uint64, targetH
 		k.Logger(ctx).Info("failed to transfer ibc", "err1", err1, "err2", err2)
 	}
 
+	// todo do not convert FX to evm
 	if fxTarget.GetTarget() == fxtypes.ERC20Target {
 		// transfer to evm
 		cacheCtx, commit := ctx.CacheContext()
