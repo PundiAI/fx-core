@@ -721,10 +721,10 @@ func (suite *PrecompileTestSuite) TestIncreaseBridgeFeeExternal() {
 			prepare: func(pair *types.TokenPair, moduleName string, signer *helpers.Signer, randMint *big.Int) (*types.TokenPair, string, string) {
 				return pair, moduleName, ""
 			},
-			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, randMint *big.Int) ([]byte, []string) {
+			malleate: func(moduleName string, pair *types.TokenPair, md Metadata, signer *helpers.Signer, _ *big.Int) ([]byte, []string) {
 				coin := sdk.NewCoin(pair.GetDenom(), sdkmath.NewIntFromBigInt(randBridgeFee))
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress().Bytes(), sdk.NewCoins(coin))
-				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randMint)
+				suite.MintERC20Token(signer, pair.GetERC20Contract(), suite.app.Erc20Keeper.ModuleAddress(), randBridgeFee)
 				_, err := suite.app.Erc20Keeper.ConvertCoin(sdk.WrapSDKContext(suite.ctx), &types.MsgConvertCoin{
 					Coin:     coin,
 					Receiver: signer.Address().Hex(),
