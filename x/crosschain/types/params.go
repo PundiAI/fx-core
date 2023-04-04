@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -60,26 +59,6 @@ var (
 
 // Ensure that params implements the proper interface
 var _ paramtypes.ParamSet = &Params{}
-
-// NewParams creates a new Params object
-func NewParams(gravityId string, averageBlockTime, externalBatchTimeout, averageExternalBlockTime, signedWindow uint64,
-	slashFraction, oracleSetUpdatePowerChangePercent sdk.Dec, ibcTransferTimeoutHeight uint64, oracles []string, delegateThreshold sdk.Coin,
-	delegateMultiple int64,
-) *Params {
-	return &Params{
-		GravityId:                         gravityId,
-		AverageBlockTime:                  averageBlockTime,
-		ExternalBatchTimeout:              externalBatchTimeout,
-		AverageExternalBlockTime:          averageExternalBlockTime,
-		SignedWindow:                      signedWindow,
-		SlashFraction:                     slashFraction,
-		OracleSetUpdatePowerChangePercent: oracleSetUpdatePowerChangePercent,
-		IbcTransferTimeoutHeight:          ibcTransferTimeoutHeight,
-		Oracles:                           oracles,
-		DelegateThreshold:                 delegateThreshold,
-		DelegateMultiple:                  delegateMultiple,
-	}
-}
 
 func DefaultParams() Params {
 	return Params{
@@ -152,13 +131,6 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamOracleDelegateThreshold, &m.DelegateThreshold, validateOracleDelegateThreshold),
 		paramtypes.NewParamSetPair(ParamOracleDelegateMultiple, &m.DelegateMultiple, validateOracleDelegateMultiple),
 	}
-}
-
-// Equal returns a boolean determining if two Params types are identical.
-func (m *Params) Equal(p2 Params) bool {
-	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&m)
-	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&p2)
-	return bytes.Equal(bz1, bz2)
 }
 
 func validateGravityID(i interface{}) error {

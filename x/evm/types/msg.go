@@ -4,7 +4,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
@@ -13,7 +12,7 @@ var _ sdk.Msg = &MsgCallContract{}
 
 // GetSignBytes implements the LegacyMsg interface.
 func (m *MsgCallContract) GetSignBytes() []byte {
-	return sdk.MustSortJSON(evmtypes.ModuleCdc.MustMarshalJSON(m))
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.

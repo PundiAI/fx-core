@@ -9,12 +9,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ethermintcodec "github.com/evmos/ethermint/crypto/codec"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	etherminttypes "github.com/evmos/ethermint/types"
 
 	fxlegacy "github.com/functionx/fx-core/v3/types/legacy"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -71,4 +77,18 @@ func registerCryptoEthSecp256k1(cdc *codec.LegacyAmino) {
 	// DO NOT REMOVE unless deprecated on the SDK.
 	legacy.Cdc = cdc
 	keys.KeysCdc = cdc
+}
+
+func init() {
+	// gov v1beta1
+	distrtypes.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
+	paramproposal.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
+	upgradetypes.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
+	crosschaintypes.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
+	erc20types.RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
+
+	// gov v1
+	crosschaintypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
+	erc20types.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
+	upgradetypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
 }
