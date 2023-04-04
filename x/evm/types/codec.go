@@ -6,6 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
+	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
+	"github.com/functionx/fx-core/v3/x/evm/legacy"
 )
 
 // ModuleCdc is the codec for the module
@@ -24,6 +27,11 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgCallContract{},
+	)
+
+	registry.RegisterImplementations(
+		(*govv1betal.Content)(nil),
+		&legacy.InitEvmParamsProposal{}, // nolint: staticcheck
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

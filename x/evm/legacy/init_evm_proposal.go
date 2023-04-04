@@ -4,13 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
-
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*govv1betal.Content)(nil), &InitEvmParamsProposal{})
-}
 
 const ProposalTypeInitEvmParams = "InitEvmParams"
 

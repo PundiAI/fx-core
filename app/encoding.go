@@ -18,7 +18,6 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	etherminttypes "github.com/evmos/ethermint/types"
 
-	fxlegacy "github.com/functionx/fx-core/v3/types/legacy"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 )
@@ -37,7 +36,6 @@ func MakeEncodingConfig() EncodingConfig {
 	encodingConfig := makeEncodingConfig()
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	fxlegacy.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	registerCryptoEthSecp256k1(encodingConfig.Amino)
 	ethermintcodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
