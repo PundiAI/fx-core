@@ -1,29 +1,71 @@
 package gov
 
 import (
+	"context"
+	"encoding/json"
+
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/functionx/fx-core/v3/x/gov/keeper"
+	"github.com/functionx/fx-core/v3/x/gov/types"
 )
 
 var (
 	_ module.AppModule         = AppModule{}
+	_ module.AppModuleBasic    = AppModuleBasic{}
 	_ module.EndBlockAppModule = AppModule{}
 )
+
+// AppModuleBasic defines the basic application module used by the gov module.
+type AppModuleBasic struct {
+	gov.AppModuleBasic
+}
+
+// NewAppModuleBasic creates a new AppModuleBasic object
+func NewAppModuleBasic(legacyProposalHandlers []govclient.ProposalHandler) AppModuleBasic {
+	return AppModuleBasic{
+		AppModuleBasic: gov.NewAppModuleBasic(legacyProposalHandlers),
+	}
+}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
+func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	if err := govv1.RegisterQueryHandlerClient(context.Background(), mux, govv1.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+	if err := govv1betal.RegisterQueryHandlerClient(context.Background(), mux, govv1betal.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+}
+
+// RegisterInterfaces implements InterfaceModule.RegisterInterfaces
+func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	govv1.RegisterInterfaces(registry)
+	govv1betal.RegisterInterfaces(registry)
+	types.RegisterInterfaces(registry)
+}
 
 // AppModule implements an application module for the gov module.
 type AppModule struct {
 	gov.AppModule
 	keeper keeper.Keeper
 	ak     govtypes.AccountKeeper
+	bk     govtypes.BankKeeper
 	cdc    codec.Codec
 }
 
@@ -33,6 +75,7 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak govtypes.AccountKeep
 		AppModule: gov.NewAppModule(cdc, keeper.Keeper, ak, bk),
 		keeper:    keeper,
 		ak:        ak,
+		bk:        bk,
 		cdc:       cdc,
 	}
 }
@@ -50,7 +93,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	legacyQueryServer := govkeeper.NewLegacyQueryServer(am.keeper.Keeper)
 	govv1betal.RegisterQueryServer(cfg.QueryServer(), legacyQueryServer)
-	govv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	govv1.RegisterQueryServer(cfg.QueryServer(), am.keeper.Keeper)
+
+	//  fx gov
+	types.RegisterMsgServer(cfg.MsgServer(), msgServer)
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.cdc, am.keeper)
 	err := cfg.RegisterMigration(govtypes.ModuleName, 1, m.Migrate1to2)
@@ -61,6 +108,19 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// InitGenesis performs genesis initialization for the gov module. It returns
+// no validator updates.
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState govv1.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	gov.InitGenesis(ctx, am.ak, am.bk, am.keeper.Keeper, &genesisState)
+	// init gov fx params
+	if err := am.keeper.SetParams(ctx, types.DefaultParams()); err != nil {
+		panic(err)
+	}
+	return []abci.ValidatorUpdate{}
 }
 
 // EndBlock returns the end blocker for the gov module. It returns no validator

@@ -11,6 +11,8 @@ import (
 
 // Tally iterates over the votes and updates the tally of a proposal based on the voting power of the
 // voters
+//
+//gocyclo:ignore
 func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes bool, burnDeposits bool, tallyResults govv1.TallyResult) {
 	results := make(map[govv1.VoteOption]sdk.Dec)
 	results[govv1.OptionYes] = sdk.ZeroDec()
@@ -90,11 +92,17 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes boo
 	}
 
 	tallyParams := keeper.GetTallyParams(ctx)
-	erc20ProposalQuorum := sdk.NewDecWithPrec(25, 2) // 25%
+	fxParams := keeper.GetParams(ctx)
 	tallyQuorum, _ := sdk.NewDecFromStr(tallyParams.Quorum)
-	if fxgovtypes.CheckErc20ProposalMsg(proposal.Messages) && tallyQuorum.GT(erc20ProposalQuorum) {
-		tallyParams.Quorum = erc20ProposalQuorum.String()
+	erc20Quorum, _ := sdk.NewDecFromStr(fxParams.Erc20Quorum)
+	evmQuorum, _ := sdk.NewDecFromStr(fxParams.EvmQuorum)
+
+	if fxgovtypes.CheckErc20ProposalMsg(proposal.Messages) && tallyQuorum.GT(erc20Quorum) {
+		tallyParams.Quorum = fxParams.Erc20Quorum
+	} else if fxgovtypes.CheckEVMProposalMsg(proposal.Messages) && tallyQuorum.GT(evmQuorum) {
+		tallyParams.Quorum = fxParams.EvmQuorum
 	}
+
 	tallyResults = govv1.NewTallyResultFromMap(results)
 
 	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.

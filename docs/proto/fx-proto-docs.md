@@ -180,6 +180,21 @@
   
     - [Msg](#fx.evm.v1.Msg)
   
+- [fx/gov/v1/params.proto](#fx/gov/v1/params.proto)
+    - [Params](#fx.gov.v1.Params)
+  
+- [fx/gov/v1/query.proto](#fx/gov/v1/query.proto)
+    - [QueryParamsRequest](#fx.gov.v1.QueryParamsRequest)
+    - [QueryParamsResponse](#fx.gov.v1.QueryParamsResponse)
+  
+    - [Query](#fx.gov.v1.Query)
+  
+- [fx/gov/v1/tx.proto](#fx/gov/v1/tx.proto)
+    - [MsgUpdateParams](#fx.gov.v1.MsgUpdateParams)
+    - [MsgUpdateParamsResponse](#fx.gov.v1.MsgUpdateParamsResponse)
+  
+    - [Msg](#fx.gov.v1.Msg)
+  
 - [fx/ibc/applications/transfer/v1/query.proto](#fx/ibc/applications/transfer/v1/query.proto)
     - [Query](#fx.ibc.applications.transfer.v1.Query)
   
@@ -2890,6 +2905,148 @@ Msg defines the x/evm Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `CallContract` | [MsgCallContract](#fx.evm.v1.MsgCallContract) | [MsgCallContractResponse](#fx.evm.v1.MsgCallContractResponse) | CallContract defines a (governance) operation for updating the x/evm module callContract. The authority defaults to the x/gov module account. | |
+
+ <!-- end services -->
+
+
+
+<a name="fx/gov/v1/params.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/gov/v1/params.proto
+
+
+
+<a name="fx.gov.v1.Params"></a>
+
+### Params
+Params defines the fx x/gov module params
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `min_initial_deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `egf_deposit_threshold` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `claim_ratio` | [string](#string) |  |  |
+| `erc20_quorum` | [string](#string) |  |  |
+| `evm_quorum` | [string](#string) |  |  |
+| `egf_voting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `evm_voting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="fx/gov/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/gov/v1/query.proto
+
+
+
+<a name="fx.gov.v1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="fx.gov.v1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#fx.gov.v1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="fx.gov.v1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for gov module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#fx.gov.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.gov.v1.QueryParamsResponse) | Params retrieves the erc20 module params | GET|/fx/gov/v1/params|
+
+ <!-- end services -->
+
+
+
+<a name="fx/gov/v1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/gov/v1/tx.proto
+
+
+
+<a name="fx.gov.v1.MsgUpdateParams"></a>
+
+### MsgUpdateParams
+MsgUpdateParams is the Msg/UpdateParams request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `params` | [Params](#fx.gov.v1.Params) |  | NOTE: All parameters must be supplied. |
+
+
+
+
+
+
+<a name="fx.gov.v1.MsgUpdateParamsResponse"></a>
+
+### MsgUpdateParamsResponse
+MsgUpdateParamsResponse defines the response structure for executing a
+MsgUpdateParams message.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="fx.gov.v1.Msg"></a>
+
+### Msg
+Msg defines the erc20 Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `UpdateParams` | [MsgUpdateParams](#fx.gov.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#fx.gov.v1.MsgUpdateParamsResponse) | UpdateParams defines a governance operation for updating the x/erc20 module parameters. The authority is hard-coded to the x/gov module account. | |
 
  <!-- end services -->
 

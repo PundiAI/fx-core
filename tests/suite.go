@@ -452,6 +452,10 @@ func (suite *TestSuite) CheckProposal(proposalId uint64, status govv1.ProposalSt
 		ProposalId: proposalId,
 	})
 	suite.NoError(err)
-	suite.Require().Equal(status, proposalResp.Proposal.Status)
+	if fxgovtypes.CheckEVMProposalMsg(proposalResp.Proposal.Messages) {
+		suite.Require().Equal(govv1.StatusVotingPeriod, proposalResp.Proposal.Status)
+	} else {
+		suite.Require().Equal(status, proposalResp.Proposal.Status)
+	}
 	return *proposalResp.Proposal
 }

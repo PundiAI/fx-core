@@ -460,6 +460,8 @@ func NewAppKeeper(
 		appKeepers.keys[govtypes.StoreKey],
 		govKeeper,
 		govConfig,
+		appCodec,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	ibcTransferRouter := fxtypes.NewRouter().

@@ -20,6 +20,8 @@ import (
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
+	"github.com/functionx/fx-core/v3/x/gov/keeper"
+	govtypes "github.com/functionx/fx-core/v3/x/gov/types"
 )
 
 func createUpgradeHandler(
@@ -30,8 +32,11 @@ func createUpgradeHandler(
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		cacheCtx, commit := ctx.CacheContext()
 
-		// initialize the evm module account
+		// 1. initialize the evm module account
 		CreateEvmModuleAccount(cacheCtx, app.AccountKeeper)
+
+		// 2. init go fx params
+		InitGovFXParams(cacheCtx, app.GovKeeper)
 
 		ctx.Logger().Info("start to run v4 migrations...", "module", "upgrade")
 		toVM, err := mm.RunMigrations(cacheCtx, configurator, fromVM)
@@ -44,6 +49,12 @@ func createUpgradeHandler(
 
 		commit()
 		return toVM, nil
+	}
+}
+
+func InitGovFXParams(ctx sdk.Context, keeper keeper.Keeper) {
+	if err := keeper.SetParams(ctx, govtypes.DefaultParams()); err != nil {
+		panic(err)
 	}
 }
 

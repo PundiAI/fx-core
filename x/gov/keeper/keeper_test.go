@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -36,6 +38,8 @@ type KeeperTestSuite struct {
 	valAddr         []sdk.ValAddress
 	addrs           []sdk.AccAddress
 	govAcct         string
+	MsgServer       types.MsgServer
+	queryClient     types.QueryClient
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -60,6 +64,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.govAcct = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	suite.msgServer = keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.app.GovKeeper.Keeper), suite.app.GovKeeper)
 	suite.legacyMsgServer = keeper.NewLegacyMsgServerImpl(suite.govAcct, suite.msgServer)
+	suite.MsgServer = keeper.NewMsgServerImpl(govkeeper.NewMsgServerImpl(suite.app.GovKeeper.Keeper), suite.app.GovKeeper)
+
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, simapp.MakeTestEncodingConfig().InterfaceRegistry)
+	types.RegisterQueryServer(queryHelper, suite.app.GovKeeper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
 func (suite *KeeperTestSuite) addFundCommunityPool() {
@@ -135,7 +144,7 @@ func (suite *KeeperTestSuite) TestEGFDepositsLessThan1000() {
 	suite.addFundCommunityPool()
 
 	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)}}
-	minDeposit := types.EGFProposalMinDeposit(egfCoins)
+	minDeposit := suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, egfCoins)
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
 	suite.True(initCoins.IsEqual(minDeposit))
 
@@ -159,7 +168,7 @@ func (suite *KeeperTestSuite) TestEGFDepositsMoreThan1000() {
 
 	thousand := sdkmath.NewInt(1 * 1e3).MulRaw(1e18)
 	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: thousand.MulRaw(10).Add(sdkmath.NewInt(10))}}
-	minDeposit := types.EGFProposalMinDeposit(egfCoins)
+	minDeposit := suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, egfCoins)
 
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: thousand}}
 	spendProposal := distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins)
@@ -191,7 +200,7 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 	suite.addFundCommunityPool()
 
 	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(150 * 1e3).MulRaw(1e18)}}
-	minDeposit := types.EGFProposalMinDeposit(egfCoins)
+	minDeposit := suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, egfCoins)
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
 	spendProposal := distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins)
 	msgExecLegacyContent, err := govv1.NewLegacyContent(spendProposal, suite.govAcct)

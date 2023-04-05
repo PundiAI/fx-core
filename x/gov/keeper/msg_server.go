@@ -26,11 +26,14 @@ type msgServer struct {
 
 // NewMsgServerImpl returns an implementation of the gov MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(m v1.MsgServer, k Keeper) v1.MsgServer {
+func NewMsgServerImpl(m v1.MsgServer, k Keeper) *msgServer {
 	return &msgServer{MsgServer: m, Keeper: k}
 }
 
-var _ v1.MsgServer = msgServer{}
+var (
+	_ v1.MsgServer    = msgServer{}
+	_ types.MsgServer = msgServer{}
+)
 
 func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitProposal) (*v1.MsgSubmitProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -55,8 +58,10 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitPropos
 
 	defer telemetry.IncrCounter(1, govtypes.ModuleName, "proposal")
 
-	if sdk.NewCoins(msg.GetInitialDeposit()...).IsAllLT(types.GetInitialDeposit()) {
-		return nil, errorsmod.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msg.GetInitialDeposit(), types.GetInitialDeposit())
+	initialDeposit := k.Keeper.GetInitialDeposit(ctx)
+
+	if sdk.NewCoins(msg.GetInitialDeposit()...).IsAllLT(initialDeposit) {
+		return nil, errorsmod.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msg.GetInitialDeposit(), initialDeposit)
 	}
 
 	proposer, err := sdk.AccAddressFromBech32(msg.GetProposer())
@@ -120,6 +125,17 @@ func (k msgServer) Deposit(goCtx context.Context, msg *v1.MsgDeposit) (*v1.MsgDe
 	}
 
 	return &v1.MsgDepositResponse{}, nil
+}
+
+func (k msgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := k.SetParams(ctx, &req.Params); err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateParamsResponse{}, nil
 }
 
 type LegacyMsgServer struct {
