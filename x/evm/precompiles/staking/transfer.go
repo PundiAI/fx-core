@@ -91,7 +91,49 @@ func (c *Contract) Transfer(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 }
 
 func (c *Contract) TransferFrom(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
-	return nil, nil
+	if readonly {
+		return nil, errors.New("transferFrom method not readonly")
+	}
+	args, err := TransferFromMethod.Inputs.Unpack(contract.Input[4:])
+	if err != nil {
+		return nil, errors.New("failed to unpack input")
+	}
+
+	valAddrStr, ok0 := args[0].(string)
+	fromAddr, ok1 := args[1].(common.Address)
+	toAddr, ok2 := args[2].(common.Address)
+	shares, ok3 := args[3].(*big.Int)
+	if !ok0 || !ok1 || !ok2 || !ok3 {
+		return nil, errors.New("unexpected arg type")
+	}
+	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
+	}
+	if shares.Cmp(big.NewInt(0)) < 0 {
+		return nil, errors.New("shares cannot be negative")
+	}
+
+	spender := contract.Caller()
+	if err = c.decrementAllowance(ctx, valAddr, fromAddr.Bytes(), spender.Bytes(), shares); err != nil {
+		return nil, err
+	}
+
+	token, reward, err := c.handlerTransfer(ctx, evm, valAddr, fromAddr, toAddr, shares)
+	if err != nil {
+		return nil, err
+	}
+	return TransferFromMethod.Outputs.Pack(token, reward)
+}
+
+func (c *Contract) decrementAllowance(ctx sdk.Context, valAddr sdk.ValAddress, owner, spender sdk.AccAddress, decrease *big.Int) error {
+	allowance := c.stakingKeeper.GetAllowance(ctx, valAddr, owner, spender)
+	if allowance.Cmp(decrease) < 0 {
+		return fmt.Errorf("transfer shares exceeds allowance(%s < %s)", allowance.String(), decrease.String())
+	}
+	newAllowance := big.NewInt(0).Sub(allowance, decrease)
+	c.stakingKeeper.SetAllowance(ctx, valAddr, owner, spender, newAllowance)
+	return nil
 }
 
 func (c *Contract) handlerTransfer(

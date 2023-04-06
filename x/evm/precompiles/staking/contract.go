@@ -69,6 +69,8 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 		return ApproveGas
 	case string(AllowanceMethod.ID):
 		return AllowanceGas
+	case string(TransferFromMethod.ID):
+		return TransferFromGas
 	default:
 		return 0
 	}
@@ -100,6 +102,8 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		ret, err = c.Approve(cacheCtx, evm, contract, readonly)
 	case string(AllowanceMethod.ID):
 		ret, err = c.Allowance(cacheCtx, evm, contract, readonly)
+	case string(TransferFromMethod.ID):
+		ret, err = c.TransferFrom(cacheCtx, evm, contract, readonly)
 	default:
 		err = errors.New("unknown method")
 	}
