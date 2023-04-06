@@ -1,0 +1,22 @@
+{
+  "name": "@functionx/fxcore",
+  "description": "Smart Contract library for Solidity",
+  "version": "0.1.0",
+  "scripts": {
+    "build": ""
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "crosschain",
+    "staking"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FunctionX/fx-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FunctionX/fx-core/issues"
+  },
+  "license": "Apache-2.0"
+}
