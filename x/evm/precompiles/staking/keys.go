@@ -17,6 +17,7 @@ const (
 	DelegationRewardsGas = 200000
 	TransferGas          = 400000
 	ApproveGas           = 200000
+	AllowanceGas         = 100000
 
 	DelegateMethodName          = "delegate"
 	UndelegateMethodName        = "undelegate"
