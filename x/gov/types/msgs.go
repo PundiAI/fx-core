@@ -1,8 +1,8 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
@@ -33,10 +33,10 @@ func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 
 func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errortypes.ErrUnauthorized.Wrapf("invalid authority address: %s", err.Error())
+		return errorsmod.Wrap(err, "authority")
 	}
 	if err := m.Params.ValidateBasic(); err != nil {
-		return err
+		return errorsmod.Wrap(err, "params")
 	}
 	return nil
 }
