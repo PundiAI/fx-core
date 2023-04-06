@@ -1,6 +1,5 @@
 package types
 
-// erc20 events
 const (
 	EventTypeConvertCoin             = "convert_coin"
 	EventTypeConvertERC20            = "convert_erc20"

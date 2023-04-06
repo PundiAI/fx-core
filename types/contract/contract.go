@@ -5,6 +5,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
+// ParseLogEvent todo: remove unused code
 func ParseLogEvent(eventABI abi.ABI, log *ethtypes.Log, eventName string, res interface{}) error {
 	if len(log.Data) > 0 {
 		if err := eventABI.UnpackIntoInterface(res, eventName, log.Data); err != nil {

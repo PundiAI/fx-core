@@ -14,6 +14,7 @@ type LogProcessEvmHook struct {
 	handlers map[common.Hash]types.EvmLogHandler
 }
 
+// NewLogProcessEvmHook todo: remove unused code
 func NewLogProcessEvmHook(handlers ...types.EvmLogHandler) LogProcessEvmHook {
 	handlerMap := make(map[common.Hash]types.EvmLogHandler)
 	for _, h := range handlers {

@@ -10,12 +10,12 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	evmtypes "github.com/functionx/fx-core/v3/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
 // EVMConfig creates the EVMConfig based on current state
@@ -24,13 +24,15 @@ func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, cha
 	ethCfg := params.ChainConfig.EthereumConfig(chainID)
 
 	// get the coinbase address from the block proposer, if genesis block, set zero address
-	coinbase := evmtypes.GenesisCoinbase
+	var coinbase common.Address
 	if ctx.BlockHeight() > 0 {
 		var err error
 		coinbase, err = k.GetCoinbaseAddress(ctx, proposerAddress)
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "failed to obtain coinbase address")
 		}
+	} else {
+		coinbase = common.HexToAddress(fxtypes.EmptyEvmAddress)
 	}
 
 	baseFee := k.GetBaseFee(ctx, ethCfg)
@@ -280,11 +282,11 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
 	}
 
-	refundQuotient := params.RefundQuotient
+	refundQuotient := ethparams.RefundQuotient
 
 	// After EIP-3529: refunds are capped to gasUsed / 5
 	if isLondon {
-		refundQuotient = params.RefundQuotientEIP3529
+		refundQuotient = ethparams.RefundQuotientEIP3529
 	}
 
 	// calculate gas refund
