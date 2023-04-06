@@ -1,6 +1,7 @@
 package staking
 
 import (
+	"math/big"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -28,6 +29,8 @@ type StakingKeeper interface {
 	SetUnbondingDelegationEntry(ctx sdk.Context, delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
 		creationHeight int64, minTime time.Time, balance sdkmath.Int) stakingtypes.UnbondingDelegation
 	InsertUBDQueue(ctx sdk.Context, ubd stakingtypes.UnbondingDelegation, completionTime time.Time)
+	GetAllowance(ctx sdk.Context, valAddr sdk.ValAddress, owner, spender sdk.AccAddress) *big.Int
+	SetAllowance(ctx sdk.Context, valAddr sdk.ValAddress, owner, spender sdk.AccAddress, shares *big.Int)
 }
 
 type DistrKeeper interface {

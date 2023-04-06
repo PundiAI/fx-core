@@ -16,6 +16,7 @@ const (
 	DelegationGas        = 200000 // if gas price 500Gwei, fee is 0.1FX
 	DelegationRewardsGas = 200000
 	TransferGas          = 400000
+	ApproveGas           = 200000
 
 	DelegateMethodName          = "delegate"
 	UndelegateMethodName        = "undelegate"
