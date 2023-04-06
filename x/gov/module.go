@@ -3,6 +3,7 @@ package gov
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -43,13 +44,13 @@ func NewAppModuleBasic(legacyProposalHandlers []govclient.ProposalHandler) AppMo
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	if err := govv1.RegisterQueryHandlerClient(context.Background(), mux, govv1.NewQueryClient(clientCtx)); err != nil {
-		panic(err)
+		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", govtypes.ModuleName, err.Error()))
 	}
 	if err := govv1betal.RegisterQueryHandlerClient(context.Background(), mux, govv1betal.NewQueryClient(clientCtx)); err != nil {
-		panic(err)
+		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", govtypes.ModuleName, err.Error()))
 	}
 	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
-		panic(err)
+		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", govtypes.ModuleName, err.Error()))
 	}
 }
 
@@ -116,7 +117,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	var genesisState govv1.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	gov.InitGenesis(ctx, am.ak, am.bk, am.keeper.Keeper, &genesisState)
-	// init gov fx params
+	// init fx gov params
 	if err := am.keeper.SetParams(ctx, types.DefaultParams()); err != nil {
 		panic(err)
 	}
