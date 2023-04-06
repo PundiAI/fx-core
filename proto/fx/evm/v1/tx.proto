@@ -3,7 +3,6 @@ package fx.evm.v1;
 
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
-import "ethermint/evm/v1/tx.proto";
 
 option go_package = "github.com/functionx/fx-core/x/evm/types";
 
