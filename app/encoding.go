@@ -20,6 +20,8 @@ import (
 
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
+	fxgovtypes "github.com/functionx/fx-core/v3/x/gov/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -89,4 +91,6 @@ func init() {
 	crosschaintypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
 	erc20types.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
 	upgradetypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
+	fxgovtypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
+	fxevmtypes.RegisterLegacyAminoCodec(govv1.ModuleCdc.LegacyAmino)
 }

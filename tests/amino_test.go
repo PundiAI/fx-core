@@ -21,6 +21,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	fxgovtypes "github.com/functionx/fx-core/v3/x/gov/types"
 	ibctransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
 )
 
@@ -214,6 +215,22 @@ func TestAminoEncode(t *testing.T) {
 							EnableEVMHook: true,
 							IbcTimeout:    1,
 						},
+					}),
+				},
+				InitialDeposit: nil,
+				Proposer:       "",
+				Metadata:       "",
+			},
+		},
+		{
+			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateParams",
+			expected: `{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateParams","value":{"authority":"1","params":{"claim_ratio":"0.100000000000000000","egf_deposit_threshold":{"amount":"10000000000000000000000","denom":"FX"},"egf_voting_period":"1209600000000000","erc20_quorum":"0.250000000000000000","evm_quorum":"0.250000000000000000","evm_voting_period":"1209600000000000","min_initial_deposit":{"amount":"1000000000000000000000","denom":"FX"}}}}]}`,
+			amino:    fxgovtypes.ModuleCdc.LegacyAmino,
+			msg: govv1.MsgSubmitProposal{
+				Messages: []*codectypes.Any{
+					NewAnyWithValue(&fxgovtypes.MsgUpdateParams{
+						Authority: "1",
+						Params:    *fxgovtypes.DefaultParams(),
 					}),
 				},
 				InitialDeposit: nil,
