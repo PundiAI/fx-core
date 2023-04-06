@@ -21,13 +21,13 @@ var (
 		TransferMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "validator", Type: types.TypeString},
-			abi.Argument{Name: "to", Type: types.TypeAddress},
-			abi.Argument{Name: "shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_val", Type: types.TypeString},
+			abi.Argument{Name: "_to", Type: types.TypeAddress},
+			abi.Argument{Name: "_shares", Type: types.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "token", Type: types.TypeUint256},
-			abi.Argument{Name: "reward", Type: types.TypeUint256},
+			abi.Argument{Name: "_token", Type: types.TypeUint256},
+			abi.Argument{Name: "_reward", Type: types.TypeUint256},
 		},
 	)
 	TransferFromMethod = abi.NewMethod(
@@ -35,14 +35,14 @@ var (
 		TransferFromMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "validator", Type: types.TypeString},
-			abi.Argument{Name: "from", Type: types.TypeAddress},
-			abi.Argument{Name: "to", Type: types.TypeAddress},
-			abi.Argument{Name: "shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_val", Type: types.TypeString},
+			abi.Argument{Name: "_from", Type: types.TypeAddress},
+			abi.Argument{Name: "_to", Type: types.TypeAddress},
+			abi.Argument{Name: "_shares", Type: types.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "token", Type: types.TypeUint256},
-			abi.Argument{Name: "reward", Type: types.TypeUint256},
+			abi.Argument{Name: "_token", Type: types.TypeUint256},
+			abi.Argument{Name: "_reward", Type: types.TypeUint256},
 		},
 	)
 

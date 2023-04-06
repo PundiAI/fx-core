@@ -17,22 +17,16 @@ import (
 )
 
 var (
-	DelegateMethod = abi.NewMethod(DelegateMethodName, DelegateMethodName, abi.Function, "payable", false, true,
+	DelegateMethod = abi.NewMethod(
+		DelegateMethodName,
+		DelegateMethodName,
+		abi.Function, "payable", false, false,
 		abi.Arguments{
-			abi.Argument{
-				Name: "validator",
-				Type: types.TypeString,
-			},
+			abi.Argument{Name: "_val", Type: types.TypeString},
 		},
 		abi.Arguments{
-			abi.Argument{
-				Name: "shares",
-				Type: types.TypeUint256,
-			},
-			abi.Argument{
-				Name: "reward",
-				Type: types.TypeUint256,
-			},
+			abi.Argument{Name: "_shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_reward", Type: types.TypeUint256},
 		},
 	)
 

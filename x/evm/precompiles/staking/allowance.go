@@ -15,14 +15,14 @@ import (
 var AllowanceMethod = abi.NewMethod(
 	AllowanceMethodName,
 	AllowanceMethodName,
-	abi.Function, "nonpayable", false, false,
+	abi.Function, "view", false, false,
 	abi.Arguments{
-		abi.Argument{Name: "validator", Type: types.TypeString},
-		abi.Argument{Name: "owner", Type: types.TypeAddress},
-		abi.Argument{Name: "spender", Type: types.TypeAddress},
+		abi.Argument{Name: "_val", Type: types.TypeString},
+		abi.Argument{Name: "_owner", Type: types.TypeAddress},
+		abi.Argument{Name: "_spender", Type: types.TypeAddress},
 	},
 	abi.Arguments{
-		abi.Argument{Name: "shares", Type: types.TypeUint256},
+		abi.Argument{Name: "_shares", Type: types.TypeUint256},
 	},
 )
 

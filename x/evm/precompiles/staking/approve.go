@@ -19,12 +19,12 @@ var (
 		ApproveMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "validator", Type: types.TypeString},
-			abi.Argument{Name: "spender", Type: types.TypeAddress},
-			abi.Argument{Name: "shares", Type: types.TypeUint256},
+			abi.Argument{Name: "_val", Type: types.TypeString},
+			abi.Argument{Name: "_spender", Type: types.TypeAddress},
+			abi.Argument{Name: "_shares", Type: types.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "result", Type: types.TypeBool},
+			abi.Argument{Name: "_result", Type: types.TypeBool},
 		},
 	)
 

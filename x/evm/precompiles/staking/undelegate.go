@@ -17,30 +17,18 @@ import (
 )
 
 var (
-	UndelegateMethod = abi.NewMethod(UndelegateMethodName, UndelegateMethodName, abi.Function, "nonpayable", false, false,
+	UndelegateMethod = abi.NewMethod(
+		UndelegateMethodName,
+		UndelegateMethodName,
+		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{
-				Name: "validator",
-				Type: types.TypeString,
-			},
-			abi.Argument{
-				Name: "shares",
-				Type: types.TypeUint256,
-			},
+			abi.Argument{Name: "_val", Type: types.TypeString},
+			abi.Argument{Name: "_shares", Type: types.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{
-				Name: "amount",
-				Type: types.TypeUint256,
-			},
-			abi.Argument{
-				Name: "reward",
-				Type: types.TypeUint256,
-			},
-			abi.Argument{
-				Name: "completionTime",
-				Type: types.TypeUint256,
-			},
+			abi.Argument{Name: "_amount", Type: types.TypeUint256},
+			abi.Argument{Name: "_reward", Type: types.TypeUint256},
+			abi.Argument{Name: "_completionTime", Type: types.TypeUint256},
 		},
 	)
 

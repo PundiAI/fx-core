@@ -13,26 +13,17 @@ import (
 	"github.com/functionx/fx-core/v3/x/evm/types"
 )
 
-var DelegationMethod = abi.NewMethod(DelegationMethodName, DelegationMethodName, abi.Function, "nonpayable", false, false,
+var DelegationMethod = abi.NewMethod(
+	DelegationMethodName,
+	DelegationMethodName,
+	abi.Function, "view", false, false,
 	abi.Arguments{
-		abi.Argument{
-			Name: "validator",
-			Type: types.TypeString,
-		},
-		abi.Argument{
-			Name: "delegator",
-			Type: types.TypeAddress,
-		},
+		abi.Argument{Name: "_val", Type: types.TypeString},
+		abi.Argument{Name: "_del", Type: types.TypeAddress},
 	},
 	abi.Arguments{
-		abi.Argument{
-			Name: "shares",
-			Type: types.TypeUint256,
-		},
-		abi.Argument{
-			Name: "delegate",
-			Type: types.TypeUint256,
-		},
+		abi.Argument{Name: "_shares", Type: types.TypeUint256},
+		abi.Argument{Name: "_delegateAmount", Type: types.TypeUint256},
 	},
 )
 
