@@ -75,6 +75,7 @@ import (
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 	optimismtypes "github.com/functionx/fx-core/v3/x/optimism/types"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	fxstakingkeeper "github.com/functionx/fx-core/v3/x/staking/keeper"
 	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -102,7 +103,7 @@ type AppKeepers struct {
 	AccountKeeper    authkeeper.AccountKeeper
 	BankKeeper       bankkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
-	StakingKeeper    stakingkeeper.Keeper
+	StakingKeeper    fxstakingkeeper.Keeper
 	SlashingKeeper   slashingkeeper.Keeper
 	MintKeeper       mintkeeper.Keeper
 	DistrKeeper      distrkeeper.Keeper
@@ -201,13 +202,14 @@ func NewAppKeeper(
 		appKeepers.GetSubspace(banktypes.ModuleName),
 		blockedAddress,
 	)
-	appKeepers.StakingKeeper = stakingkeeper.NewKeeper(
+	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[stakingtypes.StoreKey],
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.GetSubspace(stakingtypes.ModuleName),
 	)
+	appKeepers.StakingKeeper = fxstakingkeeper.NewKeeper(stakingKeeper, appKeepers.keys[stakingtypes.StoreKey])
 
 	appKeepers.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
@@ -325,7 +327,7 @@ func NewAppKeeper(
 		bsctypes.ModuleName,
 		appKeepers.keys[bsctypes.StoreKey],
 		appKeepers.StakingKeeper,
-		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper.Keeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -339,7 +341,7 @@ func NewAppKeeper(
 		polygontypes.ModuleName,
 		appKeepers.keys[polygontypes.StoreKey],
 		appKeepers.StakingKeeper,
-		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper.Keeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -353,7 +355,7 @@ func NewAppKeeper(
 		avalanchetypes.ModuleName,
 		appKeepers.keys[avalanchetypes.StoreKey],
 		appKeepers.StakingKeeper,
-		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper.Keeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -367,7 +369,7 @@ func NewAppKeeper(
 		ethtypes.ModuleName,
 		appKeepers.keys[ethtypes.StoreKey],
 		appKeepers.StakingKeeper,
-		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper.Keeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -381,7 +383,7 @@ func NewAppKeeper(
 		arbitrumtypes.ModuleName,
 		appKeepers.keys[arbitrumtypes.StoreKey],
 		appKeepers.StakingKeeper,
-		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper.Keeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -395,7 +397,7 @@ func NewAppKeeper(
 		optimismtypes.ModuleName,
 		appKeepers.keys[optimismtypes.StoreKey],
 		appKeepers.StakingKeeper,
-		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper.Keeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -409,7 +411,7 @@ func NewAppKeeper(
 		trontypes.ModuleName,
 		appKeepers.keys[trontypes.StoreKey],
 		appKeepers.StakingKeeper,
-		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper),
+		stakingkeeper.NewMsgServerImpl(appKeepers.StakingKeeper.Keeper),
 		distrkeeper.NewMsgServerImpl(appKeepers.DistrKeeper),
 		appKeepers.BankKeeper,
 		appKeepers.IBCTransferKeeper,
@@ -488,7 +490,7 @@ func NewAppKeeper(
 
 	// register the staking hooks
 	// NOTE: appKeepers.StakingKeeper above is passed by reference, so that it will contain these hooks
-	appKeepers.StakingKeeper = *appKeepers.StakingKeeper.SetHooks(
+	appKeepers.StakingKeeper.Keeper = *appKeepers.StakingKeeper.Keeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			appKeepers.DistrKeeper.Hooks(),
 			appKeepers.SlashingKeeper.Hooks(),

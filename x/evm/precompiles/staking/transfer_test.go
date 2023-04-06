@@ -34,7 +34,7 @@ func TestStakingTransferABI(t *testing.T) {
 func (suite *PrecompileTestSuite) TestTransfer() {
 	delegateFromFunc := func(val sdk.ValAddress, fromSigner, _ *helpers.Signer, delAmount sdkmath.Int) {
 		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
 			DelegatorAddress: fromSigner.AccAddress().String(),
 			ValidatorAddress: val.String(),
 			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
@@ -49,7 +49,7 @@ func (suite *PrecompileTestSuite) TestTransfer() {
 	}
 	delegateFromToFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
 		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
 			DelegatorAddress: fromSigner.AccAddress().String(),
 			ValidatorAddress: val.String(),
 			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
@@ -57,7 +57,7 @@ func (suite *PrecompileTestSuite) TestTransfer() {
 		suite.Require().NoError(err)
 
 		helpers.AddTestAddr(suite.app, suite.ctx, toSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
 			DelegatorAddress: toSigner.AccAddress().String(),
 			ValidatorAddress: val.String(),
 			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
@@ -66,7 +66,7 @@ func (suite *PrecompileTestSuite) TestTransfer() {
 	}
 	delegateToFromFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
 		helpers.AddTestAddr(suite.app, suite.ctx, toSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
 			DelegatorAddress: toSigner.AccAddress().String(),
 			ValidatorAddress: val.String(),
 			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
@@ -74,7 +74,7 @@ func (suite *PrecompileTestSuite) TestTransfer() {
 		suite.Require().NoError(err)
 
 		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
 			DelegatorAddress: fromSigner.AccAddress().String(),
 			ValidatorAddress: val.String(),
 			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),

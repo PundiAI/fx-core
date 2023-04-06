@@ -20,6 +20,7 @@ import (
 
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	"github.com/functionx/fx-core/v3/types"
+	fxstakingtypes "github.com/functionx/fx-core/v3/x/staking/types"
 )
 
 var DefaultTestingAppInit = helpers.SetupTestingApp
@@ -60,7 +61,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 		validators = append(validators, validator)
 		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.NewDecFromInt(bondAmt)))
 	}
-	stakingGenesisState := stakingtypes.GenesisState{}
+	stakingGenesisState := fxstakingtypes.GenesisState{}
 	app.AppCodec().MustUnmarshalJSON(genesisState[stakingtypes.ModuleName], &stakingGenesisState)
 	stakingGenesisState.Validators = validators
 	stakingGenesisState.Delegations = delegations

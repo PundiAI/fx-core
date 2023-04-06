@@ -32,7 +32,6 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
@@ -67,6 +66,7 @@ import (
 	optimismtypes "github.com/functionx/fx-core/v3/x/optimism/types"
 	"github.com/functionx/fx-core/v3/x/polygon"
 	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
+	fxstaking "github.com/functionx/fx-core/v3/x/staking"
 	"github.com/functionx/fx-core/v3/x/tron"
 	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
 )
@@ -109,7 +109,7 @@ var ModuleBasics = module.NewBasicManager(
 	genutil.AppModuleBasic{},
 	bank.AppModuleBasic{},
 	capability.AppModuleBasic{},
-	staking.AppModuleBasic{},
+	fxstaking.AppModuleBasic{},
 	mint.AppModuleBasic{},
 	distr.AppModuleBasic{},
 	fxgov.NewAppModuleBasic([]govclient.ProposalHandler{
@@ -165,7 +165,7 @@ func appModules(
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
+		fxstaking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),

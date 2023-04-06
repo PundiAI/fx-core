@@ -45,6 +45,7 @@ import (
 
 	"github.com/functionx/fx-core/v3/app"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxstakingtypes "github.com/functionx/fx-core/v3/x/staking/types"
 )
 
 // ABCIConsensusParams defines the default Tendermint consensus params used in fxCore testing.
@@ -175,7 +176,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[i].GetAddress(), validator.GetOperator(), sdk.NewDecFromInt(bondAmt)))
 	}
 
-	var stakingGenesis stakingtypes.GenesisState
+	var stakingGenesis fxstakingtypes.GenesisState
 	myApp.AppCodec().MustUnmarshalJSON(genesisState[stakingtypes.ModuleName], &stakingGenesis)
 	stakingGenesis.Params.MaxValidators = uint32(len(validators))
 	stakingGenesis.Validators = validators

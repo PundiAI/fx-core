@@ -33,6 +33,7 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/server"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxstakingtypes "github.com/functionx/fx-core/v3/x/staking/types"
 )
 
 //gocyclo:ignore
@@ -208,7 +209,7 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 	bankGenState.Balances = append(bankGenState.Balances, genBalances...)
 	cfg.GenesisState[banktypes.ModuleName] = cfg.Codec.MustMarshalJSON(&bankGenState)
 
-	var stakingGenState stakingtypes.GenesisState
+	var stakingGenState fxstakingtypes.GenesisState
 	cfg.Codec.MustUnmarshalJSON(cfg.GenesisState[stakingtypes.ModuleName], &stakingGenState)
 
 	stakingGenState.Params.BondDenom = cfg.BondDenom

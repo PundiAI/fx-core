@@ -27,6 +27,7 @@ import (
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	fxstakingtypes "github.com/functionx/fx-core/v3/x/staking/types"
 )
 
 const (
@@ -60,7 +61,7 @@ func NewDefAppGenesisByDenom(denom string, cdc codec.JSONCodec) GenesisState {
 	for _, b := range ModuleBasics {
 		switch b.Name() {
 		case stakingtypes.ModuleName:
-			state := stakingtypes.DefaultGenesisState()
+			state := fxstakingtypes.DefaultGenesisState()
 			state.Params.BondDenom = denom
 			state.Params.MaxValidators = 20
 			state.Params.UnbondingTime = time.Hour * 24 * 21

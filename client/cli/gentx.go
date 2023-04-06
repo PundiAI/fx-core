@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,6 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
+	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
@@ -29,6 +31,8 @@ import (
 	"github.com/spf13/cobra"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	fxstakingtypes "github.com/functionx/fx-core/v3/x/staking/types"
 )
 
 // GenTxCmd builds the application's gentx command.
@@ -129,7 +133,7 @@ $ %s gentx my-key-name 100000000000000000000FX --keyring-backend=os --chain-id=f
 			if err != nil {
 				return err
 			}
-			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, addr, coins, clientCtx.Codec)
+			err = ValidateAccountInGenesis(genesisState, genBalIterator, addr, coins, clientCtx.Codec)
 			if err != nil {
 				return errors.Wrap(err, "failed to validate account in genesis")
 			}
@@ -323,4 +327,54 @@ func buildCommissionRates(rateStr, maxRateStr, maxChangeRateStr string) (commiss
 	commission = stakingtypes.NewCommissionRates(rate, maxRate, maxChangeRate)
 
 	return commission, nil
+}
+
+// ValidateAccountInGenesis checks that the provided account has a sufficient
+// balance in the set of genesis accounts.
+func ValidateAccountInGenesis(
+	appGenesisState map[string]json.RawMessage, genBalIterator types.GenesisBalancesIterator,
+	addr sdk.Address, coins sdk.Coins, cdc codec.JSONCodec,
+) error {
+	var stakingData fxstakingtypes.GenesisState
+	cdc.MustUnmarshalJSON(appGenesisState[stakingtypes.ModuleName], &stakingData)
+	bondDenom := stakingData.Params.BondDenom
+
+	var err error
+
+	accountIsInGenesis := false
+
+	genBalIterator.IterateGenesisBalances(cdc, appGenesisState,
+		func(bal bankexported.GenesisBalance) (stop bool) {
+			accAddress := bal.GetAddress()
+			accCoins := bal.GetCoins()
+
+			// ensure that account is in genesis
+			if accAddress.Equals(addr) {
+				// ensure account contains enough funds of default bond denom
+				if coins.AmountOf(bondDenom).GT(accCoins.AmountOf(bondDenom)) {
+					err = fmt.Errorf(
+						"account %s has a balance in genesis, but it only has %v%s available to stake, not %v%s",
+						addr, accCoins.AmountOf(bondDenom), bondDenom, coins.AmountOf(bondDenom), bondDenom,
+					)
+
+					return true
+				}
+
+				accountIsInGenesis = true
+				return true
+			}
+
+			return false
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if !accountIsInGenesis {
+		return fmt.Errorf("account %s does not have a balance in the genesis state", addr)
+	}
+
+	return nil
 }

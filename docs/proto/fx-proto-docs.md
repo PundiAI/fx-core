@@ -326,6 +326,10 @@
   
     - [Msg](#fx.migrate.v1.Msg)
   
+- [fx/staking/v1beta1/genesis.proto](#fx/staking/v1beta1/genesis.proto)
+    - [Allowance](#fx.staking.v1beta1.Allowance)
+    - [GenesisState](#fx.staking.v1beta1.GenesisState)
+  
 - [Scalar Value Types](#scalar-value-types)
 
 
@@ -4770,6 +4774,63 @@ Msg defines the state transitions possible within gravity
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `MigrateAccount` | [MsgMigrateAccount](#fx.migrate.v1.MsgMigrateAccount) | [MsgMigrateAccountResponse](#fx.migrate.v1.MsgMigrateAccountResponse) |  | |
+
+ <!-- end services -->
+
+
+
+<a name="fx/staking/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/staking/v1beta1/genesis.proto
+
+
+
+<a name="fx.staking.v1beta1.Allowance"></a>
+
+### Allowance
+Allowance defines the allowance of shares for a delegator.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `validator_address` | [string](#string) |  | validator_address defines the validator address. |
+| `owner_address` | [string](#string) |  | owner_address defines the owner address. |
+| `spender_address` | [string](#string) |  | spender_address defines the spender address. |
+| `allowance` | [string](#string) |  | allowance defines the amount of shares. |
+
+
+
+
+
+
+<a name="fx.staking.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the staking module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [cosmos.staking.v1beta1.Params](#cosmos.staking.v1beta1.Params) |  | params defines all the paramaters of related to deposit. |
+| `last_total_power` | [bytes](#bytes) |  | last_total_power tracks the total amounts of bonded tokens recorded during the previous end block. |
+| `last_validator_powers` | [cosmos.staking.v1beta1.LastValidatorPower](#cosmos.staking.v1beta1.LastValidatorPower) | repeated | last_validator_powers is a special index that provides a historical list of the last-block's bonded validators. |
+| `validators` | [cosmos.staking.v1beta1.Validator](#cosmos.staking.v1beta1.Validator) | repeated | delegations defines the validator set at genesis. |
+| `delegations` | [cosmos.staking.v1beta1.Delegation](#cosmos.staking.v1beta1.Delegation) | repeated | delegations defines the delegations active at genesis. |
+| `unbonding_delegations` | [cosmos.staking.v1beta1.UnbondingDelegation](#cosmos.staking.v1beta1.UnbondingDelegation) | repeated | unbonding_delegations defines the unbonding delegations active at genesis. |
+| `redelegations` | [cosmos.staking.v1beta1.Redelegation](#cosmos.staking.v1beta1.Redelegation) | repeated | redelegations defines the redelegations active at genesis. |
+| `exported` | [bool](#bool) |  |  |
+| `allowances` | [Allowance](#fx.staking.v1beta1.Allowance) | repeated | allowances defines the shares allowances active at genesis. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 
