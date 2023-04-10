@@ -82,12 +82,11 @@ func UpdateDenomAliases(ctx sdk.Context, k erc20keeper.Keeper) {
 
 func GetUpdateDenomAlias(chainId string) []DenomAlias {
 	if fxtypes.TestnetChainId == chainId {
-		// todo deploy testnet contract
 		return []DenomAlias{
-			{Denom: "weth", Alias: "arbitrum0x0000000000000000000000000000000000000001"},
-			{Denom: "usdt", Alias: "arbitrum0x0000000000000000000000000000000000000002"},
-			{Denom: "weth", Alias: "optimism0x0000000000000000000000000000000000000003"},
-			{Denom: "usdt", Alias: "optimism0x0000000000000000000000000000000000000004"},
+			{Denom: "weth", Alias: "arbitrum0x57b1E4C85B0f141aDE38b5573907BA8eF9aC2298"},
+			{Denom: "usdt", Alias: "arbitrum0xEa99760Ecc3460154670B86E202233974883b153"},
+			{Denom: "weth", Alias: "optimism0xd0fABb17BD2999A4A9fDF0F05c2386e7dF6519bb"},
+			{Denom: "usdt", Alias: "optimism0xeb62B336778ac9E9CF1Aacfd268E0Eb013019DC5"},
 		}
 	} else if chainId == fxtypes.MainnetChainId {
 		return []DenomAlias{
