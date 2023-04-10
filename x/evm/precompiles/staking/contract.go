@@ -41,7 +41,7 @@ func NewPrecompiledContract(
 }
 
 func (c *Contract) Address() common.Address {
-	return precompileAddress
+	return stakingAddress
 }
 
 func (c *Contract) IsStateful() bool {
@@ -63,14 +63,14 @@ func (c *Contract) RequiredGas(input []byte) uint64 {
 		return DelegationGas
 	case string(DelegationRewardsMethod.ID):
 		return DelegationRewardsGas
-	case string(TransferMethod.ID):
-		return TransferGas
-	case string(ApproveMethod.ID):
-		return ApproveGas
-	case string(AllowanceMethod.ID):
-		return AllowanceGas
-	case string(TransferFromMethod.ID):
-		return TransferFromGas
+	case string(TransferSharesMethod.ID):
+		return TransferSharesGas
+	case string(ApproveSharesMethod.ID):
+		return ApproveSharesGas
+	case string(AllowanceSharesMethod.ID):
+		return AllowanceSharesGas
+	case string(TransferFromSharesMethod.ID):
+		return TransferFromSharesGas
 	default:
 		return 0
 	}
@@ -96,14 +96,14 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 		ret, err = c.Delegation(cacheCtx, evm, contract, readonly)
 	case string(DelegationRewardsMethod.ID):
 		ret, err = c.DelegationRewards(cacheCtx, evm, contract, readonly)
-	case string(TransferMethod.ID):
-		ret, err = c.Transfer(cacheCtx, evm, contract, readonly)
-	case string(ApproveMethod.ID):
-		ret, err = c.Approve(cacheCtx, evm, contract, readonly)
-	case string(AllowanceMethod.ID):
-		ret, err = c.Allowance(cacheCtx, evm, contract, readonly)
-	case string(TransferFromMethod.ID):
-		ret, err = c.TransferFrom(cacheCtx, evm, contract, readonly)
+	case string(TransferSharesMethod.ID):
+		ret, err = c.TransferShares(cacheCtx, evm, contract, readonly)
+	case string(ApproveSharesMethod.ID):
+		ret, err = c.ApproveShares(cacheCtx, evm, contract, readonly)
+	case string(AllowanceSharesMethod.ID):
+		ret, err = c.AllowanceShares(cacheCtx, evm, contract, readonly)
+	case string(TransferFromSharesMethod.ID):
+		ret, err = c.TransferFromShares(cacheCtx, evm, contract, readonly)
 	default:
 		err = errors.New("unknown method")
 	}

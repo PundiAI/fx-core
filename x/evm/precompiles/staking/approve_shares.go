@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	ApproveMethod = abi.NewMethod(
-		ApproveMethodName,
-		ApproveMethodName,
+	ApproveSharesMethod = abi.NewMethod(
+		ApproveSharesMethodName,
+		ApproveSharesMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
 			abi.Argument{Name: "_val", Type: types.TypeString},
@@ -28,9 +28,9 @@ var (
 		},
 	)
 
-	ApproveEvent = abi.NewEvent(
-		ApproveEventName,
-		ApproveEventName,
+	ApproveSharesEvent = abi.NewEvent(
+		ApproveSharesEventName,
+		ApproveSharesEventName,
 		false,
 		abi.Arguments{
 			abi.Argument{Name: "owner", Type: types.TypeAddress, Indexed: true},
@@ -41,12 +41,12 @@ var (
 	)
 )
 
-func (c *Contract) Approve(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
+func (c *Contract) ApproveShares(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("approve method not readonly")
 	}
 	// parse args
-	args, err := ApproveMethod.Inputs.Unpack(contract.Input[4:])
+	args, err := ApproveSharesMethod.Inputs.Unpack(contract.Input[4:])
 	if err != nil {
 		return nil, errors.New("failed to unpack input")
 	}
@@ -70,8 +70,8 @@ func (c *Contract) Approve(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, re
 	c.stakingKeeper.SetAllowance(ctx, valAddr, owner.Bytes(), spender.Bytes(), shares)
 
 	// emit event
-	if err := c.AddLog(ApproveEvent, []common.Hash{owner.Hash(), spender.Hash()}, valAddrStr, shares); err != nil {
+	if err := c.AddLog(ApproveSharesEvent, []common.Hash{owner.Hash(), spender.Hash()}, valAddrStr, shares); err != nil {
 		return nil, err
 	}
-	return ApproveMethod.Outputs.Pack(true)
+	return ApproveSharesMethod.Outputs.Pack(true)
 }

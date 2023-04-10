@@ -2,7 +2,6 @@ package tests
 
 import (
 	"math/big"
-	"strings"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/functionx/fx-core/v3/client"
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	precompilesstaking "github.com/functionx/fx-core/v3/x/evm/precompiles/staking"
 )
 
@@ -23,10 +21,9 @@ type StakingSuite struct {
 }
 
 func NewStakingSuite(ts *TestSuite) StakingSuite {
-	abi, _ := abi.JSON(strings.NewReader(precompilesstaking.JsonABI))
 	return StakingSuite{
 		Erc20TestSuite: NewErc20TestSuite(ts),
-		abi:            abi,
+		abi:            precompilesstaking.GetABI(),
 	}
 }
 
@@ -59,8 +56,8 @@ func (suite *StakingSuite) SetWithdrawAddress(delAddr, withdrawAddr sdk.AccAddre
 }
 
 func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr string, delAmount *big.Int) {
-	stakingContract := precompilesstaking.GetPrecompileAddress()
-	pack, err := fxtypes.MustABIJson(precompilesstaking.JsonABI).Pack("delegate", valAddr)
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack("delegate", valAddr)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, delAmount, pack)
 	suite.Require().NoError(err)
@@ -68,8 +65,8 @@ func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr stri
 }
 
 func (suite *StakingSuite) UnDelegate(privateKey cryptotypes.PrivKey, valAddr string, shares *big.Int) {
-	stakingContract := precompilesstaking.GetPrecompileAddress()
-	pack, err := fxtypes.MustABIJson(precompilesstaking.JsonABI).Pack(precompilesstaking.UndelegateMethodName, valAddr, shares)
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.UndelegateMethodName, valAddr, shares)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
 	suite.Require().NoError(err)
@@ -77,8 +74,8 @@ func (suite *StakingSuite) UnDelegate(privateKey cryptotypes.PrivKey, valAddr st
 }
 
 func (suite *StakingSuite) WithdrawReward(privateKey cryptotypes.PrivKey, valAddr string) {
-	stakingContract := precompilesstaking.GetPrecompileAddress()
-	pack, err := fxtypes.MustABIJson(precompilesstaking.JsonABI).Pack(precompilesstaking.WithdrawMethodName, valAddr)
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.WithdrawMethodName, valAddr)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
 	suite.Require().NoError(err)
@@ -86,8 +83,8 @@ func (suite *StakingSuite) WithdrawReward(privateKey cryptotypes.PrivKey, valAdd
 }
 
 func (suite *StakingSuite) Delegation(valAddr string, delAddr common.Address) (*big.Int, *big.Int) {
-	stakingContract := precompilesstaking.GetPrecompileAddress()
-	pack, err := fxtypes.MustABIJson(precompilesstaking.JsonABI).Pack(precompilesstaking.DelegationMethodName, valAddr, delAddr)
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.DelegationMethodName, valAddr, delAddr)
 	suite.Require().NoError(err)
 	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)
@@ -101,8 +98,8 @@ func (suite *StakingSuite) Delegation(valAddr string, delAddr common.Address) (*
 }
 
 func (suite *StakingSuite) Rewards(valAddr string, delAddr common.Address) *big.Int {
-	stakingContract := precompilesstaking.GetPrecompileAddress()
-	pack, err := fxtypes.MustABIJson(precompilesstaking.JsonABI).Pack(precompilesstaking.DelegationRewardsMethodName, valAddr, delAddr)
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.DelegationRewardsMethodName, valAddr, delAddr)
 	suite.Require().NoError(err)
 	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &stakingContract, Data: pack}, nil)
 	suite.Require().NoError(err)

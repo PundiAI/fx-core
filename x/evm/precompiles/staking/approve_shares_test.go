@@ -15,24 +15,23 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/evm/precompiles/staking"
 )
 
-func TestStakingApproveABI(t *testing.T) {
-	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+func TestStakingApproveSharesABI(t *testing.T) {
+	stakingABI := staking.GetABI()
 
-	method := stakingABI.Methods[staking.ApproveMethodName]
-	require.Equal(t, method, staking.ApproveMethod)
-	require.Equal(t, 3, len(staking.ApproveMethod.Inputs))
-	require.Equal(t, 1, len(staking.ApproveMethod.Outputs))
+	method := stakingABI.Methods[staking.ApproveSharesMethodName]
+	require.Equal(t, method, staking.ApproveSharesMethod)
+	require.Equal(t, 3, len(staking.ApproveSharesMethod.Inputs))
+	require.Equal(t, 1, len(staking.ApproveSharesMethod.Outputs))
 
-	event := stakingABI.Events[staking.ApproveEventName]
-	require.Equal(t, event, staking.ApproveEvent)
-	require.Equal(t, 4, len(staking.ApproveEvent.Inputs))
+	event := stakingABI.Events[staking.ApproveSharesEventName]
+	require.Equal(t, event, staking.ApproveSharesEvent)
+	require.Equal(t, 4, len(staking.ApproveSharesEvent.Inputs))
 }
 
-func (suite *PrecompileTestSuite) TestApprove() {
+func (suite *PrecompileTestSuite) TestApproveShares() {
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string)
@@ -42,7 +41,7 @@ func (suite *PrecompileTestSuite) TestApprove() {
 		{
 			name: "ok",
 			malleate: func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.ApproveMethodName, val.String(), spender.Address(), allowance.BigInt())
+				pack, err := staking.GetABI().Pack(staking.ApproveSharesMethodName, val.String(), spender.Address(), allowance.BigInt())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -51,7 +50,7 @@ func (suite *PrecompileTestSuite) TestApprove() {
 		{
 			name: "ok - approve zero",
 			malleate: func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.ApproveMethodName, val.String(), spender.Address(), big.NewInt(0))
+				pack, err := staking.GetABI().Pack(staking.ApproveSharesMethodName, val.String(), spender.Address(), big.NewInt(0))
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -61,7 +60,7 @@ func (suite *PrecompileTestSuite) TestApprove() {
 			name: "failed - invalid validator address",
 			malleate: func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string) {
 				valStr := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.ApproveMethodName, valStr, spender.Address(), allowance.BigInt())
+				pack, err := staking.GetABI().Pack(staking.ApproveSharesMethodName, valStr, spender.Address(), allowance.BigInt())
 				suite.Require().NoError(err)
 				return pack, []string{valStr}
 			},
@@ -85,7 +84,7 @@ func (suite *PrecompileTestSuite) TestApprove() {
 			allowance := suite.app.StakingKeeper.GetAllowance(suite.ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress())
 			suite.Require().Equal(0, allowance.Cmp(big.NewInt(0)))
 
-			contract := staking.GetPrecompileAddress()
+			contract := staking.GetAddress()
 			pack, errArgs := tc.malleate(val.GetOperator(), spender, allowanceAmt)
 
 			tx, err := suite.PackEthereumTx(owner, contract, big.NewInt(0), pack)
@@ -104,11 +103,11 @@ func (suite *PrecompileTestSuite) TestApprove() {
 
 				existLog := false
 				for _, log := range res.Logs {
-					if log.Topics[0] == staking.ApproveEvent.ID.String() {
-						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
+					if log.Topics[0] == staking.ApproveSharesEvent.ID.String() {
+						suite.Require().Equal(log.Address, staking.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], owner.Address().Hash().String())
 						suite.Require().Equal(log.Topics[2], spender.Address().Hash().String())
-						unpack, err := staking.ApproveEvent.Inputs.NonIndexed().Unpack(log.Data)
+						unpack, err := staking.ApproveSharesEvent.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
 						unpackValidator := unpack[0].(string)
 						suite.Require().Equal(unpackValidator, val.GetOperator().String())

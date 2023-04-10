@@ -34,31 +34,31 @@ contract staking_test is Staking {
         return amount;
     }
 
-    function approve(
+    function approveShares(
         string memory _val,
         address _spender,
         uint256 _shares
     ) external override returns (bool) {
-        bool success = _approve(_val, _spender, _shares);
+        bool success = _approveShares(_val, _spender, _shares);
         return success;
     }
 
-    function transfer(
+    function transferShares(
         string memory _val,
         address _to,
         uint256 _shares
     ) external override returns (uint256, uint256) {
-        (uint256 token, uint256 reward) = _transfer(_val, _to, _shares);
+        (uint256 token, uint256 reward) = _transferShares(_val, _to, _shares);
         return (token, reward);
     }
 
-    function transferFrom(
+    function transferFromShares(
         string memory _val,
         address _from,
         address _to,
         uint256 _shares
     ) external override returns (uint256, uint256) {
-        (uint256 token, uint256 reward) = _transferFrom(_val, _from, _to, _shares);
+        (uint256 token, uint256 reward) = _transferFromShares(_val, _from, _to, _shares);
         return (token, reward);
     }
 
@@ -76,12 +76,12 @@ contract staking_test is Staking {
         return _delegationRewards(_val, _del);
     }
 
-    function allowance(
+    function allowanceShares(
         string memory _val,
         address _owner,
         address _spender
     ) public view override returns (uint256) {
-        return _allowance(_val, _owner, _spender);
+        return _allowanceShares(_val, _owner, _spender);
     }
 
 }

@@ -21,7 +21,7 @@ import (
 )
 
 func TestStakingUndelegateABI(t *testing.T) {
-	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+	stakingABI := staking.GetABI()
 
 	method := stakingABI.Methods[staking.UndelegateMethodName]
 	require.Equal(t, method, staking.UndelegateMethod)
@@ -43,7 +43,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 		{
 			name: "ok",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.UndelegateMethodName, val.String(), shares.TruncateInt().BigInt())
+				pack, err := staking.GetABI().Pack(staking.UndelegateMethodName, val.String(), shares.TruncateInt().BigInt())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -53,7 +53,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 			name: "failed - invalid validator address",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.UndelegateMethodName, newVal, shares.TruncateInt().BigInt())
+				pack, err := staking.GetABI().Pack(staking.UndelegateMethodName, newVal, shares.TruncateInt().BigInt())
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -66,7 +66,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 			name: "failed - validator not found",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.UndelegateMethodName, newVal, shares.TruncateInt().BigInt())
+				pack, err := staking.GetABI().Pack(staking.UndelegateMethodName, newVal, shares.TruncateInt().BigInt())
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -122,8 +122,8 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 			signer := suite.RandSigner()
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
 
-			contract := staking.GetPrecompileAddress()
-			stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+			contract := staking.GetAddress()
+			stakingABI := staking.GetABI()
 			delegateMethodName := staking.DelegateMethodName
 			undelegateMethodName := staking.UndelegateMethodName
 			delAddr := signer.Address()
@@ -188,7 +188,7 @@ func (suite *PrecompileTestSuite) TestUndelegate() {
 				exitLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.UndelegateEvent.ID.String() {
-						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Address, staking.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
 						unpack, err := staking.UndelegateEvent.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)

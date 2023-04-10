@@ -12,9 +12,9 @@ import (
 	"github.com/functionx/fx-core/v3/x/evm/types"
 )
 
-var AllowanceMethod = abi.NewMethod(
-	AllowanceMethodName,
-	AllowanceMethodName,
+var AllowanceSharesMethod = abi.NewMethod(
+	AllowanceSharesMethodName,
+	AllowanceSharesMethodName,
 	abi.Function, "view", false, false,
 	abi.Arguments{
 		abi.Argument{Name: "_val", Type: types.TypeString},
@@ -26,9 +26,9 @@ var AllowanceMethod = abi.NewMethod(
 	},
 )
 
-func (c *Contract) Allowance(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {
+func (c *Contract) AllowanceShares(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {
 	cacheCtx, _ := ctx.CacheContext()
-	args, err := AllowanceMethod.Inputs.Unpack(contract.Input[4:])
+	args, err := AllowanceSharesMethod.Inputs.Unpack(contract.Input[4:])
 	if err != nil {
 		return nil, errors.New("failed to unpack input")
 	}
@@ -43,5 +43,5 @@ func (c *Contract) Allowance(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, 
 		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
 	}
 	allowance := c.stakingKeeper.GetAllowance(cacheCtx, valAddr, owner.Bytes(), spender.Bytes())
-	return AllowanceMethod.Outputs.Pack(allowance)
+	return AllowanceSharesMethod.Outputs.Pack(allowance)
 }

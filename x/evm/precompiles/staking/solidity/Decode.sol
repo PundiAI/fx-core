@@ -24,21 +24,21 @@ library Decode {
         return reward;
     }
 
-    function approve(
+    function approveShares(
         bytes memory data
     ) internal pure returns (bool) {
         (bool result) = abi.decode(data, (bool));
         return result;
     }
 
-    function transfer(
+    function transferShares(
         bytes memory data
     ) internal pure returns (uint256, uint256) {
         (uint256 amount, uint256 reward) = abi.decode(data, (uint256, uint256));
         return (amount, reward);
     }
 
-    function transferFrom(
+    function transferFromShares(
         bytes memory data
     ) internal pure returns (uint256, uint256) {
         (uint256 amount, uint256 reward) = abi.decode(data, (uint256, uint256));
@@ -62,7 +62,7 @@ library Decode {
         return delegateRewardsAmount;
     }
 
-    function allowance(
+    function allowanceShares(
         bytes memory data
     ) internal pure returns (uint256) {
         uint256 allowanceAmount = abi.decode(data, (uint256));

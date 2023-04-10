@@ -18,20 +18,20 @@ import (
 	"github.com/functionx/fx-core/v3/x/evm/precompiles/staking"
 )
 
-func TestStakingTransferABI(t *testing.T) {
-	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+func TestStakingTransferSharesABI(t *testing.T) {
+	stakingABI := staking.GetABI()
 
-	method := stakingABI.Methods[staking.TransferMethodName]
-	require.Equal(t, method, staking.TransferMethod)
-	require.Equal(t, 3, len(staking.TransferMethod.Inputs))
-	require.Equal(t, 2, len(staking.TransferMethod.Outputs))
+	method := stakingABI.Methods[staking.TransferSharesMethodName]
+	require.Equal(t, method, staking.TransferSharesMethod)
+	require.Equal(t, 3, len(staking.TransferSharesMethod.Inputs))
+	require.Equal(t, 2, len(staking.TransferSharesMethod.Outputs))
 
-	event := stakingABI.Events[staking.TransferEventName]
-	require.Equal(t, event, staking.TransferEvent)
-	require.Equal(t, 5, len(staking.TransferEvent.Inputs))
+	event := stakingABI.Events[staking.TransferSharesEventName]
+	require.Equal(t, event, staking.TransferSharesEvent)
+	require.Equal(t, 5, len(staking.TransferSharesEvent.Inputs))
 }
 
-func (suite *PrecompileTestSuite) TestTransfer() {
+func (suite *PrecompileTestSuite) TestTransferShares() {
 	delegateFromFunc := func(val sdk.ValAddress, fromSigner, _ *helpers.Signer, delAmount sdkmath.Int) {
 		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
@@ -106,12 +106,12 @@ func (suite *PrecompileTestSuite) TestTransfer() {
 
 	packTransferRand := func(val sdk.ValAddress, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string) {
 		randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
-		pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.TransferMethodName, val.String(), to.Address(), randShares)
+		pack, err := staking.GetABI().Pack(staking.TransferSharesMethodName, val.String(), to.Address(), randShares)
 		suite.Require().NoError(err)
 		return pack, randShares, nil
 	}
 	packTransferAll := func(val sdk.ValAddress, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string) {
-		pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.TransferMethodName, val.String(), to.Address(), shares)
+		pack, err := staking.GetABI().Pack(staking.TransferSharesMethodName, val.String(), to.Address(), shares)
 		suite.Require().NoError(err)
 		return pack, shares, nil
 	}
@@ -252,7 +252,7 @@ func (suite *PrecompileTestSuite) TestTransfer() {
 			fromSigner := suite.RandSigner()
 			toSigner := suite.RandSigner()
 
-			contract := staking.GetPrecompileAddress()
+			contract := staking.GetAddress()
 			delAddr := fromSigner.Address()
 
 			tc.pretransfer(val.GetOperator(), fromSigner, toSigner, delAmt)
@@ -318,16 +318,16 @@ func (suite *PrecompileTestSuite) TestTransfer() {
 	}
 }
 
-func TestStakingTransferFromABI(t *testing.T) {
-	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+func TestStakingTransferFromSharesABI(t *testing.T) {
+	stakingABI := staking.GetABI()
 
-	method := stakingABI.Methods[staking.TransferFromMethodName]
-	require.Equal(t, method, staking.TransferFromMethod)
-	require.Equal(t, 4, len(staking.TransferFromMethod.Inputs))
-	require.Equal(t, 2, len(staking.TransferFromMethod.Outputs))
+	method := stakingABI.Methods[staking.TransferSharesFromMethodName]
+	require.Equal(t, method, staking.TransferFromSharesMethod)
+	require.Equal(t, 4, len(staking.TransferFromSharesMethod.Inputs))
+	require.Equal(t, 2, len(staking.TransferFromSharesMethod.Outputs))
 }
 
-func (suite *PrecompileTestSuite) TestTransferFrom() {
+func (suite *PrecompileTestSuite) TestTransferFromShares() {
 	delegateFromFunc := func(val sdk.ValAddress, fromSigner, _ *helpers.Signer, delAmount sdkmath.Int) {
 		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
@@ -401,9 +401,9 @@ func (suite *PrecompileTestSuite) TestTransferFrom() {
 	}
 
 	approveFunc := func(val sdk.ValAddress, owner, spender *helpers.Signer, allowance *big.Int) {
-		pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.ApproveMethodName, val.String(), spender.Address(), allowance)
+		pack, err := staking.GetABI().Pack(staking.ApproveSharesMethodName, val.String(), spender.Address(), allowance)
 		suite.Require().NoError(err)
-		tx, err := suite.PackEthereumTx(owner, staking.GetPrecompileAddress(), big.NewInt(0), pack)
+		tx, err := suite.PackEthereumTx(owner, staking.GetAddress(), big.NewInt(0), pack)
 		suite.Require().NoError(err)
 		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 		suite.Require().NoError(err)
@@ -413,13 +413,13 @@ func (suite *PrecompileTestSuite) TestTransferFrom() {
 	packTransferFromRand := func(val sdk.ValAddress, spender, from, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string) {
 		randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
 		approveFunc(val, from, spender, randShares)
-		pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.TransferFromMethodName, val.String(), from.Address(), to.Address(), randShares)
+		pack, err := staking.GetABI().Pack(staking.TransferSharesFromMethodName, val.String(), from.Address(), to.Address(), randShares)
 		suite.Require().NoError(err)
 		return pack, randShares, nil
 	}
 	packTransferFromAll := func(val sdk.ValAddress, spender, from, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string) {
 		approveFunc(val, from, spender, shares)
-		pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.TransferFromMethodName, val.String(), from.Address(), to.Address(), shares)
+		pack, err := staking.GetABI().Pack(staking.TransferSharesFromMethodName, val.String(), from.Address(), to.Address(), shares)
 		suite.Require().NoError(err)
 		return pack, shares, nil
 	}
@@ -561,7 +561,7 @@ func (suite *PrecompileTestSuite) TestTransferFrom() {
 			toSigner := suite.RandSigner()
 			sender := suite.RandSigner()
 
-			contract := staking.GetPrecompileAddress()
+			contract := staking.GetAddress()
 			delAddr := fromSigner.Address()
 
 			tc.pretransfer(val.GetOperator(), fromSigner, toSigner, delAmt)

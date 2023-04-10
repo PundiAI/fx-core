@@ -46,34 +46,34 @@ contract Staking is IStaking {
         return 0;
     }
 
-    function approve(
+    function approveShares(
         string memory _val,
         address _spender,
         uint256 _shares
     ) external virtual override returns (bool _result) {
-        // return _approve(_val, _spender, _shares);
-        emit Approve(address(0), _spender, _val, 0);
+        // return _approveShares(_val, _spender, _shares);
+        emit ApproveShares(address(0), _spender, _val, 0);
         return false;
     }
 
-    function transfer(
+    function transferShares(
         string memory _val,
         address _to,
         uint256 _shares
     ) external virtual override returns (uint256 _token, uint256 _reward) {
-        // return _transfer(_val, _to, _shares);
-        emit Transfer(address(0), _to, _val, 0, 0);
+        // return _transferShares(_val, _to, _shares);
+        emit TransferShares(address(0), _to, _val, 0, 0);
         return (0, 0);
     }
 
-    function transferFrom(
+    function transferFromShares(
         string memory _val,
         address _from,
         address _to,
         uint256 _shares
     ) external virtual override returns (uint256 _token, uint256 _reward) {
-        // return _transferFrom(_val, _from, _to, _shares);
-        emit Transfer(_from, _to, _val, 0, 0);
+        // return _transferFromShares(_val, _from, _to, _shares);
+        emit TransferShares(_from, _to, _val, 0, 0);
         return (0, 0);
     }
 
@@ -99,12 +99,12 @@ contract Staking is IStaking {
         return 0;
     }
 
-    function allowance(
+    function allowanceShares(
         string memory _val,
         address _owner,
         address _spender
     ) public view virtual override returns (uint256 _shares) {
-        // return _allowance(_val, _owner, _spender);
+        // return _allowanceShares(_val, _owner, _spender);
         return 0;
     }
 
@@ -135,41 +135,41 @@ contract Staking is IStaking {
         return Decode.withdraw(data);
     }
 
-    function _approve(
+    function _approveShares(
         string memory _val,
         address _spender,
         uint256 _shares
     ) internal returns (bool) {
         (bool result, bytes memory data) = _stakingAddress.call(
-            Encode.approve(_val, _spender, _shares)
+            Encode.approveShares(_val, _spender, _shares)
         );
-        Decode.ok(result, data, "approve failed");
-        return Decode.approve(data);
+        Decode.ok(result, data, "approve shares failed");
+        return Decode.approveShares(data);
     }
 
-    function _transfer(
+    function _transferShares(
         string memory _val,
         address _to,
         uint256 _shares
     ) internal returns (uint256, uint256) {
         (bool result, bytes memory data) = _stakingAddress.call(
-            Encode.transfer(_val, _to, _shares)
+            Encode.transferShares(_val, _to, _shares)
         );
-        Decode.ok(result, data, "transfer failed");
-        return Decode.transfer(data);
+        Decode.ok(result, data, "transfer shares failed");
+        return Decode.transferShares(data);
     }
 
-    function _transferFrom(
+    function _transferFromShares(
         string memory _val,
         address _from,
         address _to,
         uint256 _shares
     ) internal returns (uint256, uint256) {
         (bool result, bytes memory data) = _stakingAddress.call(
-            Encode.transferFrom(_val, _from, _to, _shares)
+            Encode.transferFromShares(_val, _from, _to, _shares)
         );
-        Decode.ok(result, data, "transferFrom failed");
-        return Decode.transferFrom(data);
+        Decode.ok(result, data, "transferFrom shares failed");
+        return Decode.transferFromShares(data);
     }
 
     function _delegation(
@@ -194,15 +194,15 @@ contract Staking is IStaking {
         return Decode.delegationRewards(data);
     }
 
-    function _allowance(
+    function _allowanceShares(
         string memory _val,
         address _owner,
         address _spender
     ) internal view returns (uint256) {
         (bool result, bytes memory data) = _stakingAddress.staticcall(
-            Encode.allowance(_val, _owner, _spender)
+            Encode.allowanceShares(_val, _owner, _spender)
         );
-        Decode.ok(result, data, "allowance failed");
-        return Decode.allowance(data);
+        Decode.ok(result, data, "allowance shares failed");
+        return Decode.allowanceShares(data);
     }
 }

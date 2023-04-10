@@ -16,19 +16,19 @@ interface IStaking {
 
     function withdraw(string memory _val) external returns (uint256 _reward);
 
-    function approve(
+    function approveShares(
         string memory _val,
         address _spender,
         uint256 _shares
     ) external returns (bool _result);
 
-    function transfer(
+    function transferShares(
         string memory _val,
         address _to,
         uint256 _shares
     ) external returns (uint256 _token, uint256 _reward);
 
-    function transferFrom(
+    function transferFromShares(
         string memory _val,
         address _from,
         address _to,
@@ -45,7 +45,7 @@ interface IStaking {
         address _del
     ) external view returns (uint256 _reward);
 
-    function allowance(
+    function allowanceShares(
         string memory _val,
         address _owner,
         address _spender
@@ -68,14 +68,14 @@ interface IStaking {
 
     event Withdraw(address indexed sender, string validator, uint256 reward);
 
-    event Approve(
+    event ApproveShares(
         address indexed owner,
         address indexed spender,
         string validator,
         uint256 shares
     );
 
-    event Transfer(
+    event TransferShares(
         address indexed from,
         address indexed to,
         string validator,

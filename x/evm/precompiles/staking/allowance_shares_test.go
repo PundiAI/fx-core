@@ -15,20 +15,19 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/evm/precompiles/staking"
 )
 
-func TestStakingAllowanceABI(t *testing.T) {
-	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+func TestStakingAllowanceSharesABI(t *testing.T) {
+	stakingABI := staking.GetABI()
 
-	method := stakingABI.Methods[staking.AllowanceMethodName]
-	require.Equal(t, method, staking.AllowanceMethod)
-	require.Equal(t, 3, len(staking.AllowanceMethod.Inputs))
-	require.Equal(t, 1, len(staking.AllowanceMethod.Outputs))
+	method := stakingABI.Methods[staking.AllowanceSharesMethodName]
+	require.Equal(t, method, staking.AllowanceSharesMethod)
+	require.Equal(t, 3, len(staking.AllowanceSharesMethod.Inputs))
+	require.Equal(t, 1, len(staking.AllowanceSharesMethod.Outputs))
 }
 
-func (suite *PrecompileTestSuite) TestAllowance() {
+func (suite *PrecompileTestSuite) TestAllowanceShares() {
 	testCases := []struct {
 		name     string
 		malleate func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string)
@@ -38,7 +37,7 @@ func (suite *PrecompileTestSuite) TestAllowance() {
 		{
 			name: "ok",
 			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.AllowanceMethodName, val.String(), owner.Address(), spender.Address())
+				pack, err := staking.GetABI().Pack(staking.AllowanceSharesMethodName, val.String(), owner.Address(), spender.Address())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -47,7 +46,7 @@ func (suite *PrecompileTestSuite) TestAllowance() {
 		{
 			name: "ok - default allowance zero",
 			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.AllowanceMethodName, val.String(), suite.RandSigner().Address(), spender.Address())
+				pack, err := staking.GetABI().Pack(staking.AllowanceSharesMethodName, val.String(), suite.RandSigner().Address(), spender.Address())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -57,7 +56,7 @@ func (suite *PrecompileTestSuite) TestAllowance() {
 			name: "failed - invalid validator address",
 			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
 				valStr := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.AllowanceMethodName, valStr, suite.RandSigner().Address(), spender.Address())
+				pack, err := staking.GetABI().Pack(staking.AllowanceSharesMethodName, valStr, suite.RandSigner().Address(), spender.Address())
 				suite.Require().NoError(err)
 				return pack, []string{valStr}
 			},
@@ -81,7 +80,7 @@ func (suite *PrecompileTestSuite) TestAllowance() {
 			// set allowance
 			suite.app.StakingKeeper.SetAllowance(suite.ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
-			contract := staking.GetPrecompileAddress()
+			contract := staking.GetAddress()
 			pack, errArgs := tc.malleate(val.GetOperator(), owner, spender)
 			tx, err := suite.PackEthereumTx(owner, contract, big.NewInt(0), pack)
 			var res *evmtypes.MsgEthereumTxResponse
@@ -92,7 +91,7 @@ func (suite *PrecompileTestSuite) TestAllowance() {
 			if tc.result {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
-				unpack, err := staking.AllowanceMethod.Outputs.Unpack(res.Ret)
+				unpack, err := staking.AllowanceSharesMethod.Outputs.Unpack(res.Ret)
 				suite.Require().NoError(err)
 				shares := unpack[0].(*big.Int)
 				if shares.Cmp(big.NewInt(0)) != 0 {

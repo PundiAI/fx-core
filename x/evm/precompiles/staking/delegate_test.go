@@ -23,7 +23,7 @@ import (
 )
 
 func TestStakingDelegateABI(t *testing.T) {
-	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+	stakingABI := staking.GetABI()
 
 	method := stakingABI.Methods[staking.DelegateMethodName]
 	require.Equal(t, method, staking.DelegateMethod)
@@ -47,7 +47,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val.String())
+				pack, err := staking.GetABI().Pack(staking.DelegateMethodName, val.String())
 				suite.Require().NoError(err)
 				return pack, delAmount.BigInt(), nil
 			},
@@ -63,7 +63,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 				_, err := suite.app.StakingKeeper.Delegate(suite.ctx, signer.AccAddress(), delAmount, stakingtypes.Unbonded, validator, true)
 				suite.Require().NoError(err)
 
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val.String())
+				pack, err := staking.GetABI().Pack(staking.DelegateMethodName, val.String())
 				suite.Require().NoError(err)
 				return pack, delAmount.BigInt(), nil
 			},
@@ -74,7 +74,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val.String()+"1")
+				pack, err := staking.GetABI().Pack(staking.DelegateMethodName, val.String()+"1")
 				suite.Require().NoError(err)
 				return pack, delAmount.BigInt(), []string{val.String() + "1"}
 			},
@@ -88,7 +88,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, val.String())
+				pack, err := staking.GetABI().Pack(staking.DelegateMethodName, val.String())
 				suite.Require().NoError(err)
 				return pack, big.NewInt(0), []string{big.NewInt(0).String()}
 			},
@@ -102,7 +102,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			malleate: func(signer *helpers.Signer, val sdk.ValAddress, delAmount sdkmath.Int) ([]byte, *big.Int, []string) {
 				helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegateMethodName, sdk.ValAddress(signer.AccAddress()).String())
+				pack, err := staking.GetABI().Pack(staking.DelegateMethodName, sdk.ValAddress(signer.AccAddress()).String())
 				suite.Require().NoError(err)
 				return pack, delAmount.BigInt(), []string{sdk.ValAddress(signer.AccAddress()).String()}
 			},
@@ -195,7 +195,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 			delAmount := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
 			signer := suite.RandSigner()
 
-			contract := staking.GetPrecompileAddress()
+			contract := staking.GetAddress()
 			delAddr := signer.Address()
 			if strings.HasPrefix(tc.name, "contract") {
 				contract = suite.staking
@@ -245,7 +245,7 @@ func (suite *PrecompileTestSuite) TestDelegate() {
 				exitLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.DelegateEvent.ID.String() {
-						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Address, staking.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
 						unpack, err := staking.DelegateEvent.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)

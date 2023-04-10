@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	TransferMethod = abi.NewMethod(
-		TransferMethodName,
-		TransferMethodName,
+	TransferSharesMethod = abi.NewMethod(
+		TransferSharesMethodName,
+		TransferSharesMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
 			abi.Argument{Name: "_val", Type: types.TypeString},
@@ -30,9 +30,9 @@ var (
 			abi.Argument{Name: "_reward", Type: types.TypeUint256},
 		},
 	)
-	TransferFromMethod = abi.NewMethod(
-		TransferFromMethodName,
-		TransferFromMethodName,
+	TransferFromSharesMethod = abi.NewMethod(
+		TransferSharesFromMethodName,
+		TransferSharesFromMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
 			abi.Argument{Name: "_val", Type: types.TypeString},
@@ -46,9 +46,9 @@ var (
 		},
 	)
 
-	TransferEvent = abi.NewEvent(
-		TransferEventName,
-		TransferEventName,
+	TransferSharesEvent = abi.NewEvent(
+		TransferSharesEventName,
+		TransferSharesEventName,
 		false,
 		abi.Arguments{
 			abi.Argument{Name: "from", Type: types.TypeAddress, Indexed: true},
@@ -60,11 +60,11 @@ var (
 	)
 )
 
-func (c *Contract) Transfer(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
+func (c *Contract) TransferShares(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("transfer method not readonly")
 	}
-	args, err := TransferMethod.Inputs.Unpack(contract.Input[4:])
+	args, err := TransferSharesMethod.Inputs.Unpack(contract.Input[4:])
 	if err != nil {
 		return nil, errors.New("failed to unpack input")
 	}
@@ -83,18 +83,18 @@ func (c *Contract) Transfer(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 		return nil, errors.New("shares cannot be negative")
 	}
 
-	token, reward, err := c.handlerTransfer(ctx, evm, valAddr, contract.Caller(), toAddr, shares)
+	token, reward, err := c.handlerTransferShares(ctx, evm, valAddr, contract.Caller(), toAddr, shares)
 	if err != nil {
 		return nil, err
 	}
-	return TransferMethod.Outputs.Pack(token, reward)
+	return TransferSharesMethod.Outputs.Pack(token, reward)
 }
 
-func (c *Contract) TransferFrom(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
+func (c *Contract) TransferFromShares(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("transferFrom method not readonly")
 	}
-	args, err := TransferFromMethod.Inputs.Unpack(contract.Input[4:])
+	args, err := TransferFromSharesMethod.Inputs.Unpack(contract.Input[4:])
 	if err != nil {
 		return nil, errors.New("failed to unpack input")
 	}
@@ -119,11 +119,11 @@ func (c *Contract) TransferFrom(ctx sdk.Context, evm *vm.EVM, contract *vm.Contr
 		return nil, err
 	}
 
-	token, reward, err := c.handlerTransfer(ctx, evm, valAddr, fromAddr, toAddr, shares)
+	token, reward, err := c.handlerTransferShares(ctx, evm, valAddr, fromAddr, toAddr, shares)
 	if err != nil {
 		return nil, err
 	}
-	return TransferFromMethod.Outputs.Pack(token, reward)
+	return TransferFromSharesMethod.Outputs.Pack(token, reward)
 }
 
 func (c *Contract) decrementAllowance(ctx sdk.Context, valAddr sdk.ValAddress, owner, spender sdk.AccAddress, decrease *big.Int) error {
@@ -136,7 +136,7 @@ func (c *Contract) decrementAllowance(ctx sdk.Context, valAddr sdk.ValAddress, o
 	return nil
 }
 
-func (c *Contract) handlerTransfer(
+func (c *Contract) handlerTransferShares(
 	ctx sdk.Context,
 	evm *vm.EVM,
 	valAddr sdk.ValAddress,
@@ -211,7 +211,7 @@ func (c *Contract) handlerTransfer(
 	token := validator.TokensFromShares(shares).TruncateInt()
 
 	// add Transfer event
-	if err := c.AddLog(TransferEvent, []common.Hash{from.Hash(), to.Hash()},
+	if err := c.AddLog(TransferSharesEvent, []common.Hash{from.Hash(), to.Hash()},
 		valAddr.String(), shares.TruncateInt().BigInt(), token.BigInt()); err != nil {
 		return nil, nil, err
 	}

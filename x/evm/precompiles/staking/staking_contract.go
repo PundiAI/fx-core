@@ -31,8 +31,8 @@ var (
 
 // StakingMetaData contains all meta data concerning the Staking contract.
 var StakingMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"}],\"name\":\"Approve\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"delegator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"}],\"name\":\"Delegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"token\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"completionTime\",\"type\":\"uint256\"}],\"name\":\"Undelegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"reward\",\"type\":\"uint256\"}],\"name\":\"Withdraw\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"_result\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"}],\"name\":\"delegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_del\",\"type\":\"address\"}],\"name\":\"delegation\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_delegateAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_del\",\"type\":\"address\"}],\"name\":\"delegationRewards\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_token\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_token\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"undelegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_completionTime\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"}],\"name\":\"withdraw\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x608060405234801561001057600080fd5b50610c2b806100206000396000f3fe6080604052600436106100865760003560e01c80638dfc8897116100595780638dfc8897146101805780639ddb511a146101bf578063aa2fddc7146101f0578063bd5b93d21461022e578063d5c498eb1461026b57610086565b80631fc38a8b1461008b57806331fb67c2146100c9578063495aff711461010657806351af513a14610143575b600080fd5b34801561009757600080fd5b506100b260048036038101906100ad9190610755565b6102a9565b6040516100c09291906107e7565b60405180910390f35b3480156100d557600080fd5b506100f060048036038101906100eb9190610810565b610326565b6040516100fd9190610859565b60405180910390f35b34801561011257600080fd5b5061012d60048036038101906101289190610874565b610382565b60405161013a9190610859565b60405180910390f35b34801561014f57600080fd5b5061016a600480360381019061016591906108e3565b61038b565b6040516101779190610859565b60405180910390f35b34801561018c57600080fd5b506101a760048036038101906101a2919061093f565b610393565b6040516101b69392919061099b565b60405180910390f35b6101d960048036038101906101d49190610810565b610400565b6040516101e79291906107e7565b60405180910390f35b3480156101fc57600080fd5b50610217600480360381019061021291906109d2565b610463565b6040516102259291906107e7565b60405180910390f35b34801561023a57600080fd5b50610255600480360381019061025091906109d2565b6104e0565b6040516102629190610a5c565b60405180910390f35b34801561027757600080fd5b50610292600480360381019061028d91906108e3565b610556565b6040516102a09291906107e7565b60405180910390f35b6000808373ffffffffffffffffffffffffffffffffffffffff168573ffffffffffffffffffffffffffffffffffffffff167f39ce25cb9eb8e7d68c58325d6493b7f9347812d615d19e33dc399364e792a8138860008060405161030e93929190610b3b565b60405180910390a36000809150915094509492505050565b60008073ffffffffffffffffffffffffffffffffffffffff167f901c03da5d88eb3d62ab4617e7b7d17d86db16356823a7971127d5181a842fef836000604051610371929190610b79565b60405180910390a260009050919050565b60009392505050565b600092915050565b60008060008073ffffffffffffffffffffffffffffffffffffffff167fadff14cd34035a6bbb90fbe80979f36398f244f1885f7612e6e33a05a0b90d0f8660008060006040516103e69493929190610ba9565b60405180910390a260008060009250925092509250925092565b600080600073ffffffffffffffffffffffffffffffffffffffff167f5a5adf903ba232ef17ed8be4ef872e1f60d17c5ba26a1ecbf44e388a672b118a8460008060405161044f93929190610b3b565b60405180910390a260008091509150915091565b6000808373ffffffffffffffffffffffffffffffffffffffff16600073ffffffffffffffffffffffffffffffffffffffff167f39ce25cb9eb8e7d68c58325d6493b7f9347812d615d19e33dc399364e792a813876000806040516104c993929190610b3b565b60405180910390a360008091509150935093915050565b60008273ffffffffffffffffffffffffffffffffffffffff16600073ffffffffffffffffffffffffffffffffffffffff167f757aaea72f5be0810fcdd3e3cf20ae8e5dc931f9290e900b0ce1a792eb4f3020866000604051610543929190610b79565b60405180910390a3600090509392505050565b600080600080915091509250929050565b6000604051905090565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6105ce82610585565b810181811067ffffffffffffffff821117156105ed576105ec610596565b5b80604052505050565b6000610600610567565b905061060c82826105c5565b919050565b600067ffffffffffffffff82111561062c5761062b610596565b5b61063582610585565b9050602081019050919050565b82818337600083830152505050565b600061066461065f84610611565b6105f6565b9050828152602081018484840111156106805761067f610580565b5b61068b848285610642565b509392505050565b600082601f8301126106a8576106a761057b565b5b81356106b8848260208601610651565b91505092915050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b60006106ec826106c1565b9050919050565b6106fc816106e1565b811461070757600080fd5b50565b600081359050610719816106f3565b92915050565b6000819050919050565b6107328161071f565b811461073d57600080fd5b50565b60008135905061074f81610729565b92915050565b6000806000806080858703121561076f5761076e610571565b5b600085013567ffffffffffffffff81111561078d5761078c610576565b5b61079987828801610693565b94505060206107aa8782880161070a565b93505060406107bb8782880161070a565b92505060606107cc87828801610740565b91505092959194509250565b6107e18161071f565b82525050565b60006040820190506107fc60008301856107d8565b61080960208301846107d8565b9392505050565b60006020828403121561082657610825610571565b5b600082013567ffffffffffffffff81111561084457610843610576565b5b61085084828501610693565b91505092915050565b600060208201905061086e60008301846107d8565b92915050565b60008060006060848603121561088d5761088c610571565b5b600084013567ffffffffffffffff8111156108ab576108aa610576565b5b6108b786828701610693565b93505060206108c88682870161070a565b92505060406108d98682870161070a565b9150509250925092565b600080604083850312156108fa576108f9610571565b5b600083013567ffffffffffffffff81111561091857610917610576565b5b61092485828601610693565b92505060206109358582860161070a565b9150509250929050565b6000806040838503121561095657610955610571565b5b600083013567ffffffffffffffff81111561097457610973610576565b5b61098085828601610693565b925050602061099185828601610740565b9150509250929050565b60006060820190506109b060008301866107d8565b6109bd60208301856107d8565b6109ca60408301846107d8565b949350505050565b6000806000606084860312156109eb576109ea610571565b5b600084013567ffffffffffffffff811115610a0957610a08610576565b5b610a1586828701610693565b9350506020610a268682870161070a565b9250506040610a3786828701610740565b9150509250925092565b60008115159050919050565b610a5681610a41565b82525050565b6000602082019050610a716000830184610a4d565b92915050565b600081519050919050565b600082825260208201905092915050565b60005b83811015610ab1578082015181840152602081019050610a96565b60008484015250505050565b6000610ac882610a77565b610ad28185610a82565b9350610ae2818560208601610a93565b610aeb81610585565b840191505092915050565b6000819050919050565b6000819050919050565b6000610b25610b20610b1b84610af6565b610b00565b61071f565b9050919050565b610b3581610b0a565b82525050565b60006060820190508181036000830152610b558186610abd565b9050610b646020830185610b2c565b610b716040830184610b2c565b949350505050565b60006040820190508181036000830152610b938185610abd565b9050610ba26020830184610b2c565b9392505050565b60006080820190508181036000830152610bc38187610abd565b9050610bd26020830186610b2c565b610bdf6040830185610b2c565b610bec6060830184610b2c565b9594505050505056fea264697066735822122057571f81301a9779102f32dab266182b767913665eed32a7939dcc5068b0216b64736f6c63430008130033",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"}],\"name\":\"ApproveShares\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"delegator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"}],\"name\":\"Delegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"token\",\"type\":\"uint256\"}],\"name\":\"TransferShares\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"shares\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"completionTime\",\"type\":\"uint256\"}],\"name\":\"Undelegate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"validator\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"reward\",\"type\":\"uint256\"}],\"name\":\"Withdraw\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_spender\",\"type\":\"address\"}],\"name\":\"allowanceShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"approveShares\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"_result\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"}],\"name\":\"delegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_del\",\"type\":\"address\"}],\"name\":\"delegation\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_delegateAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_del\",\"type\":\"address\"}],\"name\":\"delegationRewards\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"transferFromShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_token\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"transferShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_token\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"_shares\",\"type\":\"uint256\"}],\"name\":\"undelegate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_completionTime\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_val\",\"type\":\"string\"}],\"name\":\"withdraw\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_reward\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x608060405234801561001057600080fd5b50610c2b806100206000396000f3fe6080604052600436106100865760003560e01c80637b625c0f116100595780637b625c0f146101805780638dfc8897146101bd5780639ddb511a146101fc578063d5c498eb1461022d578063dc6ffc7d1461026b57610086565b8063161298c11461008b57806331fb67c2146100c957806349da433e1461010657806351af513a14610143575b600080fd5b34801561009757600080fd5b506100b260048036038101906100ad9190610755565b6102a9565b6040516100c09291906107d3565b60405180910390f35b3480156100d557600080fd5b506100f060048036038101906100eb91906107fc565b610326565b6040516100fd9190610845565b60405180910390f35b34801561011257600080fd5b5061012d60048036038101906101289190610755565b610382565b60405161013a919061087b565b60405180910390f35b34801561014f57600080fd5b5061016a60048036038101906101659190610896565b6103f8565b6040516101779190610845565b60405180910390f35b34801561018c57600080fd5b506101a760048036038101906101a291906108f2565b610400565b6040516101b49190610845565b60405180910390f35b3480156101c957600080fd5b506101e460048036038101906101df9190610961565b610409565b6040516101f3939291906109bd565b60405180910390f35b610216600480360381019061021191906107fc565b610476565b6040516102249291906107d3565b60405180910390f35b34801561023957600080fd5b50610254600480360381019061024f9190610896565b6104d9565b6040516102629291906107d3565b60405180910390f35b34801561027757600080fd5b50610292600480360381019061028d91906109f4565b6104ea565b6040516102a09291906107d3565b60405180910390f35b6000808373ffffffffffffffffffffffffffffffffffffffff16600073ffffffffffffffffffffffffffffffffffffffff167f77a2ac7846d05ab9937faf9bf901529bef4b499a2939e632f99b3fab924483448760008060405161030f93929190610b3b565b60405180910390a360008091509150935093915050565b60008073ffffffffffffffffffffffffffffffffffffffff167f901c03da5d88eb3d62ab4617e7b7d17d86db16356823a7971127d5181a842fef836000604051610371929190610b79565b60405180910390a260009050919050565b60008273ffffffffffffffffffffffffffffffffffffffff16600073ffffffffffffffffffffffffffffffffffffffff167fbd99ef1c86c593a90a79f794ca07759c5a04cf54bf800cfb77bb0b9fdb9bc04a8660006040516103e5929190610b79565b60405180910390a3600090509392505050565b600092915050565b60009392505050565b60008060008073ffffffffffffffffffffffffffffffffffffffff167fadff14cd34035a6bbb90fbe80979f36398f244f1885f7612e6e33a05a0b90d0f86600080600060405161045c9493929190610ba9565b60405180910390a260008060009250925092509250925092565b600080600073ffffffffffffffffffffffffffffffffffffffff167f5a5adf903ba232ef17ed8be4ef872e1f60d17c5ba26a1ecbf44e388a672b118a846000806040516104c593929190610b3b565b60405180910390a260008091509150915091565b600080600080915091509250929050565b6000808373ffffffffffffffffffffffffffffffffffffffff168573ffffffffffffffffffffffffffffffffffffffff167f77a2ac7846d05ab9937faf9bf901529bef4b499a2939e632f99b3fab924483448860008060405161054f93929190610b3b565b60405180910390a36000809150915094509492505050565b6000604051905090565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6105ce82610585565b810181811067ffffffffffffffff821117156105ed576105ec610596565b5b80604052505050565b6000610600610567565b905061060c82826105c5565b919050565b600067ffffffffffffffff82111561062c5761062b610596565b5b61063582610585565b9050602081019050919050565b82818337600083830152505050565b600061066461065f84610611565b6105f6565b9050828152602081018484840111156106805761067f610580565b5b61068b848285610642565b509392505050565b600082601f8301126106a8576106a761057b565b5b81356106b8848260208601610651565b91505092915050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b60006106ec826106c1565b9050919050565b6106fc816106e1565b811461070757600080fd5b50565b600081359050610719816106f3565b92915050565b6000819050919050565b6107328161071f565b811461073d57600080fd5b50565b60008135905061074f81610729565b92915050565b60008060006060848603121561076e5761076d610571565b5b600084013567ffffffffffffffff81111561078c5761078b610576565b5b61079886828701610693565b93505060206107a98682870161070a565b92505060406107ba86828701610740565b9150509250925092565b6107cd8161071f565b82525050565b60006040820190506107e860008301856107c4565b6107f560208301846107c4565b9392505050565b60006020828403121561081257610811610571565b5b600082013567ffffffffffffffff8111156108305761082f610576565b5b61083c84828501610693565b91505092915050565b600060208201905061085a60008301846107c4565b92915050565b60008115159050919050565b61087581610860565b82525050565b6000602082019050610890600083018461086c565b92915050565b600080604083850312156108ad576108ac610571565b5b600083013567ffffffffffffffff8111156108cb576108ca610576565b5b6108d785828601610693565b92505060206108e88582860161070a565b9150509250929050565b60008060006060848603121561090b5761090a610571565b5b600084013567ffffffffffffffff81111561092957610928610576565b5b61093586828701610693565b93505060206109468682870161070a565b92505060406109578682870161070a565b9150509250925092565b6000806040838503121561097857610977610571565b5b600083013567ffffffffffffffff81111561099657610995610576565b5b6109a285828601610693565b92505060206109b385828601610740565b9150509250929050565b60006060820190506109d260008301866107c4565b6109df60208301856107c4565b6109ec60408301846107c4565b949350505050565b60008060008060808587031215610a0e57610a0d610571565b5b600085013567ffffffffffffffff811115610a2c57610a2b610576565b5b610a3887828801610693565b9450506020610a498782880161070a565b9350506040610a5a8782880161070a565b9250506060610a6b87828801610740565b91505092959194509250565b600081519050919050565b600082825260208201905092915050565b60005b83811015610ab1578082015181840152602081019050610a96565b60008484015250505050565b6000610ac882610a77565b610ad28185610a82565b9350610ae2818560208601610a93565b610aeb81610585565b840191505092915050565b6000819050919050565b6000819050919050565b6000610b25610b20610b1b84610af6565b610b00565b61071f565b9050919050565b610b3581610b0a565b82525050565b60006060820190508181036000830152610b558186610abd565b9050610b646020830185610b2c565b610b716040830184610b2c565b949350505050565b60006040820190508181036000830152610b938185610abd565b9050610ba26020830184610b2c565b9392505050565b60006080820190508181036000830152610bc38187610abd565b9050610bd26020830186610b2c565b610bdf6040830185610b2c565b610bec6060830184610b2c565b9594505050505056fea2646970667358221220653ea85dd8d65debd194a0023fd4b85b27e86b655b96037e1160320628b35fa564736f6c63430008130033",
 }
 
 // StakingABI is the input ABI used to generate the binding from.
@@ -202,12 +202,12 @@ func (_Staking *StakingTransactorRaw) Transact(opts *bind.TransactOpts, method s
 	return _Staking.Contract.contract.Transact(opts, method, params...)
 }
 
-// Allowance is a free data retrieval call binding the contract method 0x495aff71.
+// AllowanceShares is a free data retrieval call binding the contract method 0x7b625c0f.
 //
-// Solidity: function allowance(string _val, address _owner, address _spender) view returns(uint256 _shares)
-func (_Staking *StakingCaller) Allowance(opts *bind.CallOpts, _val string, _owner common.Address, _spender common.Address) (*big.Int, error) {
+// Solidity: function allowanceShares(string _val, address _owner, address _spender) view returns(uint256 _shares)
+func (_Staking *StakingCaller) AllowanceShares(opts *bind.CallOpts, _val string, _owner common.Address, _spender common.Address) (*big.Int, error) {
 	var out []interface{}
-	err := _Staking.contract.Call(opts, &out, "allowance", _val, _owner, _spender)
+	err := _Staking.contract.Call(opts, &out, "allowanceShares", _val, _owner, _spender)
 	if err != nil {
 		return *new(*big.Int), err
 	}
@@ -217,18 +217,18 @@ func (_Staking *StakingCaller) Allowance(opts *bind.CallOpts, _val string, _owne
 	return out0, err
 }
 
-// Allowance is a free data retrieval call binding the contract method 0x495aff71.
+// AllowanceShares is a free data retrieval call binding the contract method 0x7b625c0f.
 //
-// Solidity: function allowance(string _val, address _owner, address _spender) view returns(uint256 _shares)
-func (_Staking *StakingSession) Allowance(_val string, _owner common.Address, _spender common.Address) (*big.Int, error) {
-	return _Staking.Contract.Allowance(&_Staking.CallOpts, _val, _owner, _spender)
+// Solidity: function allowanceShares(string _val, address _owner, address _spender) view returns(uint256 _shares)
+func (_Staking *StakingSession) AllowanceShares(_val string, _owner common.Address, _spender common.Address) (*big.Int, error) {
+	return _Staking.Contract.AllowanceShares(&_Staking.CallOpts, _val, _owner, _spender)
 }
 
-// Allowance is a free data retrieval call binding the contract method 0x495aff71.
+// AllowanceShares is a free data retrieval call binding the contract method 0x7b625c0f.
 //
-// Solidity: function allowance(string _val, address _owner, address _spender) view returns(uint256 _shares)
-func (_Staking *StakingCallerSession) Allowance(_val string, _owner common.Address, _spender common.Address) (*big.Int, error) {
-	return _Staking.Contract.Allowance(&_Staking.CallOpts, _val, _owner, _spender)
+// Solidity: function allowanceShares(string _val, address _owner, address _spender) view returns(uint256 _shares)
+func (_Staking *StakingCallerSession) AllowanceShares(_val string, _owner common.Address, _spender common.Address) (*big.Int, error) {
+	return _Staking.Contract.AllowanceShares(&_Staking.CallOpts, _val, _owner, _spender)
 }
 
 // Delegation is a free data retrieval call binding the contract method 0xd5c498eb.
@@ -307,25 +307,25 @@ func (_Staking *StakingCallerSession) DelegationRewards(_val string, _del common
 	return _Staking.Contract.DelegationRewards(&_Staking.CallOpts, _val, _del)
 }
 
-// Approve is a paid mutator transaction binding the contract method 0xbd5b93d2.
+// ApproveShares is a paid mutator transaction binding the contract method 0x49da433e.
 //
-// Solidity: function approve(string _val, address _spender, uint256 _shares) returns(bool _result)
-func (_Staking *StakingTransactor) Approve(opts *bind.TransactOpts, _val string, _spender common.Address, _shares *big.Int) (*types.Transaction, error) {
-	return _Staking.contract.Transact(opts, "approve", _val, _spender, _shares)
+// Solidity: function approveShares(string _val, address _spender, uint256 _shares) returns(bool _result)
+func (_Staking *StakingTransactor) ApproveShares(opts *bind.TransactOpts, _val string, _spender common.Address, _shares *big.Int) (*types.Transaction, error) {
+	return _Staking.contract.Transact(opts, "approveShares", _val, _spender, _shares)
 }
 
-// Approve is a paid mutator transaction binding the contract method 0xbd5b93d2.
+// ApproveShares is a paid mutator transaction binding the contract method 0x49da433e.
 //
-// Solidity: function approve(string _val, address _spender, uint256 _shares) returns(bool _result)
-func (_Staking *StakingSession) Approve(_val string, _spender common.Address, _shares *big.Int) (*types.Transaction, error) {
-	return _Staking.Contract.Approve(&_Staking.TransactOpts, _val, _spender, _shares)
+// Solidity: function approveShares(string _val, address _spender, uint256 _shares) returns(bool _result)
+func (_Staking *StakingSession) ApproveShares(_val string, _spender common.Address, _shares *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.ApproveShares(&_Staking.TransactOpts, _val, _spender, _shares)
 }
 
-// Approve is a paid mutator transaction binding the contract method 0xbd5b93d2.
+// ApproveShares is a paid mutator transaction binding the contract method 0x49da433e.
 //
-// Solidity: function approve(string _val, address _spender, uint256 _shares) returns(bool _result)
-func (_Staking *StakingTransactorSession) Approve(_val string, _spender common.Address, _shares *big.Int) (*types.Transaction, error) {
-	return _Staking.Contract.Approve(&_Staking.TransactOpts, _val, _spender, _shares)
+// Solidity: function approveShares(string _val, address _spender, uint256 _shares) returns(bool _result)
+func (_Staking *StakingTransactorSession) ApproveShares(_val string, _spender common.Address, _shares *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.ApproveShares(&_Staking.TransactOpts, _val, _spender, _shares)
 }
 
 // Delegate is a paid mutator transaction binding the contract method 0x9ddb511a.
@@ -349,46 +349,46 @@ func (_Staking *StakingTransactorSession) Delegate(_val string) (*types.Transact
 	return _Staking.Contract.Delegate(&_Staking.TransactOpts, _val)
 }
 
-// Transfer is a paid mutator transaction binding the contract method 0xaa2fddc7.
+// TransferFromShares is a paid mutator transaction binding the contract method 0xdc6ffc7d.
 //
-// Solidity: function transfer(string _val, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
-func (_Staking *StakingTransactor) Transfer(opts *bind.TransactOpts, _val string, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
-	return _Staking.contract.Transact(opts, "transfer", _val, _to, _shares)
+// Solidity: function transferFromShares(string _val, address _from, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
+func (_Staking *StakingTransactor) TransferFromShares(opts *bind.TransactOpts, _val string, _from common.Address, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
+	return _Staking.contract.Transact(opts, "transferFromShares", _val, _from, _to, _shares)
 }
 
-// Transfer is a paid mutator transaction binding the contract method 0xaa2fddc7.
+// TransferFromShares is a paid mutator transaction binding the contract method 0xdc6ffc7d.
 //
-// Solidity: function transfer(string _val, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
-func (_Staking *StakingSession) Transfer(_val string, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
-	return _Staking.Contract.Transfer(&_Staking.TransactOpts, _val, _to, _shares)
+// Solidity: function transferFromShares(string _val, address _from, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
+func (_Staking *StakingSession) TransferFromShares(_val string, _from common.Address, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.TransferFromShares(&_Staking.TransactOpts, _val, _from, _to, _shares)
 }
 
-// Transfer is a paid mutator transaction binding the contract method 0xaa2fddc7.
+// TransferFromShares is a paid mutator transaction binding the contract method 0xdc6ffc7d.
 //
-// Solidity: function transfer(string _val, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
-func (_Staking *StakingTransactorSession) Transfer(_val string, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
-	return _Staking.Contract.Transfer(&_Staking.TransactOpts, _val, _to, _shares)
+// Solidity: function transferFromShares(string _val, address _from, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
+func (_Staking *StakingTransactorSession) TransferFromShares(_val string, _from common.Address, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.TransferFromShares(&_Staking.TransactOpts, _val, _from, _to, _shares)
 }
 
-// TransferFrom is a paid mutator transaction binding the contract method 0x1fc38a8b.
+// TransferShares is a paid mutator transaction binding the contract method 0x161298c1.
 //
-// Solidity: function transferFrom(string _val, address _from, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
-func (_Staking *StakingTransactor) TransferFrom(opts *bind.TransactOpts, _val string, _from common.Address, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
-	return _Staking.contract.Transact(opts, "transferFrom", _val, _from, _to, _shares)
+// Solidity: function transferShares(string _val, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
+func (_Staking *StakingTransactor) TransferShares(opts *bind.TransactOpts, _val string, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
+	return _Staking.contract.Transact(opts, "transferShares", _val, _to, _shares)
 }
 
-// TransferFrom is a paid mutator transaction binding the contract method 0x1fc38a8b.
+// TransferShares is a paid mutator transaction binding the contract method 0x161298c1.
 //
-// Solidity: function transferFrom(string _val, address _from, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
-func (_Staking *StakingSession) TransferFrom(_val string, _from common.Address, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
-	return _Staking.Contract.TransferFrom(&_Staking.TransactOpts, _val, _from, _to, _shares)
+// Solidity: function transferShares(string _val, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
+func (_Staking *StakingSession) TransferShares(_val string, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.TransferShares(&_Staking.TransactOpts, _val, _to, _shares)
 }
 
-// TransferFrom is a paid mutator transaction binding the contract method 0x1fc38a8b.
+// TransferShares is a paid mutator transaction binding the contract method 0x161298c1.
 //
-// Solidity: function transferFrom(string _val, address _from, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
-func (_Staking *StakingTransactorSession) TransferFrom(_val string, _from common.Address, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
-	return _Staking.Contract.TransferFrom(&_Staking.TransactOpts, _val, _from, _to, _shares)
+// Solidity: function transferShares(string _val, address _to, uint256 _shares) returns(uint256 _token, uint256 _reward)
+func (_Staking *StakingTransactorSession) TransferShares(_val string, _to common.Address, _shares *big.Int) (*types.Transaction, error) {
+	return _Staking.Contract.TransferShares(&_Staking.TransactOpts, _val, _to, _shares)
 }
 
 // Undelegate is a paid mutator transaction binding the contract method 0x8dfc8897.
@@ -433,9 +433,9 @@ func (_Staking *StakingTransactorSession) Withdraw(_val string) (*types.Transact
 	return _Staking.Contract.Withdraw(&_Staking.TransactOpts, _val)
 }
 
-// StakingApproveIterator is returned from FilterApprove and is used to iterate over the raw logs and unpacked data for Approve events raised by the Staking contract.
-type StakingApproveIterator struct {
-	Event *StakingApprove // Event containing the contract specifics and raw log
+// StakingApproveSharesIterator is returned from FilterApproveShares and is used to iterate over the raw logs and unpacked data for ApproveShares events raised by the Staking contract.
+type StakingApproveSharesIterator struct {
+	Event *StakingApproveShares // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -449,7 +449,7 @@ type StakingApproveIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *StakingApproveIterator) Next() bool {
+func (it *StakingApproveSharesIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -458,7 +458,7 @@ func (it *StakingApproveIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(StakingApprove)
+			it.Event = new(StakingApproveShares)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -473,7 +473,7 @@ func (it *StakingApproveIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(StakingApprove)
+		it.Event = new(StakingApproveShares)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -489,19 +489,19 @@ func (it *StakingApproveIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *StakingApproveIterator) Error() error {
+func (it *StakingApproveSharesIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *StakingApproveIterator) Close() error {
+func (it *StakingApproveSharesIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// StakingApprove represents a Approve event raised by the Staking contract.
-type StakingApprove struct {
+// StakingApproveShares represents a ApproveShares event raised by the Staking contract.
+type StakingApproveShares struct {
 	Owner     common.Address
 	Spender   common.Address
 	Validator string
@@ -509,10 +509,10 @@ type StakingApprove struct {
 	Raw       types.Log // Blockchain specific contextual infos
 }
 
-// FilterApprove is a free log retrieval operation binding the contract event 0x757aaea72f5be0810fcdd3e3cf20ae8e5dc931f9290e900b0ce1a792eb4f3020.
+// FilterApproveShares is a free log retrieval operation binding the contract event 0xbd99ef1c86c593a90a79f794ca07759c5a04cf54bf800cfb77bb0b9fdb9bc04a.
 //
-// Solidity: event Approve(address indexed owner, address indexed spender, string validator, uint256 shares)
-func (_Staking *StakingFilterer) FilterApprove(opts *bind.FilterOpts, owner []common.Address, spender []common.Address) (*StakingApproveIterator, error) {
+// Solidity: event ApproveShares(address indexed owner, address indexed spender, string validator, uint256 shares)
+func (_Staking *StakingFilterer) FilterApproveShares(opts *bind.FilterOpts, owner []common.Address, spender []common.Address) (*StakingApproveSharesIterator, error) {
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -522,17 +522,17 @@ func (_Staking *StakingFilterer) FilterApprove(opts *bind.FilterOpts, owner []co
 		spenderRule = append(spenderRule, spenderItem)
 	}
 
-	logs, sub, err := _Staking.contract.FilterLogs(opts, "Approve", ownerRule, spenderRule)
+	logs, sub, err := _Staking.contract.FilterLogs(opts, "ApproveShares", ownerRule, spenderRule)
 	if err != nil {
 		return nil, err
 	}
-	return &StakingApproveIterator{contract: _Staking.contract, event: "Approve", logs: logs, sub: sub}, nil
+	return &StakingApproveSharesIterator{contract: _Staking.contract, event: "ApproveShares", logs: logs, sub: sub}, nil
 }
 
-// WatchApprove is a free log subscription operation binding the contract event 0x757aaea72f5be0810fcdd3e3cf20ae8e5dc931f9290e900b0ce1a792eb4f3020.
+// WatchApproveShares is a free log subscription operation binding the contract event 0xbd99ef1c86c593a90a79f794ca07759c5a04cf54bf800cfb77bb0b9fdb9bc04a.
 //
-// Solidity: event Approve(address indexed owner, address indexed spender, string validator, uint256 shares)
-func (_Staking *StakingFilterer) WatchApprove(opts *bind.WatchOpts, sink chan<- *StakingApprove, owner []common.Address, spender []common.Address) (event.Subscription, error) {
+// Solidity: event ApproveShares(address indexed owner, address indexed spender, string validator, uint256 shares)
+func (_Staking *StakingFilterer) WatchApproveShares(opts *bind.WatchOpts, sink chan<- *StakingApproveShares, owner []common.Address, spender []common.Address) (event.Subscription, error) {
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -542,7 +542,7 @@ func (_Staking *StakingFilterer) WatchApprove(opts *bind.WatchOpts, sink chan<- 
 		spenderRule = append(spenderRule, spenderItem)
 	}
 
-	logs, sub, err := _Staking.contract.WatchLogs(opts, "Approve", ownerRule, spenderRule)
+	logs, sub, err := _Staking.contract.WatchLogs(opts, "ApproveShares", ownerRule, spenderRule)
 	if err != nil {
 		return nil, err
 	}
@@ -552,8 +552,8 @@ func (_Staking *StakingFilterer) WatchApprove(opts *bind.WatchOpts, sink chan<- 
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(StakingApprove)
-				if err := _Staking.contract.UnpackLog(event, "Approve", log); err != nil {
+				event := new(StakingApproveShares)
+				if err := _Staking.contract.UnpackLog(event, "ApproveShares", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -574,12 +574,12 @@ func (_Staking *StakingFilterer) WatchApprove(opts *bind.WatchOpts, sink chan<- 
 	}), nil
 }
 
-// ParseApprove is a log parse operation binding the contract event 0x757aaea72f5be0810fcdd3e3cf20ae8e5dc931f9290e900b0ce1a792eb4f3020.
+// ParseApproveShares is a log parse operation binding the contract event 0xbd99ef1c86c593a90a79f794ca07759c5a04cf54bf800cfb77bb0b9fdb9bc04a.
 //
-// Solidity: event Approve(address indexed owner, address indexed spender, string validator, uint256 shares)
-func (_Staking *StakingFilterer) ParseApprove(log types.Log) (*StakingApprove, error) {
-	event := new(StakingApprove)
-	if err := _Staking.contract.UnpackLog(event, "Approve", log); err != nil {
+// Solidity: event ApproveShares(address indexed owner, address indexed spender, string validator, uint256 shares)
+func (_Staking *StakingFilterer) ParseApproveShares(log types.Log) (*StakingApproveShares, error) {
+	event := new(StakingApproveShares)
+	if err := _Staking.contract.UnpackLog(event, "ApproveShares", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -731,9 +731,9 @@ func (_Staking *StakingFilterer) ParseDelegate(log types.Log) (*StakingDelegate,
 	return event, nil
 }
 
-// StakingTransferIterator is returned from FilterTransfer and is used to iterate over the raw logs and unpacked data for Transfer events raised by the Staking contract.
-type StakingTransferIterator struct {
-	Event *StakingTransfer // Event containing the contract specifics and raw log
+// StakingTransferSharesIterator is returned from FilterTransferShares and is used to iterate over the raw logs and unpacked data for TransferShares events raised by the Staking contract.
+type StakingTransferSharesIterator struct {
+	Event *StakingTransferShares // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -747,7 +747,7 @@ type StakingTransferIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *StakingTransferIterator) Next() bool {
+func (it *StakingTransferSharesIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -756,7 +756,7 @@ func (it *StakingTransferIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(StakingTransfer)
+			it.Event = new(StakingTransferShares)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -771,7 +771,7 @@ func (it *StakingTransferIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(StakingTransfer)
+		it.Event = new(StakingTransferShares)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -787,19 +787,19 @@ func (it *StakingTransferIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *StakingTransferIterator) Error() error {
+func (it *StakingTransferSharesIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *StakingTransferIterator) Close() error {
+func (it *StakingTransferSharesIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// StakingTransfer represents a Transfer event raised by the Staking contract.
-type StakingTransfer struct {
+// StakingTransferShares represents a TransferShares event raised by the Staking contract.
+type StakingTransferShares struct {
 	From      common.Address
 	To        common.Address
 	Validator string
@@ -808,10 +808,10 @@ type StakingTransfer struct {
 	Raw       types.Log // Blockchain specific contextual infos
 }
 
-// FilterTransfer is a free log retrieval operation binding the contract event 0x39ce25cb9eb8e7d68c58325d6493b7f9347812d615d19e33dc399364e792a813.
+// FilterTransferShares is a free log retrieval operation binding the contract event 0x77a2ac7846d05ab9937faf9bf901529bef4b499a2939e632f99b3fab92448344.
 //
-// Solidity: event Transfer(address indexed from, address indexed to, string validator, uint256 shares, uint256 token)
-func (_Staking *StakingFilterer) FilterTransfer(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*StakingTransferIterator, error) {
+// Solidity: event TransferShares(address indexed from, address indexed to, string validator, uint256 shares, uint256 token)
+func (_Staking *StakingFilterer) FilterTransferShares(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*StakingTransferSharesIterator, error) {
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -821,17 +821,17 @@ func (_Staking *StakingFilterer) FilterTransfer(opts *bind.FilterOpts, from []co
 		toRule = append(toRule, toItem)
 	}
 
-	logs, sub, err := _Staking.contract.FilterLogs(opts, "Transfer", fromRule, toRule)
+	logs, sub, err := _Staking.contract.FilterLogs(opts, "TransferShares", fromRule, toRule)
 	if err != nil {
 		return nil, err
 	}
-	return &StakingTransferIterator{contract: _Staking.contract, event: "Transfer", logs: logs, sub: sub}, nil
+	return &StakingTransferSharesIterator{contract: _Staking.contract, event: "TransferShares", logs: logs, sub: sub}, nil
 }
 
-// WatchTransfer is a free log subscription operation binding the contract event 0x39ce25cb9eb8e7d68c58325d6493b7f9347812d615d19e33dc399364e792a813.
+// WatchTransferShares is a free log subscription operation binding the contract event 0x77a2ac7846d05ab9937faf9bf901529bef4b499a2939e632f99b3fab92448344.
 //
-// Solidity: event Transfer(address indexed from, address indexed to, string validator, uint256 shares, uint256 token)
-func (_Staking *StakingFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan<- *StakingTransfer, from []common.Address, to []common.Address) (event.Subscription, error) {
+// Solidity: event TransferShares(address indexed from, address indexed to, string validator, uint256 shares, uint256 token)
+func (_Staking *StakingFilterer) WatchTransferShares(opts *bind.WatchOpts, sink chan<- *StakingTransferShares, from []common.Address, to []common.Address) (event.Subscription, error) {
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -841,7 +841,7 @@ func (_Staking *StakingFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan<-
 		toRule = append(toRule, toItem)
 	}
 
-	logs, sub, err := _Staking.contract.WatchLogs(opts, "Transfer", fromRule, toRule)
+	logs, sub, err := _Staking.contract.WatchLogs(opts, "TransferShares", fromRule, toRule)
 	if err != nil {
 		return nil, err
 	}
@@ -851,8 +851,8 @@ func (_Staking *StakingFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan<-
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(StakingTransfer)
-				if err := _Staking.contract.UnpackLog(event, "Transfer", log); err != nil {
+				event := new(StakingTransferShares)
+				if err := _Staking.contract.UnpackLog(event, "TransferShares", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -873,12 +873,12 @@ func (_Staking *StakingFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan<-
 	}), nil
 }
 
-// ParseTransfer is a log parse operation binding the contract event 0x39ce25cb9eb8e7d68c58325d6493b7f9347812d615d19e33dc399364e792a813.
+// ParseTransferShares is a log parse operation binding the contract event 0x77a2ac7846d05ab9937faf9bf901529bef4b499a2939e632f99b3fab92448344.
 //
-// Solidity: event Transfer(address indexed from, address indexed to, string validator, uint256 shares, uint256 token)
-func (_Staking *StakingFilterer) ParseTransfer(log types.Log) (*StakingTransfer, error) {
-	event := new(StakingTransfer)
-	if err := _Staking.contract.UnpackLog(event, "Transfer", log); err != nil {
+// Solidity: event TransferShares(address indexed from, address indexed to, string validator, uint256 shares, uint256 token)
+func (_Staking *StakingFilterer) ParseTransferShares(log types.Log) (*StakingTransferShares, error) {
+	event := new(StakingTransferShares)
+	if err := _Staking.contract.UnpackLog(event, "TransferShares", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

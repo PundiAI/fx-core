@@ -21,7 +21,7 @@ import (
 )
 
 func TestStakingDelegationRewardsABI(t *testing.T) {
-	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+	stakingABI := staking.GetABI()
 
 	method := stakingABI.Methods[staking.DelegationRewardsMethod.Name]
 	require.Equal(t, method, staking.DelegationRewardsMethod)
@@ -39,7 +39,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 		{
 			name: "ok",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegationRewardsMethodName, val.String(), del)
+				pack, err := staking.GetABI().Pack(staking.DelegationRewardsMethodName, val.String(), del)
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -49,7 +49,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			name: "failed - invalid validator address",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegationRewardsMethodName, newVal, del)
+				pack, err := staking.GetABI().Pack(staking.DelegationRewardsMethodName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -62,7 +62,7 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			name: "failed - validator not found",
 			malleate: func(_ sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.AccAddress()).String()
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegationRewardsMethodName, newVal, del)
+				pack, err := staking.GetABI().Pack(staking.DelegationRewardsMethodName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -119,8 +119,8 @@ func (suite *PrecompileTestSuite) TestDelegationRewards() {
 			signer := suite.RandSigner()
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
 
-			contract := staking.GetPrecompileAddress()
-			stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+			contract := staking.GetAddress()
+			stakingABI := staking.GetABI()
 			delegateMethodName := staking.DelegateMethodName
 			delegationRewardsMethodName := staking.DelegationRewardsMethodName
 			delAddr := signer.Address()

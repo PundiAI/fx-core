@@ -21,7 +21,7 @@ import (
 )
 
 func TestStakingWithdrawABI(t *testing.T) {
-	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+	stakingABI := staking.GetABI()
 
 	method := stakingABI.Methods[staking.WithdrawMethodName]
 	require.Equal(t, method, staking.WithdrawMethod)
@@ -43,7 +43,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 		{
 			name: "ok",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.WithdrawMethodName, val.String())
+				pack, err := staking.GetABI().Pack(staking.WithdrawMethodName, val.String())
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -53,7 +53,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			name: "failed invalid validator address",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.WithdrawMethodName, newVal)
+				pack, err := staking.GetABI().Pack(staking.WithdrawMethodName, newVal)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -66,7 +66,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			name: "failed validator not found",
 			malleate: func(val sdk.ValAddress, shares sdk.Dec) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.Address().Bytes()).String()
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.WithdrawMethodName, newVal)
+				pack, err := staking.GetABI().Pack(staking.WithdrawMethodName, newVal)
 				suite.Require().NoError(err)
 
 				return pack, []string{newVal}
@@ -124,8 +124,8 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 			signer := suite.RandSigner()
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmt)))
 
-			contract := staking.GetPrecompileAddress()
-			stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+			contract := staking.GetAddress()
+			stakingABI := staking.GetABI()
 			delegateMethodName := staking.DelegateMethodName
 			withdrawMethodName := staking.WithdrawMethodName
 			delAddr := signer.Address()
@@ -179,7 +179,7 @@ func (suite *PrecompileTestSuite) TestWithdraw() {
 				exitLog := false
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.WithdrawEvent.ID.String() {
-						suite.Require().Equal(log.Address, staking.GetPrecompileAddress().String())
+						suite.Require().Equal(log.Address, staking.GetAddress().String())
 						suite.Require().Equal(log.Topics[1], delAddr.Hash().String())
 						unpack, err := staking.WithdrawEvent.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)

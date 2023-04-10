@@ -19,7 +19,7 @@ import (
 )
 
 func TestStakingDelegationABI(t *testing.T) {
-	stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+	stakingABI := staking.GetABI()
 
 	method := stakingABI.Methods[staking.DelegationMethod.Name]
 	require.Equal(t, method, staking.DelegationMethod)
@@ -37,7 +37,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 		{
 			name: "ok",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegationMethodName, val.String(), del)
+				pack, err := staking.GetABI().Pack(staking.DelegationMethodName, val.String(), del)
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -46,7 +46,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 		{
 			name: "ok - zero",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegationMethodName, val.String(), del)
+				pack, err := staking.GetABI().Pack(staking.DelegationMethodName, val.String(), del)
 				suite.Require().NoError(err)
 				return pack, nil
 			},
@@ -56,7 +56,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			name: "failed - invalid validator address",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := val.String() + "1"
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegationMethodName, newVal, del)
+				pack, err := staking.GetABI().Pack(staking.DelegationMethodName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -69,7 +69,7 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			name: "failed - validator not found",
 			malleate: func(val sdk.ValAddress, del common.Address) ([]byte, []string) {
 				newVal := sdk.ValAddress(suite.signer.AccAddress()).String()
-				pack, err := fxtypes.MustABIJson(staking.JsonABI).Pack(staking.DelegationMethodName, newVal, del)
+				pack, err := staking.GetABI().Pack(staking.DelegationMethodName, newVal, del)
 				suite.Require().NoError(err)
 				return pack, []string{newVal}
 			},
@@ -136,9 +136,9 @@ func (suite *PrecompileTestSuite) TestDelegation() {
 			delAmount := sdk.NewInt(int64(tmrand.Int() + 100)).Mul(sdk.NewInt(1e18))
 			helpers.AddTestAddr(suite.app, suite.ctx, signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
 
-			contract := staking.GetPrecompileAddress()
+			contract := staking.GetAddress()
 			delAddr := signer.Address()
-			stakingABI := fxtypes.MustABIJson(staking.JsonABI)
+			stakingABI := staking.GetABI()
 			delegateFunc := staking.DelegateMethodName
 			delegationFunc := staking.DelegationMethodName
 			if strings.HasPrefix(tc.name, "contract") {

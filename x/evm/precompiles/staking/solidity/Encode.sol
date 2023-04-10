@@ -26,35 +26,35 @@ library Encode {
         return abi.encodeWithSignature("withdraw(string)", _validator);
     }
 
-    function approve(
+    function approveShares(
         string memory _validator,
         address _spender,
         uint256 _shares
     ) internal pure returns (bytes memory) {
         return
         abi.encodeWithSignature(
-            "approve(string,address,uint256)",
+            "approveShares(string,address,uint256)",
             _validator,
             _spender,
             _shares
         );
     }
 
-    function transfer(
+    function transferShares(
         string memory _validator,
         address _to,
         uint256 _shares
     ) internal pure returns (bytes memory) {
         return
         abi.encodeWithSignature(
-            "transfer(string,address,uint256)",
+            "transferShares(string,address,uint256)",
             _validator,
             _to,
             _shares
         );
     }
 
-    function transferFrom(
+    function transferFromShares(
         string memory _validator,
         address _from,
         address _to,
@@ -62,7 +62,7 @@ library Encode {
     ) internal pure returns (bytes memory) {
         return
         abi.encodeWithSignature(
-            "transferFrom(string,address,address,uint256)",
+            "transferFromShares(string,address,address,uint256)",
             _validator,
             _from,
             _to,
@@ -94,14 +94,14 @@ library Encode {
         );
     }
 
-    function allowance(
+    function allowanceShares(
         string memory _validator,
         address _owner,
         address _spender
     ) internal pure returns (bytes memory) {
         return
         abi.encodeWithSignature(
-            "allowance(string,address,address)",
+            "allowanceShares(string,address,address)",
             _validator,
             _owner,
             _spender
