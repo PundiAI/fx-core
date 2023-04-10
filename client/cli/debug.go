@@ -28,6 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
+	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/privval"
 )
 
@@ -49,6 +50,7 @@ func Debug() *cobra.Command {
 		AddrCmd(),
 		debug.RawBytesCmd(),
 	)
+	cmd.PersistentFlags().StringP(tmcli.OutputFlag, "o", "json", "Output format (text|json)")
 	return cmd
 }
 
