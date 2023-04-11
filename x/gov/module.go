@@ -42,7 +42,7 @@ func NewAppModuleBasic(legacyProposalHandlers []govclient.ProposalHandler) AppMo
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
-func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	if err := govv1.RegisterQueryHandlerClient(context.Background(), mux, govv1.NewQueryClient(clientCtx)); err != nil {
 		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", govtypes.ModuleName, err.Error()))
 	}
@@ -55,7 +55,7 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux 
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
-func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	govv1.RegisterInterfaces(registry)
 	govv1betal.RegisterInterfaces(registry)
 	types.RegisterInterfaces(registry)
@@ -79,11 +79,6 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, ak govtypes.AccountKeep
 		bk:        bk,
 		cdc:       cdc,
 	}
-}
-
-// Deprecated: Route returns the message routing key
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
 }
 
 // RegisterServices registers module services.

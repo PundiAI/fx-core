@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.EndBlockAppModule   = AppModule{}
+	_ module.AppModule         = AppModule{}
+	_ module.AppModuleBasic    = AppModuleBasic{}
+	_ module.EndBlockAppModule = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the evm module.
@@ -62,6 +62,7 @@ func NewAppModule(k *keeper.Keeper, accountKeeper types.AccountKeeper, legacyAmi
 	}
 }
 
+// RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // RegisterServices registers a GRPC query service to respond to the
@@ -78,7 +79,7 @@ func (am AppModule) Route() sdk.Route {
 }
 
 // QuerierRoute implements app module
-func (AppModule) QuerierRoute() string { return "" }
+func (am AppModule) QuerierRoute() string { return "" }
 
 // LegacyQuerierHandler returns no sdk.Querier
 func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {

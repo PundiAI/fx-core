@@ -43,8 +43,12 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 }
 
 // ValidateGenesis performs genesis state validation for the capability module.
-func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConfig, _ json.RawMessage) error {
-	return nil
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, data json.RawMessage) error {
+	var state types.GenesisState
+	if err := cdc.UnmarshalJSON(data, &state); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+	}
+	return state.Validate()
 }
 
 // RegisterRESTRoutes performs a no-op as the erc20 module doesn't expose REST
@@ -94,7 +98,7 @@ func NewAppModule(keeper keeper.Keeper, ss types.Subspace) AppModule {
 	}
 }
 
-// RegisterInvariants registers the capability module's invariants.
+// RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Deprecated: Route returns the message routing key
@@ -102,10 +106,8 @@ func (am AppModule) Route() sdk.Route {
 	return sdk.Route{}
 }
 
-// QuerierRoute returns the capability module's query routing key.
-func (am AppModule) QuerierRoute() string {
-	return types.RouterKey
-}
+// QuerierRoute implements app module
+func (am AppModule) QuerierRoute() string { return "" }
 
 // LegacyQuerierHandler returns no sdk.Querier
 func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {

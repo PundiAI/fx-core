@@ -87,18 +87,18 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	}
 }
 
-// RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+// RegisterInvariants implements app module
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Deprecated: Route returns the message routing key
 func (am AppModule) Route() sdk.Route {
 	return sdk.Route{}
 }
 
-// QuerierRoute implements the AppModule interface
-func (AppModule) QuerierRoute() string { return "" }
+// QuerierRoute implements app module
+func (am AppModule) QuerierRoute() string { return "" }
 
-// LegacyQuerierHandler implements the AppModule interface
+// LegacyQuerierHandler returns no sdk.Querier
 func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 	return nil
 }
