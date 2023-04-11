@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -27,12 +28,19 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {
 	chanId := suite.app.EvmKeeper.ChainID()
 	suite.Equal(fxtypes.EIP155ChainID(), chanId)
 
+	gasLimit := uint64(71000)
+
+	totalSupplyBefore := suite.app.BankKeeper.GetSupply(suite.ctx, fxtypes.DefaultDenom)
+	// Mint the max gas to the FeeCollector to ensure balance in case of refund
+	mintAmount := sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64() * int64(gasLimit))
+	suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, mintAmount)))
+
 	tx := types.NewTx(
 		chanId,
 		suite.app.EvmKeeper.GetNonce(suite.ctx, suite.signer.Address()),
 		&contract,
 		big.NewInt(0),
-		71000,
+		gasLimit,
 		big.NewInt(500*1e9),
 		nil,
 		nil,
@@ -46,6 +54,12 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx() {
 	suite.Require().NoError(err)
 	suite.Require().False(res.Failed(), res)
 
+	refundAmount := sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64() * int64(gasLimit-res.GasUsed))
+	suite.BurnEvmRefundFee(suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, refundAmount)))
+
+	totalSupplyAfter := suite.app.BankKeeper.GetSupply(suite.ctx, fxtypes.DefaultDenom)
+	suite.Require().Equal(totalSupplyBefore.String(), totalSupplyAfter.String())
+
 	suite.Equal(amount, suite.BalanceOf(contract, recipient))
 }
 
@@ -56,12 +70,19 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx2() {
 	chanId := suite.app.EvmKeeper.ChainID()
 	suite.Equal(fxtypes.EIP155ChainID(), chanId)
 
+	gasLimit := uint64(71000)
+
+	totalSupplyBefore := suite.app.BankKeeper.GetSupply(suite.ctx, fxtypes.DefaultDenom)
+	// Mint the max gas to the FeeCollector to ensure balance in case of refund
+	mintAmount := sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64() * int64(gasLimit))
+	suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, mintAmount)))
+
 	tx := types.NewTx(
 		chanId,
 		suite.app.EvmKeeper.GetNonce(suite.ctx, suite.signer.Address()),
 		&recipient,
 		amount,
-		71000,
+		gasLimit,
 		big.NewInt(500*1e9),
 		nil,
 		nil,
@@ -74,6 +95,12 @@ func (suite *KeeperTestSuite) TestKeeper_EthereumTx2() {
 	res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
 	suite.Require().NoError(err)
 	suite.Require().False(res.Failed(), res)
+
+	refundAmount := sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64() * int64(gasLimit-res.GasUsed))
+	suite.BurnEvmRefundFee(suite.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, refundAmount)))
+
+	totalSupplyAfter := suite.app.BankKeeper.GetSupply(suite.ctx, fxtypes.DefaultDenom)
+	suite.Require().Equal(totalSupplyBefore.String(), totalSupplyAfter.String())
 
 	balance := suite.app.EvmKeeper.GetBalance(suite.ctx, recipient)
 	suite.Equal(balance, amount)

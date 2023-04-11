@@ -6,9 +6,11 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/suite"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -120,4 +122,23 @@ func (suite *KeeperTestSuite) BalanceOf(contract, address common.Address) *big.I
 	err := suite.app.EvmKeeper.QueryContract(suite.ctx, contract, contract, fxtypes.GetERC20().ABI, "balanceOf", &balanceRes, address)
 	suite.Require().NoError(err)
 	return balanceRes.Value
+}
+
+func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
+	err := suite.app.BankKeeper.MintCoins(suite.ctx, evmtypes.ModuleName, coins)
+	suite.Require().NoError(err)
+	err = suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx, evmtypes.ModuleName, authtypes.FeeCollectorName, coins)
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) BurnEvmRefundFee(addr sdk.AccAddress, coins sdk.Coins) {
+	err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, addr, authtypes.FeeCollectorName, coins)
+	suite.Require().NoError(err)
+
+	bal := suite.app.BankKeeper.GetBalance(suite.ctx, suite.app.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName), fxtypes.DefaultDenom)
+	err = suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx, authtypes.FeeCollectorName, evmtypes.ModuleName, sdk.NewCoins(bal))
+	suite.Require().NoError(err)
+
+	err = suite.app.BankKeeper.BurnCoins(suite.ctx, evmtypes.ModuleName, sdk.NewCoins(bal))
+	suite.Require().NoError(err)
 }

@@ -117,6 +117,18 @@ func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
 	suite.Require().NoError(err)
 }
 
+func (suite *KeeperTestSuite) BurnEvmRefundFee(addr sdk.AccAddress, coins sdk.Coins) {
+	err := suite.app.BankKeeper.SendCoinsFromAccountToModule(suite.ctx, addr, authtypes.FeeCollectorName, coins)
+	suite.Require().NoError(err)
+
+	bal := suite.app.BankKeeper.GetBalance(suite.ctx, suite.app.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName), fxtypes.DefaultDenom)
+	err = suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx, authtypes.FeeCollectorName, types.ModuleName, sdk.NewCoins(bal))
+	suite.Require().NoError(err)
+
+	err = suite.app.BankKeeper.BurnCoins(suite.ctx, types.ModuleName, sdk.NewCoins(bal))
+	suite.Require().NoError(err)
+}
+
 func (suite *KeeperTestSuite) DeployContract(from common.Address) (common.Address, error) {
 	contract, err := suite.app.Erc20Keeper.DeployUpgradableToken(suite.ctx, suite.app.Erc20Keeper.ModuleAddress(), "Test token", "TEST", 18)
 	suite.Require().NoError(err)
@@ -318,8 +330,10 @@ func (suite *KeeperTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr com
 	)
 	suite.Require().NoError(err)
 
+	totalSupplyBefore := suite.app.BankKeeper.GetSupply(suite.ctx, fxtypes.DefaultDenom)
 	// Mint the max gas to the FeeCollector to ensure balance in case of refund
-	// suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
+	mintAmount := sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64() * int64(res.Gas))
+	suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, mintAmount)))
 
 	ercTransferTx := evm.NewTx(
 		chainID,
@@ -341,6 +355,13 @@ func (suite *KeeperTestSuite) sendEvmTx(signer *helpers.Signer, contractAddr com
 	rsp, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), ercTransferTx)
 	suite.Require().NoError(err)
 	suite.Require().Empty(rsp.VmError)
+
+	refundAmount := sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64() * int64(res.Gas-rsp.GasUsed))
+	suite.BurnEvmRefundFee(signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, refundAmount)))
+
+	totalSupplyAfter := suite.app.BankKeeper.GetSupply(suite.ctx, fxtypes.DefaultDenom)
+	suite.Require().Equal(totalSupplyBefore.String(), totalSupplyAfter.String())
+
 	return ercTransferTx
 }
 
