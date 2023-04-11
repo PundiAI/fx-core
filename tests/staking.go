@@ -1,7 +1,9 @@
 package tests
 
 import (
+	"context"
 	"math/big"
+	"time"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,9 +11,14 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/functionx/fx-core/v3/client"
+	testscontract "github.com/functionx/fx-core/v3/tests/contract"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	precompilesstaking "github.com/functionx/fx-core/v3/x/evm/precompiles/staking"
 )
 
@@ -39,6 +46,18 @@ func (suite *StakingSuite) StakingQuery() stakingtypes.QueryClient {
 	return suite.GRPCClient().StakingQuery()
 }
 
+// DeployStakingContract deploy staking contract
+// solc version 0.8.19 https://github.com/ethereum/solidity/releases
+// abigen version 1.11.5-stable https://github.com/ethereum/go-ethereum/releases
+//
+//go:generate solc --abi ../x/evm/precompiles/staking/solidity/staking_test.sol -o ./artifacts --overwrite
+//go:generate solc --bin ../x/evm/precompiles/staking/solidity/staking_test.sol -o ./artifacts --overwrite
+//go:generate abigen --abi ./artifacts/staking_test.abi --bin ./artifacts/staking_test.bin --type TestStaking --pkg contract --out ./contract/test_staking.go
+func (suite *StakingSuite) DeployStakingContract(privKey cryptotypes.PrivKey) (common.Address, common.Hash) {
+	stakingBin := fxtypes.MustDecodeHex(testscontract.TestStakingMetaData.Bin)
+	return suite.DeployContract(privKey, stakingBin)
+}
+
 // DelegationRewards Get delegatorAddress rewards
 func (suite *StakingSuite) DelegationRewards(delAddr, valAddr string) sdk.DecCoins {
 	response, err := suite.GRPCClient().DistrQuery().DelegationRewards(suite.ctx, &distrtypes.QueryDelegationRewardsRequest{DelegatorAddress: delAddr, ValidatorAddress: valAddr})
@@ -62,6 +81,88 @@ func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr stri
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, delAmount, pack)
 	suite.Require().NoError(err)
 	suite.SendTransaction(transaction)
+}
+
+func (suite *StakingSuite) DelegateByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
+	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	suite.Require().NoError(err)
+
+	ecdsa, err := crypto.ToECDSA(privateKey.Bytes())
+	suite.Require().NoError(err)
+
+	chainId, err := suite.EthClient().ChainID(suite.ctx)
+	suite.Require().NoError(err)
+
+	auth, err := bind.NewKeyedTransactorWithChainID(ecdsa, chainId)
+	suite.Require().NoError(err)
+
+	auth.Value = delAmount
+	auth.GasTipCap = big.NewInt(1e9)
+	auth.GasFeeCap = big.NewInt(6e12)
+
+	tx, err := stakingContract.Delegate(auth, valAddr)
+	suite.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
+	defer cancel()
+	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
+	return receipt
+}
+
+func (suite *StakingSuite) WithdrawByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string) *ethtypes.Receipt {
+	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	suite.Require().NoError(err)
+
+	ecdsa, err := crypto.ToECDSA(privateKey.Bytes())
+	suite.Require().NoError(err)
+
+	chainId, err := suite.EthClient().ChainID(suite.ctx)
+	suite.Require().NoError(err)
+
+	auth, err := bind.NewKeyedTransactorWithChainID(ecdsa, chainId)
+	suite.Require().NoError(err)
+
+	auth.GasTipCap = big.NewInt(1e9)
+	auth.GasFeeCap = big.NewInt(6e12)
+
+	tx, err := stakingContract.Withdraw(auth, valAddr)
+	suite.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
+	defer cancel()
+	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
+	return receipt
+}
+
+func (suite *StakingSuite) UndelegateByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string, shares *big.Int) *ethtypes.Receipt {
+	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	suite.Require().NoError(err)
+
+	ecdsa, err := crypto.ToECDSA(privateKey.Bytes())
+	suite.Require().NoError(err)
+
+	chainId, err := suite.EthClient().ChainID(suite.ctx)
+	suite.Require().NoError(err)
+
+	auth, err := bind.NewKeyedTransactorWithChainID(ecdsa, chainId)
+	suite.Require().NoError(err)
+
+	auth.GasTipCap = big.NewInt(1e9)
+	auth.GasFeeCap = big.NewInt(6e12)
+
+	tx, err := stakingContract.Undelegate(auth, valAddr, shares)
+	suite.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
+	defer cancel()
+	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
+	return receipt
 }
 
 func (suite *StakingSuite) UnDelegate(privateKey cryptotypes.PrivKey, valAddr string, shares *big.Int) {

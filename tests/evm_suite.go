@@ -13,6 +13,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/functionx/fx-core/v3/client"
 	"github.com/functionx/fx-core/v3/testutil/helpers"
@@ -298,7 +299,7 @@ func (suite *EvmTestSuite) SafeTransferFrom(privateKey cryptotypes.PrivKey, cont
 	return ethTx
 }
 
-func (suite *EvmTestSuite) SendTransaction(tx *ethtypes.Transaction) {
+func (suite *EvmTestSuite) SendTransaction(tx *ethtypes.Transaction) *ethtypes.Receipt {
 	err := suite.EthClient().SendTransaction(suite.ctx, tx)
 	suite.Require().NoError(err)
 
@@ -307,6 +308,34 @@ func (suite *EvmTestSuite) SendTransaction(tx *ethtypes.Transaction) {
 	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
 	suite.Require().NoError(err)
 	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
+	return receipt
+}
+
+func (suite *EvmTestSuite) DeployContract(privKey cryptotypes.PrivKey, contractBin []byte) (common.Address, common.Hash) {
+	tx, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privKey, nil, nil, contractBin)
+	suite.Require().NoError(err)
+	receipt := suite.SendTransaction(tx)
+
+	suite.Require().NotEqualf(fxtypes.EmptyEvmAddress, receipt.ContractAddress.String(), "contract address is empty")
+	return receipt.ContractAddress, receipt.TxHash
+}
+
+func (suite *EvmTestSuite) TxFee(hash common.Hash) *big.Int {
+	receipt, err := suite.EthClient().TransactionReceipt(suite.ctx, hash)
+	suite.Require().NoError(err)
+
+	tx, pending, err := suite.EthClient().TransactionByHash(suite.ctx, hash)
+	suite.Require().NoError(err)
+	suite.Require().False(pending)
+
+	block, err := suite.EthClient().BlockByNumber(suite.ctx, receipt.BlockNumber)
+	suite.Require().NoError(err)
+	baseFee := block.BaseFee()
+
+	txData, err := evmtypes.NewTxDataFromTx(tx)
+	suite.Require().NoError(err)
+	effectiveGasPrice := txData.EffectiveGasPrice(baseFee)
+	return big.NewInt(0).Mul(effectiveGasPrice, big.NewInt(0).SetUint64(receipt.GasUsed))
 }
 
 func GetERC721() fxtypes.Contract {

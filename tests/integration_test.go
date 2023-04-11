@@ -39,6 +39,7 @@ func (suite *IntegrationTest) TestRun() {
 	suite.CrossChainTest()
 	suite.ERC20Test()
 	suite.StakingTest()
+	suite.StakingContractTest()
 	suite.ERC20IBCChainTokenTest()
 	suite.EVMWeb3Test()
 	suite.MigrateTestDelegate()
