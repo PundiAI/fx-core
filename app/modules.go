@@ -194,25 +194,22 @@ func appModules(
 func orderBeginBlockers() []string {
 	return []string{
 		// upgrades should be run first
-		upgradetypes.ModuleName,
-		capabilitytypes.ModuleName,
-		feemarkettypes.ModuleName,
-		evmtypes.ModuleName,
-		crisistypes.ModuleName,
+		upgradetypes.ModuleName,    // *
+		capabilitytypes.ModuleName, // *
+		minttypes.ModuleName,       // *
+		distrtypes.ModuleName,      // *
+		slashingtypes.ModuleName,   // *
+		evidencetypes.ModuleName,   // *
+		stakingtypes.ModuleName,    // *
+		authtypes.ModuleName,
+		banktypes.ModuleName,
 		govtypes.ModuleName,
-		stakingtypes.ModuleName,
+		crisistypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		fxibctransfertypes.CompatibleModuleName,
 		ibchost.ModuleName,
-		authtypes.ModuleName,
-		banktypes.ModuleName,
-		distrtypes.ModuleName,
-		slashingtypes.ModuleName,
-		minttypes.ModuleName,
 		genutiltypes.ModuleName,
-		evidencetypes.ModuleName,
-		capabilitytypes.ModuleName,
-		authz.ModuleName,
+		authz.ModuleName, // *
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
@@ -226,6 +223,8 @@ func orderBeginBlockers() []string {
 		arbitrumtypes.ModuleName,
 		optimismtypes.ModuleName,
 
+		feemarkettypes.ModuleName, // *
+		evmtypes.ModuleName,
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 	}
@@ -233,16 +232,12 @@ func orderBeginBlockers() []string {
 
 func orderEndBlockers() []string {
 	return []string{
-		crisistypes.ModuleName,
-		govtypes.ModuleName,
-		stakingtypes.ModuleName,
-		evmtypes.ModuleName,
-		feemarkettypes.ModuleName,
+		crisistypes.ModuleName,  // *
+		govtypes.ModuleName,     // *
+		stakingtypes.ModuleName, // *
 		ibctransfertypes.ModuleName,
 		fxibctransfertypes.CompatibleModuleName,
 		ibchost.ModuleName,
-		feegrant.ModuleName,
-		authz.ModuleName,
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
@@ -251,20 +246,24 @@ func orderEndBlockers() []string {
 		minttypes.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
+		authz.ModuleName,
+		feegrant.ModuleName, // *
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 
-		crosschaintypes.ModuleName,
-		bsctypes.ModuleName,
-		trontypes.ModuleName,
-		polygontypes.ModuleName,
-		avalanchetypes.ModuleName,
-		ethtypes.ModuleName,
-		arbitrumtypes.ModuleName,
-		optimismtypes.ModuleName,
+		crosschaintypes.ModuleName, // *
+		bsctypes.ModuleName,        // *
+		trontypes.ModuleName,       // *
+		polygontypes.ModuleName,    // *
+		avalanchetypes.ModuleName,  // *
+		ethtypes.ModuleName,        // *
+		arbitrumtypes.ModuleName,   // *
+		optimismtypes.ModuleName,   // *
 
-		erc20types.ModuleName,
+		evmtypes.ModuleName,
+		feemarkettypes.ModuleName, // *
+		erc20types.ModuleName,     // *
 		migratetypes.ModuleName,
 	}
 }
@@ -275,22 +274,18 @@ func orderInitBlockers() []string {
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
-
-		feemarkettypes.ModuleName,
-		evmtypes.ModuleName,
-
+		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
-		govtypes.ModuleName,
 		minttypes.ModuleName,
 		crisistypes.ModuleName,
+		genutiltypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		fxibctransfertypes.CompatibleModuleName,
 		ibchost.ModuleName,
 		evidencetypes.ModuleName,
-		feegrant.ModuleName,
 		authz.ModuleName,
-		genutiltypes.ModuleName,
+		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
@@ -304,6 +299,8 @@ func orderInitBlockers() []string {
 		arbitrumtypes.ModuleName,
 		optimismtypes.ModuleName,
 
+		feemarkettypes.ModuleName,
+		evmtypes.ModuleName,
 		erc20types.ModuleName,
 		migratetypes.ModuleName,
 	}
