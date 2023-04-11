@@ -1,6 +1,7 @@
 package staking_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -10,6 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -25,14 +28,19 @@ import (
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v3/x/evm/precompiles/staking"
 )
 
 const (
-	StakingTestDelegateName          = "delegate"
-	StakingTestUndelegateName        = "undelegate"
-	StakingTestWithdrawName          = "withdraw"
-	StakingTestDelegationName        = "delegation"
-	StakingTestDelegationRewardsName = "delegationRewards"
+	StakingTestDelegateName           = "delegate"
+	StakingTestUndelegateName         = "undelegate"
+	StakingTestWithdrawName           = "withdraw"
+	StakingTestDelegationName         = "delegation"
+	StakingTestDelegationRewardsName  = "delegationRewards"
+	StakingTestAllowanceSharesName    = "allowanceShares"
+	StakingTestApproveSharesName      = "approveShares"
+	StakingTestTransferSharesName     = "transferShares"
+	StakingTestTransferFromSharesName = "transferFromShares"
 )
 
 type PrecompileTestSuite struct {
@@ -155,4 +163,129 @@ func (suite *PrecompileTestSuite) RandSigner() *helpers.Signer {
 	signer := helpers.NewSigner(privKey)
 	suite.app.AccountKeeper.SetAccount(suite.ctx, suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, signer.AccAddress()))
 	return signer
+}
+
+func (suite *PrecompileTestSuite) delegateFromFunc(val sdk.ValAddress, from, _ common.Address, delAmount sdkmath.Int) {
+	helpers.AddTestAddr(suite.app, suite.ctx, from.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
+	})
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) undelegateToFunc(val sdk.ValAddress, _, to common.Address, _ sdkmath.Int) {
+	toDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, to.Bytes(), val)
+	suite.Require().True(found)
+	_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, to.Bytes(), val, toDel.Shares)
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) delegateFromToFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
+	helpers.AddTestAddr(suite.app, suite.ctx, from.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
+	})
+	suite.Require().NoError(err)
+
+	helpers.AddTestAddr(suite.app, suite.ctx, to.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
+	})
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) delegateToFromFunc(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int) {
+	helpers.AddTestAddr(suite.app, suite.ctx, to.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(to.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
+	})
+	suite.Require().NoError(err)
+
+	helpers.AddTestAddr(suite.app, suite.ctx, from.Bytes(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
+	_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
+		DelegatorAddress: sdk.AccAddress(from.Bytes()).String(),
+		ValidatorAddress: val.String(),
+		Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
+	})
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) undelegateFromToFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
+	fromDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, from.Bytes(), val)
+	suite.Require().True(found)
+	_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, from.Bytes(), val, fromDel.Shares)
+	suite.Require().NoError(err)
+
+	toDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, to.Bytes(), val)
+	suite.Require().True(found)
+	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, to.Bytes(), val, toDel.Shares)
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) undelegateToFromFunc(val sdk.ValAddress, from, to common.Address, _ sdkmath.Int) {
+	toDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, to.Bytes(), val)
+	suite.Require().True(found)
+	_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, to.Bytes(), val, toDel.Shares)
+	suite.Require().NoError(err)
+
+	fromDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, from.Bytes(), val)
+	suite.Require().True(found)
+	_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, from.Bytes(), val, fromDel.Shares)
+	suite.Require().NoError(err)
+}
+
+func (suite *PrecompileTestSuite) packTransferRand(val sdk.ValAddress, contract, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
+	callFunc := staking.TransferSharesMethodName
+	if bytes.Equal(contract.Bytes(), suite.staking.Bytes()) {
+		callFunc = StakingTestTransferSharesName
+	}
+	pack, err := staking.GetABI().Pack(callFunc, val.String(), to, randShares)
+	suite.Require().NoError(err)
+	return pack, randShares, nil
+}
+
+func (suite *PrecompileTestSuite) packTransferAll(val sdk.ValAddress, contract, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+	callFunc := staking.TransferSharesMethodName
+	if bytes.Equal(contract.Bytes(), suite.staking.Bytes()) {
+		callFunc = StakingTestTransferSharesName
+	}
+	pack, err := staking.GetABI().Pack(callFunc, val.String(), to, shares)
+	suite.Require().NoError(err)
+	return pack, shares, nil
+}
+
+func (suite *PrecompileTestSuite) approveFunc(val sdk.ValAddress, owner, spender common.Address, allowance *big.Int) {
+	suite.app.StakingKeeper.SetAllowance(suite.ctx, val, owner.Bytes(), spender.Bytes(), allowance)
+}
+
+func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
+	suite.approveFunc(val, from, spender, randShares)
+	callFunc := staking.TransferSharesFromMethodName
+	if spender == suite.staking {
+		callFunc = StakingTestTransferFromSharesName
+	}
+	pack, err := staking.GetABI().Pack(callFunc, val.String(), from, to, randShares)
+	suite.Require().NoError(err)
+	return pack, randShares, nil
+}
+
+func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
+	suite.approveFunc(val, from, spender, shares)
+	callFunc := staking.TransferSharesFromMethodName
+	if spender == suite.staking {
+		callFunc = StakingTestTransferFromSharesName
+	}
+	pack, err := staking.GetABI().Pack(callFunc, val.String(), from, to, shares)
+	suite.Require().NoError(err)
+	return pack, shares, nil
 }

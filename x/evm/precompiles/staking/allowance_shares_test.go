@@ -3,6 +3,7 @@ package staking_test
 import (
 	"fmt"
 	"math/big"
+	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -65,6 +66,37 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 			},
 			result: false,
 		},
+		{
+			name: "contract - ok",
+			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
+				pack, err := staking.GetABI().Pack(StakingTestAllowanceSharesName, val.String(), owner.Address(), spender.Address())
+				suite.Require().NoError(err)
+				return pack, nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - ok - default allowance zero",
+			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
+				pack, err := staking.GetABI().Pack(StakingTestAllowanceSharesName, val.String(), suite.RandSigner().Address(), spender.Address())
+				suite.Require().NoError(err)
+				return pack, nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - failed - invalid validator address",
+			malleate: func(val sdk.ValAddress, owner, spender *helpers.Signer) ([]byte, []string) {
+				valStr := val.String() + "1"
+				pack, err := staking.GetABI().Pack(StakingTestAllowanceSharesName, valStr, suite.RandSigner().Address(), spender.Address())
+				suite.Require().NoError(err)
+				return pack, []string{valStr}
+			},
+			error: func(args []string) string {
+				return fmt.Sprintf("execution reverted: allowance shares failed: invalid validator address: %s", args[0])
+			},
+			result: false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -81,6 +113,10 @@ func (suite *PrecompileTestSuite) TestAllowanceShares() {
 			suite.app.StakingKeeper.SetAllowance(suite.ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress(), allowanceAmt.BigInt())
 
 			contract := staking.GetAddress()
+			if strings.HasPrefix(tc.name, "contract") {
+				contract = suite.staking
+			}
+
 			pack, errArgs := tc.malleate(val.GetOperator(), owner, spender)
 			tx, err := suite.PackEthereumTx(owner, contract, big.NewInt(0), pack)
 			var res *evmtypes.MsgEthereumTxResponse

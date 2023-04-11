@@ -3,12 +3,12 @@ package staking_test
 import (
 	"fmt"
 	"math/big"
+	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -32,212 +32,245 @@ func TestStakingTransferSharesABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestTransferShares() {
-	delegateFromFunc := func(val sdk.ValAddress, fromSigner, _ *helpers.Signer, delAmount sdkmath.Int) {
-		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: fromSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-	}
-	undelegateToFunc := func(val sdk.ValAddress, _, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		toDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, toSigner.AccAddress(), val, toDel.Shares)
-		suite.Require().NoError(err)
-	}
-	delegateFromToFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: fromSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-
-		helpers.AddTestAddr(suite.app, suite.ctx, toSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: toSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-	}
-	delegateToFromFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		helpers.AddTestAddr(suite.app, suite.ctx, toSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: toSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-
-		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: fromSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-	}
-	undelegateFromToFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		fromDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, fromSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, fromSigner.AccAddress(), val, fromDel.Shares)
-		suite.Require().NoError(err)
-
-		toDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, toSigner.AccAddress(), val, toDel.Shares)
-		suite.Require().NoError(err)
-	}
-	undelegateToFromFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		toDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, toSigner.AccAddress(), val, toDel.Shares)
-		suite.Require().NoError(err)
-
-		fromDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, fromSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, fromSigner.AccAddress(), val, fromDel.Shares)
-		suite.Require().NoError(err)
-	}
-
-	packTransferRand := func(val sdk.ValAddress, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string) {
-		randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
-		pack, err := staking.GetABI().Pack(staking.TransferSharesMethodName, val.String(), to.Address(), randShares)
-		suite.Require().NoError(err)
-		return pack, randShares, nil
-	}
-	packTransferAll := func(val sdk.ValAddress, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string) {
-		pack, err := staking.GetABI().Pack(staking.TransferSharesMethodName, val.String(), to.Address(), shares)
-		suite.Require().NoError(err)
-		return pack, shares, nil
-	}
-
 	testCases := []struct {
 		name        string
-		pretransfer func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int)
-		malleate    func(val sdk.ValAddress, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string)
-		suftransfer func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int)
+		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
+		malleate    func(val sdk.ValAddress, contract, to common.Address, shares *big.Int) ([]byte, *big.Int, []string)
+		suftransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
 		error       func(errArgs []string) string
 		result      bool
 	}{
 		{
 			name:        "ok - from delegated",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferRand,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - undelegate from and to",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferRand,
-			suftransfer: undelegateFromToFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.undelegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - undelegate to and from",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferRand,
-			suftransfer: undelegateToFromFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.undelegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - delegate from and to",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferRand,
-			suftransfer: delegateFromToFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.delegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - delegate to and from",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferRand,
-			suftransfer: delegateToFromFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - transfer all - undelegate to",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferAll,
-			suftransfer: undelegateToFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.undelegateToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - transfer all - delegate from and to",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferAll,
-			suftransfer: delegateFromToFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.delegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - transfer all - delegate to and from",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferAll,
-			suftransfer: delegateToFromFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferRand,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - delegate from and to",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferRand,
-			suftransfer: delegateFromToFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.delegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - delegate to and from",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferRand,
-			suftransfer: delegateToFromFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - undelegate from and to",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferRand,
-			suftransfer: undelegateFromToFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.undelegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - undelegate to and from",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferRand,
-			suftransfer: undelegateToFromFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.undelegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - transfer all",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferAll,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferAll,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - transfer all - undelegate to",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferAll,
-			suftransfer: undelegateToFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.undelegateToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - transfer all - delegate from and to",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferAll,
-			suftransfer: delegateFromToFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.delegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - transfer all - delegate to and from",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferAll,
-			suftransfer: delegateToFromFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.delegateToFromFunc,
+			result:      true,
+		},
+
+		{
+			name:        "contract - ok - from delegated",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - undelegate from and to",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.undelegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - undelegate to and from",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.undelegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - delegate from and to",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.delegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - delegate to and from",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.delegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - transfer all - undelegate to",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.undelegateToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - transfer all - delegate from and to",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.delegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - transfer all - delegate to and from",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.delegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - delegate from and to",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.delegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - delegate to and from",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.delegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - undelegate from and to",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.undelegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - undelegate to and from",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferRand,
+			suftransfer: suite.undelegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - transfer all",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferAll,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - transfer all - undelegate to",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.undelegateToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - transfer all - delegate from and to",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.delegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - transfer all - delegate to and from",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferAll,
+			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
 	}
@@ -254,11 +287,15 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 
 			contract := staking.GetAddress()
 			delAddr := fromSigner.Address()
+			if strings.HasPrefix(tc.name, "contract") {
+				contract = suite.staking
+				delAddr = suite.staking
+			}
 
-			tc.pretransfer(val.GetOperator(), fromSigner, toSigner, delAmt)
+			tc.pretransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 
 			fromWithdrawAddr := helpers.GenerateAddress()
-			err := suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, fromSigner.AccAddress(), fromWithdrawAddr.Bytes())
+			err := suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, delAddr.Bytes(), fromWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
 			toWithdrawAddr := helpers.GenerateAddress()
 			err = suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, toSigner.AccAddress(), toWithdrawAddr.Bytes())
@@ -275,7 +312,7 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 			suite.Require().True(found1)
 			toDelBefore, found2 := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.Address().Bytes(), val.GetOperator())
 
-			pack, shares, _ := tc.malleate(val.GetOperator(), toSigner, fromDelBefore.GetShares().TruncateInt().BigInt())
+			pack, shares, _ := tc.malleate(val.GetOperator(), contract, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
 			tx, err := suite.PackEthereumTx(fromSigner, contract, big.NewInt(0), pack)
 			var res *evmtypes.MsgEthereumTxResponse
 			if err == nil {
@@ -300,7 +337,7 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 				suite.Require().Equal(toDelAfter.GetShares().TruncateInt().Sub(toDelBefore.GetShares().TruncateInt()).BigInt(), shares)
 
 				if tc.suftransfer != nil {
-					tc.suftransfer(val.GetOperator(), fromSigner, toSigner, delAmt)
+					tc.suftransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 				}
 
 				fromBalances = suite.app.BankKeeper.GetAllBalances(suite.ctx, fromWithdrawAddr.Bytes())
@@ -328,224 +365,245 @@ func TestStakingTransferFromSharesABI(t *testing.T) {
 }
 
 func (suite *PrecompileTestSuite) TestTransferFromShares() {
-	delegateFromFunc := func(val sdk.ValAddress, fromSigner, _ *helpers.Signer, delAmount sdkmath.Int) {
-		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: fromSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-	}
-	undelegateToFunc := func(val sdk.ValAddress, _, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		toDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, toSigner.AccAddress(), val, toDel.Shares)
-		suite.Require().NoError(err)
-	}
-	delegateFromToFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: fromSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-
-		helpers.AddTestAddr(suite.app, suite.ctx, toSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: toSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-	}
-	delegateToFromFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		helpers.AddTestAddr(suite.app, suite.ctx, toSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err := stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: toSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-
-		helpers.AddTestAddr(suite.app, suite.ctx, fromSigner.AccAddress(), sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, delAmount)))
-		_, err = stakingkeeper.NewMsgServerImpl(suite.app.StakingKeeper.Keeper).Delegate(sdk.WrapSDKContext(suite.ctx), &stakingtypes.MsgDelegate{
-			DelegatorAddress: fromSigner.AccAddress().String(),
-			ValidatorAddress: val.String(),
-			Amount:           sdk.NewCoin(fxtypes.DefaultDenom, delAmount),
-		})
-		suite.Require().NoError(err)
-	}
-	undelegateFromToFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		fromDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, fromSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, fromSigner.AccAddress(), val, fromDel.Shares)
-		suite.Require().NoError(err)
-
-		toDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, toSigner.AccAddress(), val, toDel.Shares)
-		suite.Require().NoError(err)
-	}
-	undelegateToFromFunc := func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int) {
-		toDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err := suite.app.StakingKeeper.Undelegate(suite.ctx, toSigner.AccAddress(), val, toDel.Shares)
-		suite.Require().NoError(err)
-
-		fromDel, found := suite.app.StakingKeeper.GetDelegation(suite.ctx, fromSigner.AccAddress(), val)
-		suite.Require().True(found)
-		_, err = suite.app.StakingKeeper.Undelegate(suite.ctx, fromSigner.AccAddress(), val, fromDel.Shares)
-		suite.Require().NoError(err)
-	}
-
-	approveFunc := func(val sdk.ValAddress, owner, spender *helpers.Signer, allowance *big.Int) {
-		pack, err := staking.GetABI().Pack(staking.ApproveSharesMethodName, val.String(), spender.Address(), allowance)
-		suite.Require().NoError(err)
-		tx, err := suite.PackEthereumTx(owner, staking.GetAddress(), big.NewInt(0), pack)
-		suite.Require().NoError(err)
-		res, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)
-		suite.Require().NoError(err)
-		suite.Require().False(res.Failed(), res.VmError)
-	}
-
-	packTransferFromRand := func(val sdk.ValAddress, spender, from, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string) {
-		randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
-		approveFunc(val, from, spender, randShares)
-		pack, err := staking.GetABI().Pack(staking.TransferSharesFromMethodName, val.String(), from.Address(), to.Address(), randShares)
-		suite.Require().NoError(err)
-		return pack, randShares, nil
-	}
-	packTransferFromAll := func(val sdk.ValAddress, spender, from, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string) {
-		approveFunc(val, from, spender, shares)
-		pack, err := staking.GetABI().Pack(staking.TransferSharesFromMethodName, val.String(), from.Address(), to.Address(), shares)
-		suite.Require().NoError(err)
-		return pack, shares, nil
-	}
-
 	testCases := []struct {
 		name        string
-		pretransfer func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int)
-		malleate    func(val sdk.ValAddress, spedner, from, to *helpers.Signer, shares *big.Int) ([]byte, *big.Int, []string)
-		suftransfer func(val sdk.ValAddress, fromSigner, toSigner *helpers.Signer, delAmount sdkmath.Int)
+		pretransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
+		malleate    func(val sdk.ValAddress, spedner, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string)
+		suftransfer func(val sdk.ValAddress, from, to common.Address, delAmount sdkmath.Int)
 		error       func(errArgs []string) string
 		result      bool
 	}{
 		{
 			name:        "ok - from delegated",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferFromRand,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - undelegate from and to",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferFromRand,
-			suftransfer: undelegateFromToFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.undelegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - undelegate to and from",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferFromRand,
-			suftransfer: undelegateToFromFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.undelegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - delegate from and to",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferFromRand,
-			suftransfer: delegateFromToFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.delegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - delegate to and from",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferFromRand,
-			suftransfer: delegateToFromFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - transfer all - undelegate to",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferFromAll,
-			suftransfer: undelegateToFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.undelegateToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - transfer all - delegate from and to",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferFromAll,
-			suftransfer: delegateFromToFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.delegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from delegated - transfer all - delegate to and from",
-			pretransfer: delegateFromFunc,
-			malleate:    packTransferFromAll,
-			suftransfer: delegateToFromFunc,
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferFromRand,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - delegate from and to",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferFromRand,
-			suftransfer: delegateFromToFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.delegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - delegate to and from",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferFromRand,
-			suftransfer: delegateToFromFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - undelegate from and to",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferFromRand,
-			suftransfer: undelegateFromToFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.undelegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - undelegate to and from",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferFromRand,
-			suftransfer: undelegateToFromFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.undelegateToFromFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - transfer all",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferFromAll,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromAll,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - transfer all - undelegate to",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferFromAll,
-			suftransfer: undelegateToFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.undelegateToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - transfer all - delegate from and to",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferFromAll,
-			suftransfer: delegateFromToFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.delegateFromToFunc,
 			result:      true,
 		},
 		{
 			name:        "ok - from and to delegated - transfer all - delegate to and from",
-			pretransfer: delegateFromToFunc,
-			malleate:    packTransferFromAll,
-			suftransfer: delegateToFromFunc,
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.delegateToFromFunc,
+			result:      true,
+		},
+
+		{
+			name:        "contract - ok - from delegated",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - undelegate from and to",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.undelegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - undelegate to and from",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.undelegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - delegate from and to",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.delegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - delegate to and from",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.delegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - transfer all - undelegate to",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.undelegateToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - transfer all - delegate from and to",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.delegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from delegated - transfer all - delegate to and from",
+			pretransfer: suite.delegateFromFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.delegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - delegate from and to",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.delegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - delegate to and from",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.delegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - undelegate from and to",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.undelegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - undelegate to and from",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromRand,
+			suftransfer: suite.undelegateToFromFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - transfer all",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromAll,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - transfer all - undelegate to",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.undelegateToFunc,
+			result:      true,
+		},
+		{
+			name:        "contract - ok - from and to delegated - transfer all - delegate from and to",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.delegateFromToFunc,
+			result:      true,
+		},
+		{
+			name:        "ok - from and to delegated - transfer all - delegate to and from",
+			pretransfer: suite.delegateFromToFunc,
+			malleate:    suite.packTransferFromAll,
+			suftransfer: suite.delegateToFromFunc,
 			result:      true,
 		},
 	}
@@ -561,13 +619,20 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 			toSigner := suite.RandSigner()
 			sender := suite.RandSigner()
 
+			// from delegate, approve sender, sender send tx, transferFrom to toSigner
+			// from delegate, approve contract, sender call contract, transferFrom to toSigner
 			contract := staking.GetAddress()
 			delAddr := fromSigner.Address()
+			spender := sender.Address()
+			if strings.HasPrefix(tc.name, "contract") {
+				contract = suite.staking
+				spender = suite.staking
+			}
 
-			tc.pretransfer(val.GetOperator(), fromSigner, toSigner, delAmt)
+			tc.pretransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 
 			fromWithdrawAddr := helpers.GenerateAddress()
-			err := suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, fromSigner.AccAddress(), fromWithdrawAddr.Bytes())
+			err := suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, delAddr.Bytes(), fromWithdrawAddr.Bytes())
 			suite.Require().NoError(err)
 			toWithdrawAddr := helpers.GenerateAddress()
 			err = suite.app.DistrKeeper.SetWithdrawAddr(suite.ctx, toSigner.AccAddress(), toWithdrawAddr.Bytes())
@@ -584,7 +649,8 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 			suite.Require().True(found1)
 			toDelBefore, found2 := suite.app.StakingKeeper.GetDelegation(suite.ctx, toSigner.Address().Bytes(), val.GetOperator())
 
-			pack, shares, _ := tc.malleate(val.GetOperator(), sender, fromSigner, toSigner, fromDelBefore.GetShares().TruncateInt().BigInt())
+			// NOTE: if contract test, spender is staking test contract
+			pack, shares, _ := tc.malleate(val.GetOperator(), spender, delAddr, toSigner.Address(), fromDelBefore.GetShares().TruncateInt().BigInt())
 			tx, err := suite.PackEthereumTx(sender, contract, big.NewInt(0), pack)
 
 			var res *evmtypes.MsgEthereumTxResponse
@@ -609,11 +675,11 @@ func (suite *PrecompileTestSuite) TestTransferFromShares() {
 				suite.Require().Equal(fromDelBefore.GetShares().TruncateInt().Sub(fromDelAfter.GetShares().TruncateInt()).BigInt(), shares)
 				suite.Require().Equal(toDelAfter.GetShares().TruncateInt().Sub(toDelBefore.GetShares().TruncateInt()).BigInt(), shares)
 
-				allowance := suite.app.StakingKeeper.GetAllowance(suite.ctx, val.GetOperator(), fromSigner.AccAddress(), sender.AccAddress())
+				allowance := suite.app.StakingKeeper.GetAllowance(suite.ctx, val.GetOperator(), delAddr.Bytes(), spender.Bytes())
 				suite.Require().EqualValues(big.NewInt(0), allowance)
 
 				if tc.suftransfer != nil {
-					tc.suftransfer(val.GetOperator(), fromSigner, toSigner, delAmt)
+					tc.suftransfer(val.GetOperator(), delAddr, toSigner.Address(), delAmt)
 				}
 
 				fromBalances = suite.app.BankKeeper.GetAllBalances(suite.ctx, fromWithdrawAddr.Bytes())

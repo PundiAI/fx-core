@@ -3,6 +3,7 @@ package staking_test
 import (
 	"fmt"
 	"math/big"
+	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -69,6 +70,37 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 			},
 			result: false,
 		},
+		{
+			name: "contract - ok",
+			malleate: func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string) {
+				pack, err := staking.GetABI().Pack(StakingTestApproveSharesName, val.String(), spender.Address(), allowance.BigInt())
+				suite.Require().NoError(err)
+				return pack, nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - ok - approve zero",
+			malleate: func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string) {
+				pack, err := staking.GetABI().Pack(StakingTestApproveSharesName, val.String(), spender.Address(), big.NewInt(0))
+				suite.Require().NoError(err)
+				return pack, nil
+			},
+			result: true,
+		},
+		{
+			name: "contract - failed - invalid validator address",
+			malleate: func(val sdk.ValAddress, spender *helpers.Signer, allowance sdkmath.Int) ([]byte, []string) {
+				valStr := val.String() + "1"
+				pack, err := staking.GetABI().Pack(StakingTestApproveSharesName, valStr, spender.Address(), allowance.BigInt())
+				suite.Require().NoError(err)
+				return pack, []string{valStr}
+			},
+			error: func(args []string) string {
+				return fmt.Sprintf("execution reverted: approve shares failed: invalid validator address: %s", args[0])
+			},
+			result: false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -81,10 +113,16 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 			spender := suite.RandSigner()
 			allowanceAmt := sdkmath.NewInt(int64(tmrand.Int() + 100)).Mul(sdkmath.NewInt(1e18))
 
+			contract := staking.GetAddress()
+			sender := owner.Address()
+			if strings.HasPrefix(tc.name, "contract") {
+				contract = suite.staking
+				sender = suite.staking
+			}
+
 			allowance := suite.app.StakingKeeper.GetAllowance(suite.ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress())
 			suite.Require().Equal(0, allowance.Cmp(big.NewInt(0)))
 
-			contract := staking.GetAddress()
 			pack, errArgs := tc.malleate(val.GetOperator(), spender, allowanceAmt)
 
 			tx, err := suite.PackEthereumTx(owner, contract, big.NewInt(0), pack)
@@ -96,7 +134,7 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 				suite.Require().NoError(err)
 				suite.Require().False(res.Failed(), res.VmError)
 
-				allowance = suite.app.StakingKeeper.GetAllowance(suite.ctx, val.GetOperator(), owner.AccAddress(), spender.AccAddress())
+				allowance = suite.app.StakingKeeper.GetAllowance(suite.ctx, val.GetOperator(), sender.Bytes(), spender.AccAddress())
 				if allowance.Cmp(big.NewInt(0)) != 0 {
 					suite.Require().Equal(0, allowance.Cmp(allowanceAmt.BigInt()))
 				}
@@ -105,7 +143,7 @@ func (suite *PrecompileTestSuite) TestApproveShares() {
 				for _, log := range res.Logs {
 					if log.Topics[0] == staking.ApproveSharesEvent.ID.String() {
 						suite.Require().Equal(log.Address, staking.GetAddress().String())
-						suite.Require().Equal(log.Topics[1], owner.Address().Hash().String())
+						suite.Require().Equal(log.Topics[1], sender.Hash().String())
 						suite.Require().Equal(log.Topics[2], spender.Address().Hash().String())
 						unpack, err := staking.ApproveSharesEvent.Inputs.NonIndexed().Unpack(log.Data)
 						suite.Require().NoError(err)
