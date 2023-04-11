@@ -20,7 +20,6 @@ import (
 var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.BeginBlockAppModule = AppModule{}
 	_ module.EndBlockAppModule   = AppModule{}
 )
 
@@ -84,11 +83,6 @@ func (AppModule) QuerierRoute() string { return "" }
 // LegacyQuerierHandler returns no sdk.Querier
 func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 	return nil
-}
-
-// BeginBlock returns the begin block for the evm module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	am.keeper.BeginBlock(ctx, req)
 }
 
 // EndBlock returns the end blocker for the evm module. It returns no validator
