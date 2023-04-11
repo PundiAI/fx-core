@@ -52,7 +52,7 @@ func (c *Contract) Delegation(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract,
 	}
 	delegation, found := c.stakingKeeper.GetDelegation(cacheCtx, sdk.AccAddress(delAddr.Bytes()), valAddr)
 	if !found {
-		return DelegationMethod.Outputs.Pack(big.NewInt(0))
+		return DelegationMethod.Outputs.Pack(big.NewInt(0), big.NewInt(0))
 	}
 
 	delegationAmt := delegation.GetShares().MulInt(validator.GetTokens()).Quo(validator.GetDelegatorShares())
