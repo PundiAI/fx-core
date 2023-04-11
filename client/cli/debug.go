@@ -100,12 +100,15 @@ func ToBytes32Cmd() *cobra.Command {
 	}
 }
 
+// ModuleAddressCmd
+// Deprecated: please use `fxcored query auth module-account`
 func ModuleAddressCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "module-addr <module name>",
 		Short: "Get module address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Println("Deprecated: please use `fxcored query auth module-account`")
 			cmd.Println(types.NewModuleAddress(args[0]).String())
 			return nil
 		},
