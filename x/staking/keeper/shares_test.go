@@ -8,7 +8,7 @@ import (
 
 func (suite *KeeperTestSuite) TestAllowance() {
 	vals := suite.app.StakingKeeper.GetAllValidators(suite.ctx)
-	val := vals[1]
+	val := vals[0]
 
 	spender := helpers.NewSigner(helpers.NewEthPrivKey())
 	allowance := suite.app.StakingKeeper.GetAllowance(suite.ctx, val.GetOperator(), suite.signer.AccAddress(), spender.AccAddress())
