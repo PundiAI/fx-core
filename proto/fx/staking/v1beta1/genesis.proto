@@ -42,7 +42,6 @@ message GenesisState {
   repeated Allowance allowances = 9 [(gogoproto.nullable) = false];
 }
 
-
 // Allowance defines the allowance of shares for a delegator.
 message Allowance {
   option (gogoproto.equal) = false;
