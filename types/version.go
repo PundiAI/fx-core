@@ -1,21 +1,26 @@
 package types
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strings"
 	"sync"
 )
 
 // mainnet
 const (
-	MainnetChainId    = "fxcore"
-	mainnetEvmChainID = 530
+	MainnetChainId     = "fxcore"
+	mainnetEvmChainID  = 530
+	MainnetGenesisHash = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593"
 )
 
 // testnet
 const (
-	TestnetChainId    = "dhobyghaut"
-	testnetEvmChainID = 90001
+	TestnetChainId     = "dhobyghaut"
+	testnetEvmChainID  = 90001
+	TestnetGenesisHash = "06D0A9659E1EC5B0E57E8E2E5F1B1266094808BC9B4081E1A55011FEF4586ACE"
 )
 
 var (
@@ -48,4 +53,11 @@ func ChainIdWithEIP155() string {
 		return fmt.Sprintf("%s_%d-1", TestnetChainId, testnetEvmChainID)
 	}
 	return fmt.Sprintf("%s_%d-1", MainnetChainId, mainnetEvmChainID)
+}
+
+// Sha256Hex calculate SHA-256 hash
+func Sha256Hex(b []byte) string {
+	sha := sha256.New()
+	sha.Write(b)
+	return strings.ToUpper(hex.EncodeToString(sha.Sum(nil)))
 }

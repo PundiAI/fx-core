@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -57,9 +55,6 @@ import (
 	fxserverconfig "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
-
-// SHA-256 hash
-const mainnetGenesisHash = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593"
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
 // Tendermint.
@@ -120,8 +115,8 @@ which accepts a path for the resulting pprof file.
 				return fmt.Errorf("couldn't read GenesisDoc file: %w", err)
 			}
 			expectGenesisHash := serverCtx.Viper.GetString("genesis_hash")
-			actualGenesisHash := sha256Hex(genesisBytes)
-			if len(expectGenesisHash) != 0 && sha256Hex(genesisBytes) != expectGenesisHash {
+			actualGenesisHash := fxtypes.Sha256Hex(genesisBytes)
+			if len(expectGenesisHash) != 0 && fxtypes.Sha256Hex(genesisBytes) != expectGenesisHash {
 				return fmt.Errorf("--genesis_hash=%s does not match %s hash: %s", expectGenesisHash, genDocFile, actualGenesisHash)
 			}
 			genesisDoc, err := tmtypes.GenesisDocFromJSON(genesisBytes)
@@ -696,7 +691,7 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) 
 	blockStore := store.NewBlockStore(blockStoreDB)
 	if genesisDoc.GenesisTime.Equal(genesisTime) {
 		genesisBytes, _ := tmjson.Marshal(genesisDoc)
-		if sha256Hex(genesisBytes) != mainnetGenesisHash {
+		if fxtypes.Sha256Hex(genesisBytes) != fxtypes.MainnetGenesisHash {
 			return nil
 		}
 		if blockStore.Height() < 5_713_000 {
@@ -710,11 +705,4 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) 
 		return errors.New("invalid version: The current version is not released, please use the corresponding version")
 	}
 	return nil
-}
-
-// calculate SHA-256 hash
-func sha256Hex(b []byte) string {
-	sha := sha256.New()
-	sha.Write(b)
-	return strings.ToUpper(hex.EncodeToString(sha.Sum(nil)))
 }

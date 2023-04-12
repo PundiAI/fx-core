@@ -130,6 +130,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig app.EncodingConfig, defa
 		fxserver.StartCmd(myAppCreator.newApp, defaultNodeHome),
 		fxserver.TendermintCommand(),
 		app.GetUpgrades().GetLatest().PreUpgradeCmd,
+		doctorCmd(),
 	)
 
 	// add rosetta
