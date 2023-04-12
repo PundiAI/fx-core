@@ -27,7 +27,7 @@ import (
 )
 
 func TestFIP20CrossChainABI(t *testing.T) {
-	crossChainABI := fxtypes.MustABIJson(crosschain.JsonABI)
+	crossChainABI := crosschain.GetABI()
 
 	method := crossChainABI.Methods[crosschain.FIP20CrossChainMethod.Name]
 	require.Equal(t, method, crosschain.FIP20CrossChainMethod)
@@ -1200,7 +1200,7 @@ func (suite *PrecompileTestSuite) TestFIP20CrossChainIBCExternal() {
 }
 
 func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
-	crossChainABI := fxtypes.MustABIJson(crosschain.JsonABI)
+	crossChainABI := crosschain.GetABI()
 	otherABI := fxtypes.MustABIJson(testJsonABI)
 
 	testCases := []struct {
@@ -1291,7 +1291,7 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 
 			packData, errArgs := tc.malleate(pair, md, signer, randMint)
 
-			tx, err := suite.PackEthereumTx(signer, crosschain.GetPrecompileAddress(), big.NewInt(0), packData)
+			tx, err := suite.PackEthereumTx(signer, crosschain.GetAddress(), big.NewInt(0), packData)
 			var res *evmtypes.MsgEthereumTxResponse
 			if err == nil {
 				res, err = suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(suite.ctx), tx)

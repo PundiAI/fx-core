@@ -1,6 +1,7 @@
 package crosschain
 
 import (
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -22,8 +23,6 @@ const (
 	CrossChainEventName           = "CrossChain"
 	CancelSendToExternalEventName = "CancelSendToExternal"
 	IncreaseBridgeFeeEventName    = "IncreaseBridgeFee"
-
-	JsonABI = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"string","name":"chain","type":"string"},{"indexed":false,"internalType":"uint256","name":"txid","type":"uint256"}],"name":"CancelSendToExternal","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":true,"internalType":"address","name":"token","type":"address"},{"indexed":false,"internalType":"string","name":"denom","type":"string"},{"indexed":false,"internalType":"string","name":"receipt","type":"string"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"},{"indexed":false,"internalType":"bytes32","name":"target","type":"bytes32"},{"indexed":false,"internalType":"string","name":"memo","type":"string"}],"name":"CrossChain","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":true,"internalType":"address","name":"token","type":"address"},{"indexed":false,"internalType":"string","name":"chain","type":"string"},{"indexed":false,"internalType":"uint256","name":"txid","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"}],"name":"IncreaseBridgeFee","type":"event"},{"type":"function","name":"fip20CrossChain","inputs":[{"name":"sender","type":"address"},{"name":"receipt","type":"string"},{"name":"amount","type":"uint256"},{"name":"fee","type":"uint256"},{"name":"target","type":"bytes32"},{"name":"memo","type":"string"}],"outputs":[{"name":"result","type":"bool"}],"payable":false,"stateMutability":"nonpayable"},{"type":"function","name":"crossChain","inputs":[{"name":"token","type":"address"},{"name":"receipt","type":"string"},{"name":"amount","type":"uint256"},{"name":"fee","type":"uint256"},{"name":"target","type":"bytes32"},{"name":"memo","type":"string"}],"outputs":[{"name":"result","type":"bool"}],"payable":true,"stateMutability":"payable"},{"type":"function","name":"cancelSendToExternal","inputs":[{"name":"chain","type":"string"},{"name":"txid","type":"uint256"}],"outputs":[{"name":"result","type":"bool"}],"payable":false,"stateMutability":"nonpayable"},{"type":"function","name":"increaseBridgeFee","inputs":[{"name":"chain","type":"string"},{"name":"txid","type":"uint256"},{"name":"token","type":"address"},{"name":"fee","type":"uint256"}],"outputs":[{"name":"result","type":"bool"}],"payable":true,"stateMutability":"payable"}]`
 )
 
 const (
@@ -41,8 +40,15 @@ const (
 	AttributeKeyMemo         = "memo"
 )
 
-var precompileAddress = common.HexToAddress(fxtypes.CrossChainAddress)
+var (
+	crossChainAddress = common.HexToAddress(fxtypes.CrossChainAddress)
+	crossChainABI     = fxtypes.MustABIJson(CrosschainMetaData.ABI)
+)
 
-func GetPrecompileAddress() common.Address {
-	return precompileAddress
+func GetAddress() common.Address {
+	return crossChainAddress
+}
+
+func GetABI() abi.ABI {
+	return crossChainABI
 }

@@ -42,7 +42,7 @@ func NewPrecompiledContract(
 }
 
 func (c *Contract) Address() common.Address {
-	return precompileAddress
+	return crossChainAddress
 }
 
 func (c *Contract) IsStateful() bool {

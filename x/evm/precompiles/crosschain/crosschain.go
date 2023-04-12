@@ -29,31 +29,31 @@ var (
 		FIP20CrossChainMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "sender", Type: types.TypeAddress},
-			abi.Argument{Name: "receipt", Type: types.TypeString},
-			abi.Argument{Name: "amount", Type: types.TypeUint256},
-			abi.Argument{Name: "fee", Type: types.TypeUint256},
-			abi.Argument{Name: "target", Type: types.TypeBytes32},
-			abi.Argument{Name: "memo", Type: types.TypeString},
+			abi.Argument{Name: "_sender", Type: types.TypeAddress},
+			abi.Argument{Name: "_receipt", Type: types.TypeString},
+			abi.Argument{Name: "_amount", Type: types.TypeUint256},
+			abi.Argument{Name: "_fee", Type: types.TypeUint256},
+			abi.Argument{Name: "_target", Type: types.TypeBytes32},
+			abi.Argument{Name: "_memo", Type: types.TypeString},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "result", Type: types.TypeBool},
+			abi.Argument{Name: "_result", Type: types.TypeBool},
 		},
 	)
 	CrossChainMethod = abi.NewMethod(
 		CrossChainMethodName,
 		CrossChainMethodName,
-		abi.Function, "payable", false, true,
+		abi.Function, "payable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "token", Type: types.TypeAddress},
-			abi.Argument{Name: "receipt", Type: types.TypeString},
-			abi.Argument{Name: "amount", Type: types.TypeUint256},
-			abi.Argument{Name: "fee", Type: types.TypeUint256},
-			abi.Argument{Name: "target", Type: types.TypeBytes32},
-			abi.Argument{Name: "memo", Type: types.TypeString},
+			abi.Argument{Name: "_token", Type: types.TypeAddress},
+			abi.Argument{Name: "_receipt", Type: types.TypeString},
+			abi.Argument{Name: "_amount", Type: types.TypeUint256},
+			abi.Argument{Name: "_fee", Type: types.TypeUint256},
+			abi.Argument{Name: "_target", Type: types.TypeBytes32},
+			abi.Argument{Name: "_memo", Type: types.TypeString},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "result", Type: types.TypeBool},
+			abi.Argument{Name: "_result", Type: types.TypeBool},
 		})
 
 	CrossChainEvent = abi.NewEvent(

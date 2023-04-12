@@ -21,15 +21,15 @@ var (
 	IncreaseBridgeFeeMethod = abi.NewMethod(
 		IncreaseBridgeFeeMethodName,
 		IncreaseBridgeFeeMethodName,
-		abi.Function, "payable", false, true,
+		abi.Function, "payable", false, false,
 		abi.Arguments{
-			abi.Argument{Name: "chain", Type: types.TypeString},
-			abi.Argument{Name: "txid", Type: types.TypeUint256},
-			abi.Argument{Name: "token", Type: types.TypeAddress},
-			abi.Argument{Name: "fee", Type: types.TypeUint256},
+			abi.Argument{Name: "_chain", Type: types.TypeString},
+			abi.Argument{Name: "_txID", Type: types.TypeUint256},
+			abi.Argument{Name: "_token", Type: types.TypeAddress},
+			abi.Argument{Name: "_fee", Type: types.TypeUint256},
 		},
 		abi.Arguments{
-			abi.Argument{Name: "result", Type: types.TypeBool},
+			abi.Argument{Name: "_result", Type: types.TypeBool},
 		},
 	)
 
@@ -41,7 +41,7 @@ var (
 			abi.Argument{Name: "sender", Type: types.TypeAddress, Indexed: true},
 			abi.Argument{Name: "token", Type: types.TypeAddress, Indexed: true},
 			abi.Argument{Name: "chain", Type: types.TypeString, Indexed: false},
-			abi.Argument{Name: "txid", Type: types.TypeUint256, Indexed: false},
+			abi.Argument{Name: "txID", Type: types.TypeUint256, Indexed: false},
 			abi.Argument{Name: "fee", Type: types.TypeUint256, Indexed: false},
 		})
 )
