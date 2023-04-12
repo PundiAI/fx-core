@@ -9884,32 +9884,107 @@ paths:
           type: string
       tags:
         - Query
-  /fx/base/v1/gas_price:
+  /fx/auth/v1/bech32/{address}:
     get:
-      operationId: GetGasPrice
+      operationId: ConvertAddress
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              gas_prices:
+              address:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
                 type: array
                 items:
                   type: object
                   properties:
-                    denom:
+                    type_url:
                       type: string
-                    amount:
+                    value:
                       type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
+                      format: byte
+      parameters:
+        - name: address
+          in: path
+          required: true
+          type: string
+        - name: prefix
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
+  /fx/gov/v1/params:
+    get:
+      summary: Params retrieves the erc20 module params
+      operationId: FxGovParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
+                  min_initial_deposit:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
 
 
-                    NOTE: The amount field is an Int which implements the custom
-                    method
+                      NOTE: The amount field is an Int which implements the
+                      custom method
 
-                    signatures required by gogoproto.
+                      signatures required by gogoproto.
+                  egf_deposit_threshold:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  claim_ratio:
+                    type: string
+                  erc20_quorum:
+                    type: string
+                  evm_quorum:
+                    type: string
+                  egf_voting_period:
+                    type: string
+                  evm_voting_period:
+                    type: string
+                title: Params defines the fx x/gov module params
+            description: |-
+              QueryParamsResponse is the response type for the Query/Params RPC
+              method.
         default:
           description: An unexpected error response.
           schema:
@@ -32836,23 +32911,99 @@ definitions:
 
               chain.
     description: QueryParamsResponse is the response type for the Query/Params RPC method.
-  fx.base.v1.GetGasPriceResponse:
+  fx.auth.v1.ConvertAddressResponse:
     type: object
     properties:
-      gas_prices:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
+      address:
+        type: string
+  fx.gov.v1.Params:
+    type: object
+    properties:
+      min_initial_deposit:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
 
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      egf_deposit_threshold:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      claim_ratio:
+        type: string
+      erc20_quorum:
+        type: string
+      evm_quorum:
+        type: string
+      egf_voting_period:
+        type: string
+      evm_voting_period:
+        type: string
+    title: Params defines the fx x/gov module params
+  fx.gov.v1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          min_initial_deposit:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          egf_deposit_threshold:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          claim_ratio:
+            type: string
+          erc20_quorum:
+            type: string
+          evm_quorum:
+            type: string
+          egf_voting_period:
+            type: string
+          evm_voting_period:
+            type: string
+        title: Params defines the fx x/gov module params
+    description: |-
+      QueryParamsResponse is the response type for the Query/Params RPC
+      method.
   cosmos.auth.v1beta1.AddressBytesToStringResponse:
     type: object
     properties:

@@ -4,11 +4,11 @@
 
 ## Table of Contents
 
-- [fx/base/v1/query.proto](#fx/base/v1/query.proto)
-    - [GetGasPriceRequest](#fx.base.v1.GetGasPriceRequest)
-    - [GetGasPriceResponse](#fx.base.v1.GetGasPriceResponse)
+- [fx/auth/v1/query.proto](#fx/auth/v1/query.proto)
+    - [ConvertAddressRequest](#fx.auth.v1.ConvertAddressRequest)
+    - [ConvertAddressResponse](#fx.auth.v1.ConvertAddressResponse)
   
-    - [Query](#fx.base.v1.Query)
+    - [Query](#fx.auth.v1.Query)
   
 - [fx/crosschain/v1/types.proto](#fx/crosschain/v1/types.proto)
     - [Attestation](#fx.gravity.crosschain.v1.Attestation)
@@ -206,6 +206,12 @@
   
     - [Msg](#fx.ibc.applications.transfer.v1.Msg)
   
+- [fx/legacy/base/v1/query.proto](#fx/legacy/base/v1/query.proto)
+    - [GetGasPriceRequest](#fx.base.v1.GetGasPriceRequest)
+    - [GetGasPriceResponse](#fx.base.v1.GetGasPriceResponse)
+  
+    - [Query](#fx.base.v1.Query)
+  
 - [fx/legacy/gravity/v1/types.proto](#fx/legacy/gravity/v1/types.proto)
     - [Attestation](#fx.gravity.v1.Attestation)
     - [BatchFees](#fx.gravity.v1.BatchFees)
@@ -334,32 +340,38 @@
 
 
 
-<a name="fx/base/v1/query.proto"></a>
+<a name="fx/auth/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## fx/base/v1/query.proto
+## fx/auth/v1/query.proto
 
 
 
-<a name="fx.base.v1.GetGasPriceRequest"></a>
+<a name="fx.auth.v1.ConvertAddressRequest"></a>
 
-### GetGasPriceRequest
-
-
-
-
-
-
-
-<a name="fx.base.v1.GetGasPriceResponse"></a>
-
-### GetGasPriceResponse
+### ConvertAddressRequest
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `gas_prices` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `address` | [string](#string) |  |  |
+| `prefix` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="fx.auth.v1.ConvertAddressResponse"></a>
+
+### ConvertAddressResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
 
 
 
@@ -372,14 +384,14 @@
  <!-- end HasExtensions -->
 
 
-<a name="fx.base.v1.Query"></a>
+<a name="fx.auth.v1.Query"></a>
 
 ### Query
 
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `GetGasPrice` | [GetGasPriceRequest](#fx.base.v1.GetGasPriceRequest) | [GetGasPriceResponse](#fx.base.v1.GetGasPriceResponse) |  | GET|/fx/base/v1/gas_price|
+| `ConvertAddress` | [ConvertAddressRequest](#fx.auth.v1.ConvertAddressRequest) | [ConvertAddressResponse](#fx.auth.v1.ConvertAddressResponse) |  | GET|/fx/auth/v1/bech32/{address}|
 
  <!-- end services -->
 
@@ -3179,6 +3191,57 @@ Msg defines the ibc/transfer Msg service.
 
 
 
+<a name="fx/legacy/base/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## fx/legacy/base/v1/query.proto
+
+
+
+<a name="fx.base.v1.GetGasPriceRequest"></a>
+
+### GetGasPriceRequest
+
+
+
+
+
+
+
+<a name="fx.base.v1.GetGasPriceResponse"></a>
+
+### GetGasPriceResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `gas_prices` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="fx.base.v1.Query"></a>
+
+### Query
+Deprecated
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `GetGasPrice` | [GetGasPriceRequest](#fx.base.v1.GetGasPriceRequest) | [GetGasPriceResponse](#fx.base.v1.GetGasPriceResponse) | Deprecated: please use cosmos.base.node.v1beta1.Service.Config | GET|/fx/base/v1/gas_price|
+
+ <!-- end services -->
+
+
+
 <a name="fx/legacy/gravity/v1/types.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -4571,8 +4634,8 @@ Deprecated: Query
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `FxGasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated: Please use base query.GetGasPrice | GET|/fx/other/gas_price|
-| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated: Please use base query.GetGasPrice | GET|/other/v1/gas_price|
+| `FxGasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated: please use cosmos.base.node.v1beta1.Service.Config | GET|/fx/other/gas_price|
+| `GasPrice` | [GasPriceRequest](#fx.other.GasPriceRequest) | [GasPriceResponse](#fx.other.GasPriceResponse) | Deprecated: please use cosmos.base.node.v1beta1.Service.Config | GET|/other/v1/gas_price|
 
  <!-- end services -->
 

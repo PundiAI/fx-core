@@ -49,7 +49,15 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/fx/base/v1/query.swagger.json"
+      "url": "./tmp-swagger-gen/fx/auth/v1/query.swagger.json"
+    },
+    {
+      "url": "./tmp-swagger-gen/fx/gov/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "FxGovParams"
+        }
+      }
     },
     {
       "url": "./tmp-swagger-gen/cosmos/auth/v1beta1/query.swagger.json",

@@ -1,0 +1,23 @@
+syntax = "proto3";
+package fx.auth.v1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/functionx/fx-core/server/grpc/auth";
+
+service Query {
+  rpc ConvertAddress(ConvertAddressRequest) returns (ConvertAddressResponse) {
+    option (google.api.http).get = "/fx/auth/v1/bech32/{address}";
+  }
+}
+
+message ConvertAddressRequest {
+  string address = 1;
+  string prefix = 2;
+}
+
+message ConvertAddressResponse {
+  string address = 1;
+}
