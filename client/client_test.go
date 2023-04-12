@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/gogo/protobuf/proto"
@@ -567,23 +566,25 @@ func (suite *rpcTestSuite) TestTmClient() {
 	}
 }
 
-func (suite *rpcTestSuite) TestJsonRPC_ABCI_Query() {
-	// GetStakeValidators
-	validator := suite.GetFirstValidator()
-	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress))
-	validators, err := nodeRPC.GetStakeValidators(stakingtypes.Bonded)
-	suite.Require().NoError(err)
-	suite.Require().Len(validators, 1)
-
-	// QueryBalanceByHeight
+func (suite *rpcTestSuite) TestClient_WithBlockHeight() {
 	nextValKey := suite.GetPrivKeyByIndex(hd.Secp256k1Type, 1)
-	nodeRPC.WithHeight(0)
-	balances, err := nodeRPC.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
-	suite.NoError(err)
-	suite.True(balances.IsAllPositive())
+	clients := suite.GetClients()
+	for _, client := range clients {
+		balances, err := client.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
+		suite.NoError(err)
+		suite.T().Log(balances)
+		suite.True(balances.IsAllPositive())
 
-	nodeRPC.WithHeight(1)
-	balances, err = nodeRPC.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
-	suite.NoError(err)
-	suite.False(balances.IsAllPositive())
+		if rpc, ok := client.(*jsonrpc.NodeRPC); ok {
+			client = rpc.WithBlockHeight(1)
+		}
+		if rpc, ok := client.(*grpc.Client); ok {
+			client = rpc.WithBlockHeight(1)
+		}
+
+		balances, err = client.QueryBalances(sdk.AccAddress(nextValKey.PubKey().Address().Bytes()).String())
+		suite.NoError(err)
+		suite.T().Log(balances)
+		suite.False(balances.IsAllPositive())
+	}
 }

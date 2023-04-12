@@ -125,9 +125,8 @@ func (suite *TestSuite) GRPCClient() *grpc.Client {
 	if suite.useLocalNetwork {
 		grpcUrl = fmt.Sprintf("http://%s", suite.GetFirstValidator().AppConfig.GRPC.Address)
 	}
-	client, err := grpc.NewClient(grpcUrl)
+	client, err := grpc.NewClient(grpcUrl, suite.ctx)
 	suite.NoError(err)
-	client.WithContext(suite.ctx)
 	return client
 }
 
@@ -136,9 +135,7 @@ func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
 	if suite.useLocalNetwork {
 		nodeUrl = suite.GetFirstValidator().RPCAddress
 	}
-	rpc := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(nodeUrl))
-	rpc.WithContext(suite.ctx)
-	return rpc
+	return jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(nodeUrl), suite.ctx)
 }
 
 func (suite *TestSuite) ValNodeClient() tmclient.Client {

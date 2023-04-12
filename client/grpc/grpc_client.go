@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -32,6 +34,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
@@ -69,23 +72,35 @@ func NewGrpcConn(rawUrl string) (*grpc.ClientConn, error) {
 	return grpc.Dial(_url, opts...)
 }
 
-func NewClient(rawUrl string) (*Client, error) {
+func NewClient(rawUrl string, ctx ...context.Context) (*Client, error) {
 	grpcConn, err := NewGrpcConn(rawUrl)
 	if err != nil {
 		return nil, err
 	}
-	return &Client{
-		ClientConn: grpcConn,
-		ctx:        context.Background(),
-	}, nil
+	cli := &Client{ClientConn: grpcConn}
+	if len(ctx) > 0 {
+		cli.ctx = ctx[0]
+	} else {
+		cli.ctx = context.Background()
+	}
+	return cli, nil
 }
 
-func (cli *Client) WithContext(ctx context.Context) {
-	cli.ctx = ctx
+func (cli *Client) WithContext(ctx context.Context) *Client {
+	return &Client{chainId: cli.chainId, gasPrices: cli.gasPrices, ctx: ctx, ClientConn: cli.ClientConn}
 }
 
-func (cli *Client) WithGasPrices(gasPrices sdk.Coins) {
-	cli.gasPrices = gasPrices
+func (cli *Client) WithGasPrices(gasPrices sdk.Coins) *Client {
+	return &Client{chainId: cli.chainId, gasPrices: gasPrices, ctx: cli.ctx, ClientConn: cli.ClientConn}
+}
+
+func (cli *Client) WithBlockHeight(height int64) *Client {
+	ctx := metadata.AppendToOutgoingContext(cli.ctx, grpctypes.GRPCBlockHeightHeader, strconv.FormatInt(height, 10))
+	return &Client{chainId: cli.chainId, gasPrices: cli.gasPrices, ctx: ctx, ClientConn: cli.ClientConn}
+}
+
+func (cli *Client) WithChainId(chainId string) *Client {
+	return &Client{chainId: chainId, gasPrices: cli.gasPrices, ctx: cli.ctx, ClientConn: cli.ClientConn}
 }
 
 func (cli *Client) AuthQuery() authtypes.QueryClient {
@@ -165,7 +180,9 @@ func (cli *Client) AppVersion() (string, error) {
 }
 
 func (cli *Client) QueryAccount(address string) (authtypes.AccountI, error) {
-	response, err := cli.AuthQuery().Account(cli.ctx, &authtypes.QueryAccountRequest{Address: address})
+	response, err := cli.AuthQuery().Account(cli.ctx, &authtypes.QueryAccountRequest{
+		Address: address,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -529,12 +546,12 @@ func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, from string, msgs []sd
 	if err != nil {
 		return nil, err
 	}
-	if len(cli.chainId) <= 0 {
-		chainId, err := cli.GetChainId()
+	chainId := cli.chainId
+	if len(chainId) <= 0 {
+		chainId, err = cli.GetChainId()
 		if err != nil {
 			return nil, err
 		}
-		cli.chainId = chainId
 	}
 	var gasPrice sdk.Coin
 	if len(cli.gasPrices) <= 0 {
@@ -549,7 +566,7 @@ func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, from string, msgs []sd
 		gasPrice = cli.gasPrices[0]
 	}
 
-	txRaw, err := BuildTxV1(cli.chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
+	txRaw, err := BuildTxV1(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -560,7 +577,7 @@ func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, from string, msgs []sd
 	if estimatingGas.GasUsed > uint64(gasLimit) {
 		gasLimit = int64(estimatingGas.GasUsed) + (int64(estimatingGas.GasUsed) * 2 / 10)
 	}
-	return BuildTxV1(cli.chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
+	return BuildTxV1(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
 }
 
 func BuildTxV1(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {

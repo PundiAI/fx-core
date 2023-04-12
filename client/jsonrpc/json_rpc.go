@@ -32,28 +32,35 @@ type jsonRPCCaller interface {
 type NodeRPC struct {
 	chainId   string
 	gasPrices sdk.Coins
+	height    int64
 	ctx       context.Context
 	caller    jsonRPCCaller
-	height    int64
 }
 
-func NewNodeRPC(caller jsonRPCCaller) *NodeRPC {
-	return &NodeRPC{caller: caller, ctx: context.Background(), height: 0}
+func NewNodeRPC(caller jsonRPCCaller, ctx ...context.Context) *NodeRPC {
+	c := &NodeRPC{caller: caller, height: 0}
+	if len(ctx) > 0 {
+		c.ctx = ctx[0]
+	} else {
+		c.ctx = context.Background()
+	}
+	return c
 }
 
 func (c *NodeRPC) WithContext(ctx context.Context) *NodeRPC {
-	c.ctx = ctx
-	return c
+	return &NodeRPC{chainId: c.chainId, gasPrices: c.gasPrices, height: c.height, ctx: ctx, caller: c.caller}
 }
 
 func (c *NodeRPC) WithGasPrices(gasPrices sdk.Coins) *NodeRPC {
-	c.gasPrices = gasPrices
-	return c
+	return &NodeRPC{chainId: c.chainId, gasPrices: gasPrices, height: c.height, ctx: c.ctx, caller: c.caller}
 }
 
-func (c *NodeRPC) WithHeight(height int64) *NodeRPC {
-	c.height = height
-	return c
+func (c *NodeRPC) WithBlockHeight(height int64) *NodeRPC {
+	return &NodeRPC{chainId: c.chainId, gasPrices: c.gasPrices, height: height, ctx: c.ctx, caller: c.caller}
+}
+
+func (c *NodeRPC) WithChainId(chainId string) *NodeRPC {
+	return &NodeRPC{chainId: chainId, gasPrices: c.gasPrices, height: c.height, ctx: c.ctx, caller: c.caller}
 }
 
 // Custom API
@@ -143,12 +150,12 @@ func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRa
 	if err != nil {
 		return nil, err
 	}
-	if len(c.chainId) <= 0 {
-		chainId, err := c.GetChainId()
+	chainId := c.chainId
+	if len(chainId) <= 0 {
+		chainId, err = c.GetChainId()
 		if err != nil {
 			return nil, err
 		}
-		c.chainId = chainId
 	}
 
 	txBodyMessage := make([]*codectypes.Any, 0)
@@ -217,7 +224,7 @@ func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRa
 	signDoc := &tx.SignDoc{
 		BodyBytes:     txBodyBytes,
 		AuthInfoBytes: txAuthInfoBytes,
-		ChainId:       c.chainId,
+		ChainId:       chainId,
 		AccountNumber: account.GetAccountNumber(),
 	}
 	signatures, err := proto.Marshal(signDoc)
