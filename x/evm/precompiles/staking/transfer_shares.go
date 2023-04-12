@@ -180,6 +180,7 @@ func (c *Contract) handlerTransferShares(
 	}
 
 	// update from delegate, delete it if shares zero
+	fromDelStartingInfo := c.distrKeeper.GetDelegatorStartingInfo(ctx, valAddr, from.Bytes())
 	fromDel.Shares = fromDel.Shares.Sub(shares)
 	if fromDel.GetShares().IsZero() {
 		// if shares zero, remove delegation and delete starting info and reference count
@@ -187,11 +188,13 @@ func (c *Contract) handlerTransferShares(
 			return nil, nil, err
 		}
 		// decrement previous period reference count
-		startingPeriod := c.distrKeeper.GetDelegatorStartingInfo(ctx, valAddr, from.Bytes()).PreviousPeriod
-		decrementReferenceCount(c.distrKeeper, ctx, valAddr, startingPeriod)
+		decrementReferenceCount(c.distrKeeper, ctx, valAddr, fromDelStartingInfo.PreviousPeriod)
 		c.distrKeeper.DeleteDelegatorStartingInfo(ctx, valAddr, from.Bytes())
 	} else {
 		c.stakingKeeper.SetDelegation(ctx, fromDel)
+		// update from starting info
+		fromDelStartingInfo.Stake = validator.TokensFromSharesTruncated(fromDel.GetShares())
+		c.distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, from.Bytes(), fromDelStartingInfo)
 	}
 
 	// update to delegate, set starting info if to not delegate before
@@ -204,6 +207,11 @@ func (c *Contract) handlerTransferShares(
 
 		stakeToken := validator.TokensFromSharesTruncated(shares)
 		toDelStartingInfo := distrtypes.NewDelegatorStartingInfo(previousPeriod, stakeToken, uint64(ctx.BlockHeight()))
+		c.distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, to.Bytes(), toDelStartingInfo)
+	} else {
+		// update to starting info
+		toDelStartingInfo := c.distrKeeper.GetDelegatorStartingInfo(ctx, valAddr, to.Bytes())
+		toDelStartingInfo.Stake = validator.TokensFromSharesTruncated(toDel.GetShares())
 		c.distrKeeper.SetDelegatorStartingInfo(ctx, valAddr, to.Bytes(), toDelStartingInfo)
 	}
 
