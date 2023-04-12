@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
@@ -157,7 +158,7 @@ func queryCommand() *cobra.Command {
 
 	cmd.AddCommand(
 		authcmd.GetAccountCmd(),
-		cli.QueryValidatorSetCommand(),
+		rpc.ValidatorCommand(),
 		cli.BlockCommand(),
 		cli.QueryTxsByEventsCmd(),
 		cli.QueryTxCmd(),
