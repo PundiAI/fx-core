@@ -46,6 +46,21 @@ func (suite *StakingSuite) StakingQuery() stakingtypes.QueryClient {
 	return suite.GRPCClient().StakingQuery()
 }
 
+func (suite *StakingSuite) TransactionOpts(privateKey cryptotypes.PrivKey) *bind.TransactOpts {
+	ecdsa, err := crypto.ToECDSA(privateKey.Bytes())
+	suite.Require().NoError(err)
+
+	chainId, err := suite.EthClient().ChainID(suite.ctx)
+	suite.Require().NoError(err)
+
+	auth, err := bind.NewKeyedTransactorWithChainID(ecdsa, chainId)
+	suite.Require().NoError(err)
+
+	auth.GasTipCap = big.NewInt(1e9)
+	auth.GasFeeCap = big.NewInt(6e12)
+	return auth
+}
+
 // DeployStakingContract deploy staking contract
 // solc version 0.8.19 https://github.com/ethereum/solidity/releases
 // abigen version 1.11.5-stable https://github.com/ethereum/go-ethereum/releases
@@ -74,31 +89,21 @@ func (suite *StakingSuite) SetWithdrawAddress(delAddr, withdrawAddr sdk.AccAddre
 	suite.Require().EqualValues(response.WithdrawAddress, withdrawAddr.String())
 }
 
-func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr string, delAmount *big.Int) {
+func (suite *StakingSuite) Delegate(privateKey cryptotypes.PrivKey, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
 	stakingContract := precompilesstaking.GetAddress()
 	pack, err := precompilesstaking.GetABI().Pack("delegate", valAddr)
 	suite.Require().NoError(err)
 	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, delAmount, pack)
 	suite.Require().NoError(err)
-	suite.SendTransaction(transaction)
+	return suite.SendTransaction(transaction)
 }
 
 func (suite *StakingSuite) DelegateByContract(privateKey cryptotypes.PrivKey, contract common.Address, valAddr string, delAmount *big.Int) *ethtypes.Receipt {
 	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
 	suite.Require().NoError(err)
 
-	ecdsa, err := crypto.ToECDSA(privateKey.Bytes())
-	suite.Require().NoError(err)
-
-	chainId, err := suite.EthClient().ChainID(suite.ctx)
-	suite.Require().NoError(err)
-
-	auth, err := bind.NewKeyedTransactorWithChainID(ecdsa, chainId)
-	suite.Require().NoError(err)
-
+	auth := suite.TransactionOpts(privateKey)
 	auth.Value = delAmount
-	auth.GasTipCap = big.NewInt(1e9)
-	auth.GasFeeCap = big.NewInt(6e12)
 
 	tx, err := stakingContract.Delegate(auth, valAddr)
 	suite.Require().NoError(err)
@@ -115,17 +120,7 @@ func (suite *StakingSuite) WithdrawByContract(privateKey cryptotypes.PrivKey, co
 	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
 	suite.Require().NoError(err)
 
-	ecdsa, err := crypto.ToECDSA(privateKey.Bytes())
-	suite.Require().NoError(err)
-
-	chainId, err := suite.EthClient().ChainID(suite.ctx)
-	suite.Require().NoError(err)
-
-	auth, err := bind.NewKeyedTransactorWithChainID(ecdsa, chainId)
-	suite.Require().NoError(err)
-
-	auth.GasTipCap = big.NewInt(1e9)
-	auth.GasFeeCap = big.NewInt(6e12)
+	auth := suite.TransactionOpts(privateKey)
 
 	tx, err := stakingContract.Withdraw(auth, valAddr)
 	suite.Require().NoError(err)
@@ -142,17 +137,7 @@ func (suite *StakingSuite) UndelegateByContract(privateKey cryptotypes.PrivKey, 
 	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
 	suite.Require().NoError(err)
 
-	ecdsa, err := crypto.ToECDSA(privateKey.Bytes())
-	suite.Require().NoError(err)
-
-	chainId, err := suite.EthClient().ChainID(suite.ctx)
-	suite.Require().NoError(err)
-
-	auth, err := bind.NewKeyedTransactorWithChainID(ecdsa, chainId)
-	suite.Require().NoError(err)
-
-	auth.GasTipCap = big.NewInt(1e9)
-	auth.GasFeeCap = big.NewInt(6e12)
+	auth := suite.TransactionOpts(privateKey)
 
 	tx, err := stakingContract.Undelegate(auth, valAddr, shares)
 	suite.Require().NoError(err)
@@ -210,4 +195,93 @@ func (suite *StakingSuite) Rewards(valAddr string, delAddr common.Address) *big.
 	out = res
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 	return out0
+}
+
+func (suite *StakingSuite) TransferShares(privateKey cryptotypes.PrivKey, valAddr string, receipt common.Address, shares *big.Int) *ethtypes.Receipt {
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.TransferSharesMethodName, valAddr, receipt, shares)
+	suite.Require().NoError(err)
+	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
+	suite.Require().NoError(err)
+	return suite.SendTransaction(transaction)
+}
+
+func (suite *StakingSuite) TransferSharesByContract(privateKey cryptotypes.PrivKey, valAddr string, contract, to common.Address, shares *big.Int) *ethtypes.Receipt {
+	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	suite.Require().NoError(err)
+
+	auth := suite.TransactionOpts(privateKey)
+
+	tx, err := stakingContract.TransferShares(auth, valAddr, to, shares)
+	suite.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
+	defer cancel()
+	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
+	return receipt
+}
+
+func (suite *StakingSuite) TransferFromShares(privateKey cryptotypes.PrivKey, valAddr string, from, receipt common.Address, shares *big.Int) *ethtypes.Receipt {
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.TransferFromSharesMethodName, valAddr, from, receipt, shares)
+	suite.Require().NoError(err)
+	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
+	suite.Require().NoError(err)
+	return suite.SendTransaction(transaction)
+}
+
+func (suite *StakingSuite) TransferFromSharesByContract(privateKey cryptotypes.PrivKey, valAddr string, contract, from, to common.Address, shares *big.Int) *ethtypes.Receipt {
+	stakingContract, err := testscontract.NewTestStaking(contract, suite.EthClient())
+	suite.Require().NoError(err)
+
+	auth := suite.TransactionOpts(privateKey)
+
+	tx, err := stakingContract.TransferFromShares(auth, valAddr, from, to, shares)
+	suite.Require().NoError(err)
+
+	ctx, cancel := context.WithTimeout(suite.ctx, 5*time.Second)
+	defer cancel()
+	receipt, err := bind.WaitMined(ctx, suite.EthClient(), tx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(receipt.Status, ethtypes.ReceiptStatusSuccessful)
+	return receipt
+}
+
+func (suite *StakingSuite) ApproveShares(privateKey cryptotypes.PrivKey, valAddr string, spender common.Address, shares *big.Int) *ethtypes.Receipt {
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.ApproveSharesMethodName, valAddr, spender, shares)
+	suite.Require().NoError(err)
+	transaction, err := client.BuildEthTransaction(suite.ctx, suite.EthClient(), privateKey, &stakingContract, nil, pack)
+	suite.Require().NoError(err)
+	return suite.SendTransaction(transaction)
+}
+
+func (suite *StakingSuite) AllowanceShares(valAddr string, owner, spender common.Address) *big.Int {
+	stakingContract := precompilesstaking.GetAddress()
+	pack, err := precompilesstaking.GetABI().Pack(precompilesstaking.AllowanceSharesMethodName, valAddr, owner, spender)
+	suite.Require().NoError(err)
+	output, err := suite.EthClient().CallContract(suite.ctx, ethereum.CallMsg{To: &stakingContract, Data: pack}, nil)
+	suite.Require().NoError(err)
+	var out []interface{}
+	res, err := suite.abi.Unpack(precompilesstaking.AllowanceSharesMethodName, output)
+	suite.Require().NoError(err)
+	out = res
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	return out0
+}
+
+func (suite *StakingSuite) LogReward(logs []*ethtypes.Log, valAddr string, addr common.Address) *big.Int {
+	for _, log := range logs {
+		if log.Address == precompilesstaking.GetAddress() &&
+			log.Topics[0] == precompilesstaking.WithdrawEvent.ID &&
+			log.Topics[1] == addr.Hash() {
+			unpack, err := precompilesstaking.WithdrawEvent.Inputs.NonIndexed().Unpack(log.Data)
+			suite.Require().NoError(err)
+			suite.Require().Equal(unpack[0].(string), valAddr)
+			return unpack[1].(*big.Int)
+		}
+	}
+	return big.NewInt(0)
 }
