@@ -22,6 +22,7 @@ import (
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
 	fxgovtypes "github.com/functionx/fx-core/v3/x/gov/types"
+	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -45,6 +46,9 @@ func MakeEncodingConfig() EncodingConfig {
 
 	crosschaintypes.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	crosschaintypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+
+	gravitytypes.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	gravitytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }
 
@@ -68,10 +72,8 @@ func makeEncodingConfig() EncodingConfig {
 }
 
 func registerCryptoEthSecp256k1(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&ethsecp256k1.PubKey{},
-		ethsecp256k1.PubKeyName, nil)
-	cdc.RegisterConcrete(&ethsecp256k1.PrivKey{},
-		ethsecp256k1.PrivKeyName, nil)
+	cdc.RegisterConcrete(&ethsecp256k1.PubKey{}, ethsecp256k1.PubKeyName, nil)
+	cdc.RegisterConcrete(&ethsecp256k1.PrivKey{}, ethsecp256k1.PrivKeyName, nil)
 
 	// NOTE: update SDK's amino codec to include the ethsecp256k1 keys.
 	// DO NOT REMOVE unless deprecated on the SDK.

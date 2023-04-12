@@ -254,16 +254,16 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 	for _, m := range app.mm.Modules {
 		m.RegisterServices(cfg)
 	}
+	// Deprecated
 	gaspricev1.RegisterQueryServer(cfg.QueryServer(), gaspricev1.Querier{}) // nolint:staticcheck
 	gaspricev2.RegisterQueryServer(cfg.QueryServer(), gaspricev2.Querier{}) // nolint:staticcheck
 
-	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainKeeper)
-	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainKeeper))
-
-	// InterfaceRegistry gravity before RegisterService
-	gravity.RegisterInterfaces(app.interfaceRegistry)
+	// Deprecated
 	gravitytypes.RegisterQueryServer(cfg.QueryServer(), gravitykeeper.NewQueryServerImpl(app.EthKeeper))
 	gravitytypes.RegisterMsgServer(cfg.MsgServer(), gravitykeeper.NewMsgServerImpl(app.EthKeeper))
+
+	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainKeeper)
+	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainKeeper))
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
@@ -271,10 +271,16 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 
+	// Deprecated: Register gas price queries routes from grpc-gateway.
+	gaspricev1.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter) // nolint:staticcheck
+	gaspricev2.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter) // nolint:staticcheck
+
+	// Deprecated: Register gravity queries routes from grpc-gateway.
+	gravity.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
+	// Deprecated: cosmos-sdk legacy rest.
 	fxrest.RegisterRPCRoutes(clientCtx, apiSvr.Router)
-	// Register legacy tx routes auth rest.
 	fxrest.RegisterTxRESTRoutes(clientCtx, apiSvr.Router)
-	// Register module REST routers
 	fxrest.RegisterAuthRESTRoutes(clientCtx, apiSvr.Router)
 	fxrest.RegisterBankRESTRoutes(clientCtx, apiSvr.Router)
 	fxrest.RegisterEvidenceRESTRoutes(clientCtx, apiSvr.Router)
@@ -289,16 +295,11 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-	// Register gas price queries routes from grpc-gateway.
-	gaspricev1.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter) // nolint:staticcheck
-	gaspricev2.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter) // nolint:staticcheck
 	// Register node gRPC service for grpc-gateway.
 	// query that exposes operator configuration, most notably the operator's configured minimum gas price
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register crosschain queries routes from grpc-gateway.
 	crosschain.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
-	gravity.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
