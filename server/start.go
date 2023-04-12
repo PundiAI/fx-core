@@ -19,7 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
@@ -33,7 +32,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	ethmetricsexp "github.com/ethereum/go-ethereum/metrics/exp"
 	"github.com/evmos/ethermint/indexer"
-	ethdebug "github.com/evmos/ethermint/rpc/namespaces/ethereum/debug"
 	ethermintserver "github.com/evmos/ethermint/server"
 	ethermintconfig "github.com/evmos/ethermint/server/config"
 	srvflags "github.com/evmos/ethermint/server/flags"
@@ -142,28 +140,20 @@ which accepts a path for the resulting pprof file.
 			if err != nil {
 				return err
 			}
+			clientCtx = clientCtx.WithChainID(fxtypes.ChainId())
 
 			withTM, _ := cmd.Flags().GetBool(srvflags.WithTendermint)
 			if !withTM {
 				serverCtx.Logger.Info("starting ABCI without Tendermint")
-				return startStandAlone(serverCtx, appCreator)
+				return wrapCPUProfile(serverCtx, func() error {
+					return startStandAlone(serverCtx, appCreator)
+				})
 			}
-
-			serverCtx.Logger.Info("Unlocking keyring")
-
-			// fire unlock precess for keyring
-			keyringBackend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
-			if keyringBackend == keyring.BackendFile {
-				_, err = clientCtx.Keyring.List()
-				if err != nil {
-					return err
-				}
-			}
-
-			serverCtx.Logger.Info("starting ABCI with Tendermint")
 
 			// amino is needed here for backwards compatibility of REST routes
-			err = startInProcess(serverCtx, clientCtx, appCreator)
+			err = wrapCPUProfile(serverCtx, func() error {
+				return startInProcess(serverCtx, clientCtx, appCreator)
+			})
 			errCode, ok := err.(server.ErrorCode)
 			if !ok {
 				return err
@@ -248,7 +238,7 @@ func startStandAlone(ctx *server.Context, appCreator types.AppCreator) error {
 	}
 	defer func() {
 		if err = db.Close(); err != nil {
-			ctx.Logger.With("error", err).Error("error closing db")
+			ctx.Logger.Error("error closing db", "err", err.Error())
 		}
 	}()
 
@@ -281,7 +271,7 @@ func startStandAlone(ctx *server.Context, appCreator types.AppCreator) error {
 		return fmt.Errorf("error creating listener: %v", err)
 	}
 
-	svr.SetLogger(ctx.Logger.With("server", "abci"))
+	svr.SetLogger(ctx.Logger.With("module", "abci-server"))
 
 	err = svr.Start()
 	if err != nil {
@@ -306,32 +296,6 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	home := cfg.RootDir
 	logger := ctx.Logger
 
-	if cpuProfile := ctx.Viper.GetString(srvflags.CPUProfile); cpuProfile != "" {
-		fp, err := ethdebug.ExpandHome(cpuProfile)
-		if err != nil {
-			ctx.Logger.Debug("failed to get filepath for the CPU profile file", "error", err.Error())
-			return err
-		}
-
-		f, err := os.Create(fp)
-		if err != nil {
-			return err
-		}
-
-		ctx.Logger.Info("starting CPU profiler", "profile", cpuProfile)
-		if err := pprof.StartCPUProfile(f); err != nil {
-			return err
-		}
-
-		defer func() {
-			ctx.Logger.Info("stopping CPU profiler", "profile", cpuProfile)
-			pprof.StopCPUProfile()
-			if err := f.Close(); err != nil {
-				logger.Error("failed to close CPU profiler file", "error", err.Error())
-			}
-		}()
-	}
-
 	db, err := openDB(home, server.GetAppDBBackend(ctx.Viper))
 	if err != nil {
 		logger.Error("failed to open DB", "error", err.Error())
@@ -340,7 +304,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 	defer func() {
 		if err := db.Close(); err != nil {
-			ctx.Logger.With("error", err).Error("error closing db")
+			ctx.Logger.Error("error closing db", "err", err.Error())
 		}
 	}()
 
@@ -370,8 +334,6 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		return err
 	}
 
-	genDocProvider := node.DefaultGenesisDocProviderFunc(cfg)
-
 	var (
 		tmNode   *node.Node
 		gRPCOnly = ctx.Viper.GetBool(srvflags.GRPCOnly)
@@ -384,6 +346,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	} else {
 		logger.Info("starting node with ABCI Tendermint in-process")
 
+		genDocProvider := node.DefaultGenesisDocProviderFunc(cfg)
 		tmNode, err = node.NewNode(
 			cfg,
 			pvm.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile()),
@@ -392,7 +355,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 			genDocProvider,
 			node.DefaultDBProvider,
 			node.DefaultMetricsProvider(cfg.Instrumentation),
-			ctx.Logger.With("server", "node"),
+			ctx.Logger.With("module", "node"),
 		)
 		if err != nil {
 			logger.Error("failed init node", "error", err.Error())
@@ -405,7 +368,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		}
 
 		defer func() {
-			if tmNode.IsRunning() {
+			if tmNode != nil && tmNode.IsRunning() {
 				_ = tmNode.Stop()
 			}
 		}()
@@ -444,7 +407,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 			return err
 		}
 
-		idxLogger := ctx.Logger.With("indexer", "evm")
+		idxLogger := ctx.Logger.With("module", "indexer-evm")
 		idxer = indexer.NewKVIndexer(idxDB, idxLogger, clientCtx)
 		indexerService := ethermintserver.NewEVMIndexerService(idxer, clientCtx.Client)
 		indexerService.SetLogger(idxLogger)
@@ -461,17 +424,16 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 			return err
 		case <-time.After(types.ServerStartTime): // assume server started successfully
 		}
+
+		defer func() {
+			if indexerService != nil && indexerService.IsRunning() {
+				_ = indexerService.Stop()
+			}
+		}()
 	}
 
 	if config.API.Enable || config.JSONRPC.Enable {
-		genDoc, err := genDocProvider()
-		if err != nil {
-			return err
-		}
-
-		clientCtx = clientCtx.
-			WithHomeDir(home).
-			WithChainID(genDoc.ChainID)
+		clientCtx = clientCtx.WithHomeDir(home)
 
 		// Set `GRPCClient` to `clientCtx` to enjoy concurrent grpc query.
 		// only use it if gRPC server is enabled.
@@ -514,7 +476,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 	var apiSrv *api.Server
 	if config.API.Enable {
-		apiSrv = api.New(clientCtx, ctx.Logger.With("server", "api"))
+		apiSrv = api.New(clientCtx, ctx.Logger.With("module", "api-server"))
 		app.RegisterAPIRoutes(apiSrv, config.API)
 
 		if config.Telemetry.Enabled {
@@ -534,7 +496,11 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		case <-time.After(types.ServerStartTime): // assume server started successfully
 		}
 
-		defer apiSrv.Close()
+		defer func() {
+			if apiSrv != nil {
+				_ = apiSrv.Close()
+			}
+		}()
 	}
 
 	var (
@@ -675,6 +641,43 @@ func startTelemetry(cfg ethermintconfig.Config) (*telemetry.Metrics, error) {
 		return nil, nil
 	}
 	return telemetry.New(cfg.Telemetry)
+}
+
+// wrapCPUProfile runs callback in a goroutine, then wait for quit signals.
+func wrapCPUProfile(ctx *server.Context, callback func() error) error {
+	if cpuProfile := ctx.Viper.GetString(srvflags.CPUProfile); cpuProfile != "" {
+		f, err := os.Create(cpuProfile)
+		if err != nil {
+			return err
+		}
+
+		ctx.Logger.Info("starting CPU profiler", "profile", cpuProfile)
+		if err := pprof.StartCPUProfile(f); err != nil {
+			return err
+		}
+
+		defer func() {
+			ctx.Logger.Info("stopping CPU profiler", "profile", cpuProfile)
+			pprof.StopCPUProfile()
+			if err := f.Close(); err != nil {
+				ctx.Logger.Info("failed to close cpu-profile file", "profile", cpuProfile, "err", err.Error())
+			}
+		}()
+	}
+
+	errCh := make(chan error)
+	go func() {
+		errCh <- callback()
+	}()
+
+	select {
+	case err := <-errCh:
+		return err
+
+	case <-time.After(types.ServerStartTime):
+	}
+
+	return server.WaitForQuitSignals()
 }
 
 func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) error {

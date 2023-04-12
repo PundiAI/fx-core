@@ -3,12 +3,14 @@ package network
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server/api"
+	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -29,6 +31,8 @@ import (
 	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/rpc/client/local"
 	"github.com/tendermint/tendermint/types"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/server"
@@ -61,7 +65,7 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 		genDocProvider,
 		node.DefaultDBProvider,
 		node.DefaultMetricsProvider(tmCfg.Instrumentation),
-		logger.With("moniker", val.Ctx.Config.Moniker),
+		logger.With("module", val.Ctx.Config.Moniker),
 	)
 	if err != nil {
 		return err
@@ -72,15 +76,11 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 	}
 
 	val.tmNode = tmNode
-
-	if val.RPCAddress != "" {
-		val.RPCClient = local.New(tmNode)
-	}
+	val.RPCClient = local.New(tmNode)
 
 	// We'll need a RPC client if the validator exposes a gRPC or REST endpoint.
 	if val.APIAddress != "" || val.AppConfig.GRPC.Enable {
-		val.ClientCtx = val.ClientCtx.
-			WithClient(val.RPCClient)
+		val.ClientCtx = val.ClientCtx.WithClient(val.RPCClient)
 
 		// Add the tx service in the gRPC router.
 		myApp.RegisterTxService(val.ClientCtx)
@@ -93,9 +93,41 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 		}
 	}
 
-	errCh := make(chan error, 8)
-	wg := sync.WaitGroup{}
+	if val.AppConfig.GRPC.Enable {
+		_, port, err := net.SplitHostPort(val.AppConfig.GRPC.Address)
+		if err != nil {
+			return err
+		}
 
+		maxSendMsgSize := val.AppConfig.GRPC.MaxSendMsgSize
+		if maxSendMsgSize == 0 {
+			maxSendMsgSize = serverconfig.DefaultGRPCMaxSendMsgSize
+		}
+
+		maxRecvMsgSize := val.AppConfig.GRPC.MaxRecvMsgSize
+		if maxRecvMsgSize == 0 {
+			maxRecvMsgSize = serverconfig.DefaultGRPCMaxRecvMsgSize
+		}
+
+		grpcAddress := fmt.Sprintf("127.0.0.1:%s", port)
+
+		// If grpc is enabled, configure grpc client for grpc gateway.
+		grpcClient, err := grpc.Dial(
+			grpcAddress,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithDefaultCallOptions(
+				grpc.ForceCodec(codec.NewProtoCodec(val.ClientCtx.InterfaceRegistry).GRPCCodec()),
+				grpc.MaxCallRecvMsgSize(maxRecvMsgSize),
+				grpc.MaxCallSendMsgSize(maxSendMsgSize),
+			),
+		)
+		if err != nil {
+			return err
+		}
+		val.ClientCtx = val.ClientCtx.WithGRPCClient(grpcClient)
+	}
+
+	errCh := make(chan error)
 	if val.AppConfig.API.Enable && val.APIAddress != "" {
 		val.api = api.New(val.ClientCtx, logger.With("module", "api-server"))
 		myApp.RegisterAPIRoutes(val.api, val.AppConfig.API)
@@ -108,24 +140,16 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 	}
 
 	if val.AppConfig.GRPC.Enable {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			val.grpc, err = servergrpc.StartGRPCServer(val.ClientCtx, myApp, val.AppConfig.GRPC)
-			if err != nil {
-				errCh <- err
-			}
-		}()
+		val.grpc, err = servergrpc.StartGRPCServer(val.ClientCtx, myApp, val.AppConfig.GRPC)
+		if err != nil {
+			return err
+		}
 
 		if val.AppConfig.GRPCWeb.Enable {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				val.grpcWeb, err = servergrpc.StartGRPCWeb(val.grpc, val.AppConfig.Config)
-				if err != nil {
-					errCh <- err
-				}
-			}()
+			val.grpcWeb, err = servergrpc.StartGRPCWeb(val.grpc, val.AppConfig.Config)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -137,35 +161,28 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 		tmEndpoint := "/websocket"
 		tmRPCAddr := val.RPCAddress
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			clientCtx := val.ClientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
-			val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, clientCtx, tmRPCAddr, tmEndpoint, &config.Config{
-				Config:  val.AppConfig.Config,
-				EVM:     val.AppConfig.EVM,
-				JSONRPC: val.AppConfig.JSONRPC,
-				TLS:     val.AppConfig.TLS,
-			}, nil)
-			if err != nil {
-				errCh <- err
-				return
-			}
-			val.JSONRPCClient, err = ethclient.Dial(fmt.Sprintf("http://%s", val.AppConfig.JSONRPC.Address))
-			if err != nil {
-				errCh <- fmt.Errorf("failed to dial JSON-RPC at %s: %w", val.AppConfig.JSONRPC.Address, err)
-			}
-		}()
+		clientCtx := val.ClientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
+		val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, clientCtx, tmRPCAddr, tmEndpoint, &config.Config{
+			Config:  val.AppConfig.Config,
+			EVM:     val.AppConfig.EVM,
+			JSONRPC: val.AppConfig.JSONRPC,
+			TLS:     val.AppConfig.TLS,
+		}, nil)
+		if err != nil {
+			return err
+		}
+		val.JSONRPCClient, err = ethclient.Dial(fmt.Sprintf("http://%s", val.AppConfig.JSONRPC.Address))
+		if err != nil {
+			return fmt.Errorf("failed to dial JSON-RPC at %s: %w", val.AppConfig.JSONRPC.Address, err)
+		}
 	}
 
-	wg.Wait()
 	select {
 	case err = <-errCh:
 		return err
-	default:
+	case <-time.After(servertypes.ServerStartTime): // assume server started successfully
+		return nil
 	}
-
-	return nil
 }
 
 func collectGenFiles(cfg Config, vals []*Validator, outputDir string) error {
