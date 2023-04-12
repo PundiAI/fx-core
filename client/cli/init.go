@@ -29,9 +29,6 @@ const (
 
 	// FlagRecover defines a flag to initialize the private validator key from a specific seed.
 	FlagRecover = "recover"
-
-	// FlagDenom defines a flag to set the default coin denomination
-	FlagDenom = "denom"
 )
 
 type PrintInfo struct {
@@ -128,10 +125,9 @@ func InitCmd(nodeHome string, genesisState map[string]json.RawMessage, consensus
 				return fmt.Errorf("failed to export gensis file: %s", err.Error())
 			}
 
-			toPrint := NewPrintInfo(config.Moniker, chainID, nodeID, "", appState)
-
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
+			toPrint := NewPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 			out, err := json.MarshalIndent(toPrint, "", " ")
 			if err != nil {
 				return err
