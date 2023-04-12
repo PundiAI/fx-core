@@ -13,7 +13,6 @@ import (
 	sdkcfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -29,7 +28,6 @@ import (
 	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
@@ -101,13 +99,6 @@ func NewRootCmd() *cobra.Command {
 	}
 
 	initRootCmd(rootCmd, encodingConfig, fxtypes.GetDefaultNodeHome())
-	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID:        fxtypes.ChainId(),
-		flags.FlagKeyringBackend: keyring.BackendOS,
-		flags.FlagGas:            "100000",
-		// flags.FlagGas:            "auto",
-		// flags.FlagGasAdjustment:  "1.5",
-	})
 	return rootCmd
 }
 
@@ -300,28 +291,4 @@ func (a appCreator) appExport(
 	}
 
 	return anApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
-}
-
-func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
-	set := func(s *pflag.FlagSet, key, val string) {
-		if f := s.Lookup(key); f != nil {
-			f.DefValue = val
-			if err := f.Value.Set(val); err != nil {
-				panic(err)
-			}
-			if key == flags.FlagGasPrices {
-				f.Usage = "Gas prices in decimal format to determine the transaction fee"
-			}
-			if key == flags.FlagGas {
-				f.Usage = "gas limit to set per-transaction; set to 'auto' to calculate sufficient gas automatically"
-			}
-		}
-	}
-	for key, val := range defaults {
-		set(c.Flags(), key, val)
-		set(c.PersistentFlags(), key, val)
-	}
-	for _, c := range c.Commands() {
-		overwriteFlagDefaults(c, defaults)
-	}
 }
