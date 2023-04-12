@@ -140,9 +140,9 @@ run-local: install
 
 lint:
 	@echo "--> Running linter"
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	@go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
-	@go install mvdan.cc/gofumpt@latest
+	@which golangci-lint > /dev/null || echo "\033[91m install golangci-lint ...\033[0m" && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@which gocyclo > /dev/null || echo "\033[91m install gocyclo ...\033[0m" && go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
+	@which gofumpt > /dev/null || echo "\033[91m install gofumpt ...\033[0m" && go install mvdan.cc/gofumpt@latest
 	golangci-lint run -v --go=1.18 --timeout 10m
 	find . -name '*.go' -type f -not -path "./build*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gocyclo -over 15
 	find . -name '*.go' -type f -not -path "./build*" -not -name "statik.go" -not -name "*.pb.go" -not -name "*.pb.gw.go" | xargs gofumpt -d
