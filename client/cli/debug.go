@@ -16,6 +16,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32" // nolint:staticcheck
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -339,44 +340,42 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 }
 
 func AddrCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "addr [address]",
 		Short: "Convert an address between hex and bech32",
-		Long: fmt.Sprintf(`Convert an address between hex encoding and bech32.
-
-Example:
-$ %s debug addr fx1e0jnq2sun3dzjh8p2xq95kk0expwmd7sd7r5ye
-			`, version.AppName),
-		Args: cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			addrString := args[0]
-			var addr []byte
+			bech32prefix, err := cmd.Flags().GetString("prefix")
+			if err != nil {
+				return err
+			}
 
 			// try hex, then bech32
+			addrString := args[0]
+			var addr []byte
 			addr, err = hexutil.Decode(addrString)
 			if err != nil {
-				var err2 error
-				addr, err2 = sdk.AccAddressFromBech32(addrString)
-				if err2 != nil {
-					var err3 error
-					addr, err3 = sdk.ValAddressFromBech32(addrString)
-
-					if err3 != nil {
-						return fmt.Errorf("expected hex or bech32. Got errors: hex: %v, bech32 acc: %v, bech32 val: %v", err, err2, err3)
-					}
+				_, addr, err = bech32.DecodeAndConvert(addrString)
+				if err != nil {
+					return errors.New("expected hex or bech32")
 				}
 			}
 
+			convertedAddress, err := bech32.ConvertAndEncode(bech32prefix, addr)
+			if err != nil {
+				return err
+			}
 			return PrintOutput(clientCtx, map[string]interface{}{
-				"base64":      addr,
-				"hex":         hex.EncodeToString(addr),
-				"acc_address": sdk.AccAddress(addr),
-				"val_address": sdk.ValAddress(addr),
+				"base64": addr,
+				"hex":    hex.EncodeToString(addr),
+				"bech32": convertedAddress,
 			})
 		},
 	}
+	cmd.Flags().StringP("prefix", "p", "fx", "Bech32 Prefix to encode to")
+	return cmd
 }
