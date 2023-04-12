@@ -35,8 +35,8 @@ import (
 	"github.com/functionx/fx-core/v3/app/keepers"
 	_ "github.com/functionx/fx-core/v3/docs/statik"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
-	"github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy/v1"
-	fxgasprice "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy/v2"
+	gaspricev1 "github.com/functionx/fx-core/v3/server/grpc/gasprice/legacy/v1"
+	gaspricev2 "github.com/functionx/fx-core/v3/server/grpc/gasprice/legacy/v2"
 	fxrest "github.com/functionx/fx-core/v3/server/rest"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	"github.com/functionx/fx-core/v3/x/crosschain"
@@ -254,8 +254,8 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 	for _, m := range app.mm.Modules {
 		m.RegisterServices(cfg)
 	}
-	fxgasprice.RegisterQueryServer(cfg.QueryServer(), fxgasprice.Querier{}) // nolint:staticcheck
-	v1.RegisterQueryServer(cfg.QueryServer(), v1.Querier{})                 // nolint:staticcheck
+	gaspricev1.RegisterQueryServer(cfg.QueryServer(), gaspricev1.Querier{}) // nolint:staticcheck
+	gaspricev2.RegisterQueryServer(cfg.QueryServer(), gaspricev2.Querier{}) // nolint:staticcheck
 
 	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainKeeper)
 	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainKeeper))
@@ -290,7 +290,8 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register gas price queries routes from grpc-gateway.
-	fxgasprice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	gaspricev1.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter) // nolint:staticcheck
+	gaspricev2.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter) // nolint:staticcheck
 	// Register node gRPC service for grpc-gateway.
 	// query that exposes operator configuration, most notably the operator's configured minimum gas price
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

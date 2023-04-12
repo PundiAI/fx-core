@@ -5,9 +5,11 @@ import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/functionx/fx-core/server/grpc/base/gasprice/legacy/v2";
+option go_package = "github.com/functionx/fx-core/server/grpc/gasprice/legacy/v2";
 
+// Deprecated
 service Query {
+  // Deprecated: please use cosmos.base.node.v1beta1.Service.Config
   rpc GetGasPrice(GetGasPriceRequest) returns (GetGasPriceResponse) {
     option (google.api.http).get = "/fx/base/v1/gas_price";
   }

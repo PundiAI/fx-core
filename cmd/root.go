@@ -39,7 +39,6 @@ import (
 	"github.com/functionx/fx-core/v3/client/cli"
 	fxserver "github.com/functionx/fx-core/v3/server"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
-	fxgasprice "github.com/functionx/fx-core/v3/server/grpc/base/gasprice/legacy/v2"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	avalanchecli "github.com/functionx/fx-core/v3/x/avalanche/client/cli"
 	bsccli "github.com/functionx/fx-core/v3/x/bsc/client/cli"
@@ -165,7 +164,7 @@ func queryCommand() *cobra.Command {
 		cli.QueryStoreCmd(),
 		cli.QueryValidatorByConsAddr(),
 		cli.QueryBlockResultsCmd(),
-		fxgasprice.QueryCmd(),
+		cli.QueryGasPricesCmd(),
 		crosschaincli.GetQueryCmd(
 			avalanchecli.GetQueryCmd(),
 			bsccli.GetQueryCmd(),
