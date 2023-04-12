@@ -10,17 +10,49 @@ option go_package = "github.com/functionx/fx-core/x/gov/types";
 
 // Params defines the fx x/gov module params
 message Params {
-  cosmos.base.v1beta1.Coin min_initial_deposit = 1 [(gogoproto.nullable) = false];
+  string msg_type = 1;
 
-  cosmos.base.v1beta1.Coin egf_deposit_threshold = 2 [(gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin min_deposit = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "min_deposit,omitempty"
+  ];
 
-  string claim_ratio = 3;
+  cosmos.base.v1beta1.Coin min_initial_deposit = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "min_initial_deposit,omitempty"
+  ];
 
-  string erc20_quorum = 4 [(cosmos_proto.scalar) = "cosmos.Dec"];
+  google.protobuf.Duration voting_period = 4 [(gogoproto.stdduration) = true];
 
-  string evm_quorum = 5 [(cosmos_proto.scalar) = "cosmos.Dec"];
+  string quorum = 5 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.jsontag) = "quorum,omitempty"
+  ];
 
-  google.protobuf.Duration egf_voting_period = 6 [(gogoproto.stdduration) = true];
+  google.protobuf.Duration max_deposit_period = 6 [
+    (gogoproto.stdduration) = true,
+    (gogoproto.jsontag) = "max_deposit_period,omitempty"
+  ];
 
-  google.protobuf.Duration evm_voting_period = 7 [(gogoproto.stdduration) = true];
+  string threshold = 7 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.jsontag) = "threshold,omitempty"
+  ];
+
+  string veto_threshold = 8 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.jsontag) = "veto_threshold,omitempty"
+  ];
+}
+
+message EGFParams {
+  cosmos.base.v1beta1.Coin egf_deposit_threshold = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "min_initial_deposit,omitempty"
+  ];
+
+  string claim_ratio = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.jsontag) = "claim_ratio,omitempty"
+  ];
 }

@@ -7,19 +7,33 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/functionx/fx-core/x/gov/types";
 
-// Query defines the gRPC querier service for gov module
+// Query defines the gRPC querier service for fx/x/gov module
 service Query {
-  // Params retrieves the erc20 module params
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/fx/gov/v1/params";
+    option (google.api.http).get = "/fx/gov/v1/Params";
+  }
+
+  rpc EGFParams(QueryEGFParamsRequest) returns (QueryEGFParamsResponse) {
+    option (google.api.http).get = "/fx/gov/v1/egf_params";
   }
 }
 
-// QueryParamsRequest is the request type for the Query/Params RPC method.
-message QueryParamsRequest {}
+// QueryBaseParamsRequest is the request type for the Query/BaseParams RPC method.
+message QueryParamsRequest {
+  string msg_type = 1;
+}
 
-// QueryParamsResponse is the response type for the Query/Params RPC
+// QueryBaseParamsResponse is the response type for the Query/BaseParams RPC
 // method.
 message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryEGFParamsRequest is the request type for the Query/EGFParams RPC method.
+message QueryEGFParamsRequest {}
+
+// QueryEGFParamsResponse is the response type for the Query/EGFParams RPC
+// method.
+message QueryEGFParamsResponse {
+  EGFParams params = 1 [(gogoproto.nullable) = false];
 }

@@ -24,6 +24,7 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	evmtypes "github.com/functionx/fx-core/v3/x/evm/types"
 	"github.com/functionx/fx-core/v3/x/gov/keeper"
 	"github.com/functionx/fx-core/v3/x/gov/types"
 )
@@ -144,13 +145,14 @@ func (suite *KeeperTestSuite) TestEGFDepositsLessThan1000() {
 	suite.addFundCommunityPool()
 
 	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(10 * 1e3).MulRaw(1e18)}}
-	minDeposit := suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, egfCoins)
-	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
-	suite.True(initCoins.IsEqual(minDeposit))
 
 	spendProposal := distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins)
 	msgExecLegacyContent, err := govv1.NewLegacyContent(spendProposal, suite.govAcct)
 	suite.NoError(err)
+	minDeposit := suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, msgExecLegacyContent.Content.TypeUrl, egfCoins)
+	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
+	suite.True(initCoins.IsEqual(minDeposit))
+
 	communityPoolSpendProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(),
 		types.NewFXMetadata(spendProposal.GetTitle(), spendProposal.GetDescription(), "").String())
 	suite.NoError(err)
@@ -168,12 +170,14 @@ func (suite *KeeperTestSuite) TestEGFDepositsMoreThan1000() {
 
 	thousand := sdkmath.NewInt(1 * 1e3).MulRaw(1e18)
 	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: thousand.MulRaw(10).Add(sdkmath.NewInt(10))}}
-	minDeposit := suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, egfCoins)
 
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: thousand}}
 	spendProposal := distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins)
 	msgExecLegacyContent, err := govv1.NewLegacyContent(spendProposal, suite.govAcct)
 	suite.NoError(err)
+
+	minDeposit := suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, msgExecLegacyContent.Content.TypeUrl, egfCoins)
+
 	communityPoolSpendProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(),
 		types.NewFXMetadata(spendProposal.GetTitle(), spendProposal.GetDescription(), "").String())
 	suite.NoError(err)
@@ -200,11 +204,14 @@ func (suite *KeeperTestSuite) TestEGFDeposits() {
 	suite.addFundCommunityPool()
 
 	egfCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(150 * 1e3).MulRaw(1e18)}}
-	minDeposit := suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, egfCoins)
+
 	initCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
 	spendProposal := distributiontypes.NewCommunityPoolSpendProposal("community Pool Spend Proposal", "description", sdk.AccAddress(helpers.GenerateAddress().Bytes()), egfCoins)
 	msgExecLegacyContent, err := govv1.NewLegacyContent(spendProposal, suite.govAcct)
 	suite.NoError(err)
+
+	minDeposit := suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, msgExecLegacyContent.Content.TypeUrl, egfCoins)
+
 	communityPoolSpendProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{msgExecLegacyContent}, initCoins, suite.newAddress().String(),
 		types.NewFXMetadata(spendProposal.GetTitle(), spendProposal.GetDescription(), "").String())
 	suite.NoError(err)
@@ -308,4 +315,65 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestGetBaseParams() {
+	tallyParams := suite.app.GovKeeper.GetTallyParams(suite.ctx)
+	votingParams := suite.app.GovKeeper.GetVotingParams(suite.ctx)
+	depositParams := suite.app.GovKeeper.GetDepositParams(suite.ctx)
+	// unregistered Msg
+	params := suite.app.GovKeeper.GetParams(suite.ctx, sdk.MsgTypeURL(&erc20types.MsgUpdateParams{}))
+	suite.Require().EqualValues(params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultMinInitialDeposit).String())
+	suite.Require().EqualValues(params.MinDeposit, depositParams.MinDeposit)
+	suite.Require().EqualValues(params.MaxDepositPeriod, depositParams.MaxDepositPeriod)
+	suite.Require().EqualValues(params.VotingPeriod, votingParams.VotingPeriod)
+	suite.Require().EqualValues(params.VetoThreshold, tallyParams.VetoThreshold)
+	suite.Require().EqualValues(params.Threshold, tallyParams.Threshold)
+	suite.Require().EqualValues(params.Quorum, tallyParams.Quorum)
+	erc20MsgType := []string{
+		"/fx.erc20.v1.RegisterCoinProposal",
+		"/fx.erc20.v1.RegisterERC20Proposal",
+		"/fx.erc20.v1.ToggleTokenConversionProposal",
+		"/fx.erc20.v1.UpdateDenomAliasProposal",
+		sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+		sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{}),
+		sdk.MsgTypeURL(&erc20types.MsgToggleTokenConversion{}),
+		sdk.MsgTypeURL(&erc20types.MsgUpdateDenomAlias{}),
+	}
+	for _, erc20MsgType := range erc20MsgType {
+		// registered Msg
+		params = suite.app.GovKeeper.GetParams(suite.ctx, erc20MsgType)
+		suite.Require().NoError(params.ValidateBasic())
+		suite.Require().EqualValues(params.MinDeposit, depositParams.MinDeposit)
+		suite.Require().EqualValues(params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultMinInitialDeposit).String())
+		suite.Require().EqualValues(params.MaxDepositPeriod, depositParams.MaxDepositPeriod)
+		suite.Require().EqualValues(params.VotingPeriod, votingParams.VotingPeriod)
+		suite.Require().EqualValues(params.VetoThreshold, tallyParams.VetoThreshold)
+		suite.Require().EqualValues(params.Threshold, tallyParams.Threshold)
+		suite.Require().EqualValues(params.Quorum, types.DefaultErc20Quorum.String())
+	}
+
+	params = suite.app.GovKeeper.GetParams(suite.ctx, sdk.MsgTypeURL(&evmtypes.MsgCallContract{}))
+	suite.Require().NoError(params.ValidateBasic())
+	suite.Require().EqualValues(params.MinDeposit, depositParams.MinDeposit)
+	suite.Require().EqualValues(params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultMinInitialDeposit).String())
+	suite.Require().EqualValues(params.MaxDepositPeriod, depositParams.MaxDepositPeriod)
+	suite.Require().EqualValues(params.VotingPeriod.String(), types.DefaultEvmVotingPeriod.String())
+	suite.Require().EqualValues(params.VetoThreshold, tallyParams.VetoThreshold)
+	suite.Require().EqualValues(params.Threshold, tallyParams.Threshold)
+	suite.Require().EqualValues(params.Quorum, types.DefaultEvmQuorum.String())
+
+	params = suite.app.GovKeeper.GetParams(suite.ctx, "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal")
+	egfParams := suite.app.GovKeeper.GetEGFParams(suite.ctx)
+	suite.Require().NoError(params.ValidateBasic())
+	suite.Require().NoError(egfParams.ValidateBasic())
+	suite.Require().EqualValues(params.MinDeposit, depositParams.MinDeposit)
+	suite.Require().EqualValues(params.MinInitialDeposit.String(), sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultMinInitialDeposit).String())
+	suite.Require().EqualValues(params.MaxDepositPeriod, depositParams.MaxDepositPeriod)
+	suite.Require().EqualValues(params.VotingPeriod.String(), types.DefaultEgfVotingPeriod.String())
+	suite.Require().EqualValues(params.VetoThreshold, tallyParams.VetoThreshold)
+	suite.Require().EqualValues(params.Threshold, tallyParams.Threshold)
+	suite.Require().EqualValues(params.Quorum, tallyParams.Quorum)
+	suite.Require().EqualValues(egfParams.EgfDepositThreshold, sdk.NewCoin(fxtypes.DefaultDenom, types.DefaultEgfDepositThreshold))
+	suite.Require().EqualValues(egfParams.ClaimRatio, types.DefaultClaimRatio.String())
 }

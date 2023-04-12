@@ -1,21 +1,52 @@
 package keeper_test
 
 import (
-	"github.com/functionx/fx-core/v3/x/gov/types"
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	fxtypes "github.com/functionx/fx-core/v3/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
+	govtypes "github.com/functionx/fx-core/v3/x/gov/types"
 )
 
-func (suite *KeeperTestSuite) TestGRPCQueryFxParams() {
+func (suite *KeeperTestSuite) TestGRPCQueryParams() {
 	queryClient := suite.queryClient
-	params := types.DefaultParams()
-	_, err := suite.MsgServer.UpdateParams(suite.ctx, &types.MsgUpdateParams{Authority: suite.govAcct, Params: *params})
+	response, err := queryClient.Params(suite.ctx, &govtypes.QueryParamsRequest{MsgType: sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{})})
 	suite.Require().NoError(err)
-	response, err := queryClient.Params(suite.ctx, &types.QueryParamsRequest{})
+	params := response.GetParams()
+	suite.Require().EqualValues(params.Quorum, govtypes.DefaultErc20Quorum.String())
+
+	params.Quorum = "0.3"
+	_, err = suite.MsgServer.UpdateParams(suite.ctx, &govtypes.MsgUpdateParams{Authority: suite.govAcct, Params: params})
 	suite.Require().NoError(err)
-	suite.Require().EqualValues(response.Params.MinInitialDeposit, params.MinInitialDeposit)
-	suite.Require().EqualValues(response.Params.EgfDepositThreshold, params.EgfDepositThreshold)
-	suite.Require().EqualValues(response.Params.ClaimRatio, params.ClaimRatio)
-	suite.Require().EqualValues(response.Params.Erc20Quorum, params.Erc20Quorum)
-	suite.Require().EqualValues(response.Params.EvmQuorum, params.EvmQuorum)
-	suite.Require().EqualValues(response.Params.EgfVotingPeriod, params.EgfVotingPeriod)
-	suite.Require().EqualValues(response.Params.EgfVotingPeriod, params.EgfVotingPeriod)
+	response, err = queryClient.Params(suite.ctx, &govtypes.QueryParamsRequest{MsgType: sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{})})
+	suite.Require().NoError(err)
+	params = response.GetParams()
+	suite.Require().NotEqualValues(params.Quorum, govtypes.DefaultErc20Quorum.String())
+	suite.Require().EqualValues(params.Quorum, "0.3")
+
+	response, err = queryClient.Params(suite.ctx, &govtypes.QueryParamsRequest{MsgType: sdk.MsgTypeURL(&erc20types.MsgRegisterERC20{})})
+	suite.Require().NoError(err)
+	params = response.GetParams()
+	suite.Require().EqualValues(params.Quorum, govtypes.DefaultErc20Quorum.String())
+	suite.Require().NotEqualValues(params.Quorum, "0.3")
+}
+
+func (suite *KeeperTestSuite) TestGRPCQueryEGFParams() {
+	queryClient := suite.queryClient
+	response, err := queryClient.EGFParams(suite.ctx, &govtypes.QueryEGFParamsRequest{})
+	suite.Require().NoError(err)
+	params := response.GetParams()
+	suite.Require().EqualValues(params.EgfDepositThreshold.String(), sdk.NewCoin(fxtypes.DefaultDenom, govtypes.DefaultEgfDepositThreshold).String())
+	suite.Require().EqualValues(params.ClaimRatio, govtypes.DefaultClaimRatio.String())
+
+	params.ClaimRatio = "0.4"
+	params.EgfDepositThreshold = sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100000).MulRaw(1e18))
+	_, err = suite.MsgServer.UpdateEGFParams(suite.ctx, &govtypes.MsgUpdateEGFParams{Authority: suite.govAcct, Params: params})
+	suite.Require().NoError(err)
+	response, err = queryClient.EGFParams(suite.ctx, &govtypes.QueryEGFParamsRequest{})
+	suite.Require().NoError(err)
+	params = response.GetParams()
+	suite.Require().EqualValues(params.ClaimRatio, "0.4")
+	suite.Require().EqualValues(params.EgfDepositThreshold.String(), sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(100000).MulRaw(1e18)).String())
 }

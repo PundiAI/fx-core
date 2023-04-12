@@ -29,8 +29,9 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// QueryParamsRequest is the request type for the Query/Params RPC method.
+// QueryBaseParamsRequest is the request type for the Query/BaseParams RPC method.
 type QueryParamsRequest struct {
+	MsgType string `protobuf:"bytes,1,opt,name=msg_type,json=msgType,proto3" json:"msg_type,omitempty"`
 }
 
 func (m *QueryParamsRequest) Reset()         { *m = QueryParamsRequest{} }
@@ -66,7 +67,14 @@ func (m *QueryParamsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryParamsRequest proto.InternalMessageInfo
 
-// QueryParamsResponse is the response type for the Query/Params RPC
+func (m *QueryParamsRequest) GetMsgType() string {
+	if m != nil {
+		return m.MsgType
+	}
+	return ""
+}
+
+// QueryBaseParamsResponse is the response type for the Query/BaseParams RPC
 // method.
 type QueryParamsResponse struct {
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
@@ -112,33 +120,123 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
+// QueryEGFParamsRequest is the request type for the Query/EGFParams RPC method.
+type QueryEGFParamsRequest struct {
+}
+
+func (m *QueryEGFParamsRequest) Reset()         { *m = QueryEGFParamsRequest{} }
+func (m *QueryEGFParamsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryEGFParamsRequest) ProtoMessage()    {}
+func (*QueryEGFParamsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47cb083fb0607b21, []int{2}
+}
+func (m *QueryEGFParamsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryEGFParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryEGFParamsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryEGFParamsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryEGFParamsRequest.Merge(m, src)
+}
+func (m *QueryEGFParamsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryEGFParamsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryEGFParamsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryEGFParamsRequest proto.InternalMessageInfo
+
+// QueryEGFParamsResponse is the response type for the Query/EGFParams RPC
+// method.
+type QueryEGFParamsResponse struct {
+	Params EGFParams `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+}
+
+func (m *QueryEGFParamsResponse) Reset()         { *m = QueryEGFParamsResponse{} }
+func (m *QueryEGFParamsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryEGFParamsResponse) ProtoMessage()    {}
+func (*QueryEGFParamsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47cb083fb0607b21, []int{3}
+}
+func (m *QueryEGFParamsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryEGFParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryEGFParamsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryEGFParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryEGFParamsResponse.Merge(m, src)
+}
+func (m *QueryEGFParamsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryEGFParamsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryEGFParamsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryEGFParamsResponse proto.InternalMessageInfo
+
+func (m *QueryEGFParamsResponse) GetParams() EGFParams {
+	if m != nil {
+		return m.Params
+	}
+	return EGFParams{}
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "fx.gov.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "fx.gov.v1.QueryParamsResponse")
+	proto.RegisterType((*QueryEGFParamsRequest)(nil), "fx.gov.v1.QueryEGFParamsRequest")
+	proto.RegisterType((*QueryEGFParamsResponse)(nil), "fx.gov.v1.QueryEGFParamsResponse")
 }
 
 func init() { proto.RegisterFile("fx/gov/v1/query.proto", fileDescriptor_47cb083fb0607b21) }
 
 var fileDescriptor_47cb083fb0607b21 = []byte{
-	// 273 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4d, 0xab, 0xd0, 0x4f,
-	0xcf, 0x2f, 0xd3, 0x2f, 0x33, 0xd4, 0x2f, 0x2c, 0x4d, 0x2d, 0xaa, 0xd4, 0x2b, 0x28, 0xca, 0x2f,
-	0xc9, 0x17, 0xe2, 0x4c, 0xab, 0xd0, 0x4b, 0xcf, 0x2f, 0xd3, 0x2b, 0x33, 0x94, 0x12, 0x43, 0xa8,
-	0x28, 0x48, 0x2c, 0x4a, 0xcc, 0x2d, 0x86, 0x28, 0x91, 0x12, 0x49, 0xcf, 0x4f, 0xcf, 0x07, 0x33,
-	0xf5, 0x41, 0x2c, 0xa8, 0xa8, 0x4c, 0x7a, 0x7e, 0x7e, 0x7a, 0x4e, 0xaa, 0x7e, 0x62, 0x41, 0xa6,
-	0x7e, 0x62, 0x5e, 0x5e, 0x7e, 0x49, 0x62, 0x49, 0x66, 0x7e, 0x1e, 0x54, 0x8f, 0x92, 0x08, 0x97,
-	0x50, 0x20, 0xc8, 0x96, 0x00, 0xb0, 0x41, 0x41, 0xa9, 0x85, 0xa5, 0xa9, 0xc5, 0x25, 0x4a, 0x6e,
-	0x5c, 0xc2, 0x28, 0xa2, 0xc5, 0x05, 0xf9, 0x79, 0xc5, 0xa9, 0x42, 0xfa, 0x5c, 0x6c, 0x10, 0x0b,
-	0x25, 0x18, 0x15, 0x18, 0x35, 0xb8, 0x8d, 0x04, 0xf5, 0xe0, 0x8e, 0xd2, 0x83, 0x28, 0x75, 0x62,
-	0x39, 0x71, 0x4f, 0x9e, 0x21, 0x08, 0xaa, 0xcc, 0x28, 0x9b, 0x8b, 0x15, 0x6c, 0x8e, 0x50, 0x12,
-	0x17, 0x1b, 0x44, 0x81, 0x90, 0x2c, 0x92, 0x1e, 0x4c, 0x9b, 0xa5, 0xe4, 0x70, 0x49, 0x43, 0x9c,
-	0xa0, 0x24, 0xd9, 0x74, 0xf9, 0xc9, 0x64, 0x26, 0x61, 0x21, 0x41, 0x7d, 0xf4, 0x40, 0x70, 0x72,
-	0x3a, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96,
-	0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0x8d, 0xf4, 0xcc, 0x92, 0x8c,
-	0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0xfd, 0xb4, 0xd2, 0xbc, 0x64, 0x50, 0x00, 0x54, 0xe8, 0xa7,
-	0x55, 0xe8, 0x26, 0xe7, 0x17, 0xa5, 0xea, 0x43, 0xcc, 0x29, 0xa9, 0x2c, 0x48, 0x2d, 0x4e, 0x62,
-	0x03, 0x87, 0x8a, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x69, 0x71, 0x06, 0xa8, 0x85, 0x01, 0x00,
-	0x00,
+	// 356 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x92, 0xcd, 0x4e, 0xc2, 0x40,
+	0x10, 0xc7, 0x5b, 0xa3, 0x28, 0xeb, 0x89, 0xe5, 0x4b, 0x1a, 0x59, 0xb1, 0x27, 0x2e, 0x76, 0x03,
+	0xbe, 0x01, 0x89, 0x78, 0xf1, 0xa0, 0xc4, 0x93, 0x17, 0x52, 0xc8, 0x76, 0x25, 0xb1, 0x9d, 0xd2,
+	0x6d, 0x9b, 0x72, 0xf5, 0x09, 0x4c, 0x7c, 0x29, 0x8e, 0x24, 0x5e, 0x3c, 0x18, 0x63, 0xc0, 0x07,
+	0x31, 0xdd, 0x6d, 0xf8, 0xa8, 0xd1, 0xdb, 0xa6, 0xf3, 0x9b, 0xff, 0x6f, 0x26, 0x53, 0x54, 0x75,
+	0x12, 0xca, 0x21, 0xa6, 0x71, 0x87, 0x4e, 0x23, 0x16, 0xcc, 0x2c, 0x3f, 0x80, 0x10, 0x70, 0xd1,
+	0x49, 0x2c, 0x0e, 0xb1, 0x15, 0x77, 0x8c, 0xda, 0x86, 0xf0, 0xed, 0xc0, 0x76, 0x85, 0x42, 0x8c,
+	0x0a, 0x07, 0x0e, 0xf2, 0x49, 0xd3, 0x57, 0xf6, 0xf5, 0x94, 0x03, 0xf0, 0x27, 0x46, 0x6d, 0x7f,
+	0x42, 0x6d, 0xcf, 0x83, 0xd0, 0x0e, 0x27, 0xe0, 0x65, 0x3d, 0x26, 0x45, 0xf8, 0x2e, 0xb5, 0xdc,
+	0xca, 0xa0, 0x01, 0x9b, 0x46, 0x4c, 0x84, 0xb8, 0x81, 0x8e, 0x5c, 0xc1, 0x87, 0xe1, 0xcc, 0x67,
+	0x27, 0x7a, 0x4b, 0x6f, 0x17, 0x07, 0x87, 0xae, 0xe0, 0xf7, 0x33, 0x9f, 0x99, 0x7d, 0x54, 0xde,
+	0x69, 0x10, 0x3e, 0x78, 0x82, 0x61, 0x8a, 0x0a, 0x6a, 0x16, 0xc9, 0x1f, 0x77, 0x4b, 0xd6, 0x7a,
+	0x5e, 0x4b, 0xa1, 0xbd, 0xfd, 0xf9, 0xe7, 0x99, 0x36, 0xc8, 0x30, 0xb3, 0x8e, 0xaa, 0x32, 0xe7,
+	0xea, 0xba, 0xbf, 0xe3, 0x36, 0x6f, 0x50, 0x2d, 0x5f, 0xc8, 0x1c, 0xdd, 0x9c, 0xa3, 0xb2, 0xe5,
+	0x58, 0xd3, 0xbb, 0x9a, 0xee, 0x87, 0x8e, 0x0e, 0x64, 0x1c, 0x1e, 0xa1, 0x82, 0x22, 0x70, 0x73,
+	0xab, 0xef, 0xf7, 0xf2, 0x06, 0xf9, 0xab, 0xac, 0xc6, 0x30, 0x1b, 0xcf, 0x6f, 0xdf, 0xaf, 0x7b,
+	0x65, 0x5c, 0xa2, 0x9b, 0x3b, 0x64, 0xc9, 0x80, 0x8a, 0xeb, 0x41, 0x70, 0x2b, 0x9f, 0x93, 0x5f,
+	0xd5, 0x38, 0xff, 0x87, 0xc8, 0x64, 0x4d, 0x29, 0xab, 0xe3, 0xea, 0x96, 0x8c, 0x71, 0x67, 0xa8,
+	0xd6, 0xeb, 0xf5, 0xe6, 0x4b, 0xa2, 0x2f, 0x96, 0x44, 0xff, 0x5a, 0x12, 0xfd, 0x65, 0x45, 0xb4,
+	0xc5, 0x8a, 0x68, 0xef, 0x2b, 0xa2, 0x3d, 0xb4, 0xf9, 0x24, 0x7c, 0x8c, 0x46, 0xd6, 0x18, 0x5c,
+	0xea, 0x44, 0xde, 0x38, 0x3d, 0x7a, 0x42, 0x9d, 0xe4, 0x62, 0x0c, 0x01, 0xa3, 0x2a, 0x2b, 0xbd,
+	0xaf, 0x18, 0x15, 0xe4, 0x9f, 0x70, 0xf9, 0x13, 0x00, 0x00, 0xff, 0xff, 0x62, 0x32, 0x4d, 0x8e,
+	0x79, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -153,8 +251,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Params retrieves the erc20 module params
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	EGFParams(ctx context.Context, in *QueryEGFParamsRequest, opts ...grpc.CallOption) (*QueryEGFParamsResponse, error)
 }
 
 type queryClient struct {
@@ -174,10 +272,19 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
+func (c *queryClient) EGFParams(ctx context.Context, in *QueryEGFParamsRequest, opts ...grpc.CallOption) (*QueryEGFParamsResponse, error) {
+	out := new(QueryEGFParamsResponse)
+	err := c.cc.Invoke(ctx, "/fx.gov.v1.Query/EGFParams", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Params retrieves the erc20 module params
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	EGFParams(context.Context, *QueryEGFParamsRequest) (*QueryEGFParamsResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -186,6 +293,9 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (*UnimplementedQueryServer) EGFParams(ctx context.Context, req *QueryEGFParamsRequest) (*QueryEGFParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EGFParams not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -210,6 +320,24 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_EGFParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryEGFParamsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).EGFParams(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fx.gov.v1.Query/EGFParams",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).EGFParams(ctx, req.(*QueryEGFParamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "fx.gov.v1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -217,6 +345,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "EGFParams",
+			Handler:    _Query_EGFParams_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -243,6 +375,13 @@ func (m *QueryParamsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.MsgType) > 0 {
+		i -= len(m.MsgType)
+		copy(dAtA[i:], m.MsgType)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.MsgType)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -279,6 +418,62 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryEGFParamsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryEGFParamsRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryEGFParamsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryEGFParamsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryEGFParamsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryEGFParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -296,10 +491,34 @@ func (m *QueryParamsRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.MsgType)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
 func (m *QueryParamsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Params.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryEGFParamsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryEGFParamsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -345,6 +564,38 @@ func (m *QueryParamsRequest) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: QueryParamsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MsgType", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MsgType = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -393,6 +644,139 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: QueryParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryEGFParamsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryEGFParamsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryEGFParamsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryEGFParamsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryEGFParamsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryEGFParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

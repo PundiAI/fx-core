@@ -21,7 +21,6 @@ import (
 	fxtypes "github.com/functionx/fx-core/v3/types"
 	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
 	"github.com/functionx/fx-core/v3/x/gov/keeper"
-	govtypes "github.com/functionx/fx-core/v3/x/gov/types"
 )
 
 func createUpgradeHandler(
@@ -53,7 +52,8 @@ func createUpgradeHandler(
 }
 
 func InitGovFXParams(ctx sdk.Context, keeper keeper.Keeper) {
-	if err := keeper.SetParams(ctx, govtypes.DefaultParams()); err != nil {
+	// init fx gov params
+	if err := keeper.InitFxGovParams(ctx); err != nil {
 		panic(err)
 	}
 }

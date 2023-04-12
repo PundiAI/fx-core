@@ -58,9 +58,9 @@ func (k msgServer) SubmitProposal(goCtx context.Context, msg *v1.MsgSubmitPropos
 
 	defer telemetry.IncrCounter(1, govtypes.ModuleName, "proposal")
 
-	initialDeposit := k.Keeper.GetInitialDeposit(ctx)
+	initialDeposit := k.Keeper.GetMinInitialDeposit(ctx, types.ExtractMsgTypeURL(proposal.Messages))
 
-	if sdk.NewCoins(msg.GetInitialDeposit()...).IsAllLT(initialDeposit) {
+	if sdk.NewCoins(msg.GetInitialDeposit()...).IsAllLT(sdk.NewCoins(initialDeposit)) {
 		return nil, errorsmod.Wrapf(types.ErrInitialAmountTooLow, "%s is smaller than %s", msg.GetInitialDeposit(), initialDeposit)
 	}
 
@@ -136,6 +136,17 @@ func (k msgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (
 		return nil, err
 	}
 	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+func (k msgServer) UpdateEGFParams(c context.Context, req *types.MsgUpdateEGFParams) (*types.MsgUpdateEGFParamsResponse, error) {
+	if k.authority != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, req.Authority)
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := k.SetEGFParams(ctx, &req.Params); err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateEGFParamsResponse{}, nil
 }
 
 type LegacyMsgServer struct {

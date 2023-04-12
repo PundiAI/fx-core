@@ -41,6 +41,13 @@ func NewAppModuleBasic(legacyProposalHandlers []govclient.ProposalHandler) AppMo
 	}
 }
 
+// RegisterLegacyAminoCodec registers the gov module's types for the given codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	govv1betal.RegisterLegacyAminoCodec(cdc)
+	govv1.RegisterLegacyAminoCodec(cdc)
+	types.RegisterLegacyAminoCodec(cdc)
+}
+
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	if err := govv1.RegisterQueryHandlerClient(context.Background(), mux, govv1.NewQueryClient(clientCtx)); err != nil {
@@ -113,7 +120,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	gov.InitGenesis(ctx, am.ak, am.bk, am.keeper.Keeper, &genesisState)
 	// init fx gov params
-	if err := am.keeper.SetParams(ctx, types.DefaultParams()); err != nil {
+	if err := am.keeper.InitFxGovParams(ctx); err != nil {
 		panic(err)
 	}
 	return []abci.ValidatorUpdate{}

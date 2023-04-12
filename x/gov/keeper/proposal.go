@@ -87,7 +87,7 @@ func (keeper Keeper) SubmitProposal(ctx sdk.Context, messages []sdk.Msg, fxMetad
 	}
 
 	submitTime := ctx.BlockHeader().Time
-	depositPeriod := keeper.GetDepositParams(ctx).MaxDepositPeriod
+	depositPeriod := keeper.GetMaxDepositPeriod(ctx, msgType)
 
 	proposal, err := v1.NewProposal(messages, proposalID, fxMetadata, submitTime, submitTime.Add(*depositPeriod))
 	if err != nil {

@@ -24,6 +24,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgUpdateParams{},
+		&MsgUpdateEGFParams{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
@@ -31,4 +32,5 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 // RegisterLegacyAminoCodec registers concrete types on the Amino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "gov/MsgUpdateParams", nil)
+	cdc.RegisterConcrete(&MsgUpdateEGFParams{}, "gov/MsgUpdateEGFParams", nil)
 }

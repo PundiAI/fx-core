@@ -10,9 +10,14 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-// Params return hub contract param
-func (keeper Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (keeper Keeper) Params(c context.Context, re *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	params := keeper.GetParams(ctx)
+	params := keeper.GetParams(ctx, re.MsgType)
 	return &types.QueryParamsResponse{Params: params}, nil
+}
+
+func (keeper Keeper) EGFParams(c context.Context, _ *types.QueryEGFParamsRequest) (*types.QueryEGFParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	params := keeper.GetEGFParams(ctx)
+	return &types.QueryEGFParamsResponse{Params: params}, nil
 }

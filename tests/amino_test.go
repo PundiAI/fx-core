@@ -224,13 +224,29 @@ func TestAminoEncode(t *testing.T) {
 		},
 		{
 			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateParams",
-			expected: `{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateParams","value":{"authority":"1","params":{"claim_ratio":"0.100000000000000000","egf_deposit_threshold":{"amount":"10000000000000000000000","denom":"FX"},"egf_voting_period":"1209600000000000","erc20_quorum":"0.250000000000000000","evm_quorum":"0.250000000000000000","evm_voting_period":"1209600000000000","min_initial_deposit":{"amount":"1000000000000000000000","denom":"FX"}}}}]}`,
+			expected: `{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateParams","value":{"authority":"1","params":{"max_deposit_period":"172800000000000","min_deposit":[{"amount":"10000000","denom":"stake"}],"min_initial_deposit":{"amount":"1000000000000000000000","denom":"FX"},"quorum":"0.334000000000000000","threshold":"0.500000000000000000","veto_threshold":"0.334000000000000000","voting_period":"172800000000000"}}}]}`,
 			amino:    fxgovtypes.ModuleCdc.LegacyAmino,
 			msg: govv1.MsgSubmitProposal{
 				Messages: []*codectypes.Any{
 					NewAnyWithValue(&fxgovtypes.MsgUpdateParams{
 						Authority: "1",
 						Params:    *fxgovtypes.DefaultParams(),
+					}),
+				},
+				InitialDeposit: nil,
+				Proposer:       "",
+				Metadata:       "",
+			},
+		},
+		{
+			name:     "gov-v1-MsgSubmitProposal-gov-MsgUpdateEGFParams",
+			expected: `{"initial_deposit":null,"messages":[{"type":"gov/MsgUpdateEGFParams","value":{"authority":"1","params":{"claim_ratio":"0.100000000000000000","min_initial_deposit":{"amount":"10000000000000000000000","denom":"FX"}}}}]}`,
+			amino:    fxgovtypes.ModuleCdc.LegacyAmino,
+			msg: govv1.MsgSubmitProposal{
+				Messages: []*codectypes.Any{
+					NewAnyWithValue(&fxgovtypes.MsgUpdateEGFParams{
+						Authority: "1",
+						Params:    *fxgovtypes.DefaultEGFParams(),
 					}),
 				},
 				InitialDeposit: nil,

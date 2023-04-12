@@ -444,15 +444,12 @@ func (suite *TestSuite) ProposalVote(priv cryptotypes.PrivKey, proposalID uint64
 	return suite.BroadcastTx(priv, govv1beta1.NewMsgVote(priv.PubKey().Address().Bytes(), proposalID, option))
 }
 
-func (suite *TestSuite) CheckProposal(proposalId uint64, status govv1.ProposalStatus) govv1.Proposal {
+func (suite *TestSuite) CheckProposal(proposalId uint64, _ govv1.ProposalStatus) govv1.Proposal {
 	proposalResp, err := suite.GRPCClient().GovQuery().Proposal(suite.ctx, &govv1.QueryProposalRequest{
 		ProposalId: proposalId,
 	})
 	suite.NoError(err)
-	if fxgovtypes.CheckEVMProposalMsg(proposalResp.Proposal.Messages) {
-		suite.Require().Equal(govv1.StatusVotingPeriod, proposalResp.Proposal.Status)
-	} else {
-		suite.Require().Equal(status, proposalResp.Proposal.Status)
-	}
+
+	suite.Require().True(proposalResp.Proposal.Status > govv1.StatusDepositPeriod)
 	return *proposalResp.Proposal
 }

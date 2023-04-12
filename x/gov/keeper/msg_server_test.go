@@ -24,11 +24,11 @@ import (
 
 func (suite *KeeperTestSuite) TestSubmitProposal() {
 	errInitCoins := []sdk.Coin{{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(100).Mul(sdkmath.NewInt(1e18))}}
-	initialDeposit := suite.app.GovKeeper.GetInitialDeposit(suite.ctx)
-	suite.True(initialDeposit.IsAllGT(errInitCoins))
 	TestProposal := govv1beta1.NewTextProposal("Test", "description")
 	legacyContent, err := govv1.NewLegacyContent(TestProposal, suite.govAcct)
 	suite.NoError(err)
+	initialDeposit := suite.app.GovKeeper.GetMinInitialDeposit(suite.ctx, legacyContent.Content.TypeUrl)
+	suite.True(sdk.NewCoins(initialDeposit).IsAllGT(errInitCoins))
 	errProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent}, errInitCoins, suite.newAddress().String(),
 		types.NewFXMetadata(TestProposal.GetTitle(), TestProposal.GetDescription(), "").String())
 	suite.NoError(err)
@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 	suite.EqualValues("proposal MsgTypeURL is different: invalid proposal content", err.Error())
 
 	successInitCoins := sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}}
-	suite.True(initialDeposit.IsAllLTE(successInitCoins))
+	suite.True(sdk.NewCoins(initialDeposit).IsAllLTE(successInitCoins))
 	successProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{legacyContent}, successInitCoins, suite.newAddress().String(),
 		types.NewFXMetadata(TestProposal.GetTitle(), TestProposal.GetDescription(), "").String())
 	suite.NoError(err)
@@ -296,7 +296,7 @@ func (suite *KeeperTestSuite) TestSubmitEGFProposal() {
 		proposal, found := suite.app.GovKeeper.Keeper.GetProposal(suite.ctx, proposalResponse.ProposalId)
 		suite.True(found)
 		if tc.votingPeriod {
-			suite.True(tc.expect.IsAllGTE(suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, tc.amount)))
+			suite.True(tc.expect.IsAllGTE(suite.app.GovKeeper.EGFProposalMinDeposit(suite.ctx, LegacyContentMsg.Content.TypeUrl, tc.amount)))
 			manyProposalMsg, err := govv1.NewMsgSubmitProposal([]sdk.Msg{LegacyContentMsg, LegacyContentMsg, LegacyContentMsg},
 				sdk.Coins{sdk.Coin{Denom: fxtypes.DefaultDenom, Amount: sdkmath.NewInt(1 * 1e3).MulRaw(1e18)}},
 				suite.newAddress().String(),

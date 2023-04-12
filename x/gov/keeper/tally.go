@@ -91,20 +91,9 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes boo
 		totalVotingPower = totalVotingPower.Add(votingPower)
 	}
 
-	tallyParams := keeper.GetTallyParams(ctx)
-	fxParams := keeper.GetParams(ctx)
-	tallyQuorum, _ := sdk.NewDecFromStr(tallyParams.Quorum)
-	erc20Quorum, _ := sdk.NewDecFromStr(fxParams.Erc20Quorum)
-	evmQuorum, _ := sdk.NewDecFromStr(fxParams.EvmQuorum)
-
-	if fxgovtypes.CheckErc20ProposalMsg(proposal.Messages) && tallyQuorum.GT(erc20Quorum) {
-		tallyParams.Quorum = fxParams.Erc20Quorum
-	} else if fxgovtypes.CheckEVMProposalMsg(proposal.Messages) && tallyQuorum.GT(evmQuorum) {
-		tallyParams.Quorum = fxParams.EvmQuorum
-	}
+	params := keeper.GetParams(ctx, fxgovtypes.ExtractMsgTypeURL(proposal.Messages))
 
 	tallyResults = govv1.NewTallyResultFromMap(results)
-
 	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.
 	// If there is no staked coins, the proposal fails
 	if keeper.sk.TotalBondedTokens(ctx).IsZero() {
@@ -113,7 +102,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes boo
 
 	// If there is not enough quorum of votes, the proposal fails
 	percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(keeper.sk.TotalBondedTokens(ctx)))
-	quorum, _ := sdk.NewDecFromStr(tallyParams.Quorum)
+	quorum, _ := sdk.NewDecFromStr(params.Quorum)
 	if percentVoting.LT(quorum) {
 		return false, false, tallyResults
 	}
@@ -124,13 +113,13 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal govv1.Proposal) (passes boo
 	}
 
 	// If more than 1/3 of voters veto, proposal fails
-	vetoThreshold, _ := sdk.NewDecFromStr(tallyParams.VetoThreshold)
+	vetoThreshold, _ := sdk.NewDecFromStr(params.VetoThreshold)
 	if results[govv1.OptionNoWithVeto].Quo(totalVotingPower).GT(vetoThreshold) {
 		return false, true, tallyResults
 	}
 
 	// If more than 1/2 of non-abstaining voters vote Yes, proposal passes
-	threshold, _ := sdk.NewDecFromStr(tallyParams.Threshold)
+	threshold, _ := sdk.NewDecFromStr(params.Threshold)
 	if results[govv1.OptionYes].Quo(totalVotingPower.Sub(results[govv1.OptionAbstain])).GT(threshold) {
 		return true, false, tallyResults
 	}

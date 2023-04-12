@@ -181,15 +181,20 @@
     - [Msg](#fx.evm.v1.Msg)
   
 - [fx/gov/v1/params.proto](#fx/gov/v1/params.proto)
+    - [EGFParams](#fx.gov.v1.EGFParams)
     - [Params](#fx.gov.v1.Params)
   
 - [fx/gov/v1/query.proto](#fx/gov/v1/query.proto)
+    - [QueryEGFParamsRequest](#fx.gov.v1.QueryEGFParamsRequest)
+    - [QueryEGFParamsResponse](#fx.gov.v1.QueryEGFParamsResponse)
     - [QueryParamsRequest](#fx.gov.v1.QueryParamsRequest)
     - [QueryParamsResponse](#fx.gov.v1.QueryParamsResponse)
   
     - [Query](#fx.gov.v1.Query)
   
 - [fx/gov/v1/tx.proto](#fx/gov/v1/tx.proto)
+    - [MsgUpdateEGFParams](#fx.gov.v1.MsgUpdateEGFParams)
+    - [MsgUpdateEGFParamsResponse](#fx.gov.v1.MsgUpdateEGFParamsResponse)
     - [MsgUpdateParams](#fx.gov.v1.MsgUpdateParams)
     - [MsgUpdateParamsResponse](#fx.gov.v1.MsgUpdateParamsResponse)
   
@@ -2933,6 +2938,22 @@ Msg defines the x/evm Msg service.
 
 
 
+<a name="fx.gov.v1.EGFParams"></a>
+
+### EGFParams
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `egf_deposit_threshold` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `claim_ratio` | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="fx.gov.v1.Params"></a>
 
 ### Params
@@ -2941,13 +2962,14 @@ Params defines the fx x/gov module params
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| `msg_type` | [string](#string) |  |  |
+| `min_deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 | `min_initial_deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `egf_deposit_threshold` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `claim_ratio` | [string](#string) |  |  |
-| `erc20_quorum` | [string](#string) |  |  |
-| `evm_quorum` | [string](#string) |  |  |
-| `egf_voting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
-| `evm_voting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `voting_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `quorum` | [string](#string) |  |  |
+| `max_deposit_period` | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
+| `threshold` | [string](#string) |  |  |
+| `veto_threshold` | [string](#string) |  |  |
 
 
 
@@ -2970,10 +2992,41 @@ Params defines the fx x/gov module params
 
 
 
+<a name="fx.gov.v1.QueryEGFParamsRequest"></a>
+
+### QueryEGFParamsRequest
+QueryEGFParamsRequest is the request type for the Query/EGFParams RPC method.
+
+
+
+
+
+
+<a name="fx.gov.v1.QueryEGFParamsResponse"></a>
+
+### QueryEGFParamsResponse
+QueryEGFParamsResponse is the response type for the Query/EGFParams RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [EGFParams](#fx.gov.v1.EGFParams) |  |  |
+
+
+
+
+
+
 <a name="fx.gov.v1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
-QueryParamsRequest is the request type for the Query/Params RPC method.
+QueryBaseParamsRequest is the request type for the Query/BaseParams RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `msg_type` | [string](#string) |  |  |
 
 
 
@@ -2983,7 +3036,7 @@ QueryParamsRequest is the request type for the Query/Params RPC method.
 <a name="fx.gov.v1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
-QueryParamsResponse is the response type for the Query/Params RPC
+QueryBaseParamsResponse is the response type for the Query/BaseParams RPC
 method.
 
 
@@ -3005,11 +3058,12 @@ method.
 <a name="fx.gov.v1.Query"></a>
 
 ### Query
-Query defines the gRPC querier service for gov module
+Query defines the gRPC querier service for fx/x/gov module
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#fx.gov.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.gov.v1.QueryParamsResponse) | Params retrieves the erc20 module params | GET|/fx/gov/v1/params|
+| `Params` | [QueryParamsRequest](#fx.gov.v1.QueryParamsRequest) | [QueryParamsResponse](#fx.gov.v1.QueryParamsResponse) |  | GET|/fx/gov/v1/Params|
+| `EGFParams` | [QueryEGFParamsRequest](#fx.gov.v1.QueryEGFParamsRequest) | [QueryEGFParamsResponse](#fx.gov.v1.QueryEGFParamsResponse) |  | GET|/fx/gov/v1/egf_params|
 
  <!-- end services -->
 
@@ -3019,6 +3073,33 @@ Query defines the gRPC querier service for gov module
 <p align="right"><a href="#top">Top</a></p>
 
 ## fx/gov/v1/tx.proto
+
+
+
+<a name="fx.gov.v1.MsgUpdateEGFParams"></a>
+
+### MsgUpdateEGFParams
+MsgUpdateBaseParams is the Msg/UpdateParams request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address of the governance account. |
+| `params` | [EGFParams](#fx.gov.v1.EGFParams) |  | NOTE: All parameters must be supplied. |
+
+
+
+
+
+
+<a name="fx.gov.v1.MsgUpdateEGFParamsResponse"></a>
+
+### MsgUpdateEGFParamsResponse
+MsgUpdateBaseParamsResponse defines the response structure for executing a
+MsgUpdateParams message.
+
+
+
 
 
 
@@ -3058,11 +3139,12 @@ MsgUpdateParams message.
 <a name="fx.gov.v1.Msg"></a>
 
 ### Msg
-Msg defines the erc20 Msg service.
+Msg defines the fx/x/gov Msg service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `UpdateParams` | [MsgUpdateParams](#fx.gov.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#fx.gov.v1.MsgUpdateParamsResponse) | UpdateParams defines a governance operation for updating the x/erc20 module parameters. The authority is hard-coded to the x/gov module account. | |
+| `UpdateParams` | [MsgUpdateParams](#fx.gov.v1.MsgUpdateParams) | [MsgUpdateParamsResponse](#fx.gov.v1.MsgUpdateParamsResponse) |  | |
+| `UpdateEGFParams` | [MsgUpdateEGFParams](#fx.gov.v1.MsgUpdateEGFParams) | [MsgUpdateEGFParamsResponse](#fx.gov.v1.MsgUpdateEGFParamsResponse) |  | |
 
  <!-- end services -->
 

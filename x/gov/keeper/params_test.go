@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
+	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	"github.com/functionx/fx-core/v3/x/gov/types"
 )
 
-func (suite *KeeperTestSuite) TestFXParams() {
-	egfVotingPeriod := time.Hour * 24 * 7
-	evmVotingPeriod := time.Hour * 24 * 7
+func (suite *KeeperTestSuite) TestParams() {
+	timeDuration := time.Second * 60 * 60 * 24 * 7
+	timeDurationErr := -time.Second * 60 * 60 * 24 * 7
 
-	ErrEgfVotingPeriod := time.Duration(0)
-	ErrEvmVotingPeriod := time.Duration(0)
 	testCases := []struct {
 		name   string
 		params types.Params
@@ -25,105 +25,205 @@ func (suite *KeeperTestSuite) TestFXParams() {
 		{
 			name: "Valid Params",
 			params: types.Params{
-				MinInitialDeposit:   sdk.NewInt64Coin(fxtypes.DefaultDenom, 100),
-				EgfDepositThreshold: sdk.NewInt64Coin(fxtypes.DefaultDenom, 50),
-				ClaimRatio:          "0.5",
-				Erc20Quorum:         "0.1",
-				EvmQuorum:           "0.1",
-				EgfVotingPeriod:     &egfVotingPeriod,
-				EvmVotingPeriod:     &evmVotingPeriod,
+				MsgType:           sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+				MinDeposit:        sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+				MinInitialDeposit: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+				MaxDepositPeriod:  &timeDuration, // 1 week
+				Quorum:            "0.2",
+				Threshold:         "0.5",
+				VetoThreshold:     "0.334",
+				VotingPeriod:      &timeDuration, // 1 week
 			},
 			expErr: false,
 		},
 		{
-			name: "Invalid ClaimRatio",
+			name: "Invalid MinDeposit",
 			params: types.Params{
-				MinInitialDeposit:   sdk.NewInt64Coin(fxtypes.DefaultDenom, 100),
-				EgfDepositThreshold: sdk.NewInt64Coin(fxtypes.DefaultDenom, 50),
-				ClaimRatio:          "-0.5",
-				Erc20Quorum:         "0.1",
-				EvmQuorum:           "0.1",
-				EgfVotingPeriod:     &egfVotingPeriod,
-				EvmVotingPeriod:     &evmVotingPeriod,
+				MsgType:           sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+				MinDeposit:        nil,
+				MinInitialDeposit: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+				MaxDepositPeriod:  &timeDuration, // 1 week
+				Quorum:            "0.2",
+				Threshold:         "0.5",
+				VetoThreshold:     "0.334",
+				VotingPeriod:      &timeDuration, // 1 week
 			},
 			expErr: true,
-			errStr: "claimRatio cannot be negative: -0.500000000000000000",
+			errStr: "invalid minimum deposit: ",
 		},
 		{
-			name: "Invalid Erc20Quorum",
+			name: "Invalid MinInitialDeposit",
 			params: types.Params{
-				MinInitialDeposit:   sdk.NewInt64Coin(fxtypes.DefaultDenom, 100),
-				EgfDepositThreshold: sdk.NewInt64Coin(fxtypes.DefaultDenom, 50),
-				ClaimRatio:          "0.5",
-				Erc20Quorum:         "1.2",
-				EvmQuorum:           "0.1",
-				EgfVotingPeriod:     &egfVotingPeriod,
-				EvmVotingPeriod:     &evmVotingPeriod,
+				MsgType:           sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+				MinDeposit:        sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+				MinInitialDeposit: sdk.Coin{},
+				MaxDepositPeriod:  &timeDuration, // 1 week
+				Quorum:            "0.2",
+				Threshold:         "0.5",
+				VetoThreshold:     "0.334",
+				VotingPeriod:      &timeDuration, // 1 week
 			},
 			expErr: true,
-			errStr: "erc20Quorum too large: 1.2",
+			errStr: "invalid minimum deposit: <nil>",
 		},
 		{
-			name: "Invalid EvmQuorum",
+			name: "Nil MaxDepositPeriod",
 			params: types.Params{
-				MinInitialDeposit:   sdk.NewInt64Coin(fxtypes.DefaultDenom, 100),
-				EgfDepositThreshold: sdk.NewInt64Coin(fxtypes.DefaultDenom, 50),
-				ClaimRatio:          "0.5",
-				Erc20Quorum:         "0.1",
-				EvmQuorum:           "-0.1",
-				EgfVotingPeriod:     &egfVotingPeriod,
-				EvmVotingPeriod:     &evmVotingPeriod,
+				MsgType:           sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+				MinDeposit:        sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+				MinInitialDeposit: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+				MaxDepositPeriod:  nil,
+				Quorum:            "0.2",
+				Threshold:         "0.5",
+				VetoThreshold:     "0.334",
+				VotingPeriod:      &timeDuration, // 1 week
 			},
 			expErr: true,
-			errStr: "evmQuorum cannot be negative: -0.100000000000000000",
+			errStr: "maximum deposit period must not be nil: 0",
 		},
 		{
-			name: "Invalid EgfVotingPeriod",
+			name: "Negative Quorum",
 			params: types.Params{
-				MinInitialDeposit:   sdk.NewInt64Coin(fxtypes.DefaultDenom, 100),
-				EgfDepositThreshold: sdk.NewInt64Coin(fxtypes.DefaultDenom, 50),
-				ClaimRatio:          "0.5",
-				Erc20Quorum:         "0.1",
-				EvmQuorum:           "0.1",
-				EgfVotingPeriod:     &ErrEgfVotingPeriod,
-				EvmVotingPeriod:     &evmVotingPeriod,
+				MsgType:           sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+				MinDeposit:        sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+				MinInitialDeposit: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+				MaxDepositPeriod:  &timeDuration, // 1 week
+				Quorum:            "-0.2",
+				Threshold:         "0.5",
+				VetoThreshold:     "0.334",
+				VotingPeriod:      &timeDuration, // 1 week
 			},
 			expErr: true,
-			errStr: "egf voting period must be positive: 0s",
+			errStr: "quorom cannot be negative: -0.200000000000000000",
 		},
 		{
-			name: "Invalid EvmVotingPeriod",
+			name: "Negative Threshold",
 			params: types.Params{
-				MinInitialDeposit:   sdk.NewInt64Coin(fxtypes.DefaultDenom, 100),
-				EgfDepositThreshold: sdk.NewInt64Coin(fxtypes.DefaultDenom, 50),
-				ClaimRatio:          "0.5",
-				Erc20Quorum:         "0.1",
-				EvmQuorum:           "0.1",
-				EgfVotingPeriod:     &egfVotingPeriod,
-				EvmVotingPeriod:     &ErrEvmVotingPeriod,
+				MsgType:           sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+				MinDeposit:        sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+				MinInitialDeposit: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+				MaxDepositPeriod:  &timeDuration, // 1 week
+				Quorum:            "0.2",
+				Threshold:         "-0.5",
+				VetoThreshold:     "0.334",
+				VotingPeriod:      &timeDuration, // 1 week
 			},
 			expErr: true,
-			errStr: "evm voting period must be positive: 0s",
+			errStr: "vote threshold must be positive: -0.500000000000000000",
+		},
+		{
+			name: "Negative VetoThreshold",
+			params: types.Params{
+				MsgType:           sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+				MinDeposit:        sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+				MinInitialDeposit: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+				MaxDepositPeriod:  &timeDuration, // 1 week
+				Quorum:            "0.2",
+				Threshold:         "0.5",
+				VetoThreshold:     "-0.334",
+				VotingPeriod:      &timeDuration, // 1 week
+			},
+			expErr: true,
+			errStr: "veto threshold must be positive: -0.334000000000000000",
+		},
+		{
+			name: "Nil VotingPeriod",
+			params: types.Params{
+				MsgType:           sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+				MinDeposit:        sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+				MinInitialDeposit: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+				MaxDepositPeriod:  &timeDuration, // 1 week
+				Quorum:            "0.2",
+				Threshold:         "0.5",
+				VetoThreshold:     "0.334",
+				VotingPeriod:      nil,
+			},
+			expErr: true,
+			errStr: "voting period must not be nil: 0",
+		},
+		{
+			name: "Nil MaxDepositPeriod",
+			params: types.Params{
+				MsgType:           sdk.MsgTypeURL(&erc20types.MsgRegisterCoin{}),
+				MinDeposit:        sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000))),
+				MinInitialDeposit: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1000)),
+				MaxDepositPeriod:  &timeDurationErr, // 1 week
+				Quorum:            "0.2",
+				Threshold:         "0.5",
+				VetoThreshold:     "0.334",
+				VotingPeriod:      &timeDuration,
+			},
+			expErr: true,
+			errStr: fmt.Sprintf("maximum deposit period must be positive: %v", timeDurationErr.String()),
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest()
 			err := tc.params.ValidateBasic()
-			if tc.expErr {
-				suite.Require().EqualValues(err.Error(), tc.errStr)
+			if !tc.expErr {
+				suite.Require().NoError(err, "expected no error, got %v", err)
 			} else {
-				suite.Require().NoError(err)
-				_, err = suite.MsgServer.UpdateParams(suite.ctx, &types.MsgUpdateParams{Authority: suite.govAcct, Params: tc.params})
-				suite.Require().NoError(err)
-				params := suite.app.GovKeeper.GetParams(suite.ctx)
-				suite.Require().EqualValues(params.MinInitialDeposit, tc.params.MinInitialDeposit)
-				suite.Require().EqualValues(params.EgfDepositThreshold, tc.params.EgfDepositThreshold)
-				suite.Require().EqualValues(params.ClaimRatio, tc.params.ClaimRatio)
-				suite.Require().EqualValues(params.Erc20Quorum, tc.params.Erc20Quorum)
-				suite.Require().EqualValues(params.EvmQuorum, tc.params.EvmQuorum)
-				suite.Require().EqualValues(params.EgfVotingPeriod, tc.params.EgfVotingPeriod)
-				suite.Require().EqualValues(params.EgfVotingPeriod, tc.params.EgfVotingPeriod)
+				suite.Require().EqualError(err, tc.errStr)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestEGFParams_ValidateBasic() {
+	testCases := []struct {
+		name          string
+		p             *types.EGFParams
+		expectedError error
+	}{
+		{
+			name: "Valid EGFParams",
+			p: &types.EGFParams{
+				EgfDepositThreshold: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).MulRaw(1e18)), // 2%
+				ClaimRatio:          "0.3",
+			},
+			expectedError: nil,
+		},
+		{
+			name: "Invalid EGF Deposit Threshold",
+			p: &types.EGFParams{
+				EgfDepositThreshold: sdk.Coin{},
+				ClaimRatio:          "0.5",
+			},
+			expectedError: fmt.Errorf("invalid Egf Deposit Threshold: <nil>"),
+		},
+		{
+			name: "Invalid EGF Claim Ratio - Negative",
+			p: &types.EGFParams{
+				EgfDepositThreshold: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).MulRaw(1e18)),
+				ClaimRatio:          "-0.5",
+			},
+			expectedError: fmt.Errorf("egf claim ratio cannot be negative: -0.500000000000000000"),
+		},
+		{
+			name: "Invalid EGF Claim Ratio - Too Large",
+			p: &types.EGFParams{
+				EgfDepositThreshold: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).MulRaw(1e18)),
+				ClaimRatio:          "2.0",
+			},
+			expectedError: fmt.Errorf("egf claim ratio too large: 2.000000000000000000"),
+		},
+		{
+			name: "Invalid EGF Claim Ratio - Invalid String",
+			p: &types.EGFParams{
+				EgfDepositThreshold: sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10000).MulRaw(1e18)),
+				ClaimRatio:          "invalid_ratio",
+			},
+			expectedError: fmt.Errorf("invalid egf claim ratio string: failed to set decimal string with base 10: invalid_ratio000000000000000000"),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			err := tc.p.ValidateBasic()
+			if tc.expectedError == nil {
+				suite.Require().NoError(err, "expected no error, got %v", err)
+			} else {
+				suite.Require().EqualError(err, tc.expectedError.Error(), "expected error %v, got %v", tc.expectedError, err)
 			}
 		})
 	}

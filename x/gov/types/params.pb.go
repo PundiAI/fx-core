@@ -31,13 +31,14 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the fx x/gov module params
 type Params struct {
-	MinInitialDeposit   types.Coin     `protobuf:"bytes,1,opt,name=min_initial_deposit,json=minInitialDeposit,proto3" json:"min_initial_deposit"`
-	EgfDepositThreshold types.Coin     `protobuf:"bytes,2,opt,name=egf_deposit_threshold,json=egfDepositThreshold,proto3" json:"egf_deposit_threshold"`
-	ClaimRatio          string         `protobuf:"bytes,3,opt,name=claim_ratio,json=claimRatio,proto3" json:"claim_ratio,omitempty"`
-	Erc20Quorum         string         `protobuf:"bytes,4,opt,name=erc20_quorum,json=erc20Quorum,proto3" json:"erc20_quorum,omitempty"`
-	EvmQuorum           string         `protobuf:"bytes,5,opt,name=evm_quorum,json=evmQuorum,proto3" json:"evm_quorum,omitempty"`
-	EgfVotingPeriod     *time.Duration `protobuf:"bytes,6,opt,name=egf_voting_period,json=egfVotingPeriod,proto3,stdduration" json:"egf_voting_period,omitempty"`
-	EvmVotingPeriod     *time.Duration `protobuf:"bytes,7,opt,name=evm_voting_period,json=evmVotingPeriod,proto3,stdduration" json:"evm_voting_period,omitempty"`
+	MsgType           string         `protobuf:"bytes,1,opt,name=msg_type,json=msgType,proto3" json:"msg_type,omitempty"`
+	MinDeposit        []types.Coin   `protobuf:"bytes,2,rep,name=min_deposit,json=minDeposit,proto3" json:"min_deposit,omitempty"`
+	MinInitialDeposit types.Coin     `protobuf:"bytes,3,opt,name=min_initial_deposit,json=minInitialDeposit,proto3" json:"min_initial_deposit,omitempty"`
+	VotingPeriod      *time.Duration `protobuf:"bytes,4,opt,name=voting_period,json=votingPeriod,proto3,stdduration" json:"voting_period,omitempty"`
+	Quorum            string         `protobuf:"bytes,5,opt,name=quorum,proto3" json:"quorum,omitempty"`
+	MaxDepositPeriod  *time.Duration `protobuf:"bytes,6,opt,name=max_deposit_period,json=maxDepositPeriod,proto3,stdduration" json:"max_deposit_period,omitempty"`
+	Threshold         string         `protobuf:"bytes,7,opt,name=threshold,proto3" json:"threshold,omitempty"`
+	VetoThreshold     string         `protobuf:"bytes,8,opt,name=veto_threshold,json=vetoThreshold,proto3" json:"veto_threshold,omitempty"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
@@ -73,6 +74,20 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
+func (m *Params) GetMsgType() string {
+	if m != nil {
+		return m.MsgType
+	}
+	return ""
+}
+
+func (m *Params) GetMinDeposit() []types.Coin {
+	if m != nil {
+		return m.MinDeposit
+	}
+	return nil
+}
+
 func (m *Params) GetMinInitialDeposit() types.Coin {
 	if m != nil {
 		return m.MinInitialDeposit
@@ -80,83 +95,137 @@ func (m *Params) GetMinInitialDeposit() types.Coin {
 	return types.Coin{}
 }
 
-func (m *Params) GetEgfDepositThreshold() types.Coin {
+func (m *Params) GetVotingPeriod() *time.Duration {
+	if m != nil {
+		return m.VotingPeriod
+	}
+	return nil
+}
+
+func (m *Params) GetQuorum() string {
+	if m != nil {
+		return m.Quorum
+	}
+	return ""
+}
+
+func (m *Params) GetMaxDepositPeriod() *time.Duration {
+	if m != nil {
+		return m.MaxDepositPeriod
+	}
+	return nil
+}
+
+func (m *Params) GetThreshold() string {
+	if m != nil {
+		return m.Threshold
+	}
+	return ""
+}
+
+func (m *Params) GetVetoThreshold() string {
+	if m != nil {
+		return m.VetoThreshold
+	}
+	return ""
+}
+
+type EGFParams struct {
+	EgfDepositThreshold types.Coin `protobuf:"bytes,1,opt,name=egf_deposit_threshold,json=egfDepositThreshold,proto3" json:"min_initial_deposit,omitempty"`
+	ClaimRatio          string     `protobuf:"bytes,2,opt,name=claim_ratio,json=claimRatio,proto3" json:"claim_ratio,omitempty"`
+}
+
+func (m *EGFParams) Reset()         { *m = EGFParams{} }
+func (m *EGFParams) String() string { return proto.CompactTextString(m) }
+func (*EGFParams) ProtoMessage()    {}
+func (*EGFParams) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a8e5d06ed1291671, []int{1}
+}
+func (m *EGFParams) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EGFParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EGFParams.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EGFParams) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EGFParams.Merge(m, src)
+}
+func (m *EGFParams) XXX_Size() int {
+	return m.Size()
+}
+func (m *EGFParams) XXX_DiscardUnknown() {
+	xxx_messageInfo_EGFParams.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EGFParams proto.InternalMessageInfo
+
+func (m *EGFParams) GetEgfDepositThreshold() types.Coin {
 	if m != nil {
 		return m.EgfDepositThreshold
 	}
 	return types.Coin{}
 }
 
-func (m *Params) GetClaimRatio() string {
+func (m *EGFParams) GetClaimRatio() string {
 	if m != nil {
 		return m.ClaimRatio
 	}
 	return ""
 }
 
-func (m *Params) GetErc20Quorum() string {
-	if m != nil {
-		return m.Erc20Quorum
-	}
-	return ""
-}
-
-func (m *Params) GetEvmQuorum() string {
-	if m != nil {
-		return m.EvmQuorum
-	}
-	return ""
-}
-
-func (m *Params) GetEgfVotingPeriod() *time.Duration {
-	if m != nil {
-		return m.EgfVotingPeriod
-	}
-	return nil
-}
-
-func (m *Params) GetEvmVotingPeriod() *time.Duration {
-	if m != nil {
-		return m.EvmVotingPeriod
-	}
-	return nil
-}
-
 func init() {
 	proto.RegisterType((*Params)(nil), "fx.gov.v1.Params")
+	proto.RegisterType((*EGFParams)(nil), "fx.gov.v1.EGFParams")
 }
 
 func init() { proto.RegisterFile("fx/gov/v1/params.proto", fileDescriptor_a8e5d06ed1291671) }
 
 var fileDescriptor_a8e5d06ed1291671 = []byte{
-	// 424 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0x3f, 0x8f, 0xd3, 0x30,
-	0x18, 0xc6, 0x1b, 0xae, 0x14, 0xd5, 0x45, 0xa0, 0xcb, 0x01, 0xca, 0xdd, 0x90, 0x9e, 0x98, 0xba,
-	0xd4, 0x26, 0xc7, 0x37, 0x08, 0x5d, 0x10, 0x03, 0x47, 0x40, 0x0c, 0x2c, 0x51, 0x92, 0xda, 0xae,
-	0xa5, 0x3a, 0x6f, 0x70, 0x1c, 0xab, 0x7c, 0x0b, 0x46, 0x3e, 0x08, 0x1f, 0xe2, 0x24, 0x96, 0x13,
-	0x13, 0x13, 0xa0, 0xf6, 0x8b, 0xa0, 0xd8, 0x8e, 0x84, 0x10, 0x43, 0xb7, 0xbc, 0x8f, 0x9f, 0xe7,
-	0xf7, 0xfe, 0x51, 0xd0, 0x13, 0xb6, 0x23, 0x1c, 0x0c, 0x31, 0x09, 0x69, 0x0a, 0x55, 0xc8, 0x16,
-	0x37, 0x0a, 0x34, 0x84, 0x53, 0xb6, 0xc3, 0x1c, 0x0c, 0x36, 0xc9, 0x45, 0x5c, 0x41, 0x2b, 0xa1,
-	0x25, 0x65, 0xd1, 0x52, 0x62, 0x92, 0x92, 0xea, 0x22, 0x21, 0x15, 0x88, 0xda, 0x59, 0x2f, 0xce,
-	0xdd, 0x7b, 0x6e, 0x2b, 0xe2, 0x0a, 0xff, 0xf4, 0x88, 0x03, 0x07, 0xa7, 0xf7, 0x5f, 0x5e, 0x8d,
-	0x39, 0x00, 0xdf, 0x52, 0x62, 0xab, 0xb2, 0x63, 0x64, 0xdd, 0xa9, 0x42, 0x0b, 0xf0, 0xc0, 0xa7,
-	0xdf, 0x4e, 0xd0, 0xe4, 0xda, 0x0e, 0x13, 0xbe, 0x46, 0x67, 0x52, 0xd4, 0xb9, 0xa8, 0x85, 0x16,
-	0xc5, 0x36, 0x5f, 0xd3, 0x06, 0x5a, 0xa1, 0xa3, 0xe0, 0x32, 0x58, 0xcc, 0xae, 0xce, 0xb1, 0x6f,
-	0xd6, 0x4f, 0x86, 0xfd, 0x64, 0xf8, 0x05, 0x88, 0x3a, 0x1d, 0xdf, 0xfc, 0x9c, 0x8f, 0xb2, 0x53,
-	0x29, 0xea, 0x97, 0x2e, 0xba, 0x72, 0xc9, 0xf0, 0x2d, 0x7a, 0x4c, 0x39, 0x1b, 0x40, 0xb9, 0xde,
-	0x28, 0xda, 0x6e, 0x60, 0xbb, 0x8e, 0xee, 0x1c, 0x87, 0x3c, 0xa3, 0x9c, 0x79, 0xd6, 0xbb, 0x21,
-	0x1b, 0xce, 0xd1, 0xac, 0xda, 0x16, 0x42, 0xe6, 0x76, 0x8d, 0xe8, 0xe4, 0x32, 0x58, 0x4c, 0x33,
-	0x64, 0xa5, 0xac, 0x57, 0xc2, 0x04, 0xdd, 0xa7, 0xaa, 0xba, 0x7a, 0x96, 0x7f, 0xec, 0x40, 0x75,
-	0x32, 0x1a, 0xf7, 0x8e, 0xf4, 0xc1, 0xf7, 0xaf, 0x4b, 0xe4, 0xfb, 0xad, 0x68, 0x95, 0xcd, 0xac,
-	0xe7, 0x8d, 0xb5, 0x84, 0x4b, 0x84, 0xa8, 0x91, 0x43, 0xe0, 0xee, 0x7f, 0x03, 0x53, 0x6a, 0xa4,
-	0xb7, 0xbf, 0x42, 0xa7, 0xfd, 0x5e, 0x06, 0xb4, 0xa8, 0x79, 0xde, 0x50, 0x25, 0x60, 0x1d, 0x4d,
-	0xfc, 0x4e, 0xee, 0xde, 0x78, 0xb8, 0x37, 0x5e, 0xf9, 0x7b, 0xa7, 0xe3, 0x2f, 0xbf, 0xe6, 0x41,
-	0xf6, 0x90, 0x72, 0xf6, 0xde, 0x06, 0xaf, 0x6d, 0xce, 0xc2, 0x8c, 0xfc, 0x07, 0x76, 0xef, 0x58,
-	0x98, 0x91, 0x7f, 0xc3, 0xd2, 0xf4, 0x66, 0x1f, 0x07, 0xb7, 0xfb, 0x38, 0xf8, 0xbd, 0x8f, 0x83,
-	0xcf, 0x87, 0x78, 0x74, 0x7b, 0x88, 0x47, 0x3f, 0x0e, 0xf1, 0xe8, 0xc3, 0x82, 0x0b, 0xbd, 0xe9,
-	0x4a, 0x5c, 0x81, 0x24, 0xac, 0xab, 0xab, 0x9e, 0xb2, 0x23, 0x6c, 0xb7, 0xac, 0x40, 0x51, 0xe2,
-	0xfe, 0x4b, 0xfd, 0xa9, 0xa1, 0x6d, 0x39, 0xb1, 0xdd, 0x9e, 0xff, 0x09, 0x00, 0x00, 0xff, 0xff,
-	0xec, 0xc5, 0x1d, 0x1d, 0xae, 0x02, 0x00, 0x00,
+	// 549 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcd, 0x6e, 0xd3, 0x4c,
+	0x14, 0x8d, 0xdb, 0x7e, 0x69, 0x33, 0xf9, 0x8a, 0x8a, 0x43, 0x91, 0x53, 0x51, 0x3b, 0x8a, 0xa8,
+	0x88, 0x10, 0xf5, 0x28, 0xb0, 0x63, 0x99, 0x86, 0xbf, 0x5d, 0x89, 0xba, 0x81, 0x8d, 0xe5, 0x38,
+	0xe3, 0xc9, 0x48, 0x19, 0x5f, 0x63, 0x8f, 0x2d, 0xe7, 0x2d, 0x58, 0xf2, 0x20, 0x3c, 0x44, 0x25,
+	0x36, 0x15, 0x2b, 0x56, 0x06, 0x25, 0xbb, 0xbc, 0x01, 0x3b, 0xe4, 0xf1, 0xe4, 0x07, 0x41, 0x60,
+	0xc3, 0x2e, 0x73, 0xef, 0x39, 0xf7, 0x9c, 0x7b, 0x66, 0x62, 0x74, 0xd7, 0xcf, 0x30, 0x85, 0x14,
+	0xa7, 0x5d, 0x1c, 0xba, 0x91, 0xcb, 0x63, 0x3b, 0x8c, 0x40, 0x80, 0x5e, 0xf3, 0x33, 0x9b, 0x42,
+	0x6a, 0xa7, 0xdd, 0x13, 0xd3, 0x83, 0x98, 0x43, 0x8c, 0x87, 0x6e, 0x4c, 0x70, 0xda, 0x1d, 0x12,
+	0xe1, 0x76, 0xb1, 0x07, 0x2c, 0x28, 0xa1, 0x27, 0xcd, 0xb2, 0xef, 0xc8, 0x13, 0x2e, 0x0f, 0xaa,
+	0x75, 0x87, 0x02, 0x85, 0xb2, 0x5e, 0xfc, 0x52, 0x55, 0x93, 0x02, 0xd0, 0x09, 0xc1, 0xf2, 0x34,
+	0x4c, 0x7c, 0x3c, 0x4a, 0x22, 0x57, 0x30, 0x50, 0x03, 0xdb, 0xdf, 0xf7, 0x50, 0xf5, 0x52, 0x9a,
+	0xd1, 0x9b, 0xe8, 0x80, 0xc7, 0xd4, 0x11, 0xd3, 0x90, 0x18, 0x5a, 0x4b, 0xeb, 0xd4, 0x06, 0xfb,
+	0x3c, 0xa6, 0x57, 0xd3, 0x90, 0xe8, 0x6f, 0x50, 0x9d, 0xb3, 0xc0, 0x19, 0x91, 0x10, 0x62, 0x26,
+	0x8c, 0x9d, 0xd6, 0x6e, 0xa7, 0xfe, 0xb8, 0x69, 0x2b, 0xfd, 0xc2, 0xac, 0xad, 0xcc, 0xda, 0x17,
+	0xc0, 0x82, 0xde, 0xe9, 0x75, 0x6e, 0x55, 0x16, 0xb9, 0x75, 0xbc, 0xc1, 0x7a, 0x04, 0x9c, 0x09,
+	0xc2, 0x43, 0x31, 0x1d, 0x20, 0xce, 0x82, 0x7e, 0x59, 0xd5, 0x43, 0xd4, 0x28, 0x40, 0x2c, 0x60,
+	0x82, 0xb9, 0x93, 0x95, 0xc4, 0x6e, 0x4b, 0xfb, 0xb3, 0xc4, 0x99, 0x92, 0x38, 0xfd, 0x0d, 0x7b,
+	0x43, 0xea, 0x36, 0x67, 0xc1, 0xab, 0xb2, 0xbb, 0x54, 0xec, 0xa3, 0xc3, 0x14, 0x04, 0x0b, 0xa8,
+	0x13, 0x92, 0x88, 0xc1, 0xc8, 0xd8, 0x53, 0x5a, 0x65, 0x54, 0xf6, 0x32, 0x2a, 0xbb, 0xaf, 0xa2,
+	0xea, 0xed, 0x7d, 0xf8, 0x6a, 0x69, 0x83, 0xff, 0x4b, 0xd6, 0xa5, 0x24, 0xe9, 0x4f, 0x51, 0xf5,
+	0x5d, 0x02, 0x51, 0xc2, 0x8d, 0xff, 0x8a, 0xac, 0x7a, 0xed, 0x45, 0x6e, 0x1d, 0x95, 0x95, 0xb5,
+	0xfc, 0xe7, 0x8f, 0xe7, 0x48, 0x6d, 0xd0, 0x27, 0xde, 0x40, 0x31, 0x74, 0x8e, 0x74, 0xee, 0x66,
+	0x4b, 0xb7, 0x4b, 0x1b, 0xd5, 0xbf, 0xd9, 0xb8, 0xbf, 0xc8, 0xad, 0x7b, 0xbf, 0x12, 0xd7, 0x72,
+	0xd2, 0xe6, 0x11, 0x77, 0x33, 0xb5, 0xaa, 0xb2, 0x7a, 0x81, 0x6a, 0x62, 0x1c, 0x91, 0x78, 0x0c,
+	0x93, 0x91, 0xb1, 0x2f, 0xdd, 0x9e, 0x2d, 0x72, 0xab, 0xb1, 0x2a, 0x6e, 0x35, 0xbc, 0xe6, 0xe9,
+	0xaf, 0xd1, 0xad, 0x94, 0x08, 0x70, 0xd6, 0x93, 0x0e, 0xe4, 0xa4, 0x87, 0x8b, 0xdc, 0x32, 0x7e,
+	0xee, 0x6c, 0x1d, 0x77, 0x58, 0xe0, 0xae, 0x96, 0xb0, 0xf6, 0x27, 0x0d, 0xd5, 0x9e, 0xbd, 0x78,
+	0xae, 0x9e, 0x9f, 0x40, 0xc7, 0x84, 0xfa, 0xab, 0xdd, 0xd6, 0x3a, 0xda, 0x3f, 0x7a, 0x0a, 0x0d,
+	0x42, 0x7d, 0x15, 0xcc, 0xca, 0x83, 0xfe, 0x12, 0xd5, 0xbd, 0x89, 0xcb, 0xb8, 0x23, 0x33, 0x36,
+	0x76, 0xe4, 0x4e, 0x0f, 0x8a, 0xa7, 0xbb, 0x51, 0xde, 0xba, 0x10, 0x92, 0xa0, 0x41, 0x81, 0xe9,
+	0xf5, 0xae, 0x67, 0xa6, 0x76, 0x33, 0x33, 0xb5, 0x6f, 0x33, 0x53, 0x7b, 0x3f, 0x37, 0x2b, 0x37,
+	0x73, 0xb3, 0xf2, 0x65, 0x6e, 0x56, 0xde, 0x76, 0x28, 0x13, 0xe3, 0x64, 0x68, 0x7b, 0xc0, 0xb1,
+	0x9f, 0x04, 0x5e, 0x71, 0x99, 0x19, 0xf6, 0xb3, 0x73, 0x0f, 0x22, 0x82, 0xcb, 0x6f, 0x42, 0xf1,
+	0xaf, 0x8b, 0x87, 0x55, 0x79, 0xe9, 0x4f, 0x7e, 0x04, 0x00, 0x00, 0xff, 0xff, 0x5d, 0xb1, 0x62,
+	0xf7, 0x2a, 0x04, 0x00, 0x00,
 }
 
 func (m *Params) Marshal() (dAtA []byte, err error) {
@@ -179,49 +248,49 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.EvmVotingPeriod != nil {
-		n1, err1 := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.EvmVotingPeriod, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(*m.EvmVotingPeriod):])
+	if len(m.VetoThreshold) > 0 {
+		i -= len(m.VetoThreshold)
+		copy(dAtA[i:], m.VetoThreshold)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.VetoThreshold)))
+		i--
+		dAtA[i] = 0x42
+	}
+	if len(m.Threshold) > 0 {
+		i -= len(m.Threshold)
+		copy(dAtA[i:], m.Threshold)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.Threshold)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.MaxDepositPeriod != nil {
+		n1, err1 := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.MaxDepositPeriod, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(*m.MaxDepositPeriod):])
 		if err1 != nil {
 			return 0, err1
 		}
 		i -= n1
 		i = encodeVarintParams(dAtA, i, uint64(n1))
 		i--
-		dAtA[i] = 0x3a
+		dAtA[i] = 0x32
 	}
-	if m.EgfVotingPeriod != nil {
-		n2, err2 := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.EgfVotingPeriod, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(*m.EgfVotingPeriod):])
+	if len(m.Quorum) > 0 {
+		i -= len(m.Quorum)
+		copy(dAtA[i:], m.Quorum)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.Quorum)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.VotingPeriod != nil {
+		n2, err2 := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.VotingPeriod, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(*m.VotingPeriod):])
 		if err2 != nil {
 			return 0, err2
 		}
 		i -= n2
 		i = encodeVarintParams(dAtA, i, uint64(n2))
 		i--
-		dAtA[i] = 0x32
-	}
-	if len(m.EvmQuorum) > 0 {
-		i -= len(m.EvmQuorum)
-		copy(dAtA[i:], m.EvmQuorum)
-		i = encodeVarintParams(dAtA, i, uint64(len(m.EvmQuorum)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.Erc20Quorum) > 0 {
-		i -= len(m.Erc20Quorum)
-		copy(dAtA[i:], m.Erc20Quorum)
-		i = encodeVarintParams(dAtA, i, uint64(len(m.Erc20Quorum)))
-		i--
 		dAtA[i] = 0x22
 	}
-	if len(m.ClaimRatio) > 0 {
-		i -= len(m.ClaimRatio)
-		copy(dAtA[i:], m.ClaimRatio)
-		i = encodeVarintParams(dAtA, i, uint64(len(m.ClaimRatio)))
-		i--
-		dAtA[i] = 0x1a
-	}
 	{
-		size, err := m.EgfDepositThreshold.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.MinInitialDeposit.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -229,9 +298,60 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintParams(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x12
+	dAtA[i] = 0x1a
+	if len(m.MinDeposit) > 0 {
+		for iNdEx := len(m.MinDeposit) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.MinDeposit[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintParams(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.MsgType) > 0 {
+		i -= len(m.MsgType)
+		copy(dAtA[i:], m.MsgType)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.MsgType)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EGFParams) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EGFParams) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EGFParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ClaimRatio) > 0 {
+		i -= len(m.ClaimRatio)
+		copy(dAtA[i:], m.ClaimRatio)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.ClaimRatio)))
+		i--
+		dAtA[i] = 0x12
+	}
 	{
-		size, err := m.MinInitialDeposit.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.EgfDepositThreshold.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -260,28 +380,51 @@ func (m *Params) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.MsgType)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	if len(m.MinDeposit) > 0 {
+		for _, e := range m.MinDeposit {
+			l = e.Size()
+			n += 1 + l + sovParams(uint64(l))
+		}
+	}
 	l = m.MinInitialDeposit.Size()
 	n += 1 + l + sovParams(uint64(l))
+	if m.VotingPeriod != nil {
+		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.VotingPeriod)
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = len(m.Quorum)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	if m.MaxDepositPeriod != nil {
+		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.MaxDepositPeriod)
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = len(m.Threshold)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = len(m.VetoThreshold)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	return n
+}
+
+func (m *EGFParams) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	l = m.EgfDepositThreshold.Size()
 	n += 1 + l + sovParams(uint64(l))
 	l = len(m.ClaimRatio)
 	if l > 0 {
-		n += 1 + l + sovParams(uint64(l))
-	}
-	l = len(m.Erc20Quorum)
-	if l > 0 {
-		n += 1 + l + sovParams(uint64(l))
-	}
-	l = len(m.EvmQuorum)
-	if l > 0 {
-		n += 1 + l + sovParams(uint64(l))
-	}
-	if m.EgfVotingPeriod != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.EgfVotingPeriod)
-		n += 1 + l + sovParams(uint64(l))
-	}
-	if m.EvmVotingPeriod != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.EvmVotingPeriod)
 		n += 1 + l + sovParams(uint64(l))
 	}
 	return n
@@ -324,6 +467,72 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MsgType", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MsgType = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MinDeposit = append(m.MinDeposit, types.Coin{})
+			if err := m.MinDeposit[len(m.MinDeposit)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field MinInitialDeposit", wireType)
 			}
 			var msglen int
@@ -355,7 +564,225 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 2:
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VotingPeriod", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.VotingPeriod == nil {
+				m.VotingPeriod = new(time.Duration)
+			}
+			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.VotingPeriod, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Quorum", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Quorum = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxDepositPeriod", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MaxDepositPeriod == nil {
+				m.MaxDepositPeriod = new(time.Duration)
+			}
+			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.MaxDepositPeriod, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Threshold", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Threshold = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VetoThreshold", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VetoThreshold = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipParams(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthParams
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EGFParams) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowParams
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EGFParams: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EGFParams: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field EgfDepositThreshold", wireType)
 			}
@@ -388,7 +815,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 3:
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ClaimRatio", wireType)
 			}
@@ -419,142 +846,6 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.ClaimRatio = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Erc20Quorum", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowParams
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthParams
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthParams
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Erc20Quorum = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field EvmQuorum", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowParams
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthParams
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthParams
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.EvmQuorum = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field EgfVotingPeriod", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowParams
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthParams
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthParams
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.EgfVotingPeriod == nil {
-				m.EgfVotingPeriod = new(time.Duration)
-			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.EgfVotingPeriod, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field EvmVotingPeriod", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowParams
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthParams
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthParams
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.EvmVotingPeriod == nil {
-				m.EvmVotingPeriod = new(time.Duration)
-			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.EvmVotingPeriod, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

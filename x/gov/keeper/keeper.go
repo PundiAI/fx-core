@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -87,25 +86,9 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	// Check if deposit has provided sufficient total funds to transition the proposal into the voting period
 	activatedVotingPeriod := false
 
-	var minDeposit sdk.Coins
-	var isEVM bool
-	isEGF, needDeposit := types.CheckEGFProposalMsg(proposal.Messages)
-	if isEGF {
-		minDeposit = keeper.EGFProposalMinDeposit(ctx, needDeposit)
-	} else {
-		isEVM = types.CheckEVMProposalMsg(proposal.Messages)
-		minDeposit = keeper.GetDepositParams(ctx).MinDeposit
-	}
+	minDeposit := keeper.NeedMinDeposit(ctx, proposal)
 	if proposal.Status == govv1.StatusDepositPeriod && sdk.NewCoins(proposal.TotalDeposit...).IsAllGTE(minDeposit) {
-		fxParams := keeper.GetParams(ctx)
-		if isEGF {
-			keeper.afreshActivateVotingPeriod(ctx, fxParams.EgfVotingPeriod, proposal)
-		} else if isEVM {
-			keeper.afreshActivateVotingPeriod(ctx, fxParams.EvmVotingPeriod, proposal)
-		} else {
-			keeper.ActivateVotingPeriod(ctx, proposal)
-		}
-
+		keeper.ActivateVotingPeriod(ctx, proposal)
 		activatedVotingPeriod = true
 	}
 
@@ -132,36 +115,60 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 	return activatedVotingPeriod, nil
 }
 
-func (keeper Keeper) EGFProposalMinDeposit(ctx sdk.Context, claimCoin sdk.Coins) sdk.Coins {
-	fxParams := keeper.GetParams(ctx)
-	egfDepositThreshold := fxParams.GetEgfDepositThreshold()
-	claimRatio := fxParams.GetClaimRatio()
-	claimAmount := claimCoin.AmountOf(fxtypes.DefaultDenom)
-	if claimAmount.LTE(egfDepositThreshold.Amount) {
-		return keeper.GetInitialDeposit(ctx)
-	}
-	ratio, _ := sdk.NewDecFromStr(claimRatio)
-	initialDeposit := sdk.NewDecFromInt(claimAmount).Mul(ratio).TruncateInt()
-	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initialDeposit))
-}
-
-func (keeper Keeper) GetInitialDeposit(ctx sdk.Context) sdk.Coins {
-	return sdk.NewCoins(keeper.GetParams(ctx).MinInitialDeposit)
-}
-
-func (keeper Keeper) afreshActivateVotingPeriod(ctx sdk.Context, newVotingPeriod *time.Duration, proposal govv1.Proposal) {
-	blockTime := ctx.BlockHeader().Time
-	proposal.VotingStartTime = &blockTime
-	votingPeriod := keeper.GetVotingParams(ctx).VotingPeriod
-	if *votingPeriod < *newVotingPeriod {
-		votingPeriod = newVotingPeriod
-	}
-	votingStartTime := *proposal.VotingStartTime
-	add := votingStartTime.Add(*votingPeriod)
-	proposal.VotingEndTime = &add
+func (keeper Keeper) ActivateVotingPeriod(ctx sdk.Context, proposal govv1.Proposal) {
+	startTime := ctx.BlockHeader().Time
+	proposal.VotingStartTime = &startTime
+	votingPeriod := keeper.GetVotingPeriod(ctx, types.ExtractMsgTypeURL(proposal.Messages))
+	endTime := proposal.VotingStartTime.Add(*votingPeriod)
+	proposal.VotingEndTime = &endTime
 	proposal.Status = govv1.StatusVotingPeriod
 	keeper.SetProposal(ctx, proposal)
 
 	keeper.RemoveFromInactiveProposalQueue(ctx, proposal.Id, *proposal.DepositEndTime)
 	keeper.InsertActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
+}
+
+func (keeper Keeper) NeedMinDeposit(ctx sdk.Context, proposal govv1.Proposal) sdk.Coins {
+	var minDeposit sdk.Coins
+	msgTypeURL := types.ExtractMsgTypeURL(proposal.Messages)
+	isEGF, needDeposit := types.CheckEGFProposalMsg(proposal.Messages)
+	if isEGF {
+		minDeposit = keeper.EGFProposalMinDeposit(ctx, msgTypeURL, needDeposit)
+	} else {
+		minDeposit = keeper.GetMinDeposit(ctx, msgTypeURL)
+	}
+	return minDeposit
+}
+
+func (keeper Keeper) EGFProposalMinDeposit(ctx sdk.Context, msgType string, claimCoin sdk.Coins) sdk.Coins {
+	egfParams := keeper.GetEGFParams(ctx)
+	egfDepositThreshold := egfParams.EgfDepositThreshold
+	claimRatio := egfParams.ClaimRatio
+	claimAmount := claimCoin.AmountOf(fxtypes.DefaultDenom)
+	if claimAmount.LTE(egfDepositThreshold.Amount) {
+		return sdk.NewCoins(keeper.GetMinInitialDeposit(ctx, msgType))
+	}
+	ratio := sdk.MustNewDecFromStr(claimRatio)
+	initialDeposit := sdk.NewDecFromInt(claimAmount).Mul(ratio).TruncateInt()
+	return sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, initialDeposit))
+}
+
+func (keeper Keeper) InitFxGovParams(ctx sdk.Context) error {
+	params := keeper.GetParams(ctx, "")
+	erc20Params := types.Erc20ProposalParams(params.MinDeposit, params.MinInitialDeposit, params.VotingPeriod, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
+	if err := keeper.SetAllParams(ctx, erc20Params); err != nil {
+		return err
+	}
+	evmParams := types.EVMProposalParams(params.MinDeposit, params.MinInitialDeposit, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
+	if err := keeper.SetAllParams(ctx, evmParams); err != nil {
+		return err
+	}
+	egfParams := types.EGFProposalParams(params.MinDeposit, params.MinInitialDeposit, params.Quorum, params.MaxDepositPeriod, params.Threshold, params.VetoThreshold)
+	if err := keeper.SetAllParams(ctx, egfParams); err != nil {
+		return err
+	}
+	if err := keeper.SetEGFParams(ctx, types.DefaultEGFParams()); err != nil {
+		return err
+	}
+	return nil
 }
