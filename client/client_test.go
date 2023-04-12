@@ -21,12 +21,14 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/gogo/protobuf/proto"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/client/grpc"
 	"github.com/functionx/fx-core/v3/client/jsonrpc"
+	fxauth "github.com/functionx/fx-core/v3/server/grpc/auth"
 	"github.com/functionx/fx-core/v3/testutil"
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	"github.com/functionx/fx-core/v3/testutil/network"
@@ -587,4 +589,15 @@ func (suite *rpcTestSuite) TestClient_WithBlockHeight() {
 		suite.T().Log(balances)
 		suite.False(balances.IsAllPositive())
 	}
+}
+
+func (suite *rpcTestSuite) TestGRPCClient_ConvertAddress() {
+	validator := suite.GetFirstValidator()
+	client := fxauth.NewQueryClient(validator.ClientCtx)
+	res, err := client.ConvertAddress(context.Background(), &fxauth.ConvertAddressRequest{
+		Address: validator.Address.String(),
+		Prefix:  sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
+	})
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), res.Address, validator.ValAddress.String())
 }

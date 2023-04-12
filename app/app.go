@@ -35,6 +35,7 @@ import (
 	"github.com/functionx/fx-core/v3/app/keepers"
 	_ "github.com/functionx/fx-core/v3/docs/statik"
 	fxcfg "github.com/functionx/fx-core/v3/server/config"
+	fxauth "github.com/functionx/fx-core/v3/server/grpc/auth"
 	gaspricev1 "github.com/functionx/fx-core/v3/server/grpc/gasprice/legacy/v1"
 	gaspricev2 "github.com/functionx/fx-core/v3/server/grpc/gasprice/legacy/v2"
 	fxrest "github.com/functionx/fx-core/v3/server/rest"
@@ -264,6 +265,8 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 
 	crosschaintypes.RegisterQueryServer(cfg.QueryServer(), app.CrosschainKeeper)
 	crosschaintypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerRouterImpl(app.CrosschainKeeper))
+
+	fxauth.RegisterQueryServer(cfg.QueryServer(), fxauth.Querier{})
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
@@ -300,6 +303,8 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	// Register crosschain queries routes from grpc-gateway.
 	crosschain.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	// Register fx auth queries routes from grpc-gateway.
+	fxauth.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

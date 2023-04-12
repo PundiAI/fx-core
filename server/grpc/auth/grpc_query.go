@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/gogo/protobuf/grpc"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -44,4 +46,10 @@ func ConvertBech32Prefix(address, prefix string) (string, error) {
 		return "", fmt.Errorf("cannot convert %s address: %s", address, err)
 	}
 	return convertedAddress, nil
+}
+
+func RegisterGRPCGatewayRoutes(clientConn grpc.ClientConn, mux *runtime.ServeMux) {
+	if err := RegisterQueryHandlerClient(context.Background(), mux, NewQueryClient(clientConn)); err != nil {
+		panic(fmt.Sprintf("failed to %s register grpc gateway routes: %s", "err", err.Error()))
+	}
 }
