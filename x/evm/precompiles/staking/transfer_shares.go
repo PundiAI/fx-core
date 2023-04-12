@@ -31,8 +31,8 @@ var (
 		},
 	)
 	TransferFromSharesMethod = abi.NewMethod(
-		TransferSharesFromMethodName,
-		TransferSharesFromMethodName,
+		TransferFromSharesMethodName,
+		TransferFromSharesMethodName,
 		abi.Function, "nonpayable", false, false,
 		abi.Arguments{
 			abi.Argument{Name: "_val", Type: types.TypeString},

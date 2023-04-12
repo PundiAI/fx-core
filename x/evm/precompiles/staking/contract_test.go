@@ -270,7 +270,7 @@ func (suite *PrecompileTestSuite) approveFunc(val sdk.ValAddress, owner, spender
 func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
 	randShares := big.NewInt(0).Sub(shares, big.NewInt(0).Mul(big.NewInt(tmrand.Int63n(900)+100), big.NewInt(1e18)))
 	suite.approveFunc(val, from, spender, randShares)
-	callFunc := staking.TransferSharesFromMethodName
+	callFunc := staking.TransferFromSharesMethodName
 	if spender == suite.staking {
 		callFunc = StakingTestTransferFromSharesName
 	}
@@ -281,7 +281,7 @@ func (suite *PrecompileTestSuite) packTransferFromRand(val sdk.ValAddress, spend
 
 func (suite *PrecompileTestSuite) packTransferFromAll(val sdk.ValAddress, spender, from, to common.Address, shares *big.Int) ([]byte, *big.Int, []string) {
 	suite.approveFunc(val, from, spender, shares)
-	callFunc := staking.TransferSharesFromMethodName
+	callFunc := staking.TransferFromSharesMethodName
 	if spender == suite.staking {
 		callFunc = StakingTestTransferFromSharesName
 	}

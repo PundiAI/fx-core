@@ -358,7 +358,7 @@ func (suite *PrecompileTestSuite) TestTransferShares() {
 func TestStakingTransferFromSharesABI(t *testing.T) {
 	stakingABI := staking.GetABI()
 
-	method := stakingABI.Methods[staking.TransferSharesFromMethodName]
+	method := stakingABI.Methods[staking.TransferFromSharesMethodName]
 	require.Equal(t, method, staking.TransferFromSharesMethod)
 	require.Equal(t, 4, len(staking.TransferFromSharesMethod.Inputs))
 	require.Equal(t, 2, len(staking.TransferFromSharesMethod.Outputs))

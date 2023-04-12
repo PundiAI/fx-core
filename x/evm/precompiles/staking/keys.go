@@ -29,7 +29,7 @@ const (
 	ApproveSharesMethodName      = "approveShares"
 	AllowanceSharesMethodName    = "allowanceShares"
 	TransferSharesMethodName     = "transferShares"
-	TransferSharesFromMethodName = "transferFromShares"
+	TransferFromSharesMethodName = "transferFromShares"
 
 	DelegateEventName       = "Delegate"
 	UndelegateEventName     = "Undelegate"
