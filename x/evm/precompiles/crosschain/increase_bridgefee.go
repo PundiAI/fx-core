@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -118,28 +117,10 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contract *vm.
 	}
 
 	// add event log
-	if err := increaseBridgeFeeLog(evm, contract.Address(), sender, args.Token, args.Chain, args.TxID, args.Fee); err != nil {
+	if err := c.AddLog(IncreaseBridgeFeeEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
+		args.Chain, args.TxID, args.Fee); err != nil {
 		return nil, err
 	}
 
 	return IncreaseBridgeFeeMethod.Outputs.Pack(true)
-}
-
-func increaseBridgeFeeLog(evm *vm.EVM, logAddr, sender, token common.Address, chain string, txID, fee *big.Int) error {
-	eventData, err := IncreaseBridgeFeeEvent.Inputs.NonIndexed().Pack(chain, txID, fee)
-	if err != nil {
-		return err
-	}
-	topic := []common.Hash{
-		IncreaseBridgeFeeEvent.ID,
-		sender.Hash(),
-		token.Hash(),
-	}
-	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     logAddr,
-		Topics:      topic,
-		Data:        eventData,
-		BlockNumber: evm.Context.BlockNumber.Uint64(),
-	})
-	return nil
 }

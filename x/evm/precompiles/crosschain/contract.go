@@ -2,10 +2,12 @@ package crosschain
 
 import (
 	"errors"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	fxtypes "github.com/functionx/fx-core/v3/types"
@@ -100,6 +102,24 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 	commit()
 
 	return ret, nil
+}
+
+func (c *Contract) AddLog(event abi.Event, topics []common.Hash, args ...interface{}) error {
+	data, err := event.Inputs.NonIndexed().Pack(args...)
+	if err != nil {
+		return fmt.Errorf("pack %s event error: %s", event.Name, err.Error())
+	}
+	newTopic := []common.Hash{event.ID}
+	if len(topics) > 0 {
+		newTopic = append(newTopic, topics...)
+	}
+	c.evm.StateDB.AddLog(&ethtypes.Log{
+		Address:     c.Address(),
+		Topics:      newTopic,
+		Data:        data,
+		BlockNumber: c.evm.Context.BlockNumber.Uint64(),
+	})
+	return nil
 }
 
 func ParseMethodParams(method abi.Method, v interface{}, data []byte) error {

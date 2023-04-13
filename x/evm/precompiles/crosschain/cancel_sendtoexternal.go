@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
@@ -83,23 +82,9 @@ func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *
 	}
 
 	// add event log
-	if err := cancelSendToExternalLog(evm, contract.Address(), sender, args.Chain, args.TxID); err != nil {
+	if err := c.AddLog(CancelSendToExternalEvent, []common.Hash{sender.Hash()}, args.Chain, args.TxID); err != nil {
 		return nil, err
 	}
 
 	return CancelSendToExternalMethod.Outputs.Pack(true)
-}
-
-func cancelSendToExternalLog(evm *vm.EVM, logAddr, sender common.Address, chain string, txID *big.Int) error {
-	eventData, err := CancelSendToExternalEvent.Inputs.NonIndexed().Pack(chain, txID)
-	if err != nil {
-		return err
-	}
-	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     logAddr,
-		Topics:      []common.Hash{CancelSendToExternalEvent.ID, sender.Hash()},
-		Data:        eventData,
-		BlockNumber: evm.Context.BlockNumber.Uint64(),
-	})
-	return nil
 }

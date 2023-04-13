@@ -14,7 +14,6 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
@@ -145,8 +144,8 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 	}
 
 	// add event log
-	if err := crossChainLog(evm, contract.Address(), args.Sender, tokenPair.GetERC20Contract(),
-		args.Receipt, tokenPair.GetDenom(), args.Memo, args.Amount, args.Fee, args.Target); err != nil {
+	if err := c.AddLog(CrossChainEvent, []common.Hash{args.Sender.Hash(), tokenPair.GetERC20Contract().Hash()},
+		tokenPair.GetDenom(), args.Receipt, args.Amount, args.Fee, args.Target, args.Memo); err != nil {
 		return nil, err
 	}
 
@@ -210,8 +209,8 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 
 	// add event log
-	if err := crossChainLog(evm, contract.Address(), sender, args.Token,
-		args.Receipt, crossChainDenom, args.Memo, args.Amount, args.Fee, args.Target); err != nil {
+	if err := c.AddLog(CrossChainEvent, []common.Hash{sender.Hash(), args.Token.Hash()},
+		crossChainDenom, args.Receipt, args.Amount, args.Fee, args.Target, args.Memo); err != nil {
 		return nil, err
 	}
 
@@ -429,23 +428,4 @@ func crossChainEvents(ctx sdk.Context, from, token common.Address, recipient, ta
 		sdk.NewAttribute(AttributeKeyDenom, denom),
 		sdk.NewAttribute(AttributeKeyMemo, memo),
 	))
-}
-
-func crossChainLog(evm *vm.EVM, logAddr, sender, token common.Address, recipient, denom, memo string, amount, fee *big.Int, target [32]byte) error {
-	eventData, err := CrossChainEvent.Inputs.NonIndexed().Pack(denom, recipient, amount, fee, target, memo)
-	if err != nil {
-		return err
-	}
-	topic := []common.Hash{
-		CrossChainEvent.ID,
-		sender.Hash(),
-		token.Hash(),
-	}
-	evm.StateDB.AddLog(&ethtypes.Log{
-		Address:     logAddr,
-		Topics:      topic,
-		Data:        eventData,
-		BlockNumber: evm.Context.BlockNumber.Uint64(),
-	})
-	return nil
 }
