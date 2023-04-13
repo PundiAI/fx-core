@@ -36,6 +36,11 @@ func (am AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(genesisState)
 }
 
+// RegisterLegacyAminoCodec registers the evm module's types for the given codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	fxevmtypes.RegisterLegacyAminoCodec(cdc)
+}
+
 // RegisterInterfaces registers interfaces and implementations of the evm module.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
