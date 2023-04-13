@@ -63,7 +63,7 @@ func appTomlCfgCmd() *cobra.Command {
 		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config.SetConfigTemplate(fxcfg.DefaultConfigTemplate())
-			return fxcfg.NewConfigCmd(cmd, append([]string{appFileName}, args...))
+			return fxcfg.CmdHandler(cmd, append([]string{appFileName}, args...))
 		},
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")
@@ -76,7 +76,7 @@ func configTomlCfgCmd() *cobra.Command {
 		Short: "Create or query an `config/config.toml` file",
 		Args:  cobra.RangeArgs(0, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return fxcfg.NewConfigCmd(cmd, append([]string{configFileName}, args...))
+			return fxcfg.CmdHandler(cmd, append([]string{configFileName}, args...))
 		},
 	}
 	cmd.Flags().StringP(tmcli.OutputFlag, "o", "text", "Output format (text|json)")

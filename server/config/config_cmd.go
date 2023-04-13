@@ -16,7 +16,7 @@ import (
 	"github.com/functionx/fx-core/v3/client/cli"
 )
 
-func NewConfigCmd(cmd *cobra.Command, args []string) error {
+func CmdHandler(cmd *cobra.Command, args []string) error {
 	serverCtx := server.GetServerContextFromCmd(cmd)
 	clientCtx := client.GetClientContextFromCmd(cmd)
 
