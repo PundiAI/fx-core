@@ -56,10 +56,10 @@ func NewEGFParam(egfDepositThreshold sdk.Coin, claimRatio string) *EGFParams {
 
 func DefaultParams() *Params {
 	p := govv1.DefaultParams()
-	return NewParam("",
+	return NewParam(sdk.MsgTypeURL(&evmtypes.MsgCallContract{}),
 		p.DepositParams.GetMinDeposit(),
 		sdk.NewCoin(fxtypes.DefaultDenom, DefaultMinInitialDeposit),
-		p.VotingParams.VotingPeriod,
+		&DefaultEvmVotingPeriod,
 		p.TallyParams.Quorum,
 		p.DepositParams.MaxDepositPeriod,
 		p.TallyParams.Threshold,
