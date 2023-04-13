@@ -16,6 +16,10 @@ const (
 	TypeMsgUpdateEGFParams = "fx_update_egf_params"
 )
 
+func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{Authority: authority, Params: params}
+}
+
 // Route returns the MsgUpdateParams message route.
 func (m *MsgUpdateParams) Route() string { return types.ModuleName }
 
@@ -43,6 +47,10 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 		return errorsmod.Wrap(err, "params")
 	}
 	return nil
+}
+
+func NewMsgUpdateEGFParams(authority string, params EGFParams) *MsgUpdateEGFParams {
+	return &MsgUpdateEGFParams{Authority: authority, Params: params}
 }
 
 // Route returns the MsgUpdateParams message route.
