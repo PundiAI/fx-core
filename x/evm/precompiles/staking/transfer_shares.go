@@ -60,30 +60,38 @@ var (
 	)
 )
 
+type TransferSharesArgs struct {
+	Validator string         `abi:"_val"`
+	To        common.Address `abi:"_to"`
+	Shares    *big.Int       `abi:"_shares"`
+}
+
+type TransferFromSharesArgs struct {
+	Validator string         `abi:"_val"`
+	From      common.Address `abi:"_from"`
+	To        common.Address `abi:"_to"`
+	Shares    *big.Int       `abi:"_shares"`
+}
+
 func (c *Contract) TransferShares(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("transfer method not readonly")
 	}
-	args, err := TransferSharesMethod.Inputs.Unpack(contract.Input[4:])
-	if err != nil {
-		return nil, errors.New("failed to unpack input")
+	// parse args
+	var args TransferSharesArgs
+	if err := ParseMethodParams(TransferSharesMethod, &args, contract.Input[4:]); err != nil {
+		return nil, err
 	}
 
-	valAddrStr, ok0 := args[0].(string)
-	toAddr, ok1 := args[1].(common.Address)
-	shares, ok2 := args[2].(*big.Int)
-	if !ok0 || !ok1 || !ok2 {
-		return nil, errors.New("unexpected arg type")
-	}
-	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
+	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
 	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
+		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
 	}
-	if shares.Cmp(big.NewInt(0)) < 0 {
+	if args.Shares.Cmp(big.NewInt(0)) < 0 {
 		return nil, errors.New("shares cannot be negative")
 	}
 
-	token, reward, err := c.handlerTransferShares(ctx, evm, valAddr, contract.Caller(), toAddr, shares)
+	token, reward, err := c.handlerTransferShares(ctx, evm, valAddr, contract.Caller(), args.To, args.Shares)
 	if err != nil {
 		return nil, err
 	}
@@ -94,32 +102,26 @@ func (c *Contract) TransferFromShares(ctx sdk.Context, evm *vm.EVM, contract *vm
 	if readonly {
 		return nil, errors.New("transferFrom method not readonly")
 	}
-	args, err := TransferFromSharesMethod.Inputs.Unpack(contract.Input[4:])
-	if err != nil {
-		return nil, errors.New("failed to unpack input")
+	// parse args
+	var args TransferFromSharesArgs
+	if err := ParseMethodParams(TransferFromSharesMethod, &args, contract.Input[4:]); err != nil {
+		return nil, err
 	}
 
-	valAddrStr, ok0 := args[0].(string)
-	fromAddr, ok1 := args[1].(common.Address)
-	toAddr, ok2 := args[2].(common.Address)
-	shares, ok3 := args[3].(*big.Int)
-	if !ok0 || !ok1 || !ok2 || !ok3 {
-		return nil, errors.New("unexpected arg type")
-	}
-	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
+	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
 	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
+		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
 	}
-	if shares.Cmp(big.NewInt(0)) < 0 {
+	if args.Shares.Cmp(big.NewInt(0)) < 0 {
 		return nil, errors.New("shares cannot be negative")
 	}
 
 	spender := contract.Caller()
-	if err = c.decrementAllowance(ctx, valAddr, fromAddr.Bytes(), spender.Bytes(), shares); err != nil {
+	if err = c.decrementAllowance(ctx, valAddr, args.From.Bytes(), spender.Bytes(), args.Shares); err != nil {
 		return nil, err
 	}
 
-	token, reward, err := c.handlerTransferShares(ctx, evm, valAddr, fromAddr, toAddr, shares)
+	token, reward, err := c.handlerTransferShares(ctx, evm, valAddr, args.From, args.To, args.Shares)
 	if err != nil {
 		return nil, err
 	}

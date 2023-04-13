@@ -41,36 +41,37 @@ var (
 	)
 )
 
+type ApproveSharesArgs struct {
+	Validator string         `abi:"_val"`
+	Spender   common.Address `abi:"_spender"`
+	Shares    *big.Int       `abi:"_shares"`
+}
+
 func (c *Contract) ApproveShares(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("approve method not readonly")
 	}
 	// parse args
-	args, err := ApproveSharesMethod.Inputs.Unpack(contract.Input[4:])
+	var args ApproveSharesArgs
+	if err := ParseMethodParams(ApproveSharesMethod, &args, contract.Input[4:]); err != nil {
+		return nil, err
+	}
+
+	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
 	if err != nil {
-		return nil, errors.New("failed to unpack input")
+		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
 	}
-	valAddrStr, ok0 := args[0].(string)
-	spender, ok1 := args[1].(common.Address)
-	shares, ok2 := args[2].(*big.Int)
-	if !ok0 || !ok1 || !ok2 {
-		return nil, errors.New("unexpected arg type")
-	}
-	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
-	}
-	if shares.Cmp(big.NewInt(0)) < 0 {
+	if args.Shares.Cmp(big.NewInt(0)) < 0 {
 		return nil, errors.New("allowance cannot be negative")
 	}
 	// owner
 	owner := contract.Caller()
 
 	// set allowance
-	c.stakingKeeper.SetAllowance(ctx, valAddr, owner.Bytes(), spender.Bytes(), shares)
+	c.stakingKeeper.SetAllowance(ctx, valAddr, owner.Bytes(), args.Spender.Bytes(), args.Shares)
 
 	// emit event
-	if err := c.AddLog(ApproveSharesEvent, []common.Hash{owner.Hash(), spender.Hash()}, valAddrStr, shares); err != nil {
+	if err := c.AddLog(ApproveSharesEvent, []common.Hash{owner.Hash(), args.Spender.Hash()}, args.Validator, args.Shares); err != nil {
 		return nil, err
 	}
 	return ApproveSharesMethod.Outputs.Pack(true)

@@ -46,27 +46,27 @@ var (
 	)
 )
 
+type UndelegateArgs struct {
+	Validator string   `abi:"_val"`
+	Shares    *big.Int `abi:"_shares"`
+}
+
 func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("undelegate method not readonly")
 	}
-
-	args, err := UndelegateMethod.Inputs.Unpack(contract.Input[4:])
-	if err != nil {
-		return nil, errors.New("failed to unpack input")
-	}
-	valAddrStr, ok1 := args[0].(string)
-	shareAmount, ok2 := args[1].(*big.Int)
-	if !ok1 || !ok2 {
-		return nil, errors.New("unexpected arg type")
+	// parse args
+	var args UndelegateArgs
+	if err := ParseMethodParams(UndelegateMethod, &args, contract.Input[4:]); err != nil {
+		return nil, err
 	}
 
-	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
+	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
 	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
+		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
 	}
-	if shareAmount.Sign() <= 0 {
-		return nil, fmt.Errorf("invalid shares: %s", shareAmount.String())
+	if args.Shares.Sign() <= 0 {
+		return nil, fmt.Errorf("invalid shares: %s", args.Shares.String())
 	}
 
 	_, found := c.stakingKeeper.GetValidator(ctx, valAddr)
@@ -85,14 +85,14 @@ func (c *Contract) Undelegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		}
 	}
 
-	unDelAmount, completionTime, err := Undelegate(ctx, c.stakingKeeper, c.bankKeeper, sender, valAddr, sdk.NewDecFromBigInt(shareAmount), evmDenom)
+	unDelAmount, completionTime, err := Undelegate(ctx, c.stakingKeeper, c.bankKeeper, sender, valAddr, sdk.NewDecFromBigInt(args.Shares), evmDenom)
 	if err != nil {
 		return nil, fmt.Errorf("undelegate failed: %s", err.Error())
 	}
 
 	// add undelegate log
 	if err := c.AddLog(UndelegateEvent, []common.Hash{contract.Caller().Hash()},
-		valAddrStr, shareAmount, unDelAmount.BigInt(), big.NewInt(completionTime.Unix())); err != nil {
+		args.Validator, args.Shares, unDelAmount.BigInt(), big.NewInt(completionTime.Unix())); err != nil {
 		return nil, err
 	}
 

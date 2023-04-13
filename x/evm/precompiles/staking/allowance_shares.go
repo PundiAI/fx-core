@@ -1,7 +1,6 @@
 package staking
 
 import (
-	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,22 +25,23 @@ var AllowanceSharesMethod = abi.NewMethod(
 	},
 )
 
+type AllowanceSharesArgs struct {
+	Validator string         `abi:"_val"`
+	Owner     common.Address `abi:"_owner"`
+	Spender   common.Address `abi:"_spender"`
+}
+
 func (c *Contract) AllowanceShares(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {
 	cacheCtx, _ := ctx.CacheContext()
-	args, err := AllowanceSharesMethod.Inputs.Unpack(contract.Input[4:])
+	// parse args
+	var args AllowanceSharesArgs
+	if err := ParseMethodParams(AllowanceSharesMethod, &args, contract.Input[4:]); err != nil {
+		return nil, err
+	}
+	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
 	if err != nil {
-		return nil, errors.New("failed to unpack input")
+		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
 	}
-	valAddrStr, ok0 := args[0].(string)
-	owner, ok1 := args[1].(common.Address)
-	spender, ok2 := args[2].(common.Address)
-	if !ok0 || !ok1 || !ok2 {
-		return nil, errors.New("unexpected arg type")
-	}
-	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
-	}
-	allowance := c.stakingKeeper.GetAllowance(cacheCtx, valAddr, owner.Bytes(), spender.Bytes())
+	allowance := c.stakingKeeper.GetAllowance(cacheCtx, valAddr, args.Owner.Bytes(), args.Spender.Bytes())
 	return AllowanceSharesMethod.Outputs.Pack(allowance)
 }

@@ -43,22 +43,23 @@ var (
 	)
 )
 
+type DelegateArgs struct {
+	Validator string `abi:"_val"`
+}
+
 func (c *Contract) Delegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("delegate method not readonly")
 	}
-	args, err := DelegateMethod.Inputs.Unpack(contract.Input[4:])
-	if err != nil {
-		return nil, errors.New("failed to unpack input")
-	}
-	valAddrStr, ok := args[0].(string)
-	if !ok {
-		return nil, errors.New("unexpected arg type")
+	// parse args
+	var args DelegateArgs
+	if err := ParseMethodParams(DelegateMethod, &args, contract.Input[4:]); err != nil {
+		return nil, err
 	}
 
-	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
+	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
 	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
+		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
 	}
 
 	amount := contract.Value()
@@ -101,7 +102,7 @@ func (c *Contract) Delegate(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract,
 
 	// add delegate log
 	if err := c.AddLog(DelegateEvent, []common.Hash{contract.Caller().Hash()},
-		valAddrStr, amount, shares.TruncateInt().BigInt()); err != nil {
+		args.Validator, amount, shares.TruncateInt().BigInt()); err != nil {
 		return nil, err
 	}
 

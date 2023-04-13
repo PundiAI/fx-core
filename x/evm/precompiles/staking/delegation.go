@@ -1,7 +1,6 @@
 package staking
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 
@@ -27,30 +26,29 @@ var DelegationMethod = abi.NewMethod(
 	},
 )
 
+type DelegationArgs struct {
+	Validator string         `abi:"_val"`
+	Delegator common.Address `abi:"_del"`
+}
+
 func (c *Contract) Delegation(ctx sdk.Context, _ *vm.EVM, contract *vm.Contract, _ bool) ([]byte, error) {
 	cacheCtx, _ := ctx.CacheContext()
-	args, err := DelegationMethod.Inputs.Unpack(contract.Input[4:])
-	if err != nil {
-		return nil, errors.New("failed to unpack input")
+	// parse args
+	var args DelegationArgs
+	if err := ParseMethodParams(DelegationMethod, &args, contract.Input[4:]); err != nil {
+		return nil, err
 	}
-	valAddrStr, ok := args[0].(string)
-	if !ok {
-		return nil, errors.New("unexpected arg type")
-	}
-	valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
+
+	valAddr, err := sdk.ValAddressFromBech32(args.Validator)
 	if err != nil {
-		return nil, fmt.Errorf("invalid validator address: %s", valAddrStr)
+		return nil, fmt.Errorf("invalid validator address: %s", args.Validator)
 	}
 	validator, found := c.stakingKeeper.GetValidator(cacheCtx, valAddr)
 	if !found {
 		return nil, fmt.Errorf("validator not found: %s", valAddr.String())
 	}
 
-	delAddr, ok := args[1].(common.Address)
-	if !ok {
-		return nil, errors.New("unexpected arg type")
-	}
-	delegation, found := c.stakingKeeper.GetDelegation(cacheCtx, sdk.AccAddress(delAddr.Bytes()), valAddr)
+	delegation, found := c.stakingKeeper.GetDelegation(cacheCtx, sdk.AccAddress(args.Delegator.Bytes()), valAddr)
 	if !found {
 		return DelegationMethod.Outputs.Pack(big.NewInt(0), big.NewInt(0))
 	}

@@ -136,3 +136,11 @@ func (c *Contract) AddLog(event abi.Event, topics []common.Hash, args ...interfa
 	})
 	return nil
 }
+
+func ParseMethodParams(method abi.Method, v interface{}, data []byte) error {
+	unpacked, err := method.Inputs.Unpack(data)
+	if err != nil {
+		return err
+	}
+	return method.Inputs.Copy(v, unpacked)
+}
