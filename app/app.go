@@ -279,7 +279,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	gaspricev2.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter) // nolint:staticcheck
 
 	// Deprecated: Register gravity queries routes from grpc-gateway.
-	gravity.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	gravity.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter) // nolint:staticcheck
 
 	// Deprecated: cosmos-sdk legacy rest.
 	fxrest.RegisterRPCRoutes(clientCtx, apiSvr.Router)
