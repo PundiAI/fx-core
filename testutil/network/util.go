@@ -180,7 +180,7 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 	select {
 	case err = <-errCh:
 		return err
-	case <-time.After(servertypes.ServerStartTime): // assume server started successfully
+	case <-time.After(1 * time.Second): // assume server started successfully
 		return nil
 	}
 }
