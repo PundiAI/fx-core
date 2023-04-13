@@ -137,7 +137,7 @@ func (p *Params) ValidateBasic() error {
 		return fmt.Errorf("invalid minimum deposit: %s", minDeposit)
 	}
 	if !p.MinInitialDeposit.IsValid() {
-		return fmt.Errorf("invalid minimum deposit: %s", p.MinInitialDeposit)
+		return fmt.Errorf("invalid minimum initial deposit: %s", p.MinInitialDeposit)
 	}
 	if p.MaxDepositPeriod == nil {
 		return fmt.Errorf("maximum deposit period must not be nil: %d", p.MaxDepositPeriod)

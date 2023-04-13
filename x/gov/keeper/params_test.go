@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestParams() {
 				VotingPeriod:      &timeDuration, // 1 week
 			},
 			expErr: true,
-			errStr: "invalid minimum deposit: <nil>",
+			errStr: "invalid minimum initial deposit: <nil>",
 		},
 		{
 			name: "Nil MaxDepositPeriod",
@@ -162,6 +162,14 @@ func (suite *KeeperTestSuite) TestParams() {
 			err := tc.params.ValidateBasic()
 			if !tc.expErr {
 				suite.Require().NoError(err, "expected no error, got %v", err)
+
+				_, err := suite.MsgServer.UpdateParams(suite.ctx, types.NewMsgUpdateParams(suite.govAcct, tc.params))
+				suite.Require().NoError(err, "expected no error, got %v", err)
+
+				response, err := suite.queryClient.Params(suite.ctx, &types.QueryParamsRequest{MsgType: tc.params.MsgType})
+				suite.Require().NoError(err, "expected no error, got %v", err)
+				params := response.Params
+				suite.Require().EqualValues(params.String(), tc.params.String())
 			} else {
 				suite.Require().EqualError(err, tc.errStr)
 			}
@@ -222,6 +230,14 @@ func (suite *KeeperTestSuite) TestEGFParams_ValidateBasic() {
 			err := tc.p.ValidateBasic()
 			if tc.expectedError == nil {
 				suite.Require().NoError(err, "expected no error, got %v", err)
+
+				_, err := suite.MsgServer.UpdateEGFParams(suite.ctx, types.NewMsgUpdateEGFParams(suite.govAcct, *tc.p))
+				suite.Require().NoError(err, "expected no error, got %v", err)
+
+				response, err := suite.queryClient.EGFParams(suite.ctx, &types.QueryEGFParamsRequest{})
+				suite.Require().NoError(err, "expected no error, got %v", err)
+				params := response.Params
+				suite.Require().EqualValues(params.String(), tc.p.String())
 			} else {
 				suite.Require().EqualError(err, tc.expectedError.Error(), "expected error %v, got %v", tc.expectedError, err)
 			}

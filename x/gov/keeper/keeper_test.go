@@ -317,7 +317,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetBaseParams() {
+func (suite *KeeperTestSuite) TestGetParams() {
 	tallyParams := suite.app.GovKeeper.GetTallyParams(suite.ctx)
 	votingParams := suite.app.GovKeeper.GetVotingParams(suite.ctx)
 	depositParams := suite.app.GovKeeper.GetDepositParams(suite.ctx)
