@@ -72,6 +72,24 @@ var (
 		})
 )
 
+type FIP20CrossChainArgs struct {
+	Sender  common.Address `abi:"_sender"`
+	Receipt string         `abi:"_receipt"`
+	Amount  *big.Int       `abi:"_amount"`
+	Fee     *big.Int       `abi:"_fee"`
+	Target  [32]byte       `abi:"_target"`
+	Memo    string         `abi:"_memo"`
+}
+
+type CrossChainArgs struct {
+	Token   common.Address `abi:"_token"`
+	Receipt string         `abi:"_receipt"`
+	Amount  *big.Int       `abi:"_amount"`
+	Fee     *big.Int       `abi:"_fee"`
+	Target  [32]byte       `abi:"_target"`
+	Memo    string         `abi:"_memo"`
+}
+
 // FIP20CrossChain only for fip20 contract transferCrossChain called
 //
 //gocyclo:ignore
@@ -86,22 +104,13 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 		return nil, fmt.Errorf("token pair not found: %s", tokenContract.String())
 	}
 
-	args, err := FIP20CrossChainMethod.Inputs.Unpack(contract.Input[4:])
-	if err != nil {
-		return nil, errors.New("failed to unpack input")
-	}
-	sender, ok0 := args[0].(common.Address)
-	receipt, ok1 := args[1].(string)
-	amount, ok2 := args[2].(*big.Int)
-	fee, ok3 := args[3].(*big.Int)
-	target, ok4 := args[4].([32]byte)
-	memo, ok5 := args[5].(string)
-	if !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 {
-		return nil, errors.New("unexpected arg type")
+	var args FIP20CrossChainArgs
+	if err := ParseMethodParams(FIP20CrossChainMethod, &args, contract.Input[4:]); err != nil {
+		return nil, err
 	}
 
-	amountCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(amount))
-	feeCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(fee))
+	amountCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(args.Amount))
+	feeCoin := sdk.NewCoin(tokenPair.GetDenom(), sdkmath.NewIntFromBigInt(args.Fee))
 	totalCoin := sdk.NewCoin(tokenPair.GetDenom(), amountCoin.Amount.Add(feeCoin.Amount))
 
 	// NOTE: if user call evm denom transferCrossChain with msg.value
@@ -119,30 +128,31 @@ func (c *Contract) FIP20CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Co
 			// sender call transferCrossChain with msg.value, the msg.value evm denom should send to contract
 			value := big.NewInt(0).Sub(evmBalance, balance.Amount.BigInt())
 			valueCoin := sdk.NewCoins(sdk.NewCoin(evmDenom, sdkmath.NewIntFromBigInt(value)))
-			if err := c.bankKeeper.SendCoins(ctx, sender.Bytes(), tokenContract.Bytes(), valueCoin); err != nil {
+			if err := c.bankKeeper.SendCoins(ctx, args.Sender.Bytes(), tokenContract.Bytes(), valueCoin); err != nil {
 				return nil, fmt.Errorf("send coin: %s", err.Error())
 			}
 		}
 	}
 
 	// transfer token from evm to local chain
-	if err := c.convertERC20(ctx, evm, tokenPair, totalCoin, sender); err != nil {
+	if err := c.convertERC20(ctx, evm, tokenPair, totalCoin, args.Sender); err != nil {
 		return nil, err
 	}
 
-	fxTarget := fxtypes.ParseFxTarget(fxtypes.Byte32ToString(target))
-	if err := c.handlerCrossChain(ctx, sender.Bytes(), receipt, amountCoin, feeCoin, fxTarget, memo, false); err != nil {
+	fxTarget := fxtypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target))
+	if err := c.handlerCrossChain(ctx, args.Sender.Bytes(), args.Receipt, amountCoin, feeCoin, fxTarget, args.Memo, false); err != nil {
 		return nil, err
 	}
 
 	// add event log
-	if err := crossChainLog(evm, contract.Address(), sender, tokenPair.GetERC20Contract(),
-		receipt, tokenPair.GetDenom(), memo, amount, fee, target); err != nil {
+	if err := crossChainLog(evm, contract.Address(), args.Sender, tokenPair.GetERC20Contract(),
+		args.Receipt, tokenPair.GetDenom(), args.Memo, args.Amount, args.Fee, args.Target); err != nil {
 		return nil, err
 	}
 
 	// add fip20CrossChain events
-	fip20CrossChainEvents(ctx, sender, tokenPair.GetERC20Contract(), receipt, fxtypes.Byte32ToString(target), tokenPair.GetDenom(), amount, fee)
+	fip20CrossChainEvents(ctx, args.Sender, tokenPair.GetERC20Contract(), args.Receipt,
+		fxtypes.Byte32ToString(args.Target), tokenPair.GetDenom(), args.Amount, args.Fee)
 
 	return FIP20CrossChainMethod.Outputs.Pack(true)
 }
@@ -156,18 +166,10 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	}
 
 	// args
-	args, err := CrossChainMethod.Inputs.Unpack(contract.Input[4:])
+	var args CrossChainArgs
+	err := ParseMethodParams(CrossChainMethod, &args, contract.Input[4:])
 	if err != nil {
-		return nil, errors.New("failed to unpack input")
-	}
-	token, ok0 := args[0].(common.Address)
-	receipt, ok1 := args[1].(string)
-	amount, ok2 := args[2].(*big.Int)
-	fee, ok3 := args[3].(*big.Int)
-	target, ok4 := args[4].([32]byte)
-	memo, ok5 := args[5].(string)
-	if !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 {
-		return nil, errors.New("unexpected arg type")
+		return nil, err
 	}
 
 	// call param
@@ -179,8 +181,8 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 	crossChainDenom := ""
 
 	// cross-chain origin token
-	if value.Cmp(big.NewInt(0)) == 1 && token.String() == fxtypes.EmptyEvmAddress {
-		totalAmount := big.NewInt(0).Add(amount, fee)
+	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == fxtypes.EmptyEvmAddress {
+		totalAmount := big.NewInt(0).Add(args.Amount, args.Fee)
 		if totalAmount.Cmp(value) != 0 {
 			return nil, errors.New("amount + fee not equal msg.value")
 		}
@@ -193,28 +195,29 @@ func (c *Contract) CrossChain(ctx sdk.Context, evm *vm.EVM, contract *vm.Contrac
 		// origin token flag is true when cross chain evm denom
 		originToken = true
 	} else {
-		crossChainDenom, err = c.handlerERC20Token(ctx, evm, token, sender, big.NewInt(0).Add(amount, fee))
+		crossChainDenom, err = c.handlerERC20Token(ctx, evm, args.Token, sender, big.NewInt(0).Add(args.Amount, args.Fee))
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	fxTarget := fxtypes.ParseFxTarget(fxtypes.Byte32ToString(target))
-	amountCoin := sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(amount))
-	feeCoin := sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(fee))
+	fxTarget := fxtypes.ParseFxTarget(fxtypes.Byte32ToString(args.Target))
+	amountCoin := sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(args.Amount))
+	feeCoin := sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(args.Fee))
 
-	if err := c.handlerCrossChain(ctx, sender.Bytes(), receipt, amountCoin, feeCoin, fxTarget, memo, originToken); err != nil {
+	if err := c.handlerCrossChain(ctx, sender.Bytes(), args.Receipt, amountCoin, feeCoin, fxTarget, args.Memo, originToken); err != nil {
 		return nil, err
 	}
 
 	// add event log
-	if err := crossChainLog(evm, contract.Address(), sender, token,
-		receipt, crossChainDenom, memo, amount, fee, target); err != nil {
+	if err := crossChainLog(evm, contract.Address(), sender, args.Token,
+		args.Receipt, crossChainDenom, args.Memo, args.Amount, args.Fee, args.Target); err != nil {
 		return nil, err
 	}
 
 	// add cross chain events
-	crossChainEvents(ctx, sender, token, receipt, fxtypes.Byte32ToString(target), crossChainDenom, memo, amount, fee)
+	crossChainEvents(ctx, sender, args.Token, args.Receipt, fxtypes.Byte32ToString(args.Target),
+		crossChainDenom, args.Memo, args.Amount, args.Fee)
 
 	return CrossChainMethod.Outputs.Pack(true)
 }

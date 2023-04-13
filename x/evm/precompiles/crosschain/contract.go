@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
@@ -99,4 +100,12 @@ func (c *Contract) Run(evm *vm.EVM, contract *vm.Contract, readonly bool) (ret [
 	commit()
 
 	return ret, nil
+}
+
+func ParseMethodParams(method abi.Method, v interface{}, data []byte) error {
+	unpacked, err := method.Inputs.Unpack(data)
+	if err != nil {
+		return err
+	}
+	return method.Inputs.Copy(v, unpacked)
 }

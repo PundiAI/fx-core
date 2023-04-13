@@ -40,40 +40,40 @@ var (
 		})
 )
 
+type CancelSendToExternalArgs struct {
+	Chain string   `abi:"_chain"`
+	TxID  *big.Int `abi:"_txID"`
+}
+
 func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *vm.Contract, readonly bool) ([]byte, error) {
 	if readonly {
 		return nil, errors.New("cancel send to external method not readonly")
 	}
 
 	// args
-	args, err := CancelSendToExternalMethod.Inputs.Unpack(contract.Input[4:])
-	if err != nil {
-		return nil, errors.New("failed to unpack input")
-	}
-	chain, ok0 := args[0].(string)
-	txID, ok1 := args[1].(*big.Int)
-	if !ok0 || !ok1 {
-		return nil, errors.New("unexpected arg type")
-	}
-
-	if err := crosschaintypes.ValidateModuleName(chain); err != nil {
+	var args CancelSendToExternalArgs
+	if err := ParseMethodParams(CancelSendToExternalMethod, &args, contract.Input[4:]); err != nil {
 		return nil, err
 	}
-	if txID.Cmp(big.NewInt(0)) <= 0 {
-		return nil, fmt.Errorf("invalid tx id: %s", txID.String())
+
+	if err := crosschaintypes.ValidateModuleName(args.Chain); err != nil {
+		return nil, err
+	}
+	if args.TxID.Cmp(big.NewInt(0)) <= 0 {
+		return nil, fmt.Errorf("invalid tx id: %s", args.TxID.String())
 	}
 
 	sender := contract.Caller()
-	route, has := c.router.GetRoute(chain)
+	route, has := c.router.GetRoute(args.Chain)
 	if !has {
-		return nil, fmt.Errorf("chain not support: %s", chain)
+		return nil, fmt.Errorf("chain not support: %s", args.Chain)
 	}
 
 	originDenom := c.evmKeeper.GetParams(ctx).EvmDenom
 	// NOTE: must be get relation before cancel, cancel will delete it if relation exist
-	hasRelation := c.erc20Keeper.HasOutgoingTransferRelation(ctx, txID.Uint64())
+	hasRelation := c.erc20Keeper.HasOutgoingTransferRelation(ctx, args.TxID.Uint64())
 
-	refundCoin, err := route.PrecompileCancelSendToExternal(ctx, txID.Uint64(), sender.Bytes())
+	refundCoin, err := route.PrecompileCancelSendToExternal(ctx, args.TxID.Uint64(), sender.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (c *Contract) CancelSendToExternal(ctx sdk.Context, evm *vm.EVM, contract *
 	}
 
 	// add event log
-	if err := cancelSendToExternalLog(evm, contract.Address(), sender, chain, txID); err != nil {
+	if err := cancelSendToExternalLog(evm, contract.Address(), sender, args.Chain, args.TxID); err != nil {
 		return nil, err
 	}
 

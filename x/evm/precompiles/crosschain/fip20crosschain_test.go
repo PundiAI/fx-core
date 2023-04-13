@@ -1270,10 +1270,10 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 				suite.Require().NoError(err)
 
 				dateTrimPrefix := bytes.TrimPrefix(data, method.ID)
-				return append(crosschain.FIP20CrossChainMethod.ID, dateTrimPrefix...), []string{}
+				return append(crosschain.FIP20CrossChainMethod.ID, dateTrimPrefix...), []string{hex.EncodeToString(data)}
 			},
 			error: func(args []string) string {
-				return "failed to unpack input"
+				return "abi: cannot marshal in to go slice: offset"
 			},
 			result: false,
 		},
@@ -1303,7 +1303,7 @@ func (suite *PrecompileTestSuite) TestAccountFIP20CrossChain() {
 				suite.Require().False(res.Failed(), res.VmError)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().EqualError(err, tc.error(errArgs))
+				suite.Require().Contains(err.Error(), tc.error(errArgs))
 			}
 		})
 	}

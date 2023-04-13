@@ -46,6 +46,13 @@ var (
 		})
 )
 
+type IncreaseBridgeFeeArgs struct {
+	Chain string         `abi:"_chain"`
+	TxID  *big.Int       `abi:"_txID"`
+	Token common.Address `abi:"_token"`
+	Fee   *big.Int       `abi:"_fee"`
+}
+
 // IncreaseBridgeFee add bridge fee to unbatched tx
 //
 //gocyclo:ignore
@@ -55,70 +62,63 @@ func (c *Contract) IncreaseBridgeFee(ctx sdk.Context, evm *vm.EVM, contract *vm.
 	}
 
 	// args
-	args, err := IncreaseBridgeFeeMethod.Inputs.Unpack(contract.Input[4:])
+	var args IncreaseBridgeFeeArgs
+	err := ParseMethodParams(IncreaseBridgeFeeMethod, &args, contract.Input[4:])
 	if err != nil {
-		return nil, errors.New("failed to unpack input")
-	}
-	chain, ok0 := args[0].(string)
-	txID, ok1 := args[1].(*big.Int)
-	token, ok2 := args[2].(common.Address)
-	feeAmount, ok3 := args[3].(*big.Int)
-	if !ok0 || !ok1 || !ok2 || !ok3 {
-		return nil, errors.New("unexpected arg type")
-	}
-
-	if err = crosschaintypes.ValidateModuleName(chain); err != nil {
 		return nil, err
 	}
-	if txID.Cmp(big.NewInt(0)) <= 0 {
-		return nil, fmt.Errorf("invalid tx id: %s", txID.String())
+
+	if err = crosschaintypes.ValidateModuleName(args.Chain); err != nil {
+		return nil, err
 	}
-	if feeAmount.Cmp(big.NewInt(0)) <= 0 {
-		return nil, fmt.Errorf("invalid add bridge fee: %s", feeAmount.String())
+	if args.TxID.Cmp(big.NewInt(0)) <= 0 {
+		return nil, fmt.Errorf("invalid tx id: %s", args.TxID.String())
+	}
+	if args.Fee.Cmp(big.NewInt(0)) <= 0 {
+		return nil, fmt.Errorf("invalid add bridge fee: %s", args.Fee.String())
 	}
 
 	if c.router == nil {
 		return nil, errors.New("cross chain router empty")
 	}
 
-	fxTarget := fxtypes.ParseFxTarget(chain)
+	fxTarget := fxtypes.ParseFxTarget(args.Chain)
 	route, has := c.router.GetRoute(fxTarget.GetTarget())
 	if !has {
-		return nil, fmt.Errorf("chain not support: %s", chain)
+		return nil, fmt.Errorf("chain not support: %s", args.Chain)
 	}
 
 	value := contract.Value()
 	sender := contract.Caller()
 	crossChainDenom := ""
-
-	if value.Cmp(big.NewInt(0)) == 1 && token.String() == fxtypes.EmptyEvmAddress {
-		if feeAmount.Cmp(value) != 0 {
+	if value.Cmp(big.NewInt(0)) == 1 && args.Token.String() == fxtypes.EmptyEvmAddress {
+		if args.Fee.Cmp(value) != 0 {
 			return nil, errors.New("add bridge fee not equal msg.value")
 		}
-		crossChainDenom, err = c.handlerOriginToken(ctx, evm, sender, feeAmount)
+		crossChainDenom, err = c.handlerOriginToken(ctx, evm, sender, args.Fee)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		crossChainDenom, err = c.handlerERC20Token(ctx, evm, token, sender, feeAmount)
+		crossChainDenom, err = c.handlerERC20Token(ctx, evm, args.Token, sender, args.Fee)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// convert token to bridge fee token
-	feeCoin := sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(feeAmount))
+	feeCoin := sdk.NewCoin(crossChainDenom, sdkmath.NewIntFromBigInt(args.Fee))
 	addBridgeFee, err := c.erc20Keeper.ConvertDenomToTarget(ctx, sender.Bytes(), feeCoin, fxTarget)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := route.PrecompileIncreaseBridgeFee(ctx, txID.Uint64(), sender.Bytes(), addBridgeFee); err != nil {
+	if err := route.PrecompileIncreaseBridgeFee(ctx, args.TxID.Uint64(), sender.Bytes(), addBridgeFee); err != nil {
 		return nil, err
 	}
 
 	// add event log
-	if err := increaseBridgeFeeLog(evm, contract.Address(), sender, token, chain, txID, feeAmount); err != nil {
+	if err := increaseBridgeFeeLog(evm, contract.Address(), sender, args.Token, args.Chain, args.TxID, args.Fee); err != nil {
 		return nil, err
 	}
 
