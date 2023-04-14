@@ -262,7 +262,7 @@ func (c *Contract) convertERC20(
 	amount sdk.Coin,
 	receiver common.Address,
 ) error {
-	if tokenPair.GetContractOwner() == erc20types.OWNER_MODULE {
+	if tokenPair.IsNativeCoin() {
 		err := NewContractCall(ctx, evm, c.erc20Keeper.ModuleAddress(), tokenPair.GetERC20Contract()).ERC20Burn(amount.Amount.BigInt())
 		if err != nil {
 			return err
@@ -280,7 +280,7 @@ func (c *Contract) convertERC20(
 			evm.StateDB.SubBalance(tokenPair.GetERC20Contract(), amount.Amount.BigInt())
 		}
 
-	} else if tokenPair.GetContractOwner() == erc20types.OWNER_EXTERNAL {
+	} else if tokenPair.IsNativeERC20() {
 		err := c.bankKeeper.MintCoins(ctx, erc20types.ModuleName, sdk.NewCoins(amount))
 		if err != nil {
 			return fmt.Errorf("mint: %s", err.Error())
