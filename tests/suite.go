@@ -11,6 +11,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,7 +23,6 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
-	tmclient "github.com/tendermint/tendermint/rpc/client"
 
 	"github.com/functionx/fx-core/v3/app"
 	"github.com/functionx/fx-core/v3/client/grpc"
@@ -30,6 +30,7 @@ import (
 	"github.com/functionx/fx-core/v3/testutil"
 	"github.com/functionx/fx-core/v3/testutil/helpers"
 	"github.com/functionx/fx-core/v3/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v3/types"
 	fxgovtypes "github.com/functionx/fx-core/v3/x/gov/types"
 )
 
@@ -44,23 +45,32 @@ type TestSuite struct {
 func NewTestSuite() *TestSuite {
 	testSuite := &TestSuite{
 		Suite:           suite.Suite{},
-		useLocalNetwork: true,
+		useLocalNetwork: false,
 		proposalId:      0,
 		ctx:             context.Background(),
 	}
-	if os.Getenv("USE_LOCAL_NETWORK") == "false" {
-		testSuite.useLocalNetwork = false
+	if os.Getenv("USE_LOCAL_NETWORK") == "true" {
+		testSuite.useLocalNetwork = true
 	}
 	return testSuite
 }
 
 func (suite *TestSuite) SetupSuite() {
-	if !suite.useLocalNetwork {
+	encCfg := app.MakeEncodingConfig()
+	if suite.IsUseLocalNetwork() {
+		fxtypes.SetConfig(true)
+		cfg := testutil.DefaultNetworkConfig(encCfg)
+		cfg.TimeoutCommit = 5 * time.Second
+		suite.network = &network.Network{
+			Logger:     suite.T(),
+			BaseDir:    fxtypes.GetDefaultNodeHome(),
+			Config:     cfg,
+			Validators: []*network.Validator{{}},
+		}
 		return
 	}
 	suite.T().Log("setting up integration test suite")
 
-	encCfg := app.MakeEncodingConfig()
 	ibcGenesisOpt := func(config *network.Config) {
 		config.GenesisState = testutil.IbcGenesisState(encCfg.Codec, config.GenesisState)
 	}
@@ -79,7 +89,7 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) TearDownSuite() {
-	if !suite.useLocalNetwork {
+	if suite.IsUseLocalNetwork() {
 		return
 	}
 	suite.T().Log("tearing down integration test suite")
@@ -87,10 +97,6 @@ func (suite *TestSuite) TearDownSuite() {
 	// This is important and must be called to ensure other tests can create
 	// a network!
 	suite.network.Cleanup()
-}
-
-func (suite *TestSuite) WithNetwork(network *network.Network) {
-	suite.network = network
 }
 
 func (suite *TestSuite) GetNetwork() *network.Network {
@@ -115,31 +121,37 @@ func (suite *TestSuite) GetFirstValidator() *network.Validator {
 }
 
 func (suite *TestSuite) GetFirstValPrivKey() cryptotypes.PrivKey {
+	if suite.IsUseLocalNetwork() {
+		k, err := keyring.New(suite.T().Name(), keyring.BackendTest, suite.network.BaseDir, os.Stdin, suite.network.Config.Codec)
+		suite.NoError(err)
+		privKey, err := k.(unsafeExporter).ExportPrivateKeyObject("fx1")
+		suite.NoError(err)
+		return privKey
+	}
 	privKey, err := helpers.PrivKeyFromMnemonic(suite.network.Config.Mnemonics[0], hd.Secp256k1Type, 0, 0)
 	suite.NoError(err)
 	return privKey
 }
 
 func (suite *TestSuite) GRPCClient() *grpc.Client {
+	if suite.GetFirstValidator().ClientCtx.GRPCClient != nil {
+		return grpc.NewClient(suite.GetFirstValidator().ClientCtx)
+	}
 	grpcUrl := "http://localhost:9090"
-	if suite.useLocalNetwork {
+	if !suite.IsUseLocalNetwork() {
 		grpcUrl = fmt.Sprintf("http://%s", suite.GetFirstValidator().AppConfig.GRPC.Address)
 	}
-	client, err := grpc.NewClient(grpcUrl, suite.ctx)
+	client, err := grpc.DailClient(grpcUrl, suite.ctx)
 	suite.NoError(err)
 	return client
 }
 
 func (suite *TestSuite) NodeClient() *jsonrpc.NodeRPC {
-	nodeUrl := "http://localhost:26657"
-	if suite.useLocalNetwork {
-		nodeUrl = suite.GetFirstValidator().RPCAddress
+	nodeUrl := suite.GetFirstValidator().RPCAddress
+	if suite.IsUseLocalNetwork() {
+		nodeUrl = "http://localhost:26657"
 	}
-	return jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(nodeUrl), suite.ctx)
-}
-
-func (suite *TestSuite) ValNodeClient() tmclient.Client {
-	return suite.GetFirstValidator().RPCClient
+	return jsonrpc.NewNodeRPC(jsonrpc.NewClient(nodeUrl), suite.ctx)
 }
 
 func (suite *TestSuite) GetFirstValAddr() sdk.ValAddress {
@@ -452,4 +464,11 @@ func (suite *TestSuite) CheckProposal(proposalId uint64, _ govv1.ProposalStatus)
 
 	suite.Require().True(proposalResp.Proposal.Status > govv1.StatusDepositPeriod)
 	return *proposalResp.Proposal
+}
+
+// unsafeExporter is implemented by key stores that support unsafe export
+// of private keys' material.
+type unsafeExporter interface {
+	// ExportPrivateKeyObject returns a private key in unarmored format.
+	ExportPrivateKeyObject(uid string) (cryptotypes.PrivKey, error)
 }

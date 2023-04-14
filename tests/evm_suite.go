@@ -49,6 +49,11 @@ func (suite *EvmTestSuite) HexAddress() common.Address {
 }
 
 func (suite *EvmTestSuite) EthClient() *ethclient.Client {
+	if suite.IsUseLocalNetwork() {
+		cli, err := ethclient.Dial("http://localhost:8545")
+		suite.Require().NoError(err)
+		return cli
+	}
 	return suite.GetFirstValidator().JSONRPCClient
 }
 
