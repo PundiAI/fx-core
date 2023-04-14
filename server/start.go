@@ -694,11 +694,11 @@ func checkMainnetAndBlock(genesisDoc *tmtypes.GenesisDoc, config *tmcfg.Config) 
 		if fxtypes.Sha256Hex(genesisBytes) != fxtypes.MainnetGenesisHash {
 			return nil
 		}
-		if blockStore.Height() < 5_713_000 {
+		if blockStore.Height() < fxtypes.MainnetBlockHeightV2 {
 			return errors.New("invalid version: The current block height is less than the fxv2 upgrade height(8_756_000), " +
 				"sync block from scratch please use use fxcored v1.x.x")
 		}
-		if blockStore.Height() < 8_756_000 {
+		if blockStore.Height() < fxtypes.MainnetBlockHeightV3 {
 			return errors.New("invalid version: The current block height is less than the fxv3 upgrade height(8_756_000)," +
 				" please use the v2.x.x version to synchronize the block or download the latest snapshot")
 		}

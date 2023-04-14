@@ -11,16 +11,20 @@ import (
 
 // mainnet
 const (
-	MainnetChainId     = "fxcore"
-	mainnetEvmChainID  = 530
-	MainnetGenesisHash = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593"
+	MainnetChainId       = "fxcore"
+	mainnetEvmChainID    = 530
+	MainnetGenesisHash   = "56629F685970FEC1E35521FC943ACE9AEB2C53448544A0560E4DD5799E1A5593"
+	MainnetBlockHeightV2 = 5_713_000
+	MainnetBlockHeightV3 = 8_756_000
 )
 
 // testnet
 const (
-	TestnetChainId     = "dhobyghaut"
-	testnetEvmChainID  = 90001
-	TestnetGenesisHash = "06D0A9659E1EC5B0E57E8E2E5F1B1266094808BC9B4081E1A55011FEF4586ACE"
+	TestnetChainId       = "dhobyghaut"
+	testnetEvmChainID    = 90001
+	TestnetGenesisHash   = "06D0A9659E1EC5B0E57E8E2E5F1B1266094808BC9B4081E1A55011FEF4586ACE"
+	TestnetBlockHeightV2 = 3418880
+	TestnetBlockHeightV3 = 6578000
 )
 
 var (

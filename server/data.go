@@ -23,9 +23,9 @@ const (
 	flagPruning   = "enable_pruning"
 	flagDBBackend = "db_backend"
 
-	blockDBName = "blockstore"
-	stateDBName = "state"
-	appDBName   = "application"
+	BlockDBName = "blockstore"
+	StateDBName = "state"
+	AppDBName   = "application"
 )
 
 func DataCmd() *cobra.Command {
@@ -35,38 +35,29 @@ func DataCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		dataQueryCmd(),
+		dataQueryBlockCmd(),
 		dataPruningCmd(),
 	)
 
+	cmd.PersistentFlags().String(flagDBBackend, "goleveldb", "Database backend: goleveldb")
 	return cmd
 }
 
-func dataQueryCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "query",
-		Short: "Query blocks and states in database",
-	}
-
-	queryBlockState := &cobra.Command{
+func dataQueryBlockCmd() *cobra.Command {
+	return &cobra.Command{
 		Use:   "block",
-		Short: "Query blocks heights in db",
+		Short: "Query blocks heights in database",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := server.GetServerContextFromCmd(cmd)
 			config := ctx.Config
 
-			blockStoreDB := initDB(config, blockDBName)
+			blockStoreDB := GetDB(config, BlockDBName)
 			blockStore := store.NewBlockStore(blockStoreDB)
 			fmt.Printf("[%d ~ %d]\n", blockStore.Base(), blockStore.Height())
 
 			return nil
 		},
 	}
-
-	cmd.AddCommand(queryBlockState)
-	cmd.PersistentFlags().String(flagDBBackend, "goleveldb", "Database backend: goleveldb")
-
-	return cmd
 }
 
 func dataPruningCmd() *cobra.Command {
@@ -83,7 +74,6 @@ func dataPruningCmd() *cobra.Command {
 
 	cmd.PersistentFlags().Int64P(flagHeight, "r", 0, "Removes block or state up to (but not including) a height")
 	cmd.PersistentFlags().BoolP(flagPruning, "p", false, "Enable pruning")
-	cmd.PersistentFlags().String(flagDBBackend, "goleveldb", "Database backend: goleveldb")
 	return cmd
 }
 
@@ -99,9 +89,9 @@ func pruneAllCmd() *cobra.Command {
 				return err
 			}
 
-			blockStoreDB := initDB(config, blockDBName)
-			stateDB := initDB(config, stateDBName)
-			appDB := initDB(config, appDBName)
+			blockStoreDB := GetDB(config, BlockDBName)
+			stateDB := GetDB(config, StateDBName)
+			appDB := GetDB(config, AppDBName)
 
 			if viper.GetBool(flagPruning) {
 				baseHeight, retainHeight := getPruneBlockParams(blockStoreDB)
@@ -116,9 +106,9 @@ func pruneAllCmd() *cobra.Command {
 			log.Println("--------- compact start... ---------")
 			var wg sync.WaitGroup
 			wg.Add(3)
-			go compactDB(blockStoreDB, blockDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
-			go compactDB(stateDB, stateDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
-			go compactDB(appDB, appDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
+			go compactDB(blockStoreDB, BlockDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
+			go compactDB(stateDB, StateDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
+			go compactDB(appDB, AppDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
 			wg.Wait()
 			log.Println("--------- compact end!!!   ---------")
 
@@ -141,11 +131,11 @@ func pruneAppCmd() *cobra.Command {
 				return err
 			}
 
-			appDB := initDB(config, appDBName)
+			appDB := GetDB(config, AppDBName)
 			log.Println("--------- compact start ---------")
 			var wg sync.WaitGroup
 			wg.Add(1)
-			compactDB(appDB, appDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
+			compactDB(appDB, AppDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
 			log.Println("--------- compact end ---------")
 
 			return nil
@@ -167,8 +157,8 @@ func pruneBlockCmd() *cobra.Command {
 				return err
 			}
 
-			blockStoreDB := initDB(config, blockDBName)
-			stateDB := initDB(config, stateDBName)
+			blockStoreDB := GetDB(config, BlockDBName)
+			stateDB := GetDB(config, StateDBName)
 
 			if viper.GetBool(flagPruning) {
 				baseHeight, retainHeight := getPruneBlockParams(blockStoreDB)
@@ -185,8 +175,8 @@ func pruneBlockCmd() *cobra.Command {
 			log.Println("--------- compact start... ---------")
 			var wg sync.WaitGroup
 			wg.Add(2)
-			go compactDB(blockStoreDB, blockDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
-			go compactDB(stateDB, stateDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
+			go compactDB(blockStoreDB, BlockDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
+			go compactDB(stateDB, StateDBName, dbm.BackendType(ctx.Config.DBBackend), &wg)
 			wg.Wait()
 			log.Println("--------- compact end!!!   ---------")
 
@@ -208,8 +198,8 @@ func getPruneBlockParams(blockStoreDB dbm.DB) (baseHeight, retainHeight int64) {
 	return
 }
 
-func initDB(config *cfg.Config, dbName string) dbm.DB {
-	if dbName != blockDBName && dbName != stateDBName && dbName != appDBName {
+func GetDB(config *cfg.Config, dbName string) dbm.DB {
+	if dbName != BlockDBName && dbName != StateDBName && dbName != AppDBName {
 		panic(fmt.Sprintf("unknow db name: %s", dbName))
 	}
 
