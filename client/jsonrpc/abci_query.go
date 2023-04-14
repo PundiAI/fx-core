@@ -68,6 +68,9 @@ func (c *NodeRPC) QuerySupply() (sdk.Coins, error) {
 }
 
 func (c *NodeRPC) GetGasPrices() (sdk.Coins, error) {
+	if len(c.gasPrices) > 0 {
+		return c.gasPrices, nil
+	}
 	result, err := c.ABCIQueryIsOk("/cosmos.base.node.v1beta1.Service/Config", nil)
 	if err != nil {
 		return sdk.Coins{}, err

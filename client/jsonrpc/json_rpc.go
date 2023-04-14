@@ -8,11 +8,9 @@ import (
 	"strconv"
 
 	"github.com/btcsuite/btcutil/bech32"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -21,9 +19,9 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"github.com/tendermint/tendermint/types"
-)
 
-const DefGasLimit int64 = 200000
+	"github.com/functionx/fx-core/v3/client"
+)
 
 type jsonRPCCaller interface {
 	Call(ctx context.Context, method string, params map[string]interface{}, result interface{}) (err error)
@@ -66,6 +64,9 @@ func (c *NodeRPC) WithChainId(chainId string) *NodeRPC {
 // Custom API
 
 func (c *NodeRPC) GetChainId() (chain string, err error) {
+	if len(c.chainId) > 0 {
+		return c.chainId, nil
+	}
 	res, err := c.Genesis()
 	if err != nil {
 		return
@@ -144,126 +145,8 @@ func (c *NodeRPC) GetStakeValidators(status stakingtypes.BondStatus) (stakingtyp
 	return validators, err
 }
 
-//gocyclo:ignore
 func (c *NodeRPC) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
-	account, err := c.QueryAccount(sdk.AccAddress(privKey.PubKey().Address().Bytes()).String())
-	if err != nil {
-		return nil, err
-	}
-	chainId := c.chainId
-	if len(chainId) <= 0 {
-		chainId, err = c.GetChainId()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	txBodyMessage := make([]*codectypes.Any, 0)
-	for i := 0; i < len(msgs); i++ {
-		msgAnyValue, err := codectypes.NewAnyWithValue(msgs[i])
-		if err != nil {
-			return nil, err
-		}
-		txBodyMessage = append(txBodyMessage, msgAnyValue)
-	}
-
-	txBody := &tx.TxBody{
-		Messages:                    txBodyMessage,
-		Memo:                        "",
-		TimeoutHeight:               0,
-		ExtensionOptions:            nil,
-		NonCriticalExtensionOptions: nil,
-	}
-	txBodyBytes, err := proto.Marshal(txBody)
-	if err != nil {
-		return nil, err
-	}
-
-	pubAny, err := codectypes.NewAnyWithValue(privKey.PubKey())
-	if err != nil {
-		return nil, err
-	}
-
-	var gasPrice sdk.Coin
-	if len(c.gasPrices) <= 0 {
-		gasPrices, err := c.GetGasPrices()
-		if err != nil {
-			return nil, err
-		}
-		if len(gasPrices) > 0 {
-			gasPrice = gasPrices[0]
-		}
-	} else {
-		gasPrice = c.gasPrices[0]
-	}
-
-	authInfo := &tx.AuthInfo{
-		SignerInfos: []*tx.SignerInfo{
-			{
-				PublicKey: pubAny,
-				ModeInfo: &tx.ModeInfo{
-					Sum: &tx.ModeInfo_Single_{
-						Single: &tx.ModeInfo_Single{Mode: signing.SignMode_SIGN_MODE_DIRECT},
-					},
-				},
-				Sequence: account.GetSequence(),
-			},
-		},
-		Fee: &tx.Fee{
-			Amount:   sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(DefGasLimit))),
-			GasLimit: uint64(DefGasLimit),
-			Payer:    "",
-			Granter:  "",
-		},
-	}
-
-	txAuthInfoBytes, err := proto.Marshal(authInfo)
-	if err != nil {
-		return nil, err
-	}
-	signDoc := &tx.SignDoc{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: txAuthInfoBytes,
-		ChainId:       chainId,
-		AccountNumber: account.GetAccountNumber(),
-	}
-	signatures, err := proto.Marshal(signDoc)
-	if err != nil {
-		return nil, err
-	}
-	sign, err := privKey.Sign(signatures)
-	if err != nil {
-		return nil, err
-	}
-	gasInfo, err := c.EstimatingGas(&tx.TxRaw{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: signDoc.AuthInfoBytes,
-		Signatures:    [][]byte{sign},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	authInfo.Fee.GasLimit = gasInfo.GasUsed * 12 / 10
-	authInfo.Fee.Amount = sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(int64(authInfo.Fee.GasLimit))))
-
-	signDoc.AuthInfoBytes, err = proto.Marshal(authInfo)
-	if err != nil {
-		return nil, err
-	}
-	signatures, err = proto.Marshal(signDoc)
-	if err != nil {
-		return nil, err
-	}
-	sign, err = privKey.Sign(signatures)
-	if err != nil {
-		return nil, err
-	}
-	return &tx.TxRaw{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: signDoc.AuthInfoBytes,
-		Signatures:    [][]byte{sign},
-	}, nil
+	return client.BuildTx(c, privKey, msgs)
 }
 
 func (c *NodeRPC) BroadcastTx(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.TxResponse, error) {

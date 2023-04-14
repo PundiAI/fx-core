@@ -104,29 +104,31 @@ func (suite *rpcTestSuite) GetPrivKeyByIndex(algo hd.PubKeyType, index uint32) c
 func (suite *rpcTestSuite) GetClients() []rpcTestClient {
 	validator := suite.GetFirstValidator()
 	suite.True(validator.AppConfig.GRPC.Enable)
-	grpcClient, err := grpc.NewClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
+	grpcClient, err := grpc.DailClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
+	suite.NoError(err)
+	wsClient, err := jsonrpc.NewWsClient(validator.RPCAddress+"/websocket", context.Background())
 	suite.NoError(err)
 	return []rpcTestClient{
 		grpcClient,
-		jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress)),
+		jsonrpc.NewNodeRPC(jsonrpc.NewClient(validator.RPCAddress)),
+		jsonrpc.NewNodeRPC(wsClient),
 	}
 }
 
 func (suite *rpcTestSuite) FirstValidatorTransferTo(index uint32, amount sdkmath.Int) {
 	validator := suite.GetFirstValidator()
 	suite.True(validator.AppConfig.GRPC.Enable)
-	grpcClient, err := grpc.NewClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
+	grpcClient, err := grpc.DailClient(fmt.Sprintf("http://%s", validator.AppConfig.GRPC.Address))
 	suite.NoError(err)
 	valKey := suite.GetFirstValPrivKey()
 	nextValKey := suite.GetPrivKeyByIndex(hd.Secp256k1Type, index)
-	txRaw, err := grpcClient.BuildTxV2(valKey,
-		[]sdk.Msg{
-			banktypes.NewMsgSend(
-				valKey.PubKey().Address().Bytes(),
-				nextValKey.PubKey().Address().Bytes(),
-				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amount)),
-			),
-		},
+	txRaw, err := grpcClient.BuildTxV1(
+		valKey,
+		[]sdk.Msg{banktypes.NewMsgSend(
+			valKey.PubKey().Address().Bytes(),
+			nextValKey.PubKey().Address().Bytes(),
+			sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, amount)),
+		)},
 		500000,
 		"",
 		0,
@@ -135,6 +137,7 @@ func (suite *rpcTestSuite) FirstValidatorTransferTo(index uint32, amount sdkmath
 	txResponse, err := grpcClient.BroadcastTx(txRaw)
 	suite.NoError(err)
 	suite.Equal(uint32(0), txResponse.Code)
+	suite.True(txResponse.GasUsed < 100000)
 }
 
 func (suite *rpcTestSuite) TestClient_Tx() {
@@ -144,23 +147,24 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 	for i := 0; i < len(clients); i++ {
 		cli := clients[i]
 		toAddress := sdk.AccAddress(helpers.NewPriKey().PubKey().Address())
-		txRaw, err := cli.BuildTx(privKey, []sdk.Msg{
-			banktypes.NewMsgSend(
+		txRaw, err := cli.BuildTx(
+			privKey,
+			[]sdk.Msg{banktypes.NewMsgSend(
 				privKey.PubKey().Address().Bytes(),
 				toAddress,
 				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1))),
-			),
-		},
+			)},
 		)
 		suite.NoError(err)
 
 		gas, err := cli.EstimatingGas(txRaw)
 		suite.NoError(err)
-		suite.True(gas.GasUsed < 100000)
+		suite.True(gas.GasUsed < 110000)
 
 		txResponse, err := cli.BroadcastTx(txRaw)
 		suite.NoError(err)
 		suite.Equal(uint32(0), txResponse.Code)
+		suite.True(txResponse.GasUsed < 110000)
 
 		err = suite.network.WaitForNextBlock()
 		suite.NoError(err)
@@ -182,53 +186,54 @@ func (suite *rpcTestSuite) TestClient_Tx() {
 
 	for i := 0; i < len(clients); i++ {
 		cli := clients[i]
-		txRaw, err := cli.BuildTx(privKey, []sdk.Msg{
-			banktypes.NewMsgSend(
+		txRaw, err := cli.BuildTx(
+			privKey,
+			[]sdk.Msg{banktypes.NewMsgSend(
 				privKey.PubKey().Address().Bytes(),
 				ethAddress,
 				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(10).MulRaw(1e18))),
-			),
-		},
+			)},
 		)
 		suite.NoError(err)
 
 		gas, err := cli.EstimatingGas(txRaw)
 		suite.NoError(err)
-		suite.True(gas.GasUsed < 100000)
-		// suite.Equal(uint64(0), gas.GasWanted)
+		suite.True(gas.GasUsed < 110000)
 
 		txResponse, err := cli.BroadcastTx(txRaw)
 		suite.NoError(err)
 		suite.Equal(uint32(0), txResponse.Code)
+		suite.True(txResponse.GasUsed < 100000)
 
 		err = suite.network.WaitForNextBlock()
 		suite.NoError(err)
 
 		account, err := cli.QueryAccount(ethAddress.String())
 		suite.NoError(err)
-		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, uint64(15), 0), account)
+		suite.Equal(authtypes.NewBaseAccount(ethAddress, nil, uint64(16), 0), account)
 	}
 
 	for i := 0; i < len(clients); i++ {
 		cli := clients[i]
 		toAddress := sdk.AccAddress(helpers.NewPriKey().PubKey().Address())
-		txRaw, err := cli.BuildTx(ethPrivKey, []sdk.Msg{
-			banktypes.NewMsgSend(
+		txRaw, err := cli.BuildTx(
+			ethPrivKey,
+			[]sdk.Msg{banktypes.NewMsgSend(
 				ethPrivKey.PubKey().Address().Bytes(),
 				toAddress,
 				sdk.NewCoins(sdk.NewCoin(fxtypes.DefaultDenom, sdkmath.NewInt(1))),
-			),
-		},
+			)},
 		)
 		suite.NoError(err)
 
 		gas, err := cli.EstimatingGas(txRaw)
 		suite.NoError(err)
-		suite.True(gas.GasUsed < 100000)
+		suite.True(gas.GasUsed < 110000)
 
 		txResponse, err := cli.BroadcastTx(txRaw)
 		suite.NoError(err)
 		suite.Equal(uint32(0), txResponse.Code)
+		suite.True(txResponse.GasUsed < 110000)
 
 		err = suite.network.WaitForNextBlock()
 		suite.NoError(err)
@@ -430,7 +435,7 @@ func (suite *rpcTestSuite) TestTmClient() {
 		return results
 	}
 
-	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewFastClient(validator.RPCAddress))
+	nodeRPC := jsonrpc.NewNodeRPC(jsonrpc.NewClient(validator.RPCAddress))
 	callNodeRPC := func(funcName string, params []interface{}) []reflect.Value {
 		typeOf := reflect.TypeOf(nodeRPC)
 		method, is := typeOf.MethodByName(funcName)

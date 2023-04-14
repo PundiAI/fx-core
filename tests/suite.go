@@ -192,7 +192,7 @@ func (suite *TestSuite) BroadcastTx(privKey cryptotypes.PrivKey, msgList ...sdk.
 	gasPrices, err := sdk.ParseCoinsNormalized(suite.network.Config.MinGasPrices)
 	suite.NoError(err)
 	grpcClient.WithGasPrices(gasPrices)
-	txRaw, err := grpcClient.BuildTxV2(privKey, msgList, 500000, "", 0)
+	txRaw, err := grpcClient.BuildTxV1(privKey, msgList, 500000, "", 0)
 	suite.NoError(err)
 
 	txResponse, err := grpcClient.BroadcastTxOk(txRaw, tx.BroadcastMode_BROADCAST_MODE_BLOCK)

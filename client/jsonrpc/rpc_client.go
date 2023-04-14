@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -32,10 +31,10 @@ type WSClient struct {
 	log.Logger
 }
 
-func NewWsClient(ctx context.Context, url string) (*WSClient, error) {
+func NewWsClient(url string, ctx context.Context) (*WSClient, error) {
 	split := strings.Split(url, "://")
 	if len(split) > 1 && split[0] == "tcp" {
-		url = fmt.Sprintf("http://%s", split[1])
+		url = fmt.Sprintf("ws://%s", split[1])
 	}
 
 	conn, _, err := websocket.Dial(ctx, url, nil)
@@ -57,55 +56,53 @@ func NewWsClient(ctx context.Context, url string) (*WSClient, error) {
 }
 
 func (ws *WSClient) run() {
-	func() {
-		defer close(ws.quit)
-		for {
-			_, msg, err := ws.conn.Read(ws.ctx)
-			if err != nil {
-				if strings.Contains(err.Error(), "status = StatusNormalClosure") {
-					ws.Logger.Debug("websocket normal closure")
-					return
-				}
-				if strings.Contains(err.Error(), "context canceled") {
-					ws.Logger.Debug("websocket context canceled")
-					return
-				}
-				ws.Logger.Error("websocket read", "error", err.Error())
+	defer close(ws.quit)
+	for {
+		_, msg, err := ws.conn.Read(ws.ctx)
+		if err != nil {
+			if strings.Contains(err.Error(), "status = StatusNormalClosure") {
+				ws.Logger.Debug("websocket normal closure")
 				return
 			}
-			if bytes.Equal(msg, []byte("{}")) {
-				continue
-			}
-			var rpc RPCResponse
-			if err = json.Unmarshal(msg, &rpc); err != nil {
-				ws.Logger.Error("failed to unmarshal response", "error", err)
-				continue
-			}
-
-			if bytes.Equal(rpc.Result, []byte("{}")) {
-				continue
-			}
-
-			if rpc.Error != nil && rpc.Error.ServerExit() {
-				ws.Logger.Error("websocket", "data", rpc.Error.Data)
+			if strings.Contains(err.Error(), "context canceled") {
+				ws.Logger.Debug("websocket context canceled")
 				return
 			}
-
-			if _, ch := ws.response(rpc.ID); ch != nil {
-				if cap(ch) == 0 {
-					ch <- rpc
-				} else {
-					select {
-					case ch <- rpc:
-					default:
-						ws.Logger.Error("wanted to publish response, but out channel is full. ", "rpc", rpc)
-					}
-				}
-			} else {
-				ws.Logger.Error("no found receive response chan.s", "rpc", rpc)
-			}
+			ws.Logger.Error("websocket read", "error", err.Error())
+			return
 		}
-	}()
+		if bytes.Equal(msg, []byte("{}")) {
+			continue
+		}
+		var rpc RPCResponse
+		if err = json.Unmarshal(msg, &rpc); err != nil {
+			ws.Logger.Error("failed to unmarshal response", "error", err)
+			continue
+		}
+
+		if bytes.Equal(rpc.Result, []byte("{}")) {
+			continue
+		}
+
+		if rpc.Error != nil && rpc.Error.ServerExit() {
+			ws.Logger.Error("websocket", "data", rpc.Error.Data)
+			return
+		}
+
+		if _, ch := ws.response(rpc.ID); ch != nil {
+			if cap(ch) == 0 {
+				ch <- rpc
+			} else {
+				select {
+				case ch <- rpc:
+				default:
+					ws.Logger.Error("wanted to publish response, but out channel is full. ", "rpc", rpc)
+				}
+			}
+		} else {
+			ws.Logger.Error("no found receive response chan.s", "rpc", rpc)
+		}
+	}
 }
 
 func (ws *WSClient) running() bool {
@@ -169,26 +166,14 @@ func (ws *WSClient) SubscribeEvent(ctx context.Context, query string, event chan
 	return nil
 }
 
-func (ws *WSClient) BlockResults(height int64) (*ctypes.ResultBlockResults, error) {
-	if !ws.running() {
-		return nil, nil
-	}
-	result := new(ctypes.ResultBlockResults)
-	if err := ws.Call(ws.ctx, "block_results", map[string]interface{}{"height": fmt.Sprintf("%d", height)}, result); err != nil {
-		ws.Logger.Error("Failed to Call block_results", "error", err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 /*
 # js
 var ws = new WebSocket("ws://localhost:26657/websocket")
 ws.send(JSON.stringify({"jsonrpc":"2.0","id":"py-test","method":"subscribe","params":{"query":"tm.event='NewBlockHeader'"}}))
 */
 
-func (ws *WSClient) Subscribe(ctx context.Context, query string, resp chan RPCResponse) (id string, err error) {
-	id, err = ws.send(ctx, "subscribe", map[string]interface{}{"query": query})
+func (ws *WSClient) Subscribe(query string, resp chan RPCResponse) (id string, err error) {
+	id, err = ws.send(ws.ctx, "subscribe", map[string]interface{}{"query": query})
 	if err != nil {
 		return
 	}
@@ -211,62 +196,22 @@ func (ws *WSClient) Unsubscribe(subId string) {
 	}
 }
 
-func (ws *WSClient) TxSearch(
-	query string,
-	prove bool,
-	page,
-	perPage *int,
-	orderBy string,
-) (*ctypes.ResultTxSearch, error) {
-	result := new(ctypes.ResultTxSearch)
-	params := map[string]interface{}{
-		"query":    query,
-		"prove":    prove,
-		"order_by": orderBy,
-	}
-
-	if page != nil {
-		params["page"] = page
-	}
-	if perPage != nil {
-		params["per_page"] = perPage
-	}
-
-	err := ws.Call(ws.ctx, "tx_search", params, result)
-	return result, err
-}
-
-func (ws *WSClient) ABCIQuery(path string, data tmbytes.HexBytes) (*ctypes.ResultABCIQuery, error) {
-	result := new(ctypes.ResultABCIQuery)
-	params := map[string]interface{}{"path": path, "data": data, "height": "0", "prove": false}
-	err := ws.Call(ws.ctx, "abci_query", params, result)
-	return result, err
-}
-
-func (ws *WSClient) Status() (*ctypes.ResultStatus, error) {
-	result := new(ctypes.ResultStatus)
-	err := ws.Call(ws.ctx, "status", map[string]interface{}{}, result)
-	return result, err
-}
-
-func (ws *WSClient) Call(ctx context.Context, method string, params map[string]interface{}, result interface{}) (err error) {
+func (ws *WSClient) Call(ctx context.Context, method string, params map[string]interface{}, result interface{}) error {
 	payload, err := json.Marshal(params)
 	if err != nil {
-		return
+		return err
 	}
 
 	reqId := fmt.Sprintf("go-%s", tmrand.Str(8))
 	body, err := json.Marshal(NewRPCRequest(reqId, method, payload))
 	if err != nil {
-		return
+		return err
 	}
 
-	// 添加接收结果的chan
 	respChan := make(chan RPCResponse)
 	ws.addResponseChan(reqId, "", respChan)
 	defer func(ws *WSClient, id string) {
-		err := ws.delResponseChan(id)
-		if err != nil {
+		if err := ws.delResponseChan(id); err != nil {
 			ws.Logger.Debug("Failed to unsubscribe", "error", err.Error())
 		}
 	}(ws, reqId)
@@ -279,7 +224,7 @@ func (ws *WSClient) Call(ctx context.Context, method string, params map[string]i
 	default:
 		ws.Logger.Debug("Request web socket write ==>", "body", string(body))
 		if err = ws.conn.Write(ctx, websocket.MessageText, body); err != nil {
-			return
+			return err
 		}
 	}
 
@@ -291,16 +236,16 @@ func (ws *WSClient) Call(ctx context.Context, method string, params map[string]i
 	return tmjson.Unmarshal(resp.Result, result)
 }
 
-func (ws *WSClient) send(ctx context.Context, method string, params map[string]interface{}) (reqId string, err error) {
+func (ws *WSClient) send(ctx context.Context, method string, params map[string]interface{}) (string, error) {
 	payload, err := json.Marshal(params)
 	if err != nil {
-		return
+		return "", err
 	}
 
-	reqId = fmt.Sprintf("go-%s", tmrand.Str(8))
+	reqId := fmt.Sprintf("go-%s", tmrand.Str(8))
 	body, err := json.Marshal(NewRPCRequest(reqId, method, payload))
 	if err != nil {
-		return
+		return "", err
 	}
 
 	ws.Logger.Debug("Request web socket write ==>", "body", string(body))
@@ -370,28 +315,28 @@ func NewRPCRequest(id, method string, params json.RawMessage) RPCRequest {
 	}
 }
 
-var _ jsonRPCCaller = &FastClient{}
+var _ jsonRPCCaller = &Client{}
 
-// FastClient implement jsonRPCCaller
-type FastClient struct {
+// Client implement jsonRPCCaller
+type Client struct {
 	Remote string
 	cli    *http.Client
 	log.Logger
 }
 
-func NewFastClient(remote string) *FastClient {
-	return &FastClient{
+func NewClient(remote string) *Client {
+	return &Client{
 		Remote: remote,
 		cli:    http.DefaultClient,
 		Logger: log.NewNopLogger(),
 	}
 }
 
-func (cli *FastClient) SetTimeout(t time.Duration) {
+func (cli *Client) SetTimeout(t time.Duration) {
 	cli.cli.Timeout = t
 }
 
-func (cli *FastClient) Call(ctx context.Context, method string, params map[string]interface{}, result interface{}) (err error) {
+func (cli *Client) Call(ctx context.Context, method string, params map[string]interface{}, result interface{}) (err error) {
 	payload, err := json.Marshal(params)
 	if err != nil {
 		return

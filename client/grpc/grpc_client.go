@@ -11,13 +11,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 	"github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -30,24 +28,24 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	grpc1 "github.com/gogo/protobuf/grpc"
 	"github.com/gogo/protobuf/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
+	"github.com/functionx/fx-core/v3/client"
 	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
 	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
 	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
 )
 
-const DefGasLimit int64 = 200000
-
 type Client struct {
 	chainId   string
 	gasPrices sdk.Coins
 	ctx       context.Context
-	*grpc.ClientConn
+	grpc1.ClientConn
 }
 
 func NewGrpcConn(rawUrl string) (*grpc.ClientConn, error) {
@@ -72,18 +70,22 @@ func NewGrpcConn(rawUrl string) (*grpc.ClientConn, error) {
 	return grpc.Dial(_url, opts...)
 }
 
-func NewClient(rawUrl string, ctx ...context.Context) (*Client, error) {
-	grpcConn, err := NewGrpcConn(rawUrl)
-	if err != nil {
-		return nil, err
-	}
-	cli := &Client{ClientConn: grpcConn}
+func NewClient(conn grpc1.ClientConn, ctx ...context.Context) *Client {
+	cli := &Client{ClientConn: conn}
 	if len(ctx) > 0 {
 		cli.ctx = ctx[0]
 	} else {
 		cli.ctx = context.Background()
 	}
-	return cli, nil
+	return cli
+}
+
+func DailClient(rawUrl string, ctx ...context.Context) (*Client, error) {
+	grpcConn, err := NewGrpcConn(rawUrl)
+	if err != nil {
+		return nil, err
+	}
+	return NewClient(grpcConn, ctx...), nil
 }
 
 func (cli *Client) WithContext(ctx context.Context) *Client {
@@ -247,6 +249,9 @@ func (cli *Client) GetBlockHeight() (int64, error) {
 }
 
 func (cli *Client) GetChainId() (string, error) {
+	if len(cli.chainId) > 0 {
+		return cli.chainId, nil
+	}
 	response, err := cli.TMServiceClient().GetLatestBlock(cli.ctx, &tmservice.GetLatestBlockRequest{})
 	if err != nil {
 		return "", err
@@ -301,6 +306,9 @@ func (cli *Client) GetStatusByTx(txHash string) (*tx.GetTxResponse, error) {
 }
 
 func (cli *Client) GetGasPrices() (sdk.Coins, error) {
+	if len(cli.gasPrices) > 0 {
+		return cli.gasPrices, nil
+	}
 	response, err := node.NewServiceClient(cli).Config(cli.ctx, &node.ConfigRequest{})
 	if err != nil {
 		return nil, err
@@ -331,6 +339,30 @@ func (cli *Client) GetAddressPrefix() (string, error) {
 	return "", errors.New("no found address prefix")
 }
 
+func (cli *Client) GetSyncing() (bool, error) {
+	response, err := cli.TMServiceClient().GetSyncing(cli.ctx, &tmservice.GetSyncingRequest{})
+	if err != nil {
+		return false, err
+	}
+	return response.Syncing, nil
+}
+
+func (cli *Client) GetNodeInfo() (*tmservice.VersionInfo, error) {
+	response, err := cli.TMServiceClient().GetNodeInfo(cli.ctx, &tmservice.GetNodeInfoRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return response.ApplicationVersion, nil
+}
+
+func (cli *Client) CurrentPlan() (*upgradetypes.Plan, error) {
+	response, err := cli.UpgradeQuery().CurrentPlan(cli.ctx, &upgradetypes.QueryCurrentPlanRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return response.Plan, nil
+}
+
 func (cli *Client) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
 	txBytes, err := proto.Marshal(raw)
 	if err != nil {
@@ -343,126 +375,8 @@ func (cli *Client) EstimatingGas(raw *tx.TxRaw) (*sdk.GasInfo, error) {
 	return response.GasInfo, nil
 }
 
-//gocyclo:ignore
 func (cli *Client) BuildTx(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
-	account, err := cli.QueryAccount(sdk.AccAddress(privKey.PubKey().Address()).String())
-	if err != nil {
-		return nil, err
-	}
-	if len(cli.chainId) <= 0 {
-		chainId, err := cli.GetChainId()
-		if err != nil {
-			return nil, err
-		}
-		cli.chainId = chainId
-	}
-
-	txBodyMessage := make([]*types.Any, 0)
-	for i := 0; i < len(msgs); i++ {
-		msgAnyValue, err := types.NewAnyWithValue(msgs[i])
-		if err != nil {
-			return nil, err
-		}
-		txBodyMessage = append(txBodyMessage, msgAnyValue)
-	}
-
-	txBody := &tx.TxBody{
-		Messages:                    txBodyMessage,
-		Memo:                        "",
-		TimeoutHeight:               0,
-		ExtensionOptions:            nil,
-		NonCriticalExtensionOptions: nil,
-	}
-	txBodyBytes, err := proto.Marshal(txBody)
-	if err != nil {
-		return nil, err
-	}
-
-	pubAny, err := types.NewAnyWithValue(privKey.PubKey())
-	if err != nil {
-		return nil, err
-	}
-
-	var gasPrice sdk.Coin
-	if len(cli.gasPrices) <= 0 {
-		gasPrices, err := cli.GetGasPrices()
-		if err != nil {
-			return nil, err
-		}
-		if len(gasPrices) > 0 {
-			gasPrice = gasPrices[0]
-		}
-	} else {
-		gasPrice = cli.gasPrices[0]
-	}
-
-	authInfo := &tx.AuthInfo{
-		SignerInfos: []*tx.SignerInfo{
-			{
-				PublicKey: pubAny,
-				ModeInfo: &tx.ModeInfo{
-					Sum: &tx.ModeInfo_Single_{
-						Single: &tx.ModeInfo_Single{Mode: signing.SignMode_SIGN_MODE_DIRECT},
-					},
-				},
-				Sequence: account.GetSequence(),
-			},
-		},
-		Fee: &tx.Fee{
-			Amount:   sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(DefGasLimit))),
-			GasLimit: uint64(DefGasLimit),
-			Payer:    "",
-			Granter:  "",
-		},
-	}
-
-	txAuthInfoBytes, err := proto.Marshal(authInfo)
-	if err != nil {
-		return nil, err
-	}
-	signDoc := &tx.SignDoc{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: txAuthInfoBytes,
-		ChainId:       cli.chainId,
-		AccountNumber: account.GetAccountNumber(),
-	}
-	signatures, err := proto.Marshal(signDoc)
-	if err != nil {
-		return nil, err
-	}
-	sign, err := privKey.Sign(signatures)
-	if err != nil {
-		return nil, err
-	}
-	gasInfo, err := cli.EstimatingGas(&tx.TxRaw{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: signDoc.AuthInfoBytes,
-		Signatures:    [][]byte{sign},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	authInfo.Fee.GasLimit = gasInfo.GasUsed * 12 / 10
-	authInfo.Fee.Amount = sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(int64(authInfo.Fee.GasLimit))))
-
-	signDoc.AuthInfoBytes, err = proto.Marshal(authInfo)
-	if err != nil {
-		return nil, err
-	}
-	signatures, err = proto.Marshal(signDoc)
-	if err != nil {
-		return nil, err
-	}
-	sign, err = privKey.Sign(signatures)
-	if err != nil {
-		return nil, err
-	}
-	return &tx.TxRaw{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: signDoc.AuthInfoBytes,
-		Signatures:    [][]byte{sign},
-	}, nil
+	return client.BuildTx(cli, privKey, msgs)
 }
 
 func (cli *Client) BroadcastTxOk(txRaw *tx.TxRaw, mode ...tx.BroadcastMode) (*sdk.TxResponse, error) {
@@ -533,40 +447,33 @@ func (cli *Client) TxByHash(txHash string) (*sdk.TxResponse, error) {
 	return resp.TxResponse, nil
 }
 
-func (cli *Client) BuildTxV3(privKey cryptotypes.PrivKey, msgs []sdk.Msg) (*tx.TxRaw, error) {
-	return cli.BuildTxV2(privKey, msgs, 0, "", 0)
-}
-
-func (cli *Client) BuildTxV2(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
-	return cli.BuildTxV1(privKey, sdk.AccAddress(privKey.PubKey().Address().Bytes()).String(), msgs, gasLimit, memo, timeout)
-}
-
-func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, from string, msgs []sdk.Msg, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
+func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
+	prefix, err := cli.GetAddressPrefix()
+	if err != nil {
+		return nil, err
+	}
+	from, err := bech32.ConvertAndEncode(prefix, privKey.PubKey().Address())
+	if err != nil {
+		return nil, err
+	}
 	account, err := cli.QueryAccount(from)
 	if err != nil {
 		return nil, err
 	}
-	chainId := cli.chainId
-	if len(chainId) <= 0 {
-		chainId, err = cli.GetChainId()
-		if err != nil {
-			return nil, err
-		}
+	chainId, err := cli.GetChainId()
+	if err != nil {
+		return nil, err
 	}
 	var gasPrice sdk.Coin
-	if len(cli.gasPrices) <= 0 {
-		gasPrices, err := cli.GetGasPrices()
-		if err != nil {
-			return nil, err
-		}
-		if len(gasPrices) > 0 {
-			gasPrice = gasPrices[0]
-		}
-	} else {
-		gasPrice = cli.gasPrices[0]
+	gasPrices, err := cli.GetGasPrices()
+	if err != nil {
+		return nil, err
+	}
+	if len(gasPrices) > 0 {
+		gasPrice = gasPrices[0]
 	}
 
-	txRaw, err := BuildTxV1(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
+	txRaw, err := client.BuildTxV1(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -577,82 +484,5 @@ func (cli *Client) BuildTxV1(privKey cryptotypes.PrivKey, from string, msgs []sd
 	if estimatingGas.GasUsed > uint64(gasLimit) {
 		gasLimit = int64(estimatingGas.GasUsed) + (int64(estimatingGas.GasUsed) * 2 / 10)
 	}
-	return BuildTxV1(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
-}
-
-func BuildTxV1(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin, gasLimit int64, memo string, timeout uint64) (*tx.TxRaw, error) {
-	txBodyMessage := make([]*types.Any, 0)
-	for i := 0; i < len(msgs); i++ {
-		msgAnyValue, err := types.NewAnyWithValue(msgs[i])
-		if err != nil {
-			return nil, err
-		}
-		txBodyMessage = append(txBodyMessage, msgAnyValue)
-	}
-
-	txBody := &tx.TxBody{
-		Messages:                    txBodyMessage,
-		Memo:                        memo,
-		TimeoutHeight:               timeout,
-		ExtensionOptions:            nil,
-		NonCriticalExtensionOptions: nil,
-	}
-	txBodyBytes, err := proto.Marshal(txBody)
-	if err != nil {
-		return nil, err
-	}
-
-	pubAny, err := types.NewAnyWithValue(privKey.PubKey())
-	if err != nil {
-		return nil, err
-	}
-
-	authInfo := &tx.AuthInfo{
-		SignerInfos: []*tx.SignerInfo{
-			{
-				PublicKey: pubAny,
-				ModeInfo: &tx.ModeInfo{
-					Sum: &tx.ModeInfo_Single_{
-						Single: &tx.ModeInfo_Single{Mode: signing.SignMode_SIGN_MODE_DIRECT},
-					},
-				},
-				Sequence: sequence,
-			},
-		},
-		Fee: &tx.Fee{
-			Amount:   sdk.NewCoins(sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.MulRaw(gasLimit))),
-			GasLimit: uint64(gasLimit),
-			Payer:    "",
-			Granter:  "",
-		},
-	}
-
-	txAuthInfoBytes, err := proto.Marshal(authInfo)
-	if err != nil {
-		return nil, err
-	}
-	signDoc := &tx.SignDoc{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: txAuthInfoBytes,
-		ChainId:       chainId,
-		AccountNumber: accountNumber,
-	}
-	signatures, err := proto.Marshal(signDoc)
-	if err != nil {
-		return nil, err
-	}
-	sign, err := privKey.Sign(signatures)
-	if err != nil {
-		return nil, err
-	}
-	return &tx.TxRaw{
-		BodyBytes:     txBodyBytes,
-		AuthInfoBytes: signDoc.AuthInfoBytes,
-		Signatures:    [][]byte{sign},
-	}, nil
-}
-
-// BuildTxV2 nolint
-func BuildTxV2(chainId string, sequence, accountNumber uint64, privKey cryptotypes.PrivKey, msgs []sdk.Msg, gasPrice sdk.Coin, gasLimit int64) (*tx.TxRaw, error) {
-	return BuildTxV1(chainId, sequence, accountNumber, privKey, msgs, gasPrice, gasLimit, "", 0)
+	return client.BuildTxV1(chainId, account.GetSequence(), account.GetAccountNumber(), privKey, msgs, gasPrice, gasLimit, memo, timeout)
 }
