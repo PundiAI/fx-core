@@ -23,7 +23,6 @@ import (
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/evmos/ethermint/server/config"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
@@ -162,12 +161,7 @@ func startInProcess(appConstructor AppConstructor, val *Validator) error {
 		tmRPCAddr := val.RPCAddress
 
 		clientCtx := val.ClientCtx.WithChainID(fxtypes.ChainIdWithEIP155())
-		val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, clientCtx, tmRPCAddr, tmEndpoint, &config.Config{
-			Config:  val.AppConfig.Config,
-			EVM:     val.AppConfig.EVM,
-			JSONRPC: val.AppConfig.JSONRPC,
-			TLS:     val.AppConfig.TLS,
-		}, nil)
+		val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, clientCtx, tmRPCAddr, tmEndpoint, val.AppConfig.ToEthermintConfig(), nil)
 		if err != nil {
 			return err
 		}

@@ -52,7 +52,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	fxserverconfig "github.com/functionx/fx-core/v3/server/config"
+	fxcfg "github.com/functionx/fx-core/v3/server/config"
 	fxtypes "github.com/functionx/fx-core/v3/types"
 )
 
@@ -192,7 +192,7 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().StringSlice(srvflags.JSONRPCAPI, ethermintconfig.GetDefaultAPINamespaces(), "Defines a list of JSON-RPC namespaces that should be enabled")
 	cmd.Flags().String(srvflags.JSONRPCAddress, ethermintconfig.DefaultJSONRPCAddress, "the JSON-RPC server address to listen on")
 	cmd.Flags().String(srvflags.JSONWsAddress, ethermintconfig.DefaultJSONRPCWsAddress, "the JSON-RPC WS server address to listen on")
-	cmd.Flags().Uint64(srvflags.JSONRPCGasCap, fxserverconfig.DefaultGasCap, "Sets a cap on gas that can be used in eth_call/estimateGas unit is aphoton (0=infinite)")
+	cmd.Flags().Uint64(srvflags.JSONRPCGasCap, fxcfg.DefaultGasCap, "Sets a cap on gas that can be used in eth_call/estimateGas unit is aphoton (0=infinite)")
 	cmd.Flags().Float64(srvflags.JSONRPCTxFeeCap, ethermintconfig.DefaultTxFeeCap, "Sets a cap on transaction fee that can be sent via the RPC APIs (1 = default 1 photon)")
 	cmd.Flags().Int32(srvflags.JSONRPCFilterCap, ethermintconfig.DefaultFilterCap, "Sets the global cap for total number of filters that can be created")
 	cmd.Flags().Duration(srvflags.JSONRPCEVMTimeout, ethermintconfig.DefaultEVMTimeout, "Sets a timeout used for eth_call (0=infinite)")
@@ -245,7 +245,7 @@ func startStandAlone(ctx *server.Context, appCreator types.AppCreator) error {
 
 	app := appCreator(ctx.Logger, db, traceWriter, ctx.Viper)
 
-	config, err := ethermintconfig.GetConfig(ctx.Viper)
+	config, err := fxcfg.GetConfig(ctx.Viper)
 	if err != nil {
 		ctx.Logger.Error("failed to get server config", "error", err.Error())
 		return err
@@ -256,7 +256,7 @@ func startStandAlone(ctx *server.Context, appCreator types.AppCreator) error {
 		return err
 	}
 
-	_, err = startTelemetry(config)
+	_, err = startTelemetry(config.Telemetry)
 	if err != nil {
 		return err
 	}
@@ -310,7 +310,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		return err
 	}
 
-	config, err := ethermintconfig.GetConfig(ctx.Viper)
+	config, err := fxcfg.GetConfig(ctx.Viper)
 	if err != nil {
 		logger.Error("failed to get server config", "error", err.Error())
 		return err
@@ -383,7 +383,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		}
 	}
 
-	metrics, err := startTelemetry(config)
+	metrics, err := startTelemetry(config.Telemetry)
 	if err != nil {
 		return err
 	}
@@ -534,7 +534,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 		tmEndpoint := "/websocket"
 		tmRPCAddr := cfg.RPC.ListenAddress
-		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, ethClientCtx, tmRPCAddr, tmEndpoint, &config, idxer)
+		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, ethClientCtx, tmRPCAddr, tmEndpoint, config.ToEthermintConfig(), idxer)
 		if err != nil {
 			return err
 		}
@@ -631,11 +631,11 @@ func openTraceWriter(traceWriterFile string) (w io.Writer, err error) {
 	)
 }
 
-func startTelemetry(cfg ethermintconfig.Config) (*telemetry.Metrics, error) {
-	if !cfg.Telemetry.Enabled {
+func startTelemetry(cfg telemetry.Config) (*telemetry.Metrics, error) {
+	if !cfg.Enabled {
 		return nil, nil
 	}
-	return telemetry.New(cfg.Telemetry)
+	return telemetry.New(cfg)
 }
 
 // wrapCPUProfile runs callback in a goroutine, then wait for quit signals.

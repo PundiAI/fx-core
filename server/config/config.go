@@ -1,8 +1,11 @@
 package config
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/server/config"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	ethermintconfig "github.com/evmos/ethermint/server/config"
+	"github.com/spf13/viper"
 )
 
 // BypassMinFee defines custom that will bypass minimum fee checks during CheckTx.
@@ -30,6 +33,46 @@ type Config struct {
 	EVM     ethermintconfig.EVMConfig     `mapstructure:"evm"`
 	JSONRPC ethermintconfig.JSONRPCConfig `mapstructure:"json-rpc"`
 	TLS     ethermintconfig.TLSConfig     `mapstructure:"tls"`
+}
+
+func GetConfig(v *viper.Viper) (*Config, error) {
+	cfg, err := ethermintconfig.GetConfig(v)
+	if err != nil {
+		return nil, err
+	}
+	return &Config{
+		Config:       cfg.Config,
+		BypassMinFee: BypassMinFee{},
+		EVM:          cfg.EVM,
+		JSONRPC:      cfg.JSONRPC,
+		TLS:          cfg.TLS,
+	}, nil
+}
+
+// ValidateBasic returns an error any of the application configuration fields are invalid
+func (c *Config) ValidateBasic() error {
+	if err := c.EVM.Validate(); err != nil {
+		return errorsmod.Wrapf(errortypes.ErrAppConfig, "invalid evm config value: %s", err.Error())
+	}
+
+	if err := c.JSONRPC.Validate(); err != nil {
+		return errorsmod.Wrapf(errortypes.ErrAppConfig, "invalid json-rpc config value: %s", err.Error())
+	}
+
+	if err := c.TLS.Validate(); err != nil {
+		return errorsmod.Wrapf(errortypes.ErrAppConfig, "invalid tls config value: %s", err.Error())
+	}
+
+	return c.Config.ValidateBasic()
+}
+
+func (c *Config) ToEthermintConfig() *ethermintconfig.Config {
+	return &ethermintconfig.Config{
+		Config:  c.Config,
+		EVM:     c.EVM,
+		JSONRPC: c.JSONRPC,
+		TLS:     c.TLS,
+	}
 }
 
 // AppConfig helps to override default appConfig template and configs.
