@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -45,7 +44,8 @@ func doctorCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			needUpgrade, err := checkBlockchainData(clientCtx, network, upgradeInfo)
+			bc := getBlockchain(clientCtx, serverCtx)
+			needUpgrade, err := checkBlockchainData(bc, network, upgradeInfo)
 			if err != nil {
 				return err
 			}
@@ -144,43 +144,63 @@ func checkUpgradeInfo(homeDir string) (*upgradetypes.Plan, error) {
 	return upgradeInfo, nil
 }
 
-func checkBlockchainData(cliCtx client.Context, network string, upgradeInfo *upgradetypes.Plan) (bool, error) {
+type blockchain interface {
+	GetChainId() (string, error)
+	GetBlockHeight() (int64, error)
+	GetSyncing() (bool, error)
+	GetNodeInfo() (*tmservice.VersionInfo, error)
+	CurrentPlan() (*upgradetypes.Plan, error)
+}
+
+func getBlockchain(cliCtx client.Context, serverCtx *server.Context) blockchain {
+	newClient := grpc.NewClient(cliCtx)
+	_, err := newClient.GetBlockHeight()
+	if err == nil {
+		fmt.Printf("\tRemote Node: %v or %v\n", cliCtx.Viper.Get(flags.FlagGRPC), cliCtx.Viper.Get(flags.FlagNode))
+		return newClient
+	} else {
+		fmt.Printf("\tRemote Node: %s/datas\n", serverCtx.Config.RootDir)
+		// TODO implement me
+		panic("implement me")
+	}
+}
+
+//gocyclo:ignore
+func checkBlockchainData(n blockchain, network string, upgradeInfo *upgradetypes.Plan) (bool, error) {
 	fmt.Println("Blockchain Data:")
-	fmt.Printf("\tRemote Node: %v or %v\n", cliCtx.Viper.Get(flags.FlagGRPC), cliCtx.Viper.Get(flags.FlagNode))
-	cli := grpc.NewClient(cliCtx)
-	chainId, err := cli.GetChainId()
+	chainId, err := n.GetChainId()
 	if err != nil {
 		return false, err
 	}
 	fmt.Println("\tChain ID: ", chainId)
-	blockHeight, err := cli.GetBlockHeight()
+	blockHeight, err := n.GetBlockHeight()
 	if err != nil {
 		return false, err
 	}
 	fmt.Printf("\tBlock Height: %d\n", blockHeight)
-	response, err := cli.TMServiceClient().GetSyncing(context.Background(), &tmservice.GetSyncingRequest{})
+	syncing, err := n.GetSyncing()
 	if err != nil {
 		return false, nil
 	}
-	fmt.Println("\tSyncing: ", response.Syncing)
-	infoResponse, err := cli.TMServiceClient().GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})
+	fmt.Println("\tSyncing: ", syncing)
+	app, err := n.GetNodeInfo()
 	if err != nil {
 		return false, nil
 	}
-	fmt.Println("\tNode Info: ", response.Syncing)
-	fmt.Println("\t\tVersion: ", infoResponse.ApplicationVersion.Version)
-	fmt.Println("\t\tGit Commit: ", infoResponse.ApplicationVersion.GitCommit)
-	fmt.Println("\t\tBuild Tags: ", infoResponse.ApplicationVersion.BuildTags)
-	fmt.Println("\t\tGo Version: ", infoResponse.ApplicationVersion.GoVersion)
-	fmt.Println("\t\tCosmos SDK Version: ", infoResponse.ApplicationVersion.CosmosSdkVersion)
-	resp, err := cli.UpgradeQuery().CurrentPlan(context.Background(), &upgradetypes.QueryCurrentPlanRequest{})
+	fmt.Println("\tNode Info: ")
+	fmt.Println("\t\tVersion: ", app.Version)
+	fmt.Println("\t\tGit Commit: ", app.GitCommit)
+	fmt.Println("\t\tBuild Tags: ", app.BuildTags)
+	fmt.Println("\t\tGo Version: ", app.GoVersion)
+	fmt.Println("\t\tCosmos SDK Version: ", app.CosmosSdkVersion)
+	plan, err := n.CurrentPlan()
 	if err != nil {
 		return false, err
 	}
-	if resp.Plan != nil && !resp.Plan.Equal(upgradeInfo) {
+	if plan != nil && !plan.Equal(upgradeInfo) {
 		fmt.Println("\tUpgrade Plan:")
-		fmt.Println("\t\tName: ", resp.Plan.Name)
-		fmt.Println("\t\tHeight: ", resp.Plan.Height)
+		fmt.Println("\t\tName: ", plan.Name)
+		fmt.Println("\t\tHeight: ", plan.Height)
 	}
 	if chainId != network {
 		fmt.Printf("\tWarn: The remote node chainId(%s) does not match the local genesis chainId(%s)\n", chainId, network)
@@ -203,7 +223,7 @@ func checkBlockchainData(cliCtx client.Context, network string, upgradeInfo *upg
 		}
 		fmt.Println("Version: V3")
 	}
-	return resp.Plan != nil && response.Syncing, nil
+	return plan != nil && syncing, nil
 }
 
 func checkAppConfig(viper *viper.Viper) error {
