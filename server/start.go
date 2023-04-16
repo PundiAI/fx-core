@@ -48,7 +48,6 @@ import (
 	"github.com/tendermint/tendermint/rpc/client/local"
 	"github.com/tendermint/tendermint/store"
 	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -227,7 +226,7 @@ func startStandAlone(ctx *server.Context, appCreator types.AppCreator) error {
 	transport := ctx.Viper.GetString(srvflags.Transport)
 	home := ctx.Viper.GetString(flags.FlagHome)
 
-	db, err := openDB(home, server.GetAppDBBackend(ctx.Viper))
+	db, err := openDB(AppDBName, server.GetAppDBBackend(ctx.Viper), home)
 	if err != nil {
 		return err
 	}
@@ -291,7 +290,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	home := cfg.RootDir
 	logger := ctx.Logger
 
-	db, err := openDB(home, server.GetAppDBBackend(ctx.Viper))
+	db, err := openDB(AppDBName, server.GetAppDBBackend(ctx.Viper), home)
 	if err != nil {
 		logger.Error("failed to open DB", "error", err.Error())
 		return err
@@ -611,11 +610,6 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	}
 	// Wait for SIGINT or SIGTERM signal
 	return server.WaitForQuitSignals()
-}
-
-func openDB(rootDir string, backendType dbm.BackendType) (dbm.DB, error) {
-	dataDir := filepath.Join(rootDir, "data")
-	return dbm.NewDB("application", backendType, dataDir)
 }
 
 func openTraceWriter(traceWriterFile string) (w io.Writer, err error) {
