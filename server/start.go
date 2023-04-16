@@ -51,8 +51,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	fxcfg "github.com/functionx/fx-core/v3/server/config"
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxcfg "github.com/functionx/fx-core/v4/server/config"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 // StartCmd runs the service passed in, either stand-alone or in-process with

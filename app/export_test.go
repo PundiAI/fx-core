@@ -21,11 +21,11 @@ import (
 	"github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/testutil"
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	"github.com/functionx/fx-core/v3/testutil/network"
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v4/testutil"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	"github.com/functionx/fx-core/v4/testutil/network"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 func TestUseExportGenesisDataRunNode(t *testing.T) {

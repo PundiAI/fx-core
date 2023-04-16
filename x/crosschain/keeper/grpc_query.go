@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
 )
 
 var _ types.QueryServer = Keeper{}

@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_CreateContractWithCode() {

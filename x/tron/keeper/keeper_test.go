@@ -14,12 +14,12 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	tronkeeper "github.com/functionx/fx-core/v3/x/tron/keeper"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	"github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
+	tronkeeper "github.com/functionx/fx-core/v4/x/tron/keeper"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 type KeeperTestSuite struct {

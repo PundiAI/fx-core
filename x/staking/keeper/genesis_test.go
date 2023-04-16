@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	"github.com/functionx/fx-core/v3/x/staking/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	"github.com/functionx/fx-core/v4/x/staking/types"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {

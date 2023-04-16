@@ -18,11 +18,11 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	etherminttypes "github.com/evmos/ethermint/types"
 
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
-	fxgovtypes "github.com/functionx/fx-core/v3/x/gov/types"
-	gravitytypes "github.com/functionx/fx-core/v3/x/gravity/types"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	fxevmtypes "github.com/functionx/fx-core/v4/x/evm/types"
+	fxgovtypes "github.com/functionx/fx-core/v4/x/gov/types"
+	gravitytypes "github.com/functionx/fx-core/v4/x/gravity/types"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.

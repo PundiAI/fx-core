@@ -4,8 +4,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) TestParams() {

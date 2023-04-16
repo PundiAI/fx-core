@@ -13,8 +13,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/evmos/ethermint/tests"
 
-	"github.com/functionx/fx-core/v3/ante"
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v4/ante"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 func (suite *AnteTestSuite) TestMempoolFeeDecorator() {

@@ -7,7 +7,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/spf13/cobra"
 
-	"github.com/functionx/fx-core/v3/app/keepers"
+	"github.com/functionx/fx-core/v4/app/keepers"
 )
 
 // Upgrade defines a struct containing necessary fields that a SoftwareUpgradeProposal

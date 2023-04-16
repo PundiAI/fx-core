@@ -8,9 +8,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	crosschainkeeper "github.com/functionx/fx-core/v4/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 var _ crosschaintypes.MsgServer = msgServer{}

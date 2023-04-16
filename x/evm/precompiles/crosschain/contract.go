@@ -10,8 +10,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v4/x/evm/types"
 )
 
 type Contract struct {

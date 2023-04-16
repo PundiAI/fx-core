@@ -4,11 +4,11 @@ package keeper
 import (
 	"context"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	"github.com/functionx/fx-core/v3/x/gravity/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	crosschainkeeper "github.com/functionx/fx-core/v4/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	"github.com/functionx/fx-core/v4/x/gravity/types"
 )
 
 type queryServer struct {

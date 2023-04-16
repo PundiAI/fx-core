@@ -10,7 +10,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v3/x/erc20/types"
+	"github.com/functionx/fx-core/v4/x/erc20/types"
 )
 
 func BenchmarkSingleParseEventLog(b *testing.B) {

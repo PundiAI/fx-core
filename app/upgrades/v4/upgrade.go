@@ -16,11 +16,11 @@ import (
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 
-	"github.com/functionx/fx-core/v3/app/keepers"
-	fxcfg "github.com/functionx/fx-core/v3/server/config"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	erc20keeper "github.com/functionx/fx-core/v3/x/erc20/keeper"
-	"github.com/functionx/fx-core/v3/x/gov/keeper"
+	"github.com/functionx/fx-core/v4/app/keepers"
+	fxcfg "github.com/functionx/fx-core/v4/server/config"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	erc20keeper "github.com/functionx/fx-core/v4/x/erc20/keeper"
+	"github.com/functionx/fx-core/v4/x/gov/keeper"
 )
 
 func createUpgradeHandler(

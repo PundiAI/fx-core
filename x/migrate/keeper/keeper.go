@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/functionx/fx-core/v3/x/migrate/types"
+	"github.com/functionx/fx-core/v4/x/migrate/types"
 )
 
 // secp256k1

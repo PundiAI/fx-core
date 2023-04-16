@@ -16,10 +16,10 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	"github.com/functionx/fx-core/v3/x/gov/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	"github.com/functionx/fx-core/v4/x/gov/types"
 )
 
 func (suite *KeeperTestSuite) TestSubmitProposal() {

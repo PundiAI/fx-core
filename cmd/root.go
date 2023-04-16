@@ -33,17 +33,17 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/client/cli"
-	fxserver "github.com/functionx/fx-core/v3/server"
-	fxcfg "github.com/functionx/fx-core/v3/server/config"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	avalanchecli "github.com/functionx/fx-core/v3/x/avalanche/client/cli"
-	bsccli "github.com/functionx/fx-core/v3/x/bsc/client/cli"
-	crosschaincli "github.com/functionx/fx-core/v3/x/crosschain/client/cli"
-	ethcli "github.com/functionx/fx-core/v3/x/eth/client/cli"
-	polygoncli "github.com/functionx/fx-core/v3/x/polygon/client/cli"
-	troncli "github.com/functionx/fx-core/v3/x/tron/client/cli"
+	"github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v4/client/cli"
+	fxserver "github.com/functionx/fx-core/v4/server"
+	fxcfg "github.com/functionx/fx-core/v4/server/config"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	avalanchecli "github.com/functionx/fx-core/v4/x/avalanche/client/cli"
+	bsccli "github.com/functionx/fx-core/v4/x/bsc/client/cli"
+	crosschaincli "github.com/functionx/fx-core/v4/x/crosschain/client/cli"
+	ethcli "github.com/functionx/fx-core/v4/x/eth/client/cli"
+	polygoncli "github.com/functionx/fx-core/v4/x/polygon/client/cli"
+	troncli "github.com/functionx/fx-core/v4/x/tron/client/cli"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the

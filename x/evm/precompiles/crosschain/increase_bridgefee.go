@@ -11,9 +11,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	"github.com/functionx/fx-core/v3/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
+	"github.com/functionx/fx-core/v4/x/evm/types"
 )
 
 var (

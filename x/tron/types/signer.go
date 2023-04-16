@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fbsobreira/gotron-sdk/pkg/address"
 
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
 )
 
 const tronSignaturePrefix = "\x19TRON Signed Message:\n32"

@@ -17,9 +17,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	"github.com/functionx/fx-core/v3/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	"github.com/functionx/fx-core/v4/x/evm/types"
 )
 
 var (

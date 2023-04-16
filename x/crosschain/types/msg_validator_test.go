@@ -14,15 +14,15 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	_ "github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	_ "github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	avalanchetypes "github.com/functionx/fx-core/v4/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	polygontypes "github.com/functionx/fx-core/v4/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 const (

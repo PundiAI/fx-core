@@ -6,8 +6,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
+	migratekeeper "github.com/functionx/fx-core/v4/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateBank() {

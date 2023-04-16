@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/crosschain"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v4/x/crosschain"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {

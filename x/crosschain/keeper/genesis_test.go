@@ -10,10 +10,10 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	"github.com/functionx/fx-core/v4/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
 )
 
 // Tests that batches and transactions are preserved during chain restart

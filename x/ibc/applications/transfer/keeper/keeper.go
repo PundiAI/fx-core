@@ -12,8 +12,8 @@ import (
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/tendermint/tendermint/libs/log"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v4/x/ibc/applications/transfer/types"
 )
 
 // Keeper defines the IBC fungible transfer keeper

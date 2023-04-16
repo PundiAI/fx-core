@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/functionx/fx-core/v3/x/evm/types"
+	"github.com/functionx/fx-core/v4/x/evm/types"
 )
 
 // LogProcessEvmHook is an evm hook that convert specific contract logs into native module calls

@@ -38,13 +38,13 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v3/app"
-	fxserverconfig "github.com/functionx/fx-core/v3/server/config"
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	"github.com/functionx/fx-core/v3/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
+	"github.com/functionx/fx-core/v4/app"
+	fxserverconfig "github.com/functionx/fx-core/v4/server/config"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
+	"github.com/functionx/fx-core/v4/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
 )
 
 type KeeperTestSuite struct {

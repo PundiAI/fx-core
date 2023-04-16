@@ -11,7 +11,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 var (

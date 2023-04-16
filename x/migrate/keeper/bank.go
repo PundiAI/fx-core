@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
+	migratetypes "github.com/functionx/fx-core/v4/x/migrate/types"
 )
 
 type BankMigrate struct {

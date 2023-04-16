@@ -20,17 +20,17 @@ import (
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	fxtransfer "github.com/functionx/fx-core/v3/x/ibc/applications/transfer"
-	fxtransfertypes "github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
-	fxibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
-	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	avalanchetypes "github.com/functionx/fx-core/v4/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
+	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	fxtransfer "github.com/functionx/fx-core/v4/x/ibc/applications/transfer"
+	fxtransfertypes "github.com/functionx/fx-core/v4/x/ibc/applications/transfer/types"
+	fxibctesting "github.com/functionx/fx-core/v4/x/ibc/testing"
+	polygontypes "github.com/functionx/fx-core/v4/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestSendTransfer() {

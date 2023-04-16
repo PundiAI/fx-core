@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 // NewTokenPair returns an instance of TokenPair

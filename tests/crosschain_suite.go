@@ -15,10 +15,10 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 type CrosschainTestSuite struct {

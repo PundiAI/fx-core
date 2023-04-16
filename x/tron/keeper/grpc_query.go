@@ -7,8 +7,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	"github.com/functionx/fx-core/v3/x/tron/types"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
+	"github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 var _ crosschaintypes.QueryServer = Keeper{}

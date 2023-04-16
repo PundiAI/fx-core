@@ -14,7 +14,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 // ChainIDPrefix defines the default chain ID prefix for Evmos test chains

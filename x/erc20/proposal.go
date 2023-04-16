@@ -7,8 +7,8 @@ import (
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/functionx/fx-core/v3/x/erc20/keeper"
-	"github.com/functionx/fx-core/v3/x/erc20/types"
+	"github.com/functionx/fx-core/v4/x/erc20/keeper"
+	"github.com/functionx/fx-core/v4/x/erc20/types"
 )
 
 // NewErc20ProposalHandler creates a governance handler to manage new proposal types.

@@ -25,9 +25,9 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	fxstakingtypes "github.com/functionx/fx-core/v3/x/staking/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	fxstakingtypes "github.com/functionx/fx-core/v4/x/staking/types"
 )
 
 const (

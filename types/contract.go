@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v3/types/contract"
+	"github.com/functionx/fx-core/v4/types/contract"
 )
 
 const (

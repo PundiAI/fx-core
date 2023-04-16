@@ -15,10 +15,10 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v3/app"
-	v4 "github.com/functionx/fx-core/v3/app/upgrades/v4"
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v4/app"
+	v4 "github.com/functionx/fx-core/v4/app/upgrades/v4"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 func Test_Upgrade(t *testing.T) {

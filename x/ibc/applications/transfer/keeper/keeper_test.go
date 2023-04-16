@@ -8,9 +8,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	"github.com/functionx/fx-core/v3/x/ibc/applications/transfer/types"
-	fxibctesting "github.com/functionx/fx-core/v3/x/ibc/testing"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	"github.com/functionx/fx-core/v4/x/ibc/applications/transfer/types"
+	fxibctesting "github.com/functionx/fx-core/v4/x/ibc/testing"
 )
 
 type KeeperTestSuite struct {

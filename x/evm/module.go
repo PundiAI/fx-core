@@ -12,9 +12,9 @@ import (
 	"github.com/evmos/ethermint/x/evm/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/x/evm/keeper"
-	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v4/x/evm/keeper"
+	fxevmtypes "github.com/functionx/fx-core/v4/x/evm/types"
 )
 
 var (

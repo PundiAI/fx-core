@@ -14,10 +14,10 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v3/x/bsc/client/cli"
-	"github.com/functionx/fx-core/v3/x/bsc/types"
-	crosschainkeeper "github.com/functionx/fx-core/v3/x/crosschain/keeper"
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v4/x/bsc/client/cli"
+	"github.com/functionx/fx-core/v4/x/bsc/types"
+	crosschainkeeper "github.com/functionx/fx-core/v4/x/crosschain/keeper"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
 )
 
 // type check to ensure the interface is properly implemented

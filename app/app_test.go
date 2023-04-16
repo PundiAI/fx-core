@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
 )
 
 func TestUpgradeStateOnGenesis(t *testing.T) {

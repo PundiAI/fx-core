@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
 )
 
 func RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {

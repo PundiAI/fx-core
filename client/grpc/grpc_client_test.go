@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/functionx/fx-core/v3/client/grpc"
+	"github.com/functionx/fx-core/v4/client/grpc"
 )
 
 func TestClient_QueryBalances(t *testing.T) {

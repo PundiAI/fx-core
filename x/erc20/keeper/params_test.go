@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"time"
 
-	"github.com/functionx/fx-core/v3/x/erc20/types"
+	"github.com/functionx/fx-core/v4/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestParams() {

@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 type IntegrationTest struct {

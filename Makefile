@@ -226,7 +226,7 @@ update-swagger-docs: proto-swagger-gen statik
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/functionx/fx-core/v3
+PACKAGE_NAME:=github.com/functionx/fx-core/v4
 GOLANG_CROSS_VERSION  = v1.18
 GOPATH ?= '$(HOME)/go'
 release-dry-run:

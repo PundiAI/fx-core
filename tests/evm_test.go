@@ -15,10 +15,10 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v3/client"
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	"github.com/functionx/fx-core/v3/types"
-	fxevmtypes "github.com/functionx/fx-core/v3/x/evm/types"
+	"github.com/functionx/fx-core/v4/client"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	"github.com/functionx/fx-core/v4/types"
+	fxevmtypes "github.com/functionx/fx-core/v4/x/evm/types"
 )
 
 func (suite *IntegrationTest) WFXTest() {

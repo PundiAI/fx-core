@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
 )
 
 func TestGetBatchConfirmKey(t *testing.T) {

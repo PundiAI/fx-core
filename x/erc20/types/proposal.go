@@ -10,7 +10,7 @@ import (
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 // constants

@@ -1,4 +1,4 @@
-module github.com/functionx/fx-core/v3
+module github.com/functionx/fx-core/v4
 
 go 1.18
 

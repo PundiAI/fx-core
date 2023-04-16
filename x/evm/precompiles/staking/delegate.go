@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v3/x/evm/types"
+	"github.com/functionx/fx-core/v4/x/evm/types"
 )
 
 var (

@@ -16,17 +16,17 @@ import (
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/app/keepers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	arbitrumtypes "github.com/functionx/fx-core/v3/x/arbitrum/types"
-	avalanchetypes "github.com/functionx/fx-core/v3/x/avalanche/types"
-	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	ethtypes "github.com/functionx/fx-core/v3/x/eth/types"
-	optimismtypes "github.com/functionx/fx-core/v3/x/optimism/types"
-	polygontypes "github.com/functionx/fx-core/v3/x/polygon/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	"github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v4/app/keepers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	arbitrumtypes "github.com/functionx/fx-core/v4/x/arbitrum/types"
+	avalanchetypes "github.com/functionx/fx-core/v4/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
+	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	optimismtypes "github.com/functionx/fx-core/v4/x/optimism/types"
+	polygontypes "github.com/functionx/fx-core/v4/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 func TestNewAppKeeper(t *testing.T) {

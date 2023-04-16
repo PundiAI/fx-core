@@ -8,8 +8,8 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	govv1betal "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/functionx/fx-core/v3/x/crosschain/keeper"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v4/x/crosschain/keeper"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
 )
 
 // NewChainProposalHandler

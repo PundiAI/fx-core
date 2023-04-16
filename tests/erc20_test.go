@@ -15,12 +15,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/functionx/fx-core/v3/client"
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	crosschaintypes "github.com/functionx/fx-core/v3/x/crosschain/types"
-	erc20types "github.com/functionx/fx-core/v3/x/erc20/types"
-	trontypes "github.com/functionx/fx-core/v3/x/tron/types"
+	"github.com/functionx/fx-core/v4/client"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 func (suite *IntegrationTest) ERC20Test() {

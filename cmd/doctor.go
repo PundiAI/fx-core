@@ -20,9 +20,9 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/functionx/fx-core/v3/client/grpc"
-	fxcfg "github.com/functionx/fx-core/v3/server/config"
-	fxtypes "github.com/functionx/fx-core/v3/types"
+	"github.com/functionx/fx-core/v4/client/grpc"
+	fxcfg "github.com/functionx/fx-core/v4/server/config"
+	fxtypes "github.com/functionx/fx-core/v4/types"
 )
 
 func doctorCmd() *cobra.Command {

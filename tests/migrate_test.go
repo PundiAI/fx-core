@@ -16,9 +16,9 @@ import (
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	migratetypes "github.com/functionx/fx-core/v3/x/migrate/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	migratetypes "github.com/functionx/fx-core/v4/x/migrate/types"
 )
 
 func (suite *IntegrationTest) migrateAccount(fromPrivateKey, toPrivateKey cryptotypes.PrivKey) {

@@ -15,10 +15,10 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/functionx/fx-core/v3/client"
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	"github.com/functionx/fx-core/v3/types/contract"
+	"github.com/functionx/fx-core/v4/client"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	"github.com/functionx/fx-core/v4/types/contract"
 )
 
 type EvmTestSuite struct {

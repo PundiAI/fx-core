@@ -19,8 +19,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/functionx/fx-core/v3/x/gov/keeper"
-	"github.com/functionx/fx-core/v3/x/gov/types"
+	"github.com/functionx/fx-core/v4/x/gov/keeper"
+	"github.com/functionx/fx-core/v4/x/gov/types"
 )
 
 var (

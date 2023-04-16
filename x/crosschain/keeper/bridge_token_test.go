@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	"github.com/functionx/fx-core/v3/x/crosschain/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	"github.com/functionx/fx-core/v4/x/crosschain/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_BridgeToken() {

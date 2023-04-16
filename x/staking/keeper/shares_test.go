@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"math/big"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
 )
 
 func (suite *KeeperTestSuite) TestAllowance() {

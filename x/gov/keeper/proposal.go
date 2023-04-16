@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	fxgovtypes "github.com/functionx/fx-core/v3/x/gov/types"
+	fxgovtypes "github.com/functionx/fx-core/v4/x/gov/types"
 )
 
 // SubmitProposal creates a new proposal given an array of messages

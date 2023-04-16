@@ -18,9 +18,9 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/functionx/fx-core/v3/testutil/helpers"
-	"github.com/functionx/fx-core/v3/types"
-	fxstakingtypes "github.com/functionx/fx-core/v3/x/staking/types"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
+	"github.com/functionx/fx-core/v4/types"
+	fxstakingtypes "github.com/functionx/fx-core/v4/x/staking/types"
 )
 
 var DefaultTestingAppInit = helpers.SetupTestingApp

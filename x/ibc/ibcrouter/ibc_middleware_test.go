@@ -7,9 +7,9 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/functionx/fx-core/v3/app"
-	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter"
-	"github.com/functionx/fx-core/v3/x/ibc/ibcrouter/parser"
+	_ "github.com/functionx/fx-core/v4/app"
+	"github.com/functionx/fx-core/v4/x/ibc/ibcrouter"
+	"github.com/functionx/fx-core/v4/x/ibc/ibcrouter/parser"
 )
 
 func TestParseIncomingTransferField(t *testing.T) {

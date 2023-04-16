@@ -23,10 +23,10 @@ import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/functionx/fx-core/v3/app"
-	fxtypes "github.com/functionx/fx-core/v3/types"
-	bsctypes "github.com/functionx/fx-core/v3/x/bsc/types"
-	migratekeeper "github.com/functionx/fx-core/v3/x/migrate/keeper"
+	"github.com/functionx/fx-core/v4/app"
+	fxtypes "github.com/functionx/fx-core/v4/types"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
+	migratekeeper "github.com/functionx/fx-core/v4/x/migrate/keeper"
 )
 
 func (suite *KeeperTestSuite) TestMigrateStakingDelegate() {
