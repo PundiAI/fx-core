@@ -106,10 +106,10 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"channel capability not found",
 			func() {
-				cap := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				capability := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				// Release channel capability
-				err := suite.GetApp(suite.chainA.App).ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), cap)
+				err := suite.GetApp(suite.chainA.App).ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), capability)
 				suite.Require().NoError(err)
 			}, false,
 		},

@@ -22,7 +22,7 @@ func newMockSubspace(ps types.Params) mockSubspace {
 	return mockSubspace{ps: ps}
 }
 
-func (ms mockSubspace) GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet) {
+func (ms mockSubspace) GetParamSet(_ sdk.Context, ps paramtypes.ParamSet) {
 	*ps.(*types.Params) = ms.ps
 }
 
@@ -30,7 +30,7 @@ func (ms mockSubspace) HasKeyTable() bool {
 	return false
 }
 
-func (ms mockSubspace) WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace {
+func (ms mockSubspace) WithKeyTable(_ paramtypes.KeyTable) paramtypes.Subspace {
 	return paramtypes.Subspace{}
 }
 

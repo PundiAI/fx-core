@@ -256,14 +256,14 @@ func (suite *IntegrationTest) EVMWeb3Test() {
 			wantRes:  []interface{}{big.NewInt(62500000000), nil},
 		},
 	}
-	client := suite.evm.EthClient()
+	ethClient := suite.evm.EthClient()
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			typeOf := reflect.TypeOf(client)
+			typeOf := reflect.TypeOf(ethClient)
 			method, is := typeOf.MethodByName(tt.funcName)
 			suite.True(is)
 			params := make([]reflect.Value, len(tt.params)+2)
-			params[0] = reflect.ValueOf(client)
+			params[0] = reflect.ValueOf(ethClient)
 			params[1] = reflect.ValueOf(suite.ctx)
 			for i := 2; i < len(params); i++ {
 				p := tt.params[i-2]

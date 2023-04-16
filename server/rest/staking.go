@@ -16,100 +16,54 @@ import (
 // RegisterStakingRESTRoutes
 // Deprecated
 func RegisterStakingRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	r := WithHTTPDeprecationHeaders(rtr)
-	registerStakingQueryRoutes(clientCtx, r)
+	registerStakingQueryRoutes(clientCtx, WithHTTPDeprecationHeaders(rtr))
 }
 
 func registerStakingQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	// Get all delegations from a delegator
-	r.HandleFunc(
-		"/staking/delegators/{delegatorAddr}/delegations",
-		delegatorDelegationsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/delegators/{delegatorAddr}/delegations", delegatorDelegationsHandlerFn(clientCtx)).Methods("GET")
 
 	// Get all unbonding delegations from a delegator
-	r.HandleFunc(
-		"/staking/delegators/{delegatorAddr}/unbonding_delegations",
-		delegatorUnbondingDelegationsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/delegators/{delegatorAddr}/unbonding_delegations", delegatorUnbondingDelegationsHandlerFn(clientCtx)).Methods("GET")
 
 	// Get all staking txs (i.e msgs) from a delegator
-	r.HandleFunc(
-		"/staking/delegators/{delegatorAddr}/txs",
-		delegatorTxsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/delegators/{delegatorAddr}/txs", delegatorTxsHandlerFn(clientCtx)).Methods("GET")
 
 	// Query all validators that a delegator is bonded to
-	r.HandleFunc(
-		"/staking/delegators/{delegatorAddr}/validators",
-		delegatorValidatorsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/delegators/{delegatorAddr}/validators", delegatorValidatorsHandlerFn(clientCtx)).Methods("GET")
 
 	// Query a validator that a delegator is bonded to
-	r.HandleFunc(
-		"/staking/delegators/{delegatorAddr}/validators/{validatorAddr}",
-		delegatorValidatorHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/delegators/{delegatorAddr}/validators/{validatorAddr}", delegatorValidatorHandlerFn(clientCtx)).Methods("GET")
 
 	// Query a delegation between a delegator and a validator
-	r.HandleFunc(
-		"/staking/delegators/{delegatorAddr}/delegations/{validatorAddr}",
-		delegationHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/delegators/{delegatorAddr}/delegations/{validatorAddr}", delegationHandlerFn(clientCtx)).Methods("GET")
 
 	// Query all unbonding delegations between a delegator and a validator
-	r.HandleFunc(
-		"/staking/delegators/{delegatorAddr}/unbonding_delegations/{validatorAddr}",
-		unbondingDelegationHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/delegators/{delegatorAddr}/unbonding_delegations/{validatorAddr}", unbondingDelegationHandlerFn(clientCtx)).Methods("GET")
 
 	// Query redelegations (filters in query params)
-	r.HandleFunc(
-		"/staking/redelegations",
-		redelegationsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/redelegations", redelegationsHandlerFn(clientCtx)).Methods("GET")
 
 	// Get all validators
-	r.HandleFunc(
-		"/staking/validators",
-		validatorsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/validators", validatorsHandlerFn(clientCtx)).Methods("GET")
 
 	// Get a single validator info
-	r.HandleFunc(
-		"/staking/validators/{validatorAddr}",
-		validatorHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/validators/{validatorAddr}", validatorHandlerFn(clientCtx)).Methods("GET")
 
 	// Get all delegations to a validator
-	r.HandleFunc(
-		"/staking/validators/{validatorAddr}/delegations",
-		validatorDelegationsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/validators/{validatorAddr}/delegations", validatorDelegationsHandlerFn(clientCtx)).Methods("GET")
 
 	// Get all unbonding delegations from a validator
-	r.HandleFunc(
-		"/staking/validators/{validatorAddr}/unbonding_delegations",
-		validatorUnbondingDelegationsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/validators/{validatorAddr}/unbonding_delegations", validatorUnbondingDelegationsHandlerFn(clientCtx)).Methods("GET")
 
 	// Get HistoricalInfo at a given height
-	r.HandleFunc(
-		"/staking/historical_info/{height}",
-		historicalInfoHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/historical_info/{height}", historicalInfoHandlerFn(clientCtx)).Methods("GET")
 
 	// Get the current state of the staking pool
-	r.HandleFunc(
-		"/staking/pool",
-		poolHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/pool", poolHandlerFn(clientCtx)).Methods("GET")
 
 	// Get the current staking parameter values
-	r.HandleFunc(
-		"/staking/parameters",
-		stakingParamsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/staking/parameters", stakingParamsHandlerFn(clientCtx)).Methods("GET")
 }
 
 // HTTP request handler to query a delegator delegations

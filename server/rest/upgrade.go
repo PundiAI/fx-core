@@ -13,17 +13,12 @@ import (
 // RegisterUpgradeRESTRoutes registers REST routes for the upgrade module under the path specified by routeName.
 // Deprecated
 func RegisterUpgradeRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	r := WithHTTPDeprecationHeaders(rtr)
-	registerUpgradeQueryRoutes(clientCtx, r)
+	registerUpgradeQueryRoutes(clientCtx, WithHTTPDeprecationHeaders(rtr))
 }
 
 func registerUpgradeQueryRoutes(clientCtx client.Context, r *mux.Router) {
-	r.HandleFunc(
-		"/upgrade/current", getCurrentPlanHandler(clientCtx),
-	).Methods("GET")
-	r.HandleFunc(
-		"/upgrade/applied/{name}", getDonePlanHandler(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/upgrade/current", getCurrentPlanHandler(clientCtx)).Methods("GET")
+	r.HandleFunc("/upgrade/applied/{name}", getDonePlanHandler(clientCtx)).Methods("GET")
 }
 
 func getCurrentPlanHandler(clientCtx client.Context) func(http.ResponseWriter, *http.Request) {

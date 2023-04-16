@@ -17,21 +17,13 @@ const RestParamEvidenceHash = "evidence-hash"
 // REST service handler.
 // Deprecated
 func RegisterEvidenceRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	r := WithHTTPDeprecationHeaders(rtr)
-
-	registerEvidenceQueryRoutes(clientCtx, r)
+	registerEvidenceQueryRoutes(clientCtx, WithHTTPDeprecationHeaders(rtr))
 }
 
 func registerEvidenceQueryRoutes(clientCtx client.Context, r *mux.Router) {
-	r.HandleFunc(
-		fmt.Sprintf("/evidence/{%s}", RestParamEvidenceHash),
-		queryEvidenceHandler(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc(fmt.Sprintf("/evidence/{%s}", RestParamEvidenceHash), queryEvidenceHandler(clientCtx)).Methods(MethodGet)
 
-	r.HandleFunc(
-		"/evidence",
-		queryAllEvidenceHandler(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/evidence", queryAllEvidenceHandler(clientCtx)).Methods(MethodGet)
 }
 
 func queryEvidenceHandler(clientCtx client.Context) http.HandlerFunc {

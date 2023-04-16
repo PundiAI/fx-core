@@ -23,7 +23,7 @@ const (
 	RestDepositor      = "depositor"
 	RestVoter          = "voter"
 	RestProposalStatus = "status"
-	RestNumLimit       = "limit"
+	// RestNumLimit       = "limit"
 
 	defaultPage  = 1
 	defaultLimit = 30 // should be consistent with tendermint/tendermint/rpc/core/pipe.go:19
@@ -32,8 +32,7 @@ const (
 // RegisterGovRESTRoutes
 // Deprecated
 func RegisterGovRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	r := WithHTTPDeprecationHeaders(rtr)
-	registerGovQueryRoutes(clientCtx, r)
+	registerGovQueryRoutes(clientCtx, WithHTTPDeprecationHeaders(rtr))
 }
 
 func registerGovQueryRoutes(clientCtx client.Context, r *mux.Router) {

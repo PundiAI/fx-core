@@ -14,58 +14,33 @@ import (
 // RegisterDistributeRESTRoutes
 // Deprecated
 func RegisterDistributeRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	r := WithHTTPDeprecationHeaders(rtr)
-	registerDistributeQueryRoutes(clientCtx, r)
+	registerDistributeQueryRoutes(clientCtx, WithHTTPDeprecationHeaders(rtr))
 }
 
 func registerDistributeQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	// Get the total rewards balance from all delegations
-	r.HandleFunc(
-		"/distribution/delegators/{delegatorAddr}/rewards",
-		delegatorRewardsHandlerFn(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/distribution/delegators/{delegatorAddr}/rewards", delegatorRewardsHandlerFn(clientCtx)).Methods(MethodGet)
 
 	// Query a delegation reward
-	r.HandleFunc(
-		"/distribution/delegators/{delegatorAddr}/rewards/{validatorAddr}",
-		delegationRewardsHandlerFn(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/distribution/delegators/{delegatorAddr}/rewards/{validatorAddr}", delegationRewardsHandlerFn(clientCtx)).Methods(MethodGet)
 
 	// Get the rewards withdrawal address
-	r.HandleFunc(
-		"/distribution/delegators/{delegatorAddr}/withdraw_address",
-		delegatorWithdrawalAddrHandlerFn(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/distribution/delegators/{delegatorAddr}/withdraw_address", delegatorWithdrawalAddrHandlerFn(clientCtx)).Methods(MethodGet)
 
 	// Validator distribution information
-	r.HandleFunc(
-		"/distribution/validators/{validatorAddr}",
-		validatorInfoHandlerFn(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/distribution/validators/{validatorAddr}", validatorInfoHandlerFn(clientCtx)).Methods(MethodGet)
 
 	// Commission and self-delegation rewards of a single a validator
-	r.HandleFunc(
-		"/distribution/validators/{validatorAddr}/rewards",
-		validatorRewardsHandlerFn(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/distribution/validators/{validatorAddr}/rewards", validatorRewardsHandlerFn(clientCtx)).Methods(MethodGet)
 
 	// Outstanding rewards of a single validator
-	r.HandleFunc(
-		"/distribution/validators/{validatorAddr}/outstanding_rewards",
-		outstandingRewardsHandlerFn(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/distribution/validators/{validatorAddr}/outstanding_rewards", outstandingRewardsHandlerFn(clientCtx)).Methods(MethodGet)
 
 	// Get the current distribution parameter values
-	r.HandleFunc(
-		"/distribution/parameters",
-		distributionParamsHandlerFn(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/distribution/parameters", distributionParamsHandlerFn(clientCtx)).Methods(MethodGet)
 
 	// Get the amount held in the community pool
-	r.HandleFunc(
-		"/distribution/community_pool",
-		communityPoolHandler(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/distribution/community_pool", communityPoolHandler(clientCtx)).Methods(MethodGet)
 }
 
 // HTTP request handler to query the total rewards balance from all delegations

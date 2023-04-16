@@ -13,25 +13,15 @@ import (
 // RegisterSlashingRESTRoutes
 // Deprecated
 func RegisterSlashingRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	r := WithHTTPDeprecationHeaders(rtr)
-	registerSlashingQueryRoutes(clientCtx, r)
+	registerSlashingQueryRoutes(clientCtx, WithHTTPDeprecationHeaders(rtr))
 }
 
 func registerSlashingQueryRoutes(clientCtx client.Context, r *mux.Router) {
-	r.HandleFunc(
-		"/slashing/validators/{validatorPubKey}/signing_info",
-		signingInfoHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/slashing/validators/{validatorPubKey}/signing_info", signingInfoHandlerFn(clientCtx)).Methods("GET")
 
-	r.HandleFunc(
-		"/slashing/signing_infos",
-		signingInfoHandlerListFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/slashing/signing_infos", signingInfoHandlerListFn(clientCtx)).Methods("GET")
 
-	r.HandleFunc(
-		"/slashing/parameters",
-		querySlashingParamsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/slashing/parameters", querySlashingParamsHandlerFn(clientCtx)).Methods("GET")
 }
 
 // Deprecated: http request handler to query signing info

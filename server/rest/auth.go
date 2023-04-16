@@ -24,18 +24,12 @@ import (
 // Deprecated
 func RegisterAuthRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 	r := WithHTTPDeprecationHeaders(rtr)
-	r.HandleFunc(
-		"/auth/accounts/{address}", QueryAccountRequestHandlerFn(authtypes.StoreKey, clientCtx),
-	).Methods(MethodGet)
-
-	r.HandleFunc(
-		"/auth/params",
-		queryAuthParamsHandler(clientCtx),
-	).Methods(MethodGet)
+	r.HandleFunc("/auth/accounts/{address}", QueryAccountRequestHandlerFn(clientCtx)).Methods(MethodGet)
+	r.HandleFunc("/auth/params", queryAuthParamsHandler(clientCtx)).Methods(MethodGet)
 }
 
 // QueryAccountRequestHandlerFn is the query accountREST Handler.
-func QueryAccountRequestHandlerFn(storeName string, clientCtx client.Context) http.HandlerFunc {
+func QueryAccountRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32addr := vars["address"]

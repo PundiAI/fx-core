@@ -12,25 +12,15 @@ import (
 // RegisterMintRESTRoutes registers minting module REST handlers on the provided router.
 // Deprecated
 func RegisterMintRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	r := WithHTTPDeprecationHeaders(rtr)
-	registerMintQueryRoutes(clientCtx, r)
+	registerMintQueryRoutes(clientCtx, WithHTTPDeprecationHeaders(rtr))
 }
 
 func registerMintQueryRoutes(clientCtx client.Context, r *mux.Router) {
-	r.HandleFunc(
-		"/minting/parameters",
-		queryMintParamsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/minting/parameters", queryMintParamsHandlerFn(clientCtx)).Methods("GET")
 
-	r.HandleFunc(
-		"/minting/inflation",
-		queryInflationHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/minting/inflation", queryInflationHandlerFn(clientCtx)).Methods("GET")
 
-	r.HandleFunc(
-		"/minting/annual-provisions",
-		queryAnnualProvisionsHandlerFn(clientCtx),
-	).Methods("GET")
+	r.HandleFunc("/minting/annual-provisions", queryAnnualProvisionsHandlerFn(clientCtx)).Methods("GET")
 }
 
 func queryMintParamsHandlerFn(clientCtx client.Context) http.HandlerFunc {

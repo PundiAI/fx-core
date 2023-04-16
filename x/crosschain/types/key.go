@@ -78,7 +78,7 @@ var (
 	LastSlashedBatchBlock = []byte{0x30}
 
 	// Deprecated: LastProposalBlockHeight
-	LastProposalBlockHeight = []byte{0x31}
+	// LastProposalBlockHeight = []byte{0x31}
 
 	// LastObservedBlockHeightKey indexes the latest observed external block height
 	LastObservedBlockHeightKey = []byte{0x32}
