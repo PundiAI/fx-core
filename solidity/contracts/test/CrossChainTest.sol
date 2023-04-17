@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: Apache-2.0
+
+pragma solidity ^0.8.0;
+
+import "../crosschain/CrossChainCall.sol";
+import "../fip20/IFIP20Upgradable.sol";
+
+contract CrossChainTest {
+    function crossChain(
+        address _token,
+        string memory _receipt,
+        uint256 _amount,
+        uint256 _fee,
+        bytes32 _target,
+        string memory _memo
+    ) external payable returns (bool) {
+
+        if (_token != address(0)) {
+            IFIP20Upgradable(_token).transferFrom(
+                msg.sender,
+                address(this),
+                _amount + _fee
+            );
+            IFIP20Upgradable(_token).approve(CrossChainCall.CrossChainAddress, _amount + _fee);
+        }
+
+        if (_token != address(0)) {
+            uint256 allowance = IFIP20Upgradable(_token).allowance(
+                address(this),
+                CrossChainCall.CrossChainAddress
+            );
+            require(
+                allowance == _amount + _fee,
+                "allowance not equal amount + fee"
+            );
+        } else {
+            require(
+                msg.value == _amount + _fee,
+                "msg.value not equal amount + fee"
+            );
+        }
+
+        return CrossChainCall.crossChain(_token, _receipt, _amount, _fee, _target, _memo);
+    }
+
+    function cancelSendToExternal(
+        string memory _chain,
+        uint256 _txID
+    ) external returns (bool) {
+        return CrossChainCall.cancelSendToExternal(_chain, _txID);
+    }
+
+    function increaseBridgeFee(
+        string memory _chain,
+        uint256 _txID,
+        address _token,
+        uint256 _fee
+    ) external payable returns (bool) {
+        return CrossChainCall.increaseBridgeFee(_chain, _txID, _token, _fee);
+    }
+}
