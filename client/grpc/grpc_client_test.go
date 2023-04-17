@@ -6,10 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/functionx/fx-core/v4/client/grpc"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
 )
 
 func TestClient_QueryBalances(t *testing.T) {
-	t.SkipNow()
+	helpers.SkipTest(t, "Skipping local test:", t.Name())
+
 	client, err := grpc.DailClient("http://127.0.0.1:9090")
 	assert.NoError(t, err)
 

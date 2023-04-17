@@ -29,9 +29,8 @@ import (
 )
 
 func TestUseExportGenesisDataRunNode(t *testing.T) {
-	if !helpers.IsLocalTest() {
-		t.Skip("skipping local test", t.Name())
-	}
+	helpers.SkipTest(t, "Skipping local test: ", t.Name())
+
 	// set sdk.Config and get network config
 	networkConfig := testutil.DefaultNetworkConfig(app.MakeEncodingConfig())
 

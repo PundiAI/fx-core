@@ -9,10 +9,12 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/functionx/fx-core/v4/client/jsonrpc"
+	"github.com/functionx/fx-core/v4/testutil/helpers"
 )
 
 func TestNewWsClient(t *testing.T) {
-	t.SkipNow()
+	helpers.SkipTest(t, "Skipping local test:", t.Name())
+
 	client, err := jsonrpc.NewWsClient("ws://localhost:26657/websocket", context.Background())
 	assert.NoError(t, err)
 	client.Logger = log.NewTMLogger(os.Stdout)

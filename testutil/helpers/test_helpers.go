@@ -461,6 +461,12 @@ func IsLocalTest() bool {
 	return os.Getenv("LOCAL_TEST") == "true"
 }
 
+func SkipTest(t *testing.T, msg ...any) {
+	if !IsLocalTest() {
+		t.Skip(msg...)
+	}
+}
+
 func NewRandSymbol() string {
 	return strings.ToUpper(fmt.Sprintf("a%sb", tmrand.Str(5)))
 }

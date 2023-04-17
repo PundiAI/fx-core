@@ -32,9 +32,8 @@ import (
 )
 
 func Test_Upgrade(t *testing.T) {
-	if !helpers.IsLocalTest() {
-		t.Skip("skipping local test", t.Name())
-	}
+	helpers.SkipTest(t, "Skipping local test: ", t.Name())
+
 	fxtypes.SetConfig(true)
 
 	testCases := []struct {
