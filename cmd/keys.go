@@ -40,6 +40,7 @@ The pass backend requires GnuPG: https://gnupg.org/
 	}
 
 	cmd.AddCommand(
+		keys.MnemonicKeyCommand(),
 		fxkeys.AddKeyCommand(),
 		fxkeys.ExportKeyCommand(),
 		fxkeys.ImportKeyCommand(),
@@ -47,8 +48,9 @@ The pass backend requires GnuPG: https://gnupg.org/
 		fxkeys.ShowKeysCmd(),
 		fxkeys.ParseAddressCommand(),
 		keys.DeleteKeyCommand(),
+		keys.RenameKeyCommand(),
+		keys.ParseKeyStringCommand(),
 		keys.MigrateCommand(),
-		keys.MnemonicKeyCommand(),
 	)
 
 	cmd.PersistentFlags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
