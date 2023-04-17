@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -19,6 +20,15 @@ import (
 	v4 "github.com/functionx/fx-core/v4/app/upgrades/v4"
 	"github.com/functionx/fx-core/v4/testutil/helpers"
 	fxtypes "github.com/functionx/fx-core/v4/types"
+	arbitrumtypes "github.com/functionx/fx-core/v4/x/arbitrum/types"
+	avalanchetypes "github.com/functionx/fx-core/v4/x/avalanche/types"
+	bsctypes "github.com/functionx/fx-core/v4/x/bsc/types"
+	crosschaintypes "github.com/functionx/fx-core/v4/x/crosschain/types"
+	erc20types "github.com/functionx/fx-core/v4/x/erc20/types"
+	ethtypes "github.com/functionx/fx-core/v4/x/eth/types"
+	optimismtypes "github.com/functionx/fx-core/v4/x/optimism/types"
+	polygontypes "github.com/functionx/fx-core/v4/x/polygon/types"
+	trontypes "github.com/functionx/fx-core/v4/x/tron/types"
 )
 
 func Test_Upgrade(t *testing.T) {
@@ -55,6 +65,8 @@ func Test_Upgrade(t *testing.T) {
 	ctx := newContext(t, myApp)
 
 	checkDenomMetaData(t, ctx, myApp, true)
+	checkERC20ParamStore(t, ctx, myApp, true)
+	checkCrossChainParamStore(t, ctx, myApp, true)
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -69,6 +81,8 @@ func Test_Upgrade(t *testing.T) {
 
 	checkGetAccountAddressByID(t, ctx, myApp)
 	checkDenomMetaData(t, ctx, myApp, false)
+	checkERC20ParamStore(t, ctx, myApp, false)
+	checkCrossChainParamStore(t, ctx, myApp, false)
 
 	myApp.EthKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
 	myApp.BscKeeper.EndBlocker(ctx.WithBlockHeight(ctx.BlockHeight() + 1))
@@ -105,17 +119,101 @@ func checkDenomMetaData(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgrade
 	for _, da := range denomAlias {
 		denomKey := da.Denom
 		if isUpgradeBefore {
-			denomKey = da.Denom + da.Denom
+			denomKey = da.Denom
+			_, found := myApp.BankKeeper.GetDenomMetaData(ctx, denomKey)
+			assert.False(t, found)
+			continue
 		}
-		md, found := myApp.BankKeeper.GetDenomMetaData(ctx, denomKey)
-		assert.True(t, found)
-		assert.True(t, len(md.DenomUnits) > 0)
-		assert.True(t, len(md.DenomUnits[0].Aliases) > 0)
-		if isUpgradeBefore {
-			assert.False(t, contain(md.DenomUnits[0].Aliases, da.Alias))
+		// todo testnet not deployed weth
+		if os.Getenv("CHAIN_ID") == fxtypes.TestnetChainId && da.Denom == "weth" {
+			_, found := myApp.BankKeeper.GetDenomMetaData(ctx, denomKey)
+			assert.False(t, found)
 		} else {
-			assert.True(t, contain(md.DenomUnits[0].Aliases, da.Alias))
+			md, found := myApp.BankKeeper.GetDenomMetaData(ctx, denomKey)
+			assert.True(t, found)
+			assert.True(t, len(md.DenomUnits) > 0)
+			assert.True(t, len(md.DenomUnits[0].Aliases) > 0)
+			if isUpgradeBefore {
+				assert.False(t, contain(md.DenomUnits[0].Aliases, da.Alias))
+			} else {
+				assert.True(t, contain(md.DenomUnits[0].Aliases, da.Alias))
+			}
 		}
+	}
+}
+
+func checkERC20ParamStore(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBefore bool) {
+	subspace := myApp.GetSubspace(erc20types.ModuleName)
+	var subspaceParams erc20types.Params
+	if isUpgradeBefore {
+		subspace = subspace.WithKeyTable(erc20types.ParamKeyTable())
+		subspace.GetParamSet(ctx, &subspaceParams)
+		params := myApp.Erc20Keeper.GetParams(ctx)
+		assert.NotEqualValues(t, params.EnableErc20, subspaceParams.EnableErc20)
+		assert.NotEqualValues(t, params.EnableEVMHook, subspaceParams.EnableEVMHook)
+		assert.NotEqualValues(t, params.IbcTimeout, subspaceParams.IbcTimeout)
+		return
+	}
+	subspace.GetParamSet(ctx, &subspaceParams)
+	params := myApp.Erc20Keeper.GetParams(ctx)
+	assert.EqualValues(t, params.EnableErc20, subspaceParams.EnableErc20)
+	assert.EqualValues(t, params.EnableEVMHook, subspaceParams.EnableEVMHook)
+	assert.EqualValues(t, params.IbcTimeout, subspaceParams.IbcTimeout)
+}
+
+func checkCrossChainParamStore(t *testing.T, ctx sdk.Context, myApp *app.App, isUpgradeBefore bool) {
+	crosschainsModule := []string{avalanchetypes.ModuleName, bsctypes.ModuleName, ethtypes.ModuleName, polygontypes.ModuleName, trontypes.ModuleName}
+	for _, moduleName := range crosschainsModule {
+		subspace := myApp.GetSubspace(moduleName)
+		var subspaceParams crosschaintypes.Params
+		if isUpgradeBefore {
+			subspace = subspace.WithKeyTable(crosschaintypes.ParamKeyTable())
+			subspace.GetParamSet(ctx, &subspaceParams)
+			response, err := myApp.CrosschainKeeper.Params(ctx, &crosschaintypes.QueryParamsRequest{ChainName: moduleName})
+			assert.NoError(t, err)
+			params := response.Params
+			assert.NotEqualValues(t, params.GravityId, subspaceParams.GravityId)
+			assert.NotEqualValues(t, params.AverageBlockTime, subspaceParams.AverageBlockTime)
+			assert.NotEqualValues(t, params.AverageExternalBlockTime, subspaceParams.AverageExternalBlockTime)
+			assert.NotEqualValues(t, params.ExternalBatchTimeout, subspaceParams.ExternalBatchTimeout)
+			assert.NotEqualValues(t, params.SignedWindow, subspaceParams.SignedWindow)
+			assert.NotEqualValues(t, params.SlashFraction, subspaceParams.SlashFraction)
+			assert.NotEqualValues(t, params.OracleSetUpdatePowerChangePercent, subspaceParams.OracleSetUpdatePowerChangePercent)
+			assert.NotEqualValues(t, params.IbcTransferTimeoutHeight, subspaceParams.IbcTransferTimeoutHeight)
+			assert.NotEqualValues(t, params.DelegateThreshold, subspaceParams.DelegateThreshold)
+			assert.NotEqualValues(t, params.DelegateMultiple, subspaceParams.DelegateMultiple)
+			return
+		}
+		subspace.GetParamSet(ctx, &subspaceParams)
+		response, err := myApp.CrosschainKeeper.Params(ctx, &crosschaintypes.QueryParamsRequest{ChainName: moduleName})
+		assert.NoError(t, err)
+		params := response.Params
+		assert.EqualValues(t, params.GravityId, subspaceParams.GravityId)
+		assert.EqualValues(t, params.AverageBlockTime, subspaceParams.AverageBlockTime)
+		assert.EqualValues(t, params.AverageExternalBlockTime, subspaceParams.AverageExternalBlockTime)
+		assert.EqualValues(t, params.ExternalBatchTimeout, subspaceParams.ExternalBatchTimeout)
+		assert.EqualValues(t, params.SignedWindow, subspaceParams.SignedWindow)
+		assert.EqualValues(t, params.SlashFraction, subspaceParams.SlashFraction)
+		assert.EqualValues(t, params.OracleSetUpdatePowerChangePercent, subspaceParams.OracleSetUpdatePowerChangePercent)
+		assert.EqualValues(t, params.IbcTransferTimeoutHeight, subspaceParams.IbcTransferTimeoutHeight)
+		assert.EqualValues(t, params.DelegateThreshold, subspaceParams.DelegateThreshold)
+		assert.EqualValues(t, params.DelegateMultiple, subspaceParams.DelegateMultiple)
+	}
+	defaultParams := crosschaintypes.DefaultParams()
+	for _, newModule := range []string{arbitrumtypes.ModuleName, optimismtypes.ModuleName} {
+		response, err := myApp.CrosschainKeeper.Params(ctx, &crosschaintypes.QueryParamsRequest{ChainName: newModule})
+		assert.NoError(t, err)
+		params := response.Params
+		assert.EqualValues(t, params.GravityId, fmt.Sprintf("fx-%s-bridge", newModule))
+		assert.EqualValues(t, params.AverageBlockTime, defaultParams.AverageBlockTime)
+		assert.EqualValues(t, params.AverageExternalBlockTime, 2000)
+		assert.EqualValues(t, params.ExternalBatchTimeout, defaultParams.ExternalBatchTimeout)
+		assert.EqualValues(t, params.SignedWindow, defaultParams.SignedWindow)
+		assert.EqualValues(t, params.SlashFraction, defaultParams.SlashFraction)
+		assert.EqualValues(t, params.OracleSetUpdatePowerChangePercent, defaultParams.OracleSetUpdatePowerChangePercent)
+		assert.EqualValues(t, params.IbcTransferTimeoutHeight, defaultParams.IbcTransferTimeoutHeight)
+		assert.EqualValues(t, params.DelegateThreshold, defaultParams.DelegateThreshold)
+		assert.EqualValues(t, params.DelegateMultiple, defaultParams.DelegateMultiple)
 	}
 }
 
