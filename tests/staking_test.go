@@ -127,41 +127,46 @@ func (suite *IntegrationTest) StakingContractTest() {
 
 func (suite *IntegrationTest) StakingSharesTest() {
 	var (
-		delSigner     = helpers.NewSigner(helpers.NewEthPrivKey())
-		receiptSigner = helpers.NewSigner(helpers.NewEthPrivKey())
-		valAddr       = suite.staking.GetFirstValAddr()
-		initBalance   = sdkmath.NewInt(2000).MulRaw(1e18)
-		delBalance    = sdkmath.NewInt(1000).MulRaw(1e18)
+		delSigner          = helpers.NewSigner(helpers.NewEthPrivKey())
+		receiptSigner      = helpers.NewSigner(helpers.NewEthPrivKey())
+		valAddr            = suite.staking.GetFirstValAddr()
+		initBalance        = sdkmath.NewInt(2000).MulRaw(1e18)
+		delBalance         = sdkmath.NewInt(1000).MulRaw(1e18)
+		receiptInitBalance = sdkmath.NewInt(100).MulRaw(1e18)
 	)
 
 	suite.Send(delSigner.AccAddress(), sdk.NewCoin(fxtypes.DefaultDenom, initBalance))
+	receiptAccAddr := receiptSigner.AccAddress()
+	receiptEthAddr := receiptSigner.Address()
+	suite.Send(receiptAccAddr, sdk.NewCoin(fxtypes.DefaultDenom, receiptInitBalance))
 
 	// delegate
 	receipt := suite.staking.Delegate(delSigner.PrivKey(), valAddr.String(), delBalance.BigInt())
 	txFee1 := suite.evm.TxFee(receipt.TxHash)
 
 	// check receipt delegate
-	_, amount := suite.staking.Delegation(valAddr.String(), receiptSigner.Address())
+	_, amount := suite.staking.Delegation(valAddr.String(), receiptEthAddr)
 	suite.Require().Equal(big.NewInt(0).String(), amount.String())
 
 	// check del delegate
-	shares, amount := suite.staking.Delegation(valAddr.String(), delSigner.Address())
+	delSignerAddr := delSigner.Address()
+	shares, amount := suite.staking.Delegation(valAddr.String(), delSignerAddr)
 	suite.Require().Equal(delBalance.BigInt().String(), amount.String())
 
 	halfShares := big.NewInt(0).Div(shares, big.NewInt(2))
 
 	// transfer shares
-	receipt = suite.staking.TransferShares(delSigner.PrivKey(), valAddr.String(), receiptSigner.Address(), halfShares)
+	receipt = suite.staking.TransferShares(delSigner.PrivKey(), valAddr.String(), receiptEthAddr, halfShares)
 	txFee2 := suite.evm.TxFee(receipt.TxHash)
 
-	reward1 := suite.staking.LogReward(receipt.Logs, valAddr.String(), delSigner.Address())
+	reward1 := suite.staking.LogReward(receipt.Logs, valAddr.String(), delSignerAddr)
 
 	// check del delegate
-	shares, _ = suite.staking.Delegation(valAddr.String(), delSigner.Address())
+	shares, _ = suite.staking.Delegation(valAddr.String(), delSignerAddr)
 	suite.Require().Equal(shares, halfShares)
 
 	// check receipt delegate
-	shares, _ = suite.staking.Delegation(valAddr.String(), receiptSigner.Address())
+	shares, _ = suite.staking.Delegation(valAddr.String(), receiptEthAddr)
 	suite.Require().Equal(shares, halfShares)
 
 	// check del balance
@@ -171,18 +176,18 @@ func (suite *IntegrationTest) StakingSharesTest() {
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// transfer shares
-	receipt = suite.staking.TransferShares(delSigner.PrivKey(), valAddr.String(), receiptSigner.Address(), halfShares)
+	receipt = suite.staking.TransferShares(delSigner.PrivKey(), valAddr.String(), receiptEthAddr, halfShares)
 	txFee3 := suite.evm.TxFee(receipt.TxHash)
 
-	reward2 := suite.staking.LogReward(receipt.Logs, valAddr.String(), delSigner.Address())
-	reward3 := suite.staking.LogReward(receipt.Logs, valAddr.String(), receiptSigner.Address())
+	reward2 := suite.staking.LogReward(receipt.Logs, valAddr.String(), delSignerAddr)
+	reward3 := suite.staking.LogReward(receipt.Logs, valAddr.String(), receiptEthAddr)
 
 	// check del delegate
-	shares, _ = suite.staking.Delegation(valAddr.String(), delSigner.Address())
+	shares, _ = suite.staking.Delegation(valAddr.String(), delSignerAddr)
 	suite.Require().Equal(shares.String(), big.NewInt(0).String())
 
 	// check receipt delegate
-	shares, _ = suite.staking.Delegation(valAddr.String(), receiptSigner.Address())
+	shares, _ = suite.staking.Delegation(valAddr.String(), receiptEthAddr)
 	suite.Require().Equal(shares.String(), big.NewInt(0).Mul(big.NewInt(2), halfShares).String())
 
 	// check del balance
@@ -192,33 +197,34 @@ func (suite *IntegrationTest) StakingSharesTest() {
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// check receipt balance
-	delBal = suite.QueryBalances(receiptSigner.AccAddress())
-	suite.Require().Equal(sdkmath.NewIntFromBigInt(reward3).String(), delBal.AmountOf(fxtypes.DefaultDenom).String())
+	receiptExpectBalance := receiptInitBalance.Add(sdkmath.NewIntFromBigInt(reward3))
+	suite.CheckBalance(receiptAccAddr, sdk.NewCoin(fxtypes.DefaultDenom, receiptExpectBalance))
 
 	// approve
-	receipt = suite.staking.ApproveShares(receiptSigner.PrivKey(), valAddr.String(), delSigner.Address(), big.NewInt(0).Mul(big.NewInt(3), halfShares))
+	receipt = suite.staking.ApproveShares(receiptSigner.PrivKey(), valAddr.String(), delSignerAddr, big.NewInt(0).Mul(big.NewInt(3), halfShares))
 	txFee4 := suite.evm.TxFee(receipt.TxHash)
 
 	// check approve
-	allowance := suite.staking.AllowanceShares(valAddr.String(), receiptSigner.Address(), delSigner.Address())
+	allowance := suite.staking.AllowanceShares(valAddr.String(), receiptEthAddr, delSignerAddr)
 	suite.Require().Equal(big.NewInt(0).Mul(big.NewInt(3), halfShares).String(), allowance.String())
 
 	// check receipt balance
-	delBal = suite.QueryBalances(receiptSigner.AccAddress())
-	suite.Require().Equal(delBal.AmountOf(fxtypes.DefaultDenom).String(), big.NewInt(0).Sub(reward3, txFee4).String())
+	receiptExpectBalance = receiptExpectBalance.Sub(sdkmath.NewIntFromBigInt(txFee4))
+	suite.CheckBalance(receiptAccAddr, sdk.NewCoin(fxtypes.DefaultDenom, receiptExpectBalance))
 
 	// transfer from
-	receipt = suite.staking.TransferFromShares(delSigner.PrivKey(), valAddr.String(), receiptSigner.Address(), delSigner.Address(), halfShares)
+	receipt = suite.staking.TransferFromShares(delSigner.PrivKey(), valAddr.String(), receiptEthAddr, delSignerAddr, halfShares)
 	txFee5 := suite.evm.TxFee(receipt.TxHash)
 
-	reward4 := suite.staking.LogReward(receipt.Logs, valAddr.String(), receiptSigner.Address())
+	reward4 := suite.staking.LogReward(receipt.Logs, valAddr.String(), receiptEthAddr)
+	receiptExpectBalance = receiptExpectBalance.Add(sdkmath.NewIntFromBigInt(reward4))
 
 	// check del delegate
-	shares, _ = suite.staking.Delegation(valAddr.String(), delSigner.Address())
+	shares, _ = suite.staking.Delegation(valAddr.String(), delSignerAddr)
 	suite.Require().Equal(shares.String(), halfShares.String())
 
 	// check receipt delegate
-	shares, _ = suite.staking.Delegation(valAddr.String(), receiptSigner.Address())
+	shares, _ = suite.staking.Delegation(valAddr.String(), receiptEthAddr)
 	suite.Require().Equal(shares.String(), halfShares.String())
 
 	// check del balance
@@ -228,26 +234,26 @@ func (suite *IntegrationTest) StakingSharesTest() {
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// check receipt balance
-	delBal = suite.QueryBalances(receiptSigner.AccAddress())
-	suite.Require().Equal(delBal.AmountOf(fxtypes.DefaultDenom).String(), big.NewInt(0).Sub(big.NewInt(0).Add(reward3, reward4), txFee4).String())
+	suite.CheckBalance(receiptAccAddr, sdk.NewCoin(fxtypes.DefaultDenom, receiptExpectBalance))
 
 	// check approve
-	allowance = suite.staking.AllowanceShares(valAddr.String(), receiptSigner.Address(), delSigner.Address())
+	allowance = suite.staking.AllowanceShares(valAddr.String(), receiptEthAddr, delSignerAddr)
 	suite.Require().Equal(big.NewInt(0).Mul(big.NewInt(2), halfShares).String(), allowance.String())
 
 	// transfer from
-	receipt = suite.staking.TransferFromShares(delSigner.PrivKey(), valAddr.String(), receiptSigner.Address(), delSigner.Address(), halfShares)
+	receipt = suite.staking.TransferFromShares(delSigner.PrivKey(), valAddr.String(), receiptEthAddr, delSignerAddr, halfShares)
 	txFee6 := suite.evm.TxFee(receipt.TxHash)
 
-	reward5 := suite.staking.LogReward(receipt.Logs, valAddr.String(), delSigner.Address())
-	reward6 := suite.staking.LogReward(receipt.Logs, valAddr.String(), receiptSigner.Address())
+	reward5 := suite.staking.LogReward(receipt.Logs, valAddr.String(), delSignerAddr)
+	reward6 := suite.staking.LogReward(receipt.Logs, valAddr.String(), receiptEthAddr)
+	receiptExpectBalance = receiptExpectBalance.Add(sdkmath.NewIntFromBigInt(reward6))
 
 	// check del delegate
-	shares, _ = suite.staking.Delegation(valAddr.String(), delSigner.Address())
+	shares, _ = suite.staking.Delegation(valAddr.String(), delSignerAddr)
 	suite.Require().Equal(shares.String(), big.NewInt(0).Mul(big.NewInt(2), halfShares).String())
 
 	// check receipt delegate
-	shares, _ = suite.staking.Delegation(valAddr.String(), receiptSigner.Address())
+	shares, _ = suite.staking.Delegation(valAddr.String(), receiptEthAddr)
 	suite.Require().Equal(shares.String(), big.NewInt(0).String())
 
 	// check del balance
@@ -258,12 +264,10 @@ func (suite *IntegrationTest) StakingSharesTest() {
 	suite.Require().Equal(initBalance.String(), total.String())
 
 	// check receipt balance
-	delBal = suite.QueryBalances(receiptSigner.AccAddress())
-	total = sdkmath.NewIntFromBigInt(reward3).Add(sdkmath.NewIntFromBigInt(reward4)).Add(sdkmath.NewIntFromBigInt(reward6)).Sub(sdkmath.NewIntFromBigInt(txFee4))
-	suite.Require().Equal(delBal.AmountOf(fxtypes.DefaultDenom).String(), total.String())
+	suite.CheckBalance(receiptAccAddr, sdk.NewCoin(fxtypes.DefaultDenom, receiptExpectBalance))
 
 	// check approve
-	allowance = suite.staking.AllowanceShares(valAddr.String(), receiptSigner.Address(), delSigner.Address())
+	allowance = suite.staking.AllowanceShares(valAddr.String(), receiptEthAddr, delSignerAddr)
 	suite.Require().Equal(halfShares.String(), allowance.String())
 }
 
