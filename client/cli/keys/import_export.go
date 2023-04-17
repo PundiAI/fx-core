@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -152,7 +153,7 @@ func ImportKeyCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				algoStr := clientCtx.Viper.GetString(flags.FlagKeyAlgorithm)
+				algoStr, _ := cmd.Flags().GetString(flags.FlagKeyAlgorithm)
 				var armoPrivKey string
 				if hd.PubKeyType(algoStr) == hd.Secp256k1Type {
 					armoPrivKey = crypto.EncryptArmorPrivKey(&secp256k1.PrivKey{Key: ethcrypto.FromECDSA(priv)}, "", string(hd.Secp256k1Type))
@@ -165,12 +166,12 @@ func ImportKeyCommand() *cobra.Command {
 				return clientCtx.Keyring.ImportPrivKey(args[0], armoPrivKey, "")
 			}
 			passphrase, err := input.GetPassword("Enter passphrase to decrypt your key:", buf)
-			if err != nil {
+			if err != nil && !strings.Contains(err.Error(), "password must be at least") {
 				return err
 			}
 			key, err := keystore.DecryptKey(bz, passphrase)
 			if err == nil {
-				algoStr := clientCtx.Viper.GetString(flags.FlagKeyAlgorithm)
+				algoStr, _ := cmd.Flags().GetString(flags.FlagKeyAlgorithm)
 				var armoPrivKey string
 				if hd.PubKeyType(algoStr) == hd.Secp256k1Type {
 					armoPrivKey = crypto.EncryptArmorPrivKey(&secp256k1.PrivKey{Key: ethcrypto.FromECDSA(key.PrivateKey)}, "", string(hd.Secp256k1Type))

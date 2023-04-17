@@ -156,7 +156,7 @@ func getBlockchain(cliCtx client.Context, serverCtx *server.Context) blockchain 
 	newClient := grpc.NewClient(cliCtx)
 	_, err := newClient.GetBlockHeight()
 	if err == nil {
-		fmt.Printf("\tRemote Node: %v or %v\n", cliCtx.Viper.Get(flags.FlagGRPC), cliCtx.Viper.Get(flags.FlagNode))
+		fmt.Printf("\tRemote Node: %v or %v\n", serverCtx.Viper.Get(flags.FlagGRPC), serverCtx.Viper.Get(flags.FlagNode))
 		return newClient
 	} else {
 		fmt.Printf("\tRemote Node: %s/datas\n", serverCtx.Config.RootDir)
