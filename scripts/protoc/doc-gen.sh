@@ -43,7 +43,8 @@ if [ ! -f "./build/docs/cosmos-sdk/README.md" ]; then
   (
     cd build/docs
     unzip -q -o "./cosmos-sdk-proto.zip"
-    mv $(ls | grep cosmos-sdk | grep -v grep | grep -v zip) cosmos-sdk
+    # shellcheck disable=SC2010
+    mv "$(ls | grep cosmos-sdk | grep -v grep | grep -v zip)" cosmos-sdk
     rm -rf cosmos-sdk/.git
   )
 fi
@@ -57,7 +58,8 @@ if [ ! -f ./build/docs/ibc-go/README.md ]; then
   (
     cd build/docs
     unzip -q -o "./ibc-go-proto.zip"
-    mv $(ls | grep ibc-go | grep -v grep | grep -v zip) ibc-go
+    # shellcheck disable=SC2010
+    mv "$(ls | grep ibc-go | grep -v grep | grep -v zip)" ibc-go
     rm -rf ibc-go/.git
   )
 fi
@@ -71,7 +73,8 @@ if [ ! -f ./build/docs/ethermint/README.md ]; then
   (
     cd build/docs
     unzip -q -o "./ethermint-proto.zip"
-    mv $(ls | grep ethermint | grep -v grep | grep -v zip) ethermint
+    # shellcheck disable=SC2010
+    mv "$(ls | grep ethermint | grep -v grep | grep -v zip)" ethermint
     rm -rf ethermint/.git
   )
 fi

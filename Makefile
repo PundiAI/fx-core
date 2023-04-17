@@ -183,6 +183,11 @@ containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
 containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
 containerProtoDoc=$(PROJECT_NAME)-proto-doc-$(protoVer)
 
+proto-all:
+	@$(MAKE) proto-format
+	@$(MAKE) proto-gen
+	@$(MAKE) proto-doc-gen
+
 proto-format:
 	@echo "Formatting Protobuf files"
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --rm --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace/proto bufbuild/buf:1.15.0 \
@@ -191,20 +196,20 @@ proto-format:
 proto-gen:
 	@echo "Generating Protobuf files"
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./develop/protocgen.sh; fi
+		sh ./scripts/protoc/gen.sh; fi
 	@go mod tidy
 
 proto-doc-gen:
 	@echo "Generating Protobuf Doc"
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoDoc); else docker run --rm --name $(containerProtoDoc) -v $(CURDIR):/workspace --workdir /workspace $(protoSwaggerName) \
-    		sh ./develop/protoc-doc-gen.sh; fi
+    		sh ./scripts/protoc/doc-gen.sh; fi
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoSwaggerName) \
-		sh ./develop/protoc-swagger-gen.sh; fi
+		sh ./scripts/protoc/swagger-gen.sh; fi
 
-.PHONY: proto-format proto-gen proto-swagger-gen
+.PHONY: proto-format proto-gen proto-doc-gen proto-swagger-gen
 
 statik: $(STATIK)
 $(STATIK):
