@@ -155,7 +155,16 @@ format-goimports:
 	@go install github.com/incu6us/goimports-reviser/v3@latest
 	@find . -name '*.go' -type f -not -path './build*' -not -name 'statik.go' -not -name '*.pb.go' -not -name '*.pb.gw.go' -exec goimports-reviser -use-cache -rm-unused {} \;
 
-.PHONY: format lint
+lint-shell:
+	# install shellcheck > https://github.com/koalaman/shellcheck
+	grep -r '^#!/usr/bin/env bash' ./scripts | cut -d: -f1 | xargs shellcheck
+
+format-shell:
+	# install shfmt > https://github.com/mvdan/sh
+	go install mvdan.cc/sh/v3/cmd/shfmt@v3.6.0
+	grep -r '^#!/usr/bin/env bash' ./scripts | cut -d: -f1 | xargs shfmt -l -w -i 2
+
+.PHONY: format lint format-goimports lint-shell
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
