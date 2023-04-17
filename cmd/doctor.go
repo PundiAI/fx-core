@@ -28,7 +28,7 @@ import (
 func doctorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "doctor",
-		Short: "Query node gas prices",
+		Short: "Check your system for potential problems",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
