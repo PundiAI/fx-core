@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="60">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>f(x)Core upgrade countdown</title>
+    <style>
+        .text-center {
+            text-align: center;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-left: -16px;
+            margin-right: -16px;
+        }
+
+        .container {
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+        .mb32 {
+            margin-bottom: 32px;
+        }
+
+        h1 {
+            font-size: 60px;
+            font-weight: 700;
+            line-height: 1.17;
+            margin: 0px auto 80px;
+            max-width: 900px;
+        }
+
+        strong {
+            color: rgb(5, 82, 220);
+            font-weight: bold;
+        }
+
+        .coin-title {
+            margin-top: 80px;
+        }
+
+        .countdown {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .number {
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px 0 rgb(35 35 35 / 16%);
+            display: inline-block;
+            height: 170px;
+            position: relative;
+            vertical-align: middle;
+            width: 170px;
+        }
+
+        .value {
+            font-size: 80px;
+            font-weight: 700;
+            line-height: .88;
+            margin-bottom: 16px;
+            padding-top: 32px;
+        }
+
+        .unit {
+            color: #959595;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .line {
+            background-image: linear-gradient(271deg, #148aff, #4dd5ff);
+            border-radius: 0 0 5px 5px;
+            bottom: 0;
+            height: 6px;
+            left: 0;
+            position: absolute;
+            width: 100%;
+        }
+
+        .colon {
+            color: #eee;
+            display: inline-block;
+            font-size: 60px;
+            font-weight: 700;
+            height: 170px;
+            padding-top: 32px;
+            text-align: center;
+            vertical-align: middle;
+            width: 30px;
+        }
+
+        .col-sm-4 {
+            flex-basis: 33.3333333333%;
+            max-width: 33.3333333333%;
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="coin-title">
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-sm-4 mb32"></div>
+            <div class="col-sm-4 mb32">
+                <img src="favicon.svg" style="width: 150px;height: 150px">
+            </div>
+            <div class="col-sm-4 mb32"></div>
+        </div>
+        <h1><strong>f(x)Core</strong> upgrade v3.1.0 countdown
+            <span id="block" style="color: rgb(220,5,5)"/>
+        </h1>
+    </div>
+</div>
+<div class="countdown">
+    <div class="number">
+        <div class="value" id="days">0</div>
+        <div class="unit">DAYS</div>
+        <div class="line"></div>
+    </div>
+    <div class="colon">:</div>
+    <div class="number">
+        <div class="value" id="hours">0</div>
+        <div class="unit">HOURS</div>
+        <div class="line"></div>
+    </div>
+    <div class="colon">:</div>
+    <div class="number">
+        <div class="value" id="minutes">0</div>
+        <div class="unit">MINUTES</div>
+        <div class="line"></div>
+    </div>
+    <div class="colon">:</div>
+    <div class="number">
+        <div class="value" id="seconds">0</div>
+        <div class="unit">SECONDS</div>
+        <div class="line"></div>
+    </div>
+</div>
+
+<script src="./js/index.js"></script>
+<script type="text/javascript">
+    const network = getQueryVariable("network")
+    let upgradeBlockHeight = 8756000;
+    if (network === "testnet") {
+        upgradeBlockHeight = 6578000
+    }
+
+    let myInterval
+
+    function ShowCountDown(leftTime, intervalBlock) {
+        if (leftTime < 0 || intervalBlock < 0) {
+            window.clearInterval(myInterval)
+            window.alert("The countdown has ended and the page will jump to the block browser.")
+            if (network === "testnet") {
+                window.location.replace("https://testnet.starscan.io");
+            } else {
+                window.location.replace("https://starscan.io");
+            }
+            return;
+        }
+        document.getElementById("block").innerHTML = intervalBlock.toString();
+
+        const leftSecond = leftTime / 1000;
+        const days = Math.floor(leftSecond / (60 * 60 * 24));
+        const hour = Math.floor((leftSecond - days * 24 * 60 * 60) / 3600);
+        const minute = Math.floor((leftSecond - days * 24 * 60 * 60 - hour * 3600) / 60);
+        const second = Math.floor(leftSecond - days * 24 * 60 * 60 - hour * 3600 - minute * 60);
+
+        document.getElementById("days").innerHTML = days.toString();
+        document.getElementById("hours").innerHTML = hour.toString();
+        document.getElementById("minutes").innerHTML = minute.toString();
+        document.getElementById("seconds").innerHTML = second.toString();
+    }
+
+    const intervalTimeout = 1000;
+    const block = httpGetJson(getFxJsonrpcUrl() + "/block");
+    const blockTime = new Date(block.block.header.time);
+    const avgBlockTime = getAverageBlockTime(block);
+    const startBlockHeight = Number(block.block.header.height);
+    let leftTime = (upgradeBlockHeight - startBlockHeight) * avgBlockTime
+    ShowCountDown(leftTime, upgradeBlockHeight - startBlockHeight);
+
+    myInterval = window.setInterval(function () {
+        leftTime = leftTime - 1000
+        const curBlockHeight = startBlockHeight + Math.ceil(((new Date().getTime()) - blockTime.getTime()) / avgBlockTime)
+        ShowCountDown(leftTime, upgradeBlockHeight - curBlockHeight);
+    }, intervalTimeout);
+</script>
+</body>
+</html>
